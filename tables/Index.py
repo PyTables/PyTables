@@ -706,7 +706,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.optlevel = optlevel
         """The level of optimization for this index."""
 
-        self.cache = False   # no cache (ranges & bounds) is available initially
+        self.dirtycache = True
+        "No cache (ranges, bounds & sorted) is available initially"
         self.tmpfilename = None # filename for temporal bounds
 
         # Set the version number of this object as an index, not a group.
@@ -748,8 +749,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             nboundsLR += 2 # bounds + begin + end
             # All bounds values (+begin+end) are at the beginning of sortedLR
             self.bebounds = self.sortedLR[:nboundsLR]
-            # No cache (ranges & bounds) is available initially
-            self.cache = False
             return
 
         # The index is new. Initialize the values
@@ -829,8 +828,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # All bounds values (+begin+end) are at the beginning of sortedLR
         nboundsLR = 0   # 0 bounds initially
         self.bebounds = sortedLR[:nboundsLR]
-        # No cache (ranges & bounds) is available initially
-        self.cache = False
 
 
     def _g_updateDependent(self):
@@ -869,7 +866,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.nrows = sorted.nrows
         self.nelements = self.nrows * self.slicesize
         self.nelementsLR = 0  # reset the counter of the last row index to 0
-        self.cache = False   # the cache is dirty now
+        self.dirtycache = True   # the cache is dirty now
 
 
     def appendLastRow(self, arr, tnrows):
@@ -1258,7 +1255,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Do the lookup for values fullfilling the conditions
         tlen = 0
         sorted = self.sorted
-        sorted._initSortedSlice(self, pro=self.is_pro)
+        sorted._initSortedSlice(self)
         if sorted.nrows > 0:
             if self.is_pro and self.stype != "CharType":
                 item1, item2 = item

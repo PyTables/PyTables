@@ -230,8 +230,8 @@ cdef class IndexArray(Array):
       # nrows cannot be cached because it can grow!
       self.l_slicesize = index.slicesize
       self.l_chunksize = index.chunksize
-      if index.is_pro:  #XYX it is necessary to check against cache dirtiness
-        # Define a cache for indices here (until I find a better place for it)
+      if index.is_pro:  # Not necessary to check against cache dirtiness here
+        # Define a LRU cache for indices
         self.indicescache = <NumCache>NumCache(
           shape=(INDICES_CACHE_SIZE, 1), itemsize=8, name="indices")
 
@@ -272,7 +272,7 @@ cdef class IndexArray(Array):
     return
 
 
-  def _initSortedSlice(self, index, pro=0):
+  def _initSortedSlice(self, index):
     "Initialize the structures for doing a binary search"
     cdef long ndims
     cdef int  rank, buflen, cachesize
@@ -306,15 +306,17 @@ cdef class IndexArray(Array):
       # cache some counters in local extension variables
       self.l_slicesize = index.slicesize
       self.l_chunksize = index.chunksize
-    if pro and not index.cache :
-      # This 1st cache is loaded completely in memory
-      index.rvcache = index.ranges[:]
-      NA_getBufferPtrAndSize(index.rvcache._data, 1, &self.rbufrv)
-      index.cache = True
-      # The 2nd level cache and sorted values will be cached in a NumCache
-      self.bounds_ext = <CacheArray>index.bounds
+    if index.is_pro:
+      if index.dirtycache:
+        # The 1st cache is loaded completely in memory and needs to be reloaded
+        index.rvcache = index.ranges[:]
+        NA_getBufferPtrAndSize(index.rvcache._data, 1, &self.rbufrv)
+        # Tell index that the cache is not dirty anymore
+        index.dirtycache = False
+      # Get some data that will be used frequently
       self.nbounds = index.bounds.shape[1]
-      # The <NumCache> cast is for keeping the C compiler happy
+      self.bounds_ext = <CacheArray>index.bounds
+      # The 2nd level cache and sorted values will be cached in a NumCache
       self.boundscache = <NumCache>NumCache(
         (BOUNDS_CACHE_SIZE, self.nbounds), self.itemsize, 'bounds')
       if str(self.type) == "CharType":

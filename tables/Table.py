@@ -1391,8 +1391,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 ``step`` must be 1 when the ``coords`` parameter is specified""")
             # Turn coords into an array of 64-bit indexes,
             # as expected by _read().
-            if not (isinstance(coords, numarray.NumArray)
-                    and coords.type() != numarray.Int64):
+            if not (type(coords) == numarray.NumArray and
+                    coords.type() == numarray.Int64):
                 coords = numarray.array(coords, type=numarray.Int64)
 
         arr = self._read(start, stop, step, field, coords)
@@ -1439,15 +1439,15 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         # Create a read buffer only if needed
         if field is None or ncoords > 0:
             if ncoords < self._v_maxTuples:
-                result = self._v_rbuffer[:ncoords]
+                result = self._v_rbuffer[:ncoords].copy()  # A copy is needed...
             else:
                 result = self._get_container(ncoords)
 
         # Do the real read
         if ncoords > 0:
             # Turn coords into an array of 64-bit indexes, if necessary
-            if not (isinstance(coords, numarray.NumArray)
-                    and coords.type() != numarray.Int64):
+            if not (type(coords) == numarray.NumArray and
+                    coords.type() == numarray.Int64):
                 coords = numarray.array(coords, type=numarray.Int64)
             self._read_elements(result, coords)
 
@@ -1468,9 +1468,9 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             # because we need a well-behaved NumArray object
             # before feeding it into convertNATo*
             if Numeric_imported and flavor == "numeric":
-                return convertNAToNumeric(na.copy())
+                return convertNAToNumeric(na)
             elif numpy_imported and flavor == "numpy":
-                return convertNAToNumPy(na.copy())
+                return convertNAToNumPy(na)
         # Do an additional conversion, if needed
         if flavor == "python":
             return self.tolist(na)
