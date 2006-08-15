@@ -230,7 +230,7 @@ cdef class IndexArray(Array):
       # nrows cannot be cached because it can grow!
       self.l_slicesize = index.slicesize
       self.l_chunksize = index.chunksize
-      if index.is_pro:  # Not necessary to check against cache dirtiness here
+      if index.is_pro and self.indicescache is None:
         # Define a LRU cache for indices
         self.indicescache = <NumCache>NumCache(
           shape=(INDICES_CACHE_SIZE, 1), itemsize=8, name="indices")
@@ -313,25 +313,25 @@ cdef class IndexArray(Array):
         NA_getBufferPtrAndSize(index.rvcache._data, 1, &self.rbufrv)
         # Tell index that the cache is not dirty anymore
         index.dirtycache = False
-      # Get some data that will be used frequently
-      self.nbounds = index.bounds.shape[1]
-      self.bounds_ext = <CacheArray>index.bounds
-      # The 2nd level cache and sorted values will be cached in a NumCache
-      self.boundscache = <NumCache>NumCache(
-        (BOUNDS_CACHE_SIZE, self.nbounds), self.itemsize, 'bounds')
-      if str(self.type) == "CharType":
-        self.bufferbc = strings.array(None, itemsize=self.itemsize,
-                                      shape=self.nbounds)
-      else:
-        self.bufferbc = numarray.array(None, type=self.type,
-                                       shape=self.nbounds)
-      # Init the bounds array for reading
-      self.bounds_ext.initRead(self.nbounds)
-      # Get the pointer for the internal buffer for 2nd level cache
-      NA_getBufferPtrAndSize(self.bufferbc._data, 1, &self.rbufbc)
-      # Another NumCache for the sorted values
-      self.sortedcache = <NumCache>NumCache(
-        (SORTED_CACHE_SIZE, self.chunksize), self.itemsize, 'sorted')
+      if self.boundscache is None:
+        # Init the bounds array for reading
+        self.nbounds = index.bounds.shape[1]
+        self.bounds_ext = <CacheArray>index.bounds
+        self.bounds_ext.initRead(self.nbounds)
+        # The 2nd level cache and sorted values will be cached in a NumCache
+        self.boundscache = <NumCache>NumCache(
+          (BOUNDS_CACHE_SIZE, self.nbounds), self.itemsize, 'bounds')
+        if str(self.type) == "CharType":
+          self.bufferbc = strings.array(None, itemsize=self.itemsize,
+                                        shape=self.nbounds)
+        else:
+          self.bufferbc = numarray.array(None, type=self.type,
+                                         shape=self.nbounds)
+          # Get the pointer for the internal buffer for 2nd level cache
+          NA_getBufferPtrAndSize(self.bufferbc._data, 1, &self.rbufbc)
+          # Another NumCache for the sorted values
+          self.sortedcache = <NumCache>NumCache(
+            (SORTED_CACHE_SIZE, self.chunksize), self.itemsize, 'sorted')
 
 
   cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
