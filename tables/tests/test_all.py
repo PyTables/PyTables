@@ -35,7 +35,6 @@ def suite():
         'test_timetype',
         'test_do_undo',
         'test_enum',
-        'test_nestedrecords',
         'test_nestedtypes',
         'test_hdf5compat',
         # Sub-packages

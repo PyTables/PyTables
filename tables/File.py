@@ -247,7 +247,7 @@ class _AliveNodes(dict):
 
 # The tables.lrucache.LRUCache class is still useful for debugging
 #class _DeadNodes(tables.lrucache.LRUCache):
-class _DeadNodes(lrucacheExtension.LRUCache):
+class _DeadNodes(lrucacheExtension.NodeCache):
     pass
 
 

@@ -44,7 +44,7 @@ from tables.utilsExtension import  \
      convertTime64, getLeafHDF5Type, isHDF5File, isPyTablesFile, \
      naEnumToNAType, naTypeToNAEnum
 
-from lrucacheExtension cimport LRUCache
+###from lrucacheExtension cimport NodeCache
 
 from definitions cimport import_libnumarray, NA_getBufferPtrAndSize, \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
@@ -593,101 +593,103 @@ cdef class File:
   # I think that the problem could be that calling a Python method in Pyrex
   # is more costly than in Python itself, but this is only a guess.
   # F. Altet 2006-08-07
-  def _getNode(self, object nodePath):
-    cdef object aliveNodes, parentPath, pathTail, parentNode, node
-    cdef LRUCache deadNodes
+  # XYX Comentat fins que no migrem a numpy (li cal l'extensio lrucache.pyx
+  # que funciona amb numpy!
+#   def _getNode(self, object nodePath):
+#     cdef object aliveNodes, parentPath, pathTail, parentNode, node
+#     cdef NodeCache deadNodes
 
-    # The root node is always at hand.
-    if nodePath == '/':
-      return self.root
-    else:
-      # Check quickly is nodePath is alive or dead (i.e. in memory)
-      aliveNodes = self._aliveNodes
-      #if nodePath in aliveNodes:
-      # We don't check for -1 as this should never fail
-      if PyDict_Contains(aliveNodes, nodePath):
-        # The parent node is in memory and alive, so get it.
-        node = aliveNodes[nodePath]
-        # The lines below doesn't work I don't know why!
-        #node = PyDict_GetItem(aliveNodes, nodePath)
-        #Py_INCREF(node)  # Because PyDict_GetItem returns a borrowed reference.
-        assert node is not None, \
-               "stale weak reference to dead node ``%s``" % parentPath
-        return node
-      deadNodes = <LRUCache>self._deadNodes
-      if deadNodes.contains(nodePath):
-        # The parent node is in memory but dead, so revive it.
-        node = self._g_reviveNode(nodePath)
-        # Call the post-revive hook
-        node._g_postReviveHook()
-        return node
+#     # The root node is always at hand.
+#     if nodePath == '/':
+#       return self.root
+#     else:
+#       # Check quickly is nodePath is alive or dead (i.e. in memory)
+#       aliveNodes = self._aliveNodes
+#       #if nodePath in aliveNodes:
+#       # We don't check for -1 as this should never fail
+#       if PyDict_Contains(aliveNodes, nodePath):
+#         # The parent node is in memory and alive, so get it.
+#         node = aliveNodes[nodePath]
+#         # The lines below doesn't work I don't know why!
+#         #node = PyDict_GetItem(aliveNodes, nodePath)
+#         #Py_INCREF(node)  # Because PyDict_GetItem returns a borrowed reference.
+#         assert node is not None, \
+#                "stale weak reference to dead node ``%s``" % parentPath
+#         return node
+#       deadNodes = <NodeCache>self._deadNodes
+#       if deadNodes.contains(nodePath):
+#         # The parent node is in memory but dead, so revive it.
+#         node = self._g_reviveNode(nodePath)
+#         # Call the post-revive hook
+#         node._g_postReviveHook()
+#         return node
 
-    # Walk up the hierarchy until a node in the path is in memory.
-    (parentPath, nodeName) = splitPath(nodePath)
-    pathTail = [nodeName]  # subsequent children below that node
-    while parentPath != '/':
-      if parentPath in aliveNodes:
-        # The parent node is in memory and alive, so get it.
-        parentNode = aliveNodes[parentPath]
-        assert parentNode is not None, \
-               "stale weak reference to dead node ``%s``" % parentPath
-        break
-      if deadNodes.contains(parentPath):
-        # The parent node is in memory but dead, so revive it.
-        parentNode = self._g_reviveNode(parentPath)
-        # Call the post-revive hook
-        parentNode._g_postReviveHook()
-        break
-      # Go up one level to try again.
-      (parentPath, nodeName) = splitPath(parentPath)
-      pathTail.insert(0, nodeName)
-    else:
-      # We hit the root node and no parent was in memory.
-      parentNode = self.root
+#     # Walk up the hierarchy until a node in the path is in memory.
+#     (parentPath, nodeName) = splitPath(nodePath)
+#     pathTail = [nodeName]  # subsequent children below that node
+#     while parentPath != '/':
+#       if parentPath in aliveNodes:
+#         # The parent node is in memory and alive, so get it.
+#         parentNode = aliveNodes[parentPath]
+#         assert parentNode is not None, \
+#                "stale weak reference to dead node ``%s``" % parentPath
+#         break
+#       if deadNodes.contains(parentPath):
+#         # The parent node is in memory but dead, so revive it.
+#         parentNode = self._g_reviveNode(parentPath)
+#         # Call the post-revive hook
+#         parentNode._g_postReviveHook()
+#         break
+#       # Go up one level to try again.
+#       (parentPath, nodeName) = splitPath(parentPath)
+#       pathTail.insert(0, nodeName)
+#     else:
+#       # We hit the root node and no parent was in memory.
+#       parentNode = self.root
 
-    # Walk down the hierarchy until the last child in the tail is loaded.
-    node = parentNode  # maybe `nodePath` was already in memory
-    for childName in pathTail:
-      # Load the node and use it as a parent for the next one in tail
-      # (it puts itself into life via `self._refNode()` when created).
-      if not isinstance(parentNode, Group):
-        # This is the root group
-        parentPath = parentNode._v_pathname
-        raise TypeError("node ``%s`` is not a group; "
-                        "it can not have a child named ``%s``"
-                        % (parentPath, childName))
-      node = parentNode._g_loadChild(childName)
-      parentNode = node
+#     # Walk down the hierarchy until the last child in the tail is loaded.
+#     node = parentNode  # maybe `nodePath` was already in memory
+#     for childName in pathTail:
+#       # Load the node and use it as a parent for the next one in tail
+#       # (it puts itself into life via `self._refNode()` when created).
+#       if not isinstance(parentNode, Group):
+#         # This is the root group
+#         parentPath = parentNode._v_pathname
+#         raise TypeError("node ``%s`` is not a group; "
+#                         "it can not have a child named ``%s``"
+#                         % (parentPath, childName))
+#       node = parentNode._g_loadChild(childName)
+#       parentNode = node
 
-    return node
+#     return node
 
 
-  cdef object _g_reviveNode(self, object nodePath):
-    """
-    Revive the node under `nodePath` and return it.
+#   cdef object _g_reviveNode(self, object nodePath):
+#     """
+#     Revive the node under `nodePath` and return it.
 
-    Moves the node under `nodePath` from the set of dead,
-    unreferenced nodes to the set of alive, referenced ones.
-    """
-    cdef object aliveNodes, node
-    cdef LRUCache deadNodes
+#     Moves the node under `nodePath` from the set of dead,
+#     unreferenced nodes to the set of alive, referenced ones.
+#     """
+#     cdef object aliveNodes, node
+#     cdef NodeCache deadNodes
 
-    assert nodePath in self._deadNodes, \
-           "trying to revive non-dead node ``%s``" % nodePath
+#     assert nodePath in self._deadNodes, \
+#            "trying to revive non-dead node ``%s``" % nodePath
 
-    # Take the node out of the limbo.
-    deadNodes = <LRUCache>self._deadNodes
-    node = deadNodes.cpop(nodePath)
-    # Make references to the node.
-    if nodePath != '/':
-      # The root group does not participate in alive/dead stuff.
-      aliveNodes = self._aliveNodes
-      assert nodePath not in aliveNodes, \
-             "file already has a node with path ``%s``" % nodePath
-      # Add the node to the set of referenced ones.
-      aliveNodes[nodePath] = node
+#     # Take the node out of the limbo.
+#     deadNodes = <NodeCache>self._deadNodes
+#     node = deadNodes.cpop(nodePath)
+#     # Make references to the node.
+#     if nodePath != '/':
+#       # The root group does not participate in alive/dead stuff.
+#       aliveNodes = self._aliveNodes
+#       assert nodePath not in aliveNodes, \
+#              "file already has a node with path ``%s``" % nodePath
+#       # Add the node to the set of referenced ones.
+#       aliveNodes[nodePath] = node
 
-    return node
+#     return node
 
 
   def _flushFile(self, scope):

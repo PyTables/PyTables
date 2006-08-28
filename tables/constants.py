@@ -49,7 +49,7 @@ __version__ = '$Revision$'
 
 # The maximum recommened number of columns in a table.
 # However, this limit is somewhat arbitrary and can be increased.
-MAX_COLUMNS = 1024
+MAX_COLUMNS = 2048      # it used to be 1024 in PyTables 1.x series
 """Maximum number of columns in ``Table`` objects before a
 ``PerformanceWarning`` is issued.
 """
@@ -143,7 +143,7 @@ INDICES_CACHE_SIZE = 1024
 TABLE_CACHE_SIZE = 1024
 """The maximum number of rows cached during table reads."""
 
-ENABLE_EVERY_CYCLES = 15
+ENABLE_EVERY_CYCLES = 50
 """The number of cycles that the LRU cache for data (indexes) will be
 forced to be (re-)enabled, irregardingly of the hit ratio. This will
 provide a chance for checking if we are in a better scenario for doing

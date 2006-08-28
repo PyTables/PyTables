@@ -9,6 +9,7 @@ import tempfile
 from numarray import *
 from numarray import strings
 from tables import *
+from tables.utils import convertNAToNumPy
 
 try:
     import Numeric
@@ -294,7 +295,6 @@ class BasicTestCase(unittest.TestCase):
             object_ = numpy.asarray(object_)
         elif self.flavor == "numeric":
             object_ = Numeric.asarray(object_)
-
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
         if str(self.type) == "CharType":
@@ -302,11 +302,17 @@ class BasicTestCase(unittest.TestCase):
                                      itemsize=earray.itemsize)
         else:
             object__ = array(None, shape = rowshape, type=self.type)
-        object__.swapaxes(0, self.extdim)
+
         if self.flavor == "numpy":
-            object__ = numpy.asarray(object__)
+            #object__ = numpy.asarray(object__)
+            # In order to workaround a problem with numpy array protocol
+            object__ = convertNAToNumPy(object__)
+            object__ = object__.swapaxes(0, self.extdim)
         elif self.flavor == "numeric":
             object__ = Numeric.asarray(object__)
+            object__ = Numeric.swapaxes(object__, 0, self.extdim)
+        else:
+            object__.swapaxes(0, self.extdim)
 
         for i in range(self.nappends):
             j = i * self.chunksize
@@ -406,25 +412,31 @@ class BasicTestCase(unittest.TestCase):
         if str(self.type) == "CharType":
             object_ = strings.array("a"*self.objsize, shape=self.rowshape,
                                     itemsize=earray.itemsize)
-            # Additional conversion for the numpy case
-            if self.flavor == "numpy":
-                object_ = numpy.asarray(object_)
         else:
             object_ = arange(self.objsize, shape=self.rowshape,
                              type=earray.type)
-        object_.swapaxes(earray.extdim, 0)
+        # Additional conversion for the numpy case
+        if self.flavor == "numpy":
+            object_ = numpy.asarray(object_)
+            object_ = object_.swapaxes(earray.extdim, 0)
+        else:
+            object_.swapaxes(earray.extdim, 0)
 
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
         if str(self.type) == "CharType":
             object__ = strings.array(None, shape=rowshape,
                                      itemsize=earray.itemsize)
-            # Additional conversion for the numpy case
-            if self.flavor == "numpy":
-                object__ = numpy.asarray(object__)
         else:
             object__ = array(None, shape = rowshape, type=self.type)
-        object__.swapaxes(0, self.extdim)
+            # Additional conversion for the numpy case
+        if self.flavor == "numpy":
+            #object__ = numpy.asarray(object__)
+            # Workaround to solve some problems in NumPy 1.0b2 (and b3)
+            object__ = convertNAToNumPy(object__)
+            object__ = object__.swapaxes(0, earray.extdim)
+        else:
+            object__.swapaxes(0, earray.extdim)
 
         for i in range(self.nappends):
             j = i * self.chunksize
@@ -436,7 +448,10 @@ class BasicTestCase(unittest.TestCase):
         stop = self.stop
         if self.nappends:
             # Swap the axes again to have normal ordering
-            object__.swapaxes(0, self.extdim)
+            if self.flavor == "numpy":
+                object__ = object__.swapaxes(0, self.extdim)
+            else:
+                object__.swapaxes(0, self.extdim)
             # do a copy() in order to ensure that len(object._data)
             # actually do a measure of its length
             object = object__.__getitem__(self.slices).copy()
@@ -455,7 +470,6 @@ class BasicTestCase(unittest.TestCase):
         try:
             row = earray.__getitem__(self.slices)
         except IndexError:
-            print "IndexError!"
             row = array(None, shape = self.shape, type=self.type)
             if self.flavor == "numpy":
                 row = numpy.asarray(row)
@@ -514,26 +528,27 @@ class BasicTestCase(unittest.TestCase):
         if str(self.type) == "CharType":
             object_ = strings.array("a"*self.objsize, shape=self.rowshape,
                                     itemsize=earray.itemsize)
-            # Additional conversion for the numpy case
-            if self.flavor == "numpy":
-                object_ = numpy.asarray(object_)
         else:
             object_ = arange(self.objsize, shape=self.rowshape,
                              type=earray.type)
-        object_.swapaxes(earray.extdim, 0)
-
+        if self.flavor == "numpy":
+            object_ = numpy.asarray(object_)
+            object_ = object_.swapaxes(earray.extdim, 0)
+        else:
+            object_.swapaxes(earray.extdim, 0)
 
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
         if str(self.type) == "CharType":
             object__ = strings.array(None, shape=rowshape,
                                      itemsize=earray.itemsize)
-            # Additional conversion for the numpy case
-            if self.flavor == "numpy":
-                object__ = numpy.asarray(object__)
         else:
             object__ = array(None, shape = rowshape, type=self.type)
-        object__.swapaxes(0, self.extdim)
+        if self.flavor == "numpy":
+            object__ = numpy.asarray(object__)
+            object__ = object__.swapaxes(0, self.extdim)
+        else:
+            object__.swapaxes(0, self.extdim)
 
         for i in range(self.nappends):
             j = i * self.chunksize
@@ -548,7 +563,10 @@ class BasicTestCase(unittest.TestCase):
         stop = self.stop
         if self.nappends:
             # Swap the axes again to have normal ordering
-            object__.swapaxes(0, self.extdim)
+            if self.flavor == "numpy":
+                object__ = object__.swapaxes(0, self.extdim)
+            else:
+                object__.swapaxes(0, self.extdim)
             # do a copy() in order to ensure that len(object._data)
             # actually do a measure of its length
             object = object__.__getitem__(self.slices).copy()

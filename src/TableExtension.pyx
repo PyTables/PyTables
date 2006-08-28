@@ -25,7 +25,8 @@ Misc variables:
     __version__
 """
 
-import numarray
+####import numarray
+import numpy
 
 import tables.hdf5Extension
 from tables.exceptions import HDF5ExtError
@@ -34,9 +35,9 @@ from tables.utilsExtension import createNestedType, \
 from tables.numexpr import evaluate  ##XXX
 from tables.constants import TABLE_CACHE_SIZE
 
-from definitions cimport \
-     import_libnumarray, NA_getPythonScalar, NA_setFromPythonScalar, \
-     NA_getBufferPtrAndSize, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS
+# numpy functions & objects
+from numpydefs cimport import_array, ndarray, \
+     PyArray_GETITEM, PyArray_SETITEM
 
 from lrucacheExtension cimport NumCache
 
@@ -65,6 +66,9 @@ cdef extern from "string.h":
 # Python API functions.
 cdef extern from "Python.h":
   char *PyString_AsString(object string)
+  # To release global interpreter lock (GIL) for threading
+  void Py_BEGIN_ALLOW_THREADS()
+  void Py_END_ALLOW_THREADS()
 
 # HDF5 API.
 cdef extern from "hdf5.h":
@@ -198,9 +202,9 @@ cdef extern from "H5ATTR.h":
 
 # Initialization code
 
-# The numarray API requires this function to be called before
-# using any numarray facilities in an extension module.
-import_libnumarray()
+# The numpy API requires this function to be called before
+# using any numpy facilities in an extension module.
+import_array()
 
 #-------------------------------------------------------------
 
@@ -217,6 +221,7 @@ cdef class Table:  # XXX extends Leaf
   cdef hid_t    dataset_id, type_id, disk_type_id
   cdef NumCache sparsecache
 
+
   def _g_new(self, where, name, init):
     self.name = strdup(name)  # XXX from Node._g_new()
     # The parent group id for this object
@@ -225,6 +230,7 @@ cdef class Table:  # XXX extends Leaf
       self.dataset_id = -1
       self.type_id = -1
       self.disk_type_id = -1
+
 
   def _g_delete(self):  # XXX Should inherit from Node
     cdef int ret
@@ -235,6 +241,7 @@ cdef class Table:  # XXX extends Leaf
       raise HDF5ExtError("problems deleting the node ``%s``" % self.name)
     return ret
 
+
   def _createTable(self, char *title, char *complib, char *obversion):
     cdef int     offset
     cdef int     ret
@@ -243,7 +250,8 @@ cdef class Table:  # XXX extends Leaf
     cdef void    *data
     cdef hsize_t nrecords
     cdef char    *class_
-    cdef object  i, fieldname, name
+    cdef object  fieldname, name
+    cdef ndarray recarr
 
     # Compute the complete compound datatype based on the table description
     self.type_id = createNestedType(self.description, self.byteorder)
@@ -253,10 +261,13 @@ cdef class Table:  # XXX extends Leaf
     # test if there is data to be saved initially
     if self._v_recarray is not None:
       self.totalrecords = self.nrows
-      buflen = NA_getBufferPtrAndSize(self._v_recarray._data, 1, &data)
+      #buflen = NA_getBufferPtrAndSize(self._v_recarray._data, 1, &data)
+      recarr = self._v_recarray
+      data = recarr.data
       # Correct the offset in the buffer
-      offset = self._v_recarray._byteoffset
-      data = <void *>(<char *>data + offset)
+      # Not necessary in numpy
+#       offset = self._v_recarray._byteoffset
+#       data = <void *>(<char *>data + offset)
     else:
       self.totalrecords = 0
       data = NULL
@@ -298,11 +309,9 @@ cdef class Table:  # XXX extends Leaf
 
     # Attach the FIELD_N_NAME attributes
     # We write only the first level names
-    i = 0
-    for name in self.description._v_names:
+    for i, name in enumerate(self.description._v_names):
       fieldname = "FIELD_%s_NAME" % i
       ret = H5ATTRset_attribute_string(self.dataset_id, fieldname, name)
-      i = i + 1
     if ret < 0:
       raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                          (fieldname, self.name))
@@ -356,10 +365,12 @@ cdef class Table:  # XXX extends Leaf
     # Return the object ID and the description
     return (self.dataset_id, desc)
 
-  def _g_createSparseCache(self):
+
+  def _g_createReadCache(self):
     # Define a cache for sparse table reads
     self.sparsecache = <NumCache>NumCache(
       shape=(TABLE_CACHE_SIZE, 1), itemsize=self.rowsize, name="sparse_table")
+
 
   def _loadEnum(self, hid_t fieldTypeId):
     """_loadEnum(colname) -> (Enum, naType)
@@ -382,34 +393,39 @@ cdef class Table:  # XXX extends Leaf
       if H5Tclose(enumId) < 0:
         raise HDF5ExtError("failed to close HDF5 enumerated type")
 
-  def _convertTypes(self, object recarr, hsize_t nrecords, int sense):
-    """Converts columns in 'recarr' between Numarray and HDF5 formats.
 
-    Numarray to HDF5 conversion is performed when 'sense' is 0.
-    Otherwise, HDF5 to Numarray conversion is performed.
-    The conversion is done in place, i.e. 'recarr' is modified.
-    """
+  def _convertTypes(self, object recarr, hsize_t nrecords, int sense):
+    """Converts columns in 'recarr' between NumPy and HDF5 formats.
+
+    NumPy to HDF5 conversion is performed when 'sense' is 0.
+    Otherwise, HDF5 to NumPy conversion is performed.  The conversion
+    is done in place, i.e. 'recarr' is modified.  """
 
     # This should be generalised to support other type conversions.
     for t64cname in self._time64colnames:
-      convertTime64(recarr.field(t64cname), nrecords, sense)
+      column = recarr
+      for field in t64cname.split('/'):
+        column = column[field]
+      convertTime64(column, nrecords, sense)
 
-    # Only convert padding spaces into nulls if we have a "numpy" flavor
-    if self.flavor == "numpy":
-      for strcname in self._strcolnames:
-        space2null(recarr.field(strcname), nrecords, sense)
+#XYX  Aco no deuria fer falta mes. Eliminar la funcio space2null.
+#     # Only convert padding spaces into nulls if we have a "numpy" flavor
+#     if self.flavor == "numpy":
+#       for strcname in self._strcolnames:
+#         space2null(recarr.field(strcname), nrecords, sense)
 
-  def _open_append(self, object recarr):
-    cdef long buflen
 
-    self._v_recarray = recarr
+  def _open_append(self, ndarray recarr):
+    self._v_recarray = <object>recarr
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(recarr._data, 1, &self.wbuf)
+    #buflen = NA_getBufferPtrAndSize(recarr._data, 1, &self.wbuf)
+    self.wbuf = recarr.data
+
 
   def _append_records(self, int nrecords):
     cdef int ret
 
-    # Convert some Numarray types to HDF5 before storing.
+    # Convert some NumPy types to HDF5 before storing.
     self._convertTypes(self._v_recarray, nrecords, 0)
 
     # release GIL (allow other threads to use the Python interpreter)
@@ -424,6 +440,7 @@ cdef class Table:  # XXX extends Leaf
 
     self.totalrecords = self.totalrecords + nrecords
 
+
   def _close_append(self):
 
     # Update the NROWS attribute
@@ -432,14 +449,16 @@ cdef class Table:  # XXX extends Leaf
                                        &self.totalrecords)<0):
       raise HDF5ExtError("Problems setting the NROWS attribute.")
 
+
   def _update_records(self, hsize_t start, hsize_t stop,
-                      hsize_t step, object recarr):
+                      hsize_t step, ndarray recarr):
     cdef herr_t ret
     cdef void *rbuf
     cdef hsize_t nrecords, nrows
 
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
+    #buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
+    rbuf = recarr.data
 
     # Compute the number of records to update
     nrecords = len(recarr)
@@ -447,7 +466,7 @@ cdef class Table:  # XXX extends Leaf
     if nrecords > nrows:
       nrecords = nrows
 
-    # Convert some Numarray types to HDF5 before storing.
+    # Convert some NumPy types to HDF5 before storing.
     self._convertTypes(recarr, nrecords, 0)
     # Update the records:
     Py_BEGIN_ALLOW_THREADS
@@ -457,33 +476,36 @@ cdef class Table:  # XXX extends Leaf
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")
 
-  def _update_elements(self, hsize_t nrecords, object elements,
-                       object recarr):
+
+  def _update_elements(self, hsize_t nrecords, ndarray elements,
+                       ndarray recarr):
     cdef herr_t ret
-    cdef void *rbuf
-    cdef long offset
-    cdef void *coords
+    cdef void *rbuf, *coords
+    ####cdef long offset
 
     # Get the chunk of the coords that correspond to a buffer
-    buflen = NA_getBufferPtrAndSize(elements._data, 1, &coords)
+    #buflen = NA_getBufferPtrAndSize(elements._data, 1, &coords)
+    coords = elements.data
     # Correct the offset
-    offset = elements._byteoffset
-    coords = <void *>(<char *>coords + offset)
+#     offset = elements._byteoffset
+#     coords = <void *>(<char *>coords + offset)
 
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
+    #buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
+    rbuf = recarr.data
 
-    # Convert some Numarray types to HDF5 before storing.
+    # Convert some NumPy types to HDF5 before storing.
     self._convertTypes(recarr, nrecords, 0)
     # Update the records:
     Py_BEGIN_ALLOW_THREADS
     ret = H5TBOwrite_elements(self.dataset_id, self.type_id,
-                              nrecords, coords, rbuf )
+                              nrecords, coords, rbuf)
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")
 
-  def _read_records(self, hsize_t start, hsize_t nrecords, object recarr):
+
+  def _read_records(self, hsize_t start, hsize_t nrecords, ndarray recarr):
     cdef long buflen
     cdef void *rbuf
     cdef int ret
@@ -493,7 +515,8 @@ cdef class Table:  # XXX extends Leaf
       nrecords = self.totalrecords - start
 
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
+    #buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
+    rbuf = recarr.data
 
     # Read the records from disk
     Py_BEGIN_ALLOW_THREADS
@@ -503,34 +526,41 @@ cdef class Table:  # XXX extends Leaf
     if ret < 0:
       raise HDF5ExtError("Problems reading records.")
 
-    # Convert some HDF5 types to Numarray after reading.
+    # Convert some HDF5 types to NumPy after reading.
     self._convertTypes(recarr, nrecords, 1)
 
     return nrecords
 
-  def _read_elements(self, object recarr, object elements):
+
+  def _read_elements(self, ndarray recarr, ndarray elements):
     cdef long buflen, offset, rowsize, nrecord, nrecords
     cdef void *rbuf, *rbuf2
     cdef hsize_t *coords, coord
     cdef int ret
+    cdef long nslot
 
     # Get the chunk of the coords that correspond to a buffer
-    nrecords = len(elements)
+    nrecords = elements.size
     # The size of the one single row
     rowsize = self.rowsize
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
+    #buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
+    rbuf = recarr.data
     # Get the pointer to the buffer coords area
-    buflen = NA_getBufferPtrAndSize(elements._data, 1, &rbuf2)
+    #buflen = NA_getBufferPtrAndSize(elements._data, 1, &rbuf2)
+    rbuf2 = elements.data
     # Correct the offset
-    offset = elements._byteoffset
-    coords = <hsize_t *>(<char *>rbuf2 + offset)
+    #offset = elements._byteoffset
+    #coords = <hsize_t *>(<char *>rbuf2 + offset)
+    # It seems that numpy does not have offsets. Doh!
+    coords = <hsize_t *>rbuf2
 
     for nrecord from 0 <= nrecord < nrecords:
       coord = coords[nrecord]
       # Look at the cache for this coord
-      if self.sparsecache.contains(coord):
-        self.sparsecache.getitem2(coord, rbuf, nrecord)
+      nslot = self.sparsecache.contains(coord)
+      if nslot >= 0:
+        self.sparsecache.getitem2(nslot, rbuf, nrecord)
       else:
         rbuf2 = <void *>(<char *>rbuf + nrecord*rowsize)
         # The coord is not in cache. Read it and put it in the LRU cache.
@@ -540,10 +570,11 @@ cdef class Table:  # XXX extends Leaf
           raise HDF5ExtError("Problems reading record: %s" % (coord))
         self.sparsecache.setitem(coord, rbuf, nrecord)
 
-    # Convert some HDF5 types to Numarray after reading.
+    # Convert some HDF5 types to NumPy after reading.
     self._convertTypes(recarr, nrecords, 1)
 
     return nrecords
+
 
   def _remove_row(self, hsize_t nrow, hsize_t nrecords):
     cdef size_t rowsize
@@ -569,14 +600,17 @@ cdef class Table:  # XXX extends Leaf
       # Return the number of records removed
       return nrecords
 
+
   def  _get_type_id(self):
     "Accessor to type_id"
     return self.type_id
+
 
   def _g_flush(self):
     # Flush the dataset (in fact, the entire buffers in file!)
     if self.dataset_id >= 0:
         H5Fflush(self.dataset_id, H5F_SCOPE_GLOBAL)
+
 
   def _g_close(self):
     # Close dataset in HDF5 space
@@ -588,9 +622,11 @@ cdef class Table:  # XXX extends Leaf
     if self.dataset_id >= 0:
       H5Dclose(self.dataset_id)
 
+
   def __dealloc__(self):
     #print "Destroying object Table in Extension"
     free(<void *>self.name)  # XXX from Node
+
 
 
 cdef class Row:
@@ -606,7 +642,7 @@ cdef class Row:
   cdef hsize_t start, stop, step, nextelement, _nrow
   cdef hsize_t nrowsinbuf, nrows, nrowsread, stopindex
   cdef int     bufcounter, counter, startb, stopb,  _all
-  cdef int     *_scalar, *_enumtypes, exist_enum_cols
+  cdef int     exist_enum_cols
   cdef int     _riterator, _stride
   cdef int     whereCond2XXX, whereCond, indexed2XXX, indexed, indexChunk
   cdef int     ro_filemode, chunked
@@ -614,7 +650,7 @@ cdef class Row:
   cdef char    *colname
   cdef object  table
   cdef object  rbufRA, wbufRA
-  cdef object  _wfields, _rfields, _indexes
+  cdef object  _wfields, _rfields
   cdef object  indexValid, coords, bufcoords, index, indices
   cdef object  ops, opsValues
   cdef object  condstr, condvars, condcols  ##XXX
@@ -647,64 +683,53 @@ cdef class Row:
     self.exist_enum_cols = len(self.colenums)
     self.nrowsinbuf = table._v_maxTuples
 
+
   def __call__(self, start=0, stop=0, step=1, coords=None, ncoords=0):
     """ return the row for this record object and update counters"""
 
     self._initLoop(start, stop, step, coords, ncoords)
     return iter(self)
 
+
   def __iter__(self):
     "Iterator that traverses all the data in the Table"
 
     return self
 
-  cdef _newBuffer(self, write):
+
+  def _newBuffer(self, write):
     "Create the recarray for I/O buffering"
 
     table = self.table
-
     if write:
       # Get the write buffer in table (it is unique, remember!)
       buff = self.wbufRA = table._v_wbuffer
-      self._wfields = buff._fields
+      #self._wfields = buff._fields
+      # Build the _rfields dictionary for faster access to columns
+      self._wfields = {}
+      for name in buff.dtype.names:
+        self._wfields[name] = buff[name]
       # Initialize an array for keeping the modified elements
       # (just in case Row.update() would be used)
-      self.mod_elements = numarray.array(None, shape=table._v_maxTuples,
-                                         type="Int64")
+      self.mod_elements = numpy.empty(shape=table._v_maxTuples,
+                                      dtype=numpy.int64)
     else:
       buff = self.rbufRA = table._newBuffer(init=0)
-      self._rfields = buff._fields
+      # Build the _rfields dictionary for faster access to columns
+      # This is quite fast, as it only takes around 5 us per column
+      # in my laptop (Pentium 4 @ 2 GHz).
+      # F. Altet 2006-08-18
+      self._rfields = {}
+      for name in buff.dtype.names:
+        self._rfields[name] = buff[name]
 
-    # Get info from this buffer
-    self._getBufferInfo(buff)
+    # Get the stride of this buffer
+    self._stride = buff.strides[0]
     self.nrows = table.nrows  # This value may change
 
-  cdef _getBufferInfo(self, buff):
-    "Get info for __getitem__ and __setitem__ methods"
-
-    if self._bufferinfo_done:
-      # The info has been already collected. Giving up.
-      return
-    self._stride = buff._strides[0]
-    nfields = buff._nfields
-    # Create a dictionary with the index columns of the recarray
-    # and other tables
-    i = 0
-    self._indexes = {}
-    self._scalar = <int *>malloc(nfields * sizeof(int))
-    self._enumtypes = <int *>malloc(nfields * sizeof(int))
-    for field in buff._names:
-      self._indexes[field] = i
-      if buff._repeats[i] == 1:
-        self._scalar[i] = 1
-      else:
-        self._scalar[i] = 0
-      self._enumtypes[i] = tables.hdf5Extension.naTypeToNAEnum[buff._fmt[i]]
-      i = i + 1
-    self._bufferinfo_done = 1
 
   cdef _initLoop(self, hsize_t start, hsize_t stop, hsize_t step,
-                     object coords, int ncoords):
+                 object coords, int ncoords):
     "Initialization for the __iter__ iterator"
 
     self._riterator = 1   # We are inside a read iterator
@@ -761,11 +786,12 @@ cdef class Row:
       table.whereColname = None
 
     if self.coords is not None:
-      self.stopindex = len(coords)
+      self.stopindex = coords.size
       self.nrowsread = 0
       self.nextelement = 0
     elif self.indexed or self.indexed2XXX:
       self.stopindex = ncoords
+
 
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
@@ -779,6 +805,7 @@ cdef class Row:
       return self.__next__inKernel()
     else:
       return self.__next__general()
+
 
   cdef __next__indexed2XXX(self):
     """The version of next() for indexed columns or with user coordinates"""
@@ -795,29 +822,29 @@ cdef class Row:
           stop = self.nrowsinbuf
         if self.coords is not None:
           self.bufcoords = self.coords[self.nrowsread:self.nrowsread+stop]
-          nrowsread = len(self.bufcoords)
+          nrowsread = self.bufcoords.size
         else:
           # Optmized version of getCoords in Pyrex
           self.bufcoords = self.indices._getCoords(self.index,
                                                    self.nrowsread, stop)
-          nrowsread = len(self.bufcoords)
+          nrowsread = self.bufcoords.size
           tmp = self.bufcoords
           # If a step was specified, select the strided elements first
-          if len(tmp) > 0 and self.step > 1:
+          if tmp.size > 0 and self.step > 1:
             tmp2=(tmp-self.start) % self.step
             tmp = tmp[tmp2.__eq__(0)]
           # Now, select those indices in the range start, stop:
-          if len(tmp) > 0 and self.start > 0:
-            # Pyrex can't use the tmp>=number notation when tmp is a numarray
+          if tmp.size > 0 and self.start > 0:
+            # Pyrex can't use the tmp>=number notation when tmp is a numpy
             # object. Why?
+            # XYX Xequejar aco per a numpy...
             tmp = tmp[tmp.__ge__(self.start)]
-          if len(tmp) > 0 and self.stop < self.nrows:
+          if tmp.size > 0 and self.stop < self.nrows:
             tmp = tmp[tmp.__lt__(self.stop)]
           self.bufcoords = tmp
         self._row = -1
-        if len(self.bufcoords) > 0:
+        if self.bufcoords.size > 0:
           recout = self.table._read_elements(self.rbufRA, self.bufcoords)
-
           if self.whereCond2XXX:
             numexpr_locals = self.condvars.copy()
             # Replace references to columns with the proper array fragment.
@@ -827,8 +854,7 @@ cdef class Row:
             self.indexValid = evaluate(self.condstr, numexpr_locals, {})
           else:
             # No residual condition, all selected rows are valid.
-            self.indexValid = numarray.ones(recout, 'Bool')
-
+            self.indexValid = numpy.ones(recout, numpy.bool8)
         else:
           recout = 0
         self.nrowsread = self.nrowsread + nrowsread
@@ -867,6 +893,7 @@ cdef class Row:
         self._nrow = self.start - self.step
         return self.__next__inKernel2XXX()
 
+
   cdef __next__indexed(self):
     """The version of next() for indexed columns or with user coordinates"""
     cdef int recout
@@ -895,8 +922,9 @@ cdef class Row:
             tmp = tmp[tmp2.__eq__(0)]
           # Now, select those indices in the range start, stop:
           if len(tmp) > 0 and self.start > 0:
-            # Pyrex can't use the tmp>=number notation when tmp is a numarray
+            # Pyrex can't use the tmp>=number notation when tmp is a numpy
             # object. Why?
+            # XYX Xequejar aco per a numpy...
             tmp = tmp[tmp.__ge__(self.start)]
           if len(tmp) > 0 and self.stop < self.nrows:
             tmp = tmp[tmp.__lt__(self.stop)]
@@ -941,6 +969,7 @@ cdef class Row:
         self._nrow = self.start - self.step
         return self.__next__inKernel()
 
+
   cdef __next__inKernel2XXX(self):
     """The version of next() in case of in-kernel conditions"""
     cdef int recout, correct
@@ -971,7 +1000,7 @@ cdef class Row:
         self.indexValid = evaluate(self.condstr, numexpr_locals, {})
 
         # Is still there any interesting information in this buffer?
-        if not numarray.sometrue(self.indexValid):
+        if not numpy.sometrue(self.indexValid):
           # No, so take the next one
           if self.step >= self.nrowsinbuf:
             self.nextelement = self.nextelement + self.step
@@ -996,6 +1025,7 @@ cdef class Row:
         return self
     else:
       self.finish_riterator()
+
 
   cdef __next__inKernel(self):
     """The version of next() in case of in-kernel conditions"""
@@ -1045,7 +1075,7 @@ cdef class Row:
             self.indexValid = self.indexValid.__and__(indexValid1)
           ncond = ncond + 1
         # Is still there any interesting information in this buffer?
-        if not numarray.sometrue(self.indexValid):
+        if not numpy.sometrue(self.indexValid):
           # No, so take the next one
           if self.step >= self.nrowsinbuf:
             self.nextelement = self.nextelement + self.step
@@ -1071,12 +1101,11 @@ cdef class Row:
     else:
       self.finish_riterator()
 
+
   # This is the most general __next__ version, simple, but effective
   cdef __next__general(self):
     """The version of next() for the general cases"""
-    cdef object indexValid1, indexValid2
-    cdef int ncond, op, recout
-    cdef object opValue, field
+    cdef int recout
 
     self.nextelement = self._nrow + self.step
     while self.nextelement < self.stop:
@@ -1106,6 +1135,7 @@ cdef class Row:
     else:
       self.finish_riterator()
 
+
   cdef finish_riterator(self):
     """Clean-up things after iterator has been done"""
 
@@ -1113,6 +1143,7 @@ cdef class Row:
     if self._mod_nrows > 0:    # Check if there is some modified row
       self._flushModRows()       # Flush any possible modified row
     raise StopIteration        # end of iteration
+
 
   def _fillCol(self, result, start, stop, step, field):
     "Read a field from a table on disk and put the result in result"
@@ -1156,7 +1187,8 @@ cdef class Row:
       # https://sourceforge.net/mailarchive/forum.php?thread_id=8428233&forum_id=13760
       #result[startr:stopr] = fields[istartb:istopb:istep]
       if field:
-        result[startr:stopr] = fields.field(field)[istartb:istopb:istep]
+        #result[startr:stopr] = fields.field(field)[istartb:istopb:istep]
+        result[startr:stopr] = fields[field][istartb:istopb:istep]
       else:
         result[startr:stopr] = fields[istartb:istopb:istep]
 
@@ -1169,11 +1201,13 @@ cdef class Row:
     self._riterator = 0  # out of iterator
     return
 
+
   # The nrow() method has been converted into a property, which is handier
   property nrow:
     "Makes current row visible from Python space."
     def __get__(self):
       return self._nrow
+
 
   def append(self):
     """Append self object to the output buffer."""
@@ -1199,6 +1233,7 @@ cdef class Row:
       # self.table._unsaved_nrows *has* to be reset in table._saveBufferedRows
       # so that flush works well.
 
+
   def update(self):
     """Update current row copying it from the input buffer."""
 
@@ -1222,6 +1257,7 @@ cdef class Row:
     if self._mod_nrows == self.nrowsinbuf:
       self._flushModRows()
 
+
   def _flushModRows(self):
     """Flush any possible modified row using Row.update()"""
 
@@ -1234,11 +1270,12 @@ cdef class Row:
     # be able to track the modified columns.
     table._reIndex(table.colnames)
 
+
   # This method is twice as faster than __getattr__ because there is
   # not a lookup in the local dictionary
   def __getitem__(self, fieldName):
-    cdef int index
     cdef long offset
+    cdef ndarray field
 
     # Optimization follows for the case that the field dimension is
     # == 1, i.e. columns elements are scalars, and the column is not
@@ -1246,29 +1283,27 @@ cdef class Row:
     # elements a 20%
 
     try:
-      # Get the column index. This is very fast!
-      index = self._indexes[fieldName]
-      if (self._enumtypes[index] <> CHARTYPE and self._scalar[index]):
-        # Get the column very vast
-        offset = self._row * self._stride
-        return NA_getPythonScalar(self._rfields[fieldName], offset)
-      elif (self._enumtypes[index] == CHARTYPE and self._scalar[index]):
-        # Case of a plain string in the cell
-        # Call the universal indexing function
-        return self._rfields[fieldName][self._row]
-      else:  # Case when dimensions > 1
-        # Call the universal indexing function
-        # Make a copy of the (multi) dimensional array
-        # so that the user does not have to do that!
-        arr = self._rfields[fieldName][self._row].copy()
-        return arr
+      field = self._rfields[fieldName]
     except KeyError:
       raise KeyError("no such column: %s" % (fieldName,))
 
+    # Get the column index. This is very fast!
+    if field.nd == 1:
+      #return field[self._row]
+      # Optimization for numpy
+      offset = self._row * self._stride
+      return PyArray_GETITEM(field, field.data + offset)
+    else:  # Case when dimensions > 1
+      # Make a copy of the (multi) dimensional array
+      # so that the user does not have to do that!
+      return field[self._row].copy()
+
+
   # This is slightly faster (around 3%) than __setattr__
-  def __setitem__(self, fieldName, value):
-    cdef int index
+  def __setitem__(self, fieldName, object value):
+    cdef ndarray field
     cdef long offset
+    cdef int ret
 
     if self.ro_filemode:
       raise IOError("attempt to write over a file opened in read-only mode")
@@ -1281,36 +1316,39 @@ cdef class Row:
     if self.exist_enum_cols:
       if fieldName in self.colenums:
         enum = self.colenums[fieldName]
-        cenvals = numarray.array(value).flat
-        for cenval in cenvals:
+        #cenvals = numarray.array(value).flat
+        #for cenval in cenvals:
+        for cenval in numpy.asarray(value).flat:
           enum(cenval)  # raises ``ValueError`` on invalid values
 
-    if self._riterator:
-      # We are in the middle of an iterator for reading. So the
-      # user most probably wants to update this row.
-      field = self._rfields[fieldName]
-      offset = self._row
-    else:
-      field = self._wfields[fieldName]
-      offset = self._unsaved_nrows
     try:
-      #field[offset] = value
+      if self._riterator:
+        # We are in the middle of an iterator for reading. So the
+        # user most probably wants to update this row.
+        field = self._rfields[fieldName]
+        offset = self._row
+      else:
+        field = self._wfields[fieldName]
+        offset = self._unsaved_nrows
+    except KeyError:
+      raise KeyError("no such column: %s" % (fieldName,))
+
+    try:
+      # field[offset] = value
       # Optimization for scalar values. This can optimize the writes
       # between a 10% and 100%, depending on the number of columns modified
       # F. Altet 2005-10-25
-      index = self._indexes[fieldName]
-      if (self._enumtypes[index] <> CHARTYPE and
-          (type(value) is not str) and  # to deal with row['intfield'] = 'xx'
-          self._scalar[index]):
-        NA_setFromPythonScalar(field, offset * self._stride, value)
+      if field.nd == 1:
+        offset = offset * self._stride
+        ret = PyArray_SETITEM(field, field.data + offset, value)
+        if ret < 0:
+          raise TypeError
+      ##### End of optimization for scalar values
       else:
         field[offset] = value
-      ##### End of optimization for scalar values
-    except KeyError:
-      raise KeyError("no such column: %s" % (fieldName,))
     except TypeError:
-      raise TypeError("invalid type for ``%s`` column: %s" % (fieldName,
-                                                              type(value)))
+      raise TypeError("invalid type (%s) for column ``%s``" % (type(value),
+                                                               fieldName))
     if not self._riterator:
       # Before write and read buffer got separated, we were able to write:
       # row['var1'] = '%04d' % (self.expectedrows - i)
@@ -1319,6 +1357,7 @@ cdef class Row:
       # F. Altet 2005-04-25
       self._rfields = self._wfields
       self._row = self._unsaved_nrows
+
 
   def __str__(self):
     """ represent the record as an string """
@@ -1329,26 +1368,27 @@ cdef class Row:
              (self.table, \
     "You will normally want to use this object in iterator contexts.")
 
-    # Create the read buffers
-    self._newBuffer(True)
     outlist = []
     # Special case where Row has not been initialized yet
-    if self.rbufRA == None:
+    if self.rbufRA is None and self.wbufRA is None:
       return "Warning: Row iterator has not been initialized for table:\n  %s\n %s" % \
              (self.table, \
-    "You will normally want to use to use this object in iterator contexts.")
-    for name in self.rbufRA._names:
-      outlist.append(`self._rfields[name][self._row]`)
+"You will normally want to use to use this object in iterator or writing contexts.")
+    if self.rbufRA is not None:
+      buf = self.rbufRA;  fields = self._rfields
+    else:
+      buf = self.wbufRA;  fields = self._wfields
+    for name in buf.dtype.names:
+      outlist.append(`fields[name][self._row]`)
     return "(" + ", ".join(outlist) + ")"
+
 
   def __repr__(self):
     """ represent the record as an string """
     return str(self)
 
+
   def __dealloc__(self):
     #print "Deleting Row object"
-    if self._scalar:
-      free(<void *>self._scalar)
-    if self._enumtypes:
-      free(<void *>self._enumtypes)
+    pass
 

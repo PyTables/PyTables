@@ -1,12 +1,12 @@
+# XYX Aquest modul esta a mitan convertir a numpy...
+
 import sys
 import unittest
 import os
 import tempfile
 
-import numarray
-from numarray import *
-import numarray.records as records
-from numarray import strings
+import numpy
+from numpy import *
 from tables import *
 
 import common
@@ -109,8 +109,6 @@ class BasicTestCase(common.PyTablesTestCase):
             var0 = ['%04d' % (self.expectedrows - i)] * 2
             tmplist.append(var0)
             var1 = [['%04d' % (self.expectedrows - i)] * 2] * 2
-#             var1 = strings.array([['%04d' % (self.expectedrows - i)] * 2] * 2,
-#                                  itemsize = 4, shape=(2,2))
             tmplist.append(var1)
             var1_ = (i, 1)
             tmplist.append(var1_)
@@ -118,11 +116,11 @@ class BasicTestCase(common.PyTablesTestCase):
             tmplist.append(var2)
             var3 = i % self.maxshort
             tmplist.append(var3)
-            if isinstance(row.field('var4'), NumArray):
+            if isinstance(row.field('var4'), numpy.ndarray):
                 tmplist.append([float(i), float(i*i)])
             else:
                 tmplist.append(float(i))
-            if isinstance(row.field('var5'), NumArray):
+            if isinstance(row.field('var5'), numpy.ndarray):
                 tmplist.append(array((float(i),)*4))
             else:
                 tmplist.append(float(i))
@@ -132,7 +130,7 @@ class BasicTestCase(common.PyTablesTestCase):
             tmplist.append(var7)
             buflist.append(tmplist)
 
-        self.record=records.array(buflist, formats=record._formats,
+        self.record=numpy.rec.array(buflist, formats=record._formats,
                                    names=record._names,
                                    shape = self.expectedrows)
         # The swapped version
@@ -170,11 +168,11 @@ class BasicTestCase(common.PyTablesTestCase):
                     row['var1_'] = (i, 1)
                     row['var2'] = ((i, 1), (1,1))  # *-*
                     row['var3'] = i % self.maxshort
-                    if isinstance(row['var4'], NumArray):
+                    if isinstance(row['var4'], numpy.ndarray):
                         row['var4'] = [float(i), float(i*i)]
                     else:
                         row['var4'] = float(i)
-                    if isinstance(row['var5'], NumArray):
+                    if isinstance(row['var5'], numpy.ndarray):
                         row['var5'] = array((float(i),)*4)
                     else:
                         row['var5'] = float(i)
@@ -203,6 +201,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def test00_description(self):
         """Checking table description and descriptive fields"""
 
+        self._verboseHeader()
         self.fileh = openFile(self.file)
 
         tbl = self.fileh.getNode('/table0')
@@ -210,11 +209,11 @@ class BasicTestCase(common.PyTablesTestCase):
 
         if isinstance(self.record, dict):
             columns = self.record
-        elif isinstance(self.record, records.RecArray):
+        elif isinstance(self.record, numpy.ndarray):
             # This way of getting a (dictionary) description
             # can be used as long as the method does not alter the table.
             # Maybe there is a better way of doing this.
-            columns = tbl._descrFromRA(self.record)
+            columns, _ = tbl._descrFromRA(self.record)
         else:
             # This is an ordinary description.
             columns = self.record.columns
@@ -315,7 +314,7 @@ class BasicTestCase(common.PyTablesTestCase):
             nrows,
             nrows,
             "1"))
-        if isinstance(rec['var5'], NumArray):
+        if isinstance(rec['var5'], numpy.ndarray):
             assert allequal(rec['var5'], array((float(nrows),)*4, Float32))
         else:
             assert rec['var5'] == float(nrows)
@@ -343,7 +342,7 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
         nrows = table.nrows
-        if isinstance(rec['var5'], NumArray):
+        if isinstance(rec['var5'], numpy.ndarray):
             assert allequal(result[0], array((float(0),)*4, Float32))
             assert allequal(result[1], array((float(1),)*4, Float32))
             assert allequal(result[2], array((float(2),)*4, Float32))
@@ -358,18 +357,18 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [ rec['var1'] for rec in table.iterrows()
                    if rec['var2'][0][0] < 20 ]
 
-        if isinstance(rec['var1'], strings.CharArray):
-            a = strings.array([['%04d' % (self.expectedrows - 0)]*2]*2)
+        if rec['var1'].dtype.char == "S":
+            a = numpy.array([['%04d' % (self.expectedrows - 0)]*2]*2)
             assert allequal(result[0], a)
-            a = strings.array([['%04d' % (self.expectedrows - 1)]*2]*2)
+            a = numpy.array([['%04d' % (self.expectedrows - 1)]*2]*2)
             assert allequal(result[1], a)
-            a = strings.array([['%04d' % (self.expectedrows - 2)]*2]*2)
+            a = numpy.array([['%04d' % (self.expectedrows - 2)]*2]*2)
             assert allequal(result[2], a)
-            a = strings.array([['%04d' % (self.expectedrows - 3)]*2]*2)
+            a = numpy.array([['%04d' % (self.expectedrows - 3)]*2]*2)
             assert allequal(result[3], a)
-            a = strings.array([['%04d' % (self.expectedrows - 10)]*2]*2)
+            a = numpy.array([['%04d' % (self.expectedrows - 10)]*2]*2)
             assert allequal(result[10], a)
-            a = strings.array([['%04d' % (1)]*2]*2)
+            a = numpy.array([['%04d' % (1)]*2]*2)
             assert allequal(rec['var1'], a)
         else:
             assert rec['var1'] == "0001"
@@ -401,11 +400,11 @@ class BasicTestCase(common.PyTablesTestCase):
             row['var1_'] = (i, 1)
             row['var2'] = ((i, 1), (1,1))   # *-*
             row['var3'] = i % self.maxshort
-            if isinstance(row['var4'], NumArray):
+            if isinstance(row['var4'], numpy.ndarray):
                 row['var4'] = [float(i), float(i*i)]
             else:
                 row['var4'] = float(i)
-            if isinstance(row['var5'], NumArray):
+            if isinstance(row['var5'], numpy.ndarray):
                 row['var5'] = array((float(i),)*4)
             else:
                 row['var5'] = float(i)
@@ -429,7 +428,7 @@ class BasicTestCase(common.PyTablesTestCase):
             nrows,
             nrows,
             "1"))
-        if isinstance(row['var5'], NumArray):
+        if isinstance(row['var5'], numpy.ndarray):
             assert allequal(row['var5'], array((float(nrows),)*4, Float32))
         else:
             assert row['var5'] == float(nrows)
@@ -485,15 +484,18 @@ class DictWriteTestCase(BasicTestCase):
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
-    record=records.array(
+    record=numpy.rec.array(
+        None,
         formats="(2,)a4,(2,2)a4,(2,)i4,(2,2)i4,i2,2f8,f4,i2,a1",
-        names='var0,var1,var1_,var2,var3,var4,var5,var6,var7')
+        names='var0,var1,var1_,var2,var3,var4,var5,var6,var7',
+        shape=1)
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(
+    recordtemplate=numpy.rec.array(
+        None,
         formats="(2,)a4,(2,2)a4,(2,)i4,(2,2)i4,i2,f8,f4,i2,a1",
         names='var0,var1,var1_,var2,var3,var4,var5,var6,var7',
         shape=1)
@@ -502,7 +504,8 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
-    recordtemplate=records.array(
+    recordtemplate=numpy.rec.array(
+        None,
         formats="(2,)a4,(2,2)a4,(2,)i4,(2,2)i4,i2,2f8,4f4,i2,a1",
         names='var0,var1,var1_,var2,var3,var4,var5,var6,var7',
         shape=1)
@@ -580,11 +583,11 @@ class BasicRangeTestCase(unittest.TestCase):
                 row['var7'] = row['var1'][0][0][-1]
                 row['var2'] = i
                 row['var3'] = i % self.maxshort
-                if isinstance(row['var4'], NumArray):
+                if isinstance(row['var4'], numpy.ndarray):
                     row['var4'] = [float(i), float(i*i)]
                 else:
                     row['var4'] = float(i)
-                if isinstance(row['var5'], NumArray):
+                if isinstance(row['var5'], numpy.ndarray):
                     row['var5'] = array((float(i),)*4)
                 else:
                     row['var5'] = float(i)
@@ -958,12 +961,11 @@ class RecArrayIO(unittest.TestCase):
         intlist1 = [[456,23]*3]*2
         intlist2 = array([[2,2]*3]*2)
         arrlist1 = [['dbe']*2]*3
-        #arrlist2 = strings.array([['de']*2]*3)
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
-        r=records.array(b, names='col1,col2,col3')
+        r=numpy.rec.array(b, names='col1,col2,col3')
 
         # Save it in a table:
         fileh.createTable(fileh.root, 'recarray', r)
@@ -985,12 +987,11 @@ class RecArrayIO(unittest.TestCase):
         intlist1 = [[456,23]*3]*2
         intlist2 = array([[2,2]*3]*2)
         arrlist1 = [['dbe']*2]*3
-        #arrlist2 = strings.array([['de']*2]*3)
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
-        r=records.array(b, names='col1,col2,col3')
+        r=numpy.rec.array(b, names='col1,col2,col3')
 
         # Get an offsetted bytearray
         r1 = r[1:]
@@ -1016,12 +1017,11 @@ class RecArrayIO(unittest.TestCase):
         intlist1 = [[[23,24,35]*6]*6]
         intlist2 = array([[[2,3,4]*6]*6])
         arrlist1 = [['dbe']*2]*3
-        #arrlist2 = strings.array([['de']*2]*3)
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b=[[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
-        r=records.array(b*300, names='col1,col2,col3')
+        r=numpy.rec.array(b*300, names='col1,col2,col3')
 
         # Get an offsetted recarray
         r1 = r[290:292]
@@ -1049,12 +1049,11 @@ class RecArrayIO(unittest.TestCase):
         intlist1 = [[[23,24,35]*6]*6]
         intlist2 = array([[[2,3,4]*6]*6])
         arrlist1 = [['dbe']*2]*3
-        #arrlist2 = strings.array([['de']*2]*3)
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
-        r=records.array(b*300, names='col1,col2,col3', shape=300)
+        r=numpy.rec.array(b*300, names='col1,col2,col3', shape=300)
 
         # Get an strided recarray
         r2 = r[::2]
@@ -1108,7 +1107,7 @@ class DefaultValues(unittest.TestCase):
             (1,1),
             ((1,1),(1,1)),
             2, 3.1, 4.2, 5, "e"]]
-        r = records.array(
+        r = numpy.rec.array(
             buffer*nrows,
             formats='(2,)a4,(2,2)a4,(2,)i4,(2,2)i4,i2,f8,f4,u2,a1',
             names = ['var0', 'var1', 'var1_', 'var2', 'var3', 'var4', 'var5',

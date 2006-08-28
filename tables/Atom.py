@@ -168,7 +168,7 @@ class IntAtom(IntCol, Atom):
         IntCol.__init__(self, shape=shape, itemsize=itemsize, sign=sign)
         self.flavor = checkflavor(flavor, self.type, warn)
     def __repr__(self):
-        if numarray.array(0, self.type) - numarray.array(1, self.type) < 0:
+        if (numarray.array(0, self.type) > numarray.array(-1, self.type))[()]:
             sign = 1
         else:
             sign = 0

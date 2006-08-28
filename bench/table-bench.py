@@ -114,7 +114,7 @@ def createFile(filename, totalrows, filters, recsize):
             for i in xrange(totalrows):
                 #d['var1'] = str(random.randrange(1000000))
                 #d['var3'] = random.randrange(10000000)
-                #d['var1'] = str(i)
+                d['var1'] = str(i)
                 #d['var2'] = random.randrange(totalrows)
                 d['var2'] = i
                 #d['var3'] = 12.1e10
@@ -133,6 +133,7 @@ def createFile(filename, totalrows, filters, recsize):
         group2 = fileh.createGroup(group, 'group'+str(j))
         # Iterate over this new group (group2)
         group = group2
+        table.flush()
 
     # Close the file (eventually destroy the extended type)
     fileh.close()

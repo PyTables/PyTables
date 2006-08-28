@@ -429,21 +429,21 @@ def convertNAToNumPy(arr):
   Returning a numarray object instead!.""")
         return arr
 
-    # This works for both CharArray and regular homogeneous arrays
-    # and even for rank-0 arrays!
-    arr=numpy.asarray(arr)  # Array protocol
-#     if isinstance(arr, numarray.NumArray):
-#         arr = numpy.asarray(arr)  # Array protocol
-#     elif isinstance(arr, strings.CharArray):
-#         # We can't use the array protocol to do this conversion
-#         # because of the different conventions that follow numarray
-#         # and numpy to end strings. See ticket #13 for an example
-#         # of the problems that can appear. This solution is definetly
-#         # not as efficient as the array protocol, but it does handle
-#         # well the trailing spaces issue.
-#         # F. Altet 2006-06-19
-#         dtype = "|S%s" % arr.itemsize()
-#         arr = numpy.array(arr.tolist(), dtype=dtype)
+    if isinstance(arr, numarray.NumArray):
+        # This works for regular homogeneous arrays and even for rank-0 arrays
+        arr = numpy.asarray(arr)  # Array protocol
+    elif isinstance(arr, strings.CharArray):
+        # We can't use the array protocol to do this conversion
+        # because of the different conventions that follow numarray
+        # and numpy to end strings. See ticket #13 for an example
+        # of the problems that can appear. This solution is definetly
+        # not as efficient as the array protocol, but it does handle
+        # well the trailing spaces issue.
+        # F. Altet 2006-06-19
+        dtype = "|S%s" % arr.itemsize()
+        #arr = numpy.array(arr.tolist(), dtype=dtype)
+        # The next line works better in every situation...
+        arr = numpy.ndarray(buffer=arr._data, dtype=dtype, shape=arr.shape)
     return arr
 
 
@@ -607,11 +607,6 @@ def fromnumpy(array, copy=False):
     If ``copy`` is True, the a copy of the data is made. The default is
     not doing a copy.
 
-    Warning: The code below is currently only meant for dealing with
-    numpy objects because we need to access to the buffer of the data,
-    and this is not accessible in the current array protocol. Perhaps it
-    would be good to propose such an addition to the protocol.
-
     Example
     =======
 
@@ -651,6 +646,7 @@ def fromnumpy(array, copy=False):
     nra = nestedrecords.NestedRecArray(ra, descr)
 
     return nra
+
 
 # The next way of converting to NRA does not work because
 # nestedrecords.array factory seems too picky with buffer checks.
@@ -715,8 +711,12 @@ def tonumpy(array, copy=False):
         # better way to convert a plain RecArray into a numpy recarray.
         # F. Altet 2006-06-19
         array = nestedrecords.array(array)
-    npa = numpy.array(array._flatArray, dtype=array.array_descr, copy=copy)
-        
+    #npa = numpy.array(array._flatArray, dtype=array.array_descr, copy=copy)
+    # Workaround for allowing creating numpy recarrays from
+    # unaligned buffers (this limitation was introduced in numpy 1.0b2)
+    # F. Altet 2006-08-23
+    npa = numpy.ndarray(buffer=buffer._data, dtype=array.array_descr,
+                        shape=buffer.shape)
 
     # Create a numpy recarray from the above object. I take this additional
     # step just to wrap the original numpy object with more features.

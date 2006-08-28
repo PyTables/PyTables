@@ -2494,7 +2494,7 @@ fileh.close()]]></screen>
   line 1812, in hdf5Extension.Row.__setitem__
      raise KeyError, "Error setting \"%s\" field.\n %s" % \
  KeyError: Error setting "ADCcount" field.
-  Error was: "exceptions.TypeError: NA_setFromPythonScalar: bad value type."]]></screen>
+  Error was: "<type 'exceptions.TypeError'>: an integer is required."</screen>
 
           <para>You can see the structure created with this (corrected) script
           in <xref linkend="tutorial2-tableview" xrefstyle="select: label"/>. In

@@ -13,12 +13,12 @@ Test module for nested types under PyTables
 import unittest
 
 import numarray
-import numarray.records
 
 import common
 from common import verbose
 import tables as t
-import tables.nestedrecords as nr
+#from numpy import rec as nr
+import numpy as nr
 from tables.IsDescription import Description
 from tables.indexes import minRowIndex
 
@@ -109,10 +109,10 @@ testABuffer = [
     # x     Info                                                color info        y                  z
     #       value y2 Info2                            name z2         Name Value
     #                name   value    y3       z3
-    [(3,2), [6j, 6., ['nn', (6j,4j), (6.,4.), (1,2)], 'NN', 8], 'cc', ['NN', 6j], ((6.,4.),(6.,4.)), 8],
-    [(4,3), [7j, 7., ['oo', (7j,5j), (7.,5.), (2,1)], 'OO', 9], 'dd', ['OO', 7j], ((7.,5.),(7.,5.)), 9],
+    ((3,2), (6j, 6., ('nn', (6j,4j), (6.,4.), (1,2)), 'NN', 8), 'cc', ('NN', 6j), ((6.,4.),(6.,4.)), 8),
+    ((4,3), (7j, 7., ('oo', (7j,5j), (7.,5.), (2,1)), 'OO', 9), 'dd', ('OO', 7j), ((7.,5.),(7.,5.)), 9),
     ]
-testAData = nr.array(testABuffer, descr=testADescr)
+testAData = nr.array(testABuffer, dtype=testADescr)
 # The name of the column to be searched:
 testCondCol = 'Info/z2'
 # The name of a nested column (it can not be searched):
@@ -170,7 +170,6 @@ def areDescriptionsEqual(desc1, desc2):
 
 
 class DescriptionTestCase(common.PyTablesTestCase):
-
     """Test creating nested column descriptions."""
 
     _TestTDescr = TestTDescr
@@ -180,6 +179,8 @@ class DescriptionTestCase(common.PyTablesTestCase):
 
     def test00_instance(self):
         """Creating an instance of a nested description."""
+
+        self._verboseHeader()
         self.assert_(
             areDescriptionsEqual(self._TestTDescr, self._TestTDescr()),
             "Table description does not match the given one.")
@@ -187,6 +188,7 @@ class DescriptionTestCase(common.PyTablesTestCase):
     def test01_instance(self):
         """Checking attrs of an instance of a nested description."""
 
+        self._verboseHeader()
         descr = Description(self._TestTDescr().columns)
         if verbose:
             print "Generated description:", descr._v_nestedDescr
@@ -197,7 +199,6 @@ class DescriptionTestCase(common.PyTablesTestCase):
 
 
 class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
-
     """Test creating a nested table and opening it."""
 
     _TestTDescr = TestTDescr
@@ -241,6 +242,8 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_create(self):
         """Creating a nested table."""
+
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         self._checkDescription(tbl)
@@ -248,6 +251,8 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test01_open(self):
         """Opening a nested table."""
+
+        self._verboseHeader()
         self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         self._reopen()
@@ -257,12 +262,11 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_NestedRecArrayCompat(self):
         """Creating a compatible ``NestedRecArray``."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = nr.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         self.assert_(common.areArraysEqual(nrarr, self._testAData),
                      "Can not create a compatible record array.")
 
@@ -270,17 +274,21 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03_NRA(self):
         """Creating a table from a NestedRecArray object."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._testAData, title=self._getMethodName())
         tbl.flush()
-
         readAData = tbl.read()
+        if verbose:
+            print "Read data:", readAData
+            print "Should look like:", self._testAData
         self.assert_(common.areArraysEqual(self._testAData, readAData),
                      "Written and read values differ.")
 
     def test04_NRA2(self):
         """Creating a table from a generated NestedRecArray object."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
@@ -345,12 +353,14 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test00_append(self):
         """Appending a set of rows."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
         tbl.flush()
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         readAData = tbl.read()
@@ -361,6 +371,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_row(self):
         """Appending individual rows."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
@@ -372,7 +383,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._appendRow(row, i)
         tbl.flush()
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         readAData = tbl.read()
@@ -383,12 +395,14 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_where(self):
         """Searching nested data."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
         tbl.flush()
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         searchedCoords = tbl.getWhereList(
@@ -404,6 +418,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02b_whereAppend(self):
         """Searching nested data and appending it to another table."""
 
+        self._verboseHeader()
         tbl1 = self.h5file.createTable(
             '/', 'test1', self._TestTDescr, title=self._getMethodName())
         tbl1.append(self._testAData)
@@ -414,7 +429,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1.whereAppend(
             tbl2, self._testCondition(tbl1.cols._f_col(self._testCondCol)))
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl1 = self.h5file.root.test1
             tbl2 = self.h5file.root.test2
 
@@ -431,12 +447,14 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03_colscond(self):
         """Searching on a column with nested columns."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
         tbl.flush()
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         self.assertRaises(
@@ -447,6 +465,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test04_modifyColumn(self):
         """Modifying one single nested column (modifyColumn)."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
@@ -463,7 +482,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.modifyColumn(colname=nColumn, column=raColumn)
         tbl.flush()
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         raReadTable = tbl.read()
@@ -478,6 +498,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test05a_modifyColumns(self):
         """Modifying one nested column (modifyColumns)."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
@@ -493,7 +514,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.modifyColumns(names=[nColumn], columns=raColumn)
         tbl.flush()
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         raReadTable = tbl.read()
@@ -508,6 +530,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test05b_modifyColumns(self):
         """Modifying two nested columns (modifyColumns)."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
@@ -528,7 +551,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.modifyColumns(names=colnames, columns=raCols)
         tbl.flush()
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         # Re-read the appropriate columns
@@ -539,7 +563,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # just as ``numarray.array()`` does.  See SF bug #1286168.
 
         raCols2 = nr.fromarrays([tbl.cols._f_col('x'),
-                                 tbl.cols._f_col('color')[:]],
+                                 #tbl.cols._f_col('color')[:]], # XYX
+                                 tbl.cols._f_col('color')],
                                 descr=raCols.descr)
         if verbose:
             print "Table read:", raCols2
@@ -552,6 +577,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test06_modifyRows(self):
         "Checking modifying several rows at once (using nestedrecarray)"
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
@@ -565,7 +591,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.modifyRows(start=0, stop=2, rows=raTable)
         tbl.flush()
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         raReadTable = tbl.read()
@@ -580,6 +607,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test07_index(self):
         """Checking indexes of nested columns"""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName(),
             expectedrows = minRowIndex*2)
@@ -589,7 +617,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         coltoindex = tbl.cols._f_col(self._testCondCol)
         indexrows = coltoindex.createIndex(testmode=1)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
             coltoindex = tbl.cols._f_col(self._testCondCol)
 
@@ -615,11 +644,10 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class WriteNoReopen(WriteTestCase):
-    def _reopen(self, mode='r'):
-        return False
+    reopen = 0
 
 class WriteReopen(WriteTestCase):
-    pass  # default ``_reopen()`` does reopen the file
+    reopen = 1
 
 
 class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -634,11 +662,13 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01_read(self):
         """Checking Table.read with subgroups with a range index with step."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -655,11 +685,13 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02_read(self):
         """Checking Table.read with a nested Column."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         tblcols = tbl.read(start=0, step=2, field='Info/value')
@@ -671,11 +703,10 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
                      "Original array are retrieved doesn't match.")
 
 class ReadNoReopen(ReadTestCase):
-    def _reopen(self, mode='r'):
-        return False
+    reopen = 0
 
 class ReadReopen(ReadTestCase):
-    pass  # default ``_reopen()`` does reopen the file
+    reopen = 1
 
 
 class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -690,10 +721,12 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01a_f_col(self):
         """Checking cols._f_col() with a subgroup."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         tblcol = tbl.cols._f_col(self._testNestedCol)
@@ -705,10 +738,12 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01b_f_col(self):
         """Checking cols._f_col() with a column."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         tblcol = tbl.cols._f_col(self._testNestedCol+"/name")
@@ -720,6 +755,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test01c_f_col(self):
         """Checking cols._f_col() with a nested subgroup."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
@@ -732,10 +768,12 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02a__len__(self):
         """Checking cols.__len__() in root level."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         length = len(tbl.cols)
@@ -747,10 +785,12 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test02b__len__(self):
         """Checking cols.__len__() in subgroup level."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         length = len(tbl.cols.Info)
@@ -762,11 +802,13 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03a__getitem__(self):
         """Checking cols.__getitem__() with a single index."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -783,11 +825,13 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03b__getitem__(self):
         """Checking cols.__getitem__() with a range index."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -804,11 +848,13 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test03c__getitem__(self):
         """Checking cols.__getitem__() with a range index with step."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -826,11 +872,13 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test04a__getitem__(self):
         """Checking cols.__getitem__() with subgroups with a single index."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -847,11 +895,13 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test04b__getitem__(self):
         """Checking cols.__getitem__() with subgroups with a range index."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -868,11 +918,13 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test04c__getitem__(self):
         """Checking cols.__getitem__() with subgroups with a range index with step."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -889,11 +941,13 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test05a__getitem__(self):
         """Checking cols.__getitem__() with a column with a single index."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -910,11 +964,13 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test05b__getitem__(self):
         """Checking cols.__getitem__() with a column with a range index."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -931,11 +987,13 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test05c__getitem__(self):
         """Checking cols.__getitem__() with a column with a range index with step."""
 
+        self._verboseHeader()
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         tbl.append(self._testAData)
 
-        if self._reopen():
+        if self.reopen:
+            self._reopen()
             tbl = self.h5file.root.test
 
         nrarr = nr.array(testABuffer,
@@ -951,11 +1009,165 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
 class ColsNoReopen(ColsTestCase):
-    def _reopen(self, mode='r'):
-        return False
+    reopen = 0
 
 class ColsReopen(ColsTestCase):
-    pass  # default ``_reopen()`` does reopen the file
+    reopen = 1
+
+
+class Nested(t.IsDescription):
+    uid = t.IntCol(pos=1)
+    value = t.FloatCol(pos=2)
+
+class A_Candidate(t.IsDescription):
+    nested1 = Nested()
+    nested2 = Nested()
+
+class B_Candidate(t.IsDescription):
+    nested1 = Nested
+    nested2 = Nested
+
+class C_Candidate(t.IsDescription):
+    nested1 = Nested()
+    nested2 = Nested
+
+Dnested = {'uid': t.IntCol(pos=1),
+           'value': t.FloatCol(pos=2),
+           }
+
+D_Candidate = {"nested1": Dnested,
+               "nested2": Dnested,
+               }
+
+E_Candidate = {"nested1": Nested,
+               "nested2": Dnested,
+               }
+
+F_Candidate = {"nested1": Nested(),
+               "nested2": Dnested,
+               }
+
+class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    """Checking several nested columns declared in the same way."""
+
+    correct_names = ['',  # The root of columns
+                     'nested1', 'nested1/uid', 'nested1/value',
+                     'nested2', 'nested2/uid', 'nested2/value']
+
+    def test01a(self):
+        """Checking same nested columns (instance flavor)."""
+
+        self._verboseHeader()
+        tbl = self.h5file.createTable(
+            '/', 'test', A_Candidate, title=self._getMethodName())
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        if verbose:
+            print "Pathnames of columns:", names
+            print "Should look like:", self.correct_names
+        self.assert_(names == self.correct_names,
+                     "Column nested names doesn't match.")
+
+    def test01b(self):
+        """Checking same nested columns (class flavor)."""
+
+        self._verboseHeader()
+        tbl = self.h5file.createTable(
+            '/', 'test', B_Candidate, title=self._getMethodName())
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        if verbose:
+            print "Pathnames of columns:", names
+            print "Should look like:", self.correct_names
+        self.assert_(names == self.correct_names,
+                     "Column nested names doesn't match.")
+
+    def test01c(self):
+        """Checking same nested columns (mixed instance/class flavor)."""
+
+        self._verboseHeader()
+        tbl = self.h5file.createTable(
+            '/', 'test', C_Candidate, title=self._getMethodName())
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        if verbose:
+            print "Pathnames of columns:", names
+            print "Should look like:", self.correct_names
+        self.assert_(names == self.correct_names,
+                     "Column nested names doesn't match.")
+
+    def test01d(self):
+        """Checking same nested columns (dictionary flavor)."""
+
+        self._verboseHeader()
+        tbl = self.h5file.createTable(
+            '/', 'test', D_Candidate, title=self._getMethodName())
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        if verbose:
+            print "Pathnames of columns:", names
+            print "Should look like:", self.correct_names
+        self.assert_(names == self.correct_names,
+                     "Column nested names doesn't match.")
+
+    def test01e(self):
+        """Checking same nested columns (mixed dictionary/class flavor)."""
+
+        self._verboseHeader()
+        tbl = self.h5file.createTable(
+            '/', 'test', E_Candidate, title=self._getMethodName())
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        if verbose:
+            print "Pathnames of columns:", names
+            print "Should look like:", self.correct_names
+        self.assert_(names == self.correct_names,
+                     "Column nested names doesn't match.")
+
+    def test01f(self):
+        """Checking same nested columns (mixed dictionary/instance flavor)."""
+
+        self._verboseHeader()
+        tbl = self.h5file.createTable(
+            '/', 'test', F_Candidate, title=self._getMethodName())
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        if verbose:
+            print "Pathnames of columns:", names
+            print "Should look like:", self.correct_names
+        self.assert_(names == self.correct_names,
+                     "Column nested names doesn't match.")
+
+
+class SameNestedNoReopen(SameNestedTestCase):
+    reopen = 0
+
+class SameNestedReopen(SameNestedTestCase):
+    reopen = 1
 
 
 
@@ -979,6 +1191,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ColsReopen))
         theSuite.addTest(unittest.makeSuite(ReadNoReopen))
         theSuite.addTest(unittest.makeSuite(ReadReopen))
+        theSuite.addTest(unittest.makeSuite(SameNestedNoReopen))
+        theSuite.addTest(unittest.makeSuite(SameNestedReopen))
 
     return theSuite
 

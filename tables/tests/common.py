@@ -17,11 +17,11 @@ import warnings
 import sys
 import popen2
 import time
-import types
 
 import numarray
 import numarray.strings
 import numarray.records
+import numpy
 
 import tables
 
@@ -61,8 +61,8 @@ def cleanup(klass):
             klass.__dict__[key] = None
 
 
-def allequal(a,b, flavor="numarray"):
-    """Checks if two numarrays are equal"""
+def allequal(a,b, flavor="numpy"):
+    """Checks if two numerical objects are equal"""
 
     #print "a-->", repr(a)
     #print "b-->", repr(b)
@@ -71,55 +71,22 @@ def allequal(a,b, flavor="numarray"):
         return a == b
 
     if flavor == "numeric":
-        # Convert the parameters to numarray objects
+        # Convert the parameters to numpy objects
         if a.typecode() == "c":
-            a = numarray.strings.array(
-                a.tostring(), itemsize=1, shape=a.shape)
-            b = numarray.strings.array(
-                b.tostring(), itemsize=1, shape=b.shape)
+            a = numpy.array(a.tostring(), itemsize=1, shape=a.shape)
+            b = numpy.array(b.tostring(), itemsize=1, shape=b.shape)
         else:
-            array = numarray.array
-            typeDict = numarray.typeDict
+            a = numpy.asarray(a)
+            b = numpy.asarray(b)
 
-            # if using:
-            #a = array(buffer(a),type=typeDict[a.typecode()],shape=a.shape)
-            # the next error is issued for non-contiguous arrays (at
-            # least from numarray 1.2.3 and Numeric 23.8 on):
-            # """ TypeError: single-segment buffer object expected"""
-            try:
-                #a = array(a, type=typeDict[a.typecode()], shape=a.shape)
-                # From Numeric 24.x and numarray 1.4.x on we can use the
-                # array protocol. But this is not really critical.
-                a = array(a,copy=0)
-            except ValueError:
-                # This line is able to import Numeric objects like:
-                # zeros((0,), 'l')
-                # while the previous one don't
-                a = array(buffer(a),
-                          type=typeDict[a.typecode()], shape=a.shape)
-            try:
-                b = array(b, type=typeDict[b.typecode()], shape=b.shape)
-            except ValueError:
-                # This line is able to import Numeric objects like:
-                # zeros((0,), 'l')
-                # while the previous one don't
-                b = array(buffer(b),
-                          type=typeDict[b.typecode()], shape=b.shape)
+    elif flavor == "numarray":
+        # Convert the parameters to numpy objects
+        a = numpy.asarray(a)
+        b = numpy.asarray(b)
 
-    elif flavor == "numpy":
-        # Convert the parameters to numarray objects
-        if a.dtype.char[0] == "S":
-            if a.shape == ():  # rank-0 case
-                a = numarray.strings.array(a.item())
-                b = numarray.strings.array(b.item())
-            else:
-                a = numarray.strings.array(a)
-                b = numarray.strings.array(b)
-        else:
-            typeDict = numarray.typeDict
-            a = numarray.asarray(a)
-            b = numarray.asarray(b)
-
+    if ((not hasattr(a, "shape") or a.shape == ()) and
+        (not hasattr(b, "shape") or b.shape == ())):
+        return a == b
 
     if a.shape <> b.shape:
         if verbose:
@@ -140,24 +107,20 @@ def allequal(a,b, flavor="numarray"):
                 print "Shape is not equal:", a.shape, "<>", b.shape
             return 0
 
-    # Null arrays
-    if len(a._data) == 0:  # len(a) is not correct for generic shapes
-        if len(b._data) == 0:
+    # null arrays
+    if len(a.data) == 0:  # len(a) is not correct for generic shapes
+        if len(b.data) == 0:
             return 1
         else:
             if verbose:
                 print "length is not equal"
-                print "len(a._data) ==>", len(a._data)
-                print "len(b._data) ==>", len(b._data)
+                print "len(a.data) ==>", len(a.data)
+                print "len(b.data) ==>", len(b.data)
             return 0
 
     # Multidimensional case
     result = (a == b)
-#     for i in range(len(a.shape)):
-#         result = numarray.logical_and.reduce(result)
-#         print "result-->", result
-#         #result = numarray.alltrue(result)
-    result = numarray.all(result)
+    result = numpy.all(result)
     if not result and verbose:
         print "Some of the elements in arrays are not equal"
 
@@ -168,9 +131,9 @@ def areArraysEqual(arr1, arr2):
     """
     Are both `arr1` and `arr2` equal arrays?
 
-    Arguments can be regular Numarray arrays, CharArray arrays or record
-    arrays and its descendants (i.e. nested record arrays).  They are
-    checked for type and value equality.
+    Arguments can be regular NumPy arrays, chararray arrays or record
+    arrays (including nested record arrays).  They are checked for type
+    and value equality.
     """
 
     t1 = type(arr1)
@@ -179,43 +142,7 @@ def areArraysEqual(arr1, arr2):
     if not ((t1 is t2) or issubclass(t1, t2) or issubclass(t2, t1)):
         return False
 
-    if isinstance(arr1, tables.nestedrecords.NestedRecArray):
-        arr1 = arr1.asRecArray()
-    if isinstance(arr2, tables.nestedrecords.NestedRecArray):
-        arr2 = arr2.asRecArray()
-    if isinstance(arr1, tables.nestedrecords.NestedRecord):
-        row = arr1.row
-        arr1 = arr1.array[row:row+1]
-    if isinstance(arr2, tables.nestedrecords.NestedRecord):
-        row = arr2.row
-        arr2 = arr2.array[row:row+1]
-
-    if isinstance(arr1, numarray.records.RecArray):
-        arr1Names = arr1._names
-        arr2Names = arr2._names
-        if arr1Names != arr2Names:
-            return False
-        for fieldName in arr1Names:
-            if not areArraysEqual(arr1.field(fieldName),
-                                  arr2.field(fieldName)):
-                return False
-        return True
-
-    if isinstance(arr1, numarray.NumArray):
-        if arr1.shape != arr2.shape:
-            return False
-        if arr1.type() != arr2.type():
-            return False
-        # The lines below are equivalent
-        #return numarray.alltrue(arr1.flat == arr2.flat)
-        return numarray.all(arr1 == arr2)
-
-    if isinstance(arr1, numarray.strings.CharArray):
-        if arr1.shape != arr2.shape:
-            return False
-        if arr1._type != arr2._type:
-            return False
-        return numarray.all(arr1 == arr2)
+    return numpy.all(arr1 == arr2)
 
 
 def testFilename(filename):
@@ -233,39 +160,9 @@ def testFilename(filename):
 
 
 
-def _verboseDecorator(oldmethod):
-    def newmethod(self, *args, **kwargs):
-        self._verboseHeader()
-        return oldmethod(self, *args, **kwargs)
-    if sys.version_info >= (2, 4):
-        # Under Python 2.3 and older, names are read-only.  Not changing
-        # this name makes the user unable to run a particular test from
-        # the command line, but at least whole test modules and test
-        # cases can still be run.
-        newmethod.__name__ = oldmethod.__name__  # Python >= 2.4
-    newmethod.__doc__ = oldmethod.__doc__
-    return newmethod
-
-class MetaPyTablesTestCase(type):
-
-    """Metaclass for PyTables test case classes."""
-
-    # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/198078
-
-    def __new__(class_, name, bases, dict_):
-        newdict = {}
-        for (aname, avalue) in dict_.iteritems():
-            if ( isinstance(avalue, types.FunctionType)
-                 and aname.startswith('test') ):
-                avalue = _verboseDecorator(avalue)
-            newdict[aname] = avalue
-        return type.__new__(class_, name, bases, newdict)
-
 class PyTablesTestCase(unittest.TestCase):
 
     """Abstract test case with useful methods."""
-
-    __metaclass__ = MetaPyTablesTestCase
 
     def _getName(self):
         """Get the name of this test case."""
@@ -387,15 +284,10 @@ class TempFileMixin:
 
 
     def _reopen(self, mode='r'):
-        """Reopen ``h5file`` in the specified ``mode``.
-
-        Returns a true or false value depending on whether the file was
-        reopenend or not.  If not, nothing is changed.
-        """
+        """Reopen ``h5file`` in the specified ``mode``."""
 
         self.h5file.close()
         self.h5file = tables.openFile(self.h5fname, mode)
-        return True
 
 
 
@@ -405,6 +297,8 @@ class ShowMemTime(PyTablesTestCase):
 
     def test00(self):
         """Showing memory and time consumption."""
+
+        self._verboseHeader()
 
         # Build the command to obtain memory info (only for Linux 2.6.x)
         cmd = "cat /proc/%s/status" % os.getpid()

@@ -455,12 +455,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         """The maximum number of elements in a block."""
         self.reord_opts = None
         """The reordering optimizations."""
-        self.bufferlb = None
-        """Buffer for reading chunks in sorted array in extension."""
-        self.arrAbs = None
-        """Buffer for reading indexes (absolute addresses) in extension."""
-        self.coords = None
-        """Buffer for reading coordenates (absolute addresses) in extension."""
         if atom is not None:
             sizes, reord_opts = calcChunksize(expectedrows, optlevel, testmode)
             self.superblocksize, self.blocksize, self.slicesize, self.chunksize = \

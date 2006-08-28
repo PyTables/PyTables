@@ -27,6 +27,7 @@ Misc variables:
 import warnings
 import sys
 import operator
+import copy
 
 import numarray as NA
 import numarray.records as records
@@ -1022,15 +1023,34 @@ class Description(object):
                 issubclass(object, IsDescription)):
                 #print "Nested object (type I)-->", k
                 descr = object()
-                classdict[k] = Description(descr.columns, self._v_nestedlvl)
+                # Doing a deepcopy is very important when one has nested
+                # records in the form:
+                #
+                # class Nested(IsDescription):
+                #     uid = IntCol()
+                #
+                # class B_Candidate(IsDescription):
+                #     nested1 = Nested
+                #     nested2 = Nested
+                #
+                # This makes that nested1 and nested2 point to the same
+                # 'columns' dictionary, so that successive accesses to
+                # the different columns are actually accessing to the
+                # very same object.
+                # F. Altet 2006-08-22
+                columns = copy.deepcopy(object().columns)
+                classdict[k] = Description(columns, self._v_nestedlvl)
             elif (type(object.__class__) == type(IsDescription) and
                 issubclass(object.__class__, IsDescription)):
                 #print "Nested object (type II)-->", k
-                descr = object.__class__()
-                classdict[k] = Description(descr.columns, self._v_nestedlvl)
+                # Regarding the need of a deepcopy, see note above
+                columns = copy.deepcopy(object.columns)
+                classdict[k] = Description(columns, self._v_nestedlvl)
             elif isinstance(object, dict):
                 #print "Nested object (type III)-->", k
-                classdict[k] = Description(object, self._v_nestedlvl)
+                # Regarding the need of a deepcopy, see note above
+                columns = copy.deepcopy(object)
+                classdict[k] = Description(columns, self._v_nestedlvl)
 
         # Check if we have any ._v_pos position attribute
         for column in classdict.values():

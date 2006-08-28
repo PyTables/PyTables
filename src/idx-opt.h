@@ -2,6 +2,7 @@
 int bisect_left_d(double *a, double x, int hi, int offset);
 int bisect_left_i(int *a, int x, int hi, int offset);
 int bisect_left_ll(long long *a, long long x, int hi, int offset);
+int bisect_left_ll2(long long *a, long long x, int hi);
 int bisect_right_d(double *a, double x, int hi, int offset);
 int bisect_right_i(int *a, int x, int hi, int offset);
 int bisect_right_ll(long long *a, long long x, int hi, int offset);

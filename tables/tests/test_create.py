@@ -1055,20 +1055,20 @@ class FiltersCase2(FiltersTreeTestCase):
     gfilters = Filters(complevel=1)
 
 class FiltersCase3(FiltersTreeTestCase):
-    filters = Filters(shuffle=1, complib="zlib")
-    gfilters = Filters(complevel=1, shuffle=0, complib="lzo")
+    filters = Filters(shuffle=True, complib="zlib")
+    gfilters = Filters(complevel=1, shuffle=False, complib="lzo")
 
 class FiltersCase4(FiltersTreeTestCase):
-    filters = Filters(shuffle=1)
-    gfilters = Filters(complevel=1, shuffle=0)
+    filters = Filters(shuffle=True)
+    gfilters = Filters(complevel=1, shuffle=False)
 
 class FiltersCase5(FiltersTreeTestCase):
-    filters = Filters(fletcher32=1)
-    gfilters = Filters(complevel=1, shuffle=0)
+    filters = Filters(fletcher32=True)
+    gfilters = Filters(complevel=1, shuffle=False)
 
 class FiltersCase6(FiltersTreeTestCase):
     filters = None
-    gfilters = Filters(complevel=1, shuffle=0)
+    gfilters = Filters(complevel=1, shuffle=False)
 
 class FiltersCase7(FiltersTreeTestCase):
     filters = Filters(complevel=1)
@@ -1079,8 +1079,8 @@ class FiltersCase8(FiltersTreeTestCase):
     gfilters = None
 
 class FiltersCase9(FiltersTreeTestCase):
-    filters = Filters(shuffle=1, complib="zlib")
-    gfilters = Filters(complevel=5, shuffle=1, complib="bzip2")
+    filters = Filters(shuffle=True, complib="zlib")
+    gfilters = Filters(complevel=5, shuffle=True, complib="bzip2")
 
 class CopyGroupTestCase(unittest.TestCase):
     title = "A title"
@@ -1180,10 +1180,10 @@ class CopyGroupTestCase(unittest.TestCase):
         # Copy a group non-recursively
         srcgroup = self.h5file.root.group0.group1
 #         srcgroup._f_copyChildren(self.h5file2.root,
-#                                recursive=0,
+#                                recursive=False,
 #                                filters=self.filters)
         self.h5file.copyChildren(srcgroup, self.h5file2.root,
-                                 recursive=0, filters=self.filters)
+                                 recursive=False, filters=self.filters)
         if self.close:
             # Close the destination file
             self.h5file2.close()
@@ -1212,7 +1212,7 @@ class CopyGroupTestCase(unittest.TestCase):
         # Copy a group non-recursively with attrs
         srcgroup = self.h5file.root.group0.group1
         srcgroup._f_copyChildren(self.h5file2.root,
-                                 recursive=0,
+                                 recursive=False,
                                  filters=self.filters,
                                  copyuserattrs = 1)
         if self.close:
@@ -1279,10 +1279,10 @@ class CopyGroupTestCase(unittest.TestCase):
         # Copy a group non-recursively
         srcgroup = self.h5file.getNode(self.srcnode)
 #         srcgroup._f_copyChildren(dstgroup,
-#                                recursive=1,
+#                                recursive=True,
 #                                filters=self.filters)
         self.h5file.copyChildren(srcgroup, dstgroup,
-                               recursive=1,
+                               recursive=True,
                                filters=self.filters)
         lenSrcGroup = len(srcgroup._v_pathname)
         if lenSrcGroup == 1:
@@ -1300,7 +1300,7 @@ class CopyGroupTestCase(unittest.TestCase):
             lenDstGroup = 0  # Case where dstgroup == "/"
         first = 1
         nodelist1 = []
-        for node in srcgroup._f_walkNodes(recursive=1):
+        for node in srcgroup._f_walkNodes(recursive=True):
             if first:
                 # skip the first group
                 first = 0
@@ -1309,7 +1309,7 @@ class CopyGroupTestCase(unittest.TestCase):
 
         first = 1
         nodelist2 = []
-        for node in dstgroup._f_walkNodes(recursive=1):
+        for node in dstgroup._f_walkNodes(recursive=True):
             if first:
                 # skip the first group
                 first = 0
@@ -1338,7 +1338,7 @@ class CopyGroupTestCase(unittest.TestCase):
         # Copy a group non-recursively
         srcgroup = self.h5file.getNode(self.srcnode)
         srcgroup._f_copyChildren(dstgroup,
-                               recursive=1,
+                               recursive=True,
                                filters=self.filters)
         lenSrcGroup = len(srcgroup._v_pathname)
         if lenSrcGroup == 1:
@@ -1356,7 +1356,7 @@ class CopyGroupTestCase(unittest.TestCase):
             lenDstGroup = 0  # Case where dstgroup == "/"
         first = 1
         nodelist1 = {}
-        for node in srcgroup._f_walkNodes(recursive=1):
+        for node in srcgroup._f_walkNodes(recursive=True):
             if first:
                 # skip the first group
                 first = 0
@@ -1364,7 +1364,7 @@ class CopyGroupTestCase(unittest.TestCase):
             nodelist1[node._v_name] = node._v_pathname[lenSrcGroup:]
 
         first = 1
-        for node in dstgroup._f_walkNodes(recursive=1):
+        for node in dstgroup._f_walkNodes(recursive=True):
             if first:
                 # skip the first group
                 first = 0
@@ -1407,13 +1407,13 @@ class CopyGroupCase5(CopyGroupTestCase):
 
 class CopyGroupCase6(CopyGroupTestCase):
     close = 1
-    filters = Filters(fletcher32=1)
+    filters = Filters(fletcher32=True)
     srcnode = '/group0'
     dstnode = '/group2/group3'
 
 class CopyGroupCase7(CopyGroupTestCase):
     close = 0
-    filters = Filters(complevel=1, shuffle=0)
+    filters = Filters(complevel=1, shuffle=False)
     srcnode = '/'
     dstnode = '/'
 
@@ -1731,12 +1731,12 @@ class CopyFileCase4(CopyFileTestCase):
 class CopyFileCase5(CopyFileTestCase):
     close = 0
     title = "A new title"
-    filters = Filters(fletcher32=1)
+    filters = Filters(fletcher32=True)
 
 class CopyFileCase6(CopyFileTestCase):
     close = 1
     title = "A new title"
-    filters = Filters(fletcher32=1)
+    filters = Filters(fletcher32=True)
 
 class CopyFileCase7(CopyFileTestCase):
     close = 0
@@ -1766,7 +1766,7 @@ class CopyFileCase10(unittest.TestCase):
         fileh2.close()  # close the second one
         # Copy the first into the second
         try:
-            fileh.copyFile(file2, overwrite=0)
+            fileh.copyFile(file2, overwrite=False)
         except IOError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()

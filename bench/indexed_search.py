@@ -13,8 +13,7 @@ STEP = 1000*100  # the size of the buffer to fill the table, in rows
 SCALE = 0.1      # standard deviation of the noise compared with actual values
 NI_NTIMES = 2      # The number of queries for doing a mean (non-idx cols)
 I_NTIMES = 10      # The number of queries for doing a mean (idx cols)
-# READ_TIMES = 100    # The number of complete calls to DB.query_db()
-READ_TIMES = 1000    # The number of complete calls to DB.query_db()
+READ_TIMES = 100    # The number of complete calls to DB.query_db()
 MROW = 1000*1000.
 
 # global variables
@@ -118,8 +117,8 @@ class DB(object):
             self.index_col(self.con, colname, optlevel, verbose)
             self.print_mtime(t1, 'Index time (%s)' % colname)
 
-    def query_db(self, dtype, onlyidxquery, onlynonidxquery, avoidfscache,
-                 verbose):
+    def query_db(self, niter, dtype, onlyidxquery, onlynonidxquery,
+                 avoidfscache, verbose):
         self.con = self.open_db()
         if dtype == "int":
             reg_cols = ['col1']
@@ -155,7 +154,7 @@ class DB(object):
         if not onlynonidxquery:
             for colname in idx_cols:
                 ltimes = []
-                for j in range(READ_TIMES):
+                for j in xrange(niter):
                     #random.seed(rseed)
                     t1=time()
                     for i in range(I_NTIMES):
@@ -184,7 +183,7 @@ if __name__=="__main__":
     except:
         psyco_imported = 0
 
-    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-k] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-n nrows] [-d datadir] [-O level] [-s] col -Q [suplim]
+    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-k] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-N niter] [-n nrows] [-d datadir] [-O level] [-s] col -Q [suplim]
             -T use Pytables
             -S use Sqlite3
             -P use Postgres
@@ -201,6 +200,7 @@ if __name__=="__main__":
             -z compress with zlib (no compression by default)
             -l use complib for compression (zlib used by default)
             -R select a range in a field in the form "start,stop" (def "0,10")
+            -N number of iterations for reading
             -n sets the number of rows (in krows) in each table
             -d directory to save data (default: data.nobackup)
             -O set the optimization level for PyTables Pro indexes
@@ -209,7 +209,7 @@ if __name__=="__main__":
             \n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfkpmcqiIxz:l:R:n:d:O:s:Q:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfkpmcqiIxz:l:R:N:n:d:O:s:Q:')
     except:
         sys.stderr.write(usage)
         sys.exit(0)
@@ -235,6 +235,7 @@ if __name__=="__main__":
     repeatquery = 0
     repeatvalue = 0
     krows = '1k'
+    niter = READ_TIMES
     dtype = "all"
     datadir = "data.nobackup"
 
@@ -273,6 +274,8 @@ if __name__=="__main__":
             complib = option[1]
         elif option[0] == '-R':
             rng = [int(i) for i in option[1].split(",")]
+        elif option[0] == '-N':
+            niter = int(option[1])
         elif option[0] == '-n':
             krows = option[1]
         elif option[0] == '-d':
@@ -325,11 +328,11 @@ if __name__=="__main__":
         db.create_db(dtype, optlevel, verbose)
 
     if doquery:
-        print "Calling query_db() %s times" % READ_TIMES
+        print "Calling query_db() %s times" % niter
         if doprofile:
             import pstats
             import cProfile as prof
-            prof.run('db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)', 'indexed_search.prof')
+            prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)', 'indexed_search.prof')
             stats = pstats.Stats('indexed_search.prof')
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
@@ -341,7 +344,7 @@ if __name__=="__main__":
             from cProfile import Profile
             import lsprofcalltree
             prof = Profile()
-            prof.run('db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)')
+            prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)')
             kcg = lsprofcalltree.KCacheGrind(prof)
             ofile = open('indexed_search.kcg','w')
             kcg.output(ofile)
@@ -349,27 +352,28 @@ if __name__=="__main__":
         elif doprofile:
             import hotshot, hotshot.stats
             prof = hotshot.Profile("indexed_search.prof")
-            benchtime, stones = prof.run('db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)')
+            benchtime, stones = prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)')
             prof.close()
             stats = hotshot.stats.load("indexed_search.prof")
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
             stats.print_stats(20)
         else:
-            db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)
+            db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
+                        avoidfscache, verbose)
 
     if repeatquery:
         # Start by a range which is almost None
         db.rng = [1, 1]
         if verbose:
             print "range:", db.rng
-        db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache,
-                    verbose)
+        db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
+                    avoidfscache, verbose)
         for i in xrange(repeatvalue):
             rng = 10**i
             db.rng = [-rng/2, rng/2]
             if verbose:
                 print "range:", db.rng
-            db.query_db(dtype, onlyidxquery, onlynonidxquery, avoidfscache,
-                        verbose)
+            db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
+                        avoidfscache, verbose)
 

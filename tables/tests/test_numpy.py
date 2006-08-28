@@ -60,7 +60,6 @@ class BasicTestCase(unittest.TestCase):
         # Compare them. They should be equal.
         #if not allequal(a,b, "numpy") and verbose:
         if verbose:
-            print "Write and read arrays differ!"
             print "Array written:", a
             print "Array written shape:", a.shape
             print "Array written itemsize:", a.itemsize
@@ -170,14 +169,14 @@ class Basic1DThreeTestCase(BasicTestCase):
     # 1D case
     title = "Rank-1 case 3"
     tupleInt = array((3, 4, 5))
-    tupleChar = ("aaa", "bbb",)
+    tupleChar = ("aaaa", "bbb",)
 
 class Basic2DTestCase(BasicTestCase):
     # 2D case
     title = "Rank-2 case 1"
     #tupleInt = reshape(array(arange((4)**2)), (4,)*2)
     tupleInt = ones((4,)*2)
-    tupleChar = [["aa","dd"],["dd","ss"],["ss","tt"]]
+    tupleChar = [["aaa","ddddd"],["d","ss"],["s","tt"]]
 
 class Basic10DTestCase(BasicTestCase):
     # 10D case
@@ -1213,12 +1212,92 @@ class AttributesOpenTestCase(AttributesTestCase):
 class AttributesCloseTestCase(AttributesTestCase):
     close = 1
 
+class StrlenTestCase(common.PyTablesTestCase):
+
+    def setUp(self):
+
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
+        group = self.fileh.createGroup(self.fileh.root, 'group')
+        tablelayout = {'_v_flavor':'numpy', 'Text': StringCol(length=1000),}
+        self.table = self.fileh.createTable(group, 'table', tablelayout)
+        row = self.table.row
+        row['Text'] = 'Hello Francesc!'
+        row.append()
+        row['Text'] = 'Hola Francesc!'
+        row.append()
+        self.table.flush()
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+    def test01(self):
+        """Checking the lengths of strings (read field)."""
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            self.table = self.fileh.root.group.table
+        # Get both strings
+        str1 = self.table.col('Text')[0]
+        str2 = self.table.col('Text')[1]
+        if verbose:
+            print "string1-->", str1
+            print "string2-->", str2
+        # Check that both NumPy objects are equal
+        assert len(str1) == len('Hello Francesc!')
+        assert len(str2) == len('Hola Francesc!')
+        assert str1 == 'Hello Francesc!'
+        assert str2 == 'Hola Francesc!'
+
+    def test02(self):
+        """Checking the lengths of strings (read recarray)."""
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            self.table = self.fileh.root.group.table
+        # Get both strings
+        str1 = self.table[:]['Text'][0]
+        str2 = self.table[:]['Text'][1]
+        # Check that both NumPy objects are equal
+        assert len(str1) == len('Hello Francesc!')
+        assert len(str2) == len('Hola Francesc!')
+        assert str1 == 'Hello Francesc!'
+        assert str2 == 'Hola Francesc!'
+
+
+    def test03(self):
+        """Checking the lengths of strings (read recarray, row by row)."""
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            self.table = self.fileh.root.group.table
+        # Get both strings
+        str1 = self.table[0]['Text']
+        str2 = self.table[1]['Text']
+        # Check that both NumPy objects are equal
+        assert len(str1) == len('Hello Francesc!')
+        assert len(str2) == len('Hola Francesc!')
+        assert str1 == 'Hello Francesc!'
+        assert str2 == 'Hola Francesc!'
+
+
+class StrlenOpenTestCase(StrlenTestCase):
+    close = 0
+
+class StrlenCloseTestCase(StrlenTestCase):
+    close = 1
+
+
 #--------------------------------------------------------
 
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
+    #theSuite.addTest(unittest.makeSuite(StrlenOpenTestCase))
     #theSuite.addTest(unittest.makeSuite(Basic0DOneTestCase))
     #theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
     for i in range(niter):
@@ -1234,10 +1313,12 @@ def suite():
         theSuite.addTest(unittest.makeSuite(TableNativeFlavorCloseTestCase))
         theSuite.addTest(unittest.makeSuite(AttributesOpenTestCase))
         theSuite.addTest(unittest.makeSuite(AttributesCloseTestCase))
-    if heavy:
-        theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
-        # The 32 dimensions case thakes forever to run!!
-        #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
+        theSuite.addTest(unittest.makeSuite(StrlenOpenTestCase))
+        theSuite.addTest(unittest.makeSuite(StrlenCloseTestCase))
+        if heavy:
+            theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
+            # The 32 dimensions case thakes forever to run!!
+            # theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
     return theSuite
 
 

@@ -1,3 +1,6 @@
+# XYX Aquest haura de desapareixer, ja que la funcionalitat de
+# nestedrecords ja la dona numpy.
+
 import unittest
 
 import tables

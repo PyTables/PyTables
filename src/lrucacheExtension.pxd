@@ -1,29 +1,32 @@
+from numpydefs cimport ndarray
+
 # Declaration of instance variables for shared classes
-# The LRUCache class is useful for caching general objects (like Nodes).
-cdef class LRUCache:
-  cdef object __dict, __heap
-  cdef int size
-  cdef long niter
-  cdef long seqn_
-  cdef object copy
-  cdef long incseqn(self)
-  cdef int contains(self, object key)
-  cdef object cpop(self, object key)
-  cdef object setitem(self, object key, object obj)
+# The NodeCache class is useful for caching general objects (like Nodes).
+cdef class NodeCache:
+  cdef object nodes, paths
+  cdef int size, lsize
+  cdef object setitem(self, object path, object node)
+  cdef long contains(self, object path)
+  cdef object cpop(self, object path)
 
 # The NumCache class is useful for caching numerical data in an efficient way.
 cdef class NumCache:
-  cdef object __dict, __heap
   cdef long seqn_, nextslot, setcount, getcount, cyclecount
   cdef long enableeverycycles
   cdef double lowesthr
   cdef int iscachedisabled, itemsize, nslots, slotsize
-  cdef object name, cacheobj
+  cdef object name
+  cdef ndarray cacheobj, sorted, indices, atimes
   cdef void *rcache
+  cdef long long *rsorted
+  cdef unsigned short *rindices
+  cdef long *ratimes
   cdef long incseqn(self)
   cdef int checkhitratio(self)
-  cdef int contains(self, object key)
-  cdef long setitem(self, object key, void *data, long start)
-  cdef void *getitem(self, object key)
-  cdef long getitem2(self, object key, void *data, long start)
+  #cdef long keylookup(self, long long x)
+  cdef long slotlookup(self, unsigned short x)
+  cdef int contains(self, long long key)
+  cdef long setitem(self, long long key, void *data, long start)
+  cdef void *getitem(self, long nslot)
+  cdef long getitem2(self, long nslot, void *data, long start)
 
