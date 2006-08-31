@@ -268,6 +268,9 @@ class _DeadNodes(lrucacheExtension.NodeCache):
 # A dumb class that doesn't keep nothing at all
 class _NoDeadNodes(object):
 
+    def __len__(self):
+        return 0
+
     def __contains__(self, key):
         return False
 

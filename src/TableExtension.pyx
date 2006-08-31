@@ -585,6 +585,8 @@ cdef class Table:  # XXX extends Leaf
       # Attach the NROWS attribute
       H5ATTR_set_attribute_numerical(self.dataset_id, "NROWS",
                                      H5T_NATIVE_LLONG, &self.totalrecords)
+      # Re-create the cache for reading (the old one is dirty)
+      self._g_createReadCache()
       # Return the number of records removed
       return nrecords
 

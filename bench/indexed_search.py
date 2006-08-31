@@ -139,12 +139,12 @@ class DB(object):
         if not onlyidxquery:
             for colname in reg_cols:
                 ltimes = []
-                #random.seed(rseed)
+                random.seed(rseed)
                 t1=time()
                 for i in range(NI_NTIMES):
                     results = self.do_query(self.con, colname,
-                                            base)
-                                            #random.randrange(self.nrows))
+                                            #base)
+                                            random.randrange(self.nrows))
                 ltimes.append((time()-t1)/NI_NTIMES)
                 #results.sort()
                 if verbose:
@@ -155,12 +155,12 @@ class DB(object):
             for colname in idx_cols:
                 ltimes = []
                 for j in xrange(niter):
-                    #random.seed(rseed)
+                    random.seed(rseed)
                     t1=time()
                     for i in range(I_NTIMES):
                         results = self.do_query(self.con, colname,
-                                                base)
-                                                #random.randrange(self.nrows))
+                                                #base)
+                                                random.randrange(self.nrows))
                     ltimes.append((time()-t1)/I_NTIMES)
                 #results.sort()
                 if verbose:

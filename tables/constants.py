@@ -118,7 +118,7 @@ METADATA_CACHE_SIZE = 1*1024*1024  # 1 MB is the default for HDF5
 #                         # This is a good compromise between CPU and memory
 #                         # consumption.
 
-NODE_CACHE_SIZE = -256
+NODE_CACHE_SIZE = 256
 
 # Negative value means that all the touched nodes will be kept in a
 # dictionary and the user will be warned when the number of nodes there
@@ -149,7 +149,7 @@ NODE_CACHE_SIZE = -256
 #NODE_CACHE_SIZE = 2000  # > 200 s
 #NODE_CACHE_SIZE = 2046  # Takes lots of time! > 200 s
 #NODE_CACHE_SIZE = MAX_GROUP_WIDTH  # that would be ideal, but takes ages!
-"""Maximum number of unreferenced to be kept in memory."""
+"""Maximum number of unreferenced nodes to be kept in memory."""
 
 #LIMITS_CACHE_SIZE = 8  # for testing
 LIMITS_CACHE_SIZE = 1024

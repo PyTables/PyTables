@@ -70,7 +70,7 @@ class PyTables_DB(DB):
 
     def do_query(self, con, column, base):
         # The next lines saves some lookups for table in the LRU cache
-        if True:  # Activate this when a cache for objects is wanted.
+        if  False:  # Activate this when a cache for objects is wanted.
             if not hasattr(self, "table_cache"):
                 self.table_cache = table = con.root.table
                 self.condition = "(%s<=col) & (col<=%s)" % \
