@@ -55,6 +55,10 @@ from tables.Leaf import Filters
 from tables.indexes import CacheArray, LastRowArray, IndexArray
 from tables.Group import Group
 from tables.utils import joinPath
+from constants import LIMITS_CACHE_SIZE
+
+from lrucacheExtension import ObjectCache
+
 
 __version__ = "$Revision: 1236 $"
 
@@ -698,12 +702,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """The total number of slices in the index."""
         self.nelements = None
         """The number of indexed elements in this index."""
-        # The starts and lengths are initialized so that they can keep
-        # info for last row processing at very least.
-        self.starts = numpy.empty(shape=1, dtype= numpy.int32)
-        """Where the values fulfiling conditions starts for every slice."""
-        self.lengths = numpy.empty(shape=1, dtype=numpy.int32)
-        """Lengths of the values fulfilling conditions for every slice."""
         self.optlevel = optlevel
         """The level of optimization for this index."""
         self.dirtycache = True
@@ -830,6 +828,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         nboundsLR = 0   # 0 bounds initially
         self.bebounds = sortedLR[:nboundsLR]
 
+        # The starts and lengths initialization
+        self.starts = numpy.empty(shape=self.nrows, dtype= numpy.int32)
+        """Where the values fulfiling conditions starts for every slice."""
+        self.lengths = numpy.empty(shape=self.nrows, dtype=numpy.int32)
+        """Lengths of the values fulfilling conditions for every slice."""
+
 
     def _g_updateDependent(self):
         super(Index, self)._g_updateDependent()
@@ -908,6 +912,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.nrows = sorted.nrows + 1
         self.nelements = sorted.nrows * self.slicesize + nelementsLR
         self.nelementsLR = nelementsLR
+        self.dirtycache = True   # the cache is dirty now
 
 
     def optimize(self, level=None, verbose=0):
@@ -948,6 +953,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # If temporal file still exists, close and delete it
         if self.tmpfilename:
             self.cleanup_temps()
+        self.dirtycache = True   # the cache is dirty now
         return
 
 
@@ -1238,6 +1244,17 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         return (sover, noverlaps)
 
 
+    def restorecache(self):
+        "Clean the limits cache and resize starts and lengths arrays"
+
+        self.limitscache = ObjectCache(LIMITS_CACHE_SIZE, 'limits')
+        self.starts = numpy.empty(shape=self.nrows, dtype = numpy.int32)
+        self.lengths = numpy.empty(shape=self.nrows, dtype = numpy.int32)
+        # Initialize the sorted array in extension
+        self.sorted._initSortedSlice(self)
+        self.dirtycache = False
+
+
     # This is an optimized version of search.
     # It does not work well with strings, because:
     # In [180]: a=strings.array(None, itemsize = 4, shape=1)
@@ -1253,11 +1270,26 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     #
     def search(self, item):
         """Do a binary search in this index for an item"""
+
         #t1 = time(); tcpu1 = clock()
-        # Do the lookup for values fullfilling the conditions
+        if self.dirtycache:
+            self.restorecache()
         tlen = 0
+        # Check whether the item tuple is in the limits cache or not
+        nslot = self.limitscache.getslot(item)
+        if nslot >= 0:
+            startlengths = self.limitscache.getitem(nslot)
+            # Reset the lengths array (the starts is not necessary)
+            self.lengths[:] = 0
+            # Now, set the interesting rows
+            for nrow in xrange(len(startlengths)):
+                nrow2, start, length = startlengths[nrow]
+                self.starts[nrow2] = start
+                self.lengths[nrow2] = length
+                tlen = tlen + length
+            return tlen
+        # The item is not in cache. Do the real lookup.
         sorted = self.sorted
-        sorted._initSortedSlice(self)
         if sorted.nrows > 0:
             if self.is_pro and self.stype != "CharType":
                 item1, item2 = item
@@ -1281,6 +1313,16 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.starts[-1] = start
             self.lengths[-1] = stop - start
             tlen += stop - start
+
+        # Get a startlengths tuple and save it in cache
+        startlengths = []
+        #for nrow, length in numpy.ndenumerate(self.lengths):
+        for nrow, length in enumerate(self.lengths):
+            if length > 0:
+                startlengths.append((nrow, self.starts[nrow], length))
+        # Put this startlengths list in cache
+        self.limitscache.setitem(item, startlengths)
+
         #t = time()-t1
         #print "time searching indices (total):", round(t*1000, 3), "ms"
         # CPU time not significant (problems with time slice)

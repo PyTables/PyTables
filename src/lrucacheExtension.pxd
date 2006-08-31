@@ -25,8 +25,21 @@ cdef class NumCache:
   cdef int checkhitratio(self)
   #cdef long keylookup(self, long long x)
   cdef long slotlookup(self, unsigned short x)
-  cdef int contains(self, long long key)
+  cdef long contains(self, long long key)
   cdef long setitem(self, long long key, void *data, long start)
   cdef void *getitem(self, long nslot)
   cdef long getitem2(self, long nslot, void *data, long start)
 
+# The ObjectCache class is useful for python objects in an efficient way.
+cdef class ObjectCache:
+  cdef long seqn_, nextslot, setcount, getcount, cyclecount
+  cdef long enableeverycycles
+  cdef double lowesthr
+  cdef int iscachedisabled, itemsize, nslots, slotsize
+  cdef object name, mrunode
+  cdef object __heap,  __list,  __dict
+  cdef long incseqn(self)
+  cdef int checkhitratio(self)
+  cdef long setitem_(self, object key, object value)
+  cdef long getslot_(self, object key)
+  cdef object getitem_(self, long nslot)

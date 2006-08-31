@@ -292,42 +292,33 @@ cdef class IndexArray(Array):
       self.l_slicesize = index.slicesize
       self.l_chunksize = index.chunksize
     if index.is_pro:
-      if index.dirtycache:
-        # Create the starts and lengths arrays
-        starts = numpy.empty(shape=index.nrows, dtype = numpy.int32)
-        lengths = numpy.empty(shape=index.nrows, dtype = numpy.int32)
-        self.rbufst = starts.data
-        self.rbufln = lengths.data
-        # index.starts and index.lengths are assigned here for allowing access
-        # from _initIndexSlice. I should find a better way to share them.
-        index.starts = <object>starts
-        index.lengths = <object>lengths
-        # The 1st cache is loaded completely in memory and needs to be reloaded
-        # Use array protocol to convert ranges numarray until the (E)Array
-        # module will be converted to use numpy
-        rvcache = numpy.asarray(index.ranges[:])
-        self.rbufrv = rvcache.data
-        index.rvcache = <object>rvcache
-        # Tell index that the cache is not dirty anymore
-        index.dirtycache = False
-      if <object>self.boundscache is None:
-        # Init the bounds array for reading
-        self.nbounds = index.bounds.shape[1]
-        self.bounds_ext = <CacheArray>index.bounds
-        self.bounds_ext.initRead(self.nbounds)
-        # The 2nd level cache and sorted values will be cached in a NumCache
-        self.boundscache = <NumCache>NumCache(
-          (BOUNDS_CACHE_SIZE, self.nbounds), self.itemsize, 'bounds')
-        if str(self.type) == "CharType":
-          dtype = "|S%s" % self.itemsize
-        else:
-          dtype = str(self.type)
-        self.bufferbc = numpy.empty(dtype=dtype, shape=self.nbounds)
-        # Get the pointer for the internal buffer for 2nd level cache
-        self.rbufbc = self.bufferbc.data
-        # Another NumCache for the sorted values
-        self.sortedcache = <NumCache>NumCache(
-          (SORTED_CACHE_SIZE, self.chunksize), self.itemsize, 'sorted')
+      # Get the addresses of buffer data
+      starts = index.starts;  lengths = index.lengths
+      self.rbufst = starts.data
+      self.rbufln = lengths.data
+      # The 1st cache is loaded completely in memory and needs to be reloaded
+      # Use array protocol to convert ranges numarray until the (E)Array
+      # module will be converted to use numpy
+      rvcache = numpy.asarray(index.ranges[:])
+      self.rbufrv = rvcache.data
+      index.rvcache = <object>rvcache
+      # Init the bounds array for reading
+      self.nbounds = index.bounds.shape[1]
+      self.bounds_ext = <CacheArray>index.bounds
+      self.bounds_ext.initRead(self.nbounds)
+      # The 2nd level cache and sorted values will be cached in a NumCache
+      self.boundscache = <NumCache>NumCache(
+        (BOUNDS_CACHE_SIZE, self.nbounds), self.itemsize, 'bounds')
+      if str(self.type) == "CharType":
+        dtype = "|S%s" % self.itemsize
+      else:
+        dtype = str(self.type)
+      self.bufferbc = numpy.empty(dtype=dtype, shape=self.nbounds)
+      # Get the pointer for the internal buffer for 2nd level cache
+      self.rbufbc = self.bufferbc.data
+      # Another NumCache for the sorted values
+      self.sortedcache = <NumCache>NumCache(
+        (SORTED_CACHE_SIZE, self.chunksize), self.itemsize, 'sorted')
 
 
   cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
@@ -520,16 +511,17 @@ cdef class IndexArray(Array):
 
   # Optimized version for doubles
   def _searchBinNA_d(self, double item1, double item2):
-    cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
-    cdef int start, stop, tlen, len, bread, nchunk, nchunk2
+    cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
     cdef double *rbufrv, *rbufbc, *rbuflb
 
-    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows
+    cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <double *>self.rbufrv; tlen = 0
+    # Limits not in cache, do a lookup
+    rbufrv = <double *>self.rbufrv
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2;  bread = 0;  nchunk = -1
       # Look if item1 is in this row
@@ -561,15 +553,15 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      len = stop - start;  tlen = tlen + len
-      rbufst[nrow] = start;  rbufln[nrow] = len;
-    return tlen
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
 
 
   # Optimized version for ints
   def _searchBinNA_i(self, double item1, double item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
-    cdef int start, stop, tlen, len, bread, nchunk, nchunk2
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
     cdef int *rbufrv, *rbufbc, *rbuflb
@@ -577,7 +569,7 @@ cdef class IndexArray(Array):
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <int *>self.rbufrv; tlen = 0
+    rbufrv = <int *>self.rbufrv; tlength = 0
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2;  bread = 0;  nchunk = -1
       # Look if item1 is in this row
@@ -609,15 +601,15 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      len = stop - start;  tlen = tlen + len
-      rbufst[nrow] = start;  rbufln[nrow] = len;
-    return tlen
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
 
 
   # Optimized version for long long
   def _searchBinNA_ll(self, double item1, double item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
-    cdef int start, stop, tlen, len, bread, nchunk, nchunk2
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
     cdef long long *rbufrv, *rbufbc, *rbuflb
@@ -625,7 +617,7 @@ cdef class IndexArray(Array):
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <long long *>self.rbufrv; tlen = 0
+    rbufrv = <long long *>self.rbufrv; tlength = 0
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2;  bread = 0;  nchunk = -1
       # Look if item1 is in this row
@@ -657,9 +649,9 @@ cdef class IndexArray(Array):
           stop = ss
       else:
         stop = 0
-      len = stop - start;  tlen = tlen + len
-      rbufst[nrow] = start;  rbufln[nrow] = len;
-    return tlen
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
 
 
   # This version of getCoords reads the indexes in chunks.

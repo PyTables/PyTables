@@ -261,7 +261,6 @@ cdef class Table:  # XXX extends Leaf
     # test if there is data to be saved initially
     if self._v_recarray is not None:
       self.totalrecords = self.nrows
-      #buflen = NA_getBufferPtrAndSize(self._v_recarray._data, 1, &data)
       recarr = self._v_recarray
       data = recarr.data
       # Correct the offset in the buffer
@@ -418,7 +417,6 @@ cdef class Table:  # XXX extends Leaf
   def _open_append(self, ndarray recarr):
     self._v_recarray = <object>recarr
     # Get the pointer to the buffer data area
-    #buflen = NA_getBufferPtrAndSize(recarr._data, 1, &self.wbuf)
     self.wbuf = recarr.data
 
 
@@ -457,7 +455,6 @@ cdef class Table:  # XXX extends Leaf
     cdef hsize_t nrecords, nrows
 
     # Get the pointer to the buffer data area
-    #buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
     rbuf = recarr.data
 
     # Compute the number of records to update
@@ -481,17 +478,11 @@ cdef class Table:  # XXX extends Leaf
                        ndarray recarr):
     cdef herr_t ret
     cdef void *rbuf, *coords
-    ####cdef long offset
 
     # Get the chunk of the coords that correspond to a buffer
-    #buflen = NA_getBufferPtrAndSize(elements._data, 1, &coords)
     coords = elements.data
-    # Correct the offset
-#     offset = elements._byteoffset
-#     coords = <void *>(<char *>coords + offset)
 
     # Get the pointer to the buffer data area
-    #buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
     rbuf = recarr.data
 
     # Convert some NumPy types to HDF5 before storing.
@@ -515,7 +506,6 @@ cdef class Table:  # XXX extends Leaf
       nrecords = self.totalrecords - start
 
     # Get the pointer to the buffer data area
-    #buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
     rbuf = recarr.data
 
     # Read the records from disk
@@ -532,8 +522,12 @@ cdef class Table:  # XXX extends Leaf
     return nrecords
 
 
-  def _read_elements(self, ndarray recarr, ndarray elements):
-    cdef long buflen, offset, rowsize, nrecord, nrecords
+  def _read_elements(self, recarr, elements):
+    return self._read_elements_(recarr, elements)
+
+
+  cdef _read_elements_(self, ndarray recarr, ndarray elements):
+    cdef long buflen, rowsize, nrecord, nrecords
     cdef void *rbuf, *rbuf2
     cdef hsize_t *coords, coord
     cdef int ret
@@ -544,15 +538,9 @@ cdef class Table:  # XXX extends Leaf
     # The size of the one single row
     rowsize = self.rowsize
     # Get the pointer to the buffer data area
-    #buflen = NA_getBufferPtrAndSize(recarr._data, 1, &rbuf)
     rbuf = recarr.data
     # Get the pointer to the buffer coords area
-    #buflen = NA_getBufferPtrAndSize(elements._data, 1, &rbuf2)
     rbuf2 = elements.data
-    # Correct the offset
-    #offset = elements._byteoffset
-    #coords = <hsize_t *>(<char *>rbuf2 + offset)
-    # It seems that numpy does not have offsets. Doh!
     coords = <hsize_t *>rbuf2
 
     for nrecord from 0 <= nrecord < nrecords:
@@ -648,7 +636,8 @@ cdef class Row:
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done
   cdef char    *colname
-  cdef object  table
+  cdef Table   table
+  cdef object  dtype
   cdef object  rbufRA, wbufRA
   cdef object  _wfields, _rfields
   cdef object  indexValid, coords, bufcoords, index, indices
@@ -682,6 +671,7 @@ cdef class Row:
     self.colenums = table._colenums
     self.exist_enum_cols = len(self.colenums)
     self.nrowsinbuf = table._v_maxTuples
+    self.dtype = table._v_dtype
 
 
   def __call__(self, start=0, stop=0, step=1, coords=None, ncoords=0):
@@ -697,35 +687,36 @@ cdef class Row:
     return self
 
 
-  def _newBuffer(self, write):
+  cdef _newBuffer(self, write):
     "Create the recarray for I/O buffering"
 
-    table = self.table
     if write:
       # Get the write buffer in table (it is unique, remember!)
-      buff = self.wbufRA = table._v_wbuffer
+      buff = self.wbufRA = self.table._v_wbuffer
       #self._wfields = buff._fields
       # Build the _rfields dictionary for faster access to columns
       self._wfields = {}
-      for name in buff.dtype.names:
+      for name in self.dtype.names:
         self._wfields[name] = buff[name]
       # Initialize an array for keeping the modified elements
       # (just in case Row.update() would be used)
-      self.mod_elements = numpy.empty(shape=table._v_maxTuples,
+      self.mod_elements = numpy.empty(shape=self.nrowsinbuf,
                                       dtype=numpy.int64)
     else:
-      buff = self.rbufRA = table._newBuffer(init=0)
+      #buff = self.rbufRA = self.table._newBuffer(init=0)
+      buff = self.rbufRA = numpy.empty(shape=self.nrowsinbuf,
+                                       dtype=self.dtype)
       # Build the _rfields dictionary for faster access to columns
       # This is quite fast, as it only takes around 5 us per column
       # in my laptop (Pentium 4 @ 2 GHz).
       # F. Altet 2006-08-18
       self._rfields = {}
-      for name in buff.dtype.names:
+      for name in self.dtype.names:
         self._rfields[name] = buff[name]
 
     # Get the stride of this buffer
     self._stride = buff.strides[0]
-    self.nrows = table.nrows  # This value may change
+    self.nrows = self.table.nrows  # This value may change
 
 
   cdef _initLoop(self, hsize_t start, hsize_t stop, hsize_t step,
@@ -844,7 +835,7 @@ cdef class Row:
           self.bufcoords = tmp
         self._row = -1
         if self.bufcoords.size > 0:
-          recout = self.table._read_elements(self.rbufRA, self.bufcoords)
+          recout = self.table._read_elements_(self.rbufRA, self.bufcoords)
           if self.whereCond2XXX:
             numexpr_locals = self.condvars.copy()
             # Replace references to columns with the proper array fragment.
@@ -931,7 +922,7 @@ cdef class Row:
           self.bufcoords = tmp
         self._row = -1
         if len(self.bufcoords) > 0:
-          recout = self.table._read_elements(self.rbufRA, self.bufcoords)
+          recout = self.table._read_elements_(self.rbufRA, self.bufcoords)
         else:
           recout = 0
         self.nrowsread = self.nrowsread + nrowsread

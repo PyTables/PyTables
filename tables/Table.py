@@ -350,6 +350,8 @@ class Table(TableExtension.Table, Leaf):
         self._emptyArrayCache = {}  ##XXX
         """Cache of empty arrays."""
 
+        self._v_dtype = None
+        """The NumPy datatype fopr this table."""
         self.cols = None
         """
         A `Cols` instance that serves as an accessor to `Column` objects.
@@ -445,9 +447,6 @@ class Table(TableExtension.Table, Leaf):
     def _get_container(self, shape):
         "Get the appropriate buffer for data depending on table nestedness."
 
-        if not hasattr(self, "_v_dtype"):
-            # Cache the build of the dtype
-            self._v_dtype = numpy.dtype(self.description._v_nestedDescr)
         # This is *much* faster than the numpy.rec.array counterpart
         return numpy.empty(shape=shape, dtype=self._v_dtype)
 
@@ -663,6 +662,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             setAttr(fieldname, colobj.dflt)
             i += 1
 
+        # Cache _v_dtype for this table
+        self._v_dtype = numpy.dtype(self.description._v_nestedDescr)
+
         # Once all the info has been generated, create a cache for reading
         self._g_createReadCache()
 
@@ -734,6 +736,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             self.colshapes[colname] = colobj.shape
             self.colitemsizes[colname] = colobj.itemsize
             self.coldflts[colname] = colobj.dflt
+
+        # Cache _v_dtype for this table
+        self._v_dtype = numpy.dtype(self.description._v_nestedDescr)
 
         # Once all the info has been collected, create a cache for reading
         self._g_createReadCache()

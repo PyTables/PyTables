@@ -285,7 +285,7 @@ cdef class NumCache:
 
   # The next contains is a 15% faster than the splitted version.
   # Tells in which slot key is. If not found, -1 is returned.
-  cdef int contains(self, long long key):
+  cdef long contains(self, long long key):
     cdef long lo, hi, mid
     cdef long long *rsorted
 
@@ -388,3 +388,187 @@ cdef class NumCache:
 
   def __repr__(self):
     return "<%s (%d elements)>" % (str(self.__class__), self.nslots)
+
+
+
+#  Minimalistic LRU cache implementation for general python objects
+
+########################################################################
+# This is a *true* general lru cache for python objects
+########################################################################
+
+from heapq import heappop, heappush
+
+cdef class ObjectNode:
+  """Record of a cached value. Not for public consumption."""
+  cdef object key, obj
+  cdef long nslot, atime
+
+
+  def __init__(self, object key, object obj, long nslot, long atime):
+    object.__init__(self)
+    self.key = key
+    self.obj = obj
+    self.nslot = nslot
+    self.atime = atime
+
+
+  def __cmp__(self, ObjectNode other):
+    #return cmp(self.atime_, other.atime_)
+    # This optimization makes the comparison more than twice as faster
+    if self.atime < self.atime:
+      return -1
+    elif self.atime > other.atime:
+      return 1
+    else:
+      return 0
+
+
+  def __repr__(self):
+    return "<%s %s => %s (accessed at %s)>" % \
+           (self.__class__, self.key, self.nslot, self.atime)
+
+
+cdef class ObjectCache:
+  """Least-Recently-Used (LRU) cache specific for python objects.
+  """
+
+  def __init__(self, int nslots, object name):
+    """Maximum size of the cache.
+    If more than 'nslots' elements are added to the cache,
+    the least-recently-used ones will be discarded.
+
+    Parameters:
+    nslots - The number of slots in cache
+    name - A descriptive name for this cache
+    """
+
+    self.nslots = nslots;  self.name = name
+    if self.nslots <= 0:
+      raise ValueError, "Negative or zero number (%s) of slots!" % self.nslots
+    self.__heap = [];  self.__list = range(nslots);  self.__dict = {}
+    self.seqn_ = 0;  self.nextslot = 0
+    self.setcount = 0;  self.getcount = 0;  self.cyclecount = 0
+    self.iscachedisabled = False  # Cache is enabled by default
+    self.enableeverycycles = ENABLE_EVERY_CYCLES
+    self.lowesthr = LOWEST_HIT_RATIO
+    self.mrunode = None   # Most Recent Used node
+
+
+  cdef long incseqn(self):
+    cdef ObjectNode node
+
+    self.seqn_ = self.seqn_ + 1
+    if self.seqn_ < 0:
+      # Ooops, the counter has run out of range!
+      # Reset all the priorities in heap to 0
+      for node in self.__heap:
+        node.atime = 0
+      # Set the counter to 1 (to indicate that it is newer than existing ones)
+      self.seqn_ = 1
+    return self.seqn_
+
+
+  # Machinery for determining whether the hit ratio is being effective
+  # or not.  If not, the cache will be disabled. The efficency will be
+  # checked every cycle (the time that the cache would be refilled
+  # completely).  In situations where the cache is not being re-filled
+  # (i.e. it is not enabled) for a long time, it is forced to be
+  # re-enabled when a certain number of cycles has passed so as to
+  # check whether a new scenario where the cache can be useful again
+  # has come.
+  # F. Altet 2006-08-09
+  cdef int checkhitratio(self):
+    cdef double hitratio
+
+    if self.setcount > self.nslots:
+      self.cyclecount = self.cyclecount + 1
+      # Check whether the cache is being effective or not
+      hitratio = <double>self.getcount / (self.setcount+self.getcount)
+      if hitratio < self.lowesthr:
+        # Hit ratio is low. Disable the cache.
+        self.iscachedisabled = True
+      else:
+        # Hit ratio is acceptable. (Re-)Enable the cache.
+        self.iscachedisabled = False
+      # Reset the counters to 0
+      self.setcount = 0; self.getcount = 0
+      if self.cyclecount > self.enableeverycycles:
+        # We have reached the time for forcing the cache to act again
+        self.iscachedisabled = False
+        self.cyclecount = 0
+    return not self.iscachedisabled
+
+
+  # Put the object to the data in cache (for Python calls)
+  def setitem(self, object key, object value):
+    return self.setitem_(key, value)
+
+
+  # Put the object to the data in cache (for Pyrex calls)
+  cdef long setitem_(self, object key, object value):
+    cdef ObjectNode node, lru
+    cdef long nslot
+
+    self.setcount = self.setcount + 1
+    if self.checkhitratio():
+      # Check if we are growing out of space
+      if len(self.__heap) == self.nslots:
+        lru = heappop(self.__heap)
+        nslot = lru.nslot
+        del self.__dict[lru.key]
+      else:
+        nslot = self.nextslot;  self.nextslot = self.nextslot + 1
+      assert nslot < self.nslots, "Number of nodes exceeding cache capacity."
+      node = ObjectNode(key, value, nslot, self.incseqn())
+      heappush(self.__heap, node)
+      self.__list[nslot] = node     # Replace node in nslot
+      self.__dict[key] = node
+      self.mrunode = node
+    return nslot
+
+
+  # Tells whether the key is in cache or not
+  def __contains__(self, object key):
+    return self.__dict.has_key(key)
+
+
+  # Tells in which slot the key is. If not found, -1 is returned.
+  def getslot(self, object key):
+      return self.getslot_(key)
+
+
+  # Tells in which slot the key is. If not found, -1 is returned.
+  cdef long getslot_(self, object key):
+    cdef ObjectNode node
+
+    # Give a chance to the MRU node
+    node = self.mrunode
+    if self.nextslot > 0 and node.key == key:
+      return node.nslot
+    # No luck. Look in the dictionary.
+    node = self.__dict.get(key)
+    if node is None:
+      return -1
+    else:
+      return node.nslot
+
+
+  # Return the object to the data in cache (for Python calls)
+  def getitem(self, object nslot):
+    return self.getitem_(nslot)
+
+
+  # Return the object to the data in cache (for Pyrex calls)
+  cdef object getitem_(self, long nslot):
+    cdef ObjectNode node
+
+    self.getcount = self.getcount + 1
+    node = PyObject_GetItem(self.__list, nslot)
+    node.atime = self.incseqn()
+    self.mrunode = node
+    return node.obj
+
+
+  def __repr__(self):
+    return "<%s (%d elements)>" % (str(self.__class__), len(self.nslots))
