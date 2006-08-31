@@ -48,8 +48,8 @@ from tables.constants import \
      MAX_UNDO_PATH_LENGTH, METADATA_CACHE_SIZE, NODE_CACHE_SIZE
 from tables.exceptions import \
      ClosedFileError, FileModeError, \
-     NodeError, NoSuchNodeError, \
-     UndoRedoError, UndoRedoWarning
+     NodeError, NoSuchNodeError, UndoRedoError, \
+     UndoRedoWarning, PerformanceWarning
 from tables.utils import joinPath, splitPath, isVisiblePath, \
      checkFileAccess, getClassByName
 import tables.undoredo as undoredo
@@ -234,21 +234,45 @@ from tables.Table import Table
 
 class _AliveNodes(dict):
 
-    """Stores weak references to nodes in a transparent way."""
+    """Stores strong or weak references to nodes in a transparent way."""
 
     def __getitem__(self, key):
-        ref = super(_AliveNodes, self).__getitem__(key)
-        return ref()
+        if NODE_CACHE_SIZE > 0:
+            ref = super(_AliveNodes, self).__getitem__(key)()
+        else:
+            ref = super(_AliveNodes, self).__getitem__(key)
+        return ref
 
     def __setitem__(self, key, value):
-        ref = weakref.ref(value)
+        if NODE_CACHE_SIZE > 0:
+            ref = weakref.ref(value)
+        else:
+            ref = value
+            # Check if we are running out of space
+            if NODE_CACHE_SIZE < 0 and len(self) > -NODE_CACHE_SIZE:
+                warnings.warn("""\
+the dictionary of alive nodes is exceeding the recommended maximum number (%d); \
+be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
+                      % (-NODE_CACHE_SIZE),
+                      PerformanceWarning)
         super(_AliveNodes, self).__setitem__(key, ref)
+
 
 
 # The tables.lrucache.LRUCache class is still useful for debugging
 #class _DeadNodes(tables.lrucache.LRUCache):
 class _DeadNodes(lrucacheExtension.NodeCache):
     pass
+
+
+# A dumb class that doesn't keep nothing at all
+class _NoDeadNodes(object):
+
+    def __contains__(self, key):
+        return False
+
+    def __iter__(self):
+        return iter([])
 
 
 class _NodeDict(tables.proxydict.ProxyDict):
@@ -496,7 +520,10 @@ class File(hdf5Extension.File, object):
         # to `_deadNodes`, where they are kept until they are referenced again
         # or they are preempted from it by other unreferenced nodes.
         self._aliveNodes = _AliveNodes()
-        self._deadNodes = _DeadNodes(nodeCacheSize)
+        if nodeCacheSize > 0:
+            self._deadNodes = _DeadNodes(nodeCacheSize)
+        else:
+            self._deadNodes = _NoDeadNodes()
 
         # Assign the trMap and build the reverse translation
         self.trMap = trMap

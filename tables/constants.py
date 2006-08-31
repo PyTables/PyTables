@@ -72,7 +72,7 @@ MAX_UNDO_PATH_LENGTH = 10240
 METADATA_CACHE_SIZE = 1*1024*1024  # 1 MB is the default for HDF5
 """Size (in bytes) of the HDF5 metadata cache."""
 
-# NODE_CACHE_SIZE tells the number of nodes than fits in the cache.
+# NODE_CACHE_SIZE tells the number of nodes that fits in the cache.
 #
 # There are several forces driving the election of this number:
 # 1.- As more nodes, better chances to re-use nodes
@@ -114,9 +114,31 @@ METADATA_CACHE_SIZE = 1*1024*1024  # 1 MB is the default for HDF5
 #NODE_CACHE_SIZE = 32    # 28 MB, 40.9 s
 #NODE_CACHE_SIZE = 64    # 30 MB, 41.1 s
 #NODE_CACHE_SIZE = 128   # 35 MB, 41.6 s        , 60 MB for writes (!)
-NODE_CACHE_SIZE = 256   # 42 MB, 42.3s, opt:40.9s , 64 MB for writes
-                        # This is a good compromise between CPU and memory
-                        # consumption.
+# NODE_CACHE_SIZE = 256   # 42 MB, 42.3s, opt:40.9s , 64 MB for writes
+#                         # This is a good compromise between CPU and memory
+#                         # consumption.
+
+NODE_CACHE_SIZE = -256
+
+# Negative value means that all the touched nodes will be kept in a
+# dictionary and the user will be warned when the number of nodes there
+# will reach abs(NODE_CACHE_SIZE).  If this is the case, the user will
+# have to decide either:
+
+# - Increase the capacity of the dictionary of alive nodes (keeping this
+# number negative but with a larger absolute value). This will take
+# large amounts of data, but this is the faster way to retrieve nodes.
+
+# - Use the integrated LRU node cache (making the number positive). This
+# will keep the usage of memory much more contained, but the retrieving
+# of nodes is slower.
+
+# - Use a 0 value. This means that you can grow the dictionary of alive
+# nodes and you don't want to receive any warning whatever the size that
+# it will reach. Use only if you know what you are doing.
+
+#XYX Explain this more in "Optimization Tips" chapter.
+
 #NODE_CACHE_SIZE = 512   # 59 MB, 43.9s, opt: 41.8s
 #NODE_CACHE_SIZE = 1024  # 52 MB, 85.1s, opt: 17.0s # everything fits on cache!
 #NODE_CACHE_SIZE = 2048  # 52 MB, XXXs, opt: 17.0s # everything fits on cache!

@@ -455,8 +455,8 @@ class Group(hdf5Extension.Group, Node):
         """Issue a `PerformanceWarning` on too many children."""
 
         warnings.warn("""\
-group ``%s`` is exceeding the recommended maximum number of children (%d);\
-be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
+group ``%s`` is exceeding the recommended maximum number of children (%d); \
+be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                       % (self._v_pathname, MAX_GROUP_WIDTH),
                       PerformanceWarning)
 

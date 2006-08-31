@@ -73,10 +73,6 @@ class PyTables_DB(DB):
         if True:  # Activate this when a cache for objects is wanted.
             if not hasattr(self, "table_cache"):
                 self.table_cache = table = con.root.table
-                self.col1 = getattr(table.cols, 'col1')
-                self.col2 = getattr(table.cols, 'col2')
-                self.col3 = getattr(table.cols, 'col3')
-                self.col4 = getattr(table.cols, 'col4')
                 self.condition = "(%s<=col) & (col<=%s)" % \
                                  (self.rng[0]+base, self.rng[1]+base)
                 # self.condition = "(%s<=col1*col2) & (col3*col4<=%s)" % \
@@ -86,24 +82,13 @@ class PyTables_DB(DB):
                 # condvars = {"col": colobj}
                 self.colobj = getattr(table.cols, column)
                 self.condvars = {"col": self.colobj,
-                                 "col1": self.col1,
-                                 "col2": self.col2,
-                                 "col3": self.col3,
-                                 "col4": self.col4,
+                                 "col1": table.cols.col1,
+                                 "col2": table.cols.col2,
+                                 "col3": table.cols.col3,
+                                 "col4": table.cols.col4,
                                  }
             table = self.table_cache
             colobj = self.colobj
-            if colobj.is_indexed:
-                # Get the references of some frequently referenced objects so that
-                # they are alive so that getting them is much faster later on
-                if not hasattr(self, "%s_index_cache"%column):
-                    setattr(self, "%s_index_cache"%column, colobj.index)
-                    setattr(self, "%s_sorted_cache"%column, colobj.index.sorted)
-                    setattr(self, "%s_indices_cache"%column, colobj.index.indices)
-#                 else:
-#                     print "idx cache-->", self.col4_index_cache
-#                     print "sorted cache-->", self.col4_sorted_cache
-#                     print "indices cache-->", self.col4_indices_cache
         else:   # No cache is used at all
             table = con.root.table
             colobj = getattr(table.cols, column)
@@ -130,14 +115,14 @@ class PyTables_DB(DB):
 #             results = [ r[column] for r in
 #                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
 
-            results = [ r[column] for r in
-                        table._whereIndexed2XXX(self.condition, self.condvars) ]
+#             results = [ r[column] for r in
+#                         table._whereIndexed2XXX(self.condition, self.condvars) ]
 
             #coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
-#             coords = table.getWhereList2XXX(self.condition, self.condvars,
-#                                             flavor="numpy")
-#             results = table.readCoordinates(coords, field=column,
-#                                             flavor="numpy")
+            coords = table.getWhereList2XXX(self.condition, self.condvars,
+                                            flavor="numpy")
+            results = table.readCoordinates(coords, field=column,
+                                            flavor="numpy")
 
 #             results = table.readIndexed2XXX(self.condition, self.condvars,
 #                                             flavor="numpy")
