@@ -34,7 +34,6 @@ import re
 from time import time
 
 import numpy
-from numpy.core import records as nestedrecords
 
 try:
     import numarray
@@ -51,7 +50,6 @@ except ImportError:
     Numeric_imported = False
 
 
-###import tables.nestedrecords as nestedrecords
 from tables.nriterators import flattenNames
 
 import tables.TableExtension as TableExtension
@@ -1627,8 +1625,7 @@ You cannot append rows to a non-chunked table.""")
         try:
             # This always makes a copy of the original,
             # so the resulting object is safe for in-place conversion.
-            recarray = numpy.array(
-                rows, dtype=self.description._v_nestedDescr)
+            recarray = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), exc)
@@ -1721,10 +1718,7 @@ You cannot append rows to a non-chunked table.""")
         try:
             # This always makes a copy of the original,
             # so the resulting object is safe for in-place conversion.
-            recarray = nestedrecords.array(
-                rows,
-                formats=self.description._v_nestedFormats,
-                names=self.colnames)
+            recarray = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table format '%s'. The error was: <%s>" % (str(self.description._v_nestedFormats), exc)
@@ -1786,12 +1780,12 @@ The 'colname' parameter must be a string.""")
             if (isinstance(column, numpy.ndarray) or
                 (numarray_imported and
                  isinstance(column, numarray.records.RecArray))):
-                recarray = nestedrecords.array(column, formats=format,
-                                               names=selcolname)
+                recarray = numpy.rec.array(column, formats=format,
+                                           names=selcolname)
             else:
                 column = numpy.asarray(column) # Force column to be a numpy
-                recarray = nestedrecords.fromarrays([column], formats=format,
-                                                    names=selcolname)
+                recarray = numpy.rec.fromarrays([column], formats=format,
+                                                names=selcolname)
         except Exception, exc:  #XXX
             raise ValueError, \
 "column parameter cannot be converted into a recarray object compliant with specified column '%s'. The error was: <%s>" % (str(column), exc)
@@ -1865,12 +1859,12 @@ The 'names' parameter must be a list of strings.""")
             if (isinstance(columns, numpy.ndarray) or
                 (numarray_imported and
                  isinstance(columns, numarray.records.RecArray))):
-                recarray = nestedrecords.array(columns, formats=formats,
-                                               names=selcolnames)
+                recarray = numpy.rec.array(columns, formats=formats,
+                                           names=names)
             else:
                 columns = numpy.asarray(columns) # Force columns to be a numpy
-                recarray = nestedrecords.fromarrays(columns, formats=formats,
-                                                    names=selcolnames)
+                recarray = numpy.rec.fromarrays(columns, formats=formats,
+                                                names=names)
         except Exception, exc:  #XXX
             raise ValueError, \
 "columns parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), exc)
