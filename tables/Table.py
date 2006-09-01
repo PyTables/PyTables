@@ -55,7 +55,7 @@ from tables.nriterators import flattenNames
 import tables.TableExtension as TableExtension
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNAToNumeric, convertNAToNumPy, fromnumpy, tonumpy, \
-     is_idx
+     fromnumarray, is_idx
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps, split_index_condXXX
 from tables.IsDescription import \
@@ -468,7 +468,7 @@ class Table(TableExtension.Table, Leaf):
         byteorder = '|'
         for i, colname in enumerate(recarr.dtype.names):
             # Getting the type and shape of a multidimensional field
-            # is a bit tricky in numpy.
+            # is a bit involved in numpy.
             dtype = numpy.dtype(recarr.dtype.descr[i][1])
             kind = dtype.kind
             if dtype.byteorder in ['<', '>']:
@@ -501,7 +501,13 @@ class Table(TableExtension.Table, Leaf):
                 raise NotImplementedError, \
 """Sorry, recarrays with columns with a type descr '%s' are not supported yet.
 """ % (dtype)
-        return fields, byteorder
+
+        # Set the byteorder
+        # The columns in records should always have the same byteorder
+        # (until different byterorder in columns would be implemented
+        # at the HDF5 extension level)
+        fields['_v_byteorder'] = byteorders[byteorder]
+        return fields
 
 
     def _newRecArray(self, recarr):
@@ -524,11 +530,7 @@ class Table(TableExtension.Table, Leaf):
         if self.nrows > 0:
             self._v_recarray = recarr
         # Get the fields dictionary to feed the Description factory
-        fields, byteorder = self._descrFromRA(recarr)
-        # Set the byteorder
-        # The columns in records should always have the same byteorder
-        # (until this would be implemented at the HDF5 extension level)
-        fields['_v_byteorder'] = byteorders[byteorder]
+        fields = self._descrFromRA(recarr)
         # Create an instance description to host the record fields
         self.description = Description(fields)
         # The rest of the info is automatically added when self.create()

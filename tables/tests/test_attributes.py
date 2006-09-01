@@ -514,7 +514,8 @@ class TypesTestCase(unittest.TestCase):
 
         for stype in checktypes:
             assert allequal(getattr(self.array.attrs, stype),
-                            numarray.array(1, type=stype))
+                            numarray.array(1, type=stype),
+                            flavor="numarray")
 
     def test01c_setIntAttributes(self):
         """Checking setting Int attributes (unidimensional numarray case)"""
@@ -539,7 +540,8 @@ class TypesTestCase(unittest.TestCase):
             if verbose:
                 print "type, value-->", stype, getattr(self.array.attrs, stype)
             assert allequal(getattr(self.array.attrs, stype),
-                            numarray.array([1,2], type=stype))
+                            numarray.array([1,2], type=stype),
+                            flavor="numarray")
 
     def test01d_setIntAttributes(self):
         """Checking setting Int attributes (bidimensional numarray case)"""
@@ -565,7 +567,8 @@ class TypesTestCase(unittest.TestCase):
             if verbose:
                 print "type, value-->", stype, getattr(self.array.attrs, stype)
             assert allequal(getattr(self.array.attrs, stype),
-                            numarray.array([[1,2],[2,3]], type=stype))
+                            numarray.array([[1,2],[2,3]], type=stype),
+                            flavor="numarray")
 
     def test02a_setFloatAttributes(self):
         """Checking setting Float (double) attributes"""
@@ -644,7 +647,8 @@ class TypesTestCase(unittest.TestCase):
 
         for stype in checktypes:
             assert allequal(getattr(self.array.attrs, stype),
-                            numarray.array([1.1,2.1], type=stype))
+                            numarray.array([1.1,2.1], type=stype),
+                            flavor="numarray")
 
     def test02d_setFloatAttributes(self):
         """Checking setting Int attributes (bidimensional numarray case)"""
@@ -670,7 +674,8 @@ class TypesTestCase(unittest.TestCase):
 
         for stype in checktypes:
             assert allequal(getattr(self.array.attrs, stype),
-                            numarray.array([[1.1,2.1],[2.1,3.1]], type=stype))
+                            numarray.array([[1.1,2.1],[2.1,3.1]], type=stype),
+                            flavor="numarray")
 
     def test03_setObjectAttributes(self):
         """Checking setting Object attributes"""
@@ -742,7 +747,8 @@ class TypesTestCase(unittest.TestCase):
             self.array = self.fileh.root.anarray
 
         assert allequal(self.root.anarray.attrs.pq,
-                        numarray.strings.array(['foo']))
+                        numarray.strings.array(['foo']),
+                        flavor="numarray")
 
     def test04c_setStringAttributes(self):
         """Checking setting string attributes (empty unidimensional 1-elem case)"""
@@ -765,7 +771,8 @@ class TypesTestCase(unittest.TestCase):
                 print "pq -->", self.array.attrs.pq
 
         assert allequal(self.root.anarray.attrs.pq,
-                        numarray.strings.array(['']))
+                        numarray.strings.array(['']),
+                        flavor="numarray")
 
     def test04d_setStringAttributes(self):
         """Checking setting string attributes (unidimensional 2-elem case)"""
@@ -785,7 +792,8 @@ class TypesTestCase(unittest.TestCase):
             self.array = self.fileh.root.anarray
 
         assert allequal(self.root.anarray.attrs.pq,
-                        numarray.strings.array(['foo', 'bar3']))
+                        numarray.strings.array(['foo', 'bar3']),
+                        flavor="numarray")
 
     def test04e_setStringAttributes(self):
         """Checking setting string attributes (empty unidimensional 2-elem case)"""
@@ -805,7 +813,8 @@ class TypesTestCase(unittest.TestCase):
             self.array = self.fileh.root.anarray
 
         assert allequal(self.root.anarray.attrs.pq,
-                        numarray.strings.array(['', '']))
+                        numarray.strings.array(['', '']),
+                        flavor="numarray")
 
     def test04f_setStringAttributes(self):
         """Checking setting string attributes (bidimensional 4-elem case)"""
@@ -827,7 +836,8 @@ class TypesTestCase(unittest.TestCase):
 
         assert allequal(self.root.anarray.attrs.pq,
                         numarray.strings.array([['foo', 'foo2'],
-                                                ['foo3', 'foo4']]))
+                                                ['foo3', 'foo4']]),
+                        flavor="numarray")
 
 
 class NotCloseTypesTestCase(TypesTestCase):

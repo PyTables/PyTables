@@ -116,11 +116,11 @@ class BasicTestCase(common.PyTablesTestCase):
             tmplist.append(var2)
             var3 = i % self.maxshort
             tmplist.append(var3)
-            if isinstance(row.field('var4'), numpy.ndarray):
+            if isinstance(row['var4'], numpy.ndarray):
                 tmplist.append([float(i), float(i*i)])
             else:
                 tmplist.append(float(i))
-            if isinstance(row.field('var5'), numpy.ndarray):
+            if isinstance(row['var5'], numpy.ndarray):
                 tmplist.append(array((float(i),)*4))
             else:
                 tmplist.append(float(i))
@@ -130,12 +130,10 @@ class BasicTestCase(common.PyTablesTestCase):
             tmplist.append(var7)
             buflist.append(tmplist)
 
-        self.record=numpy.rec.array(buflist, formats=record._formats,
-                                   names=record._names,
-                                   shape = self.expectedrows)
+        self.record=numpy.rec.array(buflist, dtype=record.dtype,
+                                    shape = self.expectedrows)
         # The swapped version
-        self.recordro = self.record.copy()
-        self.recordro._byteorder = {"little":"big","big":"little"}[sys.byteorder]
+        self.recordro = self.record.newbyteorder()
         return
 
     def populateFile(self):
@@ -213,7 +211,7 @@ class BasicTestCase(common.PyTablesTestCase):
             # This way of getting a (dictionary) description
             # can be used as long as the method does not alter the table.
             # Maybe there is a better way of doing this.
-            columns, _ = tbl._descrFromRA(self.record)
+            columns = tbl._descrFromRA(self.record)
         else:
             # This is an ordinary description.
             columns = self.record.columns
@@ -315,7 +313,7 @@ class BasicTestCase(common.PyTablesTestCase):
             nrows,
             "1"))
         if isinstance(rec['var5'], numpy.ndarray):
-            assert allequal(rec['var5'], array((float(nrows),)*4, Float32))
+            assert allequal(rec['var5'], array((nrows,)*4, float32))
         else:
             assert rec['var5'] == float(nrows)
         assert len(result) == 20
@@ -343,12 +341,12 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Total selected records in table ==> ", len(result)
         nrows = table.nrows
         if isinstance(rec['var5'], numpy.ndarray):
-            assert allequal(result[0], array((float(0),)*4, Float32))
-            assert allequal(result[1], array((float(1),)*4, Float32))
-            assert allequal(result[2], array((float(2),)*4, Float32))
-            assert allequal(result[3], array((float(3),)*4, Float32))
-            assert allequal(result[10], array((float(10),)*4, Float32))
-            assert allequal(rec['var5'], array((float(nrows-1),)*4, Float32))
+            assert allequal(result[0], array((float(0),)*4, float32))
+            assert allequal(result[1], array((float(1),)*4, float32))
+            assert allequal(result[2], array((float(2),)*4, float32))
+            assert allequal(result[3], array((float(3),)*4, float32))
+            assert allequal(result[10], array((float(10),)*4, float32))
+            assert allequal(rec['var5'], array((float(nrows-1),)*4, float32))
         else:
             assert rec['var5'] == float(nrows-1)
         assert len(result) == 20
@@ -429,7 +427,7 @@ class BasicTestCase(common.PyTablesTestCase):
             nrows,
             "1"))
         if isinstance(row['var5'], numpy.ndarray):
-            assert allequal(row['var5'], array((float(nrows),)*4, Float32))
+            assert allequal(row['var5'], array((float(nrows),)*4, float32))
         else:
             assert row['var5'] == float(nrows)
         if self.appendrows <= 20:
@@ -451,11 +449,6 @@ class BasicTestCase(common.PyTablesTestCase):
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
         table = self.fileh.getNode("/group0/group1/table2")
-
-        # This is now automatically handled by HDF5.
-        ## # Manually change the byteorder property for this table
-        ## table.byteorder = {"little":"big","big":"little"}[table.byteorder]
-        ## #table.togglebyteorder()
 
         # Read the records and select the ones with "var6" column less than 20
         result = [ rec['var2'] for rec in table.iterrows() if rec['var6'] < 20]
@@ -488,7 +481,7 @@ class RecArrayOneWriteTestCase(BasicTestCase):
         None,
         formats="(2,)a4,(2,2)a4,(2,)i4,(2,2)i4,i2,2f8,f4,i2,a1",
         names='var0,var1,var1_,var2,var3,var4,var5,var6,var7',
-        shape=1)
+        shape=0)
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
@@ -628,8 +621,8 @@ class BasicRangeTestCase(unittest.TestCase):
             recarray = table.read(self.start, self.stop, self.step)
             result = []
             for nrec in range(len(recarray)):
-                if recarray.field('var2')[nrec][0][0] < self.nrows:
-                    result.append(recarray.field('var2')[nrec][0][0])
+                if recarray['var2'][nrec][0][0] < self.nrows:
+                    result.append(recarray['var2'][nrec][0][0])
         elif self.checkgetCol:
             column = table.read(self.start, self.stop, self.step, 'var2')
             result = []
@@ -959,13 +952,14 @@ class RecArrayIO(unittest.TestCase):
 
         # Create a recarray
         intlist1 = [[456,23]*3]*2
-        intlist2 = array([[2,2]*3]*2)
+        intlist2 = array([[2,2]*3]*2, dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
-        r=numpy.rec.array(b, names='col1,col2,col3')
+        r=numpy.rec.array(b, formats='(2,6)i4,(3,2)a3,(4,6)f8',
+                          names='col1,col2,col3')
 
         # Save it in a table:
         fileh.createTable(fileh.root, 'recarray', r)
@@ -985,21 +979,19 @@ class RecArrayIO(unittest.TestCase):
 
         # Create a recarray
         intlist1 = [[456,23]*3]*2
-        intlist2 = array([[2,2]*3]*2)
+        intlist2 = array([[2,2]*3]*2, dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
-        r=numpy.rec.array(b, names='col1,col2,col3')
+        r=numpy.rec.array(b, formats='(2,6)i4,(3,2)a3,(4,6)f8',
+                          names='col1,col2,col3')
 
-        # Get an offsetted bytearray
+        # Get a view of the recarray
         r1 = r[1:]
-        assert r1._byteoffset > 0
-
         # Save it in a table:
         fileh.createTable(fileh.root, 'recarray', r1)
-
         # Read it again
         r2 = fileh.root.recarray.read()
 
@@ -1009,29 +1001,25 @@ class RecArrayIO(unittest.TestCase):
         os.remove(file)
 
     def test02(self):
-        "Checking saving a large recarray with an offset in its buffer"
+        "Checking saving a slice of a large recarray"
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
         # Create a recarray
         intlist1 = [[[23,24,35]*6]*6]
-        intlist2 = array([[[2,3,4]*6]*6])
+        intlist2 = array([[[2,3,4]*6]*6], dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b=[[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
-        r=numpy.rec.array(b*300, names='col1,col2,col3')
+        r=numpy.rec.array(b*300,  formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
+                          names='col1,col2,col3')
 
-        # Get an offsetted recarray
+        # Get an slice of recarray
         r1 = r[290:292]
-        if verbose:
-            print "\noffseted recarray --> ", r1
-        assert r1._byteoffset > 0
-
         # Save it in a table:
         fileh.createTable(fileh.root, 'recarray', r1)
-
         # Read it again
         r2 = fileh.root.recarray.read()
 
@@ -1041,31 +1029,27 @@ class RecArrayIO(unittest.TestCase):
         os.remove(file)
 
     def test03(self):
-        "Checking saving a strided recarray with an offset in its buffer"
+        "Checking saving a slice of an strided recarray"
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
         # Create a recarray
         intlist1 = [[[23,24,35]*6]*6]
-        intlist2 = array([[[2,3,4]*6]*6])
+        intlist2 = array([[[2,3,4]*6]*6], dtype=int)
         arrlist1 = [['dbe']*2]*3
         arrlist2 = [['de']*2]*3
         floatlist1 = [[1.2,2.3]*3]*4
         floatlist2 = array([[4.5,2.4]*3]*4)
         b = [[intlist1, arrlist1, floatlist1],[intlist2, arrlist2, floatlist2]]
-        r=numpy.rec.array(b*300, names='col1,col2,col3', shape=300)
+        r=numpy.rec.array(b*300, formats='(1,6,18)i4,(3,2)a3,(4,6)f8',
+                          names='col1,col2,col3', shape=300)
 
         # Get an strided recarray
         r2 = r[::2]
-
-        # Get an offsetted bytearray
+        # Get a slice
         r1 = r2[148:]
-        if verbose:
-            print "\noffseted and strided recarray --> ", r1
-        assert r1._byteoffset > 0
         # Save it in a table:
         fileh.createTable(fileh.root, 'recarray', r1)
-
         # Read it again
         r2 = fileh.root.recarray.read()
 
@@ -1114,8 +1098,8 @@ class DefaultValues(unittest.TestCase):
                      'var6', 'var7'])  #*-*
 
         # Assign the value exceptions
-        r.field("var2")[3] = ((2,2), (2,2))  #*-*
-        r.field("var2")[4] = ((2,2), (2,2))  #*-*
+        r["var2"][3] = ((2,2), (2,2))  #*-*
+        r["var2"][4] = ((2,2), (2,2))  #*-*
 
         # Read the table in another recarray
         r2 = table.read()

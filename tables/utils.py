@@ -730,6 +730,33 @@ def tonumpy(array, copy=False):
     return npa
 
 
+def fromnumarray(rna, copy=False):
+    """
+    Create a new heterogeneous numpy object from a numarray object.
+
+    If ``copy`` is True, the a copy of the data is made. The default is
+    not doing a copy.
+
+    Example
+    =======
+
+    >>> nrp = fromnumarray(records.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
+
+    """
+
+    if not isinstance(rna, numarray.records.RecArray):
+        raise ValueError, \
+"You need to pass a numarray RecArray object, and you passed a %s." % (type(array))
+
+    dt = numpy.format_parser(rna._formats, rna._names,
+                             rna._formats)._descr
+    rnp = numpy.ndarray(buffer=rna._data, shape=rna.shape,
+                        dtype=dt, offset=rna._byteoffset)
+    if copy:
+        rnp = rnp.copy()
+    return rnp
+
+
 if __name__=="__main__":
     import sys
     import getopt

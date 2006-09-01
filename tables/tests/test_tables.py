@@ -255,7 +255,7 @@ class BasicTestCase(common.PyTablesTestCase):
             # This way of getting a (dictionary) description
             # can be used as long as the method does not alter the table.
             # Maybe there is a better way of doing this.
-            columns, _ = tbl._descrFromRA(self.record)
+            columns = tbl._descrFromRA(self.record)
         else:
             # This is an ordinary description.
             columns = self.record.columns
