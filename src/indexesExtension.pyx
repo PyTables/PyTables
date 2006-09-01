@@ -480,7 +480,7 @@ cdef class IndexArray(Array):
     cdef void *vpointer
     cdef long nslot
 
-    nslot = self.boundscache.contains(nrow)
+    nslot = self.boundscache.getslot(nrow)
     if nslot >= 0:
       vpointer = self.boundscache.getitem(nslot)
     else:
@@ -499,7 +499,7 @@ cdef class IndexArray(Array):
 
     # Compute the number of chunk read and use it as the key for the cache.
     nckey = nrow*ncs+nchunk
-    nslot = self.sortedcache.contains(nckey)
+    nslot = self.sortedcache.getslot(nckey)
     if nslot >= 0:
       vpointer = self.sortedcache.getitem(nslot)
     else:
@@ -689,7 +689,7 @@ cdef class IndexArray(Array):
           # Use the cache for reading reverse coordinates
           for relcoord from 0 <= relcoord < stopl-startl:
             coord = nrow * self.l_slicesize + startl + relcoord
-            nslot = self.indicescache.contains(coord)
+            nslot = self.indicescache.getslot(coord)
             if nslot >= 0:
               self.indicescache.getitem2(nslot, self.rbufA, bcoords+relcoord)
             else:
@@ -739,7 +739,7 @@ cdef class IndexArray(Array):
     for relcoord from 0 <= relcoord < ncoords:
       coord = rbufC[relcoord]
       # Look at the cache for this coord
-      nslot = self.indicescache.contains(coord)
+      nslot = self.indicescache.getslot(coord)
       if nslot >= 0:
         self.indicescache.getitem2(nslot, self.rbufA, relcoord)
       else:

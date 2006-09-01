@@ -134,14 +134,14 @@ cdef class NodeCache:
 
 
   def __contains__(self, path):
-    if self.contains(path) == -1:
+    if self.getslot(path) == -1:
       return 0
     else:
       return 1
 
 
   # Checks whether path is in this cache or not
-  cdef long contains(self, object path):
+  cdef long getslot(self, object path):
     cdef long i, idx
 
     idx = -1  # -1 means not found
@@ -160,7 +160,7 @@ cdef class NodeCache:
   cdef object cpop(self, object path):
     cdef object idx
 
-    idx = self.contains(path)
+    idx = self.getslot(path)
     node = PyObject_GetItem(self.nodes, idx)
     PyObject_DelItem(self.nodes, idx);  PyObject_DelItem(self.paths, idx)
     self.lsize = self.lsize - 1
@@ -176,6 +176,53 @@ cdef class NodeCache:
 
 
 
+########################################################################
+# Common code for other LRU cache classes
+########################################################################
+
+cdef class BaseCache:
+  """Base class that implements automatic probing/disabling of the cache.
+  """
+
+  def __init__(self, int enableeverycycles, double lowesthr):
+    self.setcount = 0;  self.getcount = 0;  self.cyclecount = 0
+    self.iscachedisabled = False  # Cache is enabled by default
+    self.enableeverycycles = enableeverycycles
+    self.lowesthr = lowesthr
+
+
+  # Machinery for determining whether the hit ratio is being effective
+  # or not.  If not, the cache will be disabled. The efficency will be
+  # checked every cycle (the time that the cache would be refilled
+  # completely).  In situations where the cache is not being re-filled
+  # (i.e. it is not enabled) for a long time, it is forced to be
+  # re-enabled when a certain number of cycles has passed so as to
+  # check whether a new scenario where the cache can be useful again
+  # has come.
+  # F. Altet 2006-08-09
+  cdef int checkhitratio(self, int cachesize):
+    cdef double hitratio
+
+    if self.setcount > cachesize:
+      self.cyclecount = self.cyclecount + 1
+      # Check whether the cache is being effective or not
+      hitratio = <double>self.getcount / (self.setcount+self.getcount)
+      if hitratio < self.lowesthr:
+        # Hit ratio is low. Disable the cache.
+        self.iscachedisabled = True
+      else:
+        # Hit ratio is acceptable. (Re-)Enable the cache.
+        self.iscachedisabled = False
+      # Reset the counters to 0
+      self.setcount = 0; self.getcount = 0
+      if self.cyclecount > self.enableeverycycles:
+        # We have reached the time for forcing the cache to act again
+        self.iscachedisabled = False
+        self.cyclecount = 0
+    return not self.iscachedisabled
+
+
+
 #  Minimalistic LRU cache implementation for numerical data
 
 #*********************** Important note! ****************************
@@ -185,7 +232,7 @@ cdef class NodeCache:
 #F. Altet 2006-08-09
 #********************************************************************
 
-cdef class NumCache:
+cdef class NumCache(BaseCache):
   """Least-Recently-Used (LRU) cache specific for Numerical data.
   """
 
@@ -207,10 +254,6 @@ cdef class NumCache:
     if self.nslots >= 2**16:
       raise ValueError, "Too many slots (%s) in cache!" % self.nslots
     self.seqn_ = 0;  self.nextslot = 0
-    self.setcount = 0;  self.getcount = 0;  self.cyclecount = 0
-    self.iscachedisabled = False  # Cache is enabled by default
-    self.enableeverycycles = ENABLE_EVERY_CYCLES
-    self.lowesthr = LOWEST_HIT_RATIO
     # The cache object where all data will go
     self.cacheobj = numpy.empty(shape=(self.nslots, self.slotsize),
                                 dtype=numpy.uint8)
@@ -224,6 +267,7 @@ cdef class NumCache:
     # The array for keeping the access times (using long ints here)
     self.atimes = numpy.zeros(shape=self.nslots, dtype=numpy.int_)
     self.ratimes = <long *>self.atimes.data
+    super(NumCache, self).__init__(ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO)
 
 
   cdef long incseqn(self):
@@ -250,42 +294,8 @@ cdef class NumCache:
     return idx
 
 
-#   # Check where x should be found in array self.rsorted
-#   cdef long keylookup(self, long long x):
-#     cdef long lo, hi, mid
-#     cdef long long *a
-
-#     lo = 0;  hi = self.nslots;  a = self.rsorted
-#     while lo < hi:
-#       mid = (lo+hi)/2
-#       if a[mid] < x: lo = mid+1
-#       else: hi = mid
-#     return lo
-
-
-#   # Tells in which slot key is. If not found, -1 is returned.
-#   cdef int contains(self, long long key):
-#     cdef long idx
-
-#     idx = self.keylookup(key)
-#     if key == self.rsorted[idx]:
-#       return self.rindices[idx]
-#     else:
-#       return -1
-
-#   # This version optimized in C doesn't go faster than Pyrex.
-#   cdef int contains(self, long long key):
-#     cdef int idx
-
-#     idx = bisect_left_ll2(self.rsorted, key, self.nslots)
-#     if key == self.rsorted[idx]:
-#       return self.rindices[idx]
-#     else:
-#       return -1
-
-  # The next contains is a 15% faster than the splitted version.
   # Tells in which slot key is. If not found, -1 is returned.
-  cdef long contains(self, long long key):
+  cdef long getslot(self, long long key):
     cdef long lo, hi, mid
     cdef long long *rsorted
 
@@ -301,42 +311,11 @@ cdef class NumCache:
       return -1
 
 
-  # Machinery for determining whether the hit ratio is being effective
-  # or not.  If not, the cache will be disabled. The efficency will be
-  # checked every cycle (the time that the cache would be refilled
-  # completely).  In situations where the cache is not being re-filled
-  # (i.e. it is not enabled) for a long time, it is forced to be
-  # re-enabled when a certain number of cycles has passed so as to
-  # check whether a new scenario where the cache can be useful again
-  # has come.
-  # F. Altet 2006-08-09
-  cdef int checkhitratio(self):
-    cdef double hitratio
-
-    if self.setcount > self.nslots:
-      self.cyclecount = self.cyclecount + 1
-      # Check whether the cache is being effective or not
-      hitratio = <double>self.getcount / (self.setcount+self.getcount)
-      if hitratio < self.lowesthr:
-        # Hit ratio is low. Disable the cache.
-        self.iscachedisabled = True
-      else:
-        # Hit ratio is acceptable. (Re-)Enable the cache.
-        self.iscachedisabled = False
-      # Reset the counters to 0
-      self.setcount = 0; self.getcount = 0
-      if self.cyclecount > self.enableeverycycles:
-        # We have reached the time for forcing the cache to act again
-        self.iscachedisabled = False
-        self.cyclecount = 0
-    return not self.iscachedisabled
-
-
   cdef long setitem(self, long long key, void *data, long start):
     cdef long nslot, nidx, base1, base2
 
     self.setcount = self.setcount + 1
-    if self.checkhitratio():
+    if self.checkhitratio(self.nslots):
       # Check if we are growing out of space
       if self.nextslot == self.nslots:
         # Get the least recently used slot
@@ -391,10 +370,9 @@ cdef class NumCache:
 
 
 
-#  Minimalistic LRU cache implementation for general python objects
-
 ########################################################################
-# This is a *true* general lru cache for python objects
+#  Minimalistic LRU cache implementation for general python objects
+#        This is a *true* general lru cache for python objects
 ########################################################################
 
 from heapq import heappop, heappush
@@ -429,7 +407,8 @@ cdef class ObjectNode:
            (self.__class__, self.key, self.nslot, self.atime)
 
 
-cdef class ObjectCache:
+
+cdef class ObjectCache(BaseCache):
   """Least-Recently-Used (LRU) cache specific for python objects.
   """
 
@@ -448,11 +427,8 @@ cdef class ObjectCache:
       raise ValueError, "Negative or zero number (%s) of slots!" % self.nslots
     self.__heap = [];  self.__list = range(nslots);  self.__dict = {}
     self.seqn_ = 0;  self.nextslot = 0
-    self.setcount = 0;  self.getcount = 0;  self.cyclecount = 0
-    self.iscachedisabled = False  # Cache is enabled by default
-    self.enableeverycycles = ENABLE_EVERY_CYCLES
-    self.lowesthr = LOWEST_HIT_RATIO
     self.mrunode = None   # Most Recent Used node
+    super(ObjectCache, self).__init__(ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO)
 
 
   cdef long incseqn(self):
@@ -469,37 +445,6 @@ cdef class ObjectCache:
     return self.seqn_
 
 
-  # Machinery for determining whether the hit ratio is being effective
-  # or not.  If not, the cache will be disabled. The efficency will be
-  # checked every cycle (the time that the cache would be refilled
-  # completely).  In situations where the cache is not being re-filled
-  # (i.e. it is not enabled) for a long time, it is forced to be
-  # re-enabled when a certain number of cycles has passed so as to
-  # check whether a new scenario where the cache can be useful again
-  # has come.
-  # F. Altet 2006-08-09
-  cdef int checkhitratio(self):
-    cdef double hitratio
-
-    if self.setcount > self.nslots:
-      self.cyclecount = self.cyclecount + 1
-      # Check whether the cache is being effective or not
-      hitratio = <double>self.getcount / (self.setcount+self.getcount)
-      if hitratio < self.lowesthr:
-        # Hit ratio is low. Disable the cache.
-        self.iscachedisabled = True
-      else:
-        # Hit ratio is acceptable. (Re-)Enable the cache.
-        self.iscachedisabled = False
-      # Reset the counters to 0
-      self.setcount = 0; self.getcount = 0
-      if self.cyclecount > self.enableeverycycles:
-        # We have reached the time for forcing the cache to act again
-        self.iscachedisabled = False
-        self.cyclecount = 0
-    return not self.iscachedisabled
-
-
   # Put the object to the data in cache (for Python calls)
   def setitem(self, object key, object value):
     return self.setitem_(key, value)
@@ -511,7 +456,7 @@ cdef class ObjectCache:
     cdef long nslot
 
     self.setcount = self.setcount + 1
-    if self.checkhitratio():
+    if self.checkhitratio(self.nslots):
       # Check if we are growing out of space
       if len(self.__heap) == self.nslots:
         lru = heappop(self.__heap)

@@ -102,7 +102,7 @@ METADATA_CACHE_SIZE = 1*1024*1024  # 1 MB is the default for HDF5
 # The default value here is quite conservative. If you have a system
 # with tons of memory, and if you are touching regularly a very large
 # number of leaves, try increasing this value and see if it fits better for
-# you. Please, get me you feedback.
+# you. Please, give us your feedback.
 #
 # F. Altet 2005-10-31
 
@@ -118,7 +118,7 @@ METADATA_CACHE_SIZE = 1*1024*1024  # 1 MB is the default for HDF5
 #                         # This is a good compromise between CPU and memory
 #                         # consumption.
 
-NODE_CACHE_SIZE = 256
+NODE_CACHE_SIZE = -256
 
 # Negative value means that all the touched nodes will be kept in a
 # dictionary and the user will be warned when the number of nodes there

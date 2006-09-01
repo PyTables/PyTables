@@ -546,7 +546,7 @@ cdef class Table:  # XXX extends Leaf
     for nrecord from 0 <= nrecord < nrecords:
       coord = coords[nrecord]
       # Look at the cache for this coord
-      nslot = self.sparsecache.contains(coord)
+      nslot = self.sparsecache.getslot(coord)
       if nslot >= 0:
         self.sparsecache.getitem2(nslot, rbuf, nrecord)
       else:
