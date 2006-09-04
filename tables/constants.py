@@ -151,8 +151,12 @@ NODE_CACHE_SIZE = -256
 #NODE_CACHE_SIZE = MAX_GROUP_WIDTH  # that would be ideal, but takes ages!
 """Maximum number of unreferenced nodes to be kept in memory."""
 
+#LIMDATA_CACHE_SIZE = 8  # for testing
+LIMDATA_CACHE_SIZE = 128
+"""The maximum number of limits (lim1 <= col < lim2) cached in data lookups."""
+
 #LIMITS_CACHE_SIZE = 8  # for testing
-LIMITS_CACHE_SIZE = 1024
+LIMITS_CACHE_SIZE = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
 
 #SORTED_CACHE_SIZE = 256  # for testing

@@ -61,7 +61,7 @@ def cleanup(klass):
             klass.__dict__[key] = None
 
 
-def allequal(a,b, flavor="numarray"):
+def allequal(a,b, flavor="numpy"):
     """Checks if two numerical objects are equal"""
 
     #print "a-->", repr(a)

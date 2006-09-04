@@ -1474,8 +1474,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 raise ValueError( "combination of operators not supported, "
                                   "use val1 <{=} col <{=} val2" )
 
-        ncoords = self.search(range_)
-        return ncoords
+        #ncoords = self.search(range_)
+        return range_
 
 
     def getLookupRange(self, column):

@@ -70,7 +70,7 @@ class PyTables_DB(DB):
 
     def do_query(self, con, column, base):
         # The next lines saves some lookups for table in the LRU cache
-        if  False:  # Activate this when a cache for objects is wanted.
+        if True:  # Activate this when a cache for objects is wanted.
             if not hasattr(self, "table_cache"):
                 self.table_cache = table = con.root.table
                 self.condition = "(%s<=col) & (col<=%s)" % \
@@ -115,14 +115,14 @@ class PyTables_DB(DB):
 #             results = [ r[column] for r in
 #                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
 
-#             results = [ r[column] for r in
-#                         table._whereIndexed2XXX(self.condition, self.condvars) ]
+            results = [ r[column] for r in
+                        table._whereIndexed2XXX(self.condition, self.condvars) ]
 
             #coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
-            coords = table.getWhereList2XXX(self.condition, self.condvars,
-                                            flavor="numpy")
-            results = table.readCoordinates(coords, field=column,
-                                            flavor="numpy")
+#             coords = table.getWhereList2XXX(self.condition, self.condvars,
+#                                             flavor="numpy")
+#             results = table.readCoordinates(coords, field=column,
+#                                             flavor="numpy")
 
 #             results = table.readIndexed2XXX(self.condition, self.condvars,
 #                                             flavor="numpy")

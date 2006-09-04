@@ -52,8 +52,8 @@ class DB(object):
 
     def print_mtime(self, t1, explain):
         mtime = time()-t1
-        print "%s:" % explain, round(mtime, 5)
-        print "Krows/s:", round((self.nrows/1000.)/mtime, 5)
+        print "%s:" % explain, round(mtime, 6)
+        print "Krows/s:", round((self.nrows/1000.)/mtime, 6)
 
     def print_qtime(self, colname, ltimes):
         ntimes = len(ltimes)
@@ -64,17 +64,17 @@ class DB(object):
             qtime2 = sum(ltimes[5:])/(ntimes-5)
         else:
             qtime2 = ltimes[-1]  # Last measured time
-        print "Query time for %s:" % colname, round(qtime1, 5)
-        print "Mrows/s:", round((self.nrows/(MROW))/qtime1, 5)
+        print "Query time for %s:" % colname, round(qtime1, 6)
+        print "Mrows/s:", round((self.nrows/(MROW))/qtime1, 6)
         if colname in idx_cols:
             if ntimes > 5:
-                print "Query time for %s (cached):" % colname, round(qtime2, 5)
-                print "Mrows/s (cached):", round((self.nrows/(MROW))/qtime2, 5)
+                print "Query time for %s (cached):" % colname, round(qtime2, 6)
+                print "Mrows/s (cached):", round((self.nrows/(MROW))/qtime2, 6)
             else:
                 print "Not enough iterations to compute cache times."
         else:
-            print "Query time for %s (cached):" % colname, round(qtime2, 5)
-            print "Mrows/s (cached):", round((self.nrows/(MROW))/qtime2, 5)
+            print "Query time for %s (cached):" % colname, round(qtime2, 6)
+            print "Mrows/s (cached):", round((self.nrows/(MROW))/qtime2, 6)
 
     def print_db_sizes(self, init, filled, indexed):
         table_size = (filled-init)/1024.
