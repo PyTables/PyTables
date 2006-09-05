@@ -104,12 +104,10 @@ cdef class NodeCache:
     If more than 'size' elements are added to the cache,
     the least-recently-used ones will be discarded."""
 
-    if size <= 0:
-      raise ValueError, size
-    elif type(size) is not type(0):
-      raise TypeError, size
-    self.nodes = [];  self.paths = []
+    if size < 0:
+      raise ValueError, "Negative number (%s) of slots!" % size
     self.size = size;  self.lsize = 0
+    self.nodes = [];  self.paths = []
 
 
   def __len__(self):
@@ -123,6 +121,8 @@ cdef class NodeCache:
   # Puts a new node in the node list
   cdef setitem(self, object path, object node):
 
+    if self.size == 0:   # Oops, the cache is set to empty
+      return
     # Add the node and path to the end of its lists
     PyList_Append(self.nodes, node);  PyList_Append(self.paths, path)
     self.lsize = self.lsize + 1
@@ -144,6 +144,8 @@ cdef class NodeCache:
   cdef long getslot(self, object path):
     cdef long i, idx
 
+    if self.lsize == 0:   # No chance for finding the path
+      return -1
     idx = -1  # -1 means not found
     # Start looking from the trailing values (most recently used)
     for i from self.lsize > i >= 0:
@@ -249,8 +251,8 @@ cdef class NumCache(BaseCache):
 
     self.nslots = shape[0];  self.slotsize = shape[1]*itemsize
     self.itemsize = itemsize;  self.name = name
-    if self.nslots <= 0:
-      raise ValueError, "Negative or zero number (%s) of slots!" % self.nslots
+    if self.nslots < 0:
+      raise ValueError, "Negative number (%s) of slots!" % self.nslots
     if self.nslots >= 2**16:
       raise ValueError, "Too many slots (%s) in cache!" % self.nslots
     self.seqn_ = 0;  self.nextslot = 0
@@ -299,6 +301,8 @@ cdef class NumCache(BaseCache):
     cdef long lo, hi, mid
     cdef long long *rsorted
 
+    if self.nslots == 0:   # No chance for finding a slot
+      return -1
     rsorted = self.rsorted
     lo = 0;  hi = self.nslots
     while lo < hi:
@@ -314,6 +318,8 @@ cdef class NumCache(BaseCache):
   cdef long setitem(self, long long key, void *data, long start):
     cdef long nslot, nidx, base1, base2
 
+    if self.nslots == 0:   # Oops, the cache is set to empty
+      return -1
     self.setcount = self.setcount + 1
     if self.checkhitratio(self.nslots):
       # Check if we are growing out of space
@@ -375,7 +381,6 @@ cdef class NumCache(BaseCache):
 #        This is a *true* general lru cache for python objects
 ########################################################################
 
-from heapq import heappop, heappush
 
 cdef class ObjectNode:
   """Record of a cached value. Not for public consumption."""
@@ -389,17 +394,6 @@ cdef class ObjectNode:
     self.obj = obj
     self.nslot = nslot
     self.atime = atime
-
-
-  def __cmp__(self, ObjectNode other):
-    #return cmp(self.atime_, other.atime_)
-    # This optimization makes the comparison more than twice as faster
-    if self.atime < self.atime:
-      return -1
-    elif self.atime > other.atime:
-      return 1
-    else:
-      return 0
 
 
   def __repr__(self):
@@ -423,9 +417,9 @@ cdef class ObjectCache(BaseCache):
     """
 
     self.nslots = nslots;  self.name = name
-    if self.nslots <= 0:
-      raise ValueError, "Negative or zero number (%s) of slots!" % self.nslots
-    self.__heap = [];  self.__list = range(nslots);  self.__dict = {}
+    if self.nslots < 0:
+      raise ValueError, "Negative number (%s) of slots!" % self.nslots
+    self.__list = range(nslots);  self.__dict = {}
     self.seqn_ = 0;  self.nextslot = 0
     self.mrunode = None   # Most Recent Used node
     super(ObjectCache, self).__init__(ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO)
@@ -437,8 +431,8 @@ cdef class ObjectCache(BaseCache):
     self.seqn_ = self.seqn_ + 1
     if self.seqn_ < 0:
       # Ooops, the counter has run out of range!
-      # Reset all the priorities in heap to 0
-      for node in self.__heap:
+      # Reset all the priorities in list to 0
+      for node in self.__list:
         node.atime = 0
       # Set the counter to 1 (to indicate that it is newer than existing ones)
       self.seqn_ = 1
@@ -453,20 +447,26 @@ cdef class ObjectCache(BaseCache):
   # Put the object to the data in cache (for Pyrex calls)
   cdef long setitem_(self, object key, object value):
     cdef ObjectNode node, lru
-    cdef long nslot
+    cdef long nslot, mintime
 
+    if self.nslots == 0:   # Oops, the cache is set to empty
+      return -1
     self.setcount = self.setcount + 1
     if self.checkhitratio(self.nslots):
       # Check if we are growing out of space
-      if len(self.__heap) == self.nslots:
-        lru = heappop(self.__heap)
-        nslot = lru.nslot
+      if self.nextslot == self.nslots:
+        # Look for the LRU node
+        lru = self.__list[0];  mintime = lru.atime
+        for node in self.__list:
+          if node.atime < mintime:
+            mintime = node.atime
+            lru = node
+        nslot = lru.nslot;  self.nextslot = self.nextslot - 1
         del self.__dict[lru.key]
       else:
         nslot = self.nextslot;  self.nextslot = self.nextslot + 1
       assert nslot < self.nslots, "Number of nodes exceeding cache capacity."
       node = ObjectNode(key, value, nslot, self.incseqn())
-      heappush(self.__heap, node)
       self.__list[nslot] = node     # Replace node in nslot
       self.__dict[key] = node
       self.mrunode = node
@@ -487,6 +487,8 @@ cdef class ObjectCache(BaseCache):
   cdef long getslot_(self, object key):
     cdef ObjectNode node
 
+    if self.nslots == 0:   # No chance for finding a slot
+      return -1
     # Give a chance to the MRU node
     node = self.mrunode
     if self.nextslot > 0 and node.key == key:

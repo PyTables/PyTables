@@ -133,9 +133,7 @@ NODE_CACHE_SIZE = -256
 # will keep the usage of memory much more contained, but the retrieving
 # of nodes is slower.
 
-# - Use a 0 value. This means that you can grow the dictionary of alive
-# nodes and you don't want to receive any warning whatever the size that
-# it will reach. Use only if you know what you are doing.
+# - Use a 0 value. This means that you want to disable any node cache.
 
 #XYX Explain this more in "Optimization Tips" chapter.
 
@@ -152,11 +150,13 @@ NODE_CACHE_SIZE = -256
 """Maximum number of unreferenced nodes to be kept in memory."""
 
 #LIMDATA_CACHE_SIZE = 8  # for testing
-LIMDATA_CACHE_SIZE = 128
+#LIMDATA_CACHE_SIZE = 128
+LIMDATA_CACHE_SIZE = 10
 """The maximum number of limits (lim1 <= col < lim2) cached in data lookups."""
 
 #LIMITS_CACHE_SIZE = 8  # for testing
-LIMITS_CACHE_SIZE = 128
+#LIMITS_CACHE_SIZE = 128
+LIMITS_CACHE_SIZE = 10
 """The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
 
 #SORTED_CACHE_SIZE = 256  # for testing

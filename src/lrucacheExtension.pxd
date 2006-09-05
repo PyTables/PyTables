@@ -4,7 +4,7 @@ from numpydefs cimport ndarray
 # The NodeCache class is useful for caching general objects (like Nodes).
 cdef class NodeCache:
   cdef object nodes, paths
-  cdef int size, lsize
+  cdef long size, lsize
   cdef object setitem(self, object path, object node)
   cdef long getslot(self, object path)
   cdef object cpop(self, object path)
@@ -41,7 +41,7 @@ cdef class ObjectCache(BaseCache):
   cdef long seqn_, nextslot
   cdef int itemsize, nslots, slotsize
   cdef object name, mrunode
-  cdef object __heap,  __list,  __dict
+  cdef object  __list,  __dict
   cdef long incseqn(self)
   cdef long setitem_(self, object key, object value)
   cdef long getslot_(self, object key)

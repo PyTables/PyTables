@@ -73,13 +73,6 @@ class PyTables_DB(DB):
         if True:  # Activate this when a cache for objects is wanted.
             if not hasattr(self, "table_cache"):
                 self.table_cache = table = con.root.table
-                self.condition = "(%s<=col) & (col<=%s)" % \
-                                 (self.rng[0]+base, self.rng[1]+base)
-                # self.condition = "(%s<=col1*col2) & (col3*col4<=%s)" % \
-                #                  (self.rng[0]+base, self.rng[1]+base)
-                # condition = "(col**2.4==%s)" % (self.rng[0]+base)
-                # condition = "(col==%s)" % (self.rng[0]+base)
-                # condvars = {"col": colobj}
                 self.colobj = getattr(table.cols, column)
                 self.condvars = {"col": self.colobj,
                                  "col1": table.cols.col1,
@@ -98,15 +91,14 @@ class PyTables_DB(DB):
                              "col3": table.cols.col3,
                              "col4": table.cols.col4,
                              }
-            self.condition = "(%s<=col) & (col<=%s)" % \
-                             (self.rng[0]+base, self.rng[1]+base)
-#             self.condition = "((%s<=col) & (col<=%s)) | ((col2+col4)<0)" % \
-#                              (self.rng[0]+base, self.rng[1]+base)
+        condition = "(%s<=col) & (col<=%s)" % \
+                    (self.rng[0]+base, self.rng[1]+base)
+        # condition = "(%s<=col1*col2) & (col3*col4<=%s)" % \
+        #             (self.rng[0]+base, self.rng[1]+base)
+        # condition = "(col**2.4==%s)" % (self.rng[0]+base)
+        # condition = "(col==%s)" % (self.rng[0]+base)
+        # condvars = {"col": colobj}
 
-        #print "get colobj-->", time()-t1
-#         results = [ r[column] for r in
-#                     table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
-        #t1 = time()
         ncoords = 0
         if colobj.is_indexed:
             #coords = table.getWhereList(self.rng[0]+base == colobj)
@@ -115,23 +107,24 @@ class PyTables_DB(DB):
 #             results = [ r[column] for r in
 #                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
 
-            results = [ r[column] for r in
-                        table._whereIndexed2XXX(self.condition, self.condvars) ]
+#             results = [ r[column] for r in
+#                         table._whereIndexed2XXX(condition, self.condvars) ]
 
             #coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
-#             coords = table.getWhereList2XXX(self.condition, self.condvars,
+#             coords = table.getWhereList2XXX(condition, self.condvars,
 #                                             flavor="numpy")
 #             results = table.readCoordinates(coords, field=column,
 #                                             flavor="numpy")
 
-#             results = table.readIndexed2XXX(self.condition, self.condvars,
-#                                             flavor="numpy")
+            results = table.readIndexed2XXX(condition, self.condvars,
+                                            flavor="numpy")
 
             ncoords = len(results)
+
         elif True:
             #coords = [r.nrow for r in table._whereInRange2XXX(condition, condvars)]
             #results = [r[column] for r in table._whereInRange2XXX(condition, condvars)]
-            for r in table._whereInRange2XXX(self.condition, self.condvars):
+            for r in table._whereInRange2XXX(condition, self.condvars):
                 var = r[column]
                 ncoords += 1
             #print "rows-->", coords
@@ -142,9 +135,6 @@ class PyTables_DB(DB):
             t1 = time()
             results = table.readCoordinates(coords)
             ncoords = len(coords)
-        #print "readCoords-->", time()-t1
-            #print "rows-->", coords
-        #print "getWhereList-->", time()-t1
 
         #return coords
         #print "results-->", results

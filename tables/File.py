@@ -523,7 +523,7 @@ class File(hdf5Extension.File, object):
         # to `_deadNodes`, where they are kept until they are referenced again
         # or they are preempted from it by other unreferenced nodes.
         self._aliveNodes = _AliveNodes()
-        if nodeCacheSize > 0:
+        if nodeCacheSize >= 0:
             self._deadNodes = _DeadNodes(nodeCacheSize)
         else:
             self._deadNodes = _NoDeadNodes()
