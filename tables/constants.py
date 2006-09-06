@@ -150,13 +150,11 @@ NODE_CACHE_SIZE = -256
 """Maximum number of unreferenced nodes to be kept in memory."""
 
 #LIMDATA_CACHE_SIZE = 8  # for testing
-#LIMDATA_CACHE_SIZE = 128
-LIMDATA_CACHE_SIZE = 10
+LIMDATA_CACHE_SIZE = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in data lookups."""
 
 #LIMITS_CACHE_SIZE = 8  # for testing
-#LIMITS_CACHE_SIZE = 128
-LIMITS_CACHE_SIZE = 10
+LIMITS_CACHE_SIZE = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
 
 #SORTED_CACHE_SIZE = 256  # for testing
