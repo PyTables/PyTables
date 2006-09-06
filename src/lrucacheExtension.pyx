@@ -201,6 +201,10 @@ cdef class BaseCache:
     self.ratimes = <long *>self.atimes.data
 
 
+  def __len__(self):
+    return self.nslots
+
+
   # Machinery for determining whether the hit ratio is being effective
   # or not.  If not, the cache will be disabled. The efficency will be
   # checked every cycle (the time that the cache would be refilled

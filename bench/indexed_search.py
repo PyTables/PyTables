@@ -143,8 +143,8 @@ class DB(object):
                 t1=time()
                 for i in range(NI_NTIMES):
                     results = self.do_query(self.con, colname,
-                                            #base)
-                                            random.randrange(self.nrows))
+                                            base)
+                                            #random.randrange(self.nrows))
                 ltimes.append((time()-t1)/NI_NTIMES)
                 #results.sort()
                 if verbose:

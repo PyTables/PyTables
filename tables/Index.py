@@ -589,22 +589,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         lambda self: self.column.dirty, None, None,
         "Whether the index is dirty or not.")
 
-#     superblocksize = property(
-#         lambda self: self.sorted.superblocksize, None, None,
-#         "The number of elements per superblock (the maximum that can be optimized).")
-
-#     blocksize = property(
-#         lambda self: self.sorted.blocksize, None, None,
-#         "The number of elements per block.")
-
-#     slicesize = property(
-#         lambda self: self.sorted.slicesize, None, None,
-#         "The number of elements per slice.")
-
-#     chunksize = property(
-#         lambda self: self.sorted.chunksize, None, None,
-#         "The number of elements per chunk.")
-
     nblockssuperblock = property(
         lambda self: self.superblocksize / self.blocksize, None, None,
         "The number of blocks in a superblock.")
@@ -1271,7 +1255,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def search(self, item):
         """Do a binary search in this index for an item"""
 
-        #t1 = time(); tcpu1 = clock()
         if self.dirtycache:
             self.restorecache()
         tlen = 0
@@ -1314,26 +1297,25 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.lengths[-1] = stop - start
             tlen += stop - start
 
-        # Get a startlengths tuple and save it in cache
-        startlengths = []
-        #for nrow, length in numpy.ndenumerate(self.lengths):
-        for nrow, length in enumerate(self.lengths):
-            if length > 0:
-                startlengths.append((nrow, self.starts[nrow], length))
-        # Put this startlengths list in cache
-        self.limitscache.setitem(item, startlengths)
+        # Activate this protection because the startlengths build
+        # takes lots of time!
+        if len(self.limitscache) > 0:
+            # Get a startlengths tuple and save it in cache
+            startlengths = []
+            # The next loop is way slower that the later one
+            # for nrow, length in numpy.ndenumerate(self.lengths):
+            for nrow, length in enumerate(self.lengths):
+                if length > 0:
+                    startlengths.append((nrow, self.starts[nrow], length))
+            # Put this startlengths list in cache
+            self.limitscache.setitem(item, startlengths)
 
-        #t = time()-t1
-        #print "time searching indices (total):", round(t*1000, 3), "ms"
-        # CPU time not significant (problems with time slice)
-        #print round((clock()-tcpu1)*1000*1000, 3), "us"
         return tlen
 
 
     # This is an scalar version of search. It works well with strings as well.
     def search_scalar(self, item, sorted):
         """Do a binary search in this index for an item."""
-        #t1 = time()
         tlen = 0
         # Do the lookup for values fullfilling the conditions
         if self.is_pro:
@@ -1348,8 +1330,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 self.starts[i] = start
                 self.lengths[i] = stop - start
                 tlen += stop - start
-        #t = time()-t1
-        #print "time searching indices (scalar-main):", round(t*1000, 3), "ms"
         return tlen
 
 
