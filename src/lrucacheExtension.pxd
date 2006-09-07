@@ -21,6 +21,7 @@ cdef class BaseCache:
   cdef object name
   cdef ndarray atimes
   cdef int checkhitratio(self)
+  cdef int couldenablecache_(self)
   cdef long incseqn(self)
 
 

@@ -1299,7 +1299,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Activate this protection because the startlengths build
         # takes lots of time!
-        if len(self.limitscache) > 0:
+        if self.limitscache.couldenablecache():
             # Get a startlengths tuple and save it in cache
             startlengths = []
             # The next loop is way slower that the later one

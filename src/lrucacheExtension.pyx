@@ -237,6 +237,26 @@ cdef class BaseCache:
     return not self.iscachedisabled
 
 
+  def couldenablecache(self):
+    return self.couldenablecache_()
+
+
+  # Check whether the cache is enabled or *could* be enabled in the next
+  # setitem operation
+  cdef int couldenablecache_(self):
+
+    if self.nslots == 0:
+      return False
+    if self.iscachedisabled:
+      if self.setcount == self.nslots:
+        # The cache *could* be enabled in the next setitem operation
+        return True
+      else:
+        return False
+    else:
+      return True
+
+
   # Increase the access time (implemented as a C long sequence)
   cdef long incseqn(self):
 
