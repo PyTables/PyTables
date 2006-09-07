@@ -190,7 +190,8 @@ cdef class BaseCache:
 
     if nslots < 0:
       raise ValueError, "Negative number (%s) of slots!" % nslots
-    self.setcount = 0;  self.getcount = 0;  self.cyclecount = 0
+    self.setcount = 0;  self.getcount = 0;
+    self.containscount = 0;  self.cyclecount = 0
     self.iscachedisabled = False  # Cache is enabled by default
     self.enableeverycycles = ENABLE_EVERY_CYCLES
     self.lowesthr = LOWEST_HIT_RATIO
@@ -214,25 +215,25 @@ cdef class BaseCache:
   # check whether a new scenario where the cache can be useful again
   # has come.
   # F. Altet 2006-08-09
-  cdef int checkhitratio(self, long cachesize):
+  cdef int checkhitratio(self):
     cdef double hitratio
 
-    if self.setcount > cachesize:
+    if self.setcount > self.nslots:
       self.cyclecount = self.cyclecount + 1
       # Check whether the cache is being effective or not
-      hitratio = <double>self.getcount / (self.setcount+self.getcount)
+      hitratio = <double>self.getcount / self.containscount
       if hitratio < self.lowesthr:
         # Hit ratio is low. Disable the cache.
         self.iscachedisabled = True
       else:
         # Hit ratio is acceptable. (Re-)Enable the cache.
         self.iscachedisabled = False
-      # Reset the counters to 0
-      self.setcount = 0; self.getcount = 0
       if self.cyclecount > self.enableeverycycles:
         # We have reached the time for forcing the cache to act again
         self.iscachedisabled = False
         self.cyclecount = 0
+      # Reset the counters
+      self.setcount = 0;  self.getcount = 0;  self.containscount = 0
     return not self.iscachedisabled
 
 
@@ -312,7 +313,7 @@ cdef class ObjectCache(BaseCache):
     if self.nslots == 0:   # Oops, the cache is set to empty
       return -1
     self.setcount = self.setcount + 1
-    if self.checkhitratio(self.nslots):
+    if self.checkhitratio():
       # Check if we are growing out of space
       if self.nextslot == self.nslots:
         # Look for the LRU node
@@ -347,6 +348,7 @@ cdef class ObjectCache(BaseCache):
 
     if self.nslots == 0:   # No chance for finding a slot
       return -1
+    self.containscount = self.containscount + 1
     # Give a chance to the MRU node
     node = self.mrunode
     if self.nextslot > 0 and node.key == key:
@@ -439,6 +441,7 @@ cdef class NumCache(BaseCache):
 
     if self.nslots == 0:   # No chance for finding a slot
       return -1
+    self.containscount = self.containscount + 1
     rsorted = self.rsorted
     lo = 0;  hi = self.nslots
     while lo < hi:
@@ -457,7 +460,7 @@ cdef class NumCache(BaseCache):
     if self.nslots == 0:   # Oops, the cache is set to empty
       return -1
     self.setcount = self.setcount + 1
-    if self.checkhitratio(self.nslots):
+    if self.checkhitratio():
       # Check if we are growing out of space
       if self.nextslot == self.nslots:
         # Get the least recently used slot

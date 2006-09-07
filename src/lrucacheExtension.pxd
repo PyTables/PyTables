@@ -13,19 +13,20 @@ cdef class NodeCache:
 # Base class for other caches
 cdef class BaseCache:
   cdef int iscachedisabled
-  cdef long setcount, getcount, cyclecount, enableeverycycles
+  cdef long setcount, getcount, containscount
+  cdef long cyclecount, enableeverycycles
+  cdef long seqn_, nextslot, nslots
+  cdef long *ratimes
   cdef double lowesthr
   cdef object name
   cdef ndarray atimes
-  cdef long *ratimes
-  cdef long seqn_, nextslot, nslots
-  cdef int checkhitratio(self, long cachesize)
+  cdef int checkhitratio(self)
   cdef long incseqn(self)
 
 
-# The ObjectCache class is useful for python objects in an efficient way
+# The ObjectCache class is useful for general python objects
 cdef class ObjectCache(BaseCache):
-  cdef object  __list,  __dict
+  cdef object __list,  __dict
   cdef object mrunode
   cdef long setitem_(self, object key, object value)
   cdef long getslot_(self, object key)

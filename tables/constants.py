@@ -177,7 +177,7 @@ forced to be (re-)enabled, irregardingly of the hit ratio. This will
 provide a chance for checking if we are in a better scenario for doing
 caching again."""
 
-LOWEST_HIT_RATIO = 0.9
+LOWEST_HIT_RATIO = 0.6
 """The minimum acceptable hit ratio for the LRU cache for data to avoid
 disabling the cache."""
 
