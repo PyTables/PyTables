@@ -440,7 +440,7 @@ def getContext(map):
     return context
 
 
-def precompile(ex, signature=(), copy_args=(), **kwargs):
+def precompile(ex, signature=(), **kwargs):
     """Compile the expression to an intermediate form.
     """
     types = dict(signature)
@@ -454,12 +454,6 @@ def precompile(ex, signature=(), copy_args=(), **kwargs):
     # any odd interpretations
 
     ast = expressionToAST(ex)
-
-    # Add a copy for strided or unaligned arrays
-    for a in ast.postorderWalk():
-        if a.astType == "variable" and a.value in copy_args:
-            newVar = ASTNode(*a.key())
-            a.astType, a.value, a.children = ('op', 'copy', (newVar,))
 
     if ex.astType not in ('op'):
         ast = ASTNode('op', value='copy', astKind=ex.astKind, children=(ast,))
@@ -503,7 +497,7 @@ def precompile(ex, signature=(), copy_args=(), **kwargs):
     return threeAddrProgram, signature, tempsig, constants, input_names
 
 
-def numexpr(ex, signature=(), copy_args=(), **kwargs):
+def numexpr(ex, signature=(), **kwargs):
     """Compile an expression built using E.<variable> variables to a function.
 
     ex can also be specified as a string "2*a+3*b".
@@ -513,7 +507,7 @@ def numexpr(ex, signature=(), copy_args=(), **kwargs):
 
     """
     threeAddrProgram, inputsig, tempsig, constants, input_names = \
-                      precompile(ex, signature, copy_args, **kwargs)
+                      precompile(ex, signature, **kwargs)
     program = compileThreeAddrForm(threeAddrProgram)
     return interpreter.NumExpr(inputsig, tempsig, program, constants,
                                input_names)
@@ -567,7 +561,7 @@ def getType(a):
         return float
     if issubclass(t, numpy.complexfloating):
         return complex
-    if issubclass(t, numpy.string):
+    if issubclass(t, numpy.string_):
        return str
     raise ValueError("unkown type %s" % a.dtype.name)
 
@@ -607,7 +601,6 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
     if global_dict is None:
         global_dict = call_frame.f_globals
     arguments = []
-    copy_args = []
     for name in names:
         try:
             a = local_dict[name]
@@ -617,14 +610,13 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
         arguments.append(numpy.asarray(a)) # don't make a data copy, if possible
     # Create a signature
     signature = [(name, getType(arg)) for (name, arg) in zip(names, arguments)]
-    # Look up numexpr if possible. copy_args *must* be added to the key,
-    # just in case a non-copy expression is already in cache.
-    numexpr_key = expr_key + (tuple(signature),) + tuple(copy_args)
+    # Look up numexpr if possible
+    numexpr_key = expr_key + (tuple(signature),)
     try:
         compiled_ex = _numexpr_cache[numexpr_key]
     except KeyError:
         compiled_ex = _numexpr_cache[numexpr_key] = \
-                      numexpr(ex, signature, copy_args, **kwargs)
+                      numexpr(ex, signature, **kwargs)
     return compiled_ex(*arguments)
 
 
