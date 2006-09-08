@@ -34,7 +34,7 @@ import numpy
 
 from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array, hid_t, herr_t, hsize_t
-from constants import SORTED_CACHE_SIZE, BOUNDS_CACHE_SIZE, INDICES_CACHE_SIZE
+from constants import SORTED_MAX_SLOTS, BOUNDS_MAX_SLOTS, INDICES_MAX_SLOTS
 
 # numpy functions & objects
 from numpydefs cimport import_array, ndarray
@@ -226,7 +226,7 @@ cdef class IndexArray(Array):
       if index.is_pro and <object>self.indicescache is None:
         # Define a LRU cache for indices
         self.indicescache = <NumCache>NumCache(
-          shape=(INDICES_CACHE_SIZE, 1), itemsize=8, name="indices")
+          shape=(INDICES_MAX_SLOTS, 1), itemsize=8, name="indices")
 
 
   cdef _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
@@ -308,7 +308,7 @@ cdef class IndexArray(Array):
       self.bounds_ext.initRead(self.nbounds)
       # The 2nd level cache and sorted values will be cached in a NumCache
       self.boundscache = <NumCache>NumCache(
-        (BOUNDS_CACHE_SIZE, self.nbounds), self.itemsize, 'bounds')
+        (BOUNDS_MAX_SLOTS, self.nbounds), self.itemsize, 'bounds')
       if str(self.type) == "CharType":
         dtype = "|S%s" % self.itemsize
       else:
@@ -318,7 +318,7 @@ cdef class IndexArray(Array):
       self.rbufbc = self.bufferbc.data
       # Another NumCache for the sorted values
       self.sortedcache = <NumCache>NumCache(
-        (SORTED_CACHE_SIZE, self.chunksize), self.itemsize, 'sorted')
+        (SORTED_MAX_SLOTS, self.chunksize), self.itemsize, 'sorted')
 
 
   cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):

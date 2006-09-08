@@ -72,7 +72,11 @@ MAX_UNDO_PATH_LENGTH = 10240
 METADATA_CACHE_SIZE = 1*1024*1024  # 1 MB is the default for HDF5
 """Size (in bytes) of the HDF5 metadata cache."""
 
-# NODE_CACHE_SIZE tells the number of nodes that fits in the cache.
+##########################################################################
+# In the next parameters, a value of 0 in XXXX_MAX_SLOTS disables the cache
+##########################################################################
+
+# NODE_MAX_SLOTS tells the number of nodes that fits in the cache.
 #
 # There are several forces driving the election of this number:
 # 1.- As more nodes, better chances to re-use nodes
@@ -106,23 +110,23 @@ METADATA_CACHE_SIZE = 1*1024*1024  # 1 MB is the default for HDF5
 #
 # F. Altet 2005-10-31
 
-#NODE_CACHE_SIZE =  1    # 24 MB, 38.6 s
-#NODE_CACHE_SIZE =  2    # 24 MB, 38.9 s
-#NODE_CACHE_SIZE =  4    # 24 MB, 39.1 s
-#NODE_CACHE_SIZE =  8    # 25 MB, 39.2 s
-#NODE_CACHE_SIZE = 16    # 26 MB, 39.9 s
-#NODE_CACHE_SIZE = 32    # 28 MB, 40.9 s
-#NODE_CACHE_SIZE = 64    # 30 MB, 41.1 s
-#NODE_CACHE_SIZE = 128   # 35 MB, 41.6 s        , 60 MB for writes (!)
-# NODE_CACHE_SIZE = 256   # 42 MB, 42.3s, opt:40.9s , 64 MB for writes
+#NODE_MAX_SLOTS =  1    # 24 MB, 38.6 s
+#NODE_MAX_SLOTS =  2    # 24 MB, 38.9 s
+#NODE_MAX_SLOTS =  4    # 24 MB, 39.1 s
+#NODE_MAX_SLOTS =  8    # 25 MB, 39.2 s
+#NODE_MAX_SLOTS = 16    # 26 MB, 39.9 s
+#NODE_MAX_SLOTS = 32    # 28 MB, 40.9 s
+#NODE_MAX_SLOTS = 64    # 30 MB, 41.1 s
+#NODE_MAX_SLOTS = 128   # 35 MB, 41.6 s        , 60 MB for writes (!)
+# NODE_MAX_SLOTS = 256   # 42 MB, 42.3s, opt:40.9s , 64 MB for writes
 #                         # This is a good compromise between CPU and memory
 #                         # consumption.
 
-NODE_CACHE_SIZE = -256
+NODE_MAX_SLOTS = -256
 
 # Negative value means that all the touched nodes will be kept in a
 # dictionary and the user will be warned when the number of nodes there
-# will reach abs(NODE_CACHE_SIZE).  If this is the case, the user will
+# will reach abs(NODE_MAX_SLOTS).  If this is the case, the user will
 # have to decide either:
 
 # - Increase the capacity of the dictionary of alive nodes (keeping this
@@ -137,38 +141,46 @@ NODE_CACHE_SIZE = -256
 
 #XYX Explain this more in "Optimization Tips" chapter.
 
-#NODE_CACHE_SIZE = 512   # 59 MB, 43.9s, opt: 41.8s
-#NODE_CACHE_SIZE = 1024  # 52 MB, 85.1s, opt: 17.0s # everything fits on cache!
-#NODE_CACHE_SIZE = 2048  # 52 MB, XXXs, opt: 17.0s # everything fits on cache!
+#NODE_MAX_SLOTS = 512   # 59 MB, 43.9s, opt: 41.8s
+#NODE_MAX_SLOTS = 1024  # 52 MB, 85.1s, opt: 17.0s # everything fits on cache!
+#NODE_MAX_SLOTS = 2048  # 52 MB, XXXs, opt: 17.0s # everything fits on cache!
 ################################################################3
 # Experiments with a Pentium IV with 512 KB of secondary cache
-#NODE_CACHE_SIZE = 1500  # 30.1 s
-#NODE_CACHE_SIZE = 1900  # 30.3 s
-#NODE_CACHE_SIZE = 2000  # > 200 s
-#NODE_CACHE_SIZE = 2046  # Takes lots of time! > 200 s
-#NODE_CACHE_SIZE = MAX_GROUP_WIDTH  # that would be ideal, but takes ages!
+#NODE_MAX_SLOTS = 1500  # 30.1 s
+#NODE_MAX_SLOTS = 1900  # 30.3 s
+#NODE_MAX_SLOTS = 2000  # > 200 s
+#NODE_MAX_SLOTS = 2046  # Takes lots of time! > 200 s
+#NODE_MAX_SLOTS = MAX_GROUP_WIDTH  # that would be ideal, but takes ages!
 """Maximum number of unreferenced nodes to be kept in memory."""
 
-#LIMDATA_CACHE_SIZE = 8  # for testing
-LIMDATA_CACHE_SIZE = 128
+#LIMDATA_MAX_SLOTS = 8  # for testing
+LIMDATA_MAX_SLOTS = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in data lookups."""
 
-#LIMITS_CACHE_SIZE = 8  # for testing
-LIMITS_CACHE_SIZE = 128
+#LIMDATA_MAX_SIZE = 5    # for testing
+LIMDATA_MAX_SIZE = 256*1024   # 256 KB
+"""The maximum space that will take LIMDATA cache (in bytes)."""
+
+#LIMBOUNDS_MAX_SLOTS = 8  # for testing
+LIMBOUNDS_MAX_SLOTS = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
 
-#SORTED_CACHE_SIZE = 256  # for testing
-SORTED_CACHE_SIZE = 4096
+#LIMBOUNDS_MAX_SIZE = 5    # for testing
+LIMBOUNDS_MAX_SIZE = 256*1024    # 256 KB
+"""The maximum space that will take LIMBOUNDS cache (in bytes)."""
+
+#SORTED_MAX_SLOTS = 256  # for testing
+SORTED_MAX_SLOTS = 4096
 """The maximum number of rows cached for sorted values in index lookups."""
 
-#BOUNDS_CACHE_SIZE = 256  # for testing
-BOUNDS_CACHE_SIZE = 4096
+#BOUNDS_MAX_SLOTS = 256  # for testing
+BOUNDS_MAX_SLOTS = 4096
 """The maximum number of rows cached for bounds values in index lookups."""
 
-INDICES_CACHE_SIZE = 1024
+INDICES_MAX_SLOTS = 1024
 """The maximum number of rows cached for indices values in index lookups."""
 
-TABLE_CACHE_SIZE = 1024
+TABLE_MAX_SLOTS = 1024
 """The maximum number of rows cached during table reads."""
 
 ENABLE_EVERY_CYCLES = 50

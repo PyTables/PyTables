@@ -3,8 +3,8 @@ from numpydefs cimport ndarray
 # Declaration of instance variables for shared classes
 # The NodeCache class is useful for caching general objects (like Nodes).
 cdef class NodeCache:
+  cdef long nextslot, nslots
   cdef object nodes, paths
-  cdef long size, lsize
   cdef object setitem(self, object path, object node)
   cdef long getslot(self, object path)
   cdef object cpop(self, object path)
@@ -18,8 +18,8 @@ cdef class BaseCache:
   cdef long seqn_, nextslot, nslots
   cdef long *ratimes
   cdef double lowesthr
-  cdef object name
   cdef ndarray atimes
+  cdef object name
   cdef int checkhitratio(self)
   cdef int couldenablecache_(self)
   cdef long incseqn(self)
@@ -27,9 +27,11 @@ cdef class BaseCache:
 
 # The ObjectCache class is useful for general python objects
 cdef class ObjectCache(BaseCache):
-  cdef object __list,  __dict
-  cdef object mrunode
-  cdef long setitem_(self, object key, object value)
+  cdef long maxcachesize, cachesize, maxobjsize
+  cdef long *rsizes
+  cdef ndarray sizes
+  cdef object __list, __dict, mrunode
+  cdef long setitem_(self, object key, object value, long size)
   cdef long getslot_(self, object key)
   cdef object getitem_(self, long nslot)
 

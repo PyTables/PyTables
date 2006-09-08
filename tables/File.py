@@ -45,7 +45,7 @@ import tables.utilsExtension as utilsExtension
 import tables.lrucacheExtension as lrucacheExtension
 import tables.proxydict
 from tables.constants import \
-     MAX_UNDO_PATH_LENGTH, METADATA_CACHE_SIZE, NODE_CACHE_SIZE
+     MAX_UNDO_PATH_LENGTH, METADATA_CACHE_SIZE, NODE_MAX_SLOTS
 from tables.exceptions import \
      ClosedFileError, FileModeError, \
      NodeError, NoSuchNodeError, UndoRedoError, \
@@ -168,7 +168,7 @@ def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
 
 
 def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
-             filters=None, nodeCacheSize=NODE_CACHE_SIZE):
+             filters=None, nodeCacheSize=NODE_MAX_SLOTS):
 
     """Open an HDF5 file and return a File object.
 
@@ -237,23 +237,23 @@ class _AliveNodes(dict):
     """Stores strong or weak references to nodes in a transparent way."""
 
     def __getitem__(self, key):
-        if NODE_CACHE_SIZE > 0:
+        if NODE_MAX_SLOTS > 0:
             ref = super(_AliveNodes, self).__getitem__(key)()
         else:
             ref = super(_AliveNodes, self).__getitem__(key)
         return ref
 
     def __setitem__(self, key, value):
-        if NODE_CACHE_SIZE > 0:
+        if NODE_MAX_SLOTS > 0:
             ref = weakref.ref(value)
         else:
             ref = value
             # Check if we are running out of space
-            if NODE_CACHE_SIZE < 0 and len(self) > -NODE_CACHE_SIZE:
+            if NODE_MAX_SLOTS < 0 and len(self) > -NODE_MAX_SLOTS:
                 warnings.warn("""\
 the dictionary of alive nodes is exceeding the recommended maximum number (%d); \
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
-                      % (-NODE_CACHE_SIZE),
+                      % (-NODE_MAX_SLOTS),
                       PerformanceWarning)
         super(_AliveNodes, self).__setitem__(key, ref)
 
@@ -503,7 +503,7 @@ class File(hdf5Extension.File, object):
     def __init__(self, filename, mode="r", title="", trMap={},
                  rootUEP="/", filters=None,
                  metadataCacheSize=METADATA_CACHE_SIZE,
-                 nodeCacheSize=NODE_CACHE_SIZE):
+                 nodeCacheSize=NODE_MAX_SLOTS):
         """Open an HDF5 file. The supported access modes are: "r" means
         read-only; no data can be modified. "w" means write; a new file is
         created, an existing file with the same name is deleted. "a" means

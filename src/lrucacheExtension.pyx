@@ -99,14 +99,14 @@ cdef class NodeCache:
   # This class variables are declared in utilsExtension.pxd
 
 
-  def __init__(self, size):
-    """Maximum size of the cache.
-    If more than 'size' elements are added to the cache,
+  def __init__(self, nslots):
+    """Maximum nslots of the cache.
+    If more than 'nslots' elements are added to the cache,
     the least-recently-used ones will be discarded."""
 
-    if size < 0:
-      raise ValueError, "Negative number (%s) of slots!" % size
-    self.size = size;  self.lsize = 0
+    if nslots < 0:
+      raise ValueError, "Negative number (%s) of slots!" % nslots
+    self.nslots = nslots;  self.nextslot = 0
     self.nodes = [];  self.paths = []
 
 
@@ -121,16 +121,16 @@ cdef class NodeCache:
   # Puts a new node in the node list
   cdef setitem(self, object path, object node):
 
-    if self.size == 0:   # Oops, the cache is set to empty
+    if self.nslots == 0:   # Oops, the cache is set to empty
       return
-    # Add the node and path to the end of its lists
-    PyList_Append(self.nodes, node);  PyList_Append(self.paths, path)
-    self.lsize = self.lsize + 1
     # Check if we are growing out of space
-    if self.lsize == self.size:
+    if self.nextslot == self.nslots:
       # Remove the LRU node and path (the start of the lists)
       PyObject_DelItem(self.nodes, 0);  PyObject_DelItem(self.paths, 0)
-      self.lsize = self.lsize - 1
+      self.nextslot = self.nextslot - 1
+    # Add the node and path to the end of its lists
+    PyList_Append(self.nodes, node);  PyList_Append(self.paths, path)
+    self.nextslot = self.nextslot + 1
 
 
   def __contains__(self, path):
@@ -142,17 +142,17 @@ cdef class NodeCache:
 
   # Checks whether path is in this cache or not
   cdef long getslot(self, object path):
-    cdef long i, idx
+    cdef long i, nslot
 
-    if self.lsize == 0:   # No chance for finding the path
+    if self.nextslot == 0:   # No chance for finding the path
       return -1
-    idx = -1  # -1 means not found
+    nslot = -1  # -1 means not found
     # Start looking from the trailing values (most recently used)
-    for i from self.lsize > i >= 0:
+    for i from self.nextslot > i >= 0:
       if path == PyObject_GetItem(self.paths, i):
-        idx = i
+        nslot = i
         break
-    return idx
+    return nslot
 
 
   def pop(self, path):
@@ -160,12 +160,12 @@ cdef class NodeCache:
 
 
   cdef object cpop(self, object path):
-    cdef object idx
+    cdef object nslot
 
-    idx = self.getslot(path)
-    node = PyObject_GetItem(self.nodes, idx)
-    PyObject_DelItem(self.nodes, idx);  PyObject_DelItem(self.paths, idx)
-    self.lsize = self.lsize - 1
+    nslot = self.getslot(path)
+    node = PyObject_GetItem(self.nodes, nslot)
+    PyObject_DelItem(self.nodes, nslot);  PyObject_DelItem(self.paths, nslot)
+    self.nextslot = self.nextslot - 1
     return node
 
 
@@ -244,7 +244,9 @@ cdef class BaseCache:
 
 
   # Check whether the cache is enabled or *could* be enabled in the next
-  # setitem operation
+  # setitem operation. This method can be used in order to probe whether
+  # an (expensive) operation to be done before a .setitem() is worth the
+  # effort or not.
   cdef int couldenablecache_(self):
 
     if self.nslots == 0:
@@ -309,7 +311,7 @@ cdef class ObjectCache(BaseCache):
   """Least-Recently-Used (LRU) cache specific for python objects.
   """
 
-  def __init__(self, long nslots, object name):
+  def __init__(self, long nslots, long maxcachesize, object name):
     """Maximum size of the cache.
     If more than 'nslots' elements are added to the cache,
     the least-recently-used ones will be discarded.
@@ -320,17 +322,26 @@ cdef class ObjectCache(BaseCache):
     """
 
     super(ObjectCache, self).__init__(nslots, name)
+    self.cachesize = 0
+    self.maxcachesize = maxcachesize
+    # maxobjsize will be the double of maximum size
+    # (in case all the objects are of the same size)
+    self.maxobjsize = <long>((<double>maxcachesize / nslots) * 2)
     self.__list = range(nslots);  self.__dict = {}
     self.mrunode = None   # Most Recent Used node
+    # The array for keeping the object size (using long ints here)
+    self.sizes = numpy.zeros(shape=nslots, dtype=numpy.int_)
+    self.rsizes = <long *>self.sizes.data
 
 
   # Put the object to the data in cache (for Python calls)
-  def setitem(self, object key, object value):
-    return self.setitem_(key, value)
+  def setitem(self, object key, object value, object size):
+    return self.setitem_(key, value, size)
 
 
   # Put the object to the data in cache (for Pyrex calls)
-  cdef long setitem_(self, object key, object value):
+  # size can be the exact size of the value object or an estimation.
+  cdef long setitem_(self, object key, object value, long size):
     cdef ObjectNode node, lru
     cdef long nslot
 
@@ -341,21 +352,35 @@ cdef class ObjectCache(BaseCache):
       self.setcount = self.setcount + 1
     else:
       self.incsetcount = False
+    if size > self.maxobjsize:  # Check if the object is too large
+      return -1
+    nslot = -1
     if self.checkhitratio():
       # Check if we are growing out of space
-      if self.nextslot == self.nslots:
-        # Look for the LRU node
+      # Protection against too large data cache size
+      if size + self.cachesize > self.maxcachesize:
+        # Look for the biggest object in cache
+        nslot = self.sizes.argmax()
+      if nslot < 0 and self.nextslot == self.nslots:
+        # Look for the LRU node in cache
         nslot = self.atimes.argmin()
+      if nslot >= 0:
+        # Preempt object in nslot
         lru = self.__list[nslot]
         del self.__dict[lru.key]
+        self.cachesize = self.cachesize - self.rsizes[nslot]
+        self.nextslot = self.nextslot - 1
       else:
-        nslot = self.nextslot;  self.nextslot = self.nextslot + 1
+        nslot = self.nextslot
       assert nslot < self.nslots, "Number of nodes exceeding cache capacity."
       node = ObjectNode(key, value, nslot)
       self.ratimes[nslot] = self.incseqn()
+      self.rsizes[nslot] = size
       self.__list[nslot] = node     # Replace node in nslot
       self.__dict[key] = node
       self.mrunode = node
+      self.cachesize = self.cachesize + size
+      self.nextslot = self.nextslot + 1
     return nslot
 
 
@@ -376,6 +401,7 @@ cdef class ObjectCache(BaseCache):
     if self.nslots == 0:   # No chance for finding a slot
       return -1
     self.containscount = self.containscount + 1
+    # XYX Provar si lo de sota va be
 #     # Give a chance to the MRU node
 #     node = self.mrunode
 #     if self.nextslot > 0 and node.key == key:
@@ -402,6 +428,12 @@ cdef class ObjectCache(BaseCache):
     self.ratimes[nslot] = self.incseqn()
     self.mrunode = node
     return node.obj
+
+
+  def __repr__(self):
+    return "<%s(%s) (%d maxslots, %d slots used, %.3f KB cachesize)>" % \
+           (self.name, str(self.__class__), self.nslots, self.nextslot,
+            self.cachesize / 1024.)
 
 
 
@@ -450,14 +482,14 @@ cdef class NumCache(BaseCache):
   # Return the index for element x in array self.rindices.
   # This should never fail because x should be always present.
   cdef long slotlookup(self, unsigned short x):
-    cdef long idx
+    cdef long nslot
     cdef unsigned short *a
 
-    a = self.rindices; idx = 0
-    while x != a[idx]:
-      idx = idx + 1
-      assert idx < self.nslots
-    return idx
+    a = self.rindices; nslot = 0
+    while x != a[nslot]:
+      nslot = nslot + 1
+      assert nslot < self.nslots
+    return nslot
 
 
   # Tells in which slot key is. If not found, -1 is returned.
@@ -490,14 +522,16 @@ cdef class NumCache(BaseCache):
       self.setcount = self.setcount + 1
     else:
       self.incsetcount = False
+    nslot = -1
     if self.checkhitratio():
       # Check if we are growing out of space
       if self.nextslot == self.nslots:
         # Get the least recently used slot
         nslot = self.atimes.argmin()
+        self.nextslot = self.nextslot - 1
       else:
         # Get the next available slot
-        nslot = self.nextslot;  self.nextslot = self.nextslot + 1
+        nslot = self.nextslot
       assert nslot < self.nslots, "Wrong slot index!"
       # Copy the data to the appropriate row in cache
       base1 = nslot * self.slotsize;  base2 = start * self.itemsize
@@ -513,6 +547,7 @@ cdef class NumCache(BaseCache):
       # this is *very* inneficient (at least with Linux/i386).
       #self.indices[:] = self.indices.take(self.sorted.argsort())
       self.sorted.sort()
+      self.nextslot = self.nextslot + 1
     return nslot
 
 
@@ -536,3 +571,11 @@ cdef class NumCache(BaseCache):
     base1 = start * self.itemsize;   base2 = nslot * self.slotsize
     memcpy(data + base1, self.rcache + base2, self.slotsize)
     return nslot
+
+
+  def __repr__(self):
+
+    cachesize = (self.nextslot * self.slotsize) / 1024.
+    return "<%s(%s) (%d maxslots, %d slots used, %.3f KB cachesize)>" % \
+           (self.name, str(self.__class__), self.nslots, self.nextslot,
+            cachesize)

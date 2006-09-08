@@ -55,7 +55,8 @@ from tables.Leaf import Filters
 from tables.indexes import CacheArray, LastRowArray, IndexArray
 from tables.Group import Group
 from tables.utils import joinPath
-from constants import LIMITS_CACHE_SIZE
+from constants import LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE
+
 
 from lrucacheExtension import ObjectCache
 
@@ -1231,7 +1232,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def restorecache(self):
         "Clean the limits cache and resize starts and lengths arrays"
 
-        self.limitscache = ObjectCache(LIMITS_CACHE_SIZE, 'limits')
+        self.limboundscache = ObjectCache(LIMBOUNDS_MAX_SLOTS,
+                                          LIMBOUNDS_MAX_SIZE,
+                                          'bounds limits')
         self.starts = numpy.empty(shape=self.nrows, dtype = numpy.int32)
         self.lengths = numpy.empty(shape=self.nrows, dtype = numpy.int32)
         # Initialize the sorted array in extension
@@ -1259,9 +1262,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.restorecache()
         tlen = 0
         # Check whether the item tuple is in the limits cache or not
-        nslot = self.limitscache.getslot(item)
+        nslot = self.limboundscache.getslot(item)
         if nslot >= 0:
-            startlengths = self.limitscache.getitem(nslot)
+            startlengths = self.limboundscache.getitem(nslot)
             # Reset the lengths array (the starts is not necessary)
             self.lengths[:] = 0
             # Now, set the interesting rows
@@ -1297,18 +1300,21 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.lengths[-1] = stop - start
             tlen += stop - start
 
-        # Activate this protection because the startlengths build
-        # takes lots of time!
-        if self.limitscache.couldenablecache():
+        if self.limboundscache.couldenablecache():
             # Get a startlengths tuple and save it in cache
+            # This is quite slow, but it is a good way to compress
+            # the bounds info. Moreover, the .couldenablecache()
+            # is doing a good work so as to avoid computing this
+            # when it is not necessary to do it.
             startlengths = []
-            # The next loop is way slower that the later one
-            # for nrow, length in numpy.ndenumerate(self.lengths):
             for nrow, length in enumerate(self.lengths):
                 if length > 0:
                     startlengths.append((nrow, self.starts[nrow], length))
+            # Compute the size of the recarray (aproximately)
+            size = len(startlengths) * 8 * 2 + 1
             # Put this startlengths list in cache
-            self.limitscache.setitem(item, startlengths)
+            self.limboundscache.setitem(item, startlengths, size)
+            #print "-->", self.limboundscache
 
         return tlen
 

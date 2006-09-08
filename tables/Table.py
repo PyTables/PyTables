@@ -64,7 +64,7 @@ from tables.Atom import Atom, StringAtom
 from tables.Group import IndexesTableG, IndexesDescG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, \
-     LIMDATA_CACHE_SIZE
+     LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE
 
 from lrucacheExtension import ObjectCache
 
@@ -359,7 +359,9 @@ class Table(TableExtension.Table, Leaf):
         A `Cols` instance that serves as an accessor to `Column` objects.
         """
 
-        self.limdatacache = ObjectCache(LIMDATA_CACHE_SIZE, 'data limits')
+        self.limdatacache = ObjectCache(LIMDATA_MAX_SLOTS,
+                                        LIMDATA_MAX_SIZE,
+                                        'data limits')
         """A cache for data based on search limits and table colum."""
 
 
@@ -985,28 +987,28 @@ This method is intended only for indexed columns, but this column has not a mini
         item = (column.name, range_, flavor)
         nslot = self.limdatacache.getslot(item)
         if nslot >= 0:
-            #print "Hit!", item, nslot
-            # Cache hit! Return the recarray kept there.
-            return self.limdatacache.getitem(nslot)
-        # No luck with cached data. Proceed with the regular search.
-        nrecords = index.search(range_)
-        # Create a read buffer
-        recarr = self._get_container(nrecords)
-        if nrecords > 0:
-            coords = index.indices._getCoords(index, 0, nrecords)
-            recout = self._read_elements(recarr, coords)
-        # On s'avalua rescond??
-        # Delete indexation caches
-        self.whereCondition = None
-        self.whereIndex = None
+            # Cache hit. Return the recarray kept there.
+            recarr = self.limdatacache.getitem(nslot)
+        else:
+            # No luck with cached data. Proceed with the regular search.
+            nrecords = index.search(range_)
+            # Create a read buffer
+            recarr = self._get_container(nrecords)
+            if nrecords > 0:
+                coords = index.indices._getCoords(index, 0, nrecords)
+                recout = self._read_elements(recarr, coords)
+            # On s'avalua rescond??
+            # Delete indexation caches
+            self.whereCondition = None
+            self.whereIndex = None
+            # Compute the size of the recarray (aproximately)
+            size = len(recarr) * self.rowsize + 1
+            # Put this recarray in limdata cache
+            self.limdatacache.setitem(item, recarr, size)
 
         if numarray_imported and flavor == "numarray":
             # do an additional conversion conversion (without a copy)
             recarr = tonumarray(recarr, copy=False)
-
-        # Put this recarray in limdata cache
-        #print "No hit", item
-        self.limdatacache.setitem(item, recarr)
 
         return recarr
 

@@ -33,7 +33,7 @@ from tables.exceptions import HDF5ExtError
 from tables.utilsExtension import createNestedType, \
      getNestedType, convertTime64, space2null, getTypeEnum, enumFromHDF5
 from tables.numexpr import evaluate  ##XXX
-from tables.constants import TABLE_CACHE_SIZE
+from tables.constants import TABLE_MAX_SLOTS
 
 # numpy functions & objects
 from numpydefs cimport import_array, ndarray, \
@@ -368,7 +368,7 @@ cdef class Table:  # XXX extends Leaf
   def _g_createReadCache(self):
     # Define a cache for sparse table reads
     self.sparsecache = <NumCache>NumCache(
-      shape=(TABLE_CACHE_SIZE, 1), itemsize=self.rowsize, name="sparse_table")
+      shape=(TABLE_MAX_SLOTS, 1), itemsize=self.rowsize, name="sparse_table")
 
 
   def _loadEnum(self, hid_t fieldTypeId):
