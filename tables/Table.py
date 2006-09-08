@@ -985,6 +985,7 @@ This method is intended only for indexed columns, but this column has not a mini
         item = (column.name, range_, flavor)
         nslot = self.limdatacache.getslot(item)
         if nslot >= 0:
+            #print "Hit!", item, nslot
             # Cache hit! Return the recarray kept there.
             return self.limdatacache.getitem(nslot)
         # No luck with cached data. Proceed with the regular search.
@@ -1004,6 +1005,7 @@ This method is intended only for indexed columns, but this column has not a mini
             recarr = tonumarray(recarr, copy=False)
 
         # Put this recarray in limdata cache
+        #print "No hit", item
         self.limdatacache.setitem(item, recarr)
 
         return recarr

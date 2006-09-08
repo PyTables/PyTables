@@ -158,11 +158,11 @@ LIMITS_CACHE_SIZE = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
 
 #SORTED_CACHE_SIZE = 256  # for testing
-SORTED_CACHE_SIZE = 1024
+SORTED_CACHE_SIZE = 4096
 """The maximum number of rows cached for sorted values in index lookups."""
 
 #BOUNDS_CACHE_SIZE = 256  # for testing
-BOUNDS_CACHE_SIZE = 1024
+BOUNDS_CACHE_SIZE = 4096
 """The maximum number of rows cached for bounds values in index lookups."""
 
 INDICES_CACHE_SIZE = 1024

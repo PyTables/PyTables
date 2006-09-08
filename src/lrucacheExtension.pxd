@@ -12,7 +12,7 @@ cdef class NodeCache:
 
 # Base class for other caches
 cdef class BaseCache:
-  cdef int iscachedisabled
+  cdef int iscachedisabled, incsetcount
   cdef long setcount, getcount, containscount
   cdef long cyclecount, enableeverycycles
   cdef long seqn_, nextslot, nslots

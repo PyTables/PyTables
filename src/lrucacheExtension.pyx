@@ -196,9 +196,11 @@ cdef class BaseCache:
     self.enableeverycycles = ENABLE_EVERY_CYCLES
     self.lowesthr = LOWEST_HIT_RATIO
     self.nslots = nslots
+    self.seqn_ = 0;  self.nextslot = 0
     self.name = name
+    self.incsetcount = False
     # The array for keeping the access times (using long ints here)
-    self.atimes = numpy.zeros(shape=nslots, dtype=numpy.int_)
+    self.atimes = numpy.zeros(shape=nslots, dtype=numpy.int_)*sys.maxint
     self.ratimes = <long *>self.atimes.data
 
 
@@ -247,6 +249,9 @@ cdef class BaseCache:
 
     if self.nslots == 0:
       return False
+    # Increment setitem because it can be that .setitem() doesn't
+    # get called after calling this.
+    self.setcount = self.setcount + 1;  self.incsetcount = True
     if self.iscachedisabled:
       if self.setcount == self.nslots:
         # The cache *could* be enabled in the next setitem operation
@@ -262,8 +267,8 @@ cdef class BaseCache:
 
     self.seqn_ = self.seqn_ + 1
     if self.seqn_ < 0:
-      # Ooops, the counter has run out of range! Reset all the priorities to 0.
-      self.atimes[:] = 0
+      # Ooops, the counter has run out of range! Reset all the access times.
+      self.atimes[:] = sys.maxint
       # Set the counter to 1 (to indicate that it is newer than existing ones)
       self.seqn_ = 1
     return self.seqn_
@@ -316,7 +321,6 @@ cdef class ObjectCache(BaseCache):
 
     super(ObjectCache, self).__init__(nslots, name)
     self.__list = range(nslots);  self.__dict = {}
-    self.seqn_ = 0;  self.nextslot = 0
     self.mrunode = None   # Most Recent Used node
 
 
@@ -332,14 +336,17 @@ cdef class ObjectCache(BaseCache):
 
     if self.nslots == 0:   # Oops, the cache is set to empty
       return -1
-    self.setcount = self.setcount + 1
+    # Perhaps setcount has been already incremented in couldenablecache()
+    if not self.incsetcount:
+      self.setcount = self.setcount + 1
+    else:
+      self.incsetcount = False
     if self.checkhitratio():
       # Check if we are growing out of space
       if self.nextslot == self.nslots:
         # Look for the LRU node
         nslot = self.atimes.argmin()
         lru = self.__list[nslot]
-        self.nextslot = self.nextslot - 1
         del self.__dict[lru.key]
       else:
         nslot = self.nextslot;  self.nextslot = self.nextslot + 1
@@ -369,10 +376,10 @@ cdef class ObjectCache(BaseCache):
     if self.nslots == 0:   # No chance for finding a slot
       return -1
     self.containscount = self.containscount + 1
-    # Give a chance to the MRU node
-    node = self.mrunode
-    if self.nextslot > 0 and node.key == key:
-      return node.nslot
+#     # Give a chance to the MRU node
+#     node = self.mrunode
+#     if self.nextslot > 0 and node.key == key:
+#       return node.nslot
     # No luck. Look in the dictionary.
     node = self.__dict.get(key)
     if node is None:
@@ -428,7 +435,6 @@ cdef class NumCache(BaseCache):
       raise ValueError, "Too many slots (%s) in cache!" % nslots
     super(NumCache, self).__init__(nslots, name)
     self.itemsize = itemsize
-    self.seqn_ = 0;  self.nextslot = 0
     # The cache object where all data will go
     self.cacheobj = numpy.empty(shape=(nslots, self.slotsize),
                                 dtype=numpy.uint8)
@@ -479,16 +485,19 @@ cdef class NumCache(BaseCache):
 
     if self.nslots == 0:   # Oops, the cache is set to empty
       return -1
-    self.setcount = self.setcount + 1
+    # Perhaps setcount has been already incremented in couldenablecache()
+    if not self.incsetcount:
+      self.setcount = self.setcount + 1
+    else:
+      self.incsetcount = False
     if self.checkhitratio():
       # Check if we are growing out of space
       if self.nextslot == self.nslots:
         # Get the least recently used slot
         nslot = self.atimes.argmin()
-        self.nextslot = self.nextslot - 1
       else:
         # Get the next available slot
-        nslot = self.nextslot
+        nslot = self.nextslot;  self.nextslot = self.nextslot + 1
       assert nslot < self.nslots, "Wrong slot index!"
       # Copy the data to the appropriate row in cache
       base1 = nslot * self.slotsize;  base2 = start * self.itemsize
@@ -504,7 +513,6 @@ cdef class NumCache(BaseCache):
       # this is *very* inneficient (at least with Linux/i386).
       #self.indices[:] = self.indices.take(self.sorted.argsort())
       self.sorted.sort()
-      self.nextslot = self.nextslot + 1
     return nslot
 
 
