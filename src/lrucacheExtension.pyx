@@ -26,12 +26,9 @@ Misc variables:
 import sys
 
 import numpy
-from numpydefs cimport import_array, ndarray, \
-     PyArray_GETITEM, PyArray_SETITEM
+from numpydefs cimport import_array, ndarray
 
-from lrucache import CacheKeyError
 from constants import ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
-
 
 
 
@@ -40,8 +37,6 @@ from constants import ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
 # Standard C functions.
 cdef extern from "stdlib.h":
   ctypedef long size_t
-  void *malloc(size_t size)
-  void free(void *ptr)
 
 cdef extern from "string.h":
   void *memcpy(void *dest, void *src, size_t n)
@@ -49,30 +44,21 @@ cdef extern from "string.h":
 
 # Python API functions.
 cdef extern from "Python.h":
-  ctypedef int Py_ssize_t
-  int PySequence_DelItem(object o, Py_ssize_t i)
   int PyList_Append(object list, object item)
   object PyObject_GetItem(object o, object key)
   int PyObject_SetItem(object o, object key, object v)
   int PyObject_DelItem(object o, object key)
   long PyObject_Length(object o)
   int PyObject_Compare(object o1, object o2)
-  char *PyString_AsString(object string)
 
-# # External C functions for dealing with binary searchs
-# cdef extern from "idx-opt.h":
-#   int bisect_left_ll2(long long *a, long long x, int hi)
 
 
 #----------------------------------------------------------------------------
-
-# Initialization code
-
+# Initialization code.
 # The numpy API requires this function to be called before
 # using any numpy facilities in an extension module.
 import_array()
-
-#---------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 
 
@@ -86,10 +72,10 @@ import_array()
 # to a bare minimum (the info in cache is kept in just 2 lists).
 
 #*********************** Important note! *****************************
-#The code behind has been carefully tuned to serve the needs of
-#PyTables cache for nodes. As a consequence, it is no longer
-#appropriate as a general LRU cache implementation. You have been
-#warned!.  F. Altet 2006-08-08
+# The code behind has been carefully tuned to serve the needs of
+# PyTables cache for nodes. As a consequence, it is no longer
+# appropriate as a general LRU cache implementation. You have been
+# warned!.  F. Altet 2006-08-08
 #*********************************************************************
 
 
@@ -455,8 +441,9 @@ cdef class ObjectCache(BaseCache):
             self.cachesize / 1024.)
 
 
-
+###################################################################
 #  Minimalistic LRU cache implementation for numerical data
+###################################################################
 
 #*********************** Important note! ****************************
 # The code behind has been carefully tuned to serve the needs of
@@ -502,6 +489,7 @@ cdef class NumCache(BaseCache):
     self.nextslot = self.nextslot - 1
   
 
+  # Copy new data into a free slot starting in 'start'
   cdef addslot_(self, long nslot, long start, long long key, void *data):
     cdef long nidx, base1, base2
 
