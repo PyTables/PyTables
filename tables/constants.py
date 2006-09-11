@@ -154,7 +154,8 @@ NODE_MAX_SLOTS = -256
 """Maximum number of unreferenced nodes to be kept in memory."""
 
 #LIMDATA_MAX_SLOTS = 8  # for testing
-LIMDATA_MAX_SLOTS = 128
+#LIMDATA_MAX_SLOTS = 128
+LIMDATA_MAX_SLOTS = 1
 """The maximum number of limits (lim1 <= col < lim2) cached in data lookups."""
 
 #LIMDATA_MAX_SIZE = 5    # for testing
@@ -162,7 +163,8 @@ LIMDATA_MAX_SIZE = 256*1024   # 256 KB
 """The maximum space that will take LIMDATA cache (in bytes)."""
 
 #LIMBOUNDS_MAX_SLOTS = 8  # for testing
-LIMBOUNDS_MAX_SLOTS = 128
+#LIMBOUNDS_MAX_SLOTS = 128
+LIMBOUNDS_MAX_SLOTS = 1
 """The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
 
 #LIMBOUNDS_MAX_SIZE = 5    # for testing

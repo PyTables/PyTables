@@ -111,6 +111,7 @@ class PyTables_DB(DB):
 #                         table._whereIndexed2XXX(condition, self.condvars) ]
 
             #coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
+
 #             coords = table.getWhereList2XXX(condition, self.condvars,
 #                                             flavor="numpy")
 #             results = table.readCoordinates(coords, field=column,

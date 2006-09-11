@@ -31,6 +31,8 @@ cdef class ObjectCache(BaseCache):
   cdef long *rsizes
   cdef ndarray sizes
   cdef object __list, __dict, mrunode
+  cdef removeslot_(self, long nslot)
+  cdef addslot_(self, long nslot, long size, object key, object value)
   cdef long setitem_(self, object key, object value, long size)
   cdef long getslot_(self, object key)
   cdef object getitem_(self, long nslot)
@@ -43,9 +45,11 @@ cdef class NumCache(BaseCache):
   cdef void *rcache
   cdef long long *rsorted
   cdef unsigned short *rindices
+  cdef removeslot_(self, long nslot)
+  cdef addslot_(self, long nslot, long start, long long key, void *data)
+  cdef long setitem(self, long long key, void *data, long start)
   cdef long slotlookup(self, unsigned short x)
   cdef long getslot(self, long long key)
-  cdef long setitem(self, long long key, void *data, long start)
   cdef void *getitem(self, long nslot)
   cdef long getitem2(self, long nslot, void *data, long start)
 

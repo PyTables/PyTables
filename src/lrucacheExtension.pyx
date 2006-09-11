@@ -339,11 +339,39 @@ cdef class ObjectCache(BaseCache):
     return self.setitem_(key, value, size)
 
 
-  # Put the object to the data in cache (for Pyrex calls)
+  # Remove a slot
+  cdef removeslot_(self, long nslot):
+    cdef ObjectNode node
+
+    node = self.__list[nslot]
+    del self.__dict[node.key]
+    self.cachesize = self.cachesize - self.rsizes[nslot]
+    self.nextslot = self.nextslot - 1
+    self.ratimes[nslot] = sys.maxint
+    self.rsizes[nslot] = 0
+
+
+  # Assign a new object to a free slot
+  cdef addslot_(self, long nslot, long size, object key, object value):
+    cdef ObjectNode node
+
+    assert nslot < self.nslots, "Number of nodes exceeding cache capacity."
+    node = ObjectNode(key, value, nslot)
+    self.ratimes[nslot] = self.incseqn()
+    self.rsizes[nslot] = size
+    self.__list[nslot] = node
+    self.__dict[key] = node
+    self.mrunode = node
+    self.cachesize = self.cachesize + size
+    self.nextslot = self.nextslot + 1
+
+
+  # Put the object in cache (for Pyrex calls)
   # size can be the exact size of the value object or an estimation.
   cdef long setitem_(self, object key, object value, long size):
-    cdef ObjectNode node, lru
-    cdef long nslot
+    cdef ObjectNode node
+    cdef long nslot, nslot1
+    cdef object lruidx
 
     if self.nslots == 0:   # Oops, the cache is set to empty
       return -1
@@ -357,30 +385,22 @@ cdef class ObjectCache(BaseCache):
     nslot = -1
     if self.checkhitratio():
       # Check if we are growing out of space
-      # Protection against too large data cache size
-      if size + self.cachesize > self.maxcachesize:
-        # Look for the biggest object in cache
-        nslot = self.sizes.argmax()
-      if nslot < 0 and self.nextslot == self.nslots:
-        # Look for the LRU node in cache
+      # Protection against too many slots in cache
+      if self.nextslot == self.nslots:
+        # Remove the LRU node in cache
         nslot = self.atimes.argmin()
-      if nslot >= 0:
-        # Preempt object in nslot
-        lru = self.__list[nslot]
-        del self.__dict[lru.key]
-        self.cachesize = self.cachesize - self.rsizes[nslot]
-        self.nextslot = self.nextslot - 1
-      else:
+        self.removeslot_(nslot)
+      # Protection against too large data cache size
+      while size + self.cachesize > self.maxcachesize:
+        # Remove the largest object in last 10 LRU nodes
+        lruidx = self.atimes.argsort()[:10]
+        nslot1 = self.sizes[lruidx].argmax()
+        nslot = lruidx[nslot1]
+        self.removeslot_(nslot)
+      if nslot < 0:
+        # No slots removed, get the next in the queue
         nslot = self.nextslot
-      assert nslot < self.nslots, "Number of nodes exceeding cache capacity."
-      node = ObjectNode(key, value, nslot)
-      self.ratimes[nslot] = self.incseqn()
-      self.rsizes[nslot] = size
-      self.__list[nslot] = node     # Replace node in nslot
-      self.__dict[key] = node
-      self.mrunode = node
-      self.cachesize = self.cachesize + size
-      self.nextslot = self.nextslot + 1
+      self.addslot_(nslot, size, key, value)
     return nslot
 
 
@@ -401,11 +421,10 @@ cdef class ObjectCache(BaseCache):
     if self.nslots == 0:   # No chance for finding a slot
       return -1
     self.containscount = self.containscount + 1
-    # XYX Provar si lo de sota va be
-#     # Give a chance to the MRU node
-#     node = self.mrunode
-#     if self.nextslot > 0 and node.key == key:
-#       return node.nslot
+    # Give a chance to the MRU node
+    node = self.mrunode
+    if self.nextslot > 0 and node.key == key:
+      return node.nslot
     # No luck. Look in the dictionary.
     node = self.__dict.get(key)
     if node is None:
@@ -479,6 +498,56 @@ cdef class NumCache(BaseCache):
     self.rindices = <unsigned short *>self.indices.data
 
 
+  cdef removeslot_(self, long nslot):
+    self.nextslot = self.nextslot - 1
+  
+
+  cdef addslot_(self, long nslot, long start, long long key, void *data):
+    cdef long nidx, base1, base2
+
+    assert nslot < self.nslots, "Number of nodes exceeding cache capacity."
+    # Copy the data to the appropriate row in cache
+    base1 = nslot * self.slotsize;  base2 = start * self.itemsize
+    memcpy(self.rcache + base1, data + base2, self.slotsize)
+    # Refresh the atimes, sorted and indices data with the new slot info
+    self.ratimes[nslot] = self.incseqn()
+    nidx = self.slotlookup(nslot)
+    self.rsorted[nidx] = key
+    self.indices[:] = self.indices[self.sorted.argsort()]
+    # The take() method seems similar in speed. This is striking,
+    # because documentation says that it should be faster.
+    # Profiling is saying that take maybe using memmove() and
+    # this is *very* inneficient (at least with Linux/i386).
+    #self.indices[:] = self.indices.take(self.sorted.argsort())
+    self.sorted.sort()
+    self.nextslot = self.nextslot + 1
+
+
+  # Add new data into a cache slot
+  cdef long setitem(self, long long key, void *data, long start):
+    cdef long nslot
+
+    if self.nslots == 0:   # Oops, the cache is set to empty
+      return -1
+    # Perhaps setcount has been already incremented in couldenablecache()
+    if not self.incsetcount:
+      self.setcount = self.setcount + 1
+    else:
+      self.incsetcount = False
+    nslot = -1
+    if self.checkhitratio():
+      # Check if we are growing out of space
+      if self.nextslot == self.nslots:
+        # Get the least recently used slot
+        nslot = self.atimes.argmin()
+        self.removeslot_(nslot)
+      else:
+        # Get the next slot available
+        nslot = self.nextslot
+      self.addslot_(nslot, start, key, data)
+    return nslot
+
+
   # Return the index for element x in array self.rindices.
   # This should never fail because x should be always present.
   cdef long slotlookup(self, unsigned short x):
@@ -510,45 +579,6 @@ cdef class NumCache(BaseCache):
       return self.rindices[lo]
     else:
       return -1
-
-
-  cdef long setitem(self, long long key, void *data, long start):
-    cdef long nslot, nidx, base1, base2
-
-    if self.nslots == 0:   # Oops, the cache is set to empty
-      return -1
-    # Perhaps setcount has been already incremented in couldenablecache()
-    if not self.incsetcount:
-      self.setcount = self.setcount + 1
-    else:
-      self.incsetcount = False
-    nslot = -1
-    if self.checkhitratio():
-      # Check if we are growing out of space
-      if self.nextslot == self.nslots:
-        # Get the least recently used slot
-        nslot = self.atimes.argmin()
-        self.nextslot = self.nextslot - 1
-      else:
-        # Get the next available slot
-        nslot = self.nextslot
-      assert nslot < self.nslots, "Wrong slot index!"
-      # Copy the data to the appropriate row in cache
-      base1 = nslot * self.slotsize;  base2 = start * self.itemsize
-      memcpy(self.rcache + base1, data + base2, self.slotsize)
-      # Refresh the atimes, sorted and indices data with the new slot info
-      self.ratimes[nslot] = self.incseqn()
-      nidx = self.slotlookup(nslot)
-      self.rsorted[nidx] = key
-      self.indices[:] = self.indices[self.sorted.argsort()]
-      # The take() method seems similar in speed. This is striking,
-      # because documentation says that it should be faster.
-      # Profiling is saying that take maybe using memmove() and
-      # this is *very* inneficient (at least with Linux/i386).
-      #self.indices[:] = self.indices.take(self.sorted.argsort())
-      self.sorted.sort()
-      self.nextslot = self.nextslot + 1
-    return nslot
 
 
   # Return the pointer to the data in cache
