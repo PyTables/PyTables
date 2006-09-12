@@ -897,16 +897,13 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         # Get the coordinates to lookup
         range_ = index.getLookupRange2XXX(ops, lims, self)
         ncoords = index.search(range_)
-        if index.is_pro and ncoords == 0:
-            # For the pro case, there are no interesting values
+        if ncoords == 0:
+            # There are no interesting values
             # Reset the table variable conditions
             self.whereIndex = None
             self.whereCondition = None
             # Return the empty iterator
             return iter([])
-        # Call the iterator even in case that there are no values satisfying
-        # the conditions in the indexed region (ncoords = 0), because
-        # we should look in the non-indexed region as well (for PyTables std).
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         row = TableExtension.Row(self)
         # Call the indexed version of Row iterator (coords=None,ncoords>=0)
