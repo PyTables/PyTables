@@ -118,7 +118,7 @@ class PyTables_DB(DB):
 #                                             flavor="numpy")
 
             results = table.readIndexed2XXX(condition, self.condvars,
-                                            flavor="numpy")
+                                            field=column, flavor="numpy")
 
             ncoords = len(results)
 

@@ -957,13 +957,19 @@ This method is intended only for indexed columns, but this column has not a mini
 
 
     # XYX sembla inacabada....
-    def readIndexed2XXX(self, condition, condvars, flavor=None):
+    def readIndexed2XXX(self, condition, condvars, field=None, flavor=None):
+        """Read a slice of table fulfilling the condition."""
+
         if not flavor:
             flavor = self.flavor
         if flavor not in supportedFlavors:
             raise ValueError("""\
 "%s" flavor is not allowed; please use some of %s.""" % \
                              (flavor, supportedFlavors))
+        if Numeric_imported and flavor == "numeric" and field is None:
+            raise ValueError, \
+"""Numeric does not support heterogeneous datasets yet. You cannot specify a 'numeric' flavor without specifying a field."""
+
 
         idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars, self)
         if not idxvar:
@@ -974,8 +980,6 @@ This method is intended only for indexed columns, but this column has not a mini
         index = column.index
         assert index is not None, "the chosen column is not indexed"
         assert not column.dirty, "the chosen column has a dirty index"
-        assert index.is_pro or index.nelements > 0, \
-               "the chosen column has too few elements to be indexed"
 
         # Set the index column and residual condition (if any)
         self.whereIndex = column.pathname
@@ -1005,6 +1009,9 @@ This method is intended only for indexed columns, but this column has not a mini
             size = len(recarr) * self.rowsize + 1
             # Put this recarray in limdata cache
             self.limdatacache.setitem(item, recarr, size)
+
+        if field:
+            recarr = recarr[field]
 
         if numarray_imported and flavor == "numarray":
             # do an additional conversion conversion (without a copy)
@@ -1056,7 +1063,8 @@ please reindex the table to put the index in a sane state""")
             recarr = tonumarray(recarr, copy=False)
         return recarr
 
-    def whereAppend(self, dstTable, condition, start=None, stop=None, step=None):
+    def whereAppend(self, dstTable, condition,
+                    start=None, stop=None, step=None):
         """
         Append rows fulfulling the `condition` to the `dstTable` table.
 
