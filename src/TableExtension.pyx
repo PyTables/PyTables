@@ -33,7 +33,6 @@ from tables.exceptions import HDF5ExtError
 from tables.utilsExtension import createNestedType, \
      getNestedType, convertTime64, space2null, getTypeEnum, enumFromHDF5
 from tables.numexpr import evaluate  ##XXX
-from tables.constants import TABLE_MAX_SLOTS
 
 # numpy functions & objects
 from numpydefs cimport import_array, ndarray, \
@@ -219,7 +218,6 @@ cdef class Table:  # XXX extends Leaf
   cdef char     *name  # XXX from Node
   cdef hid_t    parent_id  # XXX from Node
   cdef hid_t    dataset_id, type_id, disk_type_id
-  cdef NumCache sparsecache
 
 
   def _g_new(self, where, name, init):
@@ -365,12 +363,6 @@ cdef class Table:  # XXX extends Leaf
     return (self.dataset_id, desc)
 
 
-  def _g_createReadCache(self):
-    # Define a cache for sparse table reads
-    self.sparsecache = <NumCache>NumCache(
-      shape=(TABLE_MAX_SLOTS, 1), itemsize=self.rowsize, name="sparse_table")
-
-
   def _loadEnum(self, hid_t fieldTypeId):
     """_loadEnum(colname) -> (Enum, naType)
     Load enumerated type associated with `colname` column.
@@ -447,6 +439,10 @@ cdef class Table:  # XXX extends Leaf
                                        &self.totalrecords)<0):
       raise HDF5ExtError("Problems setting the NROWS attribute.")
 
+    # Set the caches to dirty (in fact, and for the append case,
+    # it should be only the caches based on limits, but anyway)
+    self._dirtycache = True
+
 
   def _update_records(self, hsize_t start, hsize_t stop,
                       hsize_t step, ndarray recarr):
@@ -473,6 +469,9 @@ cdef class Table:  # XXX extends Leaf
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")
 
+    # Set the caches to dirty
+    self._dirtycache = True
+
 
   def _update_elements(self, hsize_t nrecords, ndarray elements,
                        ndarray recarr):
@@ -494,6 +493,9 @@ cdef class Table:  # XXX extends Leaf
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")
+
+    # Set the caches to dirty
+    self._dirtycache = True
 
 
   def _read_records(self, hsize_t start, hsize_t nrecords, ndarray recarr):
@@ -532,6 +534,8 @@ cdef class Table:  # XXX extends Leaf
     cdef hsize_t *coords, coord
     cdef int ret
     cdef long nslot
+    cdef NumCache sparsecache
+
 
     # Get the chunk of the coords that correspond to a buffer
     nrecords = elements.size
@@ -543,12 +547,17 @@ cdef class Table:  # XXX extends Leaf
     rbuf2 = elements.data
     coords = <hsize_t *>rbuf2
 
+    # Clean-up the cache if needed
+    if self._dirtycache:
+      self._restorecache()
+
+    sparsecache = <NumCache>self._sparsecache
     for nrecord from 0 <= nrecord < nrecords:
       coord = coords[nrecord]
       # Look at the cache for this coord
-      nslot = self.sparsecache.getslot(coord)
+      nslot = sparsecache.getslot(coord)
       if nslot >= 0:
-        self.sparsecache.getitem2(nslot, rbuf, nrecord)
+        sparsecache.getitem2(nslot, rbuf, nrecord)
       else:
         rbuf2 = <void *>(<char *>rbuf + nrecord*rowsize)
         # The coord is not in cache. Read it and put it in the LRU cache.
@@ -556,7 +565,7 @@ cdef class Table:  # XXX extends Leaf
                                 coord, 1, rbuf2)
         if ret < 0:
           raise HDF5ExtError("Problems reading record: %s" % (coord))
-        self.sparsecache.setitem(coord, rbuf, nrecord)
+        sparsecache.setitem(coord, rbuf, nrecord)
 
     # Convert some HDF5 types to NumPy after reading.
     self._convertTypes(recarr, nrecords, 1)
@@ -580,15 +589,14 @@ cdef class Table:  # XXX extends Leaf
       #print "Problems deleting records."
       # Return no removed records
       return 0
-    else:
-      self.totalrecords = self.totalrecords - nrecords
-      # Attach the NROWS attribute
-      H5ATTR_set_attribute_numerical(self.dataset_id, "NROWS",
-                                     H5T_NATIVE_LLONG, &self.totalrecords)
-      # Re-create the cache for reading (the old one is dirty)
-      self._g_createReadCache()
-      # Return the number of records removed
-      return nrecords
+    self.totalrecords = self.totalrecords - nrecords
+    # Attach the NROWS attribute
+    H5ATTR_set_attribute_numerical(self.dataset_id, "NROWS",
+                                   H5T_NATIVE_LLONG, &self.totalrecords)
+    # Set the caches to dirty
+    self._dirtycache = True
+    # Return the number of records removed
+    return nrecords
 
 
   def  _get_type_id(self):

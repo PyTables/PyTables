@@ -515,17 +515,17 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     def append(self, arr):
         """Append the object to this (enlargeable) object"""
 
-        # XYX Eliminar aco quan tinguem la migracio de hdf5Extension feta
-        if type(arr) is numpy.ndarray:
-            if arr.dtype.char == 'S':
-                print "arr-->", arr
-                print "cadena", arr.dtype.itemsize, arr.shape
-                arr = strings.array(arr)
-#                 arr = strings.array(arr.data, shape=arr.shape,
-#                                     itemsize=arr.dtype.itemsize)
-            else:
-                print "nombre"
-                arr2 = numpy.array(arr)
+#         # XYX Eliminar aco quan tinguem la migracio de hdf5Extension feta
+#         if type(arr) is numpy.ndarray:
+#             if arr.dtype.char == 'S':
+#                 print "arr-->", arr
+#                 print "cadena", arr.dtype.itemsize, arr.shape
+#                 arr = strings.array(arr)
+# #                 arr = strings.array(arr.data, shape=arr.shape,
+# #                                     itemsize=arr.dtype.itemsize)
+#             else:
+#                 print "nombre"
+#                 arr2 = numpy.array(arr)
         extent = arr.shape[0]
         arr.shape = (1, extent)
         self._append(arr)

@@ -64,9 +64,9 @@ from tables.Atom import Atom, StringAtom
 from tables.Group import IndexesTableG, IndexesDescG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, \
-     LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE
+     LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE, TABLE_MAX_SLOTS
 
-from lrucacheExtension import ObjectCache
+from lrucacheExtension import ObjectCache, NumCache
 
 
 __version__ = "$Revision$"
@@ -403,11 +403,8 @@ class Table(TableExtension.Table, Leaf):
         """
         A `Cols` instance that serves as an accessor to `Column` objects.
         """
-
-        self.limdatacache = ObjectCache(LIMDATA_MAX_SLOTS,
-                                        LIMDATA_MAX_SIZE,
-                                        'data limits')
-        """A cache for data based on search limits and table colum."""
+        self._dirtycache = True
+        """Whether the data caches are dirty or not."""
 
 
         # Private variable to keep the value of flavor until it the table
@@ -500,6 +497,19 @@ class Table(TableExtension.Table, Leaf):
         if self.indexed:
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
+
+
+    def _restorecache(self):
+        # Define a cache for sparse table reads
+        self._sparsecache = NumCache(
+            shape=(TABLE_MAX_SLOTS, 1),
+            itemsize=self.rowsize, name="sparse rows")
+        """A cache for row data based on row number."""
+        self._limdatacache = ObjectCache(LIMDATA_MAX_SLOTS,
+                                         LIMDATA_MAX_SIZE,
+                                         'data limits')
+        """A cache for data based on search limits and table colum."""
+        self._dirtycache = False
 
 
     def _get_container(self, shape):
@@ -725,9 +735,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Cache _v_dtype for this table
         self._v_dtype = numpy.dtype(self.description._v_nestedDescr)
 
-        # Once all the info has been generated, create a cache for reading
-        self._g_createReadCache()
-
         # Finally, return the object identifier.
         return self._v_objectID
 
@@ -800,10 +807,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Cache _v_dtype for this table
         self._v_dtype = numpy.dtype(self.description._v_nestedDescr)
 
-        # Once all the info has been collected, create a cache for reading
-        self._g_createReadCache()
-
         return self._v_objectID
+
 
     def _checkColumn(self, colname):
         """
@@ -1018,6 +1023,10 @@ This method is intended only for indexed columns, but this column has not a mini
 """Numeric does not support heterogeneous datasets yet. You cannot specify a 'numeric' flavor without specifying a field."""
 
 
+        # Clean the cache if needed
+        if self._dirtycache:
+            self._restorecache()
+
         idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars, self)
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
@@ -1032,14 +1041,15 @@ This method is intended only for indexed columns, but this column has not a mini
         self.whereIndex = column.pathname
         if rescond:
             self.whereCondition = (rescond, condvars)
+
         # Get the coordinates to lookup
         range_ = index.getLookupRange2XXX(ops, lims, self)
         # Check whether the (column, range_) is in the limdata cache or not
         item = (column.name, range_, flavor)
-        nslot = self.limdatacache.getslot(item)
+        nslot = self._limdatacache.getslot(item)
         if nslot >= 0:
             # Cache hit. Return the recarray kept there.
-            recarr = self.limdatacache.getitem(nslot)
+            recarr = self._limdatacache.getitem(nslot)
         else:
             # No luck with cached data. Proceed with the regular search.
             nrecords = index.search(range_)
@@ -1055,7 +1065,7 @@ This method is intended only for indexed columns, but this column has not a mini
             # Compute the size of the recarray (aproximately)
             size = len(recarr) * self.rowsize + 1
             # Put this recarray in limdata cache
-            self.limdatacache.setitem(item, recarr, size)
+            self._limdatacache.setitem(item, recarr, size)
 
         if field:
             recarr = recarr[field]

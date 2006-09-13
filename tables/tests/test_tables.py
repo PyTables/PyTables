@@ -256,6 +256,7 @@ class BasicTestCase(common.PyTablesTestCase):
             # can be used as long as the method does not alter the table.
             # Maybe there is a better way of doing this.
             columns = tbl._descrFromRA(self.record)
+            del columns['_v_byteorder']  # '_v_byteorder' is spureous
         else:
             # This is an ordinary description.
             columns = self.record.columns
