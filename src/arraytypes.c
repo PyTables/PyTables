@@ -1,26 +1,20 @@
 #include "arraytypes.h"
 #include "utils.h"
 
-/* Get the correct HDF5 type for a format code.  I can't manage to do
+/* Get the correct HDF5 type for a format code.  We can't manage to do
  * the mapping with a table because the HDF5 types are not constant
  * values and are defined by executing a function.  So we do that in a
  * switch case. */
 
-hid_t
-  convArrayType(fmt, size, byteorder)
-    int fmt;
-    size_t size;
-    char *byteorder;
+hid_t convArrayType(int fmt, size_t size, char *byteorder)
 {
    hid_t type_id;
 
    switch(fmt) {
-    /* I have this "a" map until a enum NumarrayType is assigned to it!
-       */
-    case 'a':
+    case NPY_STRING:
       /*      return H5T_NATIVE_CHAR; */
       /* An H5T_NATIVE_CHAR is interpreted as a signed byte by HDF5
-       * so, we have to create a string type of lenght 1 so as to
+       * so, we have to create a string type of length 1 so as to
        * represent a char.
        */
       type_id = H5Tcopy(H5T_C_S1);
@@ -34,12 +28,13 @@ hid_t
     case 'T':
       type_id = H5Tcopy(H5T_UNIX_D64BE);
       break;
-    case tBool:
+    case NPY_BOOL:
       /* The solution below choose a 8 bits bitfield and set a
 	 precision of 1. It seems as if H5T_STD_B8LE and H5T_STD_B8BE
 	 both return a type little endian (at least on Intel platforms).
-	 Anyway, for 8-bit type that should not matter.
+	 Anyway, for a 8-bit type that should not matter.
 	 */
+      printf("Hello!\n");
       type_id = H5Tcopy(H5T_NATIVE_B8);
       H5Tset_precision(type_id, 1);
       /* These calls does not reduce the storage needs,
@@ -48,42 +43,41 @@ hid_t
 /*       H5Tset_offset(type_id, 0); */
 /*       H5Tset_pad(type_id, H5T_PAD_ZERO, H5T_PAD_ZERO); */
       break;
-    case tInt8:
+    case NPY_BYTE:
       type_id = H5Tcopy(H5T_NATIVE_SCHAR);
       break;
-    case tUInt8:
+    case NPY_UBYTE:
       type_id = H5Tcopy(H5T_NATIVE_UCHAR);
       break;
-    case tInt16:
+    case NPY_SHORT:
       type_id = H5Tcopy(H5T_NATIVE_SHORT);
       break;
-    case tUInt16:
+    case NPY_USHORT:
       type_id = H5Tcopy(H5T_NATIVE_USHORT);
       break;
-    case tInt32:
+    case NPY_INT:
       type_id = H5Tcopy(H5T_NATIVE_INT);
       break;
-    case tUInt32:
+    case NPY_UINT:
       type_id = H5Tcopy(H5T_NATIVE_UINT);
       break;
-    case tInt64:
+    case NPY_LONGLONG:
       type_id = H5Tcopy(H5T_NATIVE_LLONG);
       break;
-    case tUInt64:
+    case NPY_ULONGLONG:
       type_id = H5Tcopy(H5T_NATIVE_ULLONG);
       break;
-    case tFloat32:
+    case NPY_FLOAT:
       type_id = H5Tcopy(H5T_NATIVE_FLOAT);
       break;
-    case tFloat64:
+    case NPY_DOUBLE:
       type_id = H5Tcopy(H5T_NATIVE_DOUBLE);
       break;
-    case tComplex32:
-      type_id = create_native_complex32(byteorder);
-/*       return type_id; */
-      break;
-    case tComplex64:
+    case NPY_CFLOAT:
       type_id = create_native_complex64(byteorder);
+      break;
+    case NPY_CDOUBLE:
+      type_id = create_native_complex128(byteorder);
       break;
     default:
 #ifdef DEBUG
@@ -99,7 +93,7 @@ hid_t
 }
 
 
-/* Routine to map the atomic type to a Numeric typecode
+/* Routine to map the atomic type to a numpy typecode
  */
 size_t getArrayType(hid_t type_id,
 		    int *fmt)
@@ -120,33 +114,33 @@ size_t getArrayType(hid_t type_id,
 
   switch(class_id) {
   case H5T_BITFIELD:
-    *fmt = tBool;              /* boolean */
+    *fmt = NPY_BOOL;              /* boolean */
     break;
   case H5T_INTEGER:           /* int (bool, byte, short, long, long long) */
     switch (type_size) {
     case 1:                        /* byte */
       if ( sign )
-	*fmt = tInt8;                /* signed byte */
+	*fmt = NPY_BYTE;                /* signed byte */
       else
-	*fmt = tUInt8;             /* unsigned byte */
+	*fmt = NPY_UBYTE;             /* unsigned byte */
       break;
     case 2:                        /* short */
       if ( sign )
-	 *fmt =tInt16;                /* signed short */
+	 *fmt = NPY_SHORT;                /* signed short */
       else
-	*fmt = tUInt16;                /* unsigned short */
+	*fmt = NPY_USHORT;                /* unsigned short */
       break;
     case 4:                        /* long */
       if ( sign )
-	*fmt = tInt32;                /* signed long */
+	*fmt = NPY_INT;                /* signed long */
       else
-	*fmt = tUInt32;                /* unsigned long */
+	*fmt = NPY_UINT;                /* unsigned long */
       break;
     case 8:                        /* long long */
       if ( sign )
-	*fmt = tInt64;                /* signed long long */
+	*fmt = NPY_LONGLONG;                /* signed long long */
       else
-	*fmt = tUInt64;                /* unsigned long long */
+	*fmt = NPY_ULONGLONG;                /* unsigned long long */
       break;
     default:
       /* This should never happen */
@@ -156,10 +150,10 @@ size_t getArrayType(hid_t type_id,
   case H5T_FLOAT:                   /* float (single or double) */
     switch (type_size) {
     case 4:
-	*fmt = tFloat32;                 /* float */
+	*fmt = NPY_FLOAT;                 /* float */
 	break;
     case 8:
-	*fmt = tFloat64;                 /* double */
+	*fmt = NPY_DOUBLE;                 /* double */
 	break;
     default:
       /* This should never happen */
@@ -170,10 +164,10 @@ size_t getArrayType(hid_t type_id,
     if (is_complex(type_id)) {
       switch (get_complex_precision(type_id)) {
       case 32:
-	*fmt = tComplex32;               /* float complex */
+	*fmt = NPY_CFLOAT;               /* float complex */
 	break;
       case 64:
-	*fmt = tComplex64;               /* double complex */
+	*fmt = NPY_CDOUBLE;               /* double complex */
 	break;
       default:
 	/* This should never happen */
@@ -185,8 +179,7 @@ size_t getArrayType(hid_t type_id,
     }
     break; /* case H5T_COMPOUND */
   case H5T_STRING:                  /* char or string */
-    /* I map this to "a" until a enum NumarrayType is assigned to it! */
-      *fmt = (int)'a';                   /* chararray */
+      *fmt = NPY_STRING;                   /* chararray */
     break; /* case H5T_STRING */
   case H5T_TIME:                    /* time (integer or double) */
     switch (type_size) {
@@ -221,14 +214,20 @@ size_t getArrayType(hid_t type_id,
 #ifdef MAIN
 int main(int args, char *argv[])
 {
-   char  fmt;
+   char *byteorder;
+   int fmt;
+   size_t size;
 
    printf("args # --> %d\n", args);
    printf("arg 0 --> %s\n", argv[0]);
    printf("arg 1 --> %s\n", argv[1]);
+   printf("arg 2 --> %s\n", argv[2]);
 
-   fmt = argv[1][0];
+   fmt = atoi(argv[1]);
+   size = atoi(argv[2]);
+   byteorder = "little";
    printf("The array format is %c\n", fmt);
-   printf("The correspondent HDF5 variable is %d\n", convArrayType(fmt));
+   printf("The correspondent HDF5 variable is %d \n",
+	  convArrayType(fmt, size, byteorder));
 }
 #endif /* MAIN */

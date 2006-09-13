@@ -257,7 +257,7 @@ out:
 
 
 /*-------------------------------------------------------------------------
- * Function: H5ATTRset_attribute_numerical_NAarray
+ * Function: H5ATTRset_attribute_numerical_NParray
  *
  * Purpose: write an array attribute
  *
@@ -265,7 +265,7 @@ out:
  *
  * Programmer:
  *
- * Date: July 25, 2001
+ * Date: July 25, 2003
  *
  * Comments:
  *
@@ -273,7 +273,7 @@ out:
  */
 
 
-herr_t H5ATTRset_attribute_numerical_NAarray( hid_t obj_id,
+herr_t H5ATTRset_attribute_numerical_NParray( hid_t obj_id,
 					      const char *attr_name,
 					      size_t rank,
 					      hsize_t *dims,

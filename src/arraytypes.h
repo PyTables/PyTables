@@ -1,6 +1,6 @@
 #include "hdf5.h"
-#include "Python.h"  /* Necessary to import numarray.h */
-#include "numarray/numarray.h"
+#include "Python.h"  /* Necessary to import numpy.h */
+#include "numpy/arrayobject.h"
 
 /* Define this variable for error printings */
   /*#define DEBUG 1 */

@@ -56,17 +56,3 @@ cdef extern from "Python.h":
   void Py_BEGIN_ALLOW_THREADS()
   void Py_END_ALLOW_THREADS()
 
-
-# Functions from numarray API
-cdef extern from "numarray/libnumarray.h":
-
-  cdef enum:
-    MAXDIM  # Maximum dimensionality for arrays
-
-  object NA_getPythonScalar(object, long)
-  int  NA_setFromPythonScalar(object, long, object)
-  long NA_getBufferPtrAndSize(object, int, void**)
-
-  # The numarray initialization funtion
-  void import_libnumarray()
-

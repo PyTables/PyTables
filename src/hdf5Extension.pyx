@@ -32,8 +32,7 @@ import os
 import warnings
 import cPickle
 
-import numarray
-from numarray import records, strings, memory
+import numpy
 
 from tables.exceptions import HDF5ExtError
 from tables.enum import Enum
@@ -42,11 +41,14 @@ from tables.utils import checkFileAccess
 from tables.utilsExtension import  \
      enumToHDF5, enumFromHDF5, getTypeEnum, \
      convertTime64, getLeafHDF5Type, isHDF5File, isPyTablesFile, \
-     naEnumToNAType, naTypeToNAEnum
+     npEnumToNPType, npTypeToNpEnum
 
-###from lrucacheExtension cimport NodeCache
+from lrucacheExtension cimport NodeCache
 
-from definitions cimport import_libnumarray, NA_getBufferPtrAndSize, \
+# numpy functions & objects
+from numpydefs cimport import_array, ndarray
+
+from definitions cimport \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
      PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
      Py_INCREF, Py_DECREF
@@ -93,27 +95,34 @@ cdef extern from "string.h":
   char *strdup(char *s)
   void *memcpy(void *dest, void *src, size_t n)
 
-# Structs and functions from numarray
-cdef extern from "numarray/numarray.h":
+# Structs and functions from numpy
+cdef extern from "numpy/arrayobject.h":
 
-  ctypedef enum NumarrayType:
-    tAny
-    tBool
-    tInt8
-    tUInt8
-    tInt16
-    tUInt16
-    tInt32
-    tUInt32
-    tInt64
-    tUInt64
-    tFloat32
-    tFloat64
-    tComplex32
-    tComplex64
-    tObject
-    tDefault
-    tLong
+  cdef enum NPY_TYPES:
+    NPY_BOOL
+    NPY_BYTE
+    NPY_UBYTE
+    NPY_SHORT
+    NPY_USHORT
+    NPY_INT
+    NPY_UINT
+    NPY_LONG
+    NPY_ULONG
+    NPY_LONGLONG
+    NPY_ULONGLONG
+    NPY_FLOAT
+    NPY_DOUBLE
+    NPY_LONGDOUBLE
+    NPY_CFLOAT
+    NPY_CDOUBLE
+    NPY_CLONGDOUBLE
+    NPY_OBJECT
+    NPY_STRING
+    NPY_UNICODE
+    NPY_VOID
+    NPY_NTYPES
+    NPY_NOTYPE
+
 
 # Structs and types from HDF5
 cdef extern from "hdf5.h":
@@ -326,7 +335,7 @@ cdef extern from "H5ATTR.h":
                                              size_t rank, hsize_t *dims,
                                              int itemsize, void *data )
 
-  herr_t H5ATTRset_attribute_numerical_NAarray( hid_t loc_id, char *attr_name,
+  herr_t H5ATTRset_attribute_numerical_NParray( hid_t loc_id, char *attr_name,
                                                 size_t rank, hsize_t *dims,
                                                 hid_t type_id, void *data )
 
@@ -418,9 +427,8 @@ cdef extern from "H5VLARRAY.h":
                             hid_t *base_type_id, char *base_byteorder)
 
 
-# Function to compute the HDF5 type from a numarray enum type
+# Function to convert HDF5 types from/to numpy types
 cdef extern from "arraytypes.h":
-
   hid_t convArrayType(int fmt, size_t size, char *byteorder)
   size_t getArrayType(hid_t type_id, int *fmt)
 
@@ -437,48 +445,48 @@ cdef extern from "utils.h":
 
 # Local variables
 
-# CharArray type
-CharType = numarray.records.CharType
+NPTypeToHDF5AtomicType = {
+                            numpy.int8      : H5T_NATIVE_SCHAR,
+                            numpy.int16     : H5T_NATIVE_SHORT,
+                            numpy.int32     : H5T_NATIVE_INT,
+                            numpy.int64     : H5T_NATIVE_LLONG,
 
-NATypeToHDF5AtomicType = {
-                            numarray.Int8      : H5T_NATIVE_SCHAR,
-                            numarray.Int16     : H5T_NATIVE_SHORT,
-                            numarray.Int32     : H5T_NATIVE_INT,
-                            numarray.Int64     : H5T_NATIVE_LLONG,
+                            numpy.uint8     : H5T_NATIVE_UCHAR,
+                            numpy.uint16    : H5T_NATIVE_USHORT,
+                            numpy.uint32    : H5T_NATIVE_UINT,
+                            numpy.uint64    : H5T_NATIVE_ULLONG,
 
-                            numarray.UInt8     : H5T_NATIVE_UCHAR,
-                            numarray.UInt16    : H5T_NATIVE_USHORT,
-                            numarray.UInt32    : H5T_NATIVE_UINT,
-                            numarray.UInt64    : H5T_NATIVE_ULLONG,
-
-                            numarray.Float32   : H5T_NATIVE_FLOAT,
-                            numarray.Float64   : H5T_NATIVE_DOUBLE
+                            numpy.float32   : H5T_NATIVE_FLOAT,
+                            numpy.float64   : H5T_NATIVE_DOUBLE
                         }
 
-# Conversion from numarray int codes to strings
-naEnumToNASType = {
-  tBool:'Bool',  # Boolean type added
-  tInt8:'Int8',    tUInt8:'UInt8',
-  tInt16:'Int16',  tUInt16:'UInt16',
-  tInt32:'Int32',  tUInt32:'UInt32',
-  tInt64:'Int64',  tUInt64:'UInt64',
-  tFloat32:'Float32',  tFloat64:'Float64',
-  tComplex32:'Complex32',  tComplex64:'Complex64',
+# Conversion from numpy int codes to strings
+npEnumToNPSType = {
+  NPY_BOOL:'Bool',
+  NPY_BYTE:'Int8', NPY_UBYTE:'UInt8',
+  NPY_SHORT:'Int16',  NPY_USHORT:'UInt16',
+  NPY_INT:'Int32',  NPY_UINT:'UInt32',
+  NPY_LONGLONG:'Int64',  NPY_ULONGLONG:'UInt64',
+  NPY_FLOAT:'Float32',  NPY_DOUBLE:'Float64',
+  NPY_CFLOAT:'Complex64',  NPY_CDOUBLE:'Complex128',
+  NPY_STRING:'CharType',
   # Special cases:
-  ord('a'):'CharType',  # For strings.
   ord('t'):'Time32',  ord('T'):'Time64',  # For times.
   ord('e'):'Enum'}  # For enumerations.
+
 
 
 #----------------------------------------------------------------------------
 
 # Initialization code
 
-# The numarray API requires this function to be called before
-# using any numarray facilities in an extension module.
-import_libnumarray()
+# The numpy API requires this function to be called before
+# using any numpy facilities in an extension module.
+import_array()
 
 #---------------------------------------------------------------------------
+
+
 
 # Helper functions
 
@@ -798,13 +806,12 @@ cdef class AttributeSet:
     cdef float  attrvaluefloat
     cdef double  attrvaluedouble
     cdef long long attrvaluelonglong
-    cdef object retvalue
+    cdef ndarray retvalue
     cdef hid_t mem_type
     cdef int rank
     cdef int ret, i
     cdef int enumtype
     cdef void *rbuf
-    cdef long buflen
     cdef hid_t type_id
     cdef H5T_sign_t sign #H5T_SGN_ERROR (-1), H5T_SGN_NONE (0), H5T_SGN_2 (1)
     cdef char *dsetname
@@ -842,7 +849,8 @@ cdef class AttributeSet:
       # browsing native HDF5 files, while informing the user about the problem.
       #raise TypeError, "HDF5 class %d not supported. Sorry!" % class_id
       H5Tclose(type_id)    # Release resources
-      return "***Attribute error: HDF5 class %d not supported. Sorry!***" % class_id
+      return "***Attribute error: HDF5 class %d not supported. Sorry!***" % \
+             class_id
     sign = H5Tget_sign(type_id)
     H5Tclose(type_id)    # Release resources
 
@@ -854,15 +862,16 @@ cdef class AttributeSet:
     shape = tuple(shape)
 
     retvalue = None
-    dtype = naEnumToNAType[enumtype]
+    dtype = npEnumToNPType[enumtype]
     if class_id in (H5T_INTEGER, H5T_FLOAT):
-      retvalue = numarray.array(None, type=dtype, shape=shape)
+      retvalue = numpy.empty(dtype=dtype, shape=shape)
     elif class_id == H5T_STRING:
-      retvalue = strings.array(None, itemsize=type_size, shape=shape)
+      dtype = numpy.dtype((dtype, type_size))
+      retvalue = numpy.empty(dtype=dtype, shape=shape)
 
     if retvalue is not None:
       # Get the pointer to the buffer data area
-      buflen = NA_getBufferPtrAndSize(retvalue._data, 1, &rbuf)
+      rbuf = retvalue.data
 
     if class_id == H5T_INTEGER:
       if sign == H5T_SGN_2:
@@ -909,7 +918,8 @@ Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
       # Scalar string attributes are returned as Python strings, while
       # multi-dimensional ones are returned as character arrays.
       if rank == 0:
-        ret = H5ATTRget_attribute_string(self.dataset_id, attrname, &attrvaluechar)
+        ret = H5ATTRget_attribute_string(self.dataset_id, attrname,
+                                         &attrvaluechar)
         retvalue = attrvaluechar
         # Important to release attrvaluechar, because it has been malloc'ed!
         if attrvaluechar: free(<void *>attrvaluechar)
@@ -962,8 +972,8 @@ Loaded anyway."""
             retvalue = float(retvalue[0])
 
         # Just if one wants to convert a scalar into a Python scalar
-        # instead of an numarray scalar. But I think it is better and more
-        # consistent a numarray scalar.
+        # instead of an numpy scalar. But I think it is better and more
+        # consistent a numpy scalar.
 #       elif format_version >= "1.4" and rank == 0:
 #         if class_id == H5T_INTEGER or class_id == H5T_FLOAT:
 #           retvalue = retvalue[()]
@@ -977,10 +987,10 @@ Loaded anyway."""
     cdef hid_t type_id
     cdef size_t rank
     cdef hsize_t *dims
-    cdef void* data
-    cdef long buflen
+    cdef void *data
     cdef int i
     cdef int itemsize
+    cdef ndarray ndv
 
     node = self._v_node
 
@@ -992,47 +1002,32 @@ Loaded anyway."""
 
     if format_version is not None and format_version < "1.4" and \
        (isinstance(value, int) or isinstance(value, float)):
-      value = numarray.asarray(value)
+      value = numpy.asarray(value)
 
     ret = 0
     # Append this attribute on disk
     if isinstance(value, str):
       ret = H5ATTRset_attribute_string(self.dataset_id, name, value)
-    elif isinstance(value, strings.CharArray):
-      itemsize = value.itemsize()
-      if itemsize > 0:
-        rank = value.rank
-        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-        for i from 0 <= i < rank:
-          dims[i] = value.shape[i]
-        buflen = NA_getBufferPtrAndSize(value._data, 1, &data)
+    elif isinstance(value, numpy.ndarray):
+      ndv = <ndarray>value
+      rank = ndv.nd
+      dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+      for i from 0 <= i < rank:
+        dims[i] = ndv.dimensions[i]
+      data = ndvalue.data
+      if value.dtype.char == "S":
+        itemsize = value.itemsize
         ret = H5ATTRset_attribute_string_CAarray(
           self.dataset_id, name, rank, dims, itemsize, data)
         free(<void *>dims)
-      else:
-        # HDF5 does not support strings with itemsize = 0. This kind of
-        # strings will appear only in numarray strings.
-        # Convert this object to a null-terminated string
-        # (binary pickles are not supported at this moment)
-        pickledvalue = cPickle.dumps(value, 0)
-        self._g_setAttrStr(name, pickledvalue)
-    elif isinstance(value, numarray.numarraycore.NumArray):
-      if value.type() in NATypeToHDF5AtomicType.keys():
-        type_id = NATypeToHDF5AtomicType[value.type()]
-
-        rank = value.rank
-        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-
-        for i from 0 <= i < rank:
-          dims[i] = value.shape[i]
-
-        buflen = NA_getBufferPtrAndSize(value._data, 1, &data)
-        ret = H5ATTRset_attribute_numerical_NAarray(self.dataset_id, name,
+      elif value.dtype in NPTypeToHDF5AtomicType.keys():
+        type_id = NPTypeToHDF5AtomicType[value.type()]
+        ret = H5ATTRset_attribute_numerical_NParray(self.dataset_id, name,
                                                     rank, dims, type_id, data)
-        free(<void *>dims)
-      else:   # One should add complex support for numarrays
+      else:   # One should add complex support for numpy arrays
         pickledvalue = cPickle.dumps(value, 0)
         self._g_setAttrStr(name, pickledvalue)
+      free(<void *>dims)
     else:
       # Convert this object to a null-terminated string
       # (binary pickles are not supported at this moment)
@@ -1205,11 +1200,11 @@ cdef class Array(Leaf):
 
     if isinstance(naarr, strings.CharArray):
       type = CharType
-      enumtype = naTypeToNAEnum[CharType]
+      enumtype = npTypeToNpEnum[CharType]
     else:
       type = naarr._type
       try:
-        enumtype = naTypeToNAEnum[naarr._type]
+        enumtype = npTypeToNpEnum[naarr._type]
       except KeyError:
         raise TypeError, \
       """Type class '%s' not supported right now. Sorry about that.
@@ -1279,7 +1274,7 @@ cdef class Array(Leaf):
       elif stype == 'Time64':
         enumtype = ord('T')
       else:
-        enumtype = naTypeToNAEnum[self.type]
+        enumtype = npTypeToNpEnum[self.type]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported right now. Sorry about that.
@@ -1336,7 +1331,7 @@ cdef class Array(Leaf):
 
 
   def _loadEnum(self):
-    """_loadEnum() -> (Enum, naType)
+    """_loadEnum() -> (Enum, npType)
     Load enumerated type associated with this array.
 
     This method loads the HDF5 enumerated type associated with this
@@ -1443,8 +1438,8 @@ cdef class Array(Leaf):
     shape = tuple(shape)
     chunksizes = tuple(chunksizes)
 
-    type = naEnumToNAType.get(enumtype, None)
-    return (self.dataset_id, type, naEnumToNASType[enumtype],
+    type = npEnumToNPType.get(enumtype, None)
+    return (self.dataset_id, type, npEnumToNPSType[enumtype],
             shape, type_size, byteorder, chunksizes)
 
   def _convertTypes(self, object naarr, int sense):
@@ -1640,7 +1635,7 @@ cdef class VLArray(Leaf):
       elif stype == 'Time64':
         enumtype = ord('T')
       else:
-        enumtype = naTypeToNAEnum[type_]
+        enumtype = npTypeToNpEnum[type_]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported right now. Sorry about that.
@@ -1700,7 +1695,7 @@ cdef class VLArray(Leaf):
 
 
   def _loadEnum(self):
-    """_loadEnum() -> (Enum, naType)
+    """_loadEnum() -> (Enum, npType)
     Load enumerated type associated with this array.
 
     This method loads the HDF5 enumerated type associated with this
@@ -1761,8 +1756,8 @@ cdef class VLArray(Leaf):
       raise TypeError, "The HDF5 class of object does not seem VLEN. Sorry!"
 
     # Get the type of the atomic type
-    self._atomictype = naEnumToNAType.get(enumtype, None)
-    self._atomicstype = naEnumToNASType[enumtype]
+    self._atomictype = npEnumToNPType.get(enumtype, None)
+    self._atomicstype = npEnumToNPSType[enumtype]
     # Get the size and shape of the atomic type
     self._atomicsize = self._basesize
     if self.rank:
@@ -1944,7 +1939,7 @@ cdef class UnImplemented(Leaf):
 
 ## Local Variables:
 ## mode: python
-## py-indent-offset: 4
-## tab-width: 4
+## py-indent-offset: 2
+## tab-width: 2
 ## fill-column: 78
 ## End:

@@ -1,6 +1,6 @@
-#include <Python.h>
-#include <numarray/numarray.h>
-#include <hdf5.h>
+#include "Python.h"
+#include "numpy/arrayobject.h"
+#include "hdf5.h"
 
 /* Define this variable for error printings */
 /*#define DEBUG 1 */
@@ -86,5 +86,5 @@ herr_t get_order(hid_t type_id, char *byteorder);
 
 hid_t create_native_complex64(const char *byteorder);
 
-hid_t create_native_complex32(const char *byteorder);
+hid_t create_native_complex128(const char *byteorder);
 

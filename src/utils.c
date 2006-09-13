@@ -686,33 +686,33 @@ herr_t set_order(hid_t type_id, const char *byteorder) {
 }
 
 /* Create a HDF5 compound datatype that represents complex numbers
-   defined by numarray as Complex64.
+   defined by numpy as cfloat.
    We must set the byteorder before we create the type */
 hid_t create_native_complex64(const char *byteorder) {
   hid_t float_id, complex_id;
-
-  float_id = H5Tcopy(H5T_NATIVE_DOUBLE);
-  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(Complex64));
+  float_id = H5Tcopy(H5T_NATIVE_FLOAT);
+  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(npy_cfloat));
   set_order(float_id, byteorder);
-  H5Tinsert (complex_id, "r", HOFFSET(Complex64,r),
+  H5Tinsert (complex_id, "r", HOFFSET(npy_cfloat, real),
 	     float_id);
-  H5Tinsert (complex_id, "i", HOFFSET(Complex64,i),
+  H5Tinsert (complex_id, "i", HOFFSET(npy_cfloat, imag),
 	     float_id);
   H5Tclose(float_id);
   return complex_id;
 }
 
 /* Create a HDF5 compound datatype that represents complex numbers
-   defined by numarray as Complex32.
+   defined by numpy as cdouble.
    We must set the byteorder before we create the type */
-hid_t create_native_complex32(const char *byteorder) {
+hid_t create_native_complex128(const char *byteorder) {
   hid_t float_id, complex_id;
-  float_id = H5Tcopy(H5T_NATIVE_FLOAT);
-  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(Complex32));
+
+  float_id = H5Tcopy(H5T_NATIVE_DOUBLE);
+  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(npy_cdouble));
   set_order(float_id, byteorder);
-  H5Tinsert (complex_id, "r", HOFFSET(Complex32,r),
+  H5Tinsert (complex_id, "r", HOFFSET(npy_cdouble, real),
 	     float_id);
-  H5Tinsert (complex_id, "i", HOFFSET(Complex32,i),
+  H5Tinsert (complex_id, "i", HOFFSET(npy_cdouble, imag),
 	     float_id);
   H5Tclose(float_id);
   return complex_id;

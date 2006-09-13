@@ -13,7 +13,7 @@
  ***********************************************************************/
 
 /* Type conversion functions for PyTables types which are stored
- * with a different representation between Numarray and HDF5.
+ * with a different representation between numpy and HDF5.
  */
 
 #include "typeconv.h"

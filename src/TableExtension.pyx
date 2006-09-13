@@ -25,7 +25,6 @@ Misc variables:
     __version__
 """
 
-####import numarray
 import numpy
 
 import tables.hdf5Extension
@@ -43,11 +42,8 @@ from lrucacheExtension cimport NumCache
 __version__ = "$Revision$"
 
 
-#-----------------------------------------------------------------
 
-# Define the CharType code as a constant
-cdef enum:
-  CHARTYPE = 97  # 97 == ord('a')
+#-----------------------------------------------------------------
 
 # Standard C functions.
 cdef extern from "stdlib.h":
@@ -369,14 +365,14 @@ cdef class Table:  # XXX extends Leaf
 
     This method loads the HDF5 enumerated type associated with
     `colname`.  It returns an `Enum` instance built from that, and the
-    Numarray type used to encode it.
+    NumPy type used to encode it.
     """
 
     cdef hid_t enumId
 
     enumId = getTypeEnum(fieldTypeId)
 
-    # Get the Enum and Numarray types and close the HDF5 type.
+    # Get the Enum and NumPy types and close the HDF5 type.
     try:
       return enumFromHDF5(enumId)
     finally:
@@ -1182,13 +1178,10 @@ cdef class Row:
       inrowsread = inrowsread + self.table._read_records(i, inrowsinbuf,
                                                          self.rbufRA)
       # Assign the correct part to result
-      # The bottleneck is in this assignment. Hope that the numarray
-      # people might improve this in the short future
       # As above, see:
       # https://sourceforge.net/mailarchive/forum.php?thread_id=8428233&forum_id=13760
       #result[startr:stopr] = fields[istartb:istopb:istep]
       if field:
-        #result[startr:stopr] = fields.field(field)[istartb:istopb:istep]
         result[startr:stopr] = fields[field][istartb:istopb:istep]
       else:
         result[startr:stopr] = fields[istartb:istopb:istep]
@@ -1318,6 +1311,7 @@ cdef class Row:
       if fieldName in self.colenums:
         enum = self.colenums[fieldName]
         #cenvals = numarray.array(value).flat
+        # XYX  Reemplacar aco quan tinguem la migracio de utilsExtension feta
         #for cenval in cenvals:
         for cenval in numpy.asarray(value).flat:
           enum(cenval)  # raises ``ValueError`` on invalid values

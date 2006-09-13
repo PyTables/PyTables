@@ -43,7 +43,7 @@ herr_t H5ATTRset_attribute_string_CAarray( hid_t obj_id,
 					   int itemsize,
 					   const char *attr_data );
 
-herr_t H5ATTRset_attribute_numerical_NAarray( hid_t loc_id,
+herr_t H5ATTRset_attribute_numerical_NParray( hid_t loc_id,
 					      const char *attr_name,
 					      size_t rank,
 					      hsize_t *dims,
