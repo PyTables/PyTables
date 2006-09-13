@@ -51,6 +51,7 @@ except ImportError:
 
 
 from tables.nriterators import flattenNames
+from tables.numexpr import evaluate  ##XXX
 
 import tables.TableExtension as TableExtension
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
@@ -126,7 +127,6 @@ class NailedDict(object):  ##XXX
         self._nailcount -= 1
     def unnail(self):
         self._nailcount += 1
-
 
     # The following are intended to be used by ``Table`` code handling
     # conditions.
@@ -946,19 +946,21 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
                "the chosen column has too few elements to be indexed"
 
         # Set the index column and residual condition (if any)
+        # for the ``Row`` iterator.
         self.whereIndex = column.pathname
         if rescond:
             self.whereCondition = (rescond, condvars)
         # Get the coordinates to lookup
         range_ = index.getLookupRange2XXX(ops, lims, self)
         ncoords = index.search(range_)
-        if ncoords == 0:
+        if not rescond and ncoords == 0:
             # There are no interesting values
             # Reset the table variable conditions
             self.whereIndex = None
             self.whereCondition = None
             # Return the empty iterator
             return iter([])
+        # Iterate according to the index and residual conditions.
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         row = TableExtension.Row(self)
         # Call the indexed version of Row iterator (coords=None,ncoords>=0)
@@ -1037,35 +1039,49 @@ This method is intended only for indexed columns, but this column has not a mini
         assert index is not None, "the chosen column is not indexed"
         assert not column.dirty, "the chosen column has a dirty index"
 
-        # Set the index column and residual condition (if any)
-        self.whereIndex = column.pathname
-        if rescond:
-            self.whereCondition = (rescond, condvars)
+        # Retrieve the array of rows fulfilling the index condition.
 
         # Get the coordinates to lookup
         range_ = index.getLookupRange2XXX(ops, lims, self)
-        # Check whether the (column, range_) is in the limdata cache or not
-        item = (column.name, range_, flavor)
-        nslot = self._limdatacache.getslot(item)
+        nslot = -1
+        if not rescond:
+            # Check whether the array is in the limdata cache or not.
+            # The presence of a residual condition invalidates this
+            # mechanism, since the result may be further restricted.
+            # One could include the residual condition and the values of
+            # its variables in the key, but that looks too complicated.
+            item = (column.name, range_, flavor)
+            nslot = self._limdatacache.getslot(item)
         if nslot >= 0:
-            # Cache hit. Return the recarray kept there.
+            # Cache hit. Use the array kept there.
             recarr = self._limdatacache.getitem(nslot)
+            nrecords = len(recarr)
         else:
             # No luck with cached data. Proceed with the regular search.
             nrecords = index.search(range_)
-            # Create a read buffer
+            # Create a buffer and read the values in.
             recarr = self._get_container(nrecords)
             if nrecords > 0:
                 coords = index.indices._getCoords(index, 0, nrecords)
                 recout = self._read_elements(recarr, coords)
-            # On s'avalua rescond??
-            # Delete indexation caches
-            self.whereCondition = None
-            self.whereIndex = None
-            # Compute the size of the recarray (aproximately)
-            size = len(recarr) * self.rowsize + 1
-            # Put this recarray in limdata cache
+
+        # Put this recarray in limdata cache.  See the comment above
+        # about the residual expression.
+        if not rescond:
+            size = len(recarr) * self.rowsize + 1  # approx. size of array
             self._limdatacache.setitem(item, recarr, size)
+
+        # Filter out rows not fulfilling the residual condition.
+        # XXX: Taken from Row.__next__indexed2XXX(), please refactor.
+        if rescond and nrecords > 0:
+            numexpr_locals = {}
+            # Replace references to columns with the proper array fragment.
+            for (var, val) in condvars.items():
+                if hasattr(val, 'pathname'):  # looks like a column
+                    val = recarr[val.pathname]
+                numexpr_locals[var] = val
+            indexValid = evaluate(rescond, numexpr_locals, {})
+            recarr = recarr[indexValid]
 
         if field:
             recarr = recarr[field]
@@ -1162,8 +1178,6 @@ please reindex the table to put the index in a sane state""")
 
         idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars, self)
 
-        # XYX Falta avaluar el rescond...
-
         # Take advantage of indexation, if present
         if idxvar is not None:
             column = condvars[idxvar]
@@ -1184,6 +1198,21 @@ please reindex the table to put the index in a sane state""")
             else:
                 #coords = numpy.empty(type=numpy.int64, shape=0)
                 coords = self._g_getemptyarray("int64")
+
+            # Filter out rows not fulfilling the residual condition.
+            # XXX: Taken from Row.__next__indexed2XXX(), please refactor.
+            if rescond and ncoords > 0:
+                numexpr_locals = {}
+                recarr = self.readCoordinates(coords, flavor='numpy')
+                # Replace references to columns with the proper array fragment.
+                for (var, val) in condvars.items():
+                    if hasattr(val, 'pathname'):  # looks like a column
+                        val = recarr[val.pathname]
+                    numexpr_locals[var] = val
+                indexValid = evaluate(rescond, numexpr_locals, {})
+                coords = coords[indexValid]
+                ncoords = len(coords)
+
             if not index.is_pro:
                 # get the remaining rows from the table
                 start = index.nelements
@@ -1508,7 +1537,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         is provided, an additional conversion to an object of this
         flavor is made, just as in `read()`. If not specified, the
         default flavor for this table will be chosen as the output
-        format. """
+        format.
+        """
 
         if not flavor:
             flavor = self.flavor
@@ -1520,7 +1550,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             raise ValueError, \
 """Numeric does not support heterogeneous datasets yet. You cannot specify a 'numeric' flavor without specifying a field."""
 
-        ncoords = coords.size
+        ncoords = len(coords)
         # Create a read buffer only if needed
         if field is None or ncoords > 0:
             # Doing a copy is faster when ncoords is small (<1000)
