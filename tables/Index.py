@@ -431,66 +431,61 @@ def split_index_condXXX(condition, condvars, table):
     * '(0<c1) & (c2>2) & (c1<=1)' -> ('c1', ['le'], [1], '((c1>0)&(c2>2))')
     * '(0<c1) & ((c2>2) & (c1<=1))' -> ('c1', ['gt'], [0], '((c2>2)&(c1<=1))')
 
-    Expressions such as '0 < c1 <= 1' do not work as expected.
+    Expressions such as '0 < c1 <= 1' do not work as expected.  The
+    `table` argument refers to a table where a condition cache can be
+    looked up and updated.
     """
-    def can_use_index_orig(column):
-        # Note that getting the index can be expensive.
-        index = column.index
-        return ( index and not column.dirty
-                 and (index.is_pro or index.nelements > 0) )
-    def can_use_index(column):
-        # Note that getting the index can be expensive.
-        index = column.index
-        return ( index and not column.dirty
-                 and (index.is_pro or index.nelements > 0) )
-    def value(lim):
-        if type(lim) is tuple:
-            return varvalues[lim[0]]
-        return lim
-    zero = lambda t: numarray.zeros(1, t)[0]
 
-    # Try to get an already splitted condition from the cache.
-    condkey = condition
-    splitted = table and table._splittedCondCache.get(condkey, None)
-    if splitted:
-        idxvar, ops, lims, rescond = splitted  # bingo!
-        # Check that the index can be used whitout problems
-        if not condvars[idxvar].dirty:
-            return (idxvar, ops, map(value, lims), rescond)
+    # Build the key for the condition cache.
+    colnames, varnames = [], []
+    colpaths, vartypes = [], []
+    for (var, val) in condvars.items():
+        if hasattr(val, 'pathname'):  # looks like a column
+            colnames.append(var)
+            colpaths.append(val.pathname)
         else:
-            # Nope. Return as if the index can't be used
-            return (None, [], [], condition)
+            varnames.append(var)
+            vartypes.append(bestConstantType(val))  # expensive
+    colnames, varnames = tuple(colnames), tuple(varnames)
+    colpaths, vartypes = tuple(colpaths), tuple(vartypes)
+    condkey = (condition, colnames, varnames, colpaths, vartypes)
+
+    # Look up the condition in the condition cache.
+    condcache = table._conditionCache
+    splitted = condcache.get(condkey)
+    if splitted:
+        return splitted  # bingo!
 
     # Bad luck, the condition must be parsed and splitted.
 
-    # Look for columns with usable indexes.
-    indexedcols = []
-    for (cvar, cval) in condvars.items():
-        if hasattr(cval, 'pathname') and can_use_index(cval):
-            indexedcols.append(cvar)
-            if table is None:  # get table for cache access
-                table = cval.table
-    indexedcols = frozenset(indexedcols)
+    # Extract types from *all* the given variables.
+    zero = lambda dtype: numpy.zeros(1, dtype)[0]
+    typemap = dict(zip(varnames, vartypes))  # start with normal variables
+    for colname in colnames:  # then add types of columns
+        # Converting to a string may not be necessary when the
+        # transition from numarray to NumPy is complete.
+        coldtype = str(condvars[colname].type)
+        typemap[colname] = bestConstantType(zero(coldtype))  # expensive
 
-    # Extract types and values from the given variables.
-    vartypes, varvalues = {}, {}
-    for (cvar, cval) in condvars.items():
-        if hasattr(cval, 'pathname'):  # looks like a column
-            cval = zero(cval.type)
-        varvalues[cvar] = cval
-        vartypes[cvar] = bestConstantType(cval)
+    # Get the set of columns with usable indexes.
+    can_use_index = lambda column: column.index and not column.dirty
+    indexedcols = frozenset(
+        colname for colname in colnames
+        if can_use_index(condvars[colname]) )
 
     # Get the expression tree and split the indexable part out.
-    expr = stringToExpression(condition, vartypes, {})
+    expr = stringToExpression(condition, typemap, {})
     idxvar, ops, lims, resexpr = split_index_exprXXX(expr, indexedcols)
 
     if resexpr:
         rescond = resexpr._pt_topython()
     else:
         rescond = None
-    table._splittedCondCache[condkey] = (idxvar, ops, lims, rescond)
+    splitted = (idxvar, ops, lims, rescond)
 
-    return (idxvar, ops, map(value, lims), rescond)
+    # Store the splitted condition in the cache and return it.
+    condcache[condkey] = splitted
+    return splitted
 
 
 class IndexProps(object):

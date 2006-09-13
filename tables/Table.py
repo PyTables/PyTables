@@ -106,6 +106,52 @@ def _getIndexColName(parent, tablename, colname):
     return joinPath(_getIndexTableName(parent, tablename), colname)
 
 
+class NailedDict(object):  ##XXX
+
+    """A dictionary which ignores its items when it has nails on it."""
+
+    def __init__(self):
+        self._cache = {}
+        self._nailcount = 0
+
+    # Only a restricted set of dictionary methods are supported.  That
+    # is why we buy instead of inherit.
+
+    # The following are intended to be used by ``Table`` code changing
+    # the set of usable indexes.
+
+    def clear(self):
+        self._cache.clear()
+    def nail(self):
+        self._nailcount -= 1
+    def unnail(self):
+        self._nailcount += 1
+
+
+    # The following are intended to be used by ``Table`` code handling
+    # conditions.
+
+    def __contains__(self, key):
+        if self._nailcount > 0:
+            return False
+        return key in self._cache
+
+    def __getitem__(self, key):
+        if self._nailcount > 0:
+            raise KeyError(key)
+        return self._cache[key]
+
+    def get(self, key, default=None):
+        if self._nailcount > 0:
+            return default
+        return self._cache.get(key, default)
+
+    def __setitem__(self, key, value):
+        if self._nailcount > 0:
+            return
+        self._cache[key] = value
+
+
 class Table(TableExtension.Table, Leaf):
     """Represent a table in the object tree.
 
@@ -346,9 +392,8 @@ class Table(TableExtension.Table, Leaf):
         """Condition string and variable map for selection of values."""
         self.whereIndex = None  ##XXX
         """Path of the indexed column to be used in an indexed search."""
-        self._splittedCondCache = {}  ##XXX
+        self._conditionCache = NailedDict()  ##XXX
         """Cache of already splitted conditions."""
-        # It is manipulated by ``split_index_condXXX()``.
         self._emptyArrayCache = {}  ##XXX
         """Cache of empty arrays."""
 
@@ -428,7 +473,12 @@ class Table(TableExtension.Table, Leaf):
                 indexed = indexname in self._v_file
                 self.colindexed[colname] = indexed
                 if indexed:
-                    indexobj = self.cols._f_col(colname).index
+                    column = self.cols._f_col(colname)
+                    indexobj = column.index  # to query properties later
+                    ##XXX
+                    # Tell the condition cache about dirty indexed columns.
+                    if column.dirty:
+                        self._conditionCache.nail()
             else:
                 indexed = False
                 self.colindexed[colname] = False
@@ -2667,7 +2717,8 @@ class Column(object):
 
 
     def _set_dirty(self, dirty):
-        self._dirty = dirty
+        wasdirty = getattr(self, "_dirty", False)  ##XXX
+        self._dirty = isdirty = dirty
         index = self.index
         # Only set the index column as dirty if it exists
         if index:
@@ -2676,10 +2727,17 @@ class Column(object):
                 index.indicesLR[-1] = 0
                 index.nelementsLR = 0
                 index.nelements = 0
+        ##XXX
+        # If an *actual* change in dirtiness happens,
+        # notify the condition cache by setting or removing a nail.
+        if index and not wasdirty and isdirty:
+            self.table._conditionCache.nail()
+        if index and wasdirty and not isdirty:
+            self.table._conditionCache.unnail()
 
     # Define a property.  The 'delete this attribute'
     # method is defined as None, so the attribute can't be deleted.
-    dirty = property(_get_dirty, _set_dirty, None, "Column dirtyness")
+    dirty = property(_get_dirty, _set_dirty, None, "Column dirtiness")
 
 
     def __len__(self):
@@ -2888,6 +2946,10 @@ Attempt to write over a file opened in read-only mode.""")
             expectedrows=table._v_expectedrows)
         self._updateIndexLocation(index)
 
+        # Changing the set of indexed columns
+        # invalidates the condition cache.
+        table._conditionCache.clear()
+
         # Feed the index with values
         slicesize = index.slicesize
         if (not index.is_pro and
@@ -2987,6 +3049,9 @@ Attempt to write over a file opened in read-only mode.""")
             index._f_remove()
             self._updateIndexLocation(None)
             table.colindexed[self.name] = 0
+            # Changing the set of indexed columns
+            # invalidates the condition cache.
+            table._conditionCache.clear()
         else:
             return  # Do nothing
 
