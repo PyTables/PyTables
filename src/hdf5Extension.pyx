@@ -507,6 +507,30 @@ cdef object splitPath(object path):
   return (ppath, name)
 
 
+# Helper function for quickly fetch an attribute string
+def get_attribute_string_or_none(node_id, attr_name):
+  """
+  Returns a string attribute if it exists in node_id.
+
+  It returns ``None`` in case it don't exists (or there have been problems
+  reading it).
+  """
+
+  cdef char *attr_value
+  cdef object retvalue
+
+  attr_value = NULL
+  retvalue = None   # Default value
+  if H5ATTR_find_attribute(node_id, attr_name):
+    ret = H5ATTRget_attribute_string(node_id, attr_name, &attr_value)
+    if ret < 0: return None
+    retvalue = attr_value
+    # Important to release attr_value, because it has been malloc'ed!
+    if attr_value: free(<void *>attr_value)
+  return retvalue
+
+
+
 # Type extensions declarations (these are subclassed by PyTables
 # Python classes)
 
@@ -724,32 +748,10 @@ cdef class File:
 
 
 
-# Helper function for quickly fetch an attribute string
-def get_attribute_string_or_none(node_id, attr_name):
-  """
-  Returns a string attribute if it exists in node_id.
-
-  It returns ``None`` in case it don't exists (or there have been problems
-  reading it).
-  """
-
-  cdef char *attr_value
-  cdef object retvalue
-
-  attr_value = NULL
-  retvalue = None   # Default value
-  if H5ATTR_find_attribute(node_id, attr_name):
-    ret = H5ATTRget_attribute_string(node_id, attr_name, &attr_value)
-    if ret < 0: return None
-    retvalue = attr_value
-    # Important to release attr_value, because it has been malloc'ed!
-    if attr_value: free(<void *>attr_value)
-  return retvalue
-
-
 cdef class AttributeSet:
   cdef hid_t   dataset_id
   cdef char    *name
+
 
   def _g_new(self, node):
     # Initialize the C attributes of Node object
@@ -757,16 +759,14 @@ cdef class AttributeSet:
     # The dataset id of the node
     self.dataset_id = node._v_objectID
 
+
   def __g_listAttr(self):
     "Return a tuple with the attribute list"
     a = Aiterate(self.dataset_id)
-    #Py_DECREF(a)  # makes a core dump
     return a
 
+
   # The next is a re-implementation of Aiterate but in pure Pyrex
-  # However, it seems to leak exactly the same as its C counterpart
-  # This should be further revised :-/
-  # F. Altet 2005/09/30
   def _g_listAttr(self):
     "Return a tuple with the attribute list"
     cdef int nattrs, i
@@ -782,9 +782,11 @@ cdef class AttributeSet:
       lattrs.append(attr_name)
     return lattrs
 
+
   # Get a system attribute (they should be only strings)
   def _g_getSysAttr(self, char *attrname):
     return get_attribute_string_or_none(self.dataset_id, attrname)
+
 
   # Set a system attribute (they should be only strings)
   def _g_setAttrStr(self, char *attrname, char *attrvalue):
@@ -794,6 +796,7 @@ cdef class AttributeSet:
     if ret < 0:
       raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
                          (attrname, self._v_node))
+
 
   # Get attributes
   def _g_getAttr(self, char *attrname):
@@ -980,6 +983,7 @@ Loaded anyway."""
 
     return retvalue
 
+
   def _g_setAttr(self, char *name, object value):
     cdef int ret
     cdef int valint
@@ -1038,6 +1042,7 @@ Loaded anyway."""
       raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
                          (name, node))
 
+
   def _g_remove(self, attrname):
     cdef int ret
     ret = H5Adelete(self.dataset_id, attrname)
@@ -1045,18 +1050,22 @@ Loaded anyway."""
       raise HDF5ExtError("Attribute '%s' exists in node '%s', but cannot be deleted." \
                          % (attrname, self.name))
 
+
   def __dealloc__(self):
     self.dataset_id = 0
 
 
+
 cdef class Node:
   # Instance variables declared in .pxd
+
 
   def _g_new(self, where, name, init):
     self.name = strdup(name)
     """The name of this node in its parent group."""
     self.parent_id = where._v_objectID
     """The identifier of the parent group."""
+
 
   def _g_delete(self):
     cdef int ret
@@ -1067,12 +1076,15 @@ cdef class Node:
       raise HDF5ExtError("problems deleting the node ``%s``" % self.name)
     return ret
 
+
   def __dealloc__(self):
     free(<void *>self.name)
 
 
+
 cdef class Group(Node):
   cdef hid_t   group_id
+
 
   def _g_create(self):
     cdef hid_t ret
@@ -1084,6 +1096,7 @@ cdef class Group(Node):
     self.group_id = ret
     return self.group_id
 
+
   def _g_open(self):
     cdef hid_t ret
 
@@ -1093,9 +1106,11 @@ cdef class Group(Node):
     self.group_id = ret
     return self.group_id
 
+
   def _g_listGroup(self):
     # Return a tuple with the objects groups and objects dsets
     return Giterate(self.parent_id, self._v_objectID, self.name)
+
 
   def _g_getGChildAttr(self, char *group_name, char *attr_name):
     """
@@ -1116,6 +1131,7 @@ cdef class Group(Node):
 
     return retvalue
 
+
   def _g_getLChildAttr(self, char *leaf_name, char *attr_name):
     """
     Return an attribute of a child `Leaf`.
@@ -1133,9 +1149,11 @@ cdef class Group(Node):
     H5Dclose(leaf_id)
     return retvalue
 
+
   def _g_flushGroup(self):
     # Close the group
     H5Fflush(self.group_id, H5F_SCOPE_GLOBAL)
+
 
   def _g_closeGroup(self):
     cdef int ret
@@ -1144,6 +1162,7 @@ cdef class Group(Node):
     if ret < 0:
       raise HDF5ExtError("Problems closing the Group %s" % self.name )
     self.group_id = 0  # indicate that this group is closed
+
 
   def _g_moveNode(self, hid_t oldparent, char *oldname,
                   hid_t newparent, char *newname,
@@ -1161,6 +1180,7 @@ cdef class Group(Node):
 cdef class Leaf(Node):
   # Instance variables declared in .pxd
 
+
   def _g_new(self, where, name, init):
     if init:
       # Put this info to 0 just when the class is initialized
@@ -1169,10 +1189,12 @@ cdef class Leaf(Node):
       self.base_type_id = -1
     super(Leaf, self)._g_new(where, name, init)
 
+
   def _g_flush(self):
     # Flush the dataset (in fact, the entire buffers in file!)
     if self.dataset_id >= 0:
         H5Fflush(self.dataset_id, H5F_SCOPE_GLOBAL)
+
 
   def _g_close(self):
     # Close dataset in HDF5 space
@@ -1186,56 +1208,43 @@ cdef class Leaf(Node):
 
 
 cdef class Array(Leaf):
-  # Instance variables declared in .pxd counterpart
+  # Instance variables declared in .pxd
 
-  def _createArray(self, object naarr, char *title):
+
+  def _createArray(self, ndarr nparr, char *title):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
-    cdef long buflen
-    cdef int enumtype, itemsize, offset
+    cdef int enumtype
+    cdef long itemsize
     cdef char *byteorder
     cdef char *flavor, *complib, *version, *class_
-    cdef object type
+    cdef object type_
 
-    if isinstance(naarr, strings.CharArray):
-      type = CharType
-      enumtype = npTypeToNpEnum[CharType]
-    else:
-      type = naarr._type
-      try:
-        enumtype = npTypeToNpEnum[naarr._type]
-      except KeyError:
-        raise TypeError, \
-      """Type class '%s' not supported right now. Sorry about that.
-      """ % repr(naarr._type)
+    type_ = nparr.dtype.type
+    try:
+      enumtype = npTypeToNpEnum[type_]
+    except KeyError:
+      raise TypeError, \
+            """Type class '%s' not supported right now. Sorry about that.
+            """ % repr(type_)
 
-    # String types different from Numarray types are still not allowed
-    # in regular Arrays.
-    stype = str(type)
-
-    itemsize = naarr._itemsize
+    # Get the HDF5 type associated with this numpy type
+    itemsize = nparr.itemsize
     byteorder = PyString_AsString(self.byteorder)
     self.type_id = convArrayType(enumtype, itemsize, byteorder)
     if self.type_id < 0:
       raise TypeError, \
         """type '%s' is not supported right now. Sorry about that.""" \
-    % type
+        % type_
 
     # Get the pointer to the buffer data area
-    # the second parameter means whether the buffer is read-only or not
-    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
-    # Correct the start of the buffer with the _byteoffset
-    offset = naarr._byteoffset
-    rbuf = <void *>(<char *>rbuf + offset)
-
-    # Allocate space for the dimension axis info
-    self.rank = len(self.shape)
+    rbuf = nparr.data
+    # Allocate space for the dimension axis info and fill it
+    self.rank = nparr.nd
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    # Fill the dimension axis info with adequate info (and type!)
     for i from  0 <= i < self.rank:
-      self.dims[i] = naarr.shape[i]
-
+      self.dims[i] = nparr.dimensions[i]
     # Save the array
     flavor = PyString_AsString(self.flavor)
     complib = PyString_AsString(self.filters.complib)
@@ -1251,7 +1260,9 @@ cdef class Array(Leaf):
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
-    return (self.dataset_id, type, stype)
+    stype = numpy.typeNA[type_]
+    return (self.dataset_id, type_, stype)
+
 
   def _createEArray(self, char *title):
     cdef int i, enumtype
@@ -1264,9 +1275,8 @@ cdef class Array(Leaf):
 
     atom = self.atom
     itemsize = atom.itemsize
-
     try:
-      # Since Time columns have no Numarray type of their own,
+      # Since Time columns have no NumPy type of their own,
       # a special case is made for them.
       stype = atom.stype
       if stype == 'Time32':
@@ -1290,8 +1300,6 @@ cdef class Array(Leaf):
           """type '%s' is not supported right now. Sorry about that.""" \
       % self.type
 
-    fill_value = NULL
-
     self.rank = len(self.shape)
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     if self._v_chunksize:
@@ -1308,24 +1316,22 @@ cdef class Array(Leaf):
     complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
+    # Setup the fill values
     fill_value = <void *>malloc(<size_t> itemsize)
-    if(fill_value):
-      for i from  0 <= i < itemsize:
-        (<char *>fill_value)[i] = 0
-    else:
-      raise HDF5ExtError("Unable to allocate memory for fill_value.")
+    for i from  0 <= i < itemsize:
+      (<char *>fill_value)[i] = 0
+
     # Create the EArray
-    self.dataset_id = H5ARRAYmake(self.parent_id, self.name, class_, title,
-                                  flavor, version, self.rank, self.dims,
-                                  self.extdim, self.type_id, self.dims_chunk,
-                                  fill_value, self.filters.complevel, complib,
-                                  self.filters.shuffle,
-                                  self.filters.fletcher32,
-                                  rbuf)
+    self.dataset_id = H5ARRAYmake(
+      self.parent_id, self.name, class_, title, flavor, version,
+      self.rank, self.dims, self.extdim, self.type_id, self.dims_chunk,
+      fill_value, self.filters.complevel, complib,
+      self.filters.shuffle, self.filters.fletcher32, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
+
     # Release resources
-    if(fill_value): free(fill_value)
+    free(fill_value)
 
     return self.dataset_id
 
@@ -1336,14 +1342,14 @@ cdef class Array(Leaf):
 
     This method loads the HDF5 enumerated type associated with this
     array.  It returns an `Enum` instance built from that, and the
-    Numarray type used to encode it.
+    NumPy type used to encode it.
     """
 
     cdef hid_t enumId
 
     enumId = getTypeEnum(self.type_id)
 
-    # Get the Enum and Numarray types and close the HDF5 type.
+    # Get the Enum and NumPy types and close the HDF5 type.
     try:
       return enumFromHDF5(enumId)
     finally:
@@ -1353,7 +1359,6 @@ cdef class Array(Leaf):
 
 
   def _openArray(self):
-    cdef object shape
     cdef size_t type_size, type_precision
     cdef H5T_class_t class_id
     cdef H5T_sign_t sign
@@ -1363,6 +1368,7 @@ cdef class Array(Leaf):
     cdef char *flavor
     cdef hid_t base_type_id
     cdef herr_t ret
+    cdef object shape, type_
 
     # Open the dataset (and keep it open)
     self.dataset_id = H5Dopen(self.parent_id, self.name)
@@ -1393,17 +1399,15 @@ cdef class Array(Leaf):
         self.extdim = i
         break
 
-    flavor = "numarray"   # Default value
+    flavor = "numpy"   # Default value
     if self._v_file._isPTFile:
       H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor)
     self.flavor = flavor  # Gives class visibility to flavor
 
     # Allocate space for the dimension chunking info
     self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    if ( (H5ARRAYget_chunksize(self.dataset_id, self.rank,
-                               self.dims_chunk)) < 0):
-      #H5ARRAYget_chunksize frees dims_chunk
-      self.dims_chunk = NULL
+    if ((H5ARRAYget_chunksize(self.dataset_id, self.rank,
+                              self.dims_chunk)) < 0):
       if self.extdim >= 0 or self.__class__.__name__ == 'CArray':
         raise HDF5ExtError, "Problems getting the chunksizes!"
     # Get the array type
@@ -1416,7 +1420,6 @@ cdef class Array(Leaf):
     # We had problems when creating Tuples directly with Pyrex!.
     # A bug report has been sent to Greg Ewing and here is his answer:
     """
-
     It's impossible to call PyTuple_SetItem and PyTuple_GetItem
     correctly from Pyrex, because they don't follow the standard
     reference counting protocol (PyTuple_GetItem returns a borrowed
@@ -1426,7 +1429,6 @@ cdef class Array(Leaf):
     can. Otherwise, you could create wrapppers for these functions in
     an external C file which provide standard reference counting
     behaviour.
-
     """
     # So, I've decided to create the shape tuple using Python constructs
     shape = []
@@ -1438,48 +1440,42 @@ cdef class Array(Leaf):
     shape = tuple(shape)
     chunksizes = tuple(chunksizes)
 
-    type = npEnumToNPType.get(enumtype, None)
-    return (self.dataset_id, type, npEnumToNPSType[enumtype],
+    type_ = npEnumToNPType.get(enumtype, None)
+    return (self.dataset_id, type_, npEnumToNPSType[enumtype],
             shape, type_size, byteorder, chunksizes)
 
-  def _convertTypes(self, object naarr, int sense):
-    """Converts Time64 elements in 'naarr' between Numarray and HDF5 formats.
 
-    Numarray to HDF5 conversion is performed when 'sense' is 0.
-    Otherwise, HDF5 to Numarray conversion is performed.
-    The conversion is done in place, i.e. 'naarr' is modified.
+  def _convertTypes(self, object nparr, int sense):
+    """Converts Time64 elements in 'nparr' between NumPy and HDF5 formats.
+
+    NumPy to HDF5 conversion is performed when 'sense' is 0.
+    Otherwise, HDF5 to NumPy conversion is performed.
+    The conversion is done in place, i.e. 'nparr' is modified.
     """
 
     # This should be generalised to support other type conversions.
     if self.stype == 'Time64':
-      convertTime64(naarr, len(naarr), sense)
+      convertTime64(nparr, len(nparr), sense)
 
-  def _append(self, object naarr):
-    cdef int ret
+
+  def _append(self, object nparr):
+    cdef int ret, extdim
     cdef hsize_t *dims_arr
     cdef void *rbuf
-    cdef long offset
-    cdef int buflen
     cdef object shape
-    cdef int extdim
 
     # Allocate space for the dimension axis info
     dims_arr = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    # Fill the dimension axis info with adequate info (and type!)
+    # Fill the dimension axis info with adequate info
     for i from  0 <= i < self.rank:
-        dims_arr[i] = naarr.shape[i]
+        dims_arr[i] = nparr.dimensions[i]
 
     # Get the pointer to the buffer data area
-    # Both methods do the same
-    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
-    # Correct the start of the buffer with the _byteoffset
-    offset = naarr._byteoffset
-    rbuf = <void *>(<char *>rbuf + offset)
+    rbuf = nparr.data
+    # Convert some NumPy types to HDF5 before storing.
+    self._convertTypes(nparr, 0)
 
-    # Convert some Numarray types to HDF5 before storing.
-    self._convertTypes(naarr, 0)
-
-    # Append the records:
+    # Append the records
     extdim = self.extdim
     Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYappend_records(self.dataset_id, self.type_id, self.rank,
@@ -1495,26 +1491,22 @@ cdef class Array(Leaf):
     self.shape = tuple(shape)
     self.nrows = self.dims[self.extdim]
 
-  def _modify(self, object startl, object stepl, object countl,
-              object naarr):
+
+  def _modify(self, ndarray startl, ndarray stepl, ndarray countl,
+              ndarray nparr):
     cdef int ret
     cdef void *rbuf, *temp
     cdef hsize_t *start, *step, *count
-    cdef long buflen, offset
 
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
-    # Correct the start of the buffer with the _byteoffset
-    offset = naarr._byteoffset
-    rbuf = <void *>(<char *>rbuf + offset)
-
+    rbuf = nparr.data
     # Get the start, step and count values
-    buflen = NA_getBufferPtrAndSize(startl._data, 1, <void **>&start)
-    buflen = NA_getBufferPtrAndSize(stepl._data, 1, <void **>&step)
-    buflen = NA_getBufferPtrAndSize(countl._data, 1, <void **>&count)
+    start = <hsize_t *>startl.data
+    step = <hsize_t *>stepl.data
+    count = <hsize_t *>countl.data
 
-    # Convert some Numarray types to HDF5 before storing.
-    self._convertTypes(naarr, 0)
+    # Convert some NumPy types to HDF5 before storing.
+    self._convertTypes(nparr, 0)
 
     # Modify the elements:
     Py_BEGIN_ALLOW_THREADS
@@ -1523,6 +1515,7 @@ cdef class Array(Leaf):
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Internal error modifying the elements (H5ARRAYwrite_records returned errorcode -%i)"%(-ret))
+
 
   def _truncateArray(self, hsize_t size):
     cdef hsize_t extdim
@@ -1542,18 +1535,16 @@ cdef class Array(Leaf):
     self.shape = tuple(shape)
     self.nrows = size
 
-    return
 
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step,
-                 object naarr):
+                 ndarray nparr):
     cdef herr_t ret
     cdef void *rbuf
-    cdef long buflen
     cdef hsize_t nrows
     cdef int extdim
 
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
+    rbuf = nparr.data
 
     # Number of rows to read
     nrows = ((stop - start - 1) / step) + 1  # (stop-start)/step  do not work
@@ -1561,6 +1552,8 @@ cdef class Array(Leaf):
       extdim = self.extdim
     else:
       exdim = -1
+
+    # Do the physical read
     Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYread(self.dataset_id, self.type_id, start, nrows, step,
                       extdim, rbuf)
@@ -1568,45 +1561,44 @@ cdef class Array(Leaf):
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
-    # Convert some HDF5 types to Numarray after reading.
-    self._convertTypes(naarr, 1)
+    # Convert some HDF5 types to NumPy after reading.
+    self._convertTypes(nparr, 1)
 
     return
 
-  def _g_readSlice(self, startl, stopl, stepl, bufferl):
+
+  def _g_readSlice(self, ndarray startl, ndarray stopl, ndarray stepl,
+                   ndarray bufferl):
     cdef herr_t ret
-    cdef long ndims, buflen
-    cdef void *startlb, *stoplb, *steplb, *rbuflb
-    cdef long offset
+    cdef hsize_t *start, *stop, *step
+    cdef void *rbuf
 
     # Get the pointer to the buffer data area of startl, stopl and stepl arrays
-    ndims = NA_getBufferPtrAndSize(startl._data, 1, &startlb)
-    ndims = NA_getBufferPtrAndSize(stopl._data, 1, &stoplb)
-    ndims = NA_getBufferPtrAndSize(stepl._data, 1, &steplb)
+    start = <hsize_t *>startl.data
+    stop = <hsize_t *>stopl.data
+    step = <hsize_t *>stepl.data
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(bufferl._data, 1, &rbuflb)
-    # Correct the start of the buffer with the _byteoffset
-    offset = bufferl._byteoffset
-    rbuflb = <void *>(<char *>rbuflb + offset)
+    rbuf = bufferl.data
+
     # Do the physical read
     ret = H5ARRAYreadSlice(self.dataset_id, self.type_id,
-                           <hsize_t *>startlb, <hsize_t *>stoplb,
-                           <hsize_t *>steplb, rbuflb)
+                           start, stop, step, rbuf)
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
-    # Convert some HDF5 types to Numarray after reading.
+    # Convert some HDF5 types to NumPy after reading
     self._convertTypes(bufferl, 1)
 
     return
 
+
   def __dealloc__(self):
-    #print "Destroying object Array in Extension"
     free(<void *>self.dims)
     if self.maxdims:
       free(<void *>self.maxdims)
     if self.dims_chunk:
       free(self.dims_chunk)
+
 
 
 cdef class VLArray(Leaf):
@@ -1628,7 +1620,7 @@ cdef class VLArray(Leaf):
     type_ = atom.type
     stype = atom.stype
     try:
-      # Since Time columns have no Numarray type of their own,
+      # Since Time columns have no NumPy type of their own,
       # a special case is made for them.
       if stype == 'Time32':
         enumtype = ord('t')
@@ -1700,7 +1692,7 @@ cdef class VLArray(Leaf):
 
     This method loads the HDF5 enumerated type associated with this
     array.  It returns an `Enum` instance built from that, and the
-    Numarray type used to encode it.
+    NumPy type used to encode it.
     """
 
     cdef hid_t typeId, rowTypeId, enumId
@@ -1708,7 +1700,7 @@ cdef class VLArray(Leaf):
     # Get the enumerated type.
     enumId = getTypeEnum(self.base_type_id)
 
-    # Get the Enum and Numarray types and close the HDF5 type.
+    # Get the Enum and NumPy types and close the HDF5 type.
     try:
       return enumFromHDF5(enumId)
     finally:
@@ -1722,7 +1714,7 @@ cdef class VLArray(Leaf):
     cdef char byteorder[16]  # "non-relevant" fits easily here
     cdef int i, enumtype
     cdef herr_t ret
-    cdef hsize_t nrecords[1]
+    cdef hsize_t nrecords
     cdef char *flavor
 
     # Open the dataset (and keep it open)
@@ -1742,9 +1734,9 @@ cdef class VLArray(Leaf):
     else:
       self.dims = NULL;
     # Get info on dimensions, class and type (of base class)
-    H5VLARRAYget_info(self.dataset_id, self.type_id, nrecords,
+    H5VLARRAYget_info(self.dataset_id, self.type_id, &nrecords,
                       self.dims, &self.base_type_id, byteorder)
-    flavor = "numarray"  # Default value
+    flavor = "numpy"  # Default value
     if self._v_file._isPTFile:
       H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor)
     self.flavor = flavor  # Gives class visibility to flavor
@@ -1771,35 +1763,32 @@ cdef class VLArray(Leaf):
       shape = 1
 
     self._atomicshape = shape
-    self.nrecords = nrecords[0]  # Initialize the number of records saved
-    return (self.dataset_id, nrecords[0])
+    self.nrecords = nrecords  # Initialize the number of records saved
+    return (self.dataset_id, nrecords)
 
-  def _convertTypes(self, object naarr, int sense):
-    """Converts Time64 elements in 'naarr' between Numarray and HDF5 formats.
 
-    Numarray to HDF5 conversion is performed when 'sense' is 0.
-    Otherwise, HDF5 to Numarray conversion is performed.
-    The conversion is done in place, i.e. 'naarr' is modified.
+  def _convertTypes(self, object nparr, int sense):
+    """Converts Time64 elements in 'nparr' between NumPy and HDF5 formats.
+
+    NumPy to HDF5 conversion is performed when 'sense' is 0.
+    Otherwise, HDF5 to NumPy conversion is performed.
+    The conversion is done in place, i.e. 'nparr' is modified.
     """
 
     # This should be generalised to support other type conversions.
     if self._atomicstype == 'Time64':
-      convertTime64(naarr, len(naarr), sense)
+      convertTime64(nparr, len(nparr), sense)
 
-  def _append(self, object naarr, int nobjects):
+
+  def _append(self, ndarray nparr, int nobjects):
     cdef int ret
     cdef void *rbuf
-    cdef long buflen, offset
 
     # Get the pointer to the buffer data area
     if nobjects:
-      buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
-      # Correct the start of the buffer with the _byteoffset
-      offset = naarr._byteoffset
-      rbuf = <void *>(<char *>rbuf + offset)
-
-      # Convert some Numarray types to HDF5 before storing.
-      self._convertTypes(naarr, 0)
+      rbuf = nparr.data
+      # Convert some NumPy types to HDF5 before storing.
+      self._convertTypes(nparr, 0)
     else:
       rbuf = NULL
 
@@ -1813,20 +1802,16 @@ cdef class VLArray(Leaf):
 
     self.nrecords = self.nrecords + 1
 
-  def _modify(self, hsize_t nrow, object naarr, int nobjects):
+
+  def _modify(self, hsize_t nrow, ndobject nparr, int nobjects):
     cdef int ret
     cdef void *rbuf
-    cdef long buflen, offset
 
     # Get the pointer to the buffer data area
-    buflen = NA_getBufferPtrAndSize(naarr._data, 1, &rbuf)
-    # Correct the start of the buffer with the _byteoffset
-    offset = naarr._byteoffset
-    rbuf = <void *>(<char *>rbuf + offset)
-
+    rbuf = nparr.data
     if nobjects:
-      # Convert some Numarray types to HDF5 before storing.
-      self._convertTypes(naarr, 0)
+      # Convert some NumPy types to HDF5 before storing.
+      self._convertTypes(nparr, 0)
 
     # Append the records:
     Py_BEGIN_ALLOW_THREADS
@@ -1838,20 +1823,22 @@ cdef class VLArray(Leaf):
 
     return nobjects
 
+
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step):
+    cdef int i
+    cdef size_t vllen
     cdef herr_t ret
     cdef hvl_t *rdata
-    cdef size_t vllen
-    cdef object rbuf, naarr, shape, datalist
-    cdef int i
     cdef hsize_t nrows
     cdef hid_t space_id
     cdef hid_t mem_space_id
+    cdef object buf, nparr, shape, datalist, dtype
 
     # Compute the number of rows to read
     nrows = ((stop - start - 1) / step) + 1  # (stop-start)/step  do not work
     if start + nrows > self.nrows:
-      raise HDF5ExtError("Asking for a range of rows exceeding the available ones!.")
+      raise HDF5ExtError(
+        "Asking for a range of rows exceeding the available ones!.")
 
     # Now, read the chunk of rows
     Py_BEGIN_ALLOW_THREADS
@@ -1859,7 +1846,7 @@ cdef class VLArray(Leaf):
     rdata = <hvl_t *>malloc(<size_t>nrows*sizeof(hvl_t))
     # Get the dataspace handle
     space_id = H5Dget_space(self.dataset_id)
-    # Create a memory dataspace handle */
+    # Create a memory dataspace handle
     mem_space_id = H5Screate_simple(1, &nrows, NULL)
     # Select the data to be read
     H5Sselect_hyperslab(space_id, H5S_SELECT_SET, &start, &step, &nrows, NULL)
@@ -1868,7 +1855,8 @@ cdef class VLArray(Leaf):
                   H5P_DEFAULT, rdata)
     Py_END_ALLOW_THREADS
     if ret < 0:
-      raise HDF5ExtError("VLArray._readArray: Problems reading the array data.")
+      raise HDF5ExtError(
+        "VLArray._readArray: Problems reading the array data.")
 
     datalist = []
     for i from 0 <= i < nrows:
@@ -1878,12 +1866,12 @@ cdef class VLArray(Leaf):
       if vllen > 0:
         # Create a buffer to keep this info. It is important to do a
         # copy, because we will dispose the buffer memory later on by
-        # calling the H5Dvlen_reclaim. PyString_FromStringAndSize do this.
-        rbuf = PyString_FromStringAndSize(<char *>rdata[i].p,
-                                          vllen*self._atomicsize)
+        # calling the H5Dvlen_reclaim. PyString_FromStringAndSize does this.
+        buf = PyString_FromStringAndSize(<char *>rdata[i].p,
+                                         vllen*self._atomicsize)
       else:
         # Case where there is info with zero lentgh
-        rbuf = None
+        buf = None
       # Compute the shape for the read array
       if (isinstance(self._atomicshape, tuple)):
         shape = list(self._atomicshape)
@@ -1894,15 +1882,16 @@ cdef class VLArray(Leaf):
         # Case of scalars (self._atomicshape == 1)
         shape = (vllen,)
       if str(self._atomictype) == "CharType":
-        naarr = strings.array(rbuf, itemsize=self._basesize, shape=shape)
+        dtype = numpy.dtype((numpy.string, self._basesize))
       else:
-        naarr = numarray.array(rbuf, type=self._atomictype, shape=shape)
+        dtype = numpy.dtype(self._atomictype)
         # Set the same byteorder than on-disk
-        naarr._byteorder = self.byteorder
-      # Convert some HDF5 types to Numarray after reading.
-      self._convertTypes(naarr, 1)
+        dtype = dtype.newbyteorder(self.byteorder)
+      nparr = numpy.array(buf, type=dtype, shape=shape)
+      # Convert some HDF5 types to NumPy after reading.
+      self._convertTypes(nparr, 1)
       # Append this array to the output list
-      datalist.append(naarr)
+      datalist.append(nparr)
 
     # Release resources
     # Reclaim all the (nested) VL data
@@ -1918,12 +1907,15 @@ cdef class VLArray(Leaf):
 
     return datalist
 
+
   def __dealloc__(self):
     if self.dims:
       free(<void *>self.dims)
 
 
+
 cdef class UnImplemented(Leaf):
+
 
   def _openUnImplemented(self):
     cdef object shape
@@ -1934,8 +1926,11 @@ cdef class UnImplemented(Leaf):
     self.dataset_id = H5Dopen(self.parent_id, self.name)
     return (shape, byteorder, self.dataset_id)
 
+
   def _g_close(self):
     H5Dclose(self.dataset_id)
+
+
 
 ## Local Variables:
 ## mode: python

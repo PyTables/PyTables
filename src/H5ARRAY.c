@@ -58,7 +58,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
  int     i;
 
  /* Check if the array has to be chunked or not */
- /*if (extdim >= 0) {*/
  if (dims_chunk) {
    chunked = 1;
  }
