@@ -840,12 +840,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             return row(start, stop, step, coords=None, ncoords=-1)
         return iter([])
 
-    def _getWhereListXXX(self, condition, condvars):
-
-        coords = [p.nrow for p in self._whereInRange2XXX(condition, condvars)]
-        coords = numpy.array(coords, type=numpy.int64)
-        return coords
-
     def where(self, condition, start=None, stop=None, step=None):
         """
         Iterate over values fulfilling a `condition`.
@@ -955,7 +949,7 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         ncoords = index.search(range_)
         if not rescond and ncoords == 0:
             # There are no interesting values
-            # Reset the table variable conditions
+            # Reset the conditions
             self.whereIndex = None
             self.whereCondition = None
             # Return the empty iterator
@@ -1219,6 +1213,8 @@ please reindex the table to put the index in a sane state""")
                 if start < self.nrows:
                     remainCoords = [p.nrow for p in self._whereInRange2XXX(
                         condition, condvars, start, self.nrows)]
+                    # re-initialize internal selection values
+                    self.whereCondition = None
                     nremain = len(remainCoords)
                     # append the new values to the existing ones
                     coords.resize(ncoords+nremain)
@@ -1226,9 +1222,8 @@ please reindex the table to put the index in a sane state""")
         else:
             coords = [p.nrow for p in self._whereInRange2XXX(condition, condvars)]
             coords = numpy.array(coords, dtype=numpy.int64)
-        # re-initialize internal selection values
-        self.whereCondition = None
-        self.whereIndex = None
+            # Reset the conditions
+            self.whereCondition = None
         if sort:
             coords = numpy.sort(coords)
         if flavor == "numpy":
