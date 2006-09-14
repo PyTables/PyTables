@@ -15,6 +15,8 @@ Classes (type extensions):
 
     File
     AttributeSet
+    Node
+    Leaf
     Group
     Array
     VLArray
@@ -45,13 +47,20 @@ from tables.utilsExtension import  \
 
 from lrucacheExtension cimport NodeCache
 
-# numpy functions & objects
-from numpydefs cimport import_array, ndarray
-
+# Types, constants, functions, classes & other objects from everywhere
 from definitions cimport \
+     # NumPy
+     import_array, ndarray, dtype, \
+     NPTypeToHDF5, NPTypeToString, \
+     # Python types, constants & functions
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
      PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
-     Py_INCREF, Py_DECREF
+     Py_INCREF, Py_DECREF, \
+     # HDF5 types, constants & functions
+     hid_t, herr_t, hsize_t, hvl_t, \
+     H5G_link_t, H5G_stat_t, H5S_seloper_t, H5T_sign_t, \
+     H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
+     H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5S_SELECT_SET
 
 
 __version__ = "$Revision$"
@@ -95,68 +104,8 @@ cdef extern from "string.h":
   char *strdup(char *s)
   void *memcpy(void *dest, void *src, size_t n)
 
-# Structs and functions from numpy
-cdef extern from "numpy/arrayobject.h":
-
-  cdef enum NPY_TYPES:
-    NPY_BOOL
-    NPY_BYTE
-    NPY_UBYTE
-    NPY_SHORT
-    NPY_USHORT
-    NPY_INT
-    NPY_UINT
-    NPY_LONG
-    NPY_ULONG
-    NPY_LONGLONG
-    NPY_ULONGLONG
-    NPY_FLOAT
-    NPY_DOUBLE
-    NPY_LONGDOUBLE
-    NPY_CFLOAT
-    NPY_CDOUBLE
-    NPY_CLONGDOUBLE
-    NPY_OBJECT
-    NPY_STRING
-    NPY_UNICODE
-    NPY_VOID
-    NPY_NTYPES
-    NPY_NOTYPE
-
-
 # Structs and types from HDF5
 cdef extern from "hdf5.h":
-  int H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, H5F_ACC_EXCL
-  int H5F_ACC_DEBUG, H5F_ACC_CREAT
-  int H5P_DEFAULT, H5P_DATASET_XFER, H5S_ALL
-  int H5P_FILE_CREATE, H5P_FILE_ACCESS
-  int H5FD_LOG_LOC_WRITE, H5FD_LOG_ALL
-  int H5I_INVALID_HID
-
-  ctypedef struct hvl_t:
-    size_t len                 # Length of VL data (in base type units) */
-    void *p                    # Pointer to VL data */
-
-  ctypedef enum H5G_obj_t:
-    H5G_UNKNOWN = -1,           # Unknown object type          */
-    H5G_LINK,                   # Object is a symbolic link    */
-    H5G_GROUP,                  # Object is a group            */
-    H5G_DATASET,                # Object is a dataset          */
-    H5G_TYPE,                   # Object is a named data type  */
-    H5G_RESERVED_4,             # Reserved for future use      */
-    H5G_RESERVED_5,             # Reserved for future use      */
-    H5G_RESERVED_6,             # Reserved for future use      */
-    H5G_RESERVED_7              # Reserved for future use      */
-
-  cdef struct H5G_stat_t:
-    unsigned long fileno[2]
-    unsigned long objno[2]
-    unsigned nlink
-    H5G_obj_t type  # new in HDF5 1.6
-    time_t mtime
-    size_t linklen
-    #H5O_stat_t ohdr           # Object header information. New in HDF5 1.6
-
   cdef enum H5T_class_t:
     H5T_NO_CLASS         = -1,  #error                                      */
     H5T_INTEGER          = 0,   #integer types                              */
@@ -171,24 +120,6 @@ cdef extern from "hdf5.h":
     H5T_VLEN             = 9,   #Variable-Length types                      */
     H5T_ARRAY            = 10,  #Array types                                */
     H5T_NCLASSES                #this must be last                          */
-
-  # The difference between a single file and a set of mounted files
-  cdef enum H5F_scope_t:
-    H5F_SCOPE_LOCAL     = 0,    # specified file handle only
-    H5F_SCOPE_GLOBAL    = 1,    # entire virtual file
-    H5F_SCOPE_DOWN      = 2     # for internal use only
-
-  cdef enum H5T_sign_t:
-    H5T_SGN_ERROR        = -1,  #error                                      */
-    H5T_SGN_NONE         = 0,   #this is an unsigned type                   */
-    H5T_SGN_2            = 1,   #two's complement                           */
-    H5T_NSGN             = 2    #this must be last!                         */
-
-  cdef enum H5G_link_t:
-    H5G_LINK_ERROR      = -1,
-    H5G_LINK_HARD       = 0,
-    H5G_LINK_SOFT       = 1
-
 
   # Native types
   cdef enum:
@@ -207,17 +138,6 @@ cdef extern from "hdf5.h":
     H5T_NATIVE_DOUBLE
     H5T_NATIVE_LDOUBLE
 
-  ctypedef enum H5S_seloper_t:
-    H5S_SELECT_NOOP      = -1,
-    H5S_SELECT_SET       = 0,
-    H5S_SELECT_OR,
-    H5S_SELECT_AND,
-    H5S_SELECT_XOR,
-    H5S_SELECT_NOTB,
-    H5S_SELECT_NOTA,
-    H5S_SELECT_APPEND,
-    H5S_SELECT_PREPEND,
-    H5S_SELECT_INVALID    # Must be the last one
 
 # Functions from HDF5
 cdef extern from "H5public.h":
@@ -245,11 +165,6 @@ cdef extern from "H5public.h":
                          void *buf)
 
   hid_t  H5Gcreate(hid_t loc_id, char *name, size_t size_hint )
-
-  herr_t H5Gget_objinfo(hid_t loc_id,
-                        char *name,
-                        hbool_t follow_link,
-                        H5G_stat_t *statbuf )
 
   hid_t  H5Gopen(hid_t loc_id, char *name )
 
@@ -319,7 +234,7 @@ cdef extern from "H5public.h":
   char*  H5Tget_member_name(hid_t type_id, int membno)
   herr_t H5Tget_member_value(hid_t type_id, int membno, void *value)
 
-# Functions from HDF5 HL Lite
+# Functions from HDF5 attribute library
 cdef extern from "H5ATTR.h":
 
   herr_t H5ATTRget_attribute_ndims( hid_t loc_id, char *attr_name, int *rank )
@@ -439,40 +354,6 @@ cdef extern from "utils.h":
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   object H5UIget_info(hid_t loc_id, char *name, char *byteorder)
-
-
-#-----------------------------------------------------------------------------
-
-# Local variables
-
-NPTypeToHDF5AtomicType = {
-                            numpy.int8      : H5T_NATIVE_SCHAR,
-                            numpy.int16     : H5T_NATIVE_SHORT,
-                            numpy.int32     : H5T_NATIVE_INT,
-                            numpy.int64     : H5T_NATIVE_LLONG,
-
-                            numpy.uint8     : H5T_NATIVE_UCHAR,
-                            numpy.uint16    : H5T_NATIVE_USHORT,
-                            numpy.uint32    : H5T_NATIVE_UINT,
-                            numpy.uint64    : H5T_NATIVE_ULLONG,
-
-                            numpy.float32   : H5T_NATIVE_FLOAT,
-                            numpy.float64   : H5T_NATIVE_DOUBLE
-                        }
-
-# Conversion from numpy int codes to strings
-npEnumToNPSType = {
-  NPY_BOOL:'Bool',
-  NPY_BYTE:'Int8', NPY_UBYTE:'UInt8',
-  NPY_SHORT:'Int16',  NPY_USHORT:'UInt16',
-  NPY_INT:'Int32',  NPY_UINT:'UInt32',
-  NPY_LONGLONG:'Int64',  NPY_ULONGLONG:'UInt64',
-  NPY_FLOAT:'Float32',  NPY_DOUBLE:'Float64',
-  NPY_CFLOAT:'Complex64',  NPY_CDOUBLE:'Complex128',
-  NPY_STRING:'CharType',
-  # Special cases:
-  ord('t'):'Time32',  ord('T'):'Time64',  # For times.
-  ord('e'):'Enum'}  # For enumerations.
 
 
 
@@ -995,6 +876,7 @@ Loaded anyway."""
     cdef int i
     cdef int itemsize
     cdef ndarray ndv
+    cdef dtype ndt
 
     node = self._v_node
 
@@ -1014,6 +896,7 @@ Loaded anyway."""
       ret = H5ATTRset_attribute_string(self.dataset_id, name, value)
     elif isinstance(value, numpy.ndarray):
       ndv = <ndarray>value
+      ndt = <dtype>vale.dtype
       rank = ndv.nd
       dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
       for i from 0 <= i < rank:
@@ -1024,8 +907,8 @@ Loaded anyway."""
         ret = H5ATTRset_attribute_string_CAarray(
           self.dataset_id, name, rank, dims, itemsize, data)
         free(<void *>dims)
-      elif value.dtype in NPTypeToHDF5AtomicType.keys():
-        type_id = NPTypeToHDF5AtomicType[value.type()]
+      elif ndt.type_num in NPTypeToHDF5.keys():
+        type_id = NPTypeToHDF5[ndt.type_num]
         ret = H5ATTRset_attribute_numerical_NParray(self.dataset_id, name,
                                                     rank, dims, type_id, data)
       else:   # One should add complex support for numpy arrays
@@ -1441,7 +1324,7 @@ cdef class Array(Leaf):
     chunksizes = tuple(chunksizes)
 
     type_ = npEnumToNPType.get(enumtype, None)
-    return (self.dataset_id, type_, npEnumToNPSType[enumtype],
+    return (self.dataset_id, type_, NPTypeToString[enumtype],
             shape, type_size, byteorder, chunksizes)
 
 
@@ -1749,7 +1632,7 @@ cdef class VLArray(Leaf):
 
     # Get the type of the atomic type
     self._atomictype = npEnumToNPType.get(enumtype, None)
-    self._atomicstype = npEnumToNPSType[enumtype]
+    self._atomicstype = NPTypeToString[enumtype]
     # Get the size and shape of the atomic type
     self._atomicsize = self._basesize
     if self.rank:

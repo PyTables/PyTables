@@ -26,7 +26,7 @@ Misc variables:
 import sys
 
 import numpy
-from numpydefs cimport import_array, ndarray
+from definitions cimport import_array, ndarray
 
 from constants import ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
 

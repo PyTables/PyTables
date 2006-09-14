@@ -37,7 +37,7 @@ from hdf5Extension cimport Array, hid_t, herr_t, hsize_t
 from constants import SORTED_MAX_SLOTS, BOUNDS_MAX_SLOTS, INDICES_MAX_SLOTS
 
 # numpy functions & objects
-from numpydefs cimport import_array, ndarray
+from definitions cimport import_array, ndarray
 
 from lrucacheExtension cimport NumCache
 

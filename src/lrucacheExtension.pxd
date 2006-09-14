@@ -1,4 +1,4 @@
-from numpydefs cimport ndarray
+from definitions cimport ndarray
 
 # Declaration of instance variables for shared classes
 # The NodeCache class is useful for caching general objects (like Nodes).

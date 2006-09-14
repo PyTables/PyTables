@@ -34,7 +34,7 @@ from tables.utilsExtension import createNestedType, \
 from tables.numexpr import evaluate  ##XXX
 
 # numpy functions & objects
-from numpydefs cimport import_array, ndarray, \
+from definitions cimport import_array, ndarray, \
      PyArray_GETITEM, PyArray_SETITEM
 
 from lrucacheExtension cimport NumCache
