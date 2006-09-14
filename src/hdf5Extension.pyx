@@ -43,7 +43,7 @@ from tables.utils import checkFileAccess
 from tables.utilsExtension import  \
      enumToHDF5, enumFromHDF5, getTypeEnum, \
      convertTime64, getLeafHDF5Type, isHDF5File, isPyTablesFile, \
-     npEnumToNPType, npTypeToNpEnum
+     NPCodeToType, npTypeToNpEnum
 
 from lrucacheExtension cimport NodeCache
 
@@ -51,7 +51,7 @@ from lrucacheExtension cimport NodeCache
 from definitions cimport \
      # NumPy
      import_array, ndarray, dtype, \
-     NPTypeToHDF5, NPTypeToString, \
+     NPCodeToHDF5, NPCodeToString, \
      # Python types, constants & functions
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
      PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
@@ -83,14 +83,6 @@ cdef extern from "stdlib.h":
 
 cdef extern from "time.h":
   ctypedef int time_t
-
-# The next has been substituted by equivalents in Python, so that these
-# functions could be accessible in Windows systems
-# Thanks to Shack Toms for this!
-# F. Altet 2004-10-01
-# cdef extern from "math.h":
-#   double nextafter(double x, double y)
-#   float nextafterf(float x, float y)
 
 # Funtions for printing in C
 cdef extern from "stdio.h":
@@ -139,8 +131,7 @@ cdef extern from "hdf5.h":
     H5T_NATIVE_LDOUBLE
 
 
-# Functions from HDF5
-cdef extern from "H5public.h":
+  # Functions from HDF5
   hid_t  H5Fcreate(char *filename, unsigned int flags,
                    hid_t create_plist, hid_t access_plist)
 
@@ -746,7 +737,7 @@ cdef class AttributeSet:
     shape = tuple(shape)
 
     retvalue = None
-    dtype = npEnumToNPType[enumtype]
+    dtype = NPCodeToType[enumtype]
     if class_id in (H5T_INTEGER, H5T_FLOAT):
       retvalue = numpy.empty(dtype=dtype, shape=shape)
     elif class_id == H5T_STRING:
@@ -907,8 +898,8 @@ Loaded anyway."""
         ret = H5ATTRset_attribute_string_CAarray(
           self.dataset_id, name, rank, dims, itemsize, data)
         free(<void *>dims)
-      elif ndt.type_num in NPTypeToHDF5.keys():
-        type_id = NPTypeToHDF5[ndt.type_num]
+      elif ndt.type_num in NPCodeToHDF5.keys():
+        type_id = NPCodeToHDF5[ndt.type_num]
         ret = H5ATTRset_attribute_numerical_NParray(self.dataset_id, name,
                                                     rank, dims, type_id, data)
       else:   # One should add complex support for numpy arrays
@@ -1323,8 +1314,8 @@ cdef class Array(Leaf):
     shape = tuple(shape)
     chunksizes = tuple(chunksizes)
 
-    type_ = npEnumToNPType.get(enumtype, None)
-    return (self.dataset_id, type_, NPTypeToString[enumtype],
+    type_ = NPCodeToType.get(enumtype, None)
+    return (self.dataset_id, type_, NPCodeToString[enumtype],
             shape, type_size, byteorder, chunksizes)
 
 
@@ -1631,8 +1622,8 @@ cdef class VLArray(Leaf):
       raise TypeError, "The HDF5 class of object does not seem VLEN. Sorry!"
 
     # Get the type of the atomic type
-    self._atomictype = npEnumToNPType.get(enumtype, None)
-    self._atomicstype = NPTypeToString[enumtype]
+    self._atomictype = NPCodeToType.get(enumtype, None)
+    self._atomicstype = NPCodeToString[enumtype]
     # Get the size and shape of the atomic type
     self._atomicsize = self._basesize
     if self.rank:

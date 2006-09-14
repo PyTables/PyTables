@@ -14,6 +14,19 @@
 """
 
 
+# Standard C functions.
+cdef extern from "stdlib.h":
+  ctypedef long size_t
+  void *malloc(size_t size)
+  void free(void *ptr)
+
+cdef extern from "string.h":
+  char *strcpy(char *dest, char *src)
+  char *strncpy(char *dest, char *src, size_t n)
+  int strcmp(char *s1, char *s2)
+  char *strdup(char *s)
+  void *memcpy(void *dest, void *src, size_t n)
+
 # Some helper routines from the Python API
 cdef extern from "Python.h":
 
@@ -57,6 +70,8 @@ cdef extern from "Python.h":
   void Py_BEGIN_ALLOW_THREADS()
   void Py_END_ALLOW_THREADS()
 
+
+#-----------------------------------------------------------------------------
 
 # API for NumPy objects
 cdef extern from "numpy/arrayobject.h":
@@ -134,43 +149,32 @@ cdef extern from "hdf5.h":
   int H5I_INVALID_HID
 
   ctypedef struct hvl_t:
-    size_t len                 # Length of VL data (in base type units) */
-    void *p                    # Pointer to VL data */
+    size_t len                 # Length of VL data (in base type units)
+    void *p                    # Pointer to VL data
 
   ctypedef enum H5G_obj_t:
-    H5G_UNKNOWN = -1,           # Unknown object type          */
-    H5G_LINK,                   # Object is a symbolic link    */
-    H5G_GROUP,                  # Object is a group            */
-    H5G_DATASET,                # Object is a dataset          */
-    H5G_TYPE,                   # Object is a named data type  */
-    H5G_RESERVED_4,             # Reserved for future use      */
-    H5G_RESERVED_5,             # Reserved for future use      */
-    H5G_RESERVED_6,             # Reserved for future use      */
-    H5G_RESERVED_7              # Reserved for future use      */
+    H5G_UNKNOWN = -1,           # Unknown object type
+    H5G_LINK,                   # Object is a symbolic link
+    H5G_GROUP,                  # Object is a group
+    H5G_DATASET,                # Object is a dataset
+    H5G_TYPE,                   # Object is a named data type
 
   cdef struct H5G_stat_t:
     unsigned long fileno[2]
     unsigned long objno[2]
     unsigned nlink
-    H5G_obj_t type  # new in HDF5 1.6
+    H5G_obj_t type              # new in HDF5 1.6
     time_t mtime
     size_t linklen
-    #H5O_stat_t ohdr           # Object header information. New in HDF5 1.6
+    #H5O_stat_t ohdr            # Object header information. New in HDF5 1.6
 
-  cdef enum H5T_class_t:
-    H5T_NO_CLASS         = -1,  #error                                      */
-    H5T_INTEGER          = 0,   #integer types                              */
-    H5T_FLOAT            = 1,   #floating-point types                       */
-    H5T_TIME             = 2,   #date and time types                        */
-    H5T_STRING           = 3,   #character string types                     */
-    H5T_BITFIELD         = 4,   #bit field types                            */
-    H5T_OPAQUE           = 5,   #opaque types                               */
-    H5T_COMPOUND         = 6,   #compound types                             */
-    H5T_REFERENCE        = 7,   #reference types                            */
-    H5T_ENUM             = 8,   #enumeration types                          */
-    H5T_VLEN             = 9,   #Variable-Length types                      */
-    H5T_ARRAY            = 10,  #Array types                                */
-    H5T_NCLASSES                #this must be last                          */
+  # HDF5 layouts
+  ctypedef enum H5D_layout_t:
+    H5D_LAYOUT_ERROR    = -1,
+    H5D_COMPACT         = 0,    # raw data is very small
+    H5D_CONTIGUOUS      = 1,    # the default
+    H5D_CHUNKED         = 2,    # slow and fancy
+    H5D_NLAYOUTS        = 3     # this one must be last!
 
   # The difference between a single file and a set of mounted files
   cdef enum H5F_scope_t:
@@ -179,15 +183,31 @@ cdef extern from "hdf5.h":
     H5F_SCOPE_DOWN      = 2     # for internal use only
 
   cdef enum H5T_sign_t:
-    H5T_SGN_ERROR        = -1,  #error                                      */
-    H5T_SGN_NONE         = 0,   #this is an unsigned type                   */
-    H5T_SGN_2            = 1,   #two's complement                           */
-    H5T_NSGN             = 2    #this must be last!                         */
+    H5T_SGN_ERROR        = -1,  # error
+    H5T_SGN_NONE         = 0,   # this is an unsigned type
+    H5T_SGN_2            = 1,   # two's complement
+    H5T_NSGN             = 2    # this must be last!
 
   cdef enum H5G_link_t:
     H5G_LINK_ERROR      = -1,
     H5G_LINK_HARD       = 0,
     H5G_LINK_SOFT       = 1
+
+  # HDF5 type classes
+  cdef enum H5T_class_t:
+    H5T_NO_CLASS         = -1,  # error
+    H5T_INTEGER          = 0,   # integer types
+    H5T_FLOAT            = 1,   # floating-point types
+    H5T_TIME             = 2,   # date and time types
+    H5T_STRING           = 3,   # character string types
+    H5T_BITFIELD         = 4,   # bit field types
+    H5T_OPAQUE           = 5,   # opaque types
+    H5T_COMPOUND         = 6,   # compound types
+    H5T_REFERENCE        = 7,   # reference types
+    H5T_ENUM             = 8,   # enumeration types
+    H5T_VLEN             = 9,   # variable-length types
+    H5T_ARRAY            = 10,  # array types
+    H5T_NCLASSES                # this must be last
 
   # Native types
   cdef enum:
@@ -206,6 +226,12 @@ cdef extern from "hdf5.h":
     H5T_NATIVE_DOUBLE
     H5T_NATIVE_LDOUBLE
 
+  # The order to retrieve atomic native datatype
+  cdef enum H5T_direction_t:
+    H5T_DIR_DEFAULT     = 0,    #default direction is inscendent
+    H5T_DIR_ASCEND      = 1,    #in inscendent order
+    H5T_DIR_DESCEND     = 2     #in descendent order
+
   ctypedef enum H5S_seloper_t:
     H5S_SELECT_NOOP      = -1,
     H5S_SELECT_SET       = 0,
@@ -221,11 +247,13 @@ cdef extern from "hdf5.h":
 
 #-----------------------------------------------------------------------------
 
-
+##########################################
 # Conversion tables
+##########################################
 
-# Conversion from NumPy types supported for native HDF5 attributes
-NPTypeToHDF5 = {
+
+# Conversion from NumPy codes to native HDF5 types
+NPCodeToHDF5 = {
   NPY_BYTE      : H5T_NATIVE_SCHAR,
   NPY_SHORT     : H5T_NATIVE_SHORT,
   NPY_INT       : H5T_NATIVE_INT,
@@ -239,18 +267,76 @@ NPTypeToHDF5 = {
   }
 
 
-# Conversion from numpy int codes to strings
-NPTypeToString = {
-  NPY_BOOL:     'Bool',
-  NPY_BYTE:     'Int8',      NPY_UBYTE:'UInt8',
-  NPY_SHORT:    'Int16',     NPY_USHORT:'UInt16',
-  NPY_INT:      'Int32',     NPY_UINT:'UInt32',
-  NPY_LONGLONG: 'Int64',     NPY_ULONGLONG:'UInt64',
-  NPY_FLOAT:    'Float32',   NPY_DOUBLE:'Float64',
-  NPY_CFLOAT:   'Complex64', NPY_CDOUBLE:'Complex128',
-  NPY_STRING:   'CharType',
+# Names of HDF5 classes
+HDF5ClassToString = {
+  H5T_NO_CLASS:   'H5T_NO_CLASS',
+  H5T_INTEGER:    'H5T_INTEGER',
+  H5T_FLOAT:      'H5T_FLOAT',
+  H5T_TIME:       'H5T_TIME',
+  H5T_STRING:     'H5T_STRING',
+  H5T_BITFIELD:   'H5T_BITFIELD',
+  H5T_OPAQUE:     'H5T_OPAQUE',
+  H5T_COMPOUND:   'H5T_COMPOUND',
+  H5T_REFERENCE:  'H5T_REFERENCE',
+  H5T_ENUM:       'H5T_ENUM',
+  H5T_VLEN:       'H5T_VLEN',
+  H5T_ARRAY:      'H5T_ARRAY',
+  H5T_NCLASSES:   'H5T_NCLASSES'
+  }
+
+
+# Conversion table from numpy codes to numpy type classes
+NPCodeToType = {
+  NPY_BOOL:      numpy.bool,      NPY_STRING:     numpy.string,
+  NPY_INT8:      numpy.int8,      NPY_UINT8:      numpy.uint8,
+  NPY_INT16:     numpy.int16,     NPY_UINT16:     numpy.uint16,
+  NPY_INT32:     numpy.int32,     NPY_UINT32:     numpy.uint32,
+  NPY_INT64:     numpy.int64,     NPY_UINT64:     numpy.uint64,
+  NPY_FLOAT32:   numpy.float32,   NPY_FLOAT64:    numpy.float64,
+  NPY_COMPLEX64: numpy.complex64, NPY_COMPLEX128: numpy.complex128,
   # Special cases:
-  ord('t'):     'Time32',    ord('T'):'Time64',
+  ord('t'): numpy.Int32,          ord('T'):       numpy.Float64,
+  }
+
+
+# Conversion table from numpy type classes to numpy type codes
+NPTypeToCode = {
+  numpy.bool:      NPY_BOOL,      numpy.string:     NPY_STRING,
+  numpy.int8:      NPY_INT8,      numpy.uint8:      NPY_UINT8,
+  numpy.int16:     NPY_INT16,     numpy.uint16:     NPY_UINT16,
+  numpy.int32:     NPY_INT32,     numpy.uint32:     NPY_UINT32,
+  numpy.int64:     NPY_INT64,     numpy.uint64:     NPY_UINT64,
+  numpy.float32:   NPY_FLOAT32,   numpy.float64:    NPY_FLOAT64,
+  numpy.complex64: NPY_COMPLEX64, numpy.complex128: NPY_COMPLEX128,
+  }
+
+# Conversion from numpy codes to pytables string types
+#NPCodeToString = {
+NPCodeToPTType = {
+  NPY_BOOL:     'Bool',      NPY_STRING:    'CharType',
+  NPY_BYTE:     'Int8',      NPY_UBYTE:     'UInt8',
+  NPY_SHORT:    'Int16',     NPY_USHORT:    'UInt16',
+  NPY_INT:      'Int32',     NPY_UINT:      'UInt32',
+  NPY_LONGLONG: 'Int64',     NPY_ULONGLONG: 'UInt64',
+  NPY_FLOAT:    'Float32',   NPY_DOUBLE:    'Float64',
+  NPY_CFLOAT:   'Complex32', NPY_CDOUBLE:   'Complex64',
+  # Special cases:
+  ord('t'):     'Time32',    ord('T'):      'Time64',
   ord('e'):     'Enum',
   }
+
+# Conversion from pytables string types to HDF5 native types
+# List only types that are susceptible of changing byteorder
+#naSTypeToH5Type = {
+PTTypeToHDF5 = {
+  'Int8':    H5T_NATIVE_SCHAR,  'UInt8':   H5T_NATIVE_UCHAR,
+  'Int16':   H5T_NATIVE_SHORT,  'UInt16':  H5T_NATIVE_USHORT,
+  'Int32':   H5T_NATIVE_INT,    'UInt32':  H5T_NATIVE_UINT,
+  'Int64':   H5T_NATIVE_LLONG,  'UInt64':  H5T_NATIVE_ULLONG,
+  'Float32': H5T_NATIVE_FLOAT,  'Float64': H5T_NATIVE_DOUBLE,
+  'Time32':  H5T_UNIX_D32BE,    'Time64':  H5T_UNIX_D64BE }
+
+# Special cases that cannot be directly mapped:
+ptSpecialTypes = ['Bool', 'Complex32', 'Complex64', 'CharType', 'Enum']
+
 

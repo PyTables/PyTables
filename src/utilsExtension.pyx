@@ -22,8 +22,7 @@ try:
 except ImportError:
   zlib_imported = False
 
-import numarray
-import numarray.records
+import numpy
 
 from tables.exceptions import HDF5ExtError
 from tables.enum import Enum
@@ -31,52 +30,32 @@ from tables.IsDescription import Description, Col, StringCol, EnumCol, TimeCol
 
 from tables.utils import checkFileAccess
 
-from definitions cimport import_libnumarray, NA_getBufferPtrAndSize, MAXDIM
+from constants import MAXDIM
+
+from definitions cimport import_array, \
+     malloc, free, strcpy, strcmp, PyString_AsString, \
+     H5F_ACC_RDONLY, H5P_DEFAULT, \
+     size_t, hid_t, herr_t, hsize_t, htri_t, \
+     HDF5ClassToString, NPCodeToType, NPTypeToCode, \
+     PTTypeToHDF5, PTSpecialTypes
 
 __version__ = "$Revision$"
 
 
-# Standard C functions.
-cdef extern from "stdlib.h":
-  ctypedef long size_t
-  void *malloc(size_t size)
-  void free(void *ptr)
+#----------------------------------------------------------------------
 
-cdef extern from "string.h":
-  char *strcpy(char *dest, char *src)
-  char *strncpy(char *dest, char *src, size_t n)
-  int strcmp(char *s1, char *s2)
-  char *strdup(char *s)
-  void *memcpy(void *dest, void *src, size_t n)
-
-# Python API functions.
-cdef extern from "Python.h":
-  char *PyString_AsString(object string)
+# External declarations
 
 # HDF5 API.
 cdef extern from "hdf5.h":
 
-  # HDF5 constants
-  int H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, H5F_ACC_EXCL
-  int H5F_ACC_DEBUG, H5F_ACC_CREAT
-  int H5P_DEFAULT, H5S_ALL
-  int H5P_FILE_CREATE, H5P_FILE_ACCESS
-  int H5FD_LOG_LOC_WRITE, H5FD_LOG_ALL
-  int H5I_INVALID_HID
-
-  # HDF5 types
-  ctypedef int hid_t
-  ctypedef int herr_t
-  ctypedef long long hsize_t
-  ctypedef int htri_t
-
   # HDF5 layouts
   ctypedef enum H5D_layout_t:
     H5D_LAYOUT_ERROR    = -1,
-    H5D_COMPACT         = 0,    #raw data is very small                     */
-    H5D_CONTIGUOUS      = 1,    #the default                                */
-    H5D_CHUNKED         = 2,    #slow and fancy                             */
-    H5D_NLAYOUTS        = 3     #this one must be last!                     */
+    H5D_COMPACT         = 0,    # raw data is very small
+    H5D_CONTIGUOUS      = 1,    # the default
+    H5D_CHUNKED         = 2,    # slow and fancy
+    H5D_NLAYOUTS        = 3     # this one must be last!
 
   # HDF5 classes.
   cdef enum H5T_class_t:
@@ -93,19 +72,6 @@ cdef extern from "hdf5.h":
     H5T_VLEN             = 9,   # variable-length types
     H5T_ARRAY            = 10,  # array types
     H5T_NCLASSES                # this must be last
-
-  # Types of integer sign schemes.
-  cdef enum H5T_sign_t:
-    H5T_SGN_ERROR        = -1,  # error
-    H5T_SGN_NONE         = 0,   # this is an unsigned type
-    H5T_SGN_2            = 1,   # two's complement
-    H5T_NSGN             = 2    # this must be last!
-
-  # The order to retrieve atomic native datatype */
-  cdef enum H5T_direction_t:
-    H5T_DIR_DEFAULT     = 0,    #default direction is inscendent
-    H5T_DIR_ASCEND      = 1,    #in inscendent order
-    H5T_DIR_DESCEND     = 2     #in descendent order
 
   # Native types.
   cdef enum:
@@ -128,6 +94,11 @@ cdef extern from "hdf5.h":
     H5T_UNIX_D32BE
     H5T_UNIX_D64BE
 
+  # The order to retrieve atomic native datatype
+  cdef enum H5T_direction_t:
+    H5T_DIR_DEFAULT     = 0,    #default direction is inscendent
+    H5T_DIR_ASCEND      = 1,    #in inscendent order
+    H5T_DIR_DESCEND     = 2     #in descendent order
 
   # HDF5 API functions.
 
@@ -181,22 +152,6 @@ cdef extern from "hdf5.h":
   herr_t H5Tset_precision(hid_t type_id, size_t prec)
 
 
-# CharArray type
-CharType = numarray.records.CharType
-
-# Conversion from Numarrray string types to HDF5 native types.
-# Put here types that are susceptible of changing byteorder
-naSTypeToH5Type = {
-  'Int8': H5T_NATIVE_SCHAR,    'UInt8': H5T_NATIVE_UCHAR,
-  'Int16': H5T_NATIVE_SHORT,   'UInt16': H5T_NATIVE_USHORT,
-  'Int32': H5T_NATIVE_INT,     'UInt32': H5T_NATIVE_UINT,
-  'Int64': H5T_NATIVE_LLONG,   'UInt64': H5T_NATIVE_ULLONG,
-  'Float32': H5T_NATIVE_FLOAT, 'Float64': H5T_NATIVE_DOUBLE,
-  'Time32': H5T_UNIX_D32BE,    'Time64': H5T_UNIX_D64BE }
-
-# Special cases that cannot be directly mapped:
-ptSpecialTypes = ['Bool', 'Complex32', 'Complex64', 'CharType', 'Enum']
-
 cdef extern from "H5ATTR.h":
 
   herr_t H5ATTR_get_attribute_disk(hid_t loc_id, char *attr_name,
@@ -211,7 +166,6 @@ cdef extern from "H5ARRAY.h":
   herr_t H5ARRAYget_info( hid_t dataset_id, hid_t type_id, hsize_t *dims,
                           hsize_t *maxdims, hid_t *super_type_id,
                           H5T_class_t *super_class_id, char *byteorder)
-
 
 
 # PyTables helper routines.
@@ -255,85 +209,17 @@ cdef extern from "typeconv.h":
                        int sense)
 
 cdef extern from "arraytypes.h":
-  # Function to compute the HDF5 type from a Numarray enum type.
+  # Function to compute the HDF5 type from a NumPy enum type.
   hid_t convArrayType(int fmt, size_t size, char *byteorder)
   size_t getArrayType(hid_t type_id, int *fmt)
 
 
-# Structs and functions from numarray
-cdef extern from "numarray/numarray.h":
-  ctypedef enum NumarrayType:
-    tAny
-    tBool
-    tInt8
-    tUInt8
-    tInt16
-    tUInt16
-    tInt32
-    tUInt32
-    tInt64
-    tUInt64
-    tFloat32
-    tFloat64
-    tComplex32
-    tComplex64
-    tObject
-    tDefault
-    tLong
-
-
-# Names of HDF5 classes.
-hdf5ClassToString = {
-  H5T_NO_CLASS:   'H5T_NO_CLASS',
-  H5T_INTEGER:    'H5T_INTEGER',
-  H5T_FLOAT:      'H5T_FLOAT',
-  H5T_TIME:       'H5T_TIME',
-  H5T_STRING:     'H5T_STRING',
-  H5T_BITFIELD:   'H5T_BITFIELD',
-  H5T_OPAQUE:     'H5T_OPAQUE',
-  H5T_COMPOUND:   'H5T_COMPOUND',
-  H5T_REFERENCE:  'H5T_REFERENCE',
-  H5T_ENUM:       'H5T_ENUM',
-  H5T_VLEN:       'H5T_VLEN',
-  H5T_ARRAY:      'H5T_ARRAY',
-  H5T_NCLASSES:   'H5T_NCLASSES'}
-
-# Conversion tables from/to classes to the numarray enum types
-naEnumToNAType = {
-  tBool: numarray.Bool,  # Boolean type added
-  tInt8: numarray.Int8,    tUInt8: numarray.UInt8,
-  tInt16: numarray.Int16,  tUInt16: numarray.UInt16,
-  tInt32: numarray.Int32,  tUInt32: numarray.UInt32,
-  tInt64: numarray.Int64,  tUInt64: numarray.UInt64,
-  tFloat32: numarray.Float32,  tFloat64: numarray.Float64,
-  tComplex32: numarray.Complex32,  tComplex64: numarray.Complex64,
-  # Special cases:
-  ord('a'): CharType,  # For strings.
-  ord('t'): numarray.Int32,  ord('T'): numarray.Float64}  # For times.
-
-naTypeToNAEnum = {
-  numarray.Bool: tBool,
-  numarray.Int8: tInt8,    numarray.UInt8: tUInt8,
-  numarray.Int16: tInt16,  numarray.UInt16: tUInt16,
-  numarray.Int32: tInt32,  numarray.UInt32: tUInt32,
-  numarray.Int64: tInt64,  numarray.UInt64: tUInt64,
-  numarray.Float32: tFloat32,  numarray.Float64: tFloat64,
-  numarray.Complex32: tComplex32,  numarray.Complex64: tComplex64,
-  # Special cases:
-  numarray.records.CharType: ord('a')}  # For strings.
-
-
-#----------------------------------------------------------------------------
-
+#----------------------------------------------------------------------
 # Initialization code
 
-# The numarray API requires this function to be called before
-# using any numarray facilities in an extension module.
-import_libnumarray()
-
-#---------------------------------------------------------------------
-
-# Main functions
+# The NumPy API requires this function to be called before
+# using any NumPy facilities in an extension module.
+import_array()
 
 if sys.platform == "win32":
   # We need a different approach in Windows, because it compains when
@@ -383,13 +269,11 @@ else:  # Unix systems
   except ImportError:
     bzip2_version = None
 
-# utility funtions (these can be directly invoked from Python)
 
-# def PyNextAfter(double x, double y):
-#   return nextafter(x, y)
+#---------------------------------------------------------------------
 
-# def PyNextAfterF(float x, float y):
-#   return nextafterf(x, y)
+
+# Main functions
 
 def isHDF5(char *filename):
   warnings.warn(DeprecationWarning("""\
@@ -448,10 +332,12 @@ def getHDF5Version():
 
   return getHDF5VersionInfo()[1]
 
+
 def getPyTablesVersion():
   """Return this extension version."""
 
   return _getTablesVersion()
+
 
 def whichLibVersion(char *name):
   """whichLibVersion(name) -> version info
@@ -496,7 +382,7 @@ supported library names are ``%s``""" % (name, libnames))
   return None
 
 
-def whichClass( hid_t loc_id, char *name):
+def whichClass(hid_t loc_id, char *name):
   """Detects a class ID using heuristics.
   """
   cdef H5T_class_t  class_id
@@ -634,10 +520,10 @@ def getFilters(parent_id, name):
 
 # This is used by several <Leaf>._convertTypes() methods.
 def convertTime64(object naarr, hsize_t nrecords, int sense):
-  """Converts a NumArray of Time64 elements between Numarray and HDF5 formats.
+  """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
 
-  Numarray to HDF5 conversion is performed when 'sense' is 0.
-  Otherwise, HDF5 to Numarray conversion is performed.
+  NumPy to HDF5 conversion is performed when 'sense' is 0.
+  Otherwise, HDF5 to NumPy conversion is performed.
   The conversion is done in place, i.e. 'naarr' is modified.
   """
 
@@ -656,8 +542,8 @@ def convertTime64(object naarr, hsize_t nrecords, int sense):
 def space2null(object naarr, hsize_t nrecords, int sense):
   """Converts a the space padding of CharArray object into null's.
 
-  Numarray to HDF5 conversion is performed when 'sense' is 0.
-  Otherwise, HDF5 to Numarray conversion is performed.
+  NumPy to HDF5 conversion is performed when 'sense' is 0.
+  Otherwise, HDF5 to NumPy conversion is performed.
   The conversion is done in place, i.e. 'naarr' is modified.
   """
 
@@ -734,7 +620,7 @@ def getTypeEnum(hid_t h5type):
 
 
 def enumFromHDF5(hid_t enumId):
-  """_enumFromHDF5(enumId) -> (Enum, naType)
+  """_enumFromHDF5(enumId) -> (Enum, npType)
   Convert an HDF5 enumerated type to a PyTables one.
 
   This function takes an HDF5 enumerated type and returns an `Enum`
@@ -759,15 +645,15 @@ def enumFromHDF5(hid_t enumId):
     raise HDF5ExtError("failed to close HDF5 base type")
 
   try:
-    naType = naEnumToNAType[naEnum]
+    npType = NPCodeToType[naEnum]
   except KeyError:
     raise NotImplementedError("""\
-sorry, only scalar concrete values are supported for the moment""")
-  if not isinstance(naType, numarray.IntegralType):
+sorry, only scalar concrete values are supported at this moment""")
+  if not isinstance(npType, numarray.IntegralType):
     raise NotImplementedError("""\
-sorry, only integer concrete values are supported for the moment""")
+sorry, only integer concrete values are supported at this moment""")
 
-  naValue = numarray.array((0,), type=naType)
+  naValue = numarray.array((0,), type=npType)
   NA_getBufferPtrAndSize(naValue._data, 0, &valueAddr)
 
   # Get the name and value of each of the members
@@ -794,7 +680,7 @@ sorry, only integer concrete values are supported for the moment""")
     enumDict[pyename] = naValue[0]  # converted to Python scalar
 
   # Build an enumerated type from `enumDict` and return it.
-  return Enum(enumDict), naType
+  return Enum(enumDict), npType
 
 
 def enumToHDF5(object enumCol, char *byteOrder):
@@ -807,7 +693,7 @@ def enumToHDF5(object enumCol, char *byteOrder):
   returned.
   """
 
-  cdef int    naEnum
+  cdef int    npEnum
   cdef size_t itemSize
   cdef char  *name
   cdef hid_t  baseId, enumId
@@ -815,11 +701,11 @@ def enumToHDF5(object enumCol, char *byteOrder):
   cdef void  *rbuffer, *valueAddr
 
   # Get the base HDF5 type and create the enumerated type.
-  naEnum = naTypeToNAEnum[enumCol.type]
+  npEnum = NPTypeToCode[enumCol.type]
   itemSize = enumCol.itemsize
-  baseId = convArrayType(naEnum, itemSize, byteOrder)
+  baseId = convArrayType(npEnum, itemSize, byteOrder)
   if baseId < 0:
-    raise HDF5ExtError("failed to convert Numarray base type to HDF5")
+    raise HDF5ExtError("failed to convert NumPy base type to HDF5")
 
   try:
     enumId = H5Tenum_create(baseId)
@@ -865,15 +751,15 @@ def conv2HDF5Type(object col, char *byteorder):
     for i from  0 <= i < rank:
       dims[i] = col.shape[i]
   # Create the column type
-  if col.stype in naSTypeToH5Type:
+  if col.stype in PTTypeToHDF5:
     if atomic == 1:
-      tid = H5Tcopy(naSTypeToH5Type[col.stype])
+      tid = H5Tcopy(PTTypeToHDF5[col.stype])
     else:
-      tid = H5Tarray_create(naSTypeToH5Type[col.stype], rank, dims, NULL)
-    # All types in naSTypeToH5Type needs to fix the byte order
+      tid = H5Tarray_create(PTTypeToHDF5[col.stype], rank, dims, NULL)
+    # All types in PTTypeToHDF5 needs to fix the byte order
     # but this may change in the future!
     set_order(tid, byteorder)
-  elif col.stype in ptSpecialTypes:
+  elif col.stype in PTSpecialTypes:
     # Special cases
     if col.stype == 'Bool':
       tid = H5Tcopy(H5T_NATIVE_B8)
@@ -901,6 +787,7 @@ def conv2HDF5Type(object col, char *byteorder):
 
   return tid
 
+
 def createNestedType(object desc, char *byteorder):
   """Create a nested type based on a description and return an HDF5 type."""
   cdef hid_t   tid, tid2
@@ -925,8 +812,9 @@ def createNestedType(object desc, char *byteorder):
 
   return tid
 
+
 def getRAType(hid_t type_id, int klass, size_t size):
-  """Map the atomic type to a NumArray format.
+  """Map the atomic type to a NumPy format.
 
   This follows the standard size and alignment.
 
@@ -955,7 +843,7 @@ def getRAType(hid_t type_id, int klass, size_t size):
     stype = "f%s" % (size)
   elif klass ==  H5T_COMPOUND:
     # Here, this can only be a complex
-    stype = "c%s" % (size)
+    stype = "c%s" % (size*2)   # NumPy requires the complete length of a type
   elif klass ==  H5T_STRING:
     if H5Tis_variable_str(type_id):
       raise TypeError("variable length strings are not supported yet")
@@ -985,15 +873,17 @@ def getRAType(hid_t type_id, int klass, size_t size):
   else:
     # Other types are not supported yet
     raise TypeError("the HDF5 class ``%s`` is not supported yet"
-                    % hdf5ClassToString[klass])
+                    % HDF5ClassToString[klass])
 
   return stype, shape
+
 
 def _joinPath(object parent, object name):
   if parent == "":
     return name
   else:
     return parent + '/' + name
+
 
 def getNestedType(hid_t type_id, hid_t native_type_id,
                   object table, object colpath=""):
@@ -1056,12 +946,12 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
           colobj = StringCol(length = tsize, shape = colshape, pos = i)
         elif colstype == 'e':
           colpath2 = _joinPath(colpath, colname)
-          (enum, naType) = table._loadEnum(native_member_type_id)
+          (enum, npType) = table._loadEnum(native_member_type_id)
           # Take one of the names as the default in the enumeration.
           # Can this get harmful?  Keep an eye on user's reactions.
           # ivb -- 2005-05-12
           dflt = iter(enum).next()[0]
-          colobj = EnumCol(enum, dflt, dtype = naType, shape = colshape,
+          colobj = EnumCol(enum, dflt, dtype = npType, shape = colshape,
                            pos = i)
         elif colstype[0] == 't':
           tsize = int(colstype[1:])
