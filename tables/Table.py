@@ -1029,7 +1029,8 @@ This method is intended only for indexed columns, but this column has not a mini
         if self._dirtycache:
             self._restorecache()
 
-        idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars, self)
+        idxvar, ops, lims, rescond = split_index_condXXX(
+            condition, condvars, self)
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
                               "for condition: %r" % condition )
@@ -1050,7 +1051,7 @@ This method is intended only for indexed columns, but this column has not a mini
             # mechanism, since the result may be further restricted.
             # One could include the residual condition and the values of
             # its variables in the key, but that looks too complicated.
-            item = (column.name, range_, flavor)
+            item = (column.name, range_)
             nslot = self._limdatacache.getslot(item)
         if nslot >= 0:
             # Cache hit. Use the array kept there.
@@ -1064,12 +1065,11 @@ This method is intended only for indexed columns, but this column has not a mini
             if nrecords > 0:
                 coords = index.indices._getCoords(index, 0, nrecords)
                 recout = self._read_elements(recarr, coords)
-
-        # Put this recarray in limdata cache.  See the comment above
-        # about the residual expression.
-        if not rescond:
-            size = len(recarr) * self.rowsize + 1  # approx. size of array
-            self._limdatacache.setitem(item, recarr, size)
+            # Put this recarray in limdata cache.  See the comment above
+            # about the residual expression.
+            if not rescond:
+                size = len(recarr) * self.rowsize + 1  # approx. size of array
+                self._limdatacache.setitem(item, recarr, size)
 
         # Filter out rows not fulfilling the residual condition.
         # XXX: Taken from Row.__next__indexed2XXX(), please refactor.
