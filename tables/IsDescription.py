@@ -29,9 +29,7 @@ import sys
 import operator
 import copy
 
-import numarray as NA
-import numarray.records as records
-import numarray.strings as strings
+import numpy as NP
 
 from tables.enum import Enum
 from tables.utils import checkNameValidity
@@ -41,22 +39,22 @@ import tables
 __version__ = "$Revision$"
 
 
-# Translation tables for numarray datatypes and recarray formats
+# Translation tables for NumPy datatypes and recarray formats
 recarrfmt = {
-    'a':   records.CharType,
-    'b1':  NA.Bool,
-    'i1':  NA.Int8,
-    'i2':  NA.Int16,
-    'i4':  NA.Int32,
-    'i8':  NA.Int64,
-    'u1':  NA.UInt8,
-    'u2':  NA.UInt16,
-    'u4':  NA.UInt32,
-    'u8':  NA.UInt64,
-    'f4':  NA.Float32,
-    'f8':  NA.Float64,
-    'c8':  NA.Complex32,
-    'c16': NA.Complex64,
+    'a':   NP.string_,
+    'b1':  NP.bool_,
+    'i1':  NP.int8,
+    'i2':  NP.int16,
+    'i4':  NP.int32,
+    'i8':  NP.int64,
+    'u1':  NP.uint8,
+    'u2':  NP.uint16,
+    'u4':  NP.uint32,
+    'u8':  NP.uint64,
+    'f4':  NP.float32,
+    'f8':  NP.float64,
+    'c8':  NP.complex64,
+    'c16': NP.complex128,
     }
 
 # the reverse translation table of the above
@@ -109,12 +107,14 @@ def setDefaultString(dflt):
     "Set a default value for strings. Valid for Col and StringCol instances."
 
     if dflt != None and not (type(dflt) in [str, list, tuple] or
-                             type(dflt) == strings.CharArray):
+                             (type(dflt) == numpy.ndarray and
+                              dflt.dtype.kind == "S")):
         raise ValueError("Invalid default value: %s" % (dflt,))
 
 
+
 class Col(ShapeMixin, object):
-    "Defines a general column that supports all numarray data types."
+    "Defines a general column that supports all NumPy data types."
 
     # This class should become abstract somewhere in the future,
     # with no methods beyond __init__() or __repr__().
@@ -127,59 +127,48 @@ class Col(ShapeMixin, object):
         "Sets the '_v_pos' attribute."
         self._v_pos = pos
 
+
     def _setType(self, type_):
         "Sets the 'type', 'recarrtype' and 'stype' attributes."
-        if type_ in NA.typeDict:
-            self.type = NA.typeDict[type_]
-            self.stype = str(self.type)
+        if type_ in NP.typeNA:
+            self.type = NP.typeNA[type_]
+            self.stype = NP.typeNA[self.type]
         elif type_ == 'Time32':
-            self.type = NA.Int32  # special case for times
+            self.type = NP.int32  # special case for times
             self.stype = type_
         elif type_ == 'Time64':
-            self.type = NA.Float64  # special case for times
+            self.type = NP.Float64  # special case for times
             self.stype = type_
-        elif type_ == 'CharType' or isinstance(type_, records.Char):
-            self.type = records.CharType  # special case for strings
-            self.stype = str(self.type)
+        elif type_ == 'CharType' or type_ == NP.string_:
+            self.type = NP.string_
+            self.stype = type_
         else:
             raise TypeError, "Illegal type: %s" % (type_,)
 
         self.recarrtype = revrecarrfmt[self.type]
 
+
     def _setDefault(self, dflt):
         "Sets the 'dflt' attribute."
-        # Create NumArray or CharArray objects as defaults
-        # This is better in order to serialize then as attributes
-        if self.type == records.CharType:
-            # We should raise an error in case dflt is None, but that
-            # makes several tests in test_create.py to fail
-            # and I don't have time right now to look into this.
-##            if dflt is None:
-##                raise ValueError, \
-##"You must set a default value for CharType when using the Col constructor."
-##            elif dflt == "":
-##                # Putting just to "" gives problems with numarray
-##                dflt = "\x00"*self.itemsize
-            if dflt is None or dflt == "":
-                # Putting just to "" gives problems with numarray
-                dflt = "\x00"
-            # It is important to set the padding character to NULL in order
-            # to avoid the '' string to become a ' ' after de-serializing.
-            # See:
-            # http://sourceforge.net/tracker/index.php?func=detail&aid=1304615&group_id=1369&atid=450446
-            # for more info.
-            self.dflt = strings.array(dflt, padc='\x00')
+        # Create NumPy objects as defaults
+        # This is better in order to serialize them as attributes
+        if self.type == NP.string_:
+           if dflt is None:
+               # Assign to the empty chararray
+               self.dflt = NP.array("", dtype="|S1")
+           else:
+               self.dflt = NP.array(dflt, dtype="S")
         else:
             if dflt is None:
-                # We set the value to int(0), but it will be changed
-                # to the appropriate type immediately after.
                 dflt = 0
-            self.dflt = NA.array(dflt, type=self.type)
+            self.dflt = NP.array(dflt, type=self.type)
+
 
     def _setIndex(self, indexed):
-        if indexed and self.type in (NA.Complex32, NA.Complex64):
+        if indexed and self.type in (NP.Complex64, NP.Complex128):
             raise TypeError("%r do not support indexation" % (self.type,))
         super(Col, self)._setIndex(indexed)
+
 
     def _setShape(self, shape):
         super(Col, self)._setShape(shape)
@@ -190,7 +179,7 @@ class Col(ShapeMixin, object):
         # for self.type = Float64, Int32, Complex64...
         # ivilata(2004-12-17)
         #
-        if self.type is records.CharType:
+        if self.type is NP.string_:
             if type(shape) in (int, long):
                 self.shape = 1
                 self.itemsize = shape
@@ -207,6 +196,7 @@ class Col(ShapeMixin, object):
                     self.shape = tuple(shape)
             # In case of strings, this attribute is overwritten
             self.recarrtype = revrecarrfmt[self.type]+str(self.itemsize)
+
 
     def __init__(self, dtype = 'Float64', shape = 1, dflt = None, pos = None,
                  indexed = False):
@@ -226,8 +216,9 @@ class Col(ShapeMixin, object):
         self._setIndex(indexed)
         self._setPosition(pos)
 
+
     def __repr__(self):
-        if self.type == 'CharType' or isinstance(self.type, records.Char):
+        if self.type == NP.string_:
             if self.shape == 1:
                 shape = [self.itemsize]
             else:
@@ -246,8 +237,9 @@ class StringCol(Col):
     "Defines a string column."
 
     def _setType(self, type_):
-        self.type       = records.CharType
-        self.stype      = str(records.CharType)
+        self.type       = NP.string_
+        self.stype      = 'CharArray'
+
 
     def _setShape(self, shape):
         super(Col, self)._setShape(shape)
@@ -255,21 +247,18 @@ class StringCol(Col):
         # Set itemsize; forced to None to get it from the 'length' argument
         self.itemsize = None
 
+
     def _setDefault(self, dflt):
         "Sets the 'dflt' attribute (overwrites the method in Col)."
         if dflt is None or dflt == "":
             dflt = "\x00"*self.itemsize
-        # It is important to set the padding character to NULL in order
-        # to avoid the '' string to become a ' ' after de-serializing.
-        # See:
-        # http://sourceforge.net/tracker/index.php?func=detail&aid=1304615&group_id=1369&atid=450446
-        # for more info.
-        self.dflt = strings.array(dflt, padc='\x00')
+        self.dflt = NP.array(dflt, dtype="S")
+
 
     def __init__(self, length = None, dflt = None, shape = 1, pos = None,
                  indexed = False):
 
-        # Some more work needed for constructor call idiosincracies:
+        # Some more work needed for constructor call idiosyncrasies:
         # 'itemsize' is deduced from the default value if not specified.
         if length is None and dflt:
             length = len(dflt)  # 'dflt' has already been checked
@@ -286,12 +275,12 @@ You must specify at least a length or a default value
         # This is set here just to be used in _setDefault()
         self.itemsize = length
 
-        Col.__init__(
-            self, dtype = 'CharType',
-            dflt = dflt, shape = shape, pos = pos, indexed = indexed)
-        # This needs to be set again (more indiosincracies :-()
+        Col.__init__(self, dtype='CharType', dflt=dflt, shape=shape,
+                     pos=pos, indexed=indexed)
+        # This needs to be set again (more idiosyncrasies :-()
         self.itemsize = length
         self.recarrtype = revrecarrfmt[self.type]+str(self.itemsize)
+
 
     def __repr__(self):
         return ("StringCol(length=%s, dflt=%r, shape=%s, pos=%s, indexed=%s)"
@@ -299,24 +288,29 @@ You must specify at least a length or a default value
                    self.indexed))
 
 
+
 class BoolCol(Col):
     "Defines a boolean column."
 
     def _setType(self, type_):
-        self.type       = NA.Bool
+        self.type       = NP.bool_
         self.stype      = str(self.type)
         self.recarrtype = revrecarrfmt[self.type]
+
 
     def _setIndex(self, indexed):
         super(Col, self)._setIndex(indexed)
 
+
     def _setShape(self, shape):
         super(Col, self)._setShape(shape)
+
 
     def __init__(self, dflt = False, shape = 1, pos = None, indexed = False):
         Col.__init__(
             self, dtype = 'Bool',
             dflt = dflt, shape = shape, pos = pos, indexed = indexed)
+
 
     def __repr__(self):
         return "BoolCol(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
@@ -334,33 +328,36 @@ Integer itemsizes different from 1, 2, 4 or 8 are not supported""")
 
         if itemsize == 1:
             if sign:
-                self.type = NA.Int8
+                self.type = NP.int8
             else:
-                self.type = NA.UInt8
+                self.type = NP.uint8
         elif itemsize == 2:
             if sign:
-                self.type = NA.Int16
+                self.type = NP.int16
             else:
-                self.type = NA.UInt16
+                self.type = NP.uint16
         elif itemsize == 4:
             if sign:
-                self.type = NA.Int32
+                self.type = NP.int32
             else:
-                self.type = NA.UInt32
+                self.type = NP.uint32
         elif itemsize == 8:
             if sign:
-                self.type = NA.Int64
+                self.type = NP.int64
             else:
-                self.type = NA.UInt64
+                self.type = NP.uint64
 
-        self.stype = str(self.type)
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
+
 
     def _setIndex(self, indexed):
         super(Col, self)._setIndex(indexed)
 
+
     def _setShape(self, shape):
         super(Col, self)._setShape(shape)
+
 
     def __init__(self, dflt = 0, shape = 1, itemsize = 4, sign = 1,
                  pos = None, indexed = False):
@@ -381,22 +378,24 @@ Integer itemsizes different from 1, 2, 4 or 8 are not supported""")
         self._setIndex(indexed)
         self._setPosition(pos)
 
+
     def __repr__(self):
-        if NA.array(0, self.type)[()] - NA.array(1, self.type)[()] < 0:
-            sign = 1
+        if NP.array(0, self.type) - NP.array(1, self.type) < 0:
+            sign = True
         else:
-            sign = 0
+            sign = False
 
         return """\
 IntCol(dflt=%s, shape=%s, itemsize=%s, sign=%s, pos=%s, indexed=%s)""" % (
             self.dflt, self.shape, self.itemsize, sign, self._v_pos,
             self.indexed)
 
+
 class Int8Col(IntCol):
     "Description class for a signed integer of 8 bits."
     def _setType(self, itemsize, sign):
-        self.type = NA.Int8
-        self.stype = str(self.type)
+        self.type = NP.int8
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0, shape = 1, pos = None, indexed = False):
         IntCol.__init__(self, dflt, itemsize = 1, shape = shape, sign = 1,
@@ -405,11 +404,12 @@ class Int8Col(IntCol):
         return "Int8Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
             self.dflt, self.shape, self._v_pos, self.indexed)
 
+
 class UInt8Col(IntCol):
     "Description class for an unsigned integer of 8 bits."
     def _setType(self, itemsize, sign):
-        self.type = NA.UInt8
-        self.stype = str(self.type)
+        self.type = NP.uint8
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 1, shape = shape, sign = 0,
@@ -418,11 +418,12 @@ class UInt8Col(IntCol):
         return "UInt8Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
             self.dflt, self.shape, self._v_pos, self.indexed)
 
+
 class Int16Col(IntCol):
     "Description class for a signed integer of 16 bits."
     def _setType(self, itemsize, sign):
-        self.type = NA.Int16
-        self.stype = str(self.type)
+        self.type = NP.int16
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 2, shape = shape, sign = 1,
@@ -431,11 +432,12 @@ class Int16Col(IntCol):
         return "Int16Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
             self.dflt, self.shape, self._v_pos, self.indexed)
 
+
 class UInt16Col(IntCol):
     "Description class for an unsigned integer of 16 bits."
     def _setType(self, itemsize, sign):
-        self.type = NA.UInt16
-        self.stype = str(self.type)
+        self.type = NP.uint16
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 2, shape = shape, sign = 0,
@@ -444,11 +446,12 @@ class UInt16Col(IntCol):
         return "UInt16Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
             self.dflt, self.shape, self._v_pos, self.indexed)
 
+
 class Int32Col(IntCol):
     "Description class for a signed integer of 32 bits."
     def _setType(self, itemsize, sign):
-        self.type = NA.Int32
-        self.stype = str(self.type)
+        self.type = NP.int32
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0, shape = 1, pos = None, indexed = False):
         IntCol.__init__(self, dflt , itemsize=4, shape=shape, sign=1,
@@ -457,11 +460,12 @@ class Int32Col(IntCol):
         return "Int32Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
             self.dflt, self.shape, self._v_pos, self.indexed)
 
+
 class UInt32Col(IntCol):
     "Description class for an unsigned integer of 32 bits."
     def _setType(self, itemsize, sign):
-        self.type = NA.UInt32
-        self.stype = str(self.type)
+        self.type = NP.uint32
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 4, shape = shape, sign = 0,
@@ -470,11 +474,12 @@ class UInt32Col(IntCol):
         return "UInt32Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
             self.dflt, self.shape, self._v_pos, self.indexed)
 
+
 class Int64Col(IntCol):
     "Description class for a signed integer of 64 bits."
     def _setType(self, itemsize, sign):
-        self.type = NA.Int64
-        self.stype = str(self.type)
+        self.type = NP.int64
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 8, shape = shape, sign = 1,
@@ -483,11 +488,12 @@ class Int64Col(IntCol):
         return "Int64Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
             self.dflt, self.shape, self._v_pos, self.indexed)
 
+
 class UInt64Col(IntCol):
     "Description class for an unsigned integer of 64 bits."
     def _setType(self, itemsize, sign):
-        self.type = NA.UInt64
-        self.stype = str(self.type)
+        self.type = NP.uint64
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 8, shape = shape, sign = 0,
@@ -507,11 +513,11 @@ class FloatCol(Col):
 Float itemsizes different from 4 or 8 are not supported""")
 
         if itemsize == 4:
-            self.type = NA.Float32
+            self.type = NP.float32
         elif itemsize == 8:
-            self.type = NA.Float64
+            self.type = NP.float64
 
-        self.stype = str(self.type)
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
 
     def _setIndex(self, indexed):
@@ -544,11 +550,12 @@ Float itemsizes different from 4 or 8 are not supported""")
 FloatCol(dflt=%s, shape=%s, itemsize=%s, pos=%s, indexed=%s)""" % (
             self.dflt, self.shape, self.itemsize, self._v_pos, self.indexed)
 
+
 class Float32Col(FloatCol):
     "Description class for a floating point of 32 bits."
     def _setType(self, itemsize):
-        self.type = NA.Float32
-        self.stype = str(self.type)
+        self.type = NP.float32
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0.0, shape = 1, pos = None, indexed = False):
         FloatCol.__init__(self, dflt , shape = shape, itemsize = 4,
@@ -557,11 +564,12 @@ class Float32Col(FloatCol):
         return "Float32Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
             self.dflt, self.shape, self._v_pos, self.indexed)
 
+
 class Float64Col(FloatCol):
     "Description class for a floating point of 64 bits."
     def _setType(self, itemsize):
-        self.type = NA.Float64
-        self.stype = str(self.type)
+        self.type = NP.float64
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0.0, shape = 1, pos = None, indexed = False):
         FloatCol.__init__(self, dflt , shape = shape, itemsize = 8,
@@ -581,9 +589,9 @@ class ComplexCol(Col):
 Complex itemsizes different from 8 or 16 are not supported""")
 
         if itemsize == 8:
-            self.type = NA.Complex32
+            self.type = NP.complex64
         elif itemsize == 16:
-            self.type = NA.Complex64
+            self.type = NP.complex128
 
         self.stype = str(self.type)
         self.recarrtype = revrecarrfmt[self.type]
@@ -613,11 +621,12 @@ Complex itemsizes different from 8 or 16 are not supported""")
         return "ComplexCol(dflt=%s, shape=%s, itemsize=%s, pos=%s)" % (
             self.dflt, self.shape, self.itemsize, self._v_pos)
 
+
 class Complex32Col(ComplexCol):
     "Description class for a complex of simple precision."
     def _setType(self, itemsize):
-        self.type = NA.Complex32
-        self.stype = str(self.type)
+        self.type = NP.complex64
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = (0.0+0.0j), shape = 1, pos = None):
         ComplexCol.__init__(self, dflt, shape = shape, itemsize = 8, pos = pos)
@@ -625,11 +634,12 @@ class Complex32Col(ComplexCol):
         return "Complex32Col(dflt=%s, shape=%s, pos=%s)" % (
             self.dflt, self.shape, self._v_pos)
 
+
 class Complex64Col(ComplexCol):
     "Description class for a complex of double precision."
     def _setType(self, itemsize):
-        self.type = NA.Complex64
-        self.stype = str(self.type)
+        self.type = NP.complex128
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = (0.0+0.0j), shape = 1, pos = None):
         ComplexCol.__init__(self, dflt , shape = shape, itemsize = 16, pos = pos)
@@ -656,13 +666,13 @@ class TimeCol(Col):
             raise ValueError("""\
 Time itemsizes different from 4 or 8 are not supported""")
 
-        # Since Time columns have no Numarray type of their own,
+        # Since Time columns have no NumPy type of their own,
         # a special case is made for them.
         if itemsize == 4:
-            self.type = NA.Int32
+            self.type = NP.int32
             self.stype = 'Time32'
         elif itemsize == 8:
-            self.type = NA.Float64
+            self.type = NP.float64
             self.stype = 'Time64'
 
         self.recarrtype = revrecarrfmt[self.type]
@@ -697,10 +707,11 @@ Time itemsizes different from 4 or 8 are not supported""")
 TimeCol(dflt=%s, shape=%s, itemsize=%s, pos=%s, indexed=%s)""" % (
             self.dflt, self.shape, self.itemsize, self._v_pos, self.indexed)
 
+
 class Time32Col(TimeCol):
     "Description class for an integer time of 32 bits."
     def _setType(self, itemsize):
-        self.type = NA.Int32
+        self.type = NP.int32
         self.stype = 'Time32'
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0, shape = 1, pos = None, indexed = False):
@@ -710,10 +721,11 @@ class Time32Col(TimeCol):
         return "Time32Col(dflt=%s, shape=%s, pos=%s, indexed=%s)" % (
             self.dflt, self.shape, self._v_pos, self.indexed)
 
+
 class Time64Col(TimeCol):
     "Description class for a floating point time of 64 bits."
     def _setType(self, itemsize):
-        self.type = NA.Float64
+        self.type = NP.float64
         self.stype = 'Time64'
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0.0, shape = 1, pos = None, indexed = False):
@@ -742,9 +754,9 @@ class EnumCol(Col):
     attribute.  If the name does not match any value in the enumerated
     type, a ``KeyError`` is raised.
 
-    A Numarray data type might be specified in order to determine the
-    base type used for storing the values of enumerated values in memory
-    and disk.  The data type must be able to represent each and every
+    A NumPy data type might be specified in order to determine the base
+    type used for storing the values of enumerated values in memory and
+    disk.  The data type must be able to represent each and every
     concrete value in the enumeration.  If it is not, a ``TypeError`` is
     raised.  The default base type is unsigned 32-bit integer, which is
     sufficient for most cases.
@@ -811,10 +823,10 @@ class EnumCol(Col):
 
         values = [value for (name, value) in enum]
         try:
-            asArray = NA.array(values)
+            asArray = NP.array(values)
 
             # Check integer type of concrete values.
-            if not isinstance(asArray.type(), NA.IntegralType):
+            if not asArray.dtype.kind in ['i', 'u']:
                 raise NotImplementedError("""\
 sorry, only integer concrete values are supported for the moment""")
 
@@ -835,10 +847,10 @@ sorry, only numeric concrete values are supported for the moment""")
 
 
     def _setType(self, type_):
-        type_ = NA.typeDict[type_]
+        type_ = NP.typeNA[type_]
 
         # Check integer type of representation.
-        if not isinstance(type_, NA.IntegralType):
+        if not type_.kind in ['i', 'u']:
             raise NotImplementedError("""\
 sorry, only integer concrete values type are supported for the moment""")
 
@@ -849,7 +861,7 @@ sorry, only integer concrete values type are supported for the moment""")
             values.append(value)
 
         # Check that type can represent concrete values.
-        encoded = NA.array(values, type_)
+        encoded = NP.array(values, type_)
         if values != encoded.tolist():
             raise TypeError("""\
 type ``%s`` can not represent all concrete values in the enumeration"""
@@ -857,10 +869,8 @@ type ``%s`` can not represent all concrete values in the enumeration"""
 
         self._naNames = names
         """List of enumerated names."""
-
         self._naValues = encoded
         """List of enumerated concrete values."""
-
         self.type = type_
         self.stype = 'Enum'
         self.recarrtype = revrecarrfmt[type_]
@@ -872,18 +882,19 @@ type ``%s`` can not represent all concrete values in the enumeration"""
                 "name of default enumerated value is not a string: %r"
                 % (dflt,))
 
-        # The defaults are now numarray objects. However,
-        # for enumerated types, we still hold using python objects
-        # because some issues with Enum.__call__(NumArray) calls.
+        # The defaults are now NumPy objects. However,
+        # for enumerated types, we still use python objects
+        # because some issues with Enum.__call__(NumPy) calls.
         # F. Altet 2005-11-9
         #self.dflt = self.enum[dflt]
-        self.dflt = NA.array(self.enum[dflt], type=self.type)
+        self.dflt = NP.array(self.enum[dflt], dtype=self.type)
 
 
     def __repr__(self):
         return ('EnumCol(%s, %r, dtype=\'%s\', shape=%s, pos=%s, indexed=%s)'
                 % (self.enum, self.enum(self.dflt[()]),
                    self.type, self.shape, self._v_pos, self.indexed))
+
 
 
 class Description(object):
@@ -917,7 +928,7 @@ class Description(object):
         of ``NestedRecArray`` factory functions.
 
     _v_nestedFormats
-        A nested list of the Numarray string formats (and shapes) of all
+        A nested list of the NumPy string formats (and shapes) of all
         the columns under this table or nested column.  You can use this
         for the ``formats`` argument of ``NestedRecArray`` factory
         functions.
@@ -930,7 +941,7 @@ class Description(object):
     _v_types
         A dictionary mapping the names of non-nested columns hanging
         directly from the associated table or nested column to their
-        respective Numarray types.
+        respective NumPy types.
 
     _v_stypes
         A dictionary mapping the names of non-nested columns hanging
@@ -1124,6 +1135,7 @@ class Description(object):
         # finally delegate the rest of the work to type.__new__
         return
 
+
     def _g_cmpkeys(self, key1, key2):
         """Helps .sort() to respect pos field in type definition"""
         # Do not try to order variables that starts with special
@@ -1153,6 +1165,7 @@ class Description(object):
         if pos1 > pos2:
             return 1
 
+
     def _g_setNestedNamesDescr(self):
         """Computes the nested names and descriptions for nested datatypes.
         """
@@ -1170,6 +1183,7 @@ class Description(object):
                 self._v_nestedDescr[i] = (name, new_object._v_nestedDescr)
                 # set the _v_is_nested flag
                 self._v_is_nested = True
+
 
     def _g_setPathNames(self):
         """Compute the pathnames for arbitrary nested descriptions.
@@ -1246,6 +1260,7 @@ class Description(object):
                     parentCols.extend(colPaths)
                 # (Nothing is pushed, we are done with this description.)
 
+
     def _v_walk(self, type="All"):
         """
         Iterate over nested columns.
@@ -1276,6 +1291,7 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
                     if type in ["All", "Col"]:
                         yield new_object  # yield column
 
+
     def __repr__(self):
         """ Gives a detailed Description column representation.
         """
@@ -1284,10 +1300,12 @@ type can only take the parameters 'All', 'Col' or 'Description'.""")
                 for k in self._v_names]
         return '{\n  %s}' % (',\n  '.join(rep))
 
+
     def __str__(self):
         """ Gives a brief Description representation.
         """
         return 'Description(%s)' % self._v_nestedDescr
+
 
 
 class metaIsDescription(type):
@@ -1309,11 +1327,13 @@ class metaIsDescription(type):
         return type.__new__(cls, classname, bases, newdict)
 
 
+
 class IsDescription(object):
     """ For convenience: inheriting from IsDescription can be used to get
         the new metaclass (same as defining __metaclass__ yourself).
     """
     __metaclass__ = metaIsDescription
+
 
 
 if __name__=="__main__":
@@ -1379,7 +1399,8 @@ if __name__=="__main__":
 #                     z4 = UInt8Col(1)
 
     # example cases of class Test
-    klass = Test()
+    #klass = Test()
+    klass = Info()
     desc = Description(klass.columns)
     print "Description representation (short) ==>", desc
     print "Description representation (long) ==>", repr(desc)

@@ -127,7 +127,7 @@ cdef extern from "numpy/arrayobject.h":
     cdef dtype descr
     cdef int flags
 
-  # The numpy initialization funtion
+  # The NumPy initialization funtion
   void import_array()
 
 
@@ -145,6 +145,10 @@ cdef extern from "hdf5.h":
   ctypedef long long hsize_t
   ctypedef signed long long hssize_t
 
+  ctypedef struct hvl_t:
+    size_t len                 # Length of VL data (in base type units)
+    void *p                    # Pointer to VL data
+
   int H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, H5F_ACC_EXCL
   int H5F_ACC_DEBUG, H5F_ACC_CREAT
   int H5P_DEFAULT, H5P_DATASET_XFER, H5S_ALL
@@ -152,18 +156,25 @@ cdef extern from "hdf5.h":
   int H5FD_LOG_LOC_WRITE, H5FD_LOG_ALL
   int H5I_INVALID_HID
 
-  ctypedef struct hvl_t:
-    size_t len                 # Length of VL data (in base type units)
-    void *p                    # Pointer to VL data
+  # The difference between a single file and a set of mounted files
+  cdef enum H5F_scope_t:
+    H5F_SCOPE_LOCAL     = 0,    # specified file handle only
+    H5F_SCOPE_GLOBAL    = 1,    # entire virtual file
+    H5F_SCOPE_DOWN      = 2     # for internal use only
 
-  ctypedef enum H5G_obj_t:
+  cdef enum H5G_link_t:
+    H5G_LINK_ERROR      = -1,
+    H5G_LINK_HARD       = 0,
+    H5G_LINK_SOFT       = 1
+
+  cdef enum H5G_obj_t:
     H5G_UNKNOWN = -1,           # Unknown object type
     H5G_LINK,                   # Object is a symbolic link
     H5G_GROUP,                  # Object is a group
     H5G_DATASET,                # Object is a dataset
     H5G_TYPE,                   # Object is a named data type
 
-  cdef struct H5G_stat_t:
+  ctypedef struct H5G_stat_t:
     unsigned long fileno[2]
     unsigned long objno[2]
     unsigned nlink
@@ -173,29 +184,19 @@ cdef extern from "hdf5.h":
     #H5O_stat_t ohdr            # Object header information. New in HDF5 1.6
 
   # HDF5 layouts
-  ctypedef enum H5D_layout_t:
+  cdef enum H5D_layout_t:
     H5D_LAYOUT_ERROR    = -1,
     H5D_COMPACT         = 0,    # raw data is very small
     H5D_CONTIGUOUS      = 1,    # the default
     H5D_CHUNKED         = 2,    # slow and fancy
     H5D_NLAYOUTS        = 3     # this one must be last!
 
-  # The difference between a single file and a set of mounted files
-  cdef enum H5F_scope_t:
-    H5F_SCOPE_LOCAL     = 0,    # specified file handle only
-    H5F_SCOPE_GLOBAL    = 1,    # entire virtual file
-    H5F_SCOPE_DOWN      = 2     # for internal use only
-
+  # HDF5 signed enums
   cdef enum H5T_sign_t:
     H5T_SGN_ERROR        = -1,  # error
     H5T_SGN_NONE         = 0,   # this is an unsigned type
     H5T_SGN_2            = 1,   # two's complement
     H5T_NSGN             = 2    # this must be last!
-
-  cdef enum H5G_link_t:
-    H5G_LINK_ERROR      = -1,
-    H5G_LINK_HARD       = 0,
-    H5G_LINK_SOFT       = 1
 
   # HDF5 type classes
   cdef enum H5T_class_t:
@@ -229,6 +230,8 @@ cdef extern from "hdf5.h":
     H5T_NATIVE_FLOAT
     H5T_NATIVE_DOUBLE
     H5T_NATIVE_LDOUBLE
+    H5T_UNIX_D32BE
+    H5T_UNIX_D64BE
 
   # The order to retrieve atomic native datatype
   cdef enum H5T_direction_t:
@@ -237,7 +240,7 @@ cdef extern from "hdf5.h":
     H5T_DIR_DESCEND     = 2     #in descendent order
 
   # Codes for defining selections
-  ctypedef enum H5S_seloper_t:
+  cdef enum H5S_seloper_t:
     H5S_SELECT_NOOP      = -1,
     H5S_SELECT_SET       = 0,
     H5S_SELECT_OR,

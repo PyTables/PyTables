@@ -32,9 +32,10 @@ from tables.utils import checkFileAccess
 
 from definitions cimport import_array, ndarray, \
      malloc, free, strcpy, strcmp, PyString_AsString, \
-     H5F_ACC_RDONLY, H5P_DEFAULT, \
+     H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, \
      size_t, hid_t, herr_t, hsize_t, htri_t, \
-     H5T_sign_t, H5T_direction_t
+     H5T_sign_t, H5T_direction_t,  H5T_class_t, H5D_layout_t
+
 
 # Include conversion tables
 include "convtypetables.pxi"
@@ -48,52 +49,6 @@ __version__ = "$Revision$"
 
 # HDF5 API.
 cdef extern from "hdf5.h":
-
-  # HDF5 layouts
-  ctypedef enum H5D_layout_t:
-    H5D_LAYOUT_ERROR    = -1,
-    H5D_COMPACT         = 0,    # raw data is very small
-    H5D_CONTIGUOUS      = 1,    # the default
-    H5D_CHUNKED         = 2,    # slow and fancy
-    H5D_NLAYOUTS        = 3     # this one must be last!
-
-  # HDF5 classes.
-  cdef enum H5T_class_t:
-    H5T_NO_CLASS         = -1,  # error
-    H5T_INTEGER          = 0,   # integer types
-    H5T_FLOAT            = 1,   # floating-point types
-    H5T_TIME             = 2,   # date and time types
-    H5T_STRING           = 3,   # character string types
-    H5T_BITFIELD         = 4,   # bit field types
-    H5T_OPAQUE           = 5,   # opaque types
-    H5T_COMPOUND         = 6,   # compound types
-    H5T_REFERENCE        = 7,   # reference types
-    H5T_ENUM             = 8,   # enumeration types
-    H5T_VLEN             = 9,   # variable-length types
-    H5T_ARRAY            = 10,  # array types
-    H5T_NCLASSES                # this must be last
-
-  # Native types.
-  cdef enum:
-    H5T_C_S1
-    H5T_NATIVE_B8
-    H5T_NATIVE_CHAR
-    H5T_NATIVE_SCHAR
-    H5T_NATIVE_UCHAR
-    H5T_NATIVE_SHORT
-    H5T_NATIVE_USHORT
-    H5T_NATIVE_INT
-    H5T_NATIVE_UINT
-    H5T_NATIVE_LONG
-    H5T_NATIVE_ULONG
-    H5T_NATIVE_LLONG
-    H5T_NATIVE_ULLONG
-    H5T_NATIVE_FLOAT
-    H5T_NATIVE_DOUBLE
-    H5T_NATIVE_LDOUBLE
-    H5T_UNIX_D32BE
-    H5T_UNIX_D64BE
-
 
   # HDF5 API functions.
 
@@ -171,7 +126,7 @@ cdef extern from "utils.h":
   #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
   hid_t  create_native_complex64(char *byteorder)
-  hid_t  create_native_complex32(char *byteorder)
+  hid_t  create_native_complex128(char *byteorder)
   int    is_complex(hid_t type_id)
   herr_t set_order(hid_t type_id, char *byteorder)
   herr_t get_order(hid_t type_id, char *byteorder)
@@ -761,9 +716,9 @@ def conv2HDF5Type(object col, char *byteorder):
       tid = H5Tcopy(H5T_NATIVE_B8)
       H5Tset_precision(tid, 1)
     elif col.stype == 'Complex32':
-      tid = create_native_complex32(byteorder)
-    elif col.stype == 'Complex64':
       tid = create_native_complex64(byteorder)
+    elif col.stype == 'Complex64':
+      tid = create_native_complex128(byteorder)
     elif col.stype == 'CharType':
       tid = H5Tcopy(H5T_C_S1);
       H5Tset_size(tid, col.itemsize)  #.itemsize is the length of the arrays

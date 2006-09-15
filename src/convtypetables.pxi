@@ -1,7 +1,26 @@
+#  Ei!, emacs, this is -*-Python-*- mode
+########################################################################
+#
+#       License: BSD
+#       Created: Sep 15, 2006
+#       Author:  Francesc Altet - faltet@carabos.com
+#
+#       $Id: convtypetables.pxi 1808 2006-09-15 10:33:19Z faltet $
+#
+########################################################################
 
-#############################################################
-# Tables for type conversion between PyTables, NumPy & HDF5 #
-#############################################################
+"""Tables for type conversion between PyTables, NumPy & HDF5
+"""
+
+from definitions cimport \
+  NPY_BYTE, NPY_SHORT, NPY_INT, NPY_LONGLONG, \
+  NPY_UBYTE, NPY_USHORT, NPY_UINT, NPY_ULONGLONG, \
+  NPY_BOOL, NPY_STRING, NPY_FLOAT, NPY_DOUBLE, NPY_CFLOAT, NPY_CDOUBLE, \
+  H5T_NATIVE_SCHAR, H5T_NATIVE_SHORT, H5T_NATIVE_INT, H5T_NATIVE_LLONG,\
+  H5T_NATIVE_UCHAR, H5T_NATIVE_USHORT, H5T_NATIVE_UINT, H5T_NATIVE_ULLONG, \
+  H5T_NATIVE_FLOAT, H5T_NATIVE_DOUBLE, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
+  H5T_NO_CLASS, H5T_INTEGER, H5T_FLOAT, H5T_TIME, H5T_STRING, H5T_BITFIELD, \
+  H5T_OPAQUE, H5T_COMPOUND, H5T_REFERENCE, H5T_ENUM, H5T_VLEN, H5T_ARRAY
 
 
 # Conversion from NumPy codes to native HDF5 types
@@ -14,8 +33,8 @@ NPCodeToHDF5 = {
   NPY_USHORT    : H5T_NATIVE_USHORT,
   NPY_UINT      : H5T_NATIVE_UINT,
   NPY_ULONGLONG : H5T_NATIVE_ULLONG,
-  NPY_FLOAT32   : H5T_NATIVE_FLOAT,
-  NPY_FLOAT64   : H5T_NATIVE_DOUBLE
+  NPY_FLOAT     : H5T_NATIVE_FLOAT,
+  NPY_DOUBLE    : H5T_NATIVE_DOUBLE
   }
 
 
@@ -33,36 +52,36 @@ HDF5ClassToString = {
   H5T_ENUM:       'H5T_ENUM',
   H5T_VLEN:       'H5T_VLEN',
   H5T_ARRAY:      'H5T_ARRAY',
-  H5T_NCLASSES:   'H5T_NCLASSES'
   }
 
 
-# Conversion table from numpy codes to numpy type classes
+# Conversion table from NumPy codes to NumPy type classes
 NPCodeToType = {
-  NPY_BOOL:      numpy.bool,      NPY_STRING:     numpy.string,
-  NPY_INT8:      numpy.int8,      NPY_UINT8:      numpy.uint8,
-  NPY_INT16:     numpy.int16,     NPY_UINT16:     numpy.uint16,
-  NPY_INT32:     numpy.int32,     NPY_UINT32:     numpy.uint32,
-  NPY_INT64:     numpy.int64,     NPY_UINT64:     numpy.uint64,
-  NPY_FLOAT32:   numpy.float32,   NPY_FLOAT64:    numpy.float64,
-  NPY_COMPLEX64: numpy.complex64, NPY_COMPLEX128: numpy.complex128,
+  NPY_BOOL:      numpy.bool_,     NPY_STRING:     numpy.string_,
+  NPY_BYTE:      numpy.int8,      NPY_UBYTE:      numpy.uint8,
+  NPY_SHORT:     numpy.int16,     NPY_USHORT:     numpy.uint16,
+  NPY_INT:       numpy.int32,     NPY_UINT:       numpy.uint32,
+  NPY_LONGLONG:  numpy.int64,     NPY_ULONGLONG:  numpy.uint64,
+  NPY_FLOAT:     numpy.float32,   NPY_DOUBLE:     numpy.float64,
+  NPY_CFLOAT:    numpy.complex64, NPY_CDOUBLE:    numpy.complex128,
   # Special cases:
-  ord('t'): numpy.Int32,          ord('T'):       numpy.Float64,
+  ord('t'): numpy.int32,          ord('T'):       numpy.float64,
   }
 
 
-# Conversion table from numpy type classes to numpy type codes
+# Conversion table from NumPy type classes to NumPy type codes
 NPTypeToCode = {
-  numpy.bool:      NPY_BOOL,      numpy.string:     NPY_STRING,
-  numpy.int8:      NPY_INT8,      numpy.uint8:      NPY_UINT8,
-  numpy.int16:     NPY_INT16,     numpy.uint16:     NPY_UINT16,
-  numpy.int32:     NPY_INT32,     numpy.uint32:     NPY_UINT32,
-  numpy.int64:     NPY_INT64,     numpy.uint64:     NPY_UINT64,
-  numpy.float32:   NPY_FLOAT32,   numpy.float64:    NPY_FLOAT64,
-  numpy.complex64: NPY_COMPLEX64, numpy.complex128: NPY_COMPLEX128,
+  numpy.bool_:     NPY_BOOL,      numpy.string_:    NPY_STRING,
+  numpy.int8:      NPY_BYTE,      numpy.uint8:      NPY_UBYTE,
+  numpy.int16:     NPY_SHORT,     numpy.uint16:     NPY_USHORT,
+  numpy.int32:     NPY_INT,       numpy.uint32:     NPY_UINT,
+  numpy.int64:     NPY_LONGLONG,  numpy.uint64:     NPY_ULONGLONG,
+  numpy.float32:   NPY_FLOAT,     numpy.float64:    NPY_DOUBLE,
+  numpy.complex64: NPY_CFLOAT,    numpy.complex128: NPY_CDOUBLE,
   }
 
-# Conversion from numpy codes to pytables string types
+
+# Conversion from NumPy codes to PyTables string types
 NPCodeToPTType = {
   NPY_BOOL:     'Bool',      NPY_STRING:    'CharType',
   NPY_BYTE:     'Int8',      NPY_UBYTE:     'UInt8',
@@ -76,9 +95,8 @@ NPCodeToPTType = {
   ord('e'):     'Enum',
   }
 
-# Conversion from pytables string types to HDF5 native types
+# Conversion from PyTables string types to HDF5 native types
 # List only types that are susceptible of changing byteorder
-#naSTypeToH5Type = {
 PTTypeToHDF5 = {
   'Int8':    H5T_NATIVE_SCHAR,  'UInt8':   H5T_NATIVE_UCHAR,
   'Int16':   H5T_NATIVE_SHORT,  'UInt16':  H5T_NATIVE_USHORT,
@@ -89,5 +107,4 @@ PTTypeToHDF5 = {
 
 # Special cases that cannot be directly mapped:
 ptSpecialTypes = ['Bool', 'Complex32', 'Complex64', 'CharType', 'Enum']
-
 

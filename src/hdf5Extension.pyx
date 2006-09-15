@@ -47,16 +47,17 @@ from tables.utilsExtension import  \
 from lrucacheExtension cimport NodeCache
 
 # Types, constants, functions, classes & other objects from everywhere
-from definitions cimport \
+from definitions cimport  \
      strdup, malloc, free, \
-     import_array, ndarray, dtype, \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
      PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
      Py_INCREF, Py_DECREF, \
-     time_t, size_t, hid_t, herr_t, hsize_t, hvl_t, \
+     import_array, ndarray, dtype, \
+     time_t, size_t, hid_t, herr_t, hsize_t, hvl_t, H5T_class_t, \
      H5F_scope_t, H5G_link_t, H5G_stat_t, H5S_seloper_t, H5T_sign_t, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
      H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5S_SELECT_SET
+
 
 # Include conversion tables
 include "convtypetables.pxi"
@@ -69,39 +70,6 @@ __version__ = "$Revision$"
 
 # Structs and types from HDF5
 cdef extern from "hdf5.h":
-
-  cdef enum H5T_class_t:
-    H5T_NO_CLASS         = -1,  #error                                      */
-    H5T_INTEGER          = 0,   #integer types                              */
-    H5T_FLOAT            = 1,   #floating-point types                       */
-    H5T_TIME             = 2,   #date and time types                        */
-    H5T_STRING           = 3,   #character string types                     */
-    H5T_BITFIELD         = 4,   #bit field types                            */
-    H5T_OPAQUE           = 5,   #opaque types                               */
-    H5T_COMPOUND         = 6,   #compound types                             */
-    H5T_REFERENCE        = 7,   #reference types                            */
-    H5T_ENUM             = 8,   #enumeration types                          */
-    H5T_VLEN             = 9,   #Variable-Length types                      */
-    H5T_ARRAY            = 10,  #Array types                                */
-    H5T_NCLASSES                #this must be last                          */
-
-  # Native types
-  cdef enum:
-    H5T_NATIVE_CHAR
-    H5T_NATIVE_SCHAR
-    H5T_NATIVE_UCHAR
-    H5T_NATIVE_SHORT
-    H5T_NATIVE_USHORT
-    H5T_NATIVE_INT
-    H5T_NATIVE_UINT
-    H5T_NATIVE_LONG
-    H5T_NATIVE_ULONG
-    H5T_NATIVE_LLONG
-    H5T_NATIVE_ULLONG
-    H5T_NATIVE_FLOAT
-    H5T_NATIVE_DOUBLE
-    H5T_NATIVE_LDOUBLE
-
 
   # Functions from HDF5
   hid_t  H5Fcreate(char *filename, unsigned int flags,
@@ -1724,7 +1692,7 @@ cdef class VLArray(Leaf):
         # Case of scalars (self._atomicshape == 1)
         shape = (vllen,)
       if str(self._atomictype) == "CharType":
-        dtype = numpy.dtype((numpy.string, self._basesize))
+        dtype = numpy.dtype((numpy.string_, self._basesize))
       else:
         dtype = numpy.dtype(self._atomictype)
         # Set the same byteorder than on-disk
