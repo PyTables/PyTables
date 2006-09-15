@@ -519,42 +519,42 @@ def getFilters(parent_id, name):
 
 
 # This is used by several <Leaf>._convertTypes() methods.
-def convertTime64(object naarr, hsize_t nrecords, int sense):
+def convertTime64(ndarray nparr, hsize_t nrecords, int sense):
   """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
 
   NumPy to HDF5 conversion is performed when 'sense' is 0.
   Otherwise, HDF5 to NumPy conversion is performed.
-  The conversion is done in place, i.e. 'naarr' is modified.
+  The conversion is done in place, i.e. 'nparr' is modified.
   """
 
   cdef void *t64buf
-  cdef long buflen, byteoffset, bytestride, nelements
+  cdef long byteoffset, bytestride, nelements
 
-  byteoffset = naarr._byteoffset
-  bytestride = naarr._strides[0]  # supports multi-dimensional RecArray
-  nelements = naarr.size() / len(naarr)
-  buflen = NA_getBufferPtrAndSize(naarr._data, 1, &t64buf)
+  byteoffset = 0   # NumPy objects doesn't have an offset
+  bytestride = nparr.strides[0]  # supports multi-dimensional recarray
+  nelements = nparr.size / len(nparr)
+  t64buf = nparr.data
 
   conv_float64_timeval32(
     t64buf, byteoffset, bytestride, nrecords, nelements, sense)
 
 
-def space2null(object naarr, hsize_t nrecords, int sense):
+def space2null(ndobject nparr, hsize_t nrecords, int sense):
   """Converts a the space padding of CharArray object into null's.
 
   NumPy to HDF5 conversion is performed when 'sense' is 0.
   Otherwise, HDF5 to NumPy conversion is performed.
-  The conversion is done in place, i.e. 'naarr' is modified.
+  The conversion is done in place, i.e. 'nparr' is modified.
   """
 
   cdef void *strbuf
-  cdef long buflen, byteoffset, bytestride, nelements, itemsize
+  cdef long byteoffset, bytestride, nelements, itemsize
 
-  byteoffset = naarr._byteoffset
-  bytestride = naarr._strides[0]  # supports multi-dimensional RecArray
-  nelements = naarr.size() / len(naarr)
-  itemsize = naarr.itemsize()
-  buflen = NA_getBufferPtrAndSize(naarr._data, 1, &strbuf)
+  byteoffset = 0   # NumPy objects doesn't have an offset
+  bytestride = nparr.strides[0]  # supports multi-dimensional recarray
+  nelements = nparr.size / len(nparr)
+  itemsize = nparr.itemsize
+  strbuf = nparr.data
 
   conv_space_null(
     strbuf, byteoffset, bytestride, nrecords, nelements, itemsize, sense)
@@ -624,37 +624,37 @@ def enumFromHDF5(hid_t enumId):
   Convert an HDF5 enumerated type to a PyTables one.
 
   This function takes an HDF5 enumerated type and returns an `Enum`
-  instance built from that, and the Numarray type used to encode it.
+  instance built from that, and the NumPy type used to encode it.
   """
 
   cdef hid_t  baseId
-  cdef int    nelems, naEnum, i
-  cdef size_t typeSize
-  cdef void  *valueAddr
+  cdef int    nelems, npenum, i
+  cdef void  *rbuf
   cdef char  *ename
+  cdef ndarray npvalue
 
   # Find the base type of the enumerated type.
   baseId = H5Tget_super(enumId)
   if baseId < 0:
     raise HDF5ExtError("failed to get base type of HDF5 enumerated type")
 
-  # Get the corresponding Numarray type and create temporary value.
-  if getArrayType(baseId, &naEnum) < 0:
-    raise HDF5ExtError("failed to convert HDF5 base type to numarray type")
+  # Get the corresponding NumPy type and create temporary value.
+  if getArrayType(baseId, &npenum) < 0:
+    raise HDF5ExtError("failed to convert HDF5 base type to NumPy type")
   if H5Tclose(baseId) < 0:
     raise HDF5ExtError("failed to close HDF5 base type")
 
   try:
-    npType = NPCodeToType[naEnum]
+    nptype = NPCodeToType[npenum]
   except KeyError:
     raise NotImplementedError("""\
 sorry, only scalar concrete values are supported at this moment""")
-  if not isinstance(npType, numarray.IntegralType):
+  if nptype.kind not in ['i', 'u']:   # not an integer check
     raise NotImplementedError("""\
 sorry, only integer concrete values are supported at this moment""")
 
-  naValue = numarray.array((0,), type=npType)
-  NA_getBufferPtrAndSize(naValue._data, 0, &valueAddr)
+  npvalue = numpy.array((0,), dtype=nptype)
+  rbuf = npvalue.data
 
   # Get the name and value of each of the members
   # and put the pair in `enumDict`.
@@ -673,14 +673,14 @@ sorry, only integer concrete values are supported at this moment""")
     pyename = ename
     free(ename)
 
-    if H5Tget_member_value(enumId, i, valueAddr) < 0:
+    if H5Tget_member_value(enumId, i, rbuf) < 0:
       raise HDF5ExtError(
         "failed to get element value from HDF5 enumerated type")
 
-    enumDict[pyename] = naValue[0]  # converted to Python scalar
+    enumDict[pyename] = npvalue[0]  # converted to Python scalar
 
   # Build an enumerated type from `enumDict` and return it.
-  return Enum(enumDict), npType
+  return Enum(enumDict), nptype
 
 
 def enumToHDF5(object enumCol, char *byteOrder):
@@ -693,17 +693,18 @@ def enumToHDF5(object enumCol, char *byteOrder):
   returned.
   """
 
-  cdef int    npEnum
-  cdef size_t itemSize
+  cdef int    npenum
+  cdef size_t itemsize
   cdef char  *name
   cdef hid_t  baseId, enumId
-  cdef int    stride, i
-  cdef void  *rbuffer, *valueAddr
+  cdef long   bytestride, i
+  cdef void  *rbuffer, *rbuf
+  cdef ndarray npvalues
 
   # Get the base HDF5 type and create the enumerated type.
-  npEnum = NPTypeToCode[enumCol.type]
-  itemSize = enumCol.itemsize
-  baseId = convArrayType(npEnum, itemSize, byteOrder)
+  npenum = NPTypeToCode[enumCol.type]
+  itemsize = enumCol.itemsize
+  baseId = convArrayType(npenum, itemsize, byteOrder)
   if baseId < 0:
     raise HDF5ExtError("failed to convert NumPy base type to HDF5")
 
@@ -717,13 +718,13 @@ def enumToHDF5(object enumCol, char *byteOrder):
 
   # Set the name and value of each of the members.
   naNames = enumCol._naNames
-  naValues = enumCol._naValues
-  stride = naValues._strides[0]
-  NA_getBufferPtrAndSize(naValues._data, 1, &rbuffer)
+  npvalues = enumCol._npvalues
+  bytestride = npvalues.strides[0]
+  rbuffer = npvalues.data
   for i from 0 <= i < len(naNames):
     name = PyString_AsString(naNames[i])
-    valueAddr = <void *>(<char *>rbuffer + stride * i)
-    if H5Tenum_insert(enumId, name, valueAddr) < 0:
+    rbuf = <void *>(<char *>rbuffer + bytestride * i)
+    if H5Tenum_insert(enumId, name, rbuf) < 0:
       if H5Tclose(enumId) < 0:
         raise HDF5ExtError("failed to close HDF5 enumerated type")
       raise HDF5ExtError("failed to insert value into HDF5 enumerated type")
@@ -779,7 +780,6 @@ def conv2HDF5Type(object col, char *byteorder):
       tid = tid2
   else:
     raise TypeError("Invalid type for column %s: %s" % (col._v_name, col.type))
-
 
   # Release resources
   if dims:
@@ -843,7 +843,7 @@ def getRAType(hid_t type_id, int klass, size_t size):
     stype = "f%s" % (size)
   elif klass ==  H5T_COMPOUND:
     # Here, this can only be a complex
-    stype = "c%s" % (size*2)   # NumPy requires the complete length of a type
+    stype = "c%s" % (size*2)    # NumPy requires the complete length of a type
   elif klass ==  H5T_STRING:
     if H5Tis_variable_str(type_id):
       raise TypeError("variable length strings are not supported yet")
@@ -946,12 +946,12 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
           colobj = StringCol(length = tsize, shape = colshape, pos = i)
         elif colstype == 'e':
           colpath2 = _joinPath(colpath, colname)
-          (enum, npType) = table._loadEnum(native_member_type_id)
+          (enum, nptype) = table._loadEnum(native_member_type_id)
           # Take one of the names as the default in the enumeration.
           # Can this get harmful?  Keep an eye on user's reactions.
           # ivb -- 2005-05-12
           dflt = iter(enum).next()[0]
-          colobj = EnumCol(enum, dflt, dtype = npType, shape = colshape,
+          colobj = EnumCol(enum, dflt, dtype = nptype, shape = colshape,
                            pos = i)
         elif colstype[0] == 't':
           tsize = int(colstype[1:])
