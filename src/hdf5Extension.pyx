@@ -42,25 +42,24 @@ from tables.utils import checkFileAccess
 
 from tables.utilsExtension import  \
      enumToHDF5, enumFromHDF5, getTypeEnum, \
-     convertTime64, getLeafHDF5Type, isHDF5File, isPyTablesFile, \
-     NPCodeToType, npTypeToNpEnum
+     convertTime64, getLeafHDF5Type, isHDF5File, isPyTablesFile
 
 from lrucacheExtension cimport NodeCache
 
 # Types, constants, functions, classes & other objects from everywhere
 from definitions cimport \
-     # NumPy
+     strdup, malloc, free, \
      import_array, ndarray, dtype, \
-     NPCodeToHDF5, NPCodeToString, \
-     # Python types, constants & functions
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
      PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
      Py_INCREF, Py_DECREF, \
-     # HDF5 types, constants & functions
-     hid_t, herr_t, hsize_t, hvl_t, \
-     H5G_link_t, H5G_stat_t, H5S_seloper_t, H5T_sign_t, \
+     time_t, size_t, hid_t, herr_t, hsize_t, hvl_t, \
+     H5F_scope_t, H5G_link_t, H5G_stat_t, H5S_seloper_t, H5T_sign_t, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
      H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5S_SELECT_SET
+
+# Include conversion tables
+include "convtypetables.pxi"
 
 
 __version__ = "$Revision$"
@@ -68,36 +67,9 @@ __version__ = "$Revision$"
 
 #-------------------------------------------------------------------
 
-# C funtions and variable declaration from its headers
-
-# Type size_t is defined in stdlib.h
-cdef extern from "stdlib.h":
-  #ctypedef int size_t
-  # The correct correspondence between size_t and a basic type is *long*
-  # instead of int, because they are the same size even for 64-bit platforms
-  # F. Altet 2003-01-08
-  ctypedef long size_t
-  void *malloc(size_t size)
-  void free(void *ptr)
-  double atof(char *nptr)
-
-cdef extern from "time.h":
-  ctypedef int time_t
-
-# Funtions for printing in C
-cdef extern from "stdio.h":
-  int sprintf(char *str,  char *format, ...)
-  int snprintf(char *str, size_t size, char *format, ...)
-
-cdef extern from "string.h":
-  char *strcpy(char *dest, char *src)
-  char *strncpy(char *dest, char *src, size_t n)
-  int strcmp(char *s1, char *s2)
-  char *strdup(char *s)
-  void *memcpy(void *dest, void *src, size_t n)
-
 # Structs and types from HDF5
 cdef extern from "hdf5.h":
+
   cdef enum H5T_class_t:
     H5T_NO_CLASS         = -1,  #error                                      */
     H5T_INTEGER          = 0,   #integer types                              */
@@ -139,7 +111,7 @@ cdef extern from "hdf5.h":
 
   herr_t H5Fclose (hid_t file_id)
 
-  herr_t H5Fflush(hid_t object_id, H5F_scope_t scope )
+  herr_t H5Fflush(hid_t object_id, H5F_scope_t scope)
 
   hid_t  H5Dopen (hid_t file_id, char *name)
 
@@ -300,13 +272,9 @@ cdef extern from "H5ARRAY.h":
 # Functions for optimized operations for ARRAY
 cdef extern from "H5ARRAY-opt.h":
 
-  herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
-                                 hid_t space_id,
-                                 hid_t type_id,
-                                 hsize_t irow,
-                                 hsize_t start,
-                                 hsize_t stop,
-                                 void *data )
+  herr_t H5ARRAYOread_readSlice( hid_t dataset_id, hid_t space_id,
+                                 hid_t type_id, hsize_t irow,
+                                 hsize_t start, hsize_t stop, void *data )
 
 # Functions for VLEN Arrays
 cdef extern from "H5VLARRAY.h":
@@ -892,7 +860,7 @@ Loaded anyway."""
       dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
       for i from 0 <= i < rank:
         dims[i] = ndv.dimensions[i]
-      data = ndvalue.data
+      data = ndv.data
       if value.dtype.char == "S":
         itemsize = value.itemsize
         ret = H5ATTRset_attribute_string_CAarray(
@@ -1085,7 +1053,7 @@ cdef class Array(Leaf):
   # Instance variables declared in .pxd
 
 
-  def _createArray(self, ndarr nparr, char *title):
+  def _createArray(self, ndarray nparr, char *title):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
@@ -1097,7 +1065,7 @@ cdef class Array(Leaf):
 
     type_ = nparr.dtype.type
     try:
-      enumtype = npTypeToNpEnum[type_]
+      enumtype = NPTypeToCode[type_]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported right now. Sorry about that.
@@ -1158,7 +1126,7 @@ cdef class Array(Leaf):
       elif stype == 'Time64':
         enumtype = ord('T')
       else:
-        enumtype = npTypeToNpEnum[self.type]
+        enumtype = NPTypeToCode[self.type]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported right now. Sorry about that.
@@ -1315,7 +1283,7 @@ cdef class Array(Leaf):
     chunksizes = tuple(chunksizes)
 
     type_ = NPCodeToType.get(enumtype, None)
-    return (self.dataset_id, type_, NPCodeToString[enumtype],
+    return (self.dataset_id, type_, NPCodeToPTType[enumtype],
             shape, type_size, byteorder, chunksizes)
 
 
@@ -1332,7 +1300,7 @@ cdef class Array(Leaf):
       convertTime64(nparr, len(nparr), sense)
 
 
-  def _append(self, object nparr):
+  def _append(self, ndarray nparr):
     cdef int ret, extdim
     cdef hsize_t *dims_arr
     cdef void *rbuf
@@ -1501,7 +1469,7 @@ cdef class VLArray(Leaf):
       elif stype == 'Time64':
         enumtype = ord('T')
       else:
-        enumtype = npTypeToNpEnum[type_]
+        enumtype = NPTypeToCode[type_]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported right now. Sorry about that.
@@ -1623,7 +1591,7 @@ cdef class VLArray(Leaf):
 
     # Get the type of the atomic type
     self._atomictype = NPCodeToType.get(enumtype, None)
-    self._atomicstype = NPCodeToString[enumtype]
+    self._atomicstype = NPCodeToPTType[enumtype]
     # Get the size and shape of the atomic type
     self._atomicsize = self._basesize
     if self.rank:
@@ -1677,7 +1645,7 @@ cdef class VLArray(Leaf):
     self.nrecords = self.nrecords + 1
 
 
-  def _modify(self, hsize_t nrow, ndobject nparr, int nobjects):
+  def _modify(self, hsize_t nrow, ndarray nparr, int nobjects):
     cdef int ret
     cdef void *rbuf
 

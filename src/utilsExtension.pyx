@@ -30,14 +30,14 @@ from tables.IsDescription import Description, Col, StringCol, EnumCol, TimeCol
 
 from tables.utils import checkFileAccess
 
-from constants import MAXDIM
-
-from definitions cimport import_array, \
+from definitions cimport import_array, ndarray, \
      malloc, free, strcpy, strcmp, PyString_AsString, \
      H5F_ACC_RDONLY, H5P_DEFAULT, \
      size_t, hid_t, herr_t, hsize_t, htri_t, \
-     HDF5ClassToString, NPCodeToType, NPTypeToCode, \
-     PTTypeToHDF5, PTSpecialTypes
+     H5T_sign_t, H5T_direction_t
+
+# Include conversion tables
+include "convtypetables.pxi"
 
 __version__ = "$Revision$"
 
@@ -94,11 +94,6 @@ cdef extern from "hdf5.h":
     H5T_UNIX_D32BE
     H5T_UNIX_D64BE
 
-  # The order to retrieve atomic native datatype
-  cdef enum H5T_direction_t:
-    H5T_DIR_DEFAULT     = 0,    #default direction is inscendent
-    H5T_DIR_ASCEND      = 1,    #in inscendent order
-    H5T_DIR_DESCEND     = 2     #in descendent order
 
   # HDF5 API functions.
 
@@ -539,7 +534,7 @@ def convertTime64(ndarray nparr, hsize_t nrecords, int sense):
     t64buf, byteoffset, bytestride, nrecords, nelements, sense)
 
 
-def space2null(ndobject nparr, hsize_t nrecords, int sense):
+def space2null(ndarray nparr, hsize_t nrecords, int sense):
   """Converts a the space padding of CharArray object into null's.
 
   NumPy to HDF5 conversion is performed when 'sense' is 0.
@@ -825,7 +820,7 @@ def getRAType(hid_t type_id, int klass, size_t size):
   cdef int         super_klass
   cdef size_t      super_size
   cdef object      stype, shape, shape2
-  cdef hsize_t     dims[MAXDIM]
+  cdef hsize_t     *dims
 
   # default shape
   shape = 1
@@ -864,11 +859,13 @@ def getRAType(hid_t type_id, int klass, size_t size):
     # Get shape
     shape = []
     ndims = H5Tget_array_ndims(type_id)
+    dims = <hsize_t *>malloc(ndims * sizeof(hsize_t))
     H5Tget_array_dims(type_id, dims, NULL)
     for i from 0 <= i < ndims:
       shape.append(<int>dims[i])  # cast to avoid long representation (i.e. 2L)
     shape = tuple(shape)
     # Release resources
+    free(dims)
     H5Tclose(super_type_id)
   else:
     # Other types are not supported yet

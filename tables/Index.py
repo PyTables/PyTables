@@ -1306,6 +1306,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 if length > 0:
                     startlengths.append((nrow, self.starts[nrow], length))
             # Compute the size of the recarray (aproximately)
+            # The +1 at the end is important to avoid 0 lengths
+            # (remember, the object headers take some space)
             size = len(startlengths) * 8 * 2 + 1
             # Put this startlengths list in cache
             self.limboundscache.setitem(item, startlengths, size)
