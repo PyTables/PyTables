@@ -92,7 +92,7 @@ class ShapeMixin:
             self.shape = tuple(shape)
 
         # Set itemsize
-        self.itemsize = self.type.bytes
+        self.itemsize = NP.dtype(self.type).itemsize
 
 
     def _setIndex(self, indexed):
@@ -130,8 +130,8 @@ class Col(ShapeMixin, object):
 
     def _setType(self, type_):
         "Sets the 'type', 'recarrtype' and 'stype' attributes."
-        if type_ in NP.typeNA:
-            self.type = NP.typeNA[type_]
+        if type_ in NP.typeDict:
+            self.type = NP.typeDict[type_]
             self.stype = NP.typeNA[self.type]
         elif type_ == 'Time32':
             self.type = NP.int32  # special case for times
@@ -161,7 +161,7 @@ class Col(ShapeMixin, object):
         else:
             if dflt is None:
                 dflt = 0
-            self.dflt = NP.array(dflt, type=self.type)
+            self.dflt = NP.array(dflt, dtype=self.type)
 
 
     def _setIndex(self, indexed):
@@ -917,6 +917,10 @@ class Description(object):
     Instance variables:
 
     _v_names
+        The name of this description group. The name of the root group
+        is '/'.
+
+    _v_names
         A list of the names of the columns hanging directly from the
         associated table or nested column.  The order of the names
         matches the order of their respective columns in the containing
@@ -992,6 +996,7 @@ class Description(object):
         self.classdict = classdict
         keys = classdict.keys()
         newdict = self.__dict__
+        newdict["_v_name"] = "/"   # The name for root descriptor
         newdict["_v_names"] = []
         newdict["_v_types"] = {}
         newdict["_v_stypes"] = {}
@@ -1399,8 +1404,8 @@ if __name__=="__main__":
 #                     z4 = UInt8Col(1)
 
     # example cases of class Test
-    #klass = Test()
-    klass = Info()
+    klass = Test()
+    #klass = Info()
     desc = Description(klass.columns)
     print "Description representation (short) ==>", desc
     print "Description representation (long) ==>", repr(desc)

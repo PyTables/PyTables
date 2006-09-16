@@ -32,7 +32,7 @@ from tables.utils import checkFileAccess
 
 from definitions cimport import_array, ndarray, \
      malloc, free, strcpy, strcmp, PyString_AsString, \
-     H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, \
+     H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      size_t, hid_t, herr_t, hsize_t, htri_t, \
      H5T_sign_t, H5T_direction_t,  H5T_class_t, H5D_layout_t
 

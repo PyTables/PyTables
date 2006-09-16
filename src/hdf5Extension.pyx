@@ -617,7 +617,6 @@ cdef class AttributeSet:
     cdef float  attrvaluefloat
     cdef double  attrvaluedouble
     cdef long long attrvaluelonglong
-    cdef ndarray retvalue
     cdef hid_t mem_type
     cdef int rank
     cdef int ret, i
@@ -626,6 +625,8 @@ cdef class AttributeSet:
     cdef hid_t type_id
     cdef H5T_sign_t sign #H5T_SGN_ERROR (-1), H5T_SGN_NONE (0), H5T_SGN_2 (1)
     cdef char *dsetname
+    cdef ndarray ndvalue
+    cdef object retvalue
 
     dsetname = self.name
 
@@ -673,16 +674,17 @@ cdef class AttributeSet:
     shape = tuple(shape)
 
     retvalue = None
+    ndvalue = None
     dtype = NPCodeToType[enumtype]
     if class_id in (H5T_INTEGER, H5T_FLOAT):
-      retvalue = numpy.empty(dtype=dtype, shape=shape)
+      ndvalue = numpy.empty(dtype=dtype, shape=shape)
     elif class_id == H5T_STRING:
       dtype = numpy.dtype((dtype, type_size))
-      retvalue = numpy.empty(dtype=dtype, shape=shape)
+      ndvalue = numpy.empty(dtype=dtype, shape=shape)
 
-    if retvalue is not None:
+    if ndvalue is not None:
       # Get the pointer to the buffer data area
-      rbuf = retvalue.data
+      rbuf = ndvalue.data
 
     if class_id == H5T_INTEGER:
       if sign == H5T_SGN_2:
@@ -760,36 +762,11 @@ Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
     else:
       format_version = None
 
-    if format_version is not None:
-      if format_version < "1.4":
-        if rank > 0 and shape[0] > 1:
-          warnings.warn("""\
-Multi-dimensional attribute '%s' in node '%s' is not supported in file format version %s.
-Loaded anyway."""
-                        % (attrname, dsetname, format_version))
 
-        elif class_id == H5T_INTEGER:
-          # return as 'int' built-in type
-          if shape == ():
-            retvalue = int(retvalue[()])
-          else:
-            retvalue = int(retvalue[0])
-
-        elif class_id == H5T_FLOAT:
-          # return as 'float' built-in type
-          if shape == ():
-            retvalue = float(retvalue[()])
-          else:
-            retvalue = float(retvalue[0])
-
-        # Just if one wants to convert a scalar into a Python scalar
-        # instead of an numpy scalar. But I think it is better and more
-        # consistent a numpy scalar.
-#       elif format_version >= "1.4" and rank == 0:
-#         if class_id == H5T_INTEGER or class_id == H5T_FLOAT:
-#           retvalue = retvalue[()]
-
-    return retvalue
+    if retvalue:
+      return retvalue
+    else:
+      return ndvalue
 
 
   def _g_setAttr(self, char *name, object value):
