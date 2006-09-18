@@ -827,9 +827,75 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 % (self._v_pathname, colname))
         return colobj
 
-    def where2XXX( self, condition, condvars,
+    def where2XXX( self, condition, condvars={},
                    start=None, stop=None, step=None ):
-        return self._whereInRange2XXX(condition, condvars, start, stop, step)
+        """
+        Iterate over values fulfilling a `condition`.
+
+        This method returns an iterator yielding `Row` instances built
+        from rows in the table that satisfy the given `condition` (an
+        expression-like string).
+
+        The `condvars` mapping may be used to define the variable names
+        appearing in the `condition`.  It will usually consist of
+        identifier-like strings pointing to numeric values or `Column`
+        instances *of this table*.  A variable referring to a top-level
+        column and matching its name needs not being defined here (as
+        long as the column has an identifier-like name).
+
+        If a range is supplied (by setting some of the `start`, `stop`
+        or `step` parameters), only the rows in that range *and*
+        fullfilling the `condition` are used.  The meaning of the
+        `start`, `stop` and `step` parameters is the same as in the
+        ``range()`` Python function, except that negative values of
+        `step` are *not* allowed.  Moreover, if only `start` is
+        specified, then `stop` will be set to ``start+1``.
+
+        When possible, indexed columns participating in the condition
+        will be used to speed up the search.  It is recommended that you
+        place the indexed columns as left and out in the condition as
+        possible.  Anyway, this method has always better performance
+        than standard Python selections on the table.
+        """
+
+        # Split the condition into indexable and residual parts.
+        idxvar, idxops, idxlims, rescond = \
+                split_index_condXXX(condition, condvars, self)
+        assert idxvar or rescond, (
+            "no usable indexed column and no residual condition "
+            "after splitting search condition" )
+
+        # Set the index column and residual condition (if any)
+        # for the ``Row`` iterator.
+        if idxvar:
+            idxcol = condvars[idxvar]
+            index = idxcol.index
+            assert index is not None, "the chosen column is not indexed"
+            assert not idxcol.dirty, "the chosen column has a dirty index"
+            self.whereIndex = idxcol.pathname
+        if rescond:
+            self.whereCondition = (rescond, condvars)
+
+        # Get the number of rows that the indexed condition yields.
+        # This also signals ``Row`` whether to use indexing or not.
+        ncoords = -1  # do not use indexing by default
+        if idxvar:
+            range_ = index.getLookupRange2XXX(idxops, idxlims, self)
+            ncoords = index.search(range_)  # do use indexing (always >= 0)
+            if ncoords == 0 and not rescond:
+                # No values neither from index nor from residual condition.
+                self.whereIndex = self.whereCondition = None
+                return iter([])
+
+        # Adjust the slice to be used.
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        if start >= stop:  # empty range, reset conditions
+            self.whereIndex = self.whereCondition = None
+            return iter([])
+
+        # Iterate according to the index and residual conditions.
+        row = TableExtension.Row(self)
+        return row(start, stop, step, coords=None, ncoords=ncoords)
 
     def _whereInRange2XXX( self, condition, condvars,
                            start=None, stop=None, step=None ):
