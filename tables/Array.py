@@ -29,8 +29,7 @@ Misc variables:
 
 import types, warnings, sys
 
-import numarray
-import numarray.strings as strings
+import numpy
 
 try:
     import Numeric
@@ -39,10 +38,11 @@ except ImportError:
     Numeric_imported = False
 
 try:
-    import numpy
-    numpy_imported = True
+    import numarray
+    import numarray.strings
+    numarray_imported = True
 except ImportError:
-    numpy_imported = False
+    numarray_imported = False
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
@@ -60,19 +60,20 @@ __version__ = "$Revision$"
 #obversion = "2.2"    # This adds support for time datatypes.
 obversion = "2.3"    # This adds support for enumerated datatypes.
 
-byteorderDict = {'>':'big',
-                 '<':'little',
-                 '=':sys.byteorder,
-                 '|':'non-relevant'}
+# The byteorders in NumPy
+byteorders = {'>': 'big',
+              '<': 'little',
+              '=': sys.byteorder,
+              '|': 'non-relevant'}
 
 
 class Array(hdf5Extension.Array, Leaf):
     """Represent an homogeneous dataset in HDF5 file.
 
-    It enables to create new datasets on-disk from Numeric, numarray,
-    lists, tuples, strings or scalars, or open existing ones.
+    It enables to create new datasets on-disk from NumPy, numarray,
+    Numeric, lists, tuples, strings or scalars, or open existing ones.
 
-    All Numeric and numarray typecodes are supported.
+    All NumPy, Numeric and numarray typecodes are supported.
 
     Methods:
 
@@ -150,7 +151,7 @@ class Array(hdf5Extension.Array, Leaf):
         Keyword arguments:
 
         object -- The (regular) object to be saved. It can be any of
-            numarray, numpy, numeric, list, tuple, string, integer of
+            numpy, numarray, numeric, list, tuple, string, integer of
             floating point types, provided that they are regular
             (i.e. they are not like [[1,2],2]).
 
@@ -168,7 +169,7 @@ class Array(hdf5Extension.Array, Leaf):
         self._object = object
         """
         The object to be stored in the array.  It can be any of
-        ``numarray``, ``numpy``, ``numeric``, list, tuple, string,
+        ``numpy``, ``numarray``, ``numeric``, list, tuple, string,
         integer of floating point types, provided that they are
         regular (i.e. they are not like ``[[1, 2], 2]``).
         """
@@ -218,7 +219,7 @@ class Array(hdf5Extension.Array, Leaf):
         # Documented (*public*) attributes.
         self.flavor = None
         """The object representation of this array.  It can be any of
-        'numarray', 'numpy', 'numeric' or 'python' values."""
+        'numpy', 'numarray', 'numeric' or 'python' values."""
         self.nrows = None
         """The length of the first dimension of the array."""
         self.nrow = None
@@ -244,7 +245,7 @@ class Array(hdf5Extension.Array, Leaf):
 
         self._v_version = obversion
         try:
-            naarr, self.flavor = self._convertIntoNA(self._object)
+            nparr, self.flavor = self._convertIntoNP(self._object)
         except:  #XXX
             # Problems converting data. Close the node and re-raise exception.
             #print "Problems converting input object:", str(self._object)
@@ -254,24 +255,18 @@ class Array(hdf5Extension.Array, Leaf):
         # Decrease the number of references to the object
         self._object = None
 
-        if naarr.shape:
-            self._v_expectedrows = naarr.shape[0]
+        if nparr.shape:
+            self._v_expectedrows = nparr.shape[0]
         else:
             self._v_expectedrows = 1  # Scalar case
-        if (isinstance(naarr, strings.CharArray)):
-            self.byteorder = "non-relevant"
-            if naarr.itemsize() == 0:
-                # Null strings are not supported. Close node and re-raise.
-                self.close(flush=0)
-                raise NotImplementedError, \
-                      "Empty strings are not supported yet. Sorry about that!"
-        else:
-            self.byteorder  = naarr._byteorder
+
+        # Set the byteorder in PyTables format
+        self.byteorder = byteorders[nparr.dtype.byteorder]
 
         # Compute some values for buffering and I/O parameters
         # Compute the rowsize for each element
-        self.rowsize = naarr.itemsize()
-        for i in naarr.shape:
+        self.rowsize = nparr.itemsize
+        for i in nparr.shape:
             if i>0:
                 self.rowsize *= i
             else:
@@ -283,15 +278,15 @@ class Array(hdf5Extension.Array, Leaf):
 
         # If shape has not been assigned yet, assign it.
         if self.shape is None:
-            self.shape = naarr.shape
+            self.shape = nparr.shape
         if self.shape != ():
-            self.nrows = naarr.shape[0]
+            self.nrows = nparr.shape[0]
         else:
             self.nrows = 1    # Scalar case
-        self.itemsize = naarr.itemsize()
+        self.itemsize = nparr.itemsize
         try:
             (self._v_objectID, self.type, self.stype) = (
-                self._createArray(naarr, self._v_new_title))
+                self._createArray(nparr, self._v_new_title))
             return self._v_objectID
         except:  #XXX
             # Problems creating the Array on disk. Close node and re-raise.
@@ -323,109 +318,38 @@ class Array(hdf5Extension.Array, Leaf):
 
         return self._v_objectID
 
-    def _convertIntoNA(self, arr):
-        "Convert a generic object into a numarray object"
 
-        if isinstance(arr, numarray.NumArray):
-            flavor = "numarray"
-            if not arr.iscontiguous():
-                # Do a copy of the array in case it is not contiguous
-                #naarr = numarray.array(arr)
-                # We should use the NDArray.copy in order to avoid
-                # changing the byteorder.
-                naarr = numarray.NDArray.copy(arr)
-            else:
-                naarr = arr
-            self.byteorder  = naarr._byteorder
-        elif isinstance(arr, strings.CharArray):
-            flavor = "numarray"
-            naarr = arr
-            self.byteorder = "non-relevant"
-        elif numpy_imported and type(arr) == numpy.ndarray:
+    def _convertIntoNP(self, arr):
+        "Convert a generic object into a NumPy object"
+
+        if type(arr) == numpy.ndarray and arr.dtype.type <> numpy.void:
             flavor = "numpy"
-            if arr.dtype.char[0] == "S":
-                self.byteorder = "non-relevant"
-                if arr.shape == ():
-                    # 0-d array will be treated as pure python strings
-                    # because numarray does not support dim-0 chararrays
-                    flavor = "python"
-                    naarr = strings.array(arr.item(), padc='\x00')
-                    # Assign the shape here to save it as a dim-0 object
-                    self.shape = ()
-                else:
-                    naarr = strings.array(arr, itemsize=arr.itemsize,
-                                          padc='\x00')
-            else:
-                if not arr.flags['CONTIGUOUS']:
-                    # Do a copy of the array in case it is not contiguous
-                    naarr = numarray.array(arr)
-                else:
-                    naarr = numarray.asarray(arr)
-                self.byteorder = byteorderDict[arr.dtype.str[0]]
+            # Do a copy of the array in case it is not contiguous
+            nparr = numpy.asarray(arr)
+        elif (numarray_imported and
+              type(arr) in (numarray.NumArray, numarray.strings.CharArray)):
+            flavor = "numarray"
+            # Do a copy of the array in case it is not contiguous
+            nparr = numpy.asarray(arr)
         elif Numeric_imported and type(arr) == Numeric.ArrayType:
             flavor = "numeric"
-            self.byteorder  = sys.byteorder  # The only possible for Numeric
-            if arr.typecode() == "c":
-                # To emulate as close as possible Numeric character arrays,
-                # itemsize for chararrays will be always 1
-                if arr.iscontiguous():
-                    # This the fastest way to convert from Numeric to numarray
-                    # because no data copy is involved
-                    naarr = strings.array(buffer(arr),
-                                          itemsize=1,
-                                          shape=arr.shape,
-                                          padc='\x00')
-                else:
-                    # Here we absolutely need a copy so as to obtain a buffer.
-                    # Perhaps this can be avoided or optimized by using
-                    # the tolist() method, but this should be tested.
-                    naarr = strings.array(buffer(arr.copy()),
-                                          itemsize=1,
-                                          shape=arr.shape,
-                                          padc='\x00')
-            else:
-                if arr.iscontiguous():
-                    # This the fastest way to convert from Numeric to numarray
-                    # because no data copy is involved
-                    naarr = numarray.asarray(arr)
-                else:
-                    # Here we absolutely need a copy in order
-                    # to obtain a buffer.
-                    naarr = numarray.array(arr)
-
-        elif (isinstance(arr, tuple) or
-              isinstance(arr, list) or
-              isinstance(arr, int) or
-              isinstance(arr, float) or
-              isinstance(arr, complex)):
+            nparr = numpy.asarray(arr)
+        elif type(arr) in (tuple, list, int, float, complex, str):
             flavor = "python"
-            # Test if can convert into a numarray object
+            # Test if this can be converted into a NumPy object
             try:
-                naarr = numarray.array(arr)
-            # If not, test with a chararray
-            except TypeError:
-                try:
-                    naarr = strings.array(arr, padc='\x00')
-                # If still doesn't, issues an error
-                except:  #XXX
-                    raise TypeError, \
+                nparr = numpy.array(arr)
+            except:  #XXX
+                raise TypeError, \
 """The object '%s' can't be converted into a numerical or character array.
 Sorry, but this object is not supported.""" % (arr)
-        elif isinstance(arr, str):
-            flavor = "python"
-            naarr = strings.array(arr, padc='\x00')
-            # Assign the shape here to save it as a dim-0 object
-            self.shape = ()
         else:
             raise TypeError, \
-"""The object '%s' is not in the list of supported objects: numarray,
-numpy, numeric, homogeneous list or tuple, int, float, complex or str.
+"""The object '%s' is not in the list of supported objects: numpy,
+numarray, numeric, homogeneous list or tuple, int, float, complex or str.
 Sorry, but this object is not supported.""" % (arr)
 
-        # We always want a contiguous buffer (no matter if it has an
-        # offset or not; that will be corrected later on)
-
-        return naarr, flavor
+        return nparr, flavor
 
 
     def getEnum(self):
@@ -494,17 +418,17 @@ Sorry, but this object is not supported.""" % (arr)
                 self.listarr = self.read(self._startb, self._stopb, self._step)
                 # Swap the axes to easy the return of elements
                 if self.extdim > 0:
-                    if self.flavor == "numpy":
-                        if numpy_imported:
-                            self.listarr = numpy.swapaxes(self.listarr,
-                                                          self.extdim, 0)
+                    if self.flavor == "numarray":
+                        if numarray_imported:
+                            self.listarr = numarray.swapaxes(self.listarr,
+                                                             self.extdim, 0)
                         else:
                             # Warn the user
                             warnings.warn( \
-"""The object on-disk has numpy flavor, but numpy is not installed locally. Returning a numarray object instead!.""")
-                            # Default to numarray
-                            self.listarr = numarray.swapaxes(self.listarr,
-                                                             self.extdim, 0)
+"""The object on-disk has numarray flavor, but numarray is not installed locally. Returning a NumPy object instead!.""")
+                            # Default to NumPy
+                            self.listarr = numpy.swapaxes(self.listarr,
+                                                          self.extdim, 0)
                     elif self.flavor == "numeric":
                         if Numeric_imported:
                             self.listarr = Numeric.swapaxes(self.listarr,
@@ -512,13 +436,13 @@ Sorry, but this object is not supported.""" % (arr)
                         else:
                             # Warn the user
                             warnings.warn( \
-"""The object on-disk has numeric flavor, but Numeric is not installed locally. Returning a numarray object instead!.""")
-                            # Default to numarray
-                            self.listarr = numarray.swapaxes(self.listarr,
-                                                             self.extdim, 0)
+"""The object on-disk has numeric flavor, but Numeric is not installed locally. Returning a NumPy object instead!.""")
+                            # Default to NumPy
+                            self.listarr = numpy.swapaxes(self.listarr,
+                                                          self.extdim, 0)
                     else:
-                        self.listarr = numarray.swapaxes(self.listarr,
-                                                         self.extdim, 0)
+                        self.listarr = numpy.swapaxes(self.listarr,
+                                                      self.extdim, 0)
                 self._row = -1
                 self._startb = self._stopb
             self._row += 1
@@ -531,15 +455,16 @@ Sorry, but this object is not supported.""" % (arr)
             else:
                 return self.listarr    # Scalar case
 
+
     def _interpret_indexing(self, keys):
         """Internal routine used by __getitem__ and __setitem__"""
 
         maxlen = len(self.shape)
         shape = (maxlen,)
-        startl = numarray.array(None, shape=shape, type=numarray.Int64)
-        stopl = numarray.array(None, shape=shape, type=numarray.Int64)
-        stepl = numarray.array(None, shape=shape, type=numarray.Int64)
-        stop_None = numarray.zeros(shape=shape, type=numarray.Int64)
+        startl = numpy.array(None, shape=shape, dtype=numpy.int64)
+        stopl = numpy.array(None, shape=shape, dtype=numpy.Int64)
+        stepl = numpy.array(None, shape=shape, dtype=numpy.Int64)
+        stop_None = numpy.zeros(shape=shape, dtype=numpy.int64)
         if not isinstance(keys, tuple):
             keys = (keys,)
         nkeys = len(keys)
@@ -638,14 +563,14 @@ Sorry, but this object is not supported.""" % (arr)
         countl = ((stopl - startl - 1) / stepl) + 1
         # Create an array compliant with the specified slice
         if self.stype == "CharType":
-            narr = strings.array(None, itemsize=self.itemsize,
+            narr = numpy.empty(dtype="S%s"%self.itemsize,
             # Here shape=shape should be enough, but it makes some
             # tests to fail. This should be analyzed more carefully.
             # F. Altet 2005-09-12
-                                 shape=countl, padc='\x00')
-                                 #shape=shape, padc='\x00')
+                                 shape=countl)
+                                 #shape=shape)
         else:
-            narr = numarray.array(None, shape=shape, type=self.type)
+            narr = numpy.empty(shape=shape, dtype=self.type)
 
         # Assign the value to it
         try:
@@ -662,18 +587,9 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
     # Accessor for the _readArray method in superclass
     def _readSlice(self, startl, stopl, stepl, shape):
         if repr(self.type) == "CharType":
-            if shape <> []:
-                arr = strings.array(None, itemsize=self.itemsize,
-                                    shape=shape, padc='\x00')
-            else:
-                # Avoids returning an array([' '])
-                arr = strings.array([""], itemsize=self.itemsize,
-                                    shape=shape, padc='\x00')
+            arr = numpy.empty(dtype="S%s"%self.itemsize, shape=shape)
         else:
-            arr = self._cache = numarray.array(None,type=self.type,
-                                               shape=shape)
-            # Set the same byteorder than on-disk
-            arr._byteorder = self.byteorder
+            arr = numpy.empty(dtype=self.type, shape=shape)
 
         # Protection against reading empty arrays
         if 0 not in shape:
@@ -683,17 +599,17 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         if not self._v_convert:
             return arr
 
-        # flavors 'NumArray' and 'CharArray' for backward compatibility
-        if self.flavor in ['numarray', 'NumArray', 'CharArray']:
+        if self.flavor == 'numpy':
             if arr.shape == ():  # Scalar case
-                return arr[()]
+                return arr[()]  # Return a numpy scalar
             else:             # No conversion needed
                 return arr
         # Fixes #968131
         elif arr.shape == ():  # Scalar case
-            return arr[()]  # return the value.
+            return arr.item()  # return the python value
         else:
             return convToFlavor(self, arr)
+
 
     # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=None):
@@ -710,28 +626,25 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         if shape:
             shape[extdim] = rowstoread
             shape = tuple(shape)
-        if repr(self.type) == "CharType":
-            arr = strings.array(None, itemsize=self.itemsize,
-                                shape=shape, padc='\x00')
+        if self.stype == "CharType":
+            arr = numpy.empty(dtype="S%s"%self.itemsize, shape=shape)
         else:
-            arr = numarray.array(None, type=self.type, shape=shape)
-            # Set the same byteorder than on-disk
-            arr._byteorder = self.byteorder
+            arr = numpy.empty(dtype=self.type, shape=shape)
 
         # Protection against reading empty arrays
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._readArray(start, stop, step, arr)
 
-        # Flavors "NumArray" and "CharArray" remains here for backward compatibility
-        if self.flavor in ["numarray", "NumArray", "CharArray"]:
+        if self.flavor == "numpy":
             # No conversion needed
             return arr
         # Fixes #968131
         elif arr.shape == ():  # Scalar case
-            return arr[()]  # return the value. Yes, this is a weird syntax :(
+            return arr[()]  # return the python value
         else:
             return convToFlavor(self, arr)
+
 
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, _log):
@@ -750,6 +663,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
 
         return (object, nbytes)
 
+
     def __repr__(self):
         """This provides more metainfo in addition to standard __str__"""
 
@@ -762,6 +676,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
   flavor = %r
   byteorder = %r""" % (self, self.type, self.stype, self.shape, self.itemsize,
                        self.nrows, self.flavor, self.byteorder)
+
 
 
 class ImageArray(Array):

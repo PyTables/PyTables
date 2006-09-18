@@ -93,8 +93,8 @@ prog = re.compile(r'([\(\),\d\s]*)([A-Za-z]+[0-9]*)')
 # The byteorders in numpy
 byteorders = {'<': 'little',
               '>': 'big',
-              '|': sys.byteorder,
               '=': sys.byteorder,
+              '|': 'non-relevant',
               }
 
 def _getEncodedTableName(tablename):
