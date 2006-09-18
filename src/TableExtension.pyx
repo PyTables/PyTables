@@ -31,7 +31,6 @@ import tables.hdf5Extension
 from tables.exceptions import HDF5ExtError
 from tables.utilsExtension import createNestedType, \
      getNestedType, convertTime64, space2null, getTypeEnum, enumFromHDF5
-from tables.numexpr import evaluate  ##XXX
 
 # numpy functions & objects
 from definitions cimport import_array, ndarray, \
@@ -648,7 +647,7 @@ cdef class Row:
   cdef object  _wfields, _rfields
   cdef object  indexValid, coords, bufcoords, index, indices
   cdef object  ops, opsValues
-  cdef object  condstr, condvars, condcols  ##XXX
+  cdef object  condfunc, condargs  ##XXX
   cdef object  mod_elements, colenums
 
   #def __new__(self, Table table):
@@ -748,11 +747,7 @@ cdef class Row:
     ##XXX
     if table.whereCondition:
       self.whereCond2XXX = 1
-      self.condstr, self.condvars = table.whereCondition
-      self.condcols = condcols = []
-      for (var, val) in self.condvars.items():
-        if hasattr(val, 'pathname'):  # looks like a column
-          condcols.append(var)
+      self.condfunc, self.condargs = table.whereCondition
       table.whereCondition = None
     if table.whereIndex:
       self.indexed2XXX = 1
@@ -843,12 +838,16 @@ cdef class Row:
         if self.bufcoords.size > 0:
           recout = self.table._read_elements_(self.rbufRA, self.bufcoords)
           if self.whereCond2XXX:
-            numexpr_locals = self.condvars.copy()
-            # Replace references to columns with the proper array fragment.
-            for colvar in self.condcols:
-              col = self.condvars[colvar]
-              numexpr_locals[colvar] = self._rfields[col.pathname]
-            self.indexValid = evaluate(self.condstr, numexpr_locals, {})
+            # Evaluate the condition on this table fragment,
+            # replace columns in the condition arguments
+            # with the proper array fragment.
+            # XXX: Please refactor with __next__inKernel2XXX().
+            condargs = []
+            for condarg in self.condargs:
+              if hasattr(condarg, 'pathname'):  # looks like a column
+                condarg = self._rfields[condarg.pathname]
+              condargs.append(condarg)
+            self.indexValid = self.condfunc(*condargs)
           else:
             # No residual condition, all selected rows are valid.
             self.indexValid = numpy.ones(recout, numpy.bool8)
@@ -989,12 +988,16 @@ cdef class Row:
         self.nrowsread = self.nrowsread + recout
         self.indexChunk = -self.step
 
-        numexpr_locals = self.condvars.copy()
-        # Replace references to columns with the proper array fragment.
-        for colvar in self.condcols:
-          col = self.condvars[colvar]
-          numexpr_locals[colvar] = self._rfields[col.pathname]
-        self.indexValid = evaluate(self.condstr, numexpr_locals, {})
+        # Evaluate the condition on this table fragment,
+        # replace columns in the condition arguments
+        # with the proper array fragment.
+        # XXX: Please refactor with __next__indexed2XXX().
+        condargs = []
+        for condarg in self.condargs:
+          if hasattr(condarg, 'pathname'):  # looks like a column
+            condarg = self._rfields[condarg.pathname]
+          condargs.append(condarg)
+        self.indexValid = self.condfunc(*condargs)
 
         # Is still there any interesting information in this buffer?
         if not numpy.sometrue(self.indexValid):

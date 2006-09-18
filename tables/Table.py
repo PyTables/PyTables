@@ -389,7 +389,7 @@ class Table(TableExtension.Table, Leaf):
         """The name of the column where the selection condition is applied."""
 
         self.whereCondition = None  ##XXX
-        """Condition string and variable map for selection of values."""
+        """Condition function and argument list for selection of values."""
         self.whereIndex = None  ##XXX
         """Path of the indexed column to be used in an indexed search."""
         self._conditionCache = NailedDict()  ##XXX
@@ -859,7 +859,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         # Split the condition into indexable and residual parts.
-        idxvar, idxops, idxlims, rescond = \
+        idxvar, idxops, idxlims, rescond, resparams = \
                 split_index_condXXX(condition, condvars, self)
         assert idxvar or rescond, (
             "no usable indexed column and no residual condition "
@@ -874,7 +874,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             assert not idxcol.dirty, "the chosen column has a dirty index"
             self.whereIndex = idxcol.pathname
         if rescond:
-            self.whereCondition = (rescond, condvars)
+            resargs = [condvars[param] for param in resparams]
+            self.whereCondition = (rescond, resargs)
 
         # Get the number of rows that the indexed condition yields.
         # This also signals ``Row`` whether to use indexing or not.
@@ -992,7 +993,7 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         the `condition`.
         """
 
-        idxvar, ops, lims, rescond = \
+        idxvar, ops, lims, rescond, resparams = \
                 split_index_condXXX(condition, condvars, self)
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
@@ -1009,7 +1010,8 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         # for the ``Row`` iterator.
         self.whereIndex = column.pathname
         if rescond:
-            self.whereCondition = (rescond, condvars)
+            resargs = [condvars[param] for param in resparams]
+            self.whereCondition = (rescond, resargs)
         # Get the coordinates to lookup
         range_ = index.getLookupRange2XXX(ops, lims, self)
         ncoords = index.search(range_)
@@ -1071,7 +1073,7 @@ This method is intended only for indexed columns, but this column has not a mini
 
 
     # XYX sembla inacabada....
-    def readIndexed2XXX(self, condition, condvars, field=None, flavor=None):
+    def readIndexed2XXX(self, condition, condvars={}, field=None, flavor=None):
         """Read a slice of table fulfilling the condition."""
 
         if not flavor:
@@ -1089,8 +1091,8 @@ This method is intended only for indexed columns, but this column has not a mini
         if self._dirtycache:
             self._restorecache()
 
-        idxvar, ops, lims, rescond = split_index_condXXX(
-            condition, condvars, self)
+        idxvar, idxops, idxlims, rescond, resparams = \
+                split_index_condXXX(condition, condvars, self)
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
                               "for condition: %r" % condition )
@@ -1103,7 +1105,7 @@ This method is intended only for indexed columns, but this column has not a mini
         # Retrieve the array of rows fulfilling the index condition.
 
         # Get the coordinates to lookup
-        range_ = index.getLookupRange2XXX(ops, lims, self)
+        range_ = index.getLookupRange2XXX(idxops, idxlims, self)
         nslot = -1
         if not rescond:
             # Check whether the array is in the limdata cache or not.
@@ -1134,13 +1136,13 @@ This method is intended only for indexed columns, but this column has not a mini
         # Filter out rows not fulfilling the residual condition.
         # XXX: Taken from Row.__next__indexed2XXX(), please refactor.
         if rescond and nrecords > 0:
-            numexpr_locals = {}
-            # Replace references to columns with the proper array fragment.
-            for (var, val) in condvars.items():
-                if hasattr(val, 'pathname'):  # looks like a column
-                    val = recarr[val.pathname]
-                numexpr_locals[var] = val
-            indexValid = evaluate(rescond, numexpr_locals, {})
+            resargs = []
+            for param in resparams:
+                arg = condvars[param]
+                if hasattr(arg, 'pathname'):  # looks like a column
+                    arg = recarr[arg.pathname]
+                resargs.append(arg)
+            indexValid = rescond(*resargs)
             recarr = recarr[indexValid]
 
         if field:
@@ -1228,7 +1230,7 @@ please reindex the table to put the index in a sane state""")
         return nrows
 
 
-    def getWhereList2XXX(self, condition, condvars, flavor=None, sort=False):
+    def getWhereList2XXX(self, condition, condvars={}, flavor=None, sort=False):
         if not flavor:
             flavor = self.flavor
         if flavor not in supportedFlavors:
@@ -1236,7 +1238,8 @@ please reindex the table to put the index in a sane state""")
 "%s" flavor is not allowed; please use some of %s.""" % \
                              (flavor, supportedFlavors))
 
-        idxvar, ops, lims, rescond = split_index_condXXX(condition, condvars, self)
+        idxvar, idxops, idxlims, rescond, resparams = \
+                split_index_condXXX(condition, condvars, self)
 
         # Take advantage of indexation, if present
         if idxvar is not None:
@@ -1249,7 +1252,7 @@ please reindex the table to put the index in a sane state""")
                    "the chosen column has too few elements to be indexed"
 
             # get the number of coords and set-up internal variables
-            range_ = index.getLookupRange2XXX(ops, lims, self)
+            range_ = index.getLookupRange2XXX(idxops, idxlims, self)
             ncoords = index.search(range_)
             if ncoords > 0:
                 coords = index.indices._getCoords_sparse(index, ncoords)
@@ -1262,14 +1265,14 @@ please reindex the table to put the index in a sane state""")
             # Filter out rows not fulfilling the residual condition.
             # XXX: Taken from Row.__next__indexed2XXX(), please refactor.
             if rescond and ncoords > 0:
-                numexpr_locals = {}
                 recarr = self.readCoordinates(coords, flavor='numpy')
-                # Replace references to columns with the proper array fragment.
-                for (var, val) in condvars.items():
-                    if hasattr(val, 'pathname'):  # looks like a column
-                        val = recarr[val.pathname]
-                    numexpr_locals[var] = val
-                indexValid = evaluate(rescond, numexpr_locals, {})
+                resargs = []
+                for param in resparams:
+                    arg = condvars[param]
+                    if hasattr(arg, 'pathname'):  # looks like a column
+                        arg = recarr[arg.pathname]
+                    resargs.append(arg)
+                indexValid = rescond(*resargs)
                 coords = coords[indexValid]
                 ncoords = len(coords)
 
