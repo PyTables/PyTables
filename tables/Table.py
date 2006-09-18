@@ -863,6 +863,16 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         assert splitted.index_variable or splitted.residual_function, (
             "no usable indexed column and no residual condition "
             "after splitting search condition" )
+        return self._where2XXX(splitted, condvars, start, stop, step)
+
+    def _where2XXX( self, splitted, condvars,
+                    start=None, stop=None, step=None ):
+        """
+        Low-level counterpart of `self.where2XXX()`.
+
+        This version needs the condition to already be `splitted`, and
+        it has no default variables in `condvars`.
+        """
 
         # Set the index column and residual condition (if any)
         # for the ``Row`` iterator.
@@ -900,21 +910,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Iterate according to the index and residual conditions.
         row = TableExtension.Row(self)
         return row(start, stop, step, coords=None, ncoords=ncoords)
-
-    def _whereInRange2XXX( self, condition, condvars,
-                           start=None, stop=None, step=None ):
-        splitted = split_conditionXXX(condition, condvars, self)
-        assert splitted.index_variable is None
-
-        resparams = splitted.residual_parameters
-        resargs = [condvars[param] for param in resparams]
-        self.whereCondition = (splitted.residual_function, resargs)
-
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-        if start < stop:
-            row = TableExtension.Row(self)
-            return row(start, stop, step, coords=None, ncoords=-1)
-        return iter([])
 
     def where(self, condition, start=None, stop=None, step=None):
         """
@@ -991,54 +986,6 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
 
         # Fall-back action is to return an empty RecArray
         return iter([])
-
-    def _whereIndexed2XXX( self, condition, condvars,
-                           start=None, stop=None, step=None ):
-        """
-        Iterate over values fulfilling a `condition` using indexes.
-
-        This method is completely equivalent to `where()`, but it forces
-        the usage of the indexing capabilities on the column affected by
-        the `condition`.
-        """
-
-        splitted = split_conditionXXX(condition, condvars, self)
-        idxvar = splitted.index_variable
-        if not idxvar:
-            raise ValueError( "could not find any usable indexes "
-                              "for condition: %r" % condition )
-
-        column = condvars[idxvar]
-        index = column.index
-        assert index is not None, "the chosen column is not indexed"
-        assert not column.dirty, "the chosen column has a dirty index"
-        assert index.is_pro or index.nelements > 0, \
-               "the chosen column has too few elements to be indexed"
-
-        # Set the index column and residual condition (if any)
-        # for the ``Row`` iterator.
-        self.whereIndex = column.pathname
-        rescond = splitted.residual_function
-        if rescond:
-            resparams = splitted.residual_parameters
-            resargs = [condvars[param] for param in resparams]
-            self.whereCondition = (rescond, resargs)
-        # Get the coordinates to lookup
-        range_ = index.getLookupRange2XXX(
-            splitted.index_operators, splitted.index_limits, self )
-        ncoords = index.search(range_)
-        if not rescond and ncoords == 0:
-            # There are no interesting values
-            # Reset the conditions
-            self.whereIndex = None
-            self.whereCondition = None
-            # Return the empty iterator
-            return iter([])
-        # Iterate according to the index and residual conditions.
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-        row = TableExtension.Row(self)
-        # Call the indexed version of Row iterator (coords=None,ncoords>=0)
-        return row(start, stop, step, coords=None, ncoords=ncoords)
 
     def _whereIndexed(self, condition, start=None, stop=None, step=None):
         """
@@ -1291,21 +1238,8 @@ please reindex the table to put the index in a sane state""")
                 indexValid = rescond(*resargs)
                 coords = coords[indexValid]
                 ncoords = len(coords)
-
-            if not index.is_pro:
-                # get the remaining rows from the table
-                start = index.nelements
-                if start < self.nrows:
-                    remainCoords = [p.nrow for p in self._whereInRange2XXX(
-                        condition, condvars, start, self.nrows)]
-                    # re-initialize internal selection values
-                    self.whereCondition = None
-                    nremain = len(remainCoords)
-                    # append the new values to the existing ones
-                    coords.resize(ncoords+nremain)
-                    coords[ncoords:] = remainCoords
         else:
-            coords = [p.nrow for p in self._whereInRange2XXX(condition, condvars)]
+            coords = [p.nrow for p in self._where2XXX(splitted, condvars)]
             coords = numpy.array(coords, dtype=numpy.int64)
             # Reset the conditions
             self.whereCondition = None
