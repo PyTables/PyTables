@@ -1159,6 +1159,25 @@ please reindex the table to put the index in a sane state""")
             recarr = tonumarray(recarr, copy=False)
         return recarr
 
+    def whereAppend2XXX( self, dstTable, condition, condvars={},
+                         start=None, stop=None, step=None ):
+        # Check that the destination file is not in read-only mode.
+        dstTable._v_file._checkWritable()
+
+        # Row objects do not support nested columns, so we must iterate
+        # over the flat column paths.  When rows support nesting,
+        # ``self.colnames`` can be directly iterated upon.
+        colNames = [colName for colName in flattenNames(self.colnames)]
+        dstRow = dstTable.row
+        nrows = 0
+        for srcRow in self.where2XXX(condition, condvars, start, stop, step):
+            for colName in colNames:
+                dstRow[colName] = srcRow[colName]
+            dstRow.append()
+            nrows += 1
+        dstTable.flush()
+        return nrows
+
     def whereAppend(self, dstTable, condition,
                     start=None, stop=None, step=None):
         """
