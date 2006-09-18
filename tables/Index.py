@@ -435,6 +435,8 @@ def split_index_condXXX(condition, condvars, table):
     `table` argument refers to a table where a condition cache can be
     looked up and updated.
     """
+    tblfile = table._v_file
+    tblpath = table._v_pathname
 
     # Build the key for the condition cache.
     colnames, varnames = [], []
@@ -443,6 +445,10 @@ def split_index_condXXX(condition, condvars, table):
         if hasattr(val, 'pathname'):  # looks like a column
             colnames.append(var)
             colpaths.append(val.pathname)
+            if val._tableFile is not tblfile or val._tablePath != tblpath:
+                raise ValueError("variable ``%s`` refers to a column "
+                                 "which is not part of table ``%s``"
+                                 % (var, tblpath))
         else:
             varnames.append(var)
             vartypes.append(bestConstantType(val))  # expensive
