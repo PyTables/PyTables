@@ -58,7 +58,7 @@ from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNAToNumeric, convertNAToNumPy, fromnumpy, tonumpy, \
      fromnumarray, is_idx
 from tables.Leaf import Leaf
-from tables.Index import Index, IndexProps, split_index_condXXX
+from tables.Index import Index, IndexProps, split_conditionXXX
 from tables.IsDescription import \
      IsDescription, Description, Col, StringCol, EnumCol
 from tables.Atom import Atom, StringAtom
@@ -859,21 +859,23 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         # Split the condition into indexable and residual parts.
-        idxvar, idxops, idxlims, rescond, resparams = \
-                split_index_condXXX(condition, condvars, self)
-        assert idxvar or rescond, (
+        splitted = split_conditionXXX(condition, condvars, self)
+        assert splitted.index_variable or splitted.residual_function, (
             "no usable indexed column and no residual condition "
             "after splitting search condition" )
 
         # Set the index column and residual condition (if any)
         # for the ``Row`` iterator.
+        idxvar = splitted.index_variable
         if idxvar:
             idxcol = condvars[idxvar]
             index = idxcol.index
             assert index is not None, "the chosen column is not indexed"
             assert not idxcol.dirty, "the chosen column has a dirty index"
             self.whereIndex = idxcol.pathname
+        rescond = splitted.residual_function
         if rescond:
+            resparams = splitted.residual_parameters
             resargs = [condvars[param] for param in resparams]
             self.whereCondition = (rescond, resargs)
 
@@ -881,7 +883,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # This also signals ``Row`` whether to use indexing or not.
         ncoords = -1  # do not use indexing by default
         if idxvar:
-            range_ = index.getLookupRange2XXX(idxops, idxlims, self)
+            range_ = index.getLookupRange2XXX(
+                splitted.index_operators, splitted.index_limits, self )
             ncoords = index.search(range_)  # do use indexing (always >= 0)
             if ncoords == 0 and not rescond:
                 # No values neither from index nor from residual condition.
@@ -900,7 +903,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
     def _whereInRange2XXX( self, condition, condvars,
                            start=None, stop=None, step=None ):
-        self.whereCondition = (condition, condvars)
+        splitted = split_conditionXXX(condition, condvars, self)
+        assert splitted.index_variable is None
+
+        resparams = splitted.residual_parameters
+        resargs = [condvars[param] for param in resparams]
+        self.whereCondition = (splitted.residual_function, resargs)
+
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         if start < stop:
             row = TableExtension.Row(self)
@@ -993,8 +1002,8 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         the `condition`.
         """
 
-        idxvar, ops, lims, rescond, resparams = \
-                split_index_condXXX(condition, condvars, self)
+        splitted = split_conditionXXX(condition, condvars, self)
+        idxvar = splitted.index_variable
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
                               "for condition: %r" % condition )
@@ -1009,11 +1018,14 @@ Wrong 'condition' parameter type. Only Column instances are suported.""")
         # Set the index column and residual condition (if any)
         # for the ``Row`` iterator.
         self.whereIndex = column.pathname
+        rescond = splitted.residual_function
         if rescond:
+            resparams = splitted.residual_parameters
             resargs = [condvars[param] for param in resparams]
             self.whereCondition = (rescond, resargs)
         # Get the coordinates to lookup
-        range_ = index.getLookupRange2XXX(ops, lims, self)
+        range_ = index.getLookupRange2XXX(
+            splitted.index_operators, splitted.index_limits, self )
         ncoords = index.search(range_)
         if not rescond and ncoords == 0:
             # There are no interesting values
@@ -1091,8 +1103,8 @@ This method is intended only for indexed columns, but this column has not a mini
         if self._dirtycache:
             self._restorecache()
 
-        idxvar, idxops, idxlims, rescond, resparams = \
-                split_index_condXXX(condition, condvars, self)
+        splitted = split_conditionXXX(condition, condvars, self)
+        idxvar = splitted.index_variable
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
                               "for condition: %r" % condition )
@@ -1105,8 +1117,10 @@ This method is intended only for indexed columns, but this column has not a mini
         # Retrieve the array of rows fulfilling the index condition.
 
         # Get the coordinates to lookup
-        range_ = index.getLookupRange2XXX(idxops, idxlims, self)
+        range_ = index.getLookupRange2XXX(
+            splitted.index_operators, splitted.index_limits, self )
         nslot = -1
+        rescond = splitted.residual_function
         if not rescond:
             # Check whether the array is in the limdata cache or not.
             # The presence of a residual condition invalidates this
@@ -1137,7 +1151,7 @@ This method is intended only for indexed columns, but this column has not a mini
         # XXX: Taken from Row.__next__indexed2XXX(), please refactor.
         if rescond and nrecords > 0:
             resargs = []
-            for param in resparams:
+            for param in splitted.residual_parameters:
                 arg = condvars[param]
                 if hasattr(arg, 'pathname'):  # looks like a column
                     arg = recarr[arg.pathname]
@@ -1238,10 +1252,10 @@ please reindex the table to put the index in a sane state""")
 "%s" flavor is not allowed; please use some of %s.""" % \
                              (flavor, supportedFlavors))
 
-        idxvar, idxops, idxlims, rescond, resparams = \
-                split_index_condXXX(condition, condvars, self)
+        splitted = split_conditionXXX(condition, condvars, self)
 
         # Take advantage of indexation, if present
+        idxvar = splitted.index_variable
         if idxvar is not None:
             column = condvars[idxvar]
             index = column.index
@@ -1252,7 +1266,8 @@ please reindex the table to put the index in a sane state""")
                    "the chosen column has too few elements to be indexed"
 
             # get the number of coords and set-up internal variables
-            range_ = index.getLookupRange2XXX(idxops, idxlims, self)
+            range_ = index.getLookupRange2XXX(
+                splitted.index_operators, splitted.index_limits, self )
             ncoords = index.search(range_)
             if ncoords > 0:
                 coords = index.indices._getCoords_sparse(index, ncoords)
@@ -1264,10 +1279,11 @@ please reindex the table to put the index in a sane state""")
 
             # Filter out rows not fulfilling the residual condition.
             # XXX: Taken from Row.__next__indexed2XXX(), please refactor.
+            rescond = splitted.residual_function
             if rescond and ncoords > 0:
                 recarr = self.readCoordinates(coords, flavor='numpy')
                 resargs = []
-                for param in resparams:
+                for param in splitted.residual_parameters:
                     arg = condvars[param]
                     if hasattr(arg, 'pathname'):  # looks like a column
                         arg = recarr[arg.pathname]

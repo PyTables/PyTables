@@ -344,7 +344,7 @@ def get_indexable_cmpXXX(exprnode, indexedcols):
 
     return not_indexable
 
-def split_index_exprXXX(exprnode, indexedcols):
+def split_expressionXXX(exprnode, indexedcols):
     """
     Split an expression into indexable and non-indexable parts.
 
@@ -398,7 +398,7 @@ def split_index_exprXXX(exprnode, indexedcols):
 
     # Recursion: conjunction of indexable expression and other.
     for (this, other) in [(left, right), (right, left)]:
-        colvar, ops, lims, res = split_index_exprXXX(this, indexedcols)
+        colvar, ops, lims, res = split_expressionXXX(this, indexedcols)
         if res:  # (IDX & RES) & OTHER <=> IDX & (RES & OTHER)
             other = res & other
         if colvar:
@@ -435,7 +435,15 @@ def get_variable_namesXXX(expression):
             stack.extend(node.children)
     return names
 
-def split_index_condXXX(condition, condvars, table):
+class SplittedConditionXXX(object):
+    def __init__(self, idxvar, idxops, idxlims, resfunc, resparams):
+        self.index_variable = idxvar
+        self.index_operators = idxops
+        self.index_limits = idxlims
+        self.residual_function = resfunc
+        self.residual_parameters = resparams
+
+def split_conditionXXX(condition, condvars, table):
     """
     Split a condition into indexable and non-indexable parts.
 
@@ -443,8 +451,7 @@ def split_index_condXXX(condition, condvars, table):
     `condition` involving indexed columns in `condvars`.  The
     *topmost* comparison of comparison pair is splitted apart from the
     rest of the condition (the residual condition) and the resulting
-    tuple (indexed_variable, operators, limits, residual_condition,
-    residual_params) is returned.  Thus (for indexed column *c1*):
+    `SplittedConditionXXX` is returned.  Thus (for indexed column *c1*):
 
     * 'c1>0' -> ('c1', ['gt'], [0], None, [])
     * '(0<c1) & (c1<=1)' -> ('c1', ['gt', 'le'], [0, 1], None, [])
@@ -511,7 +518,7 @@ def split_index_condXXX(condition, condvars, table):
 
     # Get the expression tree and split the indexable part out.
     expr = stringToExpression(condition, typemap, {})
-    idxvar, ops, lims, resexpr = split_index_exprXXX(expr, indexedcols)
+    idxvar, idxops, idxlims, resexpr = split_expressionXXX(expr, indexedcols)
 
     # Get the variable names used in the residual condition,
     # and check that they are defined in ``condvars``
@@ -528,7 +535,8 @@ def split_index_condXXX(condition, condvars, table):
         resfunc = numexpr(resexpr, ressignature)
         resparams = resvarnames
 
-    splitted = (idxvar, ops, lims, resfunc, resparams)
+    splitted = SplittedConditionXXX(
+        idxvar, idxops, idxlims, resfunc, resparams )
 
     # Store the splitted condition in the cache and return it.
     condcache[condkey] = splitted
