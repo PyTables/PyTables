@@ -103,16 +103,6 @@ class ShapeMixin:
 
 
 
-def setDefaultString(dflt):
-    "Set a default value for strings. Valid for Col and StringCol instances."
-
-    if dflt != None and not (type(dflt) in [str, list, tuple] or
-                             (type(dflt) == numpy.ndarray and
-                              dflt.dtype.kind == "S")):
-        raise ValueError("Invalid default value: %s" % (dflt,))
-
-
-
 class Col(ShapeMixin, object):
     "Defines a general column that supports all NumPy data types."
 
@@ -137,7 +127,7 @@ class Col(ShapeMixin, object):
             self.type = NP.int32  # special case for times
             self.stype = type_
         elif type_ == 'Time64':
-            self.type = NP.Float64  # special case for times
+            self.type = NP.float64  # special case for times
             self.stype = type_
         elif type_ == 'CharType' or type_ == NP.string_:
             self.type = NP.string_
@@ -153,11 +143,14 @@ class Col(ShapeMixin, object):
         # Create NumPy objects as defaults
         # This is better in order to serialize them as attributes
         if self.type == NP.string_:
-           if dflt is None:
-               # Assign to the empty chararray
-               self.dflt = NP.array("", dtype="|S1")
-           else:
-               self.dflt = NP.array(dflt, dtype="S")
+            if dflt is None:
+                dflt = ""
+            if type(dflt) == str:
+                # If dflt is a python string, set it 'as is' in order to be
+                # consistent with attribute serializing conventions.
+                self.dflt = dflt
+            else:
+                self.dflt = NP.array(dflt, dtype="S")
         else:
             if dflt is None:
                 dflt = 0
@@ -238,21 +231,13 @@ class StringCol(Col):
 
     def _setType(self, type_):
         self.type       = NP.string_
-        self.stype      = 'CharArray'
+        self.stype      = 'CharType'
 
 
     def _setShape(self, shape):
         super(Col, self)._setShape(shape)
-
         # Set itemsize; forced to None to get it from the 'length' argument
         self.itemsize = None
-
-
-    def _setDefault(self, dflt):
-        "Sets the 'dflt' attribute (overwrites the method in Col)."
-        if dflt is None or dflt == "":
-            dflt = "\x00"*self.itemsize
-        self.dflt = NP.array(dflt, dtype="S")
 
 
     def __init__(self, length = None, dflt = None, shape = 1, pos = None,
@@ -262,8 +247,7 @@ class StringCol(Col):
         # 'itemsize' is deduced from the default value if not specified.
         if length is None and dflt:
             length = len(dflt)  # 'dflt' has already been checked
-            # We explicitely forbid 0-sized arrays
-            # (this creates too much headaches)
+            # NumPy explicitely forbid 0-sized arrays
             if length == 0:
                 length = 1
 
@@ -293,8 +277,8 @@ class BoolCol(Col):
     "Defines a boolean column."
 
     def _setType(self, type_):
-        self.type       = NP.bool_
-        self.stype      = str(self.type)
+        self.type = NP.bool_
+        self.stype = NP.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
 
 

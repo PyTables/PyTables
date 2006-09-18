@@ -793,7 +793,7 @@ def getRAType(hid_t type_id, int klass, size_t size):
     stype = "f%s" % (size)
   elif klass ==  H5T_COMPOUND:
     # Here, this can only be a complex
-    stype = "c%s" % (size*2)    # NumPy requires the complete length of a type
+    stype = "c%s" % (size)
   elif klass ==  H5T_STRING:
     if H5Tis_variable_str(type_id):
       raise TypeError("variable length strings are not supported yet")

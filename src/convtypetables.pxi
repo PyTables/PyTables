@@ -16,6 +16,7 @@ from definitions cimport \
   NPY_BYTE, NPY_SHORT, NPY_INT, NPY_LONGLONG, \
   NPY_UBYTE, NPY_USHORT, NPY_UINT, NPY_ULONGLONG, \
   NPY_BOOL, NPY_STRING, NPY_FLOAT, NPY_DOUBLE, NPY_CFLOAT, NPY_CDOUBLE, \
+  H5T_C_S1, H5T_NATIVE_B8, \
   H5T_NATIVE_SCHAR, H5T_NATIVE_SHORT, H5T_NATIVE_INT, H5T_NATIVE_LLONG,\
   H5T_NATIVE_UCHAR, H5T_NATIVE_USHORT, H5T_NATIVE_UINT, H5T_NATIVE_ULLONG, \
   H5T_NATIVE_FLOAT, H5T_NATIVE_DOUBLE, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
@@ -23,7 +24,7 @@ from definitions cimport \
   H5T_OPAQUE, H5T_COMPOUND, H5T_REFERENCE, H5T_ENUM, H5T_VLEN, H5T_ARRAY
 
 
-# Conversion from NumPy codes to native HDF5 types
+# Conversion from NumPy codes to native HDF5 types (for attributes)
 NPCodeToHDF5 = {
   NPY_BYTE      : H5T_NATIVE_SCHAR,
   NPY_SHORT     : H5T_NATIVE_SHORT,
@@ -106,5 +107,5 @@ PTTypeToHDF5 = {
   'Time32':  H5T_UNIX_D32BE,    'Time64':  H5T_UNIX_D64BE }
 
 # Special cases that cannot be directly mapped:
-ptSpecialTypes = ['Bool', 'Complex32', 'Complex64', 'CharType', 'Enum']
+PTSpecialTypes = ['Bool', 'Complex32', 'Complex64', 'CharType', 'Enum']
 

@@ -1417,9 +1417,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             if field == None:
                 nra = self._get_container(0)
                 return nra
-            #elif typeField is numpy.stringscalar:
-            # XYX usar la comparacio de dalt quan IsDescription.py estiga migrat.
-            elif isinstance(typeField, numarray.records.Char):
+            elif typeField is numpy.string_:
                 return numpy.empty(shape=0, dtype="|S1")
             else:
                 return numpy.empty(shape=0, dtype=stypeField)
@@ -1448,9 +1446,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 shape = tuple(shape2)
 
             # Create the resulting recarray
-            #if isinstance(typeField, numpy.stringscalar):
-            # XYX lo mateix que ades...
-            if isinstance(typeField, numarray.records.Char):
+            if typeField is numpy.string_:
                 # String-column case
                 result = numpy.empty(shape=shape, dtype="|S%s"%itemsize)
             else:

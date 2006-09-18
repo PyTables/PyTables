@@ -31,7 +31,7 @@ Misc variables:
 
 import warnings
 import cPickle
-import numarray
+import numpy
 
 import tables.hdf5Extension as hdf5Extension
 from tables.constants import MAX_NODE_ATTRS
@@ -231,7 +231,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                 if name in ["NROWS", "EXTDIM", "AUTOMATIC_INDEX",
                             "REINDEX", "DIRTY", "NODE_TYPE_VERSION"]:
                     # These are Int32 or Int64 integers
-                    value = self._g_getAttr(name)[()]
+                    value = self._g_getAttr(name).item()
                 else:
                     value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
             else:
@@ -282,11 +282,11 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         if issysattrname(name):
             if name in ["EXTDIM", "AUTOMATIC_INDEX", "REINDEX", "DIRTY",
                         "NODE_TYPE_VERSION"]:
-                self._g_setAttr(name, numarray.asarray(value,
-                                                       type=numarray.Int32))
+                #self._g_setAttr(name, numpy.array(value, dtype=numpy.int32))
+                # See http://projects.scipy.org/scipy/numpy/ticket/283
+                self._g_setAttr(name, numpy.array(value, dtype='i'))
             elif name == "NROWS":
-                self._g_setAttr(name, numarray.array(value,
-                                                     type=numarray.Int64))
+                self._g_setAttr(name, numpy.array(value, dtype=numpy.int64))
             else:
                 self._g_setAttr(name, value)
         else:

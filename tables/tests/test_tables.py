@@ -297,9 +297,9 @@ class BasicTestCase(common.PyTablesTestCase):
         # Column defaults.
         for v in expectedNames:
             if verbose:
-                print "dflt-->", columns[v].dflt
-                print "coldflts-->", tbl.coldflts[v]
-                print "desc.dflts-->", desc._v_dflts[v]
+                print "dflt-->", columns[v].dflt, type(columns[v].dflt)
+                print "coldflts-->", tbl.coldflts[v], type(tbl.coldflts[v])
+                print "desc.dflts-->", desc._v_dflts[v], type(desc._v_dflts[v])
             assert areArraysEqual(tbl.coldflts[v], columns[v].dflt)
             assert areArraysEqual(desc._v_dflts[v], columns[v].dflt)
 

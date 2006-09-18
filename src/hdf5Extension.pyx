@@ -611,12 +611,6 @@ cdef class AttributeSet:
     cdef hsize_t *dims, nelements
     cdef H5T_class_t class_id
     cdef size_t type_size
-    cdef char  *attrvaluechar
-    cdef short  attrvalueshort
-    cdef long  attrvaluelong
-    cdef float  attrvaluefloat
-    cdef double  attrvaluedouble
-    cdef long long attrvaluelonglong
     cdef hid_t mem_type
     cdef int rank
     cdef int ret, i
@@ -728,18 +722,12 @@ Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
                                   H5T_NATIVE_DOUBLE, rbuf)
 
     elif class_id == H5T_STRING:
-      # Scalar string attributes are returned as Python strings, while
-      # multi-dimensional ones are returned as character arrays.
+      ret = H5ATTRget_attribute_string_CAarray(self.dataset_id, attrname,
+                                               <char *> rbuf)
       if rank == 0:
-        ret = H5ATTRget_attribute_string(self.dataset_id, attrname,
-                                         &attrvaluechar)
-        retvalue = attrvaluechar
-        # Important to release attrvaluechar, because it has been malloc'ed!
-        if attrvaluechar: free(<void *>attrvaluechar)
-      else:
-        ret = H5ATTRget_attribute_string_CAarray(self.dataset_id, attrname,
-                                                 <char *> rbuf)
-
+        # Scalar string attributes are returned as Python strings, while
+        # multi-dimensional ones are returned as character arrays.
+        retvalue = ndvalue.item()
     else:
       warnings.warn("""\
 Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
@@ -763,7 +751,7 @@ Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
       format_version = None
 
 
-    if retvalue:
+    if retvalue is not None:
       return retvalue
     else:
       return ndvalue
@@ -784,33 +772,22 @@ Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
 
     node = self._v_node
 
-    # Check for scalar attributes (if file.format_version < "1.4")
-    if hasattr(node._v_file, "format_version"):
-      format_version = node._v_file.format_version
-    else:
-      format_version = None
-
-    if format_version is not None and format_version < "1.4" and \
-       (isinstance(value, int) or isinstance(value, float)):
-      value = numpy.asarray(value)
-
     ret = 0
     # Append this attribute on disk
     if isinstance(value, str):
       ret = H5ATTRset_attribute_string(self.dataset_id, name, value)
     elif isinstance(value, numpy.ndarray):
       ndv = <ndarray>value
-      ndt = <dtype>vale.dtype
+      data = ndv.data
+      ndt = <dtype>value.dtype
       rank = ndv.nd
       dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
       for i from 0 <= i < rank:
         dims[i] = ndv.dimensions[i]
-      data = ndv.data
       if value.dtype.char == "S":
         itemsize = value.itemsize
         ret = H5ATTRset_attribute_string_CAarray(
           self.dataset_id, name, rank, dims, itemsize, data)
-        free(<void *>dims)
       elif ndt.type_num in NPCodeToHDF5.keys():
         type_id = NPCodeToHDF5[ndt.type_num]
         ret = H5ATTRset_attribute_numerical_NParray(self.dataset_id, name,
