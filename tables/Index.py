@@ -398,8 +398,9 @@ def split_index_exprXXX(exprnode, indexedcols):
 
     # Recursion: conjunction of indexable expression and other.
     for (this, other) in [(left, right), (right, left)]:
-        colvar, ops, lims, _ = split_index_exprXXX(this, indexedcols)
-        assert _ is None, "indexable range has a residual expression"
+        colvar, ops, lims, res = split_index_exprXXX(this, indexedcols)
+        if res:  # (IDX & RES) & OTHER <=> IDX & (RES & OTHER)
+            other = res & other
         if colvar:
             return (colvar, ops, lims, other)
 
