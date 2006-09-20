@@ -888,8 +888,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Indexes in PyTables Pro systems are 64-bit long.
         offset = sorted.nrows * self.slicesize
         self.indices.append(numarray.array(s, type="Int64") + offset)
-        sarr = arr[s]  #XYX tormar a fer un sort sembla mes rapid que usar
-                       #seleccio per indexos...
+        #sarr = arr[s]
+        # Doing a sort in-place is faster than a fancy selection
+        arr.sort(); sarr = arr
         sorted.append(sarr)
         cs = self.chunksize
         self.ranges.append([sarr[[0,-1]]])

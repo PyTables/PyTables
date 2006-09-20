@@ -43,40 +43,40 @@ hid_t convArrayType(int fmt, size_t size, char *byteorder)
 /*       H5Tset_offset(type_id, 0); */
 /*       H5Tset_pad(type_id, H5T_PAD_ZERO, H5T_PAD_ZERO); */
       break;
-    case NPY_BYTE:
+    case NPY_INT8:
       type_id = H5Tcopy(H5T_NATIVE_SCHAR);
       break;
-    case NPY_UBYTE:
+    case NPY_UINT8:
       type_id = H5Tcopy(H5T_NATIVE_UCHAR);
       break;
-    case NPY_SHORT:
+    case NPY_INT16:
       type_id = H5Tcopy(H5T_NATIVE_SHORT);
       break;
-    case NPY_USHORT:
+    case NPY_UINT16:
       type_id = H5Tcopy(H5T_NATIVE_USHORT);
       break;
-    case NPY_INT:
+    case NPY_INT32:
       type_id = H5Tcopy(H5T_NATIVE_INT);
       break;
-    case NPY_UINT:
+    case NPY_UINT32:
       type_id = H5Tcopy(H5T_NATIVE_UINT);
       break;
-    case NPY_LONGLONG:
+    case NPY_INT64:
       type_id = H5Tcopy(H5T_NATIVE_LLONG);
       break;
-    case NPY_ULONGLONG:
+    case NPY_UINT64:
       type_id = H5Tcopy(H5T_NATIVE_ULLONG);
       break;
-    case NPY_FLOAT:
+    case NPY_FLOAT32:
       type_id = H5Tcopy(H5T_NATIVE_FLOAT);
       break;
-    case NPY_DOUBLE:
+    case NPY_FLOAT64:
       type_id = H5Tcopy(H5T_NATIVE_DOUBLE);
       break;
-    case NPY_CFLOAT:
+    case NPY_COMPLEX64:
       type_id = create_native_complex64(byteorder);
       break;
-    case NPY_CDOUBLE:
+    case NPY_COMPLEX128:
       type_id = create_native_complex128(byteorder);
       break;
     default:
@@ -120,27 +120,27 @@ size_t getArrayType(hid_t type_id,
     switch (type_size) {
     case 1:                        /* byte */
       if ( sign )
-	*fmt = NPY_BYTE;                /* signed byte */
+	*fmt = NPY_INT8;                /* signed byte */
       else
-	*fmt = NPY_UBYTE;             /* unsigned byte */
+	*fmt = NPY_UINT8;             /* unsigned byte */
       break;
     case 2:                        /* short */
       if ( sign )
-	 *fmt = NPY_SHORT;                /* signed short */
+	 *fmt = NPY_INT16;                /* signed short */
       else
-	*fmt = NPY_USHORT;                /* unsigned short */
+	*fmt = NPY_UINT16;                /* unsigned short */
       break;
     case 4:                        /* long */
       if ( sign )
-	*fmt = NPY_INT;                /* signed long */
+	*fmt = NPY_INT32;                /* signed long */
       else
-	*fmt = NPY_UINT;                /* unsigned long */
+	*fmt = NPY_UINT32;                /* unsigned long */
       break;
     case 8:                        /* long long */
       if ( sign )
-	*fmt = NPY_LONGLONG;                /* signed long long */
+	*fmt = NPY_INT64;                /* signed long long */
       else
-	*fmt = NPY_ULONGLONG;                /* unsigned long long */
+	*fmt = NPY_UINT64;                /* unsigned long long */
       break;
     default:
       /* This should never happen */
@@ -150,10 +150,10 @@ size_t getArrayType(hid_t type_id,
   case H5T_FLOAT:                   /* float (single or double) */
     switch (type_size) {
     case 4:
-	*fmt = NPY_FLOAT;                 /* float */
+	*fmt = NPY_FLOAT32;                 /* float */
 	break;
     case 8:
-	*fmt = NPY_DOUBLE;                 /* double */
+	*fmt = NPY_FLOAT64;                 /* double */
 	break;
     default:
       /* This should never happen */
@@ -164,10 +164,10 @@ size_t getArrayType(hid_t type_id,
     if (is_complex(type_id)) {
       switch (get_complex_precision(type_id)) {
       case 32:
-	*fmt = NPY_CFLOAT;               /* float complex */
+	*fmt = NPY_COMPLEX64;               /* float complex */
 	break;
       case 64:
-	*fmt = NPY_CDOUBLE;               /* double complex */
+	*fmt = NPY_COMPLEX128;               /* double complex */
 	break;
       default:
 	/* This should never happen */

@@ -669,7 +669,7 @@ herr_t get_order(hid_t type_id, char *byteorder) {
 
 /* Set the byteorder of type_id. */
 /* This only works for datatypes that are not Complex. However,
-   this types should already been created with correct byteorder */
+   these types should already been created with correct byteorder */
 herr_t set_order(hid_t type_id, const char *byteorder) {
   herr_t status=0;
   if (! is_complex(type_id)) {
@@ -677,6 +677,11 @@ herr_t set_order(hid_t type_id, const char *byteorder) {
       status = H5Tset_order(type_id, H5T_ORDER_LE);
     else if (strcmp(byteorder, "big") == 0)
       status = H5Tset_order(type_id, H5T_ORDER_BE );
+    else if (strcmp(byteorder, "non-relevant") == 0) {
+      /* Do nothing because non-relevant doesn't require setting the
+	 byteorder explicitely */
+/*       status = H5Tset_order(type_id, H5T_ORDER_NONE ); */
+    }
     else {
       fprintf(stderr, "Error: unsupported byteorder <%s>\n", byteorder);
       status = -1;

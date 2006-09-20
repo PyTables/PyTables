@@ -224,19 +224,16 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # takes care of other types as well as for example NROWS for
         # Tables and EXTDIM for EArrays
         format_version = self._v__format_version
-        if format_version is not None and format_version < "1.4":
-            value = self._g_getAttr(name)   # Takes 1.3s/3.7s
-        else:
-            if issysattrname(name) and not name.endswith("FILL"):
-                if name in ["NROWS", "EXTDIM", "AUTOMATIC_INDEX",
-                            "REINDEX", "DIRTY", "NODE_TYPE_VERSION"]:
-                    # These are Int32 or Int64 integers
-                    value = self._g_getAttr(name).item()
-                else:
-                    value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
+        if issysattrname(name) and not name.endswith("FILL"):
+            if name in ["NROWS", "EXTDIM", "AUTOMATIC_INDEX",
+                        "REINDEX", "DIRTY", "NODE_TYPE_VERSION"]:
+                # These are Int32 or Int64 integers
+                value = self._g_getAttr(name).item()
             else:
-                # This the general way to read attributes (takes more time)
-                value = self._g_getAttr(name)   # Takes 1.3s/3.7s
+                value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
+        else:
+            # This the general way to read attributes (takes more time)
+            value = self._g_getAttr(name)
 
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
@@ -282,9 +279,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         if issysattrname(name):
             if name in ["EXTDIM", "AUTOMATIC_INDEX", "REINDEX", "DIRTY",
                         "NODE_TYPE_VERSION"]:
-                #self._g_setAttr(name, numpy.array(value, dtype=numpy.int32))
-                # See http://projects.scipy.org/scipy/numpy/ticket/283
-                self._g_setAttr(name, numpy.array(value, dtype='i'))
+                self._g_setAttr(name, numpy.array(value, dtype=numpy.int32))
             elif name == "NROWS":
                 self._g_setAttr(name, numpy.array(value, dtype=numpy.int64))
             else:
