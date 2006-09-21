@@ -40,8 +40,13 @@ from definitions cimport import_array, ndarray, \
      PyArray_GETITEM, PyArray_SETITEM, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, \
-     size_t, hid_t, herr_t, hsize_t, htri_t, \
-     H5F_scope_t, H5T_sign_t, H5T_direction_t,  H5T_class_t, H5D_layout_t
+     size_t, hid_t, herr_t, hsize_t, htri_t, H5D_layout_t, \
+     H5Gunlink, H5Fflush, H5Dopen, H5Dclose, H5Dread, H5Dget_type,\
+     H5Dget_space, H5Dget_create_plist, H5Pget_layout, H5Pclose, \
+     H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose, \
+     H5Tget_size, H5Tcreate, H5Tcopy, H5Tclose, H5Tget_sign, \
+     H5ATTRset_attribute_string, H5ATTR_set_attribute_numerical
+     
 
 # Include HDF5 types
 include "convtypetables.pxi"
@@ -54,44 +59,7 @@ __version__ = "$Revision$"
 
 #-----------------------------------------------------------------
 
-# HDF5 API
-cdef extern from "hdf5.h":
-
-  # For deleting a table
-  herr_t H5Gunlink (hid_t file_id, char *name)
-
-  # For flushing
-  herr_t H5Fflush(hid_t object_id, H5F_scope_t scope)
-
-  # For dealing with datasets
-  hid_t  H5Dopen(hid_t file_id, char *name)
-  herr_t H5Dclose(hid_t dset_id)
-  herr_t H5Dread(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
-                  hid_t file_space_id, hid_t plist_id, void *buf)
-  hid_t H5Dget_type(hid_t dset_id)
-  hid_t H5Dget_space(hid_t dset_id)
-
-  # For getting the layout of a dataset
-  hid_t H5Dget_create_plist(hid_t dataset_id)
-  H5D_layout_t H5Pget_layout(hid_t plist)
-  herr_t H5Pclose(hid_t plist)
-
-  # Functions for dealing with dataspaces
-  int H5Sget_simple_extent_ndims(hid_t space_id)
-
-  int H5Sget_simple_extent_dims(hid_t space_id, hsize_t dims[],
-                                hsize_t maxdims[])
-
-  herr_t H5Sclose(hid_t space_id)
-
-  # Functions for dealing with datatypes
-  size_t H5Tget_size(hid_t type_id)
-  hid_t  H5Tcreate(H5T_class_t type, size_t size)
-  hid_t  H5Tcopy(hid_t type_id)
-  herr_t H5Tclose(hid_t type_id)
-  herr_t H5Tget_sign(hid_t type_id)
-
-
+# Optimized HDF5 API for PyTables
 cdef extern from "H5TB-opt.h":
 
   herr_t H5TBOmake_table( char *table_title, hid_t loc_id, char *dset_name,
@@ -123,14 +91,6 @@ cdef extern from "H5TB-opt.h":
                               hsize_t start, hsize_t nrecords,
                               hsize_t maxtuples )
 
-# Functions from HDF5 HL Lite
-cdef extern from "H5ATTR.h":
-
-  herr_t H5ATTRset_attribute_string( hid_t loc_id, char *attr_name,
-                                     char *attr_data )
-
-  herr_t H5ATTR_set_attribute_numerical( hid_t loc_id, char *attr_name,
-                                         hid_t type_id, void *data )
 
 #----------------------------------------------------------------------------
 
@@ -198,10 +158,6 @@ cdef class Table:  # XXX extends Leaf
       self.totalrecords = self.nrows
       recarr = self._v_recarray
       data = recarr.data
-      # Correct the offset in the buffer
-      # Not necessary in numpy
-#       offset = self._v_recarray._byteoffset
-#       data = <void *>(<char *>data + offset)
     else:
       self.totalrecords = 0
       data = NULL

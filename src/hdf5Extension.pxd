@@ -1,12 +1,4 @@
-cdef extern from "hdf5.h":
-  ctypedef int hid_t
-  ctypedef int hbool_t
-  ctypedef int herr_t
-  ctypedef int htri_t
-  # hsize_t should be unsigned, but Windows platform does not support
-  # such a unsigned long long type.
-  ctypedef long long hsize_t
-  ctypedef signed long long hssize_t
+from definitions cimport hid_t, hsize_t
 
 
 # Declaration of instance variables for shared classes
@@ -20,7 +12,16 @@ cdef class Leaf(Node):
   cdef hid_t   base_type_id
 
 cdef class Array(Leaf):
-  cdef int     rank
+  cdef int      rank
   cdef hsize_t *dims
   cdef hsize_t *maxdims
   cdef hsize_t *dims_chunk
+
+
+
+## Local Variables:
+## mode: python
+## py-indent-offset: 2
+## tab-width: 2
+## fill-column: 78
+## End:

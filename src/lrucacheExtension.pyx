@@ -14,6 +14,7 @@
 Classes (type extensions):
 
     NodeCache
+    ObjectCache
     NumCache
 
 Functions:
@@ -26,30 +27,13 @@ Misc variables:
 import sys
 
 import numpy
-from definitions cimport import_array, ndarray
+from definitions cimport \
+     memcpy, strcmp, \
+     PyList_Append, PyObject_GetItem, PyObject_SetItem, \
+     PyObject_DelItem, PyObject_Length, PyObject_Compare, \
+     import_array, ndarray
 
 from constants import ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
-
-
-
-#----------------------------------------------------------------------
-
-# Standard C functions.
-cdef extern from "stdlib.h":
-  ctypedef long size_t
-
-cdef extern from "string.h":
-  void *memcpy(void *dest, void *src, size_t n)
-  int strcmp(char *s1, char *s2)
-
-# Python API functions.
-cdef extern from "Python.h":
-  int PyList_Append(object list, object item)
-  object PyObject_GetItem(object o, object key)
-  int PyObject_SetItem(object o, object key, object v)
-  int PyObject_DelItem(object o, object key)
-  long PyObject_Length(object o)
-  int PyObject_Compare(object o1, object o2)
 
 
 
@@ -269,10 +253,8 @@ cdef class BaseCache:
 
 
 ########################################################################
-#  Minimalistic LRU cache implementation for general python objects
-#        This is a *true* general lru cache for python objects
+#  Helper class for ObjectCache
 ########################################################################
-
 
 cdef class ObjectNode:
   """Record of a cached value. Not for public consumption."""
@@ -292,6 +274,10 @@ cdef class ObjectNode:
            (self.__class__, self.key, self.nslot, self.object)
 
 
+########################################################################
+#  Minimalistic LRU cache implementation for general python objects
+#        This is a *true* general lru cache for python objects
+########################################################################
 
 cdef class ObjectCache(BaseCache):
   """Least-Recently-Used (LRU) cache specific for python objects.
@@ -597,3 +583,12 @@ cdef class NumCache(BaseCache):
     return "<%s(%s) (%d maxslots, %d slots used, %.3f KB cachesize)>" % \
            (self.name, str(self.__class__), self.nslots, self.nextslot,
             cachesize)
+
+
+
+## Local Variables:
+## mode: python
+## py-indent-offset: 2
+## tab-width: 2
+## fill-column: 78
+## End:

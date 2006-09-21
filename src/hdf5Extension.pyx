@@ -53,10 +53,23 @@ from definitions cimport  \
      PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
      Py_INCREF, Py_DECREF, \
      import_array, ndarray, dtype, \
-     time_t, size_t, hid_t, herr_t, hsize_t, hvl_t, H5T_class_t, \
-     H5F_scope_t, H5G_link_t, H5G_stat_t, H5S_seloper_t, H5T_sign_t, \
+     time_t, size_t, hid_t, herr_t, hsize_t, hvl_t, \
+     H5T_sign_t, H5T_class_t, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
-     H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5S_SELECT_SET
+     H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5S_SELECT_SET, \
+     H5get_libversion, H5check_version, H5Fcreate, H5Fopen, H5Fclose, \
+     H5Fflush, H5Gcreate, H5Gopen, H5Gclose, H5Glink, H5Gunlink, H5Gmove, \
+     H5Gmove2,  H5Dopen, H5Dclose, H5Dread, H5Dget_type, H5Dget_space, \
+     H5Dvlen_reclaim, H5Adelete, H5Aget_num_attrs, H5Aget_name, H5Aopen_idx, \
+     H5Aread, H5Aclose, H5Tclose, H5Tget_sign, H5Pcreate, H5Pclose, \
+     H5Pset_cache, H5Pset_sieve_buf_size, H5Pset_fapl_log, \
+     H5Sselect_hyperslab, H5Screate_simple, H5Sget_simple_extent_ndims, \
+     H5Sget_simple_extent_dims, H5Sclose, \
+     H5ATTRget_attribute_ndims, H5ATTRget_attribute_info, \
+     H5ATTRset_attribute_string, H5ATTRset_attribute_string_CAarray, \
+     H5ATTRset_attribute_numerical_NParray, H5ATTRget_attribute, \
+     H5ATTRget_attribute_string, H5ATTRget_attribute_string_CAarray, \
+     H5ATTR_find_attribute
 
 
 # Include conversion tables
@@ -68,183 +81,48 @@ __version__ = "$Revision$"
 
 #-------------------------------------------------------------------
 
-# Structs and types from HDF5
-cdef extern from "hdf5.h":
-
-  # Functions from HDF5
-  hid_t  H5Fcreate(char *filename, unsigned int flags,
-                   hid_t create_plist, hid_t access_plist)
-
-  hid_t  H5Fopen(char *name, unsigned flags, hid_t access_id)
-
-  herr_t H5Fclose (hid_t file_id)
-
-  herr_t H5Fflush(hid_t object_id, H5F_scope_t scope)
-
-  hid_t  H5Dopen (hid_t file_id, char *name)
-
-  herr_t H5Dclose (hid_t dset_id)
-
-  herr_t H5Dread (hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
-                  hid_t file_space_id, hid_t plist_id, void *buf)
-
-  hid_t H5Dget_type (hid_t dset_id)
-
-  hid_t H5Dget_space (hid_t dset_id)
-
-  herr_t H5Dvlen_reclaim(hid_t type_id, hid_t space_id, hid_t plist_id,
-                         void *buf)
-
-  hid_t  H5Gcreate(hid_t loc_id, char *name, size_t size_hint )
-
-  hid_t  H5Gopen(hid_t loc_id, char *name )
-
-  herr_t H5Gclose(hid_t group_id)
-
-  herr_t H5Glink (hid_t file_id, H5G_link_t link_type,
-                  char *current_name, char *new_name)
-
-  herr_t H5Gunlink (hid_t file_id, char *name)
-
-  herr_t H5Gmove(hid_t loc_id, char *src, char *dst)
-
-  herr_t H5Gmove2( hid_t src_loc_id, char *src_name,
-                   hid_t dst_loc_id, char *dst_name )
-
-  herr_t H5get_libversion(unsigned *majnum, unsigned *minnum,
-                          unsigned *relnum )
-
-  herr_t H5check_version(unsigned majnum, unsigned minnum,
-          unsigned relnum )
-
-  herr_t H5Adelete(hid_t loc_id, char *name )
-
-  int H5Aget_num_attrs(hid_t loc_id)
-
-  size_t H5Aget_name(hid_t attr_id, size_t buf_size, char *buf )
-
-  hid_t H5Aopen_idx(hid_t loc_id, unsigned int idx )
-
-  herr_t H5Aread(hid_t attr_id, hid_t mem_type_id, void *buf )
-
-  herr_t H5Aclose(hid_t attr_id)
-
-  herr_t H5Tclose(hid_t type_id)
-
-  herr_t H5Tget_sign(hid_t type_id)
-
-  #hid_t H5Pcreate(H5P_class_t type )  # Wrong in documentation!
-  hid_t H5Pcreate(hid_t plist_id)
-  herr_t H5Pclose(hid_t plist_id)
-
-  herr_t H5Pset_cache(hid_t plist_id, int mdc_nelmts, int rdcc_nelmts,
-                      size_t rdcc_nbytes, double rdcc_w0 )
-
-  herr_t H5Pset_sieve_buf_size(hid_t fapl_id, hsize_t size)
-
-  herr_t H5Pset_fapl_log(hid_t fapl_id, char *logfile,
-                         unsigned int flags, size_t buf_size)
-
-  herr_t H5Sselect_hyperslab(hid_t space_id, H5S_seloper_t op,
-                             hsize_t start[], hsize_t _stride[],
-                             hsize_t count[], hsize_t _block[])
-
-  hid_t H5Screate_simple(int rank, hsize_t dims[], hsize_t maxdims[])
-
-  int H5Sget_simple_extent_ndims(hid_t space_id)
-
-  int H5Sget_simple_extent_dims(hid_t space_id, hsize_t dims[], hsize_t maxdims[])
-
-  herr_t H5Sclose(hid_t space_id)
-
-  # Functions for enumeration handling:
-  hid_t  H5Tget_super(hid_t type)
-  H5T_class_t H5Tget_class(hid_t type_id)
-  int    H5Tget_nmembers(hid_t type_id)
-  hid_t  H5Tget_member_type(hid_t type_id, int membno)
-  char*  H5Tget_member_name(hid_t type_id, int membno)
-  herr_t H5Tget_member_value(hid_t type_id, int membno, void *value)
-
-# Functions from HDF5 attribute library
-cdef extern from "H5ATTR.h":
-
-  herr_t H5ATTRget_attribute_ndims( hid_t loc_id, char *attr_name, int *rank )
-
-  herr_t H5ATTRget_attribute_info( hid_t loc_id, char *attr_name,
-                                   hsize_t *dims, H5T_class_t *class_id,
-                                   size_t *type_size, hid_t *type_id)
-
-  herr_t H5ATTRset_attribute_string( hid_t loc_id, char *attr_name,
-                                     char *attr_data )
-
-  herr_t H5ATTRset_attribute_string_CAarray( hid_t loc_id, char *attr_name,
-                                             size_t rank, hsize_t *dims,
-                                             int itemsize, void *data )
-
-  herr_t H5ATTRset_attribute_numerical_NParray( hid_t loc_id, char *attr_name,
-                                                size_t rank, hsize_t *dims,
-                                                hid_t type_id, void *data )
-
-  herr_t H5ATTRget_attribute( hid_t loc_id, char *attr_name,
-                              hid_t mem_type_id, void *data )
-
-  herr_t H5ATTRget_attribute_string( hid_t loc_id, char *attr_name,
-                                     char **attr_value)
-
-  herr_t H5ATTRget_attribute_string_CAarray( hid_t obj_id, char *attr_name,
-                                             char *data )
-
-  herr_t H5ATTR_find_attribute(hid_t loc_id, char *attr_name )
-
-
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
 cdef extern from "H5ARRAY.h":
 
-  herr_t H5ARRAYmake( hid_t loc_id, char *dset_name, char *class_,
-                      char *title, char *flavor, char *obversion,
-                      int rank, hsize_t *dims, int extdim,
-                      hid_t type_id, hsize_t *dims_chunk, void *fill_data,
-                      int complevel, char  *complib, int shuffle,
-                      int fletcher32, void *data)
+  herr_t H5ARRAYmake(hid_t loc_id, char *dset_name, char *class_,
+                     char *title, char *flavor, char *obversion,
+                     int rank, hsize_t *dims, int extdim,
+                     hid_t type_id, hsize_t *dims_chunk, void *fill_data,
+                     int complevel, char  *complib, int shuffle,
+                     int fletcher32, void *data)
 
-  herr_t H5ARRAYappend_records( hid_t dataset_id, hid_t type_id,
-                                int rank, hsize_t *dims_orig,
-                                hsize_t *dims_new, int extdim, void *data )
+  herr_t H5ARRAYappend_records(hid_t dataset_id, hid_t type_id,
+                               int rank, hsize_t *dims_orig,
+                               hsize_t *dims_new, int extdim, void *data )
 
-  herr_t H5ARRAYwrite_records( hid_t dataset_id, hid_t type_id,
-                               int rank, hsize_t *start, hsize_t *step,
-                               hsize_t *count, void *data )
+  herr_t H5ARRAYwrite_records(hid_t dataset_id, hid_t type_id,
+                              int rank, hsize_t *start, hsize_t *step,
+                              hsize_t *count, void *data)
 
-  herr_t H5ARRAYtruncate( hid_t dataset_id, int extdim, hsize_t size)
+  herr_t H5ARRAYtruncate(hid_t dataset_id, int extdim, hsize_t size)
 
-  herr_t H5ARRAYread( hid_t dataset_id, hid_t type_id,
-                      hsize_t start,  hsize_t nrows, hsize_t step,
-                      int extdim, void *data )
+  herr_t H5ARRAYread(hid_t dataset_id, hid_t type_id,
+                     hsize_t start, hsize_t nrows, hsize_t step,
+                     int extdim, void *data)
 
-  herr_t H5ARRAYreadSlice( hid_t dataset_id, hid_t type_id,
-                           hsize_t *start, hsize_t *stop,
-                           hsize_t *step, void *data )
+  herr_t H5ARRAYreadSlice(hid_t dataset_id, hid_t type_id,
+                          hsize_t *start, hsize_t *stop,
+                          hsize_t *step, void *data)
 
-  herr_t H5ARRAYreadIndex( hid_t dataset_id, hid_t type_id, int notequal,
-                           hsize_t *start, hsize_t *stop, hsize_t *step,
-                           void *data )
+  herr_t H5ARRAYreadIndex(hid_t dataset_id, hid_t type_id, int notequal,
+                          hsize_t *start, hsize_t *stop, hsize_t *step,
+                          void *data)
 
-  herr_t H5ARRAYget_ndims( hid_t dataset_id, hid_t type_id, int *rank )
+  herr_t H5ARRAYget_ndims(hid_t dataset_id, hid_t type_id, int *rank)
 
-  herr_t H5ARRAYget_info( hid_t dataset_id, hid_t type_id, hsize_t *dims,
-                          hsize_t *maxdims, hid_t *super_type_id,
-                          H5T_class_t *super_class_id, char *byteorder)
+  herr_t H5ARRAYget_info(hid_t dataset_id, hid_t type_id, hsize_t *dims,
+                         hsize_t *maxdims, hid_t *super_type_id,
+                         H5T_class_t *super_class_id, char *byteorder)
 
   herr_t H5ARRAYget_chunksize(hid_t dataset_id, int rank, hsize_t *dims_chunk)
 
-# Functions for optimized operations for ARRAY
-cdef extern from "H5ARRAY-opt.h":
 
-  herr_t H5ARRAYOread_readSlice( hid_t dataset_id, hid_t space_id,
-                                 hid_t type_id, hsize_t irow,
-                                 hsize_t start, hsize_t stop, void *data )
-
-# Functions for VLEN Arrays
+# Functions for dealing with VLArray objects
 cdef extern from "H5VLARRAY.h":
 
   herr_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *class_,
@@ -611,7 +489,7 @@ cdef class AttributeSet:
     cdef hsize_t *dims, nelements
     cdef H5T_class_t class_id
     cdef size_t type_size
-    cdef hid_t mem_type
+    cdef hid_t mem_type, dset_id
     cdef int rank
     cdef int ret, i
     cdef int enumtype
@@ -622,15 +500,16 @@ cdef class AttributeSet:
     cdef ndarray ndvalue
     cdef object retvalue
 
+    dset_id = self.dataset_id
     dsetname = self.name
 
     # Check if attribute exists
-    if H5ATTR_find_attribute(self.dataset_id, attrname) <= 0:
+    if H5ATTR_find_attribute(dset_id, attrname) <= 0:
       # If the attribute does not exists, return None
       # and do not even warn the user
       return None
 
-    ret = H5ATTRget_attribute_ndims(self.dataset_id, attrname, &rank )
+    ret = H5ATTRget_attribute_ndims(dset_id, attrname, &rank )
     if ret < 0:
       raise HDF5ExtError("Can't get ndims on attribute %s in node %s." %
                              (attrname, dsetname))
@@ -641,7 +520,7 @@ cdef class AttributeSet:
     else:
       dims = NULL
 
-    ret = H5ATTRget_attribute_info(self.dataset_id, attrname, dims,
+    ret = H5ATTRget_attribute_info(dset_id, attrname, dims,
                                    &class_id, &type_size, &type_id)
     if ret < 0:
       raise HDF5ExtError("Can't get info on attribute %s in node %s." %
@@ -676,37 +555,29 @@ cdef class AttributeSet:
       dtype = numpy.dtype((dtype, type_size))
       ndvalue = numpy.empty(dtype=dtype, shape=shape)
 
-    if ndvalue is not None:
+    if <object>ndvalue is not None:
       # Get the pointer to the buffer data area
       rbuf = ndvalue.data
 
     if class_id == H5T_INTEGER:
       if sign == H5T_SGN_2:
         if type_size == 1:
-          ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_STD_I8, rbuf)
+          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_I8, rbuf)
         if type_size == 2:
-          ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_STD_I16, rbuf)
+          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_I16, rbuf)
         if type_size == 4:
-          ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_STD_I32, rbuf)
+          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_I32, rbuf)
         if type_size == 8:
-          ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_STD_I64, rbuf)
+          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_I64, rbuf)
       elif sign == H5T_SGN_NONE:
         if type_size == 1:
-          ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_STD_U8, rbuf)
+          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_U8, rbuf)
         if type_size == 2:
-          ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_STD_U16, rbuf)
+          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_U16, rbuf)
         if type_size == 4:
-          ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_STD_U32, rbuf)
+          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_U32, rbuf)
         if type_size == 8:
-          ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_STD_U64, rbuf)
+          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_U64, rbuf)
       else:
         warnings.warn("""\
 Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
@@ -715,15 +586,12 @@ Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
 
     elif class_id == H5T_FLOAT:
       if type_size == 4:
-        ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                  H5T_IEEE_F32, rbuf)
+        ret = H5ATTRget_attribute(dset_id, attrname, H5T_IEEE_F32, rbuf)
       if type_size == 8:
-        ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                  H5T_IEEE_F64, rbuf)
+        ret = H5ATTRget_attribute(dset_id, attrname, H5T_IEEE_F64, rbuf)
 
     elif class_id == H5T_STRING:
-      ret = H5ATTRget_attribute_string_CAarray(self.dataset_id, attrname,
-                                               <char *> rbuf)
+      ret = H5ATTRget_attribute_string_CAarray(dset_id, attrname, <char *>rbuf)
       if rank == 0:
         # Scalar string attributes are returned as Python strings, while
         # multi-dimensional ones are returned as character arrays.

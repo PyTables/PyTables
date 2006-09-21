@@ -42,37 +42,39 @@ cdef extern from "Python.h":
   void Py_BEGIN_ALLOW_THREADS()
   void Py_END_ALLOW_THREADS()
 
-  # To access tuples
-  object PyTuple_New(int)
-  int PyTuple_SetItem(object, int, object)
-  object PyTuple_GetItem(object, int)
-  int PyTuple_Size(object tuple)
-
-  # To access dicts
-  int PyDict_Contains(object p, object key)
-  object PyDict_GetItem(object p, object key)
-
-  # To access integers
+  # Functions for integers
   object PyInt_FromLong(long)
   long PyInt_AsLong(object)
   object PyLong_FromLongLong(long long)
   long long PyLong_AsLongLong(object)
 
-  # To access double
+  # Functions for floating points
   object PyFloat_FromDouble(double)
 
-  # To access strings
+  # Functions for strings
   object PyString_FromStringAndSize(char *s, int len)
   char *PyString_AsString(object string)
   object PyString_FromString(char *)
 
-  # To access to Memory (Buffer) objects presents in numarray
-  object PyBuffer_FromMemory(void *ptr, int size)
-  object PyBuffer_FromReadWriteMemory(void *ptr, int size)
-  object PyBuffer_New(int size)
-  int PyObject_CheckReadBuffer(object)
-  int PyObject_AsReadBuffer(object, void **rbuf, int *len)
-  int PyObject_AsWriteBuffer(object, void **rbuf, int *len)
+  # Functions for lists
+  int PyList_Append(object list, object item)
+  
+  # Functions for tuples
+  object PyTuple_New(int)
+  int PyTuple_SetItem(object, int, object)
+  object PyTuple_GetItem(object, int)
+  int PyTuple_Size(object tuple)
+
+  # Functions for dicts
+  int PyDict_Contains(object p, object key)
+  object PyDict_GetItem(object p, object key)
+
+  # Functions for objects
+  object PyObject_GetItem(object o, object key)
+  int PyObject_SetItem(object o, object key, object v)
+  int PyObject_DelItem(object o, object key)
+  long PyObject_Length(object o)
+  int PyObject_Compare(object o1, object o2)
 
 
 
@@ -294,4 +296,145 @@ cdef extern from "hdf5.h":
     H5S_SELECT_APPEND,
     H5S_SELECT_PREPEND,
     H5S_SELECT_INVALID    # Must be the last one
+
+
+  #------------------------------------------------------------------
+
+  # HDF5 API
+
+  # Version functions
+  herr_t H5get_libversion(unsigned *majnum, unsigned *minnum,
+                          unsigned *relnum )
+  herr_t H5check_version(unsigned majnum, unsigned minnum,
+                         unsigned relnum )
+
+  # Operations with files
+  hid_t  H5Fcreate(char *filename, unsigned int flags,
+                   hid_t create_plist, hid_t access_plist)
+  hid_t  H5Fopen(char *name, unsigned flags, hid_t access_id)
+  herr_t H5Fclose (hid_t file_id)
+  htri_t H5Fis_hdf5(char *name)
+  herr_t H5Fflush(hid_t object_id, H5F_scope_t scope)
+
+  # Operations with groups
+  hid_t  H5Gcreate(hid_t loc_id, char *name, size_t size_hint )
+  hid_t  H5Gopen(hid_t loc_id, char *name )
+  herr_t H5Gclose(hid_t group_id)
+  herr_t H5Glink (hid_t file_id, H5G_link_t link_type,
+                  char *current_name, char *new_name)
+  herr_t H5Gunlink (hid_t file_id, char *name)
+  herr_t H5Gmove(hid_t loc_id, char *src, char *dst)
+  herr_t H5Gmove2(hid_t src_loc_id, char *src_name,
+                  hid_t dst_loc_id, char *dst_name )
+
+  # For dealing with datasets
+  hid_t  H5Dopen(hid_t file_id, char *name)
+  herr_t H5Dclose(hid_t dset_id)
+  herr_t H5Dread(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
+                  hid_t file_space_id, hid_t plist_id, void *buf)
+  hid_t H5Dget_type(hid_t dset_id)
+  hid_t H5Dget_space(hid_t dset_id)
+  herr_t H5Dvlen_reclaim(hid_t type_id, hid_t space_id, hid_t plist_id,
+                         void *buf)
+  hid_t H5Dget_create_plist(hid_t dataset_id)
+
+  # Functions for dealing with dataspaces
+  hid_t H5Screate_simple(int rank, hsize_t dims[], hsize_t maxdims[])
+  int H5Sget_simple_extent_ndims(hid_t space_id)
+  int H5Sget_simple_extent_dims(hid_t space_id, hsize_t dims[],
+                                hsize_t maxdims[])
+  herr_t H5Sselect_hyperslab(hid_t space_id, H5S_seloper_t op,
+                             hsize_t start[], hsize_t _stride[],
+                             hsize_t count[], hsize_t _block[])
+  herr_t H5Sclose(hid_t space_id)
+
+
+  # Functions for dealing with datatypes
+  H5T_class_t H5Tget_class(hid_t type_id)
+  hid_t H5Tget_super(hid_t type)
+  H5T_sign_t H5Tget_sign(hid_t type_id)
+  size_t H5Tget_size(hid_t type_id)
+  herr_t H5Tset_size(hid_t type_id, size_t size)
+  herr_t H5Tset_precision(hid_t type_id, size_t prec)
+  hid_t  H5Tcreate(H5T_class_t type, size_t size)
+  hid_t  H5Tcopy(hid_t type_id)
+  herr_t H5Tclose(hid_t type_id)
+
+  # Operations defined on string data types
+  htri_t H5Tis_variable_str(hid_t dtype_id)
+
+  # Operations for compound data types
+  int    H5Tget_nmembers(hid_t type_id)
+  char  *H5Tget_member_name(hid_t type_id, unsigned membno)
+  hid_t  H5Tget_member_type(hid_t type_id, unsigned membno)
+  hid_t  H5Tget_native_type(hid_t type_id, H5T_direction_t direction)
+  herr_t H5Tget_member_value(hid_t type_id, int membno, void *value)
+  int    H5Tget_offset(hid_t type_id)
+  herr_t H5Tinsert(hid_t parent_id, char *name, size_t offset,
+                   hid_t member_id)
+
+  # Operations for enumerated data types
+  hid_t H5Tenum_create(hid_t base_id)
+  herr_t H5Tenum_insert(hid_t type, char *name, void *value)
+
+  # Operations for array data types
+  hid_t H5Tarray_create(hid_t base_id, int ndims, hsize_t dims[], int perm[])
+  int   H5Tget_array_ndims(hid_t type_id)
+  int   H5Tget_array_dims(hid_t type_id, hsize_t dims[], int perm[])
+
+  # Operations with attributes
+  herr_t H5Adelete(hid_t loc_id, char *name)
+  int    H5Aget_num_attrs(hid_t loc_id)
+  size_t H5Aget_name(hid_t attr_id, size_t buf_size, char *buf)
+  hid_t  H5Aopen_idx(hid_t loc_id, unsigned int idx)
+  herr_t H5Aread(hid_t attr_id, hid_t mem_type_id, void *buf)
+  herr_t H5Aclose(hid_t attr_id)
+
+  # Operations with properties
+  hid_t  H5Pcreate(hid_t plist_id)
+  herr_t H5Pclose(hid_t plist_id)
+  herr_t H5Pset_cache(hid_t plist_id, int mdc_nelmts, int rdcc_nelmts,
+                      size_t rdcc_nbytes, double rdcc_w0)
+  herr_t H5Pset_sieve_buf_size(hid_t fapl_id, hsize_t size)
+  herr_t H5Pset_fapl_log(hid_t fapl_id, char *logfile,
+                         unsigned int flags, size_t buf_size)
+  H5D_layout_t H5Pget_layout(hid_t plist)
+
+
+# Specific HDF5 functions for PyTables
+cdef extern from "H5ATTR.h":
+  herr_t H5ATTRget_attribute_ndims(hid_t loc_id, char *attr_name, int *rank)
+  herr_t H5ATTRget_attribute_info(hid_t loc_id, char *attr_name,
+                                  hsize_t *dims, H5T_class_t *class_id,
+                                  size_t *type_size, hid_t *type_id)
+  herr_t H5ATTRget_attribute(hid_t loc_id, char *attr_name,
+                             hid_t mem_type_id, void *data)
+  herr_t H5ATTRget_attribute_string(hid_t loc_id, char *attr_name,
+                                    char **attr_value)
+  herr_t H5ATTRget_attribute_string_CAarray(hid_t obj_id, char *attr_name,
+                                            char *data)
+  herr_t H5ATTR_get_attribute_disk(hid_t loc_id, char *attr_name,
+                                   void *attr_out)
+  herr_t H5ATTR_find_attribute(hid_t loc_id, char *attr_name)
+  herr_t H5ATTRset_attribute_string(hid_t loc_id, char *attr_name,
+                                    char *attr_data)
+  herr_t H5ATTRset_attribute_string_CAarray(hid_t loc_id, char *attr_name,
+                                            size_t rank, hsize_t *dims,
+                                            int itemsize, void *data)
+  herr_t H5ATTR_set_attribute_numerical(hid_t loc_id, char *attr_name,
+                                        hid_t type_id, void *data )
+  herr_t H5ATTRset_attribute_numerical_NParray(hid_t loc_id, char *attr_name,
+                                               size_t rank, hsize_t *dims,
+                                               hid_t type_id, void *data)
+
+
+# Functions for operations with ARRAY
+cdef extern from "H5ARRAY.h":
+  herr_t H5ARRAYget_ndims(hid_t dataset_id, hid_t type_id, int *rank)
+  herr_t H5ARRAYget_info(hid_t dataset_id, hid_t type_id, hsize_t *dims,
+                         hsize_t *maxdims, hid_t *super_type_id,
+                         H5T_class_t *super_class_id, char *byteorder)
+
+
+
 

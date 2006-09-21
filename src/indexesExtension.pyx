@@ -33,11 +33,17 @@ import cPickle
 import numpy
 
 from tables.exceptions import HDF5ExtError
-from hdf5Extension cimport Array, hid_t, herr_t, hsize_t
+from hdf5Extension cimport Array
 from constants import SORTED_MAX_SLOTS, BOUNDS_MAX_SLOTS, INDICES_MAX_SLOTS
 
 # numpy functions & objects
-from definitions cimport import_array, ndarray
+from definitions cimport \
+     memcpy, \
+     Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
+     import_array, ndarray, \
+     hid_t, herr_t, hsize_t, \
+     H5Dget_space, H5Screate_simple, H5Sclose
+
 
 from lrucacheExtension cimport NumCache
 
@@ -46,76 +52,30 @@ __version__ = "$Revision$"
 
 #-------------------------------------------------------------------
 
+# External C functions
 
-# C functions and variable declaration from its headers
-
-# Standard C functions.
-cdef extern from "stdlib.h":
-  ctypedef long size_t
-
-cdef extern from "string.h":
-  void *memcpy(void *dest, void *src, size_t n)
-
-cdef extern from "Python.h":
-  # To release global interpreter lock (GIL) for threading
-  void Py_BEGIN_ALLOW_THREADS()
-  void Py_END_ALLOW_THREADS()
-
-# Functions, structs and types from HDF5
-cdef extern from "hdf5.h":
-  hid_t H5Dget_space (hid_t dset_id)
-  hid_t H5Screate_simple(int rank, hsize_t dims[], hsize_t maxdims[])
-  herr_t H5Sclose(hid_t space_id)
-
-
-# Functions for optimized operations for ARRAY
+# Functions for optimized operations with ARRAY for indexing purposes
 cdef extern from "H5ARRAY-opt.h":
-
-  herr_t H5ARRAYOinit_readSlice( hid_t dataset_id,
-                                 hid_t type_id,
-                                 hid_t *space_id,
-                                 hid_t *mem_space_id,
-                                 hsize_t count )
-
-  herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
-                                 hid_t space_id,
-                                 hid_t type_id,
-                                 hsize_t irow,
-                                 hsize_t start,
-                                 hsize_t stop,
-                                 void *data )
-
-  herr_t H5ARRAYOread_index_sparse( hid_t dataset_id,
-                                    hid_t space_id,
-                                    hid_t type_id,
-                                    hsize_t ncoords,
-                                    void *coords,
-                                    void *data )
-
-  herr_t H5ARRAYOread_readSortedSlice( hid_t dataset_id,
-                                       hid_t space_id,
-                                       hid_t mem_space_id,
-                                       hid_t type_id,
-                                       hsize_t irow,
-                                       hsize_t start,
-                                       hsize_t stop,
-                                       void *data )
-
-
-  herr_t H5ARRAYOread_readBoundsSlice( hid_t dataset_id,
-                                       hid_t space_id,
-                                       hid_t mem_space_id,
-                                       hid_t type_id,
-                                       hsize_t irow,
-                                       hsize_t start,
-                                       hsize_t stop,
-                                       void *data )
-
-  herr_t H5ARRAYOreadSliceLR( hid_t dataset_id,
-                              hsize_t start,
-                              hsize_t stop,
-                              void *data )
-
+  herr_t H5ARRAYOinit_readSlice(hid_t dataset_id, hid_t type_id,
+                                hid_t *space_id,  hid_t *mem_space_id,
+                                hsize_t count)
+  herr_t H5ARRAYOread_readSlice(hid_t dataset_id, hid_t space_id,
+                                hid_t type_id, hsize_t irow,
+                                hsize_t start, hsize_t stop,
+                                void *data)
+  herr_t H5ARRAYOread_index_sparse(hid_t dataset_id, hid_t space_id,
+                                   hid_t type_id, hsize_t ncoords,
+                                   void *coords, void *data)
+  herr_t H5ARRAYOread_readSortedSlice(hid_t dataset_id, hid_t space_id,
+                                      hid_t mem_space_id, hid_t type_id,
+                                      hsize_t irow, hsize_t start,
+                                      hsize_t stop, void *data)
+  herr_t H5ARRAYOread_readBoundsSlice(hid_t dataset_id, hid_t space_id,
+                                      hid_t mem_space_id, hid_t type_id,
+                                      hsize_t irow, hsize_t start,
+                                      hsize_t stop, void *data)
+  herr_t H5ARRAYOreadSliceLR(hid_t dataset_id, hsize_t start,
+                             hsize_t stop, void *data)
 
 # Functions for optimized operations for dealing with indexes
 cdef extern from "idx-opt.h":
@@ -802,3 +762,11 @@ cdef class LastRowArray(Array):
 
     return sorted.bufferlb
 
+
+
+## Local Variables:
+## mode: python
+## py-indent-offset: 2
+## tab-width: 2
+## fill-column: 78
+## End:

@@ -35,7 +35,17 @@ from definitions cimport import_array, ndarray, \
      PyString_AsString, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      size_t, hid_t, herr_t, hsize_t, htri_t, \
-     H5T_sign_t, H5T_direction_t,  H5T_class_t, H5D_layout_t
+     H5T_class_t, H5D_layout_t, H5T_sign_t, \
+     H5Fopen, H5Fclose, H5Fis_hdf5, H5Gopen, H5Gclose, \
+     H5Dopen, H5Dclose, H5Dget_type, H5Tcreate, H5Tcopy, H5Tclose, \
+     H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, \
+     H5Tget_native_type, H5Tget_member_value, H5Tget_size, \
+     H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, \
+     H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tarray_create, \
+     H5Tget_array_ndims, H5Tget_array_dims, H5Tis_variable_str, \
+     H5Tset_size, H5Tset_precision, \
+     H5ATTR_get_attribute_disk, H5ATTR_find_attribute, \
+     H5ARRAYget_ndims, H5ARRAYget_info
 
 
 # Include conversion tables & type
@@ -47,76 +57,6 @@ __version__ = "$Revision$"
 #----------------------------------------------------------------------
 
 # External declarations
-
-# HDF5 API.
-cdef extern from "hdf5.h":
-
-  # HDF5 API functions.
-
-  # Operations with files
-  hid_t  H5Fopen(char *name, unsigned flags, hid_t access_id)
-  herr_t H5Fclose (hid_t file_id)
-  htri_t H5Fis_hdf5(char *name)
-
-  # Operations with groups
-  hid_t  H5Gopen(hid_t loc_id, char *name )
-  herr_t H5Gclose(hid_t group_id)
-
-  # Operations for datasets
-  hid_t  H5Dopen (hid_t file_id, char *name)
-  herr_t H5Dclose (hid_t dset_id)
-  hid_t H5Dget_type (hid_t dset_id)
-
-  # Operations defined on all data types.
-  hid_t H5Tcreate(H5T_class_t type, size_t size)
-  hid_t H5Tcopy(hid_t type_id)
-  herr_t H5Tclose(hid_t type_id)
-
-  # Operations defined on compound data types.
-  int   H5Tget_nmembers(hid_t type_id)
-  char  *H5Tget_member_name(hid_t type_id, unsigned membno)
-  hid_t  H5Tget_member_type(hid_t type_id, unsigned membno)
-  hid_t  H5Tget_native_type(hid_t type_id, H5T_direction_t direction)
-  herr_t H5Tget_member_value(hid_t type_id, int membno, void *value)
-  size_t H5Tget_size(hid_t type_id)
-  H5T_class_t H5Tget_class(hid_t type_id)
-  hid_t H5Tget_super(hid_t type)
-  H5T_sign_t H5Tget_sign(hid_t type_id)
-  int H5Tget_offset(hid_t type_id)
-  herr_t H5Tinsert(hid_t parent_id, char *name, size_t offset,
-                   hid_t member_id)
-
-  # Operations defined on enumeration data types.
-  hid_t H5Tenum_create(hid_t base_id)
-  herr_t H5Tenum_insert(hid_t type, char *name, void *value)
-
-  # Operations defined on array data types.
-  hid_t H5Tarray_create(hid_t base_id, int ndims, hsize_t dims[], int perm[])
-  int   H5Tget_array_ndims(hid_t type_id)
-  int   H5Tget_array_dims(hid_t type_id, hsize_t dims[], int perm[])
-
-  # Operations defined on string data types.
-  htri_t H5Tis_variable_str(hid_t dtype_id)
-
-  # Setting property values.
-  herr_t H5Tset_size(hid_t type_id, size_t size)
-  herr_t H5Tset_precision(hid_t type_id, size_t prec)
-
-
-cdef extern from "H5ATTR.h":
-
-  herr_t H5ATTR_get_attribute_disk(hid_t loc_id, char *attr_name,
-                                   void *attr_out)
-  herr_t H5ATTR_find_attribute(hid_t loc_id, char *attr_name )
-
-
-cdef extern from "H5ARRAY.h":
-
-  herr_t H5ARRAYget_ndims( hid_t dataset_id, hid_t type_id, int *rank )
-
-  herr_t H5ARRAYget_info( hid_t dataset_id, hid_t type_id, hsize_t *dims,
-                          hsize_t *maxdims, hid_t *super_type_id,
-                          H5T_class_t *super_class_id, char *byteorder)
 
 
 # PyTables helper routines.
@@ -935,3 +875,11 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   # return the Description object
   return desc
 
+
+
+## Local Variables:
+## mode: python
+## py-indent-offset: 2
+## tab-width: 2
+## fill-column: 78
+## End:
