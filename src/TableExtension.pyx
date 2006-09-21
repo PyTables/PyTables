@@ -29,9 +29,9 @@ import numpy
 
 import tables.hdf5Extension
 from tables.exceptions import HDF5ExtError
+from tables.conditions import call_on_recarr  ##XXX
 from tables.utilsExtension import createNestedType, \
      getNestedType, convertTime64, space2null, getTypeEnum, enumFromHDF5
-from tables.utils import evalFuncOnRecarrXXX
 
 # numpy functions & objects
 from definitions cimport import_array, ndarray, \
@@ -840,7 +840,7 @@ cdef class Row:
           recout = self.table._read_elements_(self.rbufRA, self.bufcoords)
           if self.whereCond2XXX:
             # Evaluate the condition on this table fragment.
-            self.indexValid = evalFuncOnRecarrXXX(
+            self.indexValid = call_on_recarr(
               self.condfunc, self.condargs, self._rfields )
           else:
             # No residual condition, all selected rows are valid.
@@ -983,7 +983,7 @@ cdef class Row:
         self.indexChunk = -self.step
 
         # Evaluate the condition on this table fragment.
-        self.indexValid = evalFuncOnRecarrXXX(
+        self.indexValid = call_on_recarr(
           self.condfunc, self.condargs, self._rfields )
 
         # Is still there any interesting information in this buffer?

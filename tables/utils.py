@@ -229,25 +229,6 @@ def calcBufferSize(rowsize, expectedrows):
         chunksize = 1
     return (maxTuples, chunksize)
 
-def evalFuncOnRecarrXXX(func, params, recarr, param2arg=None):
-    """
-    Evaluate `func` with `args` over `recarr`.
-
-    The `param2arg` callable is used to get an argument from a parameter
-    name.  When the argument is a `Column` object, the proper column
-    from `recarr` is used as its value.
-    """
-    args = []
-    for param in params:
-        if param2arg:
-            arg = param2arg(param)
-        else:
-            arg = param
-        if hasattr(arg, 'pathname'):  # looks like a column
-            arg = recarr[arg.pathname]
-        args.append(arg)
-    return func(*args)
-
 def is_idx(index):
     """Checks if an object can work as an index or not."""
 

@@ -51,14 +51,14 @@ except ImportError:
 
 
 from tables.nriterators import flattenNames
-from tables.numexpr import evaluate  ##XXX
 
 import tables.TableExtension as TableExtension
+from tables.conditions import split_condition, call_on_recarr  ##XXX
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNAToNumeric, convertNAToNumPy, fromnumpy, tonumpy, \
-     fromnumarray, is_idx, evalFuncOnRecarrXXX
+     fromnumarray, is_idx
 from tables.Leaf import Leaf
-from tables.Index import Index, IndexProps, split_conditionXXX
+from tables.Index import Index, IndexProps
 from tables.IsDescription import \
      IsDescription, Description, Col, StringCol, EnumCol
 from tables.Atom import Atom, StringAtom
@@ -859,7 +859,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         # Split the condition into indexable and residual parts.
-        splitted = split_conditionXXX(condition, condvars, self)
+        splitted = split_condition(condition, condvars, self)
         assert splitted.index_variable or splitted.residual_function, (
             "no usable indexed column and no residual condition "
             "after splitting search condition" )
@@ -1050,7 +1050,7 @@ This method is intended only for indexed columns, but this column has not a mini
         if self._dirtycache:
             self._restorecache()
 
-        splitted = split_conditionXXX(condition, condvars, self)
+        splitted = split_condition(condition, condvars, self)
         idxvar = splitted.index_variable
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
@@ -1096,7 +1096,7 @@ This method is intended only for indexed columns, but this column has not a mini
 
         # Filter out rows not fulfilling the residual condition.
         if rescond and nrecords > 0:
-            indexValid = evalFuncOnRecarrXXX(
+            indexValid = call_on_recarr(
                 rescond, splitted.residual_parameters,
                 recarr, param2arg=condvars.__getitem__ )
             recarr = recarr[indexValid]
@@ -1213,7 +1213,7 @@ please reindex the table to put the index in a sane state""")
 "%s" flavor is not allowed; please use some of %s.""" % \
                              (flavor, supportedFlavors))
 
-        splitted = split_conditionXXX(condition, condvars, self)
+        splitted = split_condition(condition, condvars, self)
 
         # Take advantage of indexation, if present
         idxvar = splitted.index_variable
@@ -1241,7 +1241,7 @@ please reindex the table to put the index in a sane state""")
             # Filter out rows not fulfilling the residual condition.
             rescond = splitted.residual_function
             if rescond and ncoords > 0:
-                indexValid = evalFuncOnRecarrXXX(
+                indexValid = call_on_recarr(
                     rescond, splitted.residual_parameters,
                     recarr=self.readCoordinates(coords, flavor='numpy'),
                     param2arg=condvars.__getitem__ )
