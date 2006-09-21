@@ -31,6 +31,7 @@ import tables.hdf5Extension
 from tables.exceptions import HDF5ExtError
 from tables.utilsExtension import createNestedType, \
      getNestedType, convertTime64, space2null, getTypeEnum, enumFromHDF5
+from tables.utils import evalFuncOnRecarrXXX
 
 # numpy functions & objects
 from definitions cimport import_array, ndarray, \
@@ -838,16 +839,9 @@ cdef class Row:
         if self.bufcoords.size > 0:
           recout = self.table._read_elements_(self.rbufRA, self.bufcoords)
           if self.whereCond2XXX:
-            # Evaluate the condition on this table fragment,
-            # replace columns in the condition arguments
-            # with the proper array fragment.
-            # XXX: Please refactor with __next__inKernel2XXX().
-            condargs = []
-            for condarg in self.condargs:
-              if hasattr(condarg, 'pathname'):  # looks like a column
-                condarg = self._rfields[condarg.pathname]
-              condargs.append(condarg)
-            self.indexValid = self.condfunc(*condargs)
+            # Evaluate the condition on this table fragment.
+            self.indexValid = evalFuncOnRecarrXXX(
+              self.condfunc, self.condargs, self._rfields )
           else:
             # No residual condition, all selected rows are valid.
             self.indexValid = numpy.ones(recout, numpy.bool8)
@@ -988,16 +982,9 @@ cdef class Row:
         self.nrowsread = self.nrowsread + recout
         self.indexChunk = -self.step
 
-        # Evaluate the condition on this table fragment,
-        # replace columns in the condition arguments
-        # with the proper array fragment.
-        # XXX: Please refactor with __next__indexed2XXX().
-        condargs = []
-        for condarg in self.condargs:
-          if hasattr(condarg, 'pathname'):  # looks like a column
-            condarg = self._rfields[condarg.pathname]
-          condargs.append(condarg)
-        self.indexValid = self.condfunc(*condargs)
+        # Evaluate the condition on this table fragment.
+        self.indexValid = evalFuncOnRecarrXXX(
+          self.condfunc, self.condargs, self._rfields )
 
         # Is still there any interesting information in this buffer?
         if not numpy.sometrue(self.indexValid):

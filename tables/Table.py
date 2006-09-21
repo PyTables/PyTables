@@ -56,7 +56,7 @@ from tables.numexpr import evaluate  ##XXX
 import tables.TableExtension as TableExtension
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNAToNumeric, convertNAToNumPy, fromnumpy, tonumpy, \
-     fromnumarray, is_idx
+     fromnumarray, is_idx, evalFuncOnRecarrXXX
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps, split_conditionXXX
 from tables.IsDescription import \
@@ -1095,15 +1095,10 @@ This method is intended only for indexed columns, but this column has not a mini
                 self._limdatacache.setitem(item, recarr, size)
 
         # Filter out rows not fulfilling the residual condition.
-        # XXX: Taken from Row.__next__indexed2XXX(), please refactor.
         if rescond and nrecords > 0:
-            resargs = []
-            for param in splitted.residual_parameters:
-                arg = condvars[param]
-                if hasattr(arg, 'pathname'):  # looks like a column
-                    arg = recarr[arg.pathname]
-                resargs.append(arg)
-            indexValid = rescond(*resargs)
+            indexValid = evalFuncOnRecarrXXX(
+                rescond, splitted.residual_parameters,
+                recarr, param2arg=condvars.__getitem__ )
             recarr = recarr[indexValid]
 
         if field:
@@ -1244,17 +1239,12 @@ please reindex the table to put the index in a sane state""")
                 coords = self._g_getemptyarray("int64")
 
             # Filter out rows not fulfilling the residual condition.
-            # XXX: Taken from Row.__next__indexed2XXX(), please refactor.
             rescond = splitted.residual_function
             if rescond and ncoords > 0:
-                recarr = self.readCoordinates(coords, flavor='numpy')
-                resargs = []
-                for param in splitted.residual_parameters:
-                    arg = condvars[param]
-                    if hasattr(arg, 'pathname'):  # looks like a column
-                        arg = recarr[arg.pathname]
-                    resargs.append(arg)
-                indexValid = rescond(*resargs)
+                indexValid = evalFuncOnRecarrXXX(
+                    rescond, splitted.residual_parameters,
+                    recarr=self.readCoordinates(coords, flavor='numpy'),
+                    param2arg=condvars.__getitem__ )
                 coords = coords[indexValid]
                 ncoords = len(coords)
         else:
