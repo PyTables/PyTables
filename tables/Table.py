@@ -909,7 +909,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             typemap[colname] = _nxTypeFromColumn[coldtype]
 
         # Get the set of columns with usable indexes.
-        can_use_index = lambda column: column.index and not column.dirty
+        def can_use_index(column):
+            return self.colindexed[column.pathname] and not column.dirty
         indexedcols = frozenset(
             colname for colname in colnames
             if can_use_index(condvars[colname]) )
