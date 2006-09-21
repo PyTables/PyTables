@@ -349,8 +349,9 @@ class BasicTestCase(common.PyTablesTestCase):
         else:
             assert rec['var5'] == float(nrows)
         if isinstance(rec['var9'], ndarray):
-            assert allequal(rec['var9'],array([0.+float(nrows)*1.j,float(nrows)+0.j],
-                                              complex64))
+            assert allequal(rec['var9'],
+                            array([0.+float(nrows)*1.j,float(nrows)+0.j],
+                                  complex64))
         else:
             assert (rec['var9']) == float(nrows)+0.j
         assert len(result) == 20

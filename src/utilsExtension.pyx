@@ -31,13 +31,14 @@ from tables.IsDescription import Description, Col, StringCol, EnumCol, TimeCol
 from tables.utils import checkFileAccess
 
 from definitions cimport import_array, ndarray, \
-     malloc, free, strcpy, strcmp, PyString_AsString, \
+     malloc, free, strcpy, strcmp, strdup, \
+     PyString_AsString, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      size_t, hid_t, herr_t, hsize_t, htri_t, \
      H5T_sign_t, H5T_direction_t,  H5T_class_t, H5D_layout_t
 
 
-# Include conversion tables
+# Include conversion tables & type
 include "convtypetables.pxi"
 
 __version__ = "$Revision$"
@@ -125,8 +126,8 @@ cdef extern from "utils.h":
   object _getTablesVersion()
   #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
-  hid_t  create_native_complex64(char *byteorder)
-  hid_t  create_native_complex128(char *byteorder)
+  hid_t  create_ieee_complex64(char *byteorder)
+  hid_t  create_ieee_complex128(char *byteorder)
   int    is_complex(hid_t type_id)
   herr_t set_order(hid_t type_id, char *byteorder)
   herr_t get_order(hid_t type_id, char *byteorder)
@@ -220,6 +221,7 @@ else:  # Unix systems
     bzip2_version = None
 
 
+# End of initialization code
 #---------------------------------------------------------------------
 
 
@@ -713,12 +715,12 @@ def conv2HDF5Type(object col, char *byteorder):
   elif col.stype in PTSpecialTypes:
     # Special cases
     if col.stype == 'Bool':
-      tid = H5Tcopy(H5T_NATIVE_B8)
+      tid = H5Tcopy(H5T_STD_B8)
       H5Tset_precision(tid, 1)
     elif col.stype == 'Complex32':
-      tid = create_native_complex64(byteorder)
+      tid = create_ieee_complex64(byteorder)
     elif col.stype == 'Complex64':
-      tid = create_native_complex128(byteorder)
+      tid = create_ieee_complex128(byteorder)
     elif col.stype == 'CharType':
       tid = H5Tcopy(H5T_C_S1);
       H5Tset_size(tid, col.itemsize)  #.itemsize is the length of the arrays

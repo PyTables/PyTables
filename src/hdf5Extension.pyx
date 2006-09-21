@@ -684,29 +684,29 @@ cdef class AttributeSet:
       if sign == H5T_SGN_2:
         if type_size == 1:
           ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_NATIVE_SCHAR, rbuf)
+                                    H5T_STD_I8, rbuf)
         if type_size == 2:
           ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_NATIVE_SHORT, rbuf)
+                                    H5T_STD_I16, rbuf)
         if type_size == 4:
           ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_NATIVE_INT, rbuf)
+                                    H5T_STD_I32, rbuf)
         if type_size == 8:
           ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_NATIVE_LLONG, rbuf)
+                                    H5T_STD_I64, rbuf)
       elif sign == H5T_SGN_NONE:
         if type_size == 1:
           ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_NATIVE_UCHAR, rbuf)
+                                    H5T_STD_U8, rbuf)
         if type_size == 2:
           ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_NATIVE_USHORT, rbuf)
+                                    H5T_STD_U16, rbuf)
         if type_size == 4:
           ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_NATIVE_UINT, rbuf)
+                                    H5T_STD_U32, rbuf)
         if type_size == 8:
           ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                    H5T_NATIVE_ULLONG, rbuf)
+                                    H5T_STD_U64, rbuf)
       else:
         warnings.warn("""\
 Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
@@ -716,10 +716,10 @@ Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
     elif class_id == H5T_FLOAT:
       if type_size == 4:
         ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                  H5T_NATIVE_FLOAT, rbuf)
+                                  H5T_IEEE_F32, rbuf)
       if type_size == 8:
         ret = H5ATTRget_attribute(self.dataset_id, attrname,
-                                  H5T_NATIVE_DOUBLE, rbuf)
+                                  H5T_IEEE_F64, rbuf)
 
     elif class_id == H5T_STRING:
       ret = H5ATTRget_attribute_string_CAarray(self.dataset_id, attrname,

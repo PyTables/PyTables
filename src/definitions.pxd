@@ -38,6 +38,10 @@ cdef extern from "Python.h":
   void Py_INCREF(object)
   void Py_DECREF(object)
 
+  # To release global interpreter lock (GIL) for threading
+  void Py_BEGIN_ALLOW_THREADS()
+  void Py_END_ALLOW_THREADS()
+
   # To access tuples
   object PyTuple_New(int)
   int PyTuple_SetItem(object, int, object)
@@ -70,9 +74,6 @@ cdef extern from "Python.h":
   int PyObject_AsReadBuffer(object, void **rbuf, int *len)
   int PyObject_AsWriteBuffer(object, void **rbuf, int *len)
 
-  # To release global interpreter lock (GIL) for threading
-  void Py_BEGIN_ALLOW_THREADS()
-  void Py_END_ALLOW_THREADS()
 
 
 #-----------------------------------------------------------------------------
@@ -238,6 +239,40 @@ cdef extern from "hdf5.h":
     H5T_NATIVE_FLOAT
     H5T_NATIVE_DOUBLE
     H5T_NATIVE_LDOUBLE
+
+  # "Standard" types
+  cdef enum:
+    H5T_STD_I8LE
+    H5T_STD_I16LE
+    H5T_STD_I32LE
+    H5T_STD_I64LE
+    H5T_STD_U8LE
+    H5T_STD_U16LE
+    H5T_STD_U32LE
+    H5T_STD_U64LE
+    H5T_STD_B8LE
+    H5T_STD_B16LE
+    H5T_STD_B32LE
+    H5T_STD_B64LE
+    H5T_IEEE_F32LE
+    H5T_IEEE_F64LE
+    H5T_STD_I8BE
+    H5T_STD_I16BE
+    H5T_STD_I32BE
+    H5T_STD_I64BE
+    H5T_STD_U8BE
+    H5T_STD_U16BE
+    H5T_STD_U32BE
+    H5T_STD_U64BE
+    H5T_STD_B8BE
+    H5T_STD_B16BE
+    H5T_STD_B32BE
+    H5T_STD_B64BE
+    H5T_IEEE_F32BE
+    H5T_IEEE_F64BE
+
+  # Types which are particular to UNIX (for Time types)
+  cdef enum:
     H5T_UNIX_D32BE
     H5T_UNIX_D64BE
 

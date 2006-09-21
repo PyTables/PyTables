@@ -12,32 +12,96 @@
 """Tables for type conversion between PyTables, NumPy & HDF5
 """
 
+import sys
+
+# Definitions that ara platform-independent
 from definitions cimport \
-  NPY_BOOL, NPY_STRING, \
-  NPY_INT8, NPY_INT16, NPY_INT32, NPY_INT64, \
-  NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, \
-  NPY_FLOAT32, NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128, \
-  H5T_C_S1, H5T_NATIVE_B8, \
-  H5T_NATIVE_SCHAR, H5T_NATIVE_SHORT, H5T_NATIVE_INT, H5T_NATIVE_LLONG,\
-  H5T_NATIVE_UCHAR, H5T_NATIVE_USHORT, H5T_NATIVE_UINT, H5T_NATIVE_ULLONG, \
-  H5T_NATIVE_FLOAT, H5T_NATIVE_DOUBLE, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
-  H5T_NO_CLASS, H5T_INTEGER, H5T_FLOAT, H5T_TIME, H5T_STRING, H5T_BITFIELD, \
-  H5T_OPAQUE, H5T_COMPOUND, H5T_REFERENCE, H5T_ENUM, H5T_VLEN, H5T_ARRAY
+     NPY_BOOL, NPY_STRING, \
+     NPY_INT8, NPY_INT16, NPY_INT32, NPY_INT64, \
+     NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, \
+     NPY_FLOAT32, NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128, \
+     H5T_C_S1, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
+     H5T_NO_CLASS, H5T_INTEGER, H5T_FLOAT, H5T_TIME, H5T_STRING, \
+     H5T_BITFIELD, H5T_OPAQUE, H5T_COMPOUND, H5T_REFERENCE, \
+     H5T_ENUM, H5T_VLEN, H5T_ARRAY
+
+# Platform-dependent types
+if sys.byteorder == "little":
+
+  from definitions cimport \
+       H5T_STD_B8LE, \
+       H5T_STD_I8LE, H5T_STD_I16LE, H5T_STD_I32LE, H5T_STD_I64LE, \
+       H5T_STD_U8LE, H5T_STD_U16LE, H5T_STD_U32LE, H5T_STD_U64LE, \
+       H5T_IEEE_F32LE, H5T_IEEE_F64LE
+
+  # Standard types, independent of the byteorder
+  H5T_STD_B8   = H5T_STD_B8LE
+  H5T_STD_I8   = H5T_STD_I8LE
+  H5T_STD_I16  = H5T_STD_I16LE
+  H5T_STD_I32  = H5T_STD_I32LE
+  H5T_STD_I64  = H5T_STD_I64LE
+  H5T_STD_U8   = H5T_STD_U8LE
+  H5T_STD_U16  = H5T_STD_U16LE
+  H5T_STD_U32  = H5T_STD_U32LE
+  H5T_STD_U64  = H5T_STD_U64LE
+  H5T_IEEE_F32 = H5T_IEEE_F32LE
+  H5T_IEEE_F64 = H5T_IEEE_F64LE
+
+else:  # sys.byteorder == "big"
+
+  from definitions cimport \
+       H5T_STD_B8LE, \
+       H5T_STD_I8BE, H5T_STD_I16BE, H5T_STD_I32BE, H5T_STD_I64BE, \
+       H5T_STD_U8BE, H5T_STD_U16BE, H5T_STD_U32BE, H5T_STD_U64BE, \
+       H5T_IEEE_F32BE, H5T_IEEE_F64BE
+
+  # Standard types, independent of the byteorder
+  H5T_STD_B8   = H5T_STD_B8BE
+  H5T_STD_I8   = H5T_STD_I8BE
+  H5T_STD_I16  = H5T_STD_I16BE
+  H5T_STD_I32  = H5T_STD_I32BE
+  H5T_STD_I64  = H5T_STD_I64BE
+  H5T_STD_U8   = H5T_STD_U8BE
+  H5T_STD_U16  = H5T_STD_U16BE
+  H5T_STD_U32  = H5T_STD_U32BE
+  H5T_STD_U64  = H5T_STD_U64BE
+  H5T_IEEE_F32 = H5T_IEEE_F32BE
+  H5T_IEEE_F64 = H5T_IEEE_F64BE
+
+
+#----------------------------------------------------------------------------
 
 
 # Conversion from NumPy codes to native HDF5 types (for attributes)
 NPCodeToHDF5 = {
-  NPY_INT8      : H5T_NATIVE_SCHAR,
-  NPY_INT16     : H5T_NATIVE_SHORT,
-  NPY_INT32     : H5T_NATIVE_INT,
-  NPY_INT64     : H5T_NATIVE_LLONG,
-  NPY_UINT8     : H5T_NATIVE_UCHAR,
-  NPY_UINT16    : H5T_NATIVE_USHORT,
-  NPY_UINT32    : H5T_NATIVE_UINT,
-  NPY_UINT64    : H5T_NATIVE_ULLONG,
-  NPY_FLOAT32   : H5T_NATIVE_FLOAT,
-  NPY_FLOAT64   : H5T_NATIVE_DOUBLE
+  NPY_INT8      : H5T_STD_I8,
+  NPY_INT16     : H5T_STD_I16,
+  NPY_INT32     : H5T_STD_I32,
+  NPY_INT64     : H5T_STD_I64,
+  NPY_UINT8     : H5T_STD_U8,
+  NPY_UINT16    : H5T_STD_U16,
+  NPY_UINT32    : H5T_STD_U32,
+  NPY_UINT64    : H5T_STD_U64,
+  NPY_FLOAT32   : H5T_IEEE_F32,
+  NPY_FLOAT64   : H5T_IEEE_F64,
   }
+
+
+# Conversion from PyTables string types to HDF5 native types
+# List only types that are susceptible of changing byteorder
+PTTypeToHDF5 = {
+  'Int8'   : H5T_STD_I8,   'UInt8'  : H5T_STD_U8,
+  'Int16'  : H5T_STD_I16,  'UInt16' : H5T_STD_U16,
+  'Int32'  : H5T_STD_I32,  'UInt32' : H5T_STD_U32,
+  'Int64'  : H5T_STD_I64,  'UInt64' : H5T_STD_U64,
+  'Float32': H5T_IEEE_F32, 'Float64': H5T_IEEE_F64,
+  # time datatypes cannot be distinguished if they are LE and BE
+  # so, we (arbitrarily) always choose BE byteorder
+  'Time32' : H5T_UNIX_D32BE, 'Time64' : H5T_UNIX_D64BE,
+  }
+
+# Special cases whose byteorder cannot be directly changed
+PTSpecialTypes = ['Bool', 'Complex32', 'Complex64', 'CharType', 'Enum']
 
 
 # Names of HDF5 classes
@@ -97,16 +161,9 @@ NPCodeToPTType = {
   ord('e'):      'Enum',
   }
 
-# Conversion from PyTables string types to HDF5 native types
-# List only types that are susceptible of changing byteorder
-PTTypeToHDF5 = {
-  'Int8':    H5T_NATIVE_SCHAR,  'UInt8':   H5T_NATIVE_UCHAR,
-  'Int16':   H5T_NATIVE_SHORT,  'UInt16':  H5T_NATIVE_USHORT,
-  'Int32':   H5T_NATIVE_INT,    'UInt32':  H5T_NATIVE_UINT,
-  'Int64':   H5T_NATIVE_LLONG,  'UInt64':  H5T_NATIVE_ULLONG,
-  'Float32': H5T_NATIVE_FLOAT,  'Float64': H5T_NATIVE_DOUBLE,
-  'Time32':  H5T_UNIX_D32BE,    'Time64':  H5T_UNIX_D64BE }
-
-# Special cases that cannot be directly mapped:
-PTSpecialTypes = ['Bool', 'Complex32', 'Complex64', 'CharType', 'Enum']
-
+## Local Variables:
+## mode: python
+## py-indent-offset: 2
+## tab-width: 2
+## fill-column: 78
+## End:

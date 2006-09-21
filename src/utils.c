@@ -566,32 +566,6 @@ hsize_t getIndicesExt(PyObject *s, hsize_t length,
    Adapted to support Tables by F. Altet September 2004.
 */
 
-/* Return the byteorder of a complex datatype.
-   It is obtained from the real part,
-   which is the first member. */
-static H5T_order_t get_complex_order(hid_t type_id) {
-  hid_t class_id, base_type_id;
-  hid_t real_type = 0;
-  H5T_order_t result = 0;
-
-  class_id = H5Tget_class(type_id);
-  if (class_id == H5T_COMPOUND) {
-    real_type = H5Tget_member_type(type_id, 0);
-  }
-  else if (class_id == H5T_ARRAY) {
-    /* Get the array base component */
-    base_type_id = H5Tget_super(type_id);
-    /* Get the type of real component. */
-    real_type = H5Tget_member_type(base_type_id, 0);
-    H5Tclose(base_type_id);
-  }
-  if ((class_id == H5T_COMPOUND) || (class_id == H5T_ARRAY)) {
-    result = H5Tget_order(real_type);
-    H5Tclose(real_type);
-  }
-  return result;
-}
-
 /* Test whether the datatype is of class complex
    return 1 if it corresponds to our complex class, otherwise 0 */
 /* This may be ultimately confused with nested types with 2 components
@@ -632,6 +606,33 @@ int is_complex(hid_t type_id) {
   }
   return result;
 }
+
+
+/* Return the byteorder of a complex datatype.
+   It is obtained from the real part, which is the first member. */
+static H5T_order_t get_complex_order(hid_t type_id) {
+  hid_t class_id, base_type_id;
+  hid_t real_type = 0;
+  H5T_order_t result = 0;
+
+  class_id = H5Tget_class(type_id);
+  if (class_id == H5T_COMPOUND) {
+    real_type = H5Tget_member_type(type_id, 0);
+  }
+  else if (class_id == H5T_ARRAY) {
+    /* Get the array base component */
+    base_type_id = H5Tget_super(type_id);
+    /* Get the type of real component. */
+    real_type = H5Tget_member_type(base_type_id, 0);
+    H5Tclose(base_type_id);
+  }
+  if ((class_id == H5T_COMPOUND) || (class_id == H5T_ARRAY)) {
+    result = H5Tget_order(real_type);
+    H5Tclose(real_type);
+  }
+  return result;
+}
+
 
 /* Return the byteorder of a HDF5 data type */
 /* This is effectively an extension of H5Tget_order
@@ -692,33 +693,38 @@ herr_t set_order(hid_t type_id, const char *byteorder) {
 
 /* Create a HDF5 compound datatype that represents complex numbers
    defined by numpy as cfloat.
-   We must set the byteorder before we create the type */
-hid_t create_native_complex64(const char *byteorder) {
+   Note: We must set the byteorder before we create the type. */
+hid_t create_ieee_complex64(const char *byteorder) {
   hid_t float_id, complex_id;
+
+  /* XXX I can't manage to avoid the use of native types here */
+/*   if (strcmp(byteorder, "little") == 0) */
+/*     float_id = H5Tcopy(H5T_IEEE_F32LE); */
+/*   else */
+/*     float_id = H5Tcopy(H5T_IEEE_F32BE); */
   float_id = H5Tcopy(H5T_NATIVE_FLOAT);
-  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(npy_cfloat));
+  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(npy_complex64));
   set_order(float_id, byteorder);
-  H5Tinsert (complex_id, "r", HOFFSET(npy_cfloat, real),
-	     float_id);
-  H5Tinsert (complex_id, "i", HOFFSET(npy_cfloat, imag),
-	     float_id);
+  H5Tinsert (complex_id, "r", HOFFSET(npy_complex64, real), float_id);
+  H5Tinsert (complex_id, "i", HOFFSET(npy_complex64, imag), float_id);
   H5Tclose(float_id);
   return complex_id;
 }
 
-/* Create a HDF5 compound datatype that represents complex numbers
-   defined by numpy as cdouble.
-   We must set the byteorder before we create the type */
-hid_t create_native_complex128(const char *byteorder) {
+/* Counter part for double precision complexes */
+hid_t create_ieee_complex128(const char *byteorder) {
   hid_t float_id, complex_id;
 
+  /* XXX I can't manage to avoid the use of native types here */
+/*   if (strcmp(byteorder, "little") == 0) */
+/*     float_id = H5Tcopy(H5T_IEEE_F64LE); */
+/*   else */
+/*     float_id = H5Tcopy(H5T_IEEE_F64BE); */
   float_id = H5Tcopy(H5T_NATIVE_DOUBLE);
-  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(npy_cdouble));
+  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(npy_complex128));
   set_order(float_id, byteorder);
-  H5Tinsert (complex_id, "r", HOFFSET(npy_cdouble, real),
-	     float_id);
-  H5Tinsert (complex_id, "i", HOFFSET(npy_cdouble, imag),
-	     float_id);
+  H5Tinsert (complex_id, "r", HOFFSET(npy_complex128, real), float_id);
+  H5Tinsert (complex_id, "i", HOFFSET(npy_complex128, imag), float_id);
   H5Tclose(float_id);
   return complex_id;
 }

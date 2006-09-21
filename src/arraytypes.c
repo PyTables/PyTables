@@ -1,22 +1,13 @@
 #include "arraytypes.h"
 #include "utils.h"
 
-/* Get the correct HDF5 type for a format code.  We can't manage to do
- * the mapping with a table because the HDF5 types are not constant
- * values and are defined by executing a function.  So we do that in a
- * switch case. */
-
+/* Get the correct HDF5 type for a format code. */
 hid_t convArrayType(int fmt, size_t size, char *byteorder)
 {
    hid_t type_id;
 
    switch(fmt) {
     case NPY_STRING:
-      /*      return H5T_NATIVE_CHAR; */
-      /* An H5T_NATIVE_CHAR is interpreted as a signed byte by HDF5
-       * so, we have to create a string type of length 1 so as to
-       * represent a char.
-       */
       type_id = H5Tcopy(H5T_C_S1);
       H5Tset_size(type_id, size);
 
@@ -34,8 +25,10 @@ hid_t convArrayType(int fmt, size_t size, char *byteorder)
 	 both return a type little endian (at least on Intel platforms).
 	 Anyway, for a 8-bit type that should not matter.
 	 */
-      printf("Hello!\n");
-      type_id = H5Tcopy(H5T_NATIVE_B8);
+      if (strcmp(byteorder, "little") == 0)
+	type_id = H5Tcopy(H5T_STD_B8LE);
+      else
+	type_id = H5Tcopy(H5T_STD_B8BE);
       H5Tset_precision(type_id, 1);
       /* These calls does not reduce the storage needs,
 	 so it would be better to comment them? */
@@ -44,40 +37,70 @@ hid_t convArrayType(int fmt, size_t size, char *byteorder)
 /*       H5Tset_pad(type_id, H5T_PAD_ZERO, H5T_PAD_ZERO); */
       break;
     case NPY_INT8:
-      type_id = H5Tcopy(H5T_NATIVE_SCHAR);
+      if (strcmp(byteorder, "little") == 0)
+	type_id = H5Tcopy(H5T_STD_I8LE);
+      else
+	type_id = H5Tcopy(H5T_STD_I8BE);
       break;
     case NPY_UINT8:
-      type_id = H5Tcopy(H5T_NATIVE_UCHAR);
+      if (strcmp(byteorder, "little") == 0)
+	type_id = H5Tcopy(H5T_STD_U8LE);
+      else
+	type_id = H5Tcopy(H5T_STD_U8BE);
       break;
     case NPY_INT16:
-      type_id = H5Tcopy(H5T_NATIVE_SHORT);
+      if (strcmp(byteorder, "little") == 0)
+	type_id = H5Tcopy(H5T_STD_I16LE);
+      else
+	type_id = H5Tcopy(H5T_STD_I16BE);
       break;
     case NPY_UINT16:
-      type_id = H5Tcopy(H5T_NATIVE_USHORT);
+      if (strcmp(byteorder, "little") == 0)
+	type_id = H5Tcopy(H5T_STD_U16LE);
+      else
+	type_id = H5Tcopy(H5T_STD_U16BE);
       break;
     case NPY_INT32:
-      type_id = H5Tcopy(H5T_NATIVE_INT);
+      if (strcmp(byteorder, "little") == 0)
+	type_id = H5Tcopy(H5T_STD_I32LE);
+      else
+	type_id = H5Tcopy(H5T_STD_I32BE);
       break;
     case NPY_UINT32:
-      type_id = H5Tcopy(H5T_NATIVE_UINT);
+      if (strcmp(byteorder, "little") == 0)
+	type_id = H5Tcopy(H5T_STD_U32LE);
+      else
+	type_id = H5Tcopy(H5T_STD_U32BE);
       break;
     case NPY_INT64:
-      type_id = H5Tcopy(H5T_NATIVE_LLONG);
+      if (strcmp(byteorder, "little") == 0)
+	type_id = H5Tcopy(H5T_STD_I64LE);
+      else
+	type_id = H5Tcopy(H5T_STD_I64BE);
       break;
     case NPY_UINT64:
-      type_id = H5Tcopy(H5T_NATIVE_ULLONG);
+      if (strcmp(byteorder, "little") == 0)
+	type_id = H5Tcopy(H5T_STD_U64LE);
+      else
+	type_id = H5Tcopy(H5T_STD_U64BE);
       break;
     case NPY_FLOAT32:
-      type_id = H5Tcopy(H5T_NATIVE_FLOAT);
+      if (strcmp(byteorder, "little") == 0)
+	type_id = H5Tcopy(H5T_IEEE_F32LE);
+      else
+	type_id = H5Tcopy(H5T_IEEE_F32BE);
       break;
     case NPY_FLOAT64:
-      type_id = H5Tcopy(H5T_NATIVE_DOUBLE);
+      if (strcmp(byteorder, "little") == 0)
+	type_id = H5Tcopy(H5T_IEEE_F64LE);
+      else
+	type_id = H5Tcopy(H5T_IEEE_F64BE);
       break;
     case NPY_COMPLEX64:
-      type_id = create_native_complex64(byteorder);
+      type_id = create_ieee_complex64(byteorder);
       break;
     case NPY_COMPLEX128:
-      type_id = create_native_complex128(byteorder);
+      type_id = create_ieee_complex128(byteorder);
       break;
     default:
 #ifdef DEBUG

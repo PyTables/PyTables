@@ -35,7 +35,16 @@ from tables.utilsExtension import createNestedType, \
 
 # numpy functions & objects
 from definitions cimport import_array, ndarray, \
-     PyArray_GETITEM, PyArray_SETITEM
+     malloc, free, strcpy, strcmp, strdup, \
+     PyString_AsString, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
+     PyArray_GETITEM, PyArray_SETITEM, \
+     H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
+     H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, \
+     size_t, hid_t, herr_t, hsize_t, htri_t, \
+     H5F_scope_t, H5T_sign_t, H5T_direction_t,  H5T_class_t, H5D_layout_t
+
+# Include HDF5 types
+include "convtypetables.pxi"
 
 from lrucacheExtension cimport NumCache
 
@@ -45,78 +54,8 @@ __version__ = "$Revision$"
 
 #-----------------------------------------------------------------
 
-# Standard C functions.
-cdef extern from "stdlib.h":
-  ctypedef long size_t
-  void *malloc(size_t size)
-  void free(void *ptr)
-
-cdef extern from "string.h":
-  char *strcpy(char *dest, char *src)
-  char *strncpy(char *dest, char *src, size_t n)
-  int strcmp(char *s1, char *s2)
-  char *strdup(char *s)
-  void *memcpy(void *dest, void *src, size_t n)
-
-# Python API functions.
-cdef extern from "Python.h":
-  char *PyString_AsString(object string)
-  # To release global interpreter lock (GIL) for threading
-  void Py_BEGIN_ALLOW_THREADS()
-  void Py_END_ALLOW_THREADS()
-
-# HDF5 API.
+# HDF5 API
 cdef extern from "hdf5.h":
-  # types
-  ctypedef int hid_t
-  ctypedef int herr_t
-  ctypedef long long hsize_t
-
-  cdef enum H5T_class_t:
-    H5T_NO_CLASS         = -1,  #error                                      */
-    H5T_INTEGER          = 0,   #integer types                              */
-    H5T_FLOAT            = 1,   #floating-point types                       */
-    H5T_TIME             = 2,   #date and time types                        */
-    H5T_STRING           = 3,   #character string types                     */
-    H5T_BITFIELD         = 4,   #bit field types                            */
-    H5T_OPAQUE           = 5,   #opaque types                               */
-    H5T_COMPOUND         = 6,   #compound types                             */
-    H5T_REFERENCE        = 7,   #reference types                            */
-    H5T_ENUM             = 8,   #enumeration types                          */
-    H5T_VLEN             = 9,   #Variable-Length types                      */
-    H5T_ARRAY            = 10,  #Array types                                */
-    H5T_NCLASSES                #this must be last                          */
-
-  # Native types
-  cdef enum:
-    H5T_NATIVE_CHAR
-    H5T_NATIVE_SCHAR
-    H5T_NATIVE_UCHAR
-    H5T_NATIVE_SHORT
-    H5T_NATIVE_USHORT
-    H5T_NATIVE_INT
-    H5T_NATIVE_UINT
-    H5T_NATIVE_LONG
-    H5T_NATIVE_ULONG
-    H5T_NATIVE_LLONG
-    H5T_NATIVE_ULLONG
-    H5T_NATIVE_FLOAT
-    H5T_NATIVE_DOUBLE
-    H5T_NATIVE_LDOUBLE
-
-  # HDF5 layouts
-  ctypedef enum H5D_layout_t:
-    H5D_LAYOUT_ERROR    = -1,
-    H5D_COMPACT         = 0,    #raw data is very small                     */
-    H5D_CONTIGUOUS      = 1,    #the default                                */
-    H5D_CHUNKED         = 2,    #slow and fancy                             */
-    H5D_NLAYOUTS        = 3     #this one must be last!                     */
-
-  # The difference between a single file and a set of mounted files
-  cdef enum H5F_scope_t:
-    H5F_SCOPE_LOCAL     = 0,    # specified file handle only
-    H5F_SCOPE_GLOBAL    = 1,    # entire virtual file
-    H5F_SCOPE_DOWN      = 2     # for internal use only
 
   # For deleting a table
   herr_t H5Gunlink (hid_t file_id, char *name)
@@ -124,7 +63,7 @@ cdef extern from "hdf5.h":
   # For flushing
   herr_t H5Fflush(hid_t object_id, H5F_scope_t scope)
 
-  # Functions for dealing with datasets
+  # For dealing with datasets
   hid_t  H5Dopen(hid_t file_id, char *name)
   herr_t H5Dclose(hid_t dset_id)
   herr_t H5Dread(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
@@ -202,6 +141,8 @@ cdef extern from "H5ATTR.h":
 import_array()
 
 #-------------------------------------------------------------
+
+
 
 # XXX This should inherit from `tables.hdf5Extension.Leaf`,
 # XXX but I don't know the Pyrex machinery to make it work.
@@ -295,7 +236,7 @@ cdef class Table:  # XXX extends Leaf
     # Attach the NROWS attribute
     nrecords = self.nrows
     ret = H5ATTR_set_attribute_numerical(self.dataset_id, "NROWS",
-                                         H5T_NATIVE_LLONG, &nrecords )
+                                         H5T_STD_I64, &nrecords )
     if ret < 0:
       raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                          ("NROWS", self.name))
@@ -431,7 +372,7 @@ cdef class Table:  # XXX extends Leaf
 
     # Update the NROWS attribute
     if (H5ATTR_set_attribute_numerical(self.dataset_id, "NROWS",
-                                       H5T_NATIVE_LLONG,
+                                       H5T_STD_I64,
                                        &self.totalrecords)<0):
       raise HDF5ExtError("Problems setting the NROWS attribute.")
 
@@ -588,7 +529,7 @@ cdef class Table:  # XXX extends Leaf
     self.totalrecords = self.totalrecords - nrecords
     # Attach the NROWS attribute
     H5ATTR_set_attribute_numerical(self.dataset_id, "NROWS",
-                                   H5T_NATIVE_LLONG, &self.totalrecords)
+                                   H5T_STD_I64, &self.totalrecords)
     # Set the caches to dirty
     self._dirtycache = True
     # Return the number of records removed

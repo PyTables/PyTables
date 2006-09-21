@@ -84,7 +84,7 @@ size_t get_complex_precision(hid_t type_id);
 
 herr_t get_order(hid_t type_id, char *byteorder);
 
-hid_t create_native_complex64(const char *byteorder);
+hid_t create_ieee_complex64(const char *byteorder);
 
-hid_t create_native_complex128(const char *byteorder);
+hid_t create_ieee_complex128(const char *byteorder);
 
