@@ -54,6 +54,7 @@ from tables.nriterators import flattenNames
 
 import tables.TableExtension as TableExtension
 from tables.conditions import split_condition, call_on_recarr  ##XXX
+from tables.numexpr.expressions import bestConstantType  ##XXX
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNAToNumeric, convertNAToNumPy, fromnumpy, tonumpy, \
      fromnumarray, is_idx
@@ -96,6 +97,24 @@ byteorders = {'<': 'little',
               '=': sys.byteorder,
               '|': 'non-relevant',
               }
+
+# Maps column types to the types used by Numexpr.
+_nxTypeFromColumn = {
+    'Bool': bool,
+    'Int8': int,
+    'Int16': int,
+    'Int32': int,
+    'Int64': long,
+    'UInt8': int,
+    'UInt16': int,
+    'UInt32': long,
+    'UInt64': long,
+    'Float32': float,
+    'Float64': float,
+    'Complex32': complex,
+    'Complex64': complex,
+    'CharType': str, }
+
 
 def _getEncodedTableName(tablename):
     return _indexName % tablename
@@ -827,6 +846,82 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 % (self._v_pathname, colname))
         return colobj
 
+
+    def _getConditionKeyXXX(self, condition, condvars):
+        """
+        Get the condition cache key for `condition` with `condvars`.
+
+        Currently, the key is a tuple of `condition`, column variables
+        names, normal variables names, column paths and variable paths
+        (all tuples).
+        """
+
+        tblfile = self._v_file
+        tblpath = self._v_pathname
+
+        # Variable names for column and normal variables.
+        colnames, varnames = [], []
+        # Column paths and types for each of the previous variable.
+        colpaths, vartypes = [], []
+        for (var, val) in condvars.items():
+            if hasattr(val, 'pathname'):  # looks like a column
+                colnames.append(var)
+                colpaths.append(val.pathname)
+                if val._tableFile is not tblfile or val._tablePath != tblpath:
+                    raise ValueError("variable ``%s`` refers to a column "
+                                     "which is not part of table ``%s``"
+                                     % (var, tblpath))
+            else:
+                varnames.append(var)
+                vartypes.append(bestConstantType(val))  # expensive
+        colnames, varnames = tuple(colnames), tuple(varnames)
+        colpaths, vartypes = tuple(colpaths), tuple(vartypes)
+        condkey = (condition, colnames, varnames, colpaths, vartypes)
+        return condkey
+
+    def _splitConditionXXX(self, condition, condvars):
+        """
+        Split a condition into indexable and non-indexable parts.
+
+        This method returns an instance of ``SplittedCondition``.  See
+        the ``split_condition()`` function in the ``conditions`` module
+        for more information.  This method makes use of the condition
+        cache when possible.
+        """
+
+        # Look up the condition in the condition cache.
+        condcache = self._conditionCache
+        condkey = self._getConditionKeyXXX(condition, condvars)
+        splitted = condcache.get(condkey)
+        if splitted:
+            return splitted  # bingo!
+
+        # Bad luck, the condition must be parsed and splitted.
+        # Fortunately, the key provides some valuable information. ;)
+        (condition, colnames, varnames, colpaths, vartypes) = condkey
+
+        # Extract types from *all* the given variables.
+        typemap = dict(zip(varnames, vartypes))  # start with normal variables
+        for colname in colnames:  # then add types of columns
+            # Converting to a string may not be necessary when the
+            # transition from numarray to NumPy is complete.
+            coldtype = str(condvars[colname].type)
+            typemap[colname] = _nxTypeFromColumn[coldtype]
+
+        # Get the set of columns with usable indexes.
+        can_use_index = lambda column: column.index and not column.dirty
+        indexedcols = frozenset(
+            colname for colname in colnames
+            if can_use_index(condvars[colname]) )
+
+        # Now let ``split_condition()`` do the Numexpr-related job.
+        splitted = split_condition(condition, typemap, indexedcols)
+
+        # Store the splitted condition in the cache and return it.
+        condcache[condkey] = splitted
+        return splitted
+
+
     def where2XXX( self, condition, condvars={},
                    start=None, stop=None, step=None ):
         """
@@ -859,7 +954,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         # Split the condition into indexable and residual parts.
-        splitted = split_condition(condition, condvars, self)
+        splitted = self._splitConditionXXX(condition, condvars)
         assert splitted.index_variable or splitted.residual_function, (
             "no usable indexed column and no residual condition "
             "after splitting search condition" )
@@ -1050,7 +1145,7 @@ This method is intended only for indexed columns, but this column has not a mini
         if self._dirtycache:
             self._restorecache()
 
-        splitted = split_condition(condition, condvars, self)
+        splitted = self._splitConditionXXX(condition, condvars)
         idxvar = splitted.index_variable
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
@@ -1213,7 +1308,7 @@ please reindex the table to put the index in a sane state""")
 "%s" flavor is not allowed; please use some of %s.""" % \
                              (flavor, supportedFlavors))
 
-        splitted = split_condition(condition, condvars, self)
+        splitted = self._splitConditionXXX(condition, condvars)
 
         # Take advantage of indexation, if present
         idxvar = splitted.index_variable

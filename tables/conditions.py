@@ -20,7 +20,6 @@ Functions:
     Evaluate a function over a record array.
 """
 
-from tables.numexpr.expressions import bestConstantType
 from tables.numexpr.compiler import stringToExpression, numexpr
 
 
@@ -141,22 +140,6 @@ def _split_expression(exprnode, indexedcols):
     # Can not use indexed column.
     return not_indexable
 
-_nxTypeFromColumn = {
-    'Bool': bool,
-    'Int8': int,
-    'Int16': int,
-    'Int32': int,
-    'Int64': long,
-    'UInt8': int,
-    'UInt16': int,
-    'UInt32': long,
-    'UInt64': long,
-    'Float32': float,
-    'Float64': float,
-    'Complex32': complex,
-    'Complex64': complex,
-    'CharType': str, }
-
 def _get_variable_names(expression):
     """Return the list of variable names in the Numexpr `expression`."""
     names = []
@@ -169,103 +152,57 @@ def _get_variable_names(expression):
             stack.extend(node.children)
     return names
 
-def split_condition(condition, condvars, table):
+def split_condition(condition, typemap, indexedcols):
     """
     Split a condition into indexable and non-indexable parts.
 
     Looks for variable-constant comparisons in the condition string
-    `condition` involving indexed columns in `condvars`.  The
-    *topmost* comparison of comparison pair is splitted apart from the
-    rest of the condition (the residual condition) and the resulting
-    `SplittedCondition` is returned.  Thus (for indexed column *c1*):
+    `condition` involving the indexed columns whose variable names
+    appear in `indexedcols`.  The *topmost* comparison or comparison
+    pair is splitted apart from the rest of the condition (the
+    *residual condition*) and the resulting `SplittedCondition` is
+    returned.  Thus (for indexed column *c1*):
 
     * 'c1>0' -> ('c1', ['gt'], [0], None, [])
-    * '(0<c1) & (c1<=1)' -> ('c1', ['gt', 'le'], [0, 1], None, [])
-    * '(0<c1) & (c1<=1) & (c2>2)' -> ('c1',['gt','le'],[0,1],{c2>2},['c2'])
+    * '(0<c1)&(c1<=1)' -> ('c1', ['gt', 'le'], [0, 1], None, [])
+    * '(0<c1)&(c1<=1)&(c2>2)' -> ('c1',['gt','le'],[0,1],{c2>2},['c2'])
 
     * 'c2>2' -> (None, [], [],'(c2>2)')
-    * '(c2>2) & (c1<=1)' -> ('c1', ['le'], [1], {c2>2}, ['c2'])
-    * '(0<c1) & (c1<=1) & (c2>2)' -> ('c1',['gt','le'],[0,1],{c2>2},['c2'])
+    * '(c2>2)&(c1<=1)' -> ('c1', ['le'], [1], {c2>2}, ['c2'])
+    * '(0<c1)&(c1<=1)&(c2>2)' -> ('c1',['gt','le'],[0,1],{c2>2},['c2'])
 
-    * '(c2>2) & (0<c1) & (c1<=1)' -> ('c1',['le'],[1],{(c2>2)&(c1>0)},['c2','c1'])
-    * '(c2>2) & ((0<c1) & (c1<=1))' -> ('c1',['gt','le'],[0,1],{c2>2},['c2'])
+    * '(c2>2)&(0<c1)&(c1<=1)' -> ('c1',['le'],[1],{(c2>2)&(c1>0)},['c2','c1'])
+    * '(c2>2)&((0<c1)&(c1<=1))' -> ('c1',['gt','le'],[0,1],{c2>2},['c2'])
 
-    * '(0<c1) & (c2>2) & (c1<=1)' -> ('c1',['le'],[1],{(c1>0)&(c2>2)},['c1','c2'])
-    * '(0<c1) & ((c2>2) & (c1<=1))' -> ('c1',['gt'],[0],{(c2>2)&(c1<=1)},['c2','c1'])
+    * '(0<c1)&(c2>2)&(c1<=1)' -> ('c1',['le'],[1],{(c1>0)&(c2>2)},['c1','c2'])
+    * '(0<c1)&((c2>2)&(c1<=1))'->('c1',['gt'],[0],{(c2>2)&(c1<=1)},['c2','c1'])
 
     Expressions such as '0 < c1 <= 1' do not work as expected.  The
-    ``residual_condition`` is a Numexpr function object, and the list
-    ``residual_params`` indicates the order of its parameters.  The
-    `table` argument refers to a table where a condition cache can be
-    looked up and updated.
+    Numexpr types of *all* variables must be given in the `typemap`
+    mapping.  The ``residual_condition`` of the ``SplittedCondition``
+    instance is a Numexpr function object, and the ``residual_params``
+    list indicates the order of its parameters.
     """
-    tblfile = table._v_file
-    tblpath = table._v_pathname
-
-    # Build the key for the condition cache.
-    colnames, varnames = [], []
-    colpaths, vartypes = [], []
-    for (var, val) in condvars.items():
-        if hasattr(val, 'pathname'):  # looks like a column
-            colnames.append(var)
-            colpaths.append(val.pathname)
-            if val._tableFile is not tblfile or val._tablePath != tblpath:
-                raise ValueError("variable ``%s`` refers to a column "
-                                 "which is not part of table ``%s``"
-                                 % (var, tblpath))
-        else:
-            varnames.append(var)
-            vartypes.append(bestConstantType(val))  # expensive
-    colnames, varnames = tuple(colnames), tuple(varnames)
-    colpaths, vartypes = tuple(colpaths), tuple(vartypes)
-    condkey = (condition, colnames, varnames, colpaths, vartypes)
-
-    # Look up the condition in the condition cache.
-    condcache = table._conditionCache
-    splitted = condcache.get(condkey)
-    if splitted:
-        return splitted  # bingo!
-
-    # Bad luck, the condition must be parsed and splitted.
-
-    # Extract types from *all* the given variables.
-    typemap = dict(zip(varnames, vartypes))  # start with normal variables
-    for colname in colnames:  # then add types of columns
-        # Converting to a string may not be necessary when the
-        # transition from numarray to NumPy is complete.
-        coldtype = str(condvars[colname].type)
-        typemap[colname] = _nxTypeFromColumn[coldtype]
-
-    # Get the set of columns with usable indexes.
-    can_use_index = lambda column: column.index and not column.dirty
-    indexedcols = frozenset(
-        colname for colname in colnames
-        if can_use_index(condvars[colname]) )
 
     # Get the expression tree and split the indexable part out.
     expr = stringToExpression(condition, typemap, {})
     idxvar, idxops, idxlims, resexpr = _split_expression(expr, indexedcols)
 
     # Get the variable names used in the residual condition,
-    # and check that they are defined in ``condvars``
-    # (``idxvar`` needs not to be checked because it clearly is
-    # in ``condvars`` and points to an existing column).
+    # and check that they are defined in `typemap`.
     # At the same time, build the signature of the residual condition.
     resfunc, resparams = None, []
     if resexpr:
         resvarnames, ressignature = _get_variable_names(resexpr), []
         for var in resvarnames:
-            if var not in condvars:
+            if var not in typemap:
                 raise NameError("name ``%s`` is not defined" % var)
             ressignature.append((var, typemap[var]))
         resfunc = numexpr(resexpr, ressignature)
         resparams = resvarnames
 
-    splitted = SplittedCondition(idxvar, idxops, idxlims, resfunc, resparams)
-
-    # Store the splitted condition in the cache and return it.
-    condcache[condkey] = splitted
-    return splitted
+    # This is more comfortable to handle about than a tuple.
+    return SplittedCondition(idxvar, idxops, idxlims, resfunc, resparams)
 
 def call_on_recarr(func, params, recarr, param2arg=None):
     """
