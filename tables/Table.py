@@ -847,6 +847,27 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return colobj
 
 
+    def _extendedWithDefVarsXXX(self, condvars):
+        """
+        Extend the `condvars` mapping with default variables.
+
+        A new dictionary based on `condvars` is returned, extended with
+        a new variable for each top-level, non-nested column with an
+        identifier-like name in the table (if there is not already a
+        variable with that name in `condvars`).
+        """
+        # Add the default variables *below* the user-provided ones.
+        #
+        # The ``cols`` accessor could be avoided by using a mapping from
+        # column paths to columns.  I think this would be useful in any
+        # case for the user.  -- Ivan
+        defvars = dict( (colname, getattr(self.cols, colname))
+                        for colname in self.colnames
+                        if type(colname) is str )
+        uservars, condvars = condvars, defvars
+        condvars.update(uservars)
+        return condvars
+
     def _getConditionKeyXXX(self, condition, condvars):
         """
         Get the condition cache key for `condition` with `condvars`.
@@ -881,12 +902,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
     def _splitConditionXXX(self, condition, condvars):
         """
-        Split a condition into indexable and non-indexable parts.
+        Split the `condition` into indexable and non-indexable parts.
 
         This method returns an instance of ``SplittedCondition``.  See
         the ``split_condition()`` function in the ``conditions`` module
-        for more information.  This method makes use of the condition
-        cache when possible.
+        for more information about the splitting process.
+
+        This method makes use of the condition cache when possible.
         """
 
         # Look up the condition in the condition cache.
@@ -933,11 +955,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         expression-like string).
 
         The `condvars` mapping may be used to define the variable names
-        appearing in the `condition`.  It will usually consist of
-        identifier-like strings pointing to numeric values or `Column`
-        instances *of this table*.  A variable referring to a top-level
-        column and matching its name needs not being defined here (as
-        long as the column has an identifier-like name).
+        appearing in the `condition`.  `condvars` should consist of
+        identifier-like strings pointing to scalar or array values and
+        `Column` instances *of this table*.  A default set of condition
+        variables is provided where each top-level, non-nested column
+        with an identifier-like name appears.  Variables in `condvars`
+        override the default ones.
 
         If a range is supplied (by setting some of the `start`, `stop`
         or `step` parameters), only the rows in that range *and*
@@ -955,6 +978,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         # Split the condition into indexable and residual parts.
+        condvars = self._extendedWithDefVarsXXX(condvars)
         splitted = self._splitConditionXXX(condition, condvars)
         assert splitted.index_variable or splitted.residual_function, (
             "no usable indexed column and no residual condition "
@@ -1146,6 +1170,7 @@ This method is intended only for indexed columns, but this column has not a mini
         if self._dirtycache:
             self._restorecache()
 
+        condvars = self._extendedWithDefVarsXXX(condvars)
         splitted = self._splitConditionXXX(condition, condvars)
         idxvar = splitted.index_variable
         if not idxvar:
@@ -1309,6 +1334,7 @@ please reindex the table to put the index in a sane state""")
 "%s" flavor is not allowed; please use some of %s.""" % \
                              (flavor, supportedFlavors))
 
+        condvars = self._extendedWithDefVarsXXX(condvars)
         splitted = self._splitConditionXXX(condition, condvars)
 
         # Take advantage of indexation, if present
