@@ -899,10 +899,11 @@ herr_t H5ARRAYget_info( hid_t dataset_id,
   }
 
   /* Get the byteorder */
-  /* Only integer, float, time and enumerate classes can be byteordered */
+  /* Only integer, float, time and enumerate classes can be
+     byteordered */
   if ((*super_class_id == H5T_INTEGER) || (*super_class_id == H5T_FLOAT)
-      || (*super_class_id == H5T_BITFIELD) || (*super_class_id == H5T_COMPOUND)
-      || (*super_class_id == H5T_TIME) || (*super_class_id == H5T_ENUM)) {
+	   || (*super_class_id == H5T_BITFIELD) || (*super_class_id == H5T_COMPOUND)
+	   || (*super_class_id == H5T_TIME) || (*super_class_id == H5T_ENUM)) {
     get_order(*super_type_id, byteorder);
   }
   else {
@@ -948,7 +949,7 @@ herr_t H5ARRAYget_chunksize( hid_t dataset_id,
   layout = H5Pget_layout(plist_id);
   if (layout != H5D_CHUNKED) {
     H5Pclose( plist_id );
-    goto out;
+    return -1;
   }
 
   /* Get the chunksize for all dimensions */

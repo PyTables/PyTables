@@ -30,11 +30,6 @@ hid_t convArrayType(int fmt, size_t size, char *byteorder)
       else
 	type_id = H5Tcopy(H5T_STD_B8BE);
       H5Tset_precision(type_id, 1);
-      /* These calls does not reduce the storage needs,
-	 so it would be better to comment them? */
-      /* Definitely yes, they did not give more information to the type */
-/*       H5Tset_offset(type_id, 0); */
-/*       H5Tset_pad(type_id, H5T_PAD_ZERO, H5T_PAD_ZERO); */
       break;
     case NPY_INT8:
       if (strcmp(byteorder, "little") == 0)
@@ -118,8 +113,7 @@ hid_t convArrayType(int fmt, size_t size, char *byteorder)
 
 /* Routine to map the atomic type to a numpy typecode
  */
-size_t getArrayType(hid_t type_id,
-		    int *fmt)
+size_t getArrayType(hid_t type_id, int *fmt)
 {
   H5T_class_t class_id;
   size_t type_size;

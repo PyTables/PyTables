@@ -293,6 +293,7 @@ class Array(hdf5Extension.Array, Leaf):
             self.close(flush=0)
             raise
 
+
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
@@ -461,9 +462,9 @@ Sorry, but this object is not supported.""" % (arr)
 
         maxlen = len(self.shape)
         shape = (maxlen,)
-        startl = numpy.array(None, shape=shape, dtype=numpy.int64)
-        stopl = numpy.array(None, shape=shape, dtype=numpy.Int64)
-        stepl = numpy.array(None, shape=shape, dtype=numpy.Int64)
+        startl = numpy.empty(shape=shape, dtype=numpy.int64)
+        stopl = numpy.empty(shape=shape, dtype=numpy.int64)
+        stepl = numpy.empty(shape=shape, dtype=numpy.int64)
         stop_None = numpy.zeros(shape=shape, dtype=numpy.int64)
         if not isinstance(keys, tuple):
             keys = (keys,)
@@ -581,12 +582,12 @@ Sorry, but this object is not supported.""" % (arr)
 '%r'
 The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
 
-        if narr.size():
+        if narr.size:
             self._modify(startl, stepl, countl, narr)
 
     # Accessor for the _readArray method in superclass
     def _readSlice(self, startl, stopl, stepl, shape):
-        if repr(self.type) == "CharType":
+        if self.stype == "CharType":
             arr = numpy.empty(dtype="S%s"%self.itemsize, shape=shape)
         else:
             arr = numpy.empty(dtype=self.type, shape=shape)
@@ -630,6 +631,8 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
             arr = numpy.empty(dtype="S%s"%self.itemsize, shape=shape)
         else:
             arr = numpy.empty(dtype=self.type, shape=shape)
+            # Set the correct byteorder for this array
+            arr.dtype = arr.dtype.newbyteorder(self.byteorder)
 
         # Protection against reading empty arrays
         if 0 not in shape:
@@ -641,7 +644,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
             return arr
         # Fixes #968131
         elif arr.shape == ():  # Scalar case
-            return arr[()]  # return the python value
+            return arr.item()  # return the python value
         else:
             return convToFlavor(self, arr)
 

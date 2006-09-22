@@ -108,8 +108,8 @@ def allequal(a,b, flavor="numpy"):
             return 0
 
     # null arrays
-    if len(a.data) == 0:  # len(a) is not correct for generic shapes
-        if len(b.data) == 0:
+    if a.size == 0:  # len(a) is not correct for generic shapes
+        if b.size == 0:
             return 1
         else:
             if verbose:

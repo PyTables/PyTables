@@ -91,7 +91,7 @@ _indexName   = '_i_%s'  # %s -> encoded table path
 # Compile a regular expression for expressions like '(2,2)Int8'
 prog = re.compile(r'([\(\),\d\s]*)([A-Za-z]+[0-9]*)')
 
-# The byteorders in numpy
+# The map between byteorders in NumPy and PyTables
 byteorders = {'<': 'little',
               '>': 'big',
               '=': sys.byteorder,

@@ -120,7 +120,10 @@ class Col(ShapeMixin, object):
 
     def _setType(self, type_):
         "Sets the 'type', 'recarrtype' and 'stype' attributes."
-        if type_ in NP.typeDict:
+        if type_ == 'CharType' or type_ == NP.string_:
+            self.type = NP.string_
+            self.stype = 'CharType'
+        elif type_ in NP.typeDict:
             self.type = NP.typeDict[type_]
             self.stype = NP.typeNA[self.type]
         elif type_ == 'Time32':
@@ -128,9 +131,6 @@ class Col(ShapeMixin, object):
             self.stype = type_
         elif type_ == 'Time64':
             self.type = NP.float64  # special case for times
-            self.stype = type_
-        elif type_ == 'CharType' or type_ == NP.string_:
-            self.type = NP.string_
             self.stype = type_
         else:
             raise TypeError, "Illegal type: %s" % (type_,)

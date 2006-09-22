@@ -851,7 +851,7 @@ cdef class Array(Leaf):
     cdef long itemsize
     cdef char *byteorder
     cdef char *flavor, *complib, *version, *class_
-    cdef object type_
+    cdef object type_, stype
 
     type_ = nparr.dtype.type
     try:
@@ -892,7 +892,10 @@ cdef class Array(Leaf):
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
-    stype = numpy.typeNA[type_]
+    if type_ == numpy.string_:
+      stype = "CharType"
+    else:
+      stype = numpy.typeNA[type_]
     return (self.dataset_id, type_, stype)
 
 
