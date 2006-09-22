@@ -447,6 +447,7 @@ out:
 
 }
 
+
 /* Extract a slice index from a PyLong, and store in *pi.  Silently
    reduce values larger than LONGLONG_MAX to LONGLONG_MAX, and
    silently boost values less than -LONGLONG_MAX to 0.  Return 0 on
@@ -635,8 +636,7 @@ static H5T_order_t get_complex_order(hid_t type_id) {
 
 
 /* Return the byteorder of a HDF5 data type */
-/* This is effectively an extension of H5Tget_order
-   to handle complex types */
+/* This is actually an extension of H5Tget_order to handle complex types */
 herr_t get_order(hid_t type_id, char *byteorder) {
   hid_t class_id;
   H5T_order_t h5byteorder;
@@ -668,6 +668,7 @@ herr_t get_order(hid_t type_id, char *byteorder) {
   }
 }
 
+
 /* Set the byteorder of type_id. */
 /* This only works for datatypes that are not Complex. However,
    these types should already been created with correct byteorder */
@@ -680,7 +681,7 @@ herr_t set_order(hid_t type_id, const char *byteorder) {
       status = H5Tset_order(type_id, H5T_ORDER_BE );
     else if (strcmp(byteorder, "non-relevant") == 0) {
       /* Do nothing because non-relevant doesn't require setting the
-	 byteorder explicitely */
+         byteorder explicitely */
 /*       status = H5Tset_order(type_id, H5T_ORDER_NONE ); */
     }
     else {
@@ -691,48 +692,42 @@ herr_t set_order(hid_t type_id, const char *byteorder) {
   return status;
 }
 
+
 /* Create a HDF5 compound datatype that represents complex numbers
-   defined by numpy as cfloat.
-   Note: We must set the byteorder before we create the type. */
+   defined by numpy as complex64. */
 hid_t create_ieee_complex64(const char *byteorder) {
   hid_t float_id, complex_id;
 
-  /* XXX I can't manage to avoid the use of native types here */
-/*   if (strcmp(byteorder, "little") == 0) */
-/*     float_id = H5Tcopy(H5T_IEEE_F32LE); */
-/*   else */
-/*     float_id = H5Tcopy(H5T_IEEE_F32BE); */
-  float_id = H5Tcopy(H5T_NATIVE_FLOAT);
-  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(npy_complex64));
-  set_order(float_id, byteorder);
-  H5Tinsert (complex_id, "r", HOFFSET(npy_complex64, real), float_id);
-  H5Tinsert (complex_id, "i", HOFFSET(npy_complex64, imag), float_id);
+  complex_id = H5Tcreate(H5T_COMPOUND, sizeof(npy_complex64));
+  if (strcmp(byteorder, "little") == 0)
+    float_id = H5Tcopy(H5T_IEEE_F32LE);
+  else
+    float_id = H5Tcopy(H5T_IEEE_F32BE);
+  H5Tinsert(complex_id, "r", HOFFSET(npy_complex64, real), float_id);
+  H5Tinsert(complex_id, "i", HOFFSET(npy_complex64, imag), float_id);
   H5Tclose(float_id);
   return complex_id;
 }
 
-/* Counter part for double precision complexes */
+
+/* Counterpart for complex128 */
 hid_t create_ieee_complex128(const char *byteorder) {
   hid_t float_id, complex_id;
 
-  /* XXX I can't manage to avoid the use of native types here */
-/*   if (strcmp(byteorder, "little") == 0) */
-/*     float_id = H5Tcopy(H5T_IEEE_F64LE); */
-/*   else */
-/*     float_id = H5Tcopy(H5T_IEEE_F64BE); */
-  float_id = H5Tcopy(H5T_NATIVE_DOUBLE);
-  complex_id = H5Tcreate (H5T_COMPOUND, sizeof(npy_complex128));
-  set_order(float_id, byteorder);
-  H5Tinsert (complex_id, "r", HOFFSET(npy_complex128, real), float_id);
-  H5Tinsert (complex_id, "i", HOFFSET(npy_complex128, imag), float_id);
+  complex_id = H5Tcreate(H5T_COMPOUND, sizeof(npy_complex128));
+  if (strcmp(byteorder, "little") == 0)
+    float_id = H5Tcopy(H5T_IEEE_F64LE);
+  else
+    float_id = H5Tcopy(H5T_IEEE_F64BE);
+  H5Tinsert(complex_id, "r", HOFFSET(npy_complex128, real), float_id);
+  H5Tinsert(complex_id, "i", HOFFSET(npy_complex128, imag), float_id);
   H5Tclose(float_id);
   return complex_id;
 }
 
-/* return the number of significant bits in the
-   real and imaginary parts */
-/* This is effectively an extension of H5Tget_precision
-   to handle complex types */
+
+/* Return the number of significant bits in the real and imaginary parts */
+/* This is actually an extension of H5Tget_precision to handle complex types */
 size_t get_complex_precision(hid_t type_id) {
   hid_t real_type;
   size_t result;

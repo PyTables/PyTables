@@ -46,7 +46,7 @@ from definitions cimport import_array, ndarray, \
      H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose, \
      H5Tget_size, H5Tcreate, H5Tcopy, H5Tclose, H5Tget_sign, \
      H5ATTRset_attribute_string, H5ATTR_set_attribute_numerical
-     
+
 
 # Include HDF5 types
 include "convtypetables.pxi"

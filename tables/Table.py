@@ -560,7 +560,7 @@ class Table(TableExtension.Table, Leaf):
             # is a bit involved in numpy.
             dtype = numpy.dtype(recarr.dtype.descr[i][1])
             kind = dtype.kind
-            if dtype.byteorder in ['<', '>']:
+            if dtype.byteorder in ['<', '>', '=']:
                 if byteorder != '|' and byteorder != dtype.byteorder:
                     raise NotImplementedError, \
                           "Recarrays with mixed byteorders not yet accepted."
@@ -570,10 +570,8 @@ class Table(TableExtension.Table, Leaf):
                 shape = 1
             # Case for bools, ints, uints, floats and complex types
             if kind in ['b', 'i', 'u', 'f', 'c']:
-                #XYX NAtype ha de desapareixer quan passem tots els tipus
-                # de description a numpy
-                NAtype = numpy.typeNA[dtype.type]
-                fields[colname] = Col(dtype=NAtype, # should be dtype=dtype
+                PTtype = numpy.typeNA[dtype.type]
+                fields[colname] = Col(dtype=PTtype,
                                       shape=shape,
                                       pos=i)  # Position matters
             # Special case for strings
