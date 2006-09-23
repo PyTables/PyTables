@@ -32,7 +32,7 @@ import numarray
 import numarray.records as records
 
 from tables.constants import EXPECTED_ROWS_EARRAY, CHUNKTIMES
-from tables.utils import convertToNA, processRangeRead
+from tables.utils import convertToNP, processRangeRead
 from tables.Atom import Atom, EnumAtom
 from tables.Array import Array
 

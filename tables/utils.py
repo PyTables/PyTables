@@ -25,9 +25,7 @@ if sys.maxint > (2**31)-1:
 else:
     is64bits_platform = False
 
-import numarray
-from numarray import strings
-from numarray import records
+import numpy
 
 try:
     import Numeric
@@ -36,10 +34,12 @@ except ImportError:
     Numeric_imported = False
 
 try:
-    import numpy
-    numpy_imported = True
+    import numarray
+    import numarray.strings
+    import numarray.records
+    numarray_imported = True
 except ImportError:
-    numpy_imported = False
+    numarray_imported = False
 
 import tables.utilsExtension
 from tables.exceptions import NaturalNameWarning
@@ -206,6 +206,7 @@ def _calcBufferSize(rowsize, expectedrows):
 
     return buffersize
 
+
 def calcBufferSize(rowsize, expectedrows):
     """Calculate the buffer size and the HDF5 chunk size.
 
@@ -229,6 +230,7 @@ def calcBufferSize(rowsize, expectedrows):
         chunksize = 1
     return (maxTuples, chunksize)
 
+
 def is_idx(index):
     """Checks if an object can work as an index or not."""
 
@@ -240,10 +242,11 @@ def is_idx(index):
             return True
         except TypeError:
             return False
-    elif (numpy_imported and isinstance(index, numpy.integer)):
+    elif isinstance(index, numpy.integer):
         return True
 
     return False
+
 
 def idx2long(index):
     """Convert a possible index into a long int"""
@@ -252,6 +255,7 @@ def idx2long(index):
         return long(index)
     else:
         raise TypeError, "not an integer type."
+
 
 # This function is appropriate for calls to __getitem__ methods
 def processRange(nrows, start=None, stop=None, step=1):
@@ -294,174 +298,131 @@ def processRangeRead(nrows, start=None, stop=None, step=1):
     return (start, stop, step)
 
 
-# This is used in VLArray and EArray to produce a *contiguous* numarray
+# This is used in VLArray and EArray to produce a *contiguous* NumPy
 # object of type atom from a generic python type.  If copy is stated as
 # True, it is assured that it will return a copy of the object and never
 # the same object or a new one sharing the same memory.
-def convertToNA(arr, atom, copy = False):
-    "Convert a generic object into a numarray object"
+def convertToNP(arr, atom, copy = False):
+    "Convert a generic object into a NumPy object"
 
-    # Convert arr to a numarray object.
-    # Strings will be *always* copied during conversions as there is not support
-    # for them in the array protocol implementation of numarray yet.
-    # First check NumArray as they will be the most frequently used objects.
-    if isinstance(arr, numarray.NumArray):
-        naarr = arr
-    elif isinstance(arr, strings.CharArray):
-        if ((copy) or (not arr.iscontiguous()) or
-            (arr.itemsize() != atom.itemsize)):
-            # A copy has to be made
-            naarr = strings.array(arr, itemsize=atom.itemsize, padc='\x00')
-        else:
-            naarr = arr    # A copy is not necessary
-    # Check for NumPy objects
-    # This works for both CharArray and regular homogeneous arrays
-    elif (numpy_imported and isinstance(arr, numpy.ndarray)):
+    # First check NumPy as they will be the most frequently used objects.
+    if type(arr) == numpy.ndarray:
         if arr.dtype.kind == "U":
             raise NotImplementedError, \
                   """Unicode types are not suppored yet, sorry."""
-        if arr.dtype.kind != "S":
-            naarr = numarray.asarray(arr)
+        nparr = arr
+    elif isinstance(arr, numarray.NumArray):
+        nparr = numpy.asarray(arr)
+    elif isinstance(arr, numarray.strings.CharArray):
+        if ((copy) or (not arr.iscontiguous()) or
+            (arr.itemsize() != atom.itemsize)):
+            # A copy has to be made
+            dtype = "S%s" % atom.itemsize
+            nparr = numpy.array(arr, dtype=dtype)
         else:
-            naarr = strings.array(arr, itemsize=atom.itemsize, padc = '\x00')
-        # Check for Numeric objects
+            nparr = numpy.asarray(arr)
     elif (Numeric_imported and
           type(arr) == Numeric.ArrayType):
         if arr.typecode() != 'c':
-            naarr = numarray.asarray(arr)
+            nparr = numpy.asarray(arr)
         else:
             # Special case for Numeric objects of type Char
             try:
-                naarr = strings.array(arr.tolist(), itemsize=atom.itemsize,
-                                      padc='\x00')
+                nparr = numpy.array(arr.tolist(), dtype="S%s"%atom.itemsize)
                 # If still doesn't, issues an error
-            except:  #XXX
+            except Exception, exc:  #XXX
                 raise TypeError, \
-"""The object '%s' can't be converted into a CharArray object of type '%s'.
-Sorry, but this object is not supported in this context.""" % (arr, atom)
+"""The object '%s' can't be converted into a NumPy object of type '%s'.
+Sorry, but this object is not supported in this context. The error was: <%s>
+""" % (arr, atom, exc)
     else:
-        # Check if arr can be converted to a numarray object of the
+        # Check if arr can be converted to a numpy object of the
         # correct type.
         try:
-            naarr = numarray.asarray(arr, type=atom.type)
-        # If not, test with a chararray
-        except TypeError:
-            try:
-                naarr = strings.array(arr, itemsize=atom.itemsize, padc='\x00')
-            # If still doesn't, issues an error
-            except:  #XXX
-                raise TypeError, \
-"""The object '%s' can't be converted into a numarray object of type '%s'.
-Sorry, but this object is not supported in this context.""" % (arr, atom)
+            nparr = numpy.asarray(arr, dtype=atom.type)
+        # If not, issue an error
+        except Exception, exc:  #XXX
+            raise TypeError, \
+"""The object '%s' can't be converted into a NumPy object of type '%s'.
+Sorry, but this object is not supported in this context. The error was: <%s>
+""" % (arr, atom, exc)
 
-    # At this point we should have a NumArray or a CharArray naarr.
-    # Get copies of data if necessary.
-    if isinstance(naarr, numarray.NumArray):
-        # We always want a contiguous buffer
-        # (no matter if has an offset or not; that will be corrected later on)
-        if (copy) or (not naarr.iscontiguous()) or (naarr.type() <> atom.type):
-            # Do a copy of the array in case is not contiguous
-            naarr = numarray.array(naarr, type=atom.type)
+    # At this point we should have only NumPy arrays.
+    # Get copies of data if necessary for getting a contiguous buffer.
+    if (copy or (not nparr.flags.contiguous) or
+        (nparr.dtype.type <> atom.type)):
+        nparr = numpy.array(nparr, type=atom.type)
 
-    return naarr
+    return nparr
 
-def convertNAToNumeric(arr):
-    """Convert a numarray object into a Numeric one"""
+
+def convertNPToNumeric(arr):
+    """Convert a NumPy object into a Numeric one."""
 
     if not Numeric_imported:
         # Warn the user
         warnings.warn( \
 """You are asking for a Numeric object, but Numeric is not installed locally.
-  Returning a numarray object instead!.""")
+  Returning a NumPy object instead!.""")
         return arr
 
-    if arr.__class__.__name__ == "CharArray":
+    if arr.dtype.kind == "S":
         arrstr = arr.tostring()
         shape = list(arr.shape)
-        if arr.itemsize() > 1:
+        if arr.itemsize > 1:
             # Numeric does not support arrays with elements with a
             # size > 1. Simulate this by adding an additional dimension
-            shape.append(arr.itemsize())
-        arr=Numeric.reshape(Numeric.array(arrstr), shape)
+            shape.append(arr.itemsize)
+        arr = Numeric.reshape(Numeric.array(arrstr), shape)
     else:
-        if arr.shape <> ():
-            #arr=Numeric.array(arr.tolist(), typecode=arr.typecode())
-            # The next is 10 to 100 times faster. 2005-02-09
-            shape = arr.shape
-            if str(arr.type()) == "Bool":
-                # Typecode boolean does not exist on Numeric
-                typecode = "1"
-            else:
-                typecode = arr.typecode()
-            # Apparently, there is no way to convert a numarray
-            # of ints of 64-bits into a Numeric of 64-bits in
-            # 32-bit platforms :-(
-            if typecode == 'N':
-                if is64bits_platform:
-                    typecode = 'l'  # Int64 in 64-bit platforms
-                else:
-                    warnings.warn( \
-"""Int64 cannot be converted into a Numeric object in 32-bit platforms.
-See http://aspn.activestate.com/ASPN/Mail/Message/numpy-discussion/2569120
-Returning a numarray instead!""")
-                    return arr
-            # When numarray 1.5 would be out, the array protocol
-            # should be used because it is faster than the fromstring
-            # method, specially for large arrays (>10**4 elements).
-            # F. Altet 2005-12-07
-            #arr=Numeric.fromstring(arr._data, typecode=typecode)
-            #arr.shape = shape
-            # The asarray call doesn't do a data copy
-            arr=Numeric.asarray(arr)  # Array protocol
-        else:
-            # This works for rank-0 arrays
-            # (but is slower for big arrays)
-            arr=Numeric.array(arr[()], typecode=arr.typecode())
+        # Try to convert to Numeric and catch possible errors
+        try:
+            arr = Numeric.asarray(arr)  # Array protocol
+        except Exception, exc:
+            warnings.warn( \
+"""Array cannot be converted into a Numeric object!. The error was: <%s>
+""" % (exc))
+
     return arr
 
-def convertNAToNumPy(arr):
-    """Convert a NumArray (homogeneous) object into a NumPy one"""
 
-    if not numpy_imported:
+def convertNPToNumArray(arr):
+    """Convert a NumPy (homogeneous) object into a NumArray one"""
+
+    if not numarray_imported:
         # Warn the user
         warnings.warn( \
-"""You are asking for a NumPy object, but NumPy is not installed locally.
-  Returning a numarray object instead!.""")
+"""You are asking for a numarray object, but numarray is not installed locally.
+  Returning a NumPy object instead!.""")
         return arr
 
-    if isinstance(arr, numarray.NumArray):
+    if arr.dtype.kind == "S":
+        # We can't use the array protocol to do this conversion
+        if arr.shape == ():
+            buffer_ = arr.item()
+        else:
+            buffer_ = arr
+        arr = numarray.strings.arrays(buffer=buffer_)
+    else:
         # This works for regular homogeneous arrays and even for rank-0 arrays
         arr = numpy.asarray(arr)  # Array protocol
-    elif isinstance(arr, strings.CharArray):
-        # We can't use the array protocol to do this conversion
-        # because of the different conventions that follow numarray
-        # and numpy to end strings. See ticket #13 for an example
-        # of the problems that can appear. This solution is definetly
-        # not as efficient as the array protocol, but it does handle
-        # well the trailing spaces issue.
-        # F. Altet 2006-06-19
-        dtype = "|S%s" % arr.itemsize()
-        #arr = numpy.array(arr.tolist(), dtype=dtype)
-        # The next line works better in every situation...
-        arr = numpy.ndarray(buffer=arr._data, dtype=dtype, shape=arr.shape)
     return arr
 
 
 def convToFlavor(object, arr, caller = "Array"):
-    "Convert the numarray parameter to the correct flavor"
+    "Convert the NumPy parameter to the correct flavor"
 
-    if numpy_imported and object.flavor == "numpy":
-        arr = convertNAToNumPy(arr)
-    # check 'Numeric' for backward compatibility
-    elif Numeric_imported and object.flavor in ["numeric", "Numeric"]:
-        arr = convertNAToNumeric(arr)
+    if object.flavor == "numarray":
+        arr = convertNPToNumArray(arr)
+    elif object.flavor == "numeric":
+        arr = convertNPToNumeric(arr)
     elif object.flavor == "python":
-        if len(arr.shape) > 0:
+        if arr.shape <> ():
             # Lists are the default for returning multidimensional objects
             arr = arr.tolist()
         else:
-            # Scalar case
-            arr = arr[()]
+            # 0-dim or scalar case
+            arr = arr.item()
     elif object.flavor == "string":
         arr = arr.tostring()
         # Set the shape to () for these objects
@@ -491,7 +452,7 @@ def convToFlavor(object, arr, caller = "Array"):
             # We have to check for an empty array because of a
             # possible bug in HDF5 that claims that a dataset
             # has one record when in fact, it is empty
-            if len(arr) == 0:
+            if arr.size == 0:
                 arr = []
             else:
                 arr = cPickle.loads(arr.tostring())
@@ -600,6 +561,7 @@ def checkFileAccess(filename, mode='r'):
     else:
         raise ValueError("invalid mode: %r" % (mode,))
 
+
 def fromnumpy(array, copy=False):
     """
     Create a new `NestedRecArray` from a numpy object.
@@ -637,11 +599,12 @@ def fromnumpy(array, copy=False):
         shape = 1     # Scalar case. Shape = 1 will provide an adequate buffer.
     else:
         shape = array.shape
-    ra = records.array(array.data, formats=flatFormats,
-                       names=flatNames,
-                       shape=shape,
-                       byteorder=sys.byteorder,
-                       aligned = False)  # aligned RecArrays not supported yet
+    ra = numarray.records.array(array.data, formats=flatFormats,
+                                names=flatNames,
+                                shape=shape,
+                                byteorder=sys.byteorder,
+                                aligned = False)  # aligned RecArrays
+                                                  # not supported yet
     # Create the nested recarray itself
     nra = nestedrecords.NestedRecArray(ra, descr)
 
@@ -685,6 +648,7 @@ def fromnumpy_short(array):
 
     return nra
 
+
 def tonumpy(array, copy=False):
     """
     Create a new `numpy` object from a NestedRecArray object.
@@ -701,11 +665,11 @@ def tonumpy(array, copy=False):
     """
 
     assert (isinstance(array, nestedrecords.NestedRecArray) or
-            isinstance(array, records.RecArray)), \
+            isinstance(array, numarray.records.RecArray)), \
 "You need to pass a (Nested)RecArray object, and you passed a %s." % \
 (type(array))
 
-    if isinstance(array, records.RecArray):
+    if isinstance(array, numarray.records.RecArray):
         # Create a NestedRecArray array from the RecArray to easy the
         # conversion. This is sub-optimal and must be replaced by a
         # better way to convert a plain RecArray into a numpy recarray.
@@ -746,12 +710,12 @@ def fromnumarray(rna, copy=False):
 
     if not isinstance(rna, numarray.records.RecArray):
         raise ValueError, \
-"You need to pass a numarray RecArray object, and you passed a %s." % (type(array))
+"You need to pass a numarray RecArray object, and you passed a %s." % \
+(type(array))
 
-    dt = numpy.format_parser(rna._formats, rna._names,
-                             rna._formats)._descr
-    rnp = numpy.ndarray(buffer=rna._data, shape=rna.shape,
-                        dtype=dt, offset=rna._byteoffset)
+    dt = numpy.format_parser(rna._formats, rna._names, rna._formats)._descr
+    rnp = numpy.ndarray(buffer=rna._data, shape=rna.shape, dtype=dt,
+                        offset=rna._byteoffset)
     if copy:
         rnp = rnp.copy()
     return rnp

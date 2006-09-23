@@ -56,7 +56,7 @@ import tables.TableExtension as TableExtension
 from tables.conditions import split_condition, call_on_recarr  ##XXX
 from tables.numexpr.expressions import bestConstantType  ##XXX
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
-     joinPath, convertNAToNumeric, convertNAToNumPy, fromnumpy, tonumpy, \
+     joinPath, convertNPToNumeric, convertNPToNumArray, fromnumpy, tonumpy, \
      fromnumarray, is_idx
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
@@ -1652,9 +1652,9 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         if field:
             # homogeneous conversion
             if numarray_imported and flavor == "numarray":
-                arr = convertNAToNumarray(arr)
+                arr = convertNPToNumArray(arr)
             elif Numeric_imported and flavor == "numeric":
-                arr = convertNAToNumeric(arr)
+                arr = convertNPToNumeric(arr)
         elif numarray_imported and flavor == "numarray":
             # heterogeneous conversion (without a copy)
             arr = tonumarray(arr, copy=False)
@@ -1724,9 +1724,9 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             if flavor == "numpy":
                 return na
             elif numarray_imported and flavor == "numarray":
-                return convertNAToNumarray(na)
+                return convertNPToNumArray(na)
             elif Numeric_imported and flavor == "numeric":
-                return convertNAToNumeric(na)
+                return convertNPToNumeric(na)
 
         # Do an additional conversion, if needed
         if flavor == "python":
@@ -1984,7 +1984,9 @@ You cannot append rows to a non-chunked table.""")
             recarray = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
-"rows parameter cannot be converted into a recarray object compliant with table format '%s'. The error was: <%s>" % (str(self.description._v_nestedFormats), exc)
+"""rows parameter cannot be converted into a recarray object compliant with
+table format '%s'. The error was: <%s>
+""" % (str(self.description._v_nestedFormats), exc)
         lenrows = len(recarray)
         if start + lenrows > self.nrows:
             raise IndexError, \

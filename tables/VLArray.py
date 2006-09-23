@@ -49,7 +49,7 @@ except ImportError:
     numpy_imported = False
 
 import tables.hdf5Extension as hdf5Extension
-from tables.utils import processRangeRead, convertToNA, convToFlavor, idx2long
+from tables.utils import processRangeRead, convertToNP, convToFlavor, idx2long
 from tables.Atom import Atom, ObjectAtom, VLStringAtom, StringAtom, EnumAtom
 from tables.Leaf import Leaf
 
