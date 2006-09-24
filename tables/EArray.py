@@ -398,7 +398,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         # to in-place conversion.
         copy = self.stype in ['Time64']
         # Convert the sequence into a numarray object
-        naarr = convertToNA(sequence, self.atom, copy)
+        naarr = convertToNP(sequence, self.atom, copy)
         # Check if it is correct type and shape
         naarr = self._checkTypeShape(naarr)
         self._append(naarr)

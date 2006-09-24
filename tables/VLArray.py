@@ -404,7 +404,7 @@ please put them in a single sequence object"""),
             # The object needs to be copied to make the operation safe
             # to in-place conversion.
             copy = self._atomicstype in ['Time64']
-            naarr = convertToNA(object, self.atom, copy)
+            naarr = convertToNP(object, self.atom, copy)
             nobjects = self._checkShape(naarr)
         else:
             nobjects = 0
@@ -561,7 +561,7 @@ please put them in a single sequence object"""),
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, ue)
             object = numarray.array(object, type=numarray.UInt8)
 
-        value = convertToNA(object, self.atom)
+        value = convertToNP(object, self.atom)
         nobjects = self._checkShape(value)
 
         # Get the previous value

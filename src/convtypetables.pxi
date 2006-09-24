@@ -135,16 +135,16 @@ NPCodeToType = {
   }
 
 
-# Conversion table from NumPy type classes to NumPy type codes
-NPTypeToCode = {
-  numpy.bool_:     NPY_BOOL,      numpy.string_:    NPY_STRING,
-  numpy.int8:      NPY_INT8,      numpy.uint8:      NPY_UINT8,
-  numpy.int16:     NPY_INT16,     numpy.uint16:     NPY_UINT16,
-  numpy.int32:     NPY_INT32,     numpy.uint32:     NPY_UINT32,
-  numpy.int64:     NPY_INT64,     numpy.uint64:     NPY_UINT64,
-  numpy.float32:   NPY_FLOAT32,   numpy.float64:    NPY_FLOAT64,
-  numpy.complex64: NPY_COMPLEX64, numpy.complex128: NPY_COMPLEX128,
-  }
+# # Conversion table from NumPy type classes to NumPy type codes
+# NPTypeToCode = {
+#   numpy.bool_:     NPY_BOOL,      numpy.string_:    NPY_STRING,
+#   numpy.int8:      NPY_INT8,      numpy.uint8:      NPY_UINT8,
+#   numpy.int16:     NPY_INT16,     numpy.uint16:     NPY_UINT16,
+#   numpy.int32:     NPY_INT32,     numpy.uint32:     NPY_UINT32,
+#   numpy.int64:     NPY_INT64,     numpy.uint64:     NPY_UINT64,
+#   numpy.float32:   NPY_FLOAT32,   numpy.float64:    NPY_FLOAT64,
+#   numpy.complex64: NPY_COMPLEX64, numpy.complex128: NPY_COMPLEX128,
+#   }
 
 
 # Conversion from NumPy codes to PyTables string types
@@ -160,6 +160,12 @@ NPCodeToPTType = {
   ord('t'):      'Time32',    ord('T'):       'Time64',
   ord('e'):      'Enum',
   }
+
+
+# Conversion from PyTables string types to NumPy codes
+PTTypeToNPCode = {}
+for key, value in NPCodeToPTType.items():
+  PTTypeToNPCode[value] = key
 
 ## Local Variables:
 ## mode: python

@@ -853,9 +853,17 @@ cdef class Array(Leaf):
     cdef char *flavor, *complib, *version, *class_
     cdef object type_, stype
 
+    # The next way of getting the type might seem a bit convoluted, but
+    # this is due to an ambiguity in NumPy types that is reported in:
+    # http://projects.scipy.org/scipy/numpy/ticket/283 and
+    # http://projects.scipy.org/scipy/numpy/ticket/290
     type_ = nparr.dtype.type
     try:
-      enumtype = NPTypeToCode[type_]
+      if type_ == numpy.string_:
+        stype = "CharType"
+      else:
+        stype = numpy.typeNA[type_]  # the PyTables string type
+      enumtype = PTTypeToNPCode[stype]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported right now. Sorry about that.
@@ -867,8 +875,8 @@ cdef class Array(Leaf):
     self.type_id = convArrayType(enumtype, itemsize, byteorder)
     if self.type_id < 0:
       raise TypeError, \
-        """type '%s' is not supported right now. Sorry about that.""" \
-        % type_
+        """Type '%s' is not supported right now. Sorry about that.""" \
+        % stype
 
     # Get the pointer to the buffer data area
     rbuf = nparr.data
@@ -892,10 +900,6 @@ cdef class Array(Leaf):
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
-    if type_ == numpy.string_:
-      stype = "CharType"
-    else:
-      stype = numpy.typeNA[type_]
     return (self.dataset_id, type_, stype)
 
 
@@ -910,16 +914,9 @@ cdef class Array(Leaf):
 
     atom = self.atom
     itemsize = atom.itemsize
+    stype = atom.stype
     try:
-      # Since Time columns have no NumPy type of their own,
-      # a special case is made for them.
-      stype = atom.stype
-      if stype == 'Time32':
-        enumtype = ord('t')
-      elif stype == 'Time64':
-        enumtype = ord('T')
-      else:
-        enumtype = NPTypeToCode[self.type]
+      enumtype = PTTypeToNPCode[stype]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported right now. Sorry about that.
@@ -1255,14 +1252,7 @@ cdef class VLArray(Leaf):
     type_ = atom.type
     stype = atom.stype
     try:
-      # Since Time columns have no NumPy type of their own,
-      # a special case is made for them.
-      if stype == 'Time32':
-        enumtype = ord('t')
-      elif stype == 'Time64':
-        enumtype = ord('T')
-      else:
-        enumtype = NPTypeToCode[type_]
+      enumtype = PTTypeToNPCode[stype]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported right now. Sorry about that.

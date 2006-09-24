@@ -450,10 +450,14 @@ class GroupsArrayTestCase(unittest.TestCase):
         group = fileh.root
 
         # Set the type codes to test
-        #typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
         # uint64 seems to be unsupported on 64-bit machines!
-        typecodes = ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32',
-                     'int64', 'float32', 'float64', 'complex64', 'complex128']
+#         typecodes = ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32',
+#                      'int64', 'float32', 'float64', 'complex64', 'complex128']
+        # The typecodes below does expose an ambiguity that is reported in:
+        # http://projects.scipy.org/scipy/numpy/ticket/283 and
+        # http://projects.scipy.org/scipy/numpy/ticket/290
+        typecodes = ['b','B','h','H','i','I','l','L','q','f','d','F','D']
+
         i = 1
         for typecode in typecodes:
             # Create an array of typecode, with incrementally bigger ranges

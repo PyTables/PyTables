@@ -594,7 +594,7 @@ def enumToHDF5(object enumCol, char *byteOrder):
   cdef ndarray npvalues
 
   # Get the base HDF5 type and create the enumerated type.
-  npenum = NPTypeToCode[enumCol.type]
+  npenum = PTTypeToNPCode[enumCol.stype]
   itemsize = enumCol.itemsize
   baseId = convArrayType(npenum, itemsize, byteOrder)
   if baseId < 0:
