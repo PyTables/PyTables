@@ -317,6 +317,7 @@ static char op_signature(int op, int n) {
             break;
         case OP_COPY_SS:
             if (n == 0 || n == 1) return 's';
+	    break;
         case OP_PROD_IIN:
         case OP_SUM_IIN:
             if (n == 0 || n == 1) return 'i';
@@ -1216,7 +1217,8 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
             Py_INCREF(PyArray_DESCR(a));
             PyObject *b = PyArray_SimpleNewFromDescr(1, dims, PyArray_DESCR(a));
             if (!b) goto cleanup_and_exit;
-            self->memsteps[i+1] = self->memsizes[i+1] = PyArray_ITEMSIZE(a);
+            self->memsteps[i+1] = 0;
+            self->memsizes[i+1] = PyArray_ITEMSIZE(a);
             PyTuple_SET_ITEM(a_inputs, i+2*n_inputs, b);  /* steals reference */
             inputs[i] = PyArray_DATA(b);
             if (typecode == PyArray_BOOL) {

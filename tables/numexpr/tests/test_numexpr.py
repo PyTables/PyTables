@@ -326,9 +326,21 @@ class test_int32_int64(NumpyTestCase):
         self.assertEqual(resnx.dtype.name, 'int64')
 
 class test_strings(NumpyTestCase):
-    str_array1 = array(['foo', 'bar', '', '  '])
-    str_array2 = array(['foo', '', 'x', ' '])
+    BLOCK_SIZE1 = 128
+    BLOCK_SIZE2 = 8
+    str_list1 = ['foo', 'bar', '', '  ']
+    str_list2 = ['foo', '', 'x', ' ']
+    str_nloops = len(str_list1) * (BLOCK_SIZE1 + BLOCK_SIZE2 + 1)
+    str_array1 = array(str_list1 * str_nloops)
+    str_array2 = array(str_list2 * str_nloops)
     str_constant = 'doodoo'
+
+    def check_compare_copy(self):
+        sarr = self.str_array1
+        expr = 'sarr'
+        res1 = eval(expr)
+        res2 = evaluate(expr)
+        assert_array_equal(res1, res2)
 
     def check_compare_array(self):
         sarr1 = self.str_array1
