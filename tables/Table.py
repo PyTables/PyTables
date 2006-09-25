@@ -31,6 +31,7 @@ Misc variables:
 import sys
 import warnings
 import re
+import keyword  ##XXX
 from time import time
 
 import numpy
@@ -54,10 +55,11 @@ from tables.nriterators import flattenNames
 
 import tables.TableExtension as TableExtension
 from tables.conditions import split_condition, call_on_recarr  ##XXX
-from tables.numexpr.expressions import bestConstantType  ##XXX
+from tables.numexpr.compiler import getType  ##XXX
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNPToNumeric, convertNPToNumArray, fromnumpy, tonumpy, \
      fromnumarray, is_idx
+from tables.utils import pythonIdRE  ##XX
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import \
@@ -853,17 +855,28 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         a new variable for each top-level, non-nested column with an
         identifier-like name in the table (if there is not already a
         variable with that name in `condvars`).
+
+        Non-column variable values are also converted to NumPy arrays.
         """
         # Add the default variables *below* the user-provided ones.
         #
         # The ``cols`` accessor could be avoided by using a mapping from
         # column paths to columns.  I think this would be useful in any
         # case for the user.  -- Ivan
+        def is_identifier_like(colname):
+            return ( type(colname) is str  # avoid nested columns
+                     and pythonIdRE.match(colname)
+                     and not keyword.iskeyword(colname) )
         defvars = dict( (colname, getattr(self.cols, colname))
                         for colname in self.colnames
-                        if type(colname) is str )
+                        if is_identifier_like(colname) )
+
         uservars, condvars = condvars, defvars
-        condvars.update(uservars)
+        # Update with user-provided variables (columns and other values).
+        for (var, val) in uservars.items():
+            if not hasattr(val, 'pathname'):
+                val = numpy.asarray(val)  # not a column, convert to NumPy
+            condvars[var] = val
         return condvars
 
     def _getConditionKeyXXX(self, condition, condvars):
@@ -892,7 +905,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                                      % (var, tblpath))
             else:
                 varnames.append(var)
-                vartypes.append(bestConstantType(val))  # expensive
+                vartypes.append(getType(val))  # expensive
         colnames, varnames = tuple(colnames), tuple(varnames)
         colpaths, vartypes = tuple(colpaths), tuple(vartypes)
         condkey = (condition, colnames, varnames, colpaths, vartypes)
