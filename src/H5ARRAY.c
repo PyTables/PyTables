@@ -67,7 +67,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
    if(!maxdims) return -1;
 
    for(i=0;i<rank;i++) {
-/*      printf("dims_chunk[%d]: %d\n", i, dims_chunk[i]); */
      if (i == extdim) {
        maxdims[i] = H5S_UNLIMITED;
      }
@@ -596,7 +595,6 @@ herr_t H5ARRAYreadSlice( hid_t dataset_id,
  int      rank;
  int      i;
 
-/*  printf("H5ARRAYreadSlice.dataset_id-->%ld\n", dataset_id); */
   /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
@@ -616,7 +614,7 @@ herr_t H5ARRAYreadSlice( hid_t dataset_id,
      goto out;
 
    for(i=0;i<rank;i++) {
-     count[i] = ((stop[i] - start[i] - 1) / step[i]) + 1;
+     count[i] = get_len_of_range(start[i], stop[i], step[i]);
      if ( stop[i] > dims[i] ) {
        printf("Asking for a range of rows exceeding the available ones!.\n");
        goto out;
@@ -624,7 +622,8 @@ herr_t H5ARRAYreadSlice( hid_t dataset_id,
    }
 
    /* Define a hyperslab in the dataset of the size of the records */
-   if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
+   if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride,
+			     count, NULL) < 0 )
      goto out;
 
    /* Create a memory dataspace handle */
@@ -632,13 +631,14 @@ herr_t H5ARRAYreadSlice( hid_t dataset_id,
      goto out;
 
    /* Read */
-   if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
+   if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT,
+		 data ) < 0 )
      goto out;
 
    /* Release resources */
    free(dims);
    free(count);
-
+ 
    /* Terminate access to the memory dataspace */
    if ( H5Sclose( mem_space_id ) < 0 )
      goto out;
@@ -723,7 +723,7 @@ herr_t H5ARRAYreadIndex( hid_t   dataset_id,
      goto out;
 
    for(i=0;i<rank;i++) {
-     count[i] = ((stop[i] - start[i] - 1) / step[i]) + 1;
+     count[i] = get_len_of_range(start[i], stop[i], step[i]);
      if ( stop[i] > dims[i] ) {
        printf("Asking for a range of rows exceeding the available ones!.\n");
        goto out;
@@ -731,7 +731,8 @@ herr_t H5ARRAYreadIndex( hid_t   dataset_id,
    }
 
    /* Define a hyperslab in the dataset of the size of the records */
-   if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
+   if ( H5Sselect_hyperslab( space_id, H5S_SELECT_SET, offset, stride,
+			     count, NULL) < 0 )
      goto out;
 
    /* If we want the complementary, do a NOTA against all the row */
@@ -739,11 +740,8 @@ herr_t H5ARRAYreadIndex( hid_t   dataset_id,
      offset2[0] = offset[0]; count2[0] = count[0];
      offset2[1] = 0; count2[1] = dims[1]; /* All the row */
      count[0] = 1; count[1] = dims[1] - count[1]; /* For memory dataspace */
-/*      printf("dims[%d]: %d\n", i, (int)dims[i]); */
-/*      printf("offset2[%d]: %d\n", i, (int)offset2[i]); */
-/*      printf("count2[%d]: %d\n", i, (int)count2[i]); */
-/*      printf("count[%d]: %d\n", i, (int)count[i]); */
-     if ( H5Sselect_hyperslab( space_id, H5S_SELECT_NOTA, offset2, stride, count2, NULL) < 0 )
+     if ( H5Sselect_hyperslab( space_id, H5S_SELECT_NOTA, offset2, stride,
+			       count2, NULL) < 0 )
        goto out;
    }
 

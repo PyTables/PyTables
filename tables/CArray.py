@@ -342,7 +342,8 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         self._v_convert = False
         shape = list(self.shape)
-        shape[0] = ((stop - start - 1) / step) + 1
+        #shape[0] = ((stop - start - 1) / step) + 1
+        shape[0] = len(xrange(start, stop, step))
         # Build the new CArray object
         object = CArray(group, name, shape, atom=self.atom,
                           title=title, filters=filters, _log=_log)

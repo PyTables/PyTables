@@ -31,8 +31,7 @@ Misc variables:
 """
 
 import warnings
-import numarray
-import numarray.records as records
+import numpy
 
 from tables.IsDescription import \
      Col, BoolCol, StringCol, IntCol, FloatCol, ComplexCol, TimeCol, EnumCol
@@ -45,33 +44,26 @@ __version__ = "$Revision$"
 
 def checkflavor(flavor, dtype, warn):
     if str(dtype) == "CharType":
-        if flavor in ["numarray", "numpy", "python"]:
+        if flavor in ["numpy", "numarray", "python"]:
             return flavor
         elif flavor in ["CharArray", "String"]:
             if warn:
                 warnings.warn(DeprecationWarning("""\
-"%s" flavor is deprecated; please use some of "numarray", "numpy"
+"%s" flavor is deprecated; please use some of "numpy", "numarray"
 or "python" values instead""" % (flavor)),
                               stacklevel=2)
             return flavor
         else:
             raise ValueError, \
-"""flavor of type '%s' must be one of the "numarray", "numpy"
+"""flavor of type '%s' must be one of the "numpy", "numarray"
 or "python" values, and you tried to set it to "%s".
 """  % (dtype, flavor)
     else:
-        if flavor in ["numarray", "numpy", "numeric", "python"]:
-            return flavor
-        elif flavor in ["NumArray", "NumPy", "Numeric", "Tuple", "List"]:
-            if warn:
-                warnings.warn(DeprecationWarning("""\
-"%s" flavor is deprecated; please use some of "numarray", "numpy",
-"numeric" or "python" values instead""" % (flavor)),
-                              stacklevel=2)
+        if flavor in ["numpy", "numarray", "numeric", "python"]:
             return flavor
         else:
             raise ValueError, \
-"""flavor of type '%s' must be one of the "numarray", "numpy", "numeric"
+"""flavor of type '%s' must be one of the "numpy", "numarray", "numeric"
 or "python" values, and you tried to set it to "%s".
 """  % (dtype, flavor)
 
@@ -113,12 +105,12 @@ class ObjectAtom(IntCol):
 class Atom(Col):
     """ Define an Atomic object to be used in VLArray objects """
 
-    def __init__(self, dtype="Float64", shape=1, flavor="numarray", warn=True):
+    def __init__(self, dtype="Float64", shape=1, flavor="numpy", warn=True):
         Col.__init__(self, dtype, shape)
         self.flavor = checkflavor(flavor, self.type, warn)
 
     def __repr__(self):
-        if self.type == "CharType" or isinstance(self.type, records.Char):
+        if self.stype == "CharType":
             if self.shape == 1:
                 shape = [self.itemsize]
             else:
@@ -145,7 +137,7 @@ class Atom(Col):
 
 class StringAtom(StringCol, Atom):
     """ Define an atom of type String """
-    def __init__(self, shape=1, length=None, flavor="numarray", warn=True):
+    def __init__(self, shape=1, length=None, flavor="numpy", warn=True):
         StringCol.__init__(self, length=length, shape=shape)
         self.flavor = checkflavor(flavor, self.type, warn)
     def __repr__(self):
@@ -155,7 +147,7 @@ class StringAtom(StringCol, Atom):
 
 class BoolAtom(BoolCol, Atom):
     """ Define an atom of type Bool """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         BoolCol.__init__(self, shape=shape)
         self.flavor = checkflavor(flavor, self.type, warn)
     def __repr__(self):
@@ -164,20 +156,20 @@ class BoolAtom(BoolCol, Atom):
 
 class IntAtom(IntCol, Atom):
     """ Define an atom of type Integer """
-    def __init__(self, shape=1, itemsize=4, sign=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, itemsize=4, sign=1, flavor="numpy", warn=True):
         IntCol.__init__(self, shape=shape, itemsize=itemsize, sign=sign)
         self.flavor = checkflavor(flavor, self.type, warn)
     def __repr__(self):
-        if (numarray.array(0, self.type) > numarray.array(-1, self.type))[()]:
-            sign = 1
+        if numpy.array(0, self.type) - numpy.array(1, self.type) < 0:
+            sign = True
         else:
-            sign = 0
+            sign = False
         return "IntAtom(shape=%s, itemsize=%s, sign=%s, flavor=%r)" % (
             self.shape, self.itemsize, sign, self.flavor)
 
 class Int8Atom(IntAtom):
     """ Define an atom of type Int8 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         IntAtom.__init__(self, shape=shape, itemsize=1, sign=1,
                          flavor=flavor, warn=warn)
     def __repr__(self):
@@ -185,7 +177,7 @@ class Int8Atom(IntAtom):
 
 class UInt8Atom(IntAtom):
     """ Define an atom of type UInt8 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         IntAtom.__init__(self, shape=shape, itemsize=1, sign=0,
                          flavor=flavor, warn=warn)
     def __repr__(self):
@@ -193,7 +185,7 @@ class UInt8Atom(IntAtom):
 
 class Int16Atom(IntAtom):
     """ Define an atom of type Int16 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         IntAtom.__init__(self, shape=shape, itemsize=2, sign=1,
                          flavor=flavor, warn=warn)
     def __repr__(self):
@@ -201,7 +193,7 @@ class Int16Atom(IntAtom):
 
 class UInt16Atom(IntAtom):
     """ Define an atom of type UInt16 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         IntAtom.__init__(self, shape=shape, itemsize=2, sign=0,
                          flavor=flavor, warn=warn)
     def __repr__(self):
@@ -209,7 +201,7 @@ class UInt16Atom(IntAtom):
 
 class Int32Atom(IntAtom):
     """ Define an atom of type Int32 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         IntAtom.__init__(self, shape=shape, itemsize=4, sign=1,
                          flavor=flavor, warn=warn)
     def __repr__(self):
@@ -217,7 +209,7 @@ class Int32Atom(IntAtom):
 
 class UInt32Atom(IntAtom):
     """ Define an atom of type UInt32 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         IntAtom.__init__(self, shape=shape, itemsize=4, sign=0,
                          flavor=flavor, warn=warn)
     def __repr__(self):
@@ -225,7 +217,7 @@ class UInt32Atom(IntAtom):
 
 class Int64Atom(IntAtom):
     """ Define an atom of type Int64 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         IntAtom.__init__(self, shape=shape, itemsize=8, sign=1,
                          flavor=flavor, warn=warn)
     def __repr__(self):
@@ -233,7 +225,7 @@ class Int64Atom(IntAtom):
 
 class UInt64Atom(IntAtom):
     """ Define an atom of type UInt64 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         IntAtom.__init__(self, shape=shape, itemsize=8, sign=0,
                          flavor=flavor, warn=warn)
     def __repr__(self):
@@ -242,7 +234,7 @@ class UInt64Atom(IntAtom):
 
 class FloatAtom(FloatCol, Atom):
     """ Define an atom of type Float """
-    def __init__(self, shape=1, itemsize=8, flavor="numarray", warn=True):
+    def __init__(self, shape=1, itemsize=8, flavor="numpy", warn=True):
         FloatCol.__init__(self, shape=shape, itemsize=itemsize)
         self.flavor = checkflavor(flavor, self.type, warn)
     def __repr__(self):
@@ -251,7 +243,7 @@ class FloatAtom(FloatCol, Atom):
 
 class Float32Atom(FloatAtom):
     """ Define an atom of type Float32 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         FloatAtom.__init__(self, shape=shape, itemsize=4,
                            flavor=flavor, warn=warn)
     def __repr__(self):
@@ -259,7 +251,7 @@ class Float32Atom(FloatAtom):
 
 class Float64Atom(FloatAtom):
     """ Define an atom of type Float64 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         FloatAtom.__init__(self, shape=shape, itemsize=8,
                            flavor=flavor, warn=warn)
     def __repr__(self):
@@ -268,7 +260,7 @@ class Float64Atom(FloatAtom):
 
 class ComplexAtom(ComplexCol, Atom):
     """ Define an atom of type Complex """
-    def __init__(self, shape=1, itemsize=16, flavor="numarray", warn=True):
+    def __init__(self, shape=1, itemsize=16, flavor="numpy", warn=True):
         ComplexCol.__init__(self, shape=shape, itemsize=itemsize)
         self.flavor = checkflavor(flavor, self.type, warn)
     def __repr__(self):
@@ -277,7 +269,7 @@ class ComplexAtom(ComplexCol, Atom):
 
 class Complex32Atom(ComplexAtom):
     """ Define an atom of type Complex32 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         ComplexAtom.__init__(self, shape=shape, itemsize=8,
                              flavor=flavor, warn=warn)
     def __repr__(self):
@@ -285,7 +277,7 @@ class Complex32Atom(ComplexAtom):
 
 class Complex64Atom(ComplexAtom):
     """ Define an atom of type Complex64 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         ComplexAtom.__init__(self, shape=shape, itemsize=16,
                              flavor=flavor, warn=warn)
     def __repr__(self):
@@ -294,7 +286,7 @@ class Complex64Atom(ComplexAtom):
 
 class TimeAtom(TimeCol, Atom):
     """ Define an atom of type Time """
-    def __init__(self, shape=1, itemsize=8, flavor="numarray", warn=True):
+    def __init__(self, shape=1, itemsize=8, flavor="numpy", warn=True):
         TimeCol.__init__(self, shape=shape, itemsize=itemsize)
         self.flavor = checkflavor(flavor, self.type, warn)
     def __repr__(self):
@@ -303,7 +295,7 @@ class TimeAtom(TimeCol, Atom):
 
 class Time32Atom(TimeAtom):
     """ Define an atom of type Time32 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         TimeAtom.__init__(self, shape=shape, itemsize=4,
                           flavor=flavor, warn=warn)
     def __repr__(self):
@@ -311,7 +303,7 @@ class Time32Atom(TimeAtom):
 
 class Time64Atom(TimeAtom):
     """ Define an atom of type Time64 """
-    def __init__(self, shape=1, flavor="numarray", warn=True):
+    def __init__(self, shape=1, flavor="numpy", warn=True):
         TimeAtom.__init__(self, shape=shape, itemsize=8,
                           flavor=flavor, warn=warn)
     def __repr__(self):
@@ -339,7 +331,7 @@ class EnumAtom(EnumCol, Atom):
     the `Enum` class hold (changing `EnumCol` by `EnumAtom`, of course).
     """
 
-    def __init__(self, enum, dtype='UInt32', shape=1, flavor='numarray', warn=True):
+    def __init__(self, enum, dtype='UInt32', shape=1, flavor='numpy', warn=True):
         EnumCol.__init__(self, enum, None, dtype=dtype, shape=shape)
         self.flavor = checkflavor(flavor, self.type, warn)
 

@@ -3,6 +3,8 @@
 
 #include <hdf5.h>
 
+#include "utils.h"
+
 #define TESTING(WHAT)	{printf("%-70s", "Testing " WHAT); fflush(stdout);}
 #define PASSED()	{puts(" PASSED");fflush(stdout);}
 #define H5_FAILED()	{puts("*FAILED*");fflush(stdout);}

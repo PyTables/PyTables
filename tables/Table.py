@@ -1546,8 +1546,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 return numpy.empty(shape=0, dtype=stypeField)
 
         if coords is None:
-            # (stop-start)//step  is not enough
-            nrows = ((stop - start - 1) // step) + 1
+            #nrows = ((stop - start - 1) // step) + 1
+            nrows = len(xrange(start, stop, step))
         else:
             assert type(coords) is numpy.ndarray
             assert coords.dtype.type == numpy.int64
@@ -1985,8 +1985,9 @@ You cannot append rows to a non-chunked table.""")
         if stop > self.nrows:
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
-        # Compute the number of rows to read. (stop-start)/step does not work
-        nrows = ((stop - start - 1) / step) + 1
+        # Compute the number of rows to read.
+        #nrows = ((stop - start - 1) / step) + 1
+        nrows = len(xrange(start, stop, step))
         if len(rows) < nrows:
             raise ValueError, \
            "The value has not enough elements to fill-in the specified range"
@@ -2075,8 +2076,9 @@ The 'colname' parameter must be a string.""")
         if stop > self.nrows:
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
-        # Compute the number of rows to read. (stop-start)/step does not work
-        nrows = ((stop - start - 1) / step) + 1
+        # Compute the number of rows to read.
+        #nrows = ((stop - start - 1) / step) + 1
+        nrows = len(xrange(start, stop, step))
         if len(recarray) < nrows:
             raise ValueError, \
                   "The value has not enough elements to fill-in the specified range"
@@ -2154,8 +2156,9 @@ The 'names' parameter must be a list of strings.""")
         if stop > self.nrows:
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
-        # Compute the number of rows to read. (stop-start)/step does not work
-        nrows = ((stop - start - 1) / step) + 1
+        # Compute the number of rows to read.
+        #nrows = ((stop - start - 1) / step) + 1
+        nrows = len(xrange(start, stop, step))
         if len(recarray) < nrows:
             raise ValueError, \
            "The value has not enough elements to fill-in the specified range"

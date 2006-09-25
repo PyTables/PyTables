@@ -45,7 +45,8 @@ from definitions cimport import_array, ndarray, \
      H5Dget_space, H5Dget_create_plist, H5Pget_layout, H5Pclose, \
      H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose, \
      H5Tget_size, H5Tcreate, H5Tcopy, H5Tclose, H5Tget_sign, \
-     H5ATTRset_attribute_string, H5ATTR_set_attribute_numerical
+     H5ATTRset_attribute_string, H5ATTR_set_attribute_numerical, \
+     get_len_of_range
 
 
 # Include HDF5 types
@@ -348,7 +349,7 @@ cdef class Table:  # XXX extends Leaf
 
     # Compute the number of records to update
     nrecords = len(recarr)
-    nrows = ((stop - start - 1) / step) + 1
+    nrows = get_len_of_range(start, stop, step)
     if nrecords > nrows:
       nrecords = nrows
 

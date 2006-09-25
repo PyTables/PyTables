@@ -28,8 +28,7 @@ Misc variables:
 
 import sys
 
-import numarray
-import numarray.records as records
+import numpy
 
 from tables.constants import EXPECTED_ROWS_EARRAY, CHUNKTIMES
 from tables.utils import convertToNP, processRangeRead
@@ -180,7 +179,7 @@ class EArray(Array):
         self.flavor = None
         """
         The object representation of this array.  It can be any of
-        'numarray', 'numpy', 'numeric' or 'python'.
+        'numpy', 'numarray', 'numeric' or 'python'.
         """
         self.type = None
         """The type class of the represented array."""
@@ -275,14 +274,14 @@ class EArray(Array):
         self.stype = self.atom.stype
         self.shape = self.atom.shape
         self.flavor = self.atom.flavor
-        if self.type == "CharType" or isinstance(self.type, records.Char):
+        if self.stype == "CharType":
             self.byteorder = "non-relevant"
         else:
             # Only support for creating objects in system byteorder
             self.byteorder  = sys.byteorder
 
         # extdim computation
-        zerodims = numarray.sum(numarray.array(self.shape) == 0)
+        zerodims = numpy.sum(numpy.array(self.shape) == 0)
         if zerodims > 0:
             if zerodims == 1:
                 self.extdim = list(self.shape).index(0)
@@ -319,7 +318,7 @@ class EArray(Array):
         # Compute the real shape for atom:
         shape = list(self.shape)
         shape[self.extdim] = 0
-        if type_ == "CharType" or isinstance(type_, records.Char):
+        if stype == "CharType":
             # Add the length of the array at the end of the shape for atom
             shape.append(self.itemsize)
         shape = tuple(shape)
@@ -355,38 +354,37 @@ class EArray(Array):
         return self.atom.enum
 
 
-    def _checkTypeShape(self, naarr):
-        "Test that naarr parameter is shape and type compliant"
-        # Check the type
-        if not hasattr(naarr, "type"):  # To deal with string objects
-            datatype = records.CharType
+    def _checkTypeShape(self, nparr):
+        "Test that nparr parameter is shape and type compliant"
+
+        if nparr.dtype.kind == "S":
             # Made an additional check for strings
-            if naarr.itemsize() <> self.itemsize:
+            if nparr.itemsize != self.itemsize:
                 raise TypeError, \
 """The object '%r' has not a base string size of '%s'.""" % \
-(naarr, self.itemsize)
-        else:
-            datatype = naarr.type()
-        #print "datatype, self.type:", datatype, self.type
-        if str(datatype) <> str(self.type):
+(nparr, self.itemsize)
+
+        datatype = nparr.dtype.type
+        if datatype != self.type:
             raise TypeError, \
 """The object '%r' is not composed of elements of type '%s'.""" % \
-(naarr, self.type)
+(nparr, self.type)
 
         # The arrays conforms self expandibility?
         myshlen = len(self.shape)
-        nashlen = len(naarr.shape)
+        nashlen = len(nparr.shape)
         if myshlen != nashlen:
             raise ValueError("""\
 the ranks of the appended object (%d) and the ``%s`` EArray (%d) differ"""
                              % (nashlen, self._v_pathname, myshlen))
         for i in range(myshlen):
-            if i != self.extdim and self.shape[i] != naarr.shape[i]:
+            if i != self.extdim and self.shape[i] != nparr.shape[i]:
                 raise ValueError("""\
 the shapes of the appended object and the ``%s`` EArray \
 differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
-        # Ok. all conditions are met. Return the numarray object
-        return naarr
+        # Ok. All conditions are met. Return the NumPy object.
+        return nparr
+
 
     def append(self, sequence):
         """Append the sequence to this (enlargeable) object"""
@@ -397,11 +395,12 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         # The sequence needs to be copied to make the operation safe
         # to in-place conversion.
         copy = self.stype in ['Time64']
-        # Convert the sequence into a numarray object
-        naarr = convertToNP(sequence, self.atom, copy)
+        # Convert the sequence into a NumPy object
+        nparr = convertToNP(sequence, self.atom, copy)
         # Check if it is correct type and shape
-        naarr = self._checkTypeShape(naarr)
-        self._append(naarr)
+        nparr = self._checkTypeShape(nparr)
+        self._append(nparr)
+
 
     def truncate(self, size):
         "Truncate the extendable dimension to at most size rows"

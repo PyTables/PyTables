@@ -33,20 +33,7 @@ import sys
 import warnings
 import cPickle
 
-import numarray
-import numarray.records as records
-
-try:
-    import Numeric
-    Numeric_imported = True
-except ImportError:
-    Numeric_imported = False
-
-try:
-    import numpy
-    numpy_imported = True
-except ImportError:
-    numpy_imported = False
+import numpy
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRangeRead, convertToNP, convToFlavor, idx2long
@@ -90,6 +77,7 @@ def calcChunkSize(expectedsizeinMB, complevel):
         chunksize = 1024   # This seems optimal for compression
 
     return chunksize
+
 
 
 class VLArray(hdf5Extension.VLArray, Leaf):
@@ -216,15 +204,12 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         self._v_version = obversion
         # Only support for creating objects in system byteorder
         self.byteorder  = sys.byteorder
-        dtype = self.atom.type
-        shape = self.atom.shape
-        if dtype == "CharType" or isinstance(dtype, records.Char):
-            self.atom.type = records.CharType
         # Check for zero dims in atom shape (not allowed in VLArrays)
-        zerodims = numarray.sum(numarray.array(shape) == 0)
+        zerodims = numpy.sum(numpy.array(self.atom.shape) == 0)
         if zerodims > 0:
             raise ValueError, \
-                  "When creating VLArrays, none of the dimensions of the Atom instance can be zero."
+"""When creating VLArrays, none of the dimensions of the Atom instance can
+be zero."""
 
         self._atomictype = self.atom.type
         self._atomicstype = self.atom.stype
@@ -270,7 +255,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
     def _checkShape(self, naarr):
         # Check for zero dimensionality array
-        zerodims = numarray.sum(numarray.array(naarr.shape) == 0)
+        zerodims = numpy.sum(numpy.array(naarr.shape) == 0)
         if zerodims > 0:
             # No objects to be added
             return 0
@@ -333,7 +318,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         Example of use (code available in ``examples/vlarray1.py``)::
 
             import tables
-            from Numeric import *   # or, from numarray import *
+            from numpy import *   # or, from numarray import *
 
             # Create a VLArray:
             fileh = tables.openFile("vlarray1.h5", mode = "w")
@@ -363,7 +348,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         """
 
         if self._v_file.mode == 'r':
-            raise IOError("attempt to write over a file opened in read-only mode")
+            raise IOError(\
+                "attempt to write over a file opened in read-only mode")
 
         isseq = True
         try:  # fastest check in most cases
@@ -382,12 +368,11 @@ please put them in a single sequence object"""),
             object = sequence
         # After that, `object` is assured to be a sequence.
 
-        # Prepare the object to convert it into a numarray object
+        # Prepare the object to convert it into a NumPy object
         if self.atom.flavor == "Object":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
-            object = numarray.array(cPickle.dumps(object, 0),
-                                    type=numarray.UInt8)
+            object = numpy.array(cPickle.dumps(object, 0), dtype='uint8')
         elif self.atom.flavor == "VLString":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
@@ -398,7 +383,7 @@ please put them in a single sequence object"""),
                 object = object.encode('utf-8')
             except UnicodeError, ue:
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, ue)
-            object = numarray.array(object, type=numarray.UInt8)
+            object = numpy.array(object, dtype='uint8')
 
         if len(object) > 0:
             # The object needs to be copied to make the operation safe
@@ -425,6 +410,7 @@ please put them in a single sequence object"""),
         self._initLoop()
         return self
 
+
     def __iter__(self):
         """Iterate over all the rows."""
 
@@ -437,6 +423,7 @@ please put them in a single sequence object"""),
             self._initLoop()
         return self
 
+
     def _initLoop(self):
         "Initialization for the __iter__ iterator"
 
@@ -445,6 +432,7 @@ please put them in a single sequence object"""),
         self._row = -1   # Sentinel
         self._init = True  # Sentinel
         self.nrow = self._start - self._step    # row number
+
 
     def next(self):
         "next() method for __iter__() that is called on each iteration"
@@ -462,6 +450,7 @@ please put them in a single sequence object"""),
             self.nrow += self._step
             self._nrowsread += self._step
             return self.listarr[self._row]
+
 
     def __getitem__(self, key):
         """Returns a vlarray row or slice.
@@ -487,6 +476,7 @@ please put them in a single sequence object"""),
         else:
             raise IndexError, "Non-valid index or slice: %s" % \
                   key
+
 
     def __setitem__(self, keys, value):
         """Updates a vlarray row "keys" by setting it to "value".
@@ -532,8 +522,7 @@ please put them in a single sequence object"""),
             # To support negative values
             nrow += self.nrows
         # Process the second index
-        if (type(rng) in (int,long) or
-            (numpy_imported and isinstance(rng, numpy.integer))):
+        if type(rng) in (int,long) or isinstance(rng, numpy.integer):
             start = rng; stop = start+1; step = 1
         elif isinstance(rng, slice):
             start, stop, step = rng.start, rng.stop, rng.step
@@ -543,12 +532,11 @@ please put them in a single sequence object"""),
             raise IndexError, "Non-valid second index or slice: %s" % rng
 
         object = value
-        # Prepare the object to convert it into a numarray object
+        # Prepare the object to convert it into a NumPy object
         if self.atom.flavor == "Object":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
-            object = numarray.array(cPickle.dumps(object, 0),
-                                    type=numarray.UInt8)
+            object = numpy.array(cPickle.dumps(object, 0), dtype='uint8')
         elif self.atom.flavor == "VLString":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
@@ -559,7 +547,7 @@ please put them in a single sequence object"""),
                 object = object.encode('utf-8')
             except UnicodeError, ue:
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, ue)
-            object = numarray.array(object, type=numarray.UInt8)
+            object = numpy.array(object, type='uint8')
 
         value = convertToNP(object, self.atom)
         nobjects = self._checkShape(value)
@@ -587,6 +575,7 @@ please put them in a single sequence object"""),
         if naarr.size() > 0:
             self._modify(nrow, naarr, nobjects)
 
+
     # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=1):
         """Read the array from disk and return it as a self.flavor object."""
@@ -596,20 +585,22 @@ please put them in a single sequence object"""),
             listarr = []
         else:
             listarr = self._readArray(start, stop, step)
-        if self.flavor <> "numarray":
+        if self.flavor <> "numpy":
             # Convert the list to the right flavor
-            outlistarr = [convToFlavor(self, arr, "VLArray")
-                          for arr in listarr ]
+            outlistarr = [ convToFlavor(self, arr, "VLArray")
+                           for arr in listarr ]
             if self.flavor == "Tuple":
                 outlistarr = tuple(outlistarr)
         else:
-            # NumArray flavor does not need additional conversion
+            # 'numpy' flavor does not need additional conversion
             outlistarr = listarr
         return outlistarr
+
 
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf"
+
         # Build the new VLArray object
         object = VLArray(
             group, name, self.atom, title=title, filters=filters,

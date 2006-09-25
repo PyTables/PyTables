@@ -738,3 +738,35 @@ size_t get_complex_precision(hid_t type_id) {
 }
 
 /* End of complex additions */
+
+
+/* The get_len_of_range has been taken from Python interpreter */
+
+/* Return number of items in range/xrange (lo, hi, step).  step > 0
+ * required.  Return a value < 0 if & only if the true value is too
+ * large to fit in a signed long.
+ */
+hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step)
+{
+  /* -------------------------------------------------------------
+     If lo >= hi, the range is empty.
+     Else if n values are in the range, the last one is
+     lo + (n-1)*step, which must be <= hi-1.  Rearranging,
+     n <= (hi - lo - 1)/step + 1, so taking the floor of the RHS gives
+     the proper value.  Since lo < hi in this case, hi-lo-1 >= 0, so
+     the RHS is non-negative and so truncation is the same as the
+     floor.  Letting M be the largest positive long, the worst case
+     for the RHS numerator is hi=M, lo=-M-1, and then
+     hi-lo-1 = M-(-M-1)-1 = 2*M.  Therefore unsigned long has enough
+     precision to compute the RHS exactly.
+     Note: We are using here 64 bit ints because PyTables can deal
+     with 64-bit addresses even on 32-bit platforms.
+     F. Altet 2006-09-25
+     ---------------------------------------------------------------*/
+  hsize_t n = 0;
+  if (lo < hi) {
+    hsize_t diff = hi - lo - 1;
+    n = (hsize_t)(diff / step + 1);
+  }
+  return n;
+}

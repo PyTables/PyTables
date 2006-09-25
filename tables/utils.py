@@ -259,6 +259,7 @@ def idx2long(index):
 
 # This function is appropriate for calls to __getitem__ methods
 def processRange(nrows, start=None, stop=None, step=1):
+
     if step and step < 0:
         raise ValueError, "slice step cannot be negative"
     # (start, stop, step) = slice(start, stop, step).indices(nrows)  # Python > 2.3
@@ -351,7 +352,7 @@ Sorry, but this object is not supported in this context. The error was: <%s>
     # Get copies of data if necessary for getting a contiguous buffer.
     if (copy or (not nparr.flags.contiguous) or
         (nparr.dtype.type <> atom.type)):
-        nparr = numpy.array(nparr, type=atom.type)
+        nparr = numpy.array(nparr, dtype=atom.type)
 
     return nparr
 
@@ -402,7 +403,7 @@ def convertNPToNumArray(arr):
             buffer_ = arr.item()
         else:
             buffer_ = arr
-        arr = numarray.strings.arrays(buffer=buffer_)
+        arr = numarray.strings.array(buffer=buffer_)
     else:
         # This works for regular homogeneous arrays and even for rank-0 arrays
         arr = numpy.asarray(arr)  # Array protocol

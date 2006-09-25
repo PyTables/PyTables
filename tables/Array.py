@@ -517,7 +517,16 @@ Sorry, but this object is not supported.""" % (arr)
         # Compute the shape for the container properly. Fixes #1288792
         shape = []
         for dim in xrange(len(self.shape)):
-            new_dim = ((stopl[dim] - startl[dim] - 1) / stepl[dim]) + 1
+            # The negative division operates differently with python scalars
+            # and numpy scalars (which are similar to C conventions). See:
+            # http://www.python.org/doc/faq/programming.html#why-does-22-10-return-3
+            # and
+            # http://www.peterbe.com/Integer-division-in-programming-languages
+            # for more info on this issue.
+            # I've finally decided to rely on the len(xrange) function.
+            # F. Altet 2006-09-25
+            #new_dim = ((stopl[dim] - startl[dim] - 1) / stepl[dim]) + 1
+            new_dim = len(xrange(startl[dim], stopl[dim], stepl[dim]))
             if not (new_dim == 1 and stop_None[dim]):
             #if not stop_None[dim]:
                 # Append dimension
@@ -585,6 +594,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         if narr.size:
             self._modify(startl, stepl, countl, narr)
 
+
     # Accessor for the _readArray method in superclass
     def _readSlice(self, startl, stopl, stepl, shape):
         if self.stype == "CharType":
@@ -622,7 +632,8 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
             extdim = self.extdim
 
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-        rowstoread = ((stop - start - 1) / step) + 1
+        #rowstoread = ((stop - start - 1) / step) + 1
+        rowstoread = len(xrange(start, stop, step))
         shape = list(self.shape)
         if shape:
             shape[extdim] = rowstoread

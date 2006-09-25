@@ -69,7 +69,9 @@ from definitions cimport  \
      H5ATTRset_attribute_string, H5ATTRset_attribute_string_CAarray, \
      H5ATTRset_attribute_numerical_NParray, H5ATTRget_attribute, \
      H5ATTRget_attribute_string, H5ATTRget_attribute_string_CAarray, \
-     H5ATTR_find_attribute
+     H5ATTR_find_attribute, \
+     set_cache_size, Giterate, Aiterate, H5UIget_info, get_len_of_range
+
 
 
 # Include conversion tables
@@ -153,13 +155,6 @@ cdef extern from "arraytypes.h":
   size_t getArrayType(hid_t type_id, int *fmt)
 
 
-# Helper routines
-cdef extern from "utils.h":
-  herr_t set_cache_size(hid_t file_id, size_t cache_size)
-  object Giterate(hid_t parent_id, hid_t loc_id, char *name)
-  object Aiterate(hid_t loc_id)
-  object H5UIget_info(hid_t loc_id, char *name, char *byteorder)
-
 
 
 #----------------------------------------------------------------------------
@@ -226,7 +221,7 @@ cdef class File:
   cdef char    *name
 
 
-  def __new__(self, char *name, char *mode, char *title,
+  def __new__(self, object name, char *mode, char *title,
               object trTable, char *root, object filters,
               size_t metadataCacheSize, size_t nodeCacheSize):
     # Create a new file using default properties
@@ -1035,6 +1030,8 @@ cdef class Array(Leaf):
     if self._v_file._isPTFile:
       H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor)
     self.flavor = flavor  # Gives class visibility to flavor
+    # Important to release flavor, because it has been malloc'ed!
+    if flavor: free(<void *>flavor)
 
     # Allocate space for the dimension chunking info
     self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
@@ -1179,7 +1176,7 @@ cdef class Array(Leaf):
     rbuf = nparr.data
 
     # Number of rows to read
-    nrows = ((stop - start - 1) / step) + 1  # (stop-start)/step  do not work
+    nrows = get_len_of_range(start, stop, step)
     if hasattr(self, "extdim"):
       extdim = self.extdim
     else:
@@ -1225,7 +1222,8 @@ cdef class Array(Leaf):
 
 
   def __dealloc__(self):
-    free(<void *>self.dims)
+    if self.dims:
+      free(<void *>self.dims)
     if self.maxdims:
       free(<void *>self.maxdims)
     if self.dims_chunk:
@@ -1365,6 +1363,8 @@ cdef class VLArray(Leaf):
     if self._v_file._isPTFile:
       H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor)
     self.flavor = flavor  # Gives class visibility to flavor
+    # Important to release flavor, because it has been malloc'ed!
+    if flavor: free(<void *>flavor)
     self.byteorder = byteorder  # Gives class visibility to byteorder
 
     # Get the array type
@@ -1460,7 +1460,7 @@ cdef class VLArray(Leaf):
     cdef object buf, nparr, shape, datalist, dtype
 
     # Compute the number of rows to read
-    nrows = ((stop - start - 1) / step) + 1  # (stop-start)/step  do not work
+    nrows = get_len_of_range(start, stop, step)
     if start + nrows > self.nrows:
       raise HDF5ExtError(
         "Asking for a range of rows exceeding the available ones!.")

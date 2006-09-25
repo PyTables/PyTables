@@ -436,5 +436,11 @@ cdef extern from "H5ARRAY.h":
                          H5T_class_t *super_class_id, char *byteorder)
 
 
-
+# Some utilities
+cdef extern from "utils.h":
+  herr_t set_cache_size(hid_t file_id, size_t cache_size)
+  object Giterate(hid_t parent_id, hid_t loc_id, char *name)
+  object Aiterate(hid_t loc_id)
+  object H5UIget_info(hid_t loc_id, char *name, char *byteorder)
+  hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step)
 

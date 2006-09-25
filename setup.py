@@ -63,7 +63,7 @@ def check_import(pkgname, pkgver):
     globals()[pkgname] = mod
 
 check_import('numarray', '1.5')
-check_import('numpy', '1.0b2')
+check_import('numpy', '1.0')
 
 # Check if Pyrex is installed or not
 try:
@@ -514,6 +514,7 @@ interactively save and retrieve large amounts of data.
                                 sources = [TableExtension,
                                            "src/H5ATTR.c",
                                            "src/H5TB-opt.c",
+                                           "src/utils.c",
                                            ],
                                 library_dirs = lib_dirs,
                                 libraries = TableExtension_libs,
