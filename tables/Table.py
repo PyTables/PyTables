@@ -938,7 +938,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         for colname in colnames:  # then add types of columns
             # Converting to a string may not be necessary when the
             # transition from numarray to NumPy is complete.
-            coldtype = str(condvars[colname].type)
+            coldtype = condvars[colname].stype
             typemap[colname] = _nxTypeFromColumn[coldtype]
 
         # Get the set of columns with usable indexes.
@@ -2801,6 +2801,7 @@ class Column(object):
                     if column is non-nested)
         descr -- the parent description object
         type -- the type of the column
+        stype -- the string representation of the type of the column
         shape -- the shape of the column
         index -- the Index object (None if doesn't exists)
         dirty -- whether the index is dirty or not (property)
@@ -2853,6 +2854,7 @@ class Column(object):
         self.pathname = descr._v_colObjects[name]._v_pathname
         self.descr = descr
         self.type = descr._v_types[name]
+        self.stype = descr._v_stypes[name]
         self.shape = descr._v_shapes[name]
         # Check whether an index exists or not
         indexname = _getIndexColName(table._v_parent, table._v_name,

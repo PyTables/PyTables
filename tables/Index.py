@@ -36,9 +36,6 @@ import os, os.path
 import tempfile
 import weakref
 
-import numarray
-from numarray import strings
-from numarray.mlab import median
 import numpy
 
 import tables.indexesExtension as indexesExtension
@@ -282,14 +279,15 @@ def nextafter(x, direction, dtype, itemsize):
     else:
         if type(x) not in (int, long, float):
             raise ValueError, "You need to pass integers or floats in this context."
-        if isinstance(numarray.typeDict[dtype], numarray.IntegralType):
+        npdtype = numpy.dtype(dtype)
+        if npdtype.kind in ['i', 'u']:
             return IntTypeNextAfter(x, direction, itemsize)
-        elif str(dtype) == "Float32":
+        elif npdtype.name == "float32":
             if direction < 0:
                 return PyNextAfterF(x,x-1)
             else:
                 return PyNextAfterF(x,x+1)
-        elif str(dtype) == "Float64":
+        elif npdtype.name == "float64":
             if direction < 0:
                 return PyNextAfter(x,x-1)
             else:
@@ -363,8 +361,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     It enables to create indexes of Columns of Table objects.
 
-    All Numeric and numarray typecodes are supported except for complex
-    datatypes.
+    All NumPy datatypes are supported except for complex datatypes.
 
     Methods:
 
@@ -603,15 +600,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Create the Array for last (sorted) row values + bounds
         shape = 2 + nbounds_inslice + self.slicesize
         if self.stype == "CharType":
-            arr = strings.array(None, shape=shape, itemsize=self.itemsize)
+            arr = numpy.empty(shape=shape, dtype="S%s"%self.itemsize)
         else:
-            arr = numarray.array(None, shape=shape, type=self.type)
+            arr = numpy.empty(shape=shape, dtype=self.type)
         sortedLR = LastRowArray(self, 'sortedLR', arr,
                                 "Last Row sorted values + bounds")
 
         # Create the Array for reverse indexes in last row
         shape = self.slicesize     # enough for indexes and length
-        arr = numarray.zeros(shape=shape, type=numarray.Int64)
+        arr = numpy.zeros(shape=shape, dtype='int64')
         LastRowArray(self, 'indicesLR', arr, "Last Row reverse indices")
 
         # All bounds values (+begin+end) are at the beginning of sortedLR
@@ -633,16 +630,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def append(self, arr):
         """Append the array to the index objects"""
 
-        # Objects that arrive here should be numarray objects already
+        # Objects that arrive here should be numpy objects already
         # Save the sorted array
         sorted = self.sorted
-        if self.stype == "CharType":
-            s=arr.argsort()
-        else:
-            s=numarray.argsort(arr)
+        s=arr.argsort()
         # Indexes in PyTables Pro systems are 64-bit long.
         offset = sorted.nrows * self.slicesize
-        self.indices.append(numarray.array(s, type="Int64") + offset)
+        self.indices.append(numpy.array(s, dtype="int64") + offset)
         #sarr = arr[s]
         # Doing a sort in-place is faster than a fancy selection
         arr.sort(); sarr = arr
@@ -656,9 +650,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # Compute the medians
             sarr.shape = (len(sarr)/cs, cs)
             sarr.transpose()
-            smedian = median(sarr)
+            smedian = numpy.median(sarr)
             self.mbounds.append(smedian)
-            self.mranges.append([median(smedian)])
+            self.mranges.append([numpy.median(smedian)])
         # Update nrows after a successful append
         self.nrows = sorted.nrows
         self.nelements = self.nrows * self.slicesize
@@ -678,21 +672,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         assert nelementsLR == len(arr), \
 "The number of elements to append is incorrect!. Report this to the authors."
         # Sort the array
-        if self.stype == "CharType":
-            s=arr.argsort()
-            # build the cache of bounds
-            # this is a rather weird way of concatenating chararrays, I agree
-            # We might risk loosing precision here....
-            self.bebounds = arr[s[::self.chunksize]]
-            self.bebounds.resize(self.bebounds.shape[0]+1)
-            self.bebounds[-1] = arr[s[-1]]
-        else:
-            s=numarray.argsort(arr)
-            # build the cache of bounds
-            self.bebounds = numarray.concatenate([arr[s[::self.chunksize]],
-                                                  arr[s[-1]]])
+        s=arr.argsort()
+        # build the cache of bounds
+        self.bebounds = numpy.concatenate((arr[s[::self.chunksize]],
+                                           [arr[s[-1]]]))
         # Save the reverse index array
-        indicesLR[:len(arr)] = numarray.array(s, type="Int64") + offset
+        indicesLR[:len(arr)] = numpy.array(s, dtype="int64") + offset
         # The number of elements is at the end of the array
         indicesLR[-1] = nelementsLR
         # Save the number of elements, bounds and sorted values
@@ -857,8 +842,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         tmp_sorted = self.tmp.sorted
         tmp_indices = self.tmp.indices
         #tmp_sorted, tmp_indices = self.create_sorted_indices()
-        tsorted = numarray.array(None, shape=self.slicesize, type=self.type)
-        tindices = numarray.array(None, shape=self.slicesize, type='Int64')
+        tsorted = numpy.empty(shape=self.slicesize, dtype=self.type)
+        tindices = numpy.empty(shape=self.slicesize, dtype='int64')
         cs = self.chunksize
         ncs = self.nchunkslice
         nsb = self.nslicesblock
@@ -876,11 +861,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 # if only zero or one chunks remains we are done
                 break
             bounds = boundsobj[nblock*ncb:nblock*ncb+ncb2]
-            sbounds_idx = numarray.argsort(bounds)
+            sbounds_idx = numpy.argsort(bounds)
             offset = nblock*nsb
             # Do a plain copy on complete block if it doesn't need
             # to be swapped
-            if numarray.alltrue(sbounds_idx == numarray.arange(ncb2)):
+            if numpy.alltrue(sbounds_idx == numpy.arange(ncb2)):
                 for i in xrange(ncb2/ncs):
                     ns = offset+i
                     tmp_sorted[ns] = sorted[ns]
@@ -933,9 +918,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 ranges = self.ranges[sblock*nss+1:sblock*nss+nss2:2]
             elif mode == "median":
                 ranges = self.mranges[sblock*nss:sblock*nss+nss2]
-            sranges_idx = numarray.argsort(ranges)
+            sranges_idx = numpy.argsort(ranges)
             # Don't swap the superblock at all if it doesn't need to
-            if numarray.alltrue(sranges_idx == numarray.arange(nss2)):
+            if numpy.alltrue(sranges_idx == numpy.arange(nss2)):
                 continue
             sranges = ranges[sranges_idx]
             ns = sblock*nss2
@@ -988,7 +973,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # First, reorder the complete slices
         for nslice in xrange(0, self.sorted.nrows):
             block = tmp_sorted[nslice]
-            sblock_idx = numarray.argsort(block)
+            sblock_idx = numpy.argsort(block)
             sblock = block[sblock_idx]
             # Uncomment the next line for debugging
             #print "sblock(reorder_slices)-->", sblock
@@ -1003,9 +988,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # update median bounds
             sblock.shape= (ncs, cs)
             sblock.transpose()
-            smedian = median(sblock)
+            smedian = numpy.median(sblock)
             self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
-            self.mranges[nslice] = median(smedian)
+            self.mranges[nslice] = numpy.median(smedian)
 
 
     def compute_overlaps(self, message, verbose):
@@ -1017,7 +1002,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         nslices = ranges.shape[0]
         noverlaps = 0
         soverlap = 0.
-        multiplicity = numarray.zeros(nslices)
+        multiplicity = numpy.zeros(shape=nslices, dtype="int32")
         for i in xrange(nslices):
             for j in xrange(i+1, nslices):
                 # overlap is a positive difference between and slice stop
@@ -1132,18 +1117,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """Do a binary search in this index for an item."""
         tlen = 0
         # Do the lookup for values fullfilling the conditions
-        if self.is_pro:
-            for i in xrange(sorted.nrows):
-                (start, stop) = sorted._searchBin(i, item)
-                self.starts[i] = start
-                self.lengths[i] = stop - start
-                tlen += stop - start
-        else:
-            for i in xrange(sorted.nrows):
-                (start, stop) = sorted._searchBinStd(i, item)
-                self.starts[i] = start
-                self.lengths[i] = stop - start
-                tlen += stop - start
+        for i in xrange(sorted.nrows):
+            (start, stop) = sorted._searchBin(i, item)
+            self.starts[i] = start
+            self.lengths[i] = stop - start
+            tlen += stop - start
         return tlen
 
 
@@ -1278,7 +1256,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Get the coordinates for those values
         ilimit = table.opsValues
         ctype = column.type
-        sctype = str(ctype)
+        sctype = column.stype
         itemsize = table.colitemsizes[column.pathname]
 
         # Check that limits are compatible with type
@@ -1291,20 +1269,20 @@ Bounds (or range limits) for string columns can only be strings.""")
                 else:
                     continue
 
-            nactype = numarray.typeDict[sctype]
+            typekind = numpy.dtype(ctype).kind
 
             # Check for booleans
-            if isinstance(nactype, numarray.BooleanType):
+            if typekind == 'b':
                 if type(limit) not in (int, long, bool):
                     raise TypeError("""\
 Bounds (or range limits) for bool columns can only be ints or booleans.""")
             # Check for ints
-            elif isinstance(nactype, numarray.IntegralType):
+            elif typekind in ['i', 'u']:
                 if type(limit) not in (int, long, float):
                     raise TypeError("""\
 Bounds (or range limits) for integer columns can only be ints or floats.""")
             # Check for floats
-            elif isinstance(nactype, numarray.FloatingType):
+            elif typekind == 'f':
                 if type(limit) not in (int, long, float):
                     raise TypeError("""\
 Bounds (or range limits) for float columns can only be ints or floats.""")

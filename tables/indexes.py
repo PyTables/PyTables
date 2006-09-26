@@ -38,9 +38,6 @@ from EArray import EArray
 from VLArray import Atom, StringAtom
 import indexesExtension
 
-import numarray
-import numarray.strings as strings
-import numarray.records as records
 import numpy
 
 from bisect import bisect_left, bisect_right
@@ -99,8 +96,8 @@ def calcChunksize(expectedrows, optlevel=0, testmode=False):
     expKrows = expectedrows / 1000000.  # Multiples of one million
     #print "expKrows:", expKrows
 
-    # Hint: the slicesize should not pass 500 or 1000 thousand
-    # That would make numarray to consume lots of memory for sorting
+    # Hint: the slicesize should not exceed 500 or 1000 thousand.
+    # That would make NumPy to consume lots of memory for sorting
     # this slice.
     # In general, one should favor a small chunksize (100 ~ 1000) if one
     # wants to reduce the latency for indexed queries. However, keep in
@@ -383,8 +380,7 @@ class LastRowArray(NotLoggedMixin, Array, indexesExtension.LastRowArray):
 class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     """Represent the index (sorted or reverse index) dataset in HDF5 file.
 
-    All Numeric and numarray typecodes are supported except for complex
-    datatypes.
+    All NumPy typecodes are supported except for complex datatypes.
 
     Methods:
 
@@ -497,9 +493,9 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
 
     def _g_postInitHook(self):
         # initialize some index buffers
-        self._startl = numarray.array(None, shape=(2,), type=numarray.Int64)
-        self._stopl = numarray.array(None, shape=(2,), type=numarray.Int64)
-        self._stepl = numarray.array([1,1], shape=(2,), type=numarray.Int64)
+        self._startl = numpy.empty(shape=(2,), dtype='int64')
+        self._stopl = numpy.empty(shape=(2,), dtype='int64')
+        self._stepl = numpy.array([1,1], dtype='int64')
         # Set ``slicesize`` and ``chunksize`` when opening an existing node;
         # otherwise, they are already set.
         if not self._v_new:
@@ -515,17 +511,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     def append(self, arr):
         """Append the object to this (enlargeable) object"""
 
-#         # XYX Eliminar aco quan tinguem la migracio de hdf5Extension feta
-#         if type(arr) is numpy.ndarray:
-#             if arr.dtype.char == 'S':
-#                 print "arr-->", arr
-#                 print "cadena", arr.dtype.itemsize, arr.shape
-#                 arr = strings.array(arr)
-# #                 arr = strings.array(arr.data, shape=arr.shape,
-# #                                     itemsize=arr.dtype.itemsize)
-#             else:
-#                 print "nombre"
-#                 arr2 = numpy.array(arr)
         extent = arr.shape[0]
         arr.shape = (1, extent)
         self._append(arr)
@@ -583,89 +568,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
                                               chunksize*(nchunk2+1))
             result2 = self._bisect_right(chunk, item2, chunksize)
             result2 += chunksize*nchunk2
-        return (result1, result2)
-
-
-    # This version of searchBin does not use caches (1st or 2nd) at all
-    # This is coded in pyrex as well, but the improvement in speed is very
-    # little. So, it's better to let _searchBin live here.
-    def _searchBinStd(self, nrow, item):
-        slicesize = self.shape[1]
-        hi = slicesize
-        item1, item2 = item
-        item1done = 0; item2done = 0
-        chunksize = self.chunksize # Number of elements/chunksize # change here
-        niter = 1
-
-        # First, look at the beginning of the slice (that could save lots of time)
-        buffer = self._readSortedSlice(nrow, 0, chunksize)
-        #buffer = xrange(0, chunksize)  # test  # 0.02 over 0.5 seg
-        # Look for items at the beginning of sorted slices
-        result1 = self._bisect_left(buffer, item1, chunksize)
-        if 0 <= result1 < chunksize:
-            item1done = 1
-        result2 = self._bisect_right(buffer, item2, chunksize)
-        if 0 <= result2 < chunksize:
-            item2done = 1
-        if item1done and item2done:
-            return (result1, result2)
-
-        # Then, look for items at the end of the sorted slice
-        buffer = self._readSortedSlice(nrow, hi-chunksize, hi)
-        #buffer = xrange(hi-chunksize, hi)  # test
-
-        niter += 1
-        if not item1done:
-            result1 = self._bisect_left(buffer, item1, chunksize)
-            if 0 < result1 <= chunksize:
-                item1done = 1
-                result1 = hi - chunksize + result1
-        if not item2done:
-            result2 = self._bisect_right(buffer, item2, chunksize)
-            if 0 < result2 <= chunksize:
-                item2done = 1
-                result2 = hi - chunksize + result2
-        if item1done and item2done:
-            return (result1, result2)
-
-        # Finally, do a lookup for item1 and item2 if they were not found
-        # Lookup in the middle of slice for item1
-        if not item1done:
-            lo = 0
-            hi = slicesize
-            beginning = 1
-            result1 = 1  # a number different from 0
-            while beginning and result1 != 0:
-                (result1, beginning, iter) = \
-                          self._interSearch_left(nrow, chunksize,
-                                                 item1, lo, hi)
-                tmpresult1 = result1
-                niter = niter + iter
-                if result1 == hi:  # The item is completely at right
-                    break
-                else:
-                    hi = result1        # one chunk to the left
-                    lo = hi - chunksize
-            result1 = tmpresult1
-        # Lookup in the middle of slice for item2
-        if not item2done:
-            lo = 0
-            hi = slicesize
-            ending = 1
-            result2 = 1  # a number different from 0
-            while ending and result2 != slicesize:
-                (result2, ending, iter) = \
-                          self._interSearch_right(nrow, chunksize,
-                                                  item2, lo, hi)
-                tmpresult2 = result2
-                niter = niter + iter
-                if result2 == lo:  # The item is completely at left
-                    break
-                else:
-                    hi = result2 + chunksize      # one chunk to the right
-                    lo = result2
-            result2 = tmpresult2
-            niter = niter + iter
         return (result1, result2)
 
 

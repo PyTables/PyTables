@@ -324,7 +324,9 @@ class BasicTestCase(unittest.TestCase):
 
         if self.flavor == "numarray":
             object__ = convertNPToNumArray(object__)
-            object__ = numarray.swapaxes(object__, 0, self.extdim)
+            # This creates memory crashes
+            #object__ = numarray.swapaxes(object__, 0, self.extdim)
+            object__.swapaxes(0, self.extdim)
         elif self.flavor == "numeric":
             object__ = Numeric.asarray(object__)
             object__ = Numeric.swapaxes(object__, 0, self.extdim)
@@ -2213,7 +2215,6 @@ class Rows64bitsTestCase(unittest.TestCase):
             if stop > 127:
                 stop -= 256
             start = stop - 10
-            #print "start, stop-->", start, stop
             print "Should look like-->", numpy.arange(start, stop,
                                                       dtype='Int8')
 

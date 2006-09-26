@@ -235,10 +235,10 @@ cdef class IndexArray(Array):
 
     # Create the buffer for reading sorted data chunks
     if <object>self.bufferlb is None:
-      if str(self.type) == "CharType":
+      if self.type == "CharType":
         dtype = "|S%s" % self.itemsize
       else:
-        dtype = str(self.type)
+        dtype = self.type
       self.bufferlb = numpy.empty(dtype=dtype, shape=self.chunksize)
       # Internal buffers
       # Get the pointers to the different buffer data areas
@@ -375,64 +375,6 @@ cdef class IndexArray(Array):
       if x < getPythonScalar(a, mid*stride): hi = mid
       else: lo = mid+1
     return lo
-
-
-  def _interSearch_left(self, int nrow, int chunksize, item, int lo, int hi):
-    cdef int niter, mid, start, result, beginning
-
-    niter = 0
-    beginning = 0
-    while lo < hi:
-      mid = (lo+hi)/2
-      start = (mid/chunksize)*chunksize
-      buffer = self._readSrotedSlice(nrow, start, start+chunksize)
-      #buffer = xrange(start,start+chunksize) # test
-      niter = niter + 1
-      result = self._bisect_left(buffer, item, chunksize)
-      if result == 0:
-        if buffer[result] == item:
-          lo = start
-          beginning = 1
-          break
-        # The item is at left
-        hi = mid
-      elif result == chunksize:
-        # The item is at the right
-        lo = mid+1
-      else:
-        # Item has been found. Exit the loop and return
-        lo = result+start
-        break
-    return (lo, beginning, niter)
-
-
-  def _interSearch_right(self, int nrow, int chunksize, item, int lo, int hi):
-    cdef int niter, mid, start, result, ending
-    cdef void *rbuflb
-    cdef object buffer
-
-    niter = 0;  ending = 0
-    while lo < hi:
-      mid = (lo+hi)/2
-      start = (mid/chunksize)*chunksize
-      buffer = self._readSortedSlice(nrow, start, start+chunksize)
-      niter = niter + 1
-      result = self._bisect_right(buffer, item, chunksize)
-      if result == 0:
-        # The item is at left
-        hi = mid
-      elif result == chunksize:
-        if buffer[result-1] == item:
-          lo = start+chunksize
-          ending = 1
-          break
-        # The item is at the right
-        lo = mid+1
-      else:
-        # Item has been found. Exit the loop and return
-        lo = result+start
-        break
-    return (lo, ending, niter)
 
 
   # Get the bounds from the cache, or read them
