@@ -187,6 +187,9 @@ def split_condition(condition, typemap, indexedcols):
     # Get the expression tree and split the indexable part out.
     expr = stringToExpression(condition, typemap, {})
     idxvar, idxops, idxlims, resexpr = _split_expression(expr, indexedcols)
+    if resexpr and resexpr.astKind != 'bool':
+        raise TypeError( "condition ``%s`` does not have a boolean type"
+                         % condition )
 
     # Get the variable names used in the residual condition,
     # and check that they are defined in `typemap`.
