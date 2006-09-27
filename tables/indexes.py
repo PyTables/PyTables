@@ -456,8 +456,8 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         """The reordering optimizations."""
         if atom is not None:
             sizes, reord_opts = calcChunksize(expectedrows, optlevel, testmode)
-            self.superblocksize, self.blocksize, self.slicesize, self.chunksize = \
-                                 sizes
+            (self.superblocksize, self.blocksize,
+             self.slicesize, self.chunksize) = sizes
             self.reord_opts = reord_opts
 
         super(IndexArray, self).__init__(

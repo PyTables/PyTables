@@ -887,7 +887,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        rowList1 = table1.getWhereList(t1col <= sl, "numarray")
+        rowList1 = table1.getWhereList(t1col <= sl)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if p["var1"] <= sl]
@@ -904,7 +904,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        rowList1 = table1.getWhereList(t1col > sl, "numarray")
+        rowList1 = table1.getWhereList(t1col > sl)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if p["var1"] > sl]
@@ -921,7 +921,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        rowList1 = table1.getWhereList(t1col >= sl, "numarray")
+        rowList1 = table1.getWhereList(t1col >= sl)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if p["var1"] >= sl]
@@ -1102,7 +1102,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        rowList1 = table1.getWhereList(t1col <= sl, "numarray")
+        rowList1 = table1.getWhereList(t1col <= sl)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] <= sl]
@@ -1119,7 +1119,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        rowList1 = table1.getWhereList(t1col > sl, "numarray")
+        rowList1 = table1.getWhereList(t1col > sl)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] > sl]
@@ -1136,7 +1136,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        rowList1 = table1.getWhereList(t1col >= sl, "numarray")
+        rowList1 = table1.getWhereList(t1col >= sl)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] >= sl]
@@ -1253,7 +1253,7 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var4
 
         # First selection
-        rowList1 = table1.getWhereList(t1col < sl, "numarray")
+        rowList1 = table1.getWhereList(t1col < sl)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] < sl]
@@ -1270,7 +1270,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        rowList1 = table1.getWhereList(t1col <= sl, "numarray")
+        rowList1 = table1.getWhereList(t1col <= sl)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] <= sl]
@@ -1287,7 +1287,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        rowList1 = table1.getWhereList(t1col > sl, "numarray")
+        rowList1 = table1.getWhereList(t1col > sl)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] > sl]
@@ -1304,7 +1304,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        rowList1 = table1.getWhereList(t1col >= sl, "numarray")
+        rowList1 = table1.getWhereList(t1col >= sl)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] >= sl]

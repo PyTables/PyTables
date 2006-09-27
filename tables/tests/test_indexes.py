@@ -11,7 +11,7 @@ from common import verbose, allequal, heavy, cleanup
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
-import numarray
+import numpy
 
 class Small(IsDescription):
     var1 = StringCol(length=4, dflt="", pos=1)
@@ -68,7 +68,7 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         #print "File %s not removed!" % self.file
-        os.remove(self.file)
+        #os.remove(self.file)
         cleanup(self)
 
     #----------------------------------------
@@ -206,10 +206,10 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList(table.cols.var2 == 0, "numarray", True)
+        rowList1 = table.getWhereList(table.cols.var2 == 0, "numpy", True)
         rowList2 = [p.nrow for p in table if p['var2'] == 0]
-        # Convert to a numarray object
-        rowList2 = numarray.array(rowList2, numarray.Int64)
+        # Convert to a NumPy object
+        rowList2 = numpy.array(rowList2, numpy.int64)
         if verbose:
             print "Selected values:", rowList1
             print "Should look like:", rowList2
@@ -1328,7 +1328,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             # Auto: the index should exists, and have equal elements
             assert allequal(index2.sorted.read(), index1.sorted.read())
             # The next assertion cannot be guaranteed. Why?
-            # sorting algorithm in numarray is not deterministic?
+            # sorting algorithm in numpy is not deterministic?
             #assert allequal(index2.indices.read(), index1.indices.read())
 
     def test11_copyIndex(self):

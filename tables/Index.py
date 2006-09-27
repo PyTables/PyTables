@@ -114,24 +114,27 @@ infinityMap = {
     'Float32': [-infinityF, infinityF],
     'Float64': [-infinity,  infinity], }
 
+
 # Utility functions
-def infType(type, itemsize, sign=+1):
+def infType(cstype, itemsize, sign=+1):
     """Return a superior limit for maximum representable data type"""
 
-    if str(type) == "CharType":
+    if cstype == "CharType":
         if sign:
             return "\x00"*itemsize
         else:
             return "\xff"*itemsize
     try:
-        return infinityMap[type][sign >= 0]
+        return infinityMap[cstype][sign >= 0]
     except KeyError:
         raise TypeError, "Type %s is not supported" % type
+
 
 # This check does not work for Python 2.2.x or 2.3.x (!)
 def IsNaN(x):
     """a simple check for x is NaN, assumes x is float"""
     return x != x
+
 
 def PyNextAfter(x, y):
     """returns the next float after x in the direction of y if possible, else returns x"""
@@ -165,6 +168,7 @@ def PyNextAfter(x, y):
         m -= epsilon
 
     return math.ldexp(m, e)
+
 
 def PyNextAfterF(x, y):
     """returns the next IEEE single after x in the direction of y if possible, else returns x"""
@@ -268,18 +272,18 @@ def IntTypeNextAfter(x, direction, itemsize):
             return int(PyNextAfter(x,x+1))+1
 
 
-def nextafter(x, direction, dtype, itemsize):
+def nextafter(x, direction, cstype, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
 
     if direction == 0:
         return x
 
-    if str(dtype) == "CharType":
+    if cstype == "CharType":
         return CharTypeNextAfter(x, direction, itemsize)
     else:
         if type(x) not in (int, long, float):
             raise ValueError, "You need to pass integers or floats in this context."
-        npdtype = numpy.dtype(dtype)
+        npdtype = numpy.dtype(cstype)
         if npdtype.kind in ['i', 'u']:
             return IntTypeNextAfter(x, direction, itemsize)
         elif npdtype.name == "float32":
@@ -478,7 +482,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """The `Atom` instance matching to be stored by the index array."""
         if atom is not None:
             self.type = atom.type
-            self.stype = str(atom.type)
+            self.stype = atom.stype
             """The datatype to be stored by the sorted index array."""
             self.itemsize = atom.itemsize
             """The itemsize of the datatype to be stored by the index array."""
@@ -1016,7 +1020,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         erange = ranges[-1,1] - ranges[0,0]
         sover = soverlap / erange
         if verbose:
-            print "overlaps (%s)-->" % message, sover, noverlaps, multiplicity
+            print "overlaps (%s):" % message, sover, noverlaps, multiplicity
         return (sover, noverlaps)
 
 
@@ -1107,7 +1111,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             size = len(startlengths) * 8 * 2 + 1
             # Put this startlengths list in cache
             self.limboundscache.setitem(item, startlengths, size)
-            #print "-->", self.limboundscache
 
         return tlen
 
@@ -1202,7 +1205,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         assert len(ops) == 1 or ops[1] in supported_cmps
 
         column = self.column
-        ctype = column.type
+        cstype = column.stype
         itemsize = table.colitemsizes[column.pathname]
 
         for limit in limits:
@@ -1215,17 +1218,17 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             limit = limits[0]
             op = ops[0]
             if op == 'lt':
-                range_ = (infType(type=ctype, itemsize=itemsize, sign=-1),
-                          nextafter(limit, -1, ctype, itemsize))
+                range_ = (infType(cstype, itemsize, sign=-1),
+                          nextafter(limit, -1, cstype, itemsize))
             elif op == 'le':
-                range_ = (infType(type=ctype, itemsize=itemsize, sign=-1),
+                range_ = (infType(cstype, itemsize, sign=-1),
                           limit)
             elif op == 'gt':
-                range_ = (nextafter(limit, +1, ctype, itemsize),
-                          infType(type=ctype, itemsize=itemsize, sign=+1))
+                range_ = (nextafter(limit, +1, cstype, itemsize),
+                          infType(cstype, itemsize=itemsize, sign=+1))
             elif op == 'ge':
                 range_ = (limit,
-                          infType(type=ctype, itemsize=itemsize, sign=+1))
+                          infType(cstype, itemsize, sign=+1))
             elif op == 'eq':
                 range_ = (limit, limit)
         elif len(limits) == 2:
@@ -1234,12 +1237,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 raise ValueError( "in val1 <{=} col <{=} val2 selections, "
                                   "val1 must be less or equal than val2" )
             if ops == ['gt', 'lt']:  # item1 < col < item2
-                range_ = (nextafter(item1, +1, ctype, itemsize),
-                          nextafter(item2, -1, ctype, itemsize))
+                range_ = (nextafter(item1, +1, cstype, itemsize),
+                          nextafter(item2, -1, cstype, itemsize))
             elif ops == ['ge', 'lt']:  # item1 <= col < item2
-                range_ = (item1, nextafter(item2, -1, ctype, itemsize))
+                range_ = (item1, nextafter(item2, -1, cstype, itemsize))
             elif ops == ['gt', 'le']:  # item1 < col <= item2
-                range_ = (nextafter(item1, +1, ctype, itemsize), item2)
+                range_ = (nextafter(item1, +1, cstype, itemsize), item2)
             elif ops == ['ge', 'le']:  # item1 <= col <= item2
                 range_ = (item1, item2)
             else:
@@ -1256,13 +1259,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Get the coordinates for those values
         ilimit = table.opsValues
         ctype = column.type
-        sctype = column.stype
+        cstype = column.stype
         itemsize = table.colitemsizes[column.pathname]
 
         # Check that limits are compatible with type
         for limit in ilimit:
             # Check for strings
-            if sctype == "CharType":
+            if cstype == "CharType":
                 if type(limit) is not str:
                     raise TypeError("""\
 Bounds (or range limits) for string columns can only be strings.""")
@@ -1291,7 +1294,7 @@ Bounds (or range limits) for float columns can only be ints or floats.""")
 Bounds (or range limits) can only be strings, bools, ints or floats.""")
 
         # Boolean types are a special case for searching
-        if sctype == "Bool":
+        if cstype == "Bool":
             if len(table.ops) == 1 and table.ops[0] == 5: # __eq__
                 item = (ilimit[0], ilimit[0])
                 ncoords = self.search(item)
@@ -1304,17 +1307,17 @@ Bounds (or range limits) can only be strings, bools, ints or floats.""")
             ilimit = ilimit[0]
             op = table.ops[0]
             if op == 1: # __lt__
-                item = (infType(type=ctype, itemsize=itemsize, sign=-1),
-                        nextafter(ilimit, -1, ctype, itemsize))
+                item = (infType(cstype, itemsize, sign=-1),
+                        nextafter(ilimit, -1, cstype, itemsize))
             elif op == 2: # __le__
-                item = (infType(type=ctype, itemsize=itemsize, sign=-1),
+                item = (infType(cstype, itemsize, sign=-1),
                         ilimit)
             elif op == 3: # __gt__
-                item = (nextafter(ilimit, +1, ctype, itemsize),
-                        infType(type=ctype, itemsize=itemsize, sign=0))
+                item = (nextafter(ilimit, +1, cstype, itemsize),
+                        infType(cstype, itemsize, sign=0))
             elif op == 4: # __ge__
                 item = (ilimit,
-                        infType(type=ctype, itemsize=itemsize, sign=0))
+                        infType(cstype, itemsize, sign=0))
             elif op == 5: # __eq__
                 item = (ilimit, ilimit)
             elif op == 6: # __ne__
@@ -1328,21 +1331,19 @@ On 'val1 <{=} col <{=} val2' selections, \
 val1 must be less or equal than val2""")
             op1, op2 = table.ops
             if op1 == 3 and op2 == 1:  # item1 < col < item2
-                item = (nextafter(item1, +1, ctype, itemsize),
-                        nextafter(item2, -1, ctype, itemsize))
+                item = (nextafter(item1, +1, cstype, itemsize),
+                        nextafter(item2, -1, cstype, itemsize))
             elif op1 == 4 and op2 == 1:  # item1 <= col < item2
-                item = (item1, nextafter(item2, -1, ctype, itemsize))
+                item = (item1, nextafter(item2, -1, cstype, itemsize))
             elif op1 == 3 and op2 == 2:  # item1 < col <= item2
-                item = (nextafter(item1, +1, ctype, itemsize), item2)
+                item = (nextafter(item1, +1, cstype, itemsize), item2)
             elif op1 == 4 and op2 == 2:  # item1 <= col <= item2
                 item = (item1, item2)
             else:
                 raise ValueError, \
 "Combination of operators not supported. Use val1 <{=} col <{=} val2"
 
-        #t1=time()
         ncoords = self.search(item)
-        #print "time reading indices:", time()-t1
         return ncoords
 
 

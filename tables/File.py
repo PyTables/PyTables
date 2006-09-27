@@ -2025,6 +2025,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         if nodePath != '/':
             # The root group does not participate in alive/dead stuff.
             aliveNodes = self._aliveNodes
+            #print "aliveNodes-->", aliveNodes.keys()
             assert nodePath not in aliveNodes, \
                    "file already has a node with path ``%s``" % nodePath
 

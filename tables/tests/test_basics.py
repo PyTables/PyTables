@@ -5,7 +5,7 @@ import tempfile
 import warnings
 
 from tables import *
-from numarray import records
+import numpy
 
 from common import cleanup
 import common
@@ -44,7 +44,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
                                    [2], "Array title 2")
         table1 = fileh.createTable(group, 'atable1', {'var1':IntCol()},
                                    "Table title 1")
-        ra=records.array([(1,11,'a')],formats='u1,f4,a1')
+        ra = numpy.rec.array([(1,11,'a')],formats='u1,f4,a1')
         table2 = fileh.createTable(group, 'atable2', ra,
                                    "Table title 2")
         # Create a lonely group in first level

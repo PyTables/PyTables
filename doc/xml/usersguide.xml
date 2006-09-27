@@ -6999,7 +6999,8 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 
         <glossentry>
         <glossterm><emphasis role="bold">table</emphasis></glossterm>
-        <glossdef><para>The parent <computeroutput><![CDATA[Table]]></computeroutput> instance.
+        <glossdef><para>The parent
+        <computeroutput>Table</computeroutput> instance.
         </para></glossdef>
         </glossentry>
 
@@ -7009,16 +7010,23 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
         </glossentry>
 
         <glossentry>
-        <glossterm><emphasis role="bold">pathname</emphasis></glossterm>
-        <glossdef><para>The complete pathname of the associated column. This is
-        mainly useful in nested columns; for non-nested ones this value is the
-        same a <computeroutput><![CDATA[name]]></computeroutput>.
-        </para></glossdef>
+        <glossterm><emphasis
+        role="bold">pathname</emphasis></glossterm>
+        <glossdef><para>The complete pathname of the associated
+        column. This is mainly useful in nested columns; for
+        non-nested ones this value is the same a
+        <computeroutput>name</computeroutput>.  </para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">type</emphasis></glossterm>
         <glossdef><para>The data type of the column.</para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">stype</emphasis></glossterm>
+        <glossdef><para>The data type, in string format, of the
+        column.</para></glossdef>
         </glossentry>
 
         <glossentry>

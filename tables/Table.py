@@ -3129,8 +3129,8 @@ Attempt to write over a file opened in read-only mode.""")
                         idgroup, dname, iname, filters)
 
         # Create the atom
-        atomtype = descr._v_types[name]
-        if str(atomtype) == "CharType":
+        atomtype = self.stype
+        if atomtype == "CharType":
             atom = StringAtom(shape=(0,), length=descr._v_itemsizes[name])
         else:
             atom = Atom(dtype=atomtype, shape=(0,))

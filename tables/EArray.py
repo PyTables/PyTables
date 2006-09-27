@@ -358,11 +358,9 @@ class EArray(Array):
         "Test that nparr parameter is shape and type compliant"
 
         if nparr.dtype.kind == "S":
-            # Made an additional check for strings
+            # Make an additional check for strings
             if nparr.itemsize != self.itemsize:
-                raise TypeError, \
-"""The object '%r' has not a base string size of '%s'.""" % \
-(nparr, self.itemsize)
+                nparr = numpy.array(nparr, dtype="S%s" % self.itemsize)
 
         datatype = nparr.dtype.type
         if datatype != self.type:

@@ -59,8 +59,19 @@ recarrfmt = {
 
 # the reverse translation table of the above
 revrecarrfmt = {}
-for key in recarrfmt.keys():
-    revrecarrfmt[recarrfmt[key]]=key
+for key,value in recarrfmt.iteritems():
+    revrecarrfmt[value] = key
+
+# Add some 'special' values to revrecarray.
+# This has been introduced because, in 32-bit platforms:
+# >>> numpy.typeDict['i4'] == numpy.typeDict['int32']
+# False
+# >>> numpy.typeDict['i4'] == numpy.typeDict['intc']
+# True
+# XXX This probably requires to be updated for 64-bit platforms...
+# Travis fixed this in numpy version 1.0.dev3220
+#revrecarrfmt[NP.dtype('intc').type] = 'i4'
+#revrecarrfmt[NP.dtype('uintc').type] = 'u4'
 
 
 class ShapeMixin:
@@ -123,8 +134,8 @@ class Col(ShapeMixin, object):
         if type_ == 'CharType' or type_ == NP.string_:
             self.type = NP.string_
             self.stype = 'CharType'
-        elif type_ in NP.typeDict:
-            self.type = NP.typeDict[type_]
+        elif type_ in NP.typeNA or type_ in NP.typeDict:
+            self.type = NP.dtype(type_).type
             self.stype = NP.typeNA[self.type]
         elif type_ == 'Time32':
             self.type = NP.int32  # special case for times
@@ -158,7 +169,7 @@ class Col(ShapeMixin, object):
 
 
     def _setIndex(self, indexed):
-        if indexed and self.type in (NP.Complex64, NP.Complex128):
+        if indexed and self.type in (NP.complex64, NP.complex128):
             raise TypeError("%r do not support indexation" % (self.type,))
         super(Col, self)._setIndex(indexed)
 

@@ -534,6 +534,7 @@ Sorry, but this object is not supported.""" % (arr)
 
         return startl, stopl, stepl, shape
 
+
     def __getitem__(self, keys):
         """Returns an Array element, row or extended slice.
 

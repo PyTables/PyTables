@@ -36,6 +36,7 @@ herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
  hsize_t  offset[2];
  hsize_t  stride[2] = {1, 1};
 
+
  count[0] = 1;
  count[1] = stop - start;
  offset[0] = irow;

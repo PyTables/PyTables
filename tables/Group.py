@@ -383,7 +383,7 @@ class Group(hdf5Extension.Group, Node):
             childClass = self._g_getChildLeafClass(childName, warn=True)
             # Building a leaf may still fail because of unsupported types
             # and other causes.
-            return childClass(self, childName)  # uncomment for debugging
+            ##return childClass(self, childName)  # uncomment for debugging
             try:
                 return childClass(self, childName)
             except Exception, exc:  #XXX
@@ -545,7 +545,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         oldPath = self._v_pathname
         super(Group, self)._g_updateLocation(newParentPath)
         newPath = self._v_pathname
-
         # Update location information in children.
         self._g_updateChildrenLocation(oldPath, newPath)
 
@@ -569,6 +568,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         # XXX What happens if the _aliveNodes dictionary changes during the
         # next loop (have in mind that it is recursive)?
         # F. Altet 2006-08-06
+        # Answer: no problem, python will complain ;-) F. Altet 2006-09-27
         for nodePath in file_._aliveNodes:
             if nodePath.startswith(oldPathSlash):
                 descendentNode = file_._getNode(nodePath)
