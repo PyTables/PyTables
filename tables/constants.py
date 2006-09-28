@@ -122,24 +122,30 @@ METADATA_CACHE_SIZE = 1*1024*1024  # 1 MB is the default for HDF5
 #                         # This is a good compromise between CPU and memory
 #                         # consumption.
 
-NODE_MAX_SLOTS = -256
+NODE_MAX_SLOTS = 256
 
 # Negative value means that all the touched nodes will be kept in a
 # dictionary and the user will be warned when the number of nodes there
 # will reach abs(NODE_MAX_SLOTS).  If this is the case, the user will
 # have to decide either:
-
+#
 # - Increase the capacity of the dictionary of alive nodes (keeping this
 # number negative but with a larger absolute value). This will take
 # large amounts of data, but this is the faster way to retrieve nodes.
-
+#
 # - Use the integrated LRU node cache (making the number positive). This
 # will keep the usage of memory much more contained, but the retrieving
 # of nodes is slower.
-
+#
 # - Use a 0 value. This means that you want to disable any node cache.
 
 #XYX Explain this more in "Optimization Tips" chapter.
+# ****************** IMPORTANT NOTE ***********************
+# There are some situations, like moving indexed tables,
+# (test_indexes:BasicReadTestCase.test10[a|b]_moveIndex checks this)
+# where this gives problems. So don't put it as an official feature until
+# this is more carefully checked. 
+# **********************************************************
 
 #NODE_MAX_SLOTS = 512   # 59 MB, 43.9s, opt: 41.8s
 #NODE_MAX_SLOTS = 1024  # 52 MB, 85.1s, opt: 17.0s # everything fits on cache!

@@ -647,6 +647,7 @@ class WarningTestCase(unittest.TestCase):
         self.fileh.close()
         os.remove(self.file)
 
+
 class DeepTableIndexTestCase(unittest.TestCase):
     nrows = minRowIndex
 
