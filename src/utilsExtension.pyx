@@ -335,8 +335,8 @@ Dataset object '%s' contains unsupported H5T_ARRAY datatypes.""" % (name,))
            (strcmp(field_name1, "r") == 0 and
             strcmp(field_name2, "i") == 0) ):
         iscomplex = True
-      free(<void *>fieldname1)
-      free(<void *>fieldname2)
+      free(<void *>field_name1)
+      free(<void *>field_name2)
     if layout == H5D_CHUNKED:
       if iscomplex:
         classId = "CARRAY"

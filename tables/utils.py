@@ -340,7 +340,11 @@ Sorry, but this object is not supported in this context. The error was: <%s>
         # Check if arr can be converted to a numpy object of the
         # correct type.
         try:
-            nparr = numpy.asarray(arr, dtype=atom.type)
+            if atom.stype == "CharType":
+                dtype = "S%s" % atom.itemsize
+                nparr = numpy.array(arr, dtype=dtype)
+            else:
+                nparr = numpy.asarray(arr, dtype=atom.type)
         # If not, issue an error
         except Exception, exc:  #XXX
             raise TypeError, \
