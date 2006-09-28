@@ -5996,18 +5996,27 @@ for node in h5file.root.detector:
 	    <section id="Table.append">
 	      <title>append(rows)
 	      </title>
-	      <para>Append a series of rows to this <computeroutput><![CDATA[Table]]></computeroutput>
-		instance. <emphasis>rows</emphasis> is an object that can keep the
-		rows to be append in several formats, like a
-		<computeroutput><![CDATA[NestedRecArray]]></computeroutput> (see <xref linkend="NestedRecArrayClassDescr" xrefstyle="select: label"/>), a
-		<computeroutput><![CDATA[RecArray]]></computeroutput>, a <computeroutput><![CDATA[NumPy]]></computeroutput> object, a
-		list of tuples, list of
+	      <para>Append a series of rows to this
+		<computeroutput><![CDATA[Table]]></computeroutput>
+		instance. <emphasis>rows</emphasis> is an object that
+		can keep the rows to be append in several formats,
+		like a
+		<computeroutput><![CDATA[NestedRecArray]]></computeroutput>
+		(see <xref linkend="NestedRecArrayClassDescr"
+		xrefstyle="select: label"/>), a
+		<computeroutput><![CDATA[RecArray]]></computeroutput>,
+		a <computeroutput><![CDATA[NumPy]]></computeroutput>
+		object, a list of tuples, list of
 		<computeroutput><![CDATA[Numeric]]></computeroutput>/<computeroutput><![CDATA[numarray]]></computeroutput>/<computeroutput><![CDATA[NumPy]]></computeroutput>
-		objects, string, Python buffer or <computeroutput><![CDATA[None]]></computeroutput>
-		(no append will result). Of course, this <emphasis>rows</emphasis>
-		object has to be compliant with the underlying format
-		of the <computeroutput><![CDATA[Table]]></computeroutput> instance or a
-		<computeroutput><![CDATA[ValueError]]></computeroutput> will be issued.
+		objects, string, Python buffer or
+		<computeroutput><![CDATA[None]]></computeroutput> (no
+		append will result). Of course, this
+		<emphasis>rows</emphasis> object has to be compliant
+		with the underlying format of the
+		<computeroutput><![CDATA[Table]]></computeroutput>
+		instance or a
+		<computeroutput><![CDATA[TypeError]]></computeroutput>
+		will be issued.
 	      </para>
 
 	      <para>Example of use:
@@ -6198,9 +6207,10 @@ if row['var1'] <= 20 ]]]></screen>
 	      <para>Returns the number of modified rows.
 	      </para>
 
-	      <para>It raises an <computeroutput><![CDATA[ValueError]]></computeroutput> in case the rows
-		parameter could not be converted to an object compliant
-		with table description.
+	      <para>It raises an
+		<computeroutput><![CDATA[TypeError]]></computeroutput>
+		in case the rows parameter could not be converted to
+		an object compliant with table description.
 	      </para>
 
 	      <para>It raises an <computeroutput><![CDATA[IndexError]]></computeroutput> in case the
@@ -6235,9 +6245,12 @@ if row['var1'] <= 20 ]]]></screen>
 	      <para>Returns the number of modified rows.
 	      </para>
 
-	      <para>It raises an <computeroutput><![CDATA[ValueError]]></computeroutput> in case the
-		<emphasis>column</emphasis> parameter could not be converted into an
-		object compliant with <computeroutput><![CDATA[column]]></computeroutput> description.
+	      <para>It raises an
+		<computeroutput><![CDATA[TypeError]]></computeroutput>
+		in case the <emphasis>column</emphasis> parameter
+		could not be converted into an object compliant with
+		<computeroutput><![CDATA[column]]></computeroutput>
+		description.
 	      </para>
 
 	      <para>It raises an <computeroutput><![CDATA[IndexError]]></computeroutput> in case the
@@ -6273,7 +6286,7 @@ if row['var1'] <= 20 ]]]></screen>
 	      <para>Returns the number of modified rows.
 	      </para>
 
-	      <para>It raises an <computeroutput><![CDATA[ValueError]]></computeroutput> in case the
+	      <para>It raises an <computeroutput><![CDATA[TypeError]]></computeroutput> in case the
 		<emphasis>columns</emphasis> parameter could not be converted to an
 		object compliant with table description.
 	      </para>

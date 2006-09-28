@@ -75,7 +75,7 @@ class RangeTestCase(unittest.TestCase):
         rec['var5'] = float(i)
         try:
             rec['var4'] = "124"
-        except ValueError:
+        except TypeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next TypeError was catched!"

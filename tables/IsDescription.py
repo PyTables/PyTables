@@ -241,8 +241,8 @@ class StringCol(Col):
     "Defines a string column."
 
     def _setType(self, type_):
-        self.type       = NP.string_
-        self.stype      = 'CharType'
+        self.type  = NP.string_
+        self.stype = 'CharType'
 
 
     def _setShape(self, shape):

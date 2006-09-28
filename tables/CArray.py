@@ -29,8 +29,7 @@ Misc variables:
 
 import sys, warnings
 
-import numarray
-import numarray.records as records
+import numpy
 
 from tables.Atom import Atom
 from tables.Array import Array
@@ -48,11 +47,10 @@ obversion = "1.0"    # Support for time & enumerated datatypes.
 class CArray(Array):
     """Represent an homogeneous dataset in HDF5 file.
 
-    It enables to create new datasets on-disk from Numeric, numarray,
-    lists, tuples, strings or scalars, or open existing ones.
+    It enables to create new datasets on-disk from NumPy, numarray,
+    Numeric, lists, tuples, strings or scalars, or open existing ones.
 
-    All Numeric and numarray typecodes are supported except for complex
-    datatypes.
+    All NumPy datatype are supported.
 
     Methods:
 
@@ -179,7 +177,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         self.flavor = None
         """
         The object representation of this array.  It can be any of
-        'numarray', 'numpy', 'numeric' or 'python' values.
+        'numpy', 'numarray', 'numeric' or 'python' values.
         """
         self.type = None
         """The type class of the represented array."""
@@ -213,11 +211,11 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         """Calculate the maximum number of tuples."""
 
         # The buffer size
-        expectedfsizeinKb = numarray.product(self.shape) * atom.itemsize / 1024
+        expectedfsizeinKb = numpy.product(self.shape) * atom.itemsize / 1024
         buffersize = self._g_calcBufferSize(expectedfsizeinKb)
 
         # Max Tuples to fill the buffer
-        maxTuples = buffersize // numarray.product(self.shape[1:])
+        maxTuples = buffersize // numpy.product(self.shape[1:])
 
         # Check if at least 1 tuple fits in buffer
         if maxTuples == 0:
@@ -247,13 +245,12 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 """the shape of ``atom`` must be an int or tuple and you passed: %r""" % \
 (self.atom.shape,))
 
-        # Version, type, shape, flavor, byteorder
+        # Version, type, flavor, byteorder
         self._v_version = obversion
         self.type = self.atom.type
         self.stype = self.atom.stype
-        #self.shape = self.atom.shape
         self.flavor = self.atom.flavor
-        if self.type == "CharType" or isinstance(self.type, records.Char):
+        if self.stype == "CharType":
             self.byteorder = "non-relevant"
         else:
             # Only support for creating objects in system byteorder
@@ -301,7 +298,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 
         # Post-condition
         assert self.extdim == -1, "extdim != -1: this should never happen!"
-        assert numarray.product(self._v_chunksize) > 0, \
+        assert numpy.product(self._v_chunksize) > 0, \
                 "product(self._v_chunksize) > 0: this should never happen!"
 
         # Compute the rowsize for each element
@@ -315,7 +312,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 
         # Compute the real shape for atom:
         shape = list(self._v_chunksize)
-        if self.type == "CharType" or isinstance(self.type, records.Char):
+        if self.stype == "CharType":
             # Add the length of the array at the end of the shape for atom
             shape.append(self.itemsize)
         shape = tuple(shape)
@@ -362,7 +359,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
             object[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True
-        nbytes = numarray.product(self.shape)*self.itemsize
+        nbytes = numpy.product(self.shape)*self.itemsize
 
         return (object, nbytes)
 

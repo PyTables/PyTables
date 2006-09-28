@@ -103,16 +103,16 @@ class VLArrayTestCase(common.PyTablesTestCase):
     def test01_backCompat(self):
         """Checking backward compatibility with old flavors of VLArray"""
 
-        # Open a PYTABLES_FORMAT_VERSION=pre-1.6 file
-        fileh = openFile(testFilename("flavored_vlarrays-pre1.6.h5"), "r")
+        # Open a PYTABLES_FORMAT_VERSION=1.6 file
+        fileh = openFile(testFilename("flavored_vlarrays-format1.6.h5"), "r")
         # Check that we can read the contents without problems (nor warnings!)
         vlarray1 = fileh.root.vlarray1
-        assert vlarray1.flavor == "Numeric"
+        assert vlarray1.flavor == "numeric"
         if numeric:
             assert allequal(vlarray1[1], Numeric.array([5, 6, 7], typecode='i'),
                             "numeric")
         vlarray2 = fileh.root.vlarray2
-        assert vlarray2.flavor == "String"
+        assert vlarray2.flavor == "python"
         assert vlarray2[1] == ['5', '6', '77']
 
         fileh.close()
