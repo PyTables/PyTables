@@ -541,7 +541,7 @@ def enumFromHDF5(hid_t enumId):
   except KeyError:
     raise NotImplementedError("""\
 sorry, only scalar concrete values are supported at this moment""")
-  if nptype.kind not in ['i', 'u']:   # not an integer check
+  if numpy.dtype(nptype).kind not in ['i', 'u']:   # not an integer check
     raise NotImplementedError("""\
 sorry, only integer concrete values are supported at this moment""")
 
@@ -591,10 +591,10 @@ def enumToHDF5(object enumCol, char *byteOrder):
   cdef hid_t  baseId, enumId
   cdef long   bytestride, i
   cdef void  *rbuffer, *rbuf
-  cdef ndarray npvalues
+  cdef ndarray npValues
 
   # Get the base HDF5 type and create the enumerated type.
-  npenum = PTTypeToNPCode[enumCol.stype]
+  npenum = NPTypeToCode[enumCol.type]
   itemsize = enumCol.itemsize
   baseId = convArrayType(npenum, itemsize, byteOrder)
   if baseId < 0:
@@ -609,10 +609,10 @@ def enumToHDF5(object enumCol, char *byteOrder):
       raise HDF5ExtError("failed to close HDF5 base type")
 
   # Set the name and value of each of the members.
-  naNames = enumCol._naNames
-  npvalues = enumCol._npvalues
-  bytestride = npvalues.strides[0]
-  rbuffer = npvalues.data
+  naNames = enumCol._npNames
+  npValues = enumCol._npValues
+  bytestride = npValues.strides[0]
+  rbuffer = npValues.data
   for i from 0 <= i < len(naNames):
     name = PyString_AsString(naNames[i])
     rbuf = <void *>(<char *>rbuffer + bytestride * i)

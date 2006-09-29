@@ -3,7 +3,7 @@ import unittest
 import os
 import tempfile
 import warnings
-import numarray
+import numpy
 from tables import *
 import tables.NetCDF as NetCDF
 
@@ -34,19 +34,19 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
         lats = file.createVariable('lat', '1', ('lat',))
         lons = file.createVariable('lon', 'c', ('nchar','lon'))
         # add some data.
-        self.latdata = numarray.arange(100,400,100).astype('1')
+        self.latdata = numpy.arange(100,400,100).astype('1')
         lats[:] = self.latdata
         self.londata = [['a','b','c','d','e','f','g'],
                         ['a','b','c','d','e','f','g']]
         lons[:] = self.londata
-        for i in numarray.arange(bar.shape[0]):
-            for j in numarray.arange(bar.shape[1]):
+        for i in numpy.arange(bar.shape[0]):
+            for j in numpy.arange(bar.shape[1]):
                 bar[i, j] = i * j
         self.bardata = bar[:]
         # append data along unlimited dimension.
         nmax = 4
         for n in range(nmax):
-            foo.append(n*numarray.ones(bar.shape,'f'))
+            foo.append(n*numpy.ones(bar.shape,'f'))
             if n != nmax-1: # don't fill in last time
                 times.append(10*(n+1))
         file.sync() # fill in timedata with _FillValue

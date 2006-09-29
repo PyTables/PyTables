@@ -12,7 +12,7 @@ Test module for compatibility with plain HDF files
 import unittest
 import tempfile
 
-import numarray
+import numpy
 
 import tables
 import common
@@ -96,13 +96,13 @@ class NumericTestCase(HDF5CompatibilityTestCase):
         self.assertEqual(arr.shape, (6, 5))
 
         data = arr.read()
-        expectedData = numarray.array([
+        expectedData = numpy.array([
             [0, 1, 2, 3, 4],
             [1, 2, 3, 4, 5],
             [2, 3, 4, 5, 6],
             [3, 4, 5, 6, 7],
             [4, 5, 6, 7, 8],
-            [5, 6, 7, 8, 9]], type=self.stype)
+            [5, 6, 7, 8, 9]], dtype=self.stype)
         self.assert_(common.areArraysEqual(data, expectedData))
 
 
@@ -182,17 +182,17 @@ class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
             row = tbl[m]
         # This version of the loop seems to fail because of ``iterrows()``.
         #for (m, row) in enumerate(tbl):
-            self.assertEqual(row.field('a_name'), m)
-            self.assertEqual(row.field('c_name'), "Hello!")
-            dRow = row.field('d_name')
+            self.assertEqual(row['a_name'], m)
+            self.assertEqual(row['c_name'], "Hello!")
+            dRow = row['d_name']
             for n in range(5):
                 for o in range(10):
                     self.assertEqual(dRow[n][o], m + n + o)
-            self.assertAlmostEqual(row.field('e_name'), m * 0.96, places=6)
-            fRow = row.field('f_name')
+            self.assertAlmostEqual(row['e_name'], m * 0.96, places=6)
+            fRow = row['f_name']
             for n in range(10):
                 self.assertAlmostEqual(fRow[n], m * 1024.9637)
-            self.assertEqual(row.field('g_name'), ord('m'))
+            self.assertEqual(row['g_name'], ord('m'))
 
 
 class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
@@ -230,8 +230,8 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
         for row in tbl.iterrows():
             self.assertEqual(row['a'], 3.0)
             self.assertEqual(row['b'], 4.0)
-            self.assert_(allequal(row['c'], numarray.array([2.0, 3.0],
-                                                           type="Float64")))
+            self.assert_(allequal(row['c'], numpy.array([2.0, 3.0],
+                                                        dtype="float64")))
             self.assertEqual(row['d'], "d")
 
         self.h5file.close()
@@ -271,7 +271,7 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
         self.assertEqual(len(arr), 10)
 
         data = arr.read()
-        expectedData = numarray.array([
+        expectedData = numpy.array([
             [1, 1, 1, 3, 3],
             [1, 1, 1, 3, 3],
             [1, 1, 1, 0, 0],
@@ -281,7 +281,7 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
             [2, 0, 0, 0, 0],
             [2, 0, 0, 0, 0],
             [2, 0, 0, 0, 0],
-            [2, 0, 0, 0, 0]], type=arr.atom.stype)
+            [2, 0, 0, 0, 0]], dtype=arr.atom.stype)
         self.assert_(common.areArraysEqual(data, expectedData))
 
 

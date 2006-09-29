@@ -23,26 +23,9 @@ try:
 except:
     numarray_imported = 0
 
-from common import verbose, allequal, cleanup, heavy
+from common import verbose, typecode, allequal, cleanup, heavy
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
-
-# Map between PyTables types and Numeric typecodes
-typecode = {
-    'Bool': 'B',
-    'Int8': '1',
-    'Int16': 's',
-    'Int32': 'i',
-    'Int64': 'N',
-    'UInt8': 'b',
-    'UInt16': 'w',
-    'UInt32': 'u',
-    'UInt64': 'U',
-    'Float32': 'f',
-    'Float64': 'd',
-    'Complex64': 'D',
-    'Complex32': 'F',
-    }
 
 
 class BasicTestCase(unittest.TestCase):

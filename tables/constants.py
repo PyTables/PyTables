@@ -144,7 +144,7 @@ NODE_MAX_SLOTS = 256
 # There are some situations, like moving indexed tables,
 # (test_indexes:BasicReadTestCase.test10[a|b]_moveIndex checks this)
 # where this gives problems. So don't put it as an official feature until
-# this is more carefully checked. 
+# this is more carefully checked.
 # **********************************************************
 
 #NODE_MAX_SLOTS = 512   # 59 MB, 43.9s, opt: 41.8s

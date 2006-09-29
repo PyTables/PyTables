@@ -26,7 +26,10 @@ Constants:
 	                    node system attribute.
 """
 
-import os, warnings, numarray
+import os, warnings
+
+import numpy
+
 import tables
 
 
@@ -432,8 +435,7 @@ class AppendableMixin:
 		if size == 0:
 			return
 		# XXX This may be redone to avoid a potentially large in-memory array.
-		self.node.append(
-			numarray.zeros(type = self._vType, shape = self._vShape(size)))
+		self.node.append(numpy.zeros(dtype=self._vType, shape=self._vShape(size)))
 
 
 	def truncate(self, size = None):
@@ -478,10 +480,8 @@ class AppendableMixin:
 		self.offset = self.node.nrows
 
 		# Append data.
-		self.node.append(
-			numarray.array(
-				string,
-				type = self._vType, shape = self._vShape(len(string))))
+		self.node.append(numpy.ndarray(buffer=string, dtype=self._vType,
+									   shape = self._vShape(len(string))))
 
 		# Move the pointer to the end of the written data.
 		self.offset = self.node.nrows

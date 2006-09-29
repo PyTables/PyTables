@@ -98,7 +98,6 @@ hid_t convArrayType(int fmt, size_t size, char *byteorder)
       type_id = create_ieee_complex128(byteorder);
       break;
     default:
-      printf("Error: bad int code <%d,%d> for array format\n", fmt, NPY_INT32);
 #ifdef DEBUG
       printf("Error: bad int code <%d> for array format\n", fmt);
 #endif /* DEBUG */

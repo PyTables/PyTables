@@ -7,7 +7,6 @@ import warnings
 from tables import *
 from tables.Node import NotLoggedMixin
 from tables.indexes import minRowIndex
-#from tables.IndexArray import minRowIndex
 
 import common
 from common import verbose, cleanup, heavy

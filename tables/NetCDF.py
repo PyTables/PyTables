@@ -21,7 +21,7 @@ NetCDF emulation API to keep in mind are:
    truncated (quantized) before being written to the file.
    This can significantly improve compression.  For example, if
    least_significant_digit=1, data will be quantized using
-   numarray.around(scale*data)/scale, where scale = 2**bits, and
+   numpy.around(scale*data)/scale, where scale = 2**bits, and
    bits is determined so that a precision of 0.1 is retained (in
    this case bits=4).
    From http://www.cdc.noaa.gov/cdc/conventions/cdc_netcdf_standard.shtml:
@@ -93,7 +93,7 @@ Version: 20051110
 """
 __version__ = '20051110'
 
-import math, tables, numarray
+import math, tables, numpy
 # need Numeric for h5 <--> netCDF conversion.
 Numeric_imported = True
 try:
@@ -151,7 +151,7 @@ def _quantize(data,least_significant_digit):
         exp = int(math.ceil(exp))
     bits = math.ceil(math.log(10.**-exp,2))
     scale = 2.**bits
-    return numarray.around(scale*data)/scale
+    return numpy.around(scale*data)/scale
 
 class NetCDFFile:
     """
@@ -314,7 +314,7 @@ class NetCDFFile:
             if var.extdim >= 0 and len_var < len_max:
                 shp = list(var.shape)
                 shp[var.extdim]=len_max-len_var
-                var._NetCDF_varobj.append(var._NetCDF_FillValue*numarray.ones(shp,var.typecode()))
+                var._NetCDF_varobj.append(var._NetCDF_FillValue*numpy.ones(shp,var.typecode()))
         return len_max
 
     def __repr__(self):
@@ -512,21 +512,16 @@ class NetCDFFile:
                 if hasattr(ncvar,'missing_value'):
                     tmpdata = Numeric.where(idata >= ncvar.missing_value, 1.e30, tmpdata)
                 if ncvar.typecode() == 'c':
-                    # numarray string arrays with itemsize=1 used for netCDF char arrays.
-                    # It is important to set the padding character to NULL
-                    # in order to avoid the '' string to become a ' '
-                    # after de-serializing. See:
-                    # http://sourceforge.net/tracker/index.php?func=detail&aid=1304615&group_id=1369&atid=450446
-                    # for more info.
-                    # F. Altet 2005-11-07
-                    var[:] = numarray.strings.array(tmpdata.tolist(),
-                                                    itemsize=1,
-                                                    padc=_fillvalue_dict[ncvar.typecode()])
+                    # numpy string arrays with itemsize=1 used for netCDF char arrays.
+                    var[:] = numpy.array(tmpdata.tolist(),
+                                         dtype="S1")
+
                 else:
-                    # if data is in a CArray, convert to numarray
+                    # if data is in a CArray, convert to numpy
                     # (done automatically for EArrays)
                     if isinstance(var._NetCDF_varobj,tables.CArray):
-                        tmpdata = tables.utils.convertToNA(tmpdata,var._NetCDF_varobj.atom)
+                        tmpdata = tables.utils.convertToNP(tmpdata,
+                                                           var._NetCDF_varobj.atom)
                     var[:] = tmpdata
             # Increment the counters
             nobjects += 1
@@ -612,20 +607,21 @@ class NetCDFVariable:
                            atom=atom,title=varname,filters=filters)
             # fill with _FillValue
             if datatype == 'c':
-                # numarray string arrays with itemsize=1 used for char arrays.
-                self[:] = numarray.strings.array(shape=tuple(vardimsizes),itemsize=1)
+                # numpy string arrays with itemsize=1 used for char arrays.
+                self[:] = numpy.array(shape=tuple(vardimsizes), dtype="S1")
             else:
-                self[:] = _NetCDF_FillValue*numarray.ones(tuple(vardimsizes),datatype)
+                self[:] = _NetCDF_FillValue*numpy.ones(tuple(vardimsizes),datatype)
         if least_significant_digit != None:
-            setattr(self._NetCDF_varobj.attrs,'least_significant_digit',least_significant_digit)
+            setattr(self._NetCDF_varobj.attrs, 'least_significant_digit',
+                    least_significant_digit)
         setattr(self._NetCDF_varobj.attrs,'dimensions',dimensions)
         self._NetCDF_FillValue = _NetCDF_FillValue
 
     def __setitem__(self,key,data):
-        # if assigning to a CArray, convert to numarray.
+        # if assigning to a CArray, convert to numpy.
         # (done automatically for EArrays)
         if isinstance(self._NetCDF_varobj,tables.CArray):
-            data = tables.utils.convertToNA(data,self._NetCDF_varobj.atom)
+            data = tables.utils.convertToNP(data, self._NetCDF_varobj.atom)
         if hasattr(self,'least_significant_digit'):
             self._NetCDF_varobj[key] = _quantize(data,self.least_significant_digit)
         else:
@@ -694,7 +690,7 @@ class NetCDFVariable:
         try:
             datashp = data.shape
         except:
-            data = numarray.array(data,self.typecode())
+            data = numpy.array(data, self.typecode())
         # check to make sure there is an unlimited dimension.
         # (i.e. data is in an EArray).
         extdim = self._NetCDF_varobj.extdim
@@ -713,7 +709,7 @@ class NetCDFVariable:
             if data.shape == shapem1:
                 shapenew = list(self._NetCDF_varobj.shape)
                 shapenew[extdim]=1
-                data = numarray.reshape(data,shapenew)
+                data = numpy.reshape(data, shapenew)
             else:
                 raise IndexError,'data must either have same number of dimensions as variable, or one less (excluding unlimited dimension)'
         # append the data to the variable object.

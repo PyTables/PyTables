@@ -29,7 +29,7 @@ import sys
 import operator
 import copy
 
-import numpy as NP
+import numpy
 
 from tables.enum import Enum
 from tables.utils import checkNameValidity
@@ -41,20 +41,20 @@ __version__ = "$Revision$"
 
 # Translation tables for NumPy datatypes and recarray formats
 recarrfmt = {
-    'a':   NP.string_,
-    'b1':  NP.bool_,
-    'i1':  NP.int8,
-    'i2':  NP.int16,
-    'i4':  NP.int32,
-    'i8':  NP.int64,
-    'u1':  NP.uint8,
-    'u2':  NP.uint16,
-    'u4':  NP.uint32,
-    'u8':  NP.uint64,
-    'f4':  NP.float32,
-    'f8':  NP.float64,
-    'c8':  NP.complex64,
-    'c16': NP.complex128,
+    'a':   numpy.string_,
+    'b1':  numpy.bool_,
+    'i1':  numpy.int8,
+    'i2':  numpy.int16,
+    'i4':  numpy.int32,
+    'i8':  numpy.int64,
+    'u1':  numpy.uint8,
+    'u2':  numpy.uint16,
+    'u4':  numpy.uint32,
+    'u8':  numpy.uint64,
+    'f4':  numpy.float32,
+    'f8':  numpy.float64,
+    'c8':  numpy.complex64,
+    'c16': numpy.complex128,
     }
 
 # the reverse translation table of the above
@@ -70,8 +70,8 @@ for key,value in recarrfmt.iteritems():
 # True
 # XXX This probably requires to be updated for 64-bit platforms...
 # Travis fixed this in numpy version 1.0.dev3220
-#revrecarrfmt[NP.dtype('intc').type] = 'i4'
-#revrecarrfmt[NP.dtype('uintc').type] = 'u4'
+#revrecarrfmt[numpy.dtype('intc').type] = 'i4'
+#revrecarrfmt[numpy.dtype('uintc').type] = 'u4'
 
 
 class ShapeMixin:
@@ -103,7 +103,7 @@ class ShapeMixin:
             self.shape = tuple(shape)
 
         # Set itemsize
-        self.itemsize = NP.dtype(self.type).itemsize
+        self.itemsize = numpy.dtype(self.type).itemsize
 
 
     def _setIndex(self, indexed):
@@ -131,17 +131,17 @@ class Col(ShapeMixin, object):
 
     def _setType(self, type_):
         "Sets the 'type', 'recarrtype' and 'stype' attributes."
-        if type_ == 'CharType' or type_ == NP.string_:
-            self.type = NP.string_
+        if type_ == 'CharType' or type_ == numpy.string_:
+            self.type = numpy.string_
             self.stype = 'CharType'
-        elif type_ in NP.typeNA or type_ in NP.typeDict:
-            self.type = NP.dtype(type_).type
-            self.stype = NP.typeNA[self.type]
+        elif type_ in numpy.typeNA or type_ in numpy.typeDict:
+            self.type = numpy.dtype(type_).type
+            self.stype = numpy.typeNA[self.type]
         elif type_ == 'Time32':
-            self.type = NP.int32  # special case for times
+            self.type = numpy.int32  # special case for times
             self.stype = type_
         elif type_ == 'Time64':
-            self.type = NP.float64  # special case for times
+            self.type = numpy.float64  # special case for times
             self.stype = type_
         else:
             raise TypeError, "Illegal type: %s" % (type_,)
@@ -153,7 +153,7 @@ class Col(ShapeMixin, object):
         "Sets the 'dflt' attribute."
         # Create NumPy objects as defaults
         # This is better in order to serialize them as attributes
-        if self.type == NP.string_:
+        if self.type == numpy.string_:
             if dflt is None:
                 dflt = ""
             if type(dflt) == str:
@@ -161,15 +161,15 @@ class Col(ShapeMixin, object):
                 # consistent with attribute serializing conventions.
                 self.dflt = dflt
             else:
-                self.dflt = NP.array(dflt, dtype="S")
+                self.dflt = numpy.array(dflt, dtype="S")
         else:
             if dflt is None:
                 dflt = 0
-            self.dflt = NP.array(dflt, dtype=self.type)
+            self.dflt = numpy.array(dflt, dtype=self.type)
 
 
     def _setIndex(self, indexed):
-        if indexed and self.type in (NP.complex64, NP.complex128):
+        if indexed and self.type in (numpy.complex64, numpy.complex128):
             raise TypeError("%r do not support indexation" % (self.type,))
         super(Col, self)._setIndex(indexed)
 
@@ -183,7 +183,7 @@ class Col(ShapeMixin, object):
         # for self.type = Float64, Int32, Complex64...
         # ivilata(2004-12-17)
         #
-        if self.type is NP.string_:
+        if self.type is numpy.string_:
             if type(shape) in (int, long):
                 self.shape = 1
                 self.itemsize = shape
@@ -222,7 +222,7 @@ class Col(ShapeMixin, object):
 
 
     def __repr__(self):
-        if self.type == NP.string_:
+        if self.type == numpy.string_:
             if self.shape == 1:
                 shape = [self.itemsize]
             else:
@@ -241,7 +241,7 @@ class StringCol(Col):
     "Defines a string column."
 
     def _setType(self, type_):
-        self.type  = NP.string_
+        self.type  = numpy.string_
         self.stype = 'CharType'
 
 
@@ -288,8 +288,8 @@ class BoolCol(Col):
     "Defines a boolean column."
 
     def _setType(self, type_):
-        self.type = NP.bool_
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.bool_
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
 
 
@@ -323,26 +323,26 @@ Integer itemsizes different from 1, 2, 4 or 8 are not supported""")
 
         if itemsize == 1:
             if sign:
-                self.type = NP.int8
+                self.type = numpy.int8
             else:
-                self.type = NP.uint8
+                self.type = numpy.uint8
         elif itemsize == 2:
             if sign:
-                self.type = NP.int16
+                self.type = numpy.int16
             else:
-                self.type = NP.uint16
+                self.type = numpy.uint16
         elif itemsize == 4:
             if sign:
-                self.type = NP.int32
+                self.type = numpy.int32
             else:
-                self.type = NP.uint32
+                self.type = numpy.uint32
         elif itemsize == 8:
             if sign:
-                self.type = NP.int64
+                self.type = numpy.int64
             else:
-                self.type = NP.uint64
+                self.type = numpy.uint64
 
-        self.stype = NP.typeNA[self.type]
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
 
 
@@ -375,7 +375,7 @@ Integer itemsizes different from 1, 2, 4 or 8 are not supported""")
 
 
     def __repr__(self):
-        if NP.array(0, self.type) - NP.array(1, self.type) < 0:
+        if numpy.array(0, self.type) - numpy.array(1, self.type) < 0:
             sign = True
         else:
             sign = False
@@ -389,8 +389,8 @@ IntCol(dflt=%s, shape=%s, itemsize=%s, sign=%s, pos=%s, indexed=%s)""" % (
 class Int8Col(IntCol):
     "Description class for a signed integer of 8 bits."
     def _setType(self, itemsize, sign):
-        self.type = NP.int8
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.int8
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0, shape = 1, pos = None, indexed = False):
         IntCol.__init__(self, dflt, itemsize = 1, shape = shape, sign = 1,
@@ -403,8 +403,8 @@ class Int8Col(IntCol):
 class UInt8Col(IntCol):
     "Description class for an unsigned integer of 8 bits."
     def _setType(self, itemsize, sign):
-        self.type = NP.uint8
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.uint8
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 1, shape = shape, sign = 0,
@@ -417,8 +417,8 @@ class UInt8Col(IntCol):
 class Int16Col(IntCol):
     "Description class for a signed integer of 16 bits."
     def _setType(self, itemsize, sign):
-        self.type = NP.int16
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.int16
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 2, shape = shape, sign = 1,
@@ -431,8 +431,8 @@ class Int16Col(IntCol):
 class UInt16Col(IntCol):
     "Description class for an unsigned integer of 16 bits."
     def _setType(self, itemsize, sign):
-        self.type = NP.uint16
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.uint16
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 2, shape = shape, sign = 0,
@@ -445,8 +445,8 @@ class UInt16Col(IntCol):
 class Int32Col(IntCol):
     "Description class for a signed integer of 32 bits."
     def _setType(self, itemsize, sign):
-        self.type = NP.int32
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.int32
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0, shape = 1, pos = None, indexed = False):
         IntCol.__init__(self, dflt , itemsize=4, shape=shape, sign=1,
@@ -459,8 +459,8 @@ class Int32Col(IntCol):
 class UInt32Col(IntCol):
     "Description class for an unsigned integer of 32 bits."
     def _setType(self, itemsize, sign):
-        self.type = NP.uint32
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.uint32
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 4, shape = shape, sign = 0,
@@ -473,8 +473,8 @@ class UInt32Col(IntCol):
 class Int64Col(IntCol):
     "Description class for a signed integer of 64 bits."
     def _setType(self, itemsize, sign):
-        self.type = NP.int64
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.int64
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 8, shape = shape, sign = 1,
@@ -487,8 +487,8 @@ class Int64Col(IntCol):
 class UInt64Col(IntCol):
     "Description class for an unsigned integer of 64 bits."
     def _setType(self, itemsize, sign):
-        self.type = NP.uint64
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.uint64
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt=0, shape=1, pos=None, indexed=False):
         IntCol.__init__(self, dflt , itemsize = 8, shape = shape, sign = 0,
@@ -508,11 +508,11 @@ class FloatCol(Col):
 Float itemsizes different from 4 or 8 are not supported""")
 
         if itemsize == 4:
-            self.type = NP.float32
+            self.type = numpy.float32
         elif itemsize == 8:
-            self.type = NP.float64
+            self.type = numpy.float64
 
-        self.stype = NP.typeNA[self.type]
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
 
     def _setIndex(self, indexed):
@@ -549,8 +549,8 @@ FloatCol(dflt=%s, shape=%s, itemsize=%s, pos=%s, indexed=%s)""" % (
 class Float32Col(FloatCol):
     "Description class for a floating point of 32 bits."
     def _setType(self, itemsize):
-        self.type = NP.float32
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.float32
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0.0, shape = 1, pos = None, indexed = False):
         FloatCol.__init__(self, dflt , shape = shape, itemsize = 4,
@@ -563,8 +563,8 @@ class Float32Col(FloatCol):
 class Float64Col(FloatCol):
     "Description class for a floating point of 64 bits."
     def _setType(self, itemsize):
-        self.type = NP.float64
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.float64
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0.0, shape = 1, pos = None, indexed = False):
         FloatCol.__init__(self, dflt , shape = shape, itemsize = 8,
@@ -584,9 +584,9 @@ class ComplexCol(Col):
 Complex itemsizes different from 8 or 16 are not supported""")
 
         if itemsize == 8:
-            self.type = NP.complex64
+            self.type = numpy.complex64
         elif itemsize == 16:
-            self.type = NP.complex128
+            self.type = numpy.complex128
 
         self.stype = str(self.type)
         self.recarrtype = revrecarrfmt[self.type]
@@ -620,8 +620,8 @@ Complex itemsizes different from 8 or 16 are not supported""")
 class Complex32Col(ComplexCol):
     "Description class for a complex of simple precision."
     def _setType(self, itemsize):
-        self.type = NP.complex64
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.complex64
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = (0.0+0.0j), shape = 1, pos = None):
         ComplexCol.__init__(self, dflt, shape = shape, itemsize = 8, pos = pos)
@@ -633,8 +633,8 @@ class Complex32Col(ComplexCol):
 class Complex64Col(ComplexCol):
     "Description class for a complex of double precision."
     def _setType(self, itemsize):
-        self.type = NP.complex128
-        self.stype = NP.typeNA[self.type]
+        self.type = numpy.complex128
+        self.stype = numpy.typeNA[self.type]
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = (0.0+0.0j), shape = 1, pos = None):
         ComplexCol.__init__(self, dflt , shape = shape, itemsize = 16, pos = pos)
@@ -664,10 +664,10 @@ Time itemsizes different from 4 or 8 are not supported""")
         # Since Time columns have no NumPy type of their own,
         # a special case is made for them.
         if itemsize == 4:
-            self.type = NP.int32
+            self.type = numpy.int32
             self.stype = 'Time32'
         elif itemsize == 8:
-            self.type = NP.float64
+            self.type = numpy.float64
             self.stype = 'Time64'
 
         self.recarrtype = revrecarrfmt[self.type]
@@ -706,7 +706,7 @@ TimeCol(dflt=%s, shape=%s, itemsize=%s, pos=%s, indexed=%s)""" % (
 class Time32Col(TimeCol):
     "Description class for an integer time of 32 bits."
     def _setType(self, itemsize):
-        self.type = NP.int32
+        self.type = numpy.int32
         self.stype = 'Time32'
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0, shape = 1, pos = None, indexed = False):
@@ -720,7 +720,7 @@ class Time32Col(TimeCol):
 class Time64Col(TimeCol):
     "Description class for a floating point time of 64 bits."
     def _setType(self, itemsize):
-        self.type = NP.float64
+        self.type = numpy.float64
         self.stype = 'Time64'
         self.recarrtype = revrecarrfmt[self.type]
     def __init__(self, dflt = 0.0, shape = 1, pos = None, indexed = False):
@@ -818,7 +818,7 @@ class EnumCol(Col):
 
         values = [value for (name, value) in enum]
         try:
-            asArray = NP.array(values)
+            asArray = numpy.array(values)
 
             # Check integer type of concrete values.
             if not asArray.dtype.kind in ['i', 'u']:
@@ -842,10 +842,10 @@ sorry, only numeric concrete values are supported for the moment""")
 
 
     def _setType(self, type_):
-        type_ = NP.typeNA[type_]
+        type_ = numpy.typeNA[type_]
 
         # Check integer type of representation.
-        if not type_.kind in ['i', 'u']:
+        if not numpy.dtype(type_).kind in ['i', 'u']:
             raise NotImplementedError("""\
 sorry, only integer concrete values type are supported for the moment""")
 
@@ -856,19 +856,19 @@ sorry, only integer concrete values type are supported for the moment""")
             values.append(value)
 
         # Check that type can represent concrete values.
-        encoded = NP.array(values, type_)
+        encoded = numpy.array(values, type_)
         if values != encoded.tolist():
             raise TypeError("""\
 type ``%s`` can not represent all concrete values in the enumeration"""
                             % type_)
 
-        self._naNames = names
+        self._npNames = names
         """List of enumerated names."""
-        self._naValues = encoded
+        self._npValues = encoded
         """List of enumerated concrete values."""
         self.type = type_
         self.stype = 'Enum'
-        self.recarrtype = revrecarrfmt[type_]
+        self.recarrtype = revrecarrfmt[numpy.dtype(type_).type]
 
 
     def _setDefault(self, dflt):
@@ -882,13 +882,14 @@ type ``%s`` can not represent all concrete values in the enumeration"""
         # because some issues with Enum.__call__(NumPy) calls.
         # F. Altet 2005-11-9
         #self.dflt = self.enum[dflt]
-        self.dflt = NP.array(self.enum[dflt], dtype=self.type)
+        self.dflt = numpy.array(self.enum[dflt], dtype=self.type)
 
 
     def __repr__(self):
+        understype = numpy.sctypeNA[self.type]
         return ('EnumCol(%s, %r, dtype=\'%s\', shape=%s, pos=%s, indexed=%s)'
                 % (self.enum, self.enum(self.dflt[()]),
-                   self.type, self.shape, self._v_pos, self.indexed))
+                   understype, self.shape, self._v_pos, self.indexed))
 
 
 

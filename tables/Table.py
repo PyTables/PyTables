@@ -1672,7 +1672,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             # heterogeneous conversion (without a copy)
             arr = tonumarray(arr, copy=False)
         elif flavor == "python":
-            arr = self.tolist(arr)
+            arr = arr.tolist()
 
         return arr
 

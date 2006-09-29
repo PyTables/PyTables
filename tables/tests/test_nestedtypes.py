@@ -12,13 +12,11 @@ Test module for nested types under PyTables
 
 import unittest
 
-import numarray
-
 import common
 from common import verbose
 import tables as t
-#from numpy import rec as nr
-import numpy as nr
+
+import numpy
 from tables.IsDescription import Description
 from tables.indexes import minRowIndex
 
@@ -112,7 +110,7 @@ testABuffer = [
     ((3,2), (6j, 6., ('nn', (6j,4j), (6.,4.), (1,2)), 'NN', 8), 'cc', ('NN', 6j), ((6.,4.),(6.,4.)), 8),
     ((4,3), (7j, 7., ('oo', (7j,5j), (7.,5.), (2,1)), 'OO', 9), 'dd', ('OO', 7j), ((7.,5.),(7.,5.)), 9),
     ]
-testAData = nr.array(testABuffer, dtype=testADescr)
+testAData = numpy.array(testABuffer, dtype=testADescr)
 # The name of the column to be searched:
 testCondCol = 'Info/z2'
 # The name of a nested column (it can not be searched):
@@ -266,7 +264,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
-        nrarr = nr.array(testABuffer, dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         self.assert_(common.areArraysEqual(nrarr, self._testAData),
                      "Can not create a compatible record array.")
 
@@ -341,7 +339,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Flatten the record if it is nested,
         # to iterate easily over atomic fields.
         # If the record is not nested, do nothing.
-        if isinstance(record, nr.NestedRecord):
+        if isinstance(record, numpy.NestedRecord):
             record = record.asRecord()
 
         # Add as an ordinary flat record.
@@ -538,9 +536,9 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Get the nested column data and swap the first and last rows.
         colnames = ['x', 'color']  # Get the first two columns
-        raCols = nr.fromarrays([self._testAData.copy().field('x'),
-                                self._testAData.copy().field('color')],
-                               descr=[('x','(2,)i4'), ('color', '1a2')])
+        raCols = numpy.fromarrays([self._testAData.copy().field('x'),
+                                   self._testAData.copy().field('color')],
+                                  descr=[('x','(2,)i4'), ('color', '1a2')])
                                #descr=tbl.description._v_nestedDescr[0:2])
                                # or...
                                # names=tbl.description._v_nestedNames[0:2],
@@ -562,10 +560,10 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # for sequences in its ``buffer`` argument,
         # just as ``numarray.array()`` does.  See SF bug #1286168.
 
-        raCols2 = nr.fromarrays([tbl.cols._f_col('x'),
-                                 #tbl.cols._f_col('color')[:]], # XYX
-                                 tbl.cols._f_col('color')],
-                                descr=raCols.descr)
+        raCols2 = numpy.fromarrays([tbl.cols._f_col('x'),
+                                    #tbl.cols._f_col('color')[:]], # XYX
+                                    tbl.cols._f_col('color')],
+                                   descr=raCols.descr)
         if verbose:
             print "Table read:", raCols2
             print "Should look like:", raCols
@@ -671,9 +669,9 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = numpy.array(testABuffer,
+                            names=tbl.description._v_nestedNames,
+                            formats=tbl.description._v_nestedFormats)
         tblcols = tbl.read(start=0, step=2, field='Info')
         nrarrcols = nrarr.field('Info')[0::2]
         if verbose:
@@ -695,9 +693,9 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         tblcols = tbl.read(start=0, step=2, field='Info/value')
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = numpy.array(testABuffer,
+                            names=tbl.description._v_nestedNames,
+                            formats=tbl.description._v_nestedFormats)
         nrarrcols = nrarr.field('Info/value')[0::2]
         self.assert_(common.areArraysEqual(nrarrcols, tblcols),
                      "Original array are retrieved doesn't match.")
@@ -811,9 +809,9 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = numpy.array(testABuffer,
+                            names=tbl.description._v_nestedNames,
+                            formats=tbl.description._v_nestedFormats)
         tblcols = tbl.cols[1]
         nrarrcols = nrarr[1]
         if verbose:
@@ -834,9 +832,9 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = numpy.array(testABuffer,
+                            names=tbl.description._v_nestedNames,
+                            formats=tbl.description._v_nestedFormats)
         tblcols = tbl.cols[0:2]
         nrarrcols = nrarr[0:2]
         if verbose:
@@ -857,9 +855,9 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = numpy.array(testABuffer,
+                            names=tbl.description._v_nestedNames,
+                            formats=tbl.description._v_nestedFormats)
         tblcols = tbl.cols[0::2]
         nrarrcols = nrarr[0::2]
         if verbose:
@@ -881,9 +879,9 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = numpy.array(testABuffer,
+                            names=tbl.description._v_nestedNames,
+                            formats=tbl.description._v_nestedFormats)
         tblcols = tbl.cols._f_col('Info')[1]
         nrarrcols = nrarr.field('Info')[1]
         if verbose:
@@ -904,9 +902,9 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = numpy.array(testABuffer,
+                            names=tbl.description._v_nestedNames,
+                            formats=tbl.description._v_nestedFormats)
         tblcols = tbl.cols._f_col('Info')[0:2]
         nrarrcols = nrarr.field('Info')[0:2]
         if verbose:
@@ -927,9 +925,9 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = numpy.array(testABuffer,
+                            names=tbl.description._v_nestedNames,
+                            formats=tbl.description._v_nestedFormats)
         tblcols = tbl.cols._f_col('Info')[0::2]
         nrarrcols = nrarr.field('Info')[0::2]
         if verbose:
@@ -950,9 +948,9 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = numpy.array(testABuffer,
+                            names=tbl.description._v_nestedNames,
+                            formats=tbl.description._v_nestedFormats)
         tblcols = tbl.cols._f_col('Info/value')[1]
         nrarrcols = nrarr.field('Info/value')[1]
         if verbose:
@@ -973,9 +971,9 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = numpy.array(testABuffer,
+                            names=tbl.description._v_nestedNames,
+                            formats=tbl.description._v_nestedFormats)
         tblcols = tbl.cols._f_col('Info/value')[0:2]
         nrarrcols = nrarr.field('Info/value')[0:2]
         if verbose:
@@ -996,9 +994,9 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = nr.array(testABuffer,
-                         names=tbl.description._v_nestedNames,
-                         formats=tbl.description._v_nestedFormats)
+        nrarr = numpy.array(testABuffer,
+                            names=tbl.description._v_nestedNames,
+                            formats=tbl.description._v_nestedFormats)
         tblcols = tbl.cols._f_col('Info/value')[0::2]
         nrarrcols = nrarr.field('Info/value')[0::2]
         if verbose:

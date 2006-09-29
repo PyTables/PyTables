@@ -744,7 +744,7 @@ class File(hdf5Extension.File, object):
         name -- The name of the new array.
 
         object -- The (regular) object to be saved. It can be any of
-            NumArray, CharArray, NumPy, Numeric or other native Python
+            NumPy, NumArray, CharArray, Numeric or other native Python
             types, provided that they are regular (i.e. they are not
             like [[1,2],2]) and homogeneous (i.e. all the elements are
             of the same type).
@@ -1641,27 +1641,11 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         return self._seqmarkers[markid]
 
 
-    # This is a workaround for reversing a RecArray until [::-1] works
-    ##@staticmethod  # Python >= 2.4
-    def _reverseRecArray(recarr):
-        v = recarr.view()
-        for f in range(recarr._nfields):
-            fow = v.field(f)
-            rev = fow[::-1]
-            for attr in ["_shape", "_strides", "_bytestride",
-                         "_itemsize", "_byteoffset"]:
-                setattr(v.field(f), attr, getattr(rev, attr))
-        return v
-    _reverseRecArray = staticmethod(_reverseRecArray)
-
     def _doundo(self, finalaction, direction):
         "Undo/Redo actions up to final action in the specificed direction"
 
         if direction < 0:
-            # Change this when reversing RecArrays will work (numarray > 1.2.2)
-            #actionlog = self._actionlog[finalaction+1:self._curaction+1][::-1]
-            actionlog = self._reverseRecArray(
-                self._actionlog[finalaction+1:self._curaction+1])
+            actionlog = self._actionlog[finalaction+1:self._curaction+1][::-1]
         else:
             actionlog = self._actionlog[self._curaction:finalaction]
 
@@ -1669,33 +1653,33 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
 #         print "curaction, finalaction, direction", \
 #               self._curaction, finalaction, direction
         for i in xrange(len(actionlog)):
-            if actionlog.field('opcode')[i] <> _opToCode["MARK"]:
+            if actionlog['opcode'][i] <> _opToCode["MARK"]:
                 # undo/redo the action
                 if direction > 0:
                     # Uncomment this for debugging
 #                     print "redo-->", \
-#                           _codeToOp[actionlog.field('opcode')[i]],\
-#                           actionlog.field('arg1')[i],\
-#                           actionlog.field('arg2')[i]
+#                           _codeToOp[actionlog['opcode'][i]],\
+#                           actionlog['arg1'][i],\
+#                           actionlog['arg2'][i]
                     undoredo.redo(self,
-                                  _codeToOp[actionlog.field('opcode')[i]],
-                                  actionlog.field('arg1')[i],
-                                  actionlog.field('arg2')[i])
+                                  _codeToOp[actionlog['opcode'][i]],
+                                  actionlog['arg1'][i],
+                                  actionlog['arg2'][i])
                 else:
                     # Uncomment this for debugging
 #                     print "undo-->", \
-#                           _codeToOp[actionlog.field('opcode')[i]],\
-#                           actionlog.field('arg1')[i],\
-#                           actionlog.field('arg2')[i]
+#                           _codeToOp[actionlog['opcode'][i]],\
+#                           actionlog['arg1'][i],\
+#                           actionlog['arg2'][i]
                     undoredo.undo(self,
-                                  _codeToOp[actionlog.field('opcode')[i]],
-                                  actionlog.field('arg1')[i],
-                                  actionlog.field('arg2')[i])
+                                  _codeToOp[actionlog['opcode'][i]],
+                                  actionlog['arg1'][i],
+                                  actionlog['arg2'][i])
             else:
                 if direction > 0:
-                    self._curmark = int(actionlog.field('arg1')[i])
+                    self._curmark = int(actionlog['arg1'][i])
                 else:
-                    self._curmark = int(actionlog.field('arg1')[i]) - 1
+                    self._curmark = int(actionlog['arg1'][i]) - 1
                     # Protection against negative marks
                     if self._curmark < 0:
                         self._curmark = 0

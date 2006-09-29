@@ -12,7 +12,7 @@
 "Unit test for the Time datatypes."
 
 import unittest, tempfile, os
-import tables, numarray
+import tables, numpy
 from common import verbose, allequal, cleanup
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -241,7 +241,7 @@ class CompareTestCase(unittest.TestCase):
     def test00_Compare32VLArray(self):
         "Comparing written 32-bit time data with read data in a VLArray."
 
-        wtime = numarray.array((1234567890,) * 2, numarray.Int32)
+        wtime = numpy.array((1234567890,) * 2, numpy.int32)
 
         # Create test VLArray with data.
         h5file = tables.openFile(
@@ -262,7 +262,7 @@ class CompareTestCase(unittest.TestCase):
     def test01_Compare64VLArray(self):
         "Comparing written 64-bit time data with read data in a VLArray."
 
-        wtime = numarray.array((1234567890.123456,) * 2, numarray.Float64)
+        wtime = numpy.array((1234567890.123456,) * 2, numpy.float64)
 
         # Create test VLArray with data.
         h5file = tables.openFile(
@@ -292,10 +292,11 @@ class CompareTestCase(unittest.TestCase):
         nrows = vla._v_maxTuples + 34  # Add some more rows than buffer.
         # Only for home checks; the value above should check better
         # the I/O with multiple buffers.
-        ##nrows = 10
+        #nrows = 10
 
         for i in xrange(nrows):
-            vla.append((i + 0.012, i + 0.012))
+            j = i*2
+            vla.append((j + 0.012, j + 1 + 0.012))
         h5file.close()
 
         # Check the written data.
@@ -303,12 +304,12 @@ class CompareTestCase(unittest.TestCase):
         arr = h5file.root.test.read()
         h5file.close()
 
-        arr = numarray.array(arr)
-        orig_val = numarray.arange(0, nrows, 0.5, type = numarray.Int32,
-                                   shape = (nrows, 1, 2)) + 0.012
+        arr = numpy.array(arr)
+        orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
+        orig_val.shape = (nrows, 1, 2)
         if verbose:
             print "Original values:", orig_val
-            print "Saved values:", arr
+            print "Retrieved values:", arr
         self.assert_(
                 allequal(arr, orig_val),
                 "Stored and retrieved values do not match.")
@@ -334,14 +335,12 @@ class CompareTestCase(unittest.TestCase):
         recarr = h5file.root.test.read(0)
         h5file.close()
 
-        self.assertEqual(
-                recarr.field('t32col')[0], int(wtime),
-                "Stored and retrieved values do not match.")
+        self.assertEqual(recarr['t32col'][0], int(wtime),
+                         "Stored and retrieved values do not match.")
 
-        comp = (recarr.field('t64col')[0] == numarray.array((wtime, wtime)))
-        self.assert_(
-                numarray.alltrue(comp),
-                "Stored and retrieved values do not match.")
+        comp = (recarr['t64col'][0] == numpy.array((wtime, wtime)))
+        self.assert_(numpy.alltrue(comp),
+                     "Stored and retrieved values do not match.")
 
 
     def test02b_CompareTable(self):
@@ -361,7 +360,8 @@ class CompareTestCase(unittest.TestCase):
         row = tbl.row
         for i in xrange(nrows):
             row['t32col'] = i
-            row['t64col'] = (i+0.012, i+0.012)
+            j = i*2
+            row['t64col'] = (j+0.012, j+1+0.012)
             row.append()
         h5file.close()
 
@@ -371,29 +371,29 @@ class CompareTestCase(unittest.TestCase):
         h5file.close()
 
         # Time32 column.
-        orig_val = numarray.arange(nrows, type = numarray.Int32)
+        orig_val = numpy.arange(nrows, dtype=numpy.int32)
         if verbose:
             print "Original values:", orig_val
-            print "Saved values:", recarr.field('t32col')[:]
+            print "Retrieved values:", recarr['t32col'][:]
         self.assert_(
-                numarray.alltrue(recarr.field('t32col')[:] == orig_val),
+                numpy.alltrue(recarr['t32col'][:] == orig_val),
                 "Stored and retrieved values do not match.")
 
         # Time64 column.
-        orig_val = numarray.arange(0, nrows, 0.5, type = numarray.Int32,
-                                   shape = (nrows, 2)) + 0.012
+        orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
+        orig_val.shape = (nrows, 2)
         if verbose:
             print "Original values:", orig_val
-            print "Saved values:", recarr.field('t64col')[:]
+            print "Retrieved values:", recarr['t64col'][:]
         self.assert_(
-    allequal(recarr.field('t64col')[:], orig_val, numarray.Float64),
-                "Stored and retrieved values do not match.")
+            allequal(recarr['t64col'][:], orig_val, numpy.float64),
+            "Stored and retrieved values do not match.")
 
 
     def test03_Compare64EArray(self):
         "Comparing written 64-bit time data with read data in an EArray."
 
-        wtime = numarray.array((1234567890.123456,) * 2)
+        wtime = numpy.array((1234567890.123456,) * 2)
 
         # Create test EArray with data.
         h5file = tables.openFile(
@@ -428,7 +428,8 @@ class CompareTestCase(unittest.TestCase):
         ##nrows = 10
 
         for i in xrange(nrows):
-            ea.append(((i + 0.012, i + 0.012),))
+            j = i * 2
+            ea.append(((j + 0.012, j + 1 + 0.012),))
         h5file.close()
 
         # Check the written data.
@@ -436,11 +437,11 @@ class CompareTestCase(unittest.TestCase):
         arr = h5file.root.test.read()
         h5file.close()
 
-        orig_val = numarray.arange(0, nrows, 0.5, type = numarray.Int32,
-                                   shape = (nrows, 2)) + 0.012
+        orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
+        orig_val.shape = (nrows, 2)
         if verbose:
             print "Original values:", orig_val
-            print "Saved values:", arr
+            print "Retrieved values:", arr
         self.assert_(
                 allequal(arr, orig_val),
                 "Stored and retrieved values do not match.")
@@ -495,7 +496,8 @@ class UnalignedTestCase(unittest.TestCase):
         for i in xrange(nrows):
             row['i8col']  = i
             row['t32col'] = i
-            row['t64col'] = (i+0.012, i+0.012)
+            j = i * 2
+            row['t64col'] = (j+0.012, j+1+0.012)
             row.append()
         h5file.close()
 
@@ -505,32 +507,32 @@ class UnalignedTestCase(unittest.TestCase):
         h5file.close()
 
         # Int8 column.
-        orig_val = numarray.arange(nrows, type = numarray.Int8)
+        orig_val = numpy.arange(nrows, dtype=numpy.int8)
         if verbose:
             print "Original values:", orig_val
-            print "Saved values:", recarr.field('i8col')[:]
+            print "Retrieved values:", recarr['i8col'][:]
         self.assert_(
-                numarray.alltrue(recarr.field('i8col')[:] == orig_val),
+                numpy.alltrue(recarr['i8col'][:] == orig_val),
                 "Stored and retrieved values do not match.")
 
         # Time32 column.
-        orig_val = numarray.arange(nrows, type = numarray.Int32)
+        orig_val = numpy.arange(nrows, dtype=numpy.int32)
         if verbose:
             print "Original values:", orig_val
-            print "Saved values:", recarr.field('t32col')[:]
+            print "Retrieved values:", recarr['t32col'][:]
         self.assert_(
-                numarray.alltrue(recarr.field('t32col')[:] == orig_val),
+                numpy.alltrue(recarr['t32col'][:] == orig_val),
                 "Stored and retrieved values do not match.")
 
         # Time64 column.
-        orig_val = numarray.arange(0, nrows, 0.5, type = numarray.Int32,
-                                   shape = (nrows, 2)) + 0.012
+        orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
+        orig_val.shape = (nrows, 2)
         if verbose:
             print "Original values:", orig_val
-            print "Saved values:", recarr.field('t64col')[:]
+            print "Retrieved values:", recarr['t64col'][:]
         self.assert_(
-    allequal(recarr.field('t64col')[:], orig_val, numarray.Float64),
-                "Stored and retrieved values do not match.")
+            allequal(recarr['t64col'][:], orig_val, numpy.float64),
+            "Stored and retrieved values do not match.")
 
 
 

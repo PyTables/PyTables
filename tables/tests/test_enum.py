@@ -12,6 +12,8 @@ Test module for enumerated types under PyTables
 import unittest
 import operator
 
+import numpy
+
 import tables
 import common
 
@@ -26,7 +28,7 @@ class CreateColTestCase(common.PyTablesTestCase):
         enumcol = tables.EnumCol(enum, dflt, dtype=dtype, shape=shape)
         sameEnum = tables.Enum(enum)
         self.assertEqual(enumcol.stype, 'Enum')
-        self.assertEqual(enumcol.type, dtype)
+        self.assertEqual(enumcol.type, numpy.sctypeNA[dtype])
         # To avoid 'LongInt' vs 'Int' issues
         #self.assertEqual(enumcol.dflt, sameEnum[dflt])
         self.assertEqual(int(enumcol.dflt), int(sameEnum[dflt]))
@@ -125,7 +127,7 @@ class CreateAtomTestCase(common.PyTablesTestCase):
         enumatom = tables.EnumAtom(enum, dtype=dtype, shape=shape)
         sameEnum = tables.Enum(enum)
         self.assertEqual(enumatom.stype, 'Enum')
-        self.assertEqual(enumatom.type, dtype)
+        self.assertEqual(enumatom.type, numpy.sctypeNA[dtype])
         self.assertEqual(enumatom.shape, shape)
         self.assertEqual(enumatom.enum, sameEnum)
 
