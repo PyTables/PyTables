@@ -1662,7 +1662,9 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
 #                           actionlog['arg1'][i],\
 #                           actionlog['arg2'][i]
                     undoredo.redo(self,
-                                  _codeToOp[actionlog['opcode'][i]],
+                                  #_codeToOp[actionlog['opcode'][i]],
+                                  # The next is a workaround for python < 2.5
+                                  _codeToOp[int(actionlog['opcode'][i])],
                                   actionlog['arg1'][i],
                                   actionlog['arg2'][i])
                 else:
@@ -1672,7 +1674,9 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
 #                           actionlog['arg1'][i],\
 #                           actionlog['arg2'][i]
                     undoredo.undo(self,
-                                  _codeToOp[actionlog['opcode'][i]],
+                                  #_codeToOp[actionlog['opcode'][i]],
+                                  # The next is a workaround for python < 2.5
+                                  _codeToOp[int(actionlog['opcode'][i])],
                                   actionlog['arg1'][i],
                                   actionlog['arg2'][i])
             else:

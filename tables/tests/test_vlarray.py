@@ -1570,8 +1570,6 @@ class FlavorTestCase(unittest.TestCase):
                   "Int16": numpy.int16,
                   "UInt16": numpy.uint16,
                   "Int32": numpy.int32,
-                  "UInt32": numpy.uint32,
-                  "Int64": numpy.int64,
                   # Not checked because of Numeric <-> numarray
                   # conversion problems
                   #"UInt32": UInt32,
@@ -1614,9 +1612,9 @@ class FlavorTestCase(unittest.TestCase):
                 arr2 = numpy.array([], dtype=ttypes[atype])
                 arr3 = numpy.array([100,0], dtype=ttypes[atype])
             elif self.flavor == "numeric":
-                arr1 = Numeric.array([1,2,3], typecode=typecode[ttypes[atype]])
-                arr2 = Numeric.array([], typecode=typecode[ttypes[atype]])
-                arr3 = Numeric.array([100,0], typecode=typecode[ttypes[atype]])
+                arr1 = Numeric.array([1,2,3], typecode=typecode[atype])
+                arr2 = Numeric.array([], typecode=typecode[atype])
+                arr3 = Numeric.array([100,0], typecode=typecode[atype])
             elif self.flavor == "numarray":
                 arr1 = numarray.array([1,2,3], type=atype)
                 arr2 = numarray.array([], type=atype)
@@ -1640,9 +1638,7 @@ class FlavorTestCase(unittest.TestCase):
                   "Int16": numpy.int16,
                   "UInt16": numpy.uint16,
                   "Int32": numpy.int32,
-                  "UInt32": numpy.uint32,
-                  "Int64": numpy.int64,
-                  # Not checked because of Numeric <-> numarray
+                  # Not checked because of Numeric <-> NumPy
                   # conversion problems
                   #"UInt32": UInt32,
                   #"Int64": Int64,
@@ -1687,9 +1683,9 @@ class FlavorTestCase(unittest.TestCase):
                 arr2 = numpy.array([], dtype=ttypes[atype])
                 arr3 = numpy.array([100,0], dtype=ttypes[atype])
             elif self.flavor == "numeric":
-                arr1 = Numeric.array([1,2,3], typecode=typecode[ttypes[atype]])
-                arr2 = Numeric.array([], typecode=typecode[ttypes[atype]])
-                arr3 = Numeric.array([100,0], typecode=typecode[ttypes[atype]])
+                arr1 = Numeric.array([1,2,3], typecode=typecode[atype])
+                arr2 = Numeric.array([], typecode=typecode[atype])
+                arr3 = Numeric.array([100,0], typecode=typecode[atype])
             elif self.flavor == "numarray":
                 arr1 = numarray.array([1,2,3], type=atype)
                 arr2 = numarray.array([], type=atype)
@@ -1749,9 +1745,9 @@ class FlavorTestCase(unittest.TestCase):
                 arr2 = numpy.array([], dtype=ttypes[atype])
                 arr3 = numpy.array([-1.3e34,1.e-32], dtype=ttypes[atype])
             elif self.flavor == "numeric":
-                arr1 = Numeric.array([1.3,2.2,3.3], typecode[ttypes[atype]])
-                arr2 = Numeric.array([], typecode[ttypes[atype]])
-                arr3 = Numeric.array([-1.3e34,1.e-32], typecode[ttypes[atype]])
+                arr1 = Numeric.array([1.3,2.2,3.3], typecode[atype])
+                arr2 = Numeric.array([], typecode[atype])
+                arr3 = Numeric.array([-1.3e34,1.e-32], typecode[atype])
             elif self.flavor == "numarray":
                 arr1 = numarray.array([1.3,2.2,3.3], type=atype)
                 arr2 = numarray.array([], type=atype)
