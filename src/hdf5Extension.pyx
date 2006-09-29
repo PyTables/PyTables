@@ -420,9 +420,8 @@ cdef class File:
   # the memory booked by this extension types
   def __dealloc__(self):
     cdef int ret
-    #print "Destroying object File in Extension"
     if self.file_id:
-      #print "Closing the HDF5 file", name," because user didn't do that!."
+      # Close the HDF5 file because user didn't do that!
       ret = H5Fclose(self.file_id)
       if ret < 0:
         raise HDF5ExtError("Problems closing the file '%s'" % self.name)
@@ -520,7 +519,7 @@ cdef class AttributeSet:
     if ret < 0:
       raise HDF5ExtError("Can't get info on attribute %s in node %s." %
                                (attrname, dsetname))
-    # Get the attribute type
+    # Get the attribute type & size
     type_size = getArrayType(type_id, &enumtype)
     # type_size is of type size_t (unsigned long), so cast it to a long first
     if <long>type_size < 0:
@@ -1039,7 +1038,7 @@ cdef class Array(Leaf):
                               self.dims_chunk)) < 0):
       if self.extdim >= 0 or self.__class__.__name__ == 'CArray':
         raise HDF5ExtError, "Problems getting the chunksizes!"
-    # Get the array type
+    # Get the array type & size
     type_size = getArrayType(base_type_id, &enumtype)
     if type_size < 0:
       raise TypeError, "HDF5 class %d not supported. Sorry!" % class_id
@@ -1367,7 +1366,7 @@ cdef class VLArray(Leaf):
     if flavor: free(<void *>flavor)
     self.byteorder = byteorder  # Gives class visibility to byteorder
 
-    # Get the array type
+    # Get the array type & size
     self._basesize = getArrayType(self.base_type_id, &enumtype)
     if self._basesize < 0:
       raise TypeError, "The HDF5 class of object does not seem VLEN. Sorry!"
@@ -1506,13 +1505,15 @@ cdef class VLArray(Leaf):
       else:
         # Case of scalars (self._atomicshape == 1)
         shape = (vllen,)
-      if str(self._atomictype) == "CharType":
+      if self._atomicstype == "CharType":
         dtype = numpy.dtype((numpy.string_, self._basesize))
       else:
         dtype = numpy.dtype(self._atomictype)
         # Set the same byteorder than on-disk
         dtype = dtype.newbyteorder(self.byteorder)
-      nparr = numpy.array(buf, type=dtype, shape=shape)
+      nparr = numpy.ndarray(buffer=buf, dtype=dtype, shape=shape)
+      # Set the writeable flag for this ndarray object
+      nparr.flags.writeable = True
       # Convert some HDF5 types to NumPy after reading.
       self._convertTypes(nparr, 1)
       # Append this array to the output list

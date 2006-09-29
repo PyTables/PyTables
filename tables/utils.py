@@ -312,9 +312,9 @@ def convertToNP(arr, atom, copy = False):
             raise NotImplementedError, \
                   """Unicode types are not suppored yet, sorry."""
         nparr = arr
-    elif isinstance(arr, numarray.NumArray):
+    elif numarray_imported and type(arr) == numarray.NumArray:
         nparr = numpy.asarray(arr)
-    elif isinstance(arr, numarray.strings.CharArray):
+    elif numarray_imported and isinstance(arr, numarray.strings.CharArray):
         if ((copy) or (not arr.iscontiguous()) or
             (arr.itemsize() != atom.itemsize)):
             # A copy has to be made
@@ -322,8 +322,7 @@ def convertToNP(arr, atom, copy = False):
             nparr = numpy.array(arr, dtype=dtype)
         else:
             nparr = numpy.asarray(arr)
-    elif (Numeric_imported and
-          type(arr) == Numeric.ArrayType):
+    elif Numeric_imported and type(arr) == Numeric.ArrayType:
         if arr.typecode() != 'c':
             nparr = numpy.asarray(arr)
         else:

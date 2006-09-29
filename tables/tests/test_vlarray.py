@@ -1,8 +1,5 @@
-# Eh! python!, We are going to include isolatin characters here
+# Eh! python!, We are going to include utf-8 characters here
 # -*- coding: latin-1 -*-
-
-# Comments: Adapted to the new set of flavors:
-# "numarray", "numpy", "numeric", "python", "Object" and "VLString"
 
 import sys
 import unittest
@@ -10,24 +7,24 @@ import os
 import tempfile
 import warnings
 
-from numarray import *
-import numarray.strings as strings
+import numpy
 from tables import *
 
 try:
     import Numeric
-    numeric = 1
+    numeric_imported = 1
 except:
-    numeric = 0
+    numeric_imported = 0
 
 try:
-    import numpy
-    numpy_imported = 1
+    import numarray
+    from numarray import strings
+    numarray_imported = 1
 except:
-    numpy_imported = 0
+    numarray_imported = 0
 
 import common
-from common import verbose, allequal, cleanup
+from common import verbose, typecode, allequal, cleanup
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
@@ -39,7 +36,7 @@ class BasicTestCase(unittest.TestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    flavor = "numarray"
+    flavor = "numpy"
 
     def setUp(self):
 
@@ -65,8 +62,8 @@ class BasicTestCase(unittest.TestCase):
         # Fill it with 5 rows
         vlarray.append([1, 2])
         if self.flavor == "numarray":
-            vlarray.append(array([3, 4, 5], type=Int32))
-            vlarray.append(array([], type=Int32))    # Empty entry
+            vlarray.append(numarray.array([3, 4, 5], type='Int32'))
+            vlarray.append(numarray.array([], type='Int32'))    # Empty entry
         elif self.flavor == "numpy":
             vlarray.append(numpy.array([3, 4, 5], dtype='int32'))
             vlarray.append(numpy.array([], dtype='int32'))     # Empty entry
@@ -111,10 +108,10 @@ class BasicTestCase(unittest.TestCase):
         nrows = 5
         assert nrows == vlarray.nrows
         if self.flavor == "numarray":
-            assert allequal(row, array([1, 2], type=Int32))
-            assert allequal(row2, array([], type=Int32))
+            assert allequal(row, numarray.array([1, 2], type='Int32'), self.flavor)
+            assert allequal(row2, numarray.array([], type='Int32'), self.flavor)
         elif self.flavor == "numpy":
-            assert type(row) == type(numpy.array([1, 2]))
+            assert type(row) == numpy.ndarray
             assert allequal(row, numpy.array([1, 2], dtype='int32'), self.flavor)
             assert allequal(row2, numpy.array([], dtype='int32'), self.flavor)
         elif self.flavor == "numeric":
@@ -174,9 +171,10 @@ class BasicTestCase(unittest.TestCase):
         nrows = 6
         assert nrows == vlarray.nrows
         if self.flavor == "numarray":
-            assert allequal(row1, array([1, 2], type=Int32))
-            assert allequal(row2, array([], type=Int32))
-            assert allequal(row3, array([7, 8, 9, 10], type=Int32))
+            assert allequal(row1, numarray.array([1, 2], type='Int32'), self.flavor)
+            assert allequal(row2, numarray.array([], type='Int32'), self.flavor)
+            assert allequal(row3, numarray.array([7, 8, 9, 10], type='Int32'),
+                            self.flavor)
         elif self.flavor == "numpy":
             assert type(row1) == type(numpy.array([1, 2]))
             assert allequal(row1, numpy.array([1, 2], dtype='int32'), self.flavor)
@@ -198,11 +196,11 @@ class BasicTestCase(unittest.TestCase):
         assert len(row3) == 4
 
 
+class BasicNumPyTestCase(BasicTestCase):
+    flavor = "numpy"
+
 class BasicNumArrayTestCase(BasicTestCase):
     flavor = "numarray"
-
-class BasicNumpyTestCase(BasicTestCase):
-    flavor = "numpy"
 
 class BasicNumericTestCase(BasicTestCase):
     flavor = "numeric"
@@ -254,7 +252,7 @@ class TypesTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test01_StringAtom(self):
-        """Checking vlarray with numarray string atoms (numarray flavor)"""
+        """Checking vlarray with NumPy string atoms ('numpy' flavor)"""
 
         root = self.rootgroup
         if verbose:
@@ -263,7 +261,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, flavor="numarray"),
+                                           StringAtom(length=3, flavor="numpy"),
                                            "Ragged array of strings")
         vlarray.append(strings.array(["1", "12", "123", "1234", "12345"]))
         vlarray.append(strings.array(["1", "12345"]))
@@ -276,15 +274,15 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         assert vlarray.nrows == 2
-        assert allequal(row[0], strings.array(["1", "12", "123", "123", "123"]))
-        assert allequal(row[1], strings.array(["1", "123"]))
+        assert allequal(row[0], numpy.array(["1", "12", "123", "123", "123"]))
+        assert allequal(row[1], numpy.array(["1", "123"]))
         assert len(row[0]) == 5
         assert len(row[1]) == 2
 
     def test01_1_StringAtom(self):
-        """Checking vlarray with numarray string atoms (numpy flavor)"""
+        """Checking vlarray with NumPy string atoms ('numarray' flavor)"""
 
-        if not numpy_imported:
+        if not numarray_imported:
             return
 
         root = self.rootgroup
@@ -294,7 +292,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, flavor="numpy"),
+                                           StringAtom(length=3, flavor="numarray"),
                                            "Ragged array of strings")
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"], dtype="S"))
         vlarray.append(numpy.array(["1", "12345"], dtype="S"))
@@ -307,14 +305,14 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         assert vlarray.nrows == 2
-        assert allequal(row[0], numpy.array(["1", "12", "123", "123", "123"],
-                                            dtype="S"), flavor="numpy")
-        assert allequal(row[1], numpy.array(["1", "123"], dtype="S"), flavor="numpy")
+        assert allequal(row[0], strings.array(["1", "12", "123", "123", "123"]),
+                        flavor="numarray")
+        assert allequal(row[1], strings.array(["1", "123"]), flavor="numarray")
         assert len(row[0]) == 5
         assert len(row[1]) == 2
 
     def test01a_StringAtom(self):
-        """Checking vlarray with numarray string atoms (numarray flavor, strided)"""
+        """Checking vlarray with NumPy string atoms ('numpy' flavor, strided)"""
 
         root = self.rootgroup
         if verbose:
@@ -323,10 +321,10 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, flavor="numarray"),
+                                           StringAtom(length=3, flavor="numpy"),
                                            "Ragged array of strings")
-        vlarray.append(strings.array(["1", "12", "123", "1234", "12345"][::2]))
-        vlarray.append(strings.array(["1", "12345","2", "321"])[::3])
+        vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"][::2]))
+        vlarray.append(numpy.array(["1", "12345","2", "321"])[::3])
 
         # Read all the rows:
         row = vlarray.read()
@@ -336,13 +334,13 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         assert vlarray.nrows == 2
-        assert allequal(row[0], strings.array(["1", "123", "123"]))
-        assert allequal(row[1], strings.array(["1", "321"]))
+        assert allequal(row[0], numpy.array(["1", "123", "123"]))
+        assert allequal(row[1], numpy.array(["1", "321"]))
         assert len(row[0]) == 3
         assert len(row[1]) == 2
 
     def test01a_2_StringAtom(self):
-        """Checking vlarray with numarray string atoms (numarray flavor, no conv)"""
+        """Checking vlarray with NumPy string atoms (NumPy flavor, no conv)"""
 
         root = self.rootgroup
         if verbose:
@@ -351,10 +349,10 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, flavor="numarray"),
+                                           StringAtom(length=3, flavor="numpy"),
                                            "Ragged array of strings")
-        vlarray.append(strings.array(["1", "12", "123", "123"]))
-        vlarray.append(strings.array(["1", "2", "321"]))
+        vlarray.append(numpy.array(["1", "12", "123", "123"]))
+        vlarray.append(numpy.array(["1", "2", "321"]))
 
         # Read all the rows:
         row = vlarray.read()
@@ -364,13 +362,13 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         assert vlarray.nrows == 2
-        assert allequal(row[0], strings.array(["1", "12", "123", "123"]))
-        assert allequal(row[1], strings.array(["1", "2", "321"]))
+        assert allequal(row[0], numpy.array(["1", "12", "123", "123"]))
+        assert allequal(row[1], numpy.array(["1", "2", "321"]))
         assert len(row[0]) == 4
         assert len(row[1]) == 3
 
     def test01b_StringAtom(self):
-        """Checking vlarray with numarray string atoms (python flavor)"""
+        """Checking vlarray with NumPy string atoms (python flavor)"""
 
         root = self.rootgroup
         if verbose:
@@ -400,7 +398,7 @@ class TypesTestCase(unittest.TestCase):
         assert len(row[1]) == 2
 
     def test01c_StringAtom(self):
-        """Checking updating vlarray with numarray string atoms (numarray flavor)"""
+        """Checking updating vlarray with NumPy string atoms ('numpy' flavor)"""
 
         root = self.rootgroup
         if verbose:
@@ -409,14 +407,14 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, flavor="numarray"),
+                                           StringAtom(length=3, flavor="numpy"),
                                            "Ragged array of strings")
-        vlarray.append(strings.array(["1", "12", "123", "1234", "12345"]))
-        vlarray.append(strings.array(["1", "12345"]))
+        vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
+        vlarray.append(numpy.array(["1", "12345"]))
 
         # Modify the rows
-        vlarray[0] = strings.array(["1", "123", "12", "", "12345"])
-        vlarray[1] = strings.array(["44", "4"])  # This should work as well
+        vlarray[0] = numpy.array(["1", "123", "12", "", "12345"])
+        vlarray[1] = numpy.array(["44", "4"])  # This should work as well
 
         # Read all the rows:
         row = vlarray.read()
@@ -426,8 +424,8 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         assert vlarray.nrows == 2
-        assert allequal(row[0], strings.array(["1", "123", "12", "", "123"]))
-        assert allequal(row[1], strings.array(["44", "4"]))
+        assert allequal(row[0], numpy.array(["1", "123", "12", "", "123"]))
+        assert allequal(row[1], numpy.array(["44", "4"]))
         assert len(row[0]) == 5
         assert len(row[1]) == 2
 
@@ -474,7 +472,7 @@ class TypesTestCase(unittest.TestCase):
     # UnicodeDecodeError: 'utf8' codec can't decode byte 0xc3 in position 1: unexpected end of data
 
 #     def test01c_StringAtom(self):
-#         """Checking vlarray with numarray string atoms (UString flavor)"""
+#         """Checking vlarray with NumPy string atoms (UString flavor)"""
 
 #         root = self.rootgroup
 #         if verbose:
@@ -526,8 +524,8 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         assert vlarray.nrows == 2
-        assert allequal(row[0], array([1,0,1], type=Bool))
-        assert allequal(row[1], array([1,0], type=Bool))
+        assert allequal(row[0], numpy.array([1,0,1], dtype='bool'))
+        assert allequal(row[1], numpy.array([1,0], dtype='bool'))
         assert len(row[0]) == 3
         assert len(row[1]) == 2
 
@@ -558,22 +556,22 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         assert vlarray.nrows == 2
-        assert allequal(row[0], array([0,1,1], type=Bool))
-        assert allequal(row[1], array([0,1], type=Bool))
+        assert allequal(row[0], numpy.array([0,1,1], dtype='bool'))
+        assert allequal(row[1], numpy.array([0,1], dtype='bool'))
         assert len(row[0]) == 3
         assert len(row[1]) == 2
 
     def test03_IntAtom(self):
         """Checking vlarray with integer atoms"""
 
-        ttypes = {"Int8": Int8,
-                  "UInt8": UInt8,
-                  "Int16": Int16,
-                  "UInt16": UInt16,
-                  "Int32": Int32,
-                  "UInt32": UInt32,
-                  "Int64": Int64,
-                  #"UInt64": UInt64,  # Unavailable in some platforms
+        ttypes = {"Int8": numpy.int8,
+                  "UInt8": numpy.uint8,
+                  "Int16": numpy.int16,
+                  "UInt16": numpy.uint16,
+                  "Int32": numpy.int32,
+                  "UInt32": numpy.uint32,
+                  "Int64": numpy.int64,
+                  #"UInt64": numpy.int64,  # Unavailable in some platforms
                   }
         root = self.rootgroup
         if verbose:
@@ -596,22 +594,22 @@ class TypesTestCase(unittest.TestCase):
                 print "First row in vlarray ==>", row[0]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], array([1,2,3], type=ttypes[atype]))
-            assert allequal(row[1], array([-1,0], type=ttypes[atype]))
+            assert allequal(row[0], numpy.array([1,2,3], dtype=ttypes[atype]))
+            assert allequal(row[1], numpy.array([-1,0], dtype=ttypes[atype]))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
     def test03b_IntAtom(self):
         """Checking updating vlarray with integer atoms"""
 
-        ttypes = {"Int8": Int8,
-                  "UInt8": UInt8,
-                  "Int16": Int16,
-                  "UInt16": UInt16,
-                  "Int32": Int32,
-                  "UInt32": UInt32,
-                  "Int64": Int64,
-                  #"UInt64": UInt64,  # Unavailable in some platforms
+        ttypes = {"Int8": numpy.int8,
+                  "UInt8": numpy.uint8,
+                  "Int16": numpy.int16,
+                  "UInt16": numpy.uint16,
+                  "Int32": numpy.int32,
+                  "UInt32": numpy.uint32,
+                  "Int64": numpy.int64,
+                  #"UInt64": numpy.int64,  # Unavailable in some platforms
                   }
         root = self.rootgroup
         if verbose:
@@ -638,16 +636,16 @@ class TypesTestCase(unittest.TestCase):
                 print "First row in vlarray ==>", row[0]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], array([3,2,1], type=ttypes[atype]))
-            assert allequal(row[1], array([0,-1], type=ttypes[atype]))
+            assert allequal(row[0], numpy.array([3,2,1], dtype=ttypes[atype]))
+            assert allequal(row[1], numpy.array([0,-1], dtype=ttypes[atype]))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
     def test04_FloatAtom(self):
         """Checking vlarray with floating point atoms"""
 
-        ttypes = {"Float32": Float32,
-                  "Float64": Float64,
+        ttypes = {"Float32": numpy.float32,
+                  "Float64": numpy.float64,
                   }
         root = self.rootgroup
         if verbose:
@@ -670,16 +668,16 @@ class TypesTestCase(unittest.TestCase):
                 print "First row in vlarray ==>", row[0]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], array([1.3,2.2,3.3], ttypes[atype]))
-            assert allequal(row[1], array([-1.3e34,1.e-32], ttypes[atype]))
+            assert allequal(row[0], numpy.array([1.3,2.2,3.3], ttypes[atype]))
+            assert allequal(row[1], numpy.array([-1.3e34,1.e-32], ttypes[atype]))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
     def test04a_FloatAtom(self):
         """Checking updating vlarray with floating point atoms"""
 
-        ttypes = {"Float32": Float32,
-                  "Float64": Float64,
+        ttypes = {"Float32": numpy.float32,
+                  "Float64": numpy.float64,
                   }
         root = self.rootgroup
         if verbose:
@@ -706,16 +704,16 @@ class TypesTestCase(unittest.TestCase):
                 print "First row in vlarray ==>", row[0]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], array([4.3,2.2,4.3], ttypes[atype]))
-            assert allequal(row[1], array([-1.1e34,1.3e-32], ttypes[atype]))
+            assert allequal(row[0], numpy.array([4.3,2.2,4.3], ttypes[atype]))
+            assert allequal(row[1], numpy.array([-1.1e34,1.3e-32], ttypes[atype]))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
     def test04b_ComplexAtom(self):
         """Checking vlarray with numerical complex atoms"""
 
-        ttypes = {"Complex32": Complex32,
-                  "Complex64": Complex64,
+        ttypes = {"Complex32": numpy.complex64,
+                  "Complex64": numpy.complex128,
                   }
         root = self.rootgroup
         if verbose:
@@ -738,18 +736,18 @@ class TypesTestCase(unittest.TestCase):
                 print "First row in vlarray ==>", row[0]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], array([(1.3+0j),(0+2.2j),(3.3+3.3j)],
-                                          ttypes[atype]))
-            assert allequal(row[1], array([(0-1.3e34j),(1.e-32+0j)],
-                                          ttypes[atype]))
+            assert allequal(row[0], numpy.array([(1.3+0j),(0+2.2j),(3.3+3.3j)],
+                                                ttypes[atype]))
+            assert allequal(row[1], numpy.array([(0-1.3e34j),(1.e-32+0j)],
+                                                ttypes[atype]))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
     def test04c_ComplexAtom(self):
         """Checking modifying vlarray with numerical complex atoms"""
 
-        ttypes = {"Complex32": Complex32,
-                  "Complex64": Complex64,
+        ttypes = {"Complex32": numpy.complex64,
+                  "Complex64": numpy.complex128,
                   }
         root = self.rootgroup
         if verbose:
@@ -776,10 +774,10 @@ class TypesTestCase(unittest.TestCase):
                 print "First row in vlarray ==>", row[0]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], array([(1.4+0j),(0+4.2j),(3.3+4.3j)],
-                                          ttypes[atype]))
-            assert allequal(row[1], array([(4-1.3e34j),(1.e-32+4j)],
-                                          ttypes[atype]))
+            assert allequal(row[0], numpy.array([(1.4+0j),(0+4.2j),(3.3+4.3j)],
+                                                ttypes[atype]))
+            assert allequal(row[1], numpy.array([(4-1.3e34j),(1.e-32+4j)],
+                                                ttypes[atype]))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
@@ -914,7 +912,7 @@ class TypesTestCase(unittest.TestCase):
         assert len(row[1]) == 3
 
 
-class TypesNumArrayTestCase(TypesTestCase):
+class TypesNumPyTestCase(TypesTestCase):
     title = "Types"
 
 class MDTypesTestCase(unittest.TestCase):
@@ -937,7 +935,7 @@ class MDTypesTestCase(unittest.TestCase):
     #----------------------------------------
 
     def test01_StringAtom(self):
-        """Checking vlarray with MD numarray string atoms"""
+        """Checking vlarray with MD NumPy string atoms"""
 
         root = self.rootgroup
         if verbose:
@@ -960,14 +958,14 @@ class MDTypesTestCase(unittest.TestCase):
             print "Second row in vlarray ==>", row[1]
 
         assert vlarray.nrows == 2
-        assert allequal(row[0], strings.array([["123", "45"],["45", "123"]]))
-        assert allequal(row[1], strings.array([["s", "abc"],["abc", "f"],
-                                              ["s", "ab"],["ab", "f"]]))
+        assert allequal(row[0], numpy.array([["123", "45"],["45", "123"]]))
+        assert allequal(row[1], numpy.array([["s", "abc"],["abc", "f"],
+                                             ["s", "ab"],["ab", "f"]]))
         assert len(row[0]) == 2
         assert len(row[1]) == 4
 
     def test01b_StringAtom(self):
-        """Checking vlarray with MD numarray string atoms (String flavor)"""
+        """Checking vlarray with MD NumPy string atoms ('python' flavor)"""
 
         root = self.rootgroup
         if verbose:
@@ -999,7 +997,7 @@ class MDTypesTestCase(unittest.TestCase):
 
 
     def test01c_StringAtom(self):
-        """Checking vlarray with MD numarray string atoms (with offset)"""
+        """Checking vlarray with MD NumPy string atoms (with offset)"""
 
         root = self.rootgroup
         if verbose:
@@ -1033,7 +1031,7 @@ class MDTypesTestCase(unittest.TestCase):
         assert len(row[1]) == 4
 
     def test01d_StringAtom(self):
-        """Checking vlarray with MD numarray string atoms (with stride)"""
+        """Checking vlarray with MD NumPy string atoms (with stride)"""
 
         root = self.rootgroup
         if verbose:
@@ -1088,8 +1086,8 @@ class MDTypesTestCase(unittest.TestCase):
             print "Second row in vlarray ==>", row[1]
 
         assert vlarray.nrows == 2
-        assert allequal(row[0], array([[1,0,1],[1,1,1],[0,0,0]], type=Bool))
-        assert allequal(row[1], array([[1,0,0]], type=Bool))
+        assert allequal(row[0], numpy.array([[1,0,1],[1,1,1],[0,0,0]], dtype='bool'))
+        assert allequal(row[1], numpy.array([[1,0,0]], dtype='bool'))
         assert len(row[0]) == 3
         assert len(row[1]) == 1
 
@@ -1105,9 +1103,9 @@ class MDTypesTestCase(unittest.TestCase):
         vlarray = self.fileh.createVLArray(root, 'BoolAtom',
                                            BoolAtom(shape = (3,)),
                                            "Ragged array of Booleans")
-        a=array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], type=Bool)
+        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], dtype='bool')
         vlarray.append(a[1:])  # Create an offset
-        a=array([(1,1,1), (-1,0,0)], type=Bool)
+        a = numpy.array([(1,1,1), (-1,0,0)], dtype='bool')
         vlarray.append(a[1:])  # Create an offset
 
         # Read all the rows:
@@ -1118,8 +1116,8 @@ class MDTypesTestCase(unittest.TestCase):
             print "Second row in vlarray ==>", row[1]
 
         assert vlarray.nrows == 2
-        assert allequal(row[0], array([[1,0,1],[1,1,1],[0,0,0]], type=Bool))
-        assert allequal(row[1], array([[1,0,0]], type=Bool))
+        assert allequal(row[0], numpy.array([[1,0,1],[1,1,1],[0,0,0]], dtype='bool'))
+        assert allequal(row[1], numpy.array([[1,0,0]], dtype='bool'))
         assert len(row[0]) == 3
         assert len(row[1]) == 1
 
@@ -1135,9 +1133,9 @@ class MDTypesTestCase(unittest.TestCase):
         vlarray = self.fileh.createVLArray(root, 'BoolAtom',
                                            BoolAtom(shape = (3,)),
                                            "Ragged array of Booleans")
-        a=array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], type=Bool)
+        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], dtype='bool')
         vlarray.append(a[1::2])  # Create an strided array
-        a=array([(1,1,1), (-1,0,0), (0,0,0)], type=Bool)
+        a = numpy.array([(1,1,1), (-1,0,0), (0,0,0)], dtype='bool')
         vlarray.append(a[::2])  # Create an strided array
 
         # Read all the rows:
@@ -1148,22 +1146,22 @@ class MDTypesTestCase(unittest.TestCase):
             print "Second row in vlarray ==>", row[1]
 
         assert vlarray.nrows == 2
-        assert allequal(row[0], array([[1,0,1],[0,0,0]], type=Bool))
-        assert allequal(row[1], array([[1,1,1],[0,0,0]], type=Bool))
+        assert allequal(row[0], numpy.array([[1,0,1],[0,0,0]], dtype='bool'))
+        assert allequal(row[1], numpy.array([[1,1,1],[0,0,0]], dtype='bool'))
         assert len(row[0]) == 2
         assert len(row[1]) == 2
 
     def test03_IntAtom(self):
         """Checking vlarray with MD integer atoms"""
 
-        ttypes = {"Int8": Int8,
-                  "UInt8": UInt8,
-                  "Int16": Int16,
-                  "UInt16": UInt16,
-                  "Int32": Int32,
-                  "UInt32": UInt32,
-                  "Int64": Int64,
-                  #"UInt64": UInt64,
+        ttypes = {"Int8": numpy.int8,
+                  "UInt8": numpy.uint8,
+                  "Int16": numpy.int16,
+                  "UInt16": numpy.uint16,
+                  "Int32": numpy.int32,
+                  "UInt32": numpy.uint32,
+                  "Int64": numpy.int64,
+                  #"UInt64": numpy.int64,  # Unavailable in some platforms
                   }
         root = self.rootgroup
         if verbose:
@@ -1175,9 +1173,9 @@ class MDTypesTestCase(unittest.TestCase):
             vlarray = self.fileh.createVLArray(root, atype,
                                                Atom(ttypes[atype],
                                                     shape = (2,3)))
-            vlarray.append([ones((2,3), ttypes[atype]),
-                            zeros((2,3), ttypes[atype])])
-            vlarray.append([ones((2,3), ttypes[atype])*100])
+            vlarray.append([numpy.ones((2,3), ttypes[atype]),
+                            numpy.zeros((2,3), ttypes[atype])])
+            vlarray.append([numpy.ones((2,3), ttypes[atype])*100])
 
             # Read all the rows:
             row = vlarray.read()
@@ -1187,19 +1185,21 @@ class MDTypesTestCase(unittest.TestCase):
                 print "Second row in vlarray ==>", repr(row[1])
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], array([ones((2,3)),
-                                          zeros((2,3))], ttypes[atype]))
-            assert allequal(row[1], array([ones((2,3))*100], ttypes[atype]))
+            assert allequal(row[0], numpy.array([numpy.ones((2,3)),
+                                                 numpy.zeros((2,3))],
+                                                ttypes[atype]))
+            assert allequal(row[1], numpy.array([numpy.ones((2,3))*100],
+                                                ttypes[atype]))
             assert len(row[0]) == 2
             assert len(row[1]) == 1
 
     def test04_FloatAtom(self):
         """Checking vlarray with MD floating point atoms"""
 
-        ttypes = {"Float32": Float32,
-                  "Float64": Float64,
-                  "Complex32": Complex32,
-                  "Complex64": Complex64
+        ttypes = {"Float32": numpy.float32,
+                  "Float64": numpy.float64,
+                  "Complex32": numpy.complex64,
+                  "Complex64": numpy.complex128
                   }
         root = self.rootgroup
         if verbose:
@@ -1211,9 +1211,9 @@ class MDTypesTestCase(unittest.TestCase):
             vlarray = self.fileh.createVLArray(root, atype,
                                                Atom(ttypes[atype],
                                                     shape=(5,2,6)))
-            vlarray.append([ones((5,2,6), ttypes[atype])*1.3,
-                            zeros((5,2,6), ttypes[atype])])
-            vlarray.append([ones((5,2,6), ttypes[atype])*2.e4])
+            vlarray.append([numpy.ones((5,2,6), ttypes[atype])*1.3,
+                            numpy.zeros((5,2,6), ttypes[atype])])
+            vlarray.append([numpy.ones((5,2,6), ttypes[atype])*2.e4])
 
             # Read all the rows:
             row = vlarray.read()
@@ -1223,14 +1223,16 @@ class MDTypesTestCase(unittest.TestCase):
                 print "Second row in vlarray ==>", row[1]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], array([ones((5,2,6))*1.3,
-                                          zeros((5,2,6))], ttypes[atype]))
-            assert allequal(row[1], array([ones((5,2,6))*2.e4], ttypes[atype]))
+            assert allequal(row[0], numpy.array([numpy.ones((5,2,6))*1.3,
+                                                 numpy.zeros((5,2,6))],
+                                                ttypes[atype]))
+            assert allequal(row[1], numpy.array([numpy.ones((5,2,6))*2.e4],
+                                                ttypes[atype]))
             assert len(row[0]) == 2
             assert len(row[1]) == 1
 
 
-class MDTypesNumArrayTestCase(MDTypesTestCase):
+class MDTypesNumPyTestCase(MDTypesTestCase):
     title = "MDTypes"
 
 class AppendShapeTestCase(unittest.TestCase):
@@ -1275,7 +1277,7 @@ class AppendShapeTestCase(unittest.TestCase):
         warnings.filterwarnings("default", category=DeprecationWarning)
         vlarray.append((1,2,3)) # a tuple
         vlarray.append([1,2,3]) # a unique list
-        vlarray.append(array([1,2,3], type=Int32)) # and array
+        vlarray.append(numpy.array([1,2,3], dtype='int32')) # and array
 
         if self.close:
             if verbose:
@@ -1347,7 +1349,7 @@ class AppendShapeTestCase(unittest.TestCase):
         vlarray = self.fileh.createVLArray(root, 'vlarray',
                                            Int32Atom(),
                                            "Ragged array of ints")
-        vlarray.append(zeros(type=Int32, shape=(6,0)))
+        vlarray.append(numpy.zeros(dtype='int32', shape=(6,0)))
 
         if self.close:
             if verbose:
@@ -1364,7 +1366,7 @@ class AppendShapeTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row.info()
 
         assert vlarray.nrows == 1
-        assert allequal(row, zeros(type=Int32, shape=(0,)))
+        assert allequal(row, numpy.zeros(dtype='int32', shape=(0,)))
         assert len(row) == 0
 
     def test03a_cast(self):
@@ -1380,7 +1382,7 @@ class AppendShapeTestCase(unittest.TestCase):
                                            Int32Atom(),
                                            "Ragged array of ints")
         # This type has to be upgraded
-        vlarray.append(array([1,2], type=Int16))
+        vlarray.append(numpy.array([1,2], dtype='int16'))
 
         if self.close:
             if verbose:
@@ -1397,7 +1399,7 @@ class AppendShapeTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row.info()
 
         assert vlarray.nrows == 1
-        assert allequal(row, array([1,2], type=Int32))
+        assert allequal(row, numpy.array([1,2], dtype='int32'))
         assert len(row) == 2
 
     def test03b_cast(self):
@@ -1412,8 +1414,8 @@ class AppendShapeTestCase(unittest.TestCase):
         vlarray = self.fileh.createVLArray(root, 'vlarray',
                                            Int32Atom(),
                                            "Ragged array of ints")
-        # This type has to be dowgraded
-        vlarray.append(array([1,2], type=Float64))
+        # This type has to be downcasted
+        vlarray.append(numpy.array([1,2], dtype='float64'))
 
         if self.close:
             if verbose:
@@ -1430,8 +1432,9 @@ class AppendShapeTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row.info()
 
         assert vlarray.nrows == 1
-        assert allequal(row, array([1,2], type=Int32))
+        assert allequal(row, numpy.array([1,2], dtype='int32'))
         assert len(row) == 2
+
 
 class OpenAppendShapeTestCase(AppendShapeTestCase):
     close = 0
@@ -1537,32 +1540,24 @@ class FlavorTestCase(unittest.TestCase):
             arr2 = []
             arr3 = [1,0]
         elif self.flavor == "numpy":
-            arr1 = numpy.array([1,1,1], dtype="bool8")
-            arr2 = numpy.array([], dtype="bool8")
-            arr3 = numpy.array([1,0], dtype="bool8")
+            arr1 = numpy.array([1,1,1], dtype="bool")
+            arr2 = numpy.array([], dtype="bool")
+            arr3 = numpy.array([1,0], dtype="bool")
         elif self.flavor == "numeric":
             arr1 = Numeric.array([1,1,1], typecode="1")
             arr2 = Numeric.array([], typecode="1")
             arr3 = Numeric.array([1,0], typecode="1")
-        else:  # Default (NumArray)
-            arr1 = array([1,1,1], type=Bool)
-            arr2 = array([], type=Bool)
-            arr3 = array([1,0], type=Bool)
-
-        if self.flavor == "numeric":
-            allequal(row[0], arr1, "numeric")
-            allequal(row[1], arr2, "numeric")
-            allequal(row[2], arr3, "numeric")
-        elif self.flavor == "numpy":
-            allequal(row[0], arr1, "numpy")
-            allequal(row[1], arr2, "numpy")
-            allequal(row[2], arr3, "numpy")
         elif self.flavor == "numarray":
-            allequal(row[0], arr1)
-            allequal(row[1], arr2)
-            allequal(row[1], arr2)
+            arr1 = numarray.array([1,1,1], type='Bool')
+            arr2 = numarray.array([], type='Bool')
+            arr3 = numarray.array([1,0], type='Bool')
+
+        if self.flavor in ['numpy', 'numarray', 'numeric']:
+            allequal(row[0], arr1, self.flavor)
+            allequal(row[1], arr2, self.flavor)
+            allequal(row[1], arr2, self.flavor)
         else:
-            # Tuple or List flavors
+            # 'python' flavor
             assert row[0] == arr1
             assert row[1] == arr2
             assert row[2] == arr3
@@ -1570,11 +1565,13 @@ class FlavorTestCase(unittest.TestCase):
     def test03_IntAtom(self):
         """Checking vlarray with different flavors (integer versions)"""
 
-        ttypes = {"Int8": Int8,
-                  "UInt8": UInt8,
-                  "Int16": Int16,
-                  "UInt16": UInt16,
-                  "Int32": Int32,
+        ttypes = {"Int8": numpy.int8,
+                  "UInt8": numpy.uint8,
+                  "Int16": numpy.int16,
+                  "UInt16": numpy.uint16,
+                  "Int32": numpy.int32,
+                  "UInt32": numpy.uint32,
+                  "Int64": numpy.int64,
                   # Not checked because of Numeric <-> numarray
                   # conversion problems
                   #"UInt32": UInt32,
@@ -1613,32 +1610,24 @@ class FlavorTestCase(unittest.TestCase):
                 arr2 = []
                 arr3 = [100,0]
             elif self.flavor == "numpy":
-                arr1 = numpy.array([1,2,3], dtype=numpy.typeNA[ttypes[atype]])
-                arr2 = numpy.array([], dtype=numpy.typeNA[ttypes[atype]])
-                arr3 = numpy.array([100,0], dtype=numpy.typeNA[ttypes[atype]])
+                arr1 = numpy.array([1,2,3], dtype=ttypes[atype])
+                arr2 = numpy.array([], dtype=ttypes[atype])
+                arr3 = numpy.array([100,0], dtype=ttypes[atype])
             elif self.flavor == "numeric":
                 arr1 = Numeric.array([1,2,3], typecode=typecode[ttypes[atype]])
                 arr2 = Numeric.array([], typecode=typecode[ttypes[atype]])
                 arr3 = Numeric.array([100,0], typecode=typecode[ttypes[atype]])
-            else:  # Default (NumArray)
-                arr1 = array([1,2,3], type=ttypes[atype])
-                arr2 = array([], type=ttypes[atype])
-                arr3 = array([100, 0], type=ttypes[atype])
-
-            if self.flavor == "numeric":
-                allequal(row[0], arr1, "numeric")
-                allequal(row[1], arr2, "numeric")
-                allequal(row[2], arr3, "numeric")
-            elif self.flavor == "numpy":
-                allequal(row[0], arr1, "numpy")
-                allequal(row[1], arr2, "numpy")
-                allequal(row[2], arr3, "numpy")
             elif self.flavor == "numarray":
-                allequal(row[0], arr1)
-                allequal(row[1], arr2)
-                allequal(row[2], arr3)
+                arr1 = numarray.array([1,2,3], type=atype)
+                arr2 = numarray.array([], type=atype)
+                arr3 = numarray.array([100, 0], type=atype)
+
+            if self.flavor in ["numpy", "numarray", "numeric"]:
+                allequal(row[0], arr1, self.flavor)
+                allequal(row[1], arr2, self.flavor)
+                allequal(row[2], arr3, self.flavor)
             else:
-                # Tuple or List flavors
+                # "python" flavor
                 assert row[0] == arr1
                 assert row[1] == arr2
                 assert row[2] == arr3
@@ -1646,11 +1635,13 @@ class FlavorTestCase(unittest.TestCase):
     def test03b_IntAtom(self):
         """Checking vlarray flavors (integer versions and closed file)"""
 
-        ttypes = {"Int8": Int8,
-                  "UInt8": UInt8,
-                  "Int16": Int16,
-                  "UInt16": UInt16,
-                  "Int32": Int32,
+        ttypes = {"Int8": numpy.int8,
+                  "UInt8": numpy.uint8,
+                  "Int16": numpy.int16,
+                  "UInt16": numpy.uint16,
+                  "Int32": numpy.int32,
+                  "UInt32": numpy.uint32,
+                  "Int64": numpy.int64,
                   # Not checked because of Numeric <-> numarray
                   # conversion problems
                   #"UInt32": UInt32,
@@ -1692,30 +1683,22 @@ class FlavorTestCase(unittest.TestCase):
                 arr2 = []
                 arr3 = [100,0]
             elif self.flavor == "numpy":
-                arr1 = numpy.array([1,2,3], dtype=numpy.typeNA[ttypes[atype]])
-                arr2 = numpy.array([], dtype=numpy.typeNA[ttypes[atype]])
-                arr3 = numpy.array([100,0], dtype=numpy.typeNA[ttypes[atype]])
+                arr1 = numpy.array([1,2,3], dtype=ttypes[atype])
+                arr2 = numpy.array([], dtype=ttypes[atype])
+                arr3 = numpy.array([100,0], dtype=ttypes[atype])
             elif self.flavor == "numeric":
                 arr1 = Numeric.array([1,2,3], typecode=typecode[ttypes[atype]])
                 arr2 = Numeric.array([], typecode=typecode[ttypes[atype]])
                 arr3 = Numeric.array([100,0], typecode=typecode[ttypes[atype]])
-            else:  # Default (NumArray)
-                arr1 = array([1,2,3], type=ttypes[atype])
-                arr2 = array([], type=ttypes[atype])
-                arr3 = array([100, 0], type=ttypes[atype])
-
-            if self.flavor == "numeric":
-                allequal(row[0], arr1, "numeric")
-                allequal(row[1], arr2, "numeric")
-                allequal(row[2], arr3, "numeric")
-            elif self.flavor == "numpy":
-                allequal(row[0], arr1, "numpy")
-                allequal(row[1], arr2, "numpy")
-                allequal(row[2], arr3, "numpy")
             elif self.flavor == "numarray":
-                allequal(row[0], arr1)
-                allequal(row[1], arr2)
-                allequal(row[2], arr3)
+                arr1 = numarray.array([1,2,3], type=atype)
+                arr2 = numarray.array([], type=atype)
+                arr3 = numarray.array([100, 0], type=atype)
+
+            if self.flavor in ["numpy", "numarray", "numeric"]:
+                allequal(row[0], arr1, self.flavor)
+                allequal(row[1], arr2, self.flavor)
+                allequal(row[2], arr3, self.flavor)
             else:
                 # Tuple or List flavors
                 assert row[0] == arr1
@@ -1726,10 +1709,10 @@ class FlavorTestCase(unittest.TestCase):
         """Checking vlarray with different flavors (floating point versions)"""
 
 
-        ttypes = {"Float32": Float32,
-                  "Float64": Float64,
-                  "Complex32": Complex32,
-                  "Complex64": Complex64
+        ttypes = {"Float32": numpy.float32,
+                  "Float64": numpy.float64,
+                  "Complex32": numpy.complex64,
+                  "Complex64": numpy.complex128
                   }
         root = self.rootgroup
         if verbose:
@@ -1758,45 +1741,37 @@ class FlavorTestCase(unittest.TestCase):
             assert len(row[1]) == 0
             assert len(row[2]) == 2
             if self.flavor == "python":
-                arr1 = list(array([1.3,2.2,3.3], typecode[ttypes[atype]]))
-                arr2 = list(array([], typecode[ttypes[atype]]))
-                arr3 = list(array([-1.3e34,1.e-32], typecode[ttypes[atype]]))
+                arr1 = list(numpy.array([1.3,2.2,3.3], ttypes[atype]))
+                arr2 = list(numpy.array([], ttypes[atype]))
+                arr3 = list(numpy.array([-1.3e34,1.e-32], ttypes[atype]))
             elif self.flavor == "numpy":
-                arr1 = numpy.array([1.3,2.2,3.3], dtype=numpy.typeNA[ttypes[atype]])
-                arr2 = numpy.array([], dtype=numpy.typeNA[ttypes[atype]])
-                arr3 = numpy.array([-1.3e34,1.e-32], dtype=numpy.typeNA[ttypes[atype]])
+                arr1 = numpy.array([1.3,2.2,3.3], dtype=ttypes[atype])
+                arr2 = numpy.array([], dtype=ttypes[atype])
+                arr3 = numpy.array([-1.3e34,1.e-32], dtype=ttypes[atype])
             elif self.flavor == "numeric":
                 arr1 = Numeric.array([1.3,2.2,3.3], typecode[ttypes[atype]])
                 arr2 = Numeric.array([], typecode[ttypes[atype]])
                 arr3 = Numeric.array([-1.3e34,1.e-32], typecode[ttypes[atype]])
-            else:   # Default (NumArray)
-                arr1 = array([1.3,2.2,3.3], type=ttypes[atype])
-                arr2 = array([], type=ttypes[atype])
-                arr3 = array([-1.3e34,1.e-32], type=ttypes[atype])
-
-            if self.flavor == "numeric":
-                allequal(row[0], arr1, "numeric")
-                allequal(row[1], arr2, "numeric")
-                allequal(row[2], arr3, "numeric")
-            elif self.flavor == "numpy":
-                allequal(row[0], arr1, "numpy")
-                allequal(row[1], arr2, "numpy")
-                allequal(row[2], arr3, "numpy")
             elif self.flavor == "numarray":
-                allequal(row[0], arr1)
-                allequal(row[1], arr2)
-                allequal(row[2], arr3)
+                arr1 = numarray.array([1.3,2.2,3.3], type=atype)
+                arr2 = numarray.array([], type=atype)
+                arr3 = numarray.array([-1.3e34,1.e-32], type=atype)
+
+            if self.flavor in ["numpy", "numarray", "numeric"]:
+                allequal(row[0], arr1, self.flavor)
+                allequal(row[1], arr2, self.flavor)
+                allequal(row[2], arr3, self.flavor)
             else:
                 # Tuple or List flavors
                 assert row[0] == arr1
                 assert row[1] == arr2
                 assert row[2] == arr3
 
+class NumPyFlavorTestCase(FlavorTestCase):
+    flavor = "numpy"
+
 class NumArrayFlavorTestCase(FlavorTestCase):
     flavor = "numarray"
-
-class NumpyFlavorTestCase(FlavorTestCase):
-    flavor = "numpy"
 
 class NumericFlavorTestCase(FlavorTestCase):
     flavor = "numeric"
@@ -1860,9 +1835,9 @@ class ReadRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32))
-        assert allequal(row[1], arange(10, type=Int32))
-        assert allequal(row[2], arange(99, type=Int32))
+        assert allequal(row[0], numpy.arange(0, dtype='int32'))
+        assert allequal(row[1], numpy.arange(10, dtype='int32'))
+        assert allequal(row[2], numpy.arange(99, dtype='int32'))
 
     def test01b_start(self):
         "Checking reads with only a start value in a slice"
@@ -1886,18 +1861,15 @@ class ReadRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32))
-        assert allequal(row[1], arange(10, type=Int32))
-        assert allequal(row[2], arange(99, type=Int32))
+        assert allequal(row[0], numpy.arange(0, dtype='int32'))
+        assert allequal(row[1], numpy.arange(10, dtype='int32'))
+        assert allequal(row[2], numpy.arange(99, dtype='int32'))
 
     def test01np_start(self):
         "Checking reads with only a start value in a slice (numpy indexes)"
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test01np_start..." % self.__class__.__name__
-
-        if not numpy_imported:
-            return
 
         self.fileh = openFile(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -1915,9 +1887,9 @@ class ReadRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32))
-        assert allequal(row[1], arange(10, type=Int32))
-        assert allequal(row[2], arange(99, type=Int32))
+        assert allequal(row[0], numpy.arange(0, dtype='int32'))
+        assert allequal(row[1], numpy.arange(10, dtype='int32'))
+        assert allequal(row[2], numpy.arange(99, dtype='int32'))
 
     def test02_stop(self):
         "Checking reads with only a stop value"
@@ -1944,11 +1916,11 @@ class ReadRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 1
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0][0], arange(0, type=Int32))
+        assert allequal(row[0][0], numpy.arange(0, dtype='int32'))
         for x in range(10):
-            assert allequal(row[1][x], arange(x, type=Int32))
+            assert allequal(row[1][x], numpy.arange(x, dtype='int32'))
         for x in range(99):
-            assert allequal(row[2][x], arange(x, type=Int32))
+            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
 
     def test02b_stop(self):
         "Checking reads with only a stop value in a slice"
@@ -1975,11 +1947,11 @@ class ReadRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 10
         assert len(row[2]) == 99
         for x in range(1):
-            assert allequal(row[0][x], arange(0, type=Int32))
+            assert allequal(row[0][x], numpy.arange(0, dtype='int32'))
         for x in range(10):
-            assert allequal(row[1][x], arange(x, type=Int32))
+            assert allequal(row[1][x], numpy.arange(x, dtype='int32'))
         for x in range(99):
-            assert allequal(row[2][x], arange(x, type=Int32))
+            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
 
 
     def test03_startstop(self):
@@ -2007,11 +1979,11 @@ class ReadRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 10
         assert len(row[2]) == 100
         for x in range(0,10):
-            assert allequal(row[0][x], arange(x, type=Int32))
+            assert allequal(row[0][x], numpy.arange(x, dtype='int32'))
         for x in range(5,15):
-            assert allequal(row[1][x-5], arange(x, type=Int32))
+            assert allequal(row[1][x-5], numpy.arange(x, dtype='int32'))
         for x in range(0,100):
-            assert allequal(row[2][x], arange(x, type=Int32))
+            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
 
     def test03b_startstop(self):
         "Checking reads with a start and stop values in slices"
@@ -2038,11 +2010,11 @@ class ReadRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 10
         assert len(row[2]) == 100
         for x in range(0,10):
-            assert allequal(row[0][x], arange(x, type=Int32))
+            assert allequal(row[0][x], numpy.arange(x, dtype='int32'))
         for x in range(5,15):
-            assert allequal(row[1][x-5], arange(x, type=Int32))
+            assert allequal(row[1][x-5], numpy.arange(x, dtype='int32'))
         for x in range(0,100):
-            assert allequal(row[2][x], arange(x, type=Int32))
+            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
 
     def test04_startstopstep(self):
         "Checking reads with a start, stop & step values"
@@ -2069,20 +2041,17 @@ class ReadRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 4
         assert len(row[2]) == 5
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], arange(x, type=Int32))
+            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], arange(x, type=Int32))
+            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], arange(x, type=Int32))
+            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
 
     def test04np_startstopstep(self):
         "Checking reads with a start, stop & step values (numpy indices)"
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04np_startstopstep..." % self.__class__.__name__
-
-        if not numpy_imported:
-            return
 
         self.fileh = openFile(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2103,11 +2072,11 @@ class ReadRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 4
         assert len(row[2]) == 5
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], arange(x, type=Int32))
+            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], arange(x, type=Int32))
+            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], arange(x, type=Int32))
+            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
 
     def test04b_slices(self):
         "Checking reads with start, stop & step values in slices"
@@ -2134,20 +2103,17 @@ class ReadRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 4
         assert len(row[2]) == 5
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], arange(x, type=Int32))
+            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], arange(x, type=Int32))
+            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], arange(x, type=Int32))
+            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
 
     def test04bnp_slices(self):
         "Checking reads with start, stop & step values in slices (numpy indices)"
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04bnp_slices..." % self.__class__.__name__
-
-        if not numpy_imported:
-            return
 
         self.fileh = openFile(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2168,11 +2134,11 @@ class ReadRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 4
         assert len(row[2]) == 5
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], arange(x, type=Int32))
+            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], arange(x, type=Int32))
+            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], arange(x, type=Int32))
+            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
 
     def test05_out_of_range(self):
         "Checking out of range reads"
@@ -2198,6 +2164,7 @@ class ReadRangeTestCase(unittest.TestCase):
         else:
             (type, value, traceback) = sys.exc_info()
             self.fail("expected a IndexError and got:\n%s" % value)
+
 
 class GetItemRangeTestCase(unittest.TestCase):
     nrows = 100
@@ -2255,9 +2222,9 @@ class GetItemRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32))
-        assert allequal(row[1], arange(10, type=Int32))
-        assert allequal(row[2], arange(99, type=Int32))
+        assert allequal(row[0], numpy.arange(0, dtype='int32'))
+        assert allequal(row[1], numpy.arange(10, dtype='int32'))
+        assert allequal(row[2], numpy.arange(99, dtype='int32'))
 
     def test01b_start(self):
         "Checking reads with only a start value in a slice"
@@ -2281,9 +2248,9 @@ class GetItemRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32))
-        assert allequal(row[1], arange(10, type=Int32))
-        assert allequal(row[2], arange(99, type=Int32))
+        assert allequal(row[0], numpy.arange(0, dtype='int32'))
+        assert allequal(row[1], numpy.arange(10, dtype='int32'))
+        assert allequal(row[2], numpy.arange(99, dtype='int32'))
 
     def test02_stop(self):
         "Checking reads with only a stop value"
@@ -2310,11 +2277,11 @@ class GetItemRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 1
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0][0], arange(0, type=Int32))
+        assert allequal(row[0][0], numpy.arange(0, dtype='int32'))
         for x in range(10):
-            assert allequal(row[1][x], arange(x, type=Int32))
+            assert allequal(row[1][x], numpy.arange(x, dtype='int32'))
         for x in range(99):
-            assert allequal(row[2][x], arange(x, type=Int32))
+            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
 
     def test02b_stop(self):
         "Checking reads with only a stop value in a slice"
@@ -2341,11 +2308,11 @@ class GetItemRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 10
         assert len(row[2]) == 99
         for x in range(1):
-            assert allequal(row[0][x], arange(0, type=Int32))
+            assert allequal(row[0][x], numpy.arange(0, dtype='int32'))
         for x in range(10):
-            assert allequal(row[1][x], arange(x, type=Int32))
+            assert allequal(row[1][x], numpy.arange(x, dtype='int32'))
         for x in range(99):
-            assert allequal(row[2][x], arange(x, type=Int32))
+            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
 
 
     def test03_startstop(self):
@@ -2373,11 +2340,11 @@ class GetItemRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 10
         assert len(row[2]) == 100
         for x in range(0,10):
-            assert allequal(row[0][x], arange(x, type=Int32))
+            assert allequal(row[0][x], numpy.arange(x, dtype='int32'))
         for x in range(5,15):
-            assert allequal(row[1][x-5], arange(x, type=Int32))
+            assert allequal(row[1][x-5], numpy.arange(x, dtype='int32'))
         for x in range(0,100):
-            assert allequal(row[2][x], arange(x, type=Int32))
+            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
 
     def test03b_startstop(self):
         "Checking reads with a start and stop values in slices"
@@ -2404,11 +2371,11 @@ class GetItemRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 10
         assert len(row[2]) == 100
         for x in range(0,10):
-            assert allequal(row[0][x], arange(x, type=Int32))
+            assert allequal(row[0][x], numpy.arange(x, dtype='int32'))
         for x in range(5,15):
-            assert allequal(row[1][x-5], arange(x, type=Int32))
+            assert allequal(row[1][x-5], numpy.arange(x, dtype='int32'))
         for x in range(0,100):
-            assert allequal(row[2][x], arange(x, type=Int32))
+            assert allequal(row[2][x], numpy.arange(x, dtype='int32'))
 
     def test04_slices(self):
         "Checking reads with a start, stop & step values"
@@ -2435,20 +2402,17 @@ class GetItemRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 4
         assert len(row[2]) == 5
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], arange(x, type=Int32))
+            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], arange(x, type=Int32))
+            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], arange(x, type=Int32))
+            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
 
     def test04bnp_slices(self):
         "Checking reads with start, stop & step values (numpy indices)"
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04np_slices..." % self.__class__.__name__
-
-        if not numpy_imported:
-            return
 
         self.fileh = openFile(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2469,11 +2433,11 @@ class GetItemRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 4
         assert len(row[2]) == 5
         for x in range(0,10,2):
-            assert allequal(row[0][x/2], arange(x, type=Int32))
+            assert allequal(row[0][x/2], numpy.arange(x, dtype='int32'))
         for x in range(5,15,3):
-            assert allequal(row[1][(x-5)/3], arange(x, type=Int32))
+            assert allequal(row[1][(x-5)/3], numpy.arange(x, dtype='int32'))
         for x in range(0,100,20):
-            assert allequal(row[2][x/20], arange(x, type=Int32))
+            assert allequal(row[2][x/20], numpy.arange(x, dtype='int32'))
 
     def test05_out_of_range(self):
         "Checking out of range reads"
@@ -2505,9 +2469,6 @@ class GetItemRangeTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test05np_out_of_range..." % self.__class__.__name__
-
-        if not numpy_imported:
-            return
 
         self.fileh = openFile(self.file, "r")
         vlarray = self.fileh.root.vlarray
@@ -2589,18 +2550,15 @@ class SetRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32)*2+3)
-        assert allequal(row[1], arange(10, type=Int32)*2+3)
-        assert allequal(row[2], arange(99, type=Int32)*2+3)
+        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
+        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
+        assert allequal(row[2], numpy.arange(99, dtype='int32')*2+3)
 
     def test01np_start(self):
         "Checking updates that modifies a complete row"
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test01np_start..." % self.__class__.__name__
-
-        if not numpy_imported:
-            return
 
         self.fileh = openFile(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -2623,9 +2581,9 @@ class SetRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32)*2+3)
-        assert allequal(row[1], arange(10, type=Int32)*2+3)
-        assert allequal(row[2], arange(99, type=Int32)*2+3)
+        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
+        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
+        assert allequal(row[2], numpy.arange(99, dtype='int32')*2+3)
 
     def test02_start(self):
         "Checking updates with only a part of a row (start, None)"
@@ -2655,9 +2613,9 @@ class SetRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32)*2+3)
-        assert allequal(row[1], arange(10, type=Int32)*2+3)
-        a = arange(99, type=Int32); a[3:] = a[:96]*2+3
+        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
+        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
+        a = numpy.arange(99, dtype='int32'); a[3:] = a[:96]*2+3
         assert allequal(row[2], a)
 
     def test03_stop(self):
@@ -2688,9 +2646,9 @@ class SetRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32)*2+3)
-        assert allequal(row[1], arange(10, type=Int32)*2+3)
-        a = arange(99, type=Int32); a[:3] = a[:3]*2+3
+        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
+        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
+        a = numpy.arange(99, dtype='int32'); a[:3] = a[:3]*2+3
         assert allequal(row[2], a)
 
     def test04_start_stop(self):
@@ -2721,10 +2679,10 @@ class SetRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32)*2+3)
-        assert allequal(row[1], concatenate([arange(9, type=Int32)*2+3,
-                                             array(9,type=Int32)]))
-        a = arange(99, type=Int32); a[3:5] = a[:2]*2+3
+        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
+        assert allequal(row[1], numpy.concatenate([numpy.arange(9, dtype='int32')*2+3,
+                                                   numpy.array([9], dtype='int32')]))
+        a = numpy.arange(99, dtype='int32'); a[3:5] = a[:2]*2+3
         assert allequal(row[2], a)
 
     def test05_start_stop(self):
@@ -2755,10 +2713,10 @@ class SetRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32)*2+3)
-        assert allequal(row[1], concatenate([arange(9, type=Int32)*2+3,
-                                             array(9,type=Int32)]))
-        a = arange(99, type=Int32); a[-99:-89:2] = a[:5]*2+3
+        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
+        assert allequal(row[1], numpy.concatenate([numpy.arange(9, dtype='int32')*2+3,
+                                                   numpy.array([9], dtype='int32')]))
+        a = numpy.arange(99, dtype='int32'); a[-99:-89:2] = a[:5]*2+3
         assert allequal(row[2], a)
 
     def test06_start_stop_step(self):
@@ -2789,9 +2747,9 @@ class SetRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32)*2+3)
-        assert allequal(row[1], arange(10, type=Int32)*2+3)
-        a = arange(99, type=Int32); a[1:11:2] = a[:5]*2+3
+        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
+        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
+        a = numpy.arange(99, dtype='int32'); a[1:11:2] = a[:5]*2+3
         assert allequal(row[2], a)
 
     def test06np_start_stop_step(self):
@@ -2799,9 +2757,6 @@ class SetRangeTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test06np_start_stop_step..." % self.__class__.__name__
-
-        if not numpy_imported:
-            return
 
         self.fileh = openFile(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -2825,9 +2780,9 @@ class SetRangeTestCase(unittest.TestCase):
         assert len(row[0]) == 0
         assert len(row[1]) == 10
         assert len(row[2]) == 99
-        assert allequal(row[0], arange(0, type=Int32)*2+3)
-        assert allequal(row[1], arange(10, type=Int32)*2+3)
-        a = arange(99, type=Int32); a[1:11:2] = a[:5]*2+3
+        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
+        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
+        a = numpy.arange(99, dtype='int32'); a[1:11:2] = a[:5]*2+3
         assert allequal(row[2], a)
 
     def test07_out_of_range(self):
@@ -3003,7 +2958,7 @@ class CopyTestCase(unittest.TestCase):
         os.remove(file)
 
     def test03_copy(self):
-        """Checking VLArray.copy() method (NumPy flavor)"""
+        """Checking VLArray.copy() method ('numarray' flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -3014,10 +2969,10 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an VLArray
-        if numpy_imported:
-            arr = Int16Atom(shape=2, flavor="numpy")
-        else:
+        if numarray_imported:
             arr = Int16Atom(shape=2, flavor="numarray")
+        else:
+            arr = Int16Atom(shape=2, flavor="numpy")
         array1 = fileh.createVLArray(fileh.root, 'array1', arr,
                                      "title array1")
         array1.append([[2,3]])
@@ -3060,7 +3015,7 @@ class CopyTestCase(unittest.TestCase):
         os.remove(file)
 
     def test03a_copy(self):
-        """Checking VLArray.copy() method (Numeric flavor)"""
+        """Checking VLArray.copy() method ('numeric' flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -3071,10 +3026,10 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an VLArray
-        if numeric:
+        if numeric_imported:
             arr = Int16Atom(shape=2, flavor="numeric")
         else:
-            arr = Int16Atom(shape=2, flavor="numarray")
+            arr = Int16Atom(shape=2, flavor="numpy")
         array1 = fileh.createVLArray(fileh.root, 'array1', arr,
                                      "title array1")
         array1.append([[2,3]])
@@ -3117,7 +3072,7 @@ class CopyTestCase(unittest.TestCase):
         os.remove(file)
 
     def test03b_copy(self):
-        """Checking VLArray.copy() method (Python flavor)"""
+        """Checking VLArray.copy() method ('python' flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -3469,27 +3424,19 @@ def suite():
     #theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
     #theSuite.addTest(unittest.makeSuite(SetRangeTestCase))
     #theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
-    #theSuite.addTest(unittest.makeSuite(MDTypesNumArrayTestCase))
+    #theSuite.addTest(unittest.makeSuite(MDTypesNumPyTestCase))
     for n in range(niter):
-        theSuite.addTest(unittest.makeSuite(BasicNumArrayTestCase))
-        if numeric:
-            theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
-        if numpy_imported:
-            theSuite.addTest(unittest.makeSuite(BasicNumpyTestCase))
+        theSuite.addTest(unittest.makeSuite(BasicNumPyTestCase))
         theSuite.addTest(unittest.makeSuite(BasicPythonTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(BZIP2ComprTestCase))
-        theSuite.addTest(unittest.makeSuite(TypesNumArrayTestCase))
-        theSuite.addTest(unittest.makeSuite(MDTypesNumArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(TypesNumPyTestCase))
+        theSuite.addTest(unittest.makeSuite(MDTypesNumPyTestCase))
         theSuite.addTest(unittest.makeSuite(OpenAppendShapeTestCase))
         theSuite.addTest(unittest.makeSuite(CloseAppendShapeTestCase))
         theSuite.addTest(unittest.makeSuite(PythonFlavorTestCase))
-        if numeric:
-            theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
-        if numpy_imported:
-            theSuite.addTest(unittest.makeSuite(NumpyFlavorTestCase))
-        theSuite.addTest(unittest.makeSuite(NumArrayFlavorTestCase))
+        theSuite.addTest(unittest.makeSuite(NumPyFlavorTestCase))
         theSuite.addTest(unittest.makeSuite(ReadRangeTestCase))
         theSuite.addTest(unittest.makeSuite(GetItemRangeTestCase))
         theSuite.addTest(unittest.makeSuite(SetRangeTestCase))
@@ -3510,6 +3457,12 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
+        if numeric_imported:
+            theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
+            theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
+        if numarray_imported:
+            theSuite.addTest(unittest.makeSuite(BasicNumArrayTestCase))
+            theSuite.addTest(unittest.makeSuite(NumArrayFlavorTestCase))
 
     return theSuite
 

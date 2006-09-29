@@ -48,6 +48,23 @@ if '--heavy' in sys.argv:
     sys.argv.remove('--heavy')
 
 
+# Map between PyTables types and Numeric typecodes
+typecode = {
+    'Bool': 'B',
+    'Int8': '1',
+    'Int16': 's',
+    'Int32': 'i',
+    'Int64': 'N',
+    'UInt8': 'b',
+    'UInt16': 'w',
+    'UInt32': 'u',
+    'UInt64': 'U',
+    'Float32': 'f',
+    'Float64': 'd',
+    'Complex64': 'D',
+    'Complex32': 'F',
+    }
+
 def verbosePrint(string):
     """Print out the `string` if verbose output is enabled."""
     if verbose: print string

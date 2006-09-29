@@ -253,15 +253,15 @@ be zero."""
         return self._v_objectID
 
 
-    def _checkShape(self, naarr):
+    def _checkShape(self, nparr):
         # Check for zero dimensionality array
-        zerodims = numpy.sum(numpy.array(naarr.shape) == 0)
+        zerodims = numpy.sum(numpy.array(nparr.shape) == 0)
         if zerodims > 0:
             # No objects to be added
             return 0
-        shape = naarr.shape
+        shape = nparr.shape
         atom_shape = self.atom.shape
-        shapelen = len(naarr.shape)
+        shapelen = len(nparr.shape)
         if isinstance(atom_shape, tuple):
             atomshapelen = len(self.atom.shape)
         else:
@@ -285,7 +285,7 @@ be zero."""
         else:
             raise ValueError, \
 """The object '%s' is composed of elements with shape '%s', which is not compatible with the atom shape ('%s').""" % \
-(naarr, shape, atom_shape)
+(nparr, shape, atom_shape)
         return nobjects
 
 
@@ -372,7 +372,8 @@ please put them in a single sequence object"""),
         if self.atom.flavor == "Object":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
-            object = numpy.array(cPickle.dumps(object, 0), dtype='uint8')
+            buf = cPickle.dumps(object, 0)
+            object = numpy.ndarray(buffer=buf, dtype='uint8', shape=len(buf))
         elif self.atom.flavor == "VLString":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
@@ -383,19 +384,19 @@ please put them in a single sequence object"""),
                 object = object.encode('utf-8')
             except UnicodeError, ue:
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, ue)
-            object = numpy.array(object, dtype='uint8')
+            object = numpy.ndarray(buffer=object, dtype='uint8', shape=len(object))
 
         if len(object) > 0:
             # The object needs to be copied to make the operation safe
             # to in-place conversion.
             copy = self._atomicstype in ['Time64']
-            naarr = convertToNP(object, self.atom, copy)
-            nobjects = self._checkShape(naarr)
+            nparr = convertToNP(object, self.atom, copy)
+            nobjects = self._checkShape(nparr)
         else:
             nobjects = 0
-            naarr = None
+            nparr = None
 
-        self._append(naarr, nobjects)
+        self._append(nparr, nobjects)
 
         self.nrows += 1
 
@@ -463,8 +464,7 @@ please put them in a single sequence object"""),
 
         """
 
-        if (type(key) in (int,long) or
-            (numpy_imported and isinstance(key, numpy.integer))):
+        if type(key) in (int,long) or isinstance(key, numpy.integer):
             if key >= self.nrows:
                 raise IndexError, "Index out of range"
             if key < 0:
@@ -513,8 +513,7 @@ please put them in a single sequence object"""),
             raise IndexError, "You cannot specify more than two dimensions"
         nrow, rng = keys
         # Process the first index
-        if not (type(nrow) in (int,long) or
-                (numpy_imported and isinstance(nrow, numpy.integer))):
+        if not (type(nrow) in (int,long) or isinstance(nrow, numpy.integer)):
             raise IndexError, "The first dimension only can be an integer"
         if nrow >= self.nrows:
             raise IndexError, "First index out of range"
@@ -536,7 +535,8 @@ please put them in a single sequence object"""),
         if self.atom.flavor == "Object":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
-            object = numpy.array(cPickle.dumps(object, 0), dtype='uint8')
+            buf = cPickle.dumps(object, 0)
+            object = numpy.ndarray(buffer=buf, dtype='uint8', shape=len(buf))
         elif self.atom.flavor == "VLString":
             # Special case for a generic object
             # (to be pickled and saved as an array of unsigned bytes)
@@ -547,15 +547,15 @@ please put them in a single sequence object"""),
                 object = object.encode('utf-8')
             except UnicodeError, ue:
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, ue)
-            object = numpy.array(object, type='uint8')
+            object = numpy.ndarray(buffer=object, dtype='uint8', shape=len(object))
 
         value = convertToNP(object, self.atom)
         nobjects = self._checkShape(value)
 
         # Get the previous value
         nrow = idx2long(nrow)   # To convert any possible numpy scalar value
-        naarr = self._readArray(nrow, nrow+1, 1)[0]
-        nobjects = len(naarr)
+        nparr = self._readArray(nrow, nrow+1, 1)[0]
+        nobjects = len(nparr)
         if len(value) > nobjects:
             raise ValueError, \
 "Length of value (%s) is larger than number of elements in row (%s)" % \
@@ -566,14 +566,14 @@ please put them in a single sequence object"""),
         if stop is not None: stop = idx2long(stop)
         if step is not None: step = idx2long(step)
         try:
-            naarr[slice(start, stop, step)] = value
+            nparr[slice(start, stop, step)] = value
         except Exception, exc:  #XXX
             raise ValueError, \
 "Value parameter:\n'%r'\ncannot be converted into an array object compliant vlarray[%s] row: \n'%r'\nThe error was: <%s>" % \
-        (value, keys, naarr[slice(start, stop, step)], exc)
+        (value, keys, nparr[slice(start, stop, step)], exc)
 
-        if naarr.size() > 0:
-            self._modify(nrow, naarr, nobjects)
+        if nparr.size > 0:
+            self._modify(nrow, nparr, nobjects)
 
 
     # Accessor for the _readArray method in superclass
@@ -585,6 +585,7 @@ please put them in a single sequence object"""),
             listarr = []
         else:
             listarr = self._readArray(start, stop, step)
+
         if self.flavor <> "numpy":
             # Convert the list to the right flavor
             outlistarr = [ convToFlavor(self, arr, "VLArray")
@@ -621,9 +622,9 @@ please put them in a single sequence object"""),
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
-            naarr = self._readArray(start=start2, stop=stop2, step=step)[0]
-            nobjects = naarr.shape[0]
-            object._append(naarr, nobjects)
+            nparr = self._readArray(start=start2, stop=stop2, step=step)[0]
+            nobjects = nparr.shape[0]
+            object._append(nparr, nobjects)
             nbytes += nobjects*atomsize
             nrowscopied +=1
         object.nrows = nrowscopied
