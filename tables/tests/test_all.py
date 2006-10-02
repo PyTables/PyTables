@@ -35,7 +35,7 @@ def suite():
         'test_timetype',
         'test_do_undo',
         'test_enum',
-        'test_nestedtypes',
+        #'test_nestedtypes',
         'test_hdf5compat',
         # Sub-packages
         'test_filenode',
@@ -72,7 +72,7 @@ def suite():
         if numpy.__version__ < minimum_numpy_version:
             print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
                   (numpy.__version__, minimum_numpy_version)
-        test_modules.append("test_numpy")
+        ####test_modules.append("test_numpy")
     except:
         print "Skipping NumPy test suite"
     print '-=' * 38

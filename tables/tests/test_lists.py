@@ -156,7 +156,7 @@ class ExceptionTestCase(unittest.TestCase):
                 WriteRead(fname, a)
             finally:
                 os.remove(fname)
-        except ValueError:
+        except TypeError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"

@@ -383,7 +383,7 @@ class Group(hdf5Extension.Group, Node):
             childClass = self._g_getChildLeafClass(childName, warn=True)
             # Building a leaf may still fail because of unsupported types
             # and other causes.
-            return childClass(self, childName)  # uncomment for debugging
+            ##return childClass(self, childName)  # uncomment for debugging
             try:
                 return childClass(self, childName)
             except Exception, exc:  #XXX

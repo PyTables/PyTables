@@ -323,9 +323,9 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl = self.h5file.createTable(
             '/', 'test', self._description((2,)), title=self._getMethodName())
 
-        appended = (
+        appended = [
             (10, (self.valueInEnum, self.valueOutOfEnum)),
-            (20, (self.valueInEnum, self.valueOutOfEnum)))
+            (20, (self.valueInEnum, self.valueOutOfEnum))]
 
         row = tbl.row
         row['rid'] = appended[0][0]
