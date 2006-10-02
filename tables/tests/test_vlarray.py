@@ -302,7 +302,9 @@ class TypesTestCase(unittest.TestCase):
         if verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row[0]
+            print "First row in vlarray:", row[0]
+            print "Should look like:", \
+                  strings.array(['1','12','123','123','123'], itemsize=3)
 
         assert vlarray.nrows == 2
         assert allequal(row[0], strings.array(["1", "12", "123", "123", "123"]),

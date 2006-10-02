@@ -31,7 +31,7 @@ import sys
 import numpy
 
 from tables.constants import EXPECTED_ROWS_EARRAY, CHUNKTIMES
-from tables.utils import convertToNP, processRangeRead
+from tables.utils import convertToNPAtom, processRangeRead
 from tables.Atom import Atom, EnumAtom
 from tables.Array import Array
 
@@ -394,7 +394,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         # to in-place conversion.
         copy = self.stype in ['Time64']
         # Convert the sequence into a NumPy object
-        nparr = convertToNP(sequence, self.atom, copy)
+        nparr = convertToNPAtom(sequence, self.atom, copy)
         # Check if it is correct type and shape
         nparr = self._checkTypeShape(nparr)
         self._append(nparr)

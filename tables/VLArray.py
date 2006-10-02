@@ -36,7 +36,8 @@ import cPickle
 import numpy
 
 import tables.hdf5Extension as hdf5Extension
-from tables.utils import processRangeRead, convertToNP, convToFlavor, idx2long
+from tables.utils import processRangeRead, convertToNPAtom, convToFlavor, \
+     idx2long
 from tables.Atom import Atom, ObjectAtom, VLStringAtom, StringAtom, EnumAtom
 from tables.Leaf import Leaf
 
@@ -390,7 +391,7 @@ please put them in a single sequence object"""),
             # The object needs to be copied to make the operation safe
             # to in-place conversion.
             copy = self._atomicstype in ['Time64']
-            nparr = convertToNP(object, self.atom, copy)
+            nparr = convertToNPAtom(object, self.atom, copy)
             nobjects = self._checkShape(nparr)
         else:
             nobjects = 0
@@ -549,7 +550,7 @@ please put them in a single sequence object"""),
                 raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, ue)
             object = numpy.ndarray(buffer=object, dtype='uint8', shape=len(object))
 
-        value = convertToNP(object, self.atom)
+        value = convertToNPAtom(object, self.atom)
         nobjects = self._checkShape(value)
 
         # Get the previous value

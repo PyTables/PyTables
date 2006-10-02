@@ -585,15 +585,7 @@ Sorry, but this object is not supported.""" % (arr)
 
         # Assign the value to it
         try:
-            #narr[...] = value
-            # The next is a workaround for allowing downcasting even with
-            # objects that are not NumPy, but that follow the array protocol.
-            # For more info, see:
-            # http://projects.scipy.org/scipy/numpy/ticket/299
-            if self.stype == "CharType":
-                narr[...] = value
-            else:
-                narr[...] = numpy.asarray(value)
+            narr[...] = value
         except Exception, exc:  #XXX
             raise ValueError, \
 """value parameter '%s' cannot be converted into an array object compliant with %s:

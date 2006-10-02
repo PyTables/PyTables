@@ -303,7 +303,7 @@ def processRangeRead(nrows, start=None, stop=None, step=1):
 # object of type atom from a generic python type.  If copy is stated as
 # True, it is assured that it will return a copy of the object and never
 # the same object or a new one sharing the same memory.
-def convertToNP(arr, atom, copy = False):
+def convertToNPAtom(arr, atom, copy = False):
     "Convert a generic object into a NumPy object"
 
     # First check NumPy as they will be the most frequently used objects.
@@ -311,13 +311,15 @@ def convertToNP(arr, atom, copy = False):
         if arr.dtype.kind == "U":
             raise NotImplementedError, \
                   """Unicode types are not suppored yet, sorry."""
-        nparr = arr
+        if atom.stype == "CharType" and arr.itemsize != atom.itemsize:
+            dtype = "S%s" % atom.itemsize
+            nparr = numpy.array(arr, dtype=dtype)
+        else:
+            nparr = arr
     elif numarray_imported and type(arr) == numarray.NumArray:
         nparr = numpy.asarray(arr)
     elif numarray_imported and isinstance(arr, numarray.strings.CharArray):
-        if ((copy) or (not arr.iscontiguous()) or
-            (arr.itemsize() != atom.itemsize)):
-            # A copy has to be made
+        if arr.itemsize() != atom.itemsize:
             dtype = "S%s" % atom.itemsize
             nparr = numpy.array(arr, dtype=dtype)
         else:

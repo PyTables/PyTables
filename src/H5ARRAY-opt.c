@@ -274,12 +274,9 @@ herr_t H5ARRAYOreadSliceLR(hid_t dataset_id,
  hid_t    space_id;
  hid_t    mem_space_id;
  hid_t    type_id;
- hsize_t  dims[1] = {1};
  hsize_t  count[1] = {stop - start};
  hsize_t  stride[1] = {1};
  hssize_t offset[1] = {start};
- int      rank;
- int      i;
 
  /* Get the datatype */
  if ( (type_id = H5Dget_type(dataset_id)) < 0 )

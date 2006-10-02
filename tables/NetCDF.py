@@ -107,6 +107,8 @@ try:
 except:
     ScientificIONetCDF_imported = False
 
+from tables.utils import convertToNPAtom
+
 # dictionary that maps pytables types to single-character Numeric typecodes.
 _typecode_dict = {'Float64':'d',
                   'Float32':'f',
@@ -520,8 +522,8 @@ class NetCDFFile:
                     # if data is in a CArray, convert to numpy
                     # (done automatically for EArrays)
                     if isinstance(var._NetCDF_varobj,tables.CArray):
-                        tmpdata = tables.utils.convertToNP(tmpdata,
-                                                           var._NetCDF_varobj.atom)
+                        tmpdata = convertToNPAtom(tmpdata,
+                                                  var._NetCDF_varobj.atom)
                     var[:] = tmpdata
             # Increment the counters
             nobjects += 1
@@ -621,7 +623,7 @@ class NetCDFVariable:
         # if assigning to a CArray, convert to numpy.
         # (done automatically for EArrays)
         if isinstance(self._NetCDF_varobj,tables.CArray):
-            data = tables.utils.convertToNP(data, self._NetCDF_varobj.atom)
+            data = convertToNPAtom(data, self._NetCDF_varobj.atom)
         if hasattr(self,'least_significant_digit'):
             self._NetCDF_varobj[key] = _quantize(data,self.least_significant_digit)
         else:
