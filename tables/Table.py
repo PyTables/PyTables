@@ -2049,22 +2049,16 @@ The 'colname' parameter must be a string.""")
             raise ValueError("'step' must have a value greater or equal than 1.")
         # Get the column format to be modified:
         objcol = self._checkColumn(colname)
-        if isinstance(objcol, Description):
-            selcolname = objcol._v_nestedNames
-        else:
-            selcolname = objcol._v_parent._v_nestedNames[objcol._v_pos]
-        format = objcol._v_parent._v_nestedFormats[objcol._v_pos]
+        descr = numpy.dtype([objcol._v_parent._v_nestedDescr[objcol._v_pos]])
         # Try to convert the column object into a recarray
         try:
             if (isinstance(column, numpy.ndarray) or
                 (numarray_imported and
                  isinstance(column, numarray.records.RecArray))):
-                recarray = numpy.rec.array(column, formats=format,
-                                           names=selcolname)
+                recarray = numpy.rec.array(column, dtype=descr)
             else:
                 column = numpy.asarray(column) # Force column to be a numpy
-                recarray = numpy.rec.fromarrays([column], formats=format,
-                                                names=selcolname)
+                recarray = numpy.rec.fromarrays([column], dtype=descr)
         except Exception, exc:  #XXX
             raise ValueError, \
 "column parameter cannot be converted into a recarray object compliant with specified column '%s'. The error was: <%s>" % (str(column), exc)
@@ -2128,23 +2122,19 @@ The 'names' parameter must be a list of strings.""")
             raise ValueError("'start' must have a positive value.")
         if step < 1:
             raise ValueError("'step' must have a value greater or equal than 1.")        # Get the column formats to be modified:
-        formats = []
-        selcolnames = []
+        descr = []
         for colname in names:
             objcol = self._checkColumn(colname)
-            selcolnames.append(objcol._v_parent._v_nestedNames[objcol._v_pos])
-            formats.append(objcol._v_parent._v_nestedFormats[objcol._v_pos])
+            descr.append(objcol._v_parent._v_nestedDescr[objcol._v_pos])
         # Try to convert the columns object into a recarray
         try:
             if (isinstance(columns, numpy.ndarray) or
                 (numarray_imported and
                  isinstance(columns, numarray.records.RecArray))):
-                recarray = numpy.rec.array(columns, formats=formats,
-                                           names=names)
+                recarray = numpy.rec.array(columns, dtype=descr)
             else:
                 columns = numpy.asarray(columns) # Force columns to be a numpy
-                recarray = numpy.rec.fromarrays(columns, formats=formats,
-                                                names=names)
+                recarray = numpy.rec.fromarrays(columns, dtype=descr)
         except Exception, exc:  #XXX
             raise ValueError, \
 "columns parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), exc)
@@ -2630,7 +2620,7 @@ class Cols(object):
         Those statements are equivalent to::
 
             nrecord = table.read(start=4)[0]
-            nrecarray = table.read(start=4, stop=1000, step=2).field('Info')
+            nrecarray = table.read(start=4, stop=1000, step=2)['Info']
 
         Here you can see how a mix of natural naming, indexing and
         slicing can be used as shorthands for the `Table.read()` method.
@@ -2652,7 +2642,7 @@ class Cols(object):
                 return table.read(start, stop, step)[0]
             else:
                 crecord = table.read(start, stop, step)[0]
-                return crecord.field(colgroup)
+                return crecord[colgroup]
         elif isinstance(key, slice):
             (start, stop, step) = processRange(nrows,
                                                key.start, key.stop, key.step)
