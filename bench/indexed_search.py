@@ -84,12 +84,12 @@ class DB(object):
         print "Indexes size (MB):", round(indexes_size, 3)
         print "Full size (MB):", round(table_size+indexes_size, 3)
 
-    def fill_arrays_orig(self, start, stop):
+    def fill_arrays_na(self, start, stop):
         arr_f8 = numarray.arange(start, stop, type=numarray.Float64)
         arr_i4 = numarray.arange(start, stop, type=numarray.Int32)
         if self.userandom:
             arr_f8 += random_array.normal(0, stop*self.scale,
-                                          size=stop-start)
+                                          shape=[stop-start])
             arr_i4 = numarray.array(arr_f8, type=numarray.Int32)
         return arr_i4, arr_f8
 

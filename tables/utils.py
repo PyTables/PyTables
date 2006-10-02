@@ -305,7 +305,10 @@ def convToNP(arr):
     if (type(arr) == numpy.ndarray and
         arr.dtype.kind not in ['V', 'U']):  # not in void, unicode
         flavor = "numpy"
-        nparr = numpy.asarray(arr)
+        nparr = arr
+    elif numpy.isscalar(arr):
+        flavor = "numpy"
+        nparr = numpy.array(arr)
     elif (numarray_imported and
           type(arr) in (numarray.NumArray, numarray.strings.CharArray)):
         flavor = "numarray"
@@ -321,13 +324,14 @@ def convToNP(arr):
         # If not, issue an error
         except Exception, exc:  #XXX
             raise TypeError, \
-"""The object '%s' can't be converted into a numerical or character array.
-Sorry, but this object is not supported. The error was <%s>:""" % (arr, exc)
+"""The object '%s' of type <%s> can't be converted into a NumPy array.
+Sorry, but this object is not supported. The error was <%s>:""" % \
+        (arr, type(arr), exc)
     else:
         raise TypeError, \
-"""The object '%s' is not in the list of supported objects: numpy,
-numarray, numeric, homogeneous list or tuple, int, float, complex or str.
-Sorry, but this object is not supported in this context.""" % (arr)
+"""The object '%s' of type <%s> is not in the list of supported objects:
+numpy, numarray, numeric, homogeneous list or tuple, int, float, complex or str.
+Sorry, but this object is not supported in this context.""" % (arr, type(arr))
 
     # Make a copy of the array in case it is not contiguous
     if nparr.flags.contiguous == False:

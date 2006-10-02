@@ -34,7 +34,7 @@ class NetCDFFileTestCase(common.PyTablesTestCase):
         lats = file.createVariable('lat', '1', ('lat',))
         lons = file.createVariable('lon', 'c', ('nchar','lon'))
         # add some data.
-        self.latdata = numpy.arange(100,400,100).astype('1')
+        self.latdata = numpy.arange(100,400,100, dtype='int8')
         lats[:] = self.latdata
         self.londata = [['a','b','c','d','e','f','g'],
                         ['a','b','c','d','e','f','g']]

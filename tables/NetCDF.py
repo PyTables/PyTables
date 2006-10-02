@@ -120,6 +120,11 @@ _typecode_dict = {'Float64':'d',
                   'Complex64':'D',
                   }
 
+# The reverse typecode dict
+_rev_typecode_dict = {}
+for key, value in _typecode_dict.iteritems():
+    _rev_typecode_dict[value] = key
+
 # dictionary that maps single character Numeric typecodes to netCDF
 # data types (False if no corresponding netCDF datatype exists).
 _netcdftype_dict = {'s':'short','1':'byte','l':'int','i':'int',
@@ -316,7 +321,9 @@ class NetCDFFile:
             if var.extdim >= 0 and len_var < len_max:
                 shp = list(var.shape)
                 shp[var.extdim]=len_max-len_var
-                var._NetCDF_varobj.append(var._NetCDF_FillValue*numpy.ones(shp,var.typecode()))
+                dtype = _rev_typecode_dict[var.typecode()]
+                var._NetCDF_varobj.append(
+                    var._NetCDF_FillValue*numpy.ones(shp, dtype=dtype))
         return len_max
 
     def __repr__(self):
@@ -587,7 +594,8 @@ class NetCDFVariable:
         # (on which base Scientific.IO.NetCDF works)
             atom = tables.StringAtom(shape=tuple(vardimsizes), length=1)
         else:
-            atom = tables.Atom(dtype=datatype, shape=tuple(vardimsizes))
+            dtype = _rev_typecode_dict[datatype]
+            atom = tables.Atom(dtype=dtype, shape=tuple(vardimsizes))
         if filters is None:
             # default filters instance.
             filters = tables.Filters(complevel=6,complib='zlib',shuffle=1)
@@ -610,9 +618,12 @@ class NetCDFVariable:
             # fill with _FillValue
             if datatype == 'c':
                 # numpy string arrays with itemsize=1 used for char arrays.
-                self[:] = numpy.array(shape=tuple(vardimsizes), dtype="S1")
+                deflen = numpy.product(vardimsizes)
+                self[:] = numpy.ndarray(buffer=_NetCDF_FillValue*deflen,
+                                        shape=tuple(vardimsizes), dtype="S1")
             else:
-                self[:] = _NetCDF_FillValue*numpy.ones(tuple(vardimsizes),datatype)
+                self[:] = _NetCDF_FillValue*numpy.ones(tuple(vardimsizes),
+                                                       dtype=dtype)
         if least_significant_digit != None:
             setattr(self._NetCDF_varobj.attrs, 'least_significant_digit',
                     least_significant_digit)
@@ -692,7 +703,7 @@ class NetCDFVariable:
         try:
             datashp = data.shape
         except:
-            data = numpy.array(data, self.typecode())
+            data = numpy.array(data, _rev_typecode_dict[self.typecode()])
         # check to make sure there is an unlimited dimension.
         # (i.e. data is in an EArray).
         extdim = self._NetCDF_varobj.extdim
