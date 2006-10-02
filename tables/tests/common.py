@@ -90,8 +90,18 @@ def allequal(a,b, flavor="numpy"):
     if flavor == "numeric":
         # Convert the parameters to numpy objects
         if a.typecode() == "c":
-            a = numpy.array(a.tostring(), itemsize=1, shape=a.shape)
-            b = numpy.array(b.tostring(), itemsize=1, shape=b.shape)
+            shape = a.shape
+            if shape == ():
+                a = numpy.array(a.tostring(), dtype="S1")
+            else:
+                a = numpy.array(a.tolist(), dtype="S1")                
+            a.shape = shape
+            shape = b.shape
+            if shape == ():
+                b = numpy.array(a.tostring(), dtype="S1")
+            else:
+                b = numpy.array(a.tolist(), dtype="S1")                
+            b.shape = shape
         else:
             a = numpy.asarray(a)
             b = numpy.asarray(b)

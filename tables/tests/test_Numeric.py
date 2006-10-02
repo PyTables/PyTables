@@ -4,9 +4,8 @@ import os
 import tempfile
 from Numeric import *
 from tables import *
-from numarray import typeDict, typecode
 
-from common import verbose, allequal, cleanup
+from common import verbose, typecode, allequal, cleanup
 import common
 
 # To delete the internal attributes automagically
@@ -67,14 +66,14 @@ class BasicTestCase(unittest.TestCase):
             # "l" and "i" typecode, and we can consider them the same
             # to all practical effects
             assert (b.typecode() == "l" or b.typecode() == "i")
-            assert self.root.somearray.type == typeDict["l"] or \
-                   self.root.somearray.type == typeDict["i"]
+            assert typecode[self.root.somearray.stype] == "l" or \
+                   typecode[self.root.somearray.stype] == "i"
         elif a.typecode() == "c":
             assert a.typecode() == b.typecode()
-            assert str(self.root.somearray.type) == "CharType"
+            assert self.root.somearray.stype == "CharType"
         else:
             assert a.typecode() == b.typecode()
-            assert typeDict[a.typecode()] ==  self.root.somearray.type
+            assert a.typecode() == typecode[self.root.somearray.stype]
 
         assert allequal(a,b, "numeric")
         self.fileh.close()
@@ -97,8 +96,8 @@ class BasicTestCase(unittest.TestCase):
             b = a[()]
         else:
             b = a[::2]
-            # Ensure that this numarray string is non-contiguous
-            assert b.iscontiguous() == 0
+            # Ensure that this Numeric string is non-contiguous
+            assert b.iscontiguous() == False
         self.WriteRead(b)
         return
 
@@ -206,9 +205,9 @@ class GroupsArrayTestCase(unittest.TestCase):
 
         # Set the type codes to test
         # "w" and "u" not tested due to some inconsistencies in charcodes
-        # between numarray and Numeric
-        #typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
-        typecodes = ['c', 'b', '1', 's', 'i', 'l', 'f', 'd', 'F', 'D']
+        # between NumPy and Numeric
+        typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
+        #typecodes = ['c', 'b', '1', 's', 'i', 'l', 'f', 'd', 'F', 'D']
         i = 1
         for typecode in typecodes:
             # Create an array of typecode, with incrementally bigger ranges
@@ -280,7 +279,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         # bug getting the shape of the object, that creates lots of
         # problems (segmentation faults, memory faults...)
         minrank = 1
-        # maxrank = 32 # old limit (Numeric <= 22.0)
+        #maxrank = 32 # old limit (Numeric <= 22.0)
         maxrank = 30  # This limit is set in Numeric 23.x and 24.x
 
         if verbose:
@@ -362,15 +361,15 @@ class GroupsArrayTestCase(unittest.TestCase):
 class Record(IsDescription):
     var1  = StringCol(length=4, dflt="abcd")
     var2  = StringCol(length=1, dflt="a")
-    var3  = BoolCol(1)  # Typecode == '1' in Numeric. 'B' in numarray
+    var3  = BoolCol(1)
     var4  = Int8Col(1)
     var5  = UInt8Col(1)
     var6  = Int16Col(1)
     var7  = UInt16Col(1)
     var8  = Int32Col(1)
     var9  = UInt32Col(1)
-    # Apparently, there is no way to convert a numarray of 64-bits into
-    # Numarray of 64-bits in 32-bit platforms
+    # Apparently, there is no way to convert a NumPy of 64-bits into
+    # Numeric of 64-bits in 32-bit platforms
     # See
     # http://aspn.activestate.com/ASPN/Mail/Message/numpy-discussion/2569120
     # Uncomment this makes test breaks on 64-bit platforms 2005-09-23

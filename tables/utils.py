@@ -299,64 +299,61 @@ def processRangeRead(nrows, start=None, stop=None, step=1):
     return (start, stop, step)
 
 
-# This is used in VLArray and EArray to produce a *contiguous* NumPy
-# object of type atom from a generic python type.  If copy is stated as
-# True, it is assured that it will return a copy of the object and never
-# the same object or a new one sharing the same memory.
-def convertToNPAtom(arr, atom, copy = False):
-    "Convert a generic object into a NumPy object"
+def convToNP(arr):
+    "Convert a generic, homogeneous, object into a NumPy contiguous object."
 
-    # First check NumPy as they will be the most frequently used objects.
-    if type(arr) == numpy.ndarray:
-        if arr.dtype.kind == "U":
-            raise NotImplementedError, \
-                  """Unicode types are not suppored yet, sorry."""
-        if atom.stype == "CharType" and arr.itemsize != atom.itemsize:
-            dtype = "S%s" % atom.itemsize
-            nparr = numpy.array(arr, dtype=dtype)
-        else:
-            nparr = arr
-    elif numarray_imported and type(arr) == numarray.NumArray:
+    if (type(arr) == numpy.ndarray and
+        arr.dtype.kind not in ['V', 'U']):  # not in void, unicode
+        flavor = "numpy"
         nparr = numpy.asarray(arr)
-    elif numarray_imported and isinstance(arr, numarray.strings.CharArray):
-        if arr.itemsize() != atom.itemsize:
-            dtype = "S%s" % atom.itemsize
-            nparr = numpy.array(arr, dtype=dtype)
-        else:
-            nparr = numpy.asarray(arr)
+    elif (numarray_imported and
+          type(arr) in (numarray.NumArray, numarray.strings.CharArray)):
+        flavor = "numarray"
+        nparr = numpy.asarray(arr)
     elif Numeric_imported and type(arr) == Numeric.ArrayType:
-        if arr.typecode() != 'c':
-            nparr = numpy.asarray(arr)
-        else:
-            # Special case for Numeric objects of type Char
-            try:
-                nparr = numpy.array(arr.tolist(), dtype="S%s"%atom.itemsize)
-                # If still doesn't, issues an error
-            except Exception, exc:  #XXX
-                raise TypeError, \
-"""The object '%s' can't be converted into a NumPy object of type '%s'.
-Sorry, but this object is not supported in this context. The error was: <%s>
-""" % (arr, atom, exc)
-    else:
-        # Check if arr can be converted to a numpy object of the
-        # correct type.
+        flavor = "numeric"
+        nparr = numpy.asarray(arr)
+    elif type(arr) in (tuple, list, int, float, complex, str):
+        flavor = "python"
+        # Test if this can be converted into a NumPy object
         try:
-            if atom.stype == "CharType":
-                dtype = "S%s" % atom.itemsize
-                nparr = numpy.array(arr, dtype=dtype)
-            else:
-                nparr = numpy.asarray(arr, dtype=atom.type)
+            nparr = numpy.array(arr)
         # If not, issue an error
         except Exception, exc:  #XXX
             raise TypeError, \
-"""The object '%s' can't be converted into a NumPy object of type '%s'.
-Sorry, but this object is not supported in this context. The error was: <%s>
-""" % (arr, atom, exc)
+"""The object '%s' can't be converted into a numerical or character array.
+Sorry, but this object is not supported. The error was <%s>:""" % (arr, exc)
+    else:
+        raise TypeError, \
+"""The object '%s' is not in the list of supported objects: numpy,
+numarray, numeric, homogeneous list or tuple, int, float, complex or str.
+Sorry, but this object is not supported in this context.""" % (arr)
 
-    # At this point we should have only NumPy arrays.
-    # Get copies of data if necessary for getting a contiguous buffer.
-    if (copy or (not nparr.flags.contiguous) or
-        (nparr.dtype.type <> atom.type)):
+    # Make a copy of the array in case it is not contiguous
+    if nparr.flags.contiguous == False:
+        nparr = nparr.copy()
+
+    return nparr, flavor
+
+
+# This is used in VLArray and EArray to produce NumPy object compliant
+# with atom from a generic python type.  If copy is stated as True, it
+# is assured that it will return a copy of the object and never the same
+# object or a new one sharing the same memory.
+def convertToNPAtom(arr, atom, copy = False):
+    "Convert a generic object into a NumPy object compliant with atom."
+
+    # First, convert the object to a NumPy array
+    nparr, flavor = convToNP(arr)
+
+    # Check that itemsizes in nparr and atom are equal for string objects
+    if atom.stype == "CharType" and nparr.itemsize != atom.itemsize:
+        dtype = "S%s" % atom.itemsize
+        nparr = numpy.array(nparr, dtype=dtype)
+
+    # Get copies of data if necessary for getting a contiguous buffer,
+    # or if type is not correct.
+    if (copy or nparr.dtype.type <> atom.type):
         nparr = numpy.array(nparr, dtype=atom.type)
 
     return nparr

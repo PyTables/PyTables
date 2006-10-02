@@ -46,7 +46,7 @@ except ImportError:
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
-                         convToFlavor, is_idx
+                         convToFlavor, convToNP, is_idx
 from tables.Leaf import Leaf, Filters
 
 
@@ -245,7 +245,7 @@ class Array(hdf5Extension.Array, Leaf):
 
         self._v_version = obversion
         try:
-            nparr, self.flavor = self._convertIntoNP(self._object)
+            nparr, self.flavor = convToNP(self._object)
         except:  #XXX
             # Problems converting data. Close the node and re-raise exception.
             #print "Problems converting input object:", str(self._object)
@@ -318,39 +318,6 @@ class Array(hdf5Extension.Array, Leaf):
                             calcBufferSize(self.rowsize, self.nrows)
 
         return self._v_objectID
-
-
-    def _convertIntoNP(self, arr):
-        "Convert a generic object into a NumPy object"
-
-        if type(arr) == numpy.ndarray and arr.dtype.type <> numpy.void:
-            flavor = "numpy"
-            # Do a copy of the array in case it is not contiguous
-            nparr = numpy.asarray(arr)
-        elif (numarray_imported and
-              type(arr) in (numarray.NumArray, numarray.strings.CharArray)):
-            flavor = "numarray"
-            # Do a copy of the array in case it is not contiguous
-            nparr = numpy.asarray(arr)
-        elif Numeric_imported and type(arr) == Numeric.ArrayType:
-            flavor = "numeric"
-            nparr = numpy.asarray(arr)
-        elif type(arr) in (tuple, list, int, float, complex, str):
-            flavor = "python"
-            # Test if this can be converted into a NumPy object
-            try:
-                nparr = numpy.array(arr)
-            except:  #XXX
-                raise TypeError, \
-"""The object '%s' can't be converted into a numerical or character array.
-Sorry, but this object is not supported.""" % (arr)
-        else:
-            raise TypeError, \
-"""The object '%s' is not in the list of supported objects: numpy,
-numarray, numeric, homogeneous list or tuple, int, float, complex or str.
-Sorry, but this object is not supported.""" % (arr)
-
-        return nparr, flavor
 
 
     def getEnum(self):

@@ -49,6 +49,7 @@ class PyTables_DB(DB):
         "Fills the table"
         table = con.root.table
         j = 0
+        print "Omplint taula..."
         for i in xrange(0, self.nrows, self.step):
             stop = (j+1)*self.step
             if stop > self.nrows:
