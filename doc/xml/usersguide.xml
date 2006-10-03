@@ -87,6 +87,58 @@
       </para>
 
     </legalnotice>
+
+    <!-- Numexpr license -->
+    <legalnotice>
+      <para><emphasis role="bold">Copyright Notice and Statement
+      for the Numexpr package</emphasis>
+      </para>
+
+      <para>Copyright © 2006, David M. Cooke. All rights reserved.</para>
+
+      <para>Redistribution and use in source and binary forms, with or
+      without modification, are permitted provided that the following
+      conditions are met:
+      </para>
+
+      <orderedlist numeration="loweralpha">
+	<listitem>
+	  <para>Redistributions of source code must retain the above
+	  copyright notice, this list of conditions and the following
+	  disclaimer.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>Redistributions in binary form must reproduce the
+	  above copyright notice, this list of conditions and the
+	  following disclaimer in the documentation and/or other
+	  materials provided with the distribution.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>Neither the name of the owner nor the names of its
+	  contributors may be used to endorse or promote products
+	  derived from this software without specific prior written
+	  permission.
+	  </para>
+	</listitem>
+      </orderedlist>
+
+      <para>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+      CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+      INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+      MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+      DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE
+      LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+      OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+      PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+      OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+      THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+      TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+      OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+      OF SUCH DAMAGE.
+      </para>
+    </legalnotice>
   </bookinfo>
 
 
@@ -1840,9 +1892,9 @@ fileh.close()]]></screen>
  reIndexDirty()
  removeRows(start [, stop])
  removeIndex(colname)
- where(condition [, start] [, stop] [, step])
- whereAppend(dstTable, condition [, start] [, stop] [, step])
- getWhereList(condition [, flavor])
+ where(condition [, condvars] [, start] [, stop] [, step])
+ whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
+ getWhereList(condition [, condvars] [, flavor] [, sort])
 
  Instance variables:
 
@@ -2144,7 +2196,7 @@ fileh.close()]]></screen>
           attached to every table, so it is meant to be used in table iterators.
           Look at the next example: </para>
 
-          <screen><![CDATA[ >>> for row in table.where(table.cols.TDCcount <= 2):
+          <screen><![CDATA[ >>> for row in table.where('TDCcount <= 2'):
  ...    row['energy'] = row['TDCcount']*2
  ...    row.update()
  ...
@@ -6370,34 +6422,69 @@ if row['var1'] <= 20 ]]]></screen>
 	    </section>
 
 	    <section id="Table.where" xreflabel="description">
-	      <title>where(condition, start=None, stop=None, step=None)</title>
+	      <!-- ##XXX Explain condition syntax and oddities with logical ops and their preference
+		   ##XXX including two-ended ranges. -->
+	      <title>where(condition, condvars=None,
+		start=None, stop=None, step=None)
+	      </title>
 
-	      <para>Iterate over values fulfilling a <computeroutput><![CDATA[condition]]></computeroutput>.</para>
+	      <para>Iterate over values fulfilling a <emphasis>condition</emphasis>.</para>
 
 	      <para>This method returns an iterator yielding
-		<computeroutput><![CDATA[Row]]></computeroutput> (see <xref linkend="RowClassDescr" xrefstyle="select: labelnumber"/>)
+		<computeroutput>Row</computeroutput> (see <xref linkend="RowClassDescr" xrefstyle="select: labelnumber"/>)
 		instances built from rows in the table that satisfy the
-		given <computeroutput><![CDATA[condition]]></computeroutput> over a column.  If that
-		column is indexed, its index will be used in order to
-		accelerate the search.  Else, the <emphasis>in-kernel</emphasis>
-		iterator (with has still better performance than
-		standard Python selections) will be chosen
-		instead. Please, check the <xref linkend="searchOptim" xrefstyle="select: label"/> for more information
-		about the performance of the different searching modes.
+		given <emphasis>condition</emphasis>
+		(an expression-like string).
 	      </para>
 
-	      <para>Moreover, if a range is supplied (i.e. some of the
-		<computeroutput><![CDATA[start]]></computeroutput>, <computeroutput><![CDATA[stop]]></computeroutput> or
-		<computeroutput><![CDATA[step]]></computeroutput> parameters are passed), only the rows
-		in that range <emphasis>and</emphasis> fulfilling the
-		<computeroutput><![CDATA[condition]]></computeroutput> are returned.  The meaning of the
-		<computeroutput><![CDATA[start]]></computeroutput>, <computeroutput><![CDATA[stop]]></computeroutput> and
-		<computeroutput><![CDATA[step]]></computeroutput> parameters is the same as in the
-		<computeroutput><![CDATA[range()]]></computeroutput> Python function, except that
-		negative values of <computeroutput><![CDATA[step]]></computeroutput> are <emphasis>not</emphasis>
-		allowed.  Moreover, if only <computeroutput><![CDATA[start]]></computeroutput> is
-		specified, then <computeroutput><![CDATA[stop]]></computeroutput> will be set to
-		<computeroutput><![CDATA[start+1]]></computeroutput>.
+	      <para>
+		The <emphasis>condvars</emphasis> mapping
+		may be used to define the variable names appearing in the
+		<emphasis>condition</emphasis>.
+		<emphasis>condvars</emphasis> should consist of
+		identifier-like strings pointing to
+		<computeroutput>Column</computeroutput> instances
+		<emphasis>of this table</emphasis>,
+		or to other values (which will be converted to arrays).
+		A default set of condition variables is provided
+		where each top-level, non-nested column with an identifier-like name appears.
+		Variables in <emphasis>condvars</emphasis>
+		override the default ones.
+	      </para>
+
+	      <para>
+		When <emphasis>condvars</emphasis> is not provided or <computeroutput>None</computeroutput>,
+		the current local and global namespace is sought
+		instead of <emphasis>condvars</emphasis>.
+		The previous mechanism is mostly intended for interactive usage.
+		To disable it, just specify a (maybe empty)
+		mapping as <emphasis>condvars</emphasis>.
+	      </para>
+
+	      <para>If a range is supplied (by setting some of the
+		<emphasis>start</emphasis>, <emphasis>stop</emphasis> or
+		<emphasis>step</emphasis> parameters),
+		only the rows in that range <emphasis>and</emphasis>
+		fulfilling the <emphasis>condition</emphasis> are used.
+		The meaning of the <emphasis>start</emphasis>,
+		<emphasis>stop</emphasis> and <emphasis>step</emphasis> parameters
+		is the same as in the <computeroutput>range()</computeroutput> Python function,
+		except that negative values of <emphasis>step</emphasis>
+		are <emphasis>not</emphasis> allowed.
+		Moreover, if only <emphasis>start</emphasis>
+		is specified, then <emphasis>stop</emphasis>
+		will be set to <computeroutput>start+1</computeroutput>.
+	      </para>
+
+	      <para>
+		When possible, indexed columns participating in the
+		condition will be used to speed up the search.  It is
+		recommended that you place the indexed columns as left
+		and out in the condition as possible.  Anyway, this
+		method has always better performance than standard
+		Python selections on the table.
+		Please check the <xref linkend="searchOptim" xrefstyle="select: label"/>
+		for more information about the performance of the different searching modes.
 	      </para>
 
 	      <para>You can mix this method with standard Python selections
@@ -6409,24 +6496,25 @@ if row['var1'] <= 20 ]]]></screen>
 
 	      <para>Example of use:</para>
 
-        <screen><![CDATA[passvalues=[]
-for row in table.where(0 < table.cols.col1 < 0.3, step=5):
-    if row['col2'] <= 20:
-        passvalues.append(row['col3'])
+	      <screen>
+<![CDATA[passvalues = [
+    row['col3'] for row in table.where('(col1 > 0) & (col2 <= 20)', step=5)
+    if your_function(row['col2']) ]
 print "Values that pass the cuts:", passvalues]]></screen>
 
 	      <para>Note that, from <computeroutput><![CDATA[PyTables]]></computeroutput> 1.1 on, you can
 		nest several iterators over the same table. For example:
 	      </para>
 
-        <screen><![CDATA[for p in rout.where(rout.cols.pressure < 16):
-    for q in rout.where(rout.cols.pressure < 9):
-        for n in rout.where(rout.cols.energy < 10):
-            print "pressure, energy:", p['pressure'],n['energy']]]></screen>
+	      <screen>
+<![CDATA[for p in rout.where('pressure < 16'):
+    for q in rout.where('pressure < 9'):
+        for n in rout.where('energy < 10'):
+            print "pressure, energy:", p['pressure'], n['energy']]]></screen>
 
-	      <para>In this example, the iterators returned by
-		<computeroutput><![CDATA[where()]]></computeroutput> has been nested, but in fact, you
-		can use any of the other reading iterators that the
+	      <para>In this example, iterators returned by
+		<computeroutput><![CDATA[where()]]></computeroutput> have been used,
+		but you may as well use any of the other reading iterators that the
 		<computeroutput><![CDATA[Table]]></computeroutput> object offers. Look at
 		<computeroutput><![CDATA[examples/nested-iter.py]]></computeroutput> for the full code.
 	      </para>
@@ -6434,8 +6522,9 @@ print "Values that pass the cuts:", passvalues]]></screen>
 	    </section>
 
 	    <section id="Table.whereAppend">
-	      <title>whereAppend(dstTable, condition, start=None,
-		stop=None, step=None)</title>
+	      <title>whereAppend(dstTable, condition, condvars=None,
+		start=None, stop=None, step=None)
+	      </title>
 
 	      <para>Append rows fulfilling the <emphasis>condition</emphasis> to the
 		<emphasis>dstTable</emphasis> table.</para>
@@ -6453,21 +6542,22 @@ print "Values that pass the cuts:", passvalues]]></screen>
 	    </section>
 
 	    <section id="getWhereListTableDescr">
-	      <title>getWhereList(condition, flavor=None)</title>
+	      <title>getWhereList(condition, condvars=None, flavor=None, sort=False)</title>
 
-	      <para>Get the row coordinates that fulfill the
-		<emphasis>condition</emphasis> parameter. This method will take
-		advantage of an indexed column to speed-up the search.
+	      <para>Get the row coordinates fulfilling the given
+		<emphasis>condition</emphasis>.
 	      </para>
 
-	      <para><emphasis>flavor</emphasis> is the desired type of the returned
-		list. It can take the <computeroutput><![CDATA["numarray"]]></computeroutput>,
-		<computeroutput><![CDATA["numpy"]]></computeroutput>, <computeroutput><![CDATA["numeric"]]></computeroutput> or
-		<computeroutput><![CDATA["python"]]></computeroutput> values. The default is returning
-		an object of the same flavor than
-		<computeroutput><![CDATA[self.flavor]]></computeroutput>.
+	      <para><emphasis>flavor</emphasis> is the desired type of the returned list.
+		If it is not provided, then it will take the value of
+		<computeroutput>self.flavor</computeroutput>.
 	      </para>
 
+	      <para>
+		<emphasis>sort</emphasis> means that
+		you want to retrieve the coordinates ordered.
+		The default is to not sort them.
+	      </para>
 	    </section>
 
 	  </section>
@@ -6660,7 +6750,7 @@ table.flush()]]></screen>
 
           which modifies every tenth row in table. Or:
 
-          <screen><![CDATA[for row in table.where(table.cols.col1 > 3):
+          <screen><![CDATA[for row in table.where('col1 > 3'):
     row['col1'] = row.nrow
     row['col2'] = 'b'
     row['col3'] = 0.0
@@ -9522,6 +9612,8 @@ True]]></screen>
 
       <section id="searchOptim">
         <title>Accelerating your searches</title>
+        <!-- ##XXX Add some multi-column search examples here. -->
+        <!-- ##XXX Add examples using internal functions as well. -->
 
         <para>If you are going to use a lot of searches like the next one:
 
@@ -9537,8 +9629,8 @@ result = [ row['var2'] for row in table if row['var1'] <= 20 ]]]></screen>
           <title>In-kernel searches</title>
 
           <para><computeroutput><![CDATA[PyTables]]></computeroutput> provides a
-          way to accelerate data selections when they are simple, i.e. when only
-          a column is implied in the selection process, through the use of the
+          way to accelerate data selections relating to a single table,
+          through the use of the
           <computeroutput><![CDATA[where]]></computeroutput> iterator
           (see <xref linkend="Table.where"/>). We will call this mode of
           selecting data <emphasis>in-kernel</emphasis>. Let's see an example of
@@ -9546,7 +9638,7 @@ result = [ row['var2'] for row in table if row['var1'] <= 20 ]]]></screen>
           <emphasis>standard</emphasis> selection mentioned above:
 
           <screen><![CDATA[row = table
-result = [ row['var2'] for row in table.where(table.cols.var1 <= 20)]]]></screen>
+result = [ row['var2'] for row in table.where('var1 <= 20')]]]></screen>
 
           This simple change of mode selection can account for an improvement in
           search times up to a factor of 10 (see the <xref           linkend="searchTimes-int" xrefstyle="select: label"/>).</para>
@@ -9593,23 +9685,19 @@ result = [ row['var2'] for row in table.where(table.cols.var1 <= 20)]]]></screen
           <computeroutput><![CDATA[rows]]></computeroutput> that fulfilled the
           condition.</para>
 
-          <para>You should note, however, that currently the
-          <computeroutput><![CDATA[where]]></computeroutput> method only accepts
-          conditions along a single column<footnote><para>PyTables
-          Pro will address this shortcoming.</para></footnote>. Fortunately, you
-          can mix the <emphasis>in-kernel</emphasis> and
+          <para>You can mix the <emphasis>in-kernel</emphasis> and
           <emphasis>standard</emphasis> selection modes for evaluating
-          arbitrarily complex conditions along several columns at once. Look at
-          this example:
+          arbitrarily complex conditions making use of external functions.
+          Look at this example:
 
           <screen><![CDATA[row = table
-result = [ row['var2'] for row in table.where(table.cols.var3 == "foo")
-                                  if row['var1'] <= 20 ]]]></screen>
+result = [ row['var2'] for row in table.where('(var3 == "foo") & (var1 <= 20)')
+                                  if your_function(row['var2']) ]]]></screen>
 
-          here, we have used a <emphasis>in-kernel</emphasis> selection to
-          filter the rows whose
-          <computeroutput><![CDATA[var3]]></computeroutput> field is equal to
-          string <computeroutput><![CDATA["foo"]]></computeroutput>. Then, we
+          Here, use a <emphasis>in-kernel</emphasis> selection to
+          choose rows according to the values of the
+          <computeroutput>var3</computeroutput>
+          and <computeroutput>var1</computeroutput> fields. Then, we
           apply a <emphasis>standard</emphasis> selection to complete the
           query.</para>
 
@@ -9625,6 +9713,7 @@ result = [ row['var2'] for row in table.where(table.cols.var3 == "foo")
 
         <section id="indexedSearches">
           <title>Indexed searches</title>
+          <!-- ##XXX Include hints on writing indexable conditions. -->
 
           <para>When you need more speed than <emphasis>in-kernel</emphasis>
           selections can offer you,
@@ -9677,22 +9766,35 @@ indexrows = table.cols.var3.createIndex()]]></screen>
 
           </glosslist>
 
-          <para>After you have indexed a column, you can proceed to use it
-          through the use of
-          <computeroutput><![CDATA[Table.where]]></computeroutput> method:
+          <para>After you have indexed a column,
+          <computeroutput>PyTables</computeroutput> will try to use
+          the index in your queries.  For the moment, a one-piece,
+          non-empty range involving constants and an indexed column
+          (all possibly ANDed with other conditions) can be detected
+          and the index will then be used.  It is recommended that you
+          place comparisons involving indexed colums the least deep in
+          the condition as possible to maximise the chances of
+          actually using indexes.
+          </para>
 
-          <screen><![CDATA[row = table
-result = [ row['var2'] for row in table.where(table.cols.var1 == "foo") ]]]></screen>
+          <para>Example conditions where an index can be used:
+          <itemizedlist>
+            <listitem><para><computeroutput>var1 >= "foo"</computeroutput> (var1 is used)</para></listitem>
+            <listitem><para><computeroutput>(var1 >= "foo") &amp; (var3 > 10)</computeroutput> (var1 is used)</para></listitem>
+            <listitem><para><computeroutput>(var1 >= "foo") &amp; (var4 > 0.0)</computeroutput> (var1 is used)</para></listitem>
+            <listitem><para><computeroutput>("bar" &lt;= var1) &amp; (var1 &lt; "foo")</computeroutput> (var1 is used)</para></listitem>
+            <listitem><para><computeroutput>(("bar" &lt;= var1) &amp; (var1 &lt; "foo")) &amp; (var4 > 0.0)</computeroutput> (var1 is used)</para></listitem>
+          </itemizedlist>
+          </para>
 
-          or, if you want to add more conditions, you can mix the indexed
-          selection with a standard one:
-
-          <screen><![CDATA[row = table
-result = [ row['var2'] for row in table.where(table.cols.var3 <= 20)
-                                  if row['var1'] == "foo" ]]]></screen>
-
-          remember to pass the most restrictive condition to the
-          <computeroutput><![CDATA[where]]></computeroutput> iterator.</para>
+          <para>Example conditions where an index can <emphasis>not</emphasis> be used:
+          <itemizedlist>
+            <listitem><para><computeroutput>var4 > 0.0</computeroutput> (var4 is not indexed)</para></listitem>
+            <listitem><para><computeroutput>var1 != 0.0</computeroutput> (range has two pieces)</para></listitem>
+            <listitem><para><computeroutput>var1 >= mystr</computeroutput> (comparison with a variable)</para></listitem>
+            <listitem><para><computeroutput>(var1 >= "foo") | (var3 > 10)</computeroutput> (conditions are ORed)</para></listitem>
+          </itemizedlist>
+          </para>
 
           <para>You can see in figures<xref           linkend="searchTimes-int" xrefstyle="select: labelnumber"/> and <xref           linkend="searchTimes-float" xrefstyle="select: labelnumber"/> that indexing can accelerate
           quite a lot your data selections in tables. For moderately large

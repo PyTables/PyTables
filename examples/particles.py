@@ -58,20 +58,17 @@ fileh.close()
 print "Selecting events..."
 fileh = openFile("particles-pro.h5", mode = "r")
 table = fileh.root.events.table
-event_col = table.cols.event_id
-condvars = {"event_id": table.cols.event_id,
-            "parent_id": table.cols.parent_id}
 
 print "Particles in event 34:",
 nrows = 0; t1 = time()
-for row in table._whereIndexed2XXX("event_id == 34", condvars):
+for row in table.where("event_id == 34"):
         nrows += 1
 print nrows
 print "Done --- Time:", round((time()-t1), 3), "sec"
 
 print "Root particles in event 34:",
 nrows = 0; t1 = time()
-for row in table._whereIndexed2XXX("event_id == 34", condvars):
+for row in table.where("event_id == 34"):
     if row['parent_id'] < 0:
         nrows += 1
 print nrows
@@ -79,7 +76,7 @@ print "Done --- Time:", round((time()-t1), 3), "sec"
 
 print "Sum of masses of root particles in event 34:",
 smass = 0.0; t1 = time()
-for row in table._whereIndexed2XXX("event_id == 34", condvars):
+for row in table.where("event_id == 34"):
     if row['parent_id'] < 0:
         smass += row['mass']
 print smass
@@ -87,7 +84,7 @@ print "Done --- Time:", round((time()-t1), 3), "sec"
 
 print "Sum of masses of daughter particles for particle 3 in event 34:",
 smass = 0.0; t1 = time()
-for row in table._whereIndexed2XXX("event_id == 34", condvars):
+for row in table.where("event_id == 34"):
     if row['parent_id'] == 3:
         smass += row['mass']
 print smass
@@ -95,8 +92,8 @@ print "Done --- Time:", round((time()-t1), 3), "sec"
 
 print "Sum of module of momentum for particle 3 in event 34:",
 smomentum = 0.0; t1 = time()
-#for row in table._whereIndexed2XXX("(event_id == 34) & ((parent_id) == 3)", condvars):
-for row in table._whereIndexed2XXX("event_id == 34", condvars):
+#for row in table.where("(event_id == 34) & ((parent_id) == 3)"):
+for row in table.where("event_id == 34"):
     if row['parent_id'] == 3:
         smomentum += numpy.sqrt(numpy.add.reduce(row['momentum']**2))
 print smomentum
@@ -104,12 +101,12 @@ print "Done --- Time:", round((time()-t1), 3), "sec"
 
 # This is the same than above, but using generator expressions
 # Python 2.4 needed here!
-# t1 = time()
-# print "Sum of module of momentum for particle 3 in event 34 (2):",
-# print sum(numpy.sqrt(numpy.add.reduce(row['momentum']**2))
-#           for row in table.where(event_col == 34)
-#           if row['parent_id'] == 3)
-# print "Done --- Time:", round((time()-t1), 3), "sec"
+print "Sum of module of momentum for particle 3 in event 34 (2):",
+t1 = time()
+print sum(numpy.sqrt(numpy.add.reduce(row['momentum']**2))
+          for row in table.where("event_id == 34")
+          if row['parent_id'] == 3)
+print "Done --- Time:", round((time()-t1), 3), "sec"
 
 
 fileh.close()

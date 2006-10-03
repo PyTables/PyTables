@@ -224,7 +224,7 @@ table.modifyRows(start=1, step=3,
 print "After modifying the complete third row-->", table[0:5]
 
 # Modifying columns inside table iterators
-for row in table.where(table.cols.TDCcount <= 2):
+for row in table.where('TDCcount <= 2'):
     row['energy'] = row['TDCcount']*2
     row.update()
 print "After modifying energy column (where TDCcount <=2)-->", table[0:4]

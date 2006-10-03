@@ -28,19 +28,13 @@ table.flush()
 table.cols.frame.createIndex(optlevel=9, testmode=True, verbose=True)
 #table.cols.frame.optimizeIndex(level=5, verbose=1)
 
-results = [r.nrow for r in table.where(table.cols.frame<2)]
+results = [r.nrow for r in table.where('frame < 2')]
 print "frame<2 -->", table.readCoordinates(results)
-#print "frame<2 -->", table.getWhereList(table.cols.frame<2)
+#print "frame<2 -->", table.getWhereList('frame < 2')
 
-results = [r.nrow for r in table.where(1<table.cols.frame<=5)]
+results = [r.nrow for r in table.where('(1 < frame) & (frame <= 5)')]
 print "rows-->", results
 print "1<frame<=5 -->", table.readCoordinates(results)
-#print "1<frame<=5 -->", table.getWhereList(table.cols.frame<=5)
-
-condvars = {"frame": table.cols.frame}
-results = [r.nrow for r in table._whereInRange2XXX("(1<=frame) & (frame<=5)", condvars)]
-print "rows-->", results
-print "1=<frame<=5 (numexpr)-->", table.readCoordinates(results)
-#print "1<frame<=5 -->", table.getWhereList(table.cols.frame<=5)
+#print "1<frame<=5 -->", table.getWhereList('(1 < frame) & (frame <= 5)')
 
 h5file.close()
