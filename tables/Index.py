@@ -1196,7 +1196,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         return (result1, result2)
 
 
-    def getLookupRange2XXX(self, ops, limits, table):
+    def getLookupRange(self, ops, limits, table):
         supported_cmps = ['lt', 'le', 'eq', 'ge', 'gt']
 
         assert len(ops) in [1, 2]

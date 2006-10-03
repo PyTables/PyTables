@@ -31,7 +31,7 @@ Misc variables:
 import sys
 import warnings
 import re
-import keyword  ##XXX
+import keyword
 from time import time
 
 import numpy
@@ -54,12 +54,12 @@ except ImportError:
 from tables.nriterators import flattenNames
 
 import tables.TableExtension as TableExtension
-from tables.conditions import split_condition, call_on_recarr  ##XXX
-from tables.numexpr.compiler import getType  ##XXX
+from tables.conditions import split_condition, call_on_recarr
+from tables.numexpr.compiler import getType
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNPToNumeric, convertNPToNumArray, fromnumpy, tonumpy, \
      fromnumarray, is_idx
-from tables.utils import pythonIdRE  ##XX
+from tables.utils import pythonIdRE
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import \
@@ -128,7 +128,7 @@ def _getIndexColName(parent, tablename, colname):
     return joinPath(_getIndexTableName(parent, tablename), colname)
 
 
-class NailedDict(object):  ##XXX
+class NailedDict(object):
 
     """A dictionary which ignores its items when it has nails on it."""
 
@@ -202,9 +202,9 @@ class Table(TableExtension.Table, Leaf):
         reIndexDirty()
         removeRows(start [, stop])
         removeIndex(column)
-        where(condition [, start] [, stop] [, step])
-        whereAppend(dstTable, condition [, start] [, stop] [, step])
-        getWhereList(condition [, flavor])
+        where(condition [, condvars] [, start] [, stop] [, step])
+        whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
+        getWhereList(condition [, condvars] [, flavor] [, sort])
 
     Instance variables:
 
@@ -396,13 +396,13 @@ class Table(TableExtension.Table, Leaf):
         self.colindexed = {}
         """Is the column which name is used as a key indexed? (dictionary)"""
 
-        self.whereCondition = None  ##XXX
+        self._whereCondition = None
         """Condition function and argument list for selection of values."""
-        self.whereIndex = None  ##XXX
+        self._whereIndex = None
         """Path of the indexed column to be used in an indexed search."""
-        self._conditionCache = NailedDict()  ##XXX
+        self._conditionCache = NailedDict()
         """Cache of already splitted conditions."""
-        self._emptyArrayCache = {}  ##XXX
+        self._emptyArrayCache = {}
         """Cache of empty arrays."""
 
         self._v_dtype = None
@@ -480,7 +480,6 @@ class Table(TableExtension.Table, Leaf):
                 if indexed:
                     column = self.cols._f_col(colname)
                     indexobj = column.index  # to query properties later
-                    ##XXX
                     # Tell the condition cache about dirty indexed columns.
                     if column.dirty:
                         self._conditionCache.nail()
@@ -834,7 +833,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return colobj
 
 
-    def _extendedWithDefVarsXXX(self, condvars):
+    def _extendedWithDefVars(self, condvars):
         """
         Extend the `condvars` mapping with default variables.
 
@@ -866,7 +865,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             condvars[var] = val
         return condvars
 
-    def _getConditionKeyXXX(self, condition, condvars):
+    def _getConditionKey(self, condition, condvars):
         """
         Get the condition cache key for `condition` with `condvars`.
 
@@ -898,7 +897,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         condkey = (condition, colnames, varnames, colpaths, vartypes)
         return condkey
 
-    def _splitConditionXXX(self, condition, condvars):
+    def _splitCondition(self, condition, condvars):
         """
         Split the `condition` into indexable and non-indexable parts.
 
@@ -911,7 +910,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Look up the condition in the condition cache.
         condcache = self._conditionCache
-        condkey = self._getConditionKeyXXX(condition, condvars)
+        condkey = self._getConditionKey(condition, condvars)
         splitted = condcache.get(condkey)
         if splitted:
             return splitted  # bingo!
@@ -943,8 +942,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return splitted
 
 
-    def where2XXX( self, condition, condvars={},
-                   start=None, stop=None, step=None ):
+    def where( self, condition, condvars={},
+               start=None, stop=None, step=None ):
         """
         Iterate over values fulfilling a `condition`.
 
@@ -976,17 +975,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         # Split the condition into indexable and residual parts.
-        condvars = self._extendedWithDefVarsXXX(condvars)
-        splitted = self._splitConditionXXX(condition, condvars)
+        condvars = self._extendedWithDefVars(condvars)
+        splitted = self._splitCondition(condition, condvars)
         assert splitted.index_variable or splitted.residual_function, (
             "no usable indexed column and no residual condition "
             "after splitting search condition" )
-        return self._where2XXX(splitted, condvars, start, stop, step)
+        return self._where(splitted, condvars, start, stop, step)
 
-    def _where2XXX( self, splitted, condvars,
-                    start=None, stop=None, step=None ):
+    def _where( self, splitted, condvars,
+                start=None, stop=None, step=None ):
         """
-        Low-level counterpart of `self.where2XXX()`.
+        Low-level counterpart of `self.where()`.
 
         This version needs the condition to already be `splitted`, and
         it has no default variables in `condvars`.
@@ -1000,29 +999,29 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             index = idxcol.index
             assert index is not None, "the chosen column is not indexed"
             assert not idxcol.dirty, "the chosen column has a dirty index"
-            self.whereIndex = idxcol.pathname
+            self._whereIndex = idxcol.pathname
         rescond = splitted.residual_function
         if rescond:
             resparams = splitted.residual_parameters
             resargs = [condvars[param] for param in resparams]
-            self.whereCondition = (rescond, resargs)
+            self._whereCondition = (rescond, resargs)
 
         # Get the number of rows that the indexed condition yields.
         # This also signals ``Row`` whether to use indexing or not.
         ncoords = -1  # do not use indexing by default
         if idxvar:
-            range_ = index.getLookupRange2XXX(
+            range_ = index.getLookupRange(
                 splitted.index_operators, splitted.index_limits, self )
             ncoords = index.search(range_)  # do use indexing (always >= 0)
             if ncoords == 0 and not rescond:
                 # No values neither from index nor from residual condition.
-                self.whereIndex = self.whereCondition = None
+                self._whereIndex = self._whereCondition = None
                 return iter([])
 
         # Adjust the slice to be used.
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         if start >= stop:  # empty range, reset conditions
-            self.whereIndex = self.whereCondition = None
+            self._whereIndex = self._whereCondition = None
             return iter([])
 
         # Iterate according to the index and residual conditions.
@@ -1031,13 +1030,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
     # XYX sembla inacabada....
-    def readIndexed2XXX(self, condition, condvars={}, field=None, flavor=None):
+    def readIndexed(self, condition, condvars={}, field=None, flavor=None):
         """
         Return a record array fulfilling the given `condition`.
 
         This method is only intended to be used for indexed columns.
         The meaning of the `condition` and `condvars` arguments is the
-        same as in the `self.where2XXX()` method.
+        same as in the `self.where()` method.
         """
 
         if not flavor:
@@ -1055,8 +1054,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if self._dirtycache:
             self._restorecache()
 
-        condvars = self._extendedWithDefVarsXXX(condvars)
-        splitted = self._splitConditionXXX(condition, condvars)
+        condvars = self._extendedWithDefVars(condvars)
+        splitted = self._splitCondition(condition, condvars)
         idxvar = splitted.index_variable
         if not idxvar:
             raise ValueError( "could not find any usable indexes "
@@ -1070,7 +1069,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Retrieve the array of rows fulfilling the index condition.
 
         # Get the coordinates to lookup
-        range_ = index.getLookupRange2XXX(
+        range_ = index.getLookupRange(
             splitted.index_operators, splitted.index_limits, self )
         nslot = -1
         rescond = splitted.residual_function
@@ -1117,15 +1116,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return recarr
 
 
-    def whereAppend2XXX( self, dstTable, condition, condvars={},
-                         start=None, stop=None, step=None ):
+    def whereAppend( self, dstTable, condition, condvars={},
+                     start=None, stop=None, step=None ):
         """
         Append rows fulfulling the `condition` to the `dstTable` table.
 
         `dstTable` must be capable of taking the rows resulting from the
         query, i.e. it must have columns with the expected names and
         compatible types.  The meaning of the other arguments is the
-        same as in the `where2XXX()` method.
+        same as in the `where()` method.
 
         The number of rows appended to `dstTable` is returned as a
         result.
@@ -1139,7 +1138,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         colNames = [colName for colName in flattenNames(self.colnames)]
         dstRow = dstTable.row
         nrows = 0
-        for srcRow in self.where2XXX(condition, condvars, start, stop, step):
+        for srcRow in self.where(condition, condvars, start, stop, step):
             for colName in colNames:
                 dstRow[colName] = srcRow[colName]
             dstRow.append()
@@ -1148,12 +1147,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return nrows
 
 
-    def getWhereList2XXX(self, condition, condvars={}, flavor=None, sort=False):
+    def getWhereList(self, condition, condvars={}, flavor=None, sort=False):
         """
         Get the row coordinates fulfilling the given `condition`.
 
         The meaning of the `condition` and `condvars` arguments is the
-        same as in the `self.where2XXX()` method.
+        same as in the `self.where()` method.
 
         `flavor` is the desired type of the returned list. If it is not
         provided, then it will take the value of `self.flavor`.
@@ -1169,8 +1168,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 "%s" flavor is not allowed; please use some of %s.""" % \
                              (flavor, supportedFlavors))
 
-        condvars = self._extendedWithDefVarsXXX(condvars)
-        splitted = self._splitConditionXXX(condition, condvars)
+        condvars = self._extendedWithDefVars(condvars)
+        splitted = self._splitCondition(condition, condvars)
 
         # Take advantage of indexation, if present
         idxvar = splitted.index_variable
@@ -1180,11 +1179,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             # Bound sorted and indices in order to get them cached
             assert index is not None, "the chosen column is not indexed"
             assert not column.dirty, "the chosen column has a dirty index"
-            assert index.is_pro or index.nelements > 0, \
-                   "the chosen column has too few elements to be indexed"
 
             # get the number of coords and set-up internal variables
-            range_ = index.getLookupRange2XXX(
+            range_ = index.getLookupRange(
                 splitted.index_operators, splitted.index_limits, self )
             ncoords = index.search(range_)
             if ncoords > 0:
@@ -1205,10 +1202,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 coords = coords[indexValid]
                 ncoords = len(coords)
         else:
-            coords = [p.nrow for p in self._where2XXX(splitted, condvars)]
+            coords = [p.nrow for p in self._where(splitted, condvars)]
             coords = numpy.array(coords, dtype=numpy.int64)
             # Reset the conditions
-            self.whereCondition = None
+            self._whereCondition = None
         if sort:
             coords = numpy.sort(coords)
         if flavor == "numpy":
@@ -2635,7 +2632,7 @@ class Column(object):
 
 
     def _set_dirty(self, dirty):
-        wasdirty = getattr(self, "_dirty", False)  ##XXX
+        wasdirty = getattr(self, "_dirty", False)
         self._dirty = isdirty = dirty
         index = self.index
         # Only set the index column as dirty if it exists
@@ -2645,7 +2642,6 @@ class Column(object):
                 index.indicesLR[-1] = 0
                 index.nelementsLR = 0
                 index.nelements = 0
-        ##XXX
         # If an *actual* change in dirtiness happens,
         # notify the condition cache by setting or removing a nail.
         if index and not wasdirty and isdirty:

@@ -29,7 +29,7 @@ import numpy
 
 import tables.hdf5Extension
 from tables.exceptions import HDF5ExtError
-from tables.conditions import call_on_recarr  ##XXX
+from tables.conditions import call_on_recarr
 from tables.utilsExtension import createNestedType, \
      getNestedType, convertTime64, space2null, getTypeEnum, enumFromHDF5
 
@@ -536,7 +536,7 @@ cdef class Row:
   cdef int     bufcounter, counter, startb, stopb,  _all
   cdef int     exist_enum_cols
   cdef int     _riterator, _stride
-  cdef int     whereCond2XXX, indexed2XXX, indexChunk
+  cdef int     whereCond, indexed, indexChunk
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done
   cdef Table   table
@@ -544,7 +544,7 @@ cdef class Row:
   cdef object  rbufRA, wbufRA
   cdef object  _wfields, _rfields
   cdef object  indexValid, coords, bufcoords, index, indices
-  cdef object  condfunc, condargs  ##XXX
+  cdef object  condfunc, condargs
   cdef object  mod_elements, colenums
 
   #def __new__(self, Table table):
@@ -634,44 +634,43 @@ cdef class Row:
     self.startb = 0
     self.nrowsread = start
     self._nrow = start - self.step
-    self.whereCond2XXX = 0
-    self.indexed2XXX = 0
+    self.whereCond = 0
+    self.indexed = 0
 
     table = self.table
     self.nrows = table.nrows   # Update the row counter
-    ##XXX
-    if table.whereCondition:
-      self.whereCond2XXX = 1
-      self.condfunc, self.condargs = table.whereCondition
-      table.whereCondition = None
-    if table.whereIndex:
-      self.indexed2XXX = 1
-      self.index = table.cols._f_col(table.whereIndex).index
+
+    if table._whereCondition:
+      self.whereCond = 1
+      self.condfunc, self.condargs = table._whereCondition
+      table._whereCondition = None
+    if table._whereIndex:
+      self.indexed = 1
+      self.index = table.cols._f_col(table._whereIndex).index
       self.indices = self.index.indices
       self.nrowsread = 0
       self.nextelement = 0
-      table.whereIndex = None
-    ##XXX
+      table._whereIndex = None
 
     if self.coords is not None:
       self.stopindex = coords.size
       self.nrowsread = 0
       self.nextelement = 0
-    elif self.indexed2XXX:
+    elif self.indexed:
       self.stopindex = ncoords
 
 
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
-    if self.indexed2XXX or self.coords is not None:
-      return self.__next__indexed2XXX()
-    elif self.whereCond2XXX:
-      return self.__next__inKernel2XXX()
+    if self.indexed or self.coords is not None:
+      return self.__next__indexed()
+    elif self.whereCond:
+      return self.__next__inKernel()
     else:
       return self.__next__general()
 
 
-  cdef __next__indexed2XXX(self):
+  cdef __next__indexed(self):
     """The version of next() for indexed columns or with user coordinates"""
     cdef int recout
     cdef long long stop
@@ -709,7 +708,7 @@ cdef class Row:
         self._row = -1
         if self.bufcoords.size > 0:
           recout = self.table._read_elements_(self.rbufRA, self.bufcoords)
-          if self.whereCond2XXX:
+          if self.whereCond:
             # Evaluate the condition on this table fragment.
             self.indexValid = call_on_recarr(
               self.condfunc, self.condargs, self._rfields )
@@ -731,31 +730,24 @@ cdef class Row:
       # Return this row if it fullfills the residual condition
       if self.indexValid[self._row]:
         return self
-    else:  ##XXX???
+    else:
       # Re-initialize the possible cuts in columns
-      self.indexed2XXX = 0
-      if self.coords is None and not self.index.is_pro:
-        nextelement = self.index.nelemslice * self.index.nrows
-        # Correct this for step size > 1
-        correct = (nextelement - self.start) % self.step
-        if self.step > 1 and correct:
-          nextelement = nextelement + self.step - correct
-      else:
-        self.coords = None
-        # All the elements has been read for this mode
-        nextelement = self.nrows
+      self.indexed = 0
+      self.coords = None
+      # All the elements have been read for this mode
+      nextelement = self.nrows
       if nextelement >= self.nrows:
         self.finish_riterator()
       else:
-        # Continue the iteration with the __next__inKernel2XXX() method
+        # Continue the iteration with the __next__inKernel() method
         self.start = nextelement
         self.startb = 0
         self.nrowsread = self.start
         self._nrow = self.start - self.step
-        return self.__next__inKernel2XXX()
+        return self.__next__inKernel()
 
 
-  cdef __next__inKernel2XXX(self):
+  cdef __next__inKernel(self):
     """The version of next() in case of in-kernel conditions"""
     cdef int recout, correct
     cdef object numexpr_locals, colvar, col
