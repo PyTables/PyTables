@@ -996,13 +996,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         possible.  Anyway, this method has always better performance
         than standard Python selections on the table.
         """
-
         # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)
         splitted = self._splitCondition(condition, condvars)
-        assert splitted.index_variable or splitted.residual_function, (
-            "no usable indexed column and no residual condition "
-            "after splitting search condition" )
         return self._where(splitted, condvars, start, stop, step)
 
     def _where( self, splitted, condvars,
@@ -1010,8 +1006,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
         Low-level counterpart of `self.where()`.
 
-        This version needs the condition to already be `splitted`, and
-        it has no default variables in `condvars`.
+        This version needs the condition to already be `splitted`.  It
+        also uses `condvars` as is.  This is on purpose; if you want
+        default variables and the like, use `self._requiredExprVars()`.
         """
 
         # Set the index column and residual condition (if any)
@@ -1077,6 +1074,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if self._dirtycache:
             self._restorecache()
 
+        # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)
         splitted = self._splitCondition(condition, condvars)
         idxvar = splitted.index_variable
@@ -1155,13 +1153,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Check that the destination file is not in read-only mode.
         dstTable._v_file._checkWritable()
 
+        # Split the condition into indexable and residual parts.
+        condvars = self._requiredExprVars(condition, condvars)
+        splitted = self._splitCondition(condition, condvars)
+
         # Row objects do not support nested columns, so we must iterate
         # over the flat column paths.  When rows support nesting,
         # ``self.colnames`` can be directly iterated upon.
         colNames = [colName for colName in flattenNames(self.colnames)]
         dstRow = dstTable.row
         nrows = 0
-        for srcRow in self.where(condition, condvars, start, stop, step):
+        for srcRow in self._where(splitted, condvars, start, stop, step):
             for colName in colNames:
                 dstRow[colName] = srcRow[colName]
             dstRow.append()
@@ -1191,6 +1193,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 "%s" flavor is not allowed; please use some of %s.""" % \
                              (flavor, supportedFlavors))
 
+        # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)
         splitted = self._splitCondition(condition, condvars)
 

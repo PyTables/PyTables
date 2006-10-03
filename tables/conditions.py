@@ -227,6 +227,10 @@ def split_condition(condition, typemap, indexedcols):
             raise _unsupported_operation_error(nie)
         resparams = resvarnames
 
+    assert idxvar or resfunc, (
+        "no usable indexed column and no residual condition "
+        "after splitting search condition" )
+
     # This is more comfortable to handle about than a tuple.
     return SplittedCondition(idxvar, idxops, idxlims, resfunc, resparams)
 
