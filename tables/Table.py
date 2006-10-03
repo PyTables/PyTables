@@ -886,12 +886,18 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 colnames.append(var)
                 colpaths.append(val.pathname)
                 if val._tableFile is not tblfile or val._tablePath != tblpath:
-                    raise ValueError("variable ``%s`` refers to a column "
-                                     "which is not part of table ``%s``"
-                                     % (var, tblpath))
+                    raise ValueError( "variable ``%s`` refers to a column "
+                                      "which is not part of table ``%s``"
+                                      % (var, tblpath) )
             else:
-                varnames.append(var)
-                vartypes.append(getType(val))  # expensive
+                try:
+                    varnames.append(var)
+                    vartypes.append(getType(val))  # expensive
+                except ValueError:
+                    # This is more clear than the error given by Numexpr.
+                    raise TypeError( "variable ``%s`` has data type ``%s``, "
+                                     "not allowed in conditions"
+                                     % (var, val.dtype.name) )
         colnames, varnames = tuple(colnames), tuple(varnames)
         colpaths, vartypes = tuple(colpaths), tuple(vartypes)
         condkey = (condition, colnames, varnames, colpaths, vartypes)
@@ -953,11 +959,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         The `condvars` mapping may be used to define the variable names
         appearing in the `condition`.  `condvars` should consist of
-        identifier-like strings pointing to scalar or array values and
-        `Column` instances *of this table*.  A default set of condition
-        variables is provided where each top-level, non-nested column
-        with an identifier-like name appears.  Variables in `condvars`
-        override the default ones.
+        identifier-like strings pointing to `Column` instances *of this
+        table*, or to other values (which will be converted to arrays).
+        A default set of condition variables is provided where each
+        top-level, non-nested column with an identifier-like name
+        appears.  Variables in `condvars` override the default ones.
 
         If a range is supplied (by setting some of the `start`, `stop`
         or `step` parameters), only the rows in that range *and*
