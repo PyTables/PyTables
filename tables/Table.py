@@ -31,7 +31,6 @@ Misc variables:
 import sys
 import warnings
 import re
-import keyword
 from time import time
 
 import numpy
@@ -55,11 +54,11 @@ from tables.nriterators import flattenNames
 
 import tables.TableExtension as TableExtension
 from tables.conditions import split_condition, call_on_recarr
-from tables.numexpr.compiler import getType
+from tables.numexpr.compiler import getType as numexpr_getType
+from tables.numexpr.expressions import functions as numexpr_functions
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNPToNumeric, convertNPToNumArray, fromnumpy, tonumpy, \
      fromnumarray, is_idx
-from tables.utils import pythonIdRE
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import \
@@ -833,40 +832,54 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return colobj
 
 
-    def _extendedWithDefVars(self, condvars):
+    def _requiredExprVars(self, expression, uservars):
         """
-        Extend the `condvars` mapping with default variables.
+        Get the variables required by the `expression`.
 
-        A new dictionary based on `condvars` is returned, extended with
-        a new variable for each top-level, non-nested column with an
-        identifier-like name in the table (if there is not already a
-        variable with that name in `condvars`).
+        A new dictionary defining the variables used in the `expression`
+        is returned.  Required variables are first looked up in the
+        `uservars` mapping, then in the set of top-level columns of the
+        table.  Unknown variables cause a `NameError` to be raised.
 
-        Non-column variable values are also converted to NumPy arrays.
+        Nested columns and columns from other tables are not allowed
+        (`TypeError` and `ValueError` are raised, respectively).  Also,
+        non-column variable values are converted to NumPy arrays.
         """
-        # Add the default variables *below* the user-provided ones.
-        #
-        # The ``cols`` accessor could be avoided by using a mapping from
-        # column paths to columns.  I think this would be useful in any
-        # case for the user.  -- Ivan
-        def is_identifier_like(colname):
-            return ( type(colname) is str  # avoid nested columns
-                     and pythonIdRE.match(colname)
-                     and not keyword.iskeyword(colname) )
-        defvars = dict( (colname, getattr(self.cols, colname))
-                        for colname in self.colnames
-                        if is_identifier_like(colname) )
+        # Get the names of variables used in the expression.
+        cexpr = compile(expression, '<string>', 'eval')
+        exprvars = [ var for var in cexpr.co_names
+                     if var != 'None' and var not in numexpr_functions ]
 
-        def looks_like_column(obj):
-            return ( hasattr(val, 'pathname')  # non-nested
-                     or hasattr(val, '_v_colpathnames') )  # nested
-        uservars, condvars = condvars, defvars
-        # Update with user-provided variables (columns and other values).
-        for (var, val) in uservars.items():
-            if not looks_like_column(val):
+        colnames, cols = self.colnames, self.cols
+        tblfile, tblpath = self._v_file, self._v_pathname
+        # Look for the required variables first among the ones provided
+        # by the user, then among table columns.
+        reqvars = {}
+        for var in exprvars:
+            # Get the value.
+            if var in uservars:
+                val = uservars[var]
+            elif var in colnames:
+                # The ``cols`` accessor could be avoided by using a
+                # mapping from column paths to columns.  I think this
+                # would be useful in any case for the user.  -- Ivan
+                val = getattr(cols, var)
+            else:
+                raise NameError("name ``%s`` is not defined" % var)
+
+            # Check the value.
+            if hasattr(val, 'pathname'):  # non-nested column
+                if val._tableFile is not tblfile or val._tablePath != tblpath:
+                    raise ValueError( "variable ``%s`` refers to a column "
+                                      "which is not part of table ``%s``"
+                                      % (var, tblpath) )
+            elif hasattr(val, '_v_colpathnames'):  # nested column
+                raise TypeError( "variable ``%s`` refers to a nested column, "
+                                 "not allowed in conditions" % (var,) )
+            else:  # only non-column values are converted to arrays
                 val = numpy.asarray(val)
-            condvars[var] = val
-        return condvars
+            reqvars[var] = val
+        return reqvars
 
     def _getConditionKey(self, condition, condvars):
         """
@@ -877,28 +890,19 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         (all tuples).
         """
 
-        tblfile = self._v_file
-        tblpath = self._v_pathname
-
         # Variable names for column and normal variables.
         colnames, varnames = [], []
         # Column paths and types for each of the previous variable.
         colpaths, vartypes = [], []
         for (var, val) in condvars.items():
-            if hasattr(val, 'pathname'):  # non-nested column
+            if hasattr(val, 'pathname'):  # column
                 colnames.append(var)
                 colpaths.append(val.pathname)
-                if val._tableFile is not tblfile or val._tablePath != tblpath:
-                    raise ValueError( "variable ``%s`` refers to a column "
-                                      "which is not part of table ``%s``"
-                                      % (var, tblpath) )
-            elif hasattr(val, '_v_colpathnames'):  # nested column
-                raise TypeError( "variable ``%s`` refers to a nested column, "
-                                 "not allowed in conditions" % (var,) )
-            else:  # NumPy array
+            else:  # array
+                assert hasattr(val, '__array_struct__')
                 try:
                     varnames.append(var)
-                    vartypes.append(getType(val))  # expensive
+                    vartypes.append(numexpr_getType(val))  # expensive
                 except ValueError:
                     # This is more clear than the error given by Numexpr.
                     raise TypeError( "variable ``%s`` has data type ``%s``, "
@@ -994,7 +998,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         # Split the condition into indexable and residual parts.
-        condvars = self._extendedWithDefVars(condvars)
+        condvars = self._requiredExprVars(condition, condvars)
         splitted = self._splitCondition(condition, condvars)
         assert splitted.index_variable or splitted.residual_function, (
             "no usable indexed column and no residual condition "
@@ -1073,7 +1077,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if self._dirtycache:
             self._restorecache()
 
-        condvars = self._extendedWithDefVars(condvars)
+        condvars = self._requiredExprVars(condition, condvars)
         splitted = self._splitCondition(condition, condvars)
         idxvar = splitted.index_variable
         if not idxvar:
@@ -1187,7 +1191,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 "%s" flavor is not allowed; please use some of %s.""" % \
                              (flavor, supportedFlavors))
 
-        condvars = self._extendedWithDefVars(condvars)
+        condvars = self._requiredExprVars(condition, condvars)
         splitted = self._splitCondition(condition, condvars)
 
         # Take advantage of indexation, if present

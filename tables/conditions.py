@@ -213,15 +213,12 @@ def split_condition(condition, typemap, indexedcols):
     idxvar, idxops, idxlims, resexpr = _split_expression(expr, indexedcols)
     check_boolean(resexpr)
 
-    # Get the variable names used in the residual condition,
-    # and check that they are defined in `typemap`.
+    # Get the variable names used in the residual condition.
     # At the same time, build the signature of the residual condition.
     resfunc, resparams = None, []
     if resexpr:
         resvarnames, ressignature = _get_variable_names(resexpr), []
         for var in resvarnames:
-            if var not in typemap:
-                raise NameError("name ``%s`` is not defined" % var)
             ressignature.append((var, typemap[var]))
         try:
             resfunc = numexpr(resexpr, ressignature)
