@@ -306,9 +306,6 @@ def convToNP(arr):
         arr.dtype.kind not in ['V', 'U']):  # not in void, unicode
         flavor = "numpy"
         nparr = arr
-    elif numpy.isscalar(arr):
-        flavor = "numpy"
-        nparr = numpy.array(arr)
     elif (numarray_imported and
           type(arr) in (numarray.NumArray, numarray.strings.CharArray)):
         flavor = "numarray"
@@ -316,7 +313,8 @@ def convToNP(arr):
     elif Numeric_imported and type(arr) == Numeric.ArrayType:
         flavor = "numeric"
         nparr = numpy.asarray(arr)
-    elif type(arr) in (tuple, list, int, float, complex, str):
+    elif (type(arr) in (tuple, list, int, float, complex, str) or
+          numpy.isscalar(arr)):  # numpy scalars will be treated as python objects
         flavor = "python"
         # Test if this can be converted into a NumPy object
         try:

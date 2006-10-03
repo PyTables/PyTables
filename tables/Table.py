@@ -1858,7 +1858,6 @@ The 'colname' parameter must be a string.""")
                  isinstance(column, numarray.records.RecArray))):
                 recarray = numpy.rec.array(column, dtype=descr)
             else:
-                column = numpy.asarray(column) # Force column to be a numpy
                 recarray = numpy.rec.fromarrays([column], dtype=descr)
         except Exception, exc:  #XXX
             raise ValueError, \
@@ -1934,7 +1933,6 @@ The 'names' parameter must be a list of strings.""")
                  isinstance(columns, numarray.records.RecArray))):
                 recarray = numpy.rec.array(columns, dtype=descr)
             else:
-                columns = numpy.asarray(columns) # Force columns to be a numpy
                 recarray = numpy.rec.fromarrays(columns, dtype=descr)
         except Exception, exc:  #XXX
             raise ValueError, \
