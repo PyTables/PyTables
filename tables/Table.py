@@ -857,11 +857,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                         for colname in self.colnames
                         if is_identifier_like(colname) )
 
+        def looks_like_column(obj):
+            return ( hasattr(val, 'pathname')  # non-nested
+                     or hasattr(val, '_v_colpathnames') )  # nested
         uservars, condvars = condvars, defvars
         # Update with user-provided variables (columns and other values).
         for (var, val) in uservars.items():
-            if not hasattr(val, 'pathname'):
-                val = numpy.asarray(val)  # not a column, convert to NumPy
+            if not looks_like_column(val):
+                val = numpy.asarray(val)
             condvars[var] = val
         return condvars
 
@@ -882,14 +885,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Column paths and types for each of the previous variable.
         colpaths, vartypes = [], []
         for (var, val) in condvars.items():
-            if hasattr(val, 'pathname'):  # looks like a column
+            if hasattr(val, 'pathname'):  # non-nested column
                 colnames.append(var)
                 colpaths.append(val.pathname)
                 if val._tableFile is not tblfile or val._tablePath != tblpath:
                     raise ValueError( "variable ``%s`` refers to a column "
                                       "which is not part of table ``%s``"
                                       % (var, tblpath) )
-            else:
+            elif hasattr(val, '_v_colpathnames'):  # nested column
+                raise TypeError( "variable ``%s`` refers to a nested column, "
+                                 "not allowed in conditions" % (var,) )
+            else:  # NumPy array
                 try:
                     varnames.append(var)
                     vartypes.append(getType(val))  # expensive
