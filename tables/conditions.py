@@ -184,12 +184,16 @@ def split_condition(condition, typemap, indexedcols):
     list indicates the order of its parameters.
     """
 
+    def check_boolean(expr):
+        if expr and expr.astKind != 'bool':
+            raise TypeError( "condition ``%s`` does not have a boolean type"
+                             % condition )
+
     # Get the expression tree and split the indexable part out.
     expr = stringToExpression(condition, typemap, {})
+    check_boolean(expr)
     idxvar, idxops, idxlims, resexpr = _split_expression(expr, indexedcols)
-    if resexpr and resexpr.astKind != 'bool':
-        raise TypeError( "condition ``%s`` does not have a boolean type"
-                         % condition )
+    check_boolean(resexpr)
 
     # Get the variable names used in the residual condition,
     # and check that they are defined in `typemap`.
