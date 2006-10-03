@@ -448,7 +448,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Read the records and select those with "var2" file less than 20
         result = []
         for rec in table.iterrows(stop=2):
-            for rec2 in table.where(table.cols.var2 < 20, stop=2):
+            for rec2 in table.where('var2 < 20', stop=2):
                 result.append([rec['var2'],rec2['var2']])
         if verbose:
             print "result ==>", result
@@ -469,8 +469,8 @@ class BasicTestCase(common.PyTablesTestCase):
 
         # Read the records and select those with "var2" file less than 20
         result = []
-        for rec in table.where(table.cols.var3 < 2):
-            for rec2 in table.where(table.cols.var2 < 3):
+        for rec in table.where('var3 < 2'):
+            for rec2 in table.where('var2 < 3'):
                 result.append([rec['var2'],rec2['var3']])
         if verbose:
             print "result ==>", result
@@ -491,8 +491,8 @@ class BasicTestCase(common.PyTablesTestCase):
 
         # Read the records and select those with "var2" file less than 20
         result = []
-        for rec in table.where(table.cols.var3 < 2):
-            for rec2 in table.where(table.cols.var2 < 4):
+        for rec in table.where('var3 < 2'):
+            for rec2 in table.where('var2 < 4'):
                 if rec2['var2'] >= 3:
                     break
                 result.append([rec['var2'],rec2['var3']])
@@ -2595,7 +2595,7 @@ class updateRow(common.PyTablesTestCase):
         table.append(r)
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
         # Modify just rows with col1 < 456
-        for row in table.where(table.cols.col1 < 456):
+        for row in table.where('col1 < 456'):
             row['col1'] = 2
             row['col2'] = 'ada'
             row.update()
@@ -2740,7 +2740,7 @@ class updateRow(common.PyTablesTestCase):
         table.flush()
 
         # Modify selected rows
-        for row in table.where(table.cols.col1 > nrows-3):
+        for row in table.where('col1 > nrows-3'):
             row['col1'] = row.nrow
             row['col2'] = 'b'+str(row.nrow)
             row['col3'] = 0.0
@@ -4462,11 +4462,11 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.createTable('/', 'test2', DstTblDesc)
 
-        tbl1.whereAppend(tbl2, tbl1.cols.id > 1)
+        tbl1.whereAppend(tbl2, 'id > 1')
 
         # Rows resulting from the query are those in the new table.
         it2 = iter(tbl2)
-        for r1 in tbl1.where(tbl1.cols.id > 1):
+        for r1 in tbl1.where('id > 1'):
             r2 = it2.next()
             assert (r1['id'] == r2['id'] and r1['v1'] == r2['v1']
                     and r1['v2'] == r2['v2'])
@@ -4487,11 +4487,11 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.createTable('/', 'test2', DstTblDesc)
 
-        tbl1.whereAppend(tbl2, tbl1.cols.id > 1)
+        tbl1.whereAppend(tbl2, 'id > 1')
 
         # Rows resulting from the query are those in the new table.
         it2 = iter(tbl2)
-        for r1 in tbl1.where(tbl1.cols.id > 1):
+        for r1 in tbl1.where('id > 1'):
             r2 = it2.next()
             assert (r1['id'] == r2['id'] and r1['v1'] == r2['v1']
                     and r1['v2'] == r2['v2'])
@@ -4511,11 +4511,11 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.createTable('/', 'test2', DstTblDesc)
 
-        tbl1.whereAppend(tbl2, tbl1.cols.id > 1)
+        tbl1.whereAppend(tbl2, 'id > 1')
 
         # Rows resulting from the query are those in the new table.
         it2 = iter(tbl2)
-        for r1 in tbl1.where(tbl1.cols.id > 1):
+        for r1 in tbl1.where('id > 1'):
             r2 = it2.next()
             assert (r1['id'] == r2['id'] and int(r1['v1']) == r2['v1']
                     and r1['v2'] == r2['v2'])
@@ -4535,7 +4535,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.createTable('/', 'test2', DstTblDesc)
 
-        self.assertRaises(TypeError, tbl1.whereAppend, tbl2, tbl1.cols.v1 == "1")
+        self.assertRaises(TypeError, tbl1.whereAppend, tbl2, 'v1 == "1"')
 
 
     def test04_noColumn(self):
@@ -4549,7 +4549,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.createTable('/', 'test2', DstTblDesc)
 
-        self.assertRaises(KeyError, tbl1.whereAppend, tbl2, tbl1.cols.id > 1)
+        self.assertRaises(KeyError, tbl1.whereAppend, tbl2, 'id > 1')
 
 
     def test05_otherFile(self):
@@ -4563,26 +4563,26 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl2 = h5file2.createTable('/', 'test', self.SrcTblDesc)
 
             # RW to RW.
-            tbl1.whereAppend(tbl2, tbl1.cols.id > 1)
+            tbl1.whereAppend(tbl2, 'id > 1')
 
             # RW to RO.
             h5file2.close()
             h5file2 = openFile(h5fname2, 'r')
             tbl2 = h5file2.root.test
             self.assertRaises(FileModeError,
-                              tbl1.whereAppend, tbl2, tbl1.cols.id > 1)
+                              tbl1.whereAppend, tbl2, 'id > 1')
 
             # RO to RO.
             self._reopen('r')
             tbl1 = self.h5file.root.test
             self.assertRaises(FileModeError,
-                              tbl1.whereAppend, tbl2, tbl1.cols.id > 1)
+                              tbl1.whereAppend, tbl2, 'id > 1')
 
             # RO to RW.
             h5file2.close()
             h5file2 = openFile(h5fname2, 'a')
             tbl2 = h5file2.root.test
-            tbl1.whereAppend(tbl2, tbl1.cols.id > 1)
+            tbl1.whereAppend(tbl2, 'id > 1')
         finally:
             h5file2.close()
             os.remove(h5fname2)

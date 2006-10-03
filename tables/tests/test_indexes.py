@@ -90,7 +90,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        results = [p["var1"] for p in table.where(table.cols.var1 == "1")]
+        results = [p["var1"] for p in table.where('var1 == "1"')]
         assert len(results) == 1
 
     def test02_readIndex(self):
@@ -111,7 +111,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        results = [p["var2"] for p in table.where(table.cols.var2 == 1)]
+        results = [p["var2"] for p in table.where('var2 == 1')]
         if verbose:
             print "Selected values:", results
         assert len(results) == self.nrows // 2
@@ -133,7 +133,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        results = [p["var3"] for p in table.where(1< table.cols.var3 < 10)]
+        results = [p["var3"] for p in table.where('(1<var3)&(var3<10)')]
         if verbose:
             print "Selected values:", results
         assert len(results) == 8
@@ -156,8 +156,8 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        results = [p["var4"] for p in table.where(table.cols.var4 < 10)]
-        #results = [p["var4"] for p in table.where(1<table.cols.var4 < 10)]
+        results = [p["var4"] for p in table.where('var4 < 10')]
+        #results = [p["var4"] for p in table.where('(1<var4)&(var4<10)')]
         if verbose:
             print "Selected values:", results
         assert len(results) == 10
@@ -180,7 +180,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList(table.cols.var1 < "10", "python")
+        rowList1 = table.getWhereList('var1 < "10"', "python")
         rowList2 = [p.nrow for p in table if p['var1'] < "10"]
         if verbose:
             print "Selected values:", rowList1
@@ -206,7 +206,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList(table.cols.var2 == 0, "numpy", True)
+        rowList1 = table.getWhereList('var2 == 0', "numpy", True)
         rowList2 = [p.nrow for p in table if p['var2'] == 0]
         # Convert to a NumPy object
         rowList2 = numpy.array(rowList2, numpy.int64)
@@ -233,7 +233,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList(table.cols.var3 < 15, "python", True)
+        rowList1 = table.getWhereList('var3 < 15', "python", True)
         rowList2 = [p.nrow for p in table if p["var3"] < 15]
         if verbose:
             print "Selected values:", rowList1
@@ -258,7 +258,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList(table.cols.var4 < 10, "python", True)
+        rowList1 = table.getWhereList('var4 < 10', "python", True)
         rowList2 = [p.nrow for p in table if p['var4'] < 10]
         if verbose:
             print "Selected values:", rowList1
@@ -369,7 +369,7 @@ class BasicTestCase(unittest.TestCase):
         assert table.colindexed["var1"] == 1
 
         # Some sanity checks
-        rowList1 = table.getWhereList(table.cols.var1 < "10", "python")
+        rowList1 = table.getWhereList('var1 < "10"', "python")
         rowList2 = [p.nrow for p in table if p['var1'] < "10"]
         if verbose:
             print "Selected values:", rowList1
@@ -412,7 +412,7 @@ class BasicTestCase(unittest.TestCase):
         assert table.colindexed["var1"] == 1
 
         # Some sanity checks
-        rowList1 = table.getWhereList(table.cols.var1 < "10", "python")
+        rowList1 = table.getWhereList('var1 < "10"', "python")
         rowList2 = [p.nrow for p in table if p['var1'] < "10"]
         if verbose:
             print "Selected values:", rowList1

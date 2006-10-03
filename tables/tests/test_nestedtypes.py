@@ -116,7 +116,7 @@ testCondCol = 'Info/z2'
 # The name of a nested column (it can not be searched):
 testNestedCol = 'Info'
 # The condition to be applied on the column (all but the last row match it):
-testCondition = lambda col: 2 < col < 9
+testCondition = '(2 < col) & (col < 9)'
 
 
 
@@ -305,13 +305,13 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     _TestTDescr = TestTDescr
     _testAData = testAData
+    _testCondition = testCondition
     _testCondCol = testCondCol
     _testNestedCol = testNestedCol
 
-
-    def _testCondition(self, col):
-        """Get a condition on `col` that matches all but the last row."""
-        return testCondition(col)
+    def _testCondVars(self, table):
+        """Get condition variables for the given `table`."""
+        return {'col': table.cols._f_col(self._testCondCol)}
 
 
     def _appendRow(self, row, index):
@@ -403,7 +403,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         searchedCoords = tbl.getWhereList(
-            self._testCondition(tbl.cols._f_col(self._testCondCol)))
+            self._testCondition, self._testCondVars(tbl))
 
         # All but the last row match the condition.
         searchedCoords.sort()
@@ -424,7 +424,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl2 = self.h5file.createTable(
             '/', 'test2', self._TestTDescr, title=self._getMethodName())
         tbl1.whereAppend(
-            tbl2, self._testCondition(tbl1.cols._f_col(self._testCondCol)))
+            tbl2, self._testCondition, self._testCondVars(tbl1))
 
         if self.reopen:
             self._reopen()
@@ -432,7 +432,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl2 = self.h5file.root.test2
 
         searchedCoords = tbl2.getWhereList(
-            self._testCondition(tbl2.cols._f_col(self._testCondCol)))
+            self._testCondition, self._testCondVars(tbl2))
 
         # All but the last row match the condition.
         searchedCoords.sort()
@@ -455,8 +455,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         self.assertRaises(
-            TypeError, self._testCondition,
-            tbl.cols._f_col(self._testNestedCol))
+            TypeError, tbl.getWhereList,
+            self._testCondition, self._testCondVars(tbl))
 
 
     def test04_modifyColumn(self):
@@ -630,7 +630,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assert_(tbl.colindexed[self._testCondCol], "Column not indexed")
         # Do a look-up for values
         searchedCoords = tbl.getWhereList(
-            self._testCondition(tbl.cols._f_col(self._testCondCol)))
+            self._testCondition, self._testCondVars(tbl))
 
         if verbose:
             print "Searched coords:", searchedCoords

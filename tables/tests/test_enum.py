@@ -357,9 +357,9 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl.append(appended)
         tbl.flush()
 
-        #searched = tuple(tbl.where(tbl.cols.rcolor == self.valueInEnum))
-        searched = [(row["rid"], row["rcolor"]) for row \
-                    in tbl.where(tbl.cols.rcolor == self.valueInEnum)]
+        searched = [
+            (row['rid'], row['rcolor'])
+            for row in tbl.where('rcolor == v', {'v': self.valueInEnum}) ]
         common.verbosePrint(
             "* ``valueInEnum``: %s\n"
             "* ``rcolor`` column: ``%s``\n"

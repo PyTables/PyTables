@@ -697,7 +697,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
-        data = table.readIndexed(table.cols.color == "ab")
+        data = table.readIndexed('color == "ab"')
         if verbose:
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
@@ -715,7 +715,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
-        data = table.readIndexed(table.cols.z == 0)
+        data = table.readIndexed('z == 0')
         if verbose:
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
