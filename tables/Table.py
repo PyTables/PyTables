@@ -949,6 +949,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Now let ``split_condition()`` do the Numexpr-related job.
         splitted = split_condition(condition, typemap, indexedcols)
 
+        # Check that there actually are columns in the condition.
+        resparams = splitted.residual_parameters
+        if ( not splitted.index_variable
+             and not set(resparams).intersection(set(colnames)) ):
+            raise ValueError( "there are no columns taking part "
+                              "in condition ``%s``" % (condition,) )
+
         # Store the splitted condition in the cache and return it.
         condcache[condkey] = splitted
         return splitted
