@@ -1209,12 +1209,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         cstype = column.stype
         itemsize = table.colitemsizes[column.pathname]
 
-        for limit in limits:
-            if not isinstance(limit, (bool, int, long, float)):
-                raise TypeError(
-                    "comparing indexed columns against non-real values "
-                    "is not supported yet: %s" % (limit,) )
-
         if len(limits) == 1:
             limit = limits[0]
             op = ops[0]
@@ -1235,8 +1229,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         elif len(limits) == 2:
             item1, item2 = limits
             if item1 > item2:
-                raise ValueError( "in val1 <{=} col <{=} val2 selections, "
-                                  "val1 must be less or equal than val2" )
+                raise ValueError(
+                    "in ``(val1 <[=] col) & (col <[=] val2)`` selections, "
+                    "``val1`` must be less or equal than ``val2``" )
             if ops == ['gt', 'lt']:  # item1 < col < item2
                 range_ = (nextafter(item1, +1, cstype, itemsize),
                           nextafter(item2, -1, cstype, itemsize))
@@ -1247,8 +1242,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             elif ops == ['ge', 'le']:  # item1 <= col <= item2
                 range_ = (item1, item2)
             else:
-                raise ValueError( "combination of operators not supported, "
-                                  "use val1 <{=} col <{=} val2" )
+                raise ValueError(
+                    "combination of operators not supported, "
+                    "use ``(val1 <[=] col) & (col <[=] val2)``" )
         return range_
 
 
