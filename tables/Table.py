@@ -396,19 +396,6 @@ class Table(TableExtension.Table, Leaf):
         self.colindexed = {}
         """Is the column which name is used as a key indexed? (dictionary)"""
 
-        # Initialize the possible cuts in columns.
-        self.ops = []
-        """
-        Current row selection operators (1=lt, 2=le, 3=gt, 4=ge, 5=eq,
-        6=ne, 10=and, 11=or, 12=xor).
-        """
-        self.opsValues = []
-        """Right-side operands (constant values) for the row selection."""
-        self.opsColnames = []
-        """Left-side operands (column names) for the row selection."""
-        self.whereColname = None
-        """The name of the column where the selection condition is applied."""
-
         self.whereCondition = None  ##XXX
         """Condition function and argument list for selection of values."""
         self.whereIndex = None  ##XXX
@@ -1042,129 +1029,16 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         row = TableExtension.Row(self)
         return row(start, stop, step, coords=None, ncoords=ncoords)
 
-    def where(self, condition, start=None, stop=None, step=None):
-        """
-        Iterate over values fulfilling a `condition`.
-
-        This method returns an iterator yielding `Row` instances built
-        from rows in the table that satisfy the given `condition` over a
-        column.  If that column is indexed, its index will be used in
-        order to accelerate the search.  Else, the *in-kernel* iterator
-        (with has still better performance than standard Python
-        selections) will be chosen instead.
-
-        Moreover, if a range is supplied (i.e. some of the `start`,
-        `stop` or `step` parameters are passed), only the rows in that
-        range *and* fullfilling the `condition` are returned.  The
-        meaning of the `start`, `stop` and `step` parameters is the same
-        as in the ``range()`` Python function, except that negative
-        values of `step` are *not* allowed.  Moreover, if only `start`
-        is specified, then `stop` will be set to ``start+1``.
-
-        You can mix this method with standard Python selections in order
-        to have complex queries.  It is strongly recommended that you
-        pass the most restrictive condition as the parameter to this
-        method if you want to achieve maximum performance.
-
-        Example of use::
-
-            passvalues=[]
-            for row in table.where(0 < table.cols.col1 < 0.3, step=5):
-                if row['col2'] <= 20:
-                    passvalues.append(row['col3'])
-            print "Values that pass the cuts:", passvalues
-
-        """
-
-        if not isinstance(condition, Column):
-            raise TypeError("""\
-Wrong 'condition' parameter type. Only Column instances are suported.""")
-
-        if not condition.shape in [1, (1,)]:
-            raise NotImplementedError, "You cannot use in-kernel or indexed searches along multimensional columns. Use the regular table iterator for that."
-
-        colindex = condition.index
-        if (colindex and not condition.dirty and colindex.nelements > 0):
-            # Call the indexed version method
-            return self._whereIndexed(condition, start, stop, step)
-        # Fall back to in-kernel selection method
-        return self._whereInRange(condition, start, stop, step)
-
-    def _whereInRange(self, condition, start=None, stop=None, step=None):
-        """
-        Iterate over values fulfilling a `condition` avoiding indexes.
-
-        This method is completely equivalent to `where()`, but it avoids
-        the usage of the indexing capabilites on the column affected by
-        the `condition` (whether indexed or not).
-
-        This method is mainly for avoiding some pathological corner
-        cases where automatically using indexation yields a poorer
-        performance.  In that case, please contact the developers and
-        explain your case.
-        """
-
-        if not isinstance(condition, Column):
-            raise TypeError("""\
-Wrong 'condition' parameter type. Only Column instances are suported.""")
-
-        self.whereColname = condition.pathname   # Flag for Row.__iter__
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-        if start < stop:
-            # call row with coords=None and ncoords=-1 (in-kernel selection)
-            row = TableExtension.Row(self)
-            return row(start, stop, step, coords=None, ncoords=-1)
-
-        # Fall-back action is to return an empty RecArray
-        return iter([])
-
-    def _whereIndexed(self, condition, start=None, stop=None, step=None):
-        """
-        Iterate over values fulfilling a `condition` using indexes.
-
-        This method is completely equivalent to `where()`, but it forces
-        the usage of the indexing capabilities on the column affected by
-        the `condition`.  If the column is not indexed, a ``ValueError``
-        is raised.
-        """
-
-        if not isinstance(condition, Column):
-            raise TypeError("""\
-Wrong 'condition' parameter type. Only Column instances are suported.""")
-        index = condition.index
-        if index is None:
-            raise ValueError("""\
-This method is intended only for indexed columns.""")
-        if condition.dirty:
-            raise ValueError("""\
-This method is intended only for indexed columns, but this column has a dirty index. Try re-indexing it in order to put the index in a sane state.""")
-        if index.nelements == 0:
-            raise ValueError("""\
-This method is intended only for indexed columns, but this column has not a minimum entries (%s) to be indexed.""" % condition.index.slicesize)
-
-        self.whereColname = condition.pathname   # Flag for Row.__iter__
-        # Get the coordinates to lookup
-        ncoords = index.getLookupRange(condition)
-        if index.is_pro and ncoords == 0:
-            # For the pro case, there are no interesting values
-            # Reset the table variable conditions
-            self.ops = []
-            self.opsValues = []
-            self.whereColname = None
-            # Return the empty iterator
-            return iter([])
-        # Call the iterator even in case that there are no values satisfying
-        # the conditions in the indexed region (ncoords = 0), because
-        # we should look in the non-indexed region as well (for PyTables std).
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-        row = TableExtension.Row(self)
-        # Call the indexed version of Row iterator (coords=None,ncoords>=0)
-        return row(start, stop, step, coords=None, ncoords=ncoords)
-
 
     # XYX sembla inacabada....
     def readIndexed2XXX(self, condition, condvars={}, field=None, flavor=None):
-        """Read a slice of table fulfilling the condition."""
+        """
+        Return a record array fulfilling the given `condition`.
+
+        This method is only intended to be used for indexed columns.
+        The meaning of the `condition` and `condvars` arguments is the
+        same as in the `self.where2XXX()` method.
+        """
 
         if not flavor:
             flavor = self.flavor
@@ -1243,51 +1117,19 @@ This method is intended only for indexed columns, but this column has not a mini
         return recarr
 
 
-    def readIndexed(self, condition):
-        """Return a record array fulfilling the given `condition`.
-
-        The `condition` can be used to specify selections along a column in
-        the form::
-
-          condition = (0 < table.cols.col1 < 0.3)
-
-        This method is only intended to be used for indexed columns.
-        """
-
-        if not isinstance(condition, Column):
-            raise TypeError(
-                "``condition`` argument is not an instance of ``Column``")
-        index = condition.index
-        if index is None:
-            raise ValueError(
-                "the column referenced by ``condition`` is not indexed")
-        if condition.dirty:
-            raise ValueError("""\
-the column referenced by ``condition`` has a dirty index; \
-please reindex the table to put the index in a sane state""")
-
-        self.whereColname = condition.pathname   # Flag for Row.__iter__
-        # Get the coordinates to lookup
-        nrecords = index.getLookupRange(condition)
-        # Create a read buffer
-        recarr = self._get_container(nrecords)
-        if nrecords > 0:
-            #coords = index.getCoords(0, nrecords)
-            # The line below is the optimized call in pyrex
-            coords = index.indices._getCoords(index, 0, nrecords)
-            recout = self._read_elements(recarr, coords)
-        # Delete indexation caches
-        self.ops = []
-        self.opsValues = []
-        self.opsColnames = []
-        self.whereColname = None
-        if numarray_imported and self.flavor == "numarray":
-            # do an additional conversion conversion (without a copy)
-            recarr = tonumarray(recarr, copy=False)
-        return recarr
-
     def whereAppend2XXX( self, dstTable, condition, condvars={},
                          start=None, stop=None, step=None ):
+        """
+        Append rows fulfulling the `condition` to the `dstTable` table.
+
+        `dstTable` must be capable of taking the rows resulting from the
+        query, i.e. it must have columns with the expected names and
+        compatible types.  The meaning of the other arguments is the
+        same as in the `where2XXX()` method.
+
+        The number of rows appended to `dstTable` is returned as a
+        result.
+        """
         # Check that the destination file is not in read-only mode.
         dstTable._v_file._checkWritable()
 
@@ -1305,39 +1147,21 @@ please reindex the table to put the index in a sane state""")
         dstTable.flush()
         return nrows
 
-    def whereAppend(self, dstTable, condition,
-                    start=None, stop=None, step=None):
-        """
-        Append rows fulfulling the `condition` to the `dstTable` table.
-
-        `dstTable` must be capable of taking the rows resulting from the
-        query, i.e. it must have columns with the expected names and
-        compatible types.  The meaning of the other arguments is the
-        same as in the `where()` method.
-
-        The number of rows appended to `dstTable` is returned as a
-        result.
-        """
-
-        # Check that the destination file is not in read-only mode.
-        dstTable._v_file._checkWritable()
-
-        # Row objects do not support nested columns, so we must iterate
-        # over the flat column paths.  When rows support nesting,
-        # ``self.colnames`` can be directly iterated upon.
-        colNames = [colName for colName in flattenNames(self.colnames)]
-        dstRow = dstTable.row
-        nrows = 0
-        for srcRow in self.where(condition, start, stop, step):
-            for colName in colNames:
-                dstRow[colName] = srcRow[colName]
-            dstRow.append()
-            nrows += 1
-        dstTable.flush()
-        return nrows
-
 
     def getWhereList2XXX(self, condition, condvars={}, flavor=None, sort=False):
+        """
+        Get the row coordinates fulfilling the given `condition`.
+
+        The meaning of the `condition` and `condvars` arguments is the
+        same as in the `self.where2XXX()` method.
+
+        `flavor` is the desired type of the returned list. If it is not
+        provided, then it will take the value of `self.flavor`.
+
+        `sort` means that you want to retrieve the coordinates ordered.
+        The default is to not sort them.
+        """
+
         if not flavor:
             flavor = self.flavor
         if flavor not in supportedFlavors:
@@ -1385,81 +1209,6 @@ please reindex the table to put the index in a sane state""")
             coords = numpy.array(coords, dtype=numpy.int64)
             # Reset the conditions
             self.whereCondition = None
-        if sort:
-            coords = numpy.sort(coords)
-        if flavor == "numpy":
-            return coords
-        if numarray_imported and flavor == "numarray":
-            coords = numarray.asarray(coords)
-        elif Numeric_imported and flavor == "numeric":
-            coords = numeric.asarray(coords)
-        elif flavor == "python":
-            coords = coords.tolist()
-        return coords
-
-
-    def getWhereList(self, condition, flavor=None, sort=False):
-        """Get the row coordinates that fulfill the `condition` param
-
-        `condition` can be used to specify selections along a column
-        in the form:
-
-        condition=(0<table.cols.col1<0.3)
-
-        `flavor` is the desired type of the returned list. It can take
-        the 'numarray', 'numpy', 'numeric' or 'python' values.  If
-        `flavor` is not provided, then it will take the value of
-        self.flavor.
-
-        `sort` means that you want to retrieve the coordinates ordered.  The
-        default is to not sort them.
-
-        `sort` means that you want to retrieve the coordinates ordered.  The
-        default is to not sort them.
-
-        """
-
-        assert isinstance(condition, Column), """\
-Wrong 'condition' parameter type. Only Column instances are suported."""
-
-        if not flavor:
-            flavor = self.flavor
-        if flavor not in supportedFlavors:
-            raise ValueError("""\
-"%s" flavor is not allowed; please use some of %s.""" % \
-                             (flavor, supportedFlavors))
-
-        index = condition.index
-        # Take advantage of indexation, if present
-        if index is not None:
-            # get the number of coords and set-up internal variables
-            ncoords = index.getLookupRange(condition)
-            if ncoords > 0:
-                #coords = index.getCoords_sparse(ncoords)
-                # The next call is the optimized one
-                coords = index.indices._getCoords_sparse(index, ncoords)
-                # Get a copy of the internal buffer to handle it to the user
-                coords = coords.copy()
-            else:
-                coords = numpy.empty(dtype=numpy.int64, shape=0)
-            if not index.is_pro:
-                # get the remaining rows from the table
-                start = index.nelements
-                if start < self.nrows:
-                    remainCoords = [p.nrow for p in self._whereInRange(
-                        condition, start, self.nrows)]
-                    nremain = len(remainCoords)
-                    # append the new values to the existing ones
-                    coords.resize(ncoords+nremain)
-                    coords[ncoords:] = remainCoords
-        else:
-            coords = [p.nrow for p in self.where(condition)]
-            coords = numpy.array(coords, dtype=numpy.int64)
-        # re-initialize internal selection values
-        self.ops = []
-        self.opsValues = []
-        self.opsColnames = []
-        self.whereColname = None
         if sort:
             coords = numpy.sort(coords)
         if flavor == "numpy":
@@ -2726,26 +2475,6 @@ class Cols(object):
         self.__dict__.clear()
 
 
-    # Cols does not accept comparisons
-    def __lt__(self, other):
-        raise TypeError, "Cols object can't be used in comparisons"
-
-    def __le__(self, other):
-        raise TypeError, "Cols object can't be used in comparisons"
-
-    def __gt__(self, other):
-        raise TypeError, "Cols object can't be used in comparisons"
-
-    def __ge__(self, other):
-        raise TypeError, "Cols object can't be used in comparisons"
-
-    def __eq__(self, other):
-        raise TypeError, "Cols object can't be used in comparisons"
-
-    def __ne__(self, other):
-        raise TypeError, "Cols object can't be used in comparisons"
-
-
     def __str__(self):
         """The string representation for this object."""
         # The pathname
@@ -3000,75 +2729,6 @@ Attempt to write over a file opened in read-only mode.""")
                                        [value], names=[self.pathname])
         else:
             raise ValueError, "Non-valid index or slice: %s" % key
-
-
-    def _addComparison(self, noper, other):
-        table = self.table
-        table.ops.append(noper)
-        table.opsValues.append(other)
-        table.opsColnames.append(self.pathname)
-
-
-    def __lt__(self, other):
-        self._addComparison(1, other)
-        return self
-
-
-    def __le__(self, other):
-        table = self.table
-        table.ops.append(2)
-        table.opsValues.append(other)
-        return self
-
-
-    def __gt__(self, other):
-        table = self.table
-        table.ops.append(3)
-        table.opsValues.append(other)
-        return self
-
-
-    def __ge__(self, other):
-        table = self.table
-        table.ops.append(4)
-        table.opsValues.append(other)
-        return self
-
-
-    def __eq__(self, other):
-        table = self.table
-        table.ops.append(5)
-        table.opsValues.append(other)
-        return self
-
-
-    def __ne__(self, other):
-        table = self.table
-        table.ops.append(6)
-        table.opsValues.append(other)
-        return self
-
-
-    def _addLogical(self, noper):
-        table = self.table
-        table.ops.append(noper)
-        table.opsValues.append(None)
-        table.opsColnames.append(None)
-
-
-    def __and__(self, other):
-        self._addLogical(10)
-        return self
-
-
-    def __or__(self, other):
-        self._addLogical(11)
-        return self
-
-
-    def __xor__(self, other):
-        self._addLogical(12)
-        return self
 
 
     def createIndex(self, optlevel=0, warn=True, testmode=False, verbose=False):

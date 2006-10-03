@@ -536,16 +536,14 @@ cdef class Row:
   cdef int     bufcounter, counter, startb, stopb,  _all
   cdef int     exist_enum_cols
   cdef int     _riterator, _stride
-  cdef int     whereCond2XXX, whereCond, indexed2XXX, indexed, indexChunk
+  cdef int     whereCond2XXX, indexed2XXX, indexChunk
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done
-  cdef char    *colname
   cdef Table   table
   cdef object  dtype
   cdef object  rbufRA, wbufRA
   cdef object  _wfields, _rfields
   cdef object  indexValid, coords, bufcoords, index, indices
-  cdef object  ops, opsValues
   cdef object  condfunc, condargs  ##XXX
   cdef object  mod_elements, colenums
 
@@ -637,9 +635,7 @@ cdef class Row:
     self.nrowsread = start
     self._nrow = start - self.step
     self.whereCond2XXX = 0
-    self.whereCond = 0
     self.indexed2XXX = 0
-    self.indexed = 0
 
     table = self.table
     self.nrows = table.nrows   # Update the row counter
@@ -656,44 +652,21 @@ cdef class Row:
       self.nextelement = 0
       table.whereIndex = None
     ##XXX
-    # Do we have in-kernel selections?
-    if (hasattr(table, "whereColname") and
-        table.whereColname is not None):
-      self.whereCond = 1
-      self.colname = PyString_AsString(table.whereColname)
-      # Is this column indexed and ready to use?
-      if table.colindexed[self.colname] and ncoords >= 0:
-        self.indexed = 1
-        self.index = table.cols._f_col(self.colname).index
-        self.indices = self.index.indices
-        self.nrowsread = 0
-        self.nextelement = 0
-      # Copy the table conditions to local variable
-      self.ops = table.ops[:]
-      self.opsValues = table.opsValues[:]
-      # Reset the table variable conditions
-      table.ops = []
-      table.opsValues = []
-      table.whereColname = None
 
     if self.coords is not None:
       self.stopindex = coords.size
       self.nrowsread = 0
       self.nextelement = 0
-    elif self.indexed or self.indexed2XXX:
+    elif self.indexed2XXX:
       self.stopindex = ncoords
 
 
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
-    if self.indexed or self.coords is not None:
-      return self.__next__indexed()
-    elif self.indexed2XXX:
+    if self.indexed2XXX or self.coords is not None:
       return self.__next__indexed2XXX()
     elif self.whereCond2XXX:
       return self.__next__inKernel2XXX()
-    elif self.whereCond:
-      return self.__next__inKernel()
     else:
       return self.__next__general()
 
@@ -760,7 +733,7 @@ cdef class Row:
         return self
     else:  ##XXX???
       # Re-initialize the possible cuts in columns
-      self.indexed = 0
+      self.indexed2XXX = 0
       if self.coords is None and not self.index.is_pro:
         nextelement = self.index.nelemslice * self.index.nrows
         # Correct this for step size > 1
@@ -780,82 +753,6 @@ cdef class Row:
         self.nrowsread = self.start
         self._nrow = self.start - self.step
         return self.__next__inKernel2XXX()
-
-
-  cdef __next__indexed(self):
-    """The version of next() for indexed columns or with user coordinates"""
-    cdef int recout
-    cdef long long stop
-    cdef long long nextelement
-
-    while self.nextelement < self.stopindex:
-      if self.nextelement >= self.nrowsread:
-        # Correction for avoiding reading past self.stopindex
-        if self.nrowsread+self.nrowsinbuf > self.stopindex:
-          stop = self.stopindex-self.nrowsread
-        else:
-          stop = self.nrowsinbuf
-        if self.coords is not None:
-          self.bufcoords = self.coords[self.nrowsread:self.nrowsread+stop]
-          nrowsread = len(self.bufcoords)
-        else:
-          # Optmized version of getCoords in Pyrex
-          self.bufcoords = self.indices._getCoords(self.index,
-                                                   self.nrowsread, stop)
-          nrowsread = len(self.bufcoords)
-          tmp = self.bufcoords
-          # If a step was specified, select the strided elements first
-          if len(tmp) > 0 and self.step > 1:
-            tmp2=(tmp-self.start) % self.step
-            tmp = tmp[tmp2.__eq__(0)]
-          # Now, select those indices in the range start, stop:
-          if len(tmp) > 0 and self.start > 0:
-            # Pyrex can't use the tmp>=number notation when tmp is a numpy
-            # object. Why?
-            # XYX Xequejar aco per a numpy...
-            tmp = tmp[tmp.__ge__(self.start)]
-          if len(tmp) > 0 and self.stop < self.nrows:
-            tmp = tmp[tmp.__lt__(self.stop)]
-          self.bufcoords = tmp
-        self._row = -1
-        if len(self.bufcoords) > 0:
-          recout = self.table._read_elements_(self.rbufRA, self.bufcoords)
-        else:
-          recout = 0
-        self.nrowsread = self.nrowsread + nrowsread
-        # Correction for elements that are eliminated by its
-        # [start:stop:step] range
-        self.nextelement = self.nextelement + nrowsread - recout
-        if recout == 0:
-          # no items where read, skipping
-          continue
-      self._row = self._row + 1
-      self._nrow = self.bufcoords[self._row]
-      self.nextelement = self.nextelement + 1
-      # Return this row
-      return self
-    else:
-      # Re-initialize the possible cuts in columns
-      self.indexed = 0
-      if self.coords is None and not self.index.is_pro:
-        nextelement = self.index.nelemslice * self.index.nrows
-        # Correct this for step size > 1
-        correct = (nextelement - self.start) % self.step
-        if self.step > 1 and correct:
-          nextelement = nextelement + self.step - correct
-      else:
-        self.coords = None
-        # All the elements has been read for this mode
-        nextelement = self.nrows
-      if nextelement >= self.nrows:
-        self.finish_riterator()
-      else:
-        # Continue the iteration with the __next__inKernel() method
-        self.start = nextelement
-        self.startb = 0
-        self.nrowsread = self.start
-        self._nrow = self.start - self.step
-        return self.__next__inKernel()
 
 
   cdef __next__inKernel2XXX(self):
@@ -884,81 +781,6 @@ cdef class Row:
         self.indexValid = call_on_recarr(
           self.condfunc, self.condargs, self._rfields )
 
-        # Is still there any interesting information in this buffer?
-        if not numpy.sometrue(self.indexValid):
-          # No, so take the next one
-          if self.step >= self.nrowsinbuf:
-            self.nextelement = self.nextelement + self.step
-          else:
-            self.nextelement = self.nextelement + self.nrowsinbuf
-            # Correction for step size > 1
-            if self.step > 1:
-              correct = (self.nextelement - self.start) % self.step
-              self.nextelement = self.nextelement + self.step - correct
-          continue
-
-      self._row = self._row + self.step
-      self._nrow = self.nextelement
-      if self._row + self.step >= self.stopb:
-        # Compute the start row for the next buffer
-        self.startb = 0
-
-      self.nextelement = self._nrow + self.step
-      # Return only if this value is interesting
-      self.indexChunk = self.indexChunk + self.step
-      if self.indexValid[self.indexChunk]:
-        return self
-    else:
-      self.finish_riterator()
-
-
-  cdef __next__inKernel(self):
-    """The version of next() in case of in-kernel conditions"""
-    cdef object indexValid1, indexValid2
-    cdef int ncond, op, recout, correct
-    cdef object opValue, field
-
-    self.nextelement = self._nrow + self.step
-    while self.nextelement < self.stop:
-      if self.nextelement >= self.nrowsread:
-        # Skip until there is interesting information
-        while self.nextelement >= self.nrowsread + self.nrowsinbuf:
-          self.nrowsread = self.nrowsread + self.nrowsinbuf
-        # Compute the end for this iteration
-        self.stopb = self.stop - self.nrowsread
-        if self.stopb > self.nrowsinbuf:
-          self.stopb = self.nrowsinbuf
-        self._row = self.startb - self.step
-        # Read a chunk
-        recout = self.table._read_records(self.nextelement, self.nrowsinbuf,
-                                          self.rbufRA)
-        self.nrowsread = self.nrowsread + recout
-        self.indexChunk = -self.step
-        # Iterate over the conditions
-        ncond = 0
-        for op in self.ops:
-          opValue = self.opsValues[ncond]
-          # Copying first to a non-strided array, reduces the speed
-          # in a factor of 20%
-          #field = self._rfields[self.colname].copy()
-          if op == 1:
-            indexValid1 = self._rfields[self.colname].__lt__(opValue)
-          elif op == 2:
-            indexValid1 = self._rfields[self.colname].__le__(opValue)
-          elif op == 3:
-            indexValid1 = self._rfields[self.colname].__gt__(opValue)
-          elif op == 4:
-            indexValid1 = self._rfields[self.colname].__ge__(opValue)
-          elif op == 5:
-            indexValid1 = self._rfields[self.colname].__eq__(opValue)
-          elif op == 6:
-            indexValid1 = self._rfields[self.colname].__ne__(opValue)
-          # Consolidate the valid indexes
-          if ncond == 0:
-            self.indexValid = indexValid1
-          else:
-            self.indexValid = self.indexValid.__and__(indexValid1)
-          ncond = ncond + 1
         # Is still there any interesting information in this buffer?
         if not numpy.sometrue(self.indexValid):
           # No, so take the next one
