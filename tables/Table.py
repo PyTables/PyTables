@@ -841,6 +841,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         `uservars` mapping, then in the set of top-level columns of the
         table.  Unknown variables cause a `NameError` to be raised.
 
+        When `uservars` is `None`, the local and global namespace where
+        the API callable which uses this method is called is sought
+        instead.  This mechanism will not work as expected if this
+        method is not used *directly* from an API callable.  To disable
+        this mechanism, just specify a mapping as `uservars`.
+
         Nested columns and columns from other tables are not allowed
         (`TypeError` and `ValueError` are raised, respectively).  Also,
         non-column variable values are converted to NumPy arrays.
@@ -850,15 +856,33 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         exprvars = [ var for var in cexpr.co_names
                      if var != 'None' and var not in numexpr_functions ]
 
+        # Get the local and global variable mappings of the user frame
+        # if no mapping has been explicitly given for user variables.
+        user_locals, user_globals = {}, {}
+        if uservars is None:
+            # We use depth 2 to get the frame where the API callable
+            # using this method is called.  For instance:
+            #
+            # * ``table._requiredExprVars()`` (depth 0) is called by
+            # * ``table.where()`` (depth 1) is called by
+            # * the user (depth 2)
+            user_frame = sys._getframe(2)
+            user_locals = user_frame.f_locals
+            user_globals = user_frame.f_globals
+
         colnames, cols = self.colnames, self.cols
         tblfile, tblpath = self._v_file, self._v_pathname
         # Look for the required variables first among the ones provided
-        # by the user, then among table columns.
+        # by the user (explicit or implicit), then among table columns.
         reqvars = {}
         for var in exprvars:
             # Get the value.
-            if var in uservars:
+            if uservars is not None and var in uservars:
                 val = uservars[var]
+            elif uservars is None and var in user_locals:
+                val = user_locals[var]
+            elif uservars is None and var in user_globals:
+                val = user_globals[var]
             elif var in colnames:
                 # The ``cols`` accessor could be avoided by using a
                 # mapping from column paths to columns.  I think this
@@ -965,7 +989,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return splitted
 
 
-    def where( self, condition, condvars={},
+    def where( self, condition, condvars=None,
                start=None, stop=None, step=None ):
         """
         Iterate over values fulfilling a `condition`.
@@ -981,6 +1005,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         A default set of condition variables is provided where each
         top-level, non-nested column with an identifier-like name
         appears.  Variables in `condvars` override the default ones.
+
+        When `condvars` is not provided or `None`, the current local and
+        global namespace is sought instead of `condvars`.  The previous
+        mechanism is mostly intended for interactive usage.  To disable
+        it, just specify a (maybe empty) mapping as `condvars`.
 
         If a range is supplied (by setting some of the `start`, `stop`
         or `step` parameters), only the rows in that range *and*
@@ -1050,7 +1079,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
     # XYX sembla inacabada....
-    def readIndexed(self, condition, condvars={}, field=None, flavor=None):
+    def readIndexed(self, condition, condvars=None, field=None, flavor=None):
         """
         Return a record array fulfilling the given `condition`.
 
@@ -1137,7 +1166,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return recarr
 
 
-    def whereAppend( self, dstTable, condition, condvars={},
+    def whereAppend( self, dstTable, condition, condvars=None,
                      start=None, stop=None, step=None ):
         """
         Append rows fulfulling the `condition` to the `dstTable` table.
@@ -1172,7 +1201,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return nrows
 
 
-    def getWhereList(self, condition, condvars={}, flavor=None, sort=False):
+    def getWhereList(self, condition, condvars=None, flavor=None, sort=False):
         """
         Get the row coordinates fulfilling the given `condition`.
 
