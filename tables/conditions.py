@@ -35,6 +35,23 @@ class SplittedCondition(object):
         self.residual_function = resfunc
         self.residual_parameters = resparams
 
+    def with_replaced_vars(self, condvars):
+        """
+        Replace index limit variables with their values.
+
+        A new splitted condition is returned.  Values are taken from
+        the `condvars` mapping and converted to Python scalars.
+        """
+        limit_values = []
+        for idxlim in self.index_limits:
+            if type(idxlim) is tuple:  # variable
+                idxlim = condvars[idxlim[0]]  # look up value
+                idxlim = idxlim.tolist()  # convert back to Python
+            limit_values.append(idxlim)
+        return SplittedCondition(
+            self.index_variable, self.index_operators, limit_values,
+            self.residual_function, self.residual_parameters )
+
 
 def _get_indexable_cmp(exprnode, indexedcols):
     """

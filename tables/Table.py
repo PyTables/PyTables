@@ -953,7 +953,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         condkey = self._getConditionKey(condition, condvars)
         splitted = condcache.get(condkey)
         if splitted:
-            return splitted  # bingo!
+            return splitted.with_replaced_vars(condvars)  # bingo!
 
         # Bad luck, the condition must be parsed and splitted.
         # Fortunately, the key provides some valuable information. ;)
@@ -986,7 +986,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Store the splitted condition in the cache and return it.
         condcache[condkey] = splitted
-        return splitted
+        return splitted.with_replaced_vars(condvars)
 
 
     def where( self, condition, condvars=None,
