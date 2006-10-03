@@ -20,7 +20,10 @@ Functions:
     Evaluate a function over a record array.
 """
 
-from tables.numexpr.compiler import stringToExpression, numexpr
+import re
+
+from tables.numexpr.compiler import (
+    typecode_to_kind, stringToExpression, numexpr )
 
 
 class SplittedCondition(object):
@@ -152,6 +155,21 @@ def _get_variable_names(expression):
             stack.extend(node.children)
     return list(set(names))  # remove repeated names
 
+_no_matching_opcode = re.compile(r"[^a-z]([a-z]+)_([a-z]+)[^a-z]")
+# E.g. "gt" and "bfc" from "couldn't find matching opcode for 'gt_bfc'".
+
+def _unsupported_operation_error(exception):
+    """
+    Make the \"no matching opcode\" Numexpr `exception` more clear.
+
+    A new exception of the same kind is returned.
+    """
+    message = exception.args[0]
+    op, types = _no_matching_opcode.search(message).groups()
+    newmessage = "unsupported operand types for *%s*: " % op
+    newmessage += ', '.join([typecode_to_kind[t] for t in types[1:]])
+    return exception.__class__(newmessage)
+
 def split_condition(condition, typemap, indexedcols):
     """
     Split a condition into indexable and non-indexable parts.
@@ -205,7 +223,11 @@ def split_condition(condition, typemap, indexedcols):
             if var not in typemap:
                 raise NameError("name ``%s`` is not defined" % var)
             ressignature.append((var, typemap[var]))
-        resfunc = numexpr(resexpr, ressignature)
+        try:
+            resfunc = numexpr(resexpr, ressignature)
+        except NotImplementedError, nie:
+            # Try to make this Numexpr error less cryptic.
+            raise _unsupported_operation_error(nie)
         resparams = resvarnames
 
     # This is more comfortable to handle about than a tuple.
