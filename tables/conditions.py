@@ -150,7 +150,7 @@ def _get_variable_names(expression):
             names.append(node.value)
         elif hasattr(node, 'children'):
             stack.extend(node.children)
-    return names
+    return list(set(names))  # remove repeated names
 
 def split_condition(condition, typemap, indexedcols):
     """
