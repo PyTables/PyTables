@@ -533,7 +533,10 @@ class Table(TableExtension.Table, Leaf):
         if init:
             for objcol in self.description._v_walk("Col"):
                 colname = objcol._v_pathname
-                recarr[colname] = objcol.dflt
+                ra = recarr
+                for nestedfield in colname.split('/'):
+                    ra = ra[nestedfield]
+                ra[:] = objcol.dflt
         return recarr
 
 
@@ -568,8 +571,7 @@ class Table(TableExtension.Table, Leaf):
                                             pos=i)
             elif kind == "V" and shape in [1, (1,)]:
                 # Nested column
-                fields[colname], byteorder = \
-                                 self._descrFromRA(recarr[colname])
+                fields[colname] = self._descrFromRA(recarr[colname])
                 fields[colname]["_v_pos"] = i
             else:
                 raise NotImplementedError, \
@@ -1700,7 +1702,8 @@ You cannot append rows to a non-chunked table.""")
         try:
             # This always makes a copy of the original,
             # so the resulting object is safe for in-place conversion.
-            recarray = numpy.rec.array(rows, dtype=self._v_dtype)
+            #recarray = numpy.rec.array(rows, dtype=self._v_dtype)
+            recarray = numpy.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), exc)
@@ -1794,7 +1797,18 @@ You cannot append rows to a non-chunked table.""")
         try:
             # This always makes a copy of the original,
             # so the resulting object is safe for in-place conversion.
-            recarray = numpy.rec.array(rows, dtype=self._v_dtype)
+            if hasattr(rows, "shape") and rows.shape == ():
+                # To allow conversion in array if rows is a scalar (void) type
+                # We cannot use numpy.array because of the issue:
+                # http://projects.scipy.org/scipy/numpy/ticket/315
+                # If eventually this gets solved, we can switch back to
+                # use numpy.array.
+                #recarray = numpy.array([rows], dtype=self._v_dtype)
+                recarray = numpy.rec.array([rows], dtype=self._v_dtype)
+            else:
+                # See comment about issue #315 above
+                #recarray = numpy.array(rows, dtype=self._v_dtype)
+                recarray = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
 """rows parameter cannot be converted into a recarray object compliant with
@@ -1854,8 +1868,10 @@ The 'colname' parameter must be a string.""")
             if (isinstance(column, numpy.ndarray) or
                 (numarray_imported and
                  isinstance(column, numarray.records.RecArray))):
-                recarray = numpy.rec.array(column, dtype=descr)
+                # Do an explicit copy as rec.array doesn't guarantee this
+                recarray = numpy.rec.array(column, dtype=descr).copy()
             else:
+                # rec.fromarrays do a copy, so this is safe for conversions
                 recarray = numpy.rec.fromarrays([column], dtype=descr)
         except Exception, exc:  #XXX
             raise ValueError, \
@@ -1929,8 +1945,10 @@ The 'names' parameter must be a list of strings.""")
             if (isinstance(columns, numpy.ndarray) or
                 (numarray_imported and
                  isinstance(columns, numarray.records.RecArray))):
-                recarray = numpy.rec.array(columns, dtype=descr)
+                # Do an explicit copy as rec.array doesn't guarantee this
+                recarray = numpy.rec.array(columns, dtype=descr).copy()
             else:
+                # rec.fromarrays do a copy, so this is safe for conversions
                 recarray = numpy.rec.fromarrays(columns, dtype=descr)
         except Exception, exc:  #XXX
             raise ValueError, \

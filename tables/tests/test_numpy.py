@@ -499,12 +499,12 @@ class TableReadTestCase(common.PyTablesTestCase):
                 assert allequal(numcol, orignumcol, "numpy")
 
     def test03_getIndexNumPy(self):
-        """Getting table rows specifyied as NumPy integers."""
+        """Getting table rows specifyied as NumPy scalar integers."""
 
         table = self.fileh.root.table
         coords = numpy.array([1,2,3], dtype='int8')
         for colname in table.colnames:
-            numcol = [ table[coord].field(colname) for coord in coords ]
+            numcol = [ table[coord][colname] for coord in coords ]
             typecol = table.colstypes[colname]
             if typecol <> "CharType":
                 if typecol == "Int64":
@@ -676,7 +676,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
         table = self.fileh.root.table
-        data = table.getWhereList(table.cols.z == 1)
+        data = table.getWhereList('z == 1')
         if verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
@@ -993,7 +993,10 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # A copy() is needed in case the buffer would be in different segments
         assert allequal(ycol, data, "numpy")
 
-    def test08a_modifyingRows(self):
+    # XYX Descomentar aco despres de que el bug:
+    # http://projects.scipy.org/scipy/numpy/ticket/314
+    # s'haura solucionat
+    def _test08a_modifyingRows(self):
         """Checking modifying just one row at once (using modifyRows)."""
 
         table = self.fileh.root.table
@@ -1024,12 +1027,16 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # A copy() is needed in case the buffer would be in different segments
         assert allequal(ycol, data, "numpy")
 
-    def test08b_modifyingRows(self):
+    # XYX Descomentar aco despres de que el bug:
+    # http://projects.scipy.org/scipy/numpy/ticket/314
+    # s'haura solucionat
+    def _test08b_modifyingRows(self):
         """Checking modifying just one row at once (using cols accessor)."""
 
         table = self.fileh.root.table
         # Read a chunk of the table
         chunk = table[3]
+        print "type(chunk)-->", type(chunk)
         # Modify it somewhat
         chunk['y'][:] = -1
         table.cols[6] = chunk
@@ -1062,7 +1069,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
         table = self.fileh.root.table
-        rdata = table.getWhereList(table.cols.color == "ab")
+        rdata = table.getWhereList('color == "ab"')
         data = table.readCoordinates(rdata)
         if verbose:
             print "Type of read:", type(data)
@@ -1112,7 +1119,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         row = table.row
         for i in range(50):
-            row["color"] = "a  "
+            row["color"] = "a  "   # note the trailing spaces
             row.append()
         table.flush()
         if self.close:
@@ -1134,12 +1141,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             if i < 100:
                 assert idata == array("ab", dtype="|S4")
             else:
-                # Warning! The correct value should be "a  ", but the
-                # trailing spaces are eaten right now.
-                # This should be hopefully addressed in the future when
-                # numpy would be used in the core of PyTables.
-                #assert idata == array("a  ", dtype="|S4")
-                assert idata == array("a", dtype="|S4")
+                assert idata == array("a  ", dtype="|S4")
 
 class TableNativeFlavorOpenTestCase(TableNativeFlavorTestCase):
     close = 0

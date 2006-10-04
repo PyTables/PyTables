@@ -14,6 +14,10 @@ Sub-fields can also be nested.
 
 Several utility functions are provided for creating nested record
 arrays.
+
+Note: Despite the migration of PyTables to NumPy, this module is still
+necessary in case the user still wants a nested RecArray wich is based
+in numarray instead of NumPy.
 """
 
 import sys

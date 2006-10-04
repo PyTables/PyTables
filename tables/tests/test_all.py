@@ -6,14 +6,18 @@ import sys
 import os
 import unittest
 
-from numarray import *
-from numarray import strings
-
 import common
 
 # Recommended minimum versions for optional packages
+minimum_numpy_version = "1.0"
 minimum_numeric_version = "24.2"
-minimum_numpy_version = "0.9.5.2052"
+minimum_numarray_version = "1.5.2"
+
+import numpy
+
+if numpy.__version__ < minimum_numpy_version:
+    print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
+                  (numpy.__version__, minimum_numpy_version)
 
 def suite():
     test_modules = [
@@ -35,8 +39,9 @@ def suite():
         'test_timetype',
         'test_do_undo',
         'test_enum',
-        #'test_nestedtypes',
+        'test_nestedtypes',
         'test_hdf5compat',
+        'test_numpy',
         # Sub-packages
         'test_filenode',
         'test_NetCDF',
@@ -64,17 +69,19 @@ def suite():
     except:
         print "Skipping Numeric test suite"
 
-    # Add test_numpy only if NumPy is installed
+    # Add test_nestedrecords only if numarray is installed
     try:
-        import numpy
-        print "NumPy (version %s) is present. Adding the NumPy test suite." % \
-              (numpy.__version__)
-        if numpy.__version__ < minimum_numpy_version:
-            print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
-                  (numpy.__version__, minimum_numpy_version)
-        ####test_modules.append("test_numpy")
+        import numarray
+        print \
+"""numarray (version %s) is present. Adding the numarray test suite.""" % \
+              (numarray.__version__)
+        if numarray.__version__ < minimum_numarray_version:
+            print \
+"*Warning*: Numarray version is lower than recommended: %s < %s" % \
+                  (numarray.__version__, minimum_numarray_version)
+        test_modules.append("test_nestedrecords")
     except:
-        print "Skipping NumPy test suite"
+        print "Skipping numarray test suite"
     print '-=' * 38
 
 

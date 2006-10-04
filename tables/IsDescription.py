@@ -1008,9 +1008,6 @@ class Description(object):
         if not hasattr(newdict, "_v_nestedlvl"):
             newdict["_v_nestedlvl"] = nestedlvl + 1
 
-        if "_v_byteorder" in keys and self._v_nestedlvl > 0:
-            raise KeyError, \
-"You can only specify a byteorder in the root level of the description object, not in nested levels."
         # __check_validity__ must be check out prior to the keys loop
         if "__check_validity__" in keys:
             check_validity = classdict["__check_validity__"]

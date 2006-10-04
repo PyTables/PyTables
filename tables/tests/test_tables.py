@@ -2596,6 +2596,7 @@ class updateRow(common.PyTablesTestCase):
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
         # Modify just rows with col1 < 456
         for row in table.where('col1 < 456'):
+            print "row-->", row
             row['col1'] = 2
             row['col2'] = 'ada'
             row.update()

@@ -1,9 +1,12 @@
-# XYX Aquest haura de desapareixer, ja que la funcionalitat de
-# nestedrecords ja la dona numpy.
+# This test suite is still necessary in case the user still wants a
+# nested RecArray wich is based in numarray instead of NumPy.
 
 import unittest
 
 import tables
+
+import numarray
+import numarray.records
 
 from common import verbose
 import common
@@ -206,7 +209,7 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the array function.
         """
 
-        flatarray = tables.numarray.records.array(self.flat_buffer,
+        flatarray = numarray.records.array(self.flat_buffer,
             self.flat_formats)
         common.verbosePrint( """\nTesting the creation of a nested """
             """recarray: buffer + formats""")
@@ -233,7 +236,7 @@ class NestedRecordTests(common.PyTablesTestCase):
         buffer_ = [('Cuke', 123, (45, 67)), ('Tader', 321, (76, 54))]
         names = ['name', 'value', 'pair']
         formats = ['a6', 'Int8', '(2,)Int16']
-        ra = tables.numarray.records.array(
+        ra = numarray.records.array(
             buffer_, names=names, formats=formats)
 ##            buffer_, names=names, formats=formats, aligned=True)
 
@@ -410,7 +413,7 @@ class NestedRecordTests(common.PyTablesTestCase):
 
         # Test top level flat fields
         nra1 = nra.field('position')
-        ra1 = tables.numarray.numarraycore.array([1, 2, 3], type='Int64')
+        ra1 = numarray.array([1, 2, 3], type='Int64')
         self.assert_(common.areArraysEqual(nra1, ra1))
 
 
@@ -422,7 +425,7 @@ class NestedRecordTests(common.PyTablesTestCase):
 
         # Test bottom level fields
         nra1 = nra.field('info/coord/x')
-        ra1 = tables.numarray.numarraycore.array([10, 0, 10], type='Float32')
+        ra1 = numarray.array([10, 0, 10], type='Float32')
         self.assert_(common.areArraysEqual(nra1, ra1))
 
 
@@ -478,9 +481,9 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the addition of nested arrays.
         """
 
-        ra1 = tables.numarray.records.array([[1, 2], [3, 4]],
+        ra1 = numarray.records.array([[1, 2], [3, 4]],
             formats=['Int32', 'Int32'])
-        ra2 = tables.numarray.records.array([[5, 6], [7, 8]],
+        ra2 = numarray.records.array([[5, 6], [7, 8]],
             formats=['Int32', 'Int32'])
         ra3 = ra1 + ra2
         nra1 = tables.nestedrecords.array(buffer=ra1,
@@ -519,7 +522,7 @@ class NestedRecordTests(common.PyTablesTestCase):
         nrecord = nra[0]
         frecord = nrecord.asRecord()
 
-        self.assert_(isinstance(frecord, tables.numarray.records.Record))
+        self.assert_(isinstance(frecord, numarray.records.Record))
         self.assert_(common.areArraysEqual(nra.asRecArray(), frecord.array))
         self.assertEqual(nrecord.row, frecord.row)
 

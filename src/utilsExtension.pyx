@@ -91,14 +91,6 @@ cdef extern from "typeconv.h":
                               unsigned long nelements,
                               int sense)
 
-  void conv_space_null(void *base,
-                       unsigned long byteoffset,
-                       unsigned long bytestride,
-                       long long nrecords,
-                       unsigned long nelements,
-                       unsigned long itemsize,
-                       int sense)
-
 cdef extern from "arraytypes.h":
   # Function to compute the HDF5 type from a NumPy enum type.
   hid_t convArrayType(int fmt, size_t size, char *byteorder)
@@ -429,27 +421,6 @@ def convertTime64(ndarray nparr, hsize_t nrecords, int sense):
 
   conv_float64_timeval32(
     t64buf, byteoffset, bytestride, nrecords, nelements, sense)
-
-
-def space2null(ndarray nparr, hsize_t nrecords, int sense):
-  """Converts a the space padding of CharArray object into null's.
-
-  NumPy to HDF5 conversion is performed when 'sense' is 0.
-  Otherwise, HDF5 to NumPy conversion is performed.
-  The conversion is done in place, i.e. 'nparr' is modified.
-  """
-
-  cdef void *strbuf
-  cdef long byteoffset, bytestride, nelements, itemsize
-
-  byteoffset = 0   # NumPy objects doesn't have an offset
-  bytestride = nparr.strides[0]  # supports multi-dimensional recarray
-  nelements = nparr.size / len(nparr)
-  itemsize = nparr.itemsize
-  strbuf = nparr.data
-
-  conv_space_null(
-    strbuf, byteoffset, bytestride, nrecords, nelements, itemsize, sense)
 
 
 def getLeafHDF5Type(hid_t parentId, char *name):

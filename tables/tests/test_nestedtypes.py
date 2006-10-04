@@ -314,6 +314,11 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         return {'col': table.cols._f_col(self._testCondCol)}
 
 
+    def _testNestedCondVars(self, table):
+        """Get condition variables for the given `table`."""
+        return {'col': table.cols._f_col(self._testNestedCol)}
+
+
     def _appendRow(self, row, index):
         """
         Append the `index`-th row in `self._testAData` to `row`.
@@ -322,27 +327,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """
 
         record = self._testAData[index]
-        for fieldName in self._testAData._names:
-            row[fieldName] = record[fieldName]
-        row.append()
-
-
-    def _appendRowRecursive(self, row, index):
-        """
-        Append the `index`-th row in `self._testAData` to `row`.
-
-        Values are set atom-by-atom.
-        """
-
-        record = self._testAData[index]
-        # Flatten the record if it is nested,
-        # to iterate easily over atomic fields.
-        # If the record is not nested, do nothing.
-        if isinstance(record, numpy.NestedRecord):
-            record = record.asRecord()
-
-        # Add as an ordinary flat record.
-        for fieldName in self._testAData._names:
+        for fieldName in self._testAData.dtype.names:
             row[fieldName] = record[fieldName]
         row.append()
 
@@ -373,8 +358,8 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
         row = tbl.row
-        # Add the first row atom by atom.
-        self._appendRowRecursive(row, 0)
+        # Add the first row
+        self._appendRow(row, 0)
         # Add the rest of the rows field by field.
         for i in range(1, len(self._testAData)):
             self._appendRow(row, i)
@@ -456,7 +441,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.assertRaises(
             TypeError, tbl.getWhereList,
-            self._testCondition, self._testCondVars(tbl))
+            self._testCondition, self._testNestedCondVars(tbl))
 
 
     def test04_modifyColumn(self):
@@ -535,10 +520,9 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Get the nested column data and swap the first and last rows.
         colnames = ['x', 'color']  # Get the first two columns
-        raCols = numpy.rec.fromarrays([self._testAData.copy()['x'],
-                                       self._testAData.copy()['color']],
-                                      formats=('x','(2,)i4'),
-                                      names=('color', '1a2'))
+        raCols = numpy.rec.fromarrays([self._testAData['x'].copy(),
+                                       self._testAData['color'].copy()],
+                                      dtype=[('x','(2,)i4'),('color', '1a2')])
                                #descr=tbl.description._v_nestedDescr[0:2])
                                # or...
                                # names=tbl.description._v_nestedNames[0:2],
@@ -807,8 +791,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols[1]
         nrarrcols = nrarr[1]
         if verbose:
@@ -829,8 +812,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols[0:2]
         nrarrcols = nrarr[0:2]
         if verbose:
@@ -851,8 +833,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols[0::2]
         nrarrcols = nrarr[0::2]
         if verbose:
@@ -874,8 +855,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info')[1]
         nrarrcols = nrarr['Info'][1]
         if verbose:
@@ -896,8 +876,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info')[0:2]
         nrarrcols = nrarr['Info'][0:2]
         if verbose:
@@ -918,8 +897,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info')[0::2]
         nrarrcols = nrarr['Info'][0::2]
         if verbose:
@@ -940,8 +918,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info/value')[1]
         nrarrcols = nrarr['Info']['value'][1]
         if verbose:
@@ -962,8 +939,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info/value')[0:2]
         nrarrcols = nrarr['Info']['value'][0:2]
         if verbose:
@@ -984,8 +960,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        nrarr = numpy.rec.array(testABuffer,
-                                dtype=tbl.description._v_nestedDescr)
+        nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info/value')[0::2]
         nrarrcols = nrarr['Info']['value'][0::2]
         if verbose:

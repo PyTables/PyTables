@@ -31,7 +31,7 @@ import tables.hdf5Extension
 from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
 from tables.utilsExtension import createNestedType, \
-     getNestedType, convertTime64, space2null, getTypeEnum, enumFromHDF5
+     getNestedType, convertTime64, getTypeEnum, enumFromHDF5
 
 # numpy functions & objects
 from definitions cimport import_array, ndarray, \
@@ -292,12 +292,6 @@ cdef class Table:  # XXX extends Leaf
       for field in t64cname.split('/'):
         column = column[field]
       convertTime64(column, nrecords, sense)
-
-#XYX  Aco no deuria fer falta mes. Eliminar la funcio space2null.
-#     # Only convert padding spaces into nulls if we have a "numpy" flavor
-#     if self.flavor == "numpy":
-#       for strcname in self._strcolnames:
-#         space2null(recarr.field(strcname), nrecords, sense)
 
 
   def _open_append(self, ndarray recarr):
@@ -855,16 +849,6 @@ cdef class Row:
     istart, istop, istep = (self.start, self.stop, self.step)
     inrowsinbuf, inextelement, inrowsread = (self.nrowsinbuf, istart, istart)
     istartb, startr = (self.startb, 0)
-    # This is commented out until one knows what is happening here. See:
-    # https://sourceforge.net/mailarchive/forum.php?thread_id=8428233&forum_id=13760
-    # for more info
-#     if field:
-#       # If field is not None, select it
-#       fields = self._rfields[field]
-#     else:
-#       # if don't, select all fields
-#       fields = self.rbufRA
-    fields = self.rbufRA
     i = istart
     while i < istop:
       if (inextelement >= inrowsread + inrowsinbuf):
@@ -880,13 +864,11 @@ cdef class Row:
       inrowsread = inrowsread + self.table._read_records(i, inrowsinbuf,
                                                          self.rbufRA)
       # Assign the correct part to result
-      # As above, see:
-      # https://sourceforge.net/mailarchive/forum.php?thread_id=8428233&forum_id=13760
-      #result[startr:stopr] = fields[istartb:istopb:istep]
+      fields = self.rbufRA
       if field:
-        result[startr:stopr] = fields[field][istartb:istopb:istep]
-      else:
-        result[startr:stopr] = fields[istartb:istopb:istep]
+        for nestedfield in field.split('/'):
+          fields = fields[nestedfield]
+      result[startr:stopr] = fields[istartb:istopb:istep]
 
       # Compute some indexes for the next iteration
       startr = stopr
@@ -972,6 +954,7 @@ cdef class Row:
   def __getitem__(self, fieldName):
     cdef long offset
     cdef ndarray field
+    cdef object field2
 
     # Optimization follows for the case that the field dimension is
     # == 1, i.e. columns elements are scalars, and the column is not
@@ -979,7 +962,10 @@ cdef class Row:
     # elements a 20%
 
     try:
-      field = self._rfields[fieldName]
+      field2 = self._rfields
+      for nestedfield in fieldName.split('/'):
+        field2 = field2[nestedfield]
+      field = field2
     except KeyError:
       raise KeyError("no such column: %s" % (fieldName,))
 
@@ -998,6 +984,7 @@ cdef class Row:
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, fieldName, object value):
     cdef ndarray field
+    cdef object field2
     cdef long offset
     cdef int ret
 
@@ -1012,9 +999,6 @@ cdef class Row:
     if self.exist_enum_cols:
       if fieldName in self.colenums:
         enum = self.colenums[fieldName]
-        #cenvals = numarray.array(value).flat
-        # XYX  Reemplacar aco quan tinguem la migracio de utilsExtension feta
-        #for cenval in cenvals:
         for cenval in numpy.asarray(value).flat:
           enum(cenval)  # raises ``ValueError`` on invalid values
 
@@ -1022,11 +1006,14 @@ cdef class Row:
       if self._riterator:
         # We are in the middle of an iterator for reading. So the
         # user most probably wants to update this row.
-        field = self._rfields[fieldName]
+        field2 = self._rfields
         offset = self._row
       else:
-        field = self._wfields[fieldName]
+        field2 = self._wfields
         offset = self._unsaved_nrows
+      for nestedfield in fieldName.split('/'):
+        field2 = field2[nestedfield]
+      field = field2
     except KeyError:
       raise KeyError("no such column: %s" % (fieldName,))
 

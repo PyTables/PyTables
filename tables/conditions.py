@@ -267,6 +267,9 @@ def call_on_recarr(func, params, recarr, param2arg=None):
         else:
             arg = param
         if hasattr(arg, 'pathname'):  # looks like a column
-            arg = recarr[arg.pathname]
+            field = arg.pathname
+            arg = recarr
+            for nestedfield in field.split('/'):
+                arg = arg[nestedfield]
         args.append(arg)
     return func(*args)
