@@ -271,5 +271,8 @@ def call_on_recarr(func, params, recarr, param2arg=None):
             arg = recarr
             for nestedfield in field.split('/'):
                 arg = arg[nestedfield]
+            # To bypass the non-contiguous bug in numexpr
+            # Conveniently commented out to avoid Ivan's fury
+            ##arg = arg.copy()
         args.append(arg)
     return func(*args)

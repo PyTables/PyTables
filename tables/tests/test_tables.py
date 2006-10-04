@@ -2596,7 +2596,6 @@ class updateRow(common.PyTablesTestCase):
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
         # Modify just rows with col1 < 456
         for row in table.where('col1 < 456'):
-            print "row-->", row
             row['col1'] = 2
             row['col2'] = 'ada'
             row.update()
@@ -4536,7 +4535,8 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.createTable('/', 'test2', DstTblDesc)
 
-        self.assertRaises(TypeError, tbl1.whereAppend, tbl2, 'v1 == "1"')
+        self.assertRaises(NotImplementedError,
+                          tbl1.whereAppend, tbl2, 'v1 == "1"')
 
 
     def test04_noColumn(self):

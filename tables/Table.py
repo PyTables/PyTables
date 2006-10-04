@@ -1702,8 +1702,9 @@ You cannot append rows to a non-chunked table.""")
         try:
             # This always makes a copy of the original,
             # so the resulting object is safe for in-place conversion.
-            #recarray = numpy.rec.array(rows, dtype=self._v_dtype)
-            recarray = numpy.array(rows, dtype=self._v_dtype)
+            # See issue #315
+            #recarray = numpy.array(rows, dtype=self._v_dtype)
+            recarray = numpy.rec.array(rows, dtype=self._v_dtype).copy()
         except Exception, exc:  #XXX
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), exc)
@@ -1804,11 +1805,11 @@ You cannot append rows to a non-chunked table.""")
                 # If eventually this gets solved, we can switch back to
                 # use numpy.array.
                 #recarray = numpy.array([rows], dtype=self._v_dtype)
-                recarray = numpy.rec.array([rows], dtype=self._v_dtype)
+                recarray = numpy.rec.array([rows], dtype=self._v_dtype).copy()
             else:
                 # See comment about issue #315 above
                 #recarray = numpy.array(rows, dtype=self._v_dtype)
-                recarray = numpy.rec.array(rows, dtype=self._v_dtype)
+                recarray = numpy.rec.array(rows, dtype=self._v_dtype).copy()
         except Exception, exc:  #XXX
             raise ValueError, \
 """rows parameter cannot be converted into a recarray object compliant with
