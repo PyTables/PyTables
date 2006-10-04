@@ -118,9 +118,10 @@ infinityMap = {
 # Utility functions
 def infType(cstype, itemsize, sign=+1):
     """Return a superior limit for maximum representable data type"""
+    assert sign in [-1, +1]
 
     if cstype == "CharType":
-        if sign:
+        if sign < 0:
             return "\x00"*itemsize
         else:
             return "\xff"*itemsize
@@ -224,6 +225,8 @@ def PyNextAfterF(x, y):
 
 def CharTypeNextAfter(x, direction, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
+    assert direction in [-1, +1]
+
     # Pad the string with \x00 chars until itemsize completion
     padsize = itemsize - len(x)
     if padsize > 0:
@@ -258,6 +261,7 @@ def CharTypeNextAfter(x, direction, itemsize):
 
 def IntTypeNextAfter(x, direction, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
+    assert direction in [-1, +1]
 
     # x is guaranteed to be either an int or a float
     if direction < 0:
@@ -274,6 +278,7 @@ def IntTypeNextAfter(x, direction, itemsize):
 
 def nextafter(x, direction, cstype, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
+    assert direction in [-1, 0, +1]
 
     if direction == 0:
         return x
@@ -1220,7 +1225,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                           limit)
             elif op == 'gt':
                 range_ = (nextafter(limit, +1, cstype, itemsize),
-                          infType(cstype, itemsize=itemsize, sign=+1))
+                          infType(cstype, itemsize, sign=+1))
             elif op == 'ge':
                 range_ = (limit,
                           infType(cstype, itemsize, sign=+1))
