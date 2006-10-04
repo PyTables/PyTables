@@ -99,22 +99,22 @@ byteorders = {'<': 'little',
               '|': 'non-relevant',
               }
 
-# Maps column types to the types used by Numexpr.
-_nxTypeFromColumn = {
-    'Bool': bool,
-    'Int8': int,
-    'Int16': int,
-    'Int32': int,
-    'Int64': long,
-    'UInt8': int,
-    'UInt16': int,
-    'UInt32': long,
-    'UInt64': long,
-    'Float32': float,
-    'Float64': float,
-    'Complex32': complex,
-    'Complex64': complex,
-    'CharType': str, }
+# Maps NumPy types to the types used by Numexpr.
+_nxTypeFromNPType = {
+    numpy.bool_: bool,
+    numpy.int8: int,
+    numpy.int16: int,
+    numpy.int32: int,
+    numpy.int64: long,
+    numpy.uint8: int,
+    numpy.uint16: int,
+    numpy.uint32: long,
+    numpy.uint64: long,
+    numpy.float32: float,
+    numpy.float64: float,
+    numpy.complex64: complex,
+    numpy.complex128: complex,
+    numpy.str_: str, }
 
 
 def _getEncodedTableName(tablename):
@@ -962,10 +962,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Extract types from *all* the given variables.
         typemap = dict(zip(varnames, vartypes))  # start with normal variables
         for colname in colnames:  # then add types of columns
-            # Converting to a string may not be necessary when the
-            # transition from numarray to NumPy is complete.
-            coldtype = condvars[colname].stype
-            typemap[colname] = _nxTypeFromColumn[coldtype]
+            coltype = condvars[colname].type
+            typemap[colname] = _nxTypeFromNPType[coltype]
 
         # Get the set of columns with usable indexes.
         def can_use_index(column):
