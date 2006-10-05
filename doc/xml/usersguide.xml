@@ -6421,6 +6421,33 @@ if row['var1'] <= 20 ]]]></screen>
 	      </para>
 	    </section>
 
+	    <section id="Table.willQueryUseIndexing">
+	      <title>willQueryUseIndexing(condition, condvars=None)</title>
+
+	      <para>
+		Will a query for the <emphasis>condition</emphasis>
+		use indexing?
+	      </para>
+
+	      <para>
+		The meaning of the <emphasis>condition</emphasis> and
+		<emphasis>condvars</emphasis> arguments is the same as
+		in the <computeroutput>where()></computeroutput> method
+		(see <xref linkend="Table.where"/>).
+		If the <emphasis>condition</emphasis> can use indexing,
+		this method returns the path name of the column
+		whose index is usable.
+		Otherwise, it returns <computeroutput>None</computeroutput>.
+	      </para>
+
+	      <para>
+		This method is mainly intended for testing.  Keep in
+		mind that changing the set of indexed columns or their
+		dirtyness may make this method return different values
+		for the same arguments at different times.
+	      </para>
+	    </section>
+
 	    <section id="Table.where" xreflabel="description">
 	      <!-- ##XXX Explain condition syntax and oddities with logical ops and their preference
 		   ##XXX including two-ended ranges. -->
@@ -9795,6 +9822,12 @@ indexrows = table.cols.var3.createIndex()]]></screen>
             <listitem><para><computeroutput>(var1 >= "foo") | (var3 > 10)</computeroutput> (conditions are ORed)</para></listitem>
           </itemizedlist>
           </para>
+
+	  <para>Remember you can use the
+	  <computeroutput>willQueryUseIndexing()</computeroutput> method
+          (see <xref linkend="Table.willQueryUseIndexing"/>)
+	  to check whether a particular query will used indexing or not.
+	  </para>
 
           <para>You can see in figures<xref           linkend="searchTimes-int" xrefstyle="select: labelnumber"/> and <xref           linkend="searchTimes-float" xrefstyle="select: labelnumber"/> that indexing can accelerate
           quite a lot your data selections in tables. For moderately large
