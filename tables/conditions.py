@@ -267,12 +267,17 @@ def call_on_recarr(func, params, recarr, param2arg=None):
         else:
             arg = param
         if hasattr(arg, 'pathname'):  # looks like a column
-            field = arg.pathname
-            arg = recarr
+            # It may be convenient to factor out this way of
+            # descending nested fields into the ``__getitem__()``
+            # method of a subclass of ``numpy.ndarray``.  -- ivb
+            arg, field = recarr, arg.pathname
             for nestedfield in field.split('/'):
                 arg = arg[nestedfield]
             # To bypass the non-contiguous bug in numexpr
             # Conveniently commented out to avoid Ivan's fury
-            ##arg = arg.copy()
+            #
+            # Ivan only gets furious when random junk is left over
+            # files! ;)  I'm marking this to easily locate it.  -- ivb
+            ##arg = arg.copy()  ##XXX
         args.append(arg)
     return func(*args)
