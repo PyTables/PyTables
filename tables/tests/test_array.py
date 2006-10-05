@@ -493,7 +493,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print "  shape ==>", dset.shape,
                 print "  type ==> %s" % dset.type
                 print "Array b read from file. Shape: ==>", b.shape,
-                print ". Type ==>" % b.type
+                print ". Type ==>" % b.dtype
             assert a.shape == b.shape
             assert a.dtype == b.dtype
             assert allequal(a,b)

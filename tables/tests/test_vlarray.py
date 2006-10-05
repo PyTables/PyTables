@@ -1365,7 +1365,7 @@ class AppendShapeTestCase(unittest.TestCase):
         if verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row.info()
+            print "First row in vlarray ==>", repr(row)
 
         assert vlarray.nrows == 1
         assert allequal(row, numpy.zeros(dtype='int32', shape=(0,)))
@@ -1398,7 +1398,7 @@ class AppendShapeTestCase(unittest.TestCase):
         if verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row.info()
+            print "First row in vlarray ==>", repr(row)
 
         assert vlarray.nrows == 1
         assert allequal(row, numpy.array([1,2], dtype='int32'))
@@ -1431,7 +1431,7 @@ class AppendShapeTestCase(unittest.TestCase):
         if verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "First row in vlarray ==>", row.info()
+            print "First row in vlarray ==>", repr(row)
 
         assert vlarray.nrows == 1
         assert allequal(row, numpy.array([1,2], dtype='int32'))

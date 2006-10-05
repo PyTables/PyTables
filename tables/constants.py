@@ -49,7 +49,7 @@ __version__ = '$Revision$'
 
 # The maximum recommened number of columns in a table.
 # However, this limit is somewhat arbitrary and can be increased.
-MAX_COLUMNS = 2048      # it used to be 1024 in PyTables 1.x series
+MAX_COLUMNS = 1024
 """Maximum number of columns in ``Table`` objects before a
 ``PerformanceWarning`` is issued.
 """
