@@ -273,11 +273,5 @@ def call_on_recarr(func, params, recarr, param2arg=None):
             arg, field = recarr, arg.pathname
             for nestedfield in field.split('/'):
                 arg = arg[nestedfield]
-            # To bypass the non-contiguous bug in numexpr
-            # Conveniently commented out to avoid Ivan's fury
-            #
-            # Ivan only gets furious when random junk is left over
-            # files! ;)  I'm marking this to easily locate it.  -- ivb
-            ##arg = arg.copy()  ##XXX
         args.append(arg)
     return func(*args)
