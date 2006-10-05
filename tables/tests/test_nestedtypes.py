@@ -491,6 +491,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         raTable = self._testAData.copy()
         raColumn = raTable[nColumn]
         (raColumn[0], raColumn[-1]) = (raColumn[-1].copy(), raColumn[0].copy())
+        newdtype = numpy.dtype([(nColumn, raTable.dtype.fields[nColumn][0])])
 
         # Write the resulting column and re-read the whole table.
         tbl.modifyColumns(names=[nColumn], columns=raColumn)
@@ -547,7 +548,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         raCols2 = numpy.rec.fromarrays([tbl.cols._f_col('x'),
                                         #tbl.cols._f_col('color')[:]], # XYX
                                         tbl.cols._f_col('color')],
-                                       dtype=raCols.descr)
+                                       dtype=raCols.dtype)
         if verbose:
             print "Table read:", raCols2
             print "Should look like:", raCols

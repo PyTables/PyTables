@@ -110,7 +110,7 @@ if __name__ == '__main__':
     print "PyTables version:  %s" % tables.__version__
     print "HDF5 version:      %s" % tables.whichLibVersion("hdf5")[1]
     #print "HDF5 version:      %s" % tables.hdf5Version
-    print "numarray version:  %s" % numarray.__version__
+    print "NumPy version:     %s" % numpy.__version__
     #print "Zlib version:      %s" % tables.whichLibVersion("zlib")[1]
     tinfo = tables.whichLibVersion("zlib")
     if tinfo is not None:

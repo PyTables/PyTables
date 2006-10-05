@@ -1726,7 +1726,7 @@ You cannot append rows to a non-chunked table.""")
             # so the resulting object is safe for in-place conversion.
             # See issue #315
             #recarray = numpy.array(rows, dtype=self._v_dtype)
-            recarray = numpy.rec.array(rows, dtype=self._v_dtype).copy()
+            recarray = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), exc)
@@ -1827,11 +1827,11 @@ You cannot append rows to a non-chunked table.""")
                 # If eventually this gets solved, we can switch back to
                 # use numpy.array.
                 #recarray = numpy.array([rows], dtype=self._v_dtype)
-                recarray = numpy.rec.array([rows], dtype=self._v_dtype).copy()
+                recarray = numpy.rec.array([rows], dtype=self._v_dtype)
             else:
                 # See comment about issue #315 above
                 #recarray = numpy.array(rows, dtype=self._v_dtype)
-                recarray = numpy.rec.array(rows, dtype=self._v_dtype).copy()
+                recarray = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
 """rows parameter cannot be converted into a recarray object compliant with
@@ -1885,16 +1885,14 @@ The 'colname' parameter must be a string.""")
             raise ValueError("'step' must have a value greater or equal than 1.")
         # Get the column format to be modified:
         objcol = self._checkColumn(colname)
-        descr = numpy.dtype([objcol._v_parent._v_nestedDescr[objcol._v_pos]])
+        descr = [objcol._v_parent._v_nestedDescr[objcol._v_pos]]
         # Try to convert the column object into a recarray
         try:
             if (isinstance(column, numpy.ndarray) or
                 (numarray_imported and
                  isinstance(column, numarray.records.RecArray))):
-                # Do an explicit copy as rec.array doesn't guarantee this
-                recarray = numpy.rec.array(column, dtype=descr).copy()
+                recarray = numpy.rec.array(column, dtype=descr)
             else:
-                # rec.fromarrays do a copy, so this is safe for conversions
                 recarray = numpy.rec.fromarrays([column], dtype=descr)
         except Exception, exc:  #XXX
             raise ValueError, \
@@ -1968,10 +1966,8 @@ The 'names' parameter must be a list of strings.""")
             if (isinstance(columns, numpy.ndarray) or
                 (numarray_imported and
                  isinstance(columns, numarray.records.RecArray))):
-                # Do an explicit copy as rec.array doesn't guarantee this
-                recarray = numpy.rec.array(columns, dtype=descr).copy()
+                recarray = numpy.rec.array(columns, dtype=descr)
             else:
-                # rec.fromarrays do a copy, so this is safe for conversions
                 recarray = numpy.rec.fromarrays(columns, dtype=descr)
         except Exception, exc:  #XXX
             raise ValueError, \
