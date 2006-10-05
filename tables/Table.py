@@ -401,6 +401,8 @@ class Table(TableExtension.Table, Leaf):
         """Path of the indexed column to be used in an indexed search."""
         self._conditionCache = NailedDict()
         """Cache of already splitted conditions."""
+        self._enabledIndexingInQueries = True
+        """Is indexing enabled in queries?  *Use only for testing.*"""
         self._emptyArrayCache = {}
         """Cache of empty arrays."""
 
@@ -834,6 +836,22 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return colobj
 
 
+    def _disableIndexingInQueries(self):
+        """Force queries not to use indexing.  *Use only for testing.*"""
+        if not self._enabledIndexingInQueries:
+            return  # already disabled
+        # The nail avoids setting/getting splitted conditions in/from
+        # the cache where indexing is used.
+        self._conditionCache.nail()
+        self._enabledIndexingInQueries = False
+
+    def _enableIndexingInQueries(self):
+        """Allow queries to use indexing.  *Use only for testing.*"""
+        if self._enabledIndexingInQueries:
+            return  # already enabled
+        self._conditionCache.unnail()
+        self._enabledIndexingInQueries = True
+
     def _requiredExprVars(self, expression, uservars):
         """
         Get the variables required by the `expression`.
@@ -969,6 +987,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Get the set of columns with usable indexes.
         def can_use_index(column):
+            if not self._enabledIndexingInQueries:
+                return False  # looks like testing in-kernel searches
             return self.colindexed[column.pathname] and not column.dirty
         indexedcols = frozenset(
             colname for colname in colnames
