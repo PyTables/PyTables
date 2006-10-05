@@ -989,6 +989,28 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return splitted.with_replaced_vars(condvars)
 
 
+    def willQueryUseIndexing(self, condition, condvars=None):
+        """
+        Will a query for the `condition` use indexing?
+
+        The meaning of the `condition` and `condvars` arguments is the
+        same as in the `self.where()` method.  If the `condition` can
+        use indexing, this method returns the path name of the column
+        whose index is usable.  Otherwise, it returns `None`.
+
+        This method is mainly intended for testing.  Keep in mind that
+        changing the set of indexed columns or their dirtyness may make
+        this method return different values for the same arguments at
+        different times.
+        """
+        # Split the condition into indexable and residual parts.
+        condvars = self._requiredExprVars(condition, condvars)
+        splitted = self._splitCondition(condition, condvars)
+        if not splitted.index_variable:
+            return None
+        return condvars[splitted.index_variable].pathname
+
+
     def where( self, condition, condvars=None,
                start=None, stop=None, step=None ):
         """
