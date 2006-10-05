@@ -116,7 +116,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         # First selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in table1.where(il <= t1var1 <= sl)]
+        results1 = [p["var1"] for p in
+                    table1.where('(il<=t1var1)&(t1var1<=sl)')]
         results2 = [p["var1"] for p in table2
                     if il <= p["var1"] <= sl]
         results1.sort(); results2.sort()
@@ -131,7 +132,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in table1.where(il <= t1var1 < sl)]
+        results1 = [p["var1"] for p in
+                    table1.where('(il<=t1var1)&(t1var1<sl)')]
         results2 = [p["var1"] for p in table2
                     if il <= p["var1"] < sl]
         results1.sort(); results2.sort()
@@ -145,7 +147,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in table1.where(il < t1var1 <= sl)]
+        results1 = [p["var1"] for p in
+                    table1.where('(il<t1var1)&(t1var1<=sl)')]
         results2 = [p["var1"] for p in table2
                     if il < p["var1"] <= sl]
         results1.sort(); results2.sort()
@@ -159,7 +162,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Forth selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in table1.where(il < t1var1 < sl)]
+        results1 = [p["var1"] for p in
+                    table1.where('(il<t1var1)&(t1var1<sl)')]
         results2 = [p["var1"] for p in table2
                     if il < p["var1"] < sl]
         results1.sort(); results2.sort()
@@ -188,7 +192,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         # First selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in table1.where(t1var1 < sl)]
+        results1 = [p["var1"] for p in table1.where('t1var1 < sl')]
         results2 = [p["var1"] for p in table2
                     if p["var1"] < sl]
         results1.sort(); results2.sort()
@@ -203,7 +207,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Second selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in table1.where(t1var1 <= sl)]
+        results1 = [p["var1"] for p in table1.where('t1var1 <= sl')]
         results2 = [p["var1"] for p in table2
                     if p["var1"] <= sl]
         results1.sort(); results2.sort()
@@ -218,7 +222,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Third selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in table1.where(t1var1 > sl)]
+        results1 = [p["var1"] for p in table1.where('t1var1 > sl')]
         results2 = [p["var1"] for p in table2
                     if p["var1"] > sl]
         results1.sort(); results2.sort()
@@ -233,7 +237,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         t1var1 = table1.cols.var1
-        results1 = [p["var1"] for p in table1.where(t1var1 >= sl)]
+        results1 = [p["var1"] for p in table1.where('t1var1 >= sl')]
         results2 = [p["var1"] for p in table2
                     if p["var1"] >= sl]
         results1.sort(); results2.sort()
@@ -258,7 +262,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        results1 = [p["var2"] for p in table1.where(t1var2 == 1)]
+        results1 = [p["var2"] for p in table1.where('t1var2 == 1')]
         results2 = [p["var2"] for p in table2
                     if p["var2"] == 1]
         if verbose:
@@ -281,7 +285,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        results1 = [p["var2"] for p in table1.where(t1var2 == 0)]
+        results1 = [p["var2"] for p in table1.where('t1var2 == 0')]
         results2 = [p["var2"] for p in table2
                     if p["var2"] == 0]
         if verbose:
@@ -309,7 +313,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t1col = table1.cols.var3
         # First selection
-        results1 = [p["var3"] for p in table1.where(il <= t1col <= sl)]
+        results1 = [p["var3"] for p in table1.where('(il<=t1col)&(t1col<=sl)')]
         results2 = [p["var3"] for p in table2
                     if il <= p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -324,7 +328,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p["var3"] for p in table1.where(il <= t1col < sl)]
+        results1 = [p["var3"] for p in table1.where('(il<=t1col)&(t1col<sl)')]
         results2 = [p["var3"] for p in table2
                     if il <= p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -339,7 +343,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p["var3"] for p in table1.where(il < t1col <= sl)]
+        results1 = [p["var3"] for p in table1.where('(il<t1col)&(t1col<=sl)')]
         results2 = [p["var3"] for p in table2
                     if il < p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -354,7 +358,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p["var3"] for p in table1.where(il < t1col < sl)]
+        results1 = [p["var3"] for p in table1.where('(il<t1col)&(t1col<sl)')]
         results2 = [p["var3"] for p in table2
                     if il < p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -386,7 +390,7 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var3
 
         # First selection
-        results1 = [p["var3"] for p in table1.where(t1col < sl)]
+        results1 = [p["var3"] for p in table1.where('t1col < sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -402,7 +406,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p["var3"] for p in table1.where(t1col <= sl)]
+        results1 = [p["var3"] for p in table1.where('t1col <= sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -418,7 +422,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p["var3"] for p in table1.where(t1col > sl)]
+        results1 = [p["var3"] for p in table1.where('t1col > sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -434,7 +438,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p["var3"] for p in table1.where(t1col >= sl)]
+        results1 = [p["var3"] for p in table1.where('t1col >= sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -467,7 +471,7 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var3
 
         # First selection
-        results1 = [p["var3"] for p in table1.where(t1col < sl)]
+        results1 = [p["var3"] for p in table1.where('t1col < sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -483,7 +487,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p["var3"] for p in table1.where(t1col <= sl)]
+        results1 = [p["var3"] for p in table1.where('t1col <= sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -499,7 +503,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p["var3"] for p in table1.where(t1col > sl)]
+        results1 = [p["var3"] for p in table1.where('t1col > sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -515,7 +519,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p["var3"] for p in table1.where(t1col >= sl)]
+        results1 = [p["var3"] for p in table1.where('t1col >= sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -548,7 +552,7 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var3
 
         # First selection
-        results1 = [p["var3"] for p in table1.where(t1col < sl)]
+        results1 = [p["var3"] for p in table1.where('t1col < sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -564,7 +568,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p["var3"] for p in table1.where(t1col <= sl)]
+        results1 = [p["var3"] for p in table1.where('t1col <= sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -580,7 +584,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p["var3"] for p in table1.where(t1col > sl)]
+        results1 = [p["var3"] for p in table1.where('t1col > sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -596,7 +600,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p["var3"] for p in table1.where(t1col >= sl)]
+        results1 = [p["var3"] for p in table1.where('t1col >= sl')]
         results2 = [p["var3"] for p in table2
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -628,7 +632,7 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t1col = table1.cols.var4
         # First selection
-        results1 = [p["var4"] for p in table1.where(il <= t1col <= sl)]
+        results1 = [p["var4"] for p in table1.where('(il<=t1col)&(t1col<=sl)')]
         results2 = [p["var4"] for p in table2
                     if il <= p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -643,7 +647,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1.sort() == results2.sort()
 
         # Second selection
-        results1 = [p["var4"] for p in table1.where(il <= t1col < sl)]
+        results1 = [p["var4"] for p in table1.where('(il<=t1col)&(t1col<sl)')]
         results2 = [p["var4"] for p in table2
                     if il <= p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -658,7 +662,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p["var4"] for p in table1.where(il < t1col <= sl)]
+        results1 = [p["var4"] for p in table1.where('(il<t1col)&(t1col<=sl)')]
         results2 = [p["var4"] for p in table2
                     if il < p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -675,7 +679,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p["var4"] for p in table1.where(il < t1col < sl)]
+        results1 = [p["var4"] for p in table1.where('(il<t1col)&(t1col<sl)')]
         results2 = [p["var4"] for p in table2
                     if il < p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -707,7 +711,7 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var4
 
         # First selection
-        results1 = [p["var4"] for p in table1.where(t1col < sl)]
+        results1 = [p["var4"] for p in table1.where('t1col < sl')]
         results2 = [p["var4"] for p in table2
                     if p["var4"] < sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -723,7 +727,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p["var4"] for p in table1.where(t1col <= sl)]
+        results1 = [p["var4"] for p in table1.where('t1col <= sl')]
         results2 = [p["var4"] for p in table2
                     if p["var4"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -739,7 +743,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p["var4"] for p in table1.where(t1col > sl)]
+        results1 = [p["var4"] for p in table1.where('t1col > sl')]
         results2 = [p["var4"] for p in table2
                     if p["var4"] > sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -755,7 +759,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p["var4"] for p in table1.where(t1col >= sl)]
+        results1 = [p["var4"] for p in table1.where('t1col >= sl')]
         results2 = [p["var4"] for p in table2
                     if p["var4"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -787,7 +791,9 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t1col = table1.cols.var1
         # First selection
-        rowList1 = table1.getWhereList(il <= t1col <= sl, "python")
+        condition = '(il<=t1col)&(t1col<=sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if il <= p["var1"] <= sl]
@@ -803,7 +809,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1.sort() == results2.sort()
 
         # Second selection
-        rowList1 = table1.getWhereList(il <= t1col < sl, "python")
+        condition = '(il<=t1col)&(t1col<sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if il <= p["var1"] < sl]
@@ -819,7 +827,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        rowList1 = table1.getWhereList(il < t1col <= sl, "python")
+        condition = '(il<t1col)&(t1col<=sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if il < p["var1"] <= sl]
@@ -837,7 +847,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        rowList1 = table1.getWhereList(il < t1col < sl, "python")
+        condition = '(il<t1col)&(t1col<sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if il < p["var1"] < sl]
@@ -870,7 +882,9 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var1
 
         # First selection
-        rowList1 = table1.getWhereList(t1col < sl, "python")
+        condition = 't1col<sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if p["var1"] < sl]
@@ -887,7 +901,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        rowList1 = table1.getWhereList(t1col <= sl)
+        condition = 't1col<=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if p["var1"] <= sl]
@@ -904,7 +920,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        rowList1 = table1.getWhereList(t1col > sl)
+        condition = 't1col>sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if p["var1"] > sl]
@@ -921,7 +939,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        rowList1 = table1.getWhereList(t1col >= sl)
+        condition = 't1col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition)
         results1 = [p['var1'] for p in table1.itersequence(rowList1)]
         results2 = [p["var1"] for p in table2
                     if p["var1"] >= sl]
@@ -949,7 +969,9 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        rowList1 = table1.getWhereList(t1var2 == 1, "python")
+        condition = 't1var2==1'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1var2.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var2'] for p in table1.itersequence(rowList1)]
         results2 = [p["var2"] for p in table2
                     if p["var2"] == 1]
@@ -973,7 +995,9 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        rowList1 = table1.getWhereList(t1var2 == 0, "python")
+        condition = 't1var2==0'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1var2.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var2'] for p in table1.itersequence(rowList1)]
         results2 = [p["var2"] for p in table2
                     if p["var2"] == 0]
@@ -1002,7 +1026,9 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t1col = table1.cols.var3
         # First selection
-        rowList1 = table1.getWhereList(il <= t1col <= sl, "python")
+        condition = '(il<=t1col)&(t1col<=sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if il <= p["var3"] <= sl]
@@ -1018,7 +1044,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1.sort() == results2.sort()
 
         # Second selection
-        rowList1 = table1.getWhereList(il <= t1col < sl, "python")
+        condition = '(il<=t1col)&(t1col<sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if il <= p["var3"] < sl]
@@ -1034,7 +1062,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        rowList1 = table1.getWhereList(il < t1col <= sl, "python")
+        condition = '(il<t1col)&(t1col<=sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if il < p["var3"] <= sl]
@@ -1052,7 +1082,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        rowList1 = table1.getWhereList(il < t1col < sl, "python")
+        condition = '(il<t1col)&(t1col<sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if il < p["var3"] < sl]
@@ -1085,7 +1117,9 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var3
 
         # First selection
-        rowList1 = table1.getWhereList(t1col < sl, "python")
+        condition = 't1col<sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] < sl]
@@ -1102,7 +1136,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        rowList1 = table1.getWhereList(t1col <= sl)
+        condition = 't1col<=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] <= sl]
@@ -1119,7 +1155,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        rowList1 = table1.getWhereList(t1col > sl)
+        condition = 't1col>sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] > sl]
@@ -1136,7 +1174,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        rowList1 = table1.getWhereList(t1col >= sl)
+        condition = 't1col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition)
         results1 = [p['var3'] for p in table1.itersequence(rowList1)]
         results2 = [p["var3"] for p in table2
                     if p["var3"] >= sl]
@@ -1169,8 +1209,10 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t1col = table1.cols.var4
         # First selection
-        #results1 = [p["var4"] for p in table1.where(il <= t1col <= sl)]
-        rowList1 = table1.getWhereList(il <= t1col <= sl, "python")
+        condition = '(il<=t1col)&(t1col<=sl)'
+        #results1 = [p["var4"] for p in table1.where(condition)]
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if il <= p["var4"] <= sl]
@@ -1186,7 +1228,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1.sort() == results2.sort()
 
         # Second selection
-        rowList1 = table1.getWhereList(il <= t1col < sl, "python")
+        condition = '(il<=t1col)&(t1col<sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if il <= p["var4"] < sl]
@@ -1202,7 +1246,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        rowList1 = table1.getWhereList(il < t1col <= sl, "python")
+        condition = '(il<t1col)&(t1col<=sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if il < p["var4"] <= sl]
@@ -1220,7 +1266,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        rowList1 = table1.getWhereList(il < t1col < sl, "python")
+        condition = '(il<t1col)&(t1col<sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if il < p["var4"] < sl]
@@ -1253,7 +1301,9 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var4
 
         # First selection
-        rowList1 = table1.getWhereList(t1col < sl)
+        condition = 't1col<sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] < sl]
@@ -1270,7 +1320,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        rowList1 = table1.getWhereList(t1col <= sl)
+        condition = 't1col<=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] <= sl]
@@ -1287,7 +1339,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        rowList1 = table1.getWhereList(t1col > sl)
+        condition = 't1col>sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] > sl]
@@ -1304,7 +1358,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        rowList1 = table1.getWhereList(t1col >= sl)
+        condition = 't1col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        rowList1 = table1.getWhereList(condition)
         results1 = [p['var4'] for p in table1.itersequence(rowList1)]
         results2 = [p["var4"] for p in table2
                     if p["var4"] >= sl]
@@ -1322,7 +1378,7 @@ class SelectValuesTestCase(unittest.TestCase):
 
 
     def test09a(self):
-        """Checking _whereInRange (string flavor)"""
+        """Checking non-indexed where() (string flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1330,6 +1386,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
+
+        table1._disableIndexingInQueries()
 
         # Convert the limits to the appropriate type
         il = str(self.il)
@@ -1339,7 +1397,9 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var1
         #print "t1col-->", t1col[:]
         # First selection
-        results1 = [p['var1'] for p in table1._whereInRange(t1col<=sl,2,10)]
+        condition = 't1col<=sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var1'] for p in table1.where(condition,start=2,stop=10)]
         results2 = [p["var1"] for p in table2.iterrows(2, 10)
                     if p["var1"] <= sl]
         if verbose:
@@ -1352,7 +1412,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p['var1'] for p in table1._whereInRange(il<t1col<sl,2,30,2)]
+        condition = '(il<t1col)&(t1col<sl)'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=2, stop=30, step=2)]
         results2 = [p["var1"] for p in table2.iterrows(2,30,2)
                     if il<p["var1"]<sl]
         if verbose:
@@ -1365,7 +1428,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p['var1'] for p in table1._whereInRange(il>t1col>sl,2,-5)]
+        condition = '(il>t1col)&(t1col>sl)'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=2, stop=-5)]
         results2 = [p["var1"] for p in table2.iterrows(2, -5)  # Negative indices
                     if (il > p["var1"] > sl)]
         if verbose:
@@ -1379,7 +1445,9 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # This selection to be commented out
-#         results1 = [p['var1'] for p in table1._whereInRange(t1col>=sl,2,-1,1)]
+#         condition = 't1col>=sl'
+#         self.assert_(not table1.willQueryUseIndexing(condition))
+#         results1 = [p['var1'] for p in table1.where(condition,start=2,stop=-1,step=1)]
 #         results2 = [p["var1"] for p in table2.iterrows(2, -1, 1)
 #                     if p["var1"] >= sl]
 #         if verbose:
@@ -1393,8 +1461,11 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         #print "t1col-->", t1col[:]
-        #results1 = [p['var1'] for p in table1._whereInRange(t1col>=sl,2,-1,3)]
-        results1 = [p['var1'] for p in table1._whereInRange(t1col>=sl,2,-1,3)]
+        #results1 = [p['var1'] for p in table1.where(condition,start=2,stop=-1,step=3)]
+        condition = 't1col>=sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=2, stop=-1, step=3)]
         results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
                     if p["var1"] >= sl]
         if verbose:
@@ -1407,7 +1478,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test09b(self):
-        """Checking _whereInRange (float flavor)"""
+        """Checking non-indexed where() (float flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1415,6 +1486,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
+
+        table1._disableIndexingInQueries()
 
         # Convert the limits to the appropriate type
         il = float(self.il)
@@ -1424,7 +1497,10 @@ class SelectValuesTestCase(unittest.TestCase):
         t1col = table1.cols.var4
 
         # First selection
-        results1 = [p['var4'] for p in table1._whereInRange(t1col < sl, 2, 5)]
+        condition = 't1col<sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var4'] for p in
+                    table1.where(condition, start=2, stop=5)]
         results2 = [p["var4"] for p in table2.iterrows(2, 5)
                     if p["var4"] < sl]
         if verbose:
@@ -1437,7 +1513,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p['var4'] for p in table1._whereInRange(il < t1col<=sl, 2, -1, 2)]
+        condition = '(il<t1col)&(t1col<=sl)'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var4'] for p in
+                    table1.where(condition, start=2, stop=-1, step=2)]
         results2 = [p["var4"] for p in table2.iterrows(2,-1,2)
                     if il < p["var4"] <= sl]
         if verbose:
@@ -1450,7 +1529,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p['var4'] for p in table1._whereInRange(il<=t1col<=sl, 2, -5)]
+        condition = '(il<=t1col)&(t1col<=sl)'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var4'] for p in
+                    table1.where(condition, start=2, stop=-5)]
         results2 = [p["var4"] for p in table2.iterrows(2, -5)  # Negative indices
                     if il <= p["var4"] <= sl]
         if verbose:
@@ -1463,7 +1545,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p['var4'] for p in table1._whereInRange(t1col>=sl, 0, -1, 3)]
+        condition = 't1col>=sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var4'] for p in
+                    table1.where(condition, start=0, stop=-1, step=3)]
         results2 = [p["var4"] for p in table2.iterrows(0, -1, 3)
                     if p["var4"] >= sl]
         if verbose:
@@ -1476,7 +1561,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test09c(self):
-        """Checking _whereInRange with ranges, changing step (string flavor)"""
+        "Check non-indexed where() w/ ranges, changing step (string flavor)"
 
         if verbose:
             print '\n', '-=' * 30
@@ -1484,6 +1569,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
+
+        table1._disableIndexingInQueries()
 
         # Convert the limits to the appropriate type
         il = str(self.il)
@@ -1494,7 +1581,10 @@ class SelectValuesTestCase(unittest.TestCase):
         #print "t1col-->", t1col[:]
 
         # First selection
-        results1 = [p['var1'] for p in table1._whereInRange(t1col>=sl,2,-1,3)]
+        condition = 't1col>=sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=2, stop=-1, step=3)]
         results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1510,7 +1600,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p['var1'] for p in table1._whereInRange(t1col>=sl,5,-1,10)]
+        condition= 't1col>=sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=5, stop=-1, step=10)]
         results2 = [p["var1"] for p in table2.iterrows(5, -1, 10)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1526,7 +1619,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p['var1'] for p in table1._whereInRange(t1col>=sl,5,-3,11)]
+        condition = 't1col>=sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=5, stop=-3, step=11)]
         results2 = [p["var1"] for p in table2.iterrows(5, -3, 11)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1542,7 +1638,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p['var1'] for p in table1._whereInRange(t1col>=sl,2,-1,300)]
+        condition = 't1col>=sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=2, stop=-1, step=300)]
         results2 = [p["var1"] for p in table2.iterrows(2, -1, 300)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1558,7 +1657,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test09d(self):
-        """Checking whereInrange with ranges, changing step (int flavor)"""
+        "Checking non-indexed where() w/ ranges, changing step (int flavor)"
 
         if verbose:
             print '\n', '-=' * 30
@@ -1566,6 +1665,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
+
+        table1._disableIndexingInQueries()
 
         # Convert the limits to the appropriate type
         il = int(self.il)
@@ -1576,7 +1677,10 @@ class SelectValuesTestCase(unittest.TestCase):
         #print "t3col-->", t3col[:]
 
         # First selection
-        results1 = [p['var3'] for p in table1._whereInRange(t3col>=sl,2,-1,3)]
+        condition = 't3col>=sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=2, stop=-1, step=3)]
         results2 = [p["var3"] for p in table2.iterrows(2, -1, 3)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1592,7 +1696,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p['var3'] for p in table1._whereInRange(t3col>=sl,5,-1,10)]
+        condition = 't3col>=sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=5, stop=-1, step=10)]
         results2 = [p["var3"] for p in table2.iterrows(5, -1, 10)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1608,7 +1715,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p['var3'] for p in table1._whereInRange(t3col>=sl,5,-3,11)]
+        condition = 't3col>=sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=5, stop=-3, step=11)]
         results2 = [p["var3"] for p in table2.iterrows(5, -3, 11)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1624,7 +1734,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p['var3'] for p in table1._whereInRange(t3col>=sl,2,-1,300)]
+        condition = 't3col>=sl'
+        self.assert_(not table1.willQueryUseIndexing(condition))
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=2, stop=-1, step=300)]
         results2 = [p["var3"] for p in table2.iterrows(2, -1, 300)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1640,7 +1753,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test10a(self):
-        """Checking _whereIndexed with ranges (string flavor)"""
+        """Checking indexed where() with ranges (string flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1656,7 +1769,10 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t1col = table1.cols.var1
         # First selection
-        results1 = [p['var1'] for p in table1._whereIndexed(t1col<=sl, 2, 10)]
+        condition = 't1col<=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=2, stop=10)]
         results2 = [p["var1"] for p in table2.iterrows(2, 10)
                     if p["var1"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1672,7 +1788,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Selection to be deleted
-        results1 = [p['var1'] for p in table1._whereIndexed(il<=t1col<=sl,2,30,1)]
+        condition = '(il<=t1col)&(t1col<=sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=2, stop=30, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(2,30,1)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1688,7 +1807,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p['var1'] for p in table1._whereIndexed(il<=t1col<=sl,2,30,2)]
+        condition = '(il<=t1col)&(t1col<=sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=2, stop=30, step=2)]
         results2 = [p["var1"] for p in table2.iterrows(2,30,2)
                     if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1704,7 +1826,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p['var1'] for p in table1._whereIndexed(il<t1col<sl,2,-5)]
+        condition = '(il<t1col)&(t1col<sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=2, stop=-5)]
         results2 = [p["var1"] for p in table2.iterrows(2, -5)  # Negative indices
                     if (il < p["var1"] < sl)]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1720,7 +1845,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p['var1'] for p in table1._whereIndexed(t1col>=sl,1,-1,3)]
+        condition = 't1col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=1, stop=-1, step=3)]
         #print "results1-->", results1
         results2 = [p["var1"] for p in table2.iterrows(1, -1, 3)
                     if p["var1"] >= sl]
@@ -1737,7 +1865,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test10b(self):
-        """Checking _whereIndexed with ranges (int flavor)"""
+        """Checking indexed where() with ranges (int flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1753,8 +1881,11 @@ class SelectValuesTestCase(unittest.TestCase):
         # Do some selections and check the results
         t3col = table1.cols.var3
         # First selection
-        #print "-->", table1._whereIndexed(t3col<=sl,2,10)
-        results1 = [p['var3'] for p in table1._whereIndexed(t3col<=sl,2,10)]
+        #print "-->", table1._whereIndexed('t3col<=sl',2,10)
+        condition = 't3col<=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t3col.pathname)
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=2, stop=10)]
         results2 = [p["var3"] for p in table2.iterrows(2, 10)
                     if p["var3"] <= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1770,7 +1901,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p['var3'] for p in table1._whereIndexed(il<=t3col<=sl,2,30,2)]
+        condition = '(il<=t3col)&(t3col<=sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t3col.pathname)
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=2, stop=30, step=2)]
         results2 = [p["var3"] for p in table2.iterrows(2,30,2)
                     if il<=p["var3"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1786,7 +1920,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p['var3'] for p in table1._whereIndexed(il<t3col<sl,2,-5)]
+        condition = '(il<t3col)&(t3col<sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t3col.pathname)
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=2, stop=-5)]
         results2 = [p["var3"] for p in table2.iterrows(2, -5)  # Negative indices
                     if (il < p["var3"] < sl)]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1803,7 +1940,10 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Fourth selection
         #print "t3col-->", t3col[:]
-        results1 = [p['var3'] for p in table1._whereIndexed(t3col>=sl,1,-1,3)]
+        condition = 't3col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t3col.pathname)
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=1, stop=-1, step=3)]
         results2 = [p["var3"] for p in table2.iterrows(1, -1, 3)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1819,7 +1959,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test10c(self):
-        """Checking _whereIndexed with ranges, changing step (string flavor)"""
+        """Checking indexed where() with ranges, changing step (string flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1837,7 +1977,10 @@ class SelectValuesTestCase(unittest.TestCase):
         #print "t1col-->", t1col[:]
 
         # First selection
-        results1 = [p['var1'] for p in table1._whereIndexed(t1col>=sl,2,-1,3)]
+        condition = 't1col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=2, stop=-1, step=3)]
         results2 = [p["var1"] for p in table2.iterrows(2, -1, 3)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1853,7 +1996,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p['var1'] for p in table1._whereIndexed(t1col>=sl,5,-1,10)]
+        condition = 't1col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=5, stop=-1, step=10)]
         results2 = [p["var1"] for p in table2.iterrows(5, -1, 10)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1869,7 +2015,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p['var1'] for p in table1._whereIndexed(t1col>=sl,5,-3,11)]
+        condition = 't1col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=5, stop=-3, step=11)]
         results2 = [p["var1"] for p in table2.iterrows(5, -3, 11)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1885,7 +2034,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p['var1'] for p in table1._whereIndexed(t1col>=sl,2,-1,300)]
+        condition = 't1col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=2, stop=-1, step=300)]
         results2 = [p["var1"] for p in table2.iterrows(2, -1, 300)
                     if p["var1"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1901,7 +2053,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test10d(self):
-        """Checking _whereIndexed with ranges, changing step (int flavor)"""
+        """Checking indexed where() with ranges, changing step (int flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1919,7 +2071,10 @@ class SelectValuesTestCase(unittest.TestCase):
         #print "t3col-->", t3col[:]
 
         # First selection
-        results1 = [p['var3'] for p in table1._whereIndexed(t3col>=sl,2,-1,3)]
+        condition = 't3col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t3col.pathname)
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=2, stop=-1, step=3)]
         results2 = [p["var3"] for p in table2.iterrows(2, -1, 3)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1935,7 +2090,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Second selection
-        results1 = [p['var3'] for p in table1._whereIndexed(t3col>=sl,5,-1,10)]
+        condition = 't3col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t3col.pathname)
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=5, stop=-1, step=10)]
         results2 = [p["var3"] for p in table2.iterrows(5, -1, 10)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1951,7 +2109,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Third selection
-        results1 = [p['var3'] for p in table1._whereIndexed(t3col>=sl,5,-3,11)]
+        condition = 't3col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t3col.pathname)
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=5, stop=-3, step=11)]
         results2 = [p["var3"] for p in table2.iterrows(5, -3, 11)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1967,7 +2128,10 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
         # Fourth selection
-        results1 = [p['var3'] for p in table1._whereIndexed(t3col>=sl,2,-1,300)]
+        condition = 't3col>=sl'
+        self.assert_(table1.willQueryUseIndexing(condition) == t3col.pathname)
+        results1 = [p['var3'] for p in
+                    table1.where(condition, start=2, stop=-1, step=300)]
         results2 = [p["var3"] for p in table2.iterrows(2, -1, 300)
                     if p["var3"] >= sl]
         # sort lists (indexing does not guarantee that rows are returned in
@@ -1998,7 +2162,9 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do a selection and check the result
         t1var1 = table1.cols.var1
-        coords1 = table1.getWhereList(il <= t1var1 <= sl)
+        condition = '(il<=t1var1)&(t1var1<=sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1var1.pathname)
+        coords1 = table1.getWhereList(condition)
         results1 = table1.readCoordinates(coords1, field="var1", flavor="python")
         results2 = [p["var1"] for p in table2
                     if il <= p["var1"] <= sl]
