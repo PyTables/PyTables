@@ -37,6 +37,8 @@ try:
     import numarray
     import numarray.strings
     import numarray.records
+    import nriterators
+    import nestedrecords
     numarray_imported = True
 except ImportError:
     numarray_imported = False
@@ -45,8 +47,6 @@ import tables.utilsExtension
 from tables.exceptions import NaturalNameWarning
 from constants import CHUNKTIMES
 from registry import classNameDict
-import nriterators
-import nestedrecords
 
 # Python identifier regular expression.
 pythonIdRE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
@@ -726,6 +726,42 @@ def fromnumarray(rna, copy=False):
     return rnp
 
 
+# This function really belongs to nriterators.py, but has been moved here
+# so as to facilitate its use without having numarray installed
+def flattenNames(names, check=False):
+    """Flatten a names description of a buffer.
+
+    Names of nested fields are returned with its full path, i.e.
+    level1/level2/.../levelN.
+    If ``check`` is True the function returns None when it finds
+    some element with an incorrect format, i.e. an element that is
+    neither a string nor a 2-tuple. This is not strictely necessary, but
+    it is useful for testing purposes.
+    """
+    i = iter(names)
+    if not i:
+        return
+
+    try:
+        item = i.next()
+        while item:
+            if isinstance(item, str):
+                yield item
+            elif isinstance(item, tuple) and len(item) == 2\
+            and isinstance(item[0], str) and isinstance(item[1], list):
+                for c in flattenNames(item[1], check):
+                    if c == None:
+                        yield c
+                    else:
+                        yield '%s/%s' % (item[0], c)
+            else:
+                if check:
+                    yield None
+            item = i.next()
+    except StopIteration:
+        pass
+
+
 if __name__=="__main__":
     import sys
     import getopt
@@ -770,6 +806,7 @@ if __name__=="__main__":
     #npr2 = numpy.array(nra._flatArray, dtype=nra.array_descr)
     npr2 = tonumpy(nra)
     print repr(npr2)
+
 
 ## Local Variables:
 ## mode: python

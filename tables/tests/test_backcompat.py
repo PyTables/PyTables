@@ -2,7 +2,7 @@
 import warnings
 import unittest
 from tables import *
-import numarray
+import numpy
 
 try:
     import Numeric
@@ -79,8 +79,8 @@ class BackCompatAttrsTestCase(unittest.TestCase):
         # Read old formats
         self.fileh = openFile(self.file % self.format, "r")
         a = self.fileh.getNode("/a")
-        scalar = numarray.array(1, type="Int32")
-        vector = numarray.array([1], type="Int32")
+        scalar = numpy.array(1, dtype="int32")
+        vector = numpy.array([1], dtype="int32")
         if self.format == "1.3":
             assert allequal(a.attrs.arrdim1, vector)
             assert allequal(a.attrs.arrscalar, scalar)

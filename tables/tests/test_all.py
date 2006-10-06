@@ -103,7 +103,6 @@ def suite():
 
 
 if __name__ == '__main__':
-    import numarray
     import tables
 
     print '-=' * 38

@@ -175,16 +175,17 @@ def areArraysEqual(arr1, arr2):
     if not ((t1 is t2) or issubclass(t1, t2) or issubclass(t2, t1)):
         return False
 
-    if isinstance(arr1, tables.nestedrecords.NestedRecArray):
-        arr1 = arr1.asRecArray()
-    if isinstance(arr2, tables.nestedrecords.NestedRecArray):
-        arr2 = arr2.asRecArray()
-    if isinstance(arr1, tables.nestedrecords.NestedRecord):
-        row = arr1.row
-        arr1 = arr1.array[row:row+1]
-    if isinstance(arr2, tables.nestedrecords.NestedRecord):
-        row = arr2.row
-        arr2 = arr2.array[row:row+1]
+    if numarray_imported:
+        if isinstance(arr1, tables.nestedrecords.NestedRecArray):
+            arr1 = arr1.asRecArray()
+        if isinstance(arr2, tables.nestedrecords.NestedRecArray):
+            arr2 = arr2.asRecArray()
+        if isinstance(arr1, tables.nestedrecords.NestedRecord):
+            row = arr1.row
+            arr1 = arr1.array[row:row+1]
+        if isinstance(arr2, tables.nestedrecords.NestedRecord):
+            row = arr2.row
+            arr2 = arr2.array[row:row+1]
 
     if numarray_imported and isinstance(arr1, numarray.records.RecArray):
         arr1Names = arr1._names

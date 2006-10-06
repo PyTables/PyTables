@@ -122,7 +122,7 @@ def _checkNames(names):
         raise TypeError("""``names`` argument must be a list""")
 
     # Names elements must be strings or 2-tuples
-    for item in nriterators.flattenNames(names, check=True):
+    for item in utils.flattenNames(names, check=True):
         if item is None:
             raise TypeError("""elements of the ``names`` list must be"""
                 """ strings or 2-tuples""")
@@ -445,8 +445,8 @@ def array(buffer=None, formats=None, shape=0, names=None,
             if names is None:
                 names = makeNames(descr)
             # Assignements in both the NRA and flatArray are necessary
-            buffer._names =  [i for i in nriterators.flattenNames(names)]
-            buffer._flatArray._names =  [i for i in nriterators.flattenNames(names)]
+            buffer._names =  [i for i in utils.flattenNames(names)]
+            buffer._flatArray._names =  [i for i in utils.flattenNames(names)]
         return buffer
 
     if isinstance(buffer, numarray.records.RecArray):
@@ -512,7 +512,7 @@ object. The error was: <%s>""" % (exc,)
 
     # Flatten the structure descriptors
     flatFormats = [item for item in nriterators.flattenFormats(formats)]
-    flatNames = [item for item in nriterators.flattenNames(names)]
+    flatNames = [item for item in utils.flattenNames(names)]
 
     # Check the buffer structure (order matters!)
     if (isinstance(buffer, types.ListType) or
@@ -628,7 +628,7 @@ def fromarrays(arrayList, formats=None, names=None, shape=0,
 
     # Flatten the structure descriptors
     flatFormats = [item for item in nriterators.flattenFormats(formats)]
-    flatNames = [item for item in nriterators.flattenNames(names)]
+    flatNames = [item for item in utils.flattenNames(names)]
 
     # Create a regular recarray from the arrays list
     flatArrayList = []
@@ -929,7 +929,7 @@ shape=%(rsShape)s)''' % rsData
         fieldNames = [
             name for name in nriterators.getNamesFromDescr(fieldDescr)]
         flatNames = [
-            name for name in nriterators.flattenNames(fieldNames)]
+            name for name in utils.flattenNames(fieldNames)]
 
         # This is the flattened name of the original first bottom field.
         startField = '%s/%s' % (fieldName, flatNames[0])

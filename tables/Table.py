@@ -50,15 +50,13 @@ except ImportError:
     Numeric_imported = False
 
 
-from tables.nriterators import flattenNames
-
 import tables.TableExtension as TableExtension
 from tables.conditions import split_condition, call_on_recarr
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNPToNumeric, convertNPToNumArray, fromnumpy, tonumpy, \
-     fromnumarray, is_idx
+     fromnumarray, is_idx, flattenNames
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import \
