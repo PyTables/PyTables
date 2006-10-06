@@ -50,7 +50,7 @@ if sys.byteorder == "little":
 else:  # sys.byteorder == "big"
 
   from definitions cimport \
-       H5T_STD_B8LE, \
+       H5T_STD_B8BE, \
        H5T_STD_I8BE, H5T_STD_I16BE, H5T_STD_I32BE, H5T_STD_I64BE, \
        H5T_STD_U8BE, H5T_STD_U16BE, H5T_STD_U32BE, H5T_STD_U64BE, \
        H5T_IEEE_F32BE, H5T_IEEE_F64BE
