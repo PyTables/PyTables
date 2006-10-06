@@ -565,19 +565,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         oldPathSlash = oldPath + '/'  # root node can not be renamed, anyway
 
         # Update alive descendents.
-        # XXX What happens if the _aliveNodes dictionary changes during the
-        # next loop (have in mind that it is recursive)?
-        # F. Altet 2006-08-06
-        # Answer: no problem, python will complain ;-) F. Altet 2006-09-27
         for nodePath in file_._aliveNodes:
             if nodePath.startswith(oldPathSlash):
                 descendentNode = file_._getNode(nodePath)
                 descendentNode._g_updateLocation(newPath)
 
         # Update dead descendents.
-        # XXX What happens if the _deadNodes dictionary changes during the
-        # next loop (have in mind that it is recursive)?
-        # F. Altet 2006-08-06
         for nodePath in file_._deadNodes:
             if nodePath.startswith(oldPathSlash):
                 descendentNode = file_._getNode(nodePath)
