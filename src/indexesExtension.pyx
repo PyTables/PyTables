@@ -183,7 +183,7 @@ cdef class IndexArray(Array):
       # nrows cannot be cached because it can grow!
       self.l_slicesize = index.slicesize
       self.l_chunksize = index.chunksize
-      if index.is_pro and <object>self.indicescache is None:
+      if <object>self.indicescache is None:
         # Define a LRU cache for indices
         self.indicescache = <NumCache>NumCache(
           shape=(INDICES_MAX_SLOTS, 1), itemsize=8, name="indices")

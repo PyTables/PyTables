@@ -68,7 +68,7 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         #print "File %s not removed!" % self.file
-        #os.remove(self.file)
+        os.remove(self.file)
         cleanup(self)
 
     #----------------------------------------
@@ -180,7 +180,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList('var1 < "10"', "python")
+        rowList1 = table.getWhereList('var1 < "10"', flavor="python")
         rowList2 = [p.nrow for p in table if p['var1'] < "10"]
         if verbose:
             print "Selected values:", rowList1
@@ -206,7 +206,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList('var2 == 0', "numpy", True)
+        rowList1 = table.getWhereList('var2 == 0', flavor="numpy", sort=True)
         rowList2 = [p.nrow for p in table if p['var2'] == 0]
         # Convert to a NumPy object
         rowList2 = numpy.array(rowList2, numpy.int64)
@@ -233,7 +233,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList('var3 < 15', "python", True)
+        rowList1 = table.getWhereList('var3 < 15', flavor="python", sort=True)
         rowList2 = [p.nrow for p in table if p["var3"] < 15]
         if verbose:
             print "Selected values:", rowList1
@@ -258,7 +258,7 @@ class BasicTestCase(unittest.TestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList('var4 < 10', "python", True)
+        rowList1 = table.getWhereList('var4 < 10', flavor="python", sort=True)
         rowList2 = [p.nrow for p in table if p['var4'] < 10]
         if verbose:
             print "Selected values:", rowList1
@@ -369,7 +369,7 @@ class BasicTestCase(unittest.TestCase):
         assert table.colindexed["var1"] == 1
 
         # Some sanity checks
-        rowList1 = table.getWhereList('var1 < "10"', "python")
+        rowList1 = table.getWhereList('var1 < "10"', flavor="python")
         rowList2 = [p.nrow for p in table if p['var1'] < "10"]
         if verbose:
             print "Selected values:", rowList1
@@ -412,11 +412,11 @@ class BasicTestCase(unittest.TestCase):
         assert table.colindexed["var1"] == 1
 
         # Some sanity checks
-        rowList1 = table.getWhereList('var1 < "10"', "python")
+        rowList1 = table.getWhereList('var1 < "10"', flavor="python")
         rowList2 = [p.nrow for p in table if p['var1'] < "10"]
         if verbose:
-            print "Selected values:", rowList1
-            print "Should look like:", rowList2
+            print "Selected values:", rowList1, type(rowList1)
+            print "Should look like:", rowList2, type(rowList2)
         assert len(rowList1) == len(rowList2)
         assert rowList1 == rowList2
 
@@ -525,6 +525,9 @@ class BasicTestCase(unittest.TestCase):
         class Distance(IsDescription):
             frame = Int32Col(pos=0, indexed=True)
             distance = FloatCol(pos=1)
+
+        # Delete the old temporal file
+        os.remove(self.file)
 
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, mode='w')
@@ -1034,7 +1037,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         assert table.nrows == self.nrows - 2
         if self.klass is NoReindex:
             # I'm not sure that the results below are what we want...
-            # But I don't think this is going to be important
+            # But I don't think this is going to be important:
             # the important thing is that dirtiness is working right
             # Francesc Altet 2004-12-31
 #             if self.reopen:
@@ -1066,7 +1069,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table.indexprops.auto == True
             assert table.indexprops.reindex == False
             filters = Filters(complevel=1, complib="zlib",
-                              shuffle=False, fletcher32=False)
+                              shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
         elif self.klass is ChangeFilters:
             assert table.indexprops.auto == True
@@ -1436,6 +1439,7 @@ class AI7TestCase(AutomaticIndexingTestCase):
 class AI8TestCase(AutomaticIndexingTestCase):
     sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=0)[0]
     nrows = ss*15+100
+    #nrows = ss*1+100  # faster test
     reopen = 1
     klass = NoReindex
 

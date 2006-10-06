@@ -58,10 +58,6 @@ from lrucacheExtension import ObjectCache
 
 __version__ = "$Revision: 1236 $"
 
-# version of index format
-#idx_version = "std"    # indexes for PyTables Standard
-idx_version = "pro"     # indexes for PyTables Pro
-
 # Python implementations of NextAfter and NextAfterF
 #
 # These implementations exist because the standard function
@@ -505,8 +501,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.tmpfilename = None
         """Filename for temporary bounds."""
 
-        # Set the version number of this object as an index, not a group.
-        self.is_pro = (idx_version == "pro")
         super(Index, self).__init__(
             parentNode, name, title, new, filters)
 
@@ -527,11 +521,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.chunksize = sorted.chunksize
             self.filters = sorted.filters
             self.reord_opts = sorted.reord_opts
-            if self.is_pro:
-                # The number of elements is at the end of the indices array
-                nelementsLR = self.indicesLR[-1]
-            else:
-                nelementsLR = 0
+            # The number of elements is at the end of the indices array
+            nelementsLR = self.indicesLR[-1]
             self.nrows = sorted.nrows
             self.nelements = self.nrows * self.slicesize + nelementsLR
             self.nelementsLR = nelementsLR
@@ -1078,7 +1069,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # The item is not in cache. Do the real lookup.
         sorted = self.sorted
         if sorted.nrows > 0:
-            if self.is_pro and self.stype != "CharType":
+            if self.stype != "CharType":
                 item1, item2 = item
                 # The next are optimizations. However, they hides the
                 # CPU functions consumptions from python profiles.
@@ -1094,7 +1085,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             else:
                 tlen = self.search_scalar(item, sorted)
         # Get possible remaing values in last row
-        if self.is_pro and self.nelementsLR > 0:
+        if self.nelementsLR > 0:
             # Look for more indexes in the last row
             (start, stop) = self.searchLastRow(item)
             self.starts[-1] = start
@@ -1284,9 +1275,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                      self.sorted.type, self.nelements, self.shape,
                      self.sorted.chunksize, self.sorted.byteorder,
                      self.filters, self.dirty, self.sorted, self.indices)
-        if self.is_pro:
-            retstr += "\n  ranges := %s" % self.ranges
-            retstr += "\n  bounds := %s" % self.bounds
-            retstr += "\n  sortedLR := %s" % self.sortedLR
-            retstr += "\n  indicesLR := %s" % self.indicesLR
+        retstr += "\n  ranges := %s" % self.ranges
+        retstr += "\n  bounds := %s" % self.bounds
+        retstr += "\n  sortedLR := %s" % self.sortedLR
+        retstr += "\n  indicesLR := %s" % self.indicesLR
         return retstr

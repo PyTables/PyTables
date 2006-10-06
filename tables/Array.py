@@ -545,8 +545,9 @@ class Array(hdf5Extension.Array, Leaf):
             # Here shape=shape should be enough, but it makes some
             # tests to fail. This should be analyzed more carefully.
             # F. Altet 2005-09-12
-                                 shape=countl)
-                                 #shape=shape)
+                                 #shape=countl)
+            # Checking it again with NumPy. 2006-10-06
+                                 shape=shape)
         else:
             narr = numpy.empty(shape=shape, dtype=self.type)
 

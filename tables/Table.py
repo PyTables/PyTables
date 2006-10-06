@@ -2058,7 +2058,7 @@ The 'names' parameter must be a list of strings.""")
             i += slicesize
         # index the remaining rows
         nremain = nrows - indexedrows
-        if lastrow and nremain > 0 and index.is_pro:
+        if lastrow and nremain > 0:
             index.appendLastRow(self._read(indexedrows, nrows, 1, colname),
                                 self.nrows)
             indexedrows += nremain
@@ -2728,7 +2728,13 @@ class Column(object):
         index = self.index
         if index:
             if hasattr(index._v_attrs, "DIRTY"):
-                self._dirty = dirty = getattr(index._v_attrs, "DIRTY")
+                dirty = getattr(index._v_attrs, "DIRTY")
+                # Turn numbers into logical values
+                if dirty:
+                    dirty = True
+                else:
+                    dirty = False
+                self._dirty = dirty
                 return dirty
             else:
                 # If don't have a DIRTY attribute, index should be clean
@@ -2747,7 +2753,6 @@ class Column(object):
         if index:
             setattr(index._v_attrs, "DIRTY", dirty)
             if dirty:
-                index.indicesLR[-1] = 0
                 index.nelementsLR = 0
                 index.nelements = 0
         # If an *actual* change in dirtiness happens,
@@ -2905,22 +2910,13 @@ Attempt to write over a file opened in read-only mode.""")
 
         # Feed the index with values
         slicesize = index.slicesize
-        if (not index.is_pro and
-            table.nrows < slicesize):
-            if warn:
-                warnings.warn(
-                    "not enough rows for indexing: "
-                    "you need at least %d rows and the table only has %d"
-                    % (slicesize, table.nrows))
-            return 0
         # Add rows to the index if necessary
         if table.nrows > 0:
             indexedrows = table._addRowsToIndex(
                 self.pathname, 0, table.nrows, lastrow=True )
         else:
             indexedrows = 0
-        if index.is_pro:
-            index.optimize(verbose=verbose)   # optimize indexes
+        index.optimize(verbose=verbose)   # optimize indexes
         self.dirty = False
         # Set some flags in table parent
         table.indexed = True
