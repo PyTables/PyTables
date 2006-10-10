@@ -728,38 +728,27 @@ def fromnumarray(rna, copy=False):
 
 # This function really belongs to nriterators.py, but has been moved here
 # so as to facilitate its use without having numarray installed
-def flattenNames(names, check=False):
+def flattenNames(names):
     """Flatten a names description of a buffer.
 
     Names of nested fields are returned with its full path, i.e.
     level1/level2/.../levelN.
-    If ``check`` is True the function returns None when it finds
-    some element with an incorrect format, i.e. an element that is
-    neither a string nor a 2-tuple. This is not strictely necessary, but
-    it is useful for testing purposes.
     """
-    i = iter(names)
-    if not i:
-        return
 
-    try:
-        item = i.next()
-        while item:
-            if isinstance(item, str):
-                yield item
-            elif isinstance(item, tuple) and len(item) == 2\
-            and isinstance(item[0], str) and isinstance(item[1], list):
-                for c in flattenNames(item[1], check):
-                    if c == None:
-                        yield c
-                    else:
-                        yield '%s/%s' % (item[0], c)
-            else:
-                if check:
-                    yield None
-            item = i.next()
-    except StopIteration:
-        pass
+    for item in names:
+        if type(item) == str:
+            yield item
+        elif ((type(item) == tuple and len(item) == 2) and
+              type(item[0]) == str and type(item[1]) == list):
+            # Format for a nested name
+            for c in flattenNames(item[1]):
+                if c == None:
+                    yield c
+                else:
+                    yield '%s/%s' % (item[0], c)
+        else:
+            raise TypeError, \
+                  """elements of the ``names`` list must be strings or 2-tuples"""
 
 
 if __name__=="__main__":

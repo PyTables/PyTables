@@ -122,10 +122,8 @@ def _checkNames(names):
         raise TypeError("""``names`` argument must be a list""")
 
     # Names elements must be strings or 2-tuples
-    for item in utils.flattenNames(names, check=True):
-        if item is None:
-            raise TypeError("""elements of the ``names`` list must be"""
-                """ strings or 2-tuples""")
+    # (flattenNames will issue a TypeError in case this is not true)
+    colnames = utils.flattenNames(names)
 
     # The names used in the names list should not contain the '/' string
     for item in nriterators.getSubNames(names):

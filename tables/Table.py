@@ -1118,7 +1118,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return row(start, stop, step, coords=None, ncoords=ncoords)
 
 
-    # XYX sembla inacabada....
     def readIndexed(self, condition, condvars=None, field=None, flavor=None):
         """
         Return a record array fulfilling the given `condition`.
@@ -1387,12 +1386,9 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 return numpy.empty(shape=0, dtype=stypeField)
 
         if coords is None:
-            #nrows = ((stop - start - 1) // step) + 1
             nrows = len(xrange(start, stop, step))
         else:
-            assert type(coords) is numpy.ndarray
-            assert coords.dtype.type == numpy.int64
-            # I should test for stop and start values as well
+            # We should test for stop and start values as well
             nrows = coords.size
 
         # Compute the shape of the resulting column object
@@ -1497,8 +1493,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 ``step`` must be 1 when the ``coords`` parameter is specified""")
             # Turn coords into an array of 64-bit indexes,
             # as expected by _read().
-            if not (type(coords) is numpy.ndarray and
-                    coords.dtype.type is numpy.int64):
+            if not (type(coords) == numpy.ndarray and
+                    coords.dtype.type == numpy.int64):
                 coords = numpy.asarray(coords, dtype=numpy.int64)
 
         arr = self._read(start, stop, step, field, coords)
@@ -1829,7 +1825,6 @@ You cannot append rows to a non-chunked table.""")
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
         # Compute the number of rows to read.
-        #nrows = ((stop - start - 1) / step) + 1
         nrows = len(xrange(start, stop, step))
         if len(rows) < nrows:
             raise ValueError, \
@@ -1924,7 +1919,6 @@ The 'colname' parameter must be a string.""")
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
         # Compute the number of rows to read.
-        #nrows = ((stop - start - 1) / step) + 1
         nrows = len(xrange(start, stop, step))
         if len(recarray) < nrows:
             raise ValueError, \
@@ -1999,7 +1993,6 @@ The 'names' parameter must be a list of strings.""")
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
         # Compute the number of rows to read.
-        #nrows = ((stop - start - 1) / step) + 1
         nrows = len(xrange(start, stop, step))
         if len(recarray) < nrows:
             raise ValueError, \
