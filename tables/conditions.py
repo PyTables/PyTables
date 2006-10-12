@@ -123,15 +123,34 @@ def _split_expression(exprnode, indexedcols):
     * '(0 < c1) & ((c2 > 2) & (c1 <= 1))' -> ('c1',['gt'],[0],#(c2>2)&(c1<=1)#)
 
     Expressions such as '0 < c1 <= 1' do not work as expected.
+
+    Right now only some of the *indexable comparisons* (i.e. the ones
+    which can be translated into a one-piece range) which are always
+    indexable *regardless of their limits*, are considered:
+
+    * ``a <[=] x``, ``a == x`` and ``a >[=] x``
+    * ``(a <[=] x) & (x <[=] b)`` and ``(a >[=] x) & (a >[=] b)``
+
+    Particularly, the following indexable comparisons are *not
+    considered*:
+
+    * ``(a == x) & (x == b)`` and ``(a == x) & (x != b)``
+    * ``(a == x) & (x >[=] b)``
+    * ``(a >[=] x) & (x <[=]b)``, ``(a <[=] x) & (x >[=]b)``
+    * ``(a >[=] x) | (x <[=]b)``, ``(a <[=] x) | (x >[=]b)``
     """
     not_indexable =  (None, [], [], exprnode)
 
-    # Indexable variable-constant comparison.
+    # Indexable variable-constant comparison.  Since comparisons like
+    # ``a != x`` are not indexable by themselves, they will not appear
+    # onwards.
     idxcmp = _get_indexable_cmp(exprnode, indexedcols)
     if idxcmp[0]:
         return (idxcmp[0], [idxcmp[1]], [idxcmp[2]], None)
 
-    # Only conjunctions of comparisons may be indexable.
+    # Only conjunctions of comparisons are considered for the moment.
+    # This excludes the indexable disjunctions
+    # ``(a <[=] x) | (x >[=] b)`` and ``(a >[=] x) | (x <[=] b)``.
     if exprnode.astType != 'op' or exprnode.value != 'and':
         return not_indexable
 
@@ -139,9 +158,17 @@ def _split_expression(exprnode, indexedcols):
     lcolvar, lop, llim = _get_indexable_cmp(left, indexedcols)
     rcolvar, rop, rlim = _get_indexable_cmp(right, indexedcols)
 
-    # Conjunction of indexable VC comparisons.
+    # Use conjunction of indexable VC comparisons like
+    # ``(a <[=] x) & (x <[=] b)`` or ``(a >[=] x) & (x >[=] b)``
+    # as ``a <[=] x <[=] b``, for the moment.  This excludes the
+    # indexable conjunctions ``(a == x) & (x >[=] b)``,
+    # ``(a == x) & (x == b)`` and ``(a == x) & (x != b)``,
+    # ``(a <[=] x) & (x >[=] b)`` and ``(a >[=] x) & (x <[=] b)``.
     if lcolvar and rcolvar and lcolvar == rcolvar:
-        return (lcolvar, [lop, rop], [llim, rlim], None)
+        if lop in ['gt', 'ge'] and rop in ['lt', 'le']:  # l <= x <= r
+            return (lcolvar, [lop, rop], [llim, rlim], None)  # l <= x <= r
+        elif lop in ['lt', 'le'] and rop in ['gt', 'ge']:  # l >= x >= r
+            return (rcolvar, [rop, lop], [rlim, llim], None)  # r <= x <= l
 
     # Indexable VC comparison on one side only.
     for (colvar, op, lim, other) in [ (lcolvar, lop, llim, right),

@@ -1052,6 +1052,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         if self.dirtycache:
             self.restorecache()
+
+        # An empty item means that the number of records is always
+        # going to be empty, so we avoid further computation
+        # (including looking up the limits cache).
+        if not item:
+            self.starts[:] = 0
+            self.lengths[:] = 0
+            return 0
+
         tlen = 0
         # Check whether the item tuple is in the limits cache or not
         nslot = self.limboundscache.getslot(item)
@@ -1193,19 +1202,16 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def getLookupRange(self, ops, limits, table):
-        supported_cmps = ['lt', 'le', 'eq', 'ge', 'gt']
-
         assert len(ops) in [1, 2]
         assert len(limits) in [1, 2]
         assert len(ops) == len(limits)
-        assert ops[0] in supported_cmps
-        assert len(ops) == 1 or ops[1] in supported_cmps
 
         column = self.column
         cstype = column.stype
         itemsize = table.colitemsizes[column.pathname]
 
         if len(limits) == 1:
+            assert ops[0] in ['lt', 'le', 'eq', 'ge', 'gt']
             limit = limits[0]
             op = ops[0]
             if op == 'lt':
@@ -1222,25 +1228,25 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                           infType(cstype, itemsize, sign=+1))
             elif op == 'eq':
                 range_ = (limit, limit)
+
         elif len(limits) == 2:
-            item1, item2 = limits
-            if item1 > item2:
-                raise ValueError(
-                    "in ``(val1 <[=] col) & (col <[=] val2)`` selections, "
-                    "``val1`` must be less or equal than ``val2``" )
-            if ops == ['gt', 'lt']:  # item1 < col < item2
-                range_ = (nextafter(item1, +1, cstype, itemsize),
-                          nextafter(item2, -1, cstype, itemsize))
-            elif ops == ['ge', 'lt']:  # item1 <= col < item2
-                range_ = (item1, nextafter(item2, -1, cstype, itemsize))
-            elif ops == ['gt', 'le']:  # item1 < col <= item2
-                range_ = (nextafter(item1, +1, cstype, itemsize), item2)
-            elif ops == ['ge', 'le']:  # item1 <= col <= item2
-                range_ = (item1, item2)
-            else:
-                raise ValueError(
-                    "combination of operators not supported, "
-                    "use ``(val1 <[=] col) & (col <[=] val2)``" )
+            assert ops[0] in ['gt', 'ge'] and ops[1] in ['lt', 'le']
+
+            lower, upper = limits
+            if lower > upper:
+                # ``a <[=] x <[=] b`` is always false if ``a > b``.
+                return ()
+
+            if ops == ['gt', 'lt']:  # lower < col < upper
+                range_ = (nextafter(lower, +1, cstype, itemsize),
+                          nextafter(upper, -1, cstype, itemsize))
+            elif ops == ['ge', 'lt']:  # lower <= col < upper
+                range_ = (lower, nextafter(upper, -1, cstype, itemsize))
+            elif ops == ['gt', 'le']:  # lower < col <= upper
+                range_ = (nextafter(lower, +1, cstype, itemsize), upper)
+            elif ops == ['ge', 'le']:  # lower <= col <= upper
+                range_ = (lower, upper)
+
         return range_
 
 
