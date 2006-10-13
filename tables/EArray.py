@@ -181,10 +181,10 @@ class EArray(Array):
         The object representation of this array.  It can be any of
         'numpy', 'numarray', 'numeric' or 'python'.
         """
-        self.type = None
-        """The type class of the represented array."""
-        self.stype = None
-        """The string type of the represented array."""
+        self.dtype = None
+        """The NumPy type of the represented array."""
+        self.ptype = None
+        """The PyTables type of the represented array."""
         self.itemsize = None
         """The size of the base items."""
 
@@ -217,7 +217,7 @@ class EArray(Array):
 
         # Max Tuples to fill the buffer
         maxTuples = buffersize // (rowsize * CHUNKTIMES)
-        chunksizes = list(atom.shape)
+        chunksizes = list(self.shape)
         # Check if at least 1 tuple fits in buffer
         if maxTuples >= 1:
             # Yes. So the chunk sizes for the non-extendeable dims will be
@@ -228,7 +228,7 @@ class EArray(Array):
             # shape
             chunksizes[extdim] = 1  # Only one row in extendeable dimension
             for j in range(len(chunksizes)):
-                newrowsize = atom.itemsize
+                newrowsize = atom.dtype.base.itemsize
                 for i in chunksizes[j+1:]:
                     newrowsize *= i
                 maxTuples = buffersize // newrowsize
@@ -244,7 +244,7 @@ class EArray(Array):
             else:
                 chunksizes[-1] = 1 # very large itemsizes!
         # Compute the correct maxTuples number
-        newrowsize = atom.itemsize
+        newrowsize = atom.dtype.base.itemsize
         for i in chunksizes:
             newrowsize *= i
         maxTuples = buffersize // (newrowsize * CHUNKTIMES)
@@ -262,23 +262,29 @@ class EArray(Array):
                 "the object passed to the ``EArray`` constructor "
                 "must be an instance of the ``Atom`` class")
 
-        if not isinstance(self.atom.shape, tuple):
+        if type(self.atom.shape) != tuple:
             raise TypeError(
                 "the ``shape`` in the ``Atom`` instance "
                 "must be a tuple for ``EArray``: %r"
                 % (self.atom.shape,))
 
-        # Version, type, shape, flavor, byteorder
+        # Version, dtype, ptype, shape, flavor, byteorder
         self._v_version = obversion
-        self.type = self.atom.type
-        self.stype = self.atom.stype
+        # Create a scalar version of dtype
+        #self.dtype = numpy.dtype((self.atom.dtype.base.type, ()))
+        # Overwrite the dtype attribute of the atom to convert it to a scalar
+        # (heck, I should find a more elegant way for dealing with this)
+        #self.atom.dtype = self.dtype
+        self.dtype = self.atom.dtype
+        self.ptype = self.atom.ptype
+        #self.shape = self.atom.dtype.shape
         self.shape = self.atom.shape
         self.flavor = self.atom.flavor
-        if self.stype == "CharType":
+        if self.ptype == "String":
             self.byteorder = "non-relevant"
         else:
             # Only support for creating objects in system byteorder
-            self.byteorder  = sys.byteorder
+            self.byteorder = sys.byteorder
 
         # extdim computation
         zerodims = numpy.sum(numpy.array(self.shape) == 0)
@@ -298,7 +304,7 @@ class EArray(Array):
             self.atom, self.extdim,
             self._v_expectedrows, self.filters.complevel)
         self.nrows = 0   # No rows initially
-        self.itemsize = self.atom.itemsize
+        self.itemsize = self.atom.dtype.base.itemsize
 
         self._v_objectID = self._createEArray(self._v_new_title)
         return self._v_objectID
@@ -307,28 +313,28 @@ class EArray(Array):
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        (self._v_objectID, type_, self.stype, self.shape,
+        (self._v_objectID, type_, self.ptype, self.shape,
          self.itemsize, self.byteorder, self._v_chunksize) = \
          self._openArray()  # sets `self.flavor`
 
-        stype = self.stype
+        ptype = self.ptype
         flavor = self.flavor
         # Post-condition
         assert self.extdim >= 0, "extdim < 0: this should never happen!"
         # Compute the real shape for atom:
         shape = list(self.shape)
         shape[self.extdim] = 0
-        if stype == "CharType":
+        if ptype == "String":
             # Add the length of the array at the end of the shape for atom
             shape.append(self.itemsize)
         shape = tuple(shape)
         # Create the atom instance and set definitive type
-        if stype == 'Enum':
+        if ptype == 'Enum':
             (enum, type_) = self._loadEnum()
             self.atom = EnumAtom(enum, type_, shape, flavor, warn=False)
         else:
-            self.atom = Atom(stype, shape, flavor, warn=False)
-        self.type = type_
+            self.atom = Atom(ptype, shape, flavor, warn=False)
+        self.dtype = type_
         # nrows in this instance
         self.nrows = self.shape[self.extdim]
         # Compute the optimal maxTuples
@@ -347,26 +353,15 @@ class EArray(Array):
         ``TypeError`` is raised.
         """
 
-        if self.atom.stype != 'Enum':
+        if self.atom.ptype != 'Enum':
             raise TypeError("array ``%s`` is not of an enumerated type"
                             % self._v_pathname)
 
         return self.atom.enum
 
 
-    def _checkTypeShape(self, nparr):
-        "Test that nparr parameter is shape and type compliant"
-
-        if nparr.dtype.kind == "S":
-            # Make an additional check for strings
-            if nparr.itemsize != self.itemsize:
-                nparr = numpy.array(nparr, dtype="S%s" % self.itemsize)
-
-        datatype = nparr.dtype.type
-        if datatype != self.type:
-            raise TypeError, \
-"""The object '%r' is not composed of elements of type '%s'.""" % \
-(nparr, self.type)
+    def _checkShape(self, nparr):
+        "Test that nparr shape is consistent with underlying EArray"
 
         # The arrays conforms self expandibility?
         myshlen = len(self.shape)
@@ -391,11 +386,11 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
         # The sequence needs to be copied to make the operation safe
         # to in-place conversion.
-        copy = self.stype in ['Time64']
+        copy = self.ptype in ['Time64']
         # Convert the sequence into a NumPy object
         nparr = convertToNPAtom(sequence, self.atom, copy)
-        # Check if it is correct type and shape
-        nparr = self._checkTypeShape(nparr)
+        # Check if it has a consistent shape with underlying EArray
+        nparr = self._checkShape(nparr)
         self._append(nparr)
 
 

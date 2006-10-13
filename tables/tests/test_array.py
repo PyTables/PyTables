@@ -87,10 +87,10 @@ class BasicTestCase(unittest.TestCase):
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         if a.dtype.kind == "S":
-            assert self.root.somearray.stype == "CharType"
+            assert self.root.somearray.ptype == "String"
         else:
             assert a.dtype == b.dtype
-            assert a.dtype.type == self.root.somearray.type
+            assert a.dtype == self.root.somearray.dtype
             assert a.dtype.byteorder == b.dtype.byteorder
             abo = bomap[a.dtype.byteorder]
             if abo <> "non-relevant":
@@ -209,13 +209,11 @@ class Basic0DTwoTestCase(BasicTestCase):
     endiancheck = True
 
 class Basic1DZeroTestCase(BasicTestCase):
-    # This test doesn't work at all, and that's normal
+    # This test case is not supported by PyTables (HDF5 limitations)
     # 1D case
     title = "Rank-1 case 0"
     tupleInt = ()
-    tupleChar = ()   # This is not supported yet by numarray
-    # This test needs at least numarray 0.8 to run
-    #tupleChar = strings.array(None, shape=(0,), itemsize=1)
+    tupleChar = ()
     endiancheck = False
 
 class Basic1DOneTestCase(BasicTestCase):
@@ -240,19 +238,25 @@ class Basic1DThreeTestCase(BasicTestCase):
     tupleChar = ("aaa", "bbb",)
     endiancheck = True
 
-class Basic2DTestCase(BasicTestCase):
+class Basic2DOneTestCase(BasicTestCase):
     # 2D case
-    title = "Rank-2"
+    title = "Rank-2 case 1"
     tupleInt = numpy.array(numpy.arange((4)**2)); tupleInt.shape = (4,)*2
     tupleChar = numpy.array(["abc"]*3**2, dtype="S3"); tupleChar.shape = (3,)*2
+    endiancheck = True
+
+class Basic2DTwoTestCase(BasicTestCase):
+    # 2D case, with a multidimensional dtype
+    title = "Rank-2 case 2"
+    tupleInt = numpy.array(numpy.arange((4)), dtype=(numpy.int_, (4,)))
+    tupleChar = numpy.array(["abc"]*3, dtype=("S3", (3,)))
     endiancheck = True
 
 class Basic10DTestCase(BasicTestCase):
     # 10D case
     title = "Rank-10 test"
     tupleInt = numpy.array(numpy.arange((2)**10)); tupleInt.shape = (2,)*10
-    # XYX Dimensions greater than 6 in numarray strings gives some warnings
-    tupleChar = numpy.array(["abc"]*2**6, dtype="S3"); tupleChar.shape=(2,)*6
+    tupleChar = numpy.array(["abc"]*2**10, dtype="S3"); tupleChar.shape=(2,)*10
     endiancheck = True
 
 class Basic32DTestCase(BasicTestCase):
@@ -324,10 +328,10 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         if a.dtype.kind == "S":
-            assert self.root.somearray.stype == "CharType"
+            assert self.root.somearray.ptype == "String"
         else:
             assert a.dtype == b.dtype
-            assert a.dtype.type == self.root.somearray.type
+            assert a.dtype == self.root.somearray.dtype
             assert bomap[a.dtype.byteorder] == bomap[b.dtype.byteorder]
             assert bomap[a.dtype.byteorder] == self.root.somearray.byteorder
 
@@ -493,7 +497,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             if verbose:
                 print "Info from dataset:", dset._v_pathname
                 print "  shape ==>", dset.shape,
-                print "  type ==> %s" % dset.type
+                print "  type ==> %s" % dset.dtype
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==>" % b.dtype
             assert a.shape == b.shape
@@ -630,7 +634,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.flavor == array2.flavor
-        assert array1.type == array2.type
+        assert array1.dtype == array2.dtype
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
 
@@ -678,7 +682,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.flavor == array2.flavor
-        assert array1.type == array2.type
+        assert array1.dtype == array2.dtype
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
 
@@ -724,7 +728,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.type == array2.type
+        assert array1.dtype == array2.dtype
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
 
@@ -1858,8 +1862,8 @@ class NonHomogeneousTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Test for creation of non-homogeneous arrays."""
         # This checks ticket #12.
         h5file = self.h5file
-        self.assertRaises( ValueError, h5file.createArray, '/', 'test',
-                           [1, [2, 3]] )
+        self.assertRaises(ValueError, h5file.createArray, '/', 'test',
+                          [1, [2, 3]] )
         self.assertRaises(NoSuchNodeError, h5file.removeNode, '/test')
 
 
@@ -1875,7 +1879,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Basic1DOneTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DTwoTestCase))
         theSuite.addTest(unittest.makeSuite(Basic1DThreeTestCase))
-        theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic2DOneTestCase))
+        theSuite.addTest(unittest.makeSuite(Basic2DTwoTestCase))
         theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
         # The 32 dimensions case is tested on GroupsArray
         #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))

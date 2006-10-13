@@ -212,11 +212,11 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 """When creating VLArrays, none of the dimensions of the Atom instance can
 be zero."""
 
-        self._atomictype = self.atom.type
-        self._atomicstype = self.atom.stype
+        self._atomicdtype = self.atom.dtype
+        self._atomicptype = self.atom.ptype
         self._atomicshape = self.atom.shape
         self._atomicsize = self.atom.atomsize()
-        self._basesize = self.atom.itemsize
+        self._basesize = self.atom.dtype.itemsize
         self.flavor = self.atom.flavor
 
         # Compute the optimal chunksize
@@ -234,22 +234,22 @@ be zero."""
         (self._v_objectID, self.nrows) = self._openArray()
 
         flavor = self.flavor
-        stype = self._atomicstype
+        ptype = self._atomicptype
         # First, check the special cases VLString and Object types
         if flavor == "VLString":
             self.atom = VLStringAtom()
         elif flavor == "Object":
             self.atom = ObjectAtom()
-        elif stype == 'CharType':
+        elif ptype == 'String':
             self.atom = StringAtom(self._atomicshape, self._basesize,
                                    flavor, warn=False)
-        elif stype == 'Enum':
+        elif ptype == 'Enum':
             (enum, type_) = self._loadEnum()
             self.atom = EnumAtom(enum, type_, self._atomicshape,
                                  flavor, warn=False)
-            self._atomictype = type_
+            self._atomicdtype = type_
         else:
-            self.atom = Atom(stype, self._atomicshape, flavor, warn=False)
+            self.atom = Atom(ptype, self._atomicshape, flavor, warn=False)
 
         return self._v_objectID
 
@@ -299,7 +299,7 @@ be zero."""
         ``TypeError`` is raised.
         """
 
-        if self.atom.stype != 'Enum':
+        if self.atom.ptype != 'Enum':
             raise TypeError("array ``%s`` is not of an enumerated type"
                             % self._v_pathname)
 
@@ -388,7 +388,7 @@ please put them in a single sequence object"""),
         if len(object) > 0:
             # The object needs to be copied to make the operation safe
             # to in-place conversion.
-            copy = self._atomicstype in ['Time64']
+            copy = self._atomicptype in ['Time64']
             nparr = convertToNPAtom(object, self.atom, copy)
             nobjects = self._checkShape(nparr)
         else:

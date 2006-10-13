@@ -581,11 +581,11 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         """A verbose representation of this class"""
 
         return """%s
-  type = %r
+  ptype = %r
   shape = %s
   itemsize = %s
   nrows = %s
   slicesize = %s
   chunksize = %s
-  byteorder = %r""" % (self, self.type, self.shape, self.itemsize, self.nrows,
+  byteorder = %r""" % (self, self.ptype, self.shape, self.itemsize, self.nrows,
                        self.slicesize, self.chunksize, self.byteorder)

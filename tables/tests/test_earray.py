@@ -56,7 +56,7 @@ class BasicTestCase(unittest.TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        if self.type == "CharType":
+        if self.type == "String":
             atom = StringAtom(shape=self.shape, length=self.length,
                               flavor=self.flavor)
         else:
@@ -81,12 +81,12 @@ class BasicTestCase(unittest.TestCase):
         self.objsize *= self.chunksize
         self.rowshape[earray.extdim] = self.chunksize
 
-        if self.type == "CharType":
+        if self.type == "String":
             object = numpy.ndarray(buffer="a"*self.objsize,
                                    shape=self.rowshape,
                                    dtype="S%s" % earray.itemsize)
         else:
-            object = numpy.arange(self.objsize, dtype=earray.type)
+            object = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
             object.shape = self.rowshape
         if self.flavor == "numarray":
             object = convertNPToNumArray(object)
@@ -99,14 +99,14 @@ class BasicTestCase(unittest.TestCase):
             else:
                 print "Object to append -->", repr(object)
         for i in range(self.nappends):
-            if self.type == "CharType":
+            if self.type == "String":
                 earray.append(object)
             elif self.flavor in ["numarray","numpy"]:
                 earray.append(object*i)
             else:
                 object = object * i
                 # For Numeric arrays, we still have to undo the type upgrade
-                earray.append(object.astype(typecode[earray.stype]))
+                earray.append(object.astype(typecode[earray.ptype]))
 
     def tearDown(self):
         self.fileh.close()
@@ -136,12 +136,12 @@ class BasicTestCase(unittest.TestCase):
             print "reopening?:", self.reopen
 
         # Build the array to do comparisons
-        if self.type == "CharType":
+        if self.type == "String":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.type)
+            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
@@ -153,12 +153,12 @@ class BasicTestCase(unittest.TestCase):
         for row in earray:
             chunk = int(earray.nrow % self.chunksize)
             if chunk == 0:
-                if self.type == "CharType":
+                if self.type == "String":
                     object__ = object_
                 else:
                     object__ = object_ * (earray.nrow / self.chunksize)
                     if self.flavor == "numeric":
-                        object__ = object__.astype(typecode[earray.stype])
+                        object__ = object__.astype(typecode[earray.ptype])
             object = object__[chunk]
             # The next adds much more verbosity
             if verbose and 0:
@@ -215,12 +215,12 @@ class BasicTestCase(unittest.TestCase):
             print "reopening?:", self.reopen
 
         # Build the array to do comparisons
-        if self.type == "CharType":
+        if self.type == "String":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.type)
+            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
@@ -236,12 +236,12 @@ class BasicTestCase(unittest.TestCase):
                 index = 0
             else:
                 index = int(earray.nrow % self.chunksize)
-            if self.type == "CharType":
+            if self.type == "String":
                 object__ = object_
             else:
                 object__ = object_ * (earray.nrow / self.chunksize)
                 if self.flavor == "numeric":
-                    object__ = object__.astype(typecode[earray.stype])
+                    object__ = object__.astype(typecode[earray.ptype])
             object = object__[index]
             # The next adds much more verbosity
             if verbose and 0:
@@ -285,12 +285,12 @@ class BasicTestCase(unittest.TestCase):
             print "reopening?:", self.reopen
 
         # Build the array to do comparisons
-        if self.type == "CharType":
+        if self.type == "String":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.type)
+            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
@@ -300,7 +300,7 @@ class BasicTestCase(unittest.TestCase):
 
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
-        if self.type == "CharType":
+        if self.type == "String":
             object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
         else:
             object__ = numpy.empty(shape=rowshape, dtype=self.type)
@@ -318,13 +318,13 @@ class BasicTestCase(unittest.TestCase):
 
         for i in range(self.nappends):
             j = i * self.chunksize
-            if self.type == "CharType":
+            if self.type == "String":
                 object__[j:j+self.chunksize] = object_
             else:
                 if self.flavor in ["numarray", "numpy"]:
                     object__[j:j+self.chunksize] = object_ * i
                 else:
-                    object__[j:j+self.chunksize] = (object_ * i).astype(typecode[earray.stype])
+                    object__[j:j+self.chunksize] = (object_ * i).astype(typecode[earray.ptype])
         stop = self.stop
 
         if self.nappends:
@@ -411,12 +411,12 @@ class BasicTestCase(unittest.TestCase):
             print "reopening?:", self.reopen
 
         # Build the array to do comparisons
-        if self.type == "CharType":
+        if self.type == "String":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s"%earray.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.type)
+            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
             object_.shape = self.rowshape
 
         # Additional conversion for the numarray case
@@ -428,7 +428,7 @@ class BasicTestCase(unittest.TestCase):
 
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
-        if self.type == "CharType":
+        if self.type == "String":
             object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
         else:
             object__ = numpy.empty(shape=rowshape, dtype=self.type)
@@ -441,7 +441,7 @@ class BasicTestCase(unittest.TestCase):
 
         for i in range(self.nappends):
             j = i * self.chunksize
-            if self.type == "CharType":
+            if self.type == "String":
                 object__[j:j+self.chunksize] = object_
             else:
                 object__[j:j+self.chunksize] = object_ * i
@@ -524,12 +524,12 @@ class BasicTestCase(unittest.TestCase):
             print "reopening?:", self.reopen
 
         # Build the array to do comparisons
-        if self.type == "CharType":
+        if self.type == "String":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s"%earray.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.type)
+            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
             object_.shape = self.rowshape
             
         # Additional conversion for the numarray case
@@ -541,7 +541,7 @@ class BasicTestCase(unittest.TestCase):
 
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
-        if self.type == "CharType":
+        if self.type == "String":
             object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
         else:
             object__ = numpy.empty(shape=rowshape, dtype=self.type)
@@ -554,7 +554,7 @@ class BasicTestCase(unittest.TestCase):
 
         for i in range(self.nappends):
             j = i * self.chunksize
-            if self.type == "CharType":
+            if self.type == "String":
                 object__[j:j+self.chunksize] = object_
             else:
                 object__[j:j+self.chunksize] = object_ * i
@@ -580,7 +580,7 @@ class BasicTestCase(unittest.TestCase):
         elif self.flavor == "numeric":
             object = Numeric.asarray(object)
 
-        if self.type == "CharType":
+        if self.type == "String":
             if hasattr(self, "wslice"):
                 # These sentences should be equivalent
                 #object[self.wslize] = object[self.wslice].pad("xXx")
@@ -949,8 +949,8 @@ class ComplexTypeTestCase(BasicTestCase):
     stop = 10
     step = 20
 
-class CharTypeTestCase(BasicTestCase):
-    type = "CharType"
+class StringTestCase(BasicTestCase):
+    type = "String"
     length = 20
     shape = (2, 0)
     #shape = (2,0,20)
@@ -961,8 +961,8 @@ class CharTypeTestCase(BasicTestCase):
     step = 20
     slices = (slice(0,1),slice(1,2))
 
-class CharType2TestCase(BasicTestCase):
-    type = "CharType"
+class String2TestCase(BasicTestCase):
+    type = "String"
     length = 20
     shape = (0,)
     #shape = (0, 20)
@@ -972,8 +972,8 @@ class CharType2TestCase(BasicTestCase):
     stop = 10
     step = 2
 
-class CharTypeComprTestCase(BasicTestCase):
-    type = "CharType"
+class StringComprTestCase(BasicTestCase):
+    type = "String"
     length = 20
     shape = (20,0,10)
     #shape = (20,0,10,20)
@@ -1027,9 +1027,9 @@ class NumarrayComprTestCase(BasicTestCase):
     stop = 100
     step = 7
 
-class CharTypeNumarrayTestCase(BasicTestCase):
+class StringNumarrayTestCase(BasicTestCase):
     flavor = "numarray"
-    type = "CharType"
+    type = "String"
     length = 20
     shape = (2, 0)
     #shape = (2,0,20)
@@ -1040,9 +1040,9 @@ class CharTypeNumarrayTestCase(BasicTestCase):
     step = 20
     slices = (slice(0,1),slice(1,2))
 
-class CharType2NumarrayTestCase(BasicTestCase):
+class String2NumarrayTestCase(BasicTestCase):
     flavor = "numarray"
-    type = "CharType"
+    type = "String"
     length = 20
     shape = (0,)
     #shape = (0, 20)
@@ -1052,9 +1052,9 @@ class CharType2NumarrayTestCase(BasicTestCase):
     stop = 10
     step = 2
 
-class CharTypeComprNumarrayTestCase(BasicTestCase):
+class StringComprNumarrayTestCase(BasicTestCase):
     flavor = "numarray"
-    type = "CharType"
+    type = "String"
     length = 20
     shape = (20,0,10)
     #shape = (20,0,10,20)
@@ -1302,7 +1302,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
-        assert array1.type == array2.type
+        assert array1.dtype == array2.dtype
+        assert array1.ptype == array2.ptype
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1361,7 +1362,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
-        assert array1.type == array2.type
+        assert array1.dtype == array2.dtype
+        assert array1.ptype == array2.ptype
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1416,7 +1418,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.type == array2.type
+        assert array1.dtype == array2.dtype
+        assert array1.ptype == array2.ptype
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1471,7 +1474,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.type == array2.type
+        assert array1.dtype == array2.dtype
+        assert array1.ptype == array2.ptype
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1524,7 +1528,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.type == array2.type
+        assert array1.dtype == array2.dtype
+        assert array1.ptype == array2.ptype
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1578,7 +1583,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.type == array2.type
+        assert array1.dtype == array2.dtype
+        assert array1.ptype == array2.ptype
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1631,7 +1637,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.type == array2.type
+        assert array1.dtype == array2.dtype
+        assert array1.ptype == array2.ptype
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -2252,9 +2259,9 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BZIP2ShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(FloatTypeTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexTypeTestCase))
-        theSuite.addTest(unittest.makeSuite(CharTypeTestCase))
-        theSuite.addTest(unittest.makeSuite(CharType2TestCase))
-        theSuite.addTest(unittest.makeSuite(CharTypeComprTestCase))
+        theSuite.addTest(unittest.makeSuite(StringTestCase))
+        theSuite.addTest(unittest.makeSuite(String2TestCase))
+        theSuite.addTest(unittest.makeSuite(StringComprTestCase))
         if numeric_imported:
             theSuite.addTest(unittest.makeSuite(Numeric1TestCase))
             theSuite.addTest(unittest.makeSuite(Numeric2TestCase))
@@ -2262,8 +2269,8 @@ def suite():
         if numarray_imported:
             theSuite.addTest(unittest.makeSuite(Numarray2TestCase))
             theSuite.addTest(unittest.makeSuite(NumarrayComprTestCase))
-            theSuite.addTest(unittest.makeSuite(CharTypeNumarrayTestCase))
-            theSuite.addTest(unittest.makeSuite(CharType2NumarrayTestCase))
+            theSuite.addTest(unittest.makeSuite(StringNumarrayTestCase))
+            theSuite.addTest(unittest.makeSuite(String2NumarrayTestCase))
             theSuite.addTest(unittest.makeSuite(NP_EmptyEArrayTestCase))
             theSuite.addTest(unittest.makeSuite(NP_MD6WriteTestCase))
             theSuite.addTest(unittest.makeSuite(NP_MD10WriteTestCase))
@@ -2301,12 +2308,12 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Rows64bitsTestCase1))
         theSuite.addTest(unittest.makeSuite(Rows64bitsTestCase2))
         # XYX
-        # The CharTypeComprNumpyTestCase takes muchs more time than
-        # its equivalent in numarray CharTypeComprTestCase.
+        # The StringComprNumpyTestCase takes muchs more time than
+        # its equivalent in numarray StringComprTestCase.
         # This should be further analyzed.
         # F. Altet 2006-02-03
         if numarray_imported:
-            theSuite.addTest(unittest.makeSuite(CharTypeComprNumarrayTestCase))
+            theSuite.addTest(unittest.makeSuite(StringComprNumarrayTestCase))
 
     return theSuite
 

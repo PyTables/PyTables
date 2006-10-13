@@ -91,7 +91,7 @@ class NumericTestCase(HDF5CompatibilityTestCase):
         arr = self.h5file.getNode('/TestArray')
         self.assert_(isinstance(arr, tables.Array))
 
-        self.assertEqual(arr.stype, self.stype)
+        self.assertEqual(arr.ptype, self.ptype)
         self.assertEqual(arr.byteorder, self.byteorder)
         self.assertEqual(arr.shape, (6, 5))
 
@@ -102,39 +102,39 @@ class NumericTestCase(HDF5CompatibilityTestCase):
             [2, 3, 4, 5, 6],
             [3, 4, 5, 6, 7],
             [4, 5, 6, 7, 8],
-            [5, 6, 7, 8, 9]], dtype=self.stype)
+            [5, 6, 7, 8, 9]], dtype=self.ptype)
         self.assert_(common.areArraysEqual(data, expectedData))
 
 
 
 class F64BETestCase(NumericTestCase):
     h5fname = common.testFilename('smpl_f64be.h5')
-    stype = 'Float64'
+    ptype = 'Float64'
     byteorder = 'big'
 
 class F64LETestCase(NumericTestCase):
     h5fname = common.testFilename('smpl_f64le.h5')
-    stype = 'Float64'
+    ptype = 'Float64'
     byteorder = 'little'
 
 class I64BETestCase(NumericTestCase):
     h5fname = common.testFilename('smpl_i64be.h5')
-    stype = 'Int64'
+    ptype = 'Int64'
     byteorder = 'big'
 
 class I64LETestCase(NumericTestCase):
     h5fname = common.testFilename('smpl_i64le.h5')
-    stype = 'Int64'
+    ptype = 'Int64'
     byteorder = 'little'
 
 class I32BETestCase(NumericTestCase):
     h5fname = common.testFilename('smpl_i32be.h5')
-    stype = 'Int32'
+    ptype = 'Int32'
     byteorder = 'big'
 
 class I32LETestCase(NumericTestCase):
     h5fname = common.testFilename('smpl_i32le.h5')
-    stype = 'Int32'
+    ptype = 'Int32'
     byteorder = 'little'
 
 
@@ -160,23 +160,23 @@ class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
             tbl.colnames,
             ('a_name', 'c_name', 'd_name', 'e_name', 'f_name', 'g_name'))
 
-        self.assertEqual(tbl.colstypes['a_name'], 'Int32')
-        self.assertEqual(tbl.colshapes['a_name'], 1)
+        self.assertEqual(tbl.colptypes['a_name'], 'Int32')
+        self.assertEqual(tbl.coldtypes['a_name'].shape, ())
 
-        self.assertEqual(tbl.colstypes['c_name'], 'CharType')
-        self.assertEqual(tbl.colshapes['c_name'], 1)
+        self.assertEqual(tbl.colptypes['c_name'], 'String')
+        self.assertEqual(tbl.coldtypes['c_name'].shape, ())
 
-        self.assertEqual(tbl.colstypes['d_name'], 'Int16')
-        self.assertEqual(tbl.colshapes['d_name'], (5, 10))
+        self.assertEqual(tbl.colptypes['d_name'], 'Int16')
+        self.assertEqual(tbl.coldtypes['d_name'].shape, (5, 10))
 
-        self.assertEqual(tbl.colstypes['e_name'], 'Float32')
-        self.assertEqual(tbl.colshapes['e_name'], 1)
+        self.assertEqual(tbl.colptypes['e_name'], 'Float32')
+        self.assertEqual(tbl.coldtypes['e_name'].shape, ())
 
-        self.assertEqual(tbl.colstypes['f_name'], 'Float64')
-        self.assertEqual(tbl.colshapes['f_name'], (10,))
+        self.assertEqual(tbl.colptypes['f_name'], 'Float64')
+        self.assertEqual(tbl.coldtypes['f_name'].shape, (10,))
 
-        self.assertEqual(tbl.colstypes['g_name'], 'UInt8')
-        self.assertEqual(tbl.colshapes['g_name'], 1)
+        self.assertEqual(tbl.colptypes['g_name'], 'UInt8')
+        self.assertEqual(tbl.coldtypes['g_name'].shape, ())
 
         for m in range(len(tbl)):
             row = tbl[m]
@@ -215,17 +215,17 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
             tbl.colnames,
             ('a', 'b', 'c', 'd'))
 
-        self.assertEqual(tbl.colstypes['a'], 'Float64')
-        self.assertEqual(tbl.colshapes['a'], 1)
+        self.assertEqual(tbl.colptypes['a'], 'Float64')
+        self.assertEqual(tbl.coldtypes['a'].shape, ())
 
-        self.assertEqual(tbl.colstypes['b'], 'Float64')
-        self.assertEqual(tbl.colshapes['b'], 1)
+        self.assertEqual(tbl.colptypes['b'], 'Float64')
+        self.assertEqual(tbl.coldtypes['b'].shape, ())
 
-        self.assertEqual(tbl.colstypes['c'], 'Float64')
-        self.assertEqual(tbl.colshapes['c'], (2,))
+        self.assertEqual(tbl.colptypes['c'], 'Float64')
+        self.assertEqual(tbl.coldtypes['c'].shape, (2,))
 
-        self.assertEqual(tbl.colstypes['d'], 'CharType')
-        self.assertEqual(tbl.colshapes['d'], 1)
+        self.assertEqual(tbl.colptypes['d'], 'String')
+        self.assertEqual(tbl.coldtypes['d'].shape, ())
 
         for row in tbl.iterrows():
             self.assertEqual(row['a'], 3.0)
@@ -266,7 +266,7 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
         self.assert_(isinstance(arr, tables.EArray))
 
         self.assertEqual(arr.byteorder, 'big')
-        self.assertEqual(arr.atom.stype, 'Int32')
+        self.assertEqual(arr.atom.ptype, 'Int32')
         self.assertEqual(arr.atom.shape, (0, 5))
         self.assertEqual(len(arr), 10)
 
@@ -281,7 +281,7 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
             [2, 0, 0, 0, 0],
             [2, 0, 0, 0, 0],
             [2, 0, 0, 0, 0],
-            [2, 0, 0, 0, 0]], dtype=arr.atom.stype)
+            [2, 0, 0, 0, 0]], dtype=arr.atom.ptype)
         self.assert_(common.areArraysEqual(data, expectedData))
 
 

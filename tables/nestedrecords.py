@@ -661,7 +661,7 @@ def convertToAPDescr(descr, byteorder):
                 except TypeError, AttributeError:
                     raise ValueError('format %s is not recognized' %  _fmt[i])
                 _dtype = _dtype.strip()
-                # CharType needs special treatment
+                # String type needs special treatment
                 if _dtype[0] == 'a':
                     _dtype = '|S'+_dtype[1:]
                 else:
@@ -710,7 +710,7 @@ def convertFromAPDescr(array_descr):
                 if _dtype in revfmt.values():
                     _dtype = _dtype
                 elif _dtype[0] == 'S':
-                    # CharType needs special treatment
+                    # String type needs special treatment
                     _dtype = 'a'+_dtype[1:]
                 elif _dtype[0] == "V":
                     raise NotImplementedError, """ \

@@ -211,9 +211,9 @@ class Table(TableExtension.Table, Leaf):
         rowsize -- the size, in bytes, of each row
         cols -- accessor to the columns using a natural name schema
         colnames -- the field names for the table (list)
-        coltypes -- the type class for the table fields (dictionary)
-        colstypes -- the string type for the table fields (dictionary)
-        colshapes -- the shapes for the table fields (dictionary)
+        coldtypes -- the dtype class for the table fields (dictionary)
+        colptypes -- the PyTables type for the table fields (dictionary)
+        coldflts -- the defaults for each column (dictionary)
         colindexed -- whether the table fields are indexed (dictionary)
         indexed -- whether or not some field in Table is indexed
         indexprops -- properties of an indexed Table
@@ -241,7 +241,7 @@ class Table(TableExtension.Table, Leaf):
 
 
     def _g_getrowsize(self):
-        return self.description._v_totalsize
+        return self.description._v_dtype.itemsize
     rowsize = property(_g_getrowsize, None, None,
                        "The size in bytes of each row in the table.")
 
@@ -265,17 +265,13 @@ class Table(TableExtension.Table, Leaf):
                       "The flavor that will be used when returning read data.")
 
 
-    def _g_getemptyarray(self, type, isize=None):
+    def _g_getemptyarray(self, dtype):
         # Acts as a cache for empty arrays
-        key = (type, isize)
-        if key in self._emptyArrayCache.keys():
+        key = dtype
+        if key in self._emptyArrayCache:
             return self._emptyArrayCache[key]
         else:
-            if type == "CharType":
-                dtype = "|S%s" % isize
-            else:
-                dtype = type
-            self._emptyArrayCache[key] = arr = numpy.empty(shape=0, dtype=dtype)
+            self._emptyArrayCache[key] = arr = numpy.empty(shape=0, dtype=key)
             return arr
 
 
@@ -355,7 +351,7 @@ class Table(TableExtension.Table, Leaf):
         self._time64colnames = []
         """The names of ``Time64`` columns."""
         self._strcolnames = []
-        """The names of ``CharType`` columns."""
+        """The names of ``String`` columns."""
         self._colenums = {}
         """Maps the name of an enumerated column to its ``Enum`` instance."""
         self._v_maxTuples = None
@@ -380,14 +376,10 @@ class Table(TableExtension.Table, Leaf):
         A tuple containing the (possibly nested) names of the columns in
         the table.
         """
-        self.coltypes = {}
-        """Maps the name of a column to its data type."""
-        self.colstypes = {}
-        """Maps the name of a column to its data string type."""
-        self.colshapes = {}
-        """Maps the name of a column to it shape."""
-        self.colitemsizes = {}
-        """Maps the name of a column to the size of its base items."""
+        self.coldtypes = {}
+        """Maps the name of a column to its NumPy data type."""
+        self.colptypes = {}
+        """Maps the name of a column to its PyTables data type."""
         self.coldflts = {}
         """Maps the name of a column to its default value."""
         self.colindexed = {}
@@ -613,12 +605,12 @@ class Table(TableExtension.Table, Leaf):
         # is called
 
 
-    def _getTypeColNames(self, stype):
-        """Returns a list containing 'stype' column names."""
+    def _getTypeColNames(self, ptype):
+        """Returns a list containing 'ptype' column names."""
 
         return [ colobj._v_pathname
                  for colobj in self.description._v_walk('Col')
-                 if colobj.stype == stype ]
+                 if colobj.ptype == ptype ]
 
 
     def _getEnumMap(self):
@@ -626,7 +618,7 @@ class Table(TableExtension.Table, Leaf):
 
         enumMap = {}
         for colobj in self.description._v_walk('Col'):
-            if colobj.stype == 'Enum':
+            if colobj.ptype == 'Enum':
                 enumMap[colobj._v_pathname] = colobj.enum
         return enumMap
 
@@ -668,8 +660,8 @@ class Table(TableExtension.Table, Leaf):
 
         # Find Time64 column names. (This should be generalised.)
         self._time64colnames = self._getTypeColNames('Time64')
-        # Find CharType column names.
-        self._strcolnames = self._getTypeColNames('CharType')
+        # Find String column names.
+        self._strcolnames = self._getTypeColNames('String')
         # Get a mapping of enumerated columns to their `Enum` instances.
         self._colenums = self._getEnumMap()
 
@@ -699,12 +691,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Compute some important parameters for createTable
         for colobj in self.description._v_walk(type="Col"):
             colname = colobj._v_pathname
-            # Get the column types and string types
-            self.coltypes[colname] = colobj.type
-            self.colstypes[colname] = colobj.stype
-            # Extract the shapes and itemsizes for columns
-            self.colshapes[colname] = colobj.shape
-            self.colitemsizes[colname] = colobj.itemsize
+            # Get the column dtypes, ptypes and defaults
+            self.coldtypes[colname] = colobj.dtype
+            self.colptypes[colname] = colobj.ptype
             self.coldflts[colname] = colobj.dflt
             # Indexed?
             colindexed = colobj.indexed
@@ -739,7 +728,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             i += 1
 
         # Cache _v_dtype for this table
-        self._v_dtype = numpy.dtype(self.description._v_nestedDescr)
+        self._v_dtype = self.description._v_dtype
 
         # Finally, return the object identifier.
         return self._v_objectID
@@ -784,14 +773,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # The expectedrows would be the actual number
         self._v_expectedrows = self.nrows
 
-        # Extract the coltypes, colstypes, shapes and itemsizes
-        # self.colnames, coltypes, col*... should be removed?
+        # Extract the coldtypes, colptypes, coldflts
+        # self.colnames, coldtypes, col*... should be removed?
         self.colnames = tuple(self.description._v_nestedNames)
 
         # Find Time64 column names.
         self._time64colnames = self._getTypeColNames('Time64')
-        # Find CharType column names.
-        self._strcolnames = self._getTypeColNames('CharType')
+        # Find String column names.
+        self._strcolnames = self._getTypeColNames('String')
         # Get a mapping of enumerated columns to their `Enum` instances.
         self._colenums = self._getEnumMap()
 
@@ -802,16 +791,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Get info about columns
         for colobj in self.description._v_walk(type="Col"):
             colname = colobj._v_pathname
-            # Get the column types and string types
-            self.coltypes[colname] = colobj.type
-            self.colstypes[colname] = colobj.stype
-            # Extract the shapes and itemsizes for columns
-            self.colshapes[colname] = colobj.shape
-            self.colitemsizes[colname] = colobj.itemsize
+            # Get the column types, ptypes and defaults
+            self.coldtypes[colname] = colobj.dtype
+            self.colptypes[colname] = colobj.ptype
             self.coldflts[colname] = colobj.dflt
 
-        # Cache _v_dtype for this table
-        self._v_dtype = numpy.dtype(self.description._v_nestedDescr)
+        # Assign _v_dtype for this table
+        self._v_dtype = self.description._v_dtype
 
         return self._v_objectID
 
@@ -980,7 +966,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Extract types from *all* the given variables.
         typemap = dict(zip(varnames, vartypes))  # start with normal variables
         for colname in colnames:  # then add types of columns
-            coltype = condvars[colname].type
+            # We cannot put just self.dtype.type as per
+            # http://projects.scipy.org/scipy/numpy/ticket/334
+            coltype = condvars[colname].dtype.base.type
             typemap[colname] = _nxTypeFromNPType[coltype]
 
         # Get the set of columns with usable indexes.
@@ -1362,7 +1350,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         select_field = None
         if field:
-            if field not in self.coltypes:
+            if field not in self.coldtypes:
                 if field in self.description._v_names:
                     # Remember to select this field
                     select_field = field
@@ -1372,18 +1360,15 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                           (field, self)
             else:
                 # The column hangs directly from the top
-                typeField = self.coltypes[field]
-                stypeField = self.colstypes[field]
+                dtypeField = self.coldtypes[field]
+                ptypeField = self.colptypes[field]
 
         # Return a rank-0 array if start > stop
         if start >= stop:
             if field == None:
                 nra = self._get_container(0)
                 return nra
-            elif typeField is numpy.string_:
-                return numpy.empty(shape=0, dtype="|S1")
-            else:
-                return numpy.empty(shape=0, dtype=stypeField)
+            return numpy.empty(shape=0, dtype=dtypeField)
 
         if coords is None:
             nrows = len(xrange(start, stop, step))
@@ -1393,25 +1378,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         # Compute the shape of the resulting column object
         if field and coords is None:  # coords handling expects a RecArray
-            shape = self.colshapes[field]
-            itemsize = self.colitemsizes[field]
-            if type(shape) in (int,long):
-                if shape == 1:
-                    shape = (nrows,)
-                else:
-                    shape = (nrows, shape)
-            else:
-                shape2 = [nrows]
-                shape2.extend(shape)
-                shape = tuple(shape2)
-
-            # Create the resulting recarray
-            if typeField is numpy.string_:
-                # String-column case
-                result = numpy.empty(shape=shape, dtype="|S%s"%itemsize)
-            else:
-                # Non-string column case
-                result = numpy.empty(shape=shape, dtype=stypeField)
+            # Create a container for the results
+            result = numpy.empty(shape=nrows, dtype=dtypeField)
         else:
             # Recarray case
             result = self._get_container(nrows)
@@ -1569,8 +1537,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 na = result[field]
             else:
                 # Get an empty array from the cache
-                na = self._g_getemptyarray(self.colstypes[field],
-                                           self.colitemsizes[field])
+                na = self._g_getemptyarray(self.coldtypes[field])
             if flavor == "numpy":
                 return na
             elif numarray_imported and flavor == "numarray":
@@ -1734,8 +1701,6 @@ You cannot append rows to a non-chunked table.""")
         try:
             # This always makes a copy of the original,
             # so the resulting object is safe for in-place conversion.
-            # See issue #315
-            #recarray = numpy.array(rows, dtype=self._v_dtype)
             recarray = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
@@ -1845,7 +1810,7 @@ You cannot append rows to a non-chunked table.""")
             raise ValueError, \
 """rows parameter cannot be converted into a recarray object compliant with
 table format '%s'. The error was: <%s>
-""" % (str(self.description._v_nestedFormats), exc)
+""" % (str(self.description._v_nestedDescr), exc)
         lenrows = len(recarray)
         if start + lenrows > self.nrows:
             raise IndexError, \
@@ -1969,6 +1934,7 @@ The 'names' parameter must be a list of strings.""")
         for colname in names:
             objcol = self._checkColumn(colname)
             descr.append(objcol._v_parent._v_nestedDescr[objcol._v_pos])
+            #descr.append(objcol._v_parent._v_dtype[objcol._v_pos])
         # Try to convert the columns object into a recarray
         try:
             if (isinstance(columns, numpy.ndarray) or
@@ -2410,7 +2376,7 @@ class Cols(object):
                 itgroup = table._createIndexesTable(table._v_parent)
         # Put the column in the local dictionary
         for name in desc._v_names:
-            if name in desc._v_types:
+            if name in desc._v_ptypes:
                 myDict[name] = Column(table, name, desc)
             else:
                 myDict[name] = Cols(table, desc._v_colObjects[name])
@@ -2599,14 +2565,14 @@ class Cols(object):
             # Get this class name
             classname = getattr(self, name).__class__.__name__
             # The shape for this column
-            shape = self._v_desc._v_shapes[name]
+            shape = self._v_desc._v_dtypes[name].shape
             # The type
-            if name in self._v_desc._v_types:
-                tcol = self._v_desc._v_types[name]
+            if name in self._v_desc._v_dtypes:
+                tcol = self._v_desc._v_dtypes[name]
             else:
                 tcol = "Description"
             if shape == 1:
-                shape = (1,)
+                shape = ()
             out += "  %s (%s%s, %s)" % (name, classname, shape, tcol) + "\n"
         return out
 
@@ -2623,7 +2589,7 @@ class Column(object):
                     if column is non-nested)
         descr -- the parent description object
         type -- the type of the column
-        stype -- the string representation of the type of the column
+        ptype -- the string representation of the type of the column
         shape -- the shape of the column
         index -- the Index object (None if doesn't exists)
         dirty -- whether the index is dirty or not (property)
@@ -2675,9 +2641,8 @@ class Column(object):
         self.name = name
         self.pathname = descr._v_colObjects[name]._v_pathname
         self.descr = descr
-        self.type = descr._v_types[name]
-        self.stype = descr._v_stypes[name]
-        self.shape = descr._v_shapes[name]
+        self.dtype = descr._v_dtypes[name]
+        self.ptype = descr._v_ptypes[name]
         # Check whether an index exists or not
         indexname = _getIndexColName(table._v_parent, table._v_name,
                                      self.pathname)
@@ -2846,15 +2811,13 @@ class Column(object):
         index = self.index
         getNode = table._v_file._getNode
 
-        assert descr._v_shapes[name] == 1, "only scalar columns can be indexed"
+        assert descr._v_dtypes[name].shape == (), \
+               "only scalar columns can be indexed"
 
         # Warn if the index already exists
         if index:
             raise ValueError, \
 "%s for column '%s' already exists. If you want to re-create it, please, try with reIndex() method better" % (str(index), str(self.pathname))
-
-        if descr._v_shapes[name] != 1:
-            raise ValueError("Only scalar columns can be indexed.")
 
         # Get the indexes group for table, and if not exists, create it
         try:
@@ -2883,9 +2846,10 @@ class Column(object):
                         idgroup, dname, iname, filters)
 
         # Create the atom
-        atomtype = self.stype
-        if atomtype == "CharType":
-            atom = StringAtom(shape=(0,), length=descr._v_itemsizes[name])
+        atomtype = self.ptype
+        if atomtype == "String":
+            itemsize = descr._v_dtype[name].base.itemsize
+            atom = StringAtom(shape=(0,), length=itemsize)
         else:
             atom = Atom(dtype=atomtype, shape=(0,))
 
@@ -2983,7 +2947,7 @@ class Column(object):
             self._updateIndexLocation(None)
             # Changing the set of indexed columns
             # invalidates the condition cache.
-            table._conditionCache.clear()
+            self.table._conditionCache.clear()
 
 
     def close(self):
@@ -2999,11 +2963,9 @@ class Column(object):
         # Get this class name
         classname = self.__class__.__name__
         # The shape for this column
-        shape = self.descr._v_shapes[self.name]
-        if shape == 1:
-            shape = (1,)
+        shape = self.descr._v_dtypes[self.name].shape
         # The type
-        tcol = self.descr._v_types[self.name]
+        tcol = self.descr._v_ptypes[self.name]
         return "%s.cols.%s (%s%s, %s, idx=%s)" % \
                (tablepathname, pathname, classname, shape, tcol, self.index)
 

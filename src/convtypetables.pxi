@@ -101,7 +101,7 @@ PTTypeToHDF5 = {
   }
 
 # Special cases whose byteorder cannot be directly changed
-PTSpecialTypes = ['Bool', 'Complex32', 'Complex64', 'CharType', 'Enum']
+PTSpecialTypes = ['Bool', 'Complex32', 'Complex64', 'String', 'Enum']
 
 
 # Names of HDF5 classes
@@ -149,7 +149,7 @@ NPTypeToCode = {
 
 # Conversion from NumPy codes to PyTables string types
 NPCodeToPTType = {
-  NPY_BOOL:      'Bool',      NPY_STRING:     'CharType',
+  NPY_BOOL:      'Bool',      NPY_STRING:     'String',
   NPY_INT8:      'Int8',      NPY_UINT8:      'UInt8',
   NPY_INT16:     'Int16',     NPY_UINT16:     'UInt16',
   NPY_INT32:     'Int32',     NPY_UINT32:     'UInt32',

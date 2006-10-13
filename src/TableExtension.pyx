@@ -958,7 +958,7 @@ cdef class Row:
 
     # Optimization follows for the case that the field dimension is
     # == 1, i.e. columns elements are scalars, and the column is not
-    # of CharType. This code accelerates the access to column
+    # of String type. This code accelerates the access to column
     # elements a 20%
 
     try:

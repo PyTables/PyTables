@@ -66,14 +66,14 @@ class BasicTestCase(unittest.TestCase):
             # "l" and "i" typecode, and we can consider them the same
             # to all practical effects
             assert (b.typecode() == "l" or b.typecode() == "i")
-            assert typecode[self.root.somearray.stype] == "l" or \
-                   typecode[self.root.somearray.stype] == "i"
+            assert typecode[self.root.somearray.ptype] == "l" or \
+                   typecode[self.root.somearray.ptype] == "i"
         elif a.typecode() == "c":
             assert a.typecode() == b.typecode()
-            assert self.root.somearray.stype == "CharType"
+            assert self.root.somearray.ptype == "String"
         else:
             assert a.typecode() == b.typecode()
-            assert a.typecode() == typecode[self.root.somearray.stype]
+            assert a.typecode() == typecode[self.root.somearray.ptype]
 
         assert allequal(a,b, "numeric")
         self.fileh.close()
@@ -243,7 +243,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print "Array a original. Data: ==>", a
                 print "Info from dataset:", dset._v_pathname
                 print "  shape ==>", dset.shape,
-                print "  type ==> %s" % dset.type
+                print "  dtype ==>", dset.dtype
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==> %s" % b.typecode()
 
@@ -406,10 +406,10 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numeric")
-            typecol = table.colstypes[colname]
-            itemsizecol = table.description._v_itemsizes[colname]
+            typecol = table.colptypes[colname]
+            itemsizecol = table.description._v_dtypes[colname].base.itemsize
             nctypecode = numcol.typecode()
-            if typecol == "CharType":
+            if typecol == "String":
                 if itemsizecol > 1:
                     orignumcol = array(['abcd']*self.nrows, typecode='c')
                 else:
@@ -431,9 +431,9 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numeric")
-            typecol = table.colstypes[colname]
+            typecol = table.colptypes[colname]
             nctypecode = numcol.typecode()
-            if typecol <> "CharType":
+            if typecol <> "String":
                 if typecol == "Int64":
                     return
                 if typecol == "Bool":
@@ -455,10 +455,10 @@ class TableReadTestCase(common.PyTablesTestCase):
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname,
                                            flavor="numeric")
-            typecol = table.colstypes[colname]
-            itemsizecol = table.description._v_itemsizes[colname]
+            typecol = table.colptypes[colname]
+            itemsizecol = table.description._v_dtypes[colname].base.itemsize
             nctypecode = numcol.typecode()
-            if typecol == "CharType":
+            if typecol == "String":
                 if itemsizecol > 1:
                     orignumcol = array(['abcd']*self.nrows, typecode='c')
                 else:
@@ -483,9 +483,9 @@ class TableReadTestCase(common.PyTablesTestCase):
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname,
                                            flavor="numeric")
-            typecol = table.colstypes[colname]
+            typecol = table.colptypes[colname]
             nctypecode = numcol.typecode()
-            if typecol <> "CharType":
+            if typecol <> "String":
                 if typecol == "Int64":
                     return
                 if typecol == "Bool":

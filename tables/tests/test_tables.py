@@ -75,13 +75,13 @@ RecordDescriptionDictRevOrder = {
 
 # Old fashion of defining tables (for testing backward compatibility)
 class OldRecord(IsDescription):
-    var1 = Col("CharType", shape=4, dflt="abcd", pos=0)
+    var1 = Col("String", shape=4, dflt="abcd", pos=0)
     var2 = Col("Int32", 1, 1, pos=1)
     var3 = Col("Int16", 1, 2, pos=2)
     var4 = Col("Float64", 1, 3.1, pos=3)
     var5 = Col("Float32", 1, 4.2, pos=4)
     var6 = Col("UInt16", 1, 5, pos=5)
-    var7 = Col("CharType", shape=1, dflt="e", pos=6)
+    var7 = Col("String", shape=1, dflt="e", pos=6)
     var8 = Col("Bool", shape=1, dflt=1, pos=7)
     var9 = Col("Complex32", shape=1, dflt=(0.+1.j), pos=8)
     var10 = Col("Complex64", shape=1, dflt=(1.-0.j), pos = 9)
@@ -89,13 +89,13 @@ class OldRecord(IsDescription):
 class OldRecordRevOrder(IsDescription):
     # Change the byteorder property for this table
     _v_byteorder = {"little":"big","big":"little"}[sys.byteorder]
-    var1 = Col("CharType", shape=4, dflt="abcd", pos=0)
+    var1 = Col("String", shape=4, dflt="abcd", pos=0)
     var2 = Col("Int32", 1, 1, pos=1)
     var3 = Col("Int16", 1, 2, pos=2)
     var4 = Col("Float64", 1, 3.1, pos=3)
     var5 = Col("Float32", 1, 4.2, pos=4)
     var6 = Col("UInt16", 1, 5, pos=5)
-    var7 = Col("CharType", shape=1, dflt="e", pos=6)
+    var7 = Col("String", shape=1, dflt="e", pos=6)
     var8 = Col("Bool", shape=1, dflt=1, pos=7)
     var9 = Col("Complex32", shape=1, dflt=(0.+1.j), pos=8)
     var10 = Col("Complex64", shape=1, dflt=(1.-0.j), pos = 9)
@@ -271,28 +271,20 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(expectedNames, list(desc._v_names))
 
         # Column types.
-        expectedTypes = [columns[colname].type
+        expectedTypes = [columns[colname].dtype
                          for colname in expectedNames]
         self.assertEqual(expectedTypes,
-                         [tbl.coltypes[v] for v in expectedNames])
+                         [tbl.coldtypes[v] for v in expectedNames])
         self.assertEqual(expectedTypes,
-                         [desc._v_types[v] for v in expectedNames])
+                         [desc._v_dtypes[v] for v in expectedNames])
 
         # Column string types.
-        expectedSTypes = [columns[colname].stype
+        expectedPTypes = [columns[colname].ptype
                           for colname in expectedNames]
-        self.assertEqual(expectedSTypes,
-                         [tbl.colstypes[v] for v in expectedNames])
-        self.assertEqual(expectedSTypes,
-                         [desc._v_stypes[v] for v in expectedNames])
-
-        # Column shapes.
-        expectedShapes = [columns[colname].shape
-                          for colname in expectedNames]
-        self.assertEqual(expectedShapes,
-                         [tbl.colshapes[v] for v in expectedNames])
-        self.assertEqual(expectedShapes,
-                         [desc._v_shapes[v] for v in expectedNames])
+        self.assertEqual(expectedPTypes,
+                         [tbl.colptypes[v] for v in expectedNames])
+        self.assertEqual(expectedPTypes,
+                         [desc._v_ptypes[v] for v in expectedNames])
 
         # Column defaults.
         for v in expectedNames:
@@ -317,10 +309,8 @@ class BasicTestCase(common.PyTablesTestCase):
             expectedCol = columns[colName]
             col = desc._v_colObjects[colName]
 
-            self.assertEqual(expectedCol.type, col.type)
-            self.assertEqual(expectedCol.stype, col.stype)
-            self.assertEqual(expectedCol.itemsize, col.itemsize)
-            self.assertEqual(expectedCol.shape, col.shape)
+            self.assertEqual(expectedCol.dtype, col.dtype)
+            self.assertEqual(expectedCol.ptype, col.ptype)
 
     def test01_readTable(self):
         """Checking table read"""
@@ -3650,8 +3640,7 @@ class CopyTestCase(unittest.TestCase):
         assert table1.nrows == table2.nrows
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
-        assert table1.coltypes == table2.coltypes
-        assert table1.colshapes == table2.colshapes
+        assert table1.coldtypes == table2.coldtypes
         assert repr(table1.description) == repr(table2.description)
 
         # This could be not the same when re-opening the file
@@ -3720,8 +3709,7 @@ class CopyTestCase(unittest.TestCase):
         assert table1.nrows == table2.nrows
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
-        assert table1.coltypes == table2.coltypes
-        assert table1.colshapes == table2.colshapes
+        assert table1.coldtypes == table2.coldtypes
         assert repr(table1.description) == repr(table2.description)
 
         # Leaf attributes
@@ -3785,15 +3773,14 @@ class CopyTestCase(unittest.TestCase):
         for row1 in table1:
             nrow = row1.nrow   # current row
             for colname in table1.colnames:
-                #assert allequal(row1[colname], table2[nrow][colname))
+                #assert allequal(row1[colname], table2[nrow][colname])
                 assert allequal(row1[colname], table2.read(nrow, field=colname)[0])
 
         # Assert other properties in table
         assert table1.nrows == table2.nrows
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
-        assert table1.coltypes == table2.coltypes
-        assert table1.colshapes == table2.colshapes
+        assert table1.coldtypes == table2.coldtypes
         assert repr(table1.description) == repr(table2.description)
 
         # Leaf attributes
@@ -3861,8 +3848,7 @@ class CopyTestCase(unittest.TestCase):
         assert table1.nrows == table2.nrows
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
-        assert table1.coltypes == table2.coltypes
-        assert table1.colshapes == table2.colshapes
+        assert table1.coldtypes == table2.coldtypes
         assert repr(table1.description) == repr(table2.description)
 
         # Leaf attributes
@@ -3933,8 +3919,7 @@ class CopyTestCase(unittest.TestCase):
         assert table1.nrows == table2.nrows
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
-        assert table1.coltypes == table2.coltypes
-        assert table1.colshapes == table2.colshapes
+        assert table1.coldtypes == table2.coldtypes
         assert repr(table1.description) == repr(table2.description)
 
         # Leaf attributes
@@ -4008,8 +3993,7 @@ class CopyTestCase(unittest.TestCase):
         assert table1.nrows == table2.nrows
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
-        assert table1.coltypes == table2.coltypes
-        assert table1.colshapes == table2.colshapes
+        assert table1.coldtypes == table2.coldtypes
         assert repr(table1.description) == repr(table2.description)
 
         # Leaf attributes

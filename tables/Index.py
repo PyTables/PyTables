@@ -112,17 +112,17 @@ infinityMap = {
 
 
 # Utility functions
-def infType(cstype, itemsize, sign=+1):
+def infType(cptype, itemsize, sign=+1):
     """Return a superior limit for maximum representable data type"""
     assert sign in [-1, +1]
 
-    if cstype == "CharType":
+    if cptype == "String":
         if sign < 0:
             return "\x00"*itemsize
         else:
             return "\xff"*itemsize
     try:
-        return infinityMap[cstype][sign >= 0]
+        return infinityMap[cptype][sign >= 0]
     except KeyError:
         raise TypeError, "Type %s is not supported" % type
 
@@ -219,7 +219,7 @@ def PyNextAfterF(x, y):
     return math.ldexp(m, e)
 
 
-def CharTypeNextAfter(x, direction, itemsize):
+def StringNextAfter(x, direction, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
     assert direction in [-1, +1]
 
@@ -272,19 +272,19 @@ def IntTypeNextAfter(x, direction, itemsize):
             return int(PyNextAfter(x,x+1))+1
 
 
-def nextafter(x, direction, cstype, itemsize):
+def nextafter(x, direction, cptype, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
     assert direction in [-1, 0, +1]
 
     if direction == 0:
         return x
 
-    if cstype == "CharType":
-        return CharTypeNextAfter(x, direction, itemsize)
+    if cptype == "String":
+        return StringNextAfter(x, direction, itemsize)
     else:
         if type(x) not in (int, long, float):
             raise ValueError, "You need to pass integers or floats in this context."
-        npdtype = numpy.dtype(cstype)
+        npdtype = numpy.dtype(cptype)
         if npdtype.kind in ['i', 'u']:
             return IntTypeNextAfter(x, direction, itemsize)
         elif npdtype.name == "float32":
@@ -482,11 +482,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.atom = atom
         """The `Atom` instance matching to be stored by the index array."""
         if atom is not None:
-            self.type = atom.type
-            self.stype = atom.stype
+            self.dtype = atom.dtype
+            self.ptype = atom.ptype
             """The datatype to be stored by the sorted index array."""
-            self.itemsize = atom.itemsize
-            """The itemsize of the datatype to be stored by the index array."""
         self.column = column
         """The `Column` instance for the indexed column."""
 
@@ -512,9 +510,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if not self._v_new:
             # Set-up some variables from info on disk and return
             sorted = self.sorted
-            self.type = sorted.type
-            self.stype = sorted.stype
-            self.itemsize = sorted.itemsize
+            self.dtype = sorted.dtype
+            self.ptype = sorted.ptype
             self.superblocksize = sorted.superblocksize
             self.blocksize = sorted.blocksize
             self.slicesize = sorted.slicesize
@@ -569,10 +566,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                    self.testmode, self._v_expectedrows)
 
         # Create the cache for range values  (1st order cache)
-        if self.stype == "CharType":
-            atom = StringAtom(shape=(0, 2), length=self.itemsize)
-        else:
-            atom = Atom(self.type, shape=(0,2))
+        atom = Atom(self.dtype, shape=(0,2))
         CacheArray(self, 'ranges', atom, "Range Values", filters,
                    self._v_expectedrows//self.slicesize)
         # median ranges
@@ -581,28 +575,21 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Create the cache for boundary values (2nd order cache)
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
-        if self.stype == "CharType":
-            atom = StringAtom(shape=(0, nbounds_inslice),
-                              length=self.itemsize)
-        else:
-            atom = Atom(self.type, shape=(0, nbounds_inslice))
+        atom = Atom(self.dtype, shape=(0, nbounds_inslice))
         CacheArray(self, 'bounds', atom, "Boundary Values", filters,
                    self._v_expectedrows//self.chunksize)
 
         # begin, end & median bounds (only for numeric types)
-        if self.stype != "CharType":
-            atom = Atom(self.type, shape=(0,))
-            EArray(self, 'abounds', atom, "Start bounds", _log=False)  ##XXXXXX
-            EArray(self, 'zbounds', atom, "End bounds", filters, _log=False)  ##XXXXXX
+        if self.ptype != "String":
+            atom = Atom(self.dtype, shape=(0,))
+            EArray(self, 'abounds', atom, "Start bounds", _log=False)
+            EArray(self, 'zbounds', atom, "End bounds", filters, _log=False)
             EArray(self, 'mbounds', Float64Atom(shape=(0,)),
-                   "Median bounds", filters, _log=False)  ##XXXXXX
+                   "Median bounds", filters, _log=False)
 
         # Create the Array for last (sorted) row values + bounds
         shape = 2 + nbounds_inslice + self.slicesize
-        if self.stype == "CharType":
-            arr = numpy.empty(shape=shape, dtype="S%s"%self.itemsize)
-        else:
-            arr = numpy.empty(shape=shape, dtype=self.type)
+        arr = numpy.empty(shape=shape, dtype=self.dtype)
         sortedLR = LastRowArray(self, 'sortedLR', arr,
                                 "Last Row sorted values + bounds")
 
@@ -645,7 +632,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         cs = self.chunksize
         self.ranges.append([sarr[[0,-1]]])
         self.bounds.append([sarr[cs::cs]])
-        if self.stype != "CharType":
+        if self.ptype != "String":
             self.abounds.append(sarr[0::cs])
             self.zbounds.append(sarr[cs-1::cs])
             # Compute the medians
@@ -777,29 +764,20 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         #filters = None    # compressing temporaries is very inefficient!
         # temporary sorted & indices arrays
         shape = (self.nrows, ss)
-        if self.stype == "CharType":
-            atom = StringAtom(shape=(1,cs), length=self.itemsize)
-        else:
-            atom = Atom(self.type, shape=(1,cs))
+        atom = Atom(self.dtype, shape=(1,cs))
         CArray(self.tmp, 'sorted', shape, atom,
                "Temporary sorted", filters)
         CArray(self.tmp, 'indices', shape, Int64Atom(shape=(1,cs)),
                "Temporary indices", filters)
         # temporary bounds
         shape = (self.nchunks,)
-        if self.stype == "CharType":
-            atom = StringAtom(shape=(cs,), length=self.itemsize)
-        else:
-            atom = Atom(self.type, shape=(cs,))
+        atom = Atom(self.dtype, shape=(cs,))
         CArray(self.tmp, 'abounds', shape, atom, "Temp start bounds", filters)
         CArray(self.tmp, 'zbounds', shape, atom, "Temp end bounds", filters)
         CArray(self.tmp, 'mbounds', shape, atom, "Median bounds", filters)
         # temporary ranges
         shape = (self.nslices, 2)
-        if self.stype == "CharType":
-            atom = StringAtom(shape=(cs,2), length=self.itemsize)
-        else:
-            atom = Atom(self.type, shape=(cs,2))
+        atom = Atom(self.dtype, shape=(cs,2))
         CArray(self.tmp, 'ranges', shape, atom,
                "Temporary range values", filters)
         CArray(self.tmp, 'mranges', (self.nslices,),
@@ -843,7 +821,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         tmp_sorted = self.tmp.sorted
         tmp_indices = self.tmp.indices
         #tmp_sorted, tmp_indices = self.create_sorted_indices()
-        tsorted = numpy.empty(shape=self.slicesize, dtype=self.type)
+        tsorted = numpy.empty(shape=self.slicesize, dtype=self.dtype)
         tindices = numpy.empty(shape=self.slicesize, dtype='int64')
         cs = self.chunksize
         ncs = self.nchunkslice
@@ -987,7 +965,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.abounds[nslice*ncs:(nslice+1)*ncs] = sblock[0::cs]
             self.zbounds[nslice*ncs:(nslice+1)*ncs] = sblock[cs-1::cs]
             # update median bounds
-            sblock.shape= (ncs, cs)
+            sblock.shape = (ncs, cs)
             sblock.transpose()
             smedian = numpy.median(sblock)
             self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
@@ -996,7 +974,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def compute_overlaps(self, message, verbose):
         "Compute the overlap index for slices (only valid for numeric values)."
-        if self.stype == "CharType":
+        if self.ptype == "String":
             # The overlaps compuation cannot be done on strings
             return (1, 10)
         ranges = self.ranges[:]
@@ -1078,16 +1056,16 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # The item is not in cache. Do the real lookup.
         sorted = self.sorted
         if sorted.nrows > 0:
-            if self.stype != "CharType":
+            if self.ptype != "String":
                 item1, item2 = item
                 # The next are optimizations. However, they hides the
                 # CPU functions consumptions from python profiles.
                 # Activate only after development is done.
-                if self.type == "Float64":
+                if self.dtype == "Float64":
                     tlen = sorted._searchBinNA_d(item1, item2)
-                elif self.type == "Int32":
+                elif self.dtype == "Int32":
                     tlen = sorted._searchBinNA_i(item1, item2)
-                elif self.type == "Int64":
+                elif self.dtype == "Int64":
                     tlen = sorted._searchBinNA_ll(item1, item2)
                 else:
                     tlen = self.search_scalar(item, sorted)
@@ -1207,25 +1185,25 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         assert len(ops) == len(limits)
 
         column = self.column
-        cstype = column.stype
-        itemsize = table.colitemsizes[column.pathname]
+        cptype = column.ptype
+        itemsize = table.coldtypes[column.pathname].base.itemsize
 
         if len(limits) == 1:
             assert ops[0] in ['lt', 'le', 'eq', 'ge', 'gt']
             limit = limits[0]
             op = ops[0]
             if op == 'lt':
-                range_ = (infType(cstype, itemsize, sign=-1),
-                          nextafter(limit, -1, cstype, itemsize))
+                range_ = (infType(cptype, itemsize, sign=-1),
+                          nextafter(limit, -1, cptype, itemsize))
             elif op == 'le':
-                range_ = (infType(cstype, itemsize, sign=-1),
+                range_ = (infType(cptype, itemsize, sign=-1),
                           limit)
             elif op == 'gt':
-                range_ = (nextafter(limit, +1, cstype, itemsize),
-                          infType(cstype, itemsize, sign=+1))
+                range_ = (nextafter(limit, +1, cptype, itemsize),
+                          infType(cptype, itemsize, sign=+1))
             elif op == 'ge':
                 range_ = (limit,
-                          infType(cstype, itemsize, sign=+1))
+                          infType(cptype, itemsize, sign=+1))
             elif op == 'eq':
                 range_ = (limit, limit)
 
@@ -1238,12 +1216,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 return ()
 
             if ops == ['gt', 'lt']:  # lower < col < upper
-                range_ = (nextafter(lower, +1, cstype, itemsize),
-                          nextafter(upper, -1, cstype, itemsize))
+                range_ = (nextafter(lower, +1, cptype, itemsize),
+                          nextafter(upper, -1, cptype, itemsize))
             elif ops == ['ge', 'lt']:  # lower <= col < upper
-                range_ = (lower, nextafter(upper, -1, cstype, itemsize))
+                range_ = (lower, nextafter(upper, -1, cptype, itemsize))
             elif ops == ['gt', 'le']:  # lower < col <= upper
-                range_ = (nextafter(lower, +1, cstype, itemsize), upper)
+                range_ = (nextafter(lower, +1, cptype, itemsize), upper)
             elif ops == ['ge', 'le']:  # lower <= col <= upper
                 range_ = (lower, upper)
 
@@ -1269,7 +1247,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         cpathname = self.column.table._v_pathname + ".cols." + self.column.name
         retstr = """%s (Index for column %s)
-  type := %r
+  ptype := %r
   nelements := %s
   shape := %s
   chunksize := %s
@@ -1278,7 +1256,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
   dirty := %s
   sorted := %s
   indices := %s""" % (self._v_pathname, cpathname,
-                     self.sorted.type, self.nelements, self.shape,
+                     self.sorted.ptype, self.nelements, self.shape,
                      self.sorted.chunksize, self.sorted.byteorder,
                      self.filters, self.dirty, self.sorted, self.indices)
         retstr += "\n  ranges := %s" % self.ranges

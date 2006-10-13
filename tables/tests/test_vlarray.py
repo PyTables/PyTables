@@ -2883,8 +2883,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
         assert array1.atom.flavor == array2.atom.flavor
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
         assert repr(array1.atom) == repr(array1.atom)
 
         assert array1.title == array2.title
@@ -2944,8 +2943,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
         assert array1.atom.flavor == array2.atom.flavor
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
         assert repr(array1.atom) == repr(array1.atom)
         assert array1.title == array2.title
 
@@ -3001,8 +2999,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
         assert array1.atom.flavor == array2.atom.flavor  # Very important here
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
         assert repr(array1.atom) == repr(array1.atom)
         assert array1.title == array2.title
 
@@ -3058,8 +3055,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
         assert array1.atom.flavor == array2.atom.flavor  # Very important here
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
         assert repr(array1.atom) == repr(array1.atom)
         assert array1.title == array2.title
 
@@ -3112,8 +3108,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
         assert array1.atom.flavor == array2.atom.flavor  # Very important here
-        assert array1.atom.type == array2.atom.type
-        assert array1.atom.itemsize == array2.atom.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
         assert repr(array1.atom) == repr(array1.atom)
         assert array1.title == array2.title
 

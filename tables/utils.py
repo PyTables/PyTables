@@ -321,7 +321,7 @@ def convToNP(arr):
             nparr = numpy.array(arr)
         # If not, issue an error
         except Exception, exc:  #XXX
-            raise TypeError, \
+            raise ValueError, \
 """The object '%s' of type <%s> can't be converted into a NumPy array.
 Sorry, but this object is not supported. The error was <%s>:""" % \
         (arr, type(arr), exc)
@@ -342,21 +342,16 @@ Sorry, but this object is not supported in this context.""" % (arr, type(arr))
 # with atom from a generic python type.  If copy is stated as True, it
 # is assured that it will return a copy of the object and never the same
 # object or a new one sharing the same memory.
-def convertToNPAtom(arr, atom, copy = False):
+def convertToNPAtom(arr, atom, copy=False):
     "Convert a generic object into a NumPy object compliant with atom."
 
     # First, convert the object to a NumPy array
     nparr, flavor = convToNP(arr)
 
-    # Check that itemsizes in nparr and atom are equal for string objects
-    if atom.stype == "CharType" and nparr.itemsize != atom.itemsize:
-        dtype = "S%s" % atom.itemsize
-        nparr = numpy.array(nparr, dtype=dtype)
-
     # Get copies of data if necessary for getting a contiguous buffer,
-    # or if type is not correct.
-    if (copy or nparr.dtype.type <> atom.type):
-        nparr = numpy.array(nparr, dtype=atom.type)
+    # or if dtype is not the correct one.
+    if (copy or nparr.dtype <> atom.dtype):
+        nparr = numpy.array(nparr, dtype=atom.dtype)
 
     return nparr
 

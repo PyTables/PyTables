@@ -565,8 +565,8 @@ def enumToHDF5(object enumCol, char *byteOrder):
   cdef ndarray npValues
 
   # Get the base HDF5 type and create the enumerated type.
-  npenum = NPTypeToCode[enumCol.type]
-  itemsize = enumCol.itemsize
+  npenum = NPTypeToCode[enumCol.dtype.base.type]
+  itemsize = enumCol.dtype.base.itemsize
   baseId = convArrayType(npenum, itemsize, byteOrder)
   if baseId < 0:
     raise HDF5ExtError("failed to convert NumPy base type to HDF5")
@@ -601,48 +601,47 @@ def conv2HDF5Type(object col, char *byteorder):
   cdef int     rank, atomic
   cdef hsize_t *dims
 
-  if isinstance(col.shape, tuple):
-    rank = len(col.shape)
-  else:
-    rank = 1
-  if isinstance(col.shape, int):
-    atomic = 1
+  shape = col.dtype.shape
+  if shape == ():
+    atomic = True
     dims = NULL
   else:
-    atomic = 0
+    atomic = False
+    rank = len(shape)
     dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
     # Fill the dimension axis info with adequate info (and type!)
     for i from  0 <= i < rank:
-      dims[i] = col.shape[i]
+      dims[i] = col.dtype.shape[i]
   # Create the column type
-  if col.stype in PTTypeToHDF5:
-    if atomic == 1:
-      tid = H5Tcopy(PTTypeToHDF5[col.stype])
+  if col.ptype in PTTypeToHDF5:
+    if atomic:
+      tid = H5Tcopy(PTTypeToHDF5[col.ptype])
     else:
-      tid = H5Tarray_create(PTTypeToHDF5[col.stype], rank, dims, NULL)
+      tid = H5Tarray_create(PTTypeToHDF5[col.ptype], rank, dims, NULL)
     # All types in PTTypeToHDF5 needs to fix the byte order
     # but this may change in the future!
     set_order(tid, byteorder)
-  elif col.stype in PTSpecialTypes:
+  elif col.ptype in PTSpecialTypes:
     # Special cases
-    if col.stype == 'Bool':
+    if col.ptype == 'Bool':
       tid = H5Tcopy(H5T_STD_B8)
       H5Tset_precision(tid, 1)
-    elif col.stype == 'Complex32':
+    elif col.ptype == 'Complex32':
       tid = create_ieee_complex64(byteorder)
-    elif col.stype == 'Complex64':
+    elif col.ptype == 'Complex64':
       tid = create_ieee_complex128(byteorder)
-    elif col.stype == 'CharType':
+    elif col.ptype == 'String':
       tid = H5Tcopy(H5T_C_S1);
-      H5Tset_size(tid, col.itemsize)  #.itemsize is the length of the arrays
-    elif col.stype == 'Enum':
+      H5Tset_size(tid, col.dtype.base.itemsize)
+    elif col.ptype == 'Enum':
       tid = enumToHDF5(col, byteorder)
     if not atomic:
       tid2 = H5Tarray_create(tid, rank, dims, NULL)
       H5Tclose(tid)
       tid = tid2
   else:
-    raise TypeError("Invalid type for column %s: %s" % (col._v_name, col.type))
+    raise TypeError("Invalid type for column %s: %s" % \
+                    (col._v_name, col.ptype))
 
   # Release resources
   if dims:
@@ -655,9 +654,9 @@ def createNestedType(object desc, char *byteorder):
   """Create a nested type based on a description and return an HDF5 type."""
   cdef hid_t   tid, tid2
   cdef herr_t  ret
-  cdef size_t  offset, totalshape
+  cdef size_t  offset
 
-  tid = H5Tcreate (H5T_COMPOUND, desc._v_totalsize)
+  tid = H5Tcreate (H5T_COMPOUND, desc._v_dtype.itemsize)
   if tid < 0:
     return -1;
 
@@ -669,7 +668,7 @@ def createNestedType(object desc, char *byteorder):
     else:
       tid2 = conv2HDF5Type(obj, byteorder)
     ret = H5Tinsert(tid, k, offset, tid2)
-    offset = offset + desc._v_totalsizes[k]
+    offset = offset + desc._v_dtype[k].itemsize
     # Release resources
     H5Tclose(tid2)
 
@@ -759,10 +758,9 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   cdef int     i, tsize
   cdef char    *colname
   cdef H5T_class_t  klass
-  cdef object  format, stype, shape, desc, colobj, colpath2
   cdef char    byteorder[16], byteorder2[16]  # "non-relevant" fits easily here
-  cdef object  sysbyteorder
   cdef herr_t  ret
+  cdef object  sysbyteorder, desc, colobj, colpath2
 
   sysbyteorder = sys.byteorder  # a workaround against temporary Pyrex error
   strcpy(byteorder, sysbyteorder)  # default byteorder

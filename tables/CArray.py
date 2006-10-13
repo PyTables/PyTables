@@ -179,10 +179,10 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         The object representation of this array.  It can be any of
         'numpy', 'numarray', 'numeric' or 'python' values.
         """
-        self.type = None
-        """The type class of the represented array."""
-        self.stype = None
-        """The string type of the represented array."""
+        self.dtype = None
+        """The NumPy type of the represented array."""
+        self.ptype = None
+        """The PyTables type of the represented array."""
         self.itemsize = None
         """The size of the base items."""
         self.extdim = -1  # `CArray` objects are not enlargeable
@@ -211,7 +211,8 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         """Calculate the maximum number of tuples."""
 
         # The buffer size
-        expectedfsizeinKb = numpy.product(self.shape) * atom.itemsize / 1024
+        expectedfsizeinKb = numpy.product(self.shape) * \
+                            atom.dtype.base.itemsize / 1024
         buffersize = self._g_calcBufferSize(expectedfsizeinKb)
 
         # Max Tuples to fill the buffer
@@ -247,10 +248,11 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 
         # Version, type, flavor, byteorder
         self._v_version = obversion
-        self.type = self.atom.type
-        self.stype = self.atom.stype
+        self.dtype = self.atom.dtype
+        self.ptype = self.atom.ptype
+        self.itemsize = self.atom.dtype.base.itemsize
         self.flavor = self.atom.flavor
-        if self.stype == "CharType":
+        if self.ptype == "String":
             self.byteorder = "non-relevant"
         else:
             # Only support for creating objects in system byteorder
@@ -258,7 +260,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 
         # Compute some values for buffering and I/O parameters
         # Compute the rowsize for each element
-        self.rowsize = self.atom.itemsize
+        self.rowsize = self.itemsize
         for i in self.shape:
             if i>0:
                 self.rowsize *= i
@@ -266,7 +268,6 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
                 raise ValueError, \
                       "A CArray object cannot have zero-dimensions."
 
-        self.itemsize = self.atom.itemsize
 
         if min(self.atom.shape) < 1:
             raise ValueError, \
@@ -293,8 +294,8 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        (oid, self.type, self.stype, self.shape, self.itemsize, self.byteorder,
-         self._v_chunksize) = self._openArray()
+        (oid, self.dtype, self.ptype, self.shape, self.itemsize,
+         self.byteorder, self._v_chunksize) = self._openArray()
 
         # Post-condition
         assert self.extdim == -1, "extdim != -1: this should never happen!"
@@ -312,13 +313,13 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 
         # Compute the real shape for atom:
         shape = list(self._v_chunksize)
-        if self.stype == "CharType":
+        if self.ptype == "String":
             # Add the length of the array at the end of the shape for atom
             shape.append(self.itemsize)
         shape = tuple(shape)
 
         # Create the atom instance
-        self.atom = Atom(dtype=self.stype, shape=shape,
+        self.atom = Atom(dtype=self.ptype, shape=shape,
                          flavor=self.flavor, warn=False)
 
         # Compute the maximum number of tuples

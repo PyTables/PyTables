@@ -85,8 +85,8 @@ class Array(hdf5Extension.Array, Leaf):
         flavor -- The object representation of this array.
         nrows -- The length of the first dimension of the array.
         nrow -- On iterators, this is the index of the current row.
-        type -- The type class of the represented array.
-        stype -- The string type of the represented array.
+        dtype -- The NumPy type of the represented array.
+        ptype -- The PyTables type of the represented array.
         itemsize -- The size of the base items.
 
     """
@@ -224,14 +224,13 @@ class Array(hdf5Extension.Array, Leaf):
         """The length of the first dimension of the array."""
         self.nrow = None
         """On iterators, this is the index of the current row."""
-        self.type = None
-        """The type class of the represented array."""
-        self.stype = None
-        """The string type of the represented array."""
+        self.dtype = None
+        """The NumPy type of the represented array."""
+        self.ptype = None
+        """The PyTables type of the represented array."""
         self.itemsize = None
         """
-        The size of the base items (specially useful for ``CharType``
-        objects).
+        The size of the base items (specially useful for ``String`` objects).
         """
         self.extdim = -1   # ordinary arrays are not enlargeable
         """The index of the enlargeable dimension."""
@@ -251,6 +250,11 @@ class Array(hdf5Extension.Array, Leaf):
             #print "Problems converting input object:", str(self._object)
             self.close(flush=0)
             raise
+
+        # Raise an error in case of unsupported object
+        if nparr.dtype.kind in ['V', 'U', 'O']:  # in void, unicode, object
+            raise TypeError, \
+"Array objects cannot currently deal with void, unicode or object arrays"
 
         # Decrease the number of references to the object
         self._object = None
@@ -285,7 +289,7 @@ class Array(hdf5Extension.Array, Leaf):
             self.nrows = 1    # Scalar case
         self.itemsize = nparr.itemsize
         try:
-            (self._v_objectID, self.type, self.stype) = (
+            (self._v_objectID, self.dtype, self.ptype) = (
                 self._createArray(nparr, self._v_new_title))
             return self._v_objectID
         except:  #XXX
@@ -297,12 +301,12 @@ class Array(hdf5Extension.Array, Leaf):
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        (self._v_objectID, self.type, self.stype, self.shape,
+        (self._v_objectID, self.dtype, self.ptype, self.shape,
          self.itemsize, self.byteorder, self._v_chunksize) = self._openArray()
 
         # Get enumeration from disk.
-        if self.stype == 'Enum':
-            (self._enum, self.type) = self._loadEnum()
+        if self.ptype == 'Enum':
+            (self._enum, self.dtype) = self._loadEnum()
         # Compute the rowsize for each element
         self.rowsize = self.itemsize
         for i in xrange(len(self.shape)):
@@ -329,7 +333,7 @@ class Array(hdf5Extension.Array, Leaf):
         ``TypeError`` is raised.
         """
 
-        if self.stype != 'Enum':
+        if self.ptype != 'Enum':
             raise TypeError("array ``%s`` is not of an enumerated type"
                             % self._v_pathname)
 
@@ -540,16 +544,7 @@ class Array(hdf5Extension.Array, Leaf):
         startl, stopl, stepl, shape = self._interpret_indexing(keys)
         countl = ((stopl - startl - 1) / stepl) + 1
         # Create an array compliant with the specified slice
-        if self.stype == "CharType":
-            narr = numpy.empty(dtype="S%s"%self.itemsize,
-            # Here shape=shape should be enough, but it makes some
-            # tests to fail. This should be analyzed more carefully.
-            # F. Altet 2005-09-12
-                                 #shape=countl)
-            # Checking it again with NumPy. 2006-10-06
-                                 shape=shape)
-        else:
-            narr = numpy.empty(shape=shape, dtype=self.type)
+        narr = numpy.empty(shape=shape, dtype=self.dtype)
 
         # Assign the value to it
         try:
@@ -566,10 +561,9 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
 
     # Accessor for the _readArray method in superclass
     def _readSlice(self, startl, stopl, stepl, shape):
-        if self.stype == "CharType":
-            arr = numpy.empty(dtype="S%s"%self.itemsize, shape=shape)
-        else:
-            arr = numpy.empty(dtype=self.type, shape=shape)
+
+        # Create the container for the slice
+        arr = numpy.empty(dtype=self.dtype, shape=shape)
 
         # Protection against reading empty arrays
         if 0 not in shape:
@@ -607,12 +601,9 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         if shape:
             shape[extdim] = rowstoread
             shape = tuple(shape)
-        if self.stype == "CharType":
-            arr = numpy.empty(dtype="S%s"%self.itemsize, shape=shape)
-        else:
-            arr = numpy.empty(dtype=self.type, shape=shape)
-            # Set the correct byteorder for this array
-            arr.dtype = arr.dtype.newbyteorder(self.byteorder)
+        arr = numpy.empty(dtype=self.dtype, shape=shape)
+        # Set the correct byteorder for this array
+        arr.dtype = arr.dtype.newbyteorder(self.byteorder)
 
         # Protection against reading empty arrays
         if 0 not in shape:
@@ -651,14 +642,14 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         """This provides more metainfo in addition to standard __str__"""
 
         return """%s
-  type = %r
-  stype = %r
+  dtype = %r
+  ptype = %r
   shape = %s
   itemsize = %s
   nrows = %s
   flavor = %r
-  byteorder = %r""" % (self, self.type, self.stype, self.shape, self.itemsize,
-                       self.nrows, self.flavor, self.byteorder)
+  byteorder = %r""" % (self, self.dtype, self.ptype, self.shape,
+                       self.itemsize, self.nrows, self.flavor, self.byteorder)
 
 
 

@@ -238,10 +238,7 @@ cdef class IndexArray(Array):
     cdef hsize_t count[2]
     cdef ndarray starts, lengths, rvcache
 
-    if self.stype == "CharType":
-      dtype = "|S%s" % self.itemsize
-    else:
-      dtype = self.type
+    dtype = self.dtype
     # Create the buffer for reading sorted data chunks if not created yet
     if <object>self.bufferlb is None:
       self.bufferlb = numpy.empty(dtype=dtype, shape=self.chunksize)
@@ -271,13 +268,13 @@ cdef class IndexArray(Array):
     self.bounds_ext.initRead(self.nbounds)
     # The 2nd level cache and sorted values will be cached in a NumCache
     self.boundscache = <NumCache>NumCache(
-      (BOUNDS_MAX_SLOTS, self.nbounds), self.itemsize, 'bounds')
+      (BOUNDS_MAX_SLOTS, self.nbounds), self.dtype.itemsize, 'bounds')
     self.bufferbc = numpy.empty(dtype=dtype, shape=self.nbounds)
     # Get the pointer for the internal buffer for 2nd level cache
     self.rbufbc = self.bufferbc.data
     # Another NumCache for the sorted values
     self.sortedcache = <NumCache>NumCache(
-      (SORTED_MAX_SLOTS, self.chunksize), self.itemsize, 'sorted')
+      (SORTED_MAX_SLOTS, self.chunksize), self.dtype.itemsize, 'sorted')
 
 
   cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):

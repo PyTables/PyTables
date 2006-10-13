@@ -22,17 +22,17 @@ class CreateColTestCase(common.PyTablesTestCase):
 
     """Test creating enumerated column descriptions."""
 
-    def _createCol(self, enum, dflt, dtype='UInt32', shape=1):
+    def _createCol(self, enum, dflt, dtype='UInt32', shape=()):
         """Create and check an enumerated column description."""
 
         enumcol = tables.EnumCol(enum, dflt, dtype=dtype, shape=shape)
         sameEnum = tables.Enum(enum)
-        self.assertEqual(enumcol.stype, 'Enum')
-        self.assertEqual(enumcol.type, numpy.sctypeNA[dtype])
+        self.assertEqual(enumcol.ptype, 'Enum')
+        self.assertEqual(enumcol.dtype.base.type, numpy.sctypeNA[dtype])
         # To avoid 'LongInt' vs 'Int' issues
         #self.assertEqual(enumcol.dflt, sameEnum[dflt])
         self.assertEqual(int(enumcol.dflt), int(sameEnum[dflt]))
-        self.assertEqual(enumcol.shape, shape)
+        self.assertEqual(enumcol.dtype.shape, shape)
         self.assertEqual(enumcol.enum, sameEnum)
 
 
@@ -92,9 +92,9 @@ class CreateColTestCase(common.PyTablesTestCase):
     def test04a_validReprEnum(self):
         """Checking the string representation of an enumeration."""
         colors = tables.Enum(['red', 'green', 'blue'])
-        enumcol = tables.EnumCol(colors, 'red', dtype='UInt32', shape=1)
+        enumcol = tables.EnumCol(colors, 'red', dtype='UInt32', shape=())
         assert repr(enumcol) == \
-"""EnumCol(Enum({'blue': 2, 'green': 1, 'red': 0}), 'red', dtype='UInt32', shape=1, pos=None, indexed=False)"""
+"""EnumCol(Enum({'blue': 2, 'green': 1, 'red': 0}), 'red', dtype='UInt32', shape=(), pos=None, indexed=False)"""
 
 
     def test99a_nonIntEnum(self):
@@ -121,13 +121,13 @@ class CreateAtomTestCase(common.PyTablesTestCase):
 
     """Test creating enumerated atoms."""
 
-    def _createAtom(self, enum, dtype='UInt32', shape=1):
+    def _createAtom(self, enum, dtype='UInt32', shape=()):
         """Create and check an enumerated atom."""
 
         enumatom = tables.EnumAtom(enum, dtype=dtype, shape=shape)
         sameEnum = tables.Enum(enum)
-        self.assertEqual(enumatom.stype, 'Enum')
-        self.assertEqual(enumatom.type, numpy.sctypeNA[dtype])
+        self.assertEqual(enumatom.ptype, 'Enum')
+        self.assertEqual(enumatom.dtype.base.type, numpy.sctypeNA[dtype])
         self.assertEqual(enumatom.shape, shape)
         self.assertEqual(enumatom.enum, sameEnum)
 

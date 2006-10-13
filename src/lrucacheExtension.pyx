@@ -140,7 +140,7 @@ cdef class NodeCache:
 
 
   def __iter__(self):
-    # Do a copy of paths list because it can be modified in the middle of
+    # Do a copy of the paths list because it can be modified in the middle of
     # the iterator!
     copy = self.paths[:]
     return iter(copy)

@@ -845,19 +845,20 @@ cdef class Array(Leaf):
     cdef long itemsize
     cdef char *byteorder
     cdef char *flavor, *complib, *version, *class_
-    cdef object type_, stype
+    cdef object type_, dtype, ptype
 
-    # The next way of getting the type might seem a bit convoluted, but
+    dtype = nparr.dtype.base
+    # The next way of getting the ptype might seem a bit convoluted, but
     # this is due to an ambiguity in NumPy types that is reported in:
     # http://projects.scipy.org/scipy/numpy/ticket/283 and
     # http://projects.scipy.org/scipy/numpy/ticket/290
     type_ = nparr.dtype.type
     try:
       if type_ == numpy.string_:
-        stype = "CharType"
+        ptype = "String"
       else:
-        stype = numpy.typeNA[type_]  # the PyTables string type
-      enumtype = PTTypeToNPCode[stype]
+        ptype = numpy.typeNA[type_]  # the PyTables string type
+      enumtype = PTTypeToNPCode[ptype]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported right now. Sorry about that.
@@ -870,7 +871,7 @@ cdef class Array(Leaf):
     if self.type_id < 0:
       raise TypeError, \
         """Type '%s' is not supported right now. Sorry about that.""" \
-        % stype
+        % ptype
 
     # Get the pointer to the buffer data area
     rbuf = nparr.data
@@ -894,7 +895,7 @@ cdef class Array(Leaf):
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
-    return (self.dataset_id, type_, stype)
+    return (self.dataset_id, dtype, ptype)
 
 
   def _createEArray(self, char *title):
@@ -905,18 +906,19 @@ cdef class Array(Leaf):
     cdef char *flavor, *complib, *version, *class_
     cdef void *fill_value
     cdef int itemsize
+    cdef object ptype
 
     atom = self.atom
-    itemsize = atom.itemsize
-    stype = atom.stype
+    itemsize = atom.dtype.base.itemsize
+    ptype = atom.ptype
     try:
-      enumtype = PTTypeToNPCode[stype]
+      enumtype = PTTypeToNPCode[ptype]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported right now. Sorry about that.
             """ % repr(self.type)
 
-    if stype == 'Enum':
+    if ptype == 'Enum':
       self.type_id = enumToHDF5(atom, self.byteorder)
     else:
       byteorder = PyString_AsString(self.byteorder)
@@ -994,7 +996,7 @@ cdef class Array(Leaf):
     cdef char *flavor
     cdef hid_t base_type_id
     cdef herr_t ret
-    cdef object shape, type_
+    cdef object shape, type_, dtype
 
     # Open the dataset (and keep it open)
     self.dataset_id = H5Dopen(self.parent_id, self.name)
@@ -1069,7 +1071,11 @@ cdef class Array(Leaf):
     chunksizes = tuple(chunksizes)
 
     type_ = NPCodeToType.get(enumtype, None)
-    return (self.dataset_id, type_, NPCodeToPTType[enumtype],
+    if type_ == numpy.string_:
+      dtype = numpy.dtype("S%s"%type_size)
+    else:
+      dtype = numpy.dtype(type_).newbyteorder(byteorder)
+    return (self.dataset_id, dtype, NPCodeToPTType[enumtype],
             shape, type_size, byteorder, chunksizes)
 
 
@@ -1082,7 +1088,7 @@ cdef class Array(Leaf):
     """
 
     # This should be generalised to support other type conversions.
-    if self.stype == 'Time64':
+    if self.ptype == 'Time64':
       convertTime64(nparr, len(nparr), sense)
 
 
@@ -1244,30 +1250,31 @@ cdef class VLArray(Leaf):
     cdef void *rbuf
     cdef char *byteorder
     cdef char *flavor, *complib, *version, *class_
+    cdef object ptype
 
     atom = self.atom
-    type_ = atom.type
-    stype = atom.stype
+    ptype = atom.ptype
     try:
-      enumtype = PTTypeToNPCode[stype]
+      enumtype = PTTypeToNPCode[ptype]
     except KeyError:
       raise TypeError, \
             """Type class '%s' not supported right now. Sorry about that.
-            """ % repr(type_)
+            """ % repr(ptype)
 
-    if stype == 'Enum':
+    if ptype == 'Enum':
       self.base_type_id = enumToHDF5(atom, self.byteorder)
     else:
       byteorder = PyString_AsString(self.byteorder)
       # Get the HDF5 type id
-      self.base_type_id = convArrayType(enumtype, atom.itemsize, byteorder)
+      self.base_type_id = convArrayType(enumtype, atom.dtype.base.itemsize,
+                                        byteorder)
       if self.base_type_id < 0:
         raise TypeError, \
           """type '%s' is not supported right now. Sorry about that.""" \
-      % type_
+      % ptype
 
     # Allocate space for the dimension axis info
-    if isinstance(atom.shape, int):
+    if atom.shape == ():
       self.rank = 1
       self.scalar = 1
     else:
@@ -1277,8 +1284,8 @@ cdef class VLArray(Leaf):
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Fill the dimension axis info with adequate info
     for i from  0 <= i < self.rank:
-      if isinstance(atom.shape, int):
-        self.dims[i] = atom.shape
+      if atom.shape == ():
+        self.dims[i] = 1
       else:
         self.dims[i] = atom.shape[i]
 
@@ -1332,12 +1339,12 @@ cdef class VLArray(Leaf):
 
 
   def _openArray(self):
-    cdef object shape
     cdef char byteorder[16]  # "non-relevant" fits easily here
     cdef int i, enumtype
     cdef herr_t ret
     cdef hsize_t nrecords
     cdef char *flavor
+    cdef object shape, dtype, type_
 
     # Open the dataset (and keep it open)
     self.dataset_id = H5Dopen(self.parent_id, self.name)
@@ -1372,8 +1379,12 @@ cdef class VLArray(Leaf):
       raise TypeError, "The HDF5 class of object does not seem VLEN. Sorry!"
 
     # Get the type of the atomic type
-    self._atomictype = NPCodeToType.get(enumtype, None)
-    self._atomicstype = NPCodeToPTType[enumtype]
+    type_ = NPCodeToType.get(enumtype, None)
+    if type_ == numpy.string_:
+      self._atomicdtype = numpy.dtype("S%s"%self._basesize)
+    else:
+      self._atomicdtype = numpy.dtype(type_).newbyteorder(byteorder)
+    self._atomicptype = NPCodeToPTType[enumtype]
     # Get the size and shape of the atomic type
     self._atomicsize = self._basesize
     if self.rank:
@@ -1400,7 +1411,7 @@ cdef class VLArray(Leaf):
     """
 
     # This should be generalised to support other type conversions.
-    if self._atomicstype == 'Time64':
+    if self._atomicptype == 'Time64':
       convertTime64(nparr, len(nparr), sense)
 
 
@@ -1505,12 +1516,10 @@ cdef class VLArray(Leaf):
       else:
         # Case of scalars (self._atomicshape == 1)
         shape = (vllen,)
-      if self._atomicstype == "CharType":
-        dtype = numpy.dtype((numpy.string_, self._basesize))
-      else:
-        dtype = numpy.dtype(self._atomictype)
-        # Set the same byteorder than on-disk
-        dtype = dtype.newbyteorder(self.byteorder)
+      dtype = self._atomicdtype
+      # Set the same byteorder than on-disk
+      ####dtype = dtype.newbyteorder(self.byteorder)  # no sembla necessari
+
       nparr = numpy.ndarray(buffer=buf, dtype=dtype, shape=shape)
       # Set the writeable flag for this ndarray object
       nparr.flags.writeable = True

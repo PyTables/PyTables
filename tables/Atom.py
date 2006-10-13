@@ -42,8 +42,8 @@ __version__ = "$Revision$"
 
 
 
-def checkflavor(flavor, dtype, warn):
-    if str(dtype) == "CharType":
+def checkflavor(flavor, ptype, warn):
+    if ptype == "String":
         if flavor in ["numpy", "numarray", "python"]:
             return flavor
         elif flavor in ["CharArray", "String"]:
@@ -55,17 +55,17 @@ or "python" values instead""" % (flavor)),
             return flavor
         else:
             raise ValueError, \
-"""flavor of type '%s' must be one of the "numpy", "numarray"
+"""flavor of type "%s" must be one of the "numpy", "numarray"
 or "python" values, and you tried to set it to "%s".
-"""  % (dtype, flavor)
+"""  % (ptype, flavor)
     else:
         if flavor in ["numpy", "numarray", "numeric", "python"]:
             return flavor
         else:
             raise ValueError, \
-"""flavor of type '%s' must be one of the "numpy", "numarray", "numeric"
+"""flavor of type "%s" must be one of the "numpy", "numarray", "numeric"
 or "python" values, and you tried to set it to "%s".
-"""  % (dtype, flavor)
+"""  % (ptype, flavor)
 
 
 
@@ -76,6 +76,7 @@ class VLStringAtom(IntCol):
     def __init__(self):
         # This special strings will be represented by unsigned bytes
         IntCol.__init__(self, itemsize=1, shape=1, sign=0)
+        self.shape = ()
         self.flavor = "VLString"
 
     def __repr__(self):
@@ -91,6 +92,7 @@ class ObjectAtom(IntCol):
     """ Define an atom of type Object """
     def __init__(self):
         IntCol.__init__(self, shape=1, itemsize=1, sign=0)
+        self.shape = ()
         self.flavor = "Object"
 
     def __repr__(self):
@@ -107,31 +109,31 @@ class Atom(Col):
 
     def __init__(self, dtype="Float64", shape=1, flavor="numpy", warn=True):
         Col.__init__(self, dtype, shape)
-        self.flavor = checkflavor(flavor, self.type, warn)
+        self.fix_dtype_shape()
+        self.flavor = checkflavor(flavor, self.ptype, warn)
+
+    def fix_dtype_shape(self):
+        "Fix dtype so that it is an scalar type and add shape attribute."
+        self.shape = self.dtype.shape  # dtype.shape will become an attribute
+        self.dtype = self.dtype.base   # dtype becomes the scalar counterpart
 
     def __repr__(self):
-        if self.stype == "CharType":
-            if self.shape == 1:
-                shape = [self.itemsize]
-            else:
-                shape = list(self.shape)
-                shape.append(self.itemsize)
+        if self.ptype == "String":
+            shape = list(self.shape)
+            shape.append(self.dtype.base.itemsize)
             shape = tuple(shape)
         else:
             shape = self.shape
 
         return "Atom(dtype=%r, shape=%s, flavor=%r)" % (
-            self.stype, shape, self.flavor)
+            self.ptype, shape, self.flavor)
 
     def atomsize(self):
         " Compute the size of the atom type "
-        atomicsize = self.itemsize
-        if isinstance(self.shape, tuple):
-            for i in self.shape:
-                if i > 0:  # To deal with EArray Atoms
-                    atomicsize *= i
-        else:
-            atomicsize *= self.shape
+        atomicsize = self.dtype.base.itemsize
+        for i in self.shape:
+            if i > 0:  # To deal with EArray Atoms
+                atomicsize *= i
         return atomicsize
 
 
@@ -139,17 +141,19 @@ class StringAtom(StringCol, Atom):
     """ Define an atom of type String """
     def __init__(self, shape=1, length=None, flavor="numpy", warn=True):
         StringCol.__init__(self, length=length, shape=shape)
-        self.flavor = checkflavor(flavor, self.type, warn)
+        Atom.fix_dtype_shape(self)
+        self.flavor = checkflavor(flavor, self.ptype, warn)
     def __repr__(self):
         return "StringAtom(shape=%s, length=%s, flavor=%r)" % (
-            self.shape, self.itemsize, self.flavor)
+            self.shape, self.dtype.base.itemsize, self.flavor)
 
 
 class BoolAtom(BoolCol, Atom):
     """ Define an atom of type Bool """
     def __init__(self, shape=1, flavor="numpy", warn=True):
         BoolCol.__init__(self, shape=shape)
-        self.flavor = checkflavor(flavor, self.type, warn)
+        Atom.fix_dtype_shape(self)
+        self.flavor = checkflavor(flavor, self.ptype, warn)
     def __repr__(self):
         return "BoolAtom(shape=%s, flavor=%r)" % (self.shape, self.flavor)
 
@@ -158,14 +162,15 @@ class IntAtom(IntCol, Atom):
     """ Define an atom of type Integer """
     def __init__(self, shape=1, itemsize=4, sign=1, flavor="numpy", warn=True):
         IntCol.__init__(self, shape=shape, itemsize=itemsize, sign=sign)
-        self.flavor = checkflavor(flavor, self.type, warn)
+        Atom.fix_dtype_shape(self)
+        self.flavor = checkflavor(flavor, self.ptype, warn)
     def __repr__(self):
-        if numpy.array(0, self.type) - numpy.array(1, self.type) < 0:
+        if numpy.array(0, self.dtype) - numpy.array(1, self.dtype) < 0:
             sign = True
         else:
             sign = False
         return "IntAtom(shape=%s, itemsize=%s, sign=%s, flavor=%r)" % (
-            self.shape, self.itemsize, sign, self.flavor)
+            self.shape, self.dtype.base.itemsize, sign, self.flavor)
 
 class Int8Atom(IntAtom):
     """ Define an atom of type Int8 """
@@ -236,10 +241,11 @@ class FloatAtom(FloatCol, Atom):
     """ Define an atom of type Float """
     def __init__(self, shape=1, itemsize=8, flavor="numpy", warn=True):
         FloatCol.__init__(self, shape=shape, itemsize=itemsize)
-        self.flavor = checkflavor(flavor, self.type, warn)
+        Atom.fix_dtype_shape(self)
+        self.flavor = checkflavor(flavor, self.ptype, warn)
     def __repr__(self):
         return "FloatAtom(shape=%s, itemsize=%s, flavor=%r)" % (
-            self.shape, self.itemsize, self.flavor)
+            self.shape, self.dtype.base.itemsize, self.flavor)
 
 class Float32Atom(FloatAtom):
     """ Define an atom of type Float32 """
@@ -262,10 +268,11 @@ class ComplexAtom(ComplexCol, Atom):
     """ Define an atom of type Complex """
     def __init__(self, shape=1, itemsize=16, flavor="numpy", warn=True):
         ComplexCol.__init__(self, shape=shape, itemsize=itemsize)
-        self.flavor = checkflavor(flavor, self.type, warn)
+        Atom.fix_dtype_shape(self)
+        self.flavor = checkflavor(flavor, self.ptype, warn)
     def __repr__(self):
         return "ComplexAtom(shape=%s, itemsize=%s, flavor=%r)" % (
-            self.shape, self.itemsize, self.flavor)
+            self.shape, self.dtype.base.itemsize, self.flavor)
 
 class Complex32Atom(ComplexAtom):
     """ Define an atom of type Complex32 """
@@ -288,10 +295,11 @@ class TimeAtom(TimeCol, Atom):
     """ Define an atom of type Time """
     def __init__(self, shape=1, itemsize=8, flavor="numpy", warn=True):
         TimeCol.__init__(self, shape=shape, itemsize=itemsize)
-        self.flavor = checkflavor(flavor, self.type, warn)
+        Atom.fix_dtype_shape(self)
+        self.flavor = checkflavor(flavor, self.ptype, warn)
     def __repr__(self):
         return "TimeAtom(shape=%s, itemsize=%s, flavor=%r)" % (
-            self.shape, self.itemsize, self.flavor)
+            self.shape, self.dtype.base.itemsize, self.flavor)
 
 class Time32Atom(TimeAtom):
     """ Define an atom of type Time32 """
@@ -324,26 +332,24 @@ class EnumAtom(EnumCol, Atom):
     meaning of other `Atom` classes (the ``flavor`` applies to the
     representation of concrete read values).
 
-    Enumerated atoms also have ``stype`` and ``type`` attributes with
+    Enumerated atoms also have ``ptype`` and ``dtype`` attributes with
     the same values as in `EnumCol`.
 
     Save for the default, position and indexed attributes, examples from
     the `Enum` class hold (changing `EnumCol` by `EnumAtom`, of course).
     """
 
-    def __init__(self, enum, dtype='UInt32', shape=1, flavor='numpy', warn=True):
+    def __init__(self, enum, dtype='UInt32', shape=1, flavor='numpy',
+                 warn=True):
         EnumCol.__init__(self, enum, None, dtype=dtype, shape=shape)
-        self.flavor = checkflavor(flavor, self.type, warn)
-
-
+        Atom.fix_dtype_shape(self)
+        self.flavor = checkflavor(flavor, self.ptype, warn)
     def _setDefault(self, dflt):
         # Atoms do not need default values.
         self.dflt = None
-
-
     def __repr__(self):
-        return ('EnumAtom(%s, dtype=\'%s\', shape=%s, flavor=%r)'
-                % (self.enum, self.type, self.shape, self.flavor))
+        return ('EnumAtom(%s, ptype=\'%s\', shape=%s, flavor=%r)'
+                % (self.enum, self.ptype, self.shape, self.flavor))
 
 
 

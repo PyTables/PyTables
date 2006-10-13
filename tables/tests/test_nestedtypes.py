@@ -86,21 +86,21 @@ testADescr = [
 testADescr2 = [
     ('x', '(2,)i4'),
     ('Info', [
-        ('value', '1c16'),
-        ('y2', '1f8'),
+        ('value', '()c16'),
+        ('y2', '()f8'),
         ('Info2', [
-            ('name', '1a2'),
+            ('name', '()S2'),
             ('value', '(2,)c16'),
             ('y3', '(2,)f8'),
             ('z3', '(2,)u4')]),
-        ('name', '1a2'),
-        ('z2', '1u1')]),
-    ('color', '1a2'),
+        ('name', '()S2'),
+        ('z2', '()u1')]),
+    ('color', '()S2'),
     ('info', [
-        ('Name', '1a2'),
-        ('Value', '1c16')]),
+        ('Name', '()S2'),
+        ('Value', '()c16')]),
     ('y', '(2, 2)f8'),
-    ('z', '1u1')]
+    ('z', '()u1')]
 
 # A nested array for testing:
 testABuffer = [
@@ -130,9 +130,8 @@ def areDescriptionsEqual(desc1, desc2):
 
     if isinstance(desc1, t.Col):
         # This is a rough comparison but it suffices here.
-        return (desc1.stype == desc2.stype and desc2.type == desc2.type
-                and desc1.shape == desc2.shape
-                and desc1.itemsize == desc2.itemsize
+        return (desc1.ptype == desc2.ptype
+                and desc2.dtype == desc2.dtype
                 and desc1._v_pos == desc2._v_pos
                 and desc1.indexed == desc2.indexed
                 #and desc1.dflt == desc2.dflt)

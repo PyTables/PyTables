@@ -8,12 +8,6 @@ from common import verbose, cleanup
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
-# Check if we are using python 2.2
-if sys.version_info[0] == 2 and sys.version_info[1] == 2:
-    python22 = 1
-else:
-    python22 = 0
-
 def WriteRead(filename, testTuple):
     if verbose:
         print '\n', '-=' * 30
@@ -135,13 +129,13 @@ class ExceptionTestCase(unittest.TestCase):
                 WriteRead(fname, a)
             finally:
                 os.remove(fname)
-        except TypeError:
+        except ValueError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next error was catched!"
                 print type, ":", value
         else:
-            self.fail("expected an TypeError")
+            self.fail("expected a ValueError")
 
 
         return
@@ -156,10 +150,10 @@ class ExceptionTestCase(unittest.TestCase):
                 WriteRead(fname, a)
             finally:
                 os.remove(fname)
-        except TypeError:
+        except ValueError:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next ValueError was catched!"
+                print "\nGreat!, the next was catched!"
                 print value
         else:
             self.fail("expected an ValueError")
@@ -261,7 +255,6 @@ class GetItemTestCase(unittest.TestCase):
 
     def test04_range(self):
         "Range element access, strided (character types)"
-        global python22
 
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
@@ -269,13 +262,11 @@ class GetItemTestCase(unittest.TestCase):
         a = self.charListME
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
-        # Extended slicing not supported in Python 2.2
-        if not python22:
-            # Get and compare an element
-            if verbose:
-                print "Original elements:", a[1:4:2]
-                print "Read elements:", arr[1:4:2]
-            assert a[1:4:2] == arr[1:4:2]
+        # Get and compare an element
+        if verbose:
+            print "Original elements:", a[1:4:2]
+            print "Read elements:", arr[1:4:2]
+        assert a[1:4:2] == arr[1:4:2]
 
         # Close the file
         fileh.close()
@@ -285,7 +276,6 @@ class GetItemTestCase(unittest.TestCase):
 
     def test05_range(self):
         "Range element access (numerical types)"
-        global python22
 
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
@@ -293,13 +283,11 @@ class GetItemTestCase(unittest.TestCase):
         a = self.numericalListME
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
-        # Extended slicing not supported in Python 2.2
-        if not python22:
-            # Get and compare an element
-            if verbose:
-                print "Original elements:", a[1:4:2]
-                print "Read elements:", arr[1:4:2]
-            assert a[1:4:2] == arr[1:4:2]
+        # Get and compare an element
+        if verbose:
+            print "Original elements:", a[1:4:2]
+            print "Read elements:", arr[1:4:2]
+        assert a[1:4:2] == arr[1:4:2]
 
         # Close the file
         fileh.close()

@@ -69,16 +69,16 @@ class BasicTestCase(unittest.TestCase):
             print "Array read itemsize:", b.itemsize
             print "Array read type:", b.dtype.char
 
-        stype = self.root.somearray.stype
+        ptype = self.root.somearray.ptype
         # Check strictly the array equality
         assert type(a) == type(b)
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         assert a.dtype == b.dtype
         if a.dtype.char[0] == "S":
-            assert stype == "CharType"
+            assert ptype == "String"
         else:
-            assert typeNA[a.dtype.type] == stype
+            assert typeNA[a.dtype.type] == ptype
 
         assert allequal(a,b, "numpy")
         self.fileh.close()
@@ -254,7 +254,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print "Array a original. Data: ==>", a
                 print "Info from dataset:", dset._v_pathname
                 print "  shape ==>", dset.shape,
-                print "  type ==> %s" % dset.type
+                print "  dtype ==> %s" % dset.dtype
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==> %s" % b.dtype.char
 
@@ -415,10 +415,10 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numpy")
-            typecol = table.colstypes[colname]
-            itemsizecol = table.description._v_itemsizes[colname]
+            typecol = table.colptypes[colname]
+            itemsizecol = table.description._v_dtypes[colname].base.itemsize
             nctypecode = numcol.dtype.char
-            if typecol == "CharType":
+            if typecol == "String":
                 if itemsizecol > 1:
                     orignumcol = array(['abcd']*self.nrows, dtype='S4')
                 else:
@@ -439,9 +439,9 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numpy")
-            typecol = table.colstypes[colname]
+            typecol = table.colptypes[colname]
             nctypecode = typeNA[numcol.dtype.char[0]]
-            if typecol <> "CharType":
+            if typecol <> "String":
                 if verbose:
                     print "Typecode of NumPy column read:", nctypecode
                     print "Should look like:", typeNA[typecol]
@@ -459,10 +459,10 @@ class TableReadTestCase(common.PyTablesTestCase):
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname,
                                            flavor="numpy")
-            typecol = table.colstypes[colname]
-            itemsizecol = table.description._v_itemsizes[colname]
+            typecol = table.colptypes[colname]
+            itemsizecol = table.description._v_dtypes[colname].base.itemsize
             nctypecode = numcol.dtype.char
-            if typecol == "CharType":
+            if typecol == "String":
                 if itemsizecol > 1:
                     orignumcol = array(['abcd']*self.nrows, dtype='S4')
                 else:
@@ -486,9 +486,9 @@ class TableReadTestCase(common.PyTablesTestCase):
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname,
                                            flavor="numpy")
-            typecol = table.colstypes[colname]
+            typecol = table.colptypes[colname]
             type = numcol.dtype.type
-            if typecol <> "CharType":
+            if typecol <> "String":
                 if typecol == "Int64":
                     return
                 if verbose:
@@ -505,8 +505,8 @@ class TableReadTestCase(common.PyTablesTestCase):
         coords = numpy.array([1,2,3], dtype='int8')
         for colname in table.colnames:
             numcol = [ table[coord][colname] for coord in coords ]
-            typecol = table.colstypes[colname]
-            if typecol <> "CharType":
+            typecol = table.colptypes[colname]
+            if typecol <> "String":
                 if typecol == "Int64":
                     return
                 numcol = numpy.array(numcol, typeNA[typecol])

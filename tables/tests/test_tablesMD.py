@@ -226,28 +226,21 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(expectedNames, list(desc._v_names))
 
         # Column types.
-        expectedTypes = [columns[colname].type
+        expectedTypes = [columns[colname].dtype
                          for colname in expectedNames]
         self.assertEqual(expectedTypes,
-                         [tbl.coltypes[v] for v in expectedNames])
+                         [tbl.coldtypes[v] for v in expectedNames])
         self.assertEqual(expectedTypes,
-                         [desc._v_types[v] for v in expectedNames])
+                         [desc._v_dtypes[v] for v in expectedNames])
 
         # Column string types.
-        expectedSTypes = [columns[colname].stype
+        expectedPtypes = [columns[colname].ptype
                           for colname in expectedNames]
-        self.assertEqual(expectedSTypes,
-                         [tbl.colstypes[v] for v in expectedNames])
-        self.assertEqual(expectedSTypes,
-                         [desc._v_stypes[v] for v in expectedNames])
+        self.assertEqual(expectedPtypes,
+                         [tbl.colptypes[v] for v in expectedNames])
+        self.assertEqual(expectedPtypes,
+                         [desc._v_ptypes[v] for v in expectedNames])
 
-        # Column shapes.
-        expectedShapes = [columns[colname].shape
-                          for colname in expectedNames]
-        self.assertEqual(expectedShapes,
-                         [tbl.colshapes[v] for v in expectedNames])
-        self.assertEqual(expectedShapes,
-                         [desc._v_shapes[v] for v in expectedNames])
 
         # Column defaults.
         for v in expectedNames:
@@ -271,10 +264,8 @@ class BasicTestCase(common.PyTablesTestCase):
         for colName in expectedNames:
             expectedCol = columns[colName]
             col = desc._v_colObjects[colName]
-            self.assertEqual(expectedCol.type, col.type)
-            self.assertEqual(expectedCol.stype, col.stype)
-            self.assertEqual(expectedCol.itemsize, col.itemsize)
-            self.assertEqual(expectedCol.shape, col.shape)
+            self.assertEqual(expectedCol.dtype, col.dtype)
+            self.assertEqual(expectedCol.ptype, col.ptype)
 
     def test01_readTable(self):
         """Checking table read and cuts"""
