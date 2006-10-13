@@ -198,7 +198,7 @@ class Table(TableExtension.Table, Leaf):
         reIndex()
         reIndexDirty()
         removeRows(start [, stop])
-        removeIndex(column)
+        removeIndex(colname)
         where(condition [, condvars] [, start] [, stop] [, step])
         whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
         getWhereList(condition [, condvars] [, flavor] [, sort])
@@ -1673,9 +1673,9 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                                                key.start, key.stop, key.step)
             return self.read(start, stop, step)
         elif isinstance(key, str):
-            warnings.warn(DeprecationWarning("""\
-``table['colname']`` is deprecated; please use ``table.col('colname')``"""),
-                          stacklevel=2)
+            warnings.warn( "``table['colname']`` is deprecated; "
+                           "please use ``table.col('colname')``",
+                           DeprecationWarning, stacklevel=2 )
             return self.col(key)
         else:
             raise TypeError("invalid index or slice: %r" % (key,))
@@ -1694,9 +1694,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         """
 
-        if self._v_file.mode == 'r':
-            raise IOError("""\
-Attempt to write over a file opened in read-only mode.""")
+        self._v_file._checkWritable()
 
         if is_idx(key):
             # Index out of range protection
@@ -1726,9 +1724,7 @@ Attempt to write over a file opened in read-only mode.""")
 
         """
 
-        if self._v_file.mode == 'r':
-            raise IOError("""\
-Attempt to write over a file opened in read-only mode.""")
+        self._v_file._checkWritable()
 
         if not self._chunked:
             raise HDF5ExtError("""\
@@ -1884,8 +1880,8 @@ table format '%s'. The error was: <%s>
         """
 
         if not isinstance(colname, str):
-            raise TypeError("""\
-The 'colname' parameter must be a string.""")
+            raise TypeError("The 'colname' parameter must be a string.")
+        self._v_file._checkWritable()
 
         if column is None:      # Nothing to be done
             return 0
@@ -2119,18 +2115,29 @@ The 'names' parameter must be a list of strings.""")
         super(Table, self)._g_remove(recursive)
 
 
-    def removeIndex(self, index):
-        "Remove the index associated with the specified column"
+    def removeIndex(self, colname):
+        """Remove the index associated with the specified column.
 
-        # Check that file is not in read-only mode
-        if self._v_file.mode == 'r':
-            raise IOError("""\
-Attempt to write over a file opened in read-only mode.""")
+        The argument `colname` should be the name of a column.  If the
+        column ins not indexed, nothing happens.  If it does not exist,
+        a ``KeyError`` is raised.
 
-        if not isinstance(index, Index):
-            raise TypeError("""\
-Wrong 'index' parameter type. Only Index instances are accepted.""")
-        index.column.removeIndex()
+        This index can be created again by calling the ``createIndex()``
+        method of the appropriate `Column` object.
+        """
+
+        if isinstance(colname, Index):
+            warnings.warn( "please use a column name "
+                           "instead of the associated ``Index`` instance",
+                           DeprecationWarning )
+            index = colname
+            column = index.column
+        else:
+            column = self.cols._f_col(colname)
+
+        self._v_file._checkWritable()
+        column.removeIndex()
+        self.colindexed[column.name] = False
 
 
     def _reIndex(self, colnames):
@@ -2501,9 +2508,9 @@ class Cols(object):
                 else:
                     return crecarray[colgroup]  # numpy case
         elif isinstance(key, str):
-            warnings.warn(DeprecationWarning("""\
-``table.cols['colname']`` is deprecated; please use ``table.cols._f_col('colname')``"""),
-                          stacklevel=2)
+            warnings.warn( "``table.cols['colname']`` is deprecated; "
+                           "please use ``table.cols._f_col('colname')``",
+                           DeprecationWarning, stacklevel=2 )
             return self._f_col(key)
         else:
             raise TypeError("invalid index or slice: %r" % (key,))
@@ -2808,10 +2815,7 @@ class Column(object):
         """
 
         table = self.table
-
-        if table._v_file.mode == 'r':
-            raise IOError("""\
-Attempt to write over a file opened in read-only mode.""")
+        table._v_file._checkWritable()
 
         if is_idx(key):
             # Index out of range protection
@@ -2938,10 +2942,7 @@ Attempt to write over a file opened in read-only mode.""")
     def reIndex(self):
         """Recompute the existing index"""
 
-        # Check that file is not in read-only mode
-        if self._tableFile.mode == 'r':
-            raise IOError("""\
-Attempt to write over a file opened in read-only mode.""")
+        self._tableFile._checkWritable()
 
         index = self.index
         if index is not None:
@@ -2957,10 +2958,7 @@ Attempt to write over a file opened in read-only mode.""")
     def reIndexDirty(self):
         """Recompute the existing index only if it is dirty"""
 
-        # Check that file is not in read-only mode
-        if self._tableFile.mode == 'r':
-            raise IOError("""\
-Attempt to write over a file opened in read-only mode.""")
+        self._tableFile._checkWritable()
 
         index = self.index
         if index is not None and self.dirty:
@@ -2976,24 +2974,16 @@ Attempt to write over a file opened in read-only mode.""")
     def removeIndex(self):
         """Delete the associated column's index"""
 
-        table = self.table
+        self._tableFile._checkWritable()
 
-        # Check that file is not in read-only mode
-        if table._v_file.mode == 'r':
-            raise IOError("""\
-Attempt to write over a file opened in read-only mode.""")
-
-        # delete some references
+        # Remove the index if existing.
         index = self.index
         if index:
             index._f_remove()
             self._updateIndexLocation(None)
-            table.colindexed[self.name] = 0
             # Changing the set of indexed columns
             # invalidates the condition cache.
             table._conditionCache.clear()
-        else:
-            return  # Do nothing
 
 
     def close(self):

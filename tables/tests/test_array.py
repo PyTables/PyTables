@@ -14,7 +14,9 @@ except:
     numeric = 0
 from tables import *
 
+import common
 from common import verbose, allequal, cleanup
+
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
@@ -1851,6 +1853,16 @@ class GE2NACloseTestCase(GE2NATestCase):
     close = 1
 
 
+class NonHomogeneousTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def test(self):
+        """Test for creation of non-homogeneous arrays."""
+        # This checks ticket #12.
+        h5file = self.h5file
+        self.assertRaises( ValueError, h5file.createArray, '/', 'test',
+                           [1, [2, 3]] )
+        self.assertRaises(NoSuchNodeError, h5file.removeNode, '/test')
+
+
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
@@ -1895,6 +1907,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(GE1NACloseTestCase))
         theSuite.addTest(unittest.makeSuite(GE2NAOpenTestCase))
         theSuite.addTest(unittest.makeSuite(GE2NACloseTestCase))
+        theSuite.addTest(unittest.makeSuite(NonHomogeneousTestCase))
 
 
     return theSuite

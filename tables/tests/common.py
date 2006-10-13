@@ -233,9 +233,38 @@ def testFilename(filename):
 
 
 
+def _verboseDecorator(oldmethod):
+    def newmethod(self, *args, **kwargs):
+        self._verboseHeader()
+        return oldmethod(self, *args, **kwargs)
+    if sys.version_info >= (2, 4):
+        # Under Python 2.3 and older, names are read-only.  Not changing
+        # this name makes the user unable to run a particular test from
+        # the command line, but at least whole test modules and test
+        # cases can still be run.
+        newmethod.__name__ = oldmethod.__name__  # Python >= 2.4
+    newmethod.__doc__ = oldmethod.__doc__
+    return newmethod
+
+class MetaPyTablesTestCase(type):
+
+    """Metaclass for PyTables test case classes."""
+
+    # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/198078
+
+    def __new__(class_, name, bases, dict_):
+        newdict = {}
+        for (aname, avalue) in dict_.iteritems():
+            if callable(avalue) and aname.startswith('test'):
+                avalue = _verboseDecorator(avalue)
+            newdict[aname] = avalue
+        return type.__new__(class_, name, bases, newdict)
+
 class PyTablesTestCase(unittest.TestCase):
 
     """Abstract test case with useful methods."""
+
+    __metaclass__ = MetaPyTablesTestCase
 
     def _getName(self):
         """Get the name of this test case."""
@@ -291,15 +320,19 @@ class PyTablesTestCase(unittest.TestCase):
             else:
                 showwarning(message, category, filename, lineno, file)
 
-        # Replace the original warning-showing function.
+        # By forcing Python to always show warnings of the wanted class,
+        # and replacing the warning-showing function with a tailored one,
+        # we can check for *every* occurence of the warning.
+        warnings.filterwarnings('always', category=warnClass)
         warnings.showwarning = myShowWarning
-
         try:
             # Run code and see what happens.
             ret = callableObj(*args, **kwargs)
         finally:
-            # Restore the original warning-showing function.
+            # Restore the original warning-showing function
+            # and warning filter.
             warnings.showwarning = showwarning
+            warnings.filterwarnings('default', category=warnClass)
 
         if not issued[0]:
             raise self.failureException(
@@ -357,10 +390,15 @@ class TempFileMixin:
 
 
     def _reopen(self, mode='r'):
-        """Reopen ``h5file`` in the specified ``mode``."""
+        """Reopen ``h5file`` in the specified ``mode``.
+
+        Returns a true or false value depending on whether the file was
+        reopenend or not.  If not, nothing is changed.
+        """
 
         self.h5file.close()
         self.h5file = tables.openFile(self.h5fname, mode)
+        return True
 
 
 

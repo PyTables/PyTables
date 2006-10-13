@@ -7,7 +7,7 @@ import sys
 from tables import *
 from tables.Index import Index
 from tables.indexes import calcChunksize, minRowIndex
-from common import verbose, allequal, heavy, cleanup
+from common import verbose, allequal, heavy, cleanup, PyTablesTestCase
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
@@ -19,7 +19,7 @@ class Small(IsDescription):
     var3 = IntCol(0, pos=3)
     var4 = FloatCol(0, pos=4)
 
-class BasicTestCase(unittest.TestCase):
+class BasicTestCase(PyTablesTestCase):
     compress = 0
     complib = "zlib"
     shuffle = 0
@@ -283,8 +283,8 @@ class BasicTestCase(unittest.TestCase):
         assert table.colindexed["var1"] == 1
         assert idxcol is not None
 
-        # delete the index
-        table.removeIndex(idxcol)
+        # delete the index (check for warning)
+        self.assertWarns(DeprecationWarning, table.removeIndex, idxcol)
         if verbose:
             print "After deletion"
             print "var1 column:", table.cols.var1
@@ -317,7 +317,7 @@ class BasicTestCase(unittest.TestCase):
         assert idxcol is not None
         assert table.colindexed["var1"] == 1
         # delete the index
-        table.removeIndex(idxcol)
+        table.removeIndex("var1")
 
         # close and reopen the file
         self.fileh.close()

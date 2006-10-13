@@ -633,7 +633,8 @@ class BasicTestCase(common.PyTablesTestCase):
                 else:
                     row['var5'] = float(i)
                 row.append()
-            #table.flush()
+            table.flush()
+
         # Close the file and re-open it.
         self.fileh.close()
 
@@ -743,9 +744,11 @@ class BasicTestCase(common.PyTablesTestCase):
                            '0', '9', '8', '7', '6', '5', '4', '3', '2', '1',
                            '0', '9', '8', '7', '6', '5', '4', '3', '2']
 
-    # The next test doesn't work and I don't know why
+    # This test is commented out as it should not work anymore due to
+    # the new policy of not doing a flush in the middle of a __del__
+    # operation. F. Altet 2006-08-24
     def _test02c_AppendRows(self):
-        """Checking warning for appending with evanescent table objects."""
+        """Checking appending with evanescent table objects"""
 
         # This test is kind of magic, but it is a good sanity check anyway.
 

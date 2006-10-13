@@ -348,9 +348,7 @@ be zero."""
         compatibility; please do *not* use it.
         """
 
-        if self._v_file.mode == 'r':
-            raise IOError(\
-                "attempt to write over a file opened in read-only mode")
+        self._v_file._checkWritable()
 
         isseq = True
         try:  # fastest check in most cases
@@ -505,8 +503,7 @@ please put them in a single sequence object"""),
 
         """
 
-        if self._v_file.mode == 'r':
-            raise IOError("attempt to write over a file opened in read-only mode")
+        self._v_file._checkWritable()
 
         if not isinstance(keys, tuple):
             keys = (keys, None)

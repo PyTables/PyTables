@@ -387,8 +387,20 @@ sequences, mappings and other enumerations""")
         False
         >>> enum1 == enum6
         False
+
+        Comparing enumerated types with other kinds of objects produces
+        a false result:
+
+        >>> enum1 == {'T0': 0, 'T1': 2}
+        False
+        >>> enum1 == ['T0', 'T1']
+        False
+        >>> enum1 == 2
+        False
         """
 
+        if not isinstance(other, Enum):
+            return False
         return self._names == other._names
 
 

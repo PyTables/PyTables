@@ -281,6 +281,9 @@ class Node(object):
             # This allows extra operations after creating the node.
             self._g_postInitHook()
         except:
+            if new:
+                # Creation failed, this is no longer a child of the parent.
+                parentNode._g_unrefNode(ptname)
             # If anything happens, the node must be closed
             # to undo every possible registration made so far.
             # We do *not* rely on ``__del__()`` doing it later,

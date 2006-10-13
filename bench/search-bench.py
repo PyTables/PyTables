@@ -246,6 +246,8 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
             print "Number of elements per slice:", var2.index.nelemslice
             print "Slice number in", table._v_pathname, ":", var2.index.nrows
 
+    table._v_maxTuples = 10
+    print "maxTuples-->", table._v_maxTuples
     rowselected = 0
     time2 = 0.
     tcpu2 = 0.
@@ -253,7 +255,8 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
     print "Select mode:", indexmode, ". Selecting for type:", atom
     # The interval for look values at. This is aproximately equivalent to
     # the number of elements to select
-    chunksize = 1000  # Change here for selecting more or less entries
+    #chunksize = 1000  # Change here for selecting more or less entries
+    chunksize = 100000  # Change here for selecting more or less entries
     # Initialize the random generator always with the same integer
     # in order to have reproductible results on each read iteration
     random.seed(19)

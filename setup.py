@@ -110,6 +110,12 @@ elif os.name == 'nt':
 from numpy.distutils.misc_util import get_numpy_include_dirs
 inc_dirs.extend(get_numpy_include_dirs())
 
+# Gcc 4.0.1 on Mac OS X 10.4 does not seem to include the default
+# header and library paths.  See ticket #18.
+if sys.platform.lower().startswith('darwin'):
+    inc_dirs.extend(default_header_dirs)
+    lib_dirs.extend(default_library_dirs)
+
 def _find_file_path(name, locations, prefixes=[''], suffixes=['']):
     for prefix in prefixes:
         for suffix in suffixes:
@@ -402,11 +408,12 @@ if has_setuptools:
     setuptools_kwargs['extras_require'] = {
         'Numeric': ['Numeric>=24.2'],  # for ``Numeric`` support
         'netCDF': ['ScientificPython'],  # for netCDF interchange
+        'numpy': ['numpy>=0.9.6'],  # for ``numpy`` support
         }
 
     # Detect packages automatically.
     setuptools_kwargs['packages'] = find_packages(
-        exclude=('*.tests', '*.bench') )
+        exclude=['*.tests', '*.bench'] )
     # Entry points for automatic creation of scripts.
     setuptools_kwargs['entry_points'] = {
         'console_scripts': [
@@ -434,7 +441,7 @@ def find_name(base = 'tables-pro'):
     append "-pyX.Y" to the base name'''
     name = base
     if '--name-with-python-version' in sys.argv:
-        name += '-py%i.%i'%(sys.version_info[0],sys.version_info[0])
+        name += '-py%i.%i'%(sys.version_info[0],sys.version_info[1])
         sys.argv.remove('--name-with-python-version')
     return name
 

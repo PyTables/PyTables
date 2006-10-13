@@ -3182,7 +3182,7 @@ fileh.close()]]></screen>
 
  class NestedDescr(IsDescription):
      """A description that has several nested columns"""
-     color = EnumCol(colors, 'red', dtype='UInt32', indexed=1) # indexed column
+     color = EnumCol(colors, 'red', dtype='UInt32', indexed=True) # indexed column
      info1 = Info()
      class info2(IsDescription):
          _v_pos = 1
@@ -3406,7 +3406,7 @@ fileh.close()]]></screen>
      "name": StringCol(length=10, dflt=None, shape=1, pos=0, indexed=False),
      "value": Float64Col(dflt=0.0, shape=1, pos=1, indexed=False)},
    "color": EnumCol(Enum({'blue': 2, 'green': 1, 'red': 0}), 'red',
-  dtype='UInt32', shape=1, pos=2, indexed=1)}
+  dtype='UInt32', shape=1, pos=2, indexed=True)}
  >>>]]></screen>
 
           <para>As you can see, it provides very useful information on both the
@@ -3482,7 +3482,7 @@ fileh.close()]]></screen>
   '1u1')]), ('name', '1a10'), ('value', '1f8')]), ('info1', [('name',
   '1a10'), ('value', '1f8')]), ('color', '1u4')])
  column--> EnumCol(Enum({'blue': 2, 'green': 1, 'red': 0}), 'red',
-  dtype='UInt32', shape=1, pos=2, indexed=1)
+  dtype='UInt32', shape=1, pos=2, indexed=True)
  column--> Description([('info3', [('x', '1f8'), ('y', '1u1')]),
   ('name', '1a10'), ('value', '1f8')])
  column--> StringCol(length=10, dflt=None, shape=1, pos=1, indexed=False)
@@ -5453,7 +5453,7 @@ table = group.table          # get the table child instance again]]></screen>
 
       <screen><![CDATA[# Recursively print all the arrays hanging from '/'
 print "Arrays the object tree '/':"
-for array in h5file.root._f_walkNodes("Array", recursive=1):
+for array in h5file.root._f_walkNodes("Array", recursive=True):
     print array]]></screen>
 
 	  </section>
@@ -9172,7 +9172,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 
 	    <section id="FiltersInitDescr">
 	      <title><markup>Filters(complevel=0,
-		  complib="zlib", shuffle=1, fletcher32=0)</markup>
+		  complib="zlib", shuffle=True, fletcher32=False)</markup>
 	      </title>
 
 	      <para>The parameters that can be passed to the
@@ -9195,15 +9195,15 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 		  <emphasis>shuffle</emphasis> filter present in the
 		  <computeroutput><![CDATA[HDF5]]></computeroutput> library. This is normally used to
 		  improve the compression ratio (at the cost of
-		  consuming a little bit more CPU time). A value of 0
-		  disables shuffling and 1 makes it active. The default
+		  consuming a little bit more CPU time). A value of <emphasis>False</emphasis>
+		  disables shuffling and <emphasis>True</emphasis> makes it active. The default
 		  value depends on whether compression is enabled or
 		  not; if compression is enabled, shuffling defaults to
 		  be active, else shuffling is disabled.
 		</para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">fletcher32</emphasis></glossterm><glossdef><para>Whether or not to use the
 		  <emphasis>fletcher32</emphasis> filter in the HDF5 library. This
 		  is used to add a checksum on each data chunk. A value
-		  of 0 disables the checksum and it is the default.
+		  of <emphasis>False</emphasis> disables the checksum and it is the default.
 		</para></glossdef></glossentry></glosslist>
 
 	      <para>Of course, you can also create an instance and then
@@ -9288,7 +9288,7 @@ fileh.close()]]></screen>
 	    </para>
 
 	    <section id="IndexPropsInitDescr" xreflabel="description">
-	      <title><markup>IndexProps(auto=1, reindex=1,
+	      <title><markup>IndexProps(auto=True, reindex=True,
 		  filters=None)</markup>
 	      </title>
 
@@ -11618,7 +11618,7 @@ variables:
           <computeroutput><![CDATA[Filters]]></computeroutput> class instance
           (see section <xref linkend="FiltersClassDescr" xrefstyle="select: labelnumber"/>) with
           <computeroutput><![CDATA[complevel=6, complib='zlib' and
-          shuffle=1]]></computeroutput>. To change the default compression,
+          shuffle=True]]></computeroutput>. To change the default compression,
           simply pass a <computeroutput><![CDATA[Filters]]></computeroutput>
           instance to
           <computeroutput><![CDATA[createVariable]]></computeroutput> with the
@@ -11827,8 +11827,8 @@ variables:
                 default corresponds to
                 <computeroutput><![CDATA[complevel=6]]></computeroutput>,
                 <computeroutput><![CDATA[complib='zlib']]></computeroutput>,
-                <computeroutput><![CDATA[shuffle=1]]></computeroutput> and
-                <computeroutput><![CDATA[fletcher32=0]]></computeroutput>.
+                <computeroutput><![CDATA[shuffle=True]]></computeroutput> and
+                <computeroutput><![CDATA[fletcher32=False]]></computeroutput>.
                 </para>
 
               </section>
@@ -11859,8 +11859,8 @@ variables:
                 The default corresponds to
                 <computeroutput><![CDATA[complevel=6]]></computeroutput>,
                 <computeroutput><![CDATA[complib='zlib']]></computeroutput>,
-                <computeroutput><![CDATA[shuffle=1]]></computeroutput> and
-                <computeroutput><![CDATA[fletcher32=0]]></computeroutput>.
+                <computeroutput><![CDATA[shuffle=True]]></computeroutput> and
+                <computeroutput><![CDATA[fletcher32=False]]></computeroutput>.
                 </para>
 
               </section>
@@ -12227,8 +12227,8 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           corresponds to
           <computeroutput><![CDATA[complevel=6]]></computeroutput>,
           <computeroutput><![CDATA[complib='zlib']]></computeroutput>,
-          <computeroutput><![CDATA[shuffle=1]]></computeroutput> and
-          <computeroutput><![CDATA[fletcher32=0]]></computeroutput>.
+          <computeroutput><![CDATA[shuffle=True]]></computeroutput> and
+          <computeroutput><![CDATA[fletcher32=False]]></computeroutput>.
           </para></listitem>
 
           <listitem><para><computeroutput><![CDATA[tables.NetCDF]]></computeroutput>

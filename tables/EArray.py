@@ -387,8 +387,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
     def append(self, sequence):
         """Append the sequence to this (enlargeable) object"""
 
-        if self._v_file.mode == 'r':
-            raise IOError("attempt to write over a file opened in read-only mode")
+        self._v_file._checkWritable()
 
         # The sequence needs to be copied to make the operation safe
         # to in-place conversion.
