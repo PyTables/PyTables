@@ -6221,6 +6221,28 @@ if row['var1'] <= 20 ]]]></screen>
 		</para></glossdef></glossentry></glosslist>
 	    </section>
 
+	    <section id="Table.readWhere">
+	      <title>
+		readWhere(condition, condvars=None, field=None, flavor=None)
+	      </title>
+	      <para>
+		Read table data fulfilling the given <emphasis>condition</emphasis>.
+	      </para>
+	      <para>
+		This method is similar to <computeroutput>read()</computeroutput>
+		(see <xref linkend="Table.read"/>),
+		having their common arguments and return values the same meanings.
+		However, only the rows fulfilling the <emphasis>condition</emphasis>
+		are included in the result.
+	      </para>
+	      <para>
+		The meaning of the <emphasis>condition</emphasis>
+		and <emphasis>condvars</emphasis> arguments
+		is the same as in the <computeroutput>where()</computeroutput>
+		(see <xref linkend="Table.where"/>) method.
+	      </para>
+	    </section>
+
 	    <section id="Table.readCoordinates">
 	      <title>readCoordinates(coords, field=None,
 		flavor=None)</title>

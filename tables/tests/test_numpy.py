@@ -688,8 +688,8 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # Finally, check that the contents are ok
         assert allequal(data, arange(100, dtype="i8"), "numpy")
 
-    def test03a_readIndexed(self):
-        """Checking the return of NumPy in readIndexed method (strings)."""
+    def test03a_readWhere(self):
+        """Checking the return of NumPy in readWhere method (strings)."""
 
         table = self.fileh.root.table
         table.cols.color.createIndex(warn=1, testmode=1)
@@ -697,7 +697,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
-        data = table.readIndexed('color == "ab"')
+        data = table.readWhere('color == "ab"')
         if verbose:
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
@@ -706,8 +706,8 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # Check that all columns have been selected
         assert len(data) == self.nrows
 
-    def test03b_readIndexed(self):
-        """Checking the return of NumPy in readIndexed method (numeric)."""
+    def test03b_readWhere(self):
+        """Checking the return of NumPy in readWhere method (numeric)."""
 
         table = self.fileh.root.table
         table.cols.z.createIndex(warn=1, testmode=1)
@@ -715,7 +715,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
-        data = table.readIndexed('z == 0')
+        data = table.readWhere('z == 0')
         if verbose:
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)

@@ -1106,11 +1106,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return row(start, stop, step, coords=None, ncoords=ncoords)
 
 
-    def readIndexed(self, condition, condvars=None, field=None, flavor=None):
+    def readWhere(self, condition, condvars=None, field=None, flavor=None):
         """
-        Return a record array fulfilling the given `condition`.
+        Read table data fulfilling the given `condition`.
 
-        This method is only intended to be used for indexed columns.
+        This method is similar to `self.read()`, having their common
+        arguments and return values the same meanings.  However, only
+        the rows fulfilling the `condition` are included in the result.
+
         The meaning of the `condition` and `condvars` arguments is the
         same as in the `self.where()` method.
         """
@@ -1126,28 +1129,31 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 """Numeric does not support heterogeneous datasets yet. You cannot specify a 'numeric' flavor without specifying a field."""
 
 
-        # Clean the cache if needed
-        if self._dirtycache:
-            self._restorecache()
-
         # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)
         splitted = self._splitCondition(condition, condvars)
+
         idxvar = splitted.index_variable
         if not idxvar:
-            raise ValueError( "could not find any usable indexes "
-                              "for condition: %r" % condition )
+            coords = [p.nrow for p in self._where(splitted, condvars)]
+            self._whereCondition = None  # reset the conditions
+            return self.readCoordinates(coords, field, flavor)
+
+        # Retrieve the array of rows fulfilling the index condition.
 
         column = condvars[idxvar]
         index = column.index
         assert index is not None, "the chosen column is not indexed"
         assert not column.dirty, "the chosen column has a dirty index"
 
-        # Retrieve the array of rows fulfilling the index condition.
+        # Clean the cache if needed
+        if self._dirtycache:
+            self._restorecache()
 
         # Get the coordinates to lookup
         range_ = index.getLookupRange(
             splitted.index_operators, splitted.index_limits, self )
+
         # Check whether the array is in the limdata cache or not.
         key = (column.name, range_)
         nslot = self._limdatacache.getslot(key)
@@ -1250,7 +1256,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if idxvar is not None:
             column = condvars[idxvar]
             index = column.index
-            # Bound sorted and indices in order to get them cached
             assert index is not None, "the chosen column is not indexed"
             assert not column.dirty, "the chosen column has a dirty index"
 
