@@ -1148,16 +1148,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Get the coordinates to lookup
         range_ = index.getLookupRange(
             splitted.index_operators, splitted.index_limits, self )
-        nslot = -1
-        rescond = splitted.residual_function
-        if not rescond:
-            # Check whether the array is in the limdata cache or not.
-            # The presence of a residual condition invalidates this
-            # mechanism, since the result may be further restricted.
-            # One could include the residual condition and the values of
-            # its variables in the key, but that looks too complicated.
-            item = (column.name, range_)
-            nslot = self._limdatacache.getslot(item)
+        # Check whether the array is in the limdata cache or not.
+        key = (column.name, range_)
+        nslot = self._limdatacache.getslot(key)
         if nslot >= 0:
             # Cache hit. Use the array kept there.
             recarr = self._limdatacache.getitem(nslot)
@@ -1170,13 +1163,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             if nrecords > 0:
                 coords = index.indices._getCoords(index, 0, nrecords)
                 recout = self._read_elements(recarr, coords)
-            # Put this recarray in limdata cache.  See the comment above
-            # about the residual expression.
-            if not rescond:
-                size = len(recarr) * self.rowsize + 1  # approx. size of array
-                self._limdatacache.setitem(item, recarr, size)
+            # Put this recarray in limdata cache.
+            size = len(recarr) * self.rowsize + 1  # approx. size of array
+            self._limdatacache.setitem(key, recarr, size)
 
         # Filter out rows not fulfilling the residual condition.
+        rescond = splitted.residual_function
         if rescond and nrecords > 0:
             indexValid = call_on_recarr(
                 rescond, splitted.residual_parameters,
