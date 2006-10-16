@@ -274,30 +274,29 @@ def IntTypeNextAfter(x, direction, itemsize):
 def nextafter(x, direction, cptype, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
     assert direction in [-1, 0, +1]
+    assert cptype == "String" or type(x) in (int, long, float)
 
     if direction == 0:
         return x
 
     if cptype == "String":
         return StringNextAfter(x, direction, itemsize)
-    else:
-        if type(x) not in (int, long, float):
-            raise ValueError, "You need to pass integers or floats in this context."
-        npdtype = numpy.dtype(cptype)
-        if npdtype.kind in ['i', 'u']:
-            return IntTypeNextAfter(x, direction, itemsize)
-        elif npdtype.name == "float32":
-            if direction < 0:
-                return PyNextAfterF(x,x-1)
-            else:
-                return PyNextAfterF(x,x+1)
-        elif npdtype.name == "float64":
-            if direction < 0:
-                return PyNextAfter(x,x-1)
-            else:
-                return PyNextAfter(x,x+1)
+
+    npdtype = numpy.dtype(cptype)
+    if npdtype.kind in ['i', 'u']:
+        return IntTypeNextAfter(x, direction, itemsize)
+    elif npdtype.name == "float32":
+        if direction < 0:
+            return PyNextAfterF(x,x-1)
         else:
-            raise TypeError, "Type %s is not supported" % type
+            return PyNextAfterF(x,x+1)
+    elif npdtype.name == "float64":
+        if direction < 0:
+            return PyNextAfter(x,x-1)
+        else:
+            return PyNextAfter(x,x+1)
+
+    raise TypeError("data type ``%s`` is not supported" % npdtype)
 
 
 class IndexProps(object):
