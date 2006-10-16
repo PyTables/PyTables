@@ -37,8 +37,6 @@ try:
     import numarray
     import numarray.strings
     import numarray.records
-    import nriterators
-    import nestedrecords
     numarray_imported = True
 except ImportError:
     numarray_imported = False
@@ -47,6 +45,8 @@ import tables.utilsExtension
 from tables.exceptions import NaturalNameWarning
 from tables.constants import CHUNKTIMES
 from tables.registry import classNameDict
+from tables import nriterators
+from tables import nestedrecords
 
 # Python identifier regular expression.
 pythonIdRE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')

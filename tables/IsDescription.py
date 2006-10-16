@@ -127,7 +127,7 @@ class Col(object):
                 self.ptype = 'Time64'
             else:
                 raise TypeError,  "Illegal type: %s" % (type_,)
-        # Check if type_ is a numpy type
+        # Check if type_ is a numpy dtype
         elif type(type_) == numpy.dtype:
             if type_.shape != ():
                 raise TypeError, \

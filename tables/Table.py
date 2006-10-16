@@ -1721,10 +1721,6 @@ You cannot append rows to a non-chunked table.""")
         # Save the records on disk
         # Data is copied to the buffer,
         # so it's safe to do an in-place conversion.
-        # Open and close the table before and after appending to let
-        # the dataset_id and other variables in a safe state for other
-        # reading calls. Fixes #1186892
-        # F. Altet 2005-04-05
         self._open_append(self._v_wbuffer)
         self._append_records(self._unsaved_nrows)
         self._close_append()
