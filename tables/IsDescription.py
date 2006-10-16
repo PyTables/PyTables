@@ -766,7 +766,7 @@ class Description(object):
 
     Public methods:
 
-    _v_walk([type])
+    _f_walk([type])
         Iterate over nested columns.
 
     """
@@ -1031,7 +1031,7 @@ class Description(object):
                 # (Nothing is pushed, we are done with this description.)
 
 
-    def _v_walk(self, type="All"):
+    def _f_walk(self, type="All"):
         """
         Iterate over nested columns.
 
@@ -1186,8 +1186,8 @@ if __name__=="__main__":
     print "Total size ==>", desc._v_dtype.itemsize
 
 
-    # check _v_walk
-    for object in desc._v_walk():
+    # check _f_walk
+    for object in desc._f_walk():
         if isinstance(object, Description):
             print "******begin object*************",
             print "name -->", object._v_name

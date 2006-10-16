@@ -3472,10 +3472,10 @@ fileh.close()]]></screen>
 
           <para>Finally, there is a special iterator of the
           <computeroutput><![CDATA[Description]]></computeroutput> class, called
-          <computeroutput><![CDATA[_v_walk]]></computeroutput> that is able to
+          <computeroutput><![CDATA[_f_walk]]></computeroutput> that is able to
           return you the different columns of the table:</para>
 
-          <screen><![CDATA[ >>> for coldescr in table.description._v_walk():
+          <screen><![CDATA[ >>> for coldescr in table.description._f_walk():
  ...     print "column-->",coldescr
  ...
  column--> Description([('info2', [('info3', [('x', '1f8'), ('y',
@@ -7113,7 +7113,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	    <title><markup>Description</markup> methods</title>
 
       <section>
-        <title>_v_walk(type='All')</title>
+        <title>_f_walk(type='All')</title>
 
         <para>Iterate over nested columns.</para>
 

@@ -460,7 +460,7 @@ class Table(TableExtension.Table, Leaf):
         # Do the indexes group exist?
         indexesGroupPath = _getIndexTableName(self._v_parent, self._v_name)
         igroup = indexesGroupPath in self._v_file
-        for colobj in self.description._v_walk(type="Col"):
+        for colobj in self.description._f_walk(type="Col"):
             colname = colobj._v_pathname
             # Is this column indexed?
             if igroup:
@@ -523,7 +523,7 @@ class Table(TableExtension.Table, Leaf):
         recarr = self._get_container(self._v_maxTuples)
         # Initialize the recarray with the defaults in description
         if init:
-            for objcol in self.description._v_walk("Col"):
+            for objcol in self.description._f_walk("Col"):
                 colname = objcol._v_pathname
                 ra = recarr
                 for nestedfield in colname.split('/'):
@@ -609,7 +609,7 @@ class Table(TableExtension.Table, Leaf):
         """Returns a list containing 'ptype' column names."""
 
         return [ colobj._v_pathname
-                 for colobj in self.description._v_walk('Col')
+                 for colobj in self.description._f_walk('Col')
                  if colobj.ptype == ptype ]
 
 
@@ -617,7 +617,7 @@ class Table(TableExtension.Table, Leaf):
         """Return mapping from enumerated column names to `Enum` instances."""
 
         enumMap = {}
-        for colobj in self.description._v_walk('Col'):
+        for colobj in self.description._f_walk('Col'):
             if colobj.ptype == 'Enum':
                 enumMap[colobj._v_pathname] = colobj.enum
         return enumMap
@@ -689,7 +689,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                           PerformanceWarning)
 
         # Compute some important parameters for createTable
-        for colobj in self.description._v_walk(type="Col"):
+        for colobj in self.description._f_walk(type="Col"):
             colname = colobj._v_pathname
             # Get the column dtypes, ptypes and defaults
             self.coldtypes[colname] = colobj.dtype
@@ -722,7 +722,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Attach the FIELD_N_FILL attributes. We write all the level defaults
         i = 0
-        for colobj in self.description._v_walk(type="Col"):
+        for colobj in self.description._f_walk(type="Col"):
             fieldname = "FIELD_%s_FILL" % i
             setAttr(fieldname, colobj.dflt)
             i += 1
@@ -755,7 +755,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Check if there is some "FIELD_0_FILL" attribute
         has_fill_attrs = "FIELD_0_FILL" in self._v_attrs._f_list("sys")
         i = 0
-        for objcol in self.description._v_walk(type="Col"):
+        for objcol in self.description._f_walk(type="Col"):
             colname = objcol._v_pathname
             if has_fill_attrs:
                 # Get the default values for each column
@@ -789,7 +789,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
               calcBufferSize(self.rowsize, self.nrows)
 
         # Get info about columns
-        for colobj in self.description._v_walk(type="Col"):
+        for colobj in self.description._f_walk(type="Col"):
             colname = colobj._v_pathname
             # Get the column types, ptypes and defaults
             self.coldtypes[colname] = colobj.dtype
@@ -809,7 +809,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         If it does not exist, a ``KeyError`` is raised.
         """
 
-        for colobj in self.description._v_walk(type="All"):
+        for colobj in self.description._f_walk(type="All"):
             cname = colobj._v_pathname
             if colname == cname:
                 break

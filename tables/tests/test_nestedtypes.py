@@ -1027,7 +1027,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
         if verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
@@ -1045,7 +1045,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
         if verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
@@ -1063,7 +1063,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
         if verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
@@ -1081,7 +1081,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
         if verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
@@ -1099,7 +1099,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
         if verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
@@ -1117,7 +1117,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        names = [col._v_pathname for col in tbl.description._v_walk(type="All")]
+        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
         if verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
