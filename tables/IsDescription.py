@@ -698,7 +698,7 @@ type ``%s`` can not represent all concrete values in the enumeration"""
     def __repr__(self):
         underptype = numpy.sctypeNA[self.dtype.base.type]
         return ('EnumCol(%s, %r, dtype=\'%s\', shape=%s, pos=%s, indexed=%s)'
-                % (self.enum, self.enum(self.dflt),
+                % (self.enum, self.enum(self.dflt.tolist()),
                    underptype, self.dtype.shape, self._v_pos, self.indexed))
 
 
