@@ -8,7 +8,6 @@ import tempfile
 import warnings
 
 import numpy
-from tables import *
 
 try:
     import Numeric
@@ -23,8 +22,10 @@ try:
 except:
     numarray_imported = 0
 
-import common
-from common import verbose, typecode, allequal, cleanup
+from tables import *
+import tables.tests.common as common
+from tables.tests.common import verbose, typecode, allequal, cleanup
+
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

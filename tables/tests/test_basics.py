@@ -4,12 +4,12 @@ import os
 import tempfile
 import warnings
 
-from tables import *
 import numpy
 
-from common import cleanup
-import common
-from common import verbose
+from tables import *
+import tables.tests.common as common
+from tables.tests.common import cleanup
+from tables.tests.common import verbose
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup

@@ -7,7 +7,9 @@ import sys
 from tables import *
 from tables.Index import Index
 from tables.indexes import calcChunksize, minRowIndex
-from common import verbose, allequal, heavy, cleanup, PyTablesTestCase
+from tables.tests.common import verbose, allequal, heavy, cleanup, \
+     PyTablesTestCase
+
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

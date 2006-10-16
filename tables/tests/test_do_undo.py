@@ -8,8 +8,9 @@ from tables import *
 from tables.Node import NotLoggedMixin
 from tables.indexes import minRowIndex
 
-import common
-from common import verbose, cleanup, heavy
+import tables.tests.common as common
+from tables.tests.common import verbose, cleanup, heavy
+
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

@@ -67,7 +67,7 @@ from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, \
      LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE, TABLE_MAX_SLOTS
 
-from lrucacheExtension import ObjectCache, NumCache
+from tables.lrucacheExtension import ObjectCache, NumCache
 
 
 __version__ = "$Revision$"

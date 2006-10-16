@@ -4,11 +4,12 @@ import os
 import tempfile
 import warnings
 import numpy
+
 from tables import *
 import tables.NetCDF as NetCDF
+import tables.tests.common as common
+from tables.tests.common import verbose, allequal, cleanup, heavy
 
-import common
-from common import verbose, allequal, cleanup, heavy
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

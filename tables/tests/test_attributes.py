@@ -10,8 +10,8 @@ import warnings
 import numpy
 
 from tables import *
+from tables.tests.common import verbose, heavy, cleanup, allequal
 
-from common import verbose, heavy, cleanup, allequal
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

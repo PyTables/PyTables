@@ -15,7 +15,7 @@ import operator
 import numpy
 
 import tables
-import common
+import tables.tests.common as common
 
 
 class CreateColTestCase(common.PyTablesTestCase):

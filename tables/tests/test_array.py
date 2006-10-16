@@ -14,8 +14,8 @@ except:
     numeric = 0
 from tables import *
 
-import common
-from common import verbose, allequal, cleanup
+import tables.tests.common as common
+from tables.tests.common import verbose, allequal, cleanup
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup

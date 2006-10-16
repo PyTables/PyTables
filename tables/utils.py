@@ -45,8 +45,8 @@ except ImportError:
 
 import tables.utilsExtension
 from tables.exceptions import NaturalNameWarning
-from constants import CHUNKTIMES
-from registry import classNameDict
+from tables.constants import CHUNKTIMES
+from tables.registry import classNameDict
 
 # Python identifier regular expression.
 pythonIdRE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')

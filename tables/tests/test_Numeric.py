@@ -3,10 +3,10 @@ import unittest
 import os
 import tempfile
 from Numeric import *
-from tables import *
 
-from common import verbose, typecode, allequal, cleanup
-import common
+from tables import *
+from tables.tests.common import verbose, typecode, allequal, cleanup
+import tables.tests.common as common
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup

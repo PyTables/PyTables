@@ -3,13 +3,12 @@
 
 import unittest
 
-import tables
-
 import numarray
 import numarray.records
 
-from common import verbose
-import common
+import tables
+from tables.tests.common import verbose
+import tables.tests.common as common
 
 class NestedRecordTests(common.PyTablesTestCase):
     """Define a set of unit tests for the nestedrecords module.

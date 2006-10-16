@@ -6,7 +6,8 @@ import random
 
 from tables import *
 from tables.indexes import calcChunksize, minRowIndex
-from common import verbose, allequal, heavy, cleanup
+from tables.tests.common import verbose, allequal, heavy, cleanup
+
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

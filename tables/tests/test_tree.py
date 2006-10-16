@@ -8,7 +8,8 @@ from tables import *
 # Next imports are only necessary for this test suite
 from tables import Group, Leaf, Table, Array
 
-from common import verbose, heavy, cleanup
+from tables.tests.common import verbose, heavy, cleanup
+
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

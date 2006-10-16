@@ -16,8 +16,8 @@ import warnings
 from tables import *
 # important objects to test
 from tables import File, Group, Leaf, Table, Array
+from tables.tests.common import verbose, heavy, cleanup
 
-from common import verbose, heavy, cleanup
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

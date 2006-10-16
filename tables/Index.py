@@ -50,10 +50,9 @@ from tables.Leaf import Filters
 from tables.indexes import CacheArray, LastRowArray, IndexArray
 from tables.Group import Group
 from tables.utils import joinPath
-from constants import LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE
+from tables.constants import LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE
 
-
-from lrucacheExtension import ObjectCache
+from tables.lrucacheExtension import ObjectCache
 
 
 __version__ = "$Revision: 1236 $"

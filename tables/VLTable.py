@@ -38,27 +38,28 @@ import re
 import copy
 import string
 import warnings
+import cPickle
+
 import numarray
 import numarray.strings as strings
 import numarray.records as records
-import cPickle
-
-import hdf5Extension
-import VLTableExt
-from utils import calcBufferSize, processRange, processRangeRead
-import Group
-from Leaf import Leaf, Filters
-from Table import Table, Column
-from Index import Index, IndexProps
-from IsDescription import IsDescription, Description, metaIsDescription, \
-     Col, StringCol
-from VLArray import Atom, StringAtom
 
 try:
     import Numeric
     Numeric_imported = 1
 except:
     Numeric_imported = 0
+
+import tables.hdf5Extension
+import tables.VLTableExt
+from tables.utils import calcBufferSize, processRange, processRangeRead
+import tables.Group
+from tables.Leaf import Leaf, Filters
+from tables.Table import Table, Column
+from tables.Index import Index, IndexProps
+from tables.IsDescription import IsDescription, Description, metaIsDescription, \
+     Col, StringCol
+from tables.VLArray import Atom, StringAtom
 
 
 byteorderDict={"=": sys.byteorder,

@@ -15,8 +15,8 @@ import tempfile
 import numpy
 
 import tables
-import common
-from common import verbose, allequal
+import tables.tests.common as common
+from tables.tests.common import verbose, allequal
 
 
 class HDF5CompatibilityTestCase(common.PyTablesTestCase):

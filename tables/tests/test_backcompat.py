@@ -1,7 +1,7 @@
 #import sys
 import warnings
 import unittest
-from tables import *
+
 import numpy
 
 try:
@@ -10,8 +10,10 @@ try:
 except:
     numeric = 0
 
-import common
-from common import verbose, cleanup, allequal, testFilename
+from tables import *
+import tables.tests.common as common
+from tables.tests.common import verbose, cleanup, allequal, testFilename
+
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

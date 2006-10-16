@@ -30,6 +30,7 @@ except ImportError:
 
 
 import tables
+import tables.nestedrecords
 
 
 verbose = False

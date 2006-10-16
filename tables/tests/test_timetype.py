@@ -11,9 +11,15 @@
 
 "Unit test for the Time datatypes."
 
-import unittest, tempfile, os
-import tables, numpy
-from common import verbose, allequal, cleanup
+import unittest
+import tempfile
+import os
+
+import numpy
+
+import tables
+from tables.tests.common import verbose, allequal, cleanup
+
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

@@ -7,10 +7,11 @@ import tempfile
 
 import numpy
 from numpy import *
-from tables import *
 
-import common
-from common import verbose, heavy, allequal, cleanup
+from tables import *
+import tables.tests.common as common
+from tables.tests.common import verbose, heavy, allequal, cleanup
+
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

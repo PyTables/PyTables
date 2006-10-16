@@ -33,7 +33,7 @@ from definitions cimport \
      PyObject_DelItem, PyObject_Length, PyObject_Compare, \
      import_array, ndarray
 
-from constants import ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
+from tables.constants import ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
 
 
 

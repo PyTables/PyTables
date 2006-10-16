@@ -16,8 +16,8 @@ all the tests.
 import unittest
 import gc
 
-import common
-from common import verbose
+import tables.tests.common as common
+from tables.tests.common import verbose
 
 
 class GarbageTestCase(common.PyTablesTestCase):

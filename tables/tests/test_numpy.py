@@ -3,11 +3,12 @@ import unittest
 import os
 import tempfile
 import numpy
-from numpy import *
-from tables import *
 
-from common import verbose, allequal, cleanup, heavy
-import common
+from numpy import *
+
+from tables import *
+from tables.tests.common import verbose, allequal, cleanup, heavy
+import tables.tests.common as common
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup

@@ -6,8 +6,6 @@ import sys
 import os
 import unittest
 
-import common
-
 # Recommended minimum versions for optional packages
 minimum_numpy_version = "1.0"
 minimum_numeric_version = "24.2"
@@ -18,6 +16,8 @@ import numpy
 if numpy.__version__ < minimum_numpy_version:
     print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
                   (numpy.__version__, minimum_numpy_version)
+
+import tables.tests.common as common
 
 def suite():
     test_modules = [

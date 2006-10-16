@@ -93,7 +93,9 @@ Version: 20051110
 """
 __version__ = '20051110'
 
-import math, tables, numpy
+import math
+
+import numpy
 # need Numeric for h5 <--> netCDF conversion.
 Numeric_imported = True
 try:
@@ -107,6 +109,7 @@ try:
 except:
     ScientificIONetCDF_imported = False
 
+import tables
 from tables.utils import convertToNPAtom
 
 # dictionary that maps pytables types to single-character Numeric typecodes.

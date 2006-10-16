@@ -38,7 +38,6 @@ import numpy
 
 from tables.enum import Enum
 from tables.utils import checkNameValidity
-import tables
 
 
 __version__ = "$Revision$"

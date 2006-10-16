@@ -1,8 +1,7 @@
 import unittest
 
 import tables
-
-import common
+import tables.tests.common as common
 
 class NRIteratorsTests(unittest.TestCase):
     """Define a set of unit tests for the nriterators module.

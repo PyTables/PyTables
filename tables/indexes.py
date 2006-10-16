@@ -31,17 +31,19 @@ __version__ = "$Revision$"
 # default version for IndexARRAY objects
 obversion = "1.0"    # initial version
 
-import types, warnings, sys
-from Node import NotLoggedMixin
-from Array import Array
-from EArray import EArray
-from VLArray import Atom, StringAtom
-import indexesExtension
+import types
+import warnings
+import sys
+from bisect import bisect_left, bisect_right
+from time import time
 
 import numpy
 
-from bisect import bisect_left, bisect_right
-from time import time
+from tables.Node import NotLoggedMixin
+from tables.Array import Array
+from tables.EArray import EArray
+from tables.VLArray import Atom, StringAtom
+import tables.indexesExtension as indexesExtension
 
 
 # The minimum row number in a column that can be indexed in tests

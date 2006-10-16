@@ -34,7 +34,8 @@ import numpy
 
 from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array
-from constants import SORTED_MAX_SLOTS, BOUNDS_MAX_SLOTS, INDICES_MAX_SLOTS
+from tables.constants import \
+     SORTED_MAX_SLOTS, BOUNDS_MAX_SLOTS, INDICES_MAX_SLOTS
 
 # numpy functions & objects
 from definitions cimport \

@@ -7,8 +7,6 @@ import os
 import tempfile
 
 import numpy
-from tables import *
-from tables.utils import convertNPToNumArray, convertNPToNumeric
 
 try:
     import Numeric
@@ -23,7 +21,10 @@ try:
 except:
     numarray_imported = 0
 
-from common import verbose, typecode, allequal, cleanup, heavy
+from tables import *
+from tables.utils import convertNPToNumArray, convertNPToNumeric
+from tables.tests.common import verbose, typecode, allequal, cleanup, heavy
+
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 

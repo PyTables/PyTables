@@ -6,10 +6,11 @@ import warnings
 
 from numpy import *
 from numpy import rec as records
-from tables import *
 
-import common
-from common import verbose, allequal, areArraysEqual, heavy, cleanup
+from tables import *
+import tables.tests.common as common
+from tables.tests.common import verbose, allequal, areArraysEqual, \
+     heavy, cleanup
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
