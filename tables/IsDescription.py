@@ -109,7 +109,15 @@ class Col(object):
     def _setType(self, type_, shape):
         "Sets the 'dtype' and 'ptype' attributes."
 
+        # Try to convert the type_ into a dtype (in order to accept
+        # dtype string representations as input as well)
+        try:
+            type_ = numpy.dtype(type_)
+        except TypeError:
+            pass
+        
         shape = normalize_shape(shape)
+
         # Check if type_ is a pytables type
         if type(type_) == str:
             if type_ == 'String':
@@ -130,8 +138,12 @@ class Col(object):
         # Check if type_ is a numpy dtype
         elif type(type_) == numpy.dtype:
             if type_.shape != ():
-                raise TypeError, \
-                      "multidimensional dtypes are not supported"
+                # If dtype is not an scalar, add the dtype dimensions to shape
+                lshape = list(shape)
+                lshape.extend(type_.shape)
+                shape = tuple(lshape)
+                # ...and set the dtype to the scalar one
+                type_ = type_.base
             if type_.kind == "S":
                 # type_ is already a dtype, so it is not necessary to compute
                 # the string itemsize from the shape

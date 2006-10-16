@@ -997,7 +997,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     # XYX Descomentar aco despres de que el bug:
     # http://projects.scipy.org/scipy/numpy/ticket/314
     # s'haura solucionat
-    def _test08a_modifyingRows(self):
+    def test08a_modifyingRows(self):
         """Checking modifying just one row at once (using modifyRows)."""
 
         table = self.fileh.root.table

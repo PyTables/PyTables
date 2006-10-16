@@ -1398,7 +1398,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         # Warning!: _read_field_name should not be used until
         # H5TBread_fields_name in TableExtension will be finished
         # F. Altet 2005/05/26
-        # XYX Ho implementem per a PyTables Pro??
+        # XYX Ho implementem per a PyTables 2.0??
         elif field and step > 15 and 0:
             # For step>15, this seems to work always faster than row._fillCol.
             self._read_field_name(result, start, stop, step, field)

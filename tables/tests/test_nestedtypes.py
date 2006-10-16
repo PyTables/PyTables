@@ -538,14 +538,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         # Re-read the appropriate columns
-
-        # ivb (2005-09-13): The ``[:]`` here would not be necessary
-        # if ``numarray.strings.array()`` was more lax when checking
-        # for sequences in its ``buffer`` argument,
-        # just as ``numarray.array()`` does.  See SF bug #1286168.
-
         raCols2 = numpy.rec.fromarrays([tbl.cols._f_col('x'),
-                                        #tbl.cols._f_col('color')[:]], # XYX
                                         tbl.cols._f_col('color')],
                                        dtype=raCols.dtype)
         if verbose:

@@ -306,8 +306,6 @@ cdef class File:
   # I think that the problem could be that calling a Python method in Pyrex
   # is more costly than in Python itself, but this is only a guess.
   # F. Altet 2006-08-07
-  # XYX Comentat fins que no migrem a numpy (li cal l'extensio lrucache.pyx
-  # que funciona amb numpy!
 #   def _getNode(self, object nodePath):
 #     cdef object aliveNodes, parentPath, pathTail, parentNode, node
 #     cdef NodeCache deadNodes
@@ -323,9 +321,6 @@ cdef class File:
 #       if PyDict_Contains(aliveNodes, nodePath):
 #         # The parent node is in memory and alive, so get it.
 #         node = aliveNodes[nodePath]
-#         # The lines below doesn't work I don't know why!
-#         #node = PyDict_GetItem(aliveNodes, nodePath)
-#         #Py_INCREF(node)  # Because PyDict_GetItem returns a borrowed reference.
 #         assert node is not None, \
 #                "stale weak reference to dead node ``%s``" % parentPath
 #         return node

@@ -31,6 +31,7 @@ class BasicTestCase(unittest.TestCase):
     # Default values
     flavor = "numpy"
     type = 'Int32'
+    dtype = 'Int32'
     shape = (2,0)
     start = 0
     stop = 10
@@ -61,7 +62,7 @@ class BasicTestCase(unittest.TestCase):
             atom = StringAtom(shape=self.shape, length=self.length,
                               flavor=self.flavor)
         else:
-            atom = Atom(dtype=self.type, shape=self.shape,
+            atom = Atom(dtype=self.dtype, shape=self.shape,
                         flavor=self.flavor)
         title = self.__class__.__name__
         filters = Filters(complevel = self.compress,
@@ -87,7 +88,7 @@ class BasicTestCase(unittest.TestCase):
                                    shape=self.rowshape,
                                    dtype="S%s" % earray.itemsize)
         else:
-            object = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
+            object = numpy.arange(self.objsize, dtype=earray.dtype.base)
             object.shape = self.rowshape
         if self.flavor == "numarray":
             object = convertNPToNumArray(object)
@@ -142,7 +143,7 @@ class BasicTestCase(unittest.TestCase):
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
+            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
@@ -221,7 +222,7 @@ class BasicTestCase(unittest.TestCase):
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
+            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
@@ -291,7 +292,7 @@ class BasicTestCase(unittest.TestCase):
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
+            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
@@ -304,7 +305,7 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "String":
             object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
         else:
-            object__ = numpy.empty(shape=rowshape, dtype=self.type)
+            object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
 
         if self.flavor == "numarray":
             object__ = convertNPToNumArray(object__)
@@ -353,7 +354,7 @@ class BasicTestCase(unittest.TestCase):
             elif self.flavor == "numeric":
                 object = Numeric.swapaxes(object, 0, self.extdim)
         else:
-            object = numpy.empty(shape=self.shape, dtype=self.type)
+            object = numpy.empty(shape=self.shape, dtype=self.dtype)
             if self.flavor == "numarray":
                 object = numarray.asarray(object)
             elif self.flavor == "numeric":
@@ -363,7 +364,7 @@ class BasicTestCase(unittest.TestCase):
         try:
             row = earray.read(self.start, self.stop, self.step)
         except IndexError:
-            row = numpy.empty(shape=self.shape, dtype=self.type)
+            row = numpy.empty(shape=self.shape, dtype=self.dtype)
             if self.flavor == "numarray":
                 row = numarray.asarray(row)
             elif self.flavor == "numeric":
@@ -417,7 +418,7 @@ class BasicTestCase(unittest.TestCase):
                                     shape=self.rowshape,
                                     dtype="S%s"%earray.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
+            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base)
             object_.shape = self.rowshape
 
         # Additional conversion for the numarray case
@@ -432,7 +433,7 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "String":
             object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
         else:
-            object__ = numpy.empty(shape=rowshape, dtype=self.type)
+            object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
             # Additional conversion for the numpy case
         if self.flavor == "numarray":
             object__ = convertNPToNumArray(object__)
@@ -458,7 +459,7 @@ class BasicTestCase(unittest.TestCase):
             # actually do a measure of its length
             object = object__.__getitem__(self.slices).copy()
         else:
-            object = numpy.empty(shape=self.shape, dtype=self.type)
+            object = numpy.empty(shape=self.shape, dtype=self.dtype)
 
         if self.flavor == "numarray":
             # Convert the object to numarray
@@ -530,7 +531,7 @@ class BasicTestCase(unittest.TestCase):
                                     shape=self.rowshape,
                                     dtype="S%s"%earray.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base.type)
+            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base)
             object_.shape = self.rowshape
             
         # Additional conversion for the numarray case
@@ -545,7 +546,7 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "String":
             object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
         else:
-            object__ = numpy.empty(shape=rowshape, dtype=self.type)
+            object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
             # Additional conversion for the numpy case
         if self.flavor == "numarray":
             object__ = convertNPToNumArray(object__)
@@ -574,7 +575,7 @@ class BasicTestCase(unittest.TestCase):
             # actually do a measure of its length
             object = object__.__getitem__(self.slices).copy()
         else:
-            object = numpy.empty(shape=self.shape, dtype=self.type)
+            object = numpy.empty(shape=self.shape, dtype=self.dtype)
 
         if self.flavor == "numpy":
             object = numpy.asarray(object)
@@ -611,7 +612,7 @@ class BasicTestCase(unittest.TestCase):
             row = earray.__getitem__(self.slices)
         except IndexError:
             print "IndexError!"
-            row = numpy.empty(shape=self.shape, dtype=self.type)
+            row = numpy.empty(shape=self.shape, dtype=self.dtype)
             if self.flavor == "numarray":
                 row = numarray.asarray(row)
             elif self.flavor == "numeric":
@@ -643,6 +644,7 @@ class BasicWriteTestCase(BasicTestCase):
 
 class Basic2WriteTestCase(BasicTestCase):
     type = 'Int32'
+    dtype = 'i4'
     shape = (0,)
     chunksize = 5
     nappends = 10
@@ -652,6 +654,7 @@ class Basic2WriteTestCase(BasicTestCase):
 
 class EmptyEArrayTestCase(BasicTestCase):
     type = 'Int32'
+    dtype = numpy.dtype('int32')
     shape = (2, 0)
     chunksize = 5
     nappends = 0
@@ -661,6 +664,7 @@ class EmptyEArrayTestCase(BasicTestCase):
 
 class NP_EmptyEArrayTestCase(BasicTestCase):
     type = 'Int32'
+    dtype = numpy.dtype('()int32')
     shape = (2, 0)
     chunksize = 5
     nappends = 0
@@ -671,6 +675,7 @@ class NP_EmptyEArrayTestCase(BasicTestCase):
 
 class Empty2EArrayTestCase(BasicTestCase):
     type = 'Int32'
+    dtype = 'int32'
     shape = (2, 0)
     chunksize = 5
     nappends = 0

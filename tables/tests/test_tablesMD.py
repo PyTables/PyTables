@@ -1,5 +1,3 @@
-# XYX Aquest modul esta a mitan convertir a numpy...
-
 import sys
 import unittest
 import os
@@ -75,6 +73,21 @@ RecordDescriptionDictRevOrder = {
     'var6': Int16Col(),                           # unsigned short integer
     'var7': StringCol(length=1),                  # 1-character String
     }
+
+
+# Record class with numpy dtypes (mixed shapes is checkd here)
+class RecordDT(IsDescription):
+    var0 = Col(numpy.dtype("2S4"), shape=1, dflt="")       # shape in dtype
+    var1 = Col("2S4", shape=(2,), dflt=["abcd","efgh"])    # shape is a mix
+    var1_= Col("2i4", shape=(), dflt=((1,1),))             # shape in dtype
+    var2 = Col("2i4", shape=(2,), dflt=((1,1),(1,1)))      # shape is a mix
+    var3 = Col("i2", shape=1, dflt=2)
+    var4 = Col("2f8", shape=(), dflt=3.1)
+    var5 = Col(numpy.dtype("f4"), shape=1, dflt=4.2)
+    var6 = Col("()u2", shape=(), dflt=5)
+    var7 = Col("1S1", dflt="e")   # no shape 
+
+
 
 class BasicTestCase(common.PyTablesTestCase):
     #file  = "test.h5"
@@ -466,6 +479,10 @@ class DictWriteTestCase(BasicTestCase):
     start = 0
     stop = 10
     step = 3
+
+class DTypeWriteTestCase(BasicTestCase):
+    title = "DTypeWriteTestCase"
+    record=RecordDT
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
@@ -1222,6 +1239,7 @@ def suite():
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(DictWriteTestCase))
+        theSuite.addTest(unittest.makeSuite(DTypeWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
