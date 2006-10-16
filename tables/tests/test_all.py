@@ -29,7 +29,7 @@ def suite():
         'test_lists',
         'test_tables',
         'test_tablesMD',
-        #'test_indexes',
+        'test_indexes',
         'test_indexvalues',
         'test_array',
         'test_earray',
