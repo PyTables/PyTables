@@ -1789,16 +1789,13 @@ You cannot append rows to a non-chunked table.""")
             # so the resulting object is safe for in-place conversion.
             if hasattr(rows, "shape") and rows.shape == ():
                 # To allow conversion in array if rows is a scalar (void) type
-                # We cannot use numpy.array because of the issue:
-                # http://projects.scipy.org/scipy/numpy/ticket/315
-                # If eventually this gets solved, we can switch back to
-                # use numpy.array.
-                #recarray = numpy.array([rows], dtype=self._v_dtype)
-                recarray = numpy.rec.array([rows], dtype=self._v_dtype)
+                # See http://projects.scipy.org/scipy/numpy/ticket/315
+                # for discussion on how to pass buffers to constructors
+                recarray = numpy.array([rows], dtype=self._v_dtype)
+                #recarray = numpy.rec.array([rows], dtype=self._v_dtype)
             else:
-                # See comment about issue #315 above
-                #recarray = numpy.array(rows, dtype=self._v_dtype)
-                recarray = numpy.rec.array(rows, dtype=self._v_dtype)
+                recarray = numpy.array(rows, dtype=self._v_dtype)
+                #recarray = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
 """rows parameter cannot be converted into a recarray object compliant with

@@ -1893,7 +1893,7 @@ class setItem(common.PyTablesTestCase):
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
 
         # Modify just one existing row
-        table[2] = [456,'db2',1.2]
+        table[2] = (456,'db2',1.2)
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
                           [456,'db2',1.2],[5,'de1',1.3]],
@@ -1930,7 +1930,7 @@ class setItem(common.PyTablesTestCase):
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
 
         # Modify just one existing row
-        table[2L] = [456,'db2',1.2]
+        table[2L] = (456,'db2',1.2)
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
                           [456,'db2',1.2],[5,'de1',1.3]],
@@ -3057,11 +3057,11 @@ class RecArrayIO(unittest.TestCase):
         table = fileh.createTable(fileh.root, 'recarray', Rec)
 
         # append new rows
-        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        r=records.array([(456,'dbe',1.2),(2,'ded',1.3)], formats="i4,a3,f8")
         table.append(r)
-        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        table.append([(457,'db1',1.2),(5,'de1',1.3)])
         # Modify just one existing rows
-        table.modifyRows(start=1, rows=[[456,'db1',1.2]])
+        table.modifyRows(start=1, rows=[(456,'db1',1.2)])
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[456,'db1',1.2],
                           [457,'db1',1.2],[5,'de1',1.3]],
@@ -3140,7 +3140,7 @@ class RecArrayIO(unittest.TestCase):
         table.append(r)
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
         # Modify two existing rows
-        table.modifyRows(start=1, rows=[[457,'db1',1.2],[5,'de1',1.3]])
+        table.modifyRows(start=1, rows=[(457,'db1',1.2),(5,'de1',1.3)])
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
                           [5,'de1',1.3],[5,'de1',1.3]],

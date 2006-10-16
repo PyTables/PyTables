@@ -527,7 +527,10 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         coords = numpy.array([1,2,3], dtype='int8')
         # Modify row 1
-        table[coords[0]] = ["aasa","x"]+[232]*12
+        # From PyTables 2.0 on, assignments to records can be done
+        # only as tuples (see http://projects.scipy.org/scipy/numpy/ticket/315)
+        #table[coords[0]] = ["aasa","x"]+[232]*12
+        table[coords[0]] = tuple(["aasa","x"]+[232]*12)
         #record = list(table[coords[0]])
         record = table.read(coords[0], flavor="numpy")
         if verbose:
@@ -994,9 +997,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # A copy() is needed in case the buffer would be in different segments
         assert allequal(ycol, data, "numpy")
 
-    # XYX Descomentar aco despres de que el bug:
-    # http://projects.scipy.org/scipy/numpy/ticket/314
-    # s'haura solucionat
     def test08a_modifyingRows(self):
         """Checking modifying just one row at once (using modifyRows)."""
 
@@ -1028,16 +1028,12 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # A copy() is needed in case the buffer would be in different segments
         assert allequal(ycol, data, "numpy")
 
-    # XYX Descomentar aco despres de que el bug:
-    # http://projects.scipy.org/scipy/numpy/ticket/314
-    # s'haura solucionat
-    def _test08b_modifyingRows(self):
+    def test08b_modifyingRows(self):
         """Checking modifying just one row at once (using cols accessor)."""
 
         table = self.fileh.root.table
         # Read a chunk of the table
         chunk = table[3]
-        print "type(chunk)-->", type(chunk)
         # Modify it somewhat
         chunk['y'][:] = -1
         table.cols[6] = chunk
