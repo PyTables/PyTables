@@ -469,7 +469,7 @@ class Table(TableExtension.Table, Leaf):
                 indexed = indexname in self._v_file
                 self.colindexed[colname] = indexed
                 if indexed:
-                    column = self.cols._f_col(colname)
+                    column = self.cols._g_col(colname)
                     indexobj = column.index  # to query properties later
                     # Tell the condition cache about dirty indexed columns.
                     if column.dirty:
@@ -1971,7 +1971,7 @@ The 'names' parameter must be a list of strings.""")
             nrows = self._unsaved_indexedrows
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed:
-                    col = self.cols._f_col(colname)
+                    col = self.cols._g_col(colname)
                     if nrows > 0 and not col.dirty:
                         rowsadded = self._addRowsToIndex(
                             colname, start, nrows, lastrow )
@@ -1986,7 +1986,7 @@ The 'names' parameter must be a list of strings.""")
         # This method really belongs in Column, but since it makes extensive
         # use of the table, it gets dangerous when closing the file, since the
         # column may be accessing a table which is being destroyed.
-        index = self.cols._f_col(colname).index
+        index = self.cols._g_col(colname).index
         slicesize = index.slicesize
         # The next loop does not rely on xrange so that it can
         # deal with long ints (i.e. more than 32-bit integers)
@@ -2103,7 +2103,7 @@ The 'names' parameter must be a list of strings.""")
             # Mark the proper indexes as dirty
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed and colname in colnames:
-                    col = self.cols._f_col(colname)
+                    col = self.cols._g_col(colname)
                     col.dirty = True
             # Now, re-index the dirty ones
             if self.indexprops.reindex:
@@ -2114,7 +2114,7 @@ The 'names' parameter must be a list of strings.""")
         """Recompute the existing indexes in table"""
         for (colname, colindexed) in self.colindexed.iteritems():
             if colindexed:
-                indexcol = self.cols._f_col(colname)
+                indexcol = self.cols._g_col(colname)
                 indexedrows = indexcol.reIndex()
         # Update counters
         self._indexedrows = indexedrows
@@ -2126,7 +2126,7 @@ The 'names' parameter must be a list of strings.""")
         """Recompute the existing indexes in table if they are dirty"""
         for (colname, colindexed) in self.colindexed.iteritems():
             if colindexed:
-                indexcol = self.cols._f_col(colname)
+                indexcol = self.cols._g_col(colname)
                 indexedrows = indexcol.reIndexDirty()
         # Update counters
         self._indexedrows = indexedrows
@@ -2230,7 +2230,7 @@ The 'names' parameter must be a list of strings.""")
 #             # Optimize the indexed rows
 #             for (colname, colindexed) in self.colindexed.iteritems():
 #                 if colindexed:
-#                     col = self.cols._f_col(colname)
+#                     col = self.cols._g_col(colname)
 #                     if nrows > 0 and not col.dirty:
 #                         print "*optimizing col-->", colname
 #                         col.index.optimize()
@@ -2399,8 +2399,12 @@ class Cols(object):
             not colname in self._v_colnames):
             raise KeyError(
 "Cols accessor ``%s.cols%s`` does not have a column named ``%s``"
-    % (self._v__tablePath, self._v_desc._v_pathname, colname))
+        % (self._v__tablePath, self._v_desc._v_pathname, colname))
 
+        return self._g_col(colname)
+
+    def _g_col(self, colname):
+        """Like `self._f_col()` but it does not check arguments."""
         # Get the Column or Description object
         inames = colname.split('/')
         cols = self
@@ -2523,7 +2527,7 @@ class Cols(object):
     def _f_close(self):
         # First, close the columns (ie possible indices open)
         for col in self._v_colnames:
-            colobj = self._f_col(col)
+            colobj = self._g_col(col)
             if isinstance(colobj, Column):
                 colobj.close()
                 # Delete the reference to column

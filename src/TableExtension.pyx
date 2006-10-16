@@ -640,7 +640,7 @@ cdef class Row:
       table._whereCondition = None
     if table._whereIndex:
       self.indexed = 1
-      self.index = table.cols._f_col(table._whereIndex).index
+      self.index = table.cols._g_col(table._whereIndex).index
       self.indices = self.index.indices
       self.nrowsread = 0
       self.nextelement = 0
