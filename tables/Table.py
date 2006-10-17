@@ -882,7 +882,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             user_locals = user_frame.f_locals
             user_globals = user_frame.f_globals
 
-        colnames, cols = self.colnames, self.cols
+        colinstances = self.colinstances
         tblfile, tblpath = self._v_file, self._v_pathname
         # Look for the required variables first among the ones provided
         # by the user (explicit or implicit), then among table columns.
@@ -895,11 +895,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 val = user_locals[var]
             elif uservars is None and var in user_globals:
                 val = user_globals[var]
-            elif var in colnames:
-                # The ``cols`` accessor could be avoided by using a
-                # mapping from column paths to columns.  I think this
-                # would be useful in any case for the user.  -- Ivan
-                val = getattr(cols, var)
+            elif var in colinstances:
+                val = colinstances[var]
             else:
                 raise NameError("name ``%s`` is not defined" % var)
 
