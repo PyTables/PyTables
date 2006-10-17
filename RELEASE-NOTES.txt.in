@@ -19,6 +19,10 @@ API additions
 
 - Posar ací les coses relacionades amb els indexos
 
+- The new ``Table.colinstances`` dictionary maps column pathnames to their
+  associated ``Column`` or ``Cols`` object for simple or nested columns,
+  respectively.  This is similar to ``Table.cols._f_col()``, but faster.
+
 Backward-incompatible changes
 =============================
 

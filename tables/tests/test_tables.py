@@ -271,6 +271,11 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual(expectedNames, list(tbl.colnames))
         self.assertEqual(expectedNames, list(desc._v_names))
 
+        # Column instances.
+        for colname in expectedNames:
+            self.assert_( tbl.colinstances[colname]
+                          is tbl.cols._f_col(colname) )
+
         # Column types.
         expectedTypes = [columns[colname].dtype
                          for colname in expectedNames]
@@ -3585,6 +3590,23 @@ class RecArrayIO2(RecArrayIO):
 
 class CopyTestCase(unittest.TestCase):
 
+    def assertEqualColinstances(self, table1, table2):
+        """Assert that column instance maps of both tables are equal."""
+        cinst1, cinst2 = table1.colinstances, table2.colinstances
+        self.assertEqual(len(cinst1), len(cinst2))
+        for (cpathname, col1) in cinst1.items():
+            self.assert_(cpathname in cinst2)
+            col2 = cinst2[cpathname]
+            self.assert_(type(col1) is type(col2))
+            if isinstance(col1, Column):
+                self.assertEqual(col1.name, col2.name)
+                self.assertEqual(col1.pathname, col2.pathname)
+                self.assertEqual(col1.dtype, col2.dtype)
+                self.assertEqual(col1.ptype, col2.ptype)
+            elif isinstance(col1, Cols):
+                self.assertEqual(col1._v_colnames, col2._v_colnames)
+                self.assertEqual(col1._v_colpathnames, col2._v_colpathnames)
+
     def test01_copy(self):
         """Checking Table.copy() method """
 
@@ -3642,6 +3664,7 @@ class CopyTestCase(unittest.TestCase):
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coldtypes == table2.coldtypes
+        self.assertEqualColinstances(table1, table2)
         assert repr(table1.description) == repr(table2.description)
 
         # This could be not the same when re-opening the file
@@ -3711,6 +3734,7 @@ class CopyTestCase(unittest.TestCase):
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coldtypes == table2.coldtypes
+        self.assertEqualColinstances(table1, table2)
         assert repr(table1.description) == repr(table2.description)
 
         # Leaf attributes
@@ -3782,6 +3806,7 @@ class CopyTestCase(unittest.TestCase):
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coldtypes == table2.coldtypes
+        self.assertEqualColinstances(table1, table2)
         assert repr(table1.description) == repr(table2.description)
 
         # Leaf attributes
@@ -3850,6 +3875,7 @@ class CopyTestCase(unittest.TestCase):
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coldtypes == table2.coldtypes
+        self.assertEqualColinstances(table1, table2)
         assert repr(table1.description) == repr(table2.description)
 
         # Leaf attributes
@@ -3921,6 +3947,7 @@ class CopyTestCase(unittest.TestCase):
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coldtypes == table2.coldtypes
+        self.assertEqualColinstances(table1, table2)
         assert repr(table1.description) == repr(table2.description)
 
         # Leaf attributes
@@ -3995,6 +4022,7 @@ class CopyTestCase(unittest.TestCase):
         assert table1.shape == table2.shape
         assert table1.colnames == table2.colnames
         assert table1.coldtypes == table2.coldtypes
+        self.assertEqualColinstances(table1, table2)
         assert repr(table1.description) == repr(table2.description)
 
         # Leaf attributes

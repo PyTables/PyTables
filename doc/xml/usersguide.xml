@@ -1903,9 +1903,11 @@ fileh.close()]]></screen>
  nrows -- the number of rows in this table
  rowsize -- the size, in bytes, of each row
  cols -- accessor to the columns using a natural name schema
- colnames -- the field names for the table (tuple)
+ colnames -- the field names for the table (list)
+ colinstances -- the column instances for the table fields (dictionary)
  coltypes -- the type class for the table fields (dictionary)
  colshapes -- the shapes for the table fields (dictionary)
+ coldflts -- the defaults for each column (dictionary)
  colindexed -- whether the table fields are indexed (dictionary)
  indexed -- whether or not some field in Table is indexed
  indexprops -- properties of an indexed Table]]></screen>
@@ -5955,6 +5957,14 @@ for node in h5file.root.detector:
         <glossterm><emphasis role="bold">colnames</emphasis></glossterm>
         <glossdef><para>A tuple containing the (possibly nested) names of the
         columns in the table.</para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">colinstances</emphasis></glossterm>
+        <glossdef><para>Maps the name of a column to its
+	<computeroutput>Column</computeroutput> (see <xref linkend="ColumnClassDescr" xrefstyle="select: labelnumber"/>)
+	or <computeroutput>Cols</computeroutput> (see <xref linkend="ColsClassDescr" xrefstyle="select: labelnumber"/>)
+	instance.</para></glossdef>
         </glossentry>
 
         <glossentry>

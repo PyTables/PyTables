@@ -237,6 +237,15 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._checkColumns(table.cols, table.description)
 
 
+    def _checkColinstances(self, table):
+        """
+        Check that ``colinstances`` and ``cols`` of `table` match.
+        """
+        for colpathname in table.description._v_pathnames:
+            self.assert_( table.colinstances[colpathname]
+                          is table.cols._f_col(colpathname) )
+
+
     def test00_create(self):
         """Creating a nested table."""
 
@@ -244,6 +253,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         tbl = self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         self._checkDescription(tbl)
+        self._checkColinstances(tbl)
 
 
     def test01_open(self):
@@ -253,7 +263,9 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.h5file.createTable(
             '/', 'test', self._TestTDescr, title=self._getMethodName())
         self._reopen()
-        self._checkDescription(self.h5file.root.test)
+        tbl = self.h5file.root.test
+        self._checkDescription(tbl)
+        self._checkColinstances(tbl)
 
 
     def test02_NestedRecArrayCompat(self):

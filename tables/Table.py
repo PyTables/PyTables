@@ -211,6 +211,7 @@ class Table(TableExtension.Table, Leaf):
         rowsize -- the size, in bytes, of each row
         cols -- accessor to the columns using a natural name schema
         colnames -- the field names for the table (list)
+        colinstances -- the column instances for the table fields (dictionary)
         coldtypes -- the dtype class for the table fields (dictionary)
         colptypes -- the PyTables type for the table fields (dictionary)
         coldflts -- the defaults for each column (dictionary)
@@ -376,6 +377,8 @@ class Table(TableExtension.Table, Leaf):
         A tuple containing the (possibly nested) names of the columns in
         the table.
         """
+        self.colinstances = {}
+        """Maps the name of a column to its `Column` or `Cols` instance."""
         self.coldtypes = {}
         """Maps the name of a column to its NumPy data type."""
         self.colptypes = {}
@@ -452,6 +455,11 @@ class Table(TableExtension.Table, Leaf):
 
         # Create a cols accessor.
         self.cols = Cols(self, self.description)
+
+        # Place the `Cols` and `Column` objects into `self.colinstances`.
+        colinstances, cols = self.colinstances, self.cols
+        for colpathname in self.description._v_pathnames:
+            colinstances[colpathname] = cols._g_col(colpathname)
 
         if self._v_new:
             return
