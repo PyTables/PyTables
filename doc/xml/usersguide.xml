@@ -1891,7 +1891,6 @@ fileh.close()]]></screen>
  reIndex()
  reIndexDirty()
  removeRows(start [, stop])
- removeIndex(colname)
  where(condition [, condvars] [, start] [, stop] [, step])
  whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
  getWhereList(condition [, condvars] [, flavor] [, sort])
@@ -6405,22 +6404,6 @@ if row['var1'] <= 20 ]]]></screen>
 		</para></glossdef></glossentry></glosslist>
 	    </section>
 
-	    <section id="removeIndexDescr">
-	      <title>removeIndex(index)</title>
-
-	      <para>Remove the index associated with the specified column.</para>
-	      <para>The argument <emphasis>colname</emphasis> should be the name of a column.
-	      If the column is not indexed, nothing happens.
-	      If it does not exist, a <computeroutput>KeyError</computeroutput> is raised.
-	      </para>
-	      <para>This index can be created again by calling
-	      the <computeroutput><![CDATA[createIndex()]]></computeroutput>
-	      (see <xref linkend="createIndexColumnDescr"/>)
-	      method of the appropriate
-	      <computeroutput><![CDATA[Column]]></computeroutput> object.
-	      </para>
-	    </section>
-
 	    <section id="flushRowsToIndexDescr">
 	      <title>flushRowsToIndex()</title>
 
@@ -7256,15 +7239,17 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	    </section>
 
 	    <section id="removeIndexColumnDescr">
-	      <title><markup>removeIndex()</markup>
-	      </title>
+	      <title><markup>removeIndex()</markup></title>
 
-	      <para>Delete the associated column's index. After doing that,
-		you will loose the indexation information on
-		disk. However, you can always re-create it using the
-		<computeroutput><![CDATA[createIndex()]]></computeroutput> method (see <xref linkend="createIndexColumnDescr"/>).
+	      <para>
+		Remove the index associated with this column.
 	      </para>
-
+	      <para>
+		If the column is not indexed, nothing happens.
+		The index can be created again by calling the
+		<computeroutput>createIndex()</computeroutput> method
+		(see <xref linkend="createIndexColumnDescr"/>).
+	      </para>
 	    </section>
 
 	  </section>

@@ -285,8 +285,8 @@ class BasicTestCase(PyTablesTestCase):
         assert table.colindexed["var1"] == 1
         assert idxcol is not None
 
-        # delete the index (check for warning)
-        self.assertWarns(DeprecationWarning, table.removeIndex, idxcol)
+        # delete the index
+        table.cols.var1.removeIndex()
         if verbose:
             print "After deletion"
             print "var1 column:", table.cols.var1
@@ -319,7 +319,7 @@ class BasicTestCase(PyTablesTestCase):
         assert idxcol is not None
         assert table.colindexed["var1"] == 1
         # delete the index
-        table.removeIndex("var1")
+        table.cols.var1.removeIndex()
 
         # close and reopen the file
         self.fileh.close()

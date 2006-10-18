@@ -198,7 +198,6 @@ class Table(TableExtension.Table, Leaf):
         reIndex()
         reIndexDirty()
         removeRows(start [, stop])
-        removeIndex(colname)
         where(condition [, condvars] [, start] [, stop] [, step])
         whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
         getWhereList(condition [, condvars] [, flavor] [, sort])
@@ -2076,29 +2075,19 @@ The 'names' parameter must be a list of strings.""")
         super(Table, self)._g_remove(recursive)
 
 
-    def removeIndex(self, colname):
-        """Remove the index associated with the specified column.
+    def _setColumnIndexing(self, colpathname, indexed):
+        """Mark the referred column as indexed or non-indexed."""
 
-        The argument `colname` should be the name of a column.  If the
-        column ins not indexed, nothing happens.  If it does not exist,
-        a ``KeyError`` is raised.
+        colindexed = self.colindexed
+        isindexed, wasindexed = bool(indexed), colindexed[colpathname]
+        if isindexed == wasindexed:
+            return  # indexing state is unchanged
 
-        This index can be created again by calling the ``createIndex()``
-        method of the appropriate `Column` object.
-        """
-
-        if isinstance(colname, Index):
-            warnings.warn( "please use a column name "
-                           "instead of the associated ``Index`` instance",
-                           DeprecationWarning )
-            index = colname
-            column = index.column
-        else:
-            column = self.cols._f_col(colname)
-
-        self._v_file._checkWritable()
-        column.removeIndex()
-        self.colindexed[column.name] = False
+        # Changing the set of indexed columns
+        # invalidates the condition cache.
+        self._conditionCache.clear()
+        colindexed[colpathname] = isindexed
+        self.indexed = max(colindexed.values())  # this is an OR :)
 
 
     def _reIndex(self, colnames):
@@ -2862,9 +2851,7 @@ class Column(object):
             expectedrows=table._v_expectedrows)
         self._updateIndexLocation(index)
 
-        # Changing the set of indexed columns
-        # invalidates the condition cache.
-        table._conditionCache.clear()
+        table._setColumnIndexing(self.pathname, True)
 
         # Feed the index with values
         slicesize = index.slicesize
@@ -2876,9 +2863,6 @@ class Column(object):
             indexedrows = 0
         index.optimize(verbose=verbose)   # optimize indexes
         self.dirty = False
-        # Set some flags in table parent
-        table.indexed = True
-        table.colindexed[self.pathname] = True
         # If the user has not defined properties, assign the default
         table.indexprops = getattr(
             table.description, '_v_indexprops', IndexProps())
@@ -2935,7 +2919,12 @@ class Column(object):
 
 
     def removeIndex(self):
-        """Delete the associated column's index"""
+        """
+        Remove the index associated with this column.
+
+        If the column is not indexed, nothing happens.  The index can be
+        created again by calling the `self.createIndex()` method.
+        """
 
         self._tableFile._checkWritable()
 
@@ -2944,9 +2933,7 @@ class Column(object):
         if index:
             index._f_remove()
             self._updateIndexLocation(None)
-            # Changing the set of indexed columns
-            # invalidates the condition cache.
-            self.table._conditionCache.clear()
+            self.table._setColumnIndexing(self.pathname, False)
 
 
     def close(self):

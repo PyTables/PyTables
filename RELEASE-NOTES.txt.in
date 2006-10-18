@@ -30,6 +30,10 @@ Backward-incompatible changes
   If you need this functionality, please, use the File.getNode() and
   File.walkNodes() instead. (XXX documentar!!!)
 
+- ``Table.removeIndex()`` is no longer available; to remove an index on a
+  column, one must use the ``removeIndex()`` method of the associated
+  ``Column`` instance.
+
 
 Deprecated features
 ===================
