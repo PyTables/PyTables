@@ -782,8 +782,8 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
         colpath2 = _joinPath(colpath, colname)
         # Create the native data in-memory
         native_member_type_id = H5Tcreate(H5T_COMPOUND, itemsize)
-        desc[colname] = getNestedType(member_type_id, native_member_type_id,
-                                      table, colpath2)
+        desc[colname], _ = getNestedType(member_type_id, native_member_type_id,
+                                         table, colpath2)
         desc[colname]["_v_pos"] = i  # Remember the position
       else:
         # Get the member format
@@ -796,7 +796,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
             % te.args[0])
         # Get the native type
         if colstype in ["b1", "t4", "t8"]:
-          # This types are not supported yet
+          # These types are not supported yet
           native_member_type_id = H5Tcopy(member_type_id)
         else:
           native_member_type_id = H5Tget_native_type(member_type_id,
@@ -840,8 +840,8 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   # set the byteorder (just in top level)
   if colpath == "":
     desc["_v_byteorder"] = byteorder
-  # return the Description object
-  return desc
+  # return the Description object and the size of the compound type
+  return desc, offset
 
 
 

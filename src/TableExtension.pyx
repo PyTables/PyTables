@@ -44,7 +44,7 @@ from definitions cimport import_array, ndarray, \
      H5Gunlink, H5Fflush, H5Dopen, H5Dclose, H5Dread, H5Dget_type,\
      H5Dget_space, H5Dget_create_plist, H5Pget_layout, H5Pclose, \
      H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose, \
-     H5Tget_size, H5Tcreate, H5Tcopy, H5Tclose, H5Tget_sign, \
+     H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose, H5Tget_sign, \
      H5ATTRset_attribute_string, H5ATTRset_attribute, \
      get_len_of_range
 
@@ -217,7 +217,7 @@ cdef class Table:  # XXX extends Leaf
   def _getInfo(self):
     "Get info from a table on disk."
     cdef hid_t   space_id
-    cdef size_t  type_size
+    cdef size_t  type_size, size2
     cdef hsize_t dims[1]  # enough for unidimensional tables
     cdef hid_t   plist
     cdef H5D_layout_t layout
@@ -249,9 +249,16 @@ cdef class Table:  # XXX extends Leaf
     # Create the native data in-memory
     self.type_id = H5Tcreate(H5T_COMPOUND, type_size)
     # Fill-up the (nested) native type and description
-    desc = getNestedType(self.disk_type_id, self.type_id, self)
+    desc, size2 = getNestedType(self.disk_type_id, self.type_id, self)
     if desc == {}:
       raise HDF5ExtError("Problems getting desciption for table %s", self.name)
+
+    # Correct the type size in case the memory type size is less that
+    # type in-disk (probably due to reading native HDF5 files written with
+    # tools that do allow introducing padding)
+    # Solves bug #23
+    if type_size > size2:
+      H5Tset_size(self.type_id, size2)
 
     # Return the object ID and the description
     return (self.dataset_id, desc)

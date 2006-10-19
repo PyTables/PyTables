@@ -376,6 +376,7 @@ cdef extern from "hdf5.h":
   int    H5Tget_offset(hid_t type_id)
   herr_t H5Tinsert(hid_t parent_id, char *name, size_t offset,
                    hid_t member_id)
+  herr_t H5Tpack(hid_t type_id)
 
   # Operations for enumerated data types
   hid_t H5Tenum_create(hid_t base_id)
