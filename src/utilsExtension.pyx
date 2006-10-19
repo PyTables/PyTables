@@ -47,7 +47,7 @@ from definitions cimport import_array, ndarray, \
      H5ATTRget_attribute_string, H5ATTRfind_attribute, \
      H5ARRAYget_ndims, H5ARRAYget_info, \
      create_ieee_complex64, create_ieee_complex128, \
-     convArrayType, getArrayType
+     convArrayType, getArrayType, get_order, set_order
 
 
 
@@ -70,8 +70,6 @@ cdef extern from "utils.h":
   #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
   int    is_complex(hid_t type_id)
-  herr_t set_order(hid_t type_id, char *byteorder)
-  herr_t get_order(hid_t type_id, char *byteorder)
   object get_filter_names( hid_t loc_id, char *dset_name)
 
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name, H5D_layout_t *layout,

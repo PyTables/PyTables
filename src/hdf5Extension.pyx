@@ -71,7 +71,7 @@ from definitions cimport  \
      H5ATTRfind_attribute, H5ATTRget_attribute_ndims, \
      H5ATTRget_attribute_info, \
      set_cache_size, Giterate, Aiterate, H5UIget_info, get_len_of_range, \
-     convArrayType, getArrayType
+     convArrayType, getArrayType, get_order, set_order
 
 
 
@@ -538,6 +538,7 @@ cdef class AttributeSet:
     cdef int rank, ret, i, enumtype
     cdef void *rbuf
     cdef ndarray ndvalue
+    cdef char  byteorder[16]
     cdef object retvalue, shape
 
     dset_id = self.dataset_id
@@ -587,11 +588,17 @@ Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
 Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
                       % (attrname, self.name, class_id))
       return None
+
+    # Get the dtype
     dtype = NPCodeToType[enumtype]
     if class_id == H5T_STRING:
       dtype = numpy.dtype((dtype, type_size))
+    # Fix the byteorder
+    get_order(type_id, byteorder)
+    if byteorder in ('little', 'big'):
+      dtype = numpy.dtype(dtype).newbyteorder(byteorder)
+    # Get the container for data
     ndvalue = numpy.empty(dtype=dtype, shape=shape)
-
     # Get the pointer to the buffer data area
     rbuf = ndvalue.data
 

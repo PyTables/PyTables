@@ -440,6 +440,8 @@ cdef extern from "utils.h":
   hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step)
   hid_t  create_ieee_complex64(char *byteorder)
   hid_t  create_ieee_complex128(char *byteorder)
+  herr_t set_order(hid_t type_id, char *byteorder)
+  herr_t get_order(hid_t type_id, char *byteorder)
 
 
 # Conversion routines between NumPy <--> HDF5 data types

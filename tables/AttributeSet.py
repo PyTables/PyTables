@@ -224,14 +224,12 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # takes care of other types as well as for example NROWS for
         # Tables and EXTDIM for EArrays
         format_version = self._v__format_version
-        if issysattrname(name) and not name.endswith("FILL"):
-            if name in ["NROWS", "EXTDIM", "AUTOMATIC_INDEX",
-                        "REINDEX", "DIRTY", "NODE_TYPE_VERSION"]:
-                # These are Int32 or Int64 integers
-                #value = self._g_getAttr(name).item()
-                value = self._g_getAttr(name)
-            else:
-                value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
+        if (issysattrname(name) and
+            not name.endswith("FILL") and
+            not name in ["NROWS", "EXTDIM", "AUTOMATIC_INDEX",
+                         "REINDEX", "DIRTY", "NODE_TYPE_VERSION"]):
+            # The next is fastest for string attributes
+            value = self._g_getSysAttr(name)
         else:
             # This the general way to read attributes (takes more time)
             value = self._g_getAttr(name)
@@ -239,8 +237,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
         if (isinstance(value, numpy.generic) and  # NumPy scalar?
-            value.dtype.type == numpy.string_ and
-            value and value[-1] == "."):
+            value.dtype.type == numpy.string_ and # string type?
+            value.itemsize > 0 and value[-1] == "."):
             try:
                 retval = cPickle.loads(value)
             #except cPickle.UnpicklingError:
