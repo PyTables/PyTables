@@ -1795,16 +1795,17 @@ You cannot append rows to a non-chunked table.""")
                 # To allow conversion in array if rows is a scalar (void) type
                 # See http://projects.scipy.org/scipy/numpy/ticket/315
                 # for discussion on how to pass buffers to constructors
+                # See also http://projects.scipy.org/scipy/numpy/ticket/348
                 recarray = numpy.array([rows], dtype=self._v_dtype)
                 #recarray = numpy.rec.array([rows], dtype=self._v_dtype)
             else:
-                recarray = numpy.array(rows, dtype=self._v_dtype)
-                #recarray = numpy.rec.array(rows, dtype=self._v_dtype)
+                #recarray = numpy.array(rows, dtype=self._v_dtype)
+                recarray = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
 """rows parameter cannot be converted into a recarray object compliant with
 table format '%s'. The error was: <%s>
-""" % (str(self.description._v_nestedDescr), exc)
+""" % (self.description._v_nestedDescr, exc)
         lenrows = len(recarray)
         if start + lenrows > self.nrows:
             raise IndexError, \

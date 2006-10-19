@@ -8,6 +8,7 @@ import re
 import tempfile
 import warnings
 import numpy
+from numpy.testing import assert_array_equal, assert_almost_equal
 
 from tables import *
 from tables.tests.common import verbose, heavy, cleanup, allequal
@@ -457,8 +458,109 @@ class TypesTestCase(unittest.TestCase):
 
 #---------------------------------------
 
+    def test00a_setBoolAttributes(self):
+        """Checking setting Bool attributes (scalar, Python case)"""
+
+        self.array.attrs.pq = True
+        self.array.attrs.qr = False
+        self.array.attrs.rs = True
+
+        # Check the results
+        if verbose:
+            print "pq -->", self.array.attrs.pq
+            print "qr -->", self.array.attrs.qr
+            print "rs -->", self.array.attrs.rs
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert self.root.anarray.attrs.pq == True
+        assert self.root.anarray.attrs.qr == False
+        assert self.root.anarray.attrs.rs == True
+
+    def test00b_setBoolAttributes(self):
+        """Checking setting Bool attributes (scalar, NumPy case)"""
+
+        self.array.attrs.pq = numpy.bool_(True)
+        self.array.attrs.qr = numpy.bool_(False)
+        self.array.attrs.rs = numpy.bool_(True)
+
+        # Check the results
+        if verbose:
+            print "pq -->", self.array.attrs.pq
+            print "qr -->", self.array.attrs.qr
+            print "rs -->", self.array.attrs.rs
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert self.root.anarray.attrs.pq == True
+        assert self.root.anarray.attrs.qr == False
+        assert self.root.anarray.attrs.rs == True
+
+    def test00c_setBoolAttributes(self):
+        """Checking setting Bool attributes (NumPy, 0-dim case)"""
+
+        self.array.attrs.pq = numpy.array(True)
+        self.array.attrs.qr = numpy.array(False)
+        self.array.attrs.rs = numpy.array(True)
+
+        # Check the results
+        if verbose:
+            print "pq -->", self.array.attrs.pq
+            print "qr -->", self.array.attrs.qr
+            print "rs -->", self.array.attrs.rs
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert self.root.anarray.attrs.pq == True
+        assert self.root.anarray.attrs.qr == False
+        assert self.root.anarray.attrs.rs == True
+
+    def test00d_setBoolAttributes(self):
+        """Checking setting Bool attributes (NumPy, multidim case)"""
+
+        self.array.attrs.pq = numpy.array([True])
+        self.array.attrs.qr = numpy.array([[False]])
+        self.array.attrs.rs = numpy.array([[True, False],[True, False]])
+
+        # Check the results
+        if verbose:
+            print "pq -->", self.array.attrs.pq
+            print "qr -->", self.array.attrs.qr
+            print "rs -->", self.array.attrs.rs
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert_array_equal(self.root.anarray.attrs.pq, numpy.array([True]))
+        assert_array_equal(self.root.anarray.attrs.qr, numpy.array([[False]]))
+        assert_array_equal(self.root.anarray.attrs.rs,
+                           numpy.array([[True, False],[True, False]]))
+
     def test01a_setIntAttributes(self):
-        """Checking setting Int attributes (scalar case)"""
+        """Checking setting Int attributes (scalar, Python case)"""
 
         self.array.attrs.pq = 1
         self.array.attrs.qr = 2
@@ -489,13 +591,13 @@ class TypesTestCase(unittest.TestCase):
         checktypes = ['Int8', 'Int16', 'Int32', 'Int64',
                       'UInt8', 'UInt16', 'UInt32']
 
-        for stype in checktypes:
-            setattr(self.array.attrs, stype, numpy.array(1, dtype=stype))
+        for dtype in checktypes:
+            setattr(self.array.attrs, dtype, numpy.array(1, dtype=dtype))
 
         # Check the results
         if verbose:
-            for stype in checktypes:
-                print "type, value-->", stype, getattr(self.array.attrs, stype)
+            for dtype in checktypes:
+                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
 
         if self.close:
             if verbose:
@@ -506,9 +608,9 @@ class TypesTestCase(unittest.TestCase):
             self.array = self.fileh.root.anarray
 
 
-        for stype in checktypes:
-            assert allequal(getattr(self.array.attrs, stype),
-                            numpy.array(1, dtype=stype))
+        for dtype in checktypes:
+            assert_array_equal(getattr(self.array.attrs, dtype),
+                               numpy.array(1, dtype=dtype))
 
     def test01c_setIntAttributes(self):
         """Checking setting Int attributes (unidimensional NumPy case)"""
@@ -517,8 +619,8 @@ class TypesTestCase(unittest.TestCase):
         checktypes = ['Int8', 'Int16', 'Int32', 'Int64',
                       'UInt8', 'UInt16', 'UInt32']
 
-        for stype in checktypes:
-            setattr(self.array.attrs, stype, numpy.array([1,2], dtype=stype))
+        for dtype in checktypes:
+            setattr(self.array.attrs, dtype, numpy.array([1,2], dtype=dtype))
 
         # Check the results
         if self.close:
@@ -529,11 +631,11 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        for stype in checktypes:
+        for dtype in checktypes:
             if verbose:
-                print "type, value-->", stype, getattr(self.array.attrs, stype)
-            assert allequal(getattr(self.array.attrs, stype),
-                            numpy.array([1,2], dtype=stype))
+                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+            assert_array_equal(getattr(self.array.attrs, dtype),
+                               numpy.array([1,2], dtype=dtype))
 
     def test01d_setIntAttributes(self):
         """Checking setting Int attributes (bidimensional NumPy case)"""
@@ -542,9 +644,9 @@ class TypesTestCase(unittest.TestCase):
         checktypes = ['Int8', 'Int16', 'Int32', 'Int64',
                       'UInt8', 'UInt16', 'UInt32']
 
-        for stype in checktypes:
-            setattr(self.array.attrs, stype,
-                    numpy.array([[1,2],[2,3]], dtype=stype))
+        for dtype in checktypes:
+            setattr(self.array.attrs, dtype,
+                    numpy.array([[1,2],[2,3]], dtype=dtype))
 
         if self.close:
             if verbose:
@@ -555,11 +657,11 @@ class TypesTestCase(unittest.TestCase):
             self.array = self.fileh.root.anarray
 
         # Check the results
-        for stype in checktypes:
+        for dtype in checktypes:
             if verbose:
-                print "type, value-->", stype, getattr(self.array.attrs, stype)
-            assert allequal(getattr(self.array.attrs, stype),
-                            numpy.array([[1,2],[2,3]], dtype=stype))
+                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+            assert_array_equal(getattr(self.array.attrs, dtype),
+                               numpy.array([[1,2],[2,3]], dtype=dtype))
 
     def test02a_setFloatAttributes(self):
         """Checking setting Float (double) attributes"""
@@ -592,14 +694,14 @@ class TypesTestCase(unittest.TestCase):
 
         checktypes = ['Float32', 'Float64']
 
-        for stype in checktypes:
-            setattr(self.array.attrs, stype,
-                    numpy.array(1.1, dtype=stype))
+        for dtype in checktypes:
+            setattr(self.array.attrs, dtype,
+                    numpy.array(1.1, dtype=dtype))
 
         # Check the results
         if verbose:
-            for stype in checktypes:
-                print "type, value-->", stype, getattr(self.array.attrs, stype)
+            for dtype in checktypes:
+                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
 
         if self.close:
             if verbose:
@@ -609,24 +711,24 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        for stype in checktypes:
-            #assert getattr(self.array.attrs, stype) == 1.1
+        for dtype in checktypes:
+            #assert getattr(self.array.attrs, dtype) == 1.1
             # In order to make Float32 tests pass. This is legal, not a trick.
-            assert round(getattr(self.array.attrs, stype),6) == 1.1
+            assert_almost_equal(getattr(self.array.attrs, dtype), 1.1)
 
     def test02c_setFloatAttributes(self):
         """Checking setting Float attributes (unidimensional NumPy case)"""
 
         checktypes = ['Float32', 'Float64']
 
-        for stype in checktypes:
-            setattr(self.array.attrs, stype,
-                    numpy.array([1.1,2.1], dtype=stype))
+        for dtype in checktypes:
+            setattr(self.array.attrs, dtype,
+                    numpy.array([1.1,2.1], dtype=dtype))
 
         # Check the results
         if verbose:
-            for stype in checktypes:
-                print "type, value-->", stype, getattr(self.array.attrs, stype)
+            for dtype in checktypes:
+                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
 
         if self.close:
             if verbose:
@@ -636,23 +738,23 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        for stype in checktypes:
-            assert allequal(getattr(self.array.attrs, stype),
-                            numpy.array([1.1,2.1], dtype=stype))
+        for dtype in checktypes:
+            assert_array_equal(getattr(self.array.attrs, dtype),
+                               numpy.array([1.1,2.1], dtype=dtype))
 
     def test02d_setFloatAttributes(self):
         """Checking setting Int attributes (bidimensional NumPy case)"""
 
         checktypes = ['Float32', 'Float64']
 
-        for stype in checktypes:
-            setattr(self.array.attrs, stype,
-                    numpy.array([[1.1,2.1],[2.1,3.1]], dtype=stype))
+        for dtype in checktypes:
+            setattr(self.array.attrs, dtype,
+                    numpy.array([[1.1,2.1],[2.1,3.1]], dtype=dtype))
 
         # Check the results
         if verbose:
-            for stype in checktypes:
-                print "type, value-->", stype, getattr(self.array.attrs, stype)
+            for dtype in checktypes:
+                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
 
         if self.close:
             if verbose:
@@ -662,9 +764,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        for stype in checktypes:
-            assert allequal(getattr(self.array.attrs, stype),
-                            numpy.array([[1.1,2.1],[2.1,3.1]], dtype=stype))
+        for dtype in checktypes:
+            assert_array_equal(getattr(self.array.attrs, dtype),
+                               numpy.array([[1.1,2.1],[2.1,3.1]], dtype=dtype))
 
     def test03_setObjectAttributes(self):
         """Checking setting Object attributes"""
@@ -735,8 +837,8 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert allequal(self.root.anarray.attrs.pq,
-                        numpy.array(['foo']))
+        assert_array_equal(self.root.anarray.attrs.pq,
+                           numpy.array(['foo']))
 
     def test04c_setStringAttributes(self):
         """Checking setting string attributes (empty unidimensional 1-elem case)"""
@@ -758,8 +860,8 @@ class TypesTestCase(unittest.TestCase):
             if verbose:
                 print "pq -->", self.array.attrs.pq
 
-        assert allequal(self.root.anarray.attrs.pq,
-                        numpy.array(['']))
+        assert_array_equal(self.root.anarray.attrs.pq,
+                           numpy.array(['']))
 
     def test04d_setStringAttributes(self):
         """Checking setting string attributes (unidimensional 2-elem case)"""
@@ -778,8 +880,8 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert allequal(self.root.anarray.attrs.pq,
-                        numpy.array(['foo', 'bar3']))
+        assert_array_equal(self.root.anarray.attrs.pq,
+                           numpy.array(['foo', 'bar3']))
 
     def test04e_setStringAttributes(self):
         """Checking setting string attributes (empty unidimensional 2-elem case)"""
@@ -798,8 +900,8 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert allequal(self.root.anarray.attrs.pq,
-                        numpy.array(['', '']))
+        assert_array_equal(self.root.anarray.attrs.pq,
+                           numpy.array(['', '']))
 
     def test04f_setStringAttributes(self):
         """Checking setting string attributes (bidimensional 4-elem case)"""
@@ -819,9 +921,114 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
-        assert allequal(self.root.anarray.attrs.pq,
-                        numpy.array([['foo', 'foo2'],
-                                     ['foo3', 'foo4']]))
+        assert_array_equal(self.root.anarray.attrs.pq,
+                           numpy.array([['foo', 'foo2'],
+                                        ['foo3', 'foo4']]))
+
+    def test05a_setComplexAttributes(self):
+        """Checking setting Complex (python) attributes"""
+
+        # With a Table object
+        self.array.attrs.pq = 1.0+2j
+        self.array.attrs.qr = 2.0+3j
+        self.array.attrs.rs = 3.0+4j
+
+        # Check the results
+        if verbose:
+            print "pq -->", self.array.attrs.pq
+            print "qr -->", self.array.attrs.qr
+            print "rs -->", self.array.attrs.rs
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert self.root.anarray.attrs.pq == 1.0+2j
+        assert self.root.anarray.attrs.qr == 2.0+3j
+        assert self.root.anarray.attrs.rs == 3.0+4j
+
+    def test05b_setComplexAttributes(self):
+        """Checking setting Complex attributes (scalar, NumPy case)"""
+
+        checktypes = ['complex64', 'complex128']
+
+        for dtype in checktypes:
+            setattr(self.array.attrs, dtype,
+                    numpy.array(1.1+2j, dtype=dtype))
+
+        # Check the results
+        if verbose:
+            for dtype in checktypes:
+                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        for dtype in checktypes:
+            #assert getattr(self.array.attrs, dtype) == 1.1+2j
+            # In order to make Complex32 tests pass.
+            assert_almost_equal(getattr(self.array.attrs, dtype), 1.1+2j)
+
+    def test05c_setComplexAttributes(self):
+        """Checking setting Complex attributes (unidimensional NumPy case)"""
+
+        checktypes = ['Complex32', 'Complex64']
+
+        for dtype in checktypes:
+            setattr(self.array.attrs, dtype,
+                    numpy.array([1.1,2.1], dtype=dtype))
+
+        # Check the results
+        if verbose:
+            for dtype in checktypes:
+                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        for dtype in checktypes:
+            assert_array_equal(getattr(self.array.attrs, dtype),
+                               numpy.array([1.1,2.1], dtype=dtype))
+
+    def test05d_setComplexAttributes(self):
+        """Checking setting Int attributes (bidimensional NumPy case)"""
+
+        checktypes = ['Complex32', 'Complex64']
+
+        for dtype in checktypes:
+            setattr(self.array.attrs, dtype,
+                    numpy.array([[1.1,2.1],[2.1,3.1]], dtype=dtype))
+
+        # Check the results
+        if verbose:
+            for dtype in checktypes:
+                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        for dtype in checktypes:
+            assert_array_equal(getattr(self.array.attrs, dtype),
+                               numpy.array([[1.1,2.1],[2.1,3.1]], dtype=dtype))
 
 
 class NotCloseTypesTestCase(TypesTestCase):

@@ -173,19 +173,16 @@ class Col(object):
         "Sets the 'dflt' attribute."
         # Create NumPy objects as defaults
         # This is better in order to serialize them as attributes
-        if self.dtype.base.type == numpy.string_:
-            if dflt is None:
+        if dflt is None:
+            if self.dtype.base.type == numpy.string_:
                 dflt = ""
-            if type(dflt) == str:
-                # If dflt is a python string, set it 'as is' in order to be
-                # consistent with attribute serializing conventions.
-                self.dflt = dflt
             else:
-                self.dflt = numpy.array(dflt, dtype=self.dtype.base)
-        else:
-            if dflt is None:
                 dflt = 0
-            self.dflt = numpy.array(dflt, dtype=self.dtype.base)
+        self.dflt = numpy.array(dflt, dtype=self.dtype.base)
+        # 0-dim arrays will be representented as NumPy scalars
+        # (PyTables attribute convention)
+        if self.dflt.dtype.shape == ():
+            self.dflt = self.dflt[()]
 
 
     def _setIndex(self, indexed):

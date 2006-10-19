@@ -45,7 +45,7 @@ from definitions cimport import_array, ndarray, \
      H5Dget_space, H5Dget_create_plist, H5Pget_layout, H5Pclose, \
      H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose, \
      H5Tget_size, H5Tcreate, H5Tcopy, H5Tclose, H5Tget_sign, \
-     H5ATTRset_attribute_string, H5ATTR_set_attribute_numerical, \
+     H5ATTRset_attribute_string, H5ATTRset_attribute, \
      get_len_of_range
 
 
@@ -192,8 +192,8 @@ cdef class Table:  # XXX extends Leaf
                          ("TITLE", self.name))
     # Attach the NROWS attribute
     nrecords = self.nrows
-    ret = H5ATTR_set_attribute_numerical(self.dataset_id, "NROWS",
-                                         H5T_STD_I64, &nrecords )
+    ret = H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
+                              0, NULL, <char *>&nrecords )
     if ret < 0:
       raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                          ("NROWS", self.name))
@@ -322,9 +322,8 @@ cdef class Table:  # XXX extends Leaf
   def _close_append(self):
 
     # Update the NROWS attribute
-    if (H5ATTR_set_attribute_numerical(self.dataset_id, "NROWS",
-                                       H5T_STD_I64,
-                                       &self.totalrecords)<0):
+    if (H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
+                            0, NULL, <char *>&self.totalrecords) < 0):
       raise HDF5ExtError("Problems setting the NROWS attribute.")
 
     # Set the caches to dirty (in fact, and for the append case,
@@ -479,8 +478,8 @@ cdef class Table:  # XXX extends Leaf
       return 0
     self.totalrecords = self.totalrecords - nrecords
     # Attach the NROWS attribute
-    H5ATTR_set_attribute_numerical(self.dataset_id, "NROWS",
-                                   H5T_STD_I64, &self.totalrecords)
+    H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
+                        0, NULL, <char *>&self.totalrecords)
     # Set the caches to dirty
     self._dirtycache = True
     # Return the number of records removed

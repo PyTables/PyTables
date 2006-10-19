@@ -228,7 +228,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             if name in ["NROWS", "EXTDIM", "AUTOMATIC_INDEX",
                         "REINDEX", "DIRTY", "NODE_TYPE_VERSION"]:
                 # These are Int32 or Int64 integers
-                value = self._g_getAttr(name).item()
+                #value = self._g_getAttr(name).item()
+                value = self._g_getAttr(name)
             else:
                 value = self._g_getSysAttr(name)   # Takes only 0.6s/2.9s
         else:
@@ -237,7 +238,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
-        if type(value) is str and value and value[-1] == ".":
+        if (isinstance(value, numpy.generic) and  # NumPy scalar?
+            value.dtype.type == numpy.string_ and
+            value and value[-1] == "."):
             try:
                 retval = cPickle.loads(value)
             #except cPickle.UnpicklingError:

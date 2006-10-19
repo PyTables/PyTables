@@ -49,28 +49,29 @@ from lrucacheExtension cimport NodeCache
 # Types, constants, functions, classes & other objects from everywhere
 from definitions cimport  \
      strdup, malloc, free, \
+     Py_ssize_t, PyObject_AsReadBuffer, \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
      PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
      Py_INCREF, Py_DECREF, \
      import_array, ndarray, dtype, \
      time_t, size_t, hid_t, herr_t, hsize_t, hvl_t, \
-     H5T_sign_t, H5T_class_t, \
+     H5T_class_t, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
      H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5S_SELECT_SET, \
      H5get_libversion, H5check_version, H5Fcreate, H5Fopen, H5Fclose, \
      H5Fflush, H5Gcreate, H5Gopen, H5Gclose, H5Glink, H5Gunlink, H5Gmove, \
      H5Gmove2,  H5Dopen, H5Dclose, H5Dread, H5Dget_type, H5Dget_space, \
      H5Dvlen_reclaim, H5Adelete, H5Aget_num_attrs, H5Aget_name, H5Aopen_idx, \
-     H5Aread, H5Aclose, H5Tclose, H5Tget_sign, H5Pcreate, H5Pclose, \
+     H5Aread, H5Aclose, H5Tclose, H5Pcreate, H5Pclose, \
      H5Pset_cache, H5Pset_sieve_buf_size, H5Pset_fapl_log, \
      H5Sselect_hyperslab, H5Screate_simple, H5Sget_simple_extent_ndims, \
      H5Sget_simple_extent_dims, H5Sclose, \
-     H5ATTRget_attribute_ndims, H5ATTRget_attribute_info, \
-     H5ATTRset_attribute_string, H5ATTRset_attribute_string_CAarray, \
-     H5ATTRset_attribute_numerical_NParray, H5ATTRget_attribute, \
-     H5ATTRget_attribute_string, H5ATTRget_attribute_string_CAarray, \
-     H5ATTR_find_attribute, \
-     set_cache_size, Giterate, Aiterate, H5UIget_info, get_len_of_range
+     H5ATTRset_attribute, H5ATTRset_attribute_string, \
+     H5ATTRget_attribute, H5ATTRget_attribute_string, \
+     H5ATTRfind_attribute, H5ATTRget_attribute_ndims, \
+     H5ATTRget_attribute_info, \
+     set_cache_size, Giterate, Aiterate, H5UIget_info, get_len_of_range, \
+     convArrayType, getArrayType
 
 
 
@@ -149,13 +150,6 @@ cdef extern from "H5VLARRAY.h":
                             hid_t *base_type_id, char *base_byteorder)
 
 
-# Function to convert HDF5 types from/to numpy types
-cdef extern from "arraytypes.h":
-  hid_t convArrayType(int fmt, size_t size, char *byteorder)
-  size_t getArrayType(hid_t type_id, int *fmt)
-
-
-
 
 #----------------------------------------------------------------------------
 
@@ -166,8 +160,6 @@ cdef extern from "arraytypes.h":
 import_array()
 
 #---------------------------------------------------------------------------
-
-
 
 # Helper functions
 
@@ -202,12 +194,13 @@ def get_attribute_string_or_none(node_id, attr_name):
 
   attr_value = NULL
   retvalue = None   # Default value
-  if H5ATTR_find_attribute(node_id, attr_name):
+  if H5ATTRfind_attribute(node_id, attr_name):
     ret = H5ATTRget_attribute_string(node_id, attr_name, &attr_value)
-    if ret < 0: return None
-    retvalue = attr_value
+    retvalue = numpy.string_(attr_value)
     # Important to release attr_value, because it has been malloc'ed!
     if attr_value: free(<void *>attr_value)
+    if ret < 0: return None
+
   return retvalue
 
 
@@ -473,195 +466,148 @@ cdef class AttributeSet:
                          (attrname, self._v_node))
 
 
+  def _g_setAttr(self, char *name, object value):
+    """Save Python or NumPy objects as HDF5 attributes.
+
+    Scalar Python objects, scalar NumPy & 0-dim NumPy objects will all be
+    saved as H5T_SCALAR type.  N-dim NumPy objects will be saved as H5T_ARRAY
+    type.
+    """
+
+    cdef int ret, i, rank
+    cdef hid_t type_id
+    cdef hsize_t *dims
+    cdef ndarray ndv
+    cdef dtype ndt
+    cdef object byteorder
+
+    # Convert a Python or NumPy scalar into a NumPy 0-dim ndarray
+    if (type(value) in (bool, str, int, float, complex) or
+        isinstance(value, numpy.generic)):
+      value = numpy.array(value)
+
+    # Check if value is a NumPy ndarray and of a supported type
+    if (isinstance(value, numpy.ndarray) and
+        value.dtype.kind in ('S', 'b', 'i', 'u', 'f', 'c')):
+      # Get the associated native HDF5 type
+      ndt = <dtype>value.dtype
+      byteorder = byteorders["%c"%ndt.byteorder]
+      type_id = convArrayType(ndt.type_num, ndt.elsize, byteorder)
+      # Get dimensionality info
+      ndv = <ndarray>value
+      rank = ndv.nd
+      if rank > 0:
+        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+        for i from 0 <= i < rank:
+          dims[i] = ndv.dimensions[i]
+      else:
+        dims = NULL
+
+      # Actually write the attribute
+      ret = H5ATTRset_attribute(self.dataset_id, name, type_id,
+                                rank, dims, ndv.data)
+      if ret < 0:
+        raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
+                           (name, self._v_node))
+
+      # Release resources
+      if rank > 0: free(<void *>dims)
+      H5Tclose(type_id)
+    else:
+      # Object cannot be natively represented in HDF5.
+      # Convert this object to a null-terminated string
+      # (binary pickles are not supported at this moment)
+      value = cPickle.dumps(value, 0)
+      ret = H5ATTRset_attribute_string(self.dataset_id, name, value)
+    
+    return
+
+
   # Get attributes
   def _g_getAttr(self, char *attrname):
+    """Get HDF5 attributes and retrieve them as NumPy objects.
+
+    H5T_SCALAR types will be retrieved as scalar NumPy.
+    H5T_ARRAY types will be retrieved as ndarray NumPy objects.
+    """
+
     cdef hsize_t *dims, nelements
     cdef H5T_class_t class_id
     cdef size_t type_size
-    cdef hid_t mem_type, dset_id
-    cdef int rank
-    cdef int ret, i
-    cdef int enumtype
+    cdef hid_t mem_type, dset_id, type_id, type_id2
+    cdef int rank, ret, i, enumtype
     cdef void *rbuf
-    cdef hid_t type_id
-    cdef H5T_sign_t sign #H5T_SGN_ERROR (-1), H5T_SGN_NONE (0), H5T_SGN_2 (1)
-    cdef char *dsetname
     cdef ndarray ndvalue
-    cdef object retvalue
+    cdef object retvalue, shape
 
     dset_id = self.dataset_id
-    dsetname = self.name
-
-    # Check if attribute exists
-    if H5ATTR_find_attribute(dset_id, attrname) <= 0:
-      # If the attribute does not exists, return None
-      # and do not even warn the user
-      return None
+    dims = NULL
 
     ret = H5ATTRget_attribute_ndims(dset_id, attrname, &rank )
     if ret < 0:
       raise HDF5ExtError("Can't get ndims on attribute %s in node %s." %
-                             (attrname, dsetname))
-
-    # Allocate memory to collect the dimension of objects with dimensionality
+                             (attrname, self.name))
+ 
+    # Get the dimensional info
     if rank > 0:
       dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-    else:
-      dims = NULL
-
     ret = H5ATTRget_attribute_info(dset_id, attrname, dims,
                                    &class_id, &type_size, &type_id)
     if ret < 0:
       raise HDF5ExtError("Can't get info on attribute %s in node %s." %
-                               (attrname, dsetname))
-    # Get the attribute type & size
+                               (attrname, self.name))
+
+    # Check that class_id is a supported type for attributes
+    if class_id not in (H5T_STRING, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT,
+                        H5T_COMPOUND):   # complex types are COMPOUND
+      warnings.warn("""\
+Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
+                    % (attrname, self.name))
+      return None
+
+    # Get the dimensional info
+    if rank > 0:
+      shape = []
+      for i from 0 <= i < rank:
+        # The <int> cast avoids returning a Long integer
+        shape.append(<int>dims[i])
+      shape = tuple(shape)
+      free(<void *> dims)
+    else:
+      shape = ()
+
+    # Get the attribute NumPy type & type size
     type_size = getArrayType(type_id, &enumtype)
     # type_size is of type size_t (unsigned long), so cast it to a long first
     if <long>type_size < 0:
       # This class is not supported. Instead of raising a TypeError,
-      # return a string explaining the problem. This will allow to continue
+      # issue a warning explaining the problem. This will allow to continue
       # browsing native HDF5 files, while informing the user about the problem.
-      #raise TypeError, "HDF5 class %d not supported. Sorry!" % class_id
-      H5Tclose(type_id)    # Release resources
-      return "***Attribute error: HDF5 class %d not supported. Sorry!***" % \
-             class_id
-    sign = H5Tget_sign(type_id)
-    H5Tclose(type_id)    # Release resources
-
-    # Get the array shape
-    shape = []
-    for i from 0 <= i < rank:
-      # The <int> cast avoids returning a Long integer
-      shape.append(<int>dims[i])
-    shape = tuple(shape)
-
-    retvalue = None
-    ndvalue = None
-    dtype = NPCodeToType[enumtype]
-    if class_id in (H5T_INTEGER, H5T_FLOAT):
-      ndvalue = numpy.empty(dtype=dtype, shape=shape)
-    elif class_id == H5T_STRING:
-      dtype = numpy.dtype((dtype, type_size))
-      ndvalue = numpy.empty(dtype=dtype, shape=shape)
-
-    if <object>ndvalue is not None:
-      # Get the pointer to the buffer data area
-      rbuf = ndvalue.data
-
-    if class_id == H5T_INTEGER:
-      if sign == H5T_SGN_2:
-        if type_size == 1:
-          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_I8, rbuf)
-        if type_size == 2:
-          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_I16, rbuf)
-        if type_size == 4:
-          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_I32, rbuf)
-        if type_size == 8:
-          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_I64, rbuf)
-      elif sign == H5T_SGN_NONE:
-        if type_size == 1:
-          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_U8, rbuf)
-        if type_size == 2:
-          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_U16, rbuf)
-        if type_size == 4:
-          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_U32, rbuf)
-        if type_size == 8:
-          ret = H5ATTRget_attribute(dset_id, attrname, H5T_STD_U64, rbuf)
-      else:
-        warnings.warn("""\
-Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
-                      % (attrname, dsetname))
-        return None
-
-    elif class_id == H5T_FLOAT:
-      if type_size == 4:
-        ret = H5ATTRget_attribute(dset_id, attrname, H5T_IEEE_F32, rbuf)
-      if type_size == 8:
-        ret = H5ATTRget_attribute(dset_id, attrname, H5T_IEEE_F64, rbuf)
-
-    elif class_id == H5T_STRING:
-      ret = H5ATTRget_attribute_string_CAarray(dset_id, attrname, <char *>rbuf)
-      if rank == 0:
-        # Scalar string attributes are returned as Python strings, while
-        # multi-dimensional ones are returned as character arrays.
-        retvalue = ndvalue.item()
-    else:
       warnings.warn("""\
-Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
-                    % (attrname, dsetname))
+Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
+                      % (attrname, self.name, class_id))
       return None
+    dtype = NPCodeToType[enumtype]
+    if class_id == H5T_STRING:
+      dtype = numpy.dtype((dtype, type_size))
+    ndvalue = numpy.empty(dtype=dtype, shape=shape)
 
-    if dims:
-      free(<void *> dims)
+    # Get the pointer to the buffer data area
+    rbuf = ndvalue.data
 
-    # Check the return value of H5ATTRget_attribute_* call
+    # Actually read the attribute from disk
+    ret = H5ATTRget_attribute(dset_id, attrname, type_id, rbuf)
     if ret < 0:
       raise HDF5ExtError("Attribute %s exists in node %s, but can't get it."\
-                         % (attrname, dsetname))
+                         % (attrname, self.name))
+    H5Tclose(type_id)
 
-    node = self._v_node
-
-    # Check for multimensional attributes (if file.format_version > "1.4")
-    if hasattr(node._v_file, "format_version"):
-      format_version = node._v_file.format_version
+    if rank > 0:    # multidimensional case
+      retvalue = ndvalue
     else:
-      format_version = None
+      retvalue = ndvalue[()]   # 0-dim ndarray becomes a NumPy scalar
 
-
-    if retvalue is not None:
-      return retvalue
-    else:
-      return ndvalue
-
-
-  def _g_setAttr(self, char *name, object value):
-    cdef int ret
-    cdef int valint
-    cdef double valdouble
-    cdef hid_t type_id
-    cdef size_t rank
-    cdef hsize_t *dims
-    cdef void *data
-    cdef int i
-    cdef int itemsize
-    cdef ndarray ndv
-    cdef dtype ndt
-
-    node = self._v_node
-
-    ret = 0
-    # Append this attribute on disk
-    if isinstance(value, str):
-      ret = H5ATTRset_attribute_string(self.dataset_id, name, value)
-    elif isinstance(value, numpy.ndarray):
-      ndv = <ndarray>value
-      data = ndv.data
-      ndt = <dtype>value.dtype
-      rank = ndv.nd
-      dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-      for i from 0 <= i < rank:
-        dims[i] = ndv.dimensions[i]
-      if value.dtype.char == "S":
-        itemsize = value.itemsize
-        ret = H5ATTRset_attribute_string_CAarray(
-          self.dataset_id, name, rank, dims, itemsize, data)
-      elif ndt.type_num in NPCodeToHDF5.keys():
-        type_id = NPCodeToHDF5[ndt.type_num]
-        ret = H5ATTRset_attribute_numerical_NParray(self.dataset_id, name,
-                                                    rank, dims, type_id, data)
-      else:   # One should add complex support for numpy arrays
-        pickledvalue = cPickle.dumps(value, 0)
-        self._g_setAttrStr(name, pickledvalue)
-      free(<void *>dims)
-    else:
-      # Convert this object to a null-terminated string
-      # (binary pickles are not supported at this moment)
-      pickledvalue = cPickle.dumps(value, 0)
-      self._g_setAttrStr(name, pickledvalue)
-
-    if ret < 0:
-      raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
-                         (name, node))
+    return retvalue
 
 
   def _g_remove(self, attrname):
@@ -984,7 +930,6 @@ cdef class Array(Leaf):
   def _openArray(self):
     cdef size_t type_size, type_precision
     cdef H5T_class_t class_id
-    cdef H5T_sign_t sign
     cdef char byteorder[16]  # "non-relevant" fits easily here
     cdef int i, enumtype
     cdef int extdim
@@ -1025,7 +970,7 @@ cdef class Array(Leaf):
     flavor = "numpy"   # Default value
     if self._v_file._isPTFile:
       H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor)
-    self.flavor = flavor  # Gives class visibility to flavor
+    self.flavor = numpy.string_(flavor)  # Gives class visibility to flavor
     # Important to release flavor, because it has been malloc'ed!
     if flavor: free(<void *>flavor)
 
@@ -1363,7 +1308,7 @@ cdef class VLArray(Leaf):
     flavor = "numpy"  # Default value
     if self._v_file._isPTFile:
       H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor)
-    self.flavor = flavor  # Gives class visibility to flavor
+    self.flavor = numpy.string_(flavor)  # Gives class visibility to flavor
     # Important to release flavor, because it has been malloc'ed!
     if flavor: free(<void *>flavor)
     self.byteorder = byteorder  # Gives class visibility to byteorder
@@ -1512,8 +1457,6 @@ cdef class VLArray(Leaf):
         # Case of scalars (self._atomicshape == 1)
         shape = (vllen,)
       dtype = self._atomicdtype
-      # Set the same byteorder than on-disk
-      ####dtype = dtype.newbyteorder(self.byteorder)  # no sembla necessari
 
       nparr = numpy.ndarray(buffer=buf, dtype=dtype, shape=shape)
       # Set the writeable flag for this ndarray object

@@ -31,8 +31,8 @@ from tables.IsDescription import Description, Col, StringCol, EnumCol, TimeCol
 from tables.utils import checkFileAccess
 
 from definitions cimport import_array, ndarray, \
-     malloc, free, strcpy, strcmp, strdup, \
-     PyString_AsString, \
+     malloc, free, strcpy, strncpy, strcmp, strdup, \
+     PyString_AsString, PyString_FromString, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      size_t, hid_t, herr_t, hsize_t, htri_t, \
      H5T_class_t, H5D_layout_t, H5T_sign_t, \
@@ -44,8 +44,11 @@ from definitions cimport import_array, ndarray, \
      H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tarray_create, \
      H5Tget_array_ndims, H5Tget_array_dims, H5Tis_variable_str, \
      H5Tset_size, H5Tset_precision, \
-     H5ATTR_get_attribute_disk, H5ATTR_find_attribute, \
-     H5ARRAYget_ndims, H5ARRAYget_info
+     H5ATTRget_attribute_string, H5ATTRfind_attribute, \
+     H5ARRAYget_ndims, H5ARRAYget_info, \
+     create_ieee_complex64, create_ieee_complex128, \
+     convArrayType, getArrayType
+
 
 
 # Include conversion tables & type
@@ -66,8 +69,6 @@ cdef extern from "utils.h":
   object _getTablesVersion()
   #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
-  hid_t  create_ieee_complex64(char *byteorder)
-  hid_t  create_ieee_complex128(char *byteorder)
   int    is_complex(hid_t type_id)
   herr_t set_order(hid_t type_id, char *byteorder)
   herr_t get_order(hid_t type_id, char *byteorder)
@@ -91,10 +92,6 @@ cdef extern from "typeconv.h":
                               unsigned long nelements,
                               int sense)
 
-cdef extern from "arraytypes.h":
-  # Function to compute the HDF5 type from a NumPy enum type.
-  hid_t convArrayType(int fmt, size_t size, char *byteorder)
-  size_t getArrayType(hid_t type_id, int *fmt)
 
 
 #----------------------------------------------------------------------
@@ -196,7 +193,7 @@ def isPyTablesFile(char *filename):
 
   cdef hid_t file_id
 
-  isptf = "unknown"
+  isptf = None    # A PYTABLES_FORMAT_VERSION attribute was not found
   if isHDF5File(filename):
     # The file exists and is HDF5, that's ok
     # Open it in read-only mode
@@ -205,10 +202,7 @@ def isPyTablesFile(char *filename):
     # Close the file
     H5Fclose(file_id)
 
-  if isptf == "unknown":
-    return None    # Means that this is not a pytables file
-  else:
-    return isptf
+  return isptf
 
 
 def getHDF5Version():
@@ -379,22 +373,29 @@ def read_f_attr(hid_t file_id, char *attr_name):
 
   cdef hid_t root_id
   cdef herr_t ret
-  cdef char attr_value[256]
+  cdef char *attr_value
+  cdef object retvalue
 
-  # Check if attribute exists
   # Open the root group
   root_id =  H5Gopen(file_id, "/")
-  strcpy(attr_value, "unknown")  # Default value
-  if H5ATTR_find_attribute(root_id, attr_name):
-    # Read the format_version attribute
-    ret = H5ATTR_get_attribute_disk(root_id, attr_name, attr_value)
-    if ret < 0:
-      strcpy(attr_value, "unknown")
+  attr_value = NULL
+  retvalue = None
+  # Check if attribute exists
+  if H5ATTRfind_attribute(root_id, attr_name):
+    # Read the attr_name attribute
+    ret = H5ATTRget_attribute_string(root_id, attr_name, &attr_value)
+    if ret >= 0:
+      retvalue = attr_value
+    # Important to release attr_value, because it has been malloc'ed!
+    if value: free(attr_value)
 
   # Close root group
   H5Gclose(root_id)
 
-  return attr_value
+  if retvalue is not None:
+    return numpy.string_(retvalue)
+  else:
+    return None
 
 
 def getFilters(parent_id, name):

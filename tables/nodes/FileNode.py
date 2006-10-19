@@ -802,8 +802,12 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
 		self.offset = 0L
 
 		# Cache some dictionary lookups regarding file version.
-		self._vType = self._byteAtom[self._version].dtype.base.type
-		self._vShape = self._sizeToShape[self._version]
+		# self._version is a NumPy scalar and when Python < 2.5
+		# this cannot be used as an index.
+		# Will force a conversion to an integer.
+		version = int(self._version)
+		self._vType = self._byteAtom[version].dtype.base.type
+		self._vShape = self._sizeToShape[version]
 
 
 	def __del__(self):

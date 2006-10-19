@@ -182,8 +182,8 @@ herr_t H5ARRAYmake( hid_t loc_id,
      goto out;
  if (extdim >= 0) {
    /* Attach the EXTDIM attribute in case of enlargeable arrays */
-   if (H5ATTR_set_attribute_numerical( dataset_id, "EXTDIM",
-				       H5T_NATIVE_INT, &extdim ) < 0 )
+   if (H5ATTRset_attribute( dataset_id, "EXTDIM", H5T_NATIVE_INT,
+			    0, NULL, (char *)&extdim ) < 0 )
      goto out;
  }
 

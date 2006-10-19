@@ -34,6 +34,9 @@ cdef extern from "time.h":
 # Some helper routines from the Python API
 cdef extern from "Python.h":
 
+  # special types
+  ctypedef int Py_ssize_t
+
   # references
   void Py_INCREF(object)
   void Py_DECREF(object)
@@ -58,7 +61,7 @@ cdef extern from "Python.h":
 
   # Functions for lists
   int PyList_Append(object list, object item)
-  
+
   # Functions for tuples
   object PyTuple_New(int)
   int PyTuple_SetItem(object, int, object)
@@ -75,6 +78,7 @@ cdef extern from "Python.h":
   int PyObject_DelItem(object o, object key)
   long PyObject_Length(object o)
   int PyObject_Compare(object o1, object o2)
+  int PyObject_AsReadBuffer(object obj, void **buffer, Py_ssize_t *buffer_len)
 
 
 
@@ -403,29 +407,20 @@ cdef extern from "hdf5.h":
 
 # Specific HDF5 functions for PyTables
 cdef extern from "H5ATTR.h":
+  herr_t H5ATTRget_attribute(hid_t loc_id, char *attr_name,
+                             hid_t type_id, void *data)
+  herr_t H5ATTRget_attribute_string(hid_t loc_id, char *attr_name,
+                                    char **attr_value)
+  herr_t H5ATTRset_attribute(hid_t obj_id, char *attr_name,
+                             hid_t type_id, size_t rank,  hsize_t *dims,
+                             char *attr_data )
+  herr_t H5ATTRset_attribute_string(hid_t loc_id, char *attr_name,
+                                    char *attr_data)
+  herr_t H5ATTRfind_attribute(hid_t loc_id, char *attr_name) 
   herr_t H5ATTRget_attribute_ndims(hid_t loc_id, char *attr_name, int *rank)
   herr_t H5ATTRget_attribute_info(hid_t loc_id, char *attr_name,
                                   hsize_t *dims, H5T_class_t *class_id,
                                   size_t *type_size, hid_t *type_id)
-  herr_t H5ATTRget_attribute(hid_t loc_id, char *attr_name,
-                             hid_t mem_type_id, void *data)
-  herr_t H5ATTRget_attribute_string(hid_t loc_id, char *attr_name,
-                                    char **attr_value)
-  herr_t H5ATTRget_attribute_string_CAarray(hid_t obj_id, char *attr_name,
-                                            char *data)
-  herr_t H5ATTR_get_attribute_disk(hid_t loc_id, char *attr_name,
-                                   void *attr_out)
-  herr_t H5ATTR_find_attribute(hid_t loc_id, char *attr_name)
-  herr_t H5ATTRset_attribute_string(hid_t loc_id, char *attr_name,
-                                    char *attr_data)
-  herr_t H5ATTRset_attribute_string_CAarray(hid_t loc_id, char *attr_name,
-                                            size_t rank, hsize_t *dims,
-                                            int itemsize, void *data)
-  herr_t H5ATTR_set_attribute_numerical(hid_t loc_id, char *attr_name,
-                                        hid_t type_id, void *data )
-  herr_t H5ATTRset_attribute_numerical_NParray(hid_t loc_id, char *attr_name,
-                                               size_t rank, hsize_t *dims,
-                                               hid_t type_id, void *data)
 
 
 # Functions for operations with ARRAY
@@ -443,4 +438,12 @@ cdef extern from "utils.h":
   object Aiterate(hid_t loc_id)
   object H5UIget_info(hid_t loc_id, char *name, char *byteorder)
   hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step)
+  hid_t  create_ieee_complex64(char *byteorder)
+  hid_t  create_ieee_complex128(char *byteorder)
+
+
+# Conversion routines between NumPy <--> HDF5 data types
+cdef extern from "arraytypes.h":
+  hid_t convArrayType(int nptype, size_t size, char *byteorder)
+  size_t getArrayType(hid_t type_id, int *nptype)
 

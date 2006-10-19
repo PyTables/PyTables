@@ -2,15 +2,25 @@
 #include "utils.h"
 
 /* Get the correct HDF5 type for a format code. */
-hid_t convArrayType(int fmt, size_t size, char *byteorder)
+hid_t convArrayType(int nptype, size_t size, char *byteorder)
 {
    hid_t type_id;
+   int  rbyteorder;
 
-   switch(fmt) {
+   if (strcmp(byteorder, "little") == 0)
+     rbyteorder = '<';
+   else if (strcmp(byteorder, "big") == 0)
+     rbyteorder = '>';
+   else {
+     rbyteorder = '|';
+   }
+
+   switch(nptype) {
     case NPY_STRING:
       type_id = H5Tcopy(H5T_C_S1);
       H5Tset_size(type_id, size);
-
+      /* XYX Would be the next necessary? */
+/*       H5Tset_strpad( attr_type, H5T_STR_NULLTERM ); */
       return type_id;
     /* The next two maps are for time datatypes. */
     case 't':
@@ -25,68 +35,68 @@ hid_t convArrayType(int fmt, size_t size, char *byteorder)
 	 both return a type little endian (at least on Intel platforms).
 	 Anyway, for a 8-bit type that should not matter.
 	 */
-      if (strcmp(byteorder, "little") == 0)
+      if (rbyteorder == '<')
 	type_id = H5Tcopy(H5T_STD_B8LE);
       else
 	type_id = H5Tcopy(H5T_STD_B8BE);
       H5Tset_precision(type_id, 1);
       break;
     case NPY_INT8:
-      if (strcmp(byteorder, "little") == 0)
+      if (rbyteorder == '<')
 	type_id = H5Tcopy(H5T_STD_I8LE);
       else
 	type_id = H5Tcopy(H5T_STD_I8BE);
       break;
     case NPY_UINT8:
-      if (strcmp(byteorder, "little") == 0)
+      if (rbyteorder == '<')
 	type_id = H5Tcopy(H5T_STD_U8LE);
       else
 	type_id = H5Tcopy(H5T_STD_U8BE);
       break;
     case NPY_INT16:
-      if (strcmp(byteorder, "little") == 0)
+      if (rbyteorder == '<')
 	type_id = H5Tcopy(H5T_STD_I16LE);
       else
 	type_id = H5Tcopy(H5T_STD_I16BE);
       break;
     case NPY_UINT16:
-      if (strcmp(byteorder, "little") == 0)
+      if (rbyteorder == '<')
 	type_id = H5Tcopy(H5T_STD_U16LE);
       else
 	type_id = H5Tcopy(H5T_STD_U16BE);
       break;
     case NPY_INT32:
-      if (strcmp(byteorder, "little") == 0)
+      if (rbyteorder == '<')
 	type_id = H5Tcopy(H5T_STD_I32LE);
       else
 	type_id = H5Tcopy(H5T_STD_I32BE);
       break;
     case NPY_UINT32:
-      if (strcmp(byteorder, "little") == 0)
+      if (rbyteorder == '<')
 	type_id = H5Tcopy(H5T_STD_U32LE);
       else
 	type_id = H5Tcopy(H5T_STD_U32BE);
       break;
     case NPY_INT64:
-      if (strcmp(byteorder, "little") == 0)
+      if (rbyteorder == '<')
 	type_id = H5Tcopy(H5T_STD_I64LE);
       else
 	type_id = H5Tcopy(H5T_STD_I64BE);
       break;
     case NPY_UINT64:
-      if (strcmp(byteorder, "little") == 0)
+      if (rbyteorder == '<')
 	type_id = H5Tcopy(H5T_STD_U64LE);
       else
 	type_id = H5Tcopy(H5T_STD_U64BE);
       break;
     case NPY_FLOAT32:
-      if (strcmp(byteorder, "little") == 0)
+      if (rbyteorder == '<')
 	type_id = H5Tcopy(H5T_IEEE_F32LE);
       else
 	type_id = H5Tcopy(H5T_IEEE_F32BE);
       break;
     case NPY_FLOAT64:
-      if (strcmp(byteorder, "little") == 0)
+      if (rbyteorder == '<')
 	type_id = H5Tcopy(H5T_IEEE_F64LE);
       else
 	type_id = H5Tcopy(H5T_IEEE_F64BE);
@@ -99,7 +109,7 @@ hid_t convArrayType(int fmt, size_t size, char *byteorder)
       break;
     default:
 #ifdef DEBUG
-      printf("Error: bad int code <%d> for array format\n", fmt);
+      printf("Error: bad int code <%d> for array format\n", nptype);
 #endif /* DEBUG */
       return -1;
    }
@@ -113,7 +123,7 @@ hid_t convArrayType(int fmt, size_t size, char *byteorder)
 
 /* Routine to map the atomic type to a numpy typecode
  */
-size_t getArrayType(hid_t type_id, int *fmt)
+size_t getArrayType(hid_t type_id, int *nptype)
 {
   H5T_class_t class_id;
   size_t type_size;
@@ -131,33 +141,33 @@ size_t getArrayType(hid_t type_id, int *fmt)
 
   switch(class_id) {
   case H5T_BITFIELD:
-    *fmt = NPY_BOOL;              /* boolean */
+    *nptype = NPY_BOOL;              /* boolean */
     break;
   case H5T_INTEGER:           /* int (bool, byte, short, long, long long) */
     switch (type_size) {
     case 1:                        /* byte */
       if ( sign )
-	*fmt = NPY_INT8;                /* signed byte */
+	*nptype = NPY_INT8;                /* signed byte */
       else
-	*fmt = NPY_UINT8;             /* unsigned byte */
+	*nptype = NPY_UINT8;             /* unsigned byte */
       break;
     case 2:                        /* short */
       if ( sign )
-	 *fmt = NPY_INT16;                /* signed short */
+	 *nptype = NPY_INT16;                /* signed short */
       else
-	*fmt = NPY_UINT16;                /* unsigned short */
+	*nptype = NPY_UINT16;                /* unsigned short */
       break;
     case 4:                        /* long */
       if ( sign )
-	*fmt = NPY_INT32;                /* signed long */
+	*nptype = NPY_INT32;                /* signed long */
       else
-	*fmt = NPY_UINT32;                /* unsigned long */
+	*nptype = NPY_UINT32;                /* unsigned long */
       break;
     case 8:                        /* long long */
       if ( sign )
-	*fmt = NPY_INT64;                /* signed long long */
+	*nptype = NPY_INT64;                /* signed long long */
       else
-	*fmt = NPY_UINT64;                /* unsigned long long */
+	*nptype = NPY_UINT64;                /* unsigned long long */
       break;
     default:
       /* This should never happen */
@@ -167,10 +177,10 @@ size_t getArrayType(hid_t type_id, int *fmt)
   case H5T_FLOAT:                   /* float (single or double) */
     switch (type_size) {
     case 4:
-	*fmt = NPY_FLOAT32;                 /* float */
+	*nptype = NPY_FLOAT32;                 /* float */
 	break;
     case 8:
-	*fmt = NPY_FLOAT64;                 /* double */
+	*nptype = NPY_FLOAT64;                 /* double */
 	break;
     default:
       /* This should never happen */
@@ -181,10 +191,10 @@ size_t getArrayType(hid_t type_id, int *fmt)
     if (is_complex(type_id)) {
       switch (get_complex_precision(type_id)) {
       case 32:
-	*fmt = NPY_COMPLEX64;               /* float complex */
+	*nptype = NPY_COMPLEX64;               /* float complex */
 	break;
       case 64:
-	*fmt = NPY_COMPLEX128;               /* double complex */
+	*nptype = NPY_COMPLEX128;               /* double complex */
 	break;
       default:
 	/* This should never happen */
@@ -196,15 +206,15 @@ size_t getArrayType(hid_t type_id, int *fmt)
     }
     break; /* case H5T_COMPOUND */
   case H5T_STRING:                  /* char or string */
-      *fmt = NPY_STRING;                   /* chararray */
+      *nptype = NPY_STRING;
     break; /* case H5T_STRING */
   case H5T_TIME:                    /* time (integer or double) */
     switch (type_size) {
     case 4:
-	*fmt = (int)'t';            /* integer */
+	*nptype = (int)'t';            /* integer */
 	break;
     case 8:
-	*fmt = (int)'T';            /* double */
+	*nptype = (int)'T';            /* double */
 	break;
     default:
       /* This should never happen */
@@ -212,7 +222,7 @@ size_t getArrayType(hid_t type_id, int *fmt)
     }
     break; /* case H5T_TIME */
   case H5T_ENUM:                    /* enumerated type */
-    *fmt = (int)('e');              /* will get type from enum description */
+    *nptype = (int)('e');           /* will get type from enum description */
     break; /* case H5T_ENUM */
   default: /* Any other class type */
     /* This should never happen with Numeric arrays */
@@ -232,7 +242,7 @@ size_t getArrayType(hid_t type_id, int *fmt)
 int main(int args, char *argv[])
 {
    char *byteorder;
-   int fmt;
+   int nptype;
    size_t size;
 
    printf("args # --> %d\n", args);
@@ -240,11 +250,11 @@ int main(int args, char *argv[])
    printf("arg 1 --> %s\n", argv[1]);
    printf("arg 2 --> %s\n", argv[2]);
 
-   fmt = atoi(argv[1]);
+   nptype = atoi(argv[1]);
    size = atoi(argv[2]);
    byteorder = "little";
-   printf("The array format is %c\n", fmt);
+   printf("The array format is %c\n", nptype);
    printf("The correspondent HDF5 variable is %d \n",
-	  convArrayType(fmt, size, byteorder));
+	  convArrayType(nptype, size, byteorder));
 }
 #endif /* MAIN */

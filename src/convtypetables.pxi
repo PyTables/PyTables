@@ -25,6 +25,8 @@ from definitions cimport \
      H5T_BITFIELD, H5T_OPAQUE, H5T_COMPOUND, H5T_REFERENCE, \
      H5T_ENUM, H5T_VLEN, H5T_ARRAY
 
+byteorders = {"<":"little", ">":"big", "|":"non-relevant"}
+
 # Platform-dependent types
 if sys.byteorder == "little":
 
@@ -47,6 +49,8 @@ if sys.byteorder == "little":
   H5T_IEEE_F32 = H5T_IEEE_F32LE
   H5T_IEEE_F64 = H5T_IEEE_F64LE
 
+  byteorders["="] = "little"
+
 else:  # sys.byteorder == "big"
 
   from definitions cimport \
@@ -68,27 +72,14 @@ else:  # sys.byteorder == "big"
   H5T_IEEE_F32 = H5T_IEEE_F32BE
   H5T_IEEE_F64 = H5T_IEEE_F64BE
 
+  byteorders["="] = "big"
+
 
 #----------------------------------------------------------------------------
 
-
-# Conversion from NumPy codes to native HDF5 types (for attributes)
-NPCodeToHDF5 = {
-  NPY_INT8      : H5T_STD_I8,
-  NPY_INT16     : H5T_STD_I16,
-  NPY_INT32     : H5T_STD_I32,
-  NPY_INT64     : H5T_STD_I64,
-  NPY_UINT8     : H5T_STD_U8,
-  NPY_UINT16    : H5T_STD_U16,
-  NPY_UINT32    : H5T_STD_U32,
-  NPY_UINT64    : H5T_STD_U64,
-  NPY_FLOAT32   : H5T_IEEE_F32,
-  NPY_FLOAT64   : H5T_IEEE_F64,
-  }
-
-
 # Conversion from PyTables string types to HDF5 native types
 # List only types that are susceptible of changing byteorder
+# (complex & enumerated types are special and should not be listed here)
 PTTypeToHDF5 = {
   'Int8'   : H5T_STD_I8,   'UInt8'  : H5T_STD_U8,
   'Int16'  : H5T_STD_I16,  'UInt16' : H5T_STD_U16,

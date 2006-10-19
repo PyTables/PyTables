@@ -674,13 +674,14 @@ herr_t get_order(hid_t type_id, char *byteorder) {
    these types should already been created with correct byteorder */
 herr_t set_order(hid_t type_id, const char *byteorder) {
   herr_t status=0;
+
   if (! is_complex(type_id)) {
     if (strcmp(byteorder, "little") == 0)
       status = H5Tset_order(type_id, H5T_ORDER_LE);
     else if (strcmp(byteorder, "big") == 0)
       status = H5Tset_order(type_id, H5T_ORDER_BE );
     else if (strcmp(byteorder, "non-relevant") == 0) {
-      /* Do nothing because non-relevant doesn't require setting the
+      /* Do nothing because 'non-relevant' doesn't require setting the
          byteorder explicitely */
 /*       status = H5Tset_order(type_id, H5T_ORDER_NONE ); */
     }

@@ -340,6 +340,7 @@ class IndexProps(object):
         elif isinstance(filters, Filters):
             self.filters = filters
         else:
+            #print "filters-->", filters
             raise TypeError, \
 "If you pass a filters parameter, it should be a Filters instance."
 
