@@ -375,6 +375,11 @@ def convertNPToNumeric(arr):
             shape.append(arr.itemsize)
         arr = Numeric.reshape(Numeric.array(arrstr), shape)
     else:
+        if not arr.flags.writeable or not arr.flags.aligned:
+            # These cases are not handled by the array protocol
+            # (at least in the current implementation)
+            # A copy will correct this
+            arr = arr.copy()
         # Try to convert to Numeric and catch possible errors
         try:
             arr = Numeric.asarray(arr)  # Array protocol
@@ -404,8 +409,13 @@ def convertNPToNumArray(arr):
             buffer_ = arr
         arr = numarray.strings.array(buffer=buffer_)
     else:
+        if not arr.flags.writeable or not arr.flags.aligned:
+            # These cases are not handled by the array protocol
+            # (at least in the current implementation)
+            # A copy will correct this
+            arr = arr.copy()
         # This works for regular homogeneous arrays and even for rank-0 arrays
-        arr = numpy.asarray(arr)  # Array protocol
+        arr = numarray.asarray(arr)  # Array protocol
     return arr
 
 
