@@ -974,12 +974,14 @@ cdef class Array(Leaf):
         self.extdim = i
         break
 
-    flavor = "numpy"   # Default value
+    # Give class visibility to flavor
+    self.flavor = numpy.string_("numpy")   # Default value
     if self._v_file._isPTFile:
-      H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor)
-    self.flavor = numpy.string_(flavor)  # Gives class visibility to flavor
-    # Important to release flavor, because it has been malloc'ed!
-    if flavor: free(<void *>flavor)
+      flavor = NULL
+      if H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor) == 0:
+        self.flavor = numpy.string_(flavor)
+      # Important to release flavor, because it has been malloc'ed!
+      if flavor: free(<void *>flavor)
 
     # Allocate space for the dimension chunking info
     self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
@@ -1312,13 +1314,18 @@ cdef class VLArray(Leaf):
     # Get info on dimensions, class and type (of base class)
     H5VLARRAYget_info(self.dataset_id, self.type_id, &nrecords,
                       self.dims, &self.base_type_id, byteorder)
-    flavor = "numpy"  # Default value
+
+    # Give class visibility to flavor
+    self.flavor = numpy.string_("numpy")   # Default value
     if self._v_file._isPTFile:
-      H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor)
-    self.flavor = numpy.string_(flavor)  # Gives class visibility to flavor
-    # Important to release flavor, because it has been malloc'ed!
-    if flavor: free(<void *>flavor)
-    self.byteorder = byteorder  # Gives class visibility to byteorder
+      flavor = NULL
+      if H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor) == 0:
+        self.flavor = numpy.string_(flavor)
+      # Important to release flavor, because it has been malloc'ed!
+      if flavor: free(<void *>flavor)
+
+    # Give class visibility to byteorder
+    self.byteorder = byteorder
 
     # Get the array type & size
     self._basesize = getArrayType(self.base_type_id, &enumtype)
