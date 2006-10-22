@@ -61,7 +61,7 @@ from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import \
      IsDescription, Description, Col, StringCol, EnumCol
-from tables.Atom import Atom, StringAtom
+from tables.Atom import Atom, StringAtom, EnumAtom
 from tables.Group import IndexesTableG, IndexesDescG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, \
@@ -2839,6 +2839,9 @@ class Column(object):
         if atomtype == "String":
             itemsize = descr._v_dtype[name].base.itemsize
             atom = StringAtom(shape=(0,), length=itemsize)
+        elif atomtype == "Enum":
+            enum = table.getEnum(self.pathname)
+            atom = EnumAtom(enum, self.dtype, shape=(0,))
         else:
             atom = Atom(dtype=atomtype, shape=(0,))
 

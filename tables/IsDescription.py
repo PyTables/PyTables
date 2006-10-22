@@ -655,8 +655,6 @@ sorry, only numeric concrete values are supported for the moment""")
 
 
     def _setType(self, type_, shape):
-        type_ = numpy.sctypeNA[type_]
-
         # Check integer type of representation.
         if not numpy.dtype(type_).kind in ['i', 'u']:
             raise NotImplementedError("""\
