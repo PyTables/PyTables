@@ -46,7 +46,7 @@ class TestTDescr(t.IsDescription):
     """A description that has several nested columns."""
 
     x = t.Int32Col(0, shape=2, pos=0) #0
-    y = t.FloatCol(1, shape=(2,2))
+    y = t.Float64Col(1, shape=(2,2))
     z = t.UInt8Col(1)
     color = t.StringCol(2, " ", pos=2)
     info = Info()
@@ -54,7 +54,7 @@ class TestTDescr(t.IsDescription):
         _v_pos = 1
         name = t.StringCol(length=2)
         value = t.Complex64Col(pos=0) #0
-        y2 = t.FloatCol(1, pos=1) #1
+        y2 = t.Float64Col(1, pos=1) #1
         z2 = t.UInt8Col(1)
         class Info2(t.IsDescription):
             y3 = t.Time64Col(1, shape=2)
@@ -637,7 +637,6 @@ class WriteReopen(WriteTestCase):
     reopen = 1
 
 
-# Checking the Table.Cols accessor
 class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     _TestTDescr = TestTDescr
@@ -645,6 +644,91 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
     _testAData = testAData
     _testNestedCol = testNestedCol
 
+
+    def test00a_repr(self):
+        """Checking representation of a nested Table"""
+
+        self._verboseHeader()
+        tbl = self.h5file.createTable(
+            '/', 'test', self._TestTDescr, title="test00")
+        tbl.append(self._testAData)
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        if verbose:
+            print "str(tbl)-->", str(tbl)
+            print "repr(tbl)-->", repr(tbl)
+
+        self.assert_(str(tbl) == "/test (Table(2L,)) 'test00'")
+        tblrepr = repr(tbl)
+        # Remove the platform-dependent information (i.e. byteorder)
+        tblrepr = "\n".join(tblrepr.split("\n")[:-2])+"\n"
+        self.assert_(tblrepr == \
+"""/test (Table(2L,)) 'test00'
+  description := {
+  "x": Int32Col(dflt=0, shape=(2,), pos=0, indexed=False),
+  "Info": {
+    "value": Complex64Col(dflt=0j, shape=(), pos=0),
+    "y2": Float64Col(dflt=1.0, shape=(), pos=1, indexed=False),
+    "Info2": {
+      "name": StringCol(length=2, dflt='', shape=(), pos=0, indexed=False),
+      "value": Complex64Col(dflt=0j, shape=(2,), pos=1),
+      "y3": Time64Col(dflt=1.0, shape=(2,), pos=2, indexed=False),
+      "z3": EnumCol(Enum({'r': 4, 'b': 1, 'g': 2}), 'r', dtype='UInt32', shape=(2,), pos=3, indexed=False)},
+    "name": StringCol(length=2, dflt='', shape=(), pos=3, indexed=False),
+    "z2": UInt8Col(dflt=1, shape=(), pos=4, indexed=False)},
+  "color": StringCol(length=2, dflt=' ', shape=(), pos=2, indexed=False),
+  "info": {
+    "Name": StringCol(length=2, dflt='', shape=(), pos=0, indexed=False),
+    "Value": Complex64Col(dflt=0j, shape=(), pos=1)},
+  "y": Float64Col(dflt=1.0, shape=(2, 2), pos=4, indexed=False),
+  "z": UInt8Col(dflt=1, shape=(), pos=5, indexed=False)}
+""")
+
+
+    def test00b_repr(self):
+        """Checking representation of a root Column."""
+
+        self._verboseHeader()
+        tbl = self.h5file.createTable(
+            '/', 'test', self._TestTDescr, title="test00")
+        tbl.append(self._testAData)
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        if verbose:
+            print "str(tbl.cols.y)-->'%s'" % str(tbl.cols.y)
+            print "repr(tbl.cols.y)-->'%s'" % repr(tbl.cols.y)
+
+        self.assert_(str(tbl.cols.y) == \
+                     "/test.cols.y (Column(2, 2), Float64, idx=None)")
+        self.assert_(repr(tbl.cols.y) == \
+                     "/test.cols.y (Column(2, 2), Float64, idx=None)")
+
+    def test00c_repr(self):
+        """Checking representation of a nested Column."""
+
+        self._verboseHeader()
+        tbl = self.h5file.createTable(
+            '/', 'test', self._TestTDescr, title="test00")
+        tbl.append(self._testAData)
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        if verbose:
+            print "str(tbl.cols.Info.z2)-->'%s'" % str(tbl.cols.Info.z2)
+            print "repr(tbl.cols.Info.z2)-->'%s'" % repr(tbl.cols.Info.z2)
+
+        self.assert_(str(tbl.cols.Info.z2) == \
+                     "/test.cols.Info.z2 (Column(), UInt8, idx=None)")
+        self.assert_(repr(tbl.cols.Info.z2) == \
+                     "/test.cols.Info.z2 (Column(), UInt8, idx=None)")
 
     def test01_read(self):
         """Checking Table.read with subgroups with a range index with step."""
@@ -702,6 +786,57 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
     _testAData = testAData
     _testNestedCol = testNestedCol
 
+
+    def test00a_repr(self):
+        """Checking string representation of Cols."""
+
+        self._verboseHeader()
+        tbl = self.h5file.createTable(
+            '/', 'test', self._TestTDescr, title="test00")
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        if verbose:
+            print "str(tbl.cols)-->", str(tbl.cols)
+            print "repr(tbl.cols)-->", repr(tbl.cols)
+
+        self.assert_(str(tbl.cols) == "/test.cols (Cols), 6 columns")
+        self.assert_(repr(tbl.cols) == \
+"""/test.cols (Cols), 6 columns
+  x (Column(2,), ('int32',(2,)))
+  Info (Cols(), Description)
+  color (Column(), |S2)
+  info (Cols(), Description)
+  y (Column(2, 2), ('float64',(2, 2)))
+  z (Column(), uint8)
+""")
+
+    def test00b_repr(self):
+        """Checking string representation of nested Cols."""
+
+        self._verboseHeader()
+        tbl = self.h5file.createTable(
+            '/', 'test', self._TestTDescr, title=self._getMethodName())
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        if verbose:
+            print "str(tbl.cols.Info)-->", str(tbl.cols.Info)
+            print "repr(tbl.cols.Info)-->", repr(tbl.cols.Info)
+
+        self.assert_(str(tbl.cols.Info) == "/test.cols.Info (Cols), 5 columns")
+        self.assert_(repr(tbl.cols.Info) == \
+"""/test.cols.Info (Cols), 5 columns
+  value (Column(), complex128)
+  y2 (Column(), float64)
+  Info2 (Cols(), Description)
+  name (Column(), |S2)
+  z2 (Column(), uint8)
+""")
 
     def test01a_f_col(self):
         """Checking cols._f_col() with a subgroup."""

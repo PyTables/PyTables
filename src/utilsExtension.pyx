@@ -26,7 +26,8 @@ import numpy
 
 from tables.exceptions import HDF5ExtError
 from tables.enum import Enum
-from tables.IsDescription import Description, Col, StringCol, EnumCol, TimeCol
+from tables.IsDescription import Description, StringCol, EnumCol, \
+     Time32Col, Time64Col
 
 from tables.utils import checkFileAccess
 
@@ -98,6 +99,8 @@ cdef extern from "typeconv.h":
 # The NumPy API requires this function to be called before
 # using any NumPy facilities in an extension module.
 import_array()
+
+isdescr_mod = __import__("tables.IsDescription")
 
 if sys.platform == "win32":
   # We need a different approach in Windows, because it compains when
@@ -759,7 +762,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   cdef H5T_class_t  klass
   cdef char    byteorder[16], byteorder2[16]  # "non-relevant" fits easily here
   cdef herr_t  ret
-  cdef object  sysbyteorder, desc, colobj, colpath2
+  cdef object  sysbyteorder, desc, colobj, colpath2, typeclassname, typeclass
 
   sysbyteorder = sys.byteorder  # a workaround against temporary Pyrex error
   strcpy(byteorder, sysbyteorder)  # default byteorder
@@ -816,10 +819,21 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
           colobj = EnumCol(enum, dflt, dtype = nptype, shape = colshape,
                            pos = i)
         elif colstype[0] == 't':
-          tsize = int(colstype[1:])
-          colobj = TimeCol(itemsize = tsize, shape = colshape, pos = i)
+          #tsize = int(colstype[1:])
+          #colobj = TimeCol(itemsize = tsize, shape = colshape, pos = i)
+          # Make the columns descend from a more specific classes
+          # (this is better for representation -- repr() -- purposes)
+          if colstype == 't4':
+            colobj = Time32Col(shape = colshape, pos = i)
+          else:  # has to be 't8'
+            colobj = Time64Col(shape = colshape, pos = i)
         else:
-          colobj = Col(dtype = colstype, shape = colshape, pos = i)
+          #colobj = Col(dtype = colstype, shape = colshape, pos = i)
+          # Make the columns descend from a more specific classes
+          # (this is better for representation -- repr() -- purposes)
+          typeclassname = numpy.sctypeNA[numpy.sctypeDict[colstype]] + "Col"
+          typeclass = getattr(isdescr_mod, typeclassname)
+          colobj = typeclass(shape = colshape, pos = i)
         desc[colname] = colobj
         # If *any* column has a different byteorder than sys, it is
         # changed here. This should be further refined for columns

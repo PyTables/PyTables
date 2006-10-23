@@ -342,7 +342,7 @@ class Table(TableExtension.Table, Leaf):
         """A record array to be stored in the table."""
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the table."""
-        self.nrows = 0
+        self.nrows = 0L
         """Current number of rows in the table."""
         self._unsaved_nrows = 0
         """Number of rows in buffers but still not in disk."""
@@ -599,7 +599,7 @@ class Table(TableExtension.Table, Leaf):
             # between fields
             recarr = recarr.copy()
         # Initialize the number of rows
-        self.nrows = recarr.size
+        self.nrows = long(recarr.size)
         # If self._v_recarray exists, and has data, it would be marked as
         # the initial buffer
         if self.nrows > 0:
@@ -2301,10 +2301,10 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
 """%s
   description := %r
   indexprops := %r
-  byteorder := %s""" % \
+  byteorder := %s\n""" % \
         (str(self), self.description, self.indexprops, self.byteorder)
         else:
-            return "%s\n  description := %r\n  byteorder := %s" % \
+            return "%s\n  description := %r\n  byteorder := %s\n" % \
                    (str(self), self.description, self.byteorder)
 
 
@@ -2538,11 +2538,13 @@ class Cols(object):
         # The pathname
         tablepathname = self._v__tablePath
         descpathname = self._v_desc._v_pathname
+        if descpathname:
+            descpathname = "."+descpathname
         # Get this class name
         classname = self.__class__.__name__
         # The number of columns
         ncols = len(self._v_colnames)
-        return "%s.cols.%s (%s), %s columns" % \
+        return "%s.cols%s (%s), %s columns" % \
                (tablepathname, descpathname, classname, ncols)
 
 
@@ -2553,14 +2555,14 @@ class Cols(object):
         for name in self._v_colnames:
             # Get this class name
             classname = getattr(self, name).__class__.__name__
-            # The shape for this column
-            shape = self._v_desc._v_dtypes[name].shape
             # The type
             if name in self._v_desc._v_dtypes:
                 tcol = self._v_desc._v_dtypes[name]
+                # The shape for this column
+                shape = self._v_desc._v_dtypes[name].shape
             else:
                 tcol = "Description"
-            if shape == 1:
+                # Description doesn't have a shape currently
                 shape = ()
             out += "  %s (%s%s, %s)" % (name, classname, shape, tcol) + "\n"
         return out
