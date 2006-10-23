@@ -887,12 +887,13 @@ class Description(object):
             object.__dict__['_v_name'] = k
             if isinstance(object, Col):
                 dtype = object.dtype
-                recarrtype = dtype.base.str[1:]
                 newdict['_v_dtypes'][k] = dtype
                 newdict['_v_ptypes'][k] = object.ptype
                 newdict['_v_dflts'][k] = object.dflt
-                nestedFormats.append(str(dtype.shape) + recarrtype)
-                nestedDType.append((k, recarrtype, dtype.shape))
+                baserecarrtype = dtype.base.str[1:]
+                object.recarrtype = str(dtype.shape) + baserecarrtype
+                nestedFormats.append(object.recarrtype)
+                nestedDType.append((k, baserecarrtype, dtype.shape))
             else:  # A description
                 nestedFormats.append(object._v_nestedFormats)
                 nestedDType.append((k, object._v_dtype))
