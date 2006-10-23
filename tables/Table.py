@@ -2883,11 +2883,14 @@ class Column(object):
 
         """
 
-        assert 0 < level < 10
-        assert self.index, "This column is not indexed, so it can't be optimized."
+        if type(level) not in (int, long) or level < 0 or level > 9:
+            raise ValueError, "Optimization level should be in the range 0-9."
+        if not self.index:
+            warnings.warn("""\
+column '%s' is not indexed, so it can't be optimized."""
+                          % (self.pathname), UserWarning)
         if level > 0:
             self.index.optimize(level, verbose)
-        return
 
 
     def reIndex(self):
