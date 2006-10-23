@@ -60,7 +60,7 @@ from tables.utils import calcBufferSize, processRange, processRangeRead, \
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import \
-     IsDescription, Description, Col, StringCol
+     IsDescription, Description, Col, StringCol, checkIndexable
 from tables.Atom import Atom, StringAtom
 from tables.Group import IndexesTableG, IndexesDescG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning
@@ -2796,17 +2796,17 @@ class Column(object):
         table = self.table
         tableName = table._v_name
         tableParent = table._v_parent
+        dtype = self.dtype
         descr = self.descr
         index = self.index
         getNode = table._v_file._getNode
-
-        assert descr._v_dtypes[name].shape == (), \
-               "only scalar columns can be indexed"
 
         # Warn if the index already exists
         if index:
             raise ValueError, \
 "%s for column '%s' already exists. If you want to re-create it, please, try with reIndex() method better" % (str(index), str(self.pathname))
+
+        checkIndexable(dtype)
 
         # Get the indexes group for table, and if not exists, create it
         try:
@@ -2837,10 +2837,9 @@ class Column(object):
         # Create the atom
         atomtype = self.ptype
         if atomtype == "String":
-            itemsize = descr._v_dtype[name].base.itemsize
-            atom = StringAtom(shape=(0,), length=itemsize)
+            atom = StringAtom(shape=(0,), length=dtype.base.itemsize)
         elif atomtype == "Enum":
-            atom = Atom(dtype=self.dtype, shape=(0,))
+            atom = Atom(dtype=dtype, shape=(0,))
         else:
             atom = Atom(dtype=atomtype, shape=(0,))
 

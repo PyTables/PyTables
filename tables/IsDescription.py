@@ -82,6 +82,14 @@ def get_shape_itemsize_str(shape):
     return shape, itemsize
 
 
+def checkIndexable(dtype):
+    """Raise `TypeError` if the data type `dtype` is not indexable."""
+    if dtype.kind == 'c':
+        raise TypeError("complex columns can not be indexed")
+    if dtype.shape != ():
+        raise TypeError("only scalar columns can be indexed")
+
+
 
 class Col(object):
     """Defines a general column that supports all NumPy data types.
@@ -186,10 +194,8 @@ class Col(object):
 
 
     def _setIndex(self, indexed):
-        if indexed and self.dtype.type in (numpy.complex64, numpy.complex128):
-            raise TypeError("%r do not support indexation" % (self.dtype,))
-        if indexed and self.dtype.shape not in [1, ()]:
-            raise TypeError("only columns with shape 1 can be indexed")
+        if indexed:
+            checkIndexable(self.dtype)
         self.indexed = indexed
 
 
