@@ -6,9 +6,7 @@ import sys, os
 import textwrap
 from os.path import exists
 
-# Using ``setuptools`` enables lots of goodies, such as building eggs;
-# however, Numarray does not yet work with it, so regular ``distutils``
-# is used unless the user really knows what (s)he's doing.
+# Using ``setuptools`` enables lots of goodies, such as building eggs.
 if 'FORCE_SETUPTOOLS' in os.environ:
     from setuptools import setup, find_packages
     has_setuptools = True
@@ -62,7 +60,6 @@ def check_import(pkgname, pkgver):
             % {'pkgname': pkgname, 'pkgver': mod.__version__} )
     globals()[pkgname] = mod
 
-check_import('numarray', '1.5')
 check_import('numpy', '1.0')
 
 # Check if Pyrex is installed or not
@@ -401,14 +398,14 @@ if has_setuptools:
     # PyTables contains no data files whatsoever.
     setuptools_kwargs['zip_safe'] = True
 
-    # ``numarray`` headers are needed for building the extensions.
-    setuptools_kwargs['install_requires'] = ['numarray>=1.5']
-    # ``numarray`` is absolutely required for running PyTables.
-    setuptools_kwargs['setup_requires'] = ['numarray>=1.5']
+    # ``NumPy`` headers are needed for building the extensions.
+    setuptools_kwargs['install_requires'] = ['numpy>=1.0']
+    # ``NumPy`` is absolutely required for running PyTables.
+    setuptools_kwargs['setup_requires'] = ['numpy>=1.0']
     setuptools_kwargs['extras_require'] = {
         'Numeric': ['Numeric>=24.2'],  # for ``Numeric`` support
         'netCDF': ['ScientificPython'],  # for netCDF interchange
-        'numpy': ['numpy>=0.9.6'],  # for ``numpy`` support
+        'numarray': ['numarray>=1.5.2'],  # for ``numarray`` support
         }
 
     # Detect packages automatically.
@@ -486,7 +483,7 @@ setup(name = name,
 PyTables is a package for managing hierarchical datasets and
 designed to efficently cope with extremely large amounts of
 data. PyTables is built on top of the HDF5 library and the
-numarray package and features an object-oriented interface
+NumPy package and features an object-oriented interface
 that, combined with C-code generated from Pyrex sources,
 makes of it a fast, yet extremely easy to use tool for
 interactively save and retrieve large amounts of data.
