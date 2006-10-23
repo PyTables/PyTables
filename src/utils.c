@@ -458,17 +458,21 @@ out:
    F. Altet 2005-05-08
 */
 
+/* Replaced LONLONG_MAX by ll_max because AIX does define the former.
+   F. Altet 2006-10-23
+ */
+
 hsize_t _PyEval_SliceIndex_modif(PyObject *v, hsize_t *pi)
 {
-  PY_LONG_LONG LONGLONG_MAX;
+  PY_LONG_LONG ll_max;
 
-  /* I think it should be a more efficient way to know LONGLONG_MAX,
+  /* I think it should be a more efficient way to know ll_max,
    but this should work on every platform, be 32 or 64 bits.
    F. Altet 2005-05-08
   */
 
-/*  LONGLONG_MAX = (PY_LONG_LONG) (pow(2, 63) - 1); */ /* Works on Unix */
-  LONGLONG_MAX = (PY_LONG_LONG) (pow(2, 62) - 1); /* Safer on Windows */
+/*  ll_max = (PY_LONG_LONG) (pow(2, 63) - 1); */ /* Works on Unix */
+  ll_max = (PY_LONG_LONG) (pow(2, 62) - 1); /* Safer on Windows */
 
   if (v != NULL) {
     PY_LONG_LONG x;
@@ -483,10 +487,10 @@ hsize_t _PyEval_SliceIndex_modif(PyObject *v, hsize_t *pi)
       return 0;
     }
     /* Truncate -- very long indices are truncated anyway */
-    if (x > LONGLONG_MAX)
-      x = LONGLONG_MAX;
-    else if (x < -LONGLONG_MAX)
-      x = -LONGLONG_MAX;
+    if (x > ll_max)
+      x = ll_max;
+    else if (x < -ll_max)
+      x = -ll_max;
     *pi = x;
   }
   return 1;
