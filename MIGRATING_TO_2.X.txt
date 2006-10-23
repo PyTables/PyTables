@@ -1,0 +1,11 @@
+[La llista de sota s'ha d'anar completant i després reorganitzant...]
+
+Things to have in mind when migrating from PyTables 1.x to PyTables
+2.x series:
+
+- Leaf.type --> Leaf.dtype
+- Leaf.stype --> Leaf.ptype
+- "CharType" --> "String"
+- Table.coltypes --> Table.coldtypes
+- Table.colshapes & Table.colitemsizes have disappeared
+- Description.itemsize have disappeared

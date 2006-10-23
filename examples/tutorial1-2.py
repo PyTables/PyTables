@@ -128,7 +128,8 @@ print "Table title:", table.title
 print "Number of rows in table:", table.nrows
 print "Table variable names with their type and shape:"
 for name in table.colnames:
-    print name, ':= %s, %s' % (table.coltypes[name], table.colshapes[name])
+    print name, ':= %s, %s' % (table.coldtypes[name],
+                               table.coldtypes[name].shape)
 print
 
 # Get the object in "/columns pressure"

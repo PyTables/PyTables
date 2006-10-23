@@ -30,40 +30,40 @@ fileh.createArray('/agroup', 'otherarray5', [7,8], 'Another array 5')
 
 # Now go to mark 'first'
 fileh.goto('first')
-assert '/otherarray1' in fileh.objects
-assert '/agroup' in fileh.objects
-assert '/agroup/agroup2' not in fileh.objects
-assert '/agroup/otherarray2' not in fileh.objects
-assert '/agroup/agroup2/otherarray3' not in fileh.objects
-assert '/otherarray4' not in fileh.objects
-assert '/agroup/otherarray5' not in fileh.objects
+assert '/otherarray1' in fileh
+assert '/agroup' in fileh
+assert '/agroup/agroup2' not in fileh
+assert '/agroup/otherarray2' not in fileh
+assert '/agroup/agroup2/otherarray3' not in fileh
+assert '/otherarray4' not in fileh
+assert '/agroup/otherarray5' not in fileh
 # Go to mark 'third'
 fileh.goto('third')
-assert '/otherarray1' in fileh.objects
-assert '/agroup' in fileh.objects
-assert '/agroup/agroup2' in fileh.objects
-assert '/agroup/otherarray2' in fileh.objects
-assert '/agroup/agroup2/otherarray3' in fileh.objects
-assert '/otherarray4' not in fileh.objects
-assert '/agroup/otherarray5' not in fileh.objects
+assert '/otherarray1' in fileh
+assert '/agroup' in fileh
+assert '/agroup/agroup2' in fileh
+assert '/agroup/otherarray2' in fileh
+assert '/agroup/agroup2/otherarray3' in fileh
+assert '/otherarray4' not in fileh
+assert '/agroup/otherarray5' not in fileh
 # Now go to mark 'second'
 fileh.goto('second')
-assert '/otherarray1' in fileh.objects
-assert '/agroup' in fileh.objects
-assert '/agroup/agroup2' in fileh.objects
-assert '/agroup/otherarray2' in fileh.objects
-assert '/agroup/agroup2/otherarray3' not in fileh.objects
-assert '/otherarray4' not in fileh.objects
-assert '/agroup/otherarray5' not in fileh.objects
+assert '/otherarray1' in fileh
+assert '/agroup' in fileh
+assert '/agroup/agroup2' in fileh
+assert '/agroup/otherarray2' in fileh
+assert '/agroup/agroup2/otherarray3' not in fileh
+assert '/otherarray4' not in fileh
+assert '/agroup/otherarray5' not in fileh
 # Go to the end
 fileh.goto(-1)
-assert '/otherarray1' in fileh.objects
-assert '/agroup' in fileh.objects
-assert '/agroup/agroup2' in fileh.objects
-assert '/agroup/otherarray2' in fileh.objects
-assert '/agroup/agroup2/otherarray3' in fileh.objects
-assert '/otherarray4' in fileh.objects
-assert '/agroup/otherarray5' in fileh.objects
+assert '/otherarray1' in fileh
+assert '/agroup' in fileh
+assert '/agroup/agroup2' in fileh
+assert '/agroup/otherarray2' in fileh
+assert '/agroup/agroup2/otherarray3' in fileh
+assert '/otherarray4' in fileh
+assert '/agroup/otherarray5' in fileh
 # Check that objects have come back to life in a sane state
 assert fileh.root.otherarray1.read() == [3,4]
 assert fileh.root.agroup.otherarray2.read() == [4,5]

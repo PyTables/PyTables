@@ -692,14 +692,6 @@ def tonumpy(array, copy=False):
     npa = numpy.ndarray(buffer=buffer._data, dtype=array.array_descr,
                         shape=buffer.shape)
 
-    # Create a numpy recarray from the above object. I take this additional
-    # step just to wrap the original numpy object with more features.
-    # I think that when the parameter is already a numpy object there is
-    # not a copy taken place. However, this may change in the future.
-    # F. Altet 2006-01-20
-    # I think this will take more time and this is not strictly necessary.
-    # F. Altet 2006-06-19
-    #npr = numpy.rec.array(npa)
 
     return npa
 

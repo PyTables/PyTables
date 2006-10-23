@@ -1,8 +1,7 @@
 import sys
 
 import Numeric
-from numarray import *
-from numarray import records
+import numpy
 from tables import *
 
 class Particle(IsDescription):
@@ -23,7 +22,7 @@ Particle2 = {
     "grid_i"      : Col("Int32", 1, 0),    # integer
     "grid_j"      : Col("Int32", 1, 0),    # integer
     "idnumber"    : Col("Int64", 1, 0),    # signed long long
-    "name"        : Col("CharType", 16, ""),  # 16-character String
+    "name"        : Col("String", 16, ""),  # 16-character String
     "pressure"    : Col("Float32", 2, 0),  # float  (single-precision)
     "temperature" : Col("Float64", 1, 0),  # double (double-precision)
 }
@@ -69,7 +68,7 @@ table.flush()
 # Get actual data from table. We are interested in column pressure.
 pressure = [ p['pressure'] for p in table.iterrows() ]
 print "Last record ==>", p
-print "Column pressure ==>", array(pressure)
+print "Column pressure ==>", numpy.array(pressure)
 print "Total records in table ==> ", len(pressure)
 print
 
@@ -79,13 +78,13 @@ print "columns ==>", gcolumns, pressure
 # Create a Numeric array with this info under '/columns'
 h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure),
                    "Pressure column")
-print "gcolumns.pressure type ==> ", gcolumns.pressure.type
+print "gcolumns.pressure type ==> ", gcolumns.pressure.dtype
 
 # Do the same with TDCcount, but with a numarray object
 TDC = [ p['TDCcount'] for p in table.iterrows() ]
 print "TDC ==>", TDC
-print "TDC shape ==>", array(TDC).shape
-h5file.createArray('/columns', 'TDC', array(TDC), "TDCcount column")
+print "TDC shape ==>", numpy.array(TDC).shape
+h5file.createArray('/columns', 'TDC', numpy.array(TDC), "TDCcount column")
 
 # Do the same with name column
 names = [ p['name'] for p in table.iterrows() ]
@@ -93,20 +92,17 @@ print "names ==>", names
 h5file.createArray('/columns', 'name', names, "Name column")
 # This works even with homogeneous tuples or lists (!)
 print "gcolumns.name shape ==>", gcolumns.name.shape
-print "gcolumns.name type ==> ", gcolumns.name.type
+print "gcolumns.name type ==> ", gcolumns.name.dtype
 
 print "Table dump:"
 for p in table.iterrows():
     print p
 
 # Save a recarray object under detector
-r=records.array("a"*300,'f4,3i4,a5,i2',3)
+r = numpy.rec.array("a"*300, formats='f4,3i4,a5,i2', shape=3)
 recarrt = h5file.createTable("/detector", 'recarray', r, "RecArray example")
 r2 = r[0:3:2]
 # Change the byteorder property
-# The next gives an error with numarray 0.6
-#r2.togglebyteorder()
-r2._byteorder = {"little":"big","big":"little"}[r2._byteorder]
 recarrt = h5file.createTable("/detector", 'recarray2', r2,
                              "Non-contiguous recarray")
 print recarrt
@@ -179,7 +175,7 @@ print "Rows saved on table: %d" % (table.nrows)
 
 print "Variable names on table with their type:"
 for name in table.colnames:
-    print "  ", name, ':=', table.coltypes[name]
+    print "  ", name, ':=', table.coldtypes[name]
 print
 
 # Read arrays in /columns/names and /columns/pressure
@@ -191,7 +187,7 @@ pressureObject = h5file.getNode("/columns", "pressure")
 print "Info on the object:", pressureObject
 print "  shape ==>", pressureObject.shape
 print "  title ==>", pressureObject.title
-print "  type ==> ", pressureObject.type
+print "  type ==> ", pressureObject.dtype
 print "  byteorder ==> ", pressureObject.byteorder
 
 # Read the pressure actual data
@@ -207,7 +203,7 @@ nameObject = h5file.root.columns.name
 print "Info on the object:", nameObject
 print "  shape ==>", nameObject.shape
 print "  title ==>", nameObject.title
-print "  type ==> " % nameObject.type
+print "  type ==> " % nameObject.dtype
 
 
 # Read the 'name' actual data
@@ -271,15 +267,15 @@ table = h5file.root.detector.recarray2
 print "recarray2:", table
 print "  nrows:", table.nrows
 print "  byteorder:", table.byteorder
-print "  coltypes:", table.coltypes
+print "  coldtypes:", table.coldtypes
 print "  colnames:", table.colnames
 
 print table.read()
 for p in table.iterrows():
-    print p['c1'], '-->', p['c2']
+    print p['f1'], '-->', p['f2']
 print
 
-result = [ rec['c1'] for rec in table if rec.nrow < 2 ]
+result = [ rec['f1'] for rec in table if rec.nrow < 2 ]
 print result
 
 # Test the File.renameNode() method

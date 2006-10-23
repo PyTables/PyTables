@@ -58,7 +58,7 @@ print "Rows saved on table: %d" % (table.nrows)
 
 print "Variable names on table with their type:"
 for name in table.colnames:
-    print "  ", name, ':=', table.coltypes[name]
+    print "  ", name, ':=', table.coldtypes[name]
 
 print "Table contents:"
 for row in table:

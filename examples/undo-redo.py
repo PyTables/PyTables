@@ -38,52 +38,52 @@ def demo_6times3marks():
     fileh.createArray('/', 'otherarray6', [8,9], "Another array 6")
     # Unwind just one mark
     fileh.undo()
-    assert "/otherarray1" in fileh.objects
-    assert "/otherarray2" in fileh.objects
-    assert "/otherarray3" in fileh.objects
-    assert "/otherarray4" in fileh.objects
-    assert "/otherarray5" not in fileh.objects
-    assert "/otherarray6" not in fileh.objects
+    assert "/otherarray1" in fileh
+    assert "/otherarray2" in fileh
+    assert "/otherarray3" in fileh
+    assert "/otherarray4" in fileh
+    assert "/otherarray5" not in fileh
+    assert "/otherarray6" not in fileh
     # Unwind another mark
     fileh.undo()
-    assert "/otherarray1" in fileh.objects
-    assert "/otherarray2" in fileh.objects
-    assert "/otherarray3" not in fileh.objects
-    assert "/otherarray4" not in fileh.objects
-    assert "/otherarray5" not in fileh.objects
-    assert "/otherarray6" not in fileh.objects
+    assert "/otherarray1" in fileh
+    assert "/otherarray2" in fileh
+    assert "/otherarray3" not in fileh
+    assert "/otherarray4" not in fileh
+    assert "/otherarray5" not in fileh
+    assert "/otherarray6" not in fileh
     # Unwind all marks
     fileh.undo()
-    assert "/otherarray1" not in fileh.objects
-    assert "/otherarray2" not in fileh.objects
-    assert "/otherarray3" not in fileh.objects
-    assert "/otherarray4" not in fileh.objects
-    assert "/otherarray5" not in fileh.objects
-    assert "/otherarray6" not in fileh.objects
+    assert "/otherarray1" not in fileh
+    assert "/otherarray2" not in fileh
+    assert "/otherarray3" not in fileh
+    assert "/otherarray4" not in fileh
+    assert "/otherarray5" not in fileh
+    assert "/otherarray6" not in fileh
     # Redo until the next mark
     fileh.redo()
-    assert "/otherarray1" in fileh.objects
-    assert "/otherarray2" in fileh.objects
-    assert "/otherarray3" not in fileh.objects
-    assert "/otherarray4" not in fileh.objects
-    assert "/otherarray5" not in fileh.objects
-    assert "/otherarray6" not in fileh.objects
+    assert "/otherarray1" in fileh
+    assert "/otherarray2" in fileh
+    assert "/otherarray3" not in fileh
+    assert "/otherarray4" not in fileh
+    assert "/otherarray5" not in fileh
+    assert "/otherarray6" not in fileh
     # Redo until the next mark
     fileh.redo()
-    assert "/otherarray1" in fileh.objects
-    assert "/otherarray2" in fileh.objects
-    assert "/otherarray3" in fileh.objects
-    assert "/otherarray4" in fileh.objects
-    assert "/otherarray5" not in fileh.objects
-    assert "/otherarray6" not in fileh.objects
+    assert "/otherarray1" in fileh
+    assert "/otherarray2" in fileh
+    assert "/otherarray3" in fileh
+    assert "/otherarray4" in fileh
+    assert "/otherarray5" not in fileh
+    assert "/otherarray6" not in fileh
     # Redo until the end
     fileh.redo()
-    assert "/otherarray1" in fileh.objects
-    assert "/otherarray2" in fileh.objects
-    assert "/otherarray3" in fileh.objects
-    assert "/otherarray4" in fileh.objects
-    assert "/otherarray5" in fileh.objects
-    assert "/otherarray6" in fileh.objects
+    assert "/otherarray1" in fileh
+    assert "/otherarray2" in fileh
+    assert "/otherarray3" in fileh
+    assert "/otherarray4" in fileh
+    assert "/otherarray5" in fileh
+    assert "/otherarray6" in fileh
 
     # Tear down the file
     tearDown(fileh)
@@ -111,23 +111,23 @@ def demo_manyops():
     fileh.removeNode('/anarray4')
     # Undo the actions
     fileh.undo()
-    assert '/anarray4' not in fileh.objects
-    assert '/anarray3' not in fileh.objects
-    assert '/agroup/agroup2/anarray3' not in fileh.objects
-    assert '/agroup3' not in fileh.objects
-    assert '/anarray4' not in fileh.objects
-    assert '/anarray' in fileh.objects
+    assert '/anarray4' not in fileh
+    assert '/anarray3' not in fileh
+    assert '/agroup/agroup2/anarray3' not in fileh
+    assert '/agroup3' not in fileh
+    assert '/anarray4' not in fileh
+    assert '/anarray' in fileh
 
     # Redo the actions
     fileh.redo()
     # Check that the copied node exists again in the object tree.
-    assert '/agroup/agroup2/anarray3' in fileh.objects
-    assert '/agroup/anarray3' in fileh.objects
-    assert '/agroup3/agroup2/anarray3' in fileh.objects
-    assert '/agroup3/anarray3' not in fileh.objects
+    assert '/agroup/agroup2/anarray3' in fileh
+    assert '/agroup/anarray3' in fileh
+    assert '/agroup3/agroup2/anarray3' in fileh
+    assert '/agroup3/anarray3' not in fileh
     assert fileh.root.agroup.anarray3 is newNode
-    assert '/anarray' not in fileh.objects
-    assert '/anarray4' not in fileh.objects
+    assert '/anarray' not in fileh
+    assert '/anarray4' not in fileh
 
     # Tear down the file
     tearDown(fileh)

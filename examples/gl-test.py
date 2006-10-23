@@ -4,15 +4,12 @@ import sys
 
 # import all public PyTables stuff
 from tables import *
-# numarray is here, so why don't work with it?
-import numarray
-# If you want to use CharArrays (included in numarray distribution)
-from numarray import strings
-# If you want to use RecArrays (included in numarray distribution)
-from numarray import records
+# NumPy is here, so why don't work with it?
+import numpy
+
 # If you want to use Numeric objects
 # Caveat: don't use "from Numeric import *" because its namespace may
-# collide with numarray! It's better to fully qualify objects from
+# collide with NumPy! It's better to fully qualify objects from
 # both libraries.
 import Numeric
 
@@ -42,7 +39,7 @@ print "new columns group ==>", gcolumns
 
 # Create a Numeric array with this info under '/columns'
 h5file.createArray(gcolumns, 'pressure', pressure, "Pressure column")
-print "gcolumns.pressure type ==> ", gcolumns.pressure.type
+print "gcolumns.pressure type ==> ", gcolumns.pressure.dtype
 
 # Create another array
 TDC = [1,2,3,4,5]  # 0.3 version accepts python lists if they are homogeneous
@@ -54,42 +51,35 @@ names = [ "Name: 1", "Name: 2", "Name: 3", "Name: 4", "Name: 5" ]
 h5file.createArray('/columns', 'name', names, "Name column")
 # This works even with homogeneous tuples or lists
 print "gcolumns.name shape ==>", gcolumns.name.shape
-print "gcolumns.name type ==> ", gcolumns.name.type
+print "gcolumns.name type ==> ", gcolumns.name.dtype
 
 # A few table examples that may be useful
-# Create a 2-dimensional Numarray with 5 rows
+# Create a 2-dimensional NumPy with 5 rows
 # Save a recarray object under detector. This will become a Table object.
-recs = [[1.2, [1,2,3], "Name: 1", 1],
-        [2.3, [3,4,5], "Name: 2", 2],
-        [3.4, [5,6,7], "Name: 3", 3],
-        [4.5, [7,8,9], "Name: 4", 4],
-        [5.6, [9,10,11], "Name: 5", 5]]
+recs = [(1.2, [1,2,3], "Name: 1", 1),
+        (2.3, [3,4,5], "Name: 2", 2),
+        (3.4, [5,6,7], "Name: 3", 3),
+        (4.5, [7,8,9], "Name: 4", 4),
+        (5.6, [9,10,11], "Name: 5", 5)]
 colnames= ["First","Second","Third", "Fourth"]
-r0=records.array(recs, names=colnames)
+r0 = numpy.rec.array(recs, formats="f8,3i4,a6,i4", names=colnames)
 # Another manner to create the same recarray, but using columns, follows
-# Here, you must use numarray objects only
-array2d = numarray.array([[1,2,3],
-                          [3,4,5],
-                          [5,6,7],
-                          [7,8,9],
-                          [9,10,11]], numarray.Int16)
-r1=records.array([numarray.array(pressure.tolist()),  # Numeric to numarray
-                   array2d,
-                   strings.array(names),  # Char arrays are useful
-                   numarray.array(TDC)],
-                  names=colnames)
+# Here, you must use numpy objects only
+array2d = numpy.array([[1,2,3],
+                       [3,4,5],
+                       [5,6,7],
+                       [7,8,9],
+                       [9,10,11]], numpy.int16)
+r1 = numpy.rec.array([numpy.asarray(pressure),  # Numeric to NumPy
+                      array2d,
+                      numpy.asarray(names),  # Char arrays are useful
+                      numpy.asarray(TDC)],
+                     formats = "f8,3i4,a6,i4",
+                     names=colnames)
 
 # r0 and r1 should hold the same data
 recarrt = h5file.createTable("/detector", 'recarray0', r0, "RecArray example0")
 recarrt = h5file.createTable("/detector", 'recarray1', r1, "RecArray example1")
-
-# Another example (more tricky)
-r2 = r1[::2]    # Get a subset of r1 recarray object
-# Change the byteorder property (just to check that endianess awareness works)
-r2._byteorder = {"little":"big","big":"little"}[r2._byteorder]
-recarrt = h5file.createTable("/detector", 'recarray2', r2,
-                             "Non-contiguous recarray and byteorder changed!")
-print repr(recarrt)
 
 # Close the file
 h5file.close()
@@ -170,7 +160,7 @@ pressureObject = h5file.getNode("/columns", "pressure")
 print "Info on the object:", str(pressureObject)
 print "  shape: ==>", pressureObject.shape
 print "  title: ==>", pressureObject.title
-print "  type ==> ", pressureObject.type
+print "  type ==> ", pressureObject.dtype
 print "  byteorder ==> ", pressureObject.byteorder
 
 # Read the pressure actual data
@@ -205,11 +195,6 @@ table = h5file.root.detector.recarray1
 print repr(table)
 print "  contents:", table.read()
 print
-# Finish printing a recarray with byteorder inverted
-print "Warning: The next recarray byteorder has been inverted intentionally!"
-table = h5file.root.detector.recarray2
-print repr(table)
-print "  Data:", table.read()
 
 # Close this file
 h5file.close()

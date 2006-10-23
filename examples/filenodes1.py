@@ -8,7 +8,7 @@ h5file = tables.openFile('fnode.h5', 'w')
 fnode = FileNode.newNode(h5file, where='/', name='fnode_test')
 
 
-print h5file.getNodeAttr('/fnode_test', '_type')
+print h5file.getNodeAttr('/fnode_test', 'NODE_TYPE')
 
 
 print >> fnode, "This is a test text line."
