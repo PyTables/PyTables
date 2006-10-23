@@ -97,33 +97,33 @@ testNaN = infinity - infinity
 
 # "infinity" for several types
 infinityMap = {
-    'Bool':    [0,          1],
-    'Int8':    [-2**7,      2**7-1],
-    'UInt8':   [0,          2**8-1],
-    'Int16':   [-2**15,     2**15-1],
-    'UInt16':  [0,          2**16-1],
-    'Int32':   [-2**31,     2**31-1],
-    'UInt32':  [0,          2**32-1],
-    'Int64':   [-2**63,     2**63-1],
-    'UInt64':  [0,          2**64-1],
-    'Float32': [-infinityF, infinityF],
-    'Float64': [-infinity,  infinity], }
+    'bool':    [0,          1],
+    'int8':    [-2**7,      2**7-1],
+    'uint8':   [0,          2**8-1],
+    'int16':   [-2**15,     2**15-1],
+    'uint16':  [0,          2**16-1],
+    'int32':   [-2**31,     2**31-1],
+    'uint32':  [0,          2**32-1],
+    'int64':   [-2**63,     2**63-1],
+    'uint64':  [0,          2**64-1],
+    'float32': [-infinityF, infinityF],
+    'float64': [-infinity,  infinity], }
 
 
 # Utility functions
-def infType(cptype, itemsize, sign=+1):
+def infType(dtype, itemsize, sign=+1):
     """Return a superior limit for maximum representable data type"""
     assert sign in [-1, +1]
 
-    if cptype == "String":
+    if dtype.kind == "S":
         if sign < 0:
             return "\x00"*itemsize
         else:
             return "\xff"*itemsize
     try:
-        return infinityMap[cptype][sign >= 0]
+        return infinityMap[dtype.name][sign >= 0]
     except KeyError:
-        raise TypeError, "Type %s is not supported" % type
+        raise TypeError, "Type %s is not supported" % dtype.name
 
 
 # This check does not work for Python 2.2.x or 2.3.x (!)
@@ -271,32 +271,31 @@ def IntTypeNextAfter(x, direction, itemsize):
             return int(PyNextAfter(x,x+1))+1
 
 
-def nextafter(x, direction, cptype, itemsize):
+def nextafter(x, direction, dtype, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
     assert direction in [-1, 0, +1]
-    assert cptype == "String" or type(x) in (int, long, float)
+    assert dtype.kind == "S" or type(x) in (int, long, float)
 
     if direction == 0:
         return x
 
-    if cptype == "String":
+    if dtype.kind == "S":
         return StringNextAfter(x, direction, itemsize)
 
-    npdtype = numpy.dtype(cptype)
-    if npdtype.kind in ['i', 'u']:
+    if dtype.kind in ['i', 'u']:
         return IntTypeNextAfter(x, direction, itemsize)
-    elif npdtype.name == "float32":
+    elif dtype.name == "float32":
         if direction < 0:
             return PyNextAfterF(x,x-1)
         else:
             return PyNextAfterF(x,x+1)
-    elif npdtype.name == "float64":
+    elif dtype.name == "float64":
         if direction < 0:
             return PyNextAfter(x,x-1)
         else:
             return PyNextAfter(x,x+1)
 
-    raise TypeError("data type ``%s`` is not supported" % npdtype)
+    raise TypeError("data type ``%s`` is not supported" % dtype)
 
 
 class IndexProps(object):
@@ -1184,25 +1183,25 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         assert len(ops) == len(limits)
 
         column = self.column
-        cptype = column.ptype
-        itemsize = table.coldtypes[column.pathname].base.itemsize
+        coldtype = column.dtype.base
+        itemsize = coldtype.itemsize
 
         if len(limits) == 1:
             assert ops[0] in ['lt', 'le', 'eq', 'ge', 'gt']
             limit = limits[0]
             op = ops[0]
             if op == 'lt':
-                range_ = (infType(cptype, itemsize, sign=-1),
-                          nextafter(limit, -1, cptype, itemsize))
+                range_ = (infType(coldtype, itemsize, sign=-1),
+                          nextafter(limit, -1, coldtype, itemsize))
             elif op == 'le':
-                range_ = (infType(cptype, itemsize, sign=-1),
+                range_ = (infType(coldtype, itemsize, sign=-1),
                           limit)
             elif op == 'gt':
-                range_ = (nextafter(limit, +1, cptype, itemsize),
-                          infType(cptype, itemsize, sign=+1))
+                range_ = (nextafter(limit, +1, coldtype, itemsize),
+                          infType(coldtype, itemsize, sign=+1))
             elif op == 'ge':
                 range_ = (limit,
-                          infType(cptype, itemsize, sign=+1))
+                          infType(coldtype, itemsize, sign=+1))
             elif op == 'eq':
                 range_ = (limit, limit)
 
@@ -1215,12 +1214,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 return ()
 
             if ops == ['gt', 'lt']:  # lower < col < upper
-                range_ = (nextafter(lower, +1, cptype, itemsize),
-                          nextafter(upper, -1, cptype, itemsize))
+                range_ = (nextafter(lower, +1, coldtype, itemsize),
+                          nextafter(upper, -1, coldtype, itemsize))
             elif ops == ['ge', 'lt']:  # lower <= col < upper
-                range_ = (lower, nextafter(upper, -1, cptype, itemsize))
+                range_ = (lower, nextafter(upper, -1, coldtype, itemsize))
             elif ops == ['gt', 'le']:  # lower < col <= upper
-                range_ = (nextafter(lower, +1, cptype, itemsize), upper)
+                range_ = (nextafter(lower, +1, coldtype, itemsize), upper)
             elif ops == ['ge', 'le']:  # lower <= col <= upper
                 range_ = (lower, upper)
 

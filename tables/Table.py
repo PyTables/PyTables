@@ -60,8 +60,8 @@ from tables.utils import calcBufferSize, processRange, processRangeRead, \
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import \
-     IsDescription, Description, Col, StringCol, EnumCol
-from tables.Atom import Atom, StringAtom, EnumAtom
+     IsDescription, Description, Col, StringCol
+from tables.Atom import Atom, StringAtom
 from tables.Group import IndexesTableG, IndexesDescG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, \
@@ -2840,8 +2840,7 @@ class Column(object):
             itemsize = descr._v_dtype[name].base.itemsize
             atom = StringAtom(shape=(0,), length=itemsize)
         elif atomtype == "Enum":
-            enum = table.getEnum(self.pathname)
-            atom = EnumAtom(enum, self.dtype, shape=(0,))
+            atom = Atom(dtype=self.dtype, shape=(0,))
         else:
             atom = Atom(dtype=atomtype, shape=(0,))
 
