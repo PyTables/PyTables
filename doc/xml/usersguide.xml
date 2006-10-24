@@ -701,14 +701,14 @@ fileh.close()]]></screen>
  LIBS="hdf5-1.6.5 nsl"]]></screen>
             </listitem></varlistentry>
 
-            <varlistentry><term><emphasis role="bold">Windows</emphasis></term><listitem><para>Once you have
-            installed the prerequisites,
-            <literal>setup.py</literal> needs to know
-            where the necessary library <emphasis>stub</emphasis>
-            (<literal>.lib</literal>) and
-            <emphasis>header</emphasis>
-            (<literal>.h</literal>) files are
-            installed. Set the following environment variables:</para>
+            <varlistentry><term><emphasis
+            role="bold">Windows</emphasis></term><listitem><para>Once
+            you have installed the prerequisites,
+            <literal>setup.py</literal> needs to know where the
+            necessary library <emphasis>stub</emphasis>
+            (<literal>.lib</literal>) and <emphasis>header</emphasis>
+            (<literal>.h</literal>) files are installed. Set the
+            following environment variables:</para>
 
               <variablelist><varlistentry><term><emphasis role="bold">HDF5_DIR</emphasis></term><listitem><para>Points
               to the root HDF5 directory (where the include/ and dll/
@@ -932,7 +932,7 @@ fileh.close()]]></screen>
           has been declared deprecated and has not been added in the binary
           build of PyTables for Windows.</para></footnote>. Normally, you will
           only need to fetch and install the
-          <literal><package>-<version>-bin.zip</literal>
+          <literal><![CDATA[<package>-<version>-bin.zip]]></literal>
           file and copy the
           <literal>lzo1.dll</literal> or
           <literal>bzip2.dll</literal> files in a
@@ -955,7 +955,7 @@ fileh.close()]]></screen>
           <title><markup>PyTables</markup> package installation</title>
 
           <para>Download the
-          <literal>tables-<version>.win32-py<version>.exe</literal>
+          <literal><![CDATA[tables-<version>.win32-py<version>.exe]]></literal>
           file and execute it. </para>
 
           <para>You can (<emphasis>you should</emphasis>) test your installation
