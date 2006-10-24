@@ -290,7 +290,7 @@ Dataset object '%s' contains unsupported H5T_ARRAY datatypes.""" % (name,))
        (class_id == H5T_STRING)):
     if layout == H5D_CHUNKED:
       if H5ARRAYget_ndims(dataset_id, type_id, &rank) < 0:
-        raise HDF5ExtError("Problems getting ndims!")
+        raise HDF5ExtError("Problems getting ndims.")
       dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
       maxdims = <hsize_t *>malloc(rank * sizeof(hsize_t))
       if H5ARRAYget_info(dataset_id, type_id, dims, maxdims,
@@ -813,8 +813,6 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
           colpath2 = _joinPath(colpath, colname)
           (enum, nptype) = table._loadEnum(native_member_type_id)
           # Take one of the names as the default in the enumeration.
-          # Can this get harmful?  Keep an eye on user's reactions.
-          # ivb -- 2005-05-12
           dflt = iter(enum).next()[0]
           colobj = EnumCol(enum, dflt, dtype = nptype, shape = colshape,
                            pos = i)

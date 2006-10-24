@@ -99,7 +99,6 @@ class Col(object):
     NumPy dtype will not be accepted. If you want to declare
     multidimensional columns, use an scalar dtype and pass the
     dimensions in the ``shape`` argument.
-    
     """
 
     # This class should become abstract somewhere in the future,
@@ -123,7 +122,7 @@ class Col(object):
             type_ = numpy.dtype(type_)
         except TypeError:
             pass
-        
+
         shape = normalize_shape(shape)
 
         # Check if type_ is a pytables type
