@@ -6,8 +6,6 @@ with any HDF5 generic utility.
 """
 
 
-import sys
-from numarray import *
 from tables import *
 
 

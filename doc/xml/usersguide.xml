@@ -692,7 +692,7 @@ fileh.close()
             setting the <literal>LIBS</literal> environment variable:</para>
 
             <screen><![CDATA[
- LIBS="hdf5-1.6.5" LIBS="hdf5-1.6.5 nsl"
+LIBS="hdf5-1.6.5" LIBS="hdf5-1.6.5 nsl"
             ]]></screen>
 
             </listitem></varlistentry>
@@ -703,13 +703,16 @@ fileh.close()
             know where the necessary library <emphasis>stub</emphasis>
             (<literal>.lib</literal>) and <emphasis>header</emphasis>
             (<literal>.h</literal>) files are installed. Set the following
-            environment variables:</para>
+            environment variables:
 
-              <variablelist><varlistentry><term><emphasis
+            <variablelist>
+
+              <varlistentry><term><emphasis
               role="bold">HDF5_DIR</emphasis></term><listitem><para>Points to
               the root HDF5 directory (where the include/ and dll/ directories
               can be found).
               <emphasis>Mandatory</emphasis>.</para></listitem></varlistentry>
+              
 
               <varlistentry><term><emphasis
               role="bold">LZO_DIR</emphasis></term><listitem><para>Points to
@@ -1038,37 +1041,29 @@ fileh.close()
           <literal>tables</literal> package. You
           normally do that by executing:</para>
 
-          <screen><![CDATA[ >>> import tables]]></screen>
+          <screen><![CDATA[
+>>> import tables
+          ]]></screen>
 
           <para>This is the recommended way to import
-          <literal>tables</literal> if you don't want
-          to pollute your namespace. However,
-          PyTables has a very
-          reduced set of first-level primitives, so you may consider using the
-          alternative:</para>
+          <literal>tables</literal> if you don't want to pollute your
+          namespace. However, PyTables has a contained set of first-level
+          primitives, so you may consider using the alternative:</para>
 
-          <screen><![CDATA[ >>> from tables import *]]></screen>
+          <screen><![CDATA[
+>>> from tables import *
+          ]]></screen>
 
-          <para>which will export in your caller application namespace the
-          following functions:
-          <literal>openFile()</literal>,
-          <literal>copyFile()</literal>,
-          <literal>isHDF5File()</literal>,
-          <literal>isPyTablesFile()</literal> and
-          <literal>whichLibVersion()</literal>. This
-          is a rather reduced set of functions, and for convenience, we will use
-          this technique to access them.</para>
+          <para>If you are going to work with <literal>NumPy</literal> (or
+          <literal>numarray</literal> or <literal>Numeric</literal>) arrays
+          (and normally, you will) you will also need to import functions from
+          them.  So most PyTables programs begin with: </para>
 
-          <para>If you are going to work with
-          <literal>numarray</literal> (or
-          <literal>NumPy</literal> or
-          <literal>Numeric</literal>) arrays (and
-          normally, you will) you will also need to import functions from them.
-          So most PyTables programs
-          begin with: </para>
+          <screen><![CDATA[
+>>> import tables        # but in this tutorial we use "from tables import *"
+>>> import numpy         # or "import numarray" or "import Numeric"
+          ]]></screen>
 
-          <screen><![CDATA[ >>> import tables        # but in this tutorial we use "from tables import *"
- >>> import numarray      # or "import numpy" or "import Numeric"]]></screen>
         </section>
 
         <section>
@@ -1081,144 +1076,147 @@ fileh.close()
 
           <para>Our particle detector has a TDC (Time to Digital Converter)
           counter with a dynamic range of 8 bits and an ADC (Analogical to
-          Digital Converter) with a range of 16 bits. For these values, we will
-          define 2 fields in our record object called
-          <literal>TDCcount</literal> and
-          <literal>ADCcount</literal>. We also want to
-          save the grid position in which the particle has been detected, so we
-          will add two new fields called
-          <literal>grid_i</literal> and
-          <literal>grid_j</literal>. Our
+          Digital Converter) with a range of 16 bits. For these values, we
+          will define 2 fields in our record object called
+          <literal>TDCcount</literal> and <literal>ADCcount</literal>. We also
+          want to save the grid position in which the particle has been
+          detected, so we will add two new fields called
+          <literal>grid_i</literal> and <literal>grid_j</literal>. Our
           instrumentation also can obtain the pressure and energy of the
           particle. The resolution of the pressure-gauge allows us to use a
-          simple-precision float to store
-          <literal>pressure</literal> readings, while
-          the <literal>energy</literal> value will
-          need a double-precision float. Finally, to track the particle we want
-          to assign it a name to identify the kind of the particle it is and a
+          simple-precision float to store <literal>pressure</literal>
+          readings, while the <literal>energy</literal> value will need a
+          double-precision float. Finally, to track the particle we want to
+          assign it a name to identify the kind of the particle it is and a
           unique numeric identifier. So we will add two more fields:
-          <literal>name</literal> will be a string of
-          up to 16 characters, and
-          <literal>idnumber</literal> will be an
-          integer of 64 bits (to allow us to store records for extremely large
-          numbers of particles).</para>
+          <literal>name</literal> will be a string of up to 16 characters, and
+          <literal>idnumber</literal> will be an integer of 64 bits (to allow
+          us to store records for extremely large numbers of
+          particles).</para>
 
           <para>Having determined our columns and their types, we can now
-          declare a new <literal>Particle</literal>
-          class that will contain all this information: </para>
+          declare a new <literal>Particle</literal> class that will contain
+          all this information: </para>
 
-          <screen><![CDATA[ >>> class Particle(IsDescription):
- ...     name      = StringCol(16)   # 16-character String
- ...     idnumber  = Int64Col()      # Signed 64-bit integer
- ...     ADCcount  = UInt16Col()     # Unsigned short integer
- ...     TDCcount  = UInt8Col()      # unsigned byte
- ...     grid_i    = Int32Col()      # integer
- ...     grid_j    = IntCol()        # integer (equivalent to Int32Col)
- ...     pressure  = Float32Col()    # float  (single-precision)
- ...     energy    = FloatCol()      # double (double-precision)
- ...
- >>>]]></screen>
+          <screen><![CDATA[
+>>> class Particle(IsDescription):
+...     name      = StringCol(16)   # 16-character String
+...     idnumber  = Int64Col()      # Signed 64-bit integer
+...     ADCcount  = UInt16Col()     # Unsigned short integer
+...     TDCcount  = UInt8Col()      # unsigned byte
+...     grid_i    = Int32Col()      # integer
+...     grid_j    = IntCol()        # integer (equivalent to Int32Col)
+...     pressure  = Float32Col()    # float  (single-precision)
+...     energy    = FloatCol()      # double (double-precision)
+...
+>>>
+          ]]></screen>
 
           <para>This definition class is self-explanatory. Basically, you
           declare a class variable for each field you need. As its value you
-          assign an instance of the appropriate
-          <literal>Col</literal> subclass, according
-          to the kind of column defined (the data type, the length, the shape,
-          etc). See the <xref xrefstyle="select: label" linkend="ColClassDescr"/> for
-          a complete description of these subclasses. See also <xref xrefstyle="select: label" linkend="datatypesSupported"/> for a list of data
-          types supported by the
-          <literal>Col</literal> constructor.</para>
+          assign an instance of the appropriate <literal>Col</literal>
+          subclass, according to the kind of column defined (the data type,
+          the length, the shape, etc). See the <xref xrefstyle="select: label"
+          linkend="ColClassDescr"/> for a complete description of these
+          subclasses. See also <xref xrefstyle="select: label"
+          linkend="datatypesSupported"/> for a list of data types supported by
+          the <literal>Col</literal> constructor.</para>
 
-          <para>From now on, we can use
-          <literal>Particle</literal> instances as a
-          descriptor for our detector data table. We will see later on how to
-          pass this object to construct the table. But first, we must create a
-          file where all the actual data pushed into our table will be saved.
+          <para>From now on, we can use <literal>Particle</literal> instances
+          as a descriptor for our detector data table. We will see later on
+          how to pass this object to construct the table. But first, we must
+          create a file where all the actual data pushed into our table will
+          be saved.
           </para>
+
         </section>
 
         <section>
           <title>Creating a PyTables file from scratch</title>
 
-          <para>Use the first-level
-          <literal>openFile</literal> function (see <xref linkend="openFileDescr"/>) to create a
-          PyTables file:</para>
+          <para>Use the first-level <literal>openFile</literal> function (see
+          <xref linkend="openFileDescr"/>) to create a PyTables file:</para>
 
-          <screen><![CDATA[ >>> h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")]]></screen>
+          <screen><![CDATA[
+>>> h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")
+          ]]></screen>
 
-          <para><literal>openFile</literal> (see <xref linkend="openFileDescr"/>) is one of the objects
-          imported by the "<literal>from tables import
-          *</literal>" statement. Here, we are saying that we want to
-          create a new file in the current working directory called
-          "<literal>tutorial1.h5</literal>" in
-          "<literal>w</literal>"rite mode and with an
-          descriptive title string ("<literal>Test
-          file</literal>"). This function attempts to open the file,
-          and if successful, returns the
-          <literal>File</literal> (see <xref xrefstyle="select: labelnumber" linkend="FileClassDescr"/>) object instance
-          <literal>h5file</literal>. The root of the
-          object tree is specified in the instance's
-          <literal>root</literal> attribute.</para>
+          <para><literal>openFile</literal> (see <xref
+          linkend="openFileDescr"/>) is one of the objects imported by the
+          "<literal>from tables import *</literal>" statement. Here, we are
+          saying that we want to create a new file in the current working
+          directory called "<literal>tutorial1.h5</literal>" in
+          "<literal>w</literal>"rite mode and with an descriptive title string
+          ("<literal>Test file</literal>"). This function attempts to open the
+          file, and if successful, returns the <literal>File</literal> (see
+          <xref xrefstyle="select: labelnumber" linkend="FileClassDescr"/>)
+          object instance <literal>h5file</literal>. The root of the object
+          tree is specified in the instance's <literal>root</literal>
+          attribute.</para>
 
         </section>
 
         <section>
           <title>Creating a new group</title>
 
-          <para>Now, to better organize our data, we will create a group called
-          <emphasis>detector</emphasis> that branches from the root node. We
-          will save our particle data table in this group.</para>
+          <para>Now, to better organize our data, we will create a group
+          called <emphasis>detector</emphasis> that branches from the root
+          node. We will save our particle data table in this group.</para>
 
-          <screen><![CDATA[ >>> group = h5file.createGroup("/", 'detector', 'Detector information')]]></screen>
+          <screen><![CDATA[
+>>> group = h5file.createGroup("/", 'detector', 'Detector information')
+          ]]></screen>
 
-          <para>Here, we have taken the
-          <literal>File</literal> instance
+          <para>Here, we have taken the <literal>File</literal> instance
           <literal>h5file</literal> and invoked its
-          <literal>createGroup</literal> method (see <xref xrefstyle="select: labelnumber" linkend="createGroupDescr"/>) to create a new group
+          <literal>createGroup</literal> method (see <xref xrefstyle="select:
+          labelnumber" linkend="createGroupDescr"/>) to create a new group
           called <emphasis>detector</emphasis> branching from
           "<emphasis>/</emphasis>" (another way to refer to the
-          <literal>h5file.root</literal> object we
-          mentioned above). This will create a new
-          <literal>Group</literal> (see <xref xrefstyle="select: labelnumber" linkend="GroupClassDescr"/>) object instance that will be
-          assigned to the variable
-          <literal>group</literal>.</para>
+          <literal>h5file.root</literal> object we mentioned above). This will
+          create a new <literal>Group</literal> (see <xref xrefstyle="select:
+          labelnumber" linkend="GroupClassDescr"/>) object instance that will
+          be assigned to the variable <literal>group</literal>.</para>
 
         </section>
 
         <section>
           <title>Creating a new table</title>
 
-          <para>Let's now create a
-          <literal>Table</literal> (see <xref xrefstyle="select: labelnumber" linkend="TableClassDescr"/>) object as a branch off the
-          newly-created group. We do that by calling the
-          <literal>createTable</literal> (see <xref linkend="createTableDescr"/>) method of the
+          <para>Let's now create a <literal>Table</literal> (see <xref
+          xrefstyle="select: labelnumber" linkend="TableClassDescr"/>) object
+          as a branch off the newly-created group. We do that by calling the
+          <literal>createTable</literal> (see <xref
+          linkend="createTableDescr"/>) method of the
           <literal>h5file</literal> object:</para>
 
-          <screen><![CDATA[ >>> table = h5file.createTable(group, 'readout', Particle, "Readout example")]]></screen>
+          <screen><![CDATA[
+>>> table = h5file.createTable(group, 'readout', Particle, "Readout example")
+          ]]></screen>
 
-          <para>We create the <literal>Table</literal>
-          instance under <literal>group</literal>. We
-          assign this table the node name "<emphasis>readout</emphasis>". The
-          <literal>Particle</literal> class declared
-          before is the <emphasis>description</emphasis> parameter (to define
-          the columns of the table) and finally we set "<emphasis>Readout
-          example</emphasis>" as the
-          <literal>Table</literal> title. With all
-          this information, a new
-          <literal>Table</literal> instance is created
-          and assigned to the variable <emphasis>table</emphasis>.</para>
+          <para>We create the <literal>Table</literal> instance under
+          <literal>group</literal>. We assign this table the node name
+          "<emphasis>readout</emphasis>". The <literal>Particle</literal>
+          class declared before is the <emphasis>description</emphasis>
+          parameter (to define the columns of the table) and finally we set
+          "<emphasis>Readout example</emphasis>" as the
+          <literal>Table</literal> title. With all this information, a new
+          <literal>Table</literal> instance is created and assigned to the
+          variable <emphasis>table</emphasis>.</para>
 
           <para>If you are curious about how the object tree looks right now,
-          simply <literal>print</literal> the
-          <literal>File</literal> instance variable
-          <emphasis>h5file</emphasis>, and examine the output:</para>
+          simply <literal>print</literal> the <literal>File</literal> instance
+          variable <emphasis>h5file</emphasis>, and examine the output:</para>
 
-          <screen><![CDATA[ >>> print h5file
- Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:00:13 2003'
- / (Group) 'Test file'
- /detector (Group) 'Detector information'
- /detector/readout (Table(0,)) 'Readout example'
-]]></screen>
+          <screen><![CDATA[
+>>> print h5file
+tutorial1.h5 (File) 'Test file'
+Last modif.: 'Wed Oct 25 18:09:00 2006'
+Object Tree:
+/ (RootGroup) 'Test file'
+/detector (Group) 'Detector information'
+/detector/readout (Table(0L,)) 'Readout example'
+          ]]></screen>
 
           <para>As you can see, a dump of the object tree is displayed. It's
           easy to see the <literal>Group</literal> and
@@ -1227,76 +1225,88 @@ fileh.close()
           containing the <literal>File</literal>
           instance:</para>
 
-          <screen><![CDATA[ >>> h5file
- File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/')
- / (Group) 'Test file'
- /detector (Group) 'Detector information'
- /detector/readout (Table(0,)) 'Readout example'
-   description := {
-     "ADCcount": Col('UInt16', shape=1, itemsize=2, dflt=0),
-     "TDCcount": Col('UInt8', shape=1, itemsize= 1, dflt=0),
-     "energy": Col('Float64', shape=1, itemsize=8, dflt=0.0),
-     "grid_i": Col('Int32', shape=1, itemsize=4, dflt=0),
-     "grid_j": Col('Int32', shape=1, itemsize=4, dflt=0),
-     "idnumber": Col('Int64', shape=1, itemsize=8, dflt=0),
-     "name": Col('CharType', shape=1, itemsize=16, dflt=None),
-     "pressure": Col('Float32', shape=1, itemsize=4, dflt=0.0) }
-   byteorder := little
-]]></screen>
+          <screen><![CDATA[
+>>> h5file
+File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/', filters=Filters(complevel=0, complib='zlib', shuffle=False, fletcher32=False))
+/ (RootGroup) 'Test file'
+/detector (Group) 'Detector information'
+/detector/readout (Table(0L,)) 'Readout example'
+  description := {
+  "ADCcount": UInt16Col(dflt=0, shape=(), pos=0, indexed=False),
+  "TDCcount": UInt8Col(dflt=0, shape=(), pos=1, indexed=False),
+  "energy": FloatCol(dflt=0.0, shape=(), itemsize=8, pos=2, indexed=False),
+  "grid_i": Int32Col(dflt=0, shape=(), pos=3, indexed=False),
+  "grid_j": IntCol(dflt=0, shape=(), itemsize=4, sign=True, pos=4, indexed=False),
+  "idnumber": Int64Col(dflt=0, shape=(), pos=5, indexed=False),
+  "name": StringCol(length=16, dflt='', shape=(), pos=6, indexed=False),
+  "pressure": Float32Col(dflt=0.0, shape=(), pos=7, indexed=False)}
+  byteorder := little
 
-          <para>More detailed information is displayed about each object in the
-          tree. Note how <literal>Particle</literal>,
-          our table descriptor class, is printed as part of the
-          <emphasis>readout</emphasis> table description information. In
-          general, you can obtain much more information about the objects and
-          their children by just printing them. That introspection capability is
-          very useful, and I recommend that you use it extensively.</para>
+          ]]></screen>
 
-          <para>The time has come to fill this table with some values. First we
-          will get a pointer to the
-          <literal>Row</literal> (see <xref xrefstyle="select: labelnumber" linkend="RowClassDescr"/>) instance of this
-          <literal>table</literal> instance:</para>
+          <para>More detailed information is displayed about each object in
+          the tree. Note how <literal>Particle</literal>, our table descriptor
+          class, is printed as part of the <emphasis>readout</emphasis> table
+          description information. In general, you can obtain much more
+          information about the objects and their children by just printing
+          them. That introspection capability is very useful, and I recommend
+          that you use it extensively.</para>
 
-          <screen><![CDATA[ >>> particle = table.row]]></screen>
+          <para>The time has come to fill this table with some values. First
+          we will get a pointer to the <literal>Row</literal> (see <xref
+          xrefstyle="select: labelnumber" linkend="RowClassDescr"/>) instance
+          of this <literal>table</literal> instance:</para>
 
-          <para>The <literal>row</literal> attribute
-          of <literal>table</literal> points to the
-          <literal>Row</literal> instance that will be
-          used to write data rows into the table. We write data simply by
-          assigning the <literal>Row</literal>
-          instance the values for each row as if it were a dictionary (although
-          it is actually an <emphasis>extension class</emphasis>), using the
-          column names as keys.</para>
+          <screen><![CDATA[
+>>> particle = table.row
+          ]]></screen>
+
+          <para>The <literal>row</literal> attribute of
+          <literal>table</literal> points to the <literal>Row</literal>
+          instance that will be used to write data rows into the table. We
+          write data simply by assigning the <literal>Row</literal> instance
+          the values for each row as if it were a dictionary (although it is
+          actually an <emphasis>extension class</emphasis>), using the column
+          names as keys.</para>
 
           <para>Below is an example of how to write rows:
 
-          <screen><![CDATA[ >>> for i in xrange(10):
- ...     particle['name']  = 'Particle: %6d' % (i)
- ...     particle['TDCcount'] = i % 256
- ...     particle['ADCcount'] = (i * 256) % (1 << 16)
- ...     particle['grid_i'] = i
- ...     particle['grid_j'] = 10 - i
- ...     particle['pressure'] = float(i*i)
- ...     particle['energy'] = float(particle['pressure'] ** 4)
- ...     particle['idnumber'] = i * (2 ** 34)
- ...     particle.append()
- ...
- >>>]]></screen></para>
+          <screen><![CDATA[
+>>> for i in xrange(10):
+...     particle['name']  = 'Particle: %6d' % (i)
+...     particle['TDCcount'] = i % 256
+...     particle['ADCcount'] = (i * 256) % (1 << 16)
+...     particle['grid_i'] = i
+...     particle['grid_j'] = 10 - i
+...     particle['pressure'] = float(i*i)
+...     particle['energy'] = float(particle['pressure'] ** 4)
+...     particle['idnumber'] = i * (2 ** 34)
+...     particle.append()
+...
+>>>
+          ]]></screen></para>
 
           <para>This code should be easy to understand. The lines inside the
           loop just assign values to the different columns in the Row instance
-          <literal>particle</literal> (see <xref xrefstyle="select: labelnumber" linkend="RowClassDescr"/>). A call to its
-          <literal>append()</literal> method writes
-          this information to the
+          <literal>particle</literal> (see <xref xrefstyle="select:
+          labelnumber" linkend="RowClassDescr"/>). A call to its
+          <literal>append()</literal> method writes this information to the
           <literal>table</literal> I/O buffer.</para>
 
           <para>After we have processed all our data, we should flush the
           table's I/O buffer if we want to write all this data to disk. We
-          achieve that by calling the
-          <literal>table.flush()</literal> method.
+          achieve that by calling the <literal>table.flush()</literal> method.
           </para>
 
-          <screen><![CDATA[ >>> table.flush() ]]></screen>
+          <screen><![CDATA[
+>>> table.flush()
+          ]]></screen>
+
+          <para>Remember, flushing a table is a <emphasis>very
+          important</emphasis> step as it will not only help to maintain the
+          integrity of your file, but also will free valuable memory resources
+          (i.e. internal buffers) that your program may need for other
+          things.</para>
 
         </section>
 
@@ -1304,63 +1314,60 @@ fileh.close()
           <title>Reading (and selecting) data in a table</title>
 
           <para>Ok. We have our data on disk, and now we need to access it and
-          select from specific columns the values we are interested in. See the
-          example below:</para>
+          select from specific columns the values we are interested in. See
+          the example below:</para>
 
-          <screen><![CDATA[ >>> table = h5file.root.detector.readout
- >>> pressure = [ x['pressure'] for x in table.iterrows()
- ...              if x['TDCcount']>3 and 20<=x['pressure']<50 ]
- >>> pressure
- [25.0, 36.0, 49.0]]]></screen>
+          <screen><![CDATA[
+>>> table = h5file.root.detector.readout
+>>> pressure = [ x['pressure'] for x in table.iterrows()
+...              if x['TDCcount']>3 and 20<=x['pressure']<50 ]
+>>> pressure
+[25.0, 36.0, 49.0]
+          ]]></screen>
 
           <para>The first line creates a "shortcut" to the
           <emphasis>readout</emphasis> table deeper on the object tree. As you
           can see, we use the <emphasis>natural naming</emphasis> schema to
           access it. We also could have used the
-          <literal>h5file.getNode()</literal> method,
-          as we will do later on.</para>
+          <literal>h5file.getNode()</literal> method, as we will do later
+          on.</para>
 
           <para>You will recognize the last two lines as a Python list
-          comprehension. It loops over the rows in <emphasis>table</emphasis> as
-          they are provided by the
-          <literal>table.iterrows()</literal> iterator
-          (see <xref linkend="Table.iterrows"/>). The iterator
+          comprehension. It loops over the rows in <emphasis>table</emphasis>
+          as they are provided by the <literal>table.iterrows()</literal>
+          iterator (see <xref linkend="Table.iterrows"/>). The iterator
           returns values until all the data in table is exhausted. These rows
           are filtered using the expression:
 
-          <screen><![CDATA[ x['TDCcount'] > 3 and x['pressure'] <50 ]]></screen>
+          <screen><![CDATA[
+ x['TDCcount'] > 3 and x['pressure'] <50
+          ]]></screen>
 
-          We select the value of the
-          <literal>pressure</literal> column from
+          We select the value of the <literal>pressure</literal> column from
           filtered records to create the final list and assign it to
-          <literal>pressure</literal> variable.
-          </para>
+          <literal>pressure</literal> variable. </para>
 
           <para>We could have used a normal <literal>for</literal> loop to
-            accomplish the same purpose, but I find comprehension
-            syntax to be more compact and elegant.
-          </para>
+          accomplish the same purpose, but I find comprehension syntax to be
+          more compact and elegant. </para>
 
-          <para>Let's select the
-          <literal>name</literal> column for the same
+          <para>Let's select the <literal>name</literal> column for the same
           set of cuts: </para>
 
-          <screen><![CDATA[ >>> names=[ x['name'] for x in table if x['TDCcount']>3 and 20<=x['pressure']<50 ]
- >>> names
- ['Particle:      5', 'Particle:      6', 'Particle:      7']]></screen>
+          <screen><![CDATA[
+>>> names = [ x['name'] for x in table
+...           if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50 ]
+>>> names
+['Particle:      5', 'Particle:      6', 'Particle:      7']]></screen>
 
-          <para>Note how we have omitted the
-          <literal>iterrows()</literal> call in the
-          list comprehension. The
-          <literal>Table</literal> class has an
-          implementation of the special method
-          <literal>__iter__()</literal> that iterates
-          over all the rows in the table. In fact,
-          <literal>iterrows()</literal> internally
-          calls this special
-          <literal>__iter__()</literal> method.
-          Accessing all the rows in a table using this method is very
-          convenient, especially when working with the data interactively.
+          <para>Note how we have omitted the <literal>iterrows()</literal>
+          call in the list comprehension. The <literal>Table</literal> class
+          has an implementation of the special method
+          <literal>__iter__()</literal> that iterates over all the rows in the
+          table. In fact, <literal>iterrows()</literal> internally calls this
+          special <literal>__iter__()</literal> method.  Accessing all the
+          rows in a table using this method is very convenient, especially
+          when working with the data interactively.
           </para>
 
           <para>That's enough about selections. The next section will show you
@@ -1371,162 +1378,181 @@ fileh.close()
         <section>
           <title>Creating new array objects</title>
 
-          <para>In order to separate the selected data from the mass of detector
-          data, we will create a new group
-          <literal>columns</literal> branching off the
-          root group. Afterwards, under this group, we will create two arrays
-          that will contain the selected data. First, we create the group:
+          <para>In order to separate the selected data from the mass of
+          detector data, we will create a new group <literal>columns</literal>
+          branching off the root group. Afterwards, under this group, we will
+          create two arrays that will contain the selected data. First, we
+          create the group:
           </para>
 
-          <screen><![CDATA[ >>> gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")]]></screen>
+          <screen><![CDATA[
+>>> gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
+          ]]></screen>
 
-          <para>Note that this time we have specified the first parameter using
-          <emphasis>natural naming</emphasis>
-          (<literal>h5file.root</literal>) instead of
-          with an absolute path string ("/").</para>
+          <para>Note that this time we have specified the first parameter
+          using <emphasis>natural naming</emphasis>
+          (<literal>h5file.root</literal>) instead of with an absolute path
+          string ("/").</para>
 
-          <para>Now, create the first of the two
-          <literal>Array</literal> objects we've just
-          mentioned:</para>
+          <para>Now, create the first of the two <literal>Array</literal>
+          objects we've just mentioned:</para>
 
-          <screen><![CDATA[ >>> h5file.createArray(gcolumns, 'pressure', array(pressure),
- ...                     "Pressure column selection")
- /columns/pressure (Array(3,)) 'Pressure column selection'
- type = Float64
- itemsize = 8
- flavor = 'numarray'
- byteorder = 'little']]></screen>
+          <screen><![CDATA[
+>>> h5file.createArray(gcolumns, 'pressure', array(pressure),
+...                    "Pressure column selection")
+/columns/pressure (Array(3,)) 'Pressure column selection'
+  dtype = dtype('float64')
+  ptype = 'Float64'
+  shape = (3,)
+  itemsize = 8
+  nrows = 3
+  flavor = 'numpy'
+  byteorder = 'little'
+          ]]></screen>
 
           <para>We already know the first two parameters of the
-          <literal>createArray</literal> (see <xref linkend="createArrayDescr"/>) methods (these are the same
-          as the first two in
-          <literal>createTable</literal>): they are
-          the parent group <emphasis>where</emphasis>
-          <literal>Array</literal> will be created and
-          the <literal>Array</literal> instance
+          <literal>createArray</literal> (see <xref
+          linkend="createArrayDescr"/>) methods (these are the same as the
+          first two in <literal>createTable</literal>): they are the parent
+          group <emphasis>where</emphasis> <literal>Array</literal> will be
+          created and the <literal>Array</literal> instance
           <emphasis>name</emphasis>. The third parameter is the
-          <emphasis>object</emphasis> we want to save to disk. In this case, it
-          is a <literal>numarray</literal> array that
-          is built from the selection list we created before. The fourth
-          parameter is the <emphasis>title</emphasis>.</para>
+          <emphasis>object</emphasis> we want to save to disk. In this case,
+          it is a <literal>numarray</literal> array that is built from the
+          selection list we created before. The fourth parameter is the
+          <emphasis>title</emphasis>.</para>
 
           <para>Now, we will save the second array. It contains the list of
-          strings we selected before: we save this object as-is, with no further
-          conversion.</para>
+          strings we selected before: we save this object as-is, with no
+          further conversion.</para>
 
-          <screen><![CDATA[ >>> h5file.createArray(gcolumns, 'name', names, "Name column selection")
- /columns/name Array(4,) 'Name column selection'
- type = 'CharType'
- itemsize = 16
- flavor = 'List'
- byteorder = 'little']]></screen>
+          <screen><![CDATA[
+>>> h5file.createArray(gcolumns, 'name', names, "Name column selection")
+/columns/name (Array(3,)) 'Name column selection'
+  dtype = dtype('|S16')
+  ptype = 'String'
+  shape = (3,)
+  itemsize = 16
+  nrows = 3
+  flavor = 'python'
+  byteorder = 'non-relevant'
+          ]]></screen>
 
-          <para>As you can see,
-          <literal>createArray()</literal> accepts
+          <para>As you can see, <literal>createArray()</literal> accepts
           <emphasis>names</emphasis> (which is a regular Python list) as an
-          <emphasis>object</emphasis> parameter. Actually, it accepts a variety
-          of different regular objects (see <xref linkend="createArrayDescr"/>)
-          as parameters. The <literal>flavor</literal>
-          attribute (see the output above) saves the original kind of object
-          that was saved. Based on this <emphasis>flavor</emphasis>,
-          PyTables will be able to
-          retrieve exactly the same object from disk later on.</para>
+          <emphasis>object</emphasis> parameter. Actually, it accepts a
+          variety of different regular objects (see <xref
+          linkend="createArrayDescr"/>) as parameters. The
+          <literal>flavor</literal> attribute (see the output above) saves the
+          original kind of object that was saved. Based on this
+          <emphasis>flavor</emphasis>, PyTables will be able to retrieve
+          exactly the same object from disk later on.</para>
 
           <para>Note that in these examples, the
-          <literal>createArray</literal> method
-          returns an <literal>Array</literal> instance
-          that is not assigned to any variable. Don't worry, this is intentional
-          to show the kind of object we have created by displaying its
-          representation. The <literal>Array</literal>
-          objects have been attached to the object tree and saved to disk, as
-          you can see if you print the complete object tree: </para>
+          <literal>createArray</literal> method returns an
+          <literal>Array</literal> instance that is not assigned to any
+          variable. Don't worry, this is intentional to show the kind of
+          object we have created by displaying its representation. The
+          <literal>Array</literal> objects have been attached to the object
+          tree and saved to disk, as you can see if you print the complete
+          object tree: </para>
 
-          <screen><![CDATA[ >>> print h5file
-        Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:00:13 2003'
- / (Group) 'Test file'
- /columns (Group) 'Pressure and Name'
- /columns/name (Array(3,)) 'Name column selection'
- /columns/pressure (Array(3,)) 'Pressure column selection'
- /detector (Group) 'Detector information'
- /detector/readout (Table(10,)) 'Readout example'
-]]></screen>
+          <screen><![CDATA[
+>>> print h5file
+tutorial1.h5 (File) 'Test file'
+Last modif.: 'Wed Oct 25 18:20:01 2006'
+Object Tree:
+/ (RootGroup) 'Test file'
+/columns (Group) 'Pressure and Name'
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
+/detector (Group) 'Detector information'
+/detector/readout (Table(10L,)) 'Readout example'
+          ]]></screen>
         </section>
 
         <section>
           <title>Closing the file and looking at its content</title>
 
           <para>To finish this first tutorial, we use the
-          <literal>close</literal> method of the
-          h5file <literal>File</literal> object to
-          close the file before exiting Python:</para>
+          <literal>close</literal> method of the h5file
+          <literal>File</literal> object to close the file before exiting
+          Python:</para>
 
-          <screen><![CDATA[ >>> h5file.close()
- >>> ^D]]></screen>
+          <screen><![CDATA[
+>>> h5file.close()
+>>> ^D
+          ]]></screen>
 
-          <para>You have now created your first
-          PyTables file with a
-          table and two arrays. You can examine it with any generic HDF5 tool,
-          such as <literal>h5dump</literal> or
-          <literal>h5ls</literal>. Here is what the
-          <literal>tutorial1.h5</literal> looks like
-          when read with the <literal>h5ls</literal>
-          program: </para>
+          <para>You have now created your first PyTables file with a table and
+          two arrays. You can examine it with any generic HDF5 tool, such as
+          <literal>h5dump</literal> or <literal>h5ls</literal>. Here is what
+          the <literal>tutorial1.h5</literal> looks like when read with the
+          <literal>h5ls</literal> program: </para>
 
-          <screen><![CDATA[ $ h5ls -rd tutorial1.h5
- /columns                 Group
- /columns/name            Dataset {3}
- Data:
- (0) "Particle:      5", "Particle:      6", "Particle:      7"
- /columns/pressure        Dataset {3}
- Data:
- (0) 25, 36, 49
- /detector                Group
- /detector/readout        Dataset {10/Inf}
- Data:
- (0) {0, 0, 0, 0, 10, 0, "Particle:      0", 0},
- (1) {256, 1, 1, 1, 9, 17179869184, "Particle:      1", 1},
- (2) {512, 2, 256, 2, 8, 34359738368, "Particle:      2", 4},
- (3) {768, 3, 6561, 3, 7, 51539607552, "Particle:      3", 9},
- (4) {1024, 4, 65536, 4, 6, 68719476736, "Particle:      4", 16},
- (5) {1280, 5, 390625, 5, 5, 85899345920, "Particle:      5", 25},
- (6) {1536, 6, 1679616, 6, 4, 103079215104, "Particle:      6", 36},
- (7) {1792, 7, 5764801, 7, 3, 120259084288, "Particle:      7", 49},
- (8) {2048, 8, 16777216, 8, 2, 137438953472, "Particle:      8", 64},
- (9) {2304, 9, 43046721, 9, 1, 154618822656, "Particle:      9", 81}]]></screen>
+          <screen><![CDATA[
+$ h5ls -rd tutorial1.h5
+/columns                 Group
+/columns/name            Dataset {3}
+    Data:
+        (0) "Particle:      5", "Particle:      6", "Particle:      7"
+/columns/pressure        Dataset {3}
+    Data:
+        (0) 25, 36, 49
+/detector                Group
+/detector/readout        Dataset {10/Inf}
+    Data:
+        (0) {0, 0, 0, 0, 10, 0, "Particle:      0", 0},
+        (1) {256, 1, 1, 1, 9, 17179869184, "Particle:      1", 1},
+        (2) {512, 2, 256, 2, 8, 34359738368, "Particle:      2", 4},
+        (3) {768, 3, 6561, 3, 7, 51539607552, "Particle:      3", 9},
+        (4) {1024, 4, 65536, 4, 6, 68719476736, "Particle:      4", 16},
+        (5) {1280, 5, 390625, 5, 5, 85899345920, "Particle:      5", 25},
+        (6) {1536, 6, 1679616, 6, 4, 103079215104, "Particle:      6", 36},
+        (7) {1792, 7, 5764801, 7, 3, 120259084288, "Particle:      7", 49},
+        (8) {2048, 8, 16777216, 8, 2, 137438953472, "Particle:      8", 64},
+        (9) {2304, 9, 43046721, 9, 1, 154618822656, "Particle:      9", 81}
+          ]]></screen>
 
-          <para>Here's the outputs as displayed by the "ptdump"
-          PyTables utility (located
-          in <literal>utils/</literal> directory):
+          <para>Here's the output as displayed by the "ptdump" PyTables
+          utility (located in <literal>utils/</literal> directory):
           </para>
 
-          <screen><![CDATA[ $ ptdump tutorial1.h5
- Filename: 'tutorial1.h5' Title: 'Test file' Last modif.: 'Sun Jul 27 14:40:51 2003'
- / (Group) 'Test file'
- /columns (Group) 'Pressure and Name'
- /columns/name (Array(3,)) 'Name column selection'
- /columns/pressure (Array(3,)) 'Pressure column selection'
- /detector (Group) 'Detector information'
- /detector/readout (Table(10,)) 'Readout example']]></screen>
+          <screen><![CDATA[
+$ ptdump tutorial1.h5
+tutorial1.h5 (File) 'Test file'
+Last modif.: 'Wed Oct 25 18:39:44 2006'
+Object Tree:
+/ (RootGroup) 'Test file'
+/columns (Group) 'Pressure and Name'
+/columns/name (Array(3L,)) 'Name column selection'
+/columns/pressure (Array(3L,)) 'Pressure column selection'
+/detector (Group) 'Detector information'
+/detector/readout (Table(10L,)) 'Readout example'
+          ]]></screen>
 
-          <para>You can pass the <literal>-v</literal>
-          or <literal>-d</literal> options to
-          <literal>ptdump</literal> if you want more
-          verbosity. Try them out!</para>
+          <para>You can pass the <literal>-v</literal> or
+          <literal>-d</literal> options to <literal>ptdump</literal> if you
+          want more verbosity. Try them out!</para>
 
-          <para>Also, in <xref xrefstyle="select: label" linkend="tutorial1-1-tableview"/>, you can admire how
-          the <literal>tutorial1.h5</literal> looks
-          like using the <ulink url="http://www.carabos.com/products/vitables.html">ViTables </ulink>
-          graphical interface .</para>
+          <para>Also, in <xref xrefstyle="select: label"
+          linkend="tutorial1-1-tableview"/>, you can admire how the
+          <literal>tutorial1.h5</literal> looks like using the <ulink
+          url="http://www.carabos.com/products/vitables.html">ViTables
+          </ulink> graphical interface .</para>
 
           <figure id="tutorial1-1-tableview">
-            <title>The initial version of the data file for tutorial 1, with a view of the data objects.</title>
+            <title>The initial version of the data file for tutorial 1, with a
+            view of the data objects.</title>
 
             <mediaobject>
               <imageobject role="fo">
-                <imagedata align="center" scale="60" fileref="tutorial1-1-tableview.png" format="PNG"/>
+                <imagedata align="center" scale="60"
+                fileref="tutorial1-1-tableview.png" format="PNG"/>
               </imageobject>
               <imageobject role="html">
-                <imagedata align="center" fileref="tutorial1-1-tableview.png" format="PNG"/>
+                <imagedata align="center" fileref="tutorial1-1-tableview.png"
+                format="PNG"/>
               </imageobject>
             </mediaobject>
           </figure>
@@ -1534,6 +1560,7 @@ fileh.close()
         </section>
       </section>
 
+<!-- XYX m'he quedat aci... -->
       <section>
         <title>Browsing the <emphasis>object tree</emphasis></title>
 

@@ -1,4 +1,3 @@
-#import sys
 import warnings
 import unittest
 
@@ -17,7 +16,7 @@ from tables.tests.common import verbose, cleanup, allequal, testFilename
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
-# Check read Tables from pytables version 0.5, and 0.7
+# Check read Tables from pytables version 0.8
 class BackCompatTablesTestCase(unittest.TestCase):
 
     #----------------------------------------
