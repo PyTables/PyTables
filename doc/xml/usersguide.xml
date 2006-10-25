@@ -2,7 +2,7 @@
 <!DOCTYPE book
   PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <book lang="en">
-  <title><markup>PyTables</markup> User's Guide</title>
+  <title><literal>PyTables</literal> User's Guide</title>
   <subtitle>Hierarchical datasets in Python - Release 2.0alpha</subtitle>
   <bookinfo>
 
@@ -146,7 +146,7 @@
 
 
   <part label="I">
-    <title>The <markup>PyTables</markup> Core Library</title>
+    <title>The PyTables Core Library</title>
 
     <chapter>
       <title>Introduction</title>
@@ -155,8 +155,9 @@
       <attribution>Gabriel García Márquez, <citetitle>A wise Catalan in "Cien
       años de soledad"</citetitle></attribution>
 
-      <literallayout>La sabiduría no vale la pena si no es posible servirse de
-      ella para inventar una nueva manera de preparar los garbanzos.
+      <literallayout>
+      La sabiduría no vale la pena si no es posible servirse de ella para
+      inventar una nueva manera de preparar los garbanzos.
 
       [Wisdom isn't worth anything if you can't use it to come up with a new
       way to cook garbanzos.]
@@ -223,12 +224,12 @@
       its rows with your values, and save (arbitrarily large)
       collections of them to a file for persistent storage. After
       that, the data can be retrieved and post-processed quite easily
-      with <markup>PyTables</markup> or even with another HDF5
+      with PyTables or even with another HDF5
       application (in C, Fortran, Java or whatever language that
       provides a library to interface with HDF5).
       </para>
 
-      <para>Other important entities in <markup>PyTables</markup> are
+      <para>Other important entities in PyTables are
       the <emphasis>array</emphasis> objects that are analogous to
       tables with the difference that all of their components are
       homogeneous.  They come in different flavors, like
@@ -417,7 +418,7 @@
         aspect of PyTables. It means that the names of instance
         variables of the node objects are the same as the names of the
         element's children<footnote><para>I got this simple but
-        powerful idea from the excellent <markup>Objectify</markup>
+        powerful idea from the excellent <literal>Objectify</literal>
         module by David Mertz (see <biblioref
         linkend="Objectify"/>)</para></footnote>. This is very
         <emphasis>Pythonic</emphasis> and intuitive in many
@@ -547,7 +548,7 @@ fileh.close()
         help you to avoid programming mistakes.</para>
 
         <figure id="objecttree">
-          <title>A <markup>PyTables</markup> object tree example.</title>
+          <title>A PyTables object tree example.</title>
 
           <mediaobject>
             <imageobject role="fo">
@@ -576,23 +577,19 @@ fileh.close()
 
       </epigraph>
 
-      <para></para> <para>The Python <literal>Distutils</literal> are
-      used to build and install PyTables, so it is fairly simple to
-      get the application up and running. If you want to install the
-      package from sources go to the next section. But if you are
-      running Windows and want to install precompiled binaries jump to
-      <xref xrefstyle="select: label"
+      <para></para> <para>The Python <literal>Distutils</literal> are used to
+      build and install PyTables, so it is fairly simple to get the
+      application up and running. If you want to install the package from
+      sources go to the next section. But if you are running Windows and want
+      to install precompiled binaries jump to <xref xrefstyle="select: label"
       linkend="binaryInstallationDescr"/>). In addition, packages are
-      available for many different Linux distributions, for instance
-      <ulink url="http://www.t2-project.org">T2 Project</ulink>,
+      available for many different Linux distributions, for instance <ulink
+      url="http://www.t2-project.org">T2 Project</ulink>, <ulink
+      url="http://www.debian.org/"><literal>Debian</literal></ulink>, or
+      <ulink url="http://www.ubuntu.com/"><literal>Ubuntu</literal></ulink>,
+      among others.  There are also packages for other Unices like <ulink
+      url="http://www.freshports.org/"><literal>FreeBSD</literal></ulink> or
       <ulink
-      url="http://www.debian.org/"><literal>Debian</literal></ulink>,
-      or <ulink
-      url="http://www.ubuntu.com/"><literal>Ubuntu</literal></ulink>,
-      among others.  There are also packages for other Unices like
-      <ulink
-      url="http://www.freshports.org/"><literal>FreeBSD</literal></ulink>
-      or <ulink
       url="http://www.opendarwin.org/"><literal>MacOSX</literal></ulink>
       </para>
 
@@ -600,165 +597,180 @@ fileh.close()
         <title>Installation from source</title>
 
 	<para> These instructions are for both Unix/Linux and Windows
-        systems. If you are using Windows, it is assumed that you have
-        a recent version of <literal>MS Visual C++</literal> (&gt;=
-        6.0) compiler installed. A <literal>GCC</literal> compiler is
-        assumed for Unix, but other compilers should work as well.
+        systems. If you are using Windows, it is assumed that you have a
+        recent version of <literal>MS Visual C++</literal> compiler
+        installed. A <literal>GCC</literal> compiler is assumed for Unix, but
+        other compilers should work as well.
         </para>
 
-	<para>Extensions in <markup>PyTables</markup> have been
-        developed in Pyrex (see <biblioref linkend="Pyrex"/>) and C
-        language. You can rebuild everything from scratch if you have
-        Pyrex installed, but this is not necessary, as the Pyrex
-        compiled source is included in the distribution.
+	<para>Extensions in PyTables have been developed in
+        Pyrex (see <biblioref linkend="Pyrex"/>) and C language. You can
+        rebuild everything from scratch if you have Pyrex installed, but this
+        is not necessary, as the Pyrex compiled source is included in the
+        distribution.
         </para>
 
-	<para>To compile PyTables you will need a
-        recent version of <literal>Python</literal>, the
-        HDF5 (C flavor) library, and the
-        <literal>NumPy</literal> (see <biblioref linkend="NumPy"/>)
-        package. Although you won't need <literal>numarray</literal>
-        (see <biblioref linkend="Numarray"/>) or
-        <literal>Numeric</literal> (see <biblioref linkend="Numeric"/>) in order to compile PyTables, they are
-        supported; you only need a reasonably recent version of them
-        (&gt;= 1.5.2 for numarray and &gt;= 24.2 for Numeric) if you
-        plan on using them in your applications. If you already have
-        <literal>numarray</literal> and/or <literal>Numeric</literal>
-        installed, the test driver module will detect them and will
-        run the tests for <literal>numarray</literal> and/or
-        <literal>Numeric</literal> automatically.
+	<para>To compile PyTables you will need a recent version of Python,
+        the HDF5 (C flavor) library, and the <literal>NumPy</literal> (see
+        <biblioref linkend="NumPy"/>) package. Although you won't need
+        <literal>numarray</literal> (see <biblioref linkend="Numarray"/>) or
+        <literal>Numeric</literal> (see <biblioref linkend="Numeric"/>) in
+        order to compile PyTables, they are supported; you only need a
+        reasonably recent version of them (&gt;= 1.5.2 for numarray and &gt;=
+        24.2 for Numeric) if you plan on using them in your applications. If
+        you already have <literal>numarray</literal> and/or
+        <literal>Numeric</literal> installed, the test driver module will
+        detect them and will run the tests for <literal>numarray</literal>
+        and/or <literal>Numeric</literal> automatically.
         </para>
 
 	<section id="PrerequisitesSourceDescr">
           <title>Prerequisites</title>
 
-          <para>First, make sure that you have at least Python 2.3,
-          2.4 or 2.5, HDF5 1.6.5 and NumPy 1.0 or higher installed
-          (I'm using HDF5 1.6.5 and NumPy 1.0 currently). If you
-          don't, fetch and install them before proceeding.</para>
+          <para>First, make sure that you have at least Python 2.3, 2.4 or
+          2.5, HDF5 1.6.5 and NumPy 1.0 or higher installed (I'm using HDF5
+          1.6.5 and NumPy 1.0 currently). If you don't, fetch and install them
+          before proceeding.</para>
 
-          <para>Compile and install these packages (but see <xref xrefstyle="select: label" linkend="prerequisitesBinInst"/>
-          for instructions on how to install precompiled binaries if
-          you are not willing to compile the prerequisites on Windows
-          systems).</para>
+          <para>Compile and install these packages (but see <xref
+          xrefstyle="select: label" linkend="prerequisitesBinInst"/> for
+          instructions on how to install precompiled binaries if you are not
+          willing to compile the prerequisites on Windows systems).</para>
 
-          <para>For compression (and possibly improved performance),
-          you will need to install the <literal>Zlib</literal> (see
-          <biblioref linkend="zlibRef"/>), which is also required by
-          HDF5 as well. You may also optionally
-          install the excellent <literal>LZO</literal> compression
-          library (see <biblioref linkend="lzoRef"/> and <xref xrefstyle="select:
-          label" linkend="compressionIssues"/>). The high-performance bzip2 compression library
-          can also be used with PyTables (see <biblioref linkend="bzip2Ref"/>).  The use of the UCL compression
-          library is in process of being
-          <emphasis>deprecated</emphasis><footnote><para>This is
-          because of recurrent memory problems in some platforms
-          (perhaps some bad interaction between UCL and
-          <emphasis>something</emphasis> else).  Eventually, UCL
-          support will be dropped in the future, so, please, refrain
-          to create datasets compressed with it.</para></footnote>, so
-          it is recommended to not use it unless you have to (you
-          still have data files compressed with UCL). Meanwhile, you
-          can force its support in PyTables by passing the
-          <literal>--force-ucl</literal> flag to
-          <literal>setup.py</literal> (see later).</para>
+          <para>For compression (and possibly improved performance), you will
+          need to install the <literal>Zlib</literal> (see <biblioref
+          linkend="zlibRef"/>), which is also required by HDF5 as well. You
+          may also optionally install the excellent <literal>LZO</literal>
+          compression library (see <biblioref linkend="lzoRef"/> and <xref
+          xrefstyle="select: label" linkend="compressionIssues"/>). The
+          high-performance bzip2 compression library can also be used with
+          PyTables (see <biblioref linkend="bzip2Ref"/>).  The use of the UCL
+          compression library is in process of being
+          <emphasis>deprecated</emphasis><footnote><para>This is because of
+          recurrent memory problems in some platforms (perhaps some bad
+          interaction between UCL and <emphasis>something</emphasis> else).
+          Eventually, UCL support will be dropped in the future, so, please,
+          refrain to create datasets compressed with it.</para></footnote>, so
+          it is recommended to not use it unless you have to (you still have
+          data files compressed with UCL). Meanwhile, you can force its
+          support in PyTables by passing the <literal>--force-ucl</literal>
+          flag to <literal>setup.py</literal> (see later).</para>
 
           <variablelist>
-            <varlistentry><term>
-            <emphasis role="bold">Unix</emphasis></term><listitem><para>
-            <literal>setup.py</literal> will detect
-            <literal>HDF5</literal>,
-            <literal>LZO</literal>,
-            <literal>UCL</literal> or
-            <literal>bzip2</literal> libraries and
-            include files under
-            <literal>/usr</literal> or
-            <literal>/usr/local</literal>; this will
-            cover most manual installations as well as installations from
-            packages. If <literal>setup.py</literal>
-            can not find <literal>libhdf5</literal>
-            (or <literal>liblzo</literal>,
-            <literal>libucl</literal> or
-            <literal>libbz2</literal> that you may
-            wish to use) or if you have several versions of a library installed
-            and want to use a particular one, then you can set the path to the
-            resource in the environment, setting the values of the
-            <literal>HDF5_DIR</literal>,
-            <literal>LZO_DIR</literal>,
-            <literal>UCL_DIR</literal> or
-            <literal>BZIP2_DIR</literal> environment
-            variables to the path to the particular resource. You may also
-            specify the locations of the resource root directories on the
-            <literal>setup.py</literal> command line.
-            For example:</para>
-            <screen><![CDATA[ --hdf5=/stuff/hdf5-1.6.5
+            <varlistentry><term> <emphasis
+            role="bold">Unix</emphasis></term><listitem><para>
+            <literal>setup.py</literal> will detect <literal>HDF5</literal>,
+            <literal>LZO</literal>, <literal>UCL</literal> or
+            <literal>bzip2</literal> libraries and include files under
+            <literal>/usr</literal> or <literal>/usr/local</literal>; this
+            will cover most manual installations as well as installations from
+            packages. If <literal>setup.py</literal> can not find
+            <literal>libhdf5</literal> (or <literal>liblzo</literal>,
+            <literal>libucl</literal> or <literal>libbz2</literal> that you
+            may wish to use) or if you have several versions of a library
+            installed and want to use a particular one, then you can set the
+            path to the resource in the environment, setting the values of the
+            <literal>HDF5_DIR</literal>, <literal>LZO_DIR</literal>,
+            <literal>UCL_DIR</literal> or <literal>BZIP2_DIR</literal>
+            environment variables to the path to the particular resource. You
+            may also specify the locations of the resource root directories on
+            the <literal>setup.py</literal> command line.  For example:</para>
+
+            <screen><![CDATA[
+ --hdf5=/stuff/hdf5-1.6.5
  --lzo=/stuff/lzo-1.08
- --bzip2=/stuff/bzip2-1.0.3]]></screen>
-            <para>You can force the compilation of the deprecated UCL compressor
-            by passing the --force-ucl flag:</para>
-            <screen><![CDATA[ --ucl=/stuff/ucl-1.03 --force-ucl        ]]></screen>
-            <para>If your HDF5
-            library was built as a shared library not in the runtime load path,
-            then you can specify the additional linker flags needed to find the
-            shared library on the command line as well. For example:</para>
-            <screen><![CDATA[ --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.5/lib"        ]]></screen>
+ --bzip2=/stuff/bzip2-1.0.3
+            ]]></screen>
+
+            <para>You can force the compilation of the deprecated UCL
+            compressor by passing the --force-ucl flag:</para>
+
+            <screen><![CDATA[
+ --ucl=/stuff/ucl-1.03 --force-ucl
+            ]]></screen>
+
+            <para>If your HDF5 library was built as a shared library not in
+            the runtime load path, then you can specify the additional linker
+            flags needed to find the shared library on the command line as
+            well. For example:</para>
+
+            <screen><![CDATA[
+ --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.5/lib"
+            ]]></screen>
+
             <para>You may also want to try setting the LD_LIBRARY_PATH
             environment variable to point to the directory where the shared
-            libraries can be found. Check your compiler and linker documentation
-            as well as the Python
-            <literal>Distutils</literal> documentation
-            for the correct syntax or environment variable names.</para>
+            libraries can be found. Check your compiler and linker
+            documentation as well as the Python <literal>Distutils</literal>
+            documentation for the correct syntax or environment variable
+            names.</para>
 
-            <para>It is also possible to link with specific libraries by setting
-            the <literal>LIBS</literal> environment
-            variable:</para>
-            <screen><![CDATA[ LIBS="hdf5-1.6.5"
- LIBS="hdf5-1.6.5 nsl"]]></screen>
+            <para>It is also possible to link with specific libraries by
+            setting the <literal>LIBS</literal> environment variable:</para>
+
+            <screen><![CDATA[
+ LIBS="hdf5-1.6.5" LIBS="hdf5-1.6.5 nsl"
+            ]]></screen>
+
             </listitem></varlistentry>
 
-            <varlistentry><term><emphasis role="bold">Windows</emphasis></term><listitem><para>Once
-            you have installed the prerequisites,
-            <literal>setup.py</literal> needs to know where the
-            necessary library <emphasis>stub</emphasis>
+            <varlistentry><term><emphasis
+            role="bold">Windows</emphasis></term><listitem><para>Once you have
+            installed the prerequisites, <literal>setup.py</literal> needs to
+            know where the necessary library <emphasis>stub</emphasis>
             (<literal>.lib</literal>) and <emphasis>header</emphasis>
-            (<literal>.h</literal>) files are installed. Set the
-            following environment variables:</para>
+            (<literal>.h</literal>) files are installed. Set the following
+            environment variables:</para>
 
-              <variablelist><varlistentry><term><emphasis role="bold">HDF5_DIR</emphasis></term><listitem><para>Points
-              to the root HDF5 directory (where the include/ and dll/
-              directories can be found).
+              <variablelist><varlistentry><term><emphasis
+              role="bold">HDF5_DIR</emphasis></term><listitem><para>Points to
+              the root HDF5 directory (where the include/ and dll/ directories
+              can be found).
               <emphasis>Mandatory</emphasis>.</para></listitem></varlistentry>
-              <varlistentry><term><emphasis role="bold">LZO_DIR</emphasis></term><listitem><para>Points to the
-              root LZO directory (where the include/ and lib/ directories can be
-              found).
+
+              <varlistentry><term><emphasis
+              role="bold">LZO_DIR</emphasis></term><listitem><para>Points to
+              the root LZO directory (where the include/ and lib/ directories
+              can be found).
               <emphasis>Optional</emphasis>.</para></listitem></varlistentry>
-              <varlistentry><term><emphasis role="bold">BZIP2_DIR</emphasis></term><listitem><para>Points to the
-              root bzip2 directory (where the include/ and lib/ directories can
-              be found).
+
+              <varlistentry><term><emphasis
+              role="bold">BZIP2_DIR</emphasis></term><listitem><para>Points to
+              the root bzip2 directory (where the include/ and lib/
+              directories can be found).
               <emphasis>Optional</emphasis>.</para></listitem></varlistentry>
-              <varlistentry><term><emphasis role="bold">UCL_DIR</emphasis></term><listitem><para>Points to the
-              root UCL directory (where the include/ and lib/ directories can be
-              found). <emphasis>Optional, but
+
+              <varlistentry><term><emphasis
+              role="bold">UCL_DIR</emphasis></term><listitem><para>Points to
+              the root UCL directory (where the include/ and lib/ directories
+              can be found). <emphasis>Optional, but
               discouraged</emphasis>.</para></listitem></varlistentry>
               </variablelist>
 
             <para>For example:</para>
-            <screen><![CDATA[ set HDF5_DIR=c:\stuff\5-165-win
+
+            <screen><![CDATA[
+ set HDF5_DIR=c:\stuff\5-165-win
  set LZO_DIR=c:\stuff\lzo-1-08
- set BZIP2_DIR=c:\stuff\bzip2-1-0-3]]></screen>
+ set BZIP2_DIR=c:\stuff\bzip2-1-0-3
+            ]]></screen>
 
             <para>Or, you can pass this information to
-            <literal>setup.py</literal> by setting the
-            appropriate arguments on the command line. For example:</para>
+            <literal>setup.py</literal> by setting the appropriate arguments
+            on the command line. For example:</para>
 
-            <screen><![CDATA[ --hdf5=c:\stuff\5-165-win
+            <screen><![CDATA[
+ --hdf5=c:\stuff\5-165-win
  --lzo=c:\stuff\lzo-1-08
- --bzip2=c:\stuff\bzip2-1-0-3]]></screen>
+ --bzip2=c:\stuff\bzip2-1-0-3
+            ]]></screen>
 
-             <para>You can force the compilation of the deprecated UCL
-             compressor by passing the --force-ucl flag:
+            <para>You can force the compilation of the deprecated UCL
+            compressor by passing the --force-ucl flag:
 
- <screen><![CDATA[ --ucl=c:\stuff\ucl-1-02 --force-ucl]]></screen>
+            <screen><![CDATA[
+ --ucl=c:\stuff\ucl-1-02 --force-ucl
+            ]]></screen>
 
             You can get ready-to-use Windows binaries and other development
             files for most of those libraries from the GnuWin32 project (see
@@ -769,127 +781,140 @@ fileh.close()
 	</section>
 
         <section id="PyTablesSourceInstallationDescr">
-          <title><markup>PyTables</markup> package installation</title>
+          <title>PyTables package installation</title>
 
           <para>Once you have installed the HDF5 library and the NumPy
-          package, you can proceed with the
-          PyTables package itself:</para>
+          package, you can proceed with the PyTables package itself:</para>
 
           <orderedlist>
 
             <listitem><para>Run this command from the main
             PyTables distribution directory,
             including any extra command line arguments as discussed
-            above: <screen><![CDATA[ python setup.py build_ext
-            --inplace]]></screen> Depending on the compiler flags used
-            when compiling your Python executable, there may appear
-            many warnings. Don't worry, almost all of them are caused
-            by variables declared but never used.  That's normal in
-            Pyrex extensions. </para></listitem>
+            above:</para>
+
+            <screen><![CDATA[
+ python setup.py build_ext --inplace
+            ]]></screen>
+
+            <para>Depending on the compiler flags used when compiling your
+            Python executable, there may appear many warnings. Don't worry,
+            almost all of them are caused by variables declared but never
+            used.  That's normal in Pyrex extensions. </para></listitem>
 
             <listitem><para>To run the test suite, change into the
-            <literal>tables/tests</literal> directory
-            and execute this command:</para>
+            <literal>tables/tests</literal> directory and execute this
+            command:</para>
 
               <variablelist>
-                <varlistentry><term><emphasis role="bold">Unix</emphasis></term><listitem><para>In
-                the shell <literal>sh</literal> and its
-                variants:</para>
+                <varlistentry><term><emphasis
+                role="bold">Unix</emphasis></term><listitem><para>In the shell
+                <literal>sh</literal> and its variants:</para>
 
-		    <screen><![CDATA[ PYTHONPATH=../..  python test_all.py]]></screen>
+                <screen><![CDATA[
+ PYTHONPATH=../..  python test_all.py
+                ]]></screen>
 
-                </listitem></varlistentry>
-                <varlistentry><term><emphasis role="bold">Windows</emphasis></term><listitem><para>Open
-                a DOS terminal and type:</para> <screen><![CDATA[ set
+                </listitem></varlistentry> <varlistentry><term><emphasis
+                role="bold">Windows</emphasis></term><listitem><para>Open a
+                DOS terminal and type:</para>
+
+                <screen><![CDATA[ set
                 PYTHONPATH=..\.. python test_all.py]]></screen>
                 </listitem></varlistentry>
+
               </variablelist>
 
-            <para>If you would like to see verbose output from the tests simply
-            add the flag <literal>-v</literal> and/or
-            the word <literal>verbose</literal> to the
-            command line. You can also run only the tests in a particular test
-            module. For example, to execute just the
-            <literal>types</literal> test:
+            <para>If you would like to see verbose output from the tests
+            simply add the flag <literal>-v</literal> and/or the word
+            <literal>verbose</literal> to the command line. You can also run
+            only the tests in a particular test module. For example, to
+            execute just the <literal>types</literal> test:
 
-            <screen><![CDATA[ python test_types.py -v]]></screen>
+            <screen><![CDATA[
+ python test_types.py -v
+            ]]></screen>
 
             If a test fails, please enable verbose output (the
-            <literal>-v</literal> flag
-            <emphasis>and</emphasis>
-            <literal>verbose</literal> option), run
-            the failing test module again, and, very important, get your
-            PyTables version
-            information by running the command:
+            <literal>-v</literal> flag <emphasis>and</emphasis>
+            <literal>verbose</literal> option), run the failing test module
+            again, and, very important, get your PyTables version information
+            by running the command:
 
-            <screen><![CDATA[ python test_all.py --show-versions            ]]></screen>
+            <screen><![CDATA[
+ python test_all.py --show-versions
+            ]]></screen>
 
             and send back the output to developers so that we may continue
             improving PyTables.
             </para>
 
-            <para> If you run into problems because Python can not load the HDF5
-            library or other shared libraries: </para>
+            <para> If you run into problems because Python can not load the
+            HDF5 library or other shared libraries: </para>
 
             <variablelist>
-              <varlistentry><term><emphasis role="bold">Unix</emphasis></term><listitem><para>
-              Try setting the LD_LIBRARY_PATH environment variable to
-              point to the directory where the missing libraries can
-              be found.</para></listitem></varlistentry>
+              <varlistentry><term><emphasis
+              role="bold">Unix</emphasis></term><listitem><para> Try setting
+              the LD_LIBRARY_PATH environment variable to point to the
+              directory where the missing libraries can be
+              found.</para></listitem></varlistentry>
 
-              <varlistentry><term><emphasis role="bold">Windows</emphasis></term><listitem><para>Put the DLL
-              libraries
-              (<literal>hdf5dll.dll</literal> and,
-              optionally, <literal>lzo1.dll</literal>
-              and <literal>bzip2.dll</literal>) in a
-              directory listed in your
-              <literal>PATH</literal> environment
+              <varlistentry><term><emphasis
+              role="bold">Windows</emphasis></term><listitem><para>Put the DLL
+              libraries (<literal>hdf5dll.dll</literal> and, optionally,
+              <literal>lzo1.dll</literal> and <literal>bzip2.dll</literal>) in
+              a directory listed in your <literal>PATH</literal> environment
               variable or in
               <literal>python_installation_path\Lib\site-packages\tables</literal>
               (the last directory may have not exist yet, so if you want to
               install the DLLs there, you should do so
               <emphasis>after</emphasis> installing the PyTables package). The
-              <literal>setup.py</literal> installation
-              program will print out a warning to that effect if the libraries
-              can not be found. </para></listitem></varlistentry>
+              <literal>setup.py</literal> installation program will print out
+              a warning to that effect if the libraries can not be
+              found. </para></listitem></varlistentry>
 
             </variablelist>
             </listitem>
 
-            <listitem><para>To install the entire <markup>PyTables</markup>
+            <listitem><para>To install the entire PyTables
             Python package, change back to the root distribution directory and
-            run the following command (make sure you have sufficient permissions
-            to write to the directories where the
-            PyTables files will be
-            installed):
+            run the following command (make sure you have sufficient
+            permissions to write to the directories where the PyTables files
+            will be installed):</para>
 
-          <screen><![CDATA[ python setup.py install]]></screen>
+            <screen><![CDATA[
+ python setup.py install
+            ]]></screen>
 
-            Of course, you will need super-user privileges if you want to
-            install PyTables on a
-            system-protected area. You can select, though, a different place to
-            install the package using the
-            <literal>--prefix</literal> flag:
+            <para>Of course, you will need super-user privileges if you want
+            to install PyTables on a system-protected area. You can select,
+            though, a different place to install the package using the
+            <literal>--prefix</literal> flag:</para>
 
-          <screen><![CDATA[ python setup.py install --prefix="/home/myuser/mystuff"]]></screen>
+            <screen><![CDATA[
+ python setup.py install --prefix="/home/myuser/mystuff"
+            ]]></screen>
 
-            Have in mind, however, that if you use the
-            <literal>--prefix</literal> flag to
-            install in a non-standard place, you should properly setup your
-            <literal>PYTHONPATH</literal> environment
-            variable, so that the Python interpreter would be able to find your
-            new PyTables
+            <para>Have in mind, however, that if you use the
+            <literal>--prefix</literal> flag to install in a non-standard
+            place, you should properly setup your
+            <literal>PYTHONPATH</literal> environment variable, so that the
+            Python interpreter would be able to find your new PyTables
             installation.</para>
 
-              <para>You have more installation options available in
-          the Distutils package. Issue a:
-          <screen><![CDATA[ python setup.py install --help]]></screen>
-            for more information on that subject.
-            </para></listitem>
+            <para>You have more installation options available in the
+            Distutils package. Issue a:
+
+            <screen><![CDATA[
+ python setup.py install --help
+            ]]></screen>
+
+            for more information on that subject.  </para></listitem>
           </orderedlist>
 
-          <para>That's it! Now you can skip to the next chapter to learn how to
-          use PyTables. </para>
+          <para>That's it! Now you can skip to the next chapter to learn how
+          to use PyTables. </para>
+
         </section>
       </section>
 
@@ -898,105 +923,104 @@ fileh.close()
 
         <para>This section is intended for installing precompiled binaries on
         Windows platforms. You may also find it useful for instructions on how
-        to install <emphasis>binary prerequisites</emphasis> even if you want to
-        compile PyTables itself on
-        Windows. </para>
+        to install <emphasis>binary prerequisites</emphasis> even if you want
+        to compile PyTables itself on Windows. </para>
 
         <section id="prerequisitesBinInst">
           <title>Windows prerequisites</title>
 
-          <para>First, make sure that you have Python 2.3, 2.4, 2.5 or
-          higher, HDF5 1.6.5 or higher and NumPy 1.0 or higher
-          installed (PyTables binaries have been
-          built using HDF5 1.6.5 and NumPy 1.0).</para>
+          <para>First, make sure that you have Python 2.3, 2.4, 2.5 or higher,
+          HDF5 1.6.5 or higher and NumPy 1.0 or higher installed (PyTables
+          binaries have been built using HDF5 1.6.5 and NumPy 1.0).</para>
 
           <para>For the HDF5 library it should be enough to manually copy the
-          <literal>hdf5dll.dll</literal>,
-          <literal>zlib1.dll</literal>
-          <emphasis>and</emphasis>
-          <literal>szipdll.dll</literal> files to a
-          directory in your <literal>PATH</literal>
-          environment variable (for example
-          <literal>C:\WINDOWS\SYSTEM32</literal>) or
+          <literal>hdf5dll.dll</literal>, <literal>zlib1.dll</literal>
+          <emphasis>and</emphasis> <literal>szipdll.dll</literal> files to a
+          directory in your <literal>PATH</literal> environment variable (for
+          example <literal>C:\WINDOWS\SYSTEM32</literal>) or
           <literal>python_installation_path\Lib\site-packages\tables</literal>
-          (the last directory may have not exist yet, so if you want to install
-          the DLLs there, you should do so <emphasis>after</emphasis> installing
-          the PyTables package). </para>
+          (the last directory may have not exist yet, so if you want to
+          install the DLLs there, you should do so <emphasis>after</emphasis>
+          installing the PyTables package). </para>
 
           <para><emphasis>Caveat:</emphasis> When downloading the binary
-          distribution for HDF5 libraries, select one compiled with MSVC 6.0 if
-          you are using Python 2.3.x, such as the package
+          distribution for HDF5 libraries, select one compiled with MSVC 6.0
+          if you are using Python 2.3.x, such as the package
           <literal>5-165-win.zip</literal>. The file
-          <literal>5-165-win-net.zip</literal> was
-          compiled with the MSVC 7.1 (aka "<literal>.NET
-          2003</literal>") and you <emphasis>must</emphasis> choose if
-          you want to run PyTables with Python 2.4.x series. You have been
-          warned! </para>
+          <literal>5-165-win-net.zip</literal> was compiled with the MSVC 7.1
+          (aka "<literal>.NET 2003</literal>") and you
+          <emphasis>must</emphasis> choose if you want to run PyTables with
+          Python 2.4.x series. You have been warned! </para>
 
-          <para>To enable compression with optional LZO or bzip2 libraries (see
-          the <xref xrefstyle="select: label" linkend="compressionIssues"/> for hints
-          about how they may be used to improve performance), fetch and install
-          the <literal>LZO</literal> (choose v1.x,
-          <literal>LZO</literal> v2.x is not supported
-          in precompiled Windows builds) and
-          <literal>bzip2</literal> binaries from
-          <biblioref linkend="GnuWin32"/><footnote><para>Note that support for the UCL compressor
-          has been declared deprecated and has not been added in the binary
-          build of PyTables for Windows.</para></footnote>. Normally, you will
-          only need to fetch and install the
-          <literal><![CDATA[<package>-<version>-bin.zip]]></literal>
-          file and copy the
-          <literal>lzo1.dll</literal> or
-          <literal>bzip2.dll</literal> files in a
-          directory in the <literal>PATH</literal>
-          environment variable, or in
+          <para>To enable compression with optional LZO or bzip2 libraries
+          (see the <xref xrefstyle="select: label"
+          linkend="compressionIssues"/> for hints about how they may be used
+          to improve performance), fetch and install the
+          <literal>LZO</literal> (choose v1.x, <literal>LZO</literal> v2.x is
+          not supported in precompiled Windows builds) and
+          <literal>bzip2</literal> binaries from <biblioref
+          linkend="GnuWin32"/><footnote><para>Note that support for the UCL
+          compressor has been declared deprecated and has not been added in
+          the binary build of PyTables for
+          Windows.</para></footnote>. Normally, you will only need to fetch
+          and install the
+          <literal><![CDATA[<package>-<version>-bin.zip]]></literal> file and
+          copy the <literal>lzo1.dll</literal> or <literal>bzip2.dll</literal>
+          files in a directory in the <literal>PATH</literal> environment
+          variable, or in
           <literal>python_installation_path\Lib\site-packages\tables</literal>
-          (the last directory may have not exist yet, so if you want to install
-          the DLLs there, you should do so <emphasis>after</emphasis> installing
-          the PyTables package), so that they can be found by the
-          <markup>PyTables</markup> extensions. </para>
+          (the last directory may have not exist yet, so if you want to
+          install the DLLs there, you should do so <emphasis>after</emphasis>
+          installing the PyTables package), so that they can be found by the
+          PyTables extensions. </para>
 
           <para>Please, note that PyTables has internal machinery for dealing
-          with uninstalled optional compression libraries, so, you don't need to
-          install any of LZO or bzip2 dynamic libraries if you don't want to.
+          with uninstalled optional compression libraries, so, you don't need
+          to install any of LZO or bzip2 dynamic libraries if you don't want
+          to.
           </para>
 
         </section>
 
         <section id="PyTablesBinInstallDescr">
-          <title><markup>PyTables</markup> package installation</title>
+          <title>PyTables package installation</title>
 
           <para>Download the
           <literal><![CDATA[tables-<version>.win32-py<version>.exe]]></literal>
           file and execute it. </para>
 
           <para>You can (<emphasis>you should</emphasis>) test your
-          installation by unpacking the source tar-ball, changing to
-          the <literal>tables/tests/</literal> subdirectory and
-          executing the <literal>test_all.py</literal> script. If all
-          the tests pass (possibly with a few warnings, related to the
-          potential unavailability of LZO or bzip2 libs) you already
-          have a working, well-tested copy of PyTables installed! If
-          any test fails, please try to locate which test module is
-          failing and execute:
+          installation by unpacking the source tar-ball, changing to the
+          <literal>tables/tests/</literal> subdirectory and executing the
+          <literal>test_all.py</literal> script. If all the tests pass
+          (possibly with a few warnings, related to the potential
+          unavailability of LZO or bzip2 libs) you already have a working,
+          well-tested copy of PyTables installed! If any test fails, please
+          try to locate which test module is failing and execute:
 
-          <screen><![CDATA[ python test_<module>.py -v verbose]]></screen>
+          <screen><![CDATA[
+ python test_<module>.py -v verbose
+          ]]></screen>
 
           and also:
 
-          <screen><![CDATA[ python test_all.py --show-versions]]></screen>
+          <screen><![CDATA[
+ python test_all.py --show-versions
+          ]]></screen>
 
-          and mail the output to the developers so that the problem
-          can be fixed in future releases.</para>
+          and mail the output to the developers so that the problem can be
+          fixed in future releases.</para>
 
           <para>You can proceed now to the next chapter to see how to use
           PyTables. </para>
+
         </section>
       </section>
     </chapter>
 
     <chapter id="usage">
       <title>Tutorials</title>
+
       <epigraph>
       <attribution>Lyrics: Vicent Andrés i Estellés. Music:
       Ovidi Montllor,  <citetitle>M'aclame a tu</citetitle> </attribution>
@@ -1040,7 +1064,7 @@ fileh.close()
         during the course of the tutorial!</para>
 
         <section>
-          <title>Importing <markup>tables</markup> objects</title>
+          <title>Importing <literal>tables</literal> objects</title>
 
           <para>Before starting you need to import the public objects in the
           <literal>tables</literal> package. You
@@ -1146,7 +1170,7 @@ fileh.close()
         </section>
 
         <section>
-          <title>Creating a <markup>PyTables</markup> file from scratch</title>
+          <title>Creating a PyTables file from scratch</title>
 
           <para>Use the first-level
           <literal>openFile</literal> function (see <xref linkend="openFileDescr"/>) to create a
@@ -2000,13 +2024,11 @@ fileh.close()
         </section>
 
         <section>
-          <title>Reading data from <markup>Array</markup> objects</title>
+          <title>Reading data from <literal>Array</literal> objects</title>
 
-          <para>Once you have found the desired
-          <literal>Array</literal>, use the
-          <literal>read()</literal> method of the
-          <literal>Array</literal> object to retrieve
-          its data:</para>
+          <para>Once you have found the desired <literal>Array</literal>, use
+          the <literal>read()</literal> method of the <literal>Array</literal>
+          object to retrieve its data:</para>
 
           <screen><![CDATA[ >>> pressureArray = pressureObject.read()
  >>> pressureArray
@@ -2339,7 +2361,7 @@ fileh.close()
           </figure>
 
           <figure id="tutorial1-general">
-            <title>General properties of the <markup>/detector/readout</markup> table.</title>
+            <title>General properties of the <literal>/detector/readout</literal> table.</title>
 
             <mediaobject>
               <imageobject role="fo">
@@ -3279,7 +3301,8 @@ fileh.close()
         </section>
 
         <section>
-          <title>Reading nested tables: introducing <markup>NestedRecArray</markup> objects</title>
+          <title>Reading nested tables: introducing
+          <literal>NestedRecArray</literal> objects</title>
 
           <para>Now, what happens if we want to read the table? Which data
           container will be used to keep the data? Well, it's worth trying it:
@@ -3634,7 +3657,7 @@ fileh.close()
       PyTables.</para>
 
       <section>
-        <title><markup>tables</markup> variables and functions</title>
+        <title><literal>tables</literal> variables and functions</title>
 
         <section>
           <title>Global variables</title>
@@ -3821,7 +3844,7 @@ fileh.close()
       </section>
 
       <section id="FileClassDescr">
-        <title>The <markup>File</markup> class</title>
+        <title>The <literal>File</literal> class</title>
 
         <para>An instance of this class is returned when a PyTables file is
         opened with the <literal>openFile()</literal>
@@ -3867,7 +3890,7 @@ fileh.close()
         </para>
 
         <section>
-          <title><markup>File</markup> instance variables</title>
+          <title><literal>File</literal> instance variables</title>
 
           <glosslist>
           <?dbfo glosslist-presentation="list" ?>
@@ -3977,7 +4000,7 @@ fileh.close()
 	</section>
 
 	<section id="FileMethodsDescr">
-	  <title><markup>File</markup> methods</title>
+	  <title><literal>File</literal> methods</title>
 
 	  <section id="createGroupDescr" xreflabel="description">
 	    <title>createGroup(where, name, title='', filters=None)</title>
@@ -4900,7 +4923,7 @@ for node in h5file.walkNodes("/detector"):
 	</section>
 
 	<section>
-	  <title><markup>File</markup> special
+	  <title><literal>File</literal> special
 	      methods</title>
 
 	  <para>Following are described the methods that automatically
@@ -4971,7 +4994,7 @@ Object Tree:
 
 
       <section id="NodeClassDescr">
-	<title>The <markup>Node</markup> class</title>
+	<title>The <literal>Node</literal> class</title>
 
 	<para>This is the base class for <emphasis>all</emphasis> nodes in a PyTables hierarchy.
 	  It is an abstract class, i.e. it may not be directly instantiated;
@@ -5009,7 +5032,7 @@ Object Tree:
 	</para>
 
 	<section>
-	  <title><markup>Node</markup> instance variables</title>
+	  <title><literal>Node</literal> instance variables</title>
 
 	  <section>
 	    <title>Location dependent</title>
@@ -5109,7 +5132,7 @@ Object Tree:
 	</section>
 
 	<section>
-	  <title><markup>Node</markup> methods</title>
+	  <title><literal>Node</literal> methods</title>
 
 	  <section>
 	    <title>Hierarchy manipulation</title>
@@ -5265,7 +5288,7 @@ Object Tree:
 
 
       <section id="GroupClassDescr">
-	<title>The <markup>Group</markup> class</title>
+	<title>The <literal>Group</literal> class</title>
 
 	<para>Instances of this class are a grouping structure containing
 	  instances of zero or more groups or leaves, together with
@@ -5310,7 +5333,7 @@ Object Tree:
 	</para>
 
 	<section>
-	  <title><markup>Group</markup> instance variables</title>
+	  <title><literal>Group</literal> instance variables</title>
 
 	  <para>These instance variables are provided in addition to those
 	    in <literal>Node</literal> (see <xref xrefstyle="select: labelnumber" linkend="NodeClassDescr"/>).
@@ -5354,7 +5377,7 @@ Object Tree:
 	</section>
 
 	<section>
-	  <title><markup>Group</markup> methods</title>
+	  <title><literal>Group</literal> methods</title>
 
 	  <para>This class defines the <literal>__setattr__</literal>,
 	    <literal>__getattr__</literal> and <literal>__delattr__</literal> methods,
@@ -5545,7 +5568,7 @@ for array in h5file.root._f_walkNodes("Array", recursive=True):
 	</section>
 
 	<section>
-	  <title><markup>Group</markup> special
+	  <title><literal>Group</literal> special
 	      methods</title>
 
 	  <para>Following are described the methods that automatically
@@ -5676,7 +5699,7 @@ for node in h5file.root.detector:
       </section>
 
       <section id="LeafClassDescr">
-	<title>The <markup>Leaf</markup> class</title>
+	<title>The <literal>Leaf</literal> class</title>
 
 	<para>The goal of this class is to provide a place to put common
 	  functionality of all its descendants as well as provide a
@@ -5692,7 +5715,7 @@ for node in h5file.root.detector:
 	</para>
 
 	<section>
-	  <title><markup>Leaf</markup> instance variables</title>
+	  <title><literal>Leaf</literal> instance variables</title>
 
 	  <para>These instance variables are provided in addition to those
 	    in <literal>Node</literal> (see <xref xrefstyle="select: labelnumber" linkend="NodeClassDescr"/>).
@@ -5760,7 +5783,7 @@ for node in h5file.root.detector:
 	</section>
 
 	<section>
-	  <title><markup>Leaf</markup> methods</title>
+	  <title><literal>Leaf</literal> methods</title>
 
 	  <section id="Leaf.flush">
 	    <title>
@@ -5909,7 +5932,7 @@ for node in h5file.root.detector:
       </section>
 
       <section id="TableClassDescr">
-	<title>The <markup>Table</markup> class</title>
+	<title>The <literal>Table</literal> class</title>
 
 	<para>Instances of this class represents table objects in the
 	  object tree. It provides methods to read/write data and
@@ -5942,7 +5965,7 @@ for node in h5file.root.detector:
 	</para>
 
 	  <section id="TableInstanceVariablesDescr">
-	    <title><markup>Table</markup> instance variables</title>
+	    <title><literal>Table</literal> instance variables</title>
 
 	    <glosslist><?dbfo glosslist-presentation="list" ?>
 
@@ -6067,7 +6090,7 @@ for node in h5file.root.detector:
 	  </section>
 
 	  <section id="Table_methods">
-	    <title><markup>Table</markup> methods
+	    <title><literal>Table</literal> methods
 	    </title>
 
 	    <section id="Table.getEnum">
@@ -6635,7 +6658,7 @@ print "Values that pass the cuts:", passvalues]]></screen>
 
 	  </section>
 	  <section id="TableSpecialMethods">
-	    <title><markup>Table</markup> special methods
+	    <title><literal>Table</literal> special methods
 	    </title>
 
 	    <para>Following are described the methods that automatically
@@ -6711,7 +6734,7 @@ recarray = table.read(start=4, stop=1000, step=2)]]></screen>
 	      <glosslist>
 
           <glossentry>
-          <glossterm> <emphasis role="bold"><markup>key</markup></emphasis> is
+          <glossterm> <emphasis role="bold"><literal>key</literal></emphasis> is
           an <literal>Integer</literal></glossterm>
           <glossdef><para>The corresponding table row is set to
           <emphasis>value</emphasis>. <emphasis>value</emphasis> must be a
@@ -6720,7 +6743,7 @@ recarray = table.read(start=4, stop=1000, step=2)]]></screen>
           converted to the table field format.</para></glossdef>
           </glossentry>
 
-    <glossentry><glossterm><emphasis role="bold"><markup>key</markup></emphasis> is a
+    <glossentry><glossterm><emphasis role="bold"><literal>key</literal></emphasis> is a
 		  <literal>Slice</literal></glossterm><glossdef><para>The row slice
 		  determined by key is set to
 		  <emphasis>value</emphasis>. <emphasis>value</emphasis> must be a
@@ -6749,7 +6772,7 @@ table.modifyRows(start=1, step=2, rows=rows)]]></screen>
 	  </section>
 
 	  <section id="RowClassDescr">
-	    <title>The <markup>Row</markup> class</title>
+	    <title>The <literal>Row</literal> class</title>
 
 	    <para>This class is used to fetch and set values on the table
 	      fields. It works very much like a dictionary, where the keys
@@ -6765,7 +6788,7 @@ table.modifyRows(start=1, step=2, rows=rows)]]></screen>
 	    </para>
 
 	    <section>
-	      <title><markup>Row</markup> attributes
+	      <title><literal>Row</literal> attributes
 	      </title>
 
 	      <glosslist><glossentry><glossterm><emphasis role="bold">nrow</emphasis></glossterm><glossdef><para>Property that returns the
@@ -6775,7 +6798,7 @@ table.modifyRows(start=1, step=2, rows=rows)]]></screen>
 	    </section>
 
 	    <section id="RowMethods">
-	      <title><markup>Row</markup> methods</title>
+	      <title><literal>Row</literal> methods</title>
 
 	      <section>
           <title>append()</title>
@@ -6839,7 +6862,7 @@ table.flush()]]></screen>
   </section>
 
 	<section id="ColsClassDescr">
-	  <title>The <markup>Cols</markup> class</title>
+	  <title>The <literal>Cols</literal> class</title>
 
 	  <para>This class is used as an <emphasis>accessor</emphasis> to the table
 	    columns following the natural name convention, so that you
@@ -6861,7 +6884,7 @@ table.flush()]]></screen>
 	  </para>
 
 	  <section>
-	    <title><markup>Cols</markup> instance variables</title>
+	    <title><literal>Cols</literal> instance variables</title>
 
 	    <glosslist>
       <?dbfo glosslist-presentation="list" ?>
@@ -6901,7 +6924,7 @@ table.flush()]]></screen>
 	  </section>
 
 	  <section>
-	    <title><markup>Cols</markup> methods</title>
+	    <title><literal>Cols</literal> methods</title>
 
 	    <section id="Cols._f_col">
 	      <title>_f_col(colname)</title>
@@ -6988,7 +7011,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	</section>
 
 	<section id="DescriptionClassDescr">
-	  <title>The <markup>Description</markup> class</title>
+	  <title>The <literal>Description</literal> class</title>
 
 	  <para>The instances of the <literal>Description</literal> class provide
 	    a description of the structure of a table.
@@ -7017,7 +7040,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	  </para>
 
 	  <section>
-	    <title><markup>Description</markup> instance variables </title>
+	    <title><literal>Description</literal> instance variables </title>
 
 	    <glosslist>
       <?dbfo glosslist-presentation="list" ?>
@@ -7134,7 +7157,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	  </section>
 
 	  <section>
-	    <title><markup>Description</markup> methods</title>
+	    <title><literal>Description</literal> methods</title>
 
       <section>
         <title>_f_walk(type='All')</title>
@@ -7159,7 +7182,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	</section>
 
 	<section id="ColumnClassDescr">
-	  <title>The <markup>Column</markup> class</title>
+	  <title>The <literal>Column</literal> class</title>
 
 	  <para>Each instance of this class is associated with one column
 	    of every table. These instances are mainly used to fetch and
@@ -7168,7 +7191,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	  </para>
 
 	  <section>
-	    <title><markup>Column</markup> instance variables</title>
+	    <title><literal>Column</literal> instance variables</title>
 
 	    <glosslist>
       <?dbfo glosslist-presentation="list" ?>
@@ -7228,11 +7251,11 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	  </section>
 
 	  <section>
-	    <title><markup>Column</markup> methods
+	    <title><literal>Column</literal> methods
 	    </title>
 
 	    <section id="createIndexColumnDescr" xreflabel="description">
-	      <title><markup>createIndex()</markup>
+	      <title><literal>createIndex()</literal>
 	      </title>
 
 	      <para>Create an <literal>Index</literal> (see <xref xrefstyle="select: labelnumber" linkend="IndexClassDescr"/>) object for this
@@ -7242,7 +7265,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	    </section>
 
 	    <section id="reIndexColumnDescr">
-	      <title><markup>reIndex()</markup>
+	      <title><literal>reIndex()</literal>
 	      </title>
 
 	      <para>Recompute the index associated with this column. This
@@ -7254,7 +7277,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	    </section>
 
 	    <section id="reIndexDirtyColumnDescr">
-	      <title><markup>reIndexDirty()</markup>
+	      <title><literal>reIndexDirty()</literal>
 	      </title>
 
 	      <para>Recompute the existing index only if it is dirty. This
@@ -7269,7 +7292,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	    </section>
 
 	    <section id="removeIndexColumnDescr">
-	      <title><markup>removeIndex()</markup></title>
+	      <title><literal>removeIndex()</literal></title>
 
 	      <para>
 		Remove the index associated with this column.
@@ -7285,11 +7308,11 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	  </section>
 
 	  <section>
-	    <title><markup>Column</markup> special methods
+	    <title><literal>Column</literal> special methods
 	    </title>
 
 	    <section id="Column.__getitem__">
-	      <title><markup>__getitem__(key)</markup>
+	      <title><literal>__getitem__(key)</literal>
 	      </title>
 
 	      <para>Returns a column element or slice. It takes different
@@ -7297,12 +7320,12 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 		parameter:
 	      </para>
 
-	      <glosslist><glossentry><glossterm><emphasis role="bold"><markup>key</markup></emphasis> is an
+	      <glosslist><glossentry><glossterm><emphasis role="bold"><literal>key</literal></emphasis> is an
 		  <literal>Integer</literal></glossterm><glossdef><para>The corresponding
 		  element in the column is returned as a scalar object
 		  or as a <literal>numarray</literal> object, depending on
 		  its shape.
-		</para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold"><markup>key</markup></emphasis> is a
+		</para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold"><literal>key</literal></emphasis> is a
 		  <literal>Slice</literal></glossterm><glossdef><para>The row range
 		  determined by this slice is returned as a
 		  <literal>numarray</literal> object.
@@ -7346,13 +7369,13 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]]]></screen>
 	      <para>It takes different actions depending on the
 		type of the <literal>key</literal> parameter:</para>
 
-	      <glosslist><glossentry><glossterm><emphasis role="bold"><markup>key</markup></emphasis> is an
+	      <glosslist><glossentry><glossterm><emphasis role="bold"><literal>key</literal></emphasis> is an
 		  <literal>Integer</literal></glossterm><glossdef><para>The corresponding
 		  element in the column is set to
 		  <emphasis>value</emphasis>. <emphasis>value</emphasis> must be a scalar or
 		  <literal>numarray</literal>/<literal>NumPy</literal> object,
 		  depending on column's shape.
-		</para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold"><markup>key</markup></emphasis> is a
+		</para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold"><literal>key</literal></emphasis> is a
 		  <literal>Slice</literal></glossterm><glossdef><para>The row slice
 		  determined by <emphasis>key</emphasis> is set to
 		  <emphasis>value</emphasis>. <emphasis>value</emphasis> must be a list of
@@ -7380,7 +7403,7 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 	</section>
 
 	<section id="ArrayClassDescr">
-	  <title>The <markup>Array</markup>
+	  <title>The <literal>Array</literal>
 	    class</title>
 
 	  <para>Represents an array on file. It provides methods to
@@ -7410,7 +7433,7 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 	  </para>
 
 	  <section id="ArrayClassInstanceVariables">
-	    <title><markup>Array</markup> instance variables</title>
+	    <title><literal>Array</literal> instance variables</title>
 
       <glosslist>
       <?dbfo glosslist-presentation="list" ?>
@@ -7459,7 +7482,7 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 	  </section>
 
 	  <section>
-	    <title><markup>Array</markup>
+	    <title><literal>Array</literal>
 	      methods</title>
 
 	    <para>Note that, as this object has no internal I/O buffers, it
@@ -7543,7 +7566,7 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 	  </section>
 
 	  <section id="ArraySpecialMethods">
-	    <title><markup>Array</markup> special
+	    <title><literal>Array</literal> special
 	      methods</title>
 
 	    <para>Following are described the methods that automatically
@@ -7628,7 +7651,7 @@ a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))]]></screen>
 	</section>
 
 	<section id="CArrayClassDescr">
-	  <title>The <markup>CArray</markup> class</title>
+	  <title>The <literal>CArray</literal> class</title>
 
 	  <para>This is a child of the <literal>Array</literal> class (see <xref xrefstyle="select: labelnumber" linkend="ArrayClassDescr"/>) and as such,
 	    <literal>CArray</literal> represents an array on the file. The
@@ -7640,7 +7663,7 @@ a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))]]></screen>
 	  </para>
 
 	  <section id="CArrayClassInstanceVariables">
-	    <title><markup>CArray</markup> instance variables</title>
+	    <title><literal>CArray</literal> instance variables</title>
 
 	    <para>In addition to the attributes that <literal>CArray</literal>
 	      inherits from <literal>Array</literal>, it supports some more
@@ -7710,7 +7733,7 @@ Object Tree:
 	</section>
 
 	<section id="EArrayClassDescr">
-	  <title>The <markup>EArray</markup> class</title>
+	  <title>The <literal>EArray</literal> class</title>
 
 	  <para>This is a child of the <literal>Array</literal> class (see <xref xrefstyle="select: labelnumber" linkend="ArrayClassDescr"/>) and as such,
 	    <literal>EArray</literal> represents an array on the file. The
@@ -7731,7 +7754,7 @@ Object Tree:
 	  </para>
 
 	  <section id="EArrayClassInstanceVariables">
-	    <title><markup>EArray</markup> instance variables</title>
+	    <title><literal>EArray</literal> instance variables</title>
 
 	    <glosslist>
       <?dbfo glosslist-presentation="list" ?>
@@ -7763,7 +7786,7 @@ Object Tree:
 	  </section>
 
 	  <section id="EArrayMethodsDescr">
-	    <title><markup>EArray</markup>
+	    <title><literal>EArray</literal>
 	      methods</title>
 
 	    <section id="EArray.getEnum">
@@ -7827,7 +7850,7 @@ array_c[4] => 'cccccccc']]></screen>
 	</section>
 
 	<section id="VLArrayClassDescr">
-	  <title>The <markup>VLArray</markup> class</title>
+	  <title>The <literal>VLArray</literal> class</title>
 
 	  <para>Instances of this class represents array objects in the
 	    object tree with the property that their rows can have a
@@ -7847,7 +7870,7 @@ array_c[4] => 'cccccccc']]></screen>
 	  </para>
 
 	  <section>
-	    <title><markup>VLArray</markup> instance variables</title>
+	    <title><literal>VLArray</literal> instance variables</title>
 
 	    <glosslist>
       <?dbfo glosslist-presentation="list" ?>
@@ -7877,7 +7900,7 @@ array_c[4] => 'cccccccc']]></screen>
 	  </section>
 
 	  <section>
-	    <title><markup>VLArray</markup> methods</title>
+	    <title><literal>VLArray</literal> methods</title>
 
 	    <section id="VLArray.getEnum">
 	      <title>getEnum()</title>
@@ -7995,7 +8018,7 @@ vlarray1[2]--> [5 6 9 8]]]></screen>
 	  </section>
 
 	  <section id="VLArraySpecialMethods">
-	    <title><markup>VLArray</markup> special
+	    <title><literal>VLArray</literal> special
 	      methods</title>
 
 	    <para>Following are described the methods that automatically
@@ -8086,7 +8109,7 @@ vlarray[99,-99:-89:2] = vlarray[5]*2+3]]></screen>
 	</section>
 
 	<section id="UnImplementedClassDescr">
-	  <title>The <markup>UnImplemented</markup> class</title>
+	  <title>The <literal>UnImplemented</literal> class</title>
 
 	  <para>Instances of this class represents an unimplemented dataset
 	    in a generic HDF5 file. When reading such a file (i.e. one
@@ -8116,7 +8139,7 @@ vlarray[99,-99:-89:2] = vlarray[5]*2+3]]></screen>
 	</section>
 
 	<section id="AttributeSetClassDescr">
-	  <title>The <markup>AttributeSet</markup>
+	  <title>The <literal>AttributeSet</literal>
 	    class</title>
 
 	  <para>Represents the set of attributes of a node (Leaf or
@@ -8205,7 +8228,7 @@ AttributeError: 'module' object has no attribute 'MyClass'
 ... h5f.close()]]></screen>
 
 	  <section id="AttributeSetClassInstanceVariables">
-	    <title><markup>AttributeSet</markup> instance variables</title>
+	    <title><literal>AttributeSet</literal> instance variables</title>
 
       <glosslist>
       <?dbfo glosslist-presentation="list" ?>
@@ -8235,7 +8258,7 @@ AttributeError: 'module' object has no attribute 'MyClass'
 	  </section>
 
 	  <section>
-	    <title><markup>AttributeSet</markup> methods</title>
+	    <title><literal>AttributeSet</literal> methods</title>
 
 	    <para>Note that this class defines the
 	    <literal>__setattr__</literal>,
@@ -8307,7 +8330,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	  </para>
 
 	  <section id="IsDescriptionClassDescr">
-	    <title>The <markup>IsDescription</markup>
+	    <title>The <literal>IsDescription</literal>
 	      class</title>
 
 	    <para>This class is designed to be used as an easy, yet
@@ -8343,7 +8366,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    </para>
 
 	    <section id="IsDescription.specialAttrs">
-	      <title><markup>IsDescription</markup> special attributes</title>
+	      <title><literal>IsDescription</literal> special attributes</title>
 
 	      <glosslist>
         <?dbfo glosslist-presentation="list" ?>
@@ -8379,7 +8402,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	  </section>
 
 	  <section id="ColClassDescr">
-	    <title>The <markup>Col</markup> class and its
+	    <title>The <literal>Col</literal> class and its
 	      descendants
 	    </title>
 
@@ -8392,7 +8415,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    </para>
 
 	    <section>
-	      <title><markup>Col</markup> instance attributes</title>
+	      <title><literal>Col</literal> instance attributes</title>
 
 	      <glosslist>
         <?dbfo glosslist-presentation="list" ?>
@@ -8455,7 +8478,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    </section>
 
 	    <section>
-	      <title><markup>Col</markup>
+	      <title><literal>Col</literal>
 		methods</title>
 
 	      <para>None.</para>
@@ -8463,7 +8486,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    </section>
 
 	    <section>
-        <title><markup>Col</markup> constructors</title>
+        <title><literal>Col</literal> constructors</title>
 
 	      <para>A description of the different constructors with their parameters
 	      follows:</para>
@@ -8757,7 +8780,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	  </section>
 
 	  <section id="AtomClassDescr">
-	    <title>The <markup>Atom</markup> class and its
+	    <title>The <literal>Atom</literal> class and its
 	      descendants.
 	    </title>
 	    <para>The <literal>Atom</literal> class is a descendant of the
@@ -8781,7 +8804,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    </para>
 
 	    <section>
-	      <title><markup>Atom</markup> instance variables</title>
+	      <title><literal>Atom</literal> instance variables</title>
 
 	      <para>In addition to the variables that it inherits from the
 		<literal>Col</literal> class, it has the next additional
@@ -8803,7 +8826,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    </section>
 
       <section>
-        <title><markup>Atom</markup> methods</title>
+        <title><literal>Atom</literal> methods</title>
 
         <section>
           <title>atomsize()</title>
@@ -8819,7 +8842,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    </section>
 
 	    <section>
-	      <title><markup>Atom</markup> constructors</title>
+	      <title><literal>Atom</literal> constructors</title>
 
 	      <para>A description of the different constructors with their parameters
 	      follows:</para>
@@ -9169,7 +9192,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    purposes.</para>
 
 	  <section id="FiltersClassDescr">
-	    <title>The <markup>Filters</markup> class
+	    <title>The <literal>Filters</literal> class
 	    </title>
 
 	    <para>This class is meant to serve as a container that keeps
@@ -9218,8 +9241,8 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    </para>
 
 	    <section id="FiltersInitDescr">
-	      <title><markup>Filters(complevel=0,
-		  complib="zlib", shuffle=True, fletcher32=False)</markup>
+	      <title><literal>Filters(complevel=0,
+		  complib="zlib", shuffle=True, fletcher32=False)</literal>
 	      </title>
 
 	      <para>The parameters that can be passed to the
@@ -9291,7 +9314,7 @@ fileh.close()]]></screen>
 	  </section>
 
 	  <section id="IndexPropsClassDescr">
-	    <title>The <markup>IndexProps</markup> class
+	    <title>The <literal>IndexProps</literal> class
 	    </title>
 
 	    <para>You can use this class to set/unset the properties in the
@@ -9335,8 +9358,8 @@ fileh.close()]]></screen>
 	    </para>
 
 	    <section id="IndexPropsInitDescr" xreflabel="description">
-	      <title><markup>IndexProps(auto=True, reindex=True,
-		  filters=None)</markup>
+	      <title><literal>IndexProps(auto=True, reindex=True,
+		  filters=None)</literal>
 	      </title>
 
 	      <para>The parameters that can be passed to the
@@ -9364,7 +9387,7 @@ fileh.close()]]></screen>
 	  </section>
 
             <section id="IndexClassDescr">
-              <title>The <markup>Index</markup> class</title>
+              <title>The <literal>Index</literal> class</title>
 
 
               <para>This class is used to keep the indexing information for
@@ -9376,7 +9399,7 @@ fileh.close()]]></screen>
               some attributes that may be interesting for him.</para>
 
               <section id="IndexClassInstanceVariables">
-                <title><markup>Index</markup> instance variables</title>
+                <title><literal>Index</literal> instance variables</title>
 
 
                 <glosslist>
@@ -9428,7 +9451,7 @@ fileh.close()]]></screen>
             </section>
 
             <section id="EnumClassDescr">
-              <title>The <markup>Enum</markup> class</title>
+              <title>The <literal>Enum</literal> class</title>
 
 
               <para>Each instance of this class represents an enumerated type.
@@ -9648,7 +9671,7 @@ True]]></screen>
       to handle that perfectly.</para>
 
       <section id="expectedRowsOptim">
-        <title>Informing <markup>PyTables</markup> about expected number of
+        <title>Informing PyTables about expected number of
         rows in tables</title>
 
         <para>The underlying HDF5 library that is used by PyTables allows for
@@ -9723,7 +9746,7 @@ result = [ row['var2'] for row in table.where('var1 <= 20')]
 
           <figure id="searchTimes-int">
             <title>Times for different selection modes over
-            <markup>Int32</markup> values. Benchmark made on a machine with
+            <literal>Int32</literal> values. Benchmark made on a machine with
             Itanium (IA64) @ 900 MHz processors with SCSI disk @ 10K
             RPM.</title>
 
@@ -9741,7 +9764,7 @@ result = [ row['var2'] for row in table.where('var1 <= 20')]
 
           <figure id="searchTimes-float">
             <title>Times for different selection modes over
-            <markup>Float64</markup> values. Benchmark made on a machine with
+            <literal>Float64</literal> values. Benchmark made on a machine with
             Itanium (IA64) @ 900 MHz processors with SCSI disk @ 10K
             RPM.</title>
 
@@ -9923,7 +9946,7 @@ indexrows = table.cols.var3.createIndex()
 
           <figure id="indexTimes">
             <title>Times for indexing a couple of columns of data type
-            <markup>Int32</markup> and <markup>Float64</markup>. Benchmark
+            <literal>Int32</literal> and <literal>Float64</literal>. Benchmark
             made on a machine with Itanium (IA64) @ 900 MHz processors with
             SCSI disk @ 10K RPM.</title>
 
@@ -10647,7 +10670,7 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
         certainly appreciate the <literal>rootUEP</literal> parameter.</para>
 
         <figure id="rootUEPfig1">
-          <title>Complete tree in file <markup>test.h5</markup>, and subtree
+          <title>Complete tree in file <literal>test.h5</literal>, and subtree
           of interest for the user.</title>
 
           <mediaobject>
@@ -10663,7 +10686,7 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
 
         <figure id="rootUEPfig2">
           <title>Resulting object tree derived from the use of the
-          <markup>rootUEP</markup> parameter.</title>
+          <literal>rootUEP</literal> parameter.</title>
 
           <mediaobject>
             <imageobject role="fo">
@@ -10679,7 +10702,7 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
       </section>
 
       <section>
-        <title>Compacting your <markup>PyTables</markup> files</title>
+        <title>Compacting your PyTables files</title>
 
         <para>Let's suppose that you have a file on which you have made a lot
         of row deletions on one or more tables, or deleted many leaves or even
@@ -10719,11 +10742,11 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
     <title>Complementary modules</title>
 
     <chapter id="FileNode">
-      <title>FileNode - simulating a filesystem with <markup>PyTables</markup></title>
+      <title>FileNode - simulating a filesystem with PyTables</title>
 
       <para>
       </para><section>
-        <title>What is <markup>FileNode</markup>?</title>
+        <title>What is <literal>FileNode</literal>?</title>
 
         <para><literal>FileNode</literal> is a module which enables you to
         create a PyTables database of nodes which can be used like regular
@@ -10778,9 +10801,9 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
       </section>
 
       <section>
-        <title>Finding a <markup>FileNode</markup> node</title>
+        <title>Finding a <literal>FileNode</literal> node</title>
 
-        <para><markup>FileNode</markup> nodes can be recognized because they
+        <para><literal>FileNode</literal> nodes can be recognized because they
         have a <literal>NODE_TYPE</literal> system attribute with a
         <literal>'file'</literal> value. It is recommended that you use the
         <literal>getNodeAttr()</literal> method (see <xref
@@ -10791,10 +10814,10 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
       </section>
 
       <section>
-        <title><markup>FileNode</markup> - simulating files inside
-        <markup>PyTables</markup></title>
+        <title><literal>FileNode</literal> - simulating files inside
+        PyTables</title>
 
-        <para>The <markup>FileNode</markup> module is part of the
+        <para>The <literal>FileNode</literal> module is part of the
         <literal>nodes</literal> sub-package of PyTables. The recommended way
         to import the module is: </para>
 
@@ -10802,7 +10825,7 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
 >>> from tables.nodes import FileNode
         ]]></screen>
 
-        <para>However, <markup>FileNode</markup> exports very few symbols, so
+        <para>However, <literal>FileNode</literal> exports very few symbols, so
         you can import <literal>*</literal> for interactive usage. In fact,
         you will most probably only use the <literal>NodeType</literal>
         constant and the <literal>newNode()</literal> and
@@ -10812,7 +10835,7 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
         the <literal>NODE_TYPE</literal> system attribute of a node file is
         expected to contain (<literal>'file'</literal>, as we have seen).
         Although this is not expected to change, you should use
-        <markup>FileNode.NodeType</markup> instead of the literal
+        <literal>FileNode.NodeType</literal> instead of the literal
         <literal>'file'</literal> when possible.
         </para>
 
@@ -10991,7 +11014,7 @@ True
           writable. Of course, you could use the
           <literal>setNodeAttr()</literal> method of
           <literal>tables.File</literal> to do it directly on the proper node,
-          but <markup>FileNode</markup> offers a much more comfortable way to
+          but <literal>FileNode</literal> offers a much more comfortable way to
           do it.  <literal>FileNode</literal> objects have an
           <literal>attrs</literal> property which gives you direct access to
           their corresponding <literal>AttributeSet</literal> object.
@@ -11009,7 +11032,7 @@ True
           and more.  Moreover, there is not a fixed list of
           attributes. However, you should avoid names in all caps or starting
           with <literal>'_'</literal>, since PyTables and
-          <markup>FileNode</markup> may use them internally. Some valid
+          <literal>FileNode</literal> may use them internally. Some valid
           examples: </para>
 
           <screen><![CDATA[
@@ -11045,7 +11068,7 @@ keywords_en := ['FileNode', 'test', 'metadata'],
 owner := 'ivan']
           ]]></screen>
 
-          <para>Note that <markup>FileNode</markup> makes no assumptions about
+          <para>Note that <literal>FileNode</literal> makes no assumptions about
           the meaning of your metadata, so its handling is entirely left to
           your needs and imagination.</para>
         </section>
@@ -11063,11 +11086,11 @@ owner := 'ivan']
         valid); however, remember that you can use node titles and metadata to
         overcome this limitation. Also, you may need to devise some strategy
         to represent special files such as devices, sockets and such (not
-        necessarily using <markup>FileNode</markup>).</para>
+        necessarily using <literal>FileNode</literal>).</para>
 
         <para>We are eager to hear your opinion about
-        <markup>FileNode</markup> and its potential uses. Suggestions to
-        improve <markup>FileNode</markup> and create other node types are also
+        <literal>FileNode</literal> and its potential uses. Suggestions to
+        improve <literal>FileNode</literal> and create other node types are also
         welcome. Do not hesitate to contact us!</para>
 
       </section>
@@ -11110,7 +11133,7 @@ owner := 'ivan']
       </section>
 
       <section>
-        <title><markup>FileNode</markup> module reference</title>
+        <title><literal>FileNode</literal> module reference</title>
 
         <section>
           <title>Global constants</title>
@@ -11168,7 +11191,7 @@ owner := 'ivan']
         </section>
 
         <section>
-          <title>The <markup>FileNode</markup> abstract class</title>
+          <title>The <literal>FileNode</literal> abstract class</title>
 
           <para>This is the ancestor of <literal>ROFileNode</literal> and
           <literal>RAFileNode</literal> (see below).  Instances of these
@@ -11209,7 +11232,7 @@ owner := 'ivan']
           <literal>EArray</literal>.</para>
 
           <section>
-            <title><markup>FileNode</markup> methods</title>
+            <title><literal>FileNode</literal> methods</title>
 
             <section>
               <title><emphasis
@@ -11293,7 +11316,7 @@ owner := 'ivan']
         </section>
 
         <section>
-          <title>The <markup>ROFileNode</markup> class</title>
+          <title>The <literal>ROFileNode</literal> class</title>
 
           <para>Instances of this class are returned when
           <literal>openNode()</literal> is called in read-only mode
@@ -11305,7 +11328,7 @@ owner := 'ivan']
         </section>
 
         <section>
-          <title>The <markup>RAFileNode</markup> class</title>
+          <title>The <literal>RAFileNode</literal> class</title>
 
           <para>Instances of this class are returned when either
           <literal>newNode()</literal> is called or when
@@ -11353,7 +11376,7 @@ owner := 'ivan']
     </chapter>
 
     <chapter>
-      <title>NetCDF - a <markup>PyTables</markup> NetCDF3 emulation API</title>
+      <title>NetCDF - a PyTables NetCDF3 emulation API</title>
 
       <section>
         <title>What is NetCDF?</title>
@@ -11376,7 +11399,7 @@ owner := 'ivan']
       </section>
 
       <section>
-        <title>Using the <markup>tables.NetCDF</markup> module</title>
+        <title>Using the <literal>tables.NetCDF</literal> module</title>
 
         <para>The module <literal>tables.NetCDF</literal> emulates the
         <literal>Scientific.IO.NetCDF</literal> API using PyTables. It
@@ -11399,7 +11422,7 @@ owner := 'ivan']
         section of this chapter.</para>
 
         <section>
-          <title>Creating/Opening/Closing a <markup>tables.NetCDF</markup>
+          <title>Creating/Opening/Closing a <literal>tables.NetCDF</literal>
           file</title>
 
           <para>To create a <literal>tables.netCDF</literal> file from python,
@@ -11431,7 +11454,7 @@ owner := 'ivan']
         </section>
 
         <section>
-          <title>Dimensions in a <markup>tables.NetCDF</markup> file</title>
+          <title>Dimensions in a <literal>tables.NetCDF</literal> file</title>
 
           <para>NetCDF defines the sizes of all variables in terms of
           dimensions, so before any variables can be created the dimensions
@@ -11462,7 +11485,7 @@ owner := 'ivan']
         </section>
 
         <section>
-          <title>Variables in a <markup>tables.NetCDF</markup> file</title>
+          <title>Variables in a <literal>tables.NetCDF</literal> file</title>
 
           <para>Most of the data in a <literal>tables.NetCDF</literal> file is
           stored in a netCDF variable (except for global attributes). To
@@ -11512,7 +11535,7 @@ owner := 'ivan']
         </section>
 
         <section>
-          <title>Attributes in a <markup>tables.NetCDF</markup> file</title>
+          <title>Attributes in a <literal>tables.NetCDF</literal> file</title>
 
           <para>There are two types of attributes in a
           <literal>tables.NetCDF</literal> file, global (or file) and
@@ -11561,7 +11584,7 @@ Global attr source = PyTables Users Guide
 
         <section>
           <title>Writing data to and retrieving data from a
-          <markup>tables.NetCDF</markup> variable</title>
+          <literal>tables.NetCDF</literal> variable</title>
 
           <para>Now that you have a netCDF variable object, how do you put
           data into it? If the variable has no <emphasis>unlimited</emphasis>
@@ -11701,7 +11724,7 @@ variables:
         </section>
 
         <section>
-          <title>Efficient compression of <markup>tables.NetCDF</markup>
+          <title>Efficient compression of <literal>tables.NetCDF</literal>
           variables</title>
 
           <para>Data stored in <literal>NetCDFVariable</literal> objects is
@@ -11768,7 +11791,7 @@ variables:
       </section>
 
       <section>
-        <title><markup>tables.NetCDF</markup> module reference</title>
+        <title><literal>tables.NetCDF</literal> module reference</title>
 
         <section>
           <title>Global constants</title>
@@ -11798,7 +11821,7 @@ variables:
         </section>
 
         <section>
-          <title>The <markup>NetCDFFile</markup> class</title>
+          <title>The <literal>NetCDFFile</literal> class</title>
 
           <para><emphasis>NetCDFFile(filename, mode='r',
           history=None)</emphasis></para>
@@ -11821,7 +11844,7 @@ variables:
           </para>
 
           <section>
-            <title><markup>NetCDFFile</markup> methods</title>
+            <title><literal>NetCDFFile</literal> methods</title>
 
               <section>
                 <title>close()</title>
@@ -11973,7 +11996,7 @@ variables:
         </section>
 
         <section>
-          <title>The <markup>NetCDFVariable</markup> class</title>
+          <title>The <literal>NetCDFVariable</literal> class</title>
 
           <para>The <literal>NetCDFVariable</literal> constructor is not
           called explicitly, rather an <literal>NetCDFVarible</literal>
@@ -11985,7 +12008,7 @@ variables:
           <literal>NetCDFVariable</literal> objects via slices.</para>
 
           <section>
-            <title><markup>NetCDFVariable</markup> methods</title>
+            <title><literal>NetCDFVariable</literal> methods</title>
 
             <section>
               <title>typecode()</title>
@@ -12069,7 +12092,7 @@ variables:
 
       <section>
         <title>Converting between true netCDF files and
-        <markup>tables.NetCDF</markup> files</title>
+        <literal>tables.NetCDF</literal> files</title>
 
         <para>If <literal>Scientific.IO.NetCDF</literal> is installed,
         <literal>tables.NetCDF</literal> provides facilities for converting
@@ -12149,7 +12172,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       </section>
 
       <section>
-        <title><markup>tables.NetCDF</markup> file structure</title>
+        <title><literal>tables.NetCDF</literal> file structure</title>
 
         <para> A <literal>tables.NetCDF</literal> file consists of array
         objects (either <literal> EArrays</literal> or
@@ -12165,7 +12188,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       </section>
 
       <section>
-        <title>Sharing data in <markup>tables.NetCDF</markup> files over the
+        <title>Sharing data in <literal>tables.NetCDF</literal> files over the
         internet with OPeNDAP </title>
 
         <para><literal>tables.NetCDF</literal> datasets can be shared over the
@@ -12193,8 +12216,8 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       </section>
 
       <section>
-        <title>Differences between the <markup>Scientific.IO.NetCDF</markup>
-        API and the <markup>tables.NetCDF</markup> API </title>
+        <title>Differences between the <literal>Scientific.IO.NetCDF</literal>
+        API and the <literal>tables.NetCDF</literal> API </title>
 
         <orderedlist>
 
@@ -12302,12 +12325,12 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
     <title>Appendixes</title>
 
     <appendix id="datatypesSupported">
-      <title>Supported data types in <markup>PyTables</markup></title>
+      <title>Supported data types in PyTables</title>
 
       <para>The Table, Array, CArray, VLArray and EArray classes can all handle
-      the complete set of data types supported by the <markup>numarray</markup>
-      package (see <biblioref linkend="Numarray"/>), <markup>NumPy</markup> (see <biblioref linkend="NumPy"/>) and
-      <markup>Numeric</markup> (see <biblioref linkend="Numeric"/>) in Python. The data types for
+      the complete set of data types supported by the <literal>numarray</literal>
+      package (see <biblioref linkend="Numarray"/>), <literal>NumPy</literal> (see <biblioref linkend="NumPy"/>) and
+      <literal>Numeric</literal> (see <biblioref linkend="Numeric"/>) in Python. The data types for
       table fields can be set via the constructor for the
       <literal>Col</literal> class and its descendants
       (see <xref xrefstyle="select: labelnumber" linkend="ColClassDescr"/>) while array elements can
@@ -12318,29 +12341,29 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       <para>In addition to those data types, PyTables' Table, VLArray and EArray
       classes do support some <emphasis>aliasing</emphasis> data types for their
       columns and atoms. Each one of these aliasing types corresponds to one
-      <markup>numarray</markup> type, but they also have special meanings for
+      <literal>numarray</literal> type, but they also have special meanings for
       PyTables. They can be seen as the ordinary types they are associated with,
       plus some additional meaning. Since they do not exist as
-      <markup>numarray</markup> types, they can only be specified to PyTables
+      <literal>numarray</literal> types, they can only be specified to PyTables
       using strings.</para>
 
       <para>Currently, the only supported aliasing data type is
       <emphasis>Time</emphasis>. Two kinds of time values can be handled: 4-byte
       signed integer and 8-byte double precision floating point. Both of them
       reflect the number of seconds since the Unix Epoch, i.e. Jan 1 00:00:00
-      UTC 1970. Their types correspond to <markup>numarray</markup>'s Int32 and
+      UTC 1970. Their types correspond to <literal>numarray</literal>'s Int32 and
       Float64, respectively. Time values are stored in the HDF5 file using the
-      <markup>H5T_TIME</markup> class. Integer times are stored as is, while
+      <literal>H5T_TIME</literal> class. Integer times are stored as is, while
       floating point times are split into two signed integer values representing
       seconds and microseconds (beware: smaller decimals will be lost!).</para>
 
-      <para>PyTables also supports HDF5 <markup>H5T_ENUM</markup>
+      <para>PyTables also supports HDF5 <literal>H5T_ENUM</literal>
       <emphasis>enumerations</emphasis> (restricted sets of unique name and
-      unique value pairs). The <markup>numarray</markup> representation of an
+      unique value pairs). The <literal>numarray</literal> representation of an
       enumerated value depends on the concrete base type used to store the
       enumeration in the HDF5 file. Enumerations are similar to aliasing data
       types in the sense that enumerated data is handled as regular
-      <markup>numarray</markup> data. Enumerations are also specified to
+      <literal>numarray</literal> data. Enumerations are also specified to
       PyTables using a string type, with an additional
       <literal>Enum</literal> (see <xref xrefstyle="select: labelnumber" linkend="EnumClassDescr"/>) instance.</para>
 
@@ -12589,7 +12612,7 @@ shape=2)]]></screen>
       </section>
 
       <section>
-        <title><markup>NestedRecArray</markup> methods</title>
+        <title><literal>NestedRecArray</literal> methods</title>
 
         <para>To access the fields in the nested record array use the
         <literal>field()</literal> method:</para>
@@ -12672,7 +12695,7 @@ NestedRecArray[
       </section>
 
       <section>
-        <title><markup>NestedRecord</markup> objects</title>
+        <title><literal>NestedRecord</literal> objects</title>
 
         <para>Each element of the nested record array is a
         <literal>NestedRecord</literal>, i.e. a
@@ -12758,7 +12781,7 @@ NestedRecArray[
 
         </section>
         <section>
-          <title>A small tutorial on <markup>ptdump</markup></title>
+          <title>A small tutorial on <literal>ptdump</literal></title>
 
           <para>Let's suppose that we want to know only the
           <emphasis>structure</emphasis> of a file. In order to do that, just
@@ -12929,7 +12952,7 @@ Filename: 'vlarray1.h5' Title: '' , Last modif.: 'Fri Feb  6 19:33:28 2004' ,
         </section>
 
         <section>
-          <title>A small tutorial on <markup>ptrepack</markup></title>
+          <title>A small tutorial on <literal>ptrepack</literal></title>
 
           <para>Imagine that we have ended the tutorial 1 (see the output of
           <literal>examples/tutorial1-1.py</literal>),
@@ -13168,7 +13191,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
     </appendix>
 
     <appendix id="PyTablesInternalFormat">
-      <title><markup>PyTables</markup> File Format</title>
+      <title>PyTables File Format</title>
 
       <para>PyTables has a powerful
       capability to deal with native HDF5 files created with another tools.
@@ -13216,7 +13239,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
       library which do the decompression transparently).</para>
 
       <section>
-        <title>Mandatory attributes for a <markup>File</markup></title>
+        <title>Mandatory attributes for a <literal>File</literal></title>
 
         <para>The <literal>File</literal> object is,
         in fact, an special HDF5 <emphasis>group</emphasis> structure that is
@@ -13256,7 +13279,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
       </section>
 
       <section>
-        <title>Mandatory attributes for a <markup>Group</markup></title>
+        <title>Mandatory attributes for a <literal>Group</literal></title>
 
         <para>The next attributes are mandatory for <emphasis>group</emphasis>
         structures:</para>
@@ -13286,14 +13309,14 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
 
       <section>
         <title>Mandatory attributes, storage layout and supported data types for
-        <markup>Leaves</markup></title>
+        <literal>Leaves</literal></title>
 
         <para>This depends on the kind of
         <literal>Leaf</literal>. The format for each
         type follows.</para>
 
         <section id="TableFormatDescr">
-          <title><markup>Table</markup> format</title>
+          <title><literal>Table</literal> format</title>
 
           <section>
             <title>Mandatory attributes</title>
@@ -13570,7 +13593,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
         </section>
 
         <section id="ArrayFormatDescr">
-          <title><markup>Array</markup> format</title>
+          <title><literal>Array</literal> format</title>
 
           <section>
             <title>Mandatory attributes</title>
@@ -13681,7 +13704,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
         </section>
 
         <section id="CArrayFormatDescr">
-          <title><markup>CArray</markup> format</title>
+          <title><literal>CArray</literal> format</title>
 
           <section>
             <title>Mandatory attributes</title>
@@ -13761,7 +13784,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
         </section>
 
         <section id="EArrayFormatDescr">
-          <title><markup>EArray</markup> format</title>
+          <title><literal>EArray</literal> format</title>
 
           <section>
             <title>Mandatory attributes</title>
@@ -13843,7 +13866,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
       </section>
 
       <section id="VLArrayFormatDescr">
-        <title><markup>VLArray</markup> format</title>
+        <title><literal>VLArray</literal> format</title>
 
         <section>
           <title>Mandatory attributes</title>
