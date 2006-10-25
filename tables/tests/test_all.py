@@ -42,6 +42,7 @@ def suite():
         'test_nestedtypes',
         'test_hdf5compat',
         'test_numpy',
+        'test_queries',
         # Sub-packages
         'test_filenode',
         'test_NetCDF',

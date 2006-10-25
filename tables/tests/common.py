@@ -234,7 +234,7 @@ def testFilename(filename):
 
 
 
-def _verboseDecorator(oldmethod):
+def verboseDecorator(oldmethod):
     def newmethod(self, *args, **kwargs):
         self._verboseHeader()
         return oldmethod(self, *args, **kwargs)
@@ -257,7 +257,7 @@ class MetaPyTablesTestCase(type):
         newdict = {}
         for (aname, avalue) in dict_.iteritems():
             if callable(avalue) and aname.startswith('test'):
-                avalue = _verboseDecorator(avalue)
+                avalue = verboseDecorator(avalue)
             newdict[aname] = avalue
         return type.__new__(class_, name, bases, newdict)
 
