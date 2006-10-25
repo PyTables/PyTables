@@ -22,7 +22,7 @@ clean:
 	rm -f usersguide.fo
 	rm -f usersguide.pdf
 
-usersguide.pdf:
+usersguide.pdf: usersguide.xml usersguide_bib.xml
 	xsltproc -o usersguide.fo pytables_fo.xsl usersguide.xml
 	fop -d -c fop_conf.xml usersguide.fo usersguide.pdf
 
