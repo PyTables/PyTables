@@ -3,7 +3,6 @@
 #include "tables.h"
 #include "utils.h"
 #include "H5Zlzo.h"  		       /* Import FILTER_LZO */
-#include "H5Zucl.h"  		       /* Import FILTER_UCL */
 #include "H5Zbzip2.h"  		       /* Import FILTER_BZIP2 */
 
 #include <string.h>
@@ -124,11 +123,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
      /* The LZO compressor does accept parameters */
      else if (strcmp(complib, "lzo") == 0) {
        if ( H5Pset_filter( plist_id, FILTER_LZO, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0 )
-	 return -1;
-     }
-     /* The UCL compress does accept parameters */
-     else if (strcmp(complib, "ucl") == 0) {
-       if ( H5Pset_filter( plist_id, FILTER_UCL, H5Z_FLAG_OPTIONAL, 3, cd_values) < 0 )
 	 return -1;
      }
      /* The bzip2 compress does accept parameters */

@@ -184,7 +184,7 @@ def main():
      --complevel=(0-9) -- Set a compression level (0 for no compression, which
          is the default).
      --complib=lib -- Set the compression library to be used during the copy.
-         lib can be set to "zlib", "lzo", "ucl" or "bzip2". Defaults to "zlib".
+         lib can be set to "zlib", "lzo" or "bzip2". Defaults to "zlib".
      --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
          if complevel>0).
      --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not

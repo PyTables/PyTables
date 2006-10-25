@@ -3,7 +3,6 @@
 /* #include <string.h> */
 #include "version.h"
 #include "H5Zlzo.h"  		       /* Import FILTER_LZO */
-#include "H5Zucl.h"  		       /* Import FILTER_UCL */
 #include "H5Zbzip2.h"  		       /* Import FILTER_BZIP2 */
 
 

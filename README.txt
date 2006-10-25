@@ -8,7 +8,7 @@
 PyTables is a package for managing hierarchical datasets and designed
 to efficiently cope with extremely large amounts of data.
 
-It is built on top of the HDF5 library and the numarray package. It
+It is built on top of the HDF5 library and the NumPy package. It
 features an object-oriented interface that, combined with C extensions
 for the performance-critical parts of the code (generated using
 Pyrex), makes it a fast, yet extremely easy to use tool for
@@ -54,17 +54,17 @@ reasons, you will need to use Python 2.3 or higher (Python 2.3.5 or
 better recommended) to take advantage of PyTables.
 
 To compile PyTables you will need, at least, a recent version of HDF5
-(C flavor) library, the Zlib compression library and the numarray
-package. Besides, if you want to take advantage of the LZO, UCL and
-bzip2 compression libraries support you will also need recent versions
-of them. These compression libraries are, however, optional.
+(C flavor) library, the Zlib compression library and the NumPy
+package. Besides, if you want to take advantage of the LZO and bzip2
+compression libraries support you will also need recent versions of
+them. These compression libraries are, however, optional.
 
-We've tested this PyTables version with HDF5 1.6.5 and numarray 1.5.1,
-and you *need* to use these versions, or higher, to make use of
-PyTables. Albeit you won't need NumPy or Numeric Python in order to
+We've tested this PyTables version with HDF5 1.6.5 and NumPy 1.0, and
+you *need* to use these versions, or higher, to make use of
+PyTables. Albeit you won't need numarray or Numeric Python in order to
 compile PyTables, they are supported; you only will need a reasonably
-recent version of them (>= 0.9.8 for NumPy and >= 24.x for
-Numeric). PyTables has been successfully tested against NumPy 0.9.8
+recent version of them (>= 1.5.2 for numarray and >= 24.x for
+Numeric). PyTables has been successfully tested against numarray 1.5.2
 and Numeric 24.2.
 
 We are using Linux on top of Intel32 as the main development platform,
@@ -93,15 +93,15 @@ including a section on binary installation for Windows users, is
 available in Chapter 2 of the User's Manual (``doc/usersguide.pdf`` or
 http://www.pytables.org/moin/HowToUse).
 
-1. First, make sure that you have HDF5, numarray and numpy installed
-   (you will need at least HDF5 1.6.5, numarray 1.5.0 and numpy
-   0.9.8). If don't, get them from http://hdf.ncsa.uiuc.edu/HDF5 and
-   http://sourceforge.net/projects/numpy/. Compile/install them.
+1. First, make sure that you have HDF5, NumPy installed (you will need
+   at least HDF5 1.6.5 and NumPy 1.0). If don't, get them from
+   http://hdf.ncsa.uiuc.edu/HDF5 and
+   http://numpy.scipy.org/. Compile/install them.
 
-   Optionally, consider to install the excellent LZO and UCL
-   compression libraries from http://www.oberhumer.com/opensource/.
-   You can also install the high-performance bzip2 compression
-   library, available at http://www.bzip.org/.
+   Optionally, consider to install the excellent LZO compression
+   libraries from http://www.oberhumer.com/opensource/.  You can also
+   install the high-performance bzip2 compression library, available
+   at http://www.bzip.org/.
 
 2. From the main PyTables distribution directory run this command,
    (plus any extra flags needed as discussed above)::

@@ -17,7 +17,7 @@ from tables.tests.common import verbose, cleanup, allequal, testFilename
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
-# Check read Tables from pytables version 0.5 (ucl-nrv2e), and 0.7 (ucl-nvr2d)
+# Check read Tables from pytables version 0.5, and 0.7
 class BackCompatTablesTestCase(unittest.TestCase):
 
     #----------------------------------------
@@ -46,11 +46,6 @@ class BackCompatTablesTestCase(unittest.TestCase):
         assert len(result) == 100
         self.fileh.close()
 
-class Table1_0UCL(BackCompatTablesTestCase):
-    file = testFilename("Table1_0_ucl_nrv2e.h5")  # pytables 0.5.1 and before
-
-class Table2_0UCL(BackCompatTablesTestCase):
-    file = testFilename("Table2_0_ucl_nrv2d.h5")  # pytables 0.7.x versions
 
 class Table2_1LZO(BackCompatTablesTestCase):
     file = testFilename("Table2_1_lzo_nrv2e_shuffle.h5")  # pytables 0.8.x versions and after
@@ -126,15 +121,9 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
-    ucl_avail = whichLibVersion("ucl") is not None
     lzo_avail = whichLibVersion("lzo") is not None
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(VLArrayTestCase))
-        if ucl_avail:
-            theSuite.addTest(unittest.makeSuite(Table1_0UCL))
-            theSuite.addTest(unittest.makeSuite(Table2_0UCL))
-            theSuite.addTest(unittest.makeSuite(Attrs_1_3))
-            theSuite.addTest(unittest.makeSuite(Attrs_1_4))
         if lzo_avail:
             theSuite.addTest(unittest.makeSuite(Table2_1LZO))
             theSuite.addTest(unittest.makeSuite(Tables_LZO1))

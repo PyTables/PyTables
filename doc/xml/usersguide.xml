@@ -644,49 +644,32 @@ fileh.close()
           compression library (see <biblioref linkend="lzoRef"/> and <xref
           xrefstyle="select: label" linkend="compressionIssues"/>). The
           high-performance bzip2 compression library can also be used with
-          PyTables (see <biblioref linkend="bzip2Ref"/>).  The use of the UCL
-          compression library is in process of being
-          <emphasis>deprecated</emphasis><footnote><para>This is because of
-          recurrent memory problems in some platforms (perhaps some bad
-          interaction between UCL and <emphasis>something</emphasis> else).
-          Eventually, UCL support will be dropped in the future, so, please,
-          refrain to create datasets compressed with it.</para></footnote>, so
-          it is recommended to not use it unless you have to (you still have
-          data files compressed with UCL). Meanwhile, you can force its
-          support in PyTables by passing the <literal>--force-ucl</literal>
-          flag to <literal>setup.py</literal> (see later).</para>
+          PyTables (see <biblioref linkend="bzip2Ref"/>).</para>
 
           <variablelist>
             <varlistentry><term> <emphasis
             role="bold">Unix</emphasis></term><listitem><para>
             <literal>setup.py</literal> will detect <literal>HDF5</literal>,
-            <literal>LZO</literal>, <literal>UCL</literal> or
-            <literal>bzip2</literal> libraries and include files under
-            <literal>/usr</literal> or <literal>/usr/local</literal>; this
-            will cover most manual installations as well as installations from
-            packages. If <literal>setup.py</literal> can not find
-            <literal>libhdf5</literal> (or <literal>liblzo</literal>,
-            <literal>libucl</literal> or <literal>libbz2</literal> that you
-            may wish to use) or if you have several versions of a library
-            installed and want to use a particular one, then you can set the
-            path to the resource in the environment, setting the values of the
-            <literal>HDF5_DIR</literal>, <literal>LZO_DIR</literal>,
-            <literal>UCL_DIR</literal> or <literal>BZIP2_DIR</literal>
-            environment variables to the path to the particular resource. You
-            may also specify the locations of the resource root directories on
-            the <literal>setup.py</literal> command line.  For example:</para>
+            <literal>LZO</literal>, or <literal>bzip2</literal> libraries and
+            include files under <literal>/usr</literal> or
+            <literal>/usr/local</literal>; this will cover most manual
+            installations as well as installations from packages. If
+            <literal>setup.py</literal> can not find
+            <literal>libhdf5</literal> (or <literal>liblzo</literal>, or
+            <literal>libbz2</literal> that you may wish to use) or if you have
+            several versions of a library installed and want to use a
+            particular one, then you can set the path to the resource in the
+            environment, setting the values of the
+            <literal>HDF5_DIR</literal>, <literal>LZO_DIR</literal>, or
+            <literal>BZIP2_DIR</literal> environment variables to the path to
+            the particular resource. You may also specify the locations of the
+            resource root directories on the <literal>setup.py</literal>
+            command line.  For example:</para>
 
             <screen><![CDATA[
  --hdf5=/stuff/hdf5-1.6.5
  --lzo=/stuff/lzo-1.08
  --bzip2=/stuff/bzip2-1.0.3
-            ]]></screen>
-
-            <para>You can force the compilation of the deprecated UCL
-            compressor by passing the --force-ucl flag:</para>
-
-            <screen><![CDATA[
- --ucl=/stuff/ucl-1.03 --force-ucl
             ]]></screen>
 
             <para>If your HDF5 library was built as a shared library not in
@@ -740,12 +723,7 @@ fileh.close()
               directories can be found).
               <emphasis>Optional</emphasis>.</para></listitem></varlistentry>
 
-              <varlistentry><term><emphasis
-              role="bold">UCL_DIR</emphasis></term><listitem><para>Points to
-              the root UCL directory (where the include/ and lib/ directories
-              can be found). <emphasis>Optional, but
-              discouraged</emphasis>.</para></listitem></varlistentry>
-              </variablelist>
+            </variablelist>
 
             <para>For example:</para>
 
@@ -763,13 +741,6 @@ fileh.close()
  --hdf5=c:\stuff\5-165-win
  --lzo=c:\stuff\lzo-1-08
  --bzip2=c:\stuff\bzip2-1-0-3
-            ]]></screen>
-
-            <para>You can force the compilation of the deprecated UCL
-            compressor by passing the --force-ucl flag:
-
-            <screen><![CDATA[
- --ucl=c:\stuff\ucl-1-02 --force-ucl
             ]]></screen>
 
             You can get ready-to-use Windows binaries and other development
@@ -959,11 +930,8 @@ fileh.close()
           <literal>LZO</literal> (choose v1.x, <literal>LZO</literal> v2.x is
           not supported in precompiled Windows builds) and
           <literal>bzip2</literal> binaries from <biblioref
-          linkend="GnuWin32"/><footnote><para>Note that support for the UCL
-          compressor has been declared deprecated and has not been added in
-          the binary build of PyTables for
-          Windows.</para></footnote>. Normally, you will only need to fetch
-          and install the
+          linkend="GnuWin32"/>. Normally, you will only need to fetch and
+          install the
           <literal><![CDATA[<package>-<version>-bin.zip]]></literal> file and
           copy the <literal>lzo1.dll</literal> or <literal>bzip2.dll</literal>
           files in a directory in the <literal>PATH</literal> environment
@@ -3821,23 +3789,17 @@ fileh.close()
 
             <para>Get version information about a C library.</para>
 
-            <para>If the library indicated by
-            <literal>name</literal> is available, this
-            function returns a 3-tuple containing the major library version as
-            an integer, its full version as a string, and the version date as a
-            string. If the library is not available,
+            <para>If the library indicated by <literal>name</literal> is
+            available, this function returns a 3-tuple containing the major
+            library version as an integer, its full version as a string, and
+            the version date as a string. If the library is not available,
             <literal>None</literal> is returned.
             </para>
 
             <para>The currently supported library names are
-            <literal>hdf5</literal>,
-            <literal>zlib</literal>,
-            <literal>lzo</literal>,
-            <literal>ucl</literal> (in process of
-            being <emphasis>deprecated</emphasis>) and
-            <literal>bzip2</literal>. If another name
-            is given, a <literal>ValueError</literal>
-            is raised. </para>
+            <literal>hdf5</literal>, <literal>zlib</literal>,
+            <literal>lzo</literal> and <literal>bzip2</literal>. If another
+            name is given, a <literal>ValueError</literal> is raised. </para>
 
           </section>
         </section>
@@ -9249,32 +9211,38 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 		<literal>Filters</literal> class constructor are:
 	      </para>
 
-	      <glosslist><glossentry><glossterm><emphasis role="bold">complevel</emphasis></glossterm><glossdef><para>Specifies a compress level
-		  for data. The allowed range is 0-9. A value of 0
-		  disables compression. The default is that compression
-		  is disabled, that balances between compression effort
-		  and CPU consumption.
-		</para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">complib</emphasis></glossterm><glossdef><para> Specifies the compression
-		  library to be used. Right now, <literal>"zlib"</literal>
-		  (default), <literal>"lzo"</literal>, <literal>"ucl"</literal>
-		  and <literal>"bzip2"</literal> values are supported. See
-		  <xref xrefstyle="select: label" linkend="compressionIssues"/> for
-		  some advice on which library is better suited to
-		  your needs.
-		</para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">shuffle</emphasis></glossterm><glossdef><para>Whether or not to use the
-		  <emphasis>shuffle</emphasis> filter present in the
-		  HDF5 library. This is normally used to
-		  improve the compression ratio (at the cost of
-		  consuming a little bit more CPU time). A value of <emphasis>False</emphasis>
-		  disables shuffling and <emphasis>True</emphasis> makes it active. The default
-		  value depends on whether compression is enabled or
-		  not; if compression is enabled, shuffling defaults to
-		  be active, else shuffling is disabled.
-		</para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">fletcher32</emphasis></glossterm><glossdef><para>Whether or not to use the
-		  <emphasis>fletcher32</emphasis> filter in the HDF5 library. This
-		  is used to add a checksum on each data chunk. A value
-		  of <emphasis>False</emphasis> disables the checksum and it is the default.
-		</para></glossdef></glossentry></glosslist>
+	      <glosslist><glossentry><glossterm><emphasis
+		  role="bold">complevel</emphasis></glossterm><glossdef><para>Specifies
+		  a compress level for data. The allowed range is 0-9. A value
+		  of 0 disables compression. The default is that compression
+		  is disabled, that balances between compression effort and
+		  CPU consumption.
+		  </para></glossdef></glossentry><glossentry><glossterm><emphasis
+		  role="bold">complib</emphasis></glossterm><glossdef><para>
+		  Specifies the compression library to be used. Right now,
+		  <literal>"zlib"</literal> (default),
+		  <literal>"lzo"</literal> and <literal>"bzip2"</literal>
+		  values are supported. See <xref xrefstyle="select: label"
+		  linkend="compressionIssues"/> for some advice on which
+		  library is better suited to your needs.
+		  </para></glossdef></glossentry><glossentry><glossterm><emphasis
+		  role="bold">shuffle</emphasis></glossterm><glossdef><para>Whether
+		  or not to use the <emphasis>shuffle</emphasis> filter
+		  present in the HDF5 library. This is normally used to
+		  improve the compression ratio (at the cost of consuming a
+		  little bit more CPU time). A value of
+		  <emphasis>False</emphasis> disables shuffling and
+		  <emphasis>True</emphasis> makes it active. The default value
+		  depends on whether compression is enabled or not; if
+		  compression is enabled, shuffling defaults to be active,
+		  else shuffling is disabled.
+		  </para></glossdef></glossentry><glossentry><glossterm><emphasis
+		  role="bold">fletcher32</emphasis></glossterm><glossdef><para>Whether
+		  or not to use the <emphasis>fletcher32</emphasis> filter in
+		  the HDF5 library. This is used to add a checksum on each
+		  data chunk. A value of <emphasis>False</emphasis> disables
+		  the checksum and it is the default.
+		  </para></glossdef></glossentry></glosslist>
 
 	      <para>Of course, you can also create an instance and then
 		assign the ones you want to change. For example:
@@ -10729,10 +10697,10 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
         <literal>ptrepack</literal> for is changing the compression filters or
         compression levels on your existing data for different goals, like
         checking how this can affect both final size and I/O performance, or
-        getting rid of the optional compressors like <literal>LZO</literal>,
-        <literal>UCL</literal> or <literal>bzip2</literal> in your existing
-        files in case you want to use them with generic HDF5 tools that do not
-        have support for these filters. </para>
+        getting rid of the optional compressors like <literal>LZO</literal> or
+        <literal>bzip2</literal> in your existing files in case you want to
+        use them with generic HDF5 tools that do not have support for these
+        filters. </para>
 
       </section>
 
@@ -12939,7 +12907,7 @@ Filename: 'vlarray1.h5' Title: '' , Last modif.: 'Fri Feb  6 19:33:28 2004' ,
  --complevel=(0-9) -- Set a compression level (0 for no compression, which
      is the default).
  --complib=lib -- Set the compression library to be used during the copy.
-     lib can be set to "zlib", "lzo", "ucl" or "bzip2". Defaults to "zlib".
+     lib can be set to "zlib", "lzo" or "bzip2". Defaults to "zlib".
  --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
      if complevel>0).
  --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not
@@ -13166,7 +13134,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
  --complevel=(0-9) -- Set a compression level (0 for no compression, which
      is the default).
  --complib=lib -- Set the compression library to be used during the copy.
-     lib can be set to "zlib", "lzo", "ucl" or "bzip2". Defaults to "zlib".
+     lib can be set to "zlib", "lzo" or "bzip2". Defaults to "zlib".
  --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
      if complevel>0).
  --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not

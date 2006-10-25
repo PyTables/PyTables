@@ -216,7 +216,6 @@ if os.name == 'posix':
         'HDF5': ['hdf5'],
         'LZO2': ['lzo2'],
         'LZO': ['lzo'],
-        'UCL': ['ucl'],
         'BZ2': ['bz2'], }
 elif os.name == 'nt':
     _Package = WindowsPackage
@@ -224,13 +223,11 @@ elif os.name == 'nt':
         'HDF5': ['hdf5dll', 'hdf5dll'],
         'LZO2': ['liblzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
-        'UCL': ['libucl', 'ucl1'],
         'BZ2': ['bzip2', 'bzip2'], }
 
 hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
 lzo2_package = _Package("LZO 2", 'LZO2', _cp('lzo/lzo1x'), *_platdep['LZO2'])
 lzo1_package = _Package("LZO 1", 'LZO', 'lzo1x', *_platdep['LZO'])
-ucl_package = _Package("UCL", 'UCL', _cp('ucl/ucl'), *_platdep['UCL'])
 bzip2_package = _Package("bzip2", 'BZ2', 'bzlib', *_platdep['BZ2'])
 
 #-----------------------------------------------------------------
@@ -246,15 +243,12 @@ if os.name == 'nt':
 # First check the environment...
 HDF5_DIR = os.environ.get('HDF5_DIR', '')
 LZO_DIR = os.environ.get('LZO_DIR', '')
-UCL_DIR = os.environ.get('UCL_DIR', '')
 BZIP2_DIR = os.environ.get('BZIP2_DIR', '')
 LFLAGS = os.environ.get('LFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
 
-# Default is not compile with UCL support.
-force_ucl = 0
 # ...then the command line.
-# Handle --hdf5=[PATH] --lzo=[PATH] --ucl=[PATH] --force-ucl --bzip2=[PATH]
+# Handle --hdf5=[PATH] --lzo=[PATH] --bzip2=[PATH]
 # --lflags=[FLAGS] and --debug
 args = sys.argv[:]
 for arg in args:
@@ -263,12 +257,6 @@ for arg in args:
         sys.argv.remove(arg)
     elif arg.find('--lzo=') == 0:
         LZO_DIR = arg.split('=')[1]
-        sys.argv.remove(arg)
-    elif arg.find('--ucl=') == 0:
-        UCL_DIR = arg.split('=')[1]
-        sys.argv.remove(arg)
-    elif arg.find('--force-ucl') == 0:
-        force_ucl = 1
         sys.argv.remove(arg)
     elif arg.find('--bzip2=') == 0:
         BZIP2_DIR = arg.split('=')[1]
@@ -289,7 +277,6 @@ for (package, location) in [
     (hdf5_package, HDF5_DIR),
     (lzo2_package, LZO_DIR),
     (lzo1_package, LZO_DIR),
-    (ucl_package, UCL_DIR),
     (bzip2_package, BZIP2_DIR), ]:
 
     if package.tag == 'LZO' and lzo2_enabled:
@@ -316,13 +303,6 @@ for (package, location) in [
 
     print ( "* Found %s headers at ``%s``, library at ``%s``."
             % (package.name, hdrdir, libdir) )
-
-    # Disable UCL support unless --force-ucl is used
-    if package.tag == "UCL" and not force_ucl:
-        print_warning("UCL support is deprecated",
-"""UCL seems installed, but its usage is being deprecated.
-Use --force-ucl if you are sure that you want support for it.""")
-        continue
 
     if hdrdir not in default_header_dirs:
         inc_dirs.append(hdrdir)  # save header directory if needed
@@ -360,7 +340,6 @@ if pyrex:
     indexesExtension = "src/indexesExtension.pyx"
     utilsExtension = "src/utilsExtension.pyx"
     lrucacheExtension = "src/lrucacheExtension.pyx"
-    _comp_ucl = "src/_comp_ucl.pyx"
     _comp_lzo = "src/_comp_lzo.pyx"
     _comp_bzip2 = "src/_comp_bzip2.pyx"
 else:
@@ -369,12 +348,11 @@ else:
     indexesExtension = "src/indexesExtension"
     utilsExtension = "src/utilsExtension"
     lrucacheExtension = "src/lrucacheExtension"
-    _comp_ucl = "src/_comp_ucl"
     _comp_lzo = "src/_comp_lzo"
     _comp_bzip2 = "src/_comp_bzip2"
     for ext in [hdf5Extension, TableExtension, indexesExtension,
                 utilsExtension, lrucacheExtension,
-                _comp_ucl, _comp_lzo, _comp_bzip2]:
+                _comp_lzo, _comp_bzip2]:
         if newer(ext+".pyx", ext+".c"):
             raise RuntimeError, "The '%s.c' file does not exist or is out of date and Pyrex is not available. Please, install Pyrex in order to properly generate the extension." % ext
     hdf5Extension += ".c"
@@ -382,7 +360,6 @@ else:
     indexesExtension += ".c"
     utilsExtension += ".c"
     lrucacheExtension += ".c"
-    _comp_ucl += ".c"
     _comp_lzo += ".c"
     _comp_bzip2 += ".c"
 
@@ -452,11 +429,9 @@ utilsExtension_libs = LIBS + [hdf5_package.library_name]
 lrucacheExtension_libs = []    # Doesn't need external libraries
 
 # Compressor modules only need other libraries if they are enabled.
-_comp_ucl_libs = LIBS[:]
 _comp_lzo_libs = LIBS[:]
 _comp_bzip2_libs = LIBS[:]
 for (package, complibs) in [
-    (ucl_package, _comp_ucl_libs),
     (lzo_package, _comp_lzo_libs),
     (bzip2_package, _comp_bzip2_libs), ]:
 
@@ -556,16 +531,6 @@ interactively save and retrieve large amounts of data.
                                            ],
                                 library_dirs = lib_dirs,
                                 libraries = lrucacheExtension_libs,
-                                extra_link_args = LFLAGS,
-                                ),
-                       Extension("tables._comp_ucl",
-                                include_dirs = inc_dirs,
-                                define_macros = def_macros,
-                                sources = [_comp_ucl,
-                                           "src/H5Zucl.c",
-                                           ],
-                                library_dirs = lib_dirs,
-                                libraries = _comp_ucl_libs,
                                 extra_link_args = LFLAGS,
                                 ),
                        Extension("tables._comp_lzo",

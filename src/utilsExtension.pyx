@@ -114,13 +114,6 @@ if sys.platform == "win32":
   else:
     lzo_version = None
 
-  # Initialize & register ucl
-  if getLibrary("ucl1") == 0:
-    import tables._comp_ucl
-    ucl_version = tables._comp_ucl.register_()
-  else:
-    ucl_version = None
-
   # Initialize & register bzip2
   if getLibrary("bzip2") == 0:
     import tables._comp_bzip2
@@ -135,13 +128,6 @@ else:  # Unix systems
     lzo_version = tables._comp_lzo.register_()
   except ImportError:
     lzo_version = None
-
-  # Initialize & register ucl
-  try:
-    import tables._comp_ucl
-    ucl_version = tables._comp_ucl.register_()
-  except ImportError:
-    ucl_version = None
 
   # Initialize & register bzip2
   try:
@@ -222,17 +208,16 @@ def whichLibVersion(char *name):
   """whichLibVersion(name) -> version info
   Get version information about a C library.
 
-  If the library indicated by `name` is available, this function returns
-  a 3-tuple containing the major library version as an integer, its full
-  version as a string, and the version date as a string.  If the library
-  is not available, ``None`` is returned.
+  If the library indicated by `name` is available, this function returns a
+  3-tuple containing the major library version as an integer, its full version
+  as a string, and the version date as a string.  If the library is not
+  available, ``None`` is returned.
 
-  The currently supported library names are ``hdf5``, ``zlib``, ``lzo``,
-  ``ucl`` and ``bzip2``.  If another name is given, a ``ValueError`` is
-  raised.
+  The currently supported library names are ``hdf5``, ``zlib``, ``lzo``, and
+  ``bzip2``.  If another name is given, a ``ValueError`` is raised.
   """
 
-  libnames = ('hdf5', 'zlib', 'lzo', 'ucl', 'bzip2')
+  libnames = ('hdf5', 'zlib', 'lzo', 'bzip2')
 
   if strcmp(name, "hdf5") == 0:
     binver, strver = getHDF5VersionInfo()
@@ -244,10 +229,6 @@ def whichLibVersion(char *name):
     if lzo_version:
       (lzo_version_string, lzo_version_date) = lzo_version
       return (lzo_version, lzo_version_string, lzo_version_date)
-  elif strcmp(name, "ucl") == 0:
-    if ucl_version:
-      (ucl_version_string, ucl_version_date) = ucl_version
-      return (ucl_version, ucl_version_string, ucl_version_date)
   elif strcmp(name, "bzip2") == 0:
     if bzip2_version:
       (bzip2_version_string, bzip2_version_date) = bzip2_version

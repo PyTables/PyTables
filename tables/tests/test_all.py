@@ -117,9 +117,6 @@ if __name__ == '__main__':
     tinfo = tables.whichLibVersion("lzo")
     if tinfo is not None:
         print "LZO version:       %s (%s)" % (tinfo[1], tinfo[2])
-    tinfo = tables.whichLibVersion("ucl")
-    if tinfo is not None:
-        print "UCL version:       %s (%s)" % (tinfo[1], tinfo[2])
     tinfo = tables.whichLibVersion("bzip2")
     if tinfo is not None:
         print "BZIP2 version:     %s (%s)" % (tinfo[1], tinfo[2])

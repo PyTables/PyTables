@@ -62,8 +62,8 @@ class Filters(object):
             is the default.
 
         complib -- Specifies the compression library to be used. Right
-            now, 'zlib', 'lzo', 'ucl' and 'bzip2' values are supported.
-            If None, then 'zlib' is chosen.
+            now, 'zlib', 'lzo' and 'bzip2' values are supported.  If
+            None, then 'zlib' is chosen.
 
         shuffle -- Whether or not to use the shuffle filter in the HDF5
             library. This is normally used to improve the compression
@@ -78,17 +78,13 @@ class Filters(object):
             default.
         """
 
-        libnames = ('zlib', 'lzo', 'ucl', 'bzip2', 'szip')
+        libnames = ('zlib', 'lzo', 'bzip2', 'szip')
 
         if complib is None:
             complib = "zlib"
         if complib not in libnames:
             raise ValueError("unsupported library %r; it must be one of %s"
                              % (complib, str(libnames)[1:-1]))
-        if complib == "ucl":
-            warnings.warn(DeprecationWarning("""\
-UCL is being deprecated. Please, try to avoid using it if you can.
-You can use the ptrepack utility to migrate datafiles compressed with UCL."""))
 
         if shuffle and not complevel:
             # Shuffling and not compressing makes non sense
@@ -275,9 +271,6 @@ class Leaf(Node):
             for name in filtersDict:
                 if name.startswith("lzo"):
                     filters.complib = "lzo"
-                    filters.complevel = filtersDict[name][0]
-                elif name.startswith("ucl"):
-                    filters.complib = "ucl"
                     filters.complevel = filtersDict[name][0]
                 elif name.startswith("bzip2"):
                     filters.complib = "bzip2"
