@@ -210,9 +210,9 @@ class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
     ## XXX Need some standard checks on query usage.
 
 
-operators = ['<', '<=', '==', '!=']
+operators = ['<', '==', '!=']
 if tests.heavy:
-    operators += ['>=', '>']
+    operators += ['<=', '>=', '>']
 ## XXX Need to check por operator pairs.
 left_bound = row_period / 4
 right_bound = row_period * 3 / 4
@@ -308,7 +308,9 @@ class MDTableMixin:
     tableDescription = MDTableDescription
     shape = md_shape
 
-table_sizes = ['Small', 'Big']
+table_sizes = ['Small']
+if tests.heavy:
+    table_sizes.append('Big')
 table_ndims = ['Scalar']  # to enable multidimensional testing, include 'MD'
 table_optvalues = [0, 1, 3]
 if tests.heavy:
