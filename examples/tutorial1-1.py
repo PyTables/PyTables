@@ -5,7 +5,7 @@ with any HDF5 generic utility.
 
 """
 
-
+from numpy import *
 from tables import *
 
 

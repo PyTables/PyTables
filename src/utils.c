@@ -429,7 +429,7 @@ PyObject *H5UIget_info( hid_t loc_id,
     }
   }
   else {
-    strcpy(byteorder, "non-relevant");
+    strcpy(byteorder, "irrelevant");
   }
 
   /* End access to the dataset */
@@ -661,7 +661,7 @@ herr_t get_order(hid_t type_id, char *byteorder) {
     return h5byteorder;
   }
   else if (h5byteorder == H5T_ORDER_NONE ) {
-    strcpy(byteorder, "non-relevant");
+    strcpy(byteorder, "irrelevant");
     return h5byteorder;
   }
   else {
@@ -683,8 +683,8 @@ herr_t set_order(hid_t type_id, const char *byteorder) {
       status = H5Tset_order(type_id, H5T_ORDER_LE);
     else if (strcmp(byteorder, "big") == 0)
       status = H5Tset_order(type_id, H5T_ORDER_BE );
-    else if (strcmp(byteorder, "non-relevant") == 0) {
-      /* Do nothing because 'non-relevant' doesn't require setting the
+    else if (strcmp(byteorder, "irrelevant") == 0) {
+      /* Do nothing because 'irrelevant' doesn't require setting the
          byteorder explicitely */
 /*       status = H5Tset_order(type_id, H5T_ORDER_NONE ); */
     }

@@ -52,20 +52,12 @@ class CArray(Array):
 
     All NumPy datatype are supported.
 
-    Methods:
+    Methods (specific of CArray):
 
-      Common to all Array's:
-        read(start, stop, step)
-        iterrows(start, stop, step)
+        No specific methods.
 
-    Instance variables:
+    Instance variables (specific of CArrays):
 
-      Common to all Array's:
-
-        type -- The type class for the array.
-        itemsize -- The size of the atomic items. Specially useful for
-            CharArrays.
-        flavor -- The flavor of this object.
         nrow -- On iterators, this is the index of the row currently
             dealed with.
 
@@ -136,11 +128,6 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         self._v_new_title = title
         """New title for this node."""
 
-        self.byteorder = None
-        """
-        The endianness of data in memory ('big', 'little' or
-        'non-relevant').
-        """
         self.rowsize = None
         """The size in bytes of each row in the array."""
         self._v_maxTuples = None
@@ -183,8 +170,6 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         """The NumPy type of the represented array."""
         self.ptype = None
         """The PyTables type of the represented array."""
-        self.itemsize = None
-        """The size of the base items."""
         self.extdim = -1  # `CArray` objects are not enlargeable
         """The index of the enlargeable dimension."""
 
@@ -246,17 +231,11 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 """the shape of ``atom`` must be an int or tuple and you passed: %r""" % \
 (self.atom.shape,))
 
-        # Version, type, flavor, byteorder
+        # Version, types, flavor
         self._v_version = obversion
         self.dtype = self.atom.dtype
         self.ptype = self.atom.ptype
-        self.itemsize = self.atom.dtype.base.itemsize
         self.flavor = self.atom.flavor
-        if self.ptype == "String":
-            self.byteorder = "non-relevant"
-        else:
-            # Only support for creating objects in system byteorder
-            self.byteorder  = sys.byteorder
 
         # Compute some values for buffering and I/O parameters
         # Compute the rowsize for each element
@@ -294,8 +273,8 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        (oid, self.dtype, self.ptype, self.shape, self.itemsize,
-         self.byteorder, self._v_chunksize) = self._openArray()
+        (oid, self.dtype, self.ptype, self.shape,
+         self.flavor, self._v_chunksize) = self._openArray()
 
         # Post-condition
         assert self.extdim == -1, "extdim != -1: this should never happen!"
@@ -369,6 +348,6 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 
         return """%s
   atom = %r
+  byteorder = %r
   nrows = %s
-  flavor = %r
-  byteorder = %r""" % (self, self.atom, self.nrows, self.flavor, self.byteorder)
+  flavor = %r""" % (self, self.atom, self.byteorder, self.nrows, self.flavor)

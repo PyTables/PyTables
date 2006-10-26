@@ -27,6 +27,7 @@ Misc variables:
 
 """
 
+import sys
 import warnings
 
 import tables

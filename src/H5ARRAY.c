@@ -899,7 +899,7 @@ herr_t H5ARRAYget_info( hid_t dataset_id,
     get_order(*super_type_id, byteorder);
   }
   else {
-    strcpy(byteorder, "non-relevant");
+    strcpy(byteorder, "irrelevant");
   }
 
   return 0;

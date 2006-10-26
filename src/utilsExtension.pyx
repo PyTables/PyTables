@@ -254,7 +254,7 @@ def whichClass(hid_t loc_id, char *name):
   cdef object       classId
   cdef int          rank
   cdef hsize_t      *dims, *maxdims
-  cdef char         byteorder[16]  # "non-relevant" fits easily here
+  cdef char         byteorder[11]  # "irrelevant" fits easily here
 
   classId = "UNSUPPORTED"  # default value
   # Get The HDF5 class for the dattatype in this dataset
@@ -529,13 +529,13 @@ sorry, only integer concrete values are supported at this moment""")
   return Enum(enumDict), nptype
 
 
-def enumToHDF5(object enumCol, char *byteOrder):
-  """enumToHDF5(enumCol, byteOrder) -> hid_t
+def enumToHDF5(object enumCol, char *byteorder):
+  """enumToHDF5(enumCol, byteorder) -> hid_t
   Convert a PyTables enumerated type to an HDF5 one.
 
   This function creates an HDF5 enumerated type from the information
   contained in `enumCol` (a ``Col`` object), with the specified
-  `byteOrder` (a string).  The resulting HDF5 enumerated type is
+  `byteorder` (a string).  The resulting HDF5 enumerated type is
   returned.
   """
 
@@ -550,7 +550,7 @@ def enumToHDF5(object enumCol, char *byteOrder):
   # Get the base HDF5 type and create the enumerated type.
   npenum = NPTypeToCode[enumCol.dtype.base.type]
   itemsize = enumCol.dtype.base.itemsize
-  baseId = convArrayType(npenum, itemsize, byteOrder)
+  baseId = convArrayType(npenum, itemsize, byteorder)
   if baseId < 0:
     raise HDF5ExtError("failed to convert NumPy base type to HDF5")
 
@@ -741,7 +741,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   cdef int     i, tsize
   cdef char    *colname
   cdef H5T_class_t  klass
-  cdef char    byteorder[16], byteorder2[16]  # "non-relevant" fits easily here
+  cdef char    byteorder[11], byteorder2[11]  # "irrelevant" fits easily here
   cdef herr_t  ret
   cdef object  sysbyteorder, desc, colobj, colpath2, typeclassname, typeclass
 
@@ -808,7 +808,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
             colobj = Time64Col(shape = colshape, pos = i)
         else:
           #colobj = Col(dtype = colstype, shape = colshape, pos = i)
-          # Make the columns descend from a more specific classes
+          # Make the columns instantiate from a more specific classes
           # (this is better for representation -- repr() -- purposes)
           typeclassname = numpy.sctypeNA[numpy.sctypeDict[colstype]] + "Col"
           typeclass = getattr(isdescr_mod, typeclassname)
@@ -818,7 +818,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
         # changed here. This should be further refined for columns
         # with different byteorders, but this case is strange enough.
         ret = get_order(member_type_id, byteorder2)
-        if ret > 0 and byteorder2 in ["big", "little"]:  # exclude non-relevant
+        if ret > 0 and byteorder2 in ["big", "little"]:  # exclude 'irrelevant'
           strcpy(byteorder, byteorder2)
 
       # Insert the native member

@@ -48,6 +48,14 @@ from tables.registry import classNameDict
 from tables import nriterators
 from tables import nestedrecords
 
+
+# The map between byteorders in NumPy and PyTables
+byteorders = {'>': 'big',
+              '<': 'little',
+              '=': sys.byteorder,
+              '|': 'irrelevant'}
+
+
 # Python identifier regular expression.
 pythonIdRE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 # PyTables reserved identifier regular expression.

@@ -750,8 +750,8 @@ LIBS="hdf5-1.6.5" LIBS="hdf5-1.6.5 nsl"
             files for most of those libraries from the GnuWin32 project (see
             <biblioref linkend="GnuWin32"/>).
 
-        </para></listitem></varlistentry>
-        </variablelist>
+            </para></listitem></varlistentry>
+          </variablelist>
 	</section>
 
         <section id="PyTablesSourceInstallationDescr">
@@ -793,8 +793,9 @@ LIBS="hdf5-1.6.5" LIBS="hdf5-1.6.5 nsl"
                 role="bold">Windows</emphasis></term><listitem><para>Open a
                 DOS terminal and type:</para>
 
-                <screen><![CDATA[ set
-                PYTHONPATH=..\.. python test_all.py]]></screen>
+                <screen><![CDATA[
+ set PYTHONPATH=..\.. python test_all.py
+                ]]></screen>
                 </listitem></varlistentry>
 
               </variablelist>
@@ -1435,7 +1436,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
   itemsize = 16
   nrows = 3
   flavor = 'python'
-  byteorder = 'non-relevant'
+  byteorder = 'irrelevant'
           ]]></screen>
 
           <para>As you can see, <literal>createArray()</literal> accepts

@@ -38,7 +38,7 @@ import numpy
 
 from tables.exceptions import HDF5ExtError
 from tables.enum import Enum
-from tables.utils import checkFileAccess
+from tables.utils import checkFileAccess, byteorders
 
 from tables.utilsExtension import  \
      enumToHDF5, enumFromHDF5, getTypeEnum, \
@@ -490,8 +490,8 @@ cdef class AttributeSet:
     if (isinstance(value, numpy.ndarray) and
         value.dtype.kind in ('S', 'b', 'i', 'u', 'f', 'c')):
       # Get the associated native HDF5 type
+      byteorder = byteorders[value.dtype.byteorder]
       ndt = <dtype>value.dtype
-      byteorder = byteorders["%c"%ndt.byteorder]
       type_id = convArrayType(ndt.type_num, ndt.elsize, byteorder)
       # Get dimensionality info
       ndv = <ndarray>value
@@ -538,7 +538,7 @@ cdef class AttributeSet:
     cdef int rank, ret, i, enumtype
     cdef void *rbuf
     cdef ndarray ndvalue
-    cdef char  byteorder[16]
+    cdef char  byteorder[11]
     cdef object retvalue, shape
 
     dset_id = self.dataset_id
@@ -791,15 +791,11 @@ cdef class Array(Leaf):
     cdef void *rbuf
     cdef int enumtype
     cdef long itemsize
-    cdef char *byteorder
     cdef char *flavor, *complib, *version, *class_
-    cdef object type_, dtype, ptype
+    cdef object type_, dtype, ptype, byteorder
 
     dtype = nparr.dtype.base
-    # The next way of getting the ptype might seem a bit convoluted, but
-    # this is due to an ambiguity in NumPy types that is reported in:
-    # http://projects.scipy.org/scipy/numpy/ticket/283 and
-    # http://projects.scipy.org/scipy/numpy/ticket/290
+    # Get the ptype
     type_ = nparr.dtype.type
     try:
       if type_ == numpy.string_:
@@ -813,8 +809,8 @@ cdef class Array(Leaf):
             """ % repr(type_)
 
     # Get the HDF5 type associated with this numpy type
-    itemsize = nparr.itemsize
-    byteorder = PyString_AsString(self.byteorder)
+    itemsize = dtype.itemsize
+    byteorder = byteorders[dtype.byteorder]
     self.type_id = convArrayType(enumtype, itemsize, byteorder)
     if self.type_id < 0:
       raise TypeError, \
@@ -850,11 +846,10 @@ cdef class Array(Leaf):
     cdef int i, enumtype
     cdef herr_t ret
     cdef void *rbuf
-    cdef char *byteorder
     cdef char *flavor, *complib, *version, *class_
     cdef void *fill_value
     cdef int itemsize
-    cdef object ptype
+    cdef object ptype, byteorder
 
     atom = self.atom
     itemsize = atom.dtype.base.itemsize
@@ -866,10 +861,15 @@ cdef class Array(Leaf):
             """Type class '%s' not supported right now. Sorry about that.
             """ % repr(self.type)
 
-    if ptype == 'Enum':
-      self.type_id = enumToHDF5(atom, self.byteorder)
+    if ptype == "String":
+      byteorder = "irrelevant"
     else:
-      byteorder = PyString_AsString(self.byteorder)
+      # Only support for creating objects in system byteorder
+      byteorder = sys.byteorder
+
+    if ptype == 'Enum':
+      self.type_id = enumToHDF5(atom, byteorder)
+    else:
       self.type_id = convArrayType(enumtype, itemsize, byteorder)
       if self.type_id < 0:
         raise TypeError, \
@@ -937,13 +937,13 @@ cdef class Array(Leaf):
   def _openArray(self):
     cdef size_t type_size, type_precision
     cdef H5T_class_t class_id
-    cdef char byteorder[16]  # "non-relevant" fits easily here
+    cdef char byteorder[11]  # "irrelevant" fits easily here
     cdef int i, enumtype
     cdef int extdim
-    cdef char *flavor
+    cdef char *_flavor
     cdef hid_t base_type_id
     cdef herr_t ret
-    cdef object shape, type_, dtype
+    cdef object shape, type_, dtype, flavor
 
     # Open the dataset (and keep it open)
     self.dataset_id = H5Dopen(self.parent_id, self.name)
@@ -974,14 +974,14 @@ cdef class Array(Leaf):
         self.extdim = i
         break
 
-    # Give class visibility to flavor
-    self.flavor = numpy.string_("numpy")   # Default value
+    # Get the flavor
+    flavor = numpy.string_("numpy")   # Default value
     if self._v_file._isPTFile:
-      flavor = NULL
-      if H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor) == 0:
-        self.flavor = numpy.string_(flavor)
-      # Important to release flavor, because it has been malloc'ed!
-      if flavor: free(<void *>flavor)
+      _flavor = NULL
+      if H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &_flavor) == 0:
+        flavor = numpy.string_(_flavor)
+      # Important to release _flavor, because it has been malloc'ed!
+      if _flavor: free(<void *>_flavor)
 
     # Allocate space for the dimension chunking info
     self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
@@ -1024,8 +1024,9 @@ cdef class Array(Leaf):
       dtype = numpy.dtype("S%s"%type_size)
     else:
       dtype = numpy.dtype(type_).newbyteorder(byteorder)
+
     return (self.dataset_id, dtype, NPCodeToPTType[enumtype],
-            shape, type_size, byteorder, chunksizes)
+            shape, flavor, chunksizes)
 
 
   def _convertTypes(self, object nparr, int sense):
@@ -1197,9 +1198,8 @@ cdef class VLArray(Leaf):
     cdef int i, enumtype
     cdef herr_t ret
     cdef void *rbuf
-    cdef char *byteorder
     cdef char *flavor, *complib, *version, *class_
-    cdef object ptype
+    cdef object ptype, byteorder, itemsize
 
     atom = self.atom
     ptype = atom.ptype
@@ -1210,13 +1210,18 @@ cdef class VLArray(Leaf):
             """Type class '%s' not supported right now. Sorry about that.
             """ % repr(ptype)
 
-    if ptype == 'Enum':
-      self.base_type_id = enumToHDF5(atom, self.byteorder)
+    itemsize = atom.dtype.base.itemsize
+    if ptype == "String":
+      byteorder = "irrelevant"
     else:
-      byteorder = PyString_AsString(self.byteorder)
+      # Only support for creating objects in system byteorder
+      byteorder = sys.byteorder
+
+    if ptype == 'Enum':
+      self.base_type_id = enumToHDF5(atom, byteorder)
+    else:
       # Get the HDF5 type id
-      self.base_type_id = convArrayType(enumtype, atom.dtype.base.itemsize,
-                                        byteorder)
+      self.base_type_id = convArrayType(enumtype, itemsize, byteorder)
       if self.base_type_id < 0:
         raise TypeError, \
           """type '%s' is not supported right now. Sorry about that.""" \
@@ -1288,12 +1293,12 @@ cdef class VLArray(Leaf):
 
 
   def _openArray(self):
-    cdef char byteorder[16]  # "non-relevant" fits easily here
+    cdef char byteorder[11]  # "irrelevant" fits easily here
     cdef int i, enumtype
     cdef herr_t ret
     cdef hsize_t nrecords
-    cdef char *flavor
-    cdef object shape, dtype, type_
+    cdef char *_flavor
+    cdef object shape, dtype, type_, flavor
 
     # Open the dataset (and keep it open)
     self.dataset_id = H5Dopen(self.parent_id, self.name)
@@ -1315,17 +1320,14 @@ cdef class VLArray(Leaf):
     H5VLARRAYget_info(self.dataset_id, self.type_id, &nrecords,
                       self.dims, &self.base_type_id, byteorder)
 
-    # Give class visibility to flavor
-    self.flavor = numpy.string_("numpy")   # Default value
+    # Get the flavor
+    flavor = numpy.string_("numpy")   # Default value
     if self._v_file._isPTFile:
-      flavor = NULL
-      if H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &flavor) == 0:
-        self.flavor = numpy.string_(flavor)
-      # Important to release flavor, because it has been malloc'ed!
-      if flavor: free(<void *>flavor)
-
-    # Give class visibility to byteorder
-    self.byteorder = byteorder
+      _flavor = NULL
+      if H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &_flavor) == 0:
+        flavor = numpy.string_(_flavor)
+      # Important to release _flavor, because it has been malloc'ed!
+      if _flavor: free(<void *>_flavor)
 
     # Get the array type & size
     self._basesize = getArrayType(self.base_type_id, &enumtype)
@@ -1353,7 +1355,7 @@ cdef class VLArray(Leaf):
 
     self._atomicshape = shape
     self.nrecords = nrecords  # Initialize the number of records saved
-    return (self.dataset_id, nrecords)
+    return (self.dataset_id, nrecords, flavor)
 
 
   def _convertTypes(self, object nparr, int sense):
@@ -1506,7 +1508,7 @@ cdef class UnImplemented(Leaf):
 
   def _openUnImplemented(self):
     cdef object shape
-    cdef char byteorder[16]  # "non-relevant" fits easily here
+    cdef char byteorder[11]  # "irrelevant" fits easily here
 
     # Get info on dimensions
     shape = H5UIget_info(self.parent_id, self.name, byteorder)

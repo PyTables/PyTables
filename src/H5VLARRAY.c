@@ -445,7 +445,7 @@ herr_t H5VLARRAYget_info( hid_t   dataset_id,
     get_order(*base_type_id, base_byteorder);
   }
   else {
-    strcpy(base_byteorder, "non-relevant");
+    strcpy(base_byteorder, "irrelevant");
   }
 
   return 0;

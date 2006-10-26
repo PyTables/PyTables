@@ -32,9 +32,10 @@ import numpy
 
 from tables.constants import EXPECTED_ROWS_EARRAY, CHUNKTIMES
 from tables.utils import convertToNPAtom, processRangeRead
-from tables.Atom import Atom, EnumAtom
+from tables.Atom import Atom, EnumAtom, StringAtom
 from tables.Array import Array
 
+atom_mod = __import__("tables.Atom")
 
 __version__ = "$Revision$"
 
@@ -55,27 +56,10 @@ class EArray(Array):
 
     All NumPy, Numeric and numarray typecodes are supported.
 
-    Methods:
-
-      Common to all Array's:
-        read(start, stop, step)
-        iterrows(start, stop, step)
-
-      Specific of EArray:
+    Methods (Specific of EArray):
         append(sequence)
 
-    Instance variables:
-
-      Common to all Array's:
-
-        type -- The type class for the array.
-        itemsize -- The size of the atomic items. Specially useful for
-            CharArrays.
-        flavor -- The flavor of this object.
-        nrow -- On iterators, this is the index of the row currently
-            dealed with.
-
-      Specific of EArray:
+    Instance variables (Specific of EArray):
 
         extdim -- The enlargeable dimension.
         nrows -- The value of the enlargeable dimension.
@@ -88,12 +72,10 @@ class EArray(Array):
 
 
     # <properties>
-    def _g_getrowsize(self):
-        return self.atom.atomsize()
-
-    rowsize = property(_g_getrowsize, None, None,
+    rowsize = property(lambda self: self.atom.atomsize(), None, None,
                        "The size in bytes of each row in the array.")
     # </properties>
+
 
     def __init__(self, parentNode, name,
                  atom=None, title="",
@@ -138,11 +120,6 @@ class EArray(Array):
 
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the array."""
-        self.byteorder = None
-        """
-        The endianness of data in memory ('big', 'little' or
-        'non-relevant').
-        """
         self._v_maxTuples = None
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_chunksize = None
@@ -185,8 +162,6 @@ class EArray(Array):
         """The NumPy type of the represented array."""
         self.ptype = None
         """The PyTables type of the represented array."""
-        self.itemsize = None
-        """The size of the base items."""
 
         # Documented (*public*) attributes.
         self.atom = atom
@@ -268,7 +243,7 @@ class EArray(Array):
                 "must be a tuple for ``EArray``: %r"
                 % (self.atom.shape,))
 
-        # Version, dtype, ptype, shape, flavor, byteorder
+        # Version, dtype, ptype, shape, flavor
         self._v_version = obversion
         # Create a scalar version of dtype
         #self.dtype = numpy.dtype((self.atom.dtype.base.type, ()))
@@ -280,11 +255,6 @@ class EArray(Array):
         #self.shape = self.atom.dtype.shape
         self.shape = self.atom.shape
         self.flavor = self.atom.flavor
-        if self.ptype == "String":
-            self.byteorder = "non-relevant"
-        else:
-            # Only support for creating objects in system byteorder
-            self.byteorder = sys.byteorder
 
         # extdim computation
         zerodims = numpy.sum(numpy.array(self.shape) == 0)
@@ -304,7 +274,6 @@ class EArray(Array):
             self.atom, self.extdim,
             self._v_expectedrows, self.filters.complevel)
         self.nrows = 0   # No rows initially
-        self.itemsize = self.atom.dtype.base.itemsize
 
         self._v_objectID = self._createEArray(self._v_new_title)
         return self._v_objectID
@@ -313,28 +282,34 @@ class EArray(Array):
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        (self._v_objectID, type_, self.ptype, self.shape,
-         self.itemsize, self.byteorder, self._v_chunksize) = \
-         self._openArray()  # sets `self.flavor`
+        (self._v_objectID, self.dtype, self.ptype, self.shape,
+         self.flavor, self._v_chunksize) = self._openArray()
+        # Post-condition
+        assert self.extdim >= 0, "extdim < 0: this should never happen!"
 
         ptype = self.ptype
         flavor = self.flavor
-        # Post-condition
-        assert self.extdim >= 0, "extdim < 0: this should never happen!"
+
         # Compute the real shape for atom:
         shape = list(self.shape)
         shape[self.extdim] = 0
-        if ptype == "String":
-            # Add the length of the array at the end of the shape for atom
-            shape.append(self.itemsize)
         shape = tuple(shape)
+
         # Create the atom instance and set definitive type
         if ptype == 'Enum':
-            (enum, type_) = self._loadEnum()
+            (enum, self.dtype) = self._loadEnum()
             self.atom = EnumAtom(enum, type_, shape, flavor, warn=False)
+        elif ptype == "String":
+            length = self.dtype.base.itemsize
+            self.atom = StringAtom(shape, length, flavor, warn=False)
         else:
-            self.atom = Atom(ptype, shape, flavor, warn=False)
-        self.dtype = type_
+            #self.atom = Atom(ptype, shape, flavor, warn=False)
+            # Make the atoms instantiate from a more specific classes
+            # (this is better for representation -- repr() -- purposes)
+            typeclassname = numpy.sctypeNA[numpy.sctypeDict[ptype]] + "Atom"
+            typeclass = getattr(atom_mod, typeclassname)
+            self.atom = typeclass(shape, flavor, warn=False)
+
         # nrows in this instance
         self.nrows = self.shape[self.extdim]
         # Compute the optimal maxTuples
@@ -439,8 +414,8 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
         return """%s
   atom = %r
+  byteorder := %r
   nrows = %s
   extdim = %r
-  flavor = %r
-  byteorder = %r""" % (self, self.atom, self.nrows, self.extdim, self.flavor,
-                       self.byteorder)
+  flavor = %r""" % (self, self.atom, self.byteorder, self.nrows,
+                    self.extdim, self.flavor)

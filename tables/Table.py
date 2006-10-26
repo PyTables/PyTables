@@ -56,7 +56,7 @@ from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNPToNumeric, convertNPToNumArray, fromnumpy, tonumpy, \
-     fromnumarray, is_idx, flattenNames
+     fromnumarray, is_idx, flattenNames, byteorders
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import \
@@ -90,12 +90,6 @@ _indexName   = '_i_%s'  # %s -> encoded table path
 # Compile a regular expression for expressions like '(2,2)Int8'
 prog = re.compile(r'([\(\),\d\s]*)([A-Za-z]+[0-9]*)')
 
-# The map between byteorders in NumPy and PyTables
-byteorders = {'<': 'little',
-              '>': 'big',
-              '=': sys.byteorder,
-              '|': 'non-relevant',
-              }
 
 # Maps NumPy types to the types used by Numexpr.
 _nxTypeFromNPType = {
@@ -195,6 +189,7 @@ class Table(TableExtension.Table, Leaf):
         modifyColumn(columns, names, [start] [, stop] [, step])
         modifyColumns(columns, names, [start] [, stop] [, step])
         read([start] [, stop] [, step] [, field [, flavor]])
+        readCoordinates(coords [, field [, flavor]])
         reIndex()
         reIndexDirty()
         removeRows(start [, stop])
@@ -226,31 +221,24 @@ class Table(TableExtension.Table, Leaf):
 
     # <properties>
 
-    # `row` is defined as a read-only attribute.
-
-    def _g_getrow(self):
-        return TableExtension.Row(self)
-
-    row = property(_g_getrow, None, None, "The associated `Row` instance.")
+    row = property(
+        lambda self: TableExtension.Row(self), None, None,
+        "The associated `Row` instance.")
 
     # Some read-only shorthands.
 
-    def _g_getshape(self):
-        return (self.nrows,)
-    shape = property(_g_getshape, None, None, "The shape of this table.")
+    shape = property(
+        lambda self: (self.nrows,), None, None,
+        "The shape of this table.")
 
+    rowsize = property(
+        lambda self: self.description._v_dtype.itemsize, None, None,
+        "The size in bytes of each row in the table.")
 
-    def _g_getrowsize(self):
-        return self.description._v_dtype.itemsize
-    rowsize = property(_g_getrowsize, None, None,
-                       "The size in bytes of each row in the table.")
-
-
-    def _g_getbyteorder(self):
-        return self.description._v_byteorder
-    byteorder = property(_g_getbyteorder, None, None,
-                         "The endianness of data in memory "
-                         "('big', 'little' or 'non-relevant').")
+    byteorder = property(
+        lambda self: self.description._v_byteorder, None, None,
+        "The endianness of data in memory "
+        "('big', 'little' or 'irrelevant').")
 
     def _g_getflavor(self):
         # Check if there is some "FLAVOR" attribute (remember, it is optional)
@@ -2300,11 +2288,11 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
             return \
 """%s
   description := %r
-  indexprops := %r
-  byteorder := %s\n""" % \
-        (str(self), self.description, self.indexprops, self.byteorder)
+  byteorder := %r
+  indexprops := %r""" % \
+        (str(self), self.description, self.byteorder, self.indexprops)
         else:
-            return "%s\n  description := %r\n  byteorder := %s\n" % \
+            return "%s\n  description := %r\n  byteorder := %r\n" % \
                    (str(self), self.description, self.byteorder)
 
 

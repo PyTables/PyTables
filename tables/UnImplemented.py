@@ -55,7 +55,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
         self.byteorder = None
         """
         The endianness of data in memory ('big', 'little' or
-        'non-relevant').
+        'irrelevant').
         """
 
         super(UnImplemented, self).__init__(parentNode, name)

@@ -6,6 +6,7 @@ Things to have in mind when migrating from PyTables 1.x to PyTables
 - Leaf.type --> Leaf.dtype
 - Leaf.stype --> Leaf.ptype
 - "CharType" --> "String"
+- "non-relevant" --> "irrelevant" (applied to byteorders)
 - Table.coltypes --> Table.coldtypes
 - Table.colshapes & Table.colitemsizes have disappeared
 - Description.itemsize have disappeared

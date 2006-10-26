@@ -37,7 +37,7 @@ import numpy
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRangeRead, convertToNPAtom, convToFlavor, \
-     idx2long
+     idx2long, byteorders
 from tables.Atom import Atom, ObjectAtom, VLStringAtom, StringAtom, EnumAtom
 from tables.Leaf import Leaf
 
@@ -84,14 +84,14 @@ def calcChunkSize(expectedsizeinMB, complevel):
 class VLArray(hdf5Extension.VLArray, Leaf):
     """Represent a variable length (ragged) array in HDF5 file.
 
-    It enables to create new datasets on-disk from Numeric, numarray,
-    lists, tuples, strings or scalars, or open existing ones. The
-    datasets are made of records that are made of a variable length
-    number of atomic objects (which has to have always the same
+    It enables to create new datasets on-disk from NumPy, Numeric,
+    numarray, lists, tuples, strings or scalars, or open existing
+    ones. The datasets are made of records that are made of a variable
+    length number of atomic objects (which has to have always the same
     shape).
 
-    All Numeric and numarray typecodes are supported except for complex
-    datatypes.
+    All NumPy, Numeric and numarray typecodes are supported except for
+    complex datatypes.
 
     Methods:
 
@@ -104,10 +104,12 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
     Instance variables:
 
-        atom -- the class instance choosed for the atomic object
+        atom -- The class instance choosed for the atomic object
         nrow -- On iterators, this is the index of the row currently
-            dealed with.
+            dealed with
         nrows -- The total number of rows
+        shape -- The shape of self (expressed as (self.nrows,))
+        byteorder -- The byte ordering of atoms in self
 
     """
 
@@ -119,6 +121,9 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     shape = property(
         lambda self: (self.nrows,), None, None,
         "The shape of the stored array.")
+    byteorder = property(
+        lambda self: byteorders[self.atom.dtype.byteorder], None, None,
+        "The endianness of data in memory ('big', 'little' or 'irrelevant').")
     # </properties>
 
 
@@ -203,8 +208,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         """Create a variable length array (ragged array)."""
 
         self._v_version = obversion
-        # Only support for creating objects in system byteorder
-        self.byteorder  = sys.byteorder
         # Check for zero dims in atom shape (not allowed in VLArrays)
         zerodims = numpy.sum(numpy.array(self.atom.shape) == 0)
         if zerodims > 0:
@@ -231,7 +234,7 @@ be zero."""
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        (self._v_objectID, self.nrows) = self._openArray()
+        (self._v_objectID, self.nrows, self.flavor) = self._openArray()
 
         flavor = self.flavor
         ptype = self._atomicptype
@@ -633,7 +636,7 @@ please put them in a single sequence object"""),
 
         return """%s
   atom = %r
+  byteorder = %r
   nrows = %s
-  flavor = %r
-  byteorder = %r""" % (self, self.atom, self.nrows,
-                       self.flavor, self.byteorder)
+  flavor = %r""" % (self, self.atom, self.byteorder, self.nrows,
+                    self.flavor)

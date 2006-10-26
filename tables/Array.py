@@ -46,7 +46,7 @@ except ImportError:
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
-                         convToFlavor, convToNP, is_idx
+                         convToFlavor, convToNP, is_idx, byteorders
 from tables.Leaf import Leaf, Filters
 
 
@@ -59,12 +59,6 @@ __version__ = "$Revision$"
 #obversion = "2.1"    # Added support for complex datatypes
 #obversion = "2.2"    # This adds support for time datatypes.
 obversion = "2.3"    # This adds support for enumerated datatypes.
-
-# The byteorders in NumPy
-byteorders = {'>': 'big',
-              '<': 'little',
-              '=': sys.byteorder,
-              '|': 'non-relevant'}
 
 
 class Array(hdf5Extension.Array, Leaf):
@@ -87,13 +81,26 @@ class Array(hdf5Extension.Array, Leaf):
         nrow -- On iterators, this is the index of the current row.
         dtype -- The NumPy type of the represented array.
         ptype -- The PyTables type of the represented array.
-        itemsize -- The size of the base items.
+        itemsize -- The size of the base dtype (shortcut).
+        byteorder --  The byte ordering of the base dtype (shortcut).
 
     """
 
     # Class identifier.
     _c_classId = 'ARRAY'
 
+
+    # <properties>
+
+    byteorder = property(
+        lambda self: byteorders[self.dtype.byteorder], None, None,
+        "The endianness of data in memory ('big', 'little' or 'irrelevant').")
+
+    itemsize = property(
+        lambda self: self.dtype.base.itemsize, None, None,
+        "The size of the base items (shortcut for self.dtype.base.itemsize).")
+
+    # </properties>
 
     def _g_calcBufferSize(self, expectedfsizeinKb):
         """Compute and optimum buffer size.
@@ -173,15 +180,6 @@ class Array(hdf5Extension.Array, Leaf):
         integer of floating point types, provided that they are
         regular (i.e. they are not like ``[[1, 2], 2]``).
         """
-        self._v_expectedrows = None
-        """The expected number of rows to be stored in the array."""
-        self.byteorder = None
-        """
-        The endianness of data in memory ('big', 'little' or
-        'non-relevant').
-        """
-        self.rowsize = None
-        """The size in bytes of each row in the array."""
         self._v_maxTuples = None
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_chunksize = None
@@ -191,8 +189,6 @@ class Array(hdf5Extension.Array, Leaf):
         """
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
-        self.shape = None
-        """The shape of the stored array."""
         self._enum = None
         """The enumerated type containing the values in this array."""
 
@@ -217,6 +213,8 @@ class Array(hdf5Extension.Array, Leaf):
         """Current buffer in iterators."""
 
         # Documented (*public*) attributes.
+        self.shape = None
+        """The shape of the stored array."""
         self.flavor = None
         """The object representation of this array.  It can be any of
         'numpy', 'numarray', 'numeric' or 'python' values."""
@@ -228,10 +226,6 @@ class Array(hdf5Extension.Array, Leaf):
         """The NumPy type of the represented array."""
         self.ptype = None
         """The PyTables type of the represented array."""
-        self.itemsize = None
-        """
-        The size of the base items (specially useful for ``String`` objects).
-        """
         self.extdim = -1   # ordinary arrays are not enlargeable
         """The index of the enlargeable dimension."""
 
@@ -260,25 +254,22 @@ class Array(hdf5Extension.Array, Leaf):
         self._object = None
 
         if nparr.shape:
-            self._v_expectedrows = nparr.shape[0]
+            expectedrows = nparr.shape[0]
         else:
-            self._v_expectedrows = 1  # Scalar case
-
-        # Set the byteorder in PyTables format
-        self.byteorder = byteorders[nparr.dtype.byteorder]
+            expectedrows = 1  # Scalar case
 
         # Compute some values for buffering and I/O parameters
         # Compute the rowsize for each element
-        self.rowsize = nparr.itemsize
+        rowsize = nparr.itemsize
         for i in nparr.shape:
             if i>0:
-                self.rowsize *= i
+                rowsize *= i
             else:
-                raise ValueError, "An Array object cannot have zero-dimensions."
+                raise ValueError, "An Array object cannot have zero-dimensions"
 
         # Compute the optimal chunksize
         (self._v_maxTuples, self._v_chunksize) = \
-                            calcBufferSize(self.rowsize, self._v_expectedrows)
+                            calcBufferSize(rowsize, expectedrows)
 
         # If shape has not been assigned yet, assign it.
         if self.shape is None:
@@ -287,7 +278,6 @@ class Array(hdf5Extension.Array, Leaf):
             self.nrows = nparr.shape[0]
         else:
             self.nrows = 1    # Scalar case
-        self.itemsize = nparr.itemsize
         try:
             (self._v_objectID, self.dtype, self.ptype) = (
                 self._createArray(nparr, self._v_new_title))
@@ -302,15 +292,15 @@ class Array(hdf5Extension.Array, Leaf):
         """Get the metadata info for an array in file."""
 
         (self._v_objectID, self.dtype, self.ptype, self.shape,
-         self.itemsize, self.byteorder, self._v_chunksize) = self._openArray()
+         self.flavor, self._v_chunksize) = self._openArray()
 
         # Get enumeration from disk.
         if self.ptype == 'Enum':
             (self._enum, self.dtype) = self._loadEnum()
         # Compute the rowsize for each element
-        self.rowsize = self.itemsize
+        rowsize = self.itemsize
         for i in xrange(len(self.shape)):
-            self.rowsize *= self.shape[i]
+            rowsize *= self.shape[i]
         # Assign a value to nrows in case we are a non-enlargeable object
         if self.shape:
             self.nrows = self.shape[0]
@@ -319,7 +309,7 @@ class Array(hdf5Extension.Array, Leaf):
 
         # Compute the maxTuples for the buffers in iterators
         (self._v_maxTuples, chunksize) = \
-                            calcBufferSize(self.rowsize, self.nrows)
+                            calcBufferSize(rowsize, self.nrows)
 
         return self._v_objectID
 
@@ -354,6 +344,7 @@ class Array(hdf5Extension.Array, Leaf):
         self._initLoop()
         return self
 
+
     def __iter__(self):
         """Iterate over all the rows."""
 
@@ -366,6 +357,7 @@ class Array(hdf5Extension.Array, Leaf):
             self._initLoop()
         return self
 
+
     def _initLoop(self):
         "Initialization for the __iter__ iterator"
 
@@ -374,6 +366,7 @@ class Array(hdf5Extension.Array, Leaf):
         self._row = -1   # Sentinel
         self._init = True  # Sentinel
         self.nrow = self._start - self._step    # row number
+
 
     def next(self):
         "next() method for __iter__() that is called on each iteration"
@@ -642,14 +635,10 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         """This provides more metainfo in addition to standard __str__"""
 
         return """%s
-  dtype = %r
-  ptype = %r
-  shape = %s
-  itemsize = %s
-  nrows = %s
-  flavor = %r
-  byteorder = %r""" % (self, self.dtype, self.ptype, self.shape,
-                       self.itemsize, self.nrows, self.flavor, self.byteorder)
+  ptype := %r
+  byteorder := %r
+  dtype := %r
+  flavor := %r""" % (self, self.ptype, self.byteorder, self.dtype, self.flavor)
 
 
 
