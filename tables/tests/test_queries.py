@@ -20,8 +20,12 @@ import tables.tests.common as tests
 
 row_period = 50
 """Maximum number of unique rows before they start cycling."""
+md_shape = (2, 2)
+"""Shape of multidimensional fields."""
 
-_strlen = int(numpy.log10(row_period-1)) + 1
+_maxnvalue = row_period + numpy.product(md_shape) - 1
+_strlen = int(numpy.log10(_maxnvalue-1)) + 1
+
 str_format = '%%0%dd' % _strlen
 """Format of string values."""
 
@@ -46,11 +50,11 @@ nxtype_from_ptype = dict(
     (dtype, info[1]) for (dtype, info) in ptype_info.iteritems() )
 """Maps PyTables types to Numexpr data types."""
 
-enum = tables.Enum(dict(('n%d' % i, i) for i in range(row_period)))
+enum = tables.Enum(dict(('n%d' % i, i) for i in range(_maxnvalue)))
 """Enumerated type to be used in tests."""
 
 
-def append_columns(classdict):
+def append_columns(classdict, shape=()):
     """
     Append a ``Col`` of each PyTables data type to the `classdict`.
 
@@ -61,7 +65,7 @@ def append_columns(classdict):
         colpos = itype + 1
         colname = 'c%s' % ptype
         colclass = getattr(tables, '%sCol' % ptype)
-        colargs, colkwargs = [], {'pos': colpos}
+        colargs, colkwargs = [], {'shape': shape, 'pos': colpos}
         if ptype == 'Enum':
             colargs = [enum, enum(0), dtype_from_ptype[ptype]] + colargs
         elif ptype == 'String':
@@ -70,7 +74,7 @@ def append_columns(classdict):
     ncols = colpos
     return ncols
 
-def nested_description(classname, pos):
+def nested_description(classname, pos, shape=()):
     """
     Return a nested column description with all PyTables data types.
 
@@ -78,68 +82,81 @@ def nested_description(classname, pos):
     column will be placed in the position indicated by `pos`.
     """
     classdict = {}
-    append_columns(classdict)
+    append_columns(classdict, shape=shape)
     classdict['_v_pos'] = pos
     return new.classobj(classname, (tables.IsDescription,), classdict)
 
-def table_description(classname, nclassname):
+def table_description(classname, nclassname, shape=()):
     """
     Return a table description for testing queries.
 
     The description consists of all PyTables data types, both in the
     top level and in the ``cNested`` nested column.  A column of a
     certain TYPE gets called ``cTYPE``.  An extra integer column
-    ``cExtra`` is also provided.
+    ``cExtra`` is also provided.  If a `shape` is given, it will be
+    used for all columns.
     """
     classdict = {}
-    colpos = append_columns(classdict)
+    colpos = append_columns(classdict, shape)
 
-    ndescr = nested_description(nclassname, colpos)
+    ndescr = nested_description(nclassname, colpos, shape=shape)
     classdict['cNested'] = ndescr
     colpos += 1
 
-    extracol = tables.IntCol(pos=colpos)
+    extracol = tables.IntCol(shape=shape, pos=colpos)
     classdict['cExtra'] = extracol
     colpos += 1
 
     return new.classobj(classname, (tables.IsDescription,), classdict)
 
-TableDescription = table_description('TableDescription', 'NestedDescription')
+TableDescription = table_description(
+    'TableDescription', 'NestedDescription' )
 """Unidimensional table description for testing queries."""
+
+MDTableDescription = table_description(
+    'MDTableDescription', 'MDNestedDescription', shape=md_shape )
+"""Multidimensional table description for testing queries."""
 
 
 table_data = {}
-"""Cached table data for a given number of rows."""
+"""Cached table data for a given shape and number of rows."""
 # Data is cached because computing it row by row is quite slow.  Hop!
 
-def fill_table(table, nrows):
+def fill_table(table, shape, nrows):
     """
     Fill the given `table` with `nrows` rows of data.
 
-    The values of fields range cyclically from i to `row_period`,
-    except for the ``cExtra`` column, where values range from
+    Values in the i-th row (where 0 <= i < `row_period`) for a
+    multidimensional field with M elements span from i to i+M-1.  For
+    subsequent rows, values repeat cyclically.
+
+    The same goes for the ``cExtra`` column, but values range from
     -`row_period`/2 to +`row_period`/2.
     """
     # Reuse already computed data if possible.
-    tdata = table_data.get(nrows)
+    tdata = table_data.get((shape, nrows))
     if tdata is not None:
         table.append(tdata)
         table.flush()
         return
 
+    size = int(numpy.product(shape))
+
     row, value = table.row, 0
     for nrow in xrange(nrows):
+        data = numpy.arange(value, value + size).reshape(shape)
         for (ptype, dtype) in dtype_from_ptype.iteritems():
             colname = 'c%s' % ptype
             ncolname = 'cNested/%s' % colname
             if ptype == 'Bool':
-                colvalue = value > (row_period / 2)
+                coldata = data > (row_period / 2)
             elif ptype == 'String':
-                colvalue = str_format % value
+                sdata = [str_format % x for x in range(value, value + size)]
+                coldata = numpy.array(sdata, dtype=dtype).reshape(shape)
             else:
-                colvalue = value
-            row[ncolname] = row[colname] = colvalue
-            row['cExtra'] = value - (row_period / 2)
+                coldata = numpy.asarray(data, dtype=dtype)
+            row[ncolname] = row[colname] = coldata
+            row['cExtra'] = data - (row_period / 2)
         row.append()
         value += 1
         if value == row_period:
@@ -148,7 +165,7 @@ def fill_table(table, nrows):
 
     # Make computed data reusable.
     tdata = table.read()
-    table_data[nrows] = tdata
+    table_data[(shape, nrows)] = tdata
 
 
 class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
@@ -158,6 +175,10 @@ class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
 
     Sub-classes must define the following attributes:
 
+    ``tableDescription``
+        The description of the table to be created.
+    ``shape``
+        The shape of data fields in the table.
     ``nrows``
         The number of data rows to be generated for the table.
 
@@ -183,8 +204,8 @@ class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
     def setUp(self):
         super(TableQueryTestCase, self).setUp()
         self.table = table = self.h5file.createTable(
-            '/', 'test', TableDescription, expectedrows=self.nrows )
-        fill_table(table, self.nrows)
+            '/', 'test', self.tableDescription, expectedrows=self.nrows )
+        fill_table(table, self.shape, self.nrows)
 
     ## XXX Need some standard checks on query usage.
 
@@ -280,24 +301,35 @@ class BigTableMixin:
     assert nrows % NX_BLOCK_SIZE1 != 0
     assert nrows % NX_BLOCK_SIZE2 != 0  # to have some residual rows
 
+class ScalarTableMixin:
+    tableDescription = TableDescription
+    shape = ()
+class MDTableMixin:
+    tableDescription = MDTableDescription
+    shape = md_shape
+
 table_sizes = ['Small', 'Big']
+table_ndims = ['Scalar']  # to enable multidimensional testing, include 'MD'
 table_optvalues = [0, 1, 3]
 if tests.heavy:
     table_optvalues += [6, 9]
 
-# Non-indexed queries: ``[SB]TQTestCase``.
+# Non-indexed queries: ``[SB][SM]TQTestCase``.
 def niclassdata():
     for size in table_sizes:
-        classname = '%sTQTestCase' % size[0]
-        cbasenames = ('%sTableMixin' % size, 'TableQueryTestCase')
-        yield (classname, cbasenames, {})
+        for ndim in table_ndims:
+            classname = '%s%sTQTestCase' % (size[0], ndim[0])
+            cbasenames = ( '%sTableMixin' % size, '%sTableMixin' % ndim,
+                           'TableQueryTestCase' )
+            yield (classname, cbasenames, {})
 
-# Indexed queries: ``[SB]I[0139]TQTestCase``.
+# Indexed queries: ``[SB]SI[0139]TQTestCase``.
 def iclassdata():
     for size in table_sizes:
         for optlevel in table_optvalues:
-            classname = '%sI%dTQTestCase' % (size[0], optlevel)
-            cbasenames = ('%sTableMixin' % size, 'TableQueryTestCase')
+            classname = '%sSI%dTQTestCase' % (size[0], optlevel)
+            cbasenames = ( '%sTableMixin' % size, 'ScalarTableMixin',
+                           'TableQueryTestCase' )
             yield ( classname, cbasenames,
                     {'optlevel': optlevel, 'indexed': True} )
 
