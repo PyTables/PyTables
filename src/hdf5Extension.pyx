@@ -163,6 +163,19 @@ import_array()
 
 # Helper functions
 
+cdef object getshape(int rank, hsize_t *dims):
+  "Return a shape (tuple) from a dims C array of rank dimensions."
+  cdef int i
+  cdef object shape
+
+  shape = []
+  for i from 0 <= i < rank:
+    # The <int> cast avoids returning a Long integer
+    shape.append(<int>dims[i])
+
+  return tuple(shape)
+
+
 cdef object splitPath(object path):
   """splitPath(path) -> (parentPath, name).  Splits a canonical path.
 
@@ -496,12 +509,9 @@ cdef class AttributeSet:
       # Get dimensionality info
       ndv = <ndarray>value
       rank = ndv.nd
-      if rank > 0:
-        dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-        for i from 0 <= i < rank:
-          dims[i] = ndv.dimensions[i]
-      else:
-        dims = NULL
+      dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+      for i from 0 <= i < rank:
+        dims[i] = ndv.dimensions[i]
 
       # Actually write the attribute
       ret = H5ATTRset_attribute(self.dataset_id, name, type_id,
@@ -511,7 +521,7 @@ cdef class AttributeSet:
                            (name, self._v_node))
 
       # Release resources
-      if rank > 0: free(<void *>dims)
+      free(<void *>dims)
       H5Tclose(type_id)
     else:
       # Object cannot be natively represented in HDF5.
@@ -535,7 +545,7 @@ cdef class AttributeSet:
     cdef H5T_class_t class_id
     cdef size_t type_size
     cdef hid_t mem_type, dset_id, type_id, type_id2
-    cdef int rank, ret, i, enumtype
+    cdef int rank, ret, enumtype
     cdef void *rbuf
     cdef ndarray ndvalue
     cdef char  byteorder[11]
@@ -550,8 +560,7 @@ cdef class AttributeSet:
                              (attrname, self.name))
  
     # Get the dimensional info
-    if rank > 0:
-      dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
     ret = H5ATTRget_attribute_info(dset_id, attrname, dims,
                                    &class_id, &type_size, &type_id)
     if ret < 0:
@@ -567,15 +576,9 @@ Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
       return None
 
     # Get the dimensional info
-    if rank > 0:
-      shape = []
-      for i from 0 <= i < rank:
-        # The <int> cast avoids returning a Long integer
-        shape.append(<int>dims[i])
-      shape = tuple(shape)
-      free(<void *> dims)
-    else:
-      shape = ()
+    shape = getshape(rank, dims)
+    # dims is not needed anymore
+    free(<void *> dims)
 
     # Get the attribute NumPy type & type size
     type_size = getArrayType(type_id, &enumtype)
@@ -764,6 +767,20 @@ cdef class Leaf(Node):
     super(Leaf, self)._g_new(where, name, init)
 
 
+  def _g_getflavor(self):
+    "Get the flavor for this object."
+    cdef char *cflavor
+    cdef object flavor
+
+    flavor = numpy.string_("numpy")   # Default value
+    if self._v_file._isPTFile:
+      cflavor = NULL
+      if H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &cflavor) == 0:
+        flavor = numpy.string_(cflavor)
+      # Important to release cflavor, because it has been malloc'ed!
+      if cflavor: free(<void *>cflavor)
+    return flavor
+
   def _g_flush(self):
     # Flush the dataset (in fact, the entire buffers in file!)
     if self.dataset_id >= 0:
@@ -940,7 +957,6 @@ cdef class Array(Leaf):
     cdef char byteorder[11]  # "irrelevant" fits easily here
     cdef int i, enumtype
     cdef int extdim
-    cdef char *_flavor
     cdef hid_t base_type_id
     cdef herr_t ret
     cdef object shape, type_, dtype, flavor
@@ -975,13 +991,7 @@ cdef class Array(Leaf):
         break
 
     # Get the flavor
-    flavor = numpy.string_("numpy")   # Default value
-    if self._v_file._isPTFile:
-      _flavor = NULL
-      if H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &_flavor) == 0:
-        flavor = numpy.string_(_flavor)
-      # Important to release _flavor, because it has been malloc'ed!
-      if _flavor: free(<void *>_flavor)
+    flavor = self._g_getflavor()
 
     # Allocate space for the dimension chunking info
     self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
@@ -996,29 +1006,11 @@ cdef class Array(Leaf):
 
     H5Tclose(base_type_id)    # Release resources
 
-    # We had problems when creating Tuples directly with Pyrex!.
-    # A bug report has been sent to Greg Ewing and here is his answer:
-    """
-    It's impossible to call PyTuple_SetItem and PyTuple_GetItem
-    correctly from Pyrex, because they don't follow the standard
-    reference counting protocol (PyTuple_GetItem returns a borrowed
-    reference, and PyTuple_SetItem steals a reference).
+    # Get the shape and chunksizes as python tuples
+    shape = getshape(self.rank, self.dims)
+    chunksizes = getshape(self.rank, self.dims_chunk)
 
-    It's best to use Python constructs to create tuples if you
-    can. Otherwise, you could create wrapppers for these functions in
-    an external C file which provide standard reference counting
-    behaviour.
-    """
-    # So, I've decided to create the shape tuple using Python constructs
-    shape = []
-    chunksizes = []
-    for i from 0 <= i < self.rank:
-      shape.append(self.dims[i])
-      if self.dims_chunk:
-        chunksizes.append(<int>self.dims_chunk[i])
-    shape = tuple(shape)
-    chunksizes = tuple(chunksizes)
-
+    # Finally, get the dtype
     type_ = NPCodeToType.get(enumtype, None)
     if type_ == numpy.string_:
       dtype = numpy.dtype("S%s"%type_size)
@@ -1297,7 +1289,6 @@ cdef class VLArray(Leaf):
     cdef int i, enumtype
     cdef herr_t ret
     cdef hsize_t nrecords
-    cdef char *_flavor
     cdef object shape, dtype, type_, flavor
 
     # Open the dataset (and keep it open)
@@ -1312,22 +1303,13 @@ cdef class VLArray(Leaf):
     # Get the rank for the atom in the array object
     ret = H5VLARRAYget_ndims(self.dataset_id, self.type_id, &self.rank)
     # Allocate space for the dimension axis info
-    if self.rank:
-      self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    else:
-      self.dims = NULL;
+    self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type (of base class)
     H5VLARRAYget_info(self.dataset_id, self.type_id, &nrecords,
                       self.dims, &self.base_type_id, byteorder)
 
     # Get the flavor
-    flavor = numpy.string_("numpy")   # Default value
-    if self._v_file._isPTFile:
-      _flavor = NULL
-      if H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &_flavor) == 0:
-        flavor = numpy.string_(_flavor)
-      # Important to release _flavor, because it has been malloc'ed!
-      if _flavor: free(<void *>_flavor)
+    flavor = self._g_getflavor()
 
     # Get the array type & size
     self._basesize = getArrayType(self.base_type_id, &enumtype)
@@ -1341,19 +1323,13 @@ cdef class VLArray(Leaf):
     else:
       self._atomicdtype = numpy.dtype(type_).newbyteorder(byteorder)
     self._atomicptype = NPCodeToPTType[enumtype]
-    # Get the size and shape of the atomic type
-    self._atomicsize = self._basesize
-    if self.rank:
-      shape = []
-      for i from 0 <= i < self.rank:
-        shape.append(self.dims[i])
-        self._atomicsize = self._atomicsize * self.dims[i]
-      shape = tuple(shape)
-    else:
-      # rank zero means a scalar
-      shape = 1
 
-    self._atomicshape = shape
+    # Get the size and shape of the atomic type
+    self._atomicshape = getshape(self.rank, self.dims)
+    self._atomicsize = self._basesize
+    for i from 0 <= i < self.rank:
+      self._atomicsize = self._atomicsize * self.dims[i]
+
     self.nrecords = nrecords  # Initialize the number of records saved
     return (self.dataset_id, nrecords, flavor)
 
@@ -1464,17 +1440,9 @@ cdef class VLArray(Leaf):
         # Case where there is info with zero lentgh
         buf = None
       # Compute the shape for the read array
-      if (isinstance(self._atomicshape, tuple)):
-        shape = list(self._atomicshape)
-        shape.insert(0, vllen)  # put the length at the beginning of the shape
-      elif self._atomicshape > 1:
-        shape = (vllen, self._atomicshape)
-      else:
-        # Case of scalars (self._atomicshape == 1)
-        shape = (vllen,)
-      dtype = self._atomicdtype
-
-      nparr = numpy.ndarray(buffer=buf, dtype=dtype, shape=shape)
+      shape = list(self._atomicshape)   # a copy is done: important!
+      shape.insert(0, vllen)  # put the length at the beginning of the shape
+      nparr = numpy.ndarray(buffer=buf, dtype=self._atomicdtype, shape=shape)
       # Set the writeable flag for this ndarray object
       nparr.flags.writeable = True
       # Convert some HDF5 types to NumPy after reading.

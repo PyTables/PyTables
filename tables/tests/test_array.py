@@ -16,19 +16,12 @@ from tables import *
 
 import tables.tests.common as common
 from tables.tests.common import verbose, allequal, cleanup
+from tables.utils import byteorders
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
 warnings.resetwarnings()
-
-
-# The map between byteorders in NumPy and PyTables
-bomap = {'<': 'little',
-         '>': 'big',
-         '=': sys.byteorder,
-         '|': 'non-relevant',
-         }
 
 
 class BasicTestCase(unittest.TestCase):
@@ -92,11 +85,11 @@ class BasicTestCase(unittest.TestCase):
             assert a.dtype == b.dtype
             assert a.dtype == self.root.somearray.dtype
             assert a.dtype.byteorder == b.dtype.byteorder
-            abo = bomap[a.dtype.byteorder]
-            if abo <> "non-relevant":
+            abo = byteorders[a.dtype.byteorder]
+            if abo <> "irrelevant":
                 assert abo == self.root.somearray.byteorder
             if self.endiancheck:
-                bbo = bomap[b.dtype.byteorder]
+                bbo = byteorders[b.dtype.byteorder]
                 assert bbo <> sys.byteorder
 
         assert allequal(a,b)
@@ -332,8 +325,10 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         else:
             assert a.dtype == b.dtype
             assert a.dtype == self.root.somearray.dtype
-            assert bomap[a.dtype.byteorder] == bomap[b.dtype.byteorder]
-            assert bomap[a.dtype.byteorder] == self.root.somearray.byteorder
+            assert byteorders[a.dtype.byteorder] == \
+                   byteorders[b.dtype.byteorder]
+            assert byteorders[a.dtype.byteorder] == \
+                   self.root.somearray.byteorder
 
         assert allequal(a,b)
 
