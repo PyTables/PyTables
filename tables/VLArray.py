@@ -247,7 +247,7 @@ be zero."""
             self.atom = StringAtom(self._atomicshape, self._basesize,
                                    flavor, warn=False)
         elif ptype == 'Enum':
-            (enum, type_) = self._loadEnum()
+            (enum, type_) = self._g_loadEnum()
             self.atom = EnumAtom(enum, type_, self._atomicshape,
                                  flavor, warn=False)
             self._atomicdtype = type_

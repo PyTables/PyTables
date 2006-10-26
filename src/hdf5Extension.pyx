@@ -767,6 +767,35 @@ cdef class Leaf(Node):
     super(Leaf, self)._g_new(where, name, init)
 
 
+  def _g_loadEnum(self):
+    """_g_loadEnum() -> (Enum, npType)
+    Load enumerated type associated with this array.
+
+    This method loads the HDF5 enumerated type associated with this
+    array.  It returns an `Enum` instance built from that, and the
+    NumPy type used to encode it.
+    """
+
+    cdef hid_t enumId
+    cdef char  byteorder[11]  # "irrelevant" fits well here
+
+    if self._c_classId == "VLARRAY":
+      # For VLArray objects, the interesting type is the base type
+      enumId = getTypeEnum(self.base_type_id)
+    else:
+      enumId = getTypeEnum(self.type_id)
+    # Get the byteorder
+    get_order(self.type_id, byteorder)
+
+    # Get the Enum and NumPy types and close the HDF5 type.
+    try:
+      return enumFromHDF5(enumId, byteorder)
+    finally:
+      # (Yes, the ``finally`` clause *is* executed.)
+      if H5Tclose(enumId) < 0:
+        raise HDF5ExtError("failed to close HDF5 enumerated type")
+
+
   def _g_getflavor(self):
     "Get the flavor for this object."
     cdef char *cflavor
@@ -929,28 +958,6 @@ cdef class Array(Leaf):
     return self.dataset_id
 
 
-  def _loadEnum(self):
-    """_loadEnum() -> (Enum, npType)
-    Load enumerated type associated with this array.
-
-    This method loads the HDF5 enumerated type associated with this
-    array.  It returns an `Enum` instance built from that, and the
-    NumPy type used to encode it.
-    """
-
-    cdef hid_t enumId
-
-    enumId = getTypeEnum(self.type_id)
-
-    # Get the Enum and NumPy types and close the HDF5 type.
-    try:
-      return enumFromHDF5(enumId)
-    finally:
-      # (Yes, the ``finally`` clause *is* executed.)
-      if H5Tclose(enumId) < 0:
-        raise HDF5ExtError("failed to close HDF5 enumerated type")
-
-
   def _openArray(self):
     cdef size_t type_size, type_precision
     cdef H5T_class_t class_id
@@ -1011,7 +1018,7 @@ cdef class Array(Leaf):
     chunksizes = getshape(self.rank, self.dims_chunk)
 
     # Finally, get the dtype
-    type_ = NPCodeToType.get(enumtype, None)
+    type_ = NPCodeToType.get(enumtype, "int32")
     if type_ == numpy.string_:
       dtype = numpy.dtype("S%s"%type_size)
     else:
@@ -1259,29 +1266,6 @@ cdef class VLArray(Leaf):
     self.type_id = H5Dget_type(self.dataset_id)
 
     return self.dataset_id
-
-
-  def _loadEnum(self):
-    """_loadEnum() -> (Enum, npType)
-    Load enumerated type associated with this array.
-
-    This method loads the HDF5 enumerated type associated with this
-    array.  It returns an `Enum` instance built from that, and the
-    NumPy type used to encode it.
-    """
-
-    cdef hid_t typeId, rowTypeId, enumId
-
-    # Get the enumerated type.
-    enumId = getTypeEnum(self.base_type_id)
-
-    # Get the Enum and NumPy types and close the HDF5 type.
-    try:
-      return enumFromHDF5(enumId)
-    finally:
-      # (Yes, the ``finally`` clause *is* executed.)
-      if H5Tclose(enumId) < 0:
-        raise HDF5ExtError("failed to close HDF5 enumerated type")
 
 
   def _openArray(self):

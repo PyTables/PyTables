@@ -117,6 +117,7 @@ NPCodeToType = {
   NPY_COMPLEX64: numpy.complex64, NPY_COMPLEX128: numpy.complex128,
   # Special cases:
   ord('t'): numpy.int32,          ord('T'):       numpy.float64,
+##  ord('e'):      'Enum',  # fake type (the actual type canbe different)
   }
 
 

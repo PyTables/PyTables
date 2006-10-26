@@ -465,7 +465,7 @@ def getTypeEnum(hid_t h5type):
   return enumId
 
 
-def enumFromHDF5(hid_t enumId):
+def enumFromHDF5(hid_t enumId, char *byteorder):
   """_enumFromHDF5(enumId) -> (Enum, npType)
   Convert an HDF5 enumerated type to a PyTables one.
 
@@ -475,9 +475,10 @@ def enumFromHDF5(hid_t enumId):
 
   cdef hid_t  baseId
   cdef int    nelems, npenum, i
-  cdef void  *rbuf
-  cdef char  *ename
+  cdef void   *rbuf
+  cdef char   *ename
   cdef ndarray npvalue
+  cdef object dtype, sctype
 
   # Find the base type of the enumerated type.
   baseId = H5Tget_super(enumId)
@@ -491,15 +492,18 @@ def enumFromHDF5(hid_t enumId):
     raise HDF5ExtError("failed to close HDF5 base type")
 
   try:
-    nptype = NPCodeToType[npenum]
+    sctype = NPCodeToType[npenum]
   except KeyError:
     raise NotImplementedError("""\
 sorry, only scalar concrete values are supported at this moment""")
-  if numpy.dtype(nptype).kind not in ['i', 'u']:   # not an integer check
+
+  # Get the dtype
+  dtype = numpy.dtype(sctype)
+  if dtype.kind not in ['i', 'u']:   # not an integer check
     raise NotImplementedError("""\
 sorry, only integer concrete values are supported at this moment""")
 
-  npvalue = numpy.array((0,), dtype=nptype)
+  npvalue = numpy.array((0,), dtype=dtype)
   rbuf = npvalue.data
 
   # Get the name and value of each of the members
@@ -525,8 +529,13 @@ sorry, only integer concrete values are supported at this moment""")
 
     enumDict[pyename] = npvalue[0]  # converted to Python scalar
 
+  # Correct the dtype byteorder before returning it
+  # Note: it is important to correct this *after* creation of npvalue array
+  if byteorder in ('little', 'big'):
+    dtype = dtype.newbyteorder(byteorder)
+
   # Build an enumerated type from `enumDict` and return it.
-  return Enum(enumDict), nptype
+  return Enum(enumDict), dtype
 
 
 def enumToHDF5(object enumCol, char *byteorder):
@@ -792,7 +801,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
           colobj = StringCol(length = tsize, shape = colshape, pos = i)
         elif colstype == 'e':
           colpath2 = _joinPath(colpath, colname)
-          (enum, nptype) = table._loadEnum(native_member_type_id)
+          (enum, nptype) = table._g_loadEnum(native_member_type_id)
           # Take one of the names as the default in the enumeration.
           dflt = iter(enum).next()[0]
           colobj = EnumCol(enum, dflt, dtype = nptype, shape = colshape,

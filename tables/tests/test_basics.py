@@ -1358,6 +1358,12 @@ class CheckFileTestCase(common.PyTablesTestCase):
     def test04b_UnImplementedOnLoading(self):
         """Checking failure loading resulting in an ``UnImplemented`` node"""
 
+        ############### Note for developers ###############################
+        # This test fails if you have the line:                           #
+        # ##return childClass(self, childName)  # uncomment for debugging #
+        # uncommented in Group.py!                                        #
+        ###################################################################
+
         h5file = self.assertWarns(
             UserWarning, openFile, common.testFilename('smpl_unsupptype.h5'))
         try:

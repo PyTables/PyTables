@@ -46,7 +46,7 @@ from definitions cimport import_array, ndarray, \
      H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose, \
      H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose, H5Tget_sign, \
      H5ATTRset_attribute_string, H5ATTRset_attribute, \
-     get_len_of_range
+     get_len_of_range, get_order
 
 
 # Include HDF5 types
@@ -264,8 +264,8 @@ cdef class Table:  # XXX extends Leaf
     return (self.dataset_id, desc)
 
 
-  def _loadEnum(self, hid_t fieldTypeId):
-    """_loadEnum(colname) -> (Enum, naType)
+  def _g_loadEnum(self, hid_t fieldTypeId):
+    """_g_loadEnum(colname) -> (Enum, naType)
     Load enumerated type associated with `colname` column.
 
     This method loads the HDF5 enumerated type associated with
@@ -274,12 +274,15 @@ cdef class Table:  # XXX extends Leaf
     """
 
     cdef hid_t enumId
+    cdef char  byteorder[11]  # "irrelevant" fits well here
 
     enumId = getTypeEnum(fieldTypeId)
+    # Get the byteorder
+    get_order(fieldTypeId, byteorder)
 
     # Get the Enum and NumPy types and close the HDF5 type.
     try:
-      return enumFromHDF5(enumId)
+      return enumFromHDF5(enumId, byteorder)
     finally:
       # (Yes, the ``finally`` clause *is* executed.)
       if H5Tclose(enumId) < 0:

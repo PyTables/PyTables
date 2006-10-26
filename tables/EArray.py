@@ -32,7 +32,7 @@ import numpy
 
 from tables.constants import EXPECTED_ROWS_EARRAY, CHUNKTIMES
 from tables.utils import convertToNPAtom, processRangeRead
-from tables.Atom import Atom, EnumAtom, StringAtom
+from tables.Atom import Atom, EnumAtom, StringAtom, Time32Atom, Time64Atom
 from tables.Array import Array
 
 atom_mod = __import__("tables.Atom")
@@ -296,12 +296,16 @@ class EArray(Array):
         shape = tuple(shape)
 
         # Create the atom instance and set definitive type
-        if ptype == 'Enum':
-            (enum, self.dtype) = self._loadEnum()
-            self.atom = EnumAtom(enum, type_, shape, flavor, warn=False)
-        elif ptype == "String":
+        if ptype == "String":
             length = self.dtype.base.itemsize
             self.atom = StringAtom(shape, length, flavor, warn=False)
+        elif ptype == 'Enum':
+            (enum, self.dtype) = self._g_loadEnum()
+            self.atom = EnumAtom(enum, self.dtype, shape, flavor, warn=False)
+        elif ptype == "Time32":
+            self.atom = Time32Atom(shape, flavor, warn=False)
+        elif ptype == "Time64":
+            self.atom = Time64Atom(shape, flavor, warn=False)
         else:
             #self.atom = Atom(ptype, shape, flavor, warn=False)
             # Make the atoms instantiate from a more specific classes

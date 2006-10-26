@@ -296,7 +296,7 @@ class Array(hdf5Extension.Array, Leaf):
 
         # Get enumeration from disk.
         if self.ptype == 'Enum':
-            (self._enum, self.dtype) = self._loadEnum()
+            (self._enum, self.dtype) = self._g_loadEnum()
         # Compute the rowsize for each element
         rowsize = self.itemsize
         for i in xrange(len(self.shape)):
