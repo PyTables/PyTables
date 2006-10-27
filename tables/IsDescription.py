@@ -111,6 +111,16 @@ class Col(object):
     # So, the following _set*() methods should be removed in the future.
     # ivilata(2004-12-17)
 
+
+    # <properties>
+
+    recarrtype = property(
+        lambda self: str(self.dtype.shape) + self.dtype.base.str[1:], None, None,
+        "A string type to be used in numpy.rec.array().")
+
+    # </properties>
+
+
     def _setPosition(self, pos):
         "Sets the '_v_pos' attribute."
         self._v_pos = pos
@@ -899,7 +909,6 @@ class Description(object):
                 newdict['_v_ptypes'][k] = object.ptype
                 newdict['_v_dflts'][k] = object.dflt
                 baserecarrtype = dtype.base.str[1:]
-                object.recarrtype = str(dtype.shape) + baserecarrtype
                 nestedFormats.append(object.recarrtype)
                 nestedDType.append((k, baserecarrtype, dtype.shape))
             else:  # A description
