@@ -254,7 +254,10 @@ def create_test_method(ptype, op, extracond):
         # Create indexes on the columns to be queried.
         try:
             self.createIndexes(colname, ncolname)
-        except (TypeError, NotImplementedError):
+        except (TypeError, NotImplementedError):  # XXX
+            # XXX what happens if there is a problem in code that one is
+            # debugging that is raising TypeError?: you will get fooled!
+            # F. Altet 2006-10-27
             return  # column can't be indexed, nothing new to test
 
         reflen = None
@@ -263,7 +266,6 @@ def create_test_method(ptype, op, extracond):
         # Test that both simple and nested columns work as expected.
         # Because of the way the table is filled, results are the same.
         for acolname in [colname, ncolname]:
-            #print "acolname -->", acolname, condvars
             # First the reference Python version.
             pylen, pyvars = 0, condvars.copy()
             for row in table:
@@ -282,7 +284,6 @@ def create_test_method(ptype, op, extracond):
             # Then the in-kernel or indexed version.
             ptvars = condvars.copy()
             ptvars[colname] = table.colinstances[acolname]
-            #print "ptvars-->", ptvars[colname][:]
             ptvars['cExtra'] = table.colinstances['cExtra']
             try:
                 ptlen = len([r for r in table.where(cond, ptvars)])
@@ -296,7 +297,7 @@ def create_test_method(ptype, op, extracond):
 # Create individual tests.
 testn = 0
 for ptype in ptype_info:
-#for ptype in ['Time64']:   # For checking only one type
+#for ptype in ['String']:   # For checking only one type
     for op in operators:
         for extracond in extra_conditions:
             tmethod = create_test_method(ptype, op, extracond)

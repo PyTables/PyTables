@@ -2858,7 +2858,7 @@ class Column(object):
                 self.pathname, 0, table.nrows, lastrow=True )
         else:
             indexedrows = 0
-        index.optimize(verbose=verbose)   # optimize indexes
+        index.optimize(optlevel, verbose=verbose)   # optimize indexes
         self.dirty = False
         # If the user has not defined properties, assign the default
         table.indexprops = getattr(

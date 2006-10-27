@@ -298,6 +298,26 @@ def nextafter(x, direction, dtype, itemsize):
     raise TypeError("data type ``%s`` is not supported" % dtype)
 
 
+def median1d(array):
+    """Compute the (aproximate) median of a undimensional array."""
+
+    array.sort()
+    midx = int(array.size/2)
+    return array[midx]
+
+
+def median2d(array):
+    """Compute the (aproximate) median of a (already sorted) bidimensional array."""
+
+    firstdim = array.shape[0]
+    secondim = array.shape[1]
+    result = numpy.empty(shape=firstdim, dtype=array.dtype)
+    midx = int(secondim/2)
+    for idx in xrange(firstdim):
+        result[idx] = array[idx,midx]
+    return result
+
+
 class IndexProps(object):
     """Container for index properties
 
@@ -504,7 +524,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         super(Index, self).__init__(
             parentNode, name, title, new, filters)
 
-
     def _g_postInitHook(self):
         super(Index, self)._g_postInitHook()
 
@@ -573,8 +592,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         CacheArray(self, 'ranges', atom, "Range Values", filters,
                    self._v_expectedrows//self.slicesize)
         # median ranges
-        EArray(self, 'mranges', Float64Atom(shape=(0,)),
-               "Median ranges", filters, _log=False)  ##XXXXXX
+        atom = Atom(self.dtype, shape=(0,))
+        EArray(self, 'mranges', atom, "Median ranges", filters, _log=False)
 
         # Create the cache for boundary values (2nd order cache)
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
@@ -583,12 +602,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                    self._v_expectedrows//self.chunksize)
 
         # begin, end & median bounds (only for numeric types)
-        if self.ptype != "String":
-            atom = Atom(self.ptype, shape=(0,))
-            EArray(self, 'abounds', atom, "Start bounds", _log=False)
-            EArray(self, 'zbounds', atom, "End bounds", filters, _log=False)
-            EArray(self, 'mbounds', Float64Atom(shape=(0,)),
-                   "Median bounds", filters, _log=False)
+        atom = Atom(self.dtype, shape=(0,))
+        EArray(self, 'abounds', atom, "Start bounds", _log=False)
+        EArray(self, 'zbounds', atom, "End bounds", filters, _log=False)
+        EArray(self, 'mbounds', atom, "Median bounds", filters, _log=False)
 
         # Create the Array for last (sorted) row values + bounds
         shape = (2 + nbounds_inslice + self.slicesize,)
@@ -636,15 +653,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         cs = self.chunksize
         self.ranges.append([sarr[[0,-1]]])
         self.bounds.append([sarr[cs::cs]])
-        if self.ptype != "String":
-            self.abounds.append(sarr[0::cs])
-            self.zbounds.append(sarr[cs-1::cs])
-            # Compute the medians
-            sarr.shape = (len(sarr)/cs, cs)
-            sarr.transpose()
-            smedian = numpy.median(sarr)
-            self.mbounds.append(smedian)
-            self.mranges.append([numpy.median(smedian)])
+        self.abounds.append(sarr[0::cs])
+        self.zbounds.append(sarr[cs-1::cs])
+        # Compute the medians
+        sarr.shape = (len(sarr)/cs, cs)
+        smedian = median2d(sarr)
+        self.mbounds.append(smedian)
+        self.mranges.append([median1d(smedian)])
         # Update nrows after a successful append
         self.nrows = sorted.nrows
         self.nelements = self.nrows * self.slicesize
@@ -971,16 +986,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.zbounds[nslice*ncs:(nslice+1)*ncs] = sblock[cs-1::cs]
             # update median bounds
             sblock.shape = (ncs, cs)
-            sblock = sblock.transpose()
-            smedian = numpy.median(sblock)
+            smedian = median2d(sblock)
             self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
-            self.mranges[nslice] = numpy.median(smedian)
+            self.mranges[nslice] = median1d(smedian)
 
 
     def compute_overlaps(self, message, verbose):
         "Compute the overlap index for slices (only valid for numeric values)."
         if self.ptype == "String":
-            # The overlaps compuation cannot be done on strings
+            # The overlaps computation cannot be done on strings
             return (1, 10)
         ranges = self.ranges[:]
         nslices = ranges.shape[0]
@@ -1063,7 +1077,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if sorted.nrows > 0:
             if self.ptype != "String":
                 item1, item2 = item
-                # The next are optimizations. However, they hides the
+                # The next are optimizations. However, they hide the
                 # CPU functions consumptions from python profiles.
                 # Activate only after development is done.
                 if self.dtype == "Float64":
