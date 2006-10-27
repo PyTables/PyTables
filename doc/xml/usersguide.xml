@@ -7643,13 +7643,14 @@ a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))]]></screen>
 	<section id="CArrayClassDescr">
 	  <title>The <literal>CArray</literal> class</title>
 
-	  <para>This is a child of the <literal>Array</literal> class (see <xref xrefstyle="select: labelnumber" linkend="ArrayClassDescr"/>) and as such,
-	    <literal>CArray</literal> represents an array on the file. The
-	    difference is that <literal>CArray</literal> has a chunked layout
-	    and, as a consequence, it also supports compression.  You
-	    can use this class to easily save or load array (or array
-	    slices) objects to or from disk, with compression support
-	    included.
+	  <para>This is a child of the <literal>Array</literal> class (see
+	    <xref xrefstyle="select: labelnumber" linkend="ArrayClassDescr"/>)
+	    and as such, <literal>CArray</literal> represents an array on the
+	    file. The difference is that <literal>CArray</literal> has a
+	    chunked layout and, as a consequence, it also supports
+	    compression.  You can use this class to easily save or load array
+	    (or array slices) objects to or from disk, with compression
+	    support included.
 	  </para>
 
 	  <section id="CArrayClassInstanceVariables">
@@ -7666,10 +7667,15 @@ a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))]]></screen>
       <glossentry>
       <glossterm><emphasis role="bold">atom</emphasis></glossterm>
 
-        <glossdef><para>An <literal>Atom</literal> (see
-        <xref xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>) instance
-        representing the shape, type and flavor of the atomic objects to be saved.
-        </para></glossdef>
+        <glossdef><para>An <literal>Atom</literal> (see <xref
+        xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>) instance
+        representing the shape, type and flavor of the atomic objects to be
+        saved.  The shape of this atom will be used internally to define the
+        extend of the chunksize (i.e. the size used to do atomic I/O
+        operations) for the underlying HDF5 dataset.  Such a shape should have
+        the same rank than the shape of the dataset itself (the
+        <literal>shape</literal> parameter of the <literal>CArray</literal>
+        class constructor).</para></glossdef>
         </glossentry>
 
       </glosslist>

@@ -579,22 +579,28 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # begin, end & median bounds (only for numeric types)
         if self.ptype != "String":
-            atom = Atom(self.dtype, shape=(0,))
+            atom = Atom(self.ptype, shape=(0,))
             EArray(self, 'abounds', atom, "Start bounds", _log=False)
             EArray(self, 'zbounds', atom, "End bounds", filters, _log=False)
             EArray(self, 'mbounds', Float64Atom(shape=(0,)),
                    "Median bounds", filters, _log=False)
 
         # Create the Array for last (sorted) row values + bounds
-        shape = 2 + nbounds_inslice + self.slicesize
+        shape = (2 + nbounds_inslice + self.slicesize,)
         arr = numpy.empty(shape=shape, dtype=self.dtype)
         sortedLR = LastRowArray(self, 'sortedLR', arr,
                                 "Last Row sorted values + bounds")
+#         atom = Atom(self.ptype, shape=(10,))  # check for a better shape (chunksize) value
+#         sortedLR = LastRowArray(self, 'sortedLR', shape, atom,
+#                                 "Last Row sorted values + bounds")
 
         # Create the Array for reverse indexes in last row
-        shape = self.slicesize     # enough for indexes and length
+        shape = (self.slicesize,)     # enough for indexes and length
         arr = numpy.zeros(shape=shape, dtype='int64')
-        LastRowArray(self, 'indicesLR', arr, "Last Row reverse indices")
+        LastRowArray(self, 'indicesLR', arr,
+                     "Last Row reverse indices")
+#         LastRowArray(self, 'indicesLR', shape, Int64Atom(shape=(10,)),
+#                      "Last Row reverse indices")
 
         # All bounds values (+begin+end) are at the beginning of sortedLR
         nboundsLR = 0   # 0 bounds initially

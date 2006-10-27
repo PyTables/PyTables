@@ -263,6 +263,7 @@ def create_test_method(ptype, op, extracond):
         # Test that both simple and nested columns work as expected.
         # Because of the way the table is filled, results are the same.
         for acolname in [colname, ncolname]:
+            #print "acolname -->", acolname, condvars
             # First the reference Python version.
             pylen, pyvars = 0, condvars.copy()
             for row in table:
@@ -281,6 +282,7 @@ def create_test_method(ptype, op, extracond):
             # Then the in-kernel or indexed version.
             ptvars = condvars.copy()
             ptvars[colname] = table.colinstances[acolname]
+            #print "ptvars-->", ptvars[colname][:]
             ptvars['cExtra'] = table.colinstances['cExtra']
             try:
                 ptlen = len([r for r in table.where(cond, ptvars)])
@@ -293,8 +295,8 @@ def create_test_method(ptype, op, extracond):
 
 # Create individual tests.
 testn = 0
-for ptype in ptype_info:
-#for ptype in ['Int32']:   # For checking only one type
+#for ptype in ptype_info:
+for ptype in ['Time64']:   # For checking only one type
     for op in operators:
         for extracond in extra_conditions:
             tmethod = create_test_method(ptype, op, extracond)

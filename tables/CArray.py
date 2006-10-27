@@ -98,9 +98,9 @@ class CArray(Array):
         shape -- The shape of the chunked array to be saved.
 
         atom -- An Atom object representing the shape, type and flavor
-            of the atomic objects to be saved. One of the shape
-            dimensions must be 0. The dimension being 0 means that the
-            resulting EArray object can be extended along it.
+            of the atomic objects to be saved. The shape dimensions of
+            the ``atom`` will be used as the chunksize of the
+            underlying HDF5 dataset.
 
         title -- Sets a TITLE attribute on the array entity.
 

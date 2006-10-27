@@ -42,6 +42,7 @@ import numpy
 from tables.Node import NotLoggedMixin
 from tables.Array import Array
 from tables.EArray import EArray
+from tables.CArray import CArray
 from tables.VLArray import Atom, StringAtom
 import tables.indexesExtension as indexesExtension
 
