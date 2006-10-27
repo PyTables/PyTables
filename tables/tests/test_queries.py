@@ -249,7 +249,7 @@ def create_test_method(ptype, op, extracond):
         # Create indexes on the columns to be queried.
         try:
             self.createIndexes(colname, ncolname)
-        except TypeError:
+        except (TypeError, NotImplementedError):
             return  # column can't be indexed, nothing new to test
 
         reflen = None

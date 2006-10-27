@@ -84,6 +84,9 @@ def get_shape_itemsize_str(shape):
 
 def checkIndexable(dtype):
     """Raise `TypeError` if the data type `dtype` is not indexable."""
+    if dtype.char == 'Q':
+        raise NotImplementedError( "indexing 64-bit unsigned integer columns "
+                                   "is not supported yet, sorry" )
     if dtype.kind == 'c':
         raise TypeError("complex columns can not be indexed")
     if dtype.shape != ():
