@@ -70,9 +70,10 @@ def calcChunksize(expectedrows, optlevel=0, testmode=False):
         if 0 <= optlevel < 9:
             boost = (optlevel % 3) * 2 + 1   # 1, 3, 5
         elif optlevel == 9:
-            boost = 6
-        #print "boost-->", boost, optlevel
+            boost = 4
+        #chunksize = 2 * boost    # 2 is the bare minimum for tests to work
         chunksize = 5 * boost
+        # slicesize should be at least twice as bigger than chunksize
         slicesize = chunksize * boost * 2
         if 3 <= optlevel < 6:
             optstarts = True

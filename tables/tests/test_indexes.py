@@ -138,7 +138,7 @@ class BasicTestCase(PyTablesTestCase):
         results = [p["var3"] for p in table.where('(1<var3)&(var3<10)')]
         if verbose:
             print "Selected values:", results
-        assert len(results) == 8
+        assert len(results) == min(10, table.nrows) - 2
 
     def test04_readIndex(self):
         """Checking reading an Index (float flavor)"""
@@ -162,8 +162,7 @@ class BasicTestCase(PyTablesTestCase):
         #results = [p["var4"] for p in table.where('(1<var4)&(var4<10)')]
         if verbose:
             print "Selected values:", results
-        assert len(results) == 10
-        #assert len(results) == 8
+        assert len(results) == min(10, table.nrows)
 
     def test05_getWhereList(self):
         """Checking reading an Index with getWhereList (string flavor)"""
@@ -551,7 +550,7 @@ class BasicReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss
 
 class ZlibReadTestCase(BasicTestCase):
@@ -559,7 +558,7 @@ class ZlibReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss
 
 class LZOReadTestCase(BasicTestCase):
@@ -567,7 +566,7 @@ class LZOReadTestCase(BasicTestCase):
     complib = "lzo"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss
 
 class BZIP2ReadTestCase(BasicTestCase):
@@ -575,7 +574,7 @@ class BZIP2ReadTestCase(BasicTestCase):
     complib = "bzip2"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss
 
 class ShuffleReadTestCase(BasicTestCase):
@@ -583,7 +582,7 @@ class ShuffleReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 1
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss
 
 class Fletcher32ReadTestCase(BasicTestCase):
@@ -591,7 +590,7 @@ class Fletcher32ReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 1
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss
 
 class ShuffleFletcher32ReadTestCase(BasicTestCase):
@@ -599,19 +598,19 @@ class ShuffleFletcher32ReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 1
     fletcher32 = 1
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss
 
 class OneHalfTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss+ss//2
 
 class UpperBoundTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss+1
 
 class LowerBoundTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss*2-1
 
 # This warning has non-sense now in the PyTables Pro version, as *all*
@@ -1018,7 +1017,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
         # Now, remove some rows:
-        table.removeRows(3,5)
+        table.removeRows(2,4)
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1421,32 +1420,32 @@ class AI4bTestCase(AutomaticIndexingTestCase):
     klass = NoReindex
 
 class AI5TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=0)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
     nrows = ss*11-1
     reopen = 0
     klass = NoAuto
 
 class AI6TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=0)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
     nrows = ss*21+1
     reopen = 1
     klass = NoAuto
 
 class AI7TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=0)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
     nrows = ss*12-1
     reopen = 0
     klass = NoReindex
 
 class AI8TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=0)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
     nrows = ss*15+100
     #nrows = ss*1+100  # faster test
     reopen = 1
     klass = NoReindex
 
 class AI9TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=1, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss
     reopen = 0
     klass = Small
