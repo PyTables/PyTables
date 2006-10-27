@@ -529,7 +529,7 @@ cdef class AttributeSet:
       # (binary pickles are not supported at this moment)
       value = cPickle.dumps(value, 0)
       ret = H5ATTRset_attribute_string(self.dataset_id, name, value)
-    
+
     return
 
 
@@ -558,7 +558,7 @@ cdef class AttributeSet:
     if ret < 0:
       raise HDF5ExtError("Can't get ndims on attribute %s in node %s." %
                              (attrname, self.name))
- 
+
     # Get the dimensional info
     dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
     ret = H5ATTRget_attribute_info(dset_id, attrname, dims,

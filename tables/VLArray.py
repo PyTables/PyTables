@@ -238,6 +238,7 @@ be zero."""
 
         flavor = self.flavor
         ptype = self._atomicptype
+
         # First, check the special cases VLString and Object types
         if flavor == "VLString":
             self.atom = VLStringAtom()

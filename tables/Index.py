@@ -477,12 +477,16 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """The expected number of items of index arrays."""
         self.testmode = testmode
         """Enables test mode for index chunk size calculation."""
-        self.atom = atom
-        """The `Atom` instance matching to be stored by the index array."""
         if atom is not None:
             self.dtype = atom.dtype
             self.ptype = atom.ptype
-            """The datatype to be stored by the sorted index array."""
+            """The datatypes to be stored by the sorted index array."""
+            ############### Important note ###########################
+            #The datatypes saved as index values are NumPy native
+            #types, so we get rid of type metainfo like Time* or Enum*
+            #that belongs to HDF5 types (actually, this metainfo is
+            #not needed for sorting and looking-up purposes).
+            ##########################################################
         self.column = column
         """The `Column` instance for the indexed column."""
 
@@ -547,7 +551,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Create the IndexArray for sorted values
         sorted = IndexArray(self, 'sorted',
-                            self.atom, "Sorted Values", filters, self.optlevel,
+                            Atom(self.dtype, shape=(0,)),
+                            "Sorted Values", filters, self.optlevel,
                             self.testmode, self._v_expectedrows)
 
         # After "sorted" is created, we can assign some attributes
@@ -590,17 +595,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         arr = numpy.empty(shape=shape, dtype=self.dtype)
         sortedLR = LastRowArray(self, 'sortedLR', arr,
                                 "Last Row sorted values + bounds")
-#         atom = Atom(self.ptype, shape=(10,))  # check for a better shape (chunksize) value
-#         sortedLR = LastRowArray(self, 'sortedLR', shape, atom,
-#                                 "Last Row sorted values + bounds")
 
         # Create the Array for reverse indexes in last row
         shape = (self.slicesize,)     # enough for indexes and length
         arr = numpy.zeros(shape=shape, dtype='int64')
         LastRowArray(self, 'indicesLR', arr,
                      "Last Row reverse indices")
-#         LastRowArray(self, 'indicesLR', shape, Int64Atom(shape=(10,)),
-#                      "Last Row reverse indices")
 
         # All bounds values (+begin+end) are at the beginning of sortedLR
         nboundsLR = 0   # 0 bounds initially
@@ -805,7 +805,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if hasattr(self.tmp, 'sorted'):
             self.tmpfile.removeNode('/sorted')
             self.tmpfile.removeNode('/indices')
-        tmp_sorted = IndexArray(self.tmp, 'sorted', self.atom,
+        tmp_sorted = IndexArray(self.tmp, 'sorted',
+                                Atom(self.dtype, shape=(0,)),
                                 "Temporary sorted", filters, self.optlevel,
                                 self.testmode, self.nelements)
         tmp_indices = IndexArray(self.tmp, 'indices',

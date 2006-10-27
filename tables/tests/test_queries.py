@@ -295,8 +295,8 @@ def create_test_method(ptype, op, extracond):
 
 # Create individual tests.
 testn = 0
-#for ptype in ptype_info:
-for ptype in ['Time64']:   # For checking only one type
+for ptype in ptype_info:
+#for ptype in ['Time64']:   # For checking only one type
     for op in operators:
         for extracond in extra_conditions:
             tmethod = create_test_method(ptype, op, extracond)

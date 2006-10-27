@@ -401,7 +401,7 @@ class CompareTestCase(unittest.TestCase):
 
         # Create test EArray with data.
         h5file = tables.openFile(
-                self.h5fname, 'w', title = "Test for comparing Time64 E arrays")
+                self.h5fname, 'w', title = "Test for comparing Time64 EArrays")
         ea = h5file.createEArray(
                 '/', 'test', tables.Time64Atom(shape = (0, 2)))
         ea.append((wtime,))
