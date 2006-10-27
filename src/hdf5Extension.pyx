@@ -776,17 +776,18 @@ cdef class Leaf(Node):
     NumPy type used to encode it.
     """
 
-    cdef hid_t enumId
+    cdef hid_t enumId, type_id
     cdef char  byteorder[11]  # "irrelevant" fits well here
 
     if self._c_classId == "VLARRAY":
       # For VLArray objects, the interesting type is the base type
-      enumId = getTypeEnum(self.base_type_id)
+      type_id = self.base_type_id
     else:
-      enumId = getTypeEnum(self.type_id)
+      type_id = self.type_id
+    # Get the enumerated type
+    enumId = getTypeEnum(type_id)
     # Get the byteorder
-    get_order(self.type_id, byteorder)
-
+    get_order(type_id, byteorder)
     # Get the Enum and NumPy types and close the HDF5 type.
     try:
       return enumFromHDF5(enumId, byteorder)
@@ -809,6 +810,7 @@ cdef class Leaf(Node):
       # Important to release cflavor, because it has been malloc'ed!
       if cflavor: free(<void *>cflavor)
     return flavor
+
 
   def _g_flush(self):
     # Flush the dataset (in fact, the entire buffers in file!)

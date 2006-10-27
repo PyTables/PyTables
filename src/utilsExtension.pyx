@@ -527,10 +527,13 @@ sorry, only integer concrete values are supported at this moment""")
       raise HDF5ExtError(
         "failed to get element value from HDF5 enumerated type")
 
-    enumDict[pyename] = npvalue[0]  # converted to Python scalar
+    enumDict[pyename] = npvalue[0]  # converted to NumPy scalar
 
-  # Correct the dtype byteorder before returning it
+  # Correct the dtype byteorder before returning it.
+  # We need to set this for subsequent data reads.
   # Note: it is important to correct this *after* creation of npvalue array
+  # because enumId is a *native* type and byteorder correction will be done
+  # on every H5Tget_member_value call.
   if byteorder in ('little', 'big'):
     dtype = dtype.newbyteorder(byteorder)
 
