@@ -964,7 +964,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.zbounds[nslice*ncs:(nslice+1)*ncs] = sblock[cs-1::cs]
             # update median bounds
             sblock.shape = (ncs, cs)
-            sblock.transpose()
+            sblock = sblock.transpose()
             smedian = numpy.median(sblock)
             self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
             self.mranges[nslice] = numpy.median(smedian)
