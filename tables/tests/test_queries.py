@@ -50,6 +50,14 @@ nxtype_from_ptype = dict(
     (dtype, info[1]) for (dtype, info) in ptype_info.iteritems() )
 """Maps PyTables types to Numexpr data types."""
 
+heavy_types = ['UInt8', 'Int16', 'UInt16', 'Float32', 'Complex32']
+"""Python types to be tested only in heavy mode."""
+
+if not tests.heavy:
+    for ptype in heavy_types:
+        for tdict in ptype_info, dtype_from_ptype, nxtype_from_ptype:
+            del tdict[ptype]
+
 enum = tables.Enum(dict(('n%d' % i, i) for i in range(_maxnvalue)))
 """Enumerated type to be used in tests."""
 
