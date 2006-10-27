@@ -277,7 +277,10 @@ def create_test_method(ptype, op, extracond):
             ptvars = condvars.copy()
             ptvars[colname] = table.colinstances[acolname]
             ptvars['cExtra'] = table.colinstances['cExtra']
-            ptlen = len([r for r in table.where(cond, ptvars)])
+            try:
+                ptlen = len([r for r in table.where(cond, ptvars)])
+            except NotImplementedError:
+                return  # type doesn't support operation, skip test
             self.assertEqual(ptlen, reflen)
 
     test_method.__doc__ = "Testing ``%s``." % cond

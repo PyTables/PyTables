@@ -893,6 +893,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                     raise ValueError( "variable ``%s`` refers to a column "
                                       "which is not part of table ``%s``"
                                       % (var, tblpath) )
+                if val.dtype.char == 'Q':
+                    raise NotImplementedError(
+                        "querying 64-bit unsigned integer columns "
+                        "is not supported yet, sorry; "
+                        "please use regular Python selections" )
             elif hasattr(val, '_v_colpathnames'):  # nested column
                 raise TypeError( "variable ``%s`` refers to a nested column, "
                                  "not allowed in conditions" % (var,) )
