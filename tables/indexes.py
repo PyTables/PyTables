@@ -67,24 +67,19 @@ def calcChunksize(expectedrows, optlevel=0, testmode=False):
     optstarts, optstops, optfull = (False, False, False)
 
     if testmode:
-        if expectedrows < minRowIndex*10:
-            chunksize = 5
-            slicesize = 10
-            if optlevel >= 3:
-                optstarts = True
-        elif expectedrows < minRowIndex*100:
-            chunksize = 50
-            slicesize = 100
-            if optlevel >= 3:
-                optstarts, optstops = (True, True)
-        elif expectedrows <= minRowIndex*1000:
-            chunksize = 500
-            slicesize = 1000
-            if optlevel >= 3:
-                optfull = True
-        else:
-            raise ValueError, \
-"expected rows cannot be larger than %s in test mode" % minRowIndex*1000
+        if 0 <= optlevel < 9:
+            boost = (optlevel % 3) * 2 + 1   # 1, 3, 5
+        elif optlevel == 9:
+            boost = 6
+        #print "boost-->", boost, optlevel
+        chunksize = 5 * boost
+        slicesize = chunksize * boost * 2
+        if 3 <= optlevel < 6:
+            optstarts = True
+        elif 6 <= optlevel < 9:
+            optstarts, optstops = (True, True)
+        elif optlevel == 9:
+            optfull = True
         if blocksize == None:
             blocksize = 4*slicesize
         if superblocksize == None:
@@ -105,7 +100,7 @@ def calcChunksize(expectedrows, optlevel=0, testmode=False):
     # wants to reduce the latency for indexed queries. However, keep in
     # mind that a very low value of chunksize for big datasets may
     # hurt the performance by requering the HDF5 to use a lot of memory
-    # and CPU for its internal B-Tree
+    # and CPU for its internal B-Tree.
     if expKrows < 0.1: # expected rows < 100 thousand
         chunksize = 250
         slicesize = 100*chunksize
