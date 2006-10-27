@@ -298,7 +298,16 @@ for ptype in ptype_info:
             testn += 1
 
 
-# Base classes for queries.
+# Base classes for all queries.
+class ScalarTableMixin:
+    tableDescription = TableDescription
+    shape = ()
+class MDTableMixin:
+    tableDescription = MDTableDescription
+    shape = md_shape
+
+
+# Base classes for non-indexed queries.
 NX_BLOCK_SIZE1 = 128  # from ``interpreter.c`` in Numexpr
 NX_BLOCK_SIZE2 = 8  # from ``interpreter.c`` in Numexpr
 
@@ -312,20 +321,11 @@ class BigTableMixin:
     assert nrows % NX_BLOCK_SIZE1 != 0
     assert nrows % NX_BLOCK_SIZE2 != 0  # to have some residual rows
 
-class ScalarTableMixin:
-    tableDescription = TableDescription
-    shape = ()
-class MDTableMixin:
-    tableDescription = MDTableDescription
-    shape = md_shape
-
+# Parameters for non-indexed queries.
 table_sizes = ['Small']
 if tests.heavy:
-    table_sizes.append('Big')
+    table_sizes += ['Big']
 table_ndims = ['Scalar']  # to enable multidimensional testing, include 'MD'
-table_optvalues = [0, 1, 3]
-if tests.heavy:
-    table_optvalues += [6, 9]
 
 # Non-indexed queries: ``[SB][SM]TQTestCase``.
 def niclassdata():
@@ -336,15 +336,32 @@ def niclassdata():
                            'TableQueryTestCase' )
             yield (classname, cbasenames, {})
 
-# Indexed queries: ``[SB]SI[0139]TQTestCase``.
+
+# Base classes for indexed queries.
+class SmallITableMixin:
+    nrows = 50
+class MediumITableMixin:
+    nrows = 100
+class BigITableMixin:
+    nrows = 500
+
+# Parameters for indexed queries.
+itable_sizes = ['Small']
+itable_optvalues = [0, 2, 3]
+if tests.heavy:
+    itable_sizes += ['Medium', 'Big']
+    itable_optvalues += [7, 9]
+
+# Indexed queries: ``[SMB]I[02379]TQTestCase``.
 def iclassdata():
-    for size in table_sizes:
-        for optlevel in table_optvalues:
-            classname = '%sSI%dTQTestCase' % (size[0], optlevel)
-            cbasenames = ( '%sTableMixin' % size, 'ScalarTableMixin',
+    for size in itable_sizes:
+        for optlevel in itable_optvalues:
+            classname = '%sI%dTQTestCase' % (size[0], optlevel)
+            cbasenames = ( '%sITableMixin' % size, 'ScalarTableMixin',
                            'TableQueryTestCase' )
             yield ( classname, cbasenames,
                     {'optlevel': optlevel, 'indexed': True} )
+
 
 # Create test classes.
 for cdatafunc in [niclassdata, iclassdata]:
