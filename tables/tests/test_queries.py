@@ -219,11 +219,16 @@ class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
 
 
 operators = ['<', '==', '!=']
+"""Comparison operators to check with different types."""
 if tests.heavy:
     operators += ['<=', '>=', '>']
 ## XXX Need to check por operator pairs.
 left_bound = row_period / 4
+"""Operand of left side operator in comparisons with operator pairs."""
 right_bound = row_period * 3 / 4
+"""Operand of right side operator in comparisons with operator pairs."""
+extra_conditions = ['', '& ((cExtra+1) > 0)', '| ((cExtra+1) > 0)']
+"""Extra conditions to append to comparison conditions."""
 
 def create_test_method(ptype, op, extracond):
     colname = 'c%s' % ptype
@@ -286,10 +291,11 @@ def create_test_method(ptype, op, extracond):
     test_method.__doc__ = "Testing ``%s``." % cond
     return test_method
 
+# Create individual tests.
 testn = 0
 for ptype in ptype_info:
     for op in operators:
-        for extracond in ['', '& ((cExtra+1) > 0)', '| ((cExtra+1) > 0)']:
+        for extracond in extra_conditions:
             tmethod = create_test_method(ptype, op, extracond)
             tmethod.__name__ = 'test_a%04d' % testn
             dmethod = tests.verboseDecorator(tmethod)
