@@ -7,9 +7,9 @@ hid_t convArrayType(int nptype, size_t size, char *byteorder)
    hid_t type_id;
    int  rbyteorder;
 
-   if (strcmp(byteorder, "little") == 0))
+   if (strcmp(byteorder, "little") == 0)
      rbyteorder = '<';
-   else if (strcmp(byteorder, "big") == 0))
+   else if (strcmp(byteorder, "big") == 0)
      rbyteorder = '>';
    else {
      rbyteorder = '|';
