@@ -90,7 +90,7 @@ def checkIndexable(dtype):
     if dtype.kind == 'c':
         raise TypeError("complex columns can not be indexed")
     if dtype.shape != ():
-        raise TypeError("only scalar columns can be indexed")
+        raise TypeError("multidimensional columns can not be indexed")
 
 
 

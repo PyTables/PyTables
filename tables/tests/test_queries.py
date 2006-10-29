@@ -9,6 +9,7 @@ Test module for queries on datasets
 :Revision: $Id$
 """
 
+import re
 import new
 import unittest
 
@@ -254,11 +255,12 @@ def create_test_method(ptype, op, extracond):
         # Create indexes on the columns to be queried.
         try:
             self.createIndexes(colname, ncolname)
-        except (TypeError, NotImplementedError):  # XXX
-            # XXX what happens if there is a problem in code that one is
-            # debugging that is raising TypeError?: you will get fooled!
-            # F. Altet 2006-10-27
-            return  # column can't be indexed, nothing new to test
+        except TypeError, te:
+            if not re.search(r"\bcan not be indexed\b", str(te)):
+                raise
+            return  # column can not be indexed, nothing new to test
+        except NotImplementedError:
+            return  # column does not support indexing yet
 
         reflen = None
         ## XXX Better try to check retrieved data with ``readWhere()``.
@@ -294,12 +296,12 @@ def create_test_method(ptype, op, extracond):
     test_method.__doc__ = "Testing ``%s``." % cond
     return test_method
 
-# Create individual tests.
+# Create individual tests.  You may restrict which tests are generated
+# by replacing the sequences in the ``for`` statements.  For instance:
 testn = 0
-for ptype in ptype_info:
-#for ptype in ['String']:   # For checking only one type
-    for op in operators:
-        for extracond in extra_conditions:
+for ptype in ptype_info:  # for ptype in ['String']:
+    for op in operators:  # for op in ['!=']:
+        for extracond in extra_conditions:  # for extracond in ['']:
             tmethod = create_test_method(ptype, op, extracond)
             tmethod.__name__ = 'test_a%04d' % testn
             dmethod = tests.verboseDecorator(tmethod)
