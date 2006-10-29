@@ -71,10 +71,6 @@ class test_numexpr(NumpyTestCase):
         x = x + 5j
         assert_equal(evaluate("sum(x**2+2,axis=0)"), sum(x**2+2,axis=0))
         assert_equal(evaluate("prod(x**2+2,axis=0)"), prod(x**2+2,axis=0))
-        # Check boolean (should cast to integer)
-        x = (arange(10) % 2).astype(bool)
-        assert_equal(evaluate("prod(x,axis=0)"), prod(x,axis=0))
-        assert_equal(evaluate("sum(x,axis=0)"), sum(x,axis=0))
         
     def check_axis(self):
         y = arange(9.0).reshape(3,3)

@@ -26,6 +26,9 @@ enum OpCodes {
     OP_AND_BBB,
     OP_OR_BBB,
 
+    OP_EQ_BBB,
+    OP_NE_BBB,
+
     OP_GT_BII,
     OP_GE_BII,
     OP_EQ_BII,
@@ -46,7 +49,6 @@ enum OpCodes {
     OP_EQ_BSS,
     OP_NE_BSS,
 
-    OP_CAST_IB,
     OP_COPY_II,
     OP_ONES_LIKE_II,
     OP_NEG_II,
@@ -58,7 +60,6 @@ enum OpCodes {
     OP_MOD_III,
     OP_WHERE_IFII,
 
-    OP_CAST_LB,
     OP_CAST_LI,
     OP_COPY_LL,
     OP_ONES_LIKE_LL,
@@ -71,7 +72,6 @@ enum OpCodes {
     OP_MOD_LLL,
     OP_WHERE_LFLL,
 
-    OP_CAST_FB,
     OP_CAST_FI,
     OP_CAST_FL,
     OP_COPY_FF,
@@ -95,7 +95,6 @@ enum OpCodes {
     OP_EQ_BCC,
     OP_NE_BCC,
 
-    OP_CAST_CB,
     OP_CAST_CI,
     OP_CAST_CL,
     OP_CAST_CF,
@@ -145,6 +144,8 @@ static char op_signature(int op, int n) {
             break;
         case OP_AND_BBB:
         case OP_OR_BBB:
+        case OP_EQ_BBB:
+        case OP_NE_BBB:
             if (n == 0 || n == 1 || n == 2) return 'b';
             break;
         case OP_GT_BII:
@@ -175,10 +176,6 @@ static char op_signature(int op, int n) {
             if (n == 0) return 'b';
             if (n == 1 || n == 2) return 's';
             break;
-        case OP_CAST_IB:
-            if (n == 0) return 'i';
-            if (n == 1) return 'b';
-            break;
         case OP_COPY_II:
         case OP_ONES_LIKE_II:
         case OP_NEG_II:
@@ -195,10 +192,6 @@ static char op_signature(int op, int n) {
         case OP_WHERE_IFII:
             if (n == 0 || n == 2 || n == 3) return 'i';
             if (n == 1) return 'f';
-            break;
-        case OP_CAST_LB:
-            if (n == 0) return 'l';
-            if (n == 1) return 'b';
             break;
         case OP_CAST_LI:
             if (n == 0) return 'l';
@@ -220,10 +213,6 @@ static char op_signature(int op, int n) {
         case OP_WHERE_LFLL:
             if (n == 0 || n == 2 || n == 3) return 'l';
             if (n == 1) return 'f';
-            break;
-        case OP_CAST_FB:
-            if (n == 0) return 'f';
-            if (n == 1) return 'b';
             break;
         case OP_CAST_FI:
             if (n == 0) return 'f';
@@ -266,10 +255,6 @@ static char op_signature(int op, int n) {
         case OP_NE_BCC:
             if (n == 0) return 'b';
             if (n == 1 || n == 2) return 'c';
-            break;
-        case OP_CAST_CB:
-            if (n == 0) return 'c';
-            if (n == 1) return 'b';
             break;
         case OP_CAST_CI:
             if (n == 0) return 'c';
@@ -1483,6 +1468,9 @@ initinterpreter(void)
     add_op("and_bbb", OP_AND_BBB);
     add_op("or_bbb", OP_OR_BBB);
 
+    add_op("eq_bbb", OP_EQ_BBB);
+    add_op("ne_bbb", OP_NE_BBB);
+
     add_op("gt_bii", OP_GT_BII);
     add_op("ge_bii", OP_GE_BII);
     add_op("eq_bii", OP_EQ_BII);
@@ -1503,7 +1491,6 @@ initinterpreter(void)
     add_op("eq_bss", OP_EQ_BSS);
     add_op("ne_bss", OP_NE_BSS);
 
-    add_op("cast_ib", OP_CAST_IB);
     add_op("ones_like_ii", OP_ONES_LIKE_II);
     add_op("copy_ii", OP_COPY_II);
     add_op("neg_ii", OP_NEG_II);
@@ -1515,7 +1502,6 @@ initinterpreter(void)
     add_op("mod_iii", OP_MOD_III);
     add_op("where_ifii", OP_WHERE_IFII);
 
-    add_op("cast_lb", OP_CAST_LB);
     add_op("cast_li", OP_CAST_LI);
     add_op("ones_like_ll", OP_ONES_LIKE_LL);
     add_op("copy_ll", OP_COPY_LL);
@@ -1528,7 +1514,6 @@ initinterpreter(void)
     add_op("mod_lll", OP_MOD_LLL);
     add_op("where_lfll", OP_WHERE_LFLL);
 
-    add_op("cast_fb", OP_CAST_FB);
     add_op("cast_fi", OP_CAST_FI);
     add_op("cast_fl", OP_CAST_FL);
     add_op("copy_ff", OP_COPY_FF);
@@ -1553,7 +1538,6 @@ initinterpreter(void)
     add_op("eq_bcc", OP_EQ_BCC);
     add_op("ne_bcc", OP_NE_BCC);
 
-    add_op("cast_cb", OP_CAST_CB);
     add_op("cast_ci", OP_CAST_CI);
     add_op("cast_cl", OP_CAST_CL);
     add_op("cast_cf", OP_CAST_CF);

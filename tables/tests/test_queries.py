@@ -241,6 +241,7 @@ def create_test_method(ptype, op, extracond):
     bound = right_bound
     if ptype == 'String':
         bound = str_format % bound
+    bound = nxtype_from_ptype[ptype](bound)
     condvars = {'bound': bound}
 
     def test_method(self):

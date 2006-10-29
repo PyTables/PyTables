@@ -220,6 +220,10 @@ def stringToExpression(s, types, context):
     for name in c.co_names:
         if name == "None":
             names[name] = None
+        elif name == "True":
+            names[name] = True
+        elif name == "False":
+            names[name] = False
         else:
             t = types.get(name, float)
             names[name] = expr.VariableNode(name, type_to_kind[t])

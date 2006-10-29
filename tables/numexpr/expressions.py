@@ -82,9 +82,15 @@ def bestConstantType(x):
     # clearly tell 32- and 64-bit constants apart.
     if isinstance(x, int) and not (min_int32 <= x <= max_int32):
         return long
+    # Numeric conversion to boolean values is not tried because
+    # ``bool(1) == True`` (same for 0 and False), so 0 and 1 would be
+    # interpreted as booleans when ``False`` and ``True`` are already
+    # supported.
+    if isinstance(x, bool):
+        return bool
     # ``long`` is not explicitly needed since ``int`` automatically
     # returns longs when needed (since Python 2.3).
-    for converter in bool, int, float, complex:
+    for converter in int, float, complex:
         try:
             y = converter(x)
         except StandardError, err:
@@ -144,10 +150,7 @@ def sum_func(a, axis=-1):
         return a
     if isinstance(a, (bool, int, long, float, complex)):
         a = ConstantNode(a)
-    kind = a.astKind
-    if kind == 'bool':
-        kind = 'int'
-    return FuncNode('sum', [a, axis], kind=kind)
+    return FuncNode('sum', [a, axis], kind=a.astKind)
 
 def prod_func(a, axis=-1):
     axis = encode_axis(axis)
@@ -155,10 +158,7 @@ def prod_func(a, axis=-1):
         a = ConstantNode(a)
     if isinstance(a, ConstantNode):
         return a
-    kind = a.astKind
-    if kind == 'bool':
-        kind = 'int'
-    return FuncNode('prod', [a, axis], kind=kind)
+    return FuncNode('prod', [a, axis], kind=a.astKind)
 
 @ophelper
 def div_op(a, b):
