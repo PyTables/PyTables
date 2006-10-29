@@ -219,7 +219,7 @@ class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
     ## XXX Need some standard checks on query usage.
 
 
-operators = ['<', '==', '!=']
+operators = [None, '<', '==', '!=']
 """Comparison operators to check with different types."""
 if tests.heavy:
     operators += ['<=', '>=', '>']
@@ -231,10 +231,15 @@ right_bound = row_period * 3 / 4
 extra_conditions = ['', '& ((cExtra+1) > 0)', '| ((cExtra+1) > 0)']
 """Extra conditions to append to comparison conditions."""
 
+_col_not_indexable_re = re.compile(r"\bcan not be indexed\b")
+_cond_not_boolean_re = re.compile(r"\bdoes not have a boolean type\b")
 def create_test_method(ptype, op, extracond):
     colname = 'c%s' % ptype
     ncolname = 'cNested/%s' % colname
-    cond = '%s %s bound' % (colname, op)
+    if not op:
+        cond = colname
+    else:
+        cond = '%s %s bound' % (colname, op)
     if extracond:
         cond = '(%s) %s' % (cond, extracond)
 
@@ -257,9 +262,9 @@ def create_test_method(ptype, op, extracond):
         try:
             self.createIndexes(colname, ncolname)
         except TypeError, te:
-            if not re.search(r"\bcan not be indexed\b", str(te)):
-                raise
-            return  # column can not be indexed, nothing new to test
+            if _col_not_indexable_re.search(str(te)):
+                return  # column can not be indexed, nothing new to test
+            raise
         except NotImplementedError:
             return  # column does not support indexing yet
 
@@ -290,6 +295,10 @@ def create_test_method(ptype, op, extracond):
             ptvars['cExtra'] = table.colinstances['cExtra']
             try:
                 ptlen = len([r for r in table.where(cond, ptvars)])
+            except TypeError, te:
+                if _cond_not_boolean_re.search(str(te)):
+                    return  # condition is not boolean
+                raise
             except NotImplementedError:
                 return  # type doesn't support operation, skip test
             self.assertEqual(ptlen, reflen)
