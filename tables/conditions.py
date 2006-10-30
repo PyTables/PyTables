@@ -99,13 +99,18 @@ def _get_indexable_cmp(exprnode, indexedcols):
             return (var_value, op, const_value)
         return None
 
+    def is_indexed_boolean(node):
+        return ( node.astType == 'variable'
+                 and node.astKind == 'bool'
+                 and node.value in indexedcols )
+
     # Boolean variables are indexable by themselves.
-    if exprnode.astType == 'variable' and exprnode.astKind == 'bool':
+    if is_indexed_boolean(exprnode):
         return (exprnode.value, 'eq', True)
     # And so are negations of boolean variables.
     if exprnode.astType == 'op' and exprnode.value == 'invert':
         child = exprnode.children[0]
-        if child.astType == 'variable' and child.astKind == 'bool':
+        if is_indexed_boolean(child):
             return (child.value, 'eq', False)
 
     # Check node type.  Only comparisons are indexable from now on.
