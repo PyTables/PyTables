@@ -298,25 +298,6 @@ def nextafter(x, direction, dtype, itemsize):
     raise TypeError("data type ``%s`` is not supported" % dtype)
 
 
-def median1d(array):
-    """Compute the (aproximate) median of a undimensional array."""
-
-    array.sort()
-    midx = int(array.size/2)
-    return array[midx]
-
-
-def median2d(array):
-    """Compute the (aproximate) median of a (already sorted) bidimensional array."""
-
-    firstdim = array.shape[0]
-    secondim = array.shape[1]
-    result = numpy.empty(shape=firstdim, dtype=array.dtype)
-    midx = int(secondim/2)
-    for idx in xrange(firstdim):
-        result[idx] = array[idx,midx]
-    return result
-
 
 class IndexProps(object):
     """Container for index properties
@@ -651,15 +632,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         #arr.sort(); sarr = arr
         sorted.append(sarr)
         cs = self.chunksize
+        ncs = self.nchunkslice
         self.ranges.append([sarr[[0,-1]]])
         self.bounds.append([sarr[cs::cs]])
         self.abounds.append(sarr[0::cs])
         self.zbounds.append(sarr[cs-1::cs])
         # Compute the medians
-        sarr.shape = (len(sarr)/cs, cs)
-        smedian = median2d(sarr)
+        smedian = sarr[cs/2::cs]
         self.mbounds.append(smedian)
-        self.mranges.append([median1d(smedian)])
+        self.mranges.append([smedian[ncs/2]])
         # Update nrows after a successful append
         self.nrows = sorted.nrows
         self.nelements = self.nrows * self.slicesize
@@ -985,10 +966,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.abounds[nslice*ncs:(nslice+1)*ncs] = sblock[0::cs]
             self.zbounds[nslice*ncs:(nslice+1)*ncs] = sblock[cs-1::cs]
             # update median bounds
-            sblock.shape = (ncs, cs)
-            smedian = median2d(sblock)
+            smedian = sblock[cs/2::cs]
             self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
-            self.mranges[nslice] = median1d(smedian)
+            self.mranges[nslice] = smedian[ncs/2]
 
 
     def compute_overlaps(self, message, verbose):
