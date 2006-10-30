@@ -699,25 +699,27 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         else:
             optstarts, optstops, optfull = self.reord_opts
 
-        if optstarts or optstops or optfull:
-            if self.swap('create'): return
-        if optfull:
-            if self.swap('chunks', 'median'): return
-            # Swap slices only in the case we have several blocks
-            if self.nblocks > 1:
-                if self.swap('slices', 'median'): return
-                if self.swap('chunks','median'): return
-            if self.swap('chunks', 'start'): return
-            if self.swap('chunks', 'stop'): return
-        else:
-            if optstarts:
-                if self.swap('chunks', 'start'): return
-            if optstops:
-                if self.swap('chunks', 'stop'): return
-        # If temporal file still exists, close and delete it
-        if self.tmpfilename:
-            self.cleanup_temps()
-        self.dirtycache = True   # the cache is dirty now
+        # Start the optimization loop
+        while True:
+            if optstarts or optstops or optfull:
+                if self.swap('create'): break
+            if optfull:
+                if self.swap('chunks', 'median'): break
+                # Swap slices only in the case we have several blocks
+                if self.nblocks > 1:
+                    if self.swap('slices', 'median'): break
+                    if self.swap('chunks','median'): break
+                if self.swap('chunks', 'start'): break
+                if self.swap('chunks', 'stop'): break
+            else:
+                if optstarts:
+                    if self.swap('chunks', 'start'): break
+                if optstops:
+                    if self.swap('chunks', 'stop'): break
+            break  # If we reach this, exit the loop
+        # Close and delete the temporal optimization index file
+        self.cleanup_temps()
+        self.dirtycache = True   # the memory data cache is dirty now
         return
 
 
@@ -728,7 +730,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         thnover = 4        # minimum number of overlapping slices
         thmult = 0.01      # minimum ratio of multiplicity (a 1%)
         thtover = 0.001    # minimum overlaping index for slices (a .1%)
-        #self.verbose = True  # for debugging purposes only
+        #self.verbose = True  # uncomment for debugging purposes only
         if self.verbose:
             t1 = time();  c1 = clock()
         if what == "create":
@@ -742,17 +744,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         else:
             message = "swap_%s" % (what,)
         (nover, mult, tover) = self.compute_overlaps(message, self.verbose)
-        rmult = len(mult.nonzero()[0])/ len(mult)
+        rmult = len(mult.nonzero()[0]) / float(len(mult))
         if self.verbose:
             t = round(time()-t1, 4);  c = round(clock()-c1, 4)
             print "time: %s. clock: %s" % (t, c)
         # Check if some threshold has met
         if nover < thnover or rmult < thmult:
-            self.cleanup_temps()
             return True
         # Additional check for numerical values
         if self.ptype != "String" and tover < thtover:
-            self.cleanup_temps()
             return True
         return False
 
@@ -783,12 +783,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         CArray(self.tmp, 'zbounds', shape, atom, "Temp end bounds", filters)
         CArray(self.tmp, 'mbounds', shape, atom, "Median bounds", filters)
         # temporary ranges
-        shape = (self.nslices, 2)
-        atom = Atom(self.dtype, shape=(cs,2))
-        CArray(self.tmp, 'ranges', shape, atom,
+        CArray(self.tmp, 'ranges', (self.nslices, 2),
+               Atom(self.dtype, shape=(cs,2)),
                "Temporary range values", filters)
         CArray(self.tmp, 'mranges', (self.nslices,),
-               Float64Atom(shape=(cs,)),
+               Atom(self.dtype, shape=(cs,)),
                "Median ranges", filters)
 
 
