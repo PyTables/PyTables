@@ -203,12 +203,22 @@ class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
     indexed = False
     optlevel = 0
 
+    colNotIndexable_re = re.compile(r"\bcan not be indexed\b")
+    condNotBoolean_re = re.compile(r"\bdoes not have a boolean type\b")
+
     def createIndexes(self, colname, ncolname):
         if not self.indexed:
             return
-        colinsts = self.table.colinstances
-        colinsts[colname].createIndex(optlevel=self.optlevel, testmode=True)
-        colinsts[ncolname].createIndex(optlevel=self.optlevel, testmode=True)
+        try:
+            for acolname in [colname, ncolname]:
+                acolumn = self.table.colinstances[acolname]
+                acolumn.createIndex(optlevel=self.optlevel, testmode=True)
+        except TypeError, te:
+            if self.colNotIndexable_re.search(str(te)):
+                raise tests.SkipTest  # can't be indexed, nothing new to test
+            raise
+        except NotImplementedError:
+            raise tests.SkipTest  # column does not support indexing yet
 
     def setUp(self):
         super(TableQueryTestCase, self).setUp()
@@ -231,8 +241,6 @@ right_bound = row_period * 3 / 4
 extra_conditions = ['', '& ((cExtra+1) > 0)', '| ((cExtra+1) > 0)']
 """Extra conditions to append to comparison conditions."""
 
-_col_not_indexable_re = re.compile(r"\bcan not be indexed\b")
-_cond_not_boolean_re = re.compile(r"\bdoes not have a boolean type\b")
 def create_test_method(ptype, op, extracond):
     colname = 'c%s' % ptype
     ncolname = 'cNested/%s' % colname
@@ -259,16 +267,7 @@ def create_test_method(ptype, op, extracond):
         pycond = compile(pycond, '<string>', 'eval')
 
         table = self.table
-
-        # Create indexes on the columns to be queried.
-        try:
-            self.createIndexes(colname, ncolname)
-        except TypeError, te:
-            if _col_not_indexable_re.search(str(te)):
-                raise tests.SkipTest  # column can not be indexed, nothing new to test
-            raise
-        except NotImplementedError:
-            raise tests.SkipTest  # column does not support indexing yet
+        self.createIndexes(colname, ncolname)
 
         reflen = None
         ## XXX Better try to check retrieved data with ``readWhere()``.
@@ -298,7 +297,7 @@ def create_test_method(ptype, op, extracond):
             try:
                 ptlen = len([r for r in table.where(cond, ptvars)])
             except TypeError, te:
-                if _cond_not_boolean_re.search(str(te)):
+                if self.condNotBoolean_re.search(str(te)):
                     raise tests.SkipTest  # condition is not boolean
                 raise
             except NotImplementedError:
