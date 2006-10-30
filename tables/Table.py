@@ -963,9 +963,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Extract types from *all* the given variables.
         typemap = dict(zip(varnames, vartypes))  # start with normal variables
         for colname in colnames:  # then add types of columns
-            # We cannot put just self.dtype.type as per
-            # http://projects.scipy.org/scipy/numpy/ticket/334
-            coltype = condvars[colname].dtype.base.type
+            coltype = condvars[colname].dtype.type
             typemap[colname] = _nxTypeFromNPType[coltype]
 
         # Get the set of columns with usable indexes.
