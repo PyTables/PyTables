@@ -17,6 +17,7 @@ import numpy
 
 import tables
 import tables.tests.common as tests
+from tables.tests.common import verbosePrint as vprint
 
 
 row_period = 50
@@ -210,14 +211,18 @@ class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
         if not self.indexed:
             return
         try:
+            vprint("* Creating index on column ``%s``..." % colname, nonl=True)
             for acolname in [colname, ncolname]:
                 acolumn = self.table.colinstances[acolname]
                 acolumn.createIndex(optlevel=self.optlevel, testmode=True)
+            vprint("ok.")
         except TypeError, te:
             if self.colNotIndexable_re.search(str(te)):
+                vprint("can not be indexed.")
                 raise tests.SkipTest  # can't be indexed, nothing new to test
             raise
         except NotImplementedError:
+            vprint("not supported yet.")
             raise tests.SkipTest  # column does not support indexing yet
 
     def setUp(self):
@@ -262,6 +267,7 @@ def create_test_method(ptype, op, extracond):
         cond = '(%s) %s' % (cond, extracond)
 
     def test_method(self):
+        vprint("* Condition is ``%s``." % cond)
         # Replace bitwise operators with their logical counterparts.
         pycond = cond
         for (ptop, pyop) in [('&', 'and'), ('|', 'or'), ('~', 'not')]:
@@ -285,11 +291,14 @@ def create_test_method(ptype, op, extracond):
                 try:
                     isvalidrow = eval(pycond, {}, pyvars)
                 except TypeError:
-                    raise tests.SkipTest  # type doesn't support operation
+                    vprint("* Python type does not support the operation.")
+                    raise tests.SkipTest
                 if isvalidrow:
                     pylen += 1
             if reflen is None:  # initialise reference length
                 reflen = pylen
+            vprint( "* %d rows selected by Python from ``%s``."
+                    % (pylen, acolname) )
             self.assertEqual(pylen, reflen)
 
             # Then the in-kernel or indexed version.
@@ -300,10 +309,14 @@ def create_test_method(ptype, op, extracond):
                 ptlen = len([r for r in table.where(cond, ptvars)])
             except TypeError, te:
                 if self.condNotBoolean_re.search(str(te)):
-                    raise tests.SkipTest  # condition is not boolean
+                    vprint("* Condition is not boolean.")
+                    raise tests.SkipTest
                 raise
             except NotImplementedError:
-                raise tests.SkipTest  # type doesn't support operation
+                vprint("* PyTables type does not support the operation.")
+                raise tests.SkipTest
+            vprint( "* %d rows selected by PyTables from ``%s``."
+                    % (ptlen, acolname) )
             self.assertEqual(ptlen, reflen)
 
     test_method.__doc__ = "Testing ``%s``." % cond
