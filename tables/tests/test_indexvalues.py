@@ -263,9 +263,9 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        results1 = [p["var2"] for p in table1.where('t1var2 == 1')]
+        results1 = [p["var2"] for p in table1.where('t1var2 == True')]
         results2 = [p["var2"] for p in table2
-                    if p["var2"] == 1]
+                    if p["var2"] == True]
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -286,9 +286,9 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        results1 = [p["var2"] for p in table1.where('t1var2 == 0')]
+        results1 = [p["var2"] for p in table1.where('t1var2 == False')]
         results2 = [p["var2"] for p in table2
-                    if p["var2"] == 0]
+                    if p["var2"] == False]
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -970,12 +970,12 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        condition = 't1var2==1'
+        condition = 't1var2==True'
         self.assert_(table1.willQueryUseIndexing(condition) == t1var2.pathname)
         rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var2'] for p in table1.itersequence(rowList1)]
         results2 = [p["var2"] for p in table2
-                    if p["var2"] == 1]
+                    if p["var2"] == True]
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
@@ -996,12 +996,12 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        condition = 't1var2==0'
+        condition = 't1var2==False'
         self.assert_(table1.willQueryUseIndexing(condition) == t1var2.pathname)
         rowList1 = table1.getWhereList(condition, flavor="python")
         results1 = [p['var2'] for p in table1.itersequence(rowList1)]
         results2 = [p["var2"] for p in table2
-                    if p["var2"] == 0]
+                    if p["var2"] == False]
         if verbose:
 #             print "Selection results (index):", results1
 #             print "Should look like:", results2
