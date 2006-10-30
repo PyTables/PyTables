@@ -222,7 +222,7 @@ class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
 operators = [None, '<', '==', '!=']
 """Comparison operators to check with different types."""
 if tests.heavy:
-    operators += ['<=', '>=', '>']
+    operators += ['~', '<=', '>=', '>']
 ## XXX Need to check por operator pairs.
 left_bound = row_period / 4
 """Operand of left side operator in comparisons with operator pairs."""
@@ -238,6 +238,8 @@ def create_test_method(ptype, op, extracond):
     ncolname = 'cNested/%s' % colname
     if not op:
         cond = colname
+    elif op == '~':
+        cond = '~(%s)' % colname
     else:
         cond = '%s %s bound' % (colname, op)
     if extracond:
@@ -309,7 +311,7 @@ def create_test_method(ptype, op, extracond):
 # Create individual tests.  You may restrict which tests are generated
 # by replacing the sequences in the ``for`` statements.  For instance:
 testn = 0
-for ptype in ptype_info:  #for ptype in ['String']:
+for ptype in ptype_info:  # for ptype in ['String']:
     for op in operators:  # for op in ['!=']:
         for extracond in extra_conditions:  # for extracond in ['']:
             tmethod = create_test_method(ptype, op, extracond)
