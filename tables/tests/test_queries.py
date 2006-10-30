@@ -309,7 +309,7 @@ def create_test_method(ptype, op, extracond):
 # Create individual tests.  You may restrict which tests are generated
 # by replacing the sequences in the ``for`` statements.  For instance:
 testn = 0
-for ptype in ptype_info:  # for ptype in ['String']:
+for ptype in ptype_info:  #for ptype in ['String']:
     for op in operators:  # for op in ['!=']:
         for extracond in extra_conditions:  # for extracond in ['']:
             tmethod = create_test_method(ptype, op, extracond)

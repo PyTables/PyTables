@@ -724,11 +724,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def swap(self, what, bref=None):
         "Swap chunks or slices using a certain bounds reference."
 
-        t1 = time()
-        c1 = clock()
         # Thresholds for avoiding continuing the optimization
-        tsover = 0.001    # surface overlaping index for slices
-        tnover = 4        # number of overlapping slices
+        thnover = 4        # minimum number of overlapping slices
+        thmult = 0.01      # minimum ratio of multiplicity (a 1%)
+        thtover = 0.001    # minimum overlaping index for slices (a .1%)
+        #self.verbose = True  # for debugging purposes only
+        if self.verbose:
+            t1 = time();  c1 = clock()
         if what == "create":
             self.create_temps()
         elif what == "chunks":
@@ -739,12 +741,17 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             message = "swap_%s(%s)" % (what, bref)
         else:
             message = "swap_%s" % (what,)
-        (sover, nover) = self.compute_overlaps(message, self.verbose)
+        (nover, mult, tover) = self.compute_overlaps(message, self.verbose)
+        rmult = len(mult.nonzero()[0])/ len(mult)
         if self.verbose:
-            t = round(time()-t1, 4)
-            c = round(clock()-c1, 4)
+            t = round(time()-t1, 4);  c = round(clock()-c1, 4)
             print "time: %s. clock: %s" % (t, c)
-        if sover < tsover or nover < tnover:
+        # Check if some threshold has met
+        if nover < thnover or rmult < thmult:
+            self.cleanup_temps()
+            return True
+        # Additional check for numerical values
+        if self.ptype != "String" and tover < thtover:
             self.cleanup_temps()
             return True
         return False
@@ -871,7 +878,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 #tmp_indices.append(tindices)
         # Reorder completely indices at slice level
         self.reorder_slices(mode=mode)
-        return
 
 
     def swap_slices(self, mode="median"):
@@ -938,7 +944,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 self.abounds[j:jn] = self.tmp.abounds[j:jn]
                 self.zbounds[j:jn] = self.tmp.zbounds[j:jn]
                 self.mbounds[j:jn] = self.tmp.mbounds[j:jn]
-        return
 
 
     def reorder_slices(self, mode):
@@ -972,30 +977,40 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def compute_overlaps(self, message, verbose):
-        "Compute the overlap index for slices (only valid for numeric values)."
-        if self.ptype == "String":
-            # The overlaps computation cannot be done on strings
-            return (1, 10)
+        """Compute some statistics about overlaping of slices in index.
+
+        It returns the following info:
+
+        noverlaps -- The total number of slices that overlaps in index (int).
+        multiplicity -- The number of times that a concrete slice overlaps
+            with any other (array of ints).
+        toverlap -- An ovelap index: the sum of the values in segment slices
+            that overlaps divided by the entire range of values (float).
+            This index is only computed for numerical types.
+        """
+
         ranges = self.ranges[:]
-        nslices = ranges.shape[0]
-        noverlaps = 0
-        soverlap = 0.
-        multiplicity = numpy.zeros(shape=nslices, dtype="int32")
+        nslices = self.nslices
+        noverlaps = 0; soverlap = 0.; toverlap = 0.
+        multiplicity = numpy.zeros(shape=nslices, dtype="int_")
         for i in xrange(nslices):
             for j in xrange(i+1, nslices):
-                # overlap is a positive difference between and slice stop
-                # and a slice begin
-                overlap = ranges[i,1] - ranges[j,0]
-                if overlap > 0:
-                    soverlap += overlap
+                if ranges[i,1] > ranges[j,0]:
                     noverlaps += 1
                     multiplicity[j-i] += 1
-        # return the overlap as the ratio between overlaps and entire range
-        erange = ranges[-1,1] - ranges[0,0]
-        sover = soverlap / erange
+                    if self.ptype != "String":
+                        # Convert ranges into floats in order to allow
+                        # doing operations with them without overflows
+                        soverlap += float(ranges[i,1]) - float(ranges[j,0])
+        # Return the overlap as the ratio between overlaps and entire range
+        if self.ptype != "String":
+            erange = float(ranges[-1,1]) - float(ranges[0,0])
+            # Check that there is an effective range of values
+            if erange > 0:
+                toverlap = soverlap / erange
         if verbose:
-            print "overlaps (%s):" % message, sover, noverlaps, multiplicity
-        return (sover, noverlaps)
+            print "overlaps (%s):" % message, noverlaps, multiplicity, toverlap
+        return (noverlaps, multiplicity, toverlap)
 
 
     def restorecache(self):
