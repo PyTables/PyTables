@@ -265,10 +265,10 @@ def create_test_method(ptype, op, extracond):
             self.createIndexes(colname, ncolname)
         except TypeError, te:
             if _col_not_indexable_re.search(str(te)):
-                return  # column can not be indexed, nothing new to test
+                raise tests.SkipTest  # column can not be indexed, nothing new to test
             raise
         except NotImplementedError:
-            return  # column does not support indexing yet
+            raise tests.SkipTest  # column does not support indexing yet
 
         reflen = None
         ## XXX Better try to check retrieved data with ``readWhere()``.
@@ -284,7 +284,7 @@ def create_test_method(ptype, op, extracond):
                 try:
                     isvalidrow = eval(pycond, {}, pyvars)
                 except TypeError:
-                    return  # type doesn't support operation, skip test
+                    raise tests.SkipTest  # type doesn't support operation
                 if isvalidrow:
                     pylen += 1
             if reflen is None:  # initialise reference length
@@ -299,10 +299,10 @@ def create_test_method(ptype, op, extracond):
                 ptlen = len([r for r in table.where(cond, ptvars)])
             except TypeError, te:
                 if _cond_not_boolean_re.search(str(te)):
-                    return  # condition is not boolean
+                    raise tests.SkipTest  # condition is not boolean
                 raise
             except NotImplementedError:
-                return  # type doesn't support operation, skip test
+                raise tests.SkipTest  # type doesn't support operation
             self.assertEqual(ptlen, reflen)
 
     test_method.__doc__ = "Testing ``%s``." % cond
@@ -316,8 +316,8 @@ for ptype in ptype_info:  # for ptype in ['String']:
         for extracond in extra_conditions:  # for extracond in ['']:
             tmethod = create_test_method(ptype, op, extracond)
             tmethod.__name__ = 'test_a%04d' % testn
-            dmethod = tests.verboseDecorator(tmethod)
-            imethod = new.instancemethod(dmethod, None, TableQueryTestCase)
+            ptmethod = tests.pyTablesTest(tmethod)
+            imethod = new.instancemethod(ptmethod, None, TableQueryTestCase)
             setattr(TableQueryTestCase, tmethod.__name__, imethod)
             testn += 1
 

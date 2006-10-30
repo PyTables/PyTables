@@ -234,18 +234,20 @@ def testFilename(filename):
 
 
 
-def verboseDecorator(oldmethod):
+def pyTablesTest(oldmethod):
     def newmethod(self, *args, **kwargs):
         self._verboseHeader()
-        return oldmethod(self, *args, **kwargs)
-    if sys.version_info >= (2, 4):
-        # Under Python 2.3 and older, names are read-only.  Not changing
-        # this name makes the user unable to run a particular test from
-        # the command line, but at least whole test modules and test
-        # cases can still be run.
-        newmethod.__name__ = oldmethod.__name__  # Python >= 2.4
+        try:
+            return oldmethod(self, *args, **kwargs)
+        except SkipTest:
+            pass
+    newmethod.__name__ = oldmethod.__name__
     newmethod.__doc__ = oldmethod.__doc__
     return newmethod
+
+class SkipTest(Exception):
+    """When this exception is raised, the test is skipped successfully."""
+    pass
 
 class MetaPyTablesTestCase(type):
 
@@ -257,7 +259,7 @@ class MetaPyTablesTestCase(type):
         newdict = {}
         for (aname, avalue) in dict_.iteritems():
             if callable(avalue) and aname.startswith('test'):
-                avalue = verboseDecorator(avalue)
+                avalue = pyTablesTest(avalue)
             newdict[aname] = avalue
         return type.__new__(class_, name, bases, newdict)
 
