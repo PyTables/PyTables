@@ -853,7 +853,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Get the names of variables used in the expression.
         cexpr = compile(expression, '<string>', 'eval')
         exprvars = [ var for var in cexpr.co_names
-                     if var != 'None' and var not in numexpr_functions ]
+                     if var not in ['None', 'False', 'True']
+                     and var not in numexpr_functions ]
 
         # Get the local and global variable mappings of the user frame
         # if no mapping has been explicitly given for user variables.
