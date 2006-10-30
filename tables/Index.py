@@ -700,9 +700,17 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             optstarts, optstops, optfull = self.reord_opts
 
         # Start the optimization loop
+        if optstarts or optstops or optfull:
+            create_tmp = True
+            swap_done = True
+        else:
+            create_tmp = False
+            swap_done = False
         while True:
-            if optstarts or optstops or optfull:
-                if self.swap('create'): break
+            if create_tmp:
+                if self.swap('create'):
+                    swap_done = False  # No swap has been done!
+                    break
             if optfull:
                 if self.swap('chunks', 'median'): break
                 # Swap slices only in the case we have several blocks
@@ -718,8 +726,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     if self.swap('chunks', 'stop'): break
             break  # If we reach this, exit the loop
         # Close and delete the temporal optimization index file
-        self.cleanup_temps()
-        self.dirtycache = True   # the memory data cache is dirty now
+        if create_tmp:
+            self.cleanup_temps()
+            if swap_done:
+                # the memory data cache is dirty now
+                self.dirtycache = True
         return
 
 
