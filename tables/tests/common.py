@@ -72,9 +72,14 @@ typecode = {
     'Complex32': 'F',
     }
 
-def verbosePrint(string):
+def verbosePrint(string, nonl=False):
     """Print out the `string` if verbose output is enabled."""
-    if verbose: print string
+    if not verbose:
+        return
+    if nonl:
+        print string,
+    else:
+        print string
 
 
 def cleanup(klass):
@@ -238,9 +243,12 @@ def pyTablesTest(oldmethod):
     def newmethod(self, *args, **kwargs):
         self._verboseHeader()
         try:
-            return oldmethod(self, *args, **kwargs)
-        except SkipTest:
-            pass
+            try:
+                return oldmethod(self, *args, **kwargs)
+            except SkipTest:
+                pass
+        finally:
+            verbosePrint('')  # separator line between tests
     newmethod.__name__ = oldmethod.__name__
     newmethod.__doc__ = oldmethod.__doc__
     return newmethod
@@ -287,7 +295,7 @@ class PyTablesTestCase(unittest.TestCase):
             methodName = self._getMethodName()
 
             title = "Running %s.%s" % (name, methodName)
-            print '%s\n%s\n' % (title, '-'*len(title))
+            print '%s\n%s' % (title, '-'*len(title))
 
 
     def failUnlessWarns(self, warnClass, callableObj, *args, **kwargs):
