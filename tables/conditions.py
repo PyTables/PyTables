@@ -23,7 +23,8 @@ Functions:
 import re
 
 from tables.numexpr.compiler import (
-    typecode_to_kind, stringToExpression, numexpr )
+    typecode_to_kind, stringToExpression,
+    expressionToAST, typeCompileAst, numexpr )
 
 
 class SplittedCondition(object):
@@ -53,6 +54,23 @@ class SplittedCondition(object):
             self.residual_function, self.residual_parameters )
 
 
+def _check_indexable_cmp(getidxcmp):
+    """
+    Decorate `getidxcmp` to check the returned indexable comparison.
+
+    This does some extra checking that Numexpr would perform later on
+    the comparison if it was compiled within a complete condition.
+    """
+    def newfunc(exprnode, indexedcols):
+        result = getidxcmp(exprnode, indexedcols)
+        if result[0] is not None:
+            typeCompileAst(expressionToAST(exprnode))
+        return result
+    newfunc.__name__ = getidxcmp.__name__
+    newfunc.__doc__ = getidxcmp.__doc__
+    return newfunc
+
+@_check_indexable_cmp
 def _get_indexable_cmp(exprnode, indexedcols):
     """
     Get the indexable variable-constant comparison in `exprnode`.
