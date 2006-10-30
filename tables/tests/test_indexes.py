@@ -113,7 +113,7 @@ class BasicTestCase(PyTablesTestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        results = [p["var2"] for p in table.where('var2 == 1')]
+        results = [p["var2"] for p in table.where('var2 == True')]
         if verbose:
             print "Selected values:", results
         assert len(results) == self.nrows // 2
@@ -207,7 +207,7 @@ class BasicTestCase(PyTablesTestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList('var2 == 0', flavor="numpy", sort=True)
+        rowList1 = table.getWhereList('var2 == False', flavor="numpy", sort=True)
         rowList2 = [p.nrow for p in table if p['var2'] == 0]
         # Convert to a NumPy object
         rowList2 = numpy.array(rowList2, numpy.int64)

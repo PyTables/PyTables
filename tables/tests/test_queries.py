@@ -242,22 +242,24 @@ extra_conditions = ['', '& ((cExtra+1) > 0)', '| ((cExtra+1) > 0)']
 """Extra conditions to append to comparison conditions."""
 
 def create_test_method(ptype, op, extracond):
+    bound = right_bound
+    if ptype == 'String':
+        bound = str_format % bound
+    bound = nxtype_from_ptype[ptype](bound)
+    condvars = {'bound': bound}
+
     colname = 'c%s' % ptype
     ncolname = 'cNested/%s' % colname
     if not op:
         cond = colname
     elif op == '~':
         cond = '~(%s)' % colname
+    elif op == '<':
+        cond = '%s %s %s' % (colname, op, bound)  # variable-constant
     else:
-        cond = '%s %s bound' % (colname, op)
+        cond = '%s %s bound' % (colname, op)  # variable-variable
     if extracond:
         cond = '(%s) %s' % (cond, extracond)
-
-    bound = right_bound
-    if ptype == 'String':
-        bound = str_format % bound
-    bound = nxtype_from_ptype[ptype](bound)
-    condvars = {'bound': bound}
 
     def test_method(self):
         # Replace bitwise operators with their logical counterparts.
