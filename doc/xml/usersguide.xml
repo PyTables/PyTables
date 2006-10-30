@@ -627,9 +627,9 @@ fileh.close()
 	<section id="PrerequisitesSourceDescr">
           <title>Prerequisites</title>
 
-          <para>First, make sure that you have at least Python 2.3, 2.4 or
-          2.5, HDF5 1.6.5 and NumPy 1.0 or higher installed (I'm using HDF5
-          1.6.5 and NumPy 1.0 currently). If you don't, fetch and install them
+          <para>First, make sure that you have at least Python 2.4 or 2.5,
+          HDF5 1.6.5 and NumPy 1.0 or higher installed (I'm using HDF5 1.6.5
+          and NumPy 1.0 currently). If you don't, fetch and install them
           before proceeding.</para>
 
           <para>Compile and install these packages (but see <xref
@@ -904,9 +904,9 @@ LIBS="hdf5-1.6.5" LIBS="hdf5-1.6.5 nsl"
         <section id="prerequisitesBinInst">
           <title>Windows prerequisites</title>
 
-          <para>First, make sure that you have Python 2.3, 2.4, 2.5 or higher,
-          HDF5 1.6.5 or higher and NumPy 1.0 or higher installed (PyTables
-          binaries have been built using HDF5 1.6.5 and NumPy 1.0).</para>
+          <para>First, make sure that you have Python 2.4, 2.5 or higher, HDF5
+          1.6.5 or higher and NumPy 1.0 or higher installed (PyTables binaries
+          have been built using HDF5 1.6.5 and NumPy 1.0).</para>
 
           <para>For the HDF5 library it should be enough to manually copy the
           <literal>hdf5dll.dll</literal>, <literal>zlib1.dll</literal>
@@ -919,13 +919,12 @@ LIBS="hdf5-1.6.5" LIBS="hdf5-1.6.5 nsl"
           installing the PyTables package). </para>
 
           <para><emphasis>Caveat:</emphasis> When downloading the binary
-          distribution for HDF5 libraries, select one compiled with MSVC 6.0
-          if you are using Python 2.3.x, such as the package
-          <literal>5-165-win.zip</literal>. The file
+          distribution for HDF5 libraries, select the one compiled with a .NET
+          version of MSVC compiler. The file
           <literal>5-165-win-net.zip</literal> was compiled with the MSVC 7.1
           (aka "<literal>.NET 2003</literal>") and you
-          <emphasis>must</emphasis> choose if you want to run PyTables with
-          Python 2.4.x series. You have been warned! </para>
+          <emphasis>must</emphasis> choose it if you want to run PyTables with
+          Python 2.4.x or 2.5.x series. You have been warned! </para>
 
           <para>To enable compression with optional LZO or bzip2 libraries
           (see the <xref xrefstyle="select: label"

@@ -36,14 +36,12 @@ Backward-incompatible changes:
 Important note for Windows users
 ================================
 
-If you are willing to use PyTables with Python 2.4 in Windows platforms,
-you will need to get the HDF5 library compiled for MSVC 7.1, aka .NET
-2003.  It can be found at:
+In order to keep PyTables happy, you will need to get the HDF5 library
+compiled for MSVC 7.1, aka .NET 2003.  It can be found at:
 ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current/bin/windows/5-165-win-net.ZIP
 
-Users of Python 2.3 on Windows will have to download the version of HDF5
-compiled with MSVC 6.0 available in:
-ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current/bin/windows/5-165-win.ZIP
+Please, remind that, from PyTables 2.0 on, Python 2.3 (and lesser) is
+not supported anymore.
 
 
 What it is

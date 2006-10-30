@@ -50,7 +50,7 @@ To that end, special Python features like generators, slots and
 metaclasses in new-brand classes have been used. In addition,
 iterators has been implemented were context was appropriate so as to
 enable the interactive work to be as productive as possible. For these
-reasons, you will need to use Python 2.3 or higher (Python 2.3.5 or
+reasons, you will need to use Python 2.4 or higher (Python 2.4.4 or
 better recommended) to take advantage of PyTables.
 
 To compile PyTables you will need, at least, a recent version of HDF5

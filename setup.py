@@ -34,8 +34,8 @@ def print_warning(head, body=''):
     _print_admonition('warning', head, body)
 
 # Check for Python
-if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 3):
-    print_error("You need Python 2.3 or greater to install PyTables!")
+if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 4):
+    print_error("You need Python 2.4 or greater to install PyTables!")
     sys.exit(1)
 
 # Check for required Python packages
