@@ -64,7 +64,11 @@ def _check_indexable_cmp(getidxcmp):
     def newfunc(exprnode, indexedcols):
         result = getidxcmp(exprnode, indexedcols)
         if result[0] is not None:
-            typeCompileAst(expressionToAST(exprnode))
+            try:
+                typeCompileAst(expressionToAST(exprnode))
+            except NotImplementedError, nie:
+                # Try to make this Numexpr error less cryptic.
+                raise _unsupported_operation_error(nie)
         return result
     newfunc.__name__ = getidxcmp.__name__
     newfunc.__doc__ = getidxcmp.__doc__
