@@ -211,7 +211,7 @@ class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
         if not self.indexed:
             return
         try:
-            vprint("* Creating index on column ``%s``..." % colname, nonl=True)
+            vprint("* Indexing ``%s`` columns..." % colname, nonl=True)
             for acolname in [colname, ncolname]:
                 acolumn = self.table.colinstances[acolname]
                 acolumn.createIndex(optlevel=self.optlevel, testmode=True)
@@ -306,6 +306,7 @@ def create_test_method(ptype, op, extracond):
             ptvars[colname] = table.colinstances[acolname]
             ptvars['cExtra'] = table.colinstances['cExtra']
             try:
+                isidxq = table.willQueryUseIndexing(cond, ptvars)
                 ptlen = len([r for r in table.where(cond, ptvars)])
             except TypeError, te:
                 if self.condNotBoolean_re.search(str(te)):
@@ -315,8 +316,9 @@ def create_test_method(ptype, op, extracond):
             except NotImplementedError:
                 vprint("* PyTables type does not support the operation.")
                 raise tests.SkipTest
-            vprint( "* %d rows selected by PyTables from ``%s``."
-                    % (ptlen, acolname) )
+            vprint( "* %d rows selected by PyTables from ``%s``"
+                    % (ptlen, acolname), nonl=True )
+            vprint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
             self.assertEqual(ptlen, reflen)
 
     test_method.__doc__ = "Testing ``%s``." % cond
