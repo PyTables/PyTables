@@ -260,7 +260,7 @@ def create_test_method(ptype, op, extracond):
     elif op == '~':
         cond = '~(%s)' % colname
     elif op == '<':
-        cond = '%s %s %s' % (colname, op, bound)  # variable-constant
+        cond = '%s %s %s' % (colname, op, repr(bound))  # variable-constant
     else:
         cond = '%s %s bound' % (colname, op)  # variable-variable
     if extracond:
