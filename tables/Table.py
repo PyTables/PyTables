@@ -190,6 +190,7 @@ class Table(TableExtension.Table, Leaf):
         modifyColumns(columns, names, [start] [, stop] [, step])
         read([start] [, stop] [, step] [, field [, flavor]])
         readCoordinates(coords [, field [, flavor]])
+        readWhere(condition [, condvars] [, field] [, flavor])
         reIndex()
         reIndexDirty()
         removeRows(start [, stop])
