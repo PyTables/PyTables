@@ -286,14 +286,14 @@ def create_test_method(ptype, op, extracond):
         table = self.table
         self.createIndexes(colname, ncolname)
 
-        reflen = None
+        rownos = None
         ## XXX Better try to check retrieved data with ``readWhere()``.
         ## XXX Better yet, try all query methods in parallel!
         # Test that both simple and nested columns work as expected.
-        # Because of the way the table is filled, results are the same.
+        # Knowing how the table is filled, results must be the same.
         for acolname in [colname, ncolname]:
             # First the reference Python version.
-            pylen, pyvars = 0, condvars.copy()
+            pyrownos, pyvars = [], condvars.copy()
             for row in table:
                 pyvars[colname] = row[acolname]
                 pyvars['cExtra'] = row['cExtra']
@@ -303,12 +303,13 @@ def create_test_method(ptype, op, extracond):
                     vprint("* Python type does not support the operation.")
                     raise tests.SkipTest
                 if isvalidrow:
-                    pylen += 1
-            if reflen is None:  # initialise reference length
-                reflen = pylen
+                    pyrownos.append(row.nrow)
             vprint( "* %d rows selected by Python from ``%s``."
-                    % (pylen, acolname) )
-            self.assertEqual(pylen, reflen)
+                    % (len(pyrownos), acolname) )
+            if rownos is None:
+                rownos = pyrownos  # initialise reference results
+            else:
+                self.assertEqual(pyrownos, rownos)  # check
 
             # Then the in-kernel or indexed version.
             ptvars = condvars.copy()
@@ -316,7 +317,7 @@ def create_test_method(ptype, op, extracond):
             ptvars['cExtra'] = table.colinstances['cExtra']
             try:
                 isidxq = table.willQueryUseIndexing(cond, ptvars)
-                ptlen = len([r for r in table.where(cond, ptvars)])
+                ptrownos = table.getWhereList(cond, condvars, sort=True)
             except TypeError, te:
                 if self.condNotBoolean_re.search(str(te)):
                     vprint("* Condition is not boolean.")
@@ -326,9 +327,9 @@ def create_test_method(ptype, op, extracond):
                 vprint("* PyTables type does not support the operation.")
                 raise tests.SkipTest
             vprint( "* %d rows selected by PyTables from ``%s``"
-                    % (ptlen, acolname), nonl=True )
+                    % (len(ptrownos), acolname), nonl=True )
             vprint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
-            self.assertEqual(ptlen, reflen)
+            self.assertEqual(ptrownos.tolist(), rownos)
 
     test_method.__doc__ = "Testing ``%s``." % cond
     return test_method
