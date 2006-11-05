@@ -234,11 +234,10 @@ class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
     ## XXX Need some standard checks on query usage.
 
 
-operators = [None, '<', '==', '!=']
+operators = [None, '<', '==', '!=', ('<', '<=')]
 """Comparison operators to check with different types."""
 if tests.heavy:
-    operators += ['~', '<=', '>=', '>']
-## XXX Need to check por operator pairs.
+    operators += ['~', '<=', '>=', '>', ('>', '>=')]
 left_bound = row_period / 4
 """Operand of left side operator in comparisons with operator pairs."""
 right_bound = row_period * 3 / 4
@@ -247,22 +246,32 @@ extra_conditions = ['', '& ((cExtra+1) > 0)', '| ((cExtra+1) > 0)']
 """Extra conditions to append to comparison conditions."""
 
 def create_test_method(ptype, op, extracond):
-    bound = right_bound
-    if ptype == 'String':
-        bound = str_format % bound
-    bound = nxtype_from_ptype[ptype](bound)
-    condvars = {'bound': bound}
+    # Compute the value of bounds.
+    condvars = { 'bound': right_bound,
+                 'lbound': left_bound,
+                 'rbound': right_bound }
+    for (bname, bvalue) in condvars.items():
+        if ptype == 'String':
+            bvalue = str_format % bvalue
+        bvalue = nxtype_from_ptype[ptype](bvalue)
+        condvars[bname] = bvalue
 
+    # Compute the name of columns.
     colname = 'c%s' % ptype
     ncolname = 'cNested/%s' % colname
-    if not op:
+
+    # Compute the query condition.
+    if not op:  # as is
         cond = colname
-    elif op == '~':
+    elif op == '~':  # unary
         cond = '~(%s)' % colname
-    elif op == '<':
-        cond = '%s %s %s' % (colname, op, repr(bound))  # variable-constant
-    else:
-        cond = '%s %s bound' % (colname, op)  # variable-variable
+    elif op == '<':  # binary variable-constant
+        cond = '%s %s %s' % (colname, op, repr(condvars['bound']))
+    elif type(op) is tuple: # double binary variable-constant
+        cond = ( '(lbound %s %s) & (%s %s rbound)'
+                 % (op[0], colname, colname, op[1]) )
+    else:  # binary variable-variable
+        cond = '%s %s bound' % (colname, op)
     if extracond:
         cond = '(%s) %s' % (cond, extracond)
 
