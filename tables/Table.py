@@ -56,7 +56,7 @@ from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.utils import calcBufferSize, processRange, processRangeRead, \
      joinPath, convertNPToNumeric, convertNPToNumArray, fromnumpy, tonumpy, \
-     fromnumarray, is_idx, flattenNames, byteorders
+     fromnumarray, is_idx, flattenNames, byteorders, getNestedField
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import \
@@ -521,9 +521,7 @@ class Table(TableExtension.Table, Leaf):
         if init:
             for objcol in self.description._f_walk("Col"):
                 colname = objcol._v_pathname
-                ra = recarr
-                for nestedfield in colname.split('/'):
-                    ra = ra[nestedfield]
+                ra = getNestedField(recarr, colname)
                 ra[:] = objcol.dflt
         return recarr
 
@@ -1179,7 +1177,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             recarr = recarr[indexValid]
 
         if field:
-            recarr = recarr[field]
+            recarr = getNestedField(recarr, field)
 
         if numarray_imported and flavor == "numarray":
             # do an additional conversion conversion (without a copy)
@@ -1528,7 +1526,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 na = result
         else:
             if ncoords > 0:
-                na = result[field]
+                na = getNestedField(result, field)
             else:
                 # Get an empty array from the cache
                 na = self._g_getemptyarray(self.coldtypes[field])

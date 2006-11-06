@@ -25,6 +25,7 @@ import re
 from tables.numexpr.compiler import (
     typecode_to_kind, stringToExpression,
     expressionToAST, typeCompileAst, numexpr )
+from tables.utils import getNestedField
 
 
 class SplittedCondition(object):
@@ -330,11 +331,6 @@ def call_on_recarr(func, params, recarr, param2arg=None):
         else:
             arg = param
         if hasattr(arg, 'pathname'):  # looks like a column
-            # It may be convenient to factor out this way of
-            # descending nested fields into the ``__getitem__()``
-            # method of a subclass of ``numpy.ndarray``.  -- ivb
-            arg, field = recarr, arg.pathname
-            for nestedfield in field.split('/'):
-                arg = arg[nestedfield]
+            arg = getNestedField(recarr, arg.pathname)
         args.append(arg)
     return func(*args)

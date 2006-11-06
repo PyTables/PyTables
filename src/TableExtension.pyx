@@ -32,6 +32,7 @@ from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
 from tables.utilsExtension import createNestedType, \
      getNestedType, convertTime64, getTypeEnum, enumFromHDF5
+from tables.utils import getNestedField
 
 # numpy functions & objects
 from definitions cimport import_array, ndarray, \
@@ -298,9 +299,7 @@ cdef class Table:  # XXX extends Leaf
 
     # This should be generalised to support other type conversions.
     for t64cname in self._time64colnames:
-      column = recarr
-      for field in t64cname.split('/'):
-        column = column[field]
+      column = getNestedField(recarr, t64cname)
       convertTime64(column, nrecords, sense)
 
 
@@ -875,8 +874,7 @@ cdef class Row:
       # Assign the correct part to result
       fields = self.rbufRA
       if field:
-        for nestedfield in field.split('/'):
-          fields = fields[nestedfield]
+        fields = getNestedField(fields, field)
       result[startr:stopr] = fields[istartb:istopb:istep]
 
       # Compute some indexes for the next iteration
@@ -971,10 +969,7 @@ cdef class Row:
     # elements a 20%
 
     try:
-      field2 = self._rfields
-      for nestedfield in fieldName.split('/'):
-        field2 = field2[nestedfield]
-      field = field2
+      field = getNestedField(self._rfields, fieldName)
     except KeyError:
       raise KeyError("no such column: %s" % (fieldName,))
 
@@ -1020,9 +1015,7 @@ cdef class Row:
       else:
         field2 = self._wfields
         offset = self._unsaved_nrows
-      for nestedfield in fieldName.split('/'):
-        field2 = field2[nestedfield]
-      field = field2
+      field = getNestedField(field2, fieldName)
     except KeyError:
       raise KeyError("no such column: %s" % (fieldName,))
 
