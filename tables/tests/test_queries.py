@@ -286,14 +286,12 @@ def create_test_method(ptype, op, extracond):
         table = self.table
         self.createIndexes(colname, ncolname)
 
-        rownos = None
-        ## XXX Better try to check retrieved data with ``readWhere()``.
-        ## XXX Better yet, try all query methods in parallel!
+        rownos, fvalues = None, None
         # Test that both simple and nested columns work as expected.
         # Knowing how the table is filled, results must be the same.
         for acolname in [colname, ncolname]:
             # First the reference Python version.
-            pyrownos, pyvars = [], condvars.copy()
+            pyrownos, pyfvalues, pyvars = [], [], condvars.copy()
             for row in table:
                 pyvars[colname] = row[acolname]
                 pyvars['cExtra'] = row['cExtra']
@@ -304,12 +302,15 @@ def create_test_method(ptype, op, extracond):
                     raise tests.SkipTest
                 if isvalidrow:
                     pyrownos.append(row.nrow)
+                    pyfvalues.append(row[acolname])
             vprint( "* %d rows selected by Python from ``%s``."
                     % (len(pyrownos), acolname) )
             if rownos is None:
                 rownos = pyrownos  # initialise reference results
+                fvalues = pyfvalues
             else:
                 self.assertEqual(pyrownos, rownos)  # check
+                self.assertEqual(pyfvalues, fvalues)
 
             # Then the in-kernel or indexed version.
             ptvars = condvars.copy()
@@ -318,6 +319,7 @@ def create_test_method(ptype, op, extracond):
             try:
                 isidxq = table.willQueryUseIndexing(cond, ptvars)
                 ptrownos = table.getWhereList(cond, condvars, sort=True)
+                ptfvalues = table.readWhere(cond, condvars, field=acolname)
             except TypeError, te:
                 if self.condNotBoolean_re.search(str(te)):
                     vprint("* Condition is not boolean.")
@@ -330,6 +332,7 @@ def create_test_method(ptype, op, extracond):
                     % (len(ptrownos), acolname), nonl=True )
             vprint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
             self.assertEqual(ptrownos.tolist(), rownos)
+            self.assertEqual(ptfvalues.tolist(), fvalues)
 
     test_method.__doc__ = "Testing ``%s``." % cond
     return test_method
