@@ -2782,8 +2782,12 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex(self, optlevel=0, warn=True, testmode=False, verbose=False):
-        """Create an index for this column"""
+    def createIndex(self, optlevel=5, warn=True, testmode=False,
+                    verbose=False):
+        """Create an index for this column.
+
+        optlevel -- The default level of optimization for the index.
+        """
 
         name = self.name
         table = self.table
@@ -2866,12 +2870,10 @@ class Column(object):
         return indexedrows
 
 
-    def optimizeIndex(self, level=3, verbose=0):
+    def optimizeIndex(self, level=9, verbose=0):
         """Optimize the index for this column.
 
-        `level` is the level optimization (from 1 to 9) and defaults to 1.
-        `verbose` specifies the level of verbosity of the optimization process.
-
+        `level` is the level optimization (from 0 to 9).
         """
 
         if type(level) not in (int, long) or level < 0 or level > 9:
@@ -2880,6 +2882,7 @@ class Column(object):
             warnings.warn("""\
 column '%s' is not indexed, so it can't be optimized."""
                           % (self.pathname), UserWarning)
+            return
         if level > 0:
             self.index.optimize(level, verbose)
 

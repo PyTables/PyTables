@@ -7246,11 +7246,33 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	    </title>
 
 	    <section id="createIndexColumnDescr" xreflabel="description">
-	      <title><literal>createIndex()</literal>
+	      <title><literal>createIndex(optlevel=5)</literal>
 	      </title>
 
-	      <para>Create an <literal>Index</literal> (see <xref xrefstyle="select: labelnumber" linkend="IndexClassDescr"/>) object for this
-		column.
+	      <para>Create an <literal>Index</literal> (see <xref
+		xrefstyle="select: labelnumber" linkend="IndexClassDescr"/>)
+		object for this column. You can select the level of the
+		optimization of the index by setting
+		<literal>optlevel</literal> from 0 to 9.  A value of 0 means
+		no optimization (fastest time for index creation, but slowest
+		lookup times) and a value of 9 means maximum optimization
+		(slowest time for index creation, but fastest lookup times).
+		
+	      </para>
+
+	    </section>
+
+	    <section id="optimizeIndexColumnDescr" xreflabel="description">
+	      <title><literal>optimizeIndex(optlevel=9)</literal>
+	      </title>
+
+	      <para>Optimize an already created index for this column. You can
+		select the level of the optimization of the index by setting
+		<literal>optlevel</literal> from 0 to 9.  A value of 0 means
+		no optimization at all (i.e. it does nothing in this case),
+		and a value of 9 means maximum optimization (slowest time for
+		index creation, but fastest lookup times).
+		
 	      </para>
 
 	    </section>

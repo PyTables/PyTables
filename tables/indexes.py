@@ -50,12 +50,12 @@ import tables.indexesExtension as indexesExtension
 # The minimum row number in a column that can be indexed in tests
 minRowIndex = 10
 
-def calcChunksize(expectedrows, optlevel=0, testmode=False):
+def calcChunksize(expectedrows, optlevel, testmode):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
     different chunksizes and compression flag. It is obvious that
-    using big chunks optimize the I/O speed, but if they are too
+    using big chunks optimizes the I/O speed, but if they are too
     large, the uncompressor takes too much time. This might (should)
     be further optimized doing more experiments.
 
@@ -436,6 +436,12 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         filters -- An instance of the Filters class that provides
             information about the desired I/O filters to be applied
             during the life of this object.
+
+        optlevel -- The optimization level for the creation of this
+            index.
+
+        testmode -- Useful for selecting very small blocksizes in
+            tests.
 
         expectedrows -- Represents an user estimate about the number
             of elements to index.
