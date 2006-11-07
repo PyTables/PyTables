@@ -95,7 +95,7 @@ def calcChunksize(expectedrows, optlevel, testmode):
 #         print "superblocksize, blocksize, slicesize, chunksize:", \
 #               (superblocksize, blocksize, slicesize, chunksize)
         sizes = (superblocksize, blocksize, slicesize, chunksize)
-        opts = (optstarts, optstops, optfull)
+        opts = (optmedian, optstarts, optstops, optfull)
         return (sizes, opts)
 
     expKrows = expectedrows / 1000000.  # Multiples of one million
