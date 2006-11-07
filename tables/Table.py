@@ -2860,7 +2860,9 @@ class Column(object):
                 self.pathname, 0, table.nrows, lastrow=True )
         else:
             indexedrows = 0
-        index.optimize(optlevel, verbose=verbose)   # optimize indexes
+        # Optimize indexes with computed parameters for optimising
+        # (i.e. we should not pass the optlevel parameter here!)
+        index.optimize(verbose=verbose)
         self.dirty = False
         # If the user has not defined properties, assign the default
         table.indexprops = getattr(

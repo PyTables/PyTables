@@ -7254,9 +7254,11 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 		object for this column. You can select the level of the
 		optimization of the index by setting
 		<literal>optlevel</literal> from 0 to 9.  A value of 0 means
-		no optimization (fastest time for index creation, but slowest
-		lookup times) and a value of 9 means maximum optimization
-		(slowest time for index creation, but fastest lookup times).
+		that the index will be created, but not optimized (fastest
+		time for index creation and very low memory consumption, but
+		slowest lookup times) and a value of 9 means maximum
+		optimization (slowest time for index creation and more memory
+		used, but fastest lookup times).
 		
 	      </para>
 
@@ -7271,7 +7273,8 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 		<literal>optlevel</literal> from 0 to 9.  A value of 0 means
 		no optimization at all (i.e. it does nothing in this case),
 		and a value of 9 means maximum optimization (slowest time for
-		index creation, but fastest lookup times).
+		index creation and more memory used, but fastest lookup
+		times).
 		
 	      </para>
 

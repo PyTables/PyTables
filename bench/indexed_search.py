@@ -2,12 +2,10 @@ from time import time
 import subprocess  # requires Python 2.4
 import popen2
 import random
-import numarray
-from numarray import random_array
 import numpy
 
 # in order to always generate the same random sequence
-random_array.seed(19, 20)
+numpy.random.seed(20)
 
 # Constants
 STEP = 1000*100  # the size of the buffer to fill the table, in rows
@@ -84,15 +82,6 @@ class DB(object):
         print "Indexes size (MB):", round(indexes_size, 3)
         print "Full size (MB):", round(table_size+indexes_size, 3)
 
-    def fill_arrays_na(self, start, stop):
-        arr_f8 = numarray.arange(start, stop, type=numarray.Float64)
-        arr_i4 = numarray.arange(start, stop, type=numarray.Int32)
-        if self.userandom:
-            arr_f8 += random_array.normal(0, stop*self.scale,
-                                          shape=[stop-start])
-            arr_i4 = numarray.array(arr_f8, type=numarray.Int32)
-        return arr_i4, arr_f8
-
     def fill_arrays(self, start, stop):
         arr_f8 = numpy.arange(start, stop, dtype='float64')
         arr_i4 = numpy.arange(start, stop, dtype='int32')
@@ -140,12 +129,12 @@ class DB(object):
             reg_cols = ['col1', 'col3']
             idx_cols = ['col2', 'col4']
         if avoidfscache:
-            rseed = random.random()
+            rseed = numpy.random.randint(self.nrows)
         else:
             rseed = 19
         # Query for non-indexed columns
-        random.seed(rseed)
-        base = random.randrange(self.nrows)
+        numpy.random.seed(rseed)
+        base = numpy.random.randint(self.nrows)
         if not onlyidxquery:
             for colname in reg_cols:
                 ltimes = []
@@ -154,7 +143,7 @@ class DB(object):
                 for i in range(NI_NTIMES):
                     results = self.do_query(self.con, colname,
                                             #base)
-                                            random.randrange(self.nrows))
+                                            numpy.random.randint(self.nrows))
                 ltimes.append((time()-t1)/NI_NTIMES)
                 #results.sort()
                 if verbose:
@@ -165,12 +154,12 @@ class DB(object):
             for colname in idx_cols:
                 ltimes = []
                 for j in xrange(niter):
-                    random.seed(rseed)
+                    numpy.random.seed(rseed)
                     t1=time()
                     for i in range(I_NTIMES):
                         results = self.do_query(self.con, colname,
                                                 base)
-                                                #random.randrange(self.nrows))
+                                                #numpy.random.randint(self.nrows))
                     ltimes.append((time()-t1)/I_NTIMES)
                 #results.sort()
                 if verbose:

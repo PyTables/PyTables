@@ -626,19 +626,18 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Indexes in PyTables Pro systems are 64-bit long.
         offset = sorted.nrows * self.slicesize
         self.indices.append(numpy.array(s, dtype="int64") + offset)
-        sarr = arr[s]
-        # Doing a sort in-place is faster than a fancy selection
-        # Mmm... this is not clear in experiments with indexed_search.py...
-        #arr.sort(); sarr = arr
-        sorted.append(sarr)
+        arr = arr[s]
+        # Doing a sort in-place is slower than a fancy selection
+        #arr.sort()
+        sorted.append(arr)
         cs = self.chunksize
         ncs = self.nchunkslice
-        self.ranges.append([sarr[[0,-1]]])
-        self.bounds.append([sarr[cs::cs]])
-        self.abounds.append(sarr[0::cs])
-        self.zbounds.append(sarr[cs-1::cs])
+        self.ranges.append([arr[[0,-1]]])
+        self.bounds.append([arr[cs::cs]])
+        self.abounds.append(arr[0::cs])
+        self.zbounds.append(arr[cs-1::cs])
         # Compute the medians
-        smedian = sarr[cs/2::cs]
+        smedian = arr[cs/2::cs]
         self.mbounds.append(smedian)
         self.mranges.append([smedian[ncs/2]])
         # Update nrows after a successful append
@@ -683,24 +682,29 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         "Optimize an index to allow faster searches."
 
         self.verbose=verbose
+
         # Optimize only when we have more than one slice
         if self.nslices <= 1:
+            if verbose:
+                print "Less than 1 slice. Skipping optimization!"
             return
 
-        if level:
-            optstarts, optstops, optfull = (False, False, False)
+        if level is not None:
+            optmedian, optstarts, optstops, optfull = (False,)*4
+            if level > 0:
+                optmedian = True
             if 3 <= level < 6:
                 optstarts = True
             elif 6 <= level < 9:
                 optstarts = True
                 optstops = True
-            else:  # (level == 9 )
+            elif level == 9:
                 optfull = True
         else:
-            optstarts, optstops, optfull = self.reord_opts
+            optmedian, optstarts, optstops, optfull = self.reord_opts
 
         # Start the optimization loop
-        if optstarts or optstops or optfull:
+        if optmedian or optstarts or optstops or optfull:
             create_tmp = True
             swap_done = True
         else:
@@ -711,9 +715,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 if self.swap('create'):
                     swap_done = False  # No swap has been done!
                     break
-            if optfull:
+            if optmedian:
+                # Always do swap of chunks prior to anything
                 if self.swap('chunks', 'median'): break
-                # Swap slices only in the case we have several blocks
+            if optfull:
+                # Swap slices only in the case that we have several blocks
                 if self.nblocks > 1:
                     if self.swap('slices', 'median'): break
                     if self.swap('chunks','median'): break
@@ -781,8 +787,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.tmp = self.tmpfile.root
         cs = self.chunksize
         ss = self.slicesize
-        filters = self.filters
-        #filters = None    # compressing temporaries is very inefficient!
+        #filters = self.filters
+        # compressing temporaries is very inefficient!
+        filters = None
         # temporary sorted & indices arrays
         shape = (self.nrows, ss)
         atom = Atom(self.dtype, shape=(1,cs))
@@ -815,24 +822,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.tmpfilename = None
 
 
-    def create_sorted_indices(self):
-
-        filters = self.filters
-        if hasattr(self.tmp, 'sorted'):
-            self.tmpfile.removeNode('/sorted')
-            self.tmpfile.removeNode('/indices')
-        tmp_sorted = IndexArray(self.tmp, 'sorted',
-                                Atom(self.dtype, shape=(0,)),
-                                "Temporary sorted", filters, self.optlevel,
-                                self.testmode, self.nelements)
-        tmp_indices = IndexArray(self.tmp, 'indices',
-                                 Atom("Int64", shape=(0,)),
-                                 "Reverse Indices", filters, self.optlevel,
-                                 self.testmode, self.nelements)
-
-        return (tmp_sorted, tmp_indices)
-
-
     def swap_chunks(self, mode="median"):
         "Swap & reorder the different chunks in a block."
 
@@ -841,7 +830,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         indices = self.indices
         tmp_sorted = self.tmp.sorted
         tmp_indices = self.tmp.indices
-        #tmp_sorted, tmp_indices = self.create_sorted_indices()
         tsorted = numpy.empty(shape=self.slicesize, dtype=self.dtype)
         tindices = numpy.empty(shape=self.slicesize, dtype='int64')
         cs = self.chunksize
@@ -870,8 +858,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     ns = offset+i
                     tmp_sorted[ns] = sorted[ns]
                     tmp_indices[ns] = indices[ns]
-                    #tmp_sorted.append(sorted[ns])
-                    #tmp_indices.append(indices[ns])
                 continue
             # Swap sorted and indices following the new order
             #for i in xrange(ncb2):
@@ -887,8 +873,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     tindices[nc:nc+cs] = indices[ins,inc:inc+cs]
                 tmp_sorted[ns] = tsorted
                 tmp_indices[ns] = tindices
-                #tmp_sorted.append(tsorted)
-                #tmp_indices.append(tindices)
         # Reorder completely indices at slice level
         self.reorder_slices(mode=mode)
 
@@ -900,7 +884,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         indices = self.indices
         tmp_sorted = self.tmp.sorted
         tmp_indices = self.tmp.indices
-        #tmp_sorted, tmp_indices = self.create_sorted_indices()
         ncs = self.nchunkslice
         nss = self.superblocksize / self.slicesize
         nss2 = nss
@@ -930,8 +913,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 oi = ns+i; oidx = ns+idx
                 tmp_sorted[oi] = sorted[oidx]
                 tmp_indices[oi] = indices[oidx]
-                #tmp_sorted.append(sorted[oidx])
-                #tmp_indices.append(indices[oidx])
                 # Swap start, stop & median ranges
                 self.tmp.ranges[oi] = self.ranges[oidx]
                 self.tmp.mranges[oi] = self.mranges[oidx]

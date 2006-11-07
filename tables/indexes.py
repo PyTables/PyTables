@@ -65,7 +65,11 @@ def calcChunksize(expectedrows, optlevel, testmode):
     """
 
     superblocksize, blocksize, slicesize, chunksize = (None, None, None, None)
-    optstarts, optstops, optfull = (False, False, False)
+    if optlevel > 0:
+        optmedian, optstarts, optstops, optfull = (True, False, False, False)
+    else:
+        optmedian, optstarts, optstops, optfull = (False, False, False, False)
+        
 
     if testmode:
         if 0 <= optlevel < 9:
@@ -117,32 +121,50 @@ def calcChunksize(expectedrows, optlevel, testmode):
             optstarts = True
     elif expKrows < 10:  # expected rows < 10 milion
         if optlevel == 0:
-            #chunksize = 1000
+            chunksize = 1000
             #slicesize = 200*chunksize
-            chunksize = 20  # test
+            ##chunksize = 20  # test
             slicesize = 200*chunksize
         elif optlevel == 1:
             chunksize = 750
             slicesize = 300*chunksize
-        elif 1 < optlevel <= 3:
+        elif optlevel == 2:
             chunksize = 500
             slicesize = 500*chunksize
-        elif 3 < optlevel <= 6:
+        elif optlevel == 3:
             chunksize = 1000
             slicesize = 200*chunksize
             optstarts = True
-        elif 6 < optlevel <= 8:
+        elif optlevel == 4:
+            chunksize = 750
+            slicesize = 250*chunksize
+            optstarts = True
+        elif optlevel == 5:
+            chunksize = 500
+            slicesize = 500*chunksize
+            optstarts = True
+        elif optlevel == 6:
+            chunksize = 1000
+            slicesize = 200*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel == 7:
+            chunksize = 750
+            slicesize = 250*chunksize
+            optstarts = True
+            optstops = True
+        elif optlevel == 8:
             chunksize = 500
             slicesize = 500*chunksize
             optstarts = True
             optstops = True
         elif optlevel >= 9:
-#             chunksize = 500  # orig
-#             slicesize = 1000*chunksize # orig
-#             optfull = True
-            chunksize = 20  # test
-            slicesize = 200*chunksize
+            chunksize = 500
+            slicesize = 1000*chunksize
             optfull = True
+#             chunksize = 20  # test
+#             slicesize = 200*chunksize
+#             optfull = True
         blocksize = 45*slicesize  # test
         superblocksize = 10*blocksize  # test
     elif expKrows < 100: # expected rows < 100 milions
@@ -354,12 +376,12 @@ def calcChunksize(expectedrows, optlevel, testmode):
     if superblocksize == None:
         superblocksize = 10*blocksize
 
-#     print "superblocksize, blocksize, slicesize, chunksize:", \
-#           (superblocksize, blocksize, slicesize, chunksize)
     # The size for different blocks information
     sizes = (superblocksize, blocksize, slicesize, chunksize)
     # The reordering optimization flags
-    opts = (optstarts, optstops, optfull)
+    opts = (optmedian, optstarts, optstops, optfull)
+#     print "superblocksize, blocksize, slicesize, chunksize:", sizes
+#     print "optmedian, optstarts, optstops, optfull", opts
     return (sizes, opts)
 
 
