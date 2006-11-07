@@ -303,14 +303,16 @@ def create_test_method(ptype, op, extracond):
                 if isvalidrow:
                     pyrownos.append(row.nrow)
                     pyfvalues.append(row[acolname])
+            pyrownos = numpy.array(pyrownos)  # row numbers already sorted
+            pyfvalues = numpy.sort(pyfvalues)
             vprint( "* %d rows selected by Python from ``%s``."
                     % (len(pyrownos), acolname) )
             if rownos is None:
                 rownos = pyrownos  # initialise reference results
                 fvalues = pyfvalues
             else:
-                self.assertEqual(pyrownos, rownos)  # check
-                self.assertEqual(pyfvalues, fvalues)
+                self.assert_(numpy.all(pyrownos == rownos))  # check
+                self.assert_(numpy.all(pyfvalues == fvalues))
 
             # Then the in-kernel or indexed version.
             ptvars = condvars.copy()
@@ -328,11 +330,12 @@ def create_test_method(ptype, op, extracond):
             except NotImplementedError:
                 vprint("* PyTables type does not support the operation.")
                 raise tests.SkipTest
+            ptfvalues.sort()  # row numbers already sorted
             vprint( "* %d rows selected by PyTables from ``%s``"
                     % (len(ptrownos), acolname), nonl=True )
             vprint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
-            self.assertEqual(ptrownos.tolist(), rownos)
-            self.assertEqual(ptfvalues.tolist(), fvalues)
+            self.assert_(numpy.all(ptrownos == rownos))
+            self.assert_(numpy.all(ptfvalues == fvalues))
 
     test_method.__doc__ = "Testing ``%s``." % cond
     return test_method
