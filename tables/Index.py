@@ -773,7 +773,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Build the name of the temporary file
         dirname = os.path.dirname(self._v_file.filename)
-        self.tmpfilename = tempfile.mkstemp(".idx", "tmp-", dirname)[1]
+        fd, self.tmpfilename = tempfile.mkstemp(".idx", "pytables-", dirname)
+        # Close the file descriptor so as to avoid leaks
+        os.close(fd)
+        # Create the proper PyTables file
         self.tmpfile = openFile(self.tmpfilename, "w")
         self.tmp = self.tmpfile.root
         cs = self.chunksize
