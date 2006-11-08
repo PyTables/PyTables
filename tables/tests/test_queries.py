@@ -246,6 +246,8 @@ extra_conditions = ['', '& ((cExtra+1) > 0)', '| ((cExtra+1) > 0)']
 """Extra conditions to append to comparison conditions."""
 
 def create_test_method(ptype, op, extracond):
+    dtype = dtype_from_ptype[ptype]
+
     # Compute the value of bounds.
     condvars = { 'bound': right_bound,
                  'lbound': left_bound,
@@ -304,7 +306,8 @@ def create_test_method(ptype, op, extracond):
                     pyrownos.append(row.nrow)
                     pyfvalues.append(row[acolname])
             pyrownos = numpy.array(pyrownos)  # row numbers already sorted
-            pyfvalues = numpy.sort(pyfvalues)
+            pyfvalues = numpy.array(pyfvalues, dtype=dtype)
+            pyfvalues.sort()
             vprint( "* %d rows selected by Python from ``%s``."
                     % (len(pyrownos), acolname) )
             if rownos is None:
