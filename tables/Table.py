@@ -889,18 +889,25 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
             # Check the value.
             if hasattr(val, 'pathname'):  # non-nested column
+                if val.dtype.shape != ():
+                    raise NotImplementedError(
+                        "variable ``%s`` refers to "
+                        "a multidimensional column, "
+                        "not yet supported in conditions, sorry" % var )
                 if val._tableFile is not tblfile or val._tablePath != tblpath:
                     raise ValueError( "variable ``%s`` refers to a column "
                                       "which is not part of table ``%s``"
                                       % (var, tblpath) )
                 if val.dtype.char == 'Q':
                     raise NotImplementedError(
-                        "querying 64-bit unsigned integer columns "
-                        "is not supported yet, sorry; "
-                        "please use regular Python selections" )
+                        "variable ``%s`` refers to "
+                        "a 64-bit unsigned integer column, "
+                        "not yet supported in conditions, sorry; "
+                        "please use regular Python selections" % var )
             elif hasattr(val, '_v_colpathnames'):  # nested column
-                raise TypeError( "variable ``%s`` refers to a nested column, "
-                                 "not allowed in conditions" % (var,) )
+                raise TypeError(
+                    "variable ``%s`` refers to a nested column, "
+                    "not allowed in conditions" % var )
             else:  # only non-column values are converted to arrays
                 val = numpy.asarray(val)
             reqvars[var] = val
