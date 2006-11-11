@@ -20,6 +20,8 @@ import tables.tests.common as tests
 from tables.tests.common import verbosePrint as vprint
 
 
+# Data parameters
+# ---------------
 row_period = 50
 """Maximum number of unique rows before they start cycling."""
 md_shape = (2, 2)
@@ -31,6 +33,9 @@ _strlen = int(numpy.log10(_maxnvalue-1)) + 1
 str_format = '%%0%dd' % _strlen
 """Format of string values."""
 
+
+# Type information
+# ----------------
 ptype_info = {
     'Bool': (numpy.bool_, bool),
     'Int8': (numpy.int8, int), 'UInt8': (numpy.uint8, int),
@@ -64,6 +69,8 @@ enum = tables.Enum(dict(('n%d' % i, i) for i in range(_maxnvalue)))
 """Enumerated type to be used in tests."""
 
 
+# Table description
+# -----------------
 def append_columns(classdict, shape=()):
     """
     Append a ``Col`` of each PyTables data type to the `classdict`.
@@ -128,6 +135,8 @@ MDTableDescription = table_description(
 """Multidimensional table description for testing queries."""
 
 
+# Table data
+# ----------
 table_data = {}
 """Cached table data for a given shape and number of rows."""
 # Data is cached because computing it row by row is quite slow.  Hop!
@@ -178,10 +187,12 @@ def fill_table(table, shape, nrows):
     table_data[(shape, nrows)] = tdata
 
 
-class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
+# Base test cases
+# ---------------
+class BaseTableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
 
     """
-    Test querying table data.
+    Base test case for querying tables.
 
     Sub-classes must define the following attributes:
 
@@ -226,14 +237,23 @@ class TableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
             raise tests.SkipTest  # column does not support indexing yet
 
     def setUp(self):
-        super(TableQueryTestCase, self).setUp()
+        super(BaseTableQueryTestCase, self).setUp()
         self.table = table = self.h5file.createTable(
             '/', 'test', self.tableDescription, expectedrows=self.nrows )
         fill_table(table, self.shape, self.nrows)
 
-    ## XXX Need some standard checks on query usage.
+
+class ScalarTableMixin:
+    tableDescription = TableDescription
+    shape = ()
+
+class MDTableMixin:
+    tableDescription = MDTableDescription
+    shape = md_shape
 
 
+# Test cases on query data
+# ------------------------
 operators = [None, '<', '==', '!=', ('<', '<=')]
 """Comparison operators to check with different types."""
 if tests.heavy:
@@ -244,6 +264,9 @@ right_bound = row_period * 3 / 4
 """Operand of right side operator in comparisons with operator pairs."""
 extra_conditions = ['', '& ((cExtra+1) > 0)', '| ((cExtra+1) > 0)']
 """Extra conditions to append to comparison conditions."""
+
+class TableDataTestCase(BaseTableQueryTestCase):
+    """Base test case for querying table data."""
 
 def create_test_method(ptype, op, extracond):
     dtype = dtype_from_ptype[ptype]
@@ -352,29 +375,20 @@ for ptype in ptype_info:  # for ptype in ['String']:
             tmethod = create_test_method(ptype, op, extracond)
             tmethod.__name__ = 'test_a%04d' % testn
             ptmethod = tests.pyTablesTest(tmethod)
-            imethod = new.instancemethod(ptmethod, None, TableQueryTestCase)
-            setattr(TableQueryTestCase, tmethod.__name__, imethod)
+            imethod = new.instancemethod(ptmethod, None, TableDataTestCase)
+            setattr(TableDataTestCase, tmethod.__name__, imethod)
             testn += 1
-
-
-# Base classes for all queries.
-class ScalarTableMixin:
-    tableDescription = TableDescription
-    shape = ()
-class MDTableMixin:
-    tableDescription = MDTableDescription
-    shape = md_shape
 
 
 # Base classes for non-indexed queries.
 NX_BLOCK_SIZE1 = 128  # from ``interpreter.c`` in Numexpr
 NX_BLOCK_SIZE2 = 8  # from ``interpreter.c`` in Numexpr
 
-class SmallTableMixin:
+class SmallNITableMixin:
     nrows = row_period * 2
     assert NX_BLOCK_SIZE2 < nrows < NX_BLOCK_SIZE1
     assert nrows % NX_BLOCK_SIZE2 != 0  # to have some residual rows
-class BigTableMixin:
+class BigNITableMixin:
     nrows = row_period * 3
     assert nrows > NX_BLOCK_SIZE1 + NX_BLOCK_SIZE2
     assert nrows % NX_BLOCK_SIZE1 != 0
@@ -386,13 +400,13 @@ if tests.heavy:
     table_sizes += ['Big']
 table_ndims = ['Scalar']  # to enable multidimensional testing, include 'MD'
 
-# Non-indexed queries: ``[SB][SM]TQTestCase``.
+# Non-indexed queries: ``[SB][SM]TDTestCase``.
 def niclassdata():
     for size in table_sizes:
         for ndim in table_ndims:
-            classname = '%s%sTQTestCase' % (size[0], ndim[0])
-            cbasenames = ( '%sTableMixin' % size, '%sTableMixin' % ndim,
-                           'TableQueryTestCase' )
+            classname = '%s%sTDTestCase' % (size[0], ndim[0])
+            cbasenames = ( '%sNITableMixin' % size, '%sTableMixin' % ndim,
+                           'TableDataTestCase' )
             yield (classname, cbasenames, {})
 
 
@@ -411,13 +425,13 @@ if tests.heavy:
     itable_sizes += ['Medium', 'Big']
     itable_optvalues += [7, 9]
 
-# Indexed queries: ``[SMB]I[02379]TQTestCase``.
+# Indexed queries: ``[SMB]I[02379]TDTestCase``.
 def iclassdata():
     for size in itable_sizes:
         for optlevel in itable_optvalues:
-            classname = '%sI%dTQTestCase' % (size[0], optlevel)
+            classname = '%sI%dTDTestCase' % (size[0], optlevel)
             cbasenames = ( '%sITableMixin' % size, 'ScalarTableMixin',
-                           'TableQueryTestCase' )
+                           'TableDataTestCase' )
             yield ( classname, cbasenames,
                     {'optlevel': optlevel, 'indexed': True} )
 
@@ -430,6 +444,187 @@ for cdatafunc in [niclassdata, iclassdata]:
         exec '%s = class_' % cname
 
 
+# Test cases on query usage
+# -------------------------
+class BaseTableUsageTestCase(BaseTableQueryTestCase):
+    nrows = row_period
+
+_gvar = None
+"""Use this when a global variable is needed."""
+
+class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
+
+    """
+    Test case for query usage on scalar tables.
+
+    This also tests for most usage errors and situations.
+    """
+
+    def test_empty_condition(self):
+        """Using an empty condition."""
+        self.assertRaises(SyntaxError, self.table.where, '')
+
+    def test_syntax_error(self):
+        """Using a condition with a syntax error."""
+        self.assertRaises(SyntaxError, self.table.where, 'foo bar')
+
+    def test_unsupported_object(self):
+        """Using a condition with an unsupported object."""
+        self.assertRaises(TypeError, self.table.where, '[]')
+        self.assertRaises(TypeError, self.table.where, 'obj', {'obj': {}})
+        self.assertRaises(TypeError, self.table.where, 'cBool < []')
+
+    def test_unsupported_syntax(self):
+        """Using a condition with unsupported syntax."""
+        self.assertRaises(TypeError, self.table.where, 'cBool[0]')
+        self.assertRaises(TypeError, self.table.where, 'cBool()')
+        self.assertRaises(NameError, self.table.where, 'cBool.__init__')
+
+    def test_no_column(self):
+        """Using a condition with no participating columns."""
+        self.assertRaises(ValueError, self.table.where, 'True')
+
+    def test_foreign_column(self):
+        """Using a condition with a column from other table."""
+        table2 = self.h5file.createTable('/', 'other', self.tableDescription)
+        self.assertRaises( ValueError, self.table.where,
+                           'cInt32_a + cInt32_b > 0',
+                           { 'cInt32_a': self.table.cols.cInt32,
+                             'cInt32_b': table2.cols.cInt32 } )
+
+    def test_unsupported_op(self):
+        """Using a condition with unsupported operations on types."""
+        NIE = NotImplementedError
+        self.assertRaises(NIE, self.table.where, 'cComplex64 > 0j')
+        self.assertRaises(NIE, self.table.where, 'cString + "a" > "abc"')
+
+    def test_not_boolean(self):
+        """Using a non-boolean condition."""
+        self.assertRaises(TypeError, self.table.where, 'cInt32')
+
+    def test_nested_col(self):
+        """Using a condition with nested columns."""
+        self.assertRaises(TypeError, self.table.where, 'cNested')
+
+    def test_implicit_col(self):
+        """Using implicit column names in conditions."""
+        # If implicit columns didn't work, a ``NameError`` would be raised.
+        self.assertRaises(TypeError, self.table.where, 'cInt32')
+        # If overriding didn't work, no exception would be raised.
+        self.assertRaises( TypeError, self.table.where,
+                           'cBool', {'cBool': self.table.cols.cInt32} )
+
+    def test_condition_vars(self):
+        """Using condition variables in conditions."""
+
+        # If condition variables didn't work, a ``NameError`` would be raised.
+        self.assertRaises( NotImplementedError, self.table.where,
+                           'cString > bound', {'bound': 0})
+
+        def where_with_locals():
+            bound = 'foo'  # this wouldn't cause an error
+            self.table.where('cString > bound', {'bound': 0})
+        self.assertRaises(NotImplementedError, where_with_locals)
+
+        def where_with_globals():
+            global _gvar
+            _gvar = 'foo'  # this wouldn't cause an error
+            try:
+                self.table.where('cString > _gvar', {'_gvar': 0})
+            finally:
+                del _gvar  # to keep global namespace clean
+        self.assertRaises(NotImplementedError, where_with_globals)
+
+    def test_scopes(self):
+        """Looking up different scopes for variables."""
+
+        # Make sure the variable is not implicit.
+        self.assertRaises(NameError, self.table.where, 'col')
+
+        # First scope: dictionary of condition variables.
+        self.assertRaises( TypeError, self.table.where,
+                           'col', {'col': self.table.cols.cInt32} )
+
+        # Second scope: local variables.
+        def where_whith_locals():
+            col = self.table.cols.cInt32
+            self.table.where('col')
+        self.assertRaises(TypeError, where_whith_locals)
+
+        # Third scope: global variables.
+        def where_with_globals():
+            global _gvar
+            _gvar = self.table.cols.cInt32
+            try:
+                self.table.where('_gvar')
+            finally:
+                del _gvar  # to keep global namespace clean
+        self.assertRaises(TypeError, where_with_globals)
+
+class MDTableUsageTestCase(MDTableMixin, BaseTableUsageTestCase):
+
+    """Test case for query usage on multidimensional tables."""
+
+    def test(self):
+        """Using a condition on a multidimensional table."""
+        # Easy: queries on multidimensional tables are not implemented yet!
+        self.assertRaises(NotImplementedError, self.table.where, 'cBool')
+
+class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
+
+    """
+    Test case for query usage on indexed tables.
+
+    Indexing could be used in more cases, but it is expected to kick
+    in at least in the cases tested here.
+    """
+    nrows = 50
+    indexed = True
+
+    conditions = []
+    """List of conditions to be tested."""
+
+    # Add boolean conditions.
+    for _cbase in ['cBool', '~cBool']:
+        conditions.append(_cbase)
+        conditions.append('(%s) & (cExtra > 0)' % _cbase)
+        conditions.append('(cExtra > 0) & (%s)' % _cbase)
+    # Add simple numeric conditions.
+    for _usevar in [False, True]:
+        for _condt in ['cInt32 %(o)s %(v)s', '%(v)s %(o)s cInt32']:
+            for _op in ['<', '<=', '==', '>=', '>']:
+                if _usevar:
+                    _cdict = {'o': _op, 'v': 'var'}
+                else:
+                    _cdict = {'o': _op, 'v': 0}
+                conditions.append(_condt % _cdict)
+    conditions.append('(cInt32 > 0) & (cExtra > 0)')
+    conditions.append('(cExtra > 0) & (cInt32 > 0)')
+    # Add double numeric conditions.
+    for _cbase in ['(0<cInt32) & (cInt32<10)', '(10>cInt32) & (cInt32>0)']:
+        conditions.append(_cbase)
+        conditions.append('(%s) & (cExtra > 0)' % _cbase)
+        conditions.append('(cExtra > 0) & (%s)' % _cbase)
+
+    def setUp(self):
+        super(IndexedTableUsageTestCase, self).setUp()
+        self.table.cols.cBool.createIndex(testmode=True)
+        self.table.cols.cInt32.createIndex(testmode=True)
+
+    def test(self):
+        """Using indexing in some queries."""
+        willQueryUseIndexing = self.table.willQueryUseIndexing
+        for condition in self.conditions:
+            self.assert_( willQueryUseIndexing(condition, {'var': 0}),
+                          "query with condition ``%s`` should use indexing"
+                          % condition )
+            tests.verbosePrint(
+                "* Query with condition ``%s`` will use indexing."
+                % condition )
+
+
+# Main part
+# ---------
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
 
@@ -437,10 +632,15 @@ def suite():
 
     niter = 1
     for i in range(niter):
+        # Tests on query data.
         for cdatafunc in [niclassdata, iclassdata]:
             for cdata in cdatafunc():
                 cname = cdata[0]
                 testSuite.addTest(unittest.makeSuite(eval(cname)))
+        # Tests on query usage.
+        testSuite.addTest(unittest.makeSuite(ScalarTableUsageTestCase))
+        testSuite.addTest(unittest.makeSuite(MDTableUsageTestCase))
+        testSuite.addTest(unittest.makeSuite(IndexedTableUsageTestCase))
 
     return testSuite
 
