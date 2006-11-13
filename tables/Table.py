@@ -871,19 +871,20 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         colinstances = self.colinstances
         tblfile, tblpath = self._v_file, self._v_pathname
-        # Look for the required variables first among the ones provided
-        # by the user (explicit or implicit), then among table columns.
+        # Look for the required variables first among the ones
+        # explicitly provided by the user, then among implicit columns,
+        # then among external variables (only if no explicit variables).
         reqvars = {}
         for var in exprvars:
             # Get the value.
             if uservars is not None and var in uservars:
                 val = uservars[var]
+            elif var in colinstances:
+                val = colinstances[var]
             elif uservars is None and var in user_locals:
                 val = user_locals[var]
             elif uservars is None and var in user_globals:
                 val = user_globals[var]
-            elif var in colinstances:
-                val = colinstances[var]
             else:
                 raise NameError("name ``%s`` is not defined" % var)
 
@@ -1032,14 +1033,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         appearing in the `condition`.  `condvars` should consist of
         identifier-like strings pointing to `Column` instances *of this
         table*, or to other values (which will be converted to arrays).
-        A default set of condition variables is provided where each
-        top-level, non-nested column with an identifier-like name
-        appears.  Variables in `condvars` override the default ones.
 
         When `condvars` is not provided or `None`, the current local and
         global namespace is sought instead of `condvars`.  The previous
         mechanism is mostly intended for interactive usage.  To disable
         it, just specify a (maybe empty) mapping as `condvars`.
+
+        A default set of condition variables is always provided where
+        each top-level column with an identifier-like name appears.
+        Only variables in `condvars` can override the default variables.
 
         If a range is supplied (by setting some of the `start`, `stop`
         or `step` parameters), only the rows in that range *and*

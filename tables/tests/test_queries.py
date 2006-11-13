@@ -513,6 +513,11 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         # If overriding didn't work, no exception would be raised.
         self.assertRaises( TypeError, self.table.where,
                            'cBool', {'cBool': self.table.cols.cInt32} )
+        # External variables do not override implicit columns.
+        def where_with_locals():
+            cInt32 = self.table.cols.cBool  # this wouldn't cause an error
+            self.table.where('cInt32')
+        self.assertRaises(TypeError, where_with_locals)
 
     def test_condition_vars(self):
         """Using condition variables in conditions."""
