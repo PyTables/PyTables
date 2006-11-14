@@ -1066,7 +1066,7 @@ class RecArrayTwoWriteTestCase(BasicTestCase):
     expectedrows = 100
     recarrayinit = 1
     recordtemplate=records.array(
-        buffer="a"*58, shape=1,
+        None, shape=1,
         formats="a4,i4,i2,f8,f4,i2,a1,b1,2c8,c16",
         names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
 
@@ -1075,7 +1075,7 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
     expectedrows = 100
     recarrayinit = 1
     recordtemplate=records.array(
-        buffer="a"*71, shape=1,
+        None, shape=1,
         formats="a4,i4,i2,2f8,4f4,i2,a1,2b1,c8,c16",
         names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
 

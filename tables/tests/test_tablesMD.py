@@ -494,7 +494,6 @@ class RecArrayOneWriteTestCase(BasicTestCase):
 
 class RecArrayTwoWriteTestCase(BasicTestCase):
     title = "RecArrayTwoWrite"
-        buffer="a"*65,
     expectedrows = 100
     recarrayinit = 1
     recordtemplate=numpy.rec.array(
@@ -504,7 +503,6 @@ class RecArrayTwoWriteTestCase(BasicTestCase):
         shape=1)
 
 class RecArrayThreeWriteTestCase(BasicTestCase):
-        buffer="a"*85,
     title = "RecArrayThreeWrite"
     expectedrows = 100
     recarrayinit = 1
