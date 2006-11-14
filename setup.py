@@ -199,7 +199,8 @@ class WindowsPackage(Package):
     _runtime_prefixes = ['']
     _runtime_suffixes = ['.dll']
 
-    _component_dirs = ['include', 'lib', 'dll']
+    # lookup in '.' seems necessary for LZO2
+    _component_dirs = ['include', 'lib', 'dll', '.']
 
     def __init__(self, name, tag, header_name, library_name, runtime_name):
         self.name = name
@@ -221,7 +222,7 @@ elif os.name == 'nt':
     _Package = WindowsPackage
     _platdep = {  # package tag -> platform-dependent components
         'HDF5': ['hdf5dll', 'hdf5dll'],
-        'LZO2': ['liblzo2', 'lzo2'],
+        'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'], }
 
