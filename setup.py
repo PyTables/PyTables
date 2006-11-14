@@ -225,6 +225,8 @@ elif os.name == 'nt':
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'], }
+    if '--debug' in sys.argv:
+        _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
 
 hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
 lzo2_package = _Package("LZO 2", 'LZO2', _cp('lzo/lzo1x'), *_platdep['LZO2'])
@@ -267,7 +269,8 @@ for arg in args:
         sys.argv.remove(arg)
     elif arg.find('--debug') == 0:
         # For debugging (mainly compression filters)
-        def_macros = [('DEBUG', 1)]
+        if os.name != 'nt': # to prevent including dlfcn.h by utils.c!!! 
+            def_macros = [('DEBUG', 1)]
         # Don't delete this argument. It maybe useful for distutils
         # when adding more flags later on
         #sys.argv.remove(arg)

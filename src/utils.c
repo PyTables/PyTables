@@ -59,13 +59,15 @@ int getLibrary(char *libname) {
 #endif  /* Win32 */
 
 herr_t set_cache_size(hid_t file_id, size_t cache_size) {
+#if H5_VERS_MAJOR == 1 && H5_VERS_MINOR >= 7
+  /* MSVS2005 chokes on declarations after statements */
+  H5AC_cache_config_t config;
+#endif /* if H5_VERSION < "1.7" */
   herr_t code;
 
   code = 0;
 
 #if H5_VERS_MAJOR == 1 && H5_VERS_MINOR >= 7
-  H5AC_cache_config_t config;
-
   config.version = H5AC__CURR_CACHE_CONFIG_VERSION;
   code = H5Fget_mdc_config(file_id, &config);
   config.set_initial_size = TRUE;

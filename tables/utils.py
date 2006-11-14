@@ -19,12 +19,6 @@ import os, os.path
 import cPickle
 import sys
 
-# Trick to know if we are on a 64-bit platform or not
-if sys.maxint > (2**31)-1:
-    is64bits_platform = True
-else:
-    is64bits_platform = False
-
 import numpy
 
 try:
