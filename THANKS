@@ -1,4 +1,4 @@
-February 2006
+November 2006
 
 We would like to thank the people have contributed directly or
 indirectly to PyTables.
@@ -59,6 +59,8 @@ Travis Oliphant for its impressive work and responsiveness in NumPy.
 Evan Prodromou for his lrucache package, a very sleek implementation
 of an LRU queue.  He had a very helpful attitude with the licensing
 and technical issues.
+
+Gerard Vermeulen for Windows/MSVS-2005 testing.
 
 Greg Ewing for writing the excelent Pyrex tool and allowing to beginners
 like me to quickly and safely start writing Python extensions. He was
