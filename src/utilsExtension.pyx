@@ -247,7 +247,7 @@ def whichClass(hid_t loc_id, char *name):
   """
   cdef H5T_class_t  class_id
   cdef H5D_layout_t layout
-  cdef hsize_t      nrecords_orig, nfields
+  cdef hsize_t      nfields
   cdef char         *field_name1, *field_name2
   cdef int          i
   cdef hid_t        type_id, dataset_id, type_id2

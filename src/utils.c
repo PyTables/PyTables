@@ -535,7 +535,7 @@ hsize_t getIndicesExt(PyObject *s, hsize_t length,
                 if (!_PyEval_SliceIndex_modif(r->start, start)) return -1;
                 if ((PY_LONG_LONG)*start < 0L) *start += length;
                 if ((PY_LONG_LONG)*start < 0) *start = ((PY_LONG_LONG)*step < 0) ? -1 : 0;
-                if ((PY_LONG_LONG)*start >= length)
+                if ((PY_LONG_LONG)*start >= (PY_LONG_LONG)length)
                         *start = ((PY_LONG_LONG)*step < 0) ? length - 1 : length;
         }
 
@@ -546,7 +546,7 @@ hsize_t getIndicesExt(PyObject *s, hsize_t length,
                 if (!_PyEval_SliceIndex_modif(r->stop, stop)) return -1;
                 if ((PY_LONG_LONG)*stop < 0) *stop += length;
                 if ((PY_LONG_LONG)*stop < 0) *stop = -1;
-                if ((PY_LONG_LONG)*stop > length) *stop = length;
+                if ((PY_LONG_LONG)*stop > (PY_LONG_LONG)length) *stop = length;
         }
 
         if (((PY_LONG_LONG)*step < 0 && (PY_LONG_LONG)*stop >= (PY_LONG_LONG)*start)

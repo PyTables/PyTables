@@ -532,10 +532,11 @@ cdef class Row:
 
   """
 
-  cdef long    _row, _unsaved_nrows, _mod_nrows
+  cdef hsize_t _row, _unsaved_nrows, _mod_nrows
   cdef hsize_t start, stop, step, nextelement, _nrow
   cdef hsize_t nrowsinbuf, nrows, nrowsread, stopindex
-  cdef int     bufcounter, counter, startb, stopb,  _all
+  cdef hsize_t startb, stopb
+  cdef int     bufcounter, counter
   cdef int     exist_enum_cols
   cdef int     _riterator, _stride
   cdef int     whereCond, indexed, indexChunk
@@ -751,7 +752,7 @@ cdef class Row:
 
   cdef __next__inKernel(self):
     """The version of next() in case of in-kernel conditions"""
-    cdef int recout, correct
+    cdef hsize_t recout, correct
     cdef object numexpr_locals, colvar, col
 
     self.nextelement = self._nrow + self.step
