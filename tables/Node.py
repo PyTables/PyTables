@@ -626,7 +626,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._f_move(newname = newname)
 
 
-    def _f_move(self, newparent=None, newname=None, overwrite=False):
+    def _f_move( self, newparent=None, newname=None,
+                 overwrite=False, createparents=False ):
         """
         Move or rename this node.
 
@@ -635,7 +636,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         string form.  If it is not specified or ``None` , the current
         parent group is chosen as the new parent.  `newname` must be a
         string with a new name.  If it is not specified or ``None``, the
-        current name is chosen as the new name.
+        current name is chosen as the new name.  If `createparents` is
+        true, the needed groups for the given new parent group path to
+        exist will be created.
 
         Moving a node across databases is not allowed, nor it is moving
         a node *into* itself.  These result in a `NodeError`.  However,
@@ -657,34 +660,53 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Set default arguments.
         if newparent is None and newname is None:
-            raise NodeError("""\
-you should specify at least a ``newparent`` or a ``newname`` parameter""")
+            raise NodeError( "you should specify at least "
+                             "a ``newparent`` or a ``newname`` parameter" )
         if newparent is None:
             newparent = oldParent
         if newname is None:
             newname = oldName
 
+        # Get destination location.
+        if hasattr(newparent, '_v_file'):  # from node
+            newfile = newparent._v_file
+            newpath = newparent._v_pathname
+        elif hasattr(newparent, 'startswith'):  # from path
+            newfile = file_
+            newpath = newparent
+        else:
+            raise TypeError( "new parent is not a node nor a path: %r"
+                             % (dstParent,) )
+
         # Validity checks on arguments.
-        newparent = file_.getNode(newparent)  # Does the new parent exist?
-        self._g_checkGroup(newparent)  # Is it a group?
+        # Is it in the same file?
+        if newfile is not file_:
+            raise NodeError( "nodes can not be moved across databases; "
+                             "please make a copy of the node" )
 
         # The movement always fails if the hosting file can not be modified.
         file_._checkWritable()
 
-        if newparent._v_file is not file_:  # Is it in the same file?
-            raise NodeError("""\
-nodes can not be moved across databases; please make a copy of the node""")
-
         # Moving over itself?
-        if (newparent is oldParent) and (newname == oldName):
+        oldPath = oldParent._v_pathname
+        if newpath == oldPath and newname == oldName:
             # This is equivalent to renaming the node to its current name,
             # and it does not change the referenced object,
             # so it is an allowed no-op.
             return
 
-        self._g_checkNotContains(newparent)  # Moving into itself?
-        self._g_maybeRemove(  # Moving over an existing node?
-            newparent, newname, overwrite)
+        # Moving into itself?
+        self._g_checkNotContains(newpath)
+
+        # Note that the previous checks allow us to go ahead and create
+        # the parent groups if `createparents` is true.  `newparent` is
+        # used instead of `newpath` to avoid accepting `Node` objects
+        # when `createparents` is true.
+        newparent = file_._getOrCreatePath(newparent, createparents)
+        self._g_checkGroup(newparent)  # Is it a group?
+
+        # Moving over an existing node?
+        self._g_maybeRemove(newparent, newname, overwrite)
 
         # Move the node.
         oldPathname = self._v_pathname
@@ -730,7 +752,8 @@ nodes can not be moved across databases; please make a copy of the node""")
 
 
     def _f_copy(self, newparent=None, newname=None,
-                overwrite=False, recursive=False, **kwargs):
+                overwrite=False, recursive=False, createparents=False,
+                **kwargs):
         """
         Copy this node and return the new one.
 
@@ -741,6 +764,8 @@ nodes can not be moved across databases; please make a copy of the node""")
         must be a string with a new name.  If it is not specified or
         ``None``, the current name is chosen as the new name.  If
         `recursive` copy is stated, all descendents are copied as well.
+        If `createparents` is true, the needed groups for the given
+        new parent group path to exist will be created.
 
         Copying a node across databases is supported but can not be
         undone.  Copying a node over itself is not allowed, nor it is
@@ -771,35 +796,55 @@ nodes can not be moved across databases; please make a copy of the node""")
 
         # Set default arguments.
         if dstParent is None and dstName is None:
-            raise NodeError("""\
-you should specify at least a ``newparent`` or a ``newname`` parameter""")
+            raise NodeError( "you should specify at least "
+                             "a ``newparent`` or a ``newname`` parameter" )
         if dstParent is None:
             dstParent = srcParent
         if dstName is None:
             dstName = srcName
 
+        # Get destination location.
+        if hasattr(dstParent, '_v_file'):  # from node
+            dstFile = dstParent._v_file
+            dstPath = dstParent._v_pathname
+        elif hasattr(dstParent, 'startswith'):  # from path
+            dstFile = srcFile
+            dstPath = dstParent
+        else:
+            raise TypeError( "new parent is not a node nor a path: %r"
+                             % (dstParent,) )
+
         # Validity checks on arguments.
-        # If ``dstParent`` is a path, it *must* be in the source file!
-        dstParent = srcFile.getNode(dstParent)  # Does the new parent exist?
+        if dstFile is srcFile:
+            # Copying over itself?
+            srcPath = srcParent._v_pathname
+            if dstPath == srcPath and dstName == srcName:
+                raise NodeError(
+                    "source and destination nodes are the same node: ``%s``"
+                    % self._v_pathname )
+
+            # Recursively copying into itself?
+            if recursive:
+                self._g_checkNotContains(dstPath)
+
+        # Note that the previous checks allow us to go ahead and create
+        # the parent groups if `createparents` is true.  `dstParent` is
+        # used instead of `dstPath` because it may be in other file, and
+        # to avoid accepting `Node` objects when `createparents` is
+        # true.
+        dstParent = srcFile._getOrCreatePath(dstParent, createparents)
         self._g_checkGroup(dstParent)  # Is it a group?
 
-        dolog = True  # Is it in the same file?
-        if dstParent._v_file is not srcFile and srcFile.isUndoEnabled():
-            warnings.warn("""\
-copying across databases can not be undone nor redone from this database""",
-                          UndoRedoWarning)
+        # Copying to another file with undo enabled?
+        dolog = True
+        if dstFile is not srcFile and srcFile.isUndoEnabled():
+            warnings.warn( "copying across databases can not be undone "
+                           "nor redone from this database",
+                           UndoRedoWarning )
             dolog = False
 
-        # Copying over itself?
-        if (dstParent is srcParent) and (dstName == srcName):
-            raise NodeError(
-                "source and destination nodes are the same node: ``%s``"
-                % (self._v_pathname,))
-
-        if recursive:
-            self._g_checkNotContains(dstParent)  # Copying into itself?
-        self._g_maybeRemove(  # Copying over an existing node?
-            dstParent, dstName, overwrite)
+        # Copying over an existing node?
+        self._g_maybeRemove(dstParent, dstName, overwrite)
 
         # Copy the node.
         # The constructor of the new node takes care of logging.
@@ -823,12 +868,15 @@ copying across databases can not be undone nor redone from this database""",
                             % node._v_pathname)
 
 
-    def _g_checkNotContains(self, node):
+    def _g_checkNotContains(self, pathname):
         # The not-a-TARDIS test. ;)
-        if node is self or node._g_isDescendentOf(self):
+        mypathname = self._v_pathname
+        if ( mypathname == '/'  # all nodes fall below the root group
+             or pathname == mypathname
+             or pathname.startswith(mypathname + '/') ):
             raise NodeError(
                 "can not move or recursively copy node ``%s`` into itself"
-                % (self._v_pathname,))
+                % mypathname )
 
 
     def _g_maybeRemove(self, parent, name, overwrite):
@@ -838,18 +886,6 @@ copying across databases can not be undone nor redone from this database""",
 destination group ``%s`` already has a node named ``%s``; \
 you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
             parent._f_getChild(name)._f_remove(True)
-
-
-    def _g_isDescendentOf(self, group):
-        # The nodes are in different files.
-        if self._v_file is not group._v_file:
-            return False
-
-        # This check avoids walking up the tree.
-        prefix = group._v_pathname + '/'
-        if prefix == '//':
-            return True  # all nodes descend from the root group
-        return self._v_pathname.startswith(prefix)
 
 
     def _g_checkName(self, name):

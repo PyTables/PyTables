@@ -420,14 +420,16 @@ class File(hdf5Extension.File, object):
 
     Public methods (hierarchy manipulation):
 
-    * createGroup(where, name[, title][, filters])
+    * createGroup(where, name[, title][, filters][, createparents])
     * createTable(where, name, description[, title][, filters]
-                  [, expectedrows])
-    * createArray(where, name, array[, title])
+                  [, expectedrows][, createparents])
+    * createArray(where, name, array[, title][, createparents])
+    * createCArray(where, name, shape, atom[, title][, filters]
+                   [, createparents])
     * createEArray(where, name, atom[, title][, filters]
-                   [, expectedrows])
+                   [, expectedrows][, createparents])
     * createVLArray(where, name, atom[, title][, filters]
-                    [, expectedsizeinMB])
+                    [, expectedsizeinMB][, createparents])
     * removeNode(where[, name][, recursive])
     * renameNode(where, newname[, name])
     * moveNode(where, newparent, newname[, name][, overwrite])
@@ -621,7 +623,42 @@ class File(hdf5Extension.File, object):
         return self.trMap.get(ptName, ptName)
 
 
-    def createGroup(self, where, name, title="", filters=None):
+    def _getOrCreatePath(self, path, create):
+        """
+        Get the given `path` or create it if `create` is true.
+
+        If `create` is true, `path` *must* be a string path and not a
+        node, otherwise a `TypeError`will be raised.
+        """
+        if create:
+            return self._createPath(path)
+        else:
+            return self.getNode(path)
+
+    def _createPath(self, path):
+        """
+        Create the groups needed for the `path` to exist.
+
+        The group associated with the given `path` is returned.
+        """
+        if not hasattr(path, 'split'):
+            raise TypeError("when creating parents, parent must be a path")
+
+        if path == '/':
+            return self.root
+
+        parent, createGroup = self.root, self.createGroup
+        for pcomp in path.split('/')[1:]:
+            try:
+                child = parent._f_getChild(pcomp)
+            except NoSuchNodeError:
+                child = createGroup(parent, pcomp)
+            parent = child
+        return parent
+
+
+    def createGroup(self, where, name, title="", filters=None,
+                    createparents=False):
         """Create a new Group instance with name "name" in "where" location.
 
         Keyword arguments:
@@ -641,15 +678,19 @@ class File(hdf5Extension.File, object):
             of course). Besides, if you do not specify filter
             properties for its child groups, they will inherit these
             ones.
+
+        createparents -- Whether to create the needed groups for the
+            parent path to exist (not done by default).
         """
-        parentNode = self.getNode(where)  # Does the parent node exist?
+        parentNode = self._getOrCreatePath(where, createparents)
         return Group(parentNode, name,
                      title=title, new=True, filters=filters)
 
 
     def createTable(self, where, name, description, title="",
                     filters=None, expectedrows=10000,
-                    compress=None, complib=None):  # Deprecated
+                    compress=None, complib=None,  # deprecated
+                    createparents=False):
         """Create a new Table instance with name "name" in "where" location.
 
         "where" parameter can be a path string, or another group
@@ -680,15 +721,17 @@ class File(hdf5Extension.File, object):
             guess; this will optimize the HDF5 B-Tree creation and
             management process time and the amount of memory used.
 
+        createparents -- Whether to create the needed groups for the
+            parent path to exist (not done by default).
         """
-        parentNode = self.getNode(where)  # Does the parent node exist?
+        parentNode = self._getOrCreatePath(where, createparents)
         fprops = _checkFilters(filters, compress, complib)
         return Table(parentNode, name,
                      description=description, title=title,
                      filters=fprops, expectedrows=expectedrows)
 
 
-    def createArray(self, where, name, object, title=""):
+    def createArray(self, where, name, object, title="", createparents=False):
         """Create a new instance Array with name "name" in "where" location.
 
         Keyword arguments:
@@ -707,14 +750,17 @@ class File(hdf5Extension.File, object):
 
         title -- Sets a TITLE attribute on the array entity.
 
+        createparents -- Whether to create the needed groups for the
+            parent path to exist (not done by default).
         """
-        parentNode = self.getNode(where)  # Does the parent node exist?
+        parentNode = self._getOrCreatePath(where, createparents)
         return Array(parentNode, name,
                      object=object, title=title)
 
 
     def createCArray(self, where, name, shape, atom, title="",
-                     filters=None, compress=None, complib=None):
+                     filters=None, compress=None, complib=None,
+                     createparents=False):
         """Create a new instance CArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -735,8 +781,11 @@ class File(hdf5Extension.File, object):
         filters -- An instance of the Filters class that provides
             information about the desired I/O filters to be applied
             during the life of this object.
+
+        createparents -- Whether to create the needed groups for the
+            parent path to exist (not done by default).
         """
-        parentNode = self.getNode(where)  # Does the parent node exist?
+        parentNode = self._getOrCreatePath(where, createparents)
         fprops = _checkFilters(filters, compress, complib)
         return CArray(parentNode, name,
                       shape=shape, atom=atom, title=title, filters=fprops)
@@ -744,7 +793,8 @@ class File(hdf5Extension.File, object):
 
     def createEArray(self, where, name, atom, title="",
                      filters=None, expectedrows=1000,
-                     compress=None, complib=None):
+                     compress=None, complib=None,
+                     createparents=False):
         """Create a new instance EArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -774,8 +824,10 @@ class File(hdf5Extension.File, object):
             this will optimize the HDF5 B-Tree creation and management
             process time and the amount of memory used.
 
+        createparents -- Whether to create the needed groups for the
+            parent path to exist (not done by default).
         """
-        parentNode = self.getNode(where)  # Does the parent node exist?
+        parentNode = self._getOrCreatePath(where, createparents)
         fprops = _checkFilters(filters, compress, complib)
         return EArray(parentNode, name,
                       atom=atom, title=title, filters=fprops,
@@ -784,7 +836,8 @@ class File(hdf5Extension.File, object):
 
     def createVLArray(self, where, name, atom, title="",
                       filters=None, expectedsizeinMB=1.0,
-                      compress=None, complib=None):
+                      compress=None, complib=None,
+                      createparents=False):
         """Create a new instance VLArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -811,8 +864,10 @@ class File(hdf5Extension.File, object):
             optimize the HDF5 B-Tree creation and management process
             time and the amount of memory used.
 
+        createparents -- Whether to create the needed groups for the
+            parent path to exist (not done by default).
         """
-        parentNode = self.getNode(where)  # Does the parent node exist?
+        parentNode = self._getOrCreatePath(where, createparents)
         fprops = _checkFilters(filters, compress, complib)
         return VLArray(parentNode, name,
                        atom=atom, title=title, filters=fprops,
@@ -957,7 +1012,7 @@ class File(hdf5Extension.File, object):
         obj._f_rename(newname)
 
     def moveNode(self, where, newparent=None, newname=None, name=None,
-                 overwrite=False):
+                 overwrite=False, createparents=False):
         """
         Move or rename the given node.
 
@@ -966,10 +1021,11 @@ class File(hdf5Extension.File, object):
         as in `Node._f_move()`.
         """
         obj = self.getNode(where, name=name)
-        obj._f_move(newparent, newname, overwrite)
+        obj._f_move(newparent, newname, overwrite, createparents)
 
     def copyNode(self, where, newparent=None, newname=None, name=None,
-                 overwrite=False, recursive=False, **kwargs):
+                 overwrite=False, recursive=False, createparents=False,
+                 **kwargs):
         """
         Copy the given node and return the new one.
 
@@ -978,7 +1034,8 @@ class File(hdf5Extension.File, object):
         as in `Node._f_copy()`.
         """
         obj = self.getNode(where, name=name)
-        return obj._f_copy(newparent, newname, overwrite, recursive, **kwargs)
+        return obj._f_copy( newparent, newname,
+                            overwrite, recursive, createparents, **kwargs )
 
     def removeNode(self, where, name=None, recursive=False):
         """
@@ -1092,7 +1149,8 @@ class File(hdf5Extension.File, object):
 
 
     def copyChildren(self, srcgroup, dstgroup,
-                     overwrite=False, recursive=False, **kwargs):
+                     overwrite=False, recursive=False,
+                     createparents=False, **kwargs):
         """
         Copy the children of a group into another group.
 
@@ -1100,7 +1158,9 @@ class File(hdf5Extension.File, object):
         `srcgroup` into the destination group `dstgroup`.  Existing
         destination nodes can be replaced by asserting the `overwrite`
         argument.  If the `recursive` argument is true, all descendant
-        nodes of `srcnode` are recursively copied.
+        nodes of `srcnode` are recursively copied.  If `createparents`
+        is true, the needed groups for the given destination group path
+        to exist will be created.
 
         `kwargs` takes keyword arguments used to customize the copying
         process.  See the documentation of `Group._f_copyChildren()` for
@@ -1110,7 +1170,8 @@ class File(hdf5Extension.File, object):
         srcGroup = self.getNode(srcgroup)  # Does the source node exist?
         self._checkGroup(srcGroup)  # Is it a group?
 
-        srcGroup._f_copyChildren(dstgroup, overwrite, recursive, **kwargs)
+        srcGroup._f_copyChildren(
+            dstgroup, overwrite, recursive, createparents, **kwargs )
 
 
     def copyFile(self, dstfilename, overwrite=False, **kwargs):

@@ -84,9 +84,10 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
         return None  # Can you see it?
 
 
-    def _f_copy(self, newparent = None, newname = None,
-                overwrite = False, recursive = False, **kwargs):
-        """_f_copy(newparent, newname[, overwrite][, recursive][, arg=value...]) -> None.  Does nothing.
+    def _f_copy(self, newparent=None, newname=None,
+                overwrite=False, recursive=False, createparents=False,
+                **kwargs):
+        """_f_copy(newparent, newname[, overwrite][, recursive][, createparents][, arg=value...]) -> None.  Does nothing.
 
         This method does nothing, since UnImplemented nodes can not be copied.
         However, a UserWarning is issued.  Please note that this method does

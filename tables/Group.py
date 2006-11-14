@@ -932,7 +932,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 
     def _f_copy(self, newparent=None, newname=None,
-                overwrite=False, recursive=False, **kwargs):
+                overwrite=False, recursive=False, createparents=False,
+                **kwargs):
         """
         Copy this node and return the new one.
 
@@ -961,17 +962,19 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             been copied during the operation.
         """
         return super(Group, self)._f_copy(
-            newparent, newname, overwrite, recursive, **kwargs)
+            newparent, newname,
+            overwrite, recursive, createparents, **kwargs)
 
 
     def _f_copyChildren(self, dstgroup, overwrite=False, recursive=False,
-                        **kwargs):
+                        createparents=False, **kwargs):
         """
         Copy the children of this group into another group.
 
         Children hanging directly from this group are copied into
         `dstgroup`, which can be a `Group` object or its pathname in
-        string form.
+        string form.  If `createparents` is true, the needed groups for
+        the given destination group path to exist will be created.
 
         The operation will fail with a `NodeError` if there is a child
         node in the destination group with the same name as one of the
@@ -993,7 +996,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         self._g_checkOpen()
 
-        dstParent = self._v_file.getNode(dstgroup)  # Does new parent exist?
+        # `dstgroup` is used instead of its path to avoid accepting
+        # `Node` objects when `createparents` is true.  Also, note that
+        # there is no risk of creating parent nodes and failing later
+        # because of destination nodes already existing.
+        dstParent = self._v_file._getOrCreatePath(dstgroup, createparents)
         self._g_checkGroup(dstParent)  # Is it a group?
 
         if not overwrite:
@@ -1001,10 +1008,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             # and overwriting is not enabled.
             for childName in self._v_children:
                 if childName in dstParent:
-                    raise NodeError("""\
-destination group ``%s`` already has a node named ``%s``; \
-you may want to use the ``overwrite`` argument"""
-                                    % (dstParent._v_pathname, childName))
+                    raise NodeError(
+                        "destination group ``%s`` already has "
+                        "a node named ``%s``; "
+                        "you may want to use the ``overwrite`` argument"""
+                        % (dstParent._v_pathname, childName) )
 
         for child in self._v_children.itervalues():
             child._f_copy(dstParent, None, overwrite, recursive, **kwargs)
@@ -1094,7 +1102,7 @@ class RootGroup(Group):
     def _f_rename(self, newname):
         raise NodeError("the root node can not be renamed")
 
-    def _f_move(self, newparent = None, newname = None):
+    def _f_move(self, newparent=None, newname=None, createparents=False):
         raise NodeError("the root node can not be moved")
 
     def _f_remove(self, recursive = False):

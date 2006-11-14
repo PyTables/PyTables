@@ -345,16 +345,18 @@ class Leaf(Node):
         self._f_rename(newname)
 
 
-    def move(self, newparent=None, newname=None, overwrite=False):
+    def move( self, newparent=None, newname=None,
+              overwrite=False, createparents=False ):
         """
         Move or rename this node.
 
         This method has the behavior described in `Node._f_move()`.
         """
-        self._f_move(newparent, newname, overwrite)
+        self._f_move(newparent, newname, overwrite, createparents)
 
 
-    def copy(self, newparent=None, newname=None, overwrite=False, **kwargs):
+    def copy( self, newparent=None, newname=None,
+              overwrite=False, createparents=False, **kwargs ):
         """
         Copy this node and return the new one.
 
@@ -386,7 +388,8 @@ class Leaf(Node):
             reflect the number of groups, leaves and bytes,
             respectively, that have been copied during the operation.
         """
-        return self._f_copy(newparent, newname, overwrite, **kwargs)
+        return self._f_copy(
+            newparent, newname, overwrite, createparents, **kwargs )
 
 
     def isVisible(self):

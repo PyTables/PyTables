@@ -7,6 +7,7 @@ import warnings
 from tables import *
 from tables.Node import NotLoggedMixin
 from tables.indexes import minRowIndex
+from tables.utils import joinPath
 
 import tables.tests.common as common
 from tables.tests.common import verbose, cleanup, heavy
@@ -2409,6 +2410,86 @@ class NotLoggedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(AttributeError, getattr, arr._v_attrs, 'foo')
 
 
+class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    """Test the ``createparents`` flag."""
+
+    def setUp(self):
+        super(CreateParentsTestCase, self).setUp()
+        g1 = self.h5file.createGroup('/', 'g1')
+        g2 = self.h5file.createGroup(g1, 'g2')
+
+    def existing(self, paths):
+        """Return a set of the existing paths in `paths`."""
+        return frozenset(path for path in paths if path in self.h5file)
+
+    def basetest(self, doit, pre, post):
+        pre()
+        self.h5file.enableUndo()
+
+        paths =  ['/g1', '/g1/g2', '/g1/g2/g3', '/g1/g2/g3/g4']
+        for newpath in paths:
+            before = self.existing(paths)
+            doit(newpath)
+            after = self.existing(paths)
+            self.assert_(after.issuperset(before))
+
+            self.h5file.undo()
+            post(newpath)
+            after = self.existing(paths)
+            self.assertEqual(after, before)
+
+    def test00_create(self):
+        """Test creating a node."""
+        def pre():
+            pass
+        def doit(newpath):
+            self.h5file.createArray(newpath, 'array', [1], createparents=True)
+            self.assert_(joinPath(newpath, 'array') in self.h5file)
+        def post(newpath):
+            self.assert_(joinPath(newpath, 'array') not in self.h5file)
+        self.basetest(doit, pre, post)
+
+    def test01_move(self):
+        """Test moving a node."""
+        def pre():
+            self.h5file.createArray('/', 'array', [1])
+        def doit(newpath):
+            self.h5file.moveNode('/array', newpath, createparents=True)
+            self.assert_('/array' not in self.h5file)
+            self.assert_(joinPath(newpath, 'array') in self.h5file)
+        def post(newpath):
+            self.assert_('/array' in self.h5file)
+            self.assert_(joinPath(newpath, 'array') not in self.h5file)
+        self.basetest(doit, pre, post)
+
+    def test02_copy(self):
+        """Test copying a node."""
+        def pre():
+            self.h5file.createArray('/', 'array', [1])
+        def doit(newpath):
+            self.h5file.copyNode('/array', newpath, createparents=True)
+            self.assert_(joinPath(newpath, 'array') in self.h5file)
+        def post(newpath):
+            self.assert_(joinPath(newpath, 'array') not in self.h5file)
+        self.basetest(doit, pre, post)
+
+    def test03_copyChildren(self):
+        """Test copying the children of a group."""
+        def pre():
+            g = self.h5file.createGroup('/', 'group')
+            self.h5file.createArray(g, 'array1', [1])
+            self.h5file.createArray(g, 'array2', [1])
+        def doit(newpath):
+            self.h5file.copyChildren('/group', newpath, createparents=True)
+            self.assert_(joinPath(newpath, 'array1') in self.h5file)
+            self.assert_(joinPath(newpath, 'array2') in self.h5file)
+        def post(newpath):
+            self.assert_(joinPath(newpath, 'array1') not in self.h5file)
+            self.assert_(joinPath(newpath, 'array2') not in self.h5file)
+        self.basetest(doit, pre, post)
+
+
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
@@ -2431,6 +2512,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AttributesTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexTestCase))
         theSuite.addTest(unittest.makeSuite(NotLoggedTestCase))
+        theSuite.addTest(unittest.makeSuite(CreateParentsTestCase))
     if heavy:
         pass
 

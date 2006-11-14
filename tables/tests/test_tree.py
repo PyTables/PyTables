@@ -8,6 +8,7 @@ from tables import *
 # Next imports are only necessary for this test suite
 from tables import Group, Leaf, Table, Array
 
+import tables.tests.common as tests
 from tables.tests.common import verbose, heavy, cleanup
 
 # To delete the internal attributes automagically
@@ -912,6 +913,57 @@ class HiddenTreeTestCase(unittest.TestCase):
 
 
 
+class CreateParentsTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
+
+    """
+    Test the ``createparents`` flag.
+
+    These are mainly for the user interface.  More thorough tests on
+    the workings of the flag can be found in the ``test_do_undo.py``
+    module.
+    """
+
+    filters = Filters(complevel=4)  # simply non-default
+
+    def setUp(self):
+        super(CreateParentsTestCase, self).setUp()
+        self.h5file.createArray('/', 'array', [1])
+        self.h5file.createGroup('/', 'group', filters=self.filters)
+
+    def test00_parentType(self):
+        """Using the right type of parent node argument."""
+
+        h5file, root = self.h5file, self.h5file.root
+
+        self.assertRaises( TypeError, h5file.createArray,
+                           root.group, 'arr', [1], createparents=True )
+        self.assertRaises( TypeError, h5file.copyNode,
+                           '/array', root.group, createparents=True )
+        self.assertRaises( TypeError, h5file.moveNode,
+                           '/array', root.group, createparents=True )
+        self.assertRaises( TypeError, h5file.copyChildren,
+                           '/group', root, createparents=True )
+
+    def test01_inside(self):
+        """Placing a node inside a nonexistent child of itself."""
+        self.assertRaises( NodeError, self.h5file.moveNode,
+                           '/group', '/group/foo/bar',
+                           createparents=True )
+        self.assert_('/group/foo' not in self.h5file)
+        self.assertRaises( NodeError, self.h5file.copyNode,
+                           '/group', '/group/foo/bar',
+                           recursive=True, createparents=True )
+        self.assert_('/group/foo' not in self.h5file)
+
+    def test02_filters(self):
+        """Propagating the filters of created parent groups."""
+        self.h5file.createGroup('/group/foo/bar', 'baz', createparents=True)
+        self.assert_('/group/foo/bar/baz' in self.h5file)
+        for group in self.h5file.walkGroups('/group'):
+            self.assertEqual(str(self.filters), str(group._v_filters))
+
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -926,6 +978,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))
         theSuite.addTest(unittest.makeSuite(WideTreeTestCase))
         theSuite.addTest(unittest.makeSuite(HiddenTreeTestCase))
+        theSuite.addTest(unittest.makeSuite(CreateParentsTestCase))
 
     return theSuite
 

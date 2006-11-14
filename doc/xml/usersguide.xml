@@ -3994,7 +3994,7 @@ Object Tree:
 	  <title><literal>File</literal> methods</title>
 
 	  <section id="createGroupDescr" xreflabel="description">
-	    <title>createGroup(where, name, title='', filters=None)</title>
+	    <title>createGroup(where, name, title='', filters=None, createparents=False)</title>
 
 	    <para>Create a new Group instance with name <emphasis>name</emphasis> in
 	      <emphasis>where</emphasis> location.
@@ -4034,6 +4034,13 @@ Object Tree:
         </para></glossdef>
         </glossentry>
 
+	<glossentry>
+	  <glossterm><emphasis role="bold">createparents</emphasis></glossterm>
+	  <glossdef><para>Whether to create the needed groups
+	  for the parent path to exist (not done by default).</para>
+	  </glossdef>
+	</glossentry>
+
       </glosslist>
 
 	  </section>
@@ -4041,7 +4048,7 @@ Object Tree:
 	  <section id="createTableDescr" xreflabel="description">
 	    <title>createTable(where, name,
 	      description, title='', filters=None,
-	      expectedrows=10000)
+	      expectedrows=10000, createparents=False)
 	    </title>
 	    <para>Create a new <literal>Table</literal> instance with name
 	      <emphasis>name</emphasis> in <emphasis>where</emphasis> location.  See the <xref xrefstyle="select: label" linkend="TableClassDescr"/> for a description
@@ -4064,7 +4071,9 @@ Object Tree:
 		  objects:
 		</para><para>
 
-		</para><glosslist><glossentry><glossterm><emphasis role="bold">A user-defined class</emphasis></glossterm><glossdef><para>This should
+		</para>
+
+		<glosslist><glossentry><glossterm><emphasis role="bold">A user-defined class</emphasis></glossterm><glossdef><para>This should
 		    inherit from the <literal>IsDescription</literal> class
 		    (see <xref xrefstyle="select: labelnumber" linkend="IsDescriptionClassDescr"/>)
 		    where table fields are specified.
@@ -4103,12 +4112,20 @@ Object Tree:
 		will optimize the HDF5 B-Tree creation and management
 		process time and memory used. See <xref xrefstyle="select: label" linkend="expectedRowsOptim"/> for a
 		discussion on that issue.
-	      </para></glossdef></glossentry></glosslist>
+	      </para></glossdef></glossentry>
+
+	      <glossentry>
+		<glossterm><emphasis role="bold">createparents</emphasis></glossterm>
+		<glossdef><para>Whether to create the needed groups
+		for the parent path to exist (not done by default).</para>
+		</glossdef>
+	      </glossentry>
+	    </glosslist>
 	  </section>
 
 	  <section id="createArrayDescr" xreflabel="description">
 	    <title>createArray(where, name,
-	      object, title='')</title>
+	      object, title='', createparents=False)</title>
 
 	    <para>Create a new <literal>Array</literal> instance with name
 	      <emphasis>name</emphasis> in <emphasis>where</emphasis> location.  See the <xref xrefstyle="select: label" linkend="ArrayClassDescr"/> for a
@@ -4126,7 +4143,14 @@ Object Tree:
 		dimensions equal to zero are not supported (use an
 		<literal>EArray</literal> object if you want to create an
 		array with one of its dimensions equal to 0).
-	      </para></glossdef></glossentry></glosslist>
+	      </para></glossdef></glossentry>
+	      <glossentry>
+		<glossterm><emphasis role="bold">createparents</emphasis></glossterm>
+		<glossdef><para>Whether to create the needed groups
+		for the parent path to exist (not done by default).</para>
+		</glossdef>
+	      </glossentry>
+	    </glosslist>
 	    <para>See <literal>createTable</literal> <xref linkend="createTableDescr"/> for more information on the
 	      <emphasis>where</emphasis>, <emphasis>name</emphasis> and <emphasis>title</emphasis>,
 	      parameters.
@@ -4135,7 +4159,7 @@ Object Tree:
 
 	  <section id="createCArrayDescr">
 	    <title>createCArray(where, name, shape, atom,
-	      title='', filters=None)</title>
+	      title='', filters=None, createparents=False)</title>
 
 	    <para>Create a new <literal>CArray</literal> instance with name
 	      <emphasis>name</emphasis> in <emphasis>where</emphasis> location. See the <xref xrefstyle="select: label" linkend="CArrayClassDescr"/> for a
@@ -4158,6 +4182,13 @@ Object Tree:
         of the objects to be saved.</para></glossdef>
         </glossentry>
 
+	<glossentry>
+	  <glossterm><emphasis role="bold">createparents</emphasis></glossterm>
+	  <glossdef><para>Whether to create the needed groups
+	  for the parent path to exist (not done by default).</para>
+	  </glossdef>
+	</glossentry>
+
       </glosslist>
 
 	    <para>See <literal>createTable</literal> <xref linkend="createTableDescr"/> for more information on the
@@ -4168,7 +4199,8 @@ Object Tree:
 
 	  <section id="createEArrayDescr">
 	    <title>createEArray(where, name,
-	      atom, title='', filters=None, expectedrows=1000)
+	      atom, title='', filters=None, expectedrows=1000,
+	      createparents=False)
 	    </title>
 
 	    <para>Create a new <literal>EArray</literal> instance with name
@@ -4206,6 +4238,13 @@ Object Tree:
         </para></glossdef>
         </glossentry>
 
+	<glossentry>
+	  <glossterm><emphasis role="bold">createparents</emphasis></glossterm>
+	  <glossdef><para>Whether to create the needed groups
+	  for the parent path to exist (not done by default).</para>
+	  </glossdef>
+	</glossentry>
+
         </glosslist>
 
 	    <para>See <literal>createTable</literal> <xref linkend="createTableDescr"/> for more information on the
@@ -4218,7 +4257,7 @@ Object Tree:
 	  <section id="createVLArrayDescr">
 	    <title>createVLArray(where,
 	      name, atom=None, title='', filters=None,
-	      expectedsizeinMB=1.0)
+	      expectedsizeinMB=1.0, createparents=False)
 	    </title>
 
 	    <para>Create a new <literal>VLArray</literal> instance with name
@@ -4247,6 +4286,13 @@ Object Tree:
         the HDF5 B-Tree creation and management process time and the amount of
         memory used.</para></glossdef>
         </glossentry>
+
+	<glossentry>
+	  <glossterm><emphasis role="bold">createparents</emphasis></glossterm>
+	  <glossdef><para>Whether to create the needed groups
+	  for the parent path to exist (not done by default).</para>
+	  </glossdef>
+	</glossentry>
 
       </glosslist>
 
@@ -4516,7 +4562,7 @@ Object Tree:
 	  <section id="File.copyNode">
 	    <title>
 	      copyNode(where, newparent=None, newname=None, name=None,
-	      overwrite=False, recursive=False, **kwargs)
+	      overwrite=False, recursive=False, createparents=False, **kwargs)
 	    </title>
 
 	    <para>Copy the node specified by <emphasis>where</emphasis> and <emphasis>name</emphasis>
@@ -4565,6 +4611,13 @@ Object Tree:
         of the copied node. This argument is ignored for leaf nodes. The default
         is not recurse.</para></glossdef>
         </glossentry>
+
+	<glossentry>
+	  <glossterm><emphasis role="bold">createparents</emphasis></glossterm>
+	  <glossdef><para>Whether to create the needed groups
+	  for the new parent path to exist (not done by default).</para>
+	  </glossdef>
+	</glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">kwargs</emphasis></glossterm>
@@ -4640,7 +4693,7 @@ Object Tree:
 
 	  <section id="File.moveNode">
 	    <title>
-	      moveNode(where, newparent=None, newname=None, name=None, overwrite=False)
+	      moveNode(where, newparent=None, newname=None, name=None, overwrite=False, createparents=False)
 	    </title>
 
 	    <para>Move the node specified by <emphasis>where</emphasis> and <emphasis>name</emphasis>
@@ -4657,6 +4710,10 @@ Object Tree:
 		If <emphasis>newname</emphasis> is <literal>None</literal> or not specified,
 		the original node name is used.
 	      </para></glossdef></glossentry></glosslist>
+	      <para>
+		The other arguments work as in <computeroutput>Node._f_move()</computeroutput>
+		(see <xref linkend="Node._f_move"/>).
+	      </para>
 	  </section>
 
 	  <section id="walkGroupsDescr" xreflabel="description">
@@ -4707,7 +4764,7 @@ for node in h5file.walkNodes("/detector"):
 	  <section id="File.copyChildren">
 
 	    <title>copyChildren(srcgroup, dstgroup,
-	      overwrite=False, recursive=False, **kwargs)
+	      overwrite=False, recursive=False, createparents=False, **kwargs)
 	    </title>
 
 	    <para>Copy the children of a group into another group.</para>
@@ -4718,6 +4775,9 @@ for node in h5file.walkNodes("/detector"):
 	      the <literal>overwrite</literal> argument.
 	      If the <literal>recursive</literal> argument is true,
 	      all descendant nodes of <literal>srcnode</literal> are recursively copied.
+	      If <computeroutput>createparents</computeroutput> is true,
+	      the needed groups for the given destination parent group path
+	      to exist will be created.
 	    </para>
 
 	    <para><literal>kwargs</literal> takes keyword arguments used to customize
@@ -5166,7 +5226,7 @@ Object Tree:
       </section>
 
       <section id="Node._f_move" xreflabel="description">
-        <title>_f_move(newparent=None, newname=None, overwrite=False)</title>
+        <title>_f_move(newparent=None, newname=None, overwrite=False, createparents=False)</title>
 
         <para>Move or rename this node.</para><para> Moves a node into a new
         parent group, or changes the name of the node.
@@ -5178,7 +5238,9 @@ Object Tree:
         <literal>newname</literal> must be a string
         with a new name. If it is not specified or
         <literal>None</literal>, the current name is
-        chosen as the new name. </para><para>Moving a node across databases is
+        chosen as the new name. If <computeroutput>createparents</computeroutput> is true,
+	the needed groups for the given new parent group path to exist will be created.</para>
+	<para>Moving a node across databases is
         not allowed, nor it is moving a node <emphasis>into</emphasis> itself.
         These result in a
         <literal>NodeError</literal>. However, moving
@@ -5194,7 +5256,7 @@ Object Tree:
       </section>
 
       <section id="Node._f_copy" xreflabel="description">
-        <title>_f_copy(newparent=None, newname=None, overwrite=False, recursive=False, **kwargs)</title>
+        <title>_f_copy(newparent=None, newname=None, overwrite=False, recursive=False, createparents=False, **kwargs)</title>
 
         <para>Copy this node and return the new
         node.</para><para>Creates and returns a copy of the node,
@@ -5209,7 +5271,10 @@ Object Tree:
         <literal>None</literal>, the current name is
         chosen as the new name. If
         <literal>recursive</literal> copy is stated,
-        all descendants are copied as well. </para><para>Copying a
+        all descendants are copied as well.
+	If <computeroutput>ucreateparents</computeroutput> is true,
+	the needed groups for the given new parent group path to exist will be created.</para>
+	<para>Copying a
         node across databases is supported but can not be undone. Copying a node
         over itself is not allowed, nor it is recursively copying a node into
         itself. These result in a
@@ -5418,7 +5483,7 @@ table = group.table          # get the table child instance again]]></screen>
 	  </section>
 
 	  <section id="Group._f_copy">
-	    <title>_f_copy(newparent, newname, overwrite=False, recursive=False, **kwargs)</title>
+	    <title>_f_copy(newparent, newname, overwrite=False, recursive=False, createparents=False, **kwargs)</title>
 
 	    <para>Copy this node and return the new one.</para>
 
@@ -5523,7 +5588,7 @@ for array in h5file.root._f_walkNodes("Array", recursive=True):
 	  <section id="Group._f_copyChildren" xreflabel="description">
 
 	    <title>_f_copyChildren(dstgroup,
-	      overwrite=False, recursive=False, **kwargs)
+	      overwrite=False, recursive=False, createparents=False, **kwargs)
 	    </title>
 
 	    <para>Copy the children of this group into another group.</para>
@@ -5531,6 +5596,8 @@ for array in h5file.root._f_walkNodes("Array", recursive=True):
 	    <para>Children hanging directly from this group are copied into <literal>dstgroup</literal>,
 	      which can be a <literal>Group</literal> (see <xref xrefstyle="select: labelnumber" linkend="GroupClassDescr"/>)
 	      object or its pathname in string form.
+	      If <computeroutput>createparents</computeroutput> is true,
+	      the needed groups for the given destination group path to exist will be created.
 	    </para>
 
 	    <para>The operation will fail with a <literal>NodeError</literal>
@@ -5833,7 +5900,7 @@ for node in h5file.root.detector:
 	  </section>
 
 	  <section id="Leaf.copy">
-	    <title>copy(newparent, newname, overwrite=False, **kwargs)</title>
+	    <title>copy(newparent, newname, overwrite=False, createparents=False, **kwargs)</title>
 
 	    <para>Copy this node and return the new one.</para>
 
@@ -5876,7 +5943,7 @@ for node in h5file.root.detector:
 	  </section>
 
 	  <section id="Leaf.move">
-	    <title>move(newparent=None, newname=None, overwrite=False)</title>
+	    <title>move(newparent=None, newname=None, overwrite=False, createparents=False)</title>
 	    <para>Move or rename this node.</para>
 	    <para>This method has the behavior described in <literal>Node._f_move()</literal>
 	      (see <xref linkend="Node._f_move"/>).
