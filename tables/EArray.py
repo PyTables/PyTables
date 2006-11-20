@@ -71,24 +71,20 @@ class EArray(Array):
     _c_classId = 'EARRAY'
 
 
-    # <properties>
-    rowsize = property(lambda self: self.atom.atomsize(), None, None,
-                       "The size in bytes of each row in the array.")
-    # </properties>
-
-
     def __init__(self, parentNode, name,
-                 atom=None, title="",
+                 atom=None, shape=None, title="",
                  filters=None, expectedrows=EXPECTED_ROWS_EARRAY,
                  _log=True):
         """Create EArray instance.
 
         Keyword arguments:
 
-        atom -- An Atom object representing the shape, type and flavor
-            of the atomic objects to be saved. One of the shape
-            dimensions must be 0. The dimension being 0 means that the
-            resulting EArray object can be extended along it.
+        atom -- An Atom object representing the type, shape and flavor
+            of the atomic objects to be saved in the array.
+
+        shape -- The shape of the array. One of the shape dimensions
+            must be 0. The dimension being 0 means that the resulting
+            EArray object can be extended along it.
 
         title -- Sets a TITLE attribute on the array entity.
 
@@ -178,6 +174,23 @@ class EArray(Array):
         self.nrows = None
         """The length of the enlargeable dimension of the array."""
 
+        if new:
+            if shape is None:
+                raise ValueError, """\
+you must specify the shape for building an EArray"""
+
+            if type(shape) not in (list, tuple):
+                raise ValueError, """\
+shape parameter should be either a tuple or a list and you passed a %s""" \
+                % type(shape)
+
+            if not isinstance(atom, Atom):
+                raise ValueError, """\
+atom parameter should be an instance of tables.Atom and you passed a %s""" \
+                % type(atom)
+
+            self.shape = tuple(shape)
+
         # The `Array` class is not abstract enough! :(
         super(Array, self).__init__(parentNode, name, new, filters, _log)
 
@@ -187,6 +200,9 @@ class EArray(Array):
 
         # The buffer size
         rowsize = atom.atomsize()
+        for i in self.shape:
+            if i > 0:
+                rowsize *= i
         expectedfsizeinKb = (expectedrows * rowsize) / 1024
         buffersize = self._g_calcBufferSize(expectedfsizeinKb)
 
@@ -203,7 +219,7 @@ class EArray(Array):
             # shape
             chunksizes[extdim] = 1  # Only one row in extendeable dimension
             for j in range(len(chunksizes)):
-                newrowsize = atom.dtype.base.itemsize
+                newrowsize = atom.dtype.itemsize
                 for i in chunksizes[j+1:]:
                     newrowsize *= i
                 maxTuples = buffersize // newrowsize
@@ -219,7 +235,7 @@ class EArray(Array):
             else:
                 chunksizes[-1] = 1 # very large itemsizes!
         # Compute the correct maxTuples number
-        newrowsize = atom.dtype.base.itemsize
+        newrowsize = atom.dtype.itemsize
         for i in chunksizes:
             newrowsize *= i
         maxTuples = buffersize // (newrowsize * CHUNKTIMES)
@@ -230,18 +246,7 @@ class EArray(Array):
 
 
     def _g_create(self):
-        """Save a fresh array (i.e., not present on HDF5 file)."""
-
-        if not isinstance(self.atom, Atom):
-            raise TypeError(
-                "the object passed to the ``EArray`` constructor "
-                "must be an instance of the ``Atom`` class")
-
-        if type(self.atom.shape) != tuple:
-            raise TypeError(
-                "the ``shape`` in the ``Atom`` instance "
-                "must be a tuple for ``EArray``: %r"
-                % (self.atom.shape,))
+        """Create a new EArray."""
 
         # Version, dtype, ptype, shape, flavor
         self._v_version = obversion
@@ -252,8 +257,6 @@ class EArray(Array):
         #self.atom.dtype = self.dtype
         self.dtype = self.atom.dtype
         self.ptype = self.atom.ptype
-        #self.shape = self.atom.dtype.shape
-        self.shape = self.atom.shape
         self.flavor = self.atom.flavor
 
         # extdim computation
@@ -290,29 +293,24 @@ class EArray(Array):
         ptype = self.ptype
         flavor = self.flavor
 
-        # Compute the real shape for atom:
-        shape = list(self.shape)
-        shape[self.extdim] = 0
-        shape = tuple(shape)
-
         # Create the atom instance and set definitive type
         if ptype == "String":
-            length = self.dtype.base.itemsize
-            self.atom = StringAtom(shape, length, flavor, warn=False)
+            length = self.dtype.itemsize
+            self.atom = StringAtom(length=length, flavor=flavor, warn=False)
         elif ptype == 'Enum':
             (enum, self.dtype) = self._g_loadEnum()
-            self.atom = EnumAtom(enum, self.dtype, shape, flavor, warn=False)
+            self.atom = EnumAtom(enum, self.dtype, flavor=flavor, warn=False)
         elif ptype == "Time32":
-            self.atom = Time32Atom(shape, flavor, warn=False)
+            self.atom = Time32Atom(flavor=flavor, warn=False)
         elif ptype == "Time64":
-            self.atom = Time64Atom(shape, flavor, warn=False)
+            self.atom = Time64Atom(flavor=flavor, warn=False)
         else:
-            #self.atom = Atom(ptype, shape, flavor, warn=False)
+            #self.atom = Atom(ptype, flavor=flavor, warn=False)
             # Make the atoms instantiate from a more specific classes
             # (this is better for representation -- repr() -- purposes)
             typeclassname = numpy.sctypeNA[numpy.sctypeDict[ptype]] + "Atom"
             typeclass = getattr(atom_mod, typeclassname)
-            self.atom = typeclass(shape, flavor, warn=False)
+            self.atom = typeclass(flavor=flavor, warn=False)
 
         # nrows in this instance
         self.nrows = self.shape[self.extdim]
@@ -385,9 +383,11 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
                          title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new EArray object
+        shape = list(self.shape)
+        shape[self.extdim] = 0
         object = EArray(
-            group, name, atom=self.atom, title=title, filters=filters,
-            expectedrows=self.nrows, _log=_log)
+            group, name, atom=self.atom, shape=shape, title=title,
+            filters=filters, expectedrows=self.nrows, _log=_log)
         # Now, fill the new earray with values from source
         nrowsinbuf = self._v_maxTuples
         # The slices parameter for self.__getitem__
@@ -417,9 +417,9 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         """This provides more metainfo in addition to standard __str__"""
 
         return """%s
-  atom = %r
-  byteorder := %r
-  nrows = %s
-  extdim = %r
-  flavor = %r""" % (self, self.atom, self.byteorder, self.nrows,
-                    self.extdim, self.flavor)
+  atom := %r
+  shape := %r
+  extdim := %r
+  flavor := %r
+  byteorder := %r""" % (self, self.atom, self.shape, self.extdim,
+                        self.flavor, self.byteorder)

@@ -636,9 +636,10 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
 
         return """%s
   ptype := %r
-  byteorder := %r
-  dtype := %r
-  flavor := %r""" % (self, self.ptype, self.byteorder, self.dtype, self.flavor)
+  shape := %r
+  flavor := %r
+  byteorder := %r""" % (self, self.atom, self.shape,
+                        self.flavor, self.byteorder)
 
 
 

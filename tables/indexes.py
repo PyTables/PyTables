@@ -436,7 +436,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     _c_classId = 'INDEXARRAY'
 
     def __init__(self, parentNode, name,
-                 atom=None, title="",
+                 atom=None, shape=None, title="",
                  filters=None,
                  optlevel=0,
                  testmode=False,
@@ -452,6 +452,8 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         atom -- An Atom object representing the shape, type and flavor
             of the atomic objects to be saved. Only scalar atoms are
             supported.
+
+        shape -- The shape of the index array.
 
         title -- Sets a TITLE attribute on the array entity.
 
@@ -490,7 +492,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
             self.reord_opts = reord_opts
 
         super(IndexArray, self).__init__(
-            parentNode, name, atom, title, filters, expectedrows)
+            parentNode, name, atom, shape, title, filters, expectedrows)
 
 
     def _g_create(self):

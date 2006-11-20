@@ -112,21 +112,6 @@ class CArray(Array):
 
         """
 
-        if shape is not None and type(shape) not in (list, tuple):
-            raise ValueError, """\
-shape parameter should be either a tuple or a list and you passed a %s""" \
-        % type(shape)
-
-        if chunksize is not None and type(shape) not in (list, tuple):
-            raise ValueError, """\
-chunksize parameter should be either a tuple or a list and you passed a %s""" \
-        % type(chunksize)
-
-        if atom is not None and not isinstance(atom, Atom):
-            raise ValueError, """\
-atom parameter should be an instance of tables.Atom and you passed a %s""" \
-        % type(atom)
-
         self._v_version = None
         """The object version of this array."""
 
@@ -182,9 +167,28 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         """
 
         if new:
+            if shape is None or chunksize is None:
+                raise ValueError, """\
+you must specify both shape & chunksize for building a CArray"""
+
+            if type(shape) not in (list, tuple):
+                raise ValueError, """\
+shape parameter should be either a tuple or a list and you passed a %s""" \
+                % type(shape)
+
+            if type(chunksize) not in (list, tuple):
+                raise ValueError, """\
+chunksize parameter should be either a tuple or a list and you passed a %s""" \
+                % type(chunksize)
+
+            if not isinstance(atom, Atom):
+                raise ValueError, """\
+atom parameter should be an instance of tables.Atom and you passed a %s""" \
+                % type(atom)
+
             self.shape = tuple(shape)
             """The shape of the stored array."""
-            self._v_chunksize = chunksize
+            self._v_chunksize = tuple(chunksize)
             """The shape of the HDF5 chunk for ``CArray`` objects."""
 
         # The `Array` class is not abstract enough! :(
@@ -313,7 +317,8 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         """This provides more metainfo in addition to standard __str__"""
 
         return """%s
-  atom = %r
-  byteorder = %r
-  nrows = %s
-  flavor = %r""" % (self, self.atom, self.byteorder, self.nrows, self.flavor)
+  atom := %r
+  shape := %r
+  flavor := %r
+  byteorder := %r""" % (self, self.atom, self.shape,
+                        self.flavor, self.byteorder)

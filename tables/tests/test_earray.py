@@ -59,18 +59,16 @@ class BasicTestCase(unittest.TestCase):
     def populateFile(self):
         group = self.rootgroup
         if self.type == "String":
-            atom = StringAtom(shape=self.shape, length=self.length,
-                              flavor=self.flavor)
+            atom = StringAtom(length=self.length, flavor=self.flavor)
         else:
-            atom = Atom(dtype=self.dtype, shape=self.shape,
-                        flavor=self.flavor)
+            atom = Atom(dtype=self.dtype, flavor=self.flavor)
         title = self.__class__.__name__
         filters = Filters(complevel = self.compress,
                           complib = self.complib,
                           shuffle = self.shuffle,
                           fletcher32 = self.fletcher32)
-        earray = self.fileh.createEArray(group, 'earray1', atom, title,
-                                         filters = filters,
+        earray = self.fileh.createEArray(group, 'earray1', atom, self.shape,
+                                         title, filters = filters,
                                          expectedrows = 1)
 
         # Fill it with rows
@@ -1145,8 +1143,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.createEArray(root, 'strings',
-                                         StringAtom(length=3,
-                                                    shape=(0,2,2)),
+                                         StringAtom(length=3), (0,2,2),
                                          "Array of strings")
         a=numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
         earray.append(a[:,1:])
@@ -1176,8 +1173,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.createEArray(root, 'strings',
-                                         StringAtom(length=3,
-                                                    shape=(0,2,2)),
+                                         StringAtom(length=3), (0,2,2),
                                          "Array of strings")
         a=numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
         earray.append(a[:,::2])
@@ -1207,7 +1203,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         Int32Atom(shape=(0,3)),
+                                         Int32Atom(), (0,3),
                                          "array of ints")
         a=numpy.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], dtype='Int32')
         earray.append(a[2:])  # Create an offset
@@ -1236,7 +1232,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.createEArray(root, 'EAtom',
-                                         Int32Atom(shape=(0,3)),
+                                         Int32Atom(), (0,3),
                                          "array of ints")
         a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Int32')
         earray.append(a[::3])  # Create an offset
@@ -1271,8 +1267,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(shape=(0, 2), dtype='Int16')
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        arr = Atom(dtype='Int16')
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
+                                    "title array1")
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
@@ -1330,8 +1327,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(shape=(0, 2), dtype='Int16')
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        arr = Atom(dtype='Int16')
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
+                                    "title array1")
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
@@ -1390,11 +1388,12 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         if numarray_imported:
-            arr = Atom(shape=(0, 2), dtype='Int16', flavor="numarray")
+            arr = Atom(dtype='Int16', flavor="numarray")
         else:
-            arr = Atom(shape=(0, 2), dtype='Int16')
+            arr = Atom(dtype='Int16')
 
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
+                                    "title array1")
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
@@ -1446,11 +1445,12 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         if numeric_imported:
-            arr = Atom(shape=(0, 2), dtype='Int16', flavor="numeric")
+            arr = Atom(dtype='Int16', flavor="numeric")
         else:
-            arr = Atom(shape=(0, 2), dtype='Int16')
+            arr = Atom(dtype='Int16')
 
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
+                                    "title array1")
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
@@ -1501,8 +1501,9 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        arr = Atom(shape=(0, 2), dtype='Int16', flavor="python")
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        arr = Atom(dtype='Int16', flavor="python")
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
+                                    "title array1")
         array1.append(((456, 2),(3, 457)))
 
         if self.close:
@@ -1555,8 +1556,9 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        arr = StringAtom(shape=(0, 2), length=3, flavor="python")
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        arr = StringAtom(length=3, flavor="python")
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
+                                    "title array1")
         array1.append([["456", "2"],["3", "457"]])
 
         if self.close:
@@ -1610,8 +1612,9 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        arr = StringAtom(shape=(0, 2), length=4, flavor="numpy")
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        arr = StringAtom(length=4, flavor="numpy")
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
+                                    "title array1")
         array1.append(numpy.array([["456", "2"],["3", "457"]], dtype="S4"))
 
         if self.close:
@@ -1665,8 +1668,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        atom = Int16Atom(shape=(0,2))
-        array1 = fileh.createEArray(fileh.root, 'array1', atom, "title array1")
+        atom = Int16Atom()
+        array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
+                                    "title array1")
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1711,8 +1715,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        atom = Int16Atom(shape=(0,2))
-        array1 = fileh.createEArray(fileh.root, 'array1', atom, "title array1")
+        atom = Int16Atom()
+        array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
+                                    "title array1")
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1760,8 +1765,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an Array
-        atom = Int16Atom(shape=(0,2))
-        array1 = fileh.createEArray(fileh.root, 'array1', atom, "title array1")
+        atom = Int16Atom()
+        array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
+                                    "title array1")
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
         # Append some user attrs
         array1.attrs.attr1 = "attr1"
@@ -1819,8 +1825,9 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        atom = Int32Atom(shape=(0,2))
-        array1 = fileh.createEArray(fileh.root, 'array1', atom, "title array1")
+        atom = Int32Atom()
+        array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
+                                    "title array1")
         r = numpy.arange(200, dtype='Int32')
         r.shape=(100,2)
         array1.append(r)
@@ -1865,8 +1872,9 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        atom = Int32Atom(shape=(0,2))
-        array1 = fileh.createEArray(fileh.root, 'array1', atom, "title array1")
+        atom = Int32Atom()
+        array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
+                                    "title array1")
         r = numpy.arange(200, dtype='Int32')
         r.shape=(100,2)
         array1.append(r)
@@ -1986,8 +1994,9 @@ class TruncateTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(shape=(0, 2), dtype='Int16')
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        arr = Atom(dtype='Int16')
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
+                                    "title array1")
         # Append two rows
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
@@ -2027,8 +2036,9 @@ class TruncateTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(shape=(0, 2), dtype='Int16')
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        arr = Atom(dtype='Int16')
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
+                                    "title array1")
         # Append two rows
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
@@ -2068,8 +2078,9 @@ class TruncateTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(shape=(0, 2), dtype='Int16')
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        arr = Atom(dtype='Int16')
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
+                                    "title array1")
         # Append two rows
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
@@ -2110,8 +2121,9 @@ class TruncateTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(shape=(0, 2), dtype='Int16')
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, "title array1")
+        arr = Atom(dtype='Int16')
+        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
+                                    "title array1")
         # Append two rows
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
@@ -2160,7 +2172,7 @@ class Rows64bitsTestCase(unittest.TestCase):
         fileh = self.fileh = openFile(self.file, "a")
         # Create an EArray
         array = fileh.createEArray(fileh.root, 'array',
-                                   Int8Atom((0,)),
+                                   Int8Atom(), (0,),
                                    filters=Filters(complib='lzo',
                                                    complevel=1),
                                    # Specifying expectedrows takes more

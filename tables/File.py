@@ -415,7 +415,7 @@ class File(hdf5Extension.File, object):
     * createArray(where, name, array[, title][, createparents])
     * createCArray(where, name, shape, atom[, title][, filters]
                    [, chunksize] [, createparents])
-    * createEArray(where, name, atom[, title][, filters]
+    * createEArray(where, name, atom, shape [, title][, filters]
                    [, expectedrows][, createparents])
     * createVLArray(where, name, atom[, title][, filters]
                     [, expectedsizeinMB][, createparents])
@@ -784,7 +784,7 @@ class File(hdf5Extension.File, object):
                       chunksize=chunksize)
 
 
-    def createEArray(self, where, name, atom, title="",
+    def createEArray(self, where, name, atom, shape, title="",
                      filters=None, expectedrows=1000,
                      createparents=False):
         """Create a new instance EArray with name "name" in "where" location.
@@ -798,9 +798,11 @@ class File(hdf5Extension.File, object):
         name -- The name of the new array.
 
         atom -- An Atom instance representing the shape, type and
-            flavor of the atomic objects to be saved. One of the shape
-            dimensions must be 0. The dimension being 0 means that the
-            resulting EArray object can be extended along it.
+            flavor of the atomic objects to be saved.
+
+        shape -- The shape of the array. One of the shape dimensions
+            must be 0. The dimension being 0 means that the resulting
+            EArray object can be extended along it.
 
         title -- Sets a TITLE attribute on the array entity.
 
@@ -822,7 +824,7 @@ class File(hdf5Extension.File, object):
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
         return EArray(parentNode, name,
-                      atom=atom, title=title,
+                      atom=atom, shape=shape, title=title,
                       filters=filters, expectedrows=expectedrows)
 
 

@@ -2081,11 +2081,11 @@ Object Tree:
 
         <para>We have seen how to create tables and arrays and how to browse
         both data and metadata in the object tree. Let's examine more closely
-        now one of the most powerful capabilities of
-        PyTables, namely, how to
+        now one of the most powerful capabilities of PyTables, namely, how to
         modify already created tables and arrays<footnote><para>Appending data
         to arrays is also supported, but you need to create special objects
-        called <literal>EArray</literal> (see <xref xrefstyle="select: labelnumber" linkend="EArrayClassDescr"/> for more
+        called <literal>EArray</literal> (see <xref xrefstyle="select:
+        labelnumber" linkend="EArrayClassDescr"/> for more
         info).</para></footnote>.</para>
 
         <section>
@@ -2096,7 +2096,8 @@ Object Tree:
           <literal>Table</literal> object and append
           some new values to it:</para>
 
-          <screen><![CDATA[ >>> table = h5file.root.detector.readout
+          <screen><![CDATA[
+ >>> table = h5file.root.detector.readout
  >>> particle = table.row
  >>> for i in xrange(10, 15):
  ...     particle['name']  = 'Particle: %6d' % (i)
@@ -2109,7 +2110,8 @@ Object Tree:
  ...     particle['idnumber'] = i * (2 ** 34)
  ...     particle.append()
  ...
- >>> table.flush()]]></screen>
+ >>> table.flush()
+          ]]></screen>
 
           <para>It's the same method we used to fill a new table.
           PyTables knows that this
@@ -3135,22 +3137,23 @@ Object Tree:
         <section>
           <title>Enumerated arrays</title>
 
-          <para><literal>EArray</literal> and
-          <literal>VLArray</literal> leaves can also
-          be declared to store enumerated values by means of the
-          <literal>EnumAtom</literal> (see <xref xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>) class, which works very much
-          like <literal>EnumCol</literal> for tables.
-          Also, <literal>Array</literal> leaves can be
-          used to open native HDF enumerated arrays.</para>
+          <para><literal>EArray</literal> and <literal>VLArray</literal>
+          leaves can also be declared to store enumerated values by means of
+          the <literal>EnumAtom</literal> (see <xref xrefstyle="select:
+          labelnumber" linkend="AtomClassDescr"/>) class, which works very
+          much like <literal>EnumCol</literal> for tables.  Also,
+          <literal>Array</literal> leaves can be used to open native HDF
+          enumerated arrays.</para>
 
-          <para>Let us create a sample
-          <literal>EArray</literal> containing ranges
-          of working days as bidimensional values:</para>
+          <para>Let us create a sample <literal>EArray</literal> containing
+          ranges of working days as bidimensional values:</para>
 
-          <screen><![CDATA[ >>> workingDays = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5}
- >>> dayRange = tables.EnumAtom(workingDays, shape=(0, 2), flavor='Tuple')
- >>> earr = h5f.createEArray('/', 'days', dayRange, title="Working day ranges")
- >>>]]></screen>
+          <screen><![CDATA[
+ >>> workingDays = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5}
+ >>> dayRange = tables.EnumAtom(workingDays, flavor='Tuple')
+ >>> earr = h5f.createEArray('/', 'days', dayRange, (0, 2), "Working day ranges")
+ >>>
+          ]]></screen>
 
           <para>Nothing surprising, except for a pair of details. In the first
           place, we use a <emphasis>dictionary</emphasis> instead of a list to
@@ -3164,23 +3167,26 @@ Object Tree:
 
           <para>Now let us feed some data to the array:</para>
 
-          <screen><![CDATA[ >>> wdays = earr.getEnum()
+          <screen><![CDATA[
+ >>> wdays = earr.getEnum()
  >>> earr.append([(wdays.Mon, wdays.Fri), (wdays.Wed, wdays.Fri)])
  >>> earr.append([(wdays.Mon, 1234)])
- >>>]]></screen>
+ >>>
+          ]]></screen>
 
           <para>Please note that, since we had no explicit
-          <literal>Enum</literal> instance, we were
-          forced to use <literal>getEnum()</literal>
-          (see <xref xrefstyle="select: labelnumber" linkend="EArrayMethodsDescr"/>) to get it from the
+          <literal>Enum</literal> instance, we were forced to use
+          <literal>getEnum()</literal> (see <xref xrefstyle="select:
+          labelnumber" linkend="EArrayMethodsDescr"/>) to get it from the
           array (we could also have used
-          <literal>dayRange.enum</literal>). Also note
-          that we were able to append an invalid value (1234). Array methods do
-          not check the validity of enumerated values.</para>
+          <literal>dayRange.enum</literal>). Also note that we were able to
+          append an invalid value (1234). Array methods do not check the
+          validity of enumerated values.</para>
 
           <para>Finally, we will print the contents of the array:</para>
 
-          <screen><![CDATA[ >>> for (d1, d2) in earr:
+          <screen><![CDATA[
+ >>> for (d1, d2) in earr:
  ...     print "From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2-d1+1)
  ...
  From Mon to Fri (5 days).
@@ -3189,7 +3195,8 @@ Object Tree:
    File "<stdin>", line 2, in ?
    File "enum.py", line 311, in __call__
  ValueError: no enumerated value with that concrete value: 1234L
- >>>]]></screen>
+ >>>
+          ]]></screen>
 
           <para>That was an example of operating on concrete values. It also
           showed how the value-to-name conversion failed because of the value
@@ -3198,10 +3205,12 @@ Object Tree:
           <para>Now we will close and remove the file, and this little tutorial
           on enumerated types is done:</para>
 
-          <screen><![CDATA[ >>> import os
+          <screen><![CDATA[
+ >>> import os
  >>> h5f.close()
  >>> os.remove('enum.h5')
- >>>]]></screen>
+ >>>
+          ]]></screen>
 
         </section>
       </section>
@@ -3613,28 +3622,21 @@ Object Tree:
     <chapter id="libraryReference">
       <title>Library Reference</title>
 
-      <para></para>
-      <para>PyTables implements
-      several classes to represent the different nodes in the object tree. They
-      are named <literal>File</literal>,
-      <literal>Group</literal>,
-      <literal>Leaf</literal>,
-      <literal>Table</literal>,
-      <literal>Array</literal>,
-      <literal>CArray</literal>,
-      <literal>EArray</literal>,
-      <literal>VLArray</literal> and
-      <literal>UnImplemented</literal>. Another one
-      allows the user to complement the information on these different objects;
-      its name is <literal>AttributeSet</literal>.
-      Finally, another important class called
-      <literal>IsDescription</literal> allows to build
-      a <literal>Table</literal> record description by
-      declaring a subclass of it. Many other classes are defined in
-      PyTables, but they can be
-      regarded as helpers whose goal is mainly to declare the <emphasis>data
-      type properties</emphasis> of the different first class objects and will
-      be described at the end of this chapter as well.</para>
+      <para></para> <para>PyTables implements several classes to represent the
+      different nodes in the object tree. They are named
+      <literal>File</literal>, <literal>Group</literal>,
+      <literal>Leaf</literal>, <literal>Table</literal>,
+      <literal>Array</literal>, <literal>CArray</literal>,
+      <literal>EArray</literal>, <literal>VLArray</literal> and
+      <literal>UnImplemented</literal>. Another one allows the user to
+      complement the information on these different objects; its name is
+      <literal>AttributeSet</literal>.  Finally, another important class
+      called <literal>IsDescription</literal> allows to build a
+      <literal>Table</literal> record description by declaring a subclass of
+      it. Many other classes are defined in PyTables, but they can be regarded
+      as helpers whose goal is mainly to declare the <emphasis>data type
+      properties</emphasis> of the different first class objects and will be
+      described at the end of this chapter as well.</para>
 
       <para>An important function, called
       <literal>openFile</literal> is responsible to
@@ -4211,65 +4213,70 @@ Object Tree:
 
 	  <section id="createEArrayDescr">
 	    <title>createEArray(where, name,
-	      atom, title='', filters=None, expectedrows=1000,
+	      atom, shape, title='', filters=None, expectedrows=1000,
 	      createparents=False)
 	    </title>
 
 	    <para>Create a new <literal>EArray</literal> instance with name
-	      <emphasis>name</emphasis> in <emphasis>where</emphasis> location.  See the <xref xrefstyle="select: label" linkend="EArrayClassDescr"/> for a
-	      description of the <literal>EArray</literal> class.
+	      <emphasis>name</emphasis> in <emphasis>where</emphasis>
+	      location.  See the <xref xrefstyle="select: label"
+	      linkend="EArrayClassDescr"/> for a description of the
+	      <literal>EArray</literal> class.
 	    </para>
 
 	    <glosslist>
 
         <glossentry>
-
         <glossterm><emphasis role="bold">atom</emphasis></glossterm>
-        <glossdef><para>An
-        <literal>Atom</literal> instance
-        representing the <emphasis>shape</emphasis>, <emphasis>type</emphasis>
-        and <emphasis>flavor</emphasis> of the atomic objects to be saved. One
-        (and only one) of the shape dimensions <emphasis>must</emphasis> be 0.
-        The dimension being 0 means that the resulting
-        <literal>EArray</literal> object can be
+        <glossdef><para>An <literal>Atom</literal> instance representing the
+        <emphasis>type</emphasis>, <emphasis>shape</emphasis> and
+        <emphasis>flavor</emphasis> of the atomic objects to be
+        saved. </para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">shape</emphasis></glossterm>
+        <glossdef><para>The shape of the array. One (and only one) of the
+        shape dimensions <emphasis>must</emphasis> be 0.  The dimension being
+        0 means that the resulting <literal>EArray</literal> object can be
         extended along it. Multiple enlargeable dimensions are not supported
-        right now. See <xref xrefstyle="select:
-        label" linkend="AtomClassDescr"/> for the supported set of
-        <literal>Atom</literal> class descendants.
-        </para></glossdef>
+        right now. See <xref xrefstyle="select: label"
+        linkend="AtomClassDescr"/> for the supported set of
+        <literal>Atom</literal> class descendants. </para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">expectedrows</emphasis></glossterm>
         <glossdef><para>In the case of enlargeable arrays this represents an
-        user estimate about the number of row elements that will be added to the
-        growable dimension in the EArray object. If not provided, the default
-        value is 1000 rows. If you plan to create both much smaller or much
-        bigger EArrays try providing a guess; this will optimize the HDF5 B-Tree
-        creation and management process time and the amount of memory used.
-        </para></glossdef>
+        user estimate about the number of row elements that will be added to
+        the growable dimension in the <literal>EArray</literal> object. If not
+        provided, the default value is 1000 rows. If you plan to create both
+        much smaller or much bigger earrays try providing a guess; this will
+        optimize the HDF5 B-Tree creation and management process time and the
+        amount of memory used.  </para></glossdef>
         </glossentry>
 
 	<glossentry>
-	  <glossterm><emphasis role="bold">createparents</emphasis></glossterm>
-	  <glossdef><para>Whether to create the needed groups
-	  for the parent path to exist (not done by default).</para>
-	  </glossdef>
+	<glossterm><emphasis role="bold">createparents</emphasis></glossterm>
+	<glossdef><para>Whether to create the needed groups for the parent
+	path to exist (not done by default).</para>
+	</glossdef>
 	</glossentry>
 
         </glosslist>
 
-	    <para>See <literal>createTable</literal> <xref linkend="createTableDescr"/> for more information on the
-	      <emphasis>where</emphasis>, <emphasis>name</emphasis>, <emphasis>title</emphasis>,
-	      and <emphasis>filters</emphasis> parameters.
+	    <para>See <literal>createTable</literal> <xref
+	      linkend="createTableDescr"/> for more information on the
+	      <emphasis>where</emphasis>, <emphasis>name</emphasis>,
+	      <emphasis>title</emphasis>, and <emphasis>filters</emphasis>
+	      parameters.
 	    </para>
 
 	  </section>
 
-	  <section id="createVLArrayDescr">
-	    <title>createVLArray(where,
-	      name, atom=None, title='', filters=None,
-	      expectedsizeinMB=1.0, createparents=False)
+	<section id="createVLArrayDescr">
+	    <title>createVLArray(where, name, atom=None, title='',
+	      filters=None, expectedsizeinMB=1.0, createparents=False)
 	    </title>
 
 	    <para>Create a new <literal>VLArray</literal> instance with name
@@ -5772,16 +5779,16 @@ for node in h5file.root.detector:
 	<title>The <literal>Leaf</literal> class</title>
 
 	<para>The goal of this class is to provide a place to put common
-	  functionality of all its descendants as well as provide a
-	  way to help classifying objects on the tree. A
-	  <literal>Leaf</literal> object is an end-node, that is, a node
-	  that can hang directly from a group object, but that is not
-	  a group itself and, thus, it can not have descendants. Right
-	  now, the set of end-nodes is composed by <literal>Table</literal>,
-	  <literal>Array</literal>, <literal>CArray</literal>, <literal>EArray</literal>,
-	  <literal>VLArray</literal> and <literal>UnImplemented</literal> class
-	  instances. In fact, all the previous classes inherit from
-	  the <literal>Leaf</literal> class.
+	  functionality of all its descendants as well as provide a way to
+	  help classifying objects on the tree. A <literal>Leaf</literal>
+	  object is an end-node, that is, a node that can hang directly from a
+	  group object, but that is not a group itself and, thus, it can not
+	  have descendants. Right now, the set of end-nodes is composed by
+	  <literal>Table</literal>, <literal>Array</literal>,
+	  <literal>CArray</literal>, <literal>EArray</literal>,
+	  <literal>VLArray</literal> and <literal>UnImplemented</literal>
+	  class instances. In fact, all the previous classes inherit from the
+	  <literal>Leaf</literal> class.
 	</para>
 
 	<section>
@@ -7501,12 +7508,14 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 	  <title>The <literal>Array</literal>
 	    class</title>
 
-	  <para>Represents an array on file. It provides methods to
-	    write/read data to/from array objects in the file. This
-	    class does not allow you to enlarge the datasets on disk;
-	    see the <literal>EArray</literal> descendant in <xref xrefstyle="select: label" linkend="EArrayClassDescr"/> if you want
-	    enlargeable dataset support and/or compression features.
-	    See also <literal>CArray</literal> in <xref xrefstyle="select: label" linkend="CArrayClassDescr"/>
+	  <para>Represents an array on file. It provides methods to write/read
+	    data to/from array objects in the file. This class does not allow
+	    you to enlarge the datasets on disk; see the
+	    <literal>EArray</literal> descendant in <xref xrefstyle="select:
+	    label" linkend="EArrayClassDescr"/> if you want enlargeable
+	    dataset support and/or compression features.  See also
+	    <literal>CArray</literal> in <xref xrefstyle="select: label"
+	    linkend="CArrayClassDescr"/>
 	  </para>
 
 	  <para>The array data types supported are the same as the set
@@ -7605,17 +7614,18 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 		stop=None, step=1)</title>
 
 	      <para>Returns an iterator yielding <literal>numarray</literal>
-		instances built from rows in array. The return rows are
-		taken from the first dimension in case of an
-		<literal>Array</literal> and <literal>CArray</literal> instance and
-		the enlargeable dimension in case of an
+		instances built from rows in array. The return rows are taken
+		from the first dimension in case of an
+		<literal>Array</literal> and <literal>CArray</literal>
+		instance and the enlargeable dimension in case of an
 		<literal>EArray</literal> instance. If a range is supplied
-		(i.e. some of the <emphasis>start</emphasis>, <emphasis>stop</emphasis> or
-		<emphasis>step</emphasis> parameters are passed), only the
-		appropriate rows are returned. Else, all the rows are
-		returned. See also the and <literal>__iter__()</literal>
-		special methods in <xref xrefstyle="select: label" linkend="ArraySpecialMethods"/> for a shorter
-		way to call this iterator.
+		(i.e. some of the <emphasis>start</emphasis>,
+		<emphasis>stop</emphasis> or <emphasis>step</emphasis>
+		parameters are passed), only the appropriate rows are
+		returned. Else, all the rows are returned. See also the and
+		<literal>__iter__()</literal> special methods in <xref
+		xrefstyle="select: label" linkend="ArraySpecialMethods"/> for
+		a shorter way to call this iterator.
 	      </para>
 
 	      <para>The meaning of the <emphasis>start</emphasis>, <emphasis>stop</emphasis> and
@@ -7640,12 +7650,12 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 	      <para>Read the array from disk and return it as a
 		<literal>numarray</literal> (default) object, or an object
 		with the same original <emphasis>flavor</emphasis> that it was
-		saved. It accepts <emphasis>start</emphasis>, <emphasis>stop</emphasis> and
-		<emphasis>step</emphasis> parameters to select rows (the first
-		dimension in the case of an <literal>Array</literal> and
-		<literal>CArray</literal> instance and the
-		<emphasis>enlargeable</emphasis> dimension in case of an
-		<literal>EArray</literal>) for reading.
+		saved. It accepts <emphasis>start</emphasis>,
+		<emphasis>stop</emphasis> and <emphasis>step</emphasis>
+		parameters to select rows (the first dimension in the case of
+		an <literal>Array</literal> and <literal>CArray</literal>
+		instance and the <emphasis>enlargeable</emphasis> dimension in
+		case of an <literal>EArray</literal>) for reading.
 	      </para>
 	      <para>The meaning of the <emphasis>start</emphasis>, <emphasis>stop</emphasis> and
 		<emphasis>step</emphasis> parameters is the same as in the
@@ -7832,22 +7842,23 @@ Object Tree:
 	<section id="EArrayClassDescr">
 	  <title>The <literal>EArray</literal> class</title>
 
-	  <para>This is a child of the <literal>Array</literal> class (see <xref xrefstyle="select: labelnumber" linkend="ArrayClassDescr"/>) and as such,
-	    <literal>EArray</literal> represents an array on the file. The
-	    difference is that <literal>EArray</literal> allows to enlarge
-	    datasets along any single dimension<footnote><para>In the future,
-	      multiple enlargeable dimensions might be implemented as
-	      well.</para></footnote> you select. Another important difference is
-	    that it also supports compression.
+	  <para>This is a child of the <literal>Array</literal> class (see
+	    <xref xrefstyle="select: labelnumber" linkend="ArrayClassDescr"/>)
+	    and as such, <literal>EArray</literal> represents an array on the
+	    file. The difference is that <literal>EArray</literal> allows to
+	    enlarge datasets along any single dimension<footnote><para>In the
+	    future, multiple enlargeable dimensions might be implemented as
+	    well.</para></footnote> you select. Another important difference
+	    is that it also supports compression.
 	  </para>
 
 	  <para>So, in addition to the attributes and methods that
-	    <literal>EArray</literal> inherits from <literal>Array</literal>, it
-	    supports a few more that provide a way to enlarge the
-	    arrays on disk. Following are described the new variables
-	    and methods as well as some that already exist in
-	    <literal>Array</literal> but that differ somewhat on the meaning
-	    and/or functionality in the <literal>EArray</literal> context.
+	    <literal>EArray</literal> inherits from <literal>Array</literal>,
+	    it supports a few more that provide a way to enlarge the arrays on
+	    disk. Following are described the new variables and methods as
+	    well as some that already exist in <literal>Array</literal> but
+	    that differ somewhat on the meaning and/or functionality in the
+	    <literal>EArray</literal> context.
 	  </para>
 
 	  <section id="EArrayClassInstanceVariables">
@@ -7858,18 +7869,17 @@ Object Tree:
 
         <glossentry>
         <glossterm><emphasis role="bold">atom</emphasis></glossterm>
-        <glossdef><para>An <literal>Atom</literal>
-        (see <xref xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>)
-        instance representing the shape, type and flavor of the atomic objects
-        to be saved. One of the dimensions of the shape is 0, meaning that the
-        array can be extended along it.</para></glossdef>
+        <glossdef><para>An <literal>Atom</literal> (see <xref
+        xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>) instance
+        representing the shape, type and flavor of the atomic objects to be
+        saved.</para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">extdim</emphasis></glossterm>
 
-        <glossdef><para>The enlargeable dimension, i.e. the dimension this array
-        can be extended along.</para></glossdef>
+        <glossdef><para>The enlargeable dimension, i.e. the dimension this
+        array can be extended along.</para></glossdef>
         </glossentry>
 
         <glossentry>
@@ -7883,8 +7893,7 @@ Object Tree:
 	  </section>
 
 	  <section id="EArrayMethodsDescr">
-	    <title><literal>EArray</literal>
-	      methods</title>
+	    <title><literal>EArray</literal> methods</title>
 
 	    <section id="EArray.getEnum">
 	      <title>getEnum()</title>
@@ -7903,14 +7912,13 @@ Object Tree:
 	      <title>append(sequence)</title>
 
 	      <para>Appends a <literal>sequence</literal> to the underlying
-		dataset. Obviously, this sequence must have the same
-		type as the <literal>EArray</literal> instance; otherwise a
+		dataset. Obviously, this sequence must have the same type as
+		the <literal>EArray</literal> instance; otherwise a
 		<literal>TypeError</literal> is issued. In the same way, the
-		dimensions of the <literal>sequence</literal> have to conform to
-		those of <literal>EArray</literal>, that is, all the
-		dimensions have to be the same except, of course, that of
-		the enlargeable dimension which can be of any length
-		(even 0!).
+		dimensions of the <literal>sequence</literal> have to conform
+		to those of <literal>EArray</literal>, that is, all the
+		dimensions have to be the same except, of course, that of the
+		enlargeable dimension which can be of any length (even 0!).
 	      </para>
 
 	      <para>Example of use (code available in
@@ -7921,9 +7929,9 @@ Object Tree:
 from numarray import strings
 
 fileh = tables.openFile("earray1.h5", mode = "w")
-a = tables.StringAtom(shape=(0,), length=8)
+a = tables.StringAtom(length=8)
 # Use 'a' as the object type for the enlargeable array
-array_c = fileh.createEArray(fileh.root, 'array_c', a, "Chars")
+array_c = fileh.createEArray(fileh.root, 'array_c', a, (0,), "Chars")
 array_c.append(strings.array(['a'*2, 'b'*4], itemsize=8))
 array_c.append(strings.array(['a'*6, 'b'*8, 'c'*10], itemsize=8))
 
@@ -8929,11 +8937,8 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
         <section>
           <title>atomsize()</title>
 
-          <para>Returns the total length, in bytes, of the element base atom. If
-          its shape is has one zero element on it (for use in
-          <literal>EArrays</literal>, for example),
-          this is replaced by an one in order to compute the atom size
-          correctly.</para>
+          <para>Returns the total length, in bytes, of the element base
+          atom.</para>
 
         </section>
 
@@ -8949,8 +8954,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
           <title>Atom(dtype="Float64", shape=1, flavor="numarray")</title>
 
           <para>Define properties for the base elements of
-          <literal>CArray</literal>,
-          <literal>EArray</literal> and
+          <literal>CArray</literal>, <literal>EArray</literal> and
           <literal>VLArray</literal> objects.</para>
 
           <section>
@@ -8962,14 +8966,9 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
           </section>
 
           <section>
-            <title>shape</title> <para>In a <literal>EArray</literal> context,
-            it is a <emphasis>tuple</emphasis> specifying the shape of the
-            object, and one (and only one) of its dimensions
-            <emphasis>must</emphasis> be 0, meaning that the
-            <literal>EArray</literal> object will be enlarged along this
-            axis. In the case of a <literal>VLArray</literal>, it can be an
-            integer with a value of 1 (one) or a tuple, that specifies whether
-            the atom is an scalar (in the case of a 1) or has multiple
+            <title>shape</title> <para>The shape of the atom type. It can be
+            an integer with a value of 1 (one) or a tuple, that specifies
+            whether the atom is an scalar (in the case of a 1) or has multiple
             dimensions (in the case of a tuple). For
             <literal>CharType</literal> elements, the last dimension is used
             as the length of the character strings.  However, for this kind of
@@ -8979,16 +8978,15 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
           </section>
 
           <section>
-            <title>flavor</title>
-            <para>The object representation for this atom. It can be
-            any of <emphasis>"numarray"</emphasis>, <emphasis>"numpy"</emphasis>
-            or <emphasis>"python"</emphasis> for the character types and
-            <emphasis>"numarray"</emphasis>, <emphasis>"numpy"</emphasis>,
-            <emphasis>"numeric"</emphasis> or <emphasis>"python"</emphasis> for
-            the numerical types. If specified, the read atoms will be converted
-            to that specific flavor. If not specified, the atoms will remain in
-            their native format (i.e.
-            <literal>numarray</literal>).
+            <title>flavor</title> <para>The object representation for this
+            atom. It can be any of <emphasis>"numarray"</emphasis>,
+            <emphasis>"numpy"</emphasis> or <emphasis>"python"</emphasis> for
+            the character types and <emphasis>"numarray"</emphasis>,
+            <emphasis>"numpy"</emphasis>, <emphasis>"numeric"</emphasis> or
+            <emphasis>"python"</emphasis> for the numerical types. If
+            specified, the read atoms will be converted to that specific
+            flavor. If not specified, the atoms will remain in their native
+            format (i.e.  <literal>numarray</literal>).
             </para>
           </section>
 
@@ -9191,49 +9189,44 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 
         </section>
 
-        <!-- You can place paragraphs and other block elements before a section, but you cannot place anything after it. See docbook reference. -->
-        <section><title></title>
-        <para>Now, there come two special classes,
-        <literal>ObjectAtom</literal> and
-        <literal>VLString</literal>, that actually do
-        not descend from <literal>Atom</literal>, but
-        which goal is so similar that they should be described here. The
-        difference between them and the
-        <literal>Atom</literal> and descendants
-        classes is that these special classes does not allow multidimensional
-        atoms, nor multiple values per row. A <emphasis>flavor</emphasis> can
-        not be specified neither as it is immutable (see below). </para>
+        <!-- You can place paragraphs and other block elements before a
+        section, but you cannot place anything after it. See docbook
+        reference. -->
+
+        <section><title></title> <para>Now, there come two special classes,
+        <literal>ObjectAtom</literal> and <literal>VLString</literal>, that
+        actually do not descend from <literal>Atom</literal>, but which goal
+        is so similar that they should be described here. The difference
+        between them and the <literal>Atom</literal> and descendants classes
+        is that these special classes does not allow multidimensional atoms,
+        nor multiple values per row. A <emphasis>flavor</emphasis> can not be
+        specified neither as it is immutable (see below). </para>
         <para><emphasis>Caveat emptor:</emphasis> You are only allowed to use
-        these classes to create
-        <literal>VLArray</literal> objects, not
-        <literal>CArray</literal> and
-        <literal>EArray</literal> objects.</para>
+        these classes to create <literal>VLArray</literal> objects, not
+        <literal>CArray</literal> and <literal>EArray</literal>
+        objects.</para>
         </section>
 
         <section>
           <title>ObjectAtom()</title>
 
           <para>This class is meant to fit <emphasis>any</emphasis> kind of
-          object in a row of an
-          <literal>VLArray</literal> instance by using
-          <literal>cPickle</literal> behind the
-          scenes. Due to the fact that you can not foresee how long will be the
-          output of the <literal>cPickle</literal>
-          serialization (i.e. the atom already has a
-          <emphasis>variable</emphasis> length), you can only fit a representant
-          of it per row. However, you can still pass several parameters to the
-          <literal>VLArray.append()</literal> method
-          as they will be regarded as a <emphasis>tuple</emphasis> of compound
-          objects (the parameters), so that we still have only one object to be
-          saved in a single row. It does not accept parameters and its flavor is
-          automatically set to
-          <literal>"Object"</literal>, so the reads of
+          object in a row of an <literal>VLArray</literal> instance by using
+          <literal>cPickle</literal> behind the scenes. Due to the fact that
+          you can not foresee how long will be the output of the
+          <literal>cPickle</literal> serialization (i.e. the atom already has
+          a <emphasis>variable</emphasis> length), you can only fit a
+          representant of it per row. However, you can still pass several
+          parameters to the <literal>VLArray.append()</literal> method as they
+          will be regarded as a <emphasis>tuple</emphasis> of compound objects
+          (the parameters), so that we still have only one object to be saved
+          in a single row. It does not accept parameters and its flavor is
+          automatically set to <literal>"Object"</literal>, so the reads of
           rows always returns an arbitrary python object.
 
-          You can regard <literal>ObjectAtom</literal>
-          types as an easy way to save an arbitrary number of generic python
-          objects in a <literal>VLArray</literal>
-          object.</para>
+          You can regard <literal>ObjectAtom</literal> types as an easy way to
+          save an arbitrary number of generic python objects in a
+          <literal>VLArray</literal> object.</para>
 
         </section>
 
@@ -9241,22 +9234,21 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
           <title>VLStringAtom()</title>
 
           <para>This class describes a <emphasis>row</emphasis> of the
-          <literal>VLArray</literal> class, rather
-          than an <emphasis>atom</emphasis>. It differs from the
-          <literal>StringAtom</literal> class in that
-          you can only add one instance of it to one specific row, i.e. the
-          <literal>VLArray.append()</literal> method
-          only accepts one object when the base atom is of this type. Besides,
-          it supports Unicode strings (contrarily to
-          <literal>StringAtom</literal>) because it
+          <literal>VLArray</literal> class, rather than an
+          <emphasis>atom</emphasis>. It differs from the
+          <literal>StringAtom</literal> class in that you can only add one
+          instance of it to one specific row, i.e. the
+          <literal>VLArray.append()</literal> method only accepts one object
+          when the base atom is of this type. Besides, it supports Unicode
+          strings (contrarily to <literal>StringAtom</literal>) because it
           uses the UTF-8 codification (this is why its
-          <literal>atomsize()</literal> method returns
-          always 1) when serializing to disk. It does not accept any parameter
-          and because its <emphasis>flavor</emphasis> is automatically set to
-          <literal>"VLString"</literal>, the reads of
-          rows always returns a python string. See the
-          <xref xrefstyle="select: label" linkend="VLArrayFormatDescr"/> if you are
-          curious on how this is implemented at the low-level.
+          <literal>atomsize()</literal> method returns always 1) when
+          serializing to disk. It does not accept any parameter and because
+          its <emphasis>flavor</emphasis> is automatically set to
+          <literal>"VLString"</literal>, the reads of rows always returns a
+          python string. See the <xref xrefstyle="select: label"
+          linkend="VLArrayFormatDescr"/> if you are curious on how this is
+          implemented at the low-level.
 
           You can regard
           <literal>VLStringAtom</literal> types as an
@@ -9290,10 +9282,10 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    </title>
 
 	    <para>This class is meant to serve as a container that keeps
-	      information about the filter properties associated with
-	      the enlargeable leaves, that is <literal>Table</literal>,
-	      <literal>EArray</literal> and <literal>VLArray</literal> as well as
-	      <literal>CArray</literal>.
+	      information about the filter properties associated with the
+	      enlargeable leaves, that is <literal>Table</literal>,
+	      <literal>EArray</literal> and <literal>VLArray</literal> as well
+	      as <literal>CArray</literal>.
 	    </para>
 
 	    <para>The public variables of <literal>Filters</literal> are listed
@@ -9382,10 +9374,10 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 from tables import *
 
 fileh = openFile("test5.h5", mode = "w")
-atom = Float32Atom(shape=(0,2))
+atom = Float32Atom()
 filters = Filters(complevel=1, complib = "lzo")
 filters.fletcher32 = 1
-arr = fileh.createEArray(fileh.root, 'earray', atom, "A growable array",
+arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2), "A growable array",
                          filters = filters)
 # Append several rows in only one call
 arr.append(na.array([[1., 2.],
@@ -12439,14 +12431,14 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       use of the <literal>Atom</literal> class and its descendants (see <xref
       xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>).</para>
 
-      <para>In addition to those data types, PyTables' Table, VLArray and EArray
-      classes do support some <emphasis>aliasing</emphasis> data types for their
-      columns and atoms. Each one of these aliasing types corresponds to one
-      <literal>numarray</literal> type, but they also have special meanings for
-      PyTables. They can be seen as the ordinary types they are associated with,
-      plus some additional meaning. Since they do not exist as
-      <literal>numarray</literal> types, they can only be specified to PyTables
-      using strings.</para>
+      <para>In addition to those data types, PyTables' Table, VLArray and
+      EArray classes do support some <emphasis>aliasing</emphasis> data types
+      for their columns and atoms. Each one of these aliasing types
+      corresponds to one <literal>numarray</literal> type, but they also have
+      special meanings for PyTables. They can be seen as the ordinary types
+      they are associated with, plus some additional meaning. Since they do
+      not exist as <literal>numarray</literal> types, they can only be
+      specified to PyTables using strings.</para>
 
       <para>Currently, the only supported aliasing data type is
       <emphasis>Time</emphasis>. Two kinds of time values can be handled: 4-byte
@@ -13770,8 +13762,8 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
             <para>An <literal>Array</literal> has a
             <emphasis>dataspace</emphasis> with a <emphasis>N-dimensional
             contiguous</emphasis> layout (if you prefer a
-            <emphasis>chunked</emphasis> layout see
-            <literal>EArray</literal> below). </para>
+            <emphasis>chunked</emphasis> layout see <literal>EArray</literal>
+            below). </para>
 
           </section>
 
@@ -13895,41 +13887,43 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
 
             <glosslist>
 
-            <glossentry><glossterm><emphasis role="bold">CLASS</emphasis></glossterm>
+            <glossentry><glossterm><emphasis
+            role="bold">CLASS</emphasis></glossterm>
 
             <glossdef><para>Must be set to
             <literal>'EARRAY'</literal>.
             </para></glossdef></glossentry>
 
-            <glossentry><glossterm><emphasis role="bold">EXTDIM</emphasis></glossterm>
+            <glossentry><glossterm><emphasis
+            role="bold">EXTDIM</emphasis></glossterm>
 
             <glossdef><para>(<emphasis>Integer</emphasis>) Must be set to the
             extensible dimension. Only one extensible dimension is supported
             right now. </para></glossdef></glossentry>
 
-            <glossentry><glossterm><emphasis role="bold">FLAVOR</emphasis></glossterm>
+            <glossentry><glossterm><emphasis
+            role="bold">FLAVOR</emphasis></glossterm>
 
             <glossdef><para>This is meant to provide the information about the
-            kind of objects kept in the
-            <literal>EArray</literal>, i.e. when the
-            dataset is read, it will be converted to the indicated flavor. It
-            can take the same values as the
-            <literal>Array</literal> object (see <xref xrefstyle="select: labelnumber" linkend="ArrayFormatDescr"/>), except
-            <literal>"Int"</literal> and
-            <literal>"Float"</literal>.</para>
+            kind of objects kept in the <literal>EArray</literal>, i.e. when
+            the dataset is read, it will be converted to the indicated
+            flavor. It can take the same values as the
+            <literal>Array</literal> object (see <xref xrefstyle="select:
+            labelnumber" linkend="ArrayFormatDescr"/>), except
+            <literal>"Int"</literal> and <literal>"Float"</literal>.</para>
             </glossdef></glossentry>
 
-            <glossentry><glossterm><emphasis role="bold">TITLE</emphasis></glossterm>
+            <glossentry><glossterm><emphasis
+            role="bold">TITLE</emphasis></glossterm>
 
-            <glossdef><para>A string where the user can put some description on
-            what is this dataset used for.
-            </para></glossdef></glossentry>
+            <glossdef><para>A string where the user can put some description
+            on what is this dataset used for.  </para></glossdef></glossentry>
 
-            <glossentry><glossterm><emphasis role="bold">VERSION</emphasis></glossterm>
+            <glossentry><glossterm><emphasis
+            role="bold">VERSION</emphasis></glossterm>
 
             <glossdef><para>Should contain the string
-            <literal>'1.3'</literal>.
-            </para></glossdef></glossentry>
+            <literal>'1.3'</literal>.  </para></glossdef></glossentry>
 
           </glosslist>
         </section>
@@ -13946,21 +13940,19 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
         <section>
           <title>Datatypes supported</title>
 
-          <para>The elements of
-          <literal>EArray</literal> are allowed to
-          have the same data types as for the elements in the Array format. They
+          <para>The elements of <literal>EArray</literal> are allowed to have
+          the same data types as for the elements in the Array format. They
           can be one of the HDF5 <emphasis>atomic</emphasis> data type
           <emphasis>classes</emphasis>: H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT,
-          H5T_TIME or H5T_STRING, see the
-          <literal>Table</literal> format description
-          in <xref xrefstyle="select: label" linkend="TableFormatDescr"/> for more info
-          about these types. They can also be a H5T_COMPOUND datatype
-          representing a complex number, see the
-          <literal>Table</literal> format description
-          in <xref xrefstyle="select: label" linkend="TableFormatDescr"/>.</para>
+          H5T_TIME or H5T_STRING, see the <literal>Table</literal> format
+          description in <xref xrefstyle="select: label"
+          linkend="TableFormatDescr"/> for more info about these types. They
+          can also be a H5T_COMPOUND datatype representing a complex number,
+          see the <literal>Table</literal> format description in <xref
+          xrefstyle="select: label" linkend="TableFormatDescr"/>.</para>
 
-          <para>You should note that H5T_ARRAY class data types are not allowed
-          in <literal>EArray</literal> objects.
+          <para>You should note that H5T_ARRAY class data types are not
+          allowed in <literal>EArray</literal> objects.
           </para>
 
         </section>

@@ -551,7 +551,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Create the IndexArray for sorted values
         sorted = IndexArray(self, 'sorted',
-                            Atom(self.dtype, shape=(0,)),
+                            Atom(self.dtype), (0,),
                             "Sorted Values", filters, self.optlevel,
                             self.testmode, self._v_expectedrows)
 
@@ -564,29 +564,32 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Create the IndexArray for index values
         IndexArray(self, 'indices',
-                   Atom("Int64", shape=(0,)), "Reverse Indices",
+                   Atom("Int64"), (0,), "Reverse Indices",
                    filters, self.optlevel,
                    self.testmode, self._v_expectedrows)
 
         # Create the cache for range values  (1st order cache)
-        atom = Atom(self.dtype, shape=(0,2))
-        CacheArray(self, 'ranges', atom, "Range Values", filters,
-                   self._v_expectedrows//self.slicesize)
+        atom = Atom(self.dtype)
+        CacheArray(self, 'ranges', atom, (0,2), "Range Values",
+                   filters, self._v_expectedrows//self.slicesize)
         # median ranges
-        atom = Atom(self.dtype, shape=(0,))
-        EArray(self, 'mranges', atom, "Median ranges", filters, _log=False)
+        atom = Atom(self.dtype)
+        EArray(self, 'mranges', atom, (0,), "Median ranges",
+               filters, _log=False)
 
         # Create the cache for boundary values (2nd order cache)
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
-        atom = Atom(self.dtype, shape=(0, nbounds_inslice))
-        CacheArray(self, 'bounds', atom, "Boundary Values", filters,
+        atom = Atom(self.dtype)
+        CacheArray(self, 'bounds', atom, (0, nbounds_inslice),
+                   "Boundary Values", filters,
                    self._v_expectedrows//self.chunksize)
 
         # begin, end & median bounds (only for numeric types)
-        atom = Atom(self.dtype, shape=(0,))
-        EArray(self, 'abounds', atom, "Start bounds", _log=False)
-        EArray(self, 'zbounds', atom, "End bounds", filters, _log=False)
-        EArray(self, 'mbounds', atom, "Median bounds", filters, _log=False)
+        atom = Atom(self.dtype)
+        EArray(self, 'abounds', atom, (0,), "Start bounds", _log=False)
+        EArray(self, 'zbounds', atom, (0,), "End bounds", filters, _log=False)
+        EArray(self, 'mbounds', atom, (0,), "Median bounds", filters,
+               _log=False)
 
         # Create the Array for last (sorted) row values + bounds
         shape = (2 + nbounds_inslice + self.slicesize,)
