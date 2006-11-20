@@ -425,7 +425,7 @@ class File(hdf5Extension.File, object):
                   [, expectedrows][, createparents])
     * createArray(where, name, array[, title][, createparents])
     * createCArray(where, name, shape, atom[, title][, filters]
-                   [, createparents])
+                   [, chunksize] [, createparents])
     * createEArray(where, name, atom[, title][, filters]
                    [, expectedrows][, createparents])
     * createVLArray(where, name, atom[, title][, filters]
@@ -760,7 +760,7 @@ class File(hdf5Extension.File, object):
 
     def createCArray(self, where, name, shape, atom, title="",
                      filters=None, compress=None, complib=None,
-                     createparents=False):
+                     chunksize=None, createparents=False):
         """Create a new instance CArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -782,13 +782,19 @@ class File(hdf5Extension.File, object):
             information about the desired I/O filters to be applied
             during the life of this object.
 
+        chunksize -- The shape of the data chunk read or written as a
+            single HDF5 I/O operation. The filters are applied to
+            chunks of data. Its dimensionality has to be the same as
+            shape.
+
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
         fprops = _checkFilters(filters, compress, complib)
         return CArray(parentNode, name,
-                      shape=shape, atom=atom, title=title, filters=fprops)
+                      shape=shape, atom=atom, title=title, filters=fprops,
+                      chunksize=chunksize)
 
 
     def createEArray(self, where, name, atom, title="",

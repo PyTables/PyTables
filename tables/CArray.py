@@ -31,7 +31,7 @@ import sys, warnings
 
 import numpy
 
-from tables.Atom import Atom
+from tables.Atom import Atom, StringAtom
 from tables.Array import Array
 from tables.utils import processRangeRead
 
@@ -87,9 +87,8 @@ class CArray(Array):
     # </properties>
 
 
-    def __init__(self, parentNode, name,
-                 shape=None, atom=None,
-                 title="", filters=None,
+    def __init__(self, parentNode, name, shape=None, atom=None,
+                 title="", filters=None, chunksize=None,
                  _log=True):
         """Create CArray instance.
 
@@ -98,9 +97,7 @@ class CArray(Array):
         shape -- The shape of the chunked array to be saved.
 
         atom -- An Atom object representing the shape, type and flavor
-            of the atomic objects to be saved. The shape dimensions of
-            the ``atom`` will be used as the chunksize of the
-            underlying HDF5 dataset.
+            of the atomic objects to be saved.
 
         title -- Sets a TITLE attribute on the array entity.
 
@@ -108,12 +105,22 @@ class CArray(Array):
             information about the desired I/O filters to be applied
             during the life of this object.
 
+        chunksize -- The shape of the data chunk to be read or written
+            as a single HDF5 I/O operation. The filters are applied to
+            chunks of data. Its dimensionality has to be the same as
+            shape.
+
         """
 
         if shape is not None and type(shape) not in (list, tuple):
             raise ValueError, """\
 shape parameter should be either a tuple or a list and you passed a %s""" \
         % type(shape)
+
+        if chunksize is not None and type(shape) not in (list, tuple):
+            raise ValueError, """\
+chunksize parameter should be either a tuple or a list and you passed a %s""" \
+        % type(chunksize)
 
         if atom is not None and not isinstance(atom, Atom):
             raise ValueError, """\
@@ -128,16 +135,10 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         self._v_new_title = title
         """New title for this node."""
 
-        self.rowsize = None
-        """The size in bytes of each row in the array."""
         self._v_maxTuples = None
         """The maximum number of rows that are read on each chunk iterator."""
-        self._v_chunksize = None
-        """The HDF5 chunk size for ``CArray`` objects."""
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
-        self.shape = None
-        """The shape of the stored array."""
         self._enum = None
         """The enumerated type containing the values in this array."""
 
@@ -182,40 +183,34 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 
         if new:
             self.shape = tuple(shape)
-        else:
-            if shape is not None:
-                warnings.warn("``atom`` is ``None``: ``shape`` ignored")
-            if atom is not None:
-                warnings.warn("``shape`` is ``None``: ``atom`` ignored")
+            """The shape of the stored array."""
+            self._v_chunksize = chunksize
+            """The shape of the HDF5 chunk for ``CArray`` objects."""
 
         # The `Array` class is not abstract enough! :(
         super(Array, self).__init__(parentNode, name, new, filters, _log)
 
 
-    def _calcMaxTuples(self, atom, nrows, compress=None):
-        """Calculate the maximum number of tuples."""
+    def _calcMaxTuples(self, nrows):
+        """Calculate the maximum number of tuples for buffer."""
 
         # The buffer size
         expectedfsizeinKb = numpy.product(self.shape) * \
-                            atom.dtype.base.itemsize / 1024
+                            self.atom.atomsize() / 1024
         buffersize = self._g_calcBufferSize(expectedfsizeinKb)
 
         # Max Tuples to fill the buffer
         maxTuples = buffersize // numpy.product(self.shape[1:])
 
-        # Check if at least 1 tuple fits in buffer
+        # Check that buffer will have 1 tuple at least
         if maxTuples == 0:
             maxTuples = 1
 
         return maxTuples
 
+
     def _g_create(self):
         """Create a fresh array (i.e., not present on HDF5 file)."""
-
-        if not isinstance(self.shape, tuple):
-            raise TypeError(
-                "the ``shape`` passed to the ``CArray`` constructor "
-                "must be a tuple: %r" % (self.shape,))
 
         if not isinstance(self.atom, Atom):
             raise TypeError(
@@ -223,44 +218,26 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
                 "must be a descendent of the ``Atom`` class: %r"
                 % (self.atom,))
 
-        if not isinstance(self.atom.shape, tuple):
-            if isinstance(self.atom.shape, int):
-                self.atom.shape = (self.atom.shape,)
-            else:
-                raise TypeError(
-"""the shape of ``atom`` must be an int or tuple and you passed: %r""" % \
-(self.atom.shape,))
-
         # Version, types, flavor
         self._v_version = obversion
         self.dtype = self.atom.dtype
         self.ptype = self.atom.ptype
         self.flavor = self.atom.flavor
 
-        # Compute some values for buffering and I/O parameters
-        # Compute the rowsize for each element
-        self.rowsize = self.itemsize
-        for i in self.shape:
-            if i>0:
-                self.rowsize *= i
-            else:
-                raise ValueError, \
-                      "A CArray object cannot have zero-dimensions."
-
-
-        if min(self.atom.shape) < 1:
+        # Different checks for shape and chunksize
+        if min(self.shape) < 1:
             raise ValueError, \
                   "Atom in CArray object cannot have zero-dimensions."
-
-        self._v_chunksize = tuple(self.atom.shape)
+        if min(self._v_chunksize) < 1:
+            raise ValueError, \
+                  "Atom in CArray object cannot have zero-dimensions."
         if len(self.shape) != len(self._v_chunksize):
             raise ValueError, "The CArray rank and atom rank must be equal:" \
                               " CArray.shape = %s, atom.shape = %s." % \
                                     (self.shape, self.atom.shape)
 
-        # Compute the buffer chunksize
-        self._v_maxTuples = self._calcMaxTuples(
-            self.atom, self.nrows, self.filters.complevel)
+        # Compute the buffer size for copying purposes
+        self._v_maxTuples = self._calcMaxTuples(self.nrows)
 
         try:
             return self._createEArray(self._v_new_title)
@@ -281,28 +258,16 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         assert numpy.product(self._v_chunksize) > 0, \
                 "product(self._v_chunksize) > 0: this should never happen!"
 
-        # Compute the rowsize for each element
-        self.rowsize = self.itemsize
-        if self._v_chunksize:
-            for i in xrange(len(self._v_chunksize)):
-                self.rowsize *= self._v_chunksize[i]
-        else:
-            for i in xrange(len(self.shape)):
-                self.rowsize *= self.shape[i]
-
-        # Compute the real shape for atom:
-        shape = list(self._v_chunksize)
+        # Create the Atom instance
         if self.ptype == "String":
-            # Add the length of the array at the end of the shape for atom
-            shape.append(self.itemsize)
-        shape = tuple(shape)
-
-        # Create the atom instance
-        self.atom = Atom(dtype=self.ptype, shape=shape,
-                         flavor=self.flavor, warn=False)
+            self.atom = StringAtom(length=self.itemsize,
+                                   flavor=self.flavor, warn=False)
+        else:
+            self.atom = Atom(dtype=self.ptype,
+                             flavor=self.flavor, warn=False)
 
         # Compute the maximum number of tuples
-        self._v_maxTuples = self._calcMaxTuples(self.atom, self.nrows)
+        self._v_maxTuples = self._calcMaxTuples(self.nrows)
 
         return oid
 
@@ -323,7 +288,8 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         shape[0] = len(xrange(start, stop, step))
         # Build the new CArray object
         object = CArray(group, name, shape, atom=self.atom,
-                          title=title, filters=filters, _log=_log)
+                        title=title, filters=filters,
+                        chunksize = self._v_chunksize, _log=_log)
         # Start the copy itself
         for start2 in range(start, stop, step*nrowsinbuf):
             # Save the records on disk

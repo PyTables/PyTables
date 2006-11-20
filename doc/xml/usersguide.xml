@@ -4158,12 +4158,14 @@ Object Tree:
 	  </section>
 
 	  <section id="createCArrayDescr">
-	    <title>createCArray(where, name, shape, atom,
-	      title='', filters=None, createparents=False)</title>
+	    <title>createCArray(where, name, shape, atom, title='',
+	      filters=None, chunksize=None, createparents=False)</title>
 
 	    <para>Create a new <literal>CArray</literal> instance with name
-	      <emphasis>name</emphasis> in <emphasis>where</emphasis> location. See the <xref xrefstyle="select: label" linkend="CArrayClassDescr"/> for a
-	      description of the <literal>CArray</literal> class.
+	      <emphasis>name</emphasis> in <emphasis>where</emphasis>
+	      location. See the <xref xrefstyle="select: label"
+	      linkend="CArrayClassDescr"/> for a description of the
+	      <literal>CArray</literal> class.
 	    </para>
 
 	    <glosslist>
@@ -4176,10 +4178,19 @@ Object Tree:
 
         <glossentry>
         <glossterm><emphasis role="bold">atom</emphasis></glossterm>
-        <glossdef><para>An <literal>Atom</literal>
-        instance representing the <emphasis>shape</emphasis>,
-        <emphasis>type</emphasis> and <emphasis>flavor</emphasis> of the chunk
-        of the objects to be saved.</para></glossdef>
+        <glossdef><para>An <literal>Atom</literal> instance representing the
+        <emphasis>type</emphasis>, <emphasis>shape</emphasis> and
+        <emphasis>flavor</emphasis> of the chunk of the objects to be
+        saved. Multdimensional atoms (i.e. those with shape different from 1)
+        are not supported yet.</para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">chunksize</emphasis></glossterm>
+        <glossdef><para>The shape of the data chunk to be read or written as a
+        single HDF5 I/O operation. The filters are applied to chunks of
+        data. Its dimensionality has to be the same as
+        <emphasis>shape</emphasis>.</para></glossdef>
         </glossentry>
 
 	<glossentry>
@@ -4191,9 +4202,10 @@ Object Tree:
 
       </glosslist>
 
-	    <para>See <literal>createTable</literal> <xref linkend="createTableDescr"/> for more information on the
-	      <emphasis>where</emphasis>, <emphasis>name</emphasis> and <emphasis>title</emphasis>,
-	      parameters.
+	    <para>See <literal>createTable</literal> <xref
+	      linkend="createTableDescr"/> for more information on the
+	      <emphasis>where</emphasis>, <emphasis>name</emphasis> and
+	      <emphasis>title</emphasis>, parameters.
 	    </para>
 	  </section>
 
@@ -7762,13 +7774,8 @@ a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))]]></screen>
 
         <glossdef><para>An <literal>Atom</literal> (see <xref
         xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>) instance
-        representing the shape, type and flavor of the atomic objects to be
-        saved.  The shape of this atom will be used internally to define the
-        extend of the chunksize (i.e. the size used to do atomic I/O
-        operations) for the underlying HDF5 dataset.  Such a shape should have
-        the same rank than the shape of the dataset itself (the
-        <literal>shape</literal> parameter of the <literal>CArray</literal>
-        class constructor).</para></glossdef>
+        representing the type, shape and flavor of the atomic objects to be
+        saved.</para></glossdef>
         </glossentry>
 
       </glosslist>
@@ -7788,11 +7795,12 @@ import tables
 
 fileName = 'carray1.h5'
 shape = (200,300)
-atom = tables.UInt8Atom(shape = (128,128))
+atom = tables.UInt8Atom()
 filters = tables.Filters(complevel=5, complib='zlib')
 
 h5f = tables.openFile(fileName,'w')
-ca = h5f.createCArray(h5f.root, 'carray', shape, atom, filters=filters)
+ca = h5f.createCArray(h5f.root, 'carray', shape, atom,
+                      filters=filters, chunksize=(128,128))
 # Fill a hyperslab in ca. The array will be converted to UInt8 elements
 ca[10:60,20:70] = numarray.ones((50,50))
 h5f.close()
@@ -8873,17 +8881,18 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	      descendants.
 	    </title>
 	    <para>The <literal>Atom</literal> class is a descendant of the
-	      <literal>Col</literal> class (see <xref xrefstyle="select: labelnumber" linkend="ColClassDescr"/>) and is meant to declare the
-	      different properties of the <emphasis>base element</emphasis> (also
-	      known as <emphasis>atom</emphasis>) of <literal>CArray</literal>,
-	      <literal>EArray</literal> and <literal>VLArray</literal> objects. The
-	      <literal>Atom</literal> instances have the property that their
-	      length is always the same. However, you can grow objects
-	      along the extensible dimension in the case of
-	      <literal>EArray</literal> or put a variable number of them on a
-	      <literal>VLArray</literal> row. Moreover, the atoms are not
-	      restricted to scalar values, and they can be fully
-	      multidimensional objects.
+	      <literal>Col</literal> class (see <xref xrefstyle="select:
+	      labelnumber" linkend="ColClassDescr"/>) and is meant to declare
+	      the different properties of the <emphasis>base
+	      element</emphasis> (also known as <emphasis>atom</emphasis>) of
+	      <literal>CArray</literal>, <literal>EArray</literal> and
+	      <literal>VLArray</literal> objects. The <literal>Atom</literal>
+	      instances have the property that their length is always the
+	      same. However, you can grow objects along the extensible
+	      dimension in the case of <literal>EArray</literal> or put a
+	      variable number of them on a <literal>VLArray</literal>
+	      row. Moreover, the atoms are not restricted to scalar values,
+	      and they can be fully multidimensional objects.
 	    </para>
 	    <para>A series of descendant classes are offered in order to
 	      make the use of these element descriptions easier. In
@@ -8945,30 +8954,26 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
           <literal>VLArray</literal> objects.</para>
 
           <section>
-            <title>dtype</title>
-            <para>The data type for the base element. See the
-            <xref xrefstyle="select: label" linkend="datatypesSupported"/> for a
-            relation of data types supported. The type description is accepted
-            both in string-type format and as a numarray data type.
+            <title>dtype</title> <para>The data type for the base element. See
+            the <xref xrefstyle="select: label" linkend="datatypesSupported"/>
+            for a relation of data types supported. The type description is
+            accepted both in string-type format and as a numarray data type.
             </para>
           </section>
 
           <section>
-            <title>shape</title>
-            <para>In a
-            <literal>EArray</literal> context, it is a
-            <emphasis>tuple</emphasis> specifying the shape of the object, and
-            one (and only one) of its dimensions <emphasis>must</emphasis> be 0,
-            meaning that the <literal>EArray</literal>
-            object will be enlarged along this axis. In the case of a
-            <literal>VLArray</literal>, it can be an
+            <title>shape</title> <para>In a <literal>EArray</literal> context,
+            it is a <emphasis>tuple</emphasis> specifying the shape of the
+            object, and one (and only one) of its dimensions
+            <emphasis>must</emphasis> be 0, meaning that the
+            <literal>EArray</literal> object will be enlarged along this
+            axis. In the case of a <literal>VLArray</literal>, it can be an
             integer with a value of 1 (one) or a tuple, that specifies whether
             the atom is an scalar (in the case of a 1) or has multiple
             dimensions (in the case of a tuple). For
-            <literal>CharType</literal> elements, the
-            last dimension is used as the length of the character strings.
-            However, for this kind of objects, the use of
-            <literal>StringAtom</literal> subclass is
+            <literal>CharType</literal> elements, the last dimension is used
+            as the length of the character strings.  However, for this kind of
+            objects, the use of <literal>StringAtom</literal> subclass is
             strongly recommended.
             </para>
           </section>
@@ -12422,16 +12427,17 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
     <appendix id="datatypesSupported">
       <title>Supported data types in PyTables</title>
 
-      <para>The Table, Array, CArray, VLArray and EArray classes can all handle
-      the complete set of data types supported by the <literal>numarray</literal>
-      package (see <biblioref linkend="Numarray"/>), <literal>NumPy</literal> (see <biblioref linkend="NumPy"/>) and
-      <literal>Numeric</literal> (see <biblioref linkend="Numeric"/>) in Python. The data types for
-      table fields can be set via the constructor for the
-      <literal>Col</literal> class and its descendants
-      (see <xref xrefstyle="select: labelnumber" linkend="ColClassDescr"/>) while array elements can
-      be set through the use of the
-      <literal>Atom</literal> class and its
-      descendants (see <xref xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>).</para>
+      <para>The Table, Array, CArray, VLArray and EArray classes can all
+      handle the complete set of data types supported by the
+      <literal>numarray</literal> package (see <biblioref
+      linkend="Numarray"/>), <literal>NumPy</literal> (see <biblioref
+      linkend="NumPy"/>) and <literal>Numeric</literal> (see <biblioref
+      linkend="Numeric"/>) in Python. The data types for table fields can be
+      set via the constructor for the <literal>Col</literal> class and its
+      descendants (see <xref xrefstyle="select: labelnumber"
+      linkend="ColClassDescr"/>) while array elements can be set through the
+      use of the <literal>Atom</literal> class and its descendants (see <xref
+      xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>).</para>
 
       <para>In addition to those data types, PyTables' Table, VLArray and EArray
       classes do support some <emphasis>aliasing</emphasis> data types for their
@@ -13805,37 +13811,38 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
             <title>Mandatory attributes</title>
 
             <para>The next attributes are mandatory for
-            <emphasis>carray</emphasis> structures:</para>
+            <emphasis>CArray</emphasis> structures:</para>
 
             <glosslist>
 
-              <glossentry><glossterm><emphasis role="bold">CLASS</emphasis></glossterm>
+              <glossentry><glossterm><emphasis
+              role="bold">CLASS</emphasis></glossterm>
 
-              <glossdef><para>Must be set to
-              <literal>'CARRAY'</literal>.
+              <glossdef><para>Must be set to <literal>'CARRAY'</literal>.
               </para></glossdef></glossentry>
 
-              <glossentry><glossterm><emphasis role="bold">FLAVOR</emphasis></glossterm>
+              <glossentry><glossterm><emphasis
+              role="bold">FLAVOR</emphasis></glossterm>
 
-              <glossdef><para>This is meant to provide the information about the
-              kind of objects kept in the
-              <literal>CArray</literal>, i.e. when the
-              dataset is read, it will be converted to the indicated flavor. It
-              can take the same values as the
+              <glossdef><para>This is meant to provide the information about
+              the kind of objects kept in the <literal>CArray</literal>,
+              i.e. when the dataset is read, it will be converted to the
+              indicated flavor. It can take the same values as the
               <literal>Array</literal> object.
               </para></glossdef></glossentry>
 
-              <glossentry><glossterm><emphasis role="bold">TITLE</emphasis></glossterm>
+              <glossentry><glossterm><emphasis
+              role="bold">TITLE</emphasis></glossterm>
 
               <glossdef><para>A string where the user can put some description
               on what is this dataset used for.
               </para></glossdef></glossentry>
 
-              <glossentry><glossterm><emphasis role="bold">VERSION</emphasis></glossterm>
+              <glossentry><glossterm><emphasis
+              role="bold">VERSION</emphasis></glossterm>
 
               <glossdef><para>Should contain the string
-              <literal>'1.0'</literal>.
-              </para></glossdef></glossentry>
+              <literal>'1.0'</literal>.  </para></glossdef></glossentry>
 
             </glosslist>
           </section>
@@ -13852,27 +13859,26 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
           <section>
             <title>Datatypes supported</title>
 
-            <para>The elements of
-            <literal>CArray</literal> must have either
+            <para>The elements of <literal>CArray</literal> must have either
             HDF5 <emphasis>atomic</emphasis> data types or a
             <emphasis>compound</emphasis> data type representing a complex
-            number. The atomic data types can currently be one of the next HDF5
-            data type <emphasis>classes</emphasis>: H5T_BITFIELD, H5T_INTEGER,
-            H5T_FLOAT and H5T_STRING. The H5T_TIME class is also supported for
-            reading existing <literal>CArray</literal>
-            objects, but not for creating them. See the
-            <literal>Table</literal> format
-            description in <xref xrefstyle="select: label" linkend="TableFormatDescr"/>
-            for more info about these types.</para>
+            number. The atomic data types can currently be one of the next
+            HDF5 data type <emphasis>classes</emphasis>: H5T_BITFIELD,
+            H5T_INTEGER, H5T_FLOAT and H5T_STRING. The H5T_TIME class is also
+            supported for reading existing <literal>CArray</literal> objects,
+            but not for creating them. See the <literal>Table</literal> format
+            description in <xref xrefstyle="select: label"
+            linkend="TableFormatDescr"/> for more info about these
+            types.</para>
 
             <para>In addition to the HDF5 atomic data types, the CArray format
-            supports complex numbers with the H5T_COMPOUND data type class. See
-            the <literal>Table</literal> format
-            description in <xref xrefstyle="select: label" linkend="TableFormatDescr"/>
-            for more info about this special type.</para>
+            supports complex numbers with the H5T_COMPOUND data type
+            class. See the <literal>Table</literal> format description in
+            <xref xrefstyle="select: label" linkend="TableFormatDescr"/> for
+            more info about this special type.</para>
 
-            <para>You should note that H5T_ARRAY class datatypes are not allowed
-            in <literal>Array</literal> objects.
+            <para>You should note that H5T_ARRAY class datatypes are not
+            allowed yet in <literal>Array</literal> objects.
             </para>
 
           </section>
