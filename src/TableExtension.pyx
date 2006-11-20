@@ -536,10 +536,11 @@ cdef class Row:
   cdef hsize_t start, stop, step, nextelement, _nrow
   cdef hsize_t nrowsinbuf, nrows, nrowsread, stopindex
   cdef hsize_t startb, stopb
+  cdef long long indexChunk
   cdef int     bufcounter, counter
   cdef int     exist_enum_cols
   cdef int     _riterator, _stride
-  cdef int     whereCond, indexed, indexChunk
+  cdef int     whereCond, indexed
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done
   cdef Table   table
@@ -978,7 +979,7 @@ cdef class Row:
     if field.nd == 1:
       #return field[self._row]
       # Optimization for numpy
-      offset = self._row * self._stride
+      offset = <long>(self._row * self._stride)
       return PyArray_GETITEM(field, field.data + offset)
     else:  # Case when dimensions > 1
       # Make a copy of the (multi) dimensional array
@@ -1012,10 +1013,10 @@ cdef class Row:
         # We are in the middle of an iterator for reading. So the
         # user most probably wants to update this row.
         field2 = self._rfields
-        offset = self._row
+        offset = <long>self._row
       else:
         field2 = self._wfields
-        offset = self._unsaved_nrows
+        offset = <long>self._unsaved_nrows
       field = getNestedField(field2, fieldName)
     except KeyError:
       raise KeyError("no such column: %s" % (fieldName,))

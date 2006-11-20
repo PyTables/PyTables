@@ -1103,7 +1103,7 @@ cdef class Array(Leaf):
 
 
   def _truncateArray(self, hsize_t size):
-    cdef hsize_t extdim
+    cdef int extdim
     cdef hsize_t ret
 
     extdim = self.extdim
