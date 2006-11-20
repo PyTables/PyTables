@@ -48,6 +48,10 @@ Backward-incompatible changes
   ``File.createTable``, ``File.createEArray``, ``File.createCArray`` and
   ``File.createVLArray``. They were already deprecated in PyTables 1.x.
 
+- Parameters ``shape`` and ``atom`` has been swapped in
+  ``File.createCArray()``. This has been done to be consistent with Atom()
+  definitions (i.e. type comes before and shape after).
+
 Deprecated features
 ===================
 

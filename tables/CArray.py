@@ -87,17 +87,17 @@ class CArray(Array):
     # </properties>
 
 
-    def __init__(self, parentNode, name, shape=None, atom=None,
+    def __init__(self, parentNode, name, atom=None, shape=None,
                  title="", filters=None, chunksize=None,
                  _log=True):
         """Create CArray instance.
 
         Keyword arguments:
 
-        shape -- The shape of the chunked array to be saved.
-
         atom -- An Atom object representing the shape, type and flavor
             of the atomic objects to be saved.
+
+        shape -- The shape of the array.
 
         title -- Sets a TITLE attribute on the array entity.
 

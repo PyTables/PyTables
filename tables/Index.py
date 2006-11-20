@@ -796,25 +796,25 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # temporary sorted & indices arrays
         shape = (self.nrows, ss)
         atom = Atom(self.dtype)
-        CArray(self.tmp, 'sorted', shape, atom,
+        CArray(self.tmp, 'sorted', atom, shape,
                "Temporary sorted", filters, chunksize=(1,cs))
-        CArray(self.tmp, 'indices', shape, Int64Atom(),
+        CArray(self.tmp, 'indices', Int64Atom(), shape,
                "Temporary indices", filters, chunksize=(1,cs))
         # temporary bounds
         shape = (self.nchunks,)
         atom = Atom(self.dtype)
-        CArray(self.tmp, 'abounds', shape, atom, "Temp start bounds",
+        CArray(self.tmp, 'abounds', atom, shape, "Temp start bounds",
                filters, chunksize=(cs,))
-        CArray(self.tmp, 'zbounds', shape, atom, "Temp end bounds",
+        CArray(self.tmp, 'zbounds', atom, shape, "Temp end bounds",
                filters, chunksize=(cs,))
-        CArray(self.tmp, 'mbounds', shape, atom, "Median bounds",
+        CArray(self.tmp, 'mbounds', atom, shape, "Median bounds",
                filters, chunksize=(cs,))
         # temporary ranges
-        CArray(self.tmp, 'ranges', (self.nslices, 2),
-               Atom(self.dtype), "Temporary range values",
+        CArray(self.tmp, 'ranges',
+               Atom(self.dtype), (self.nslices, 2), "Temporary range values",
                filters, chunksize=(cs,2))
-        CArray(self.tmp, 'mranges', (self.nslices,),
-               Atom(self.dtype), "Median ranges",
+        CArray(self.tmp, 'mranges',
+               Atom(self.dtype), (self.nslices,), "Median ranges",
                filters, chunksize=(cs,))
 
 

@@ -4160,7 +4160,7 @@ Object Tree:
 	  </section>
 
 	  <section id="createCArrayDescr">
-	    <title>createCArray(where, name, shape, atom, title='',
+	    <title>createCArray(where, name, atom, shape, title='',
 	      filters=None, chunksize=None, createparents=False)</title>
 
 	    <para>Create a new <literal>CArray</literal> instance with name
@@ -4173,18 +4173,18 @@ Object Tree:
 	    <glosslist>
 
         <glossentry>
-        <glossterm><emphasis role="bold">shape</emphasis></glossterm>
-        <glossdef><para>The <emphasis>shape</emphasis> of the objects to be
-        saved.</para></glossdef>
-        </glossentry>
-
-        <glossentry>
         <glossterm><emphasis role="bold">atom</emphasis></glossterm>
         <glossdef><para>An <literal>Atom</literal> instance representing the
         <emphasis>type</emphasis>, <emphasis>shape</emphasis> and
         <emphasis>flavor</emphasis> of the chunk of the objects to be
         saved. Multdimensional atoms (i.e. those with shape different from 1)
         are not supported yet.</para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">shape</emphasis></glossterm>
+        <glossdef><para>The <emphasis>shape</emphasis> of the objects to be
+        saved.</para></glossdef>
         </glossentry>
 
         <glossentry>
@@ -7809,7 +7809,7 @@ atom = tables.UInt8Atom()
 filters = tables.Filters(complevel=5, complib='zlib')
 
 h5f = tables.openFile(fileName,'w')
-ca = h5f.createCArray(h5f.root, 'carray', shape, atom,
+ca = h5f.createCArray(h5f.root, 'carray', atom, shape,
                       filters=filters, chunksize=(128,128))
 # Fill a hyperslab in ca. The array will be converted to UInt8 elements
 ca[10:60,20:70] = numarray.ones((50,50))

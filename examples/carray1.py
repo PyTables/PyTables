@@ -7,7 +7,7 @@ atom = tables.UInt8Atom()
 filters = tables.Filters(complevel=5, complib='zlib')
 
 h5f = tables.openFile(fileName,'w')
-ca = h5f.createCArray(h5f.root, 'carray', shape, atom,
+ca = h5f.createCArray(h5f.root, 'carray', atom, shape,
                       filters=filters, chunksize=(128,128))
 # Fill a hyperslab in ca
 ca[10:60,20:70] = numarray.ones((50,50))  # Will be converted to UInt8 elements

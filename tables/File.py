@@ -746,7 +746,7 @@ class File(hdf5Extension.File, object):
                      object=object, title=title)
 
 
-    def createCArray(self, where, name, shape, atom, title="",
+    def createCArray(self, where, name, atom, shape, title="",
                      filters=None, chunksize=None, createparents=False):
         """Create a new instance CArray with name "name" in "where" location.
 
@@ -758,10 +758,10 @@ class File(hdf5Extension.File, object):
 
         name -- The name of the new array.
 
-        shape -- The shape of the new array.
-
         atom -- An Atom instance representing the shape, type and
             flavor of the chunks to be saved.
+
+        shape -- The shape of the new array.
 
         title -- Sets a TITLE attribute on the array entity.
 
@@ -780,7 +780,7 @@ class File(hdf5Extension.File, object):
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
         return CArray(parentNode, name,
-                      shape=shape, atom=atom, title=title, filters=filters,
+                      atom=atom, shape=shape, title=title, filters=filters,
                       chunksize=chunksize)
 
 

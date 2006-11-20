@@ -67,7 +67,7 @@ class BasicTestCase(unittest.TestCase):
                           complib = self.complib,
                           shuffle = self.shuffle,
                           fletcher32 = self.fletcher32)
-        carray = self.fileh.createCArray(group, 'carray1', self.shape, atom,
+        carray = self.fileh.createCArray(group, 'carray1', atom, self.shape,
                                          title, filters = filters,
                                          chunksize = self.chunksize)
 
@@ -855,8 +855,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         shape = (3,2,2)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'strings', shape,
-                                         StringAtom(length=3),
+        carray = self.fileh.createCArray(root, 'strings',
+                                         StringAtom(length=3), shape,
                                          "Array of strings",
                                          chunksize=(1,2,2))
         a = numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
@@ -887,8 +887,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         shape = (3,2,2)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'strings', shape,
-                                         StringAtom(length=3),
+        carray = self.fileh.createCArray(root, 'strings',
+                                         StringAtom(length=3), shape,
                                          "Array of strings",
                                          chunksize=(1,2,2))
         a = numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
@@ -919,8 +919,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         shape = (3,3)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom', shape,
-                                         Int32Atom(),
+        carray = self.fileh.createCArray(root, 'CAtom',
+                                         Int32Atom(), shape,
                                          "array of ints",
                                          chunksize=(1,3))
         a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], dtype='int32')
@@ -950,8 +950,8 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         shape = (3,3)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom', shape,
-                                         Int32Atom(),
+        carray = self.fileh.createCArray(root, 'CAtom',
+                                         Int32Atom(), shape,
                                          "array of ints",
                                          chunksize=(1,3))
         a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='int32')
@@ -1001,8 +1001,8 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
 
         shape = (3,3)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom', shape,
-                                         Int32Atom(),
+        carray = self.fileh.createCArray(root, 'CAtom',
+                                         Int32Atom(), shape,
                                          "array of ints",
                                          chunksize=(1,3))
         a = numarray.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], type='Int32')
@@ -1032,8 +1032,8 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
 
         shape = (3,3)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom', shape,
-                                         Int32Atom(),
+        carray = self.fileh.createCArray(root, 'CAtom',
+                                         Int32Atom(), shape,
                                          "array of ints",
                                          chunksize=(1,3))
         a = numarray.array([(0,0,0), (1,0,3), (1,2,1), (3,2,3)], type='Int32')
@@ -1083,8 +1083,8 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
 
         shape = (3,3)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom', shape,
-                                         Int32Atom(),
+        carray = self.fileh.createCArray(root, 'CAtom',
+                                         Int32Atom(), shape,
                                          "array of ints",
                                          chunksize=(1,3))
         a = Numeric.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], typecode='i')
@@ -1114,8 +1114,8 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
 
         shape = (3,3)
         # Create an string atom
-        carray = self.fileh.createCArray(root, 'CAtom', shape,
-                                         Int32Atom(),
+        carray = self.fileh.createCArray(root, 'CAtom',
+                                         Int32Atom(), shape,
                                          "array of ints",
                                          chunksize=(1,3))
         a=Numeric.array([(0,0,0), (1,0,3), (1,2,1), (3,2,3)], typecode='i')
@@ -1152,7 +1152,7 @@ class CopyTestCase(unittest.TestCase):
         # Create an CArray
         shape = (2,2)
         arr = Atom(dtype='Int16')
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, arr,
+        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunksize=(2, 2))
         array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
 
@@ -1213,7 +1213,7 @@ class CopyTestCase(unittest.TestCase):
         # Create an CArray
         shape = (2,2)
         arr = Atom(dtype='Int16')
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, arr,
+        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunksize=(5, 5))
         array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
 
@@ -1274,7 +1274,7 @@ class CopyTestCase(unittest.TestCase):
         # Create an CArray
         shape = (5,5)
         arr = Atom(dtype='Int16')
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, arr,
+        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunksize=(2, 2))
         array1[:2,:2] = numpy.array([[456, 2],[3, 457]], dtype='int16')
 
@@ -1335,7 +1335,7 @@ class CopyTestCase(unittest.TestCase):
         # Create an CArray
         shape = (5,5)
         arr = Atom(dtype='Int16')
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, arr,
+        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunksize=(2, 2))
         array1[:2,:2] = numpy.array([[456, 2],[3, 457]], dtype='int16')
 
@@ -1400,7 +1400,7 @@ class CopyTestCase(unittest.TestCase):
             arr = Atom(dtype='Int16')
 
         shape = (2,2)
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, arr,
+        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunksize=(2, 2))
         array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
 
@@ -1454,7 +1454,7 @@ class CopyTestCase(unittest.TestCase):
 
         shape = (2,2)
         arr = Atom(dtype='Int16', flavor="python")
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, arr,
+        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunksize=(2, 2))
         array1[...] = [[456, 2],[3, 457]]
 
@@ -1510,7 +1510,7 @@ class CopyTestCase(unittest.TestCase):
 
         shape = (2,2)
         arr = StringAtom(length=4, flavor="python")
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, arr,
+        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunksize=(2, 2))
         array1[...] = [["456", "2"],["3", "457"]]
 
@@ -1569,7 +1569,7 @@ class CopyTestCase(unittest.TestCase):
 
         shape = (2,2)
         arr = StringAtom(length=4)
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, arr,
+        array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
                                     "title array1", chunksize=(2, 2))
         array1[...] = numpy.array([["456", "2"],["3", "457"]], dtype="S4")
 
@@ -1626,7 +1626,7 @@ class CopyTestCase(unittest.TestCase):
         # Create an CArray
         shape = (2,2)
         atom = Int16Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, atom,
+        array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
                                     "title array1", chunksize=(2,2))
         array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
         # Append some user attrs
@@ -1674,7 +1674,7 @@ class CopyTestCase(unittest.TestCase):
         # Create an CArray
         shape = (2,2)
         atom = Int16Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, atom,
+        array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
                                     "title array1", chunksize=(2,2))
         array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
         # Append some user attrs
@@ -1725,7 +1725,7 @@ class CopyTestCase(unittest.TestCase):
         # Create an Array
         shape = (2,2)
         atom = Int16Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, atom,
+        array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
                                     "title array1", chunksize=(2,2))
         array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
         # Append some user attrs
@@ -1786,7 +1786,7 @@ class CopyIndexTestCase(unittest.TestCase):
         # Create an CArray
         shape = (100,2)
         atom = Int32Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, atom,
+        array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
                                     "title array1", chunksize=(2,2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
@@ -1836,7 +1836,7 @@ class CopyIndexTestCase(unittest.TestCase):
         # Create an CArray
         shape = (100,2)
         atom = Int32Atom()
-        array1 = fileh.createCArray(fileh.root, 'array1', shape, atom,
+        array1 = fileh.createCArray(fileh.root, 'array1', atom, shape,
                                     "title array1", chunksize=(2,2))
         r = numpy.arange(200, dtype='int32')
         r.shape = shape
@@ -1957,8 +1957,8 @@ class Rows64bitsTestCase(unittest.TestCase):
         fileh = self.fileh = openFile(self.file, "a")
         # Create an CArray
         shape = (self.narows*self.nanumber,)
-        array = fileh.createCArray(fileh.root, 'array', shape,
-                                   Int8Atom(),
+        array = fileh.createCArray(fileh.root, 'array',
+                                   Int8Atom(), shape,
                                    filters=Filters(complib='lzo', complevel=1),
                                    chunksize=(1024,))
 
