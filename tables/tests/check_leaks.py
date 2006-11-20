@@ -92,7 +92,7 @@ def write_carray(file, nchildren, niter):
         fileh = tables.openFile(file, mode = "w")
         for child in range(nchildren):
             fileh.createCArray(fileh.root, 'array' + str(child),
-                               (2,), tables.IntAtom(), "child: %d" % child)
+                               tables.IntAtom(), (2,), "child: %d" % child)
         show_mem("After creating. Iter %s" % i)
         fileh.close()
         show_mem("After close")
@@ -115,7 +115,7 @@ def write_earray(file, nchildren, niter):
         fileh = tables.openFile(file, mode = "w")
         for child in range(nchildren):
             ea = fileh.createEArray(fileh.root, 'array' + str(child),
-                                    tables.IntAtom(shape=(0,)),
+                                    tables.IntAtom(), shape=(0,),
                                     "child: %d" % child)
             ea.append([1,2,3])
         show_mem("After creating. Iter %s" % i)

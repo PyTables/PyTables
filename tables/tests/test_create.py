@@ -824,10 +824,10 @@ class FiltersTreeTestCase(unittest.TestCase):
 
             # Create a couple of EArrays as well
             ea1 = self.h5file.createEArray(group, 'earray1',
-                                           StringAtom(shape=(0,), length=4),
+                                           StringAtom(length=4), (0,),
                                            "col 1")
             ea2 = self.h5file.createEArray(group, 'earray2',
-                                           Int16Atom(shape=(0,)), "col 3")
+                                           Int16Atom(), (0,), "col 3")
             # And fill them with some values
             ea1.append(var1List)
             ea2.append(var3List)
@@ -1136,10 +1136,10 @@ class CopyGroupTestCase(unittest.TestCase):
 
                 # Create a couple of EArrays as well
                 ea1 = self.h5file.createEArray(group2, 'earray1',
-                                               StringAtom(shape=(0,), length=4),
+                                               StringAtom(length=4), (0,),
                                                "col 1")
                 ea2 = self.h5file.createEArray(group2, 'earray2',
-                                               Int16Atom(shape=(0,)), "col 3")
+                                               Int16Atom(), (0,), "col 3")
                 # Add some user attrs:
                 ea1.attrs.attr1 = "an string for earray"
                 ea2.attrs.attr2 = 123
@@ -1475,11 +1475,11 @@ class CopyFileTestCase(unittest.TestCase):
 
                 # Create a couple of EArrays as well
                 ea1 = self.h5file.createEArray(group2, 'earray1',
-                                               StringAtom(shape=(0,),
-                                                          length=4),
+                                               StringAtom(length=4), (0,),
                                                "col 1")
                 ea2 = self.h5file.createEArray(group2, 'earray2',
-                                               Int16Atom(shape=(0,)), "col 3")
+                                               Int16Atom(), (0,),
+                                               "col 3")
                 # Add some user attrs:
                 ea1.attrs.attr1 = "an string for earray"
                 ea2.attrs.attr2 = 123

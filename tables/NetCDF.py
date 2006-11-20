@@ -609,15 +609,15 @@ class NetCDFVariable:
             # enlargeable dimension, use EArray
             self._NetCDF_varobj = NetCDFFile._NetCDF_h5file.createEArray(
                            where=NetCDFFile._NetCDF_h5file.root,
-                           name=varname,atom=atom,title=varname,
-                           filters=filters,
+                           name=varname,atom=atom,shape=atom.shape,
+                           title=varname,filters=filters,
                            expectedrows=expectedsize)
         else:
             # no enlargeable dimension, use CArray
             self._NetCDF_varobj = NetCDFFile._NetCDF_h5file.createCArray(
                            where=NetCDFFile._NetCDF_h5file.root,
-                           name=varname,shape=tuple(vardimsizes),
-                           atom=atom,title=varname,filters=filters)
+                           name=varname,atom=atom,shape=tuple(vardimsizes),
+                           title=varname,filters=filters,chunksize=atom.shape)
             # fill with _FillValue
             if datatype == 'c':
                 # numpy string arrays with itemsize=1 used for char arrays.

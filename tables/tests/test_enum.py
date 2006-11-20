@@ -381,7 +381,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     enumType = 'UInt16'
 
 
-    def _atom(self, shape=(0,)):
+    def _atom(self, shape=1):
         return tables.EnumAtom(
             self.enum, dtype=self.enumType, shape=shape, flavor='python')
 
@@ -390,7 +390,8 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Reopening a file with extendable arrays using enumerated data."""
 
         self.h5file.createEArray(
-            '/', 'test', self._atom(), title=self._getMethodName())
+            '/', 'test', self._atom(), shape=(0,),
+            title=self._getMethodName())
 
         self._reopen()
 
@@ -406,7 +407,8 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """
 
         self.h5file.createEArray(
-            '/', 'test', self._atom((0, 2)), title=self._getMethodName())
+            '/', 'test', self._atom(), shape=(0, 2),
+            title=self._getMethodName())
 
         self._reopen()
 
@@ -419,7 +421,8 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Appending scalar elements of enumerated values."""
 
         earr = self.h5file.createEArray(
-            '/', 'test', self._atom(), title=self._getMethodName())
+            '/', 'test', self._atom(), shape=(0,),
+            title=self._getMethodName())
 
         appended = [self.valueInEnum, self.valueOutOfEnum]
 
@@ -433,7 +436,8 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Appending multi-dimensional elements of enumerated values."""
 
         earr = self.h5file.createEArray(
-            '/', 'test', self._atom((0, 2)), title=self._getMethodName())
+            '/', 'test', self._atom(), shape=(0, 2),
+            title=self._getMethodName())
 
         appended = [
             [self.valueInEnum, self.valueOutOfEnum],
@@ -449,7 +453,8 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Changing enumerated values using ``earray.__setitem__()``."""
 
         earr = self.h5file.createEArray(
-            '/', 'test', self._atom(), title=self._getMethodName())
+            '/', 'test', self._atom(), shape=(0,),
+            title=self._getMethodName())
 
         appended = (self.valueInEnum, self.valueInEnum)
         earr.append(appended)

@@ -267,7 +267,8 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
 
         self.assertEqual(arr.byteorder, 'big')
         self.assertEqual(arr.atom.ptype, 'Int32')
-        self.assertEqual(arr.atom.shape, (0, 5))
+        self.assertEqual(arr.shape, (10, 5))
+        self.assertEqual(arr.extdim, 0)
         self.assertEqual(len(arr), 10)
 
         data = arr.read()

@@ -70,8 +70,10 @@ class LeafCreationTestCase(unittest.TestCase):
         self.h5file.createVLArray('/', 'vlarray8', tables.Time64Atom())
 
         # EArray creation.
-        self.h5file.createEArray('/', 'earray4', tables.Time32Atom(shape=(0,)))
-        self.h5file.createEArray('/', 'earray8', tables.Time64Atom(shape=(0,)))
+        self.h5file.createEArray('/', 'earray4',
+                                 tables.Time32Atom(), shape=(0,))
+        self.h5file.createEArray('/', 'earray8',
+                                 tables.Time64Atom(), shape=(0,))
 
 
     def test01_MultidimLeaves(self):
@@ -92,9 +94,9 @@ class LeafCreationTestCase(unittest.TestCase):
 
         # EArray creation.
         self.h5file.createEArray(
-                '/', 'earray4', tables.Time32Atom(shape=(0, 2, 1)))
+                '/', 'earray4', tables.Time32Atom(), shape=(0, 2, 1))
         self.h5file.createEArray(
-                '/', 'earray8', tables.Time64Atom(shape=(0, 2, 1)))
+                '/', 'earray8', tables.Time64Atom(), shape=(0, 2, 1))
 
 
 
@@ -403,7 +405,7 @@ class CompareTestCase(unittest.TestCase):
         h5file = tables.openFile(
                 self.h5fname, 'w', title = "Test for comparing Time64 EArrays")
         ea = h5file.createEArray(
-                '/', 'test', tables.Time64Atom(shape = (0, 2)))
+                '/', 'test', tables.Time64Atom(), shape=(0, 2))
         ea.append((wtime,))
         h5file.close()
 
@@ -423,7 +425,7 @@ class CompareTestCase(unittest.TestCase):
         h5file = tables.openFile(
                 self.h5fname, 'w', title = "Test for comparing Time64 E arrays")
         ea = h5file.createEArray(
-                '/', 'test', tables.Time64Atom(shape = (0, 2)))
+                '/', 'test', tables.Time64Atom(), shape=(0, 2))
 
         # Size of the test.
         nrows = ea._v_maxTuples + 34  # Add some more rows than buffer.

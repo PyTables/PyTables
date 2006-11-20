@@ -786,8 +786,9 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
 
 			# Create a new array in the specified PyTables file.
 			self._version = NodeTypeVersions[-1]
+			atom = self._byteAtom[self._version]
 			node = h5file.createEArray(
-				atom = self._byteAtom[self._version], **kwargs)
+				atom=atom , shape=atom.shape, **kwargs)
 
 			# Set the node attributes, else remove the array itself.
 			try:
