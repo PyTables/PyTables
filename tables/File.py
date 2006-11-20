@@ -124,21 +124,10 @@ _shadowPath   = joinPath(_shadowParent, _shadowName)
 
 
 
-def _checkFilters(filters, compress=None, complib=None):
-    if (filters is None) and ((compress is not None) or
-                              (complib is not None)):
-        warnings.warn(DeprecationWarning("""\
-``compress`` and ``complib`` parameters are deprecated; \
-please use a ``Filters`` instance instead"""),
-                      stacklevel=2)
-        fprops = Filters(complevel=compress, complib=complib)
-    elif filters is None:
-        fprops = None
-    elif isinstance(filters, Filters):
-        fprops = filters
-    else:
+def _checkfilters(filters):
+    if not (filters is None or
+            isinstance(filters, Filters)):
         raise TypeError, "filter parameter has to be None or a Filter instance and the passed type is: '%s'" % type(filters)
-    return fprops
 
 
 def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
@@ -689,7 +678,6 @@ class File(hdf5Extension.File, object):
 
     def createTable(self, where, name, description, title="",
                     filters=None, expectedrows=10000,
-                    compress=None, complib=None,  # deprecated
                     createparents=False):
         """Create a new Table instance with name "name" in "where" location.
 
@@ -725,10 +713,10 @@ class File(hdf5Extension.File, object):
             parent path to exist (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
-        fprops = _checkFilters(filters, compress, complib)
+        _checkfilters(filters)
         return Table(parentNode, name,
                      description=description, title=title,
-                     filters=fprops, expectedrows=expectedrows)
+                     filters=filters, expectedrows=expectedrows)
 
 
     def createArray(self, where, name, object, title="", createparents=False):
@@ -759,8 +747,7 @@ class File(hdf5Extension.File, object):
 
 
     def createCArray(self, where, name, shape, atom, title="",
-                     filters=None, compress=None, complib=None,
-                     chunksize=None, createparents=False):
+                     filters=None, chunksize=None, createparents=False):
         """Create a new instance CArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -791,15 +778,14 @@ class File(hdf5Extension.File, object):
             parent path to exist (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
-        fprops = _checkFilters(filters, compress, complib)
+        _checkfilters(filters)
         return CArray(parentNode, name,
-                      shape=shape, atom=atom, title=title, filters=fprops,
+                      shape=shape, atom=atom, title=title, filters=filters,
                       chunksize=chunksize)
 
 
     def createEArray(self, where, name, atom, title="",
                      filters=None, expectedrows=1000,
-                     compress=None, complib=None,
                      createparents=False):
         """Create a new instance EArray with name "name" in "where" location.
 
@@ -834,15 +820,14 @@ class File(hdf5Extension.File, object):
             parent path to exist (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
-        fprops = _checkFilters(filters, compress, complib)
+        _checkfilters(filters)
         return EArray(parentNode, name,
-                      atom=atom, title=title, filters=fprops,
-                      expectedrows=expectedrows)
+                      atom=atom, title=title,
+                      filters=filters, expectedrows=expectedrows)
 
 
     def createVLArray(self, where, name, atom, title="",
                       filters=None, expectedsizeinMB=1.0,
-                      compress=None, complib=None,
                       createparents=False):
         """Create a new instance VLArray with name "name" in "where" location.
 
@@ -874,9 +859,9 @@ class File(hdf5Extension.File, object):
             parent path to exist (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
-        fprops = _checkFilters(filters, compress, complib)
+        _checkfilters(filters)
         return VLArray(parentNode, name,
-                       atom=atom, title=title, filters=fprops,
+                       atom=atom, title=title, filters=filters,
                        expectedsizeinMB=expectedsizeinMB)
 
     # There is another version of _getNode in Pyrex space, but only

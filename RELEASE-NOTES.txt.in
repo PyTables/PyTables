@@ -39,6 +39,10 @@ Backward-incompatible changes
   column, one must use the ``removeIndex()`` method of the associated
   ``Column`` instance.
 
+- ``complib`` and ``complevel`` parameters have been removed from
+  ``File.createTable``, ``File.createEArray``, ``File.createCArray`` and
+  ``File.createVLArray``. They were already deprecated in PyTables 1.x.
+
 Deprecated features
 ===================
 
