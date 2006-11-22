@@ -54,7 +54,7 @@ import tables.TableExtension as TableExtension
 from tables.conditions import split_condition, call_on_recarr
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
-from tables.utils import calcBufferSize, processRange, processRangeRead, \
+from tables.utils import processRange, processRangeRead, calcBufferSize, \
      joinPath, convertNPToNumeric, convertNPToNumArray, fromnumpy, tonumpy, \
      fromnumarray, is_idx, flattenNames, byteorders, getNestedField
 from tables.Leaf import Leaf
@@ -64,7 +64,7 @@ from tables.IsDescription import \
 from tables.Atom import Atom, StringAtom
 from tables.Group import IndexesTableG, IndexesDescG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning
-from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, \
+from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES, \
      LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE, TABLE_MAX_SLOTS
 
 from tables.lrucacheExtension import ObjectCache, NumCache
@@ -640,6 +640,24 @@ class Table(TableExtension.Table, Leaf):
         return idgroup
 
 
+    def _calcMTuplesAndCSizes(self, rowsize, expectedrows):
+        """Calculate the maxTuples for a buffer and HDF5 chunk size."""
+
+        expectedfsizeinKb = expectedrows * rowsize / 1024
+        buffersize = calcBufferSize(expectedfsizeinKb)
+
+        # Max Tuples to fill the buffer
+        maxTuples = buffersize // rowsize
+        # Set the chunksize
+        chunksize = maxTuples // CHUNKTIMES
+        # Safeguard against row sizes being extremely large
+        if maxTuples == 0:
+            maxTuples = 1
+        if chunksize == 0:
+            chunksize = 1
+        return (maxTuples, chunksize)
+
+
     def _g_create(self):
         """Create a new table on disk."""
 
@@ -660,8 +678,8 @@ class Table(TableExtension.Table, Leaf):
         self._colenums = self._getEnumMap()
 
         # Compute some values for buffering and I/O parameters
-        (self._v_maxTuples, self._v_chunksize) = \
-                            calcBufferSize(self.rowsize, self._v_expectedrows)
+        (self._v_maxTuples, self._v_chunksize) = self._calcMTuplesAndCSizes(
+            self.rowsize, self._v_expectedrows)
 
 
         # Create the table on disk
@@ -778,9 +796,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Get a mapping of enumerated columns to their `Enum` instances.
         self._colenums = self._getEnumMap()
 
-        # Compute buffer size
-        (self._v_maxTuples, self._v_chunksize) = \
-              calcBufferSize(self.rowsize, self.nrows)
+        # Compute buffer & chuksize sizes
+        (self._v_maxTuples, self._v_chunksize) = self._calcMTuplesAndCSizes(
+            self.rowsize, self.nrows)
 
         # Get info about columns
         for colobj in self.description._f_walk(type="Col"):

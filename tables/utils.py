@@ -150,87 +150,49 @@ it does not match the pattern ``%s``; %s"""
         raise ValueError("``__members__`` is not allowed as an object name")
 
 
-def _calcBufferSize(rowsize, expectedrows):
-    # A bigger buffer makes the writing faster and reading slower (!)
-    #bufmultfactor = 1000 * 10
-    # A smaller buffer also makes the tests to not take too much memory
-    # We choose the smaller one
-    # In addition, with the new iterator in the Row class, this seems to
-    # be the best choice in terms of performance!
-    #bufmultfactor = int(1000 * 1.0) # Original value
-    # Best value with latest in-core selections optimisations
-    # 5% to 10% of improvement in Pentium4 and non-noticeable in AMD64
-    # 2004-05-16
-    #bufmultfactor = int(1000 * 20.0) # A little better (5%) but
-                                      # consumes more memory
-    bufmultfactor = int(1000 * 10.0) # Optimum for Table objects
-    rowsizeinfile = rowsize
-    # It is important to upcast the values to Long int types
-    # so that the python interpreter wouldn't complain and issue
-    # an OverflowWarning (despite this only happens during the execution
-    # of the complete test suite in heavy mode).
-    expectedfsizeinKb = (long(expectedrows) * long(rowsizeinfile)) / long(1024)
+def calcBufferSize(expectedsizeinKb):
+    """Compute the optimum buffer size for I/O purposes.
 
-    # Some code to compute appropiate values for chunksize & buffersize
-    # chunksize:  The chunksize for the HDF5 library
-    # buffersize: The Table internal buffer size
-    #
-    # Rational: HDF5 takes the data in bunches of chunksize length
-    # to write the on disk. A BTree in memory is used to map structures
-    # on disk. The more chunks that are allocated for a dataset the
-    # larger the B-tree. Large B-trees take memory and causes file
-    # storage overhead as well as more disk I/O and higher contention
-    # for the meta data cache.
-    # You have to balance between memory and I/O overhead (small B-trees)
-    # and time to access to data (big B-trees).
-    #
-    # The tuning of the chunksize & buffersize parameters affects the
-    # performance and the memory size consumed. This is based on
-    # experiments on a Intel arquitecture and, as always, your mileage
-    # may vary.
-    if expectedfsizeinKb <= 100:
+    Rational: HDF5 takes the data in bunches of chunksize length to
+    write the on disk. A BTree in memory is used to map structures on
+    disk. The more chunks that are allocated for a dataset the larger
+    the B-tree. Large B-trees take memory and causes file storage
+    overhead as well as more disk I/O and higher contention for the meta
+    data cache.  You have to balance between memory and I/O overhead
+    (small B-trees) and time to access to data (big B-trees).
+
+    The tuning of the buffersize parameter affects the performance and
+    the memory consumed. This is based on my own experiments and, as
+    always, your mileage may vary.
+    """
+    
+#     Increasing the bufmultfactor would enable a good compression
+#     ratio (up to an extend), but it would affect to the reading
+#     performance. Be careful when touching this.
+    #bufmultfactor = int(1000 * 5) # Conservative value
+    bufmultfactor = int(1000 * 10) # Medium value
+    #bufmultfactor = int(1000 * 20)  # Agressive value
+    #bufmultfactor = int(1000 * 50) # Very Aggresive value
+
+    if expectedsizeinKb <= 100:
         # Values for files less than 100 KB of size
         buffersize = 10 * bufmultfactor
-    elif (expectedfsizeinKb > 100 and
-        expectedfsizeinKb <= 1000):
+    elif (expectedsizeinKb > 100 and
+        expectedsizeinKb <= 1000):
         # Values for files less than 1 MB of size
         buffersize = 20 * bufmultfactor
-    elif (expectedfsizeinKb > 1000 and
-          expectedfsizeinKb <= 20 * 1000):
+    elif (expectedsizeinKb > 1000 and
+          expectedsizeinKb <= 20 * 1000):
         # Values for sizes between 1 MB and 20 MB
         buffersize = 40  * bufmultfactor
-    elif (expectedfsizeinKb > 20 * 1000 and
-          expectedfsizeinKb <= 200 * 1000):
+    elif (expectedsizeinKb > 20 * 1000 and
+          expectedsizeinKb <= 200 * 1000):
         # Values for sizes between 20 MB and 200 MB
         buffersize = 50 * bufmultfactor
     else:  # Greater than 200 MB
         buffersize = 60 * bufmultfactor
 
     return buffersize
-
-
-def calcBufferSize(rowsize, expectedrows):
-    """Calculate the buffer size and the HDF5 chunk size.
-
-    The logic followed here is based purely in experiments playing with
-    different buffer sizes and chunksize. It is obvious that using big
-    buffers optimize the I/O speed when dealing with tables. This might
-    (should) be further optimized doing more experiments.
-
-    """
-
-    buffersize = _calcBufferSize(rowsize, expectedrows)
-
-    # Max Tuples to fill the buffer
-    maxTuples = buffersize // rowsize
-    # Set the chunksize
-    chunksize = maxTuples // CHUNKTIMES
-    # Safeguard against row sizes being extremely large
-    if maxTuples == 0:
-        maxTuples = 1
-    if chunksize == 0:
-        chunksize = 1
-    return (maxTuples, chunksize)
 
 
 def is_idx(index):

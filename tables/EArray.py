@@ -30,8 +30,8 @@ import sys
 
 import numpy
 
-from tables.constants import EXPECTED_ROWS_EARRAY, CHUNKTIMES
-from tables.utils import convertToNPAtom, processRangeRead
+from tables.constants import EXPECTED_ROWS_EARRAY
+from tables.utils import convertToNPAtom, processRangeRead, calcBufferSize
 from tables.Atom import Atom, EnumAtom, StringAtom, Time32Atom, Time64Atom
 from tables.Array import Array
 
@@ -195,56 +195,6 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         super(Array, self).__init__(parentNode, name, new, filters, _log)
 
 
-    def _calcTuplesAndChunks(self, atom, extdim, expectedrows, compress):
-        """Calculate the maximun number of tuples and the HDF5 chunk size."""
-
-        # The buffer size
-        rowsize = atom.atomsize()
-        for i in self.shape:
-            if i > 0:
-                rowsize *= i
-        expectedfsizeinKb = (expectedrows * rowsize) / 1024
-        buffersize = self._g_calcBufferSize(expectedfsizeinKb)
-
-        # Max Tuples to fill the buffer
-        maxTuples = buffersize // (rowsize * CHUNKTIMES)
-        chunksizes = list(self.shape)
-        # Check if at least 1 tuple fits in buffer
-        if maxTuples >= 1:
-            # Yes. So the chunk sizes for the non-extendeable dims will be
-            # unchanged
-            chunksizes[extdim] = maxTuples
-        else:
-            # No. reduce other dimensions until we get a proper chunksizes
-            # shape
-            chunksizes[extdim] = 1  # Only one row in extendeable dimension
-            for j in range(len(chunksizes)):
-                newrowsize = atom.dtype.itemsize
-                for i in chunksizes[j+1:]:
-                    newrowsize *= i
-                maxTuples = buffersize // newrowsize
-                if maxTuples >= 1:
-                    break
-                chunksizes[j] = 1
-            # Compute the chunksizes correctly for this j index
-            chunksize = maxTuples
-            if j < len(chunksizes):
-                # Only modify chunksizes[j] if needed
-                if chunksize < chunksizes[j]:
-                    chunksizes[j] = chunksize
-            else:
-                chunksizes[-1] = 1 # very large itemsizes!
-        # Compute the correct maxTuples number
-        newrowsize = atom.dtype.itemsize
-        for i in chunksizes:
-            newrowsize *= i
-        maxTuples = buffersize // (newrowsize * CHUNKTIMES)
-        # Safeguard against row sizes being extremely large
-        if maxTuples == 0:
-            maxTuples = 1
-        return (maxTuples, chunksizes)
-
-
     def _g_create(self):
         """Create a new EArray."""
 
@@ -272,10 +222,10 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
                   "When creating EArrays, you need to set one of the dimensions of the Atom instance to zero."
 
         # Compute some values for buffering and I/O parameters
-        # Compute the optimal chunksize
-        (self._v_maxTuples, self._v_chunksize) = self._calcTuplesAndChunks(
-            self.atom, self.extdim,
-            self._v_expectedrows, self.filters.complevel)
+        self._v_chunksize = self._calcChunksizes(self.itemsize,
+                                                 self._v_expectedrows)
+        self._v_maxTuples = self._calcMaxTuples(self.itemsize,
+                                                self._v_chunksize)
         self.nrows = 0   # No rows initially
 
         self._v_objectID = self._createEArray(self._v_new_title)
@@ -314,9 +264,10 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 
         # nrows in this instance
         self.nrows = self.shape[self.extdim]
-        # Compute the optimal maxTuples
-        (self._v_maxTuples, computedChunksize) = self._calcTuplesAndChunks(
-            self.atom, self.extdim, self.nrows, self.filters.complevel)
+        # Compute the optimal buffer sizes
+        self._v_chunksize = self._calcChunksizes(self.itemsize, self.nrows)
+        self._v_maxTuples = self._calcMaxTuples(self.itemsize,
+                                                self._v_chunksize)
 
         return self._v_objectID
 

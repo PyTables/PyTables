@@ -215,7 +215,7 @@ CHUNKTIMES = 50 # Makes large seq writings and reads quite fast. (1.26 Mrw/s)
                  # Quite fast read times for small pieces (2.75 ms, no comp)
 #CHUNKTIMES = 200 # Makes large seq writings and reads too slow
                  # Quite fast read times for small pieces (2.72 ms, no compr)
-"""The ratio buffer_size/chunksize for ``Table`` and ``EArray`` objects."""
+"""The ratio buffer_size/chunksize for chunked datasets."""
 
 
 ## Local Variables:

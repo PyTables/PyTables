@@ -45,9 +45,10 @@ except ImportError:
     numarray_imported = False
 
 import tables.hdf5Extension as hdf5Extension
-from tables.utils import calcBufferSize, processRange, processRangeRead, \
-                         convToFlavor, convToNP, is_idx, byteorders
+from tables.utils import processRange, processRangeRead, convToFlavor, \
+     convToNP, is_idx, byteorders, calcBufferSize
 from tables.Leaf import Leaf, Filters
+from tables.constants import CHUNKTIMES
 
 
 __version__ = "$Revision$"
@@ -97,57 +98,10 @@ class Array(hdf5Extension.Array, Leaf):
         "The endianness of data in memory ('big', 'little' or 'irrelevant').")
 
     itemsize = property(
-        lambda self: self.dtype.base.itemsize, None, None,
-        "The size of the base items (shortcut for self.dtype.base.itemsize).")
+        lambda self: self.dtype.itemsize, None, None,
+        "The size of the base items (shortcut for self.dtype.itemsize).")
 
     # </properties>
-
-    def _g_calcBufferSize(self, expectedfsizeinKb):
-        """Compute and optimum buffer size.
-
-        The logic to do that is based purely in experiments playing
-        with different buffer sizes, chunksize and compression
-        flag. It is obvious that using big buffers optimize the I/O
-        speed. This might (should) be further optimized doing more
-        experiments.
-
-        This only is important for CArray and EArray classes, and it
-        is keeped here just because it's an easy way to share it.
-
-        """
-
-        # Increasing the bufmultfactor would enable a good compression
-        # ratio (up to an extend), but it would affect to reading
-        # performance. Be careful when touching this
-        # F. Altet 2004-11-10
-        #bufmultfactor = int(1000 * 5) # Conservative value
-        bufmultfactor = int(1000 * 10) # Medium value
-        #bufmultfactor = int(1000 * 20)  # Agressive value
-        #bufmultfactor = int(1000 * 50) # Very Aggresive value
-
-        if expectedfsizeinKb <= 100:
-            # Values for files less than 100 KB of size
-            buffersize = 5 * bufmultfactor
-        elif (expectedfsizeinKb > 100 and
-            expectedfsizeinKb <= 1000):
-            # Values for files less than 1 MB of size
-            buffersize = 10 * bufmultfactor
-        elif (expectedfsizeinKb > 1000 and
-              expectedfsizeinKb <= 20 * 1000):
-            # Values for sizes between 1 MB and 20 MB
-            buffersize = 20  * bufmultfactor
-        elif (expectedfsizeinKb > 20 * 1000 and
-              expectedfsizeinKb <= 200 * 1000):
-            # Values for sizes between 20 MB and 200 MB
-            buffersize = 40 * bufmultfactor
-        elif (expectedfsizeinKb > 200 * 1000 and
-              expectedfsizeinKb <= 2000 * 1000):
-            # Values for sizes between 200 MB and 2 GB
-            buffersize = 50 * bufmultfactor
-        else:  # Greater than 2 GB
-            buffersize = 60 * bufmultfactor
-
-        return buffersize
 
 
     def __init__(self, parentNode, name,
@@ -233,6 +187,66 @@ class Array(hdf5Extension.Array, Leaf):
         super(Array, self).__init__(parentNode, name, new, Filters(), _log)
 
 
+    def _calcChunksizes(self, atomsize, expectedrows):
+        """Calculate the HDF5 chunk size."""
+
+        rowsize = atomsize
+        for i in self.shape:
+            if i > 0:
+                rowsize *= i
+        expectedsizeinKb = (expectedrows * rowsize) / 1024
+        self._v_buffersize = buffersize = calcBufferSize(expectedsizeinKb)
+
+        if hasattr(self, 'extdim') and self.extdim != -1:
+            extdim = self.extdim
+        else:
+            extdim = 0   # choose the first dimension
+
+        # Max Tuples to fill the buffer
+        maxTuples = buffersize // (rowsize * CHUNKTIMES)
+        chunksizes = list(self.shape)
+        # Check if at least 1 tuple fits in buffer
+        if maxTuples >= 1:
+            # Yes. So the chunk sizes for the non-extendeable dims will be
+            # unchanged
+            chunksizes[extdim] = maxTuples
+        else:
+            # No. reduce other dimensions until we get a proper chunksizes
+            # shape
+            chunksizes[extdim] = 1  # Only one row in extendeable dimension
+            for j in range(len(chunksizes)):
+                newrowsize = atomsize
+                for i in chunksizes[j+1:]:
+                    newrowsize *= i
+                maxTuples = buffersize // newrowsize
+                if maxTuples >= 1:
+                    break
+                chunksizes[j] = 1
+            # Compute the chunksizes correctly for this j index
+            chunksize = maxTuples
+            if j < len(chunksizes):
+                # Only modify chunksizes[j] if needed
+                if chunksize < chunksizes[j]:
+                    chunksizes[j] = chunksize
+            else:
+                chunksizes[-1] = 1 # very large itemsizes!
+
+        return chunksizes
+
+
+    def _calcMaxTuples(self, atomsize, chunksizes):
+        """Calculate the maximun number of tuples for buffers."""
+
+        rowsize = atomsize
+        for i in chunksizes:
+            rowsize *= i
+        maxTuples = self._v_buffersize // rowsize
+        # Safeguard against row sizes being extremely large
+        if maxTuples == 0:
+            maxTuples = 1
+        return maxTuples
+
+
     def _g_create(self):
         """Save a fresh array (i.e., not present on HDF5 file)."""
 
@@ -258,19 +272,6 @@ class Array(hdf5Extension.Array, Leaf):
         else:
             expectedrows = 1  # Scalar case
 
-        # Compute some values for buffering and I/O parameters
-        # Compute the rowsize for each element
-        rowsize = nparr.itemsize
-        for i in nparr.shape:
-            if i>0:
-                rowsize *= i
-            else:
-                raise ValueError, "An Array object cannot have zero-dimensions"
-
-        # Compute the optimal chunksize
-        (self._v_maxTuples, self._v_chunksize) = \
-                            calcBufferSize(rowsize, expectedrows)
-
         # If shape has not been assigned yet, assign it.
         if self.shape is None:
             self.shape = nparr.shape
@@ -278,6 +279,8 @@ class Array(hdf5Extension.Array, Leaf):
             self.nrows = nparr.shape[0]
         else:
             self.nrows = 1    # Scalar case
+
+        # Create the array on-disk
         try:
             (self._v_objectID, self.dtype, self.ptype) = (
                 self._createArray(nparr, self._v_new_title))
@@ -286,6 +289,10 @@ class Array(hdf5Extension.Array, Leaf):
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
+
+        # Compute the optimal buffer sizes
+        chunksizes = self._calcChunksizes(self.itemsize, expectedrows)
+        self._v_maxTuples = self._calcMaxTuples(self.itemsize, chunksizes)
 
 
     def _g_open(self):
@@ -307,9 +314,9 @@ class Array(hdf5Extension.Array, Leaf):
         else:
             self.nrows = 1L   # Scalar case
 
-        # Compute the maxTuples for the buffers in iterators
-        (self._v_maxTuples, chunksize) = \
-                            calcBufferSize(rowsize, self.nrows)
+        # Compute the optimal buffer sizes
+        chunksizes = self._calcChunksizes(self.itemsize, self.nrows)
+        self._v_maxTuples = self._calcMaxTuples(self.itemsize, chunksizes)
 
         return self._v_objectID
 

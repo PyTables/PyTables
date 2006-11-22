@@ -33,7 +33,7 @@ import numpy
 
 from tables.Atom import Atom, StringAtom
 from tables.Array import Array
-from tables.utils import processRangeRead
+from tables.utils import processRangeRead, calcBufferSize
 
 
 __version__ = "$Revision$"
@@ -80,11 +80,25 @@ class CArray(Array):
         _g_getnrows, None, None,
         "The length of the enlargeable dimension of the array.")
 
-    _v_expectedrows = property(
-        _g_getnrows, None, None,
-        "The expected number of rows to be stored in the array.")
-
     # </properties>
+
+
+    def _calcMaxTuples(self, nrows):
+        """Calculate the maximum number of tuples for buffer."""
+
+        # The buffer size
+        expectedfsizeinKb = numpy.product(self.shape) * \
+                            self.atom.atomsize() / 1024
+        buffersize = calcBufferSize(expectedfsizeinKb)
+
+        # Max Tuples to fill the buffer
+        maxTuples = buffersize // numpy.product(self.shape[1:])
+
+        # Check that buffer will have 1 tuple at least
+        if maxTuples == 0:
+            maxTuples = 1
+
+        return maxTuples
 
 
     def __init__(self, parentNode, name, atom=None, shape=None,
@@ -193,24 +207,6 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 
         # The `Array` class is not abstract enough! :(
         super(Array, self).__init__(parentNode, name, new, filters, _log)
-
-
-    def _calcMaxTuples(self, nrows):
-        """Calculate the maximum number of tuples for buffer."""
-
-        # The buffer size
-        expectedfsizeinKb = numpy.product(self.shape) * \
-                            self.atom.atomsize() / 1024
-        buffersize = self._g_calcBufferSize(expectedfsizeinKb)
-
-        # Max Tuples to fill the buffer
-        maxTuples = buffersize // numpy.product(self.shape[1:])
-
-        # Check that buffer will have 1 tuple at least
-        if maxTuples == 0:
-            maxTuples = 1
-
-        return maxTuples
 
 
     def _g_create(self):
