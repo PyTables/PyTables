@@ -181,22 +181,21 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
     title -- A TITLE string attribute will be set on the root group
              with its value.
 
-    trMap -- A dictionary to map names in the object tree into
-             different HDF5 names in file. The keys are the Python
-             names, while the values are the HDF5 names. This is
-             useful when you need to name HDF5 nodes with invalid or
-             reserved words in Python.
+    trMap -- A dictionary to map names in the object tree into different
+             HDF5 names in file. The keys are the Python names, while
+             the values are the HDF5 names. This is useful when you need
+             to name HDF5 nodes with invalid or reserved words in Python
+             and wants to continue using the natural naming facility.
 
     rootUEP -- The root User Entry Point. It is a group in the file
-            hierarchy which is taken as the starting point to create
-            the object tree. The group can be whatever existing path
-            in the file. If it does not exist, an HDF5ExtError is
-            issued.
+            hierarchy which is taken as the starting point to create the
+            object tree. The group can be whatever existing path in the
+            file. If it does not exist, an HDF5ExtError is issued.
 
     filters -- An instance of the Filters class that provides
-            information about the desired I/O filters applicable to
-            the leaves that hangs directly from root (unless other
-            filters properties are specified for these leaves, of
+            information about the desired I/O filters applicable to the
+            leaves that hangs directly from root (unless other filters
+            properties are specified for these leaves, of
             course). Besides, if you do not specify filter properties
             for its child groups, they will inherit these ones.
 
@@ -414,7 +413,7 @@ class File(hdf5Extension.File, object):
                   [, expectedrows][, createparents])
     * createArray(where, name, array[, title][, createparents])
     * createCArray(where, name, shape, atom[, title][, filters]
-                   [, chunksize] [, createparents])
+                   [, chunkshape] [, createparents])
     * createEArray(where, name, atom, shape [, title][, filters]
                    [, expectedrows][, createparents])
     * createVLArray(where, name, atom[, title][, filters]
@@ -486,6 +485,25 @@ class File(hdf5Extension.File, object):
                        "Default filter properties for the root group "
                        "(see the `Filters` class).")
 
+    def _gettrMap(self):
+        return self._pttoh5
+    def _settrMap(self, trMap):
+        self._pttoh5 = trMap
+        self._h5topt = {}
+        for (ptname, h5name) in self._pttoh5.iteritems():
+            if h5name in self._h5topt:
+                warnings.warn(
+                    "the translation map has a duplicate HDF5 name %r"
+                    % (h5name,))
+            self._h5topt[h5name] = ptname
+    def _deltrMap(self):
+        self._pttoh5 = {}
+        self._h5topt = {}
+
+    trMap = property(_gettrMap, _settrMap, _deltrMap,
+                     "Translation map between PyTables <--> HDF5 "
+                     "namespaces.")
+
     ## </properties>
 
 
@@ -519,14 +537,6 @@ class File(hdf5Extension.File, object):
 
         # Assign the trMap and build the reverse translation
         self.trMap = trMap
-        self._pttoh5 = trMap
-        self._h5topt = {}
-        for (ptname, h5name) in self._pttoh5.iteritems():
-            if h5name in self._h5topt:
-                warnings.warn(
-                    "the translation map has a duplicate HDF5 name %r"
-                    % (h5name,))
-            self._h5topt[h5name] = ptname
 
         # For the moment Undo/Redo is not enabled.
         self._undoEnabled = False
@@ -747,7 +757,7 @@ class File(hdf5Extension.File, object):
 
 
     def createCArray(self, where, name, atom, shape, title="",
-                     filters=None, chunksize=None, createparents=False):
+                     filters=None, chunkshape=None, createparents=False):
         """Create a new instance CArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -769,7 +779,7 @@ class File(hdf5Extension.File, object):
             information about the desired I/O filters to be applied
             during the life of this object.
 
-        chunksize -- The shape of the data chunk read or written as a
+        chunkshape -- The shape of the data chunk read or written as a
             single HDF5 I/O operation. The filters are applied to
             chunks of data. Its dimensionality has to be the same as
             shape.
@@ -781,7 +791,7 @@ class File(hdf5Extension.File, object):
         _checkfilters(filters)
         return CArray(parentNode, name,
                       atom=atom, shape=shape, title=title, filters=filters,
-                      chunksize=chunksize)
+                      chunkshape=chunkshape)
 
 
     def createEArray(self, where, name, atom, shape, title="",

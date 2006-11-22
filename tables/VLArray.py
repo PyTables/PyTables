@@ -52,7 +52,7 @@ __version__ = "$Revision$"
 obversion = "1.2"    # This adds support for enumerated datatypes.
 
 
-
+# XXX el calcul de sota esta completament malament!
 def calcChunkSize(expectedsizeinMB, complevel):
     """Computes the optimum value for the chunksize"""
     if expectedsizeinMB <= 100:
@@ -223,8 +223,11 @@ be zero."""
         self.flavor = self.atom.flavor
 
         # Compute the optimal chunksize
-        self._v_chunksize = calcChunkSize(self._v_expectedsizeinMB,
-                                          self.filters.complevel)
+#         self._v_buffersize = calcBufferSize(self._v_expectedsizeinMB*1024)
+#         self._v_chunkshape = self._calcChunkshape(self._basesize,
+#                                                  self._v_expectedrows)
+        self._v_chunkshape = calcChunkSize(self._v_expectedsizeinMB,
+                                           self.filters.complevel)
         self.nrows = 0     # No rows in creation time
 
         self._v_objectID = self._createArray(self._v_new_title)

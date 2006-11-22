@@ -102,7 +102,7 @@ class CArray(Array):
 
 
     def __init__(self, parentNode, name, atom=None, shape=None,
-                 title="", filters=None, chunksize=None,
+                 title="", filters=None, chunkshape=None,
                  _log=True):
         """Create CArray instance.
 
@@ -119,10 +119,10 @@ class CArray(Array):
             information about the desired I/O filters to be applied
             during the life of this object.
 
-        chunksize -- The shape of the data chunk to be read or written
-            as a single HDF5 I/O operation. The filters are applied to
-            chunks of data. Its dimensionality has to be the same as
-            shape.
+        chunkshape -- The shape of the data chunk to be read or
+            written as a single HDF5 I/O operation. The filters are
+            applied to those chunks of data. Its dimensionality has to
+            be the same as shape.
 
         """
 
@@ -181,19 +181,19 @@ class CArray(Array):
         """
 
         if new:
-            if shape is None or chunksize is None:
+            if shape is None or chunkshape is None:
                 raise ValueError, """\
-you must specify both shape & chunksize for building a CArray"""
+you must specify both shape & chunkshape for building a CArray"""
 
             if type(shape) not in (list, tuple):
                 raise ValueError, """\
 shape parameter should be either a tuple or a list and you passed a %s""" \
                 % type(shape)
 
-            if type(chunksize) not in (list, tuple):
+            if type(chunkshape) not in (list, tuple):
                 raise ValueError, """\
-chunksize parameter should be either a tuple or a list and you passed a %s""" \
-                % type(chunksize)
+chunkshape parameter should be either a tuple or a list and you passed a %s""" \
+                % type(chunkshape)
 
             if not isinstance(atom, Atom):
                 raise ValueError, """\
@@ -202,7 +202,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
 
             self.shape = tuple(shape)
             """The shape of the stored array."""
-            self._v_chunksize = tuple(chunksize)
+            self._v_chunkshape = tuple(chunkshape)
             """The shape of the HDF5 chunk for ``CArray`` objects."""
 
         # The `Array` class is not abstract enough! :(
@@ -224,14 +224,14 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         self.ptype = self.atom.ptype
         self.flavor = self.atom.flavor
 
-        # Different checks for shape and chunksize
+        # Different checks for shape and chunkshape
         if min(self.shape) < 1:
             raise ValueError, \
                   "Atom in CArray object cannot have zero-dimensions."
-        if min(self._v_chunksize) < 1:
+        if min(self._v_chunkshape) < 1:
             raise ValueError, \
                   "Atom in CArray object cannot have zero-dimensions."
-        if len(self.shape) != len(self._v_chunksize):
+        if len(self.shape) != len(self._v_chunkshape):
             raise ValueError, "The CArray rank and atom rank must be equal:" \
                               " CArray.shape = %s, atom.shape = %s." % \
                                     (self.shape, self.atom.shape)
@@ -251,12 +251,12 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         """Get the metadata info for an array in file."""
 
         (oid, self.dtype, self.ptype, self.shape,
-         self.flavor, self._v_chunksize) = self._openArray()
+         self.flavor, self._v_chunkshape) = self._openArray()
 
         # Post-condition
         assert self.extdim == -1, "extdim != -1: this should never happen!"
-        assert numpy.product(self._v_chunksize) > 0, \
-                "product(self._v_chunksize) > 0: this should never happen!"
+        assert numpy.product(self._v_chunkshape) > 0, \
+                "product(self._v_chunkshape) > 0: this should never happen!"
 
         # Create the Atom instance
         if self.ptype == "String":
@@ -289,7 +289,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         # Build the new CArray object
         object = CArray(group, name, atom=self.atom, shape=shape,
                         title=title, filters=filters,
-                        chunksize = self._v_chunksize, _log=_log)
+                        chunkshape = self._v_chunkshape, _log=_log)
         # Start the copy itself
         for start2 in range(start, stop, step*nrowsinbuf):
             # Save the records on disk

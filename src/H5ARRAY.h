@@ -88,9 +88,9 @@ herr_t H5ARRAYget_info( hid_t dataset_id,
 			H5T_class_t *super_class_id,
 			char *byteorder);
 
-herr_t H5ARRAYget_chunksize( hid_t dataset_id,
-			     int rank,
-			     hsize_t *dims_chunk);
+herr_t H5ARRAYget_chunkshape( hid_t dataset_id,
+			      int rank,
+			      hsize_t *dims_chunk);
 
 #ifdef __cplusplus
 }

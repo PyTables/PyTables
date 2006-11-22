@@ -804,18 +804,18 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         shape = (self.nchunks,)
         atom = Atom(self.dtype)
         CArray(self.tmp, 'abounds', atom, shape, "Temp start bounds",
-               filters, chunksize=(cs,))
+               filters, (cs,))
         CArray(self.tmp, 'zbounds', atom, shape, "Temp end bounds",
-               filters, chunksize=(cs,))
+               filters, (cs,))
         CArray(self.tmp, 'mbounds', atom, shape, "Median bounds",
-               filters, chunksize=(cs,))
+               filters, (cs,))
         # temporary ranges
         CArray(self.tmp, 'ranges',
                Atom(self.dtype), (self.nslices, 2), "Temporary range values",
-               filters, chunksize=(cs,2))
+               filters, (cs,2))
         CArray(self.tmp, 'mranges',
                Atom(self.dtype), (self.nslices,), "Median ranges",
-               filters, chunksize=(cs,))
+               filters, (cs,))
 
 
     def cleanup_temps(self):

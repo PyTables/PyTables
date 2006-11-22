@@ -122,7 +122,7 @@ cdef extern from "H5ARRAY.h":
                          hsize_t *maxdims, hid_t *super_type_id,
                          H5T_class_t *super_class_id, char *byteorder)
 
-  herr_t H5ARRAYget_chunksize(hid_t dataset_id, int rank, hsize_t *dims_chunk)
+  herr_t H5ARRAYget_chunkshape(hid_t dataset_id, int rank, hsize_t *dims_chunk)
 
 
 # Functions for dealing with VLArray objects
@@ -926,13 +926,13 @@ cdef class Array(Leaf):
 
     self.rank = len(self.shape)
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    if self._v_chunksize:
+    if self._v_chunkshape:
       self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Fill the dimension axis info with adequate info
     for i from  0 <= i < self.rank:
       self.dims[i] = self.shape[i]
-      if self._v_chunksize:
-        self.dims_chunk[i] = self._v_chunksize[i]
+      if self._v_chunkshape:
+        self.dims_chunk[i] = self._v_chunkshape[i]
 
     rbuf = NULL   # The data pointer. We don't have data to save initially
     # Manually convert some string values that can't be done automatically
@@ -1004,10 +1004,10 @@ cdef class Array(Leaf):
 
     # Allocate space for the dimension chunking info
     self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    if ((H5ARRAYget_chunksize(self.dataset_id, self.rank,
+    if ((H5ARRAYget_chunkshape(self.dataset_id, self.rank,
                               self.dims_chunk)) < 0):
       if self.extdim >= 0 or self.__class__.__name__ == 'CArray':
-        raise HDF5ExtError, "Problems getting the chunksizes!"
+        raise HDF5ExtError, "Problems getting the chunkshapes!"
     # Get the array type & size
     type_size = getArrayType(base_type_id, &enumtype)
     if type_size < 0:
@@ -1015,9 +1015,9 @@ cdef class Array(Leaf):
 
     H5Tclose(base_type_id)    # Release resources
 
-    # Get the shape and chunksizes as python tuples
+    # Get the shape and chunkshapes as python tuples
     shape = getshape(self.rank, self.dims)
-    chunksizes = getshape(self.rank, self.dims_chunk)
+    chunkshapes = getshape(self.rank, self.dims_chunk)
 
     # Finally, get the dtype
     type_ = NPCodeToType.get(enumtype, "int32")
@@ -1027,7 +1027,7 @@ cdef class Array(Leaf):
       dtype = numpy.dtype(type_).newbyteorder(byteorder)
 
     return (self.dataset_id, dtype, NPCodeToPTType[enumtype],
-            shape, flavor, chunksizes)
+            shape, flavor, chunkshapes)
 
 
   def _convertTypes(self, object nparr, int sense):
@@ -1255,7 +1255,7 @@ cdef class VLArray(Leaf):
     self.dataset_id = H5VLARRAYmake(self.parent_id, self.name, class_, title,
                                     flavor, version, self.rank, self.scalar,
                                     self.dims, self.base_type_id,
-                                    self._v_chunksize, rbuf,
+                                    self._v_chunkshape, rbuf,
                                     self.filters.complevel, complib,
                                     self.filters.shuffle,
                                     self.filters.fletcher32,

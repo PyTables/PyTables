@@ -499,7 +499,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         objectId = super(IndexArray, self)._g_create()
         assert self.extdim == 0, "computed extendable dimension is wrong"
         assert self.shape == (0, self.slicesize), "invalid shape"
-        assert self._v_chunksize == (1, self.chunksize), "invalid chunk size"
+        assert self._v_chunkshape == (1, self.chunksize), "invalid chunkshape"
         # The superblocksize & blocksize will be saved as (pickled) attributes
         # (only necessary for sorted index)
         if self.name == "sorted":
@@ -511,13 +511,14 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
 
 
     def _calcTuplesAndChunks(self, atom, extdim, expectedrows, compress):
-        return (0, (1, self.chunksize))  # (_v_maxTuples, _v_chunksize)
+        return (0, (1, self.chunksize))  # (_v_maxTuples, _v_chunkshape)
 
 
     def _createEArray(self, title):
         # The shape of the index array needs to be fixed before creating it.
         # Admitted, this is a bit too much convoluted :-(
         self.shape = (0, self.slicesize)
+        self._v_chunkshape = (1, self.chunksize)
         self._v_objectID = super(IndexArray, self)._createEArray(title)
         return self._v_objectID
 
@@ -532,7 +533,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         if not self._v_new:
             if self.name == "sorted":
                 self.slicesize = self.shape[1]
-                self.chunksize = self._v_chunksize[1]
+                self.chunksize = self._v_chunkshape[1]
                 self.superblocksize = self.attrs.superblocksize
                 self.blocksize = self.attrs.blocksize
                 self.reord_opts = self.attrs.reord_opts

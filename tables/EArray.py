@@ -118,7 +118,7 @@ class EArray(Array):
         """The expected number of rows to be stored in the array."""
         self._v_maxTuples = None
         """The maximum number of rows that are read on each chunk iterator."""
-        self._v_chunksize = None
+        self._v_chunkshape = None
         """The HDF5 chunk size for ``EArray`` objects."""
         self._v_convert = True
         """Whether the *Array objects has to be converted or not."""
@@ -222,10 +222,10 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
                   "When creating EArrays, you need to set one of the dimensions of the Atom instance to zero."
 
         # Compute some values for buffering and I/O parameters
-        self._v_chunksize = self._calcChunksizes(self.itemsize,
-                                                 self._v_expectedrows)
+        self._v_chunkshape = self._calcChunkshape(self.itemsize,
+                                                  self._v_expectedrows)
         self._v_maxTuples = self._calcMaxTuples(self.itemsize,
-                                                self._v_chunksize)
+                                                self._v_chunkshape)
         self.nrows = 0   # No rows initially
 
         self._v_objectID = self._createEArray(self._v_new_title)
@@ -236,7 +236,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         """Get the metadata info for an array in file."""
 
         (self._v_objectID, self.dtype, self.ptype, self.shape,
-         self.flavor, self._v_chunksize) = self._openArray()
+         self.flavor, self._v_chunkshape) = self._openArray()
         # Post-condition
         assert self.extdim >= 0, "extdim < 0: this should never happen!"
 
@@ -265,9 +265,9 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         # nrows in this instance
         self.nrows = self.shape[self.extdim]
         # Compute the optimal buffer sizes
-        self._v_chunksize = self._calcChunksizes(self.itemsize, self.nrows)
+        self._v_chunkshape = self._calcChunkshape(self.itemsize, self.nrows)
         self._v_maxTuples = self._calcMaxTuples(self.itemsize,
-                                                self._v_chunksize)
+                                                self._v_chunkshape)
 
         return self._v_objectID
 

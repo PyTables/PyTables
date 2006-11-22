@@ -136,7 +136,7 @@ class Array(hdf5Extension.Array, Leaf):
         """
         self._v_maxTuples = None
         """The maximum number of rows that are read on each chunk iterator."""
-        self._v_chunksize = None
+        self._v_chunkshape = None
         """
         The HDF5 chunk size for ``CArray``, ``EArray`` and ``VLArray``
         objects.
@@ -187,7 +187,7 @@ class Array(hdf5Extension.Array, Leaf):
         super(Array, self).__init__(parentNode, name, new, Filters(), _log)
 
 
-    def _calcChunksizes(self, atomsize, expectedrows):
+    def _calcChunkshape(self, atomsize, expectedrows):
         """Calculate the HDF5 chunk size."""
 
         rowsize = atomsize
@@ -197,6 +197,10 @@ class Array(hdf5Extension.Array, Leaf):
         expectedsizeinKb = (expectedrows * rowsize) / 1024
         self._v_buffersize = buffersize = calcBufferSize(expectedsizeinKb)
 
+        # In case of a scalar shape, return the unit chunksize
+        if self.shape == ():
+            return (1,)
+
         if hasattr(self, 'extdim') and self.extdim != -1:
             extdim = self.extdim
         else:
@@ -204,41 +208,41 @@ class Array(hdf5Extension.Array, Leaf):
 
         # Max Tuples to fill the buffer
         maxTuples = buffersize // (rowsize * CHUNKTIMES)
-        chunksizes = list(self.shape)
+        chunkshape = list(self.shape)
         # Check if at least 1 tuple fits in buffer
         if maxTuples >= 1:
             # Yes. So the chunk sizes for the non-extendeable dims will be
             # unchanged
-            chunksizes[extdim] = maxTuples
+            chunkshape[extdim] = maxTuples
         else:
-            # No. reduce other dimensions until we get a proper chunksizes
+            # No. reduce other dimensions until we get a proper chunkshape
             # shape
-            chunksizes[extdim] = 1  # Only one row in extendeable dimension
-            for j in range(len(chunksizes)):
+            chunkshape[extdim] = 1  # Only one row in extendeable dimension
+            for j in range(len(chunkshape)):
                 newrowsize = atomsize
-                for i in chunksizes[j+1:]:
+                for i in chunkshape[j+1:]:
                     newrowsize *= i
                 maxTuples = buffersize // newrowsize
                 if maxTuples >= 1:
                     break
-                chunksizes[j] = 1
-            # Compute the chunksizes correctly for this j index
+                chunkshape[j] = 1
+            # Compute the chunkshape correctly for this j index
             chunksize = maxTuples
-            if j < len(chunksizes):
-                # Only modify chunksizes[j] if needed
-                if chunksize < chunksizes[j]:
-                    chunksizes[j] = chunksize
+            if j < len(chunkshape):
+                # Only modify chunkshape[j] if needed
+                if chunksize < chunkshape[j]:
+                    chunkshape[j] = chunksize
             else:
-                chunksizes[-1] = 1 # very large itemsizes!
+                chunkshape[-1] = 1 # very large itemsizes!
 
-        return chunksizes
+        return tuple(chunkshape)
 
 
-    def _calcMaxTuples(self, atomsize, chunksizes):
+    def _calcMaxTuples(self, atomsize, chunkshape):
         """Calculate the maximun number of tuples for buffers."""
 
         rowsize = atomsize
-        for i in chunksizes:
+        for i in chunkshape:
             rowsize *= i
         maxTuples = self._v_buffersize // rowsize
         # Safeguard against row sizes being extremely large
@@ -284,22 +288,22 @@ class Array(hdf5Extension.Array, Leaf):
         try:
             (self._v_objectID, self.dtype, self.ptype) = (
                 self._createArray(nparr, self._v_new_title))
-            return self._v_objectID
         except:  #XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
 
         # Compute the optimal buffer sizes
-        chunksizes = self._calcChunksizes(self.itemsize, expectedrows)
-        self._v_maxTuples = self._calcMaxTuples(self.itemsize, chunksizes)
+        chunkshape = self._calcChunkshape(self.itemsize, expectedrows)
+        self._v_maxTuples = self._calcMaxTuples(self.itemsize, chunkshape)
+        return self._v_objectID
 
 
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
         (self._v_objectID, self.dtype, self.ptype, self.shape,
-         self.flavor, self._v_chunksize) = self._openArray()
+         self.flavor, self._v_chunkshape) = self._openArray()
 
         # Get enumeration from disk.
         if self.ptype == 'Enum':
@@ -315,8 +319,8 @@ class Array(hdf5Extension.Array, Leaf):
             self.nrows = 1L   # Scalar case
 
         # Compute the optimal buffer sizes
-        chunksizes = self._calcChunksizes(self.itemsize, self.nrows)
-        self._v_maxTuples = self._calcMaxTuples(self.itemsize, chunksizes)
+        chunkshape = self._calcChunkshape(self.itemsize, self.nrows)
+        self._v_maxTuples = self._calcMaxTuples(self.itemsize, chunkshape)
 
         return self._v_objectID
 
@@ -645,7 +649,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
   ptype := %r
   shape := %r
   flavor := %r
-  byteorder := %r""" % (self, self.atom, self.shape,
+  byteorder := %r""" % (self, self.ptype, self.shape,
                         self.flavor, self.byteorder)
 
 

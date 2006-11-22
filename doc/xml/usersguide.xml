@@ -4161,7 +4161,7 @@ Object Tree:
 
 	  <section id="createCArrayDescr">
 	    <title>createCArray(where, name, atom, shape, title='',
-	      filters=None, chunksize=None, createparents=False)</title>
+	      filters=None, chunkshape=None, createparents=False)</title>
 
 	    <para>Create a new <literal>CArray</literal> instance with name
 	      <emphasis>name</emphasis> in <emphasis>where</emphasis>
@@ -4188,7 +4188,7 @@ Object Tree:
         </glossentry>
 
         <glossentry>
-        <glossterm><emphasis role="bold">chunksize</emphasis></glossterm>
+        <glossterm><emphasis role="bold">chunkshape</emphasis></glossterm>
         <glossdef><para>The shape of the data chunk to be read or written as a
         single HDF5 I/O operation. The filters are applied to chunks of
         data. Its dimensionality has to be the same as
@@ -7810,7 +7810,7 @@ filters = tables.Filters(complevel=5, complib='zlib')
 
 h5f = tables.openFile(fileName,'w')
 ca = h5f.createCArray(h5f.root, 'carray', atom, shape,
-                      filters=filters, chunksize=(128,128))
+                      filters=filters, chunkshape=(128,128))
 # Fill a hyperslab in ca. The array will be converted to UInt8 elements
 ca[10:60,20:70] = numarray.ones((50,50))
 h5f.close()

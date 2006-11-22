@@ -620,13 +620,14 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Do a look-up for values
         searchedCoords = tbl.getWhereList(
             self._testCondition, self._testCondVars(tbl))
+        searchedCoords.sort()
 
+        expectedCoords = numpy.arange(0, minRowIndex*2, 2, 'int64')
         if verbose:
             print "Searched coords:", searchedCoords
-
+            print "Expected coords:", expectedCoords
         # All even rows match the condition.
-        searchedCoords.sort()
-        self.assertEqual(searchedCoords.tolist(), range(0, minRowIndex*2, 2),
+        self.assertEqual(searchedCoords.tolist(), expectedCoords.tolist(),
                          "Search returned incorrect results.")
 
 

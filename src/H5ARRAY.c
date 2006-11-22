@@ -912,12 +912,12 @@ out:
 
 
 /*-------------------------------------------------------------------------
- * Function: H5ARRAYget_chunksize
+ * Function: H5ARRAYget_chunkshape
  *
- * Purpose: Gets the chunksize along the extensible dimension of a
+ * Purpose: Gets the chunkshape along the extensible dimension of a
  *          carray/earray.
  *
- * Return: Success: chunksize, Failure: -1
+ * Return: Success: chunkshape, Failure: -1
  *
  * Programmer: Francesc Altet
  *
@@ -926,9 +926,9 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5ARRAYget_chunksize( hid_t dataset_id,
-			     int rank,
-			     hsize_t *dims_chunk)
+herr_t H5ARRAYget_chunkshape( hid_t dataset_id,
+			      int rank,
+			      hsize_t *dims_chunk)
 {
   hid_t        plist_id;
   H5D_layout_t layout;
@@ -944,7 +944,7 @@ herr_t H5ARRAYget_chunksize( hid_t dataset_id,
     return -1;
   }
 
-  /* Get the chunksize for all dimensions */
+  /* Get the chunkshape for all dimensions */
   if (H5Pget_chunk(plist_id, rank, dims_chunk ) < 0 )
     goto out;
 
