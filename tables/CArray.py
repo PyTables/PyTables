@@ -83,24 +83,6 @@ class CArray(Array):
     # </properties>
 
 
-    def _calcMaxTuples(self, nrows):
-        """Calculate the maximum number of tuples for buffer."""
-
-        # The buffer size
-        expectedfsizeinKb = numpy.product(self.shape) * \
-                            self.atom.atomsize() / 1024
-        buffersize = calcBufferSize(expectedfsizeinKb)
-
-        # Max Tuples to fill the buffer
-        maxTuples = buffersize // numpy.product(self.shape[1:])
-
-        # Check that buffer will have 1 tuple at least
-        if maxTuples == 0:
-            maxTuples = 1
-
-        return maxTuples
-
-
     def __init__(self, parentNode, name, atom=None, shape=None,
                  title="", filters=None, chunkshape=None,
                  _log=True):
@@ -181,28 +163,44 @@ class CArray(Array):
         """
 
         if new:
-            if shape is None or chunkshape is None:
+            # Different checks for shape and chunkshape
+            if not shape:
                 raise ValueError, """\
-you must specify both shape & chunkshape for building a CArray"""
+you must specify a non-empty shape for building a CArray"""
+            elif type(shape) not in (list, tuple):
+                raise ValueError, """\
+shape parameter should be either a tuple or a list and you passed a %s
+"""  % type(shape)
+            elif min(shape) < 1:
+                raise ValueError, """\
+shape parameter cannot have zero-dimensions."""
 
-            if type(shape) not in (list, tuple):
-                raise ValueError, """\
-shape parameter should be either a tuple or a list and you passed a %s""" \
-                % type(shape)
 
-            if type(chunkshape) not in (list, tuple):
-                raise ValueError, """\
-chunkshape parameter should be either a tuple or a list and you passed a %s""" \
-                % type(chunkshape)
+            if chunkshape is not None:
+                if type(chunkshape) not in (list, tuple):
+                    raise ValueError, """\
+chunkshape parameter should be either a tuple or a list and you passed a %s
+""" % type(chunkshape)
+                elif min(chunkshape) < 1:
+                    raise ValueError, """ \
+chunkshape parameter cannot have zero-dimensions."""
+                elif len(shape) != len(chunkshape):
+                    raise ValueError, """\
+the shape and chunkshape ranks must be equal: shape = %s, shape = %s.
+""" % (shape, chunkshape)
 
             if not isinstance(atom, Atom):
                 raise ValueError, """\
-atom parameter should be an instance of tables.Atom and you passed a %s""" \
-                % type(atom)
+atom parameter should be an instance of tables.Atom and you passed a %s
+""" % type(atom)
 
             self.shape = tuple(shape)
             """The shape of the stored array."""
-            self._v_chunkshape = tuple(chunkshape)
+
+            if type(chunkshape) == list:
+                self._v_chunkshape = tuple(chunkshape)
+            else:
+                self._v_chunkshape = chunkshape
             """The shape of the HDF5 chunk for ``CArray`` objects."""
 
         # The `Array` class is not abstract enough! :(
@@ -224,20 +222,18 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
         self.ptype = self.atom.ptype
         self.flavor = self.atom.flavor
 
-        # Different checks for shape and chunkshape
-        if min(self.shape) < 1:
-            raise ValueError, \
-                  "Atom in CArray object cannot have zero-dimensions."
-        if min(self._v_chunkshape) < 1:
-            raise ValueError, \
-                  "Atom in CArray object cannot have zero-dimensions."
-        if len(self.shape) != len(self._v_chunkshape):
-            raise ValueError, "The CArray rank and atom rank must be equal:" \
-                              " CArray.shape = %s, atom.shape = %s." % \
-                                    (self.shape, self.atom.shape)
+        # Compute the chunksize, if needed
+        if self._v_chunkshape is None:
+            self._v_chunkshape = self._calcChunkshape(
+                self.itemsize, self.nrows)
+        else:
+            expectedsizeinKB = numpy.product(self.shape) * \
+                               self.atom.atomsize() / 1024
+            self._v_buffersize = calcBufferSize(expectedsizeinKB)
 
         # Compute the buffer size for copying purposes
-        self._v_maxTuples = self._calcMaxTuples(self.nrows)
+        self._v_maxTuples = self._calcMaxTuples(self.itemsize,
+                                                self._v_chunkshape)
 
         try:
             return self._createEArray(self._v_new_title)
@@ -267,7 +263,11 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
                              flavor=self.flavor, warn=False)
 
         # Compute the maximum number of tuples
-        self._v_maxTuples = self._calcMaxTuples(self.nrows)
+        expectedsizeinKB = numpy.product(self.shape) * \
+                           self.atom.atomsize() / 1024
+        self._v_buffersize = calcBufferSize(expectedsizeinKB)
+        self._v_maxTuples = self._calcMaxTuples(self.itemsize,
+                                                self._v_chunkshape)
 
         return oid
 

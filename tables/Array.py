@@ -190,21 +190,20 @@ class Array(hdf5Extension.Array, Leaf):
     def _calcChunkshape(self, atomsize, expectedrows):
         """Calculate the HDF5 chunk size."""
 
-        rowsize = atomsize
-        for i in self.shape:
-            if i > 0:
-                rowsize *= i
-        expectedsizeinKb = (expectedrows * rowsize) / 1024
-        self._v_buffersize = buffersize = calcBufferSize(expectedsizeinKb)
-
-        # In case of a scalar shape, return the unit chunksize
-        if self.shape == ():
-            return (1,)
-
         if hasattr(self, 'extdim') and self.extdim != -1:
             extdim = self.extdim
         else:
             extdim = 0   # choose the first dimension
+
+        rowsize = atomsize
+        for i, dim in enumerate(self.shape):
+            if i != extdim:
+                rowsize *= dim
+        expectedsizeinKB = (expectedrows * rowsize) / 1024
+        self._v_buffersize = buffersize = calcBufferSize(expectedsizeinKB)
+        # In case of a scalar shape, return the unit chunksize
+        if self.shape == ():
+            return (1,)
 
         # Max Tuples to fill the buffer
         maxTuples = buffersize // (rowsize * CHUNKTIMES)
@@ -223,7 +222,7 @@ class Array(hdf5Extension.Array, Leaf):
                 for i in chunkshape[j+1:]:
                     newrowsize *= i
                 maxTuples = buffersize // newrowsize
-                if maxTuples >= 1:
+                if maxTuples >= 1 and newrowsize < 16000:
                     break
                 chunkshape[j] = 1
             # Compute the chunkshape correctly for this j index
@@ -241,9 +240,15 @@ class Array(hdf5Extension.Array, Leaf):
     def _calcMaxTuples(self, atomsize, chunkshape):
         """Calculate the maximun number of tuples for buffers."""
 
+        if hasattr(self, 'extdim') and self.extdim != -1:
+            extdim = self.extdim
+        else:
+            extdim = 0   # choose the first dimension
+
         rowsize = atomsize
-        for i in chunkshape:
-            rowsize *= i
+        for i, dim in enumerate(self.shape):
+            if i != extdim:
+                rowsize *= dim
         maxTuples = self._v_buffersize // rowsize
         # Safeguard against row sizes being extremely large
         if maxTuples == 0:
@@ -252,7 +257,7 @@ class Array(hdf5Extension.Array, Leaf):
 
 
     def _g_create(self):
-        """Save a fresh array (i.e., not present on HDF5 file)."""
+        """Save a new array in file."""
 
         self._v_version = obversion
         try:
