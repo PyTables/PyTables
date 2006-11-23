@@ -17,14 +17,14 @@ root = fileh.root
 
 # A test with VL length arrays:
 vlarray = fileh.createVLArray(root, 'vlarray1', Int32Atom(),
-                               "ragged array if ints")
+                              "ragged array of ints")
 vlarray.append(array([5, 6]))
 vlarray.append(array([5, 6, 7]))
 vlarray.append([5, 6, 9, 8])
 
 # Test with lists of bidimensional vectors
 vlarray = fileh.createVLArray(root, 'vlarray2', Int64Atom(shape=(2,)),
-                               "Ragged array of vectors")
+                              "Ragged array of vectors")
 a = array([[1,2],[1, 2]], type=Int64)
 vlarray.append(a)
 vlarray.append(array([[1,2],[3, 4]], type=Int64))
@@ -43,9 +43,9 @@ vlarray.append(["456", "3"])
 # This makes an error because of different string sizes than declared
 #vlarray.append(["1234", "456", "3"])
 
-# String flavor
+# Python flavor
 vlarray = fileh.createVLArray(root, 'vlarray3b', StringAtom(length=3,
-                                                            flavor="String"),
+                                                            flavor="python"),
                                "Ragged array of strings")
 vlarray.append(["123", "456", "3"])
 vlarray.append(["456", "3"])
@@ -60,7 +60,7 @@ vlarray.append(array(cPickle.dumps((["123", "456"], "3")),type=UInt8))
 # However, both approachs seems to work well
 vlarray = fileh.createVLArray(root, 'vlarray5', ObjectAtom(),
                               "pickled object")
-vlarray.append(["123", "456"], "3")
+vlarray.append(["123", "456", "3"])
 # Boolean arrays are supported as well
 vlarray = fileh.createVLArray(root, 'vlarray6', BoolAtom(),
                                "Boolean atoms")

@@ -37,10 +37,10 @@ import numpy
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRangeRead, convertToNPAtom, convToFlavor, \
-     idx2long, byteorders
+     idx2long, byteorders, calcBufferSize
 from tables.Atom import Atom, ObjectAtom, VLStringAtom, StringAtom, EnumAtom
 from tables.Leaf import Leaf
-
+from tables.constants import CHUNKTIMES
 
 
 __version__ = "$Revision$"
@@ -50,35 +50,6 @@ __version__ = "$Revision$"
 #obversion = "1.0"    # add support for complex datatypes
 #obversion = "1.1"    # This adds support for time datatypes.
 obversion = "1.2"    # This adds support for enumerated datatypes.
-
-
-# XXX el calcul de sota esta completament malament!
-def calcChunkSize(expectedsizeinMB, complevel):
-    """Computes the optimum value for the chunksize"""
-    if expectedsizeinMB <= 100:
-        # Values for files less than 100 KB of size
-        chunksize = 1024
-    elif (expectedsizeinMB > 100 and
-          expectedsizeinMB <= 1000):
-        # Values for files less than 1 MB of size
-        chunksize = 2048
-    elif (expectedsizeinMB > 1000 and
-          expectedsizeinMB <= 20 * 1000):
-        # Values for sizes between 1 MB and 20 MB
-        chunksize = 4096
-    elif (expectedsizeinMB > 20 * 1000 and
-          expectedsizeinMB <= 200 * 1000):
-        # Values for sizes between 20 MB and 200 MB
-        chunksize = 8192
-    else:  # Greater than 200 MB
-        chunksize = 16384
-
-    # Correction for compression.
-    if complevel:
-        chunksize = 1024   # This seems optimal for compression
-
-    return chunksize
-
 
 
 class VLArray(hdf5Extension.VLArray, Leaf):
@@ -144,7 +115,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             information about the desired I/O filters to be applied
             during the life of this object.
 
-        expectedsizeinMB -- An user estimate about the size (in MB) in
+        expectedsizeinMB -- An user estimate about the size (in MB) of
             the final VLArray object. If not provided, the default
             value is 1 MB.  If you plan to create both much smaller or
             much bigger Arrays try providing a guess; this will
@@ -204,6 +175,25 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         super(VLArray, self).__init__(parentNode, name, new, filters, _log)
 
 
+    def _calcChunksize(self, expectedsizeinMB):
+        """Calculate the maxTuples for a buffer and HDF5 chunk size."""
+
+        expectedsizeinKB = expectedsizeinMB * 1024
+        buffersize = calcBufferSize(expectedsizeinKB)
+
+        # For computing the chunksize for HDF5 VL types, we have to
+        # choose the itemsize of the *each* element of the atom
+        # and not the size of the entire atom.
+        # F. Altet 2006-11-23
+        elemsize = self.atom.dtype.itemsize
+        # Set the chunksize
+        chunksize = buffersize // (elemsize * CHUNKTIMES)
+        # Safeguard against atoms being extremely large
+        if chunksize == 0:
+            chunksize = 1
+        return chunksize
+
+
     def _g_create(self):
         """Create a variable length array (ragged array)."""
 
@@ -223,12 +213,8 @@ be zero."""
         self.flavor = self.atom.flavor
 
         # Compute the optimal chunksize
-#         self._v_buffersize = calcBufferSize(self._v_expectedsizeinMB*1024)
-#         self._v_chunkshape = self._calcChunkshape(self._basesize,
-#                                                  self._v_expectedrows)
-        self._v_chunkshape = calcChunkSize(self._v_expectedsizeinMB,
-                                           self.filters.complevel)
-        self.nrows = 0     # No rows in creation time
+        self._v_chunkshape = self._calcChunksize(self._v_expectedsizeinMB)
+        self.nrows = 0     # No rows at creation time
 
         self._v_objectID = self._createArray(self._v_new_title)
         return self._v_objectID
@@ -403,7 +389,6 @@ please put them in a single sequence object"""),
             nparr = None
 
         self._append(nparr, nobjects)
-
         self.nrows += 1
 
 

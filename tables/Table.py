@@ -643,8 +643,8 @@ class Table(TableExtension.Table, Leaf):
     def _calcMTuplesAndCSizes(self, rowsize, expectedrows):
         """Calculate the maxTuples for a buffer and HDF5 chunk size."""
 
-        expectedfsizeinKb = expectedrows * rowsize / 1024
-        buffersize = calcBufferSize(expectedfsizeinKb)
+        expectedsizeinKB = expectedrows * rowsize / 1024
+        buffersize = calcBufferSize(expectedsizeinKB)
 
         # Max Tuples to fill the buffer
         maxTuples = buffersize // rowsize
