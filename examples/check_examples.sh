@@ -17,6 +17,7 @@ python tutorial1-2.py
 #python tutorial2.py   # This should always fail at the beginning
 python vlarray1.py
 python vlarray2.py
+python vlarray3.py
 python nested1.py
 python nested-tut.py
 python nested-iter.py

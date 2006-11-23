@@ -1,102 +1,27 @@
 #!/usr/bin/env python
-# -*- coding: latin-1 -*-
 
-""" Small example that shows how to work with variable length arrays of
-different types, UNICODE strings and general Python objects included. """
+"""Example that shows how to easily save a variable number of atoms
+with a VLArray."""
 
-from numarray import *
-from numarray import strings
-from numarray import records
-from tables import *
-import cPickle
+import numpy
+import tables
 
-# Open a new empty HDF5 file
-fileh = openFile("vlarray3.h5", mode = "w")
-# Get the root group
-root = fileh.root
+N = 100
+shape = (3,3)
 
-# A test with VL length arrays:
-vlarray = fileh.createVLArray(root, 'vlarray1', Int32Atom(),
-                               "ragged array if ints")
-vlarray.append(array([5, 6]))
-vlarray.append(array([5, 6, 7]))
-vlarray.append([5, 6, 9, 8])
+numpy.random.seed(10)  # For reproductible results
+f = tables.openFile("vlarray3.h5", mode = "w")
+vlarray = f.createVLArray(f.root, 'vlarray1',
+                          tables.Float64Atom(shape=shape),
+                          "ragged array of arrays")
 
-# Test with lists of bidimensional vectors
-vlarray = fileh.createVLArray(root, 'vlarray2', Float64Atom(shape=(2,)),
-                               "Ragged array of vectors")
-a = array([[1.0001,2.992],[1, 2.13],[45, 543.21]], type=Float64)
-vlarray.append(a)
-vlarray.append(array([[1,2],[3, 4]], type=Float64))
-vlarray.append(zeros(type=Float64, shape=(0,2)))
-vlarray.append(array([[5, 6]], type=Float64))
-vlarray.append(array([[5, 6]]*10, type=Float64))
-# This makes an error (shape)
-#vlarray.append(array([[5], [6]], type=Int64))
-# This makes an error (type)
-#vlarray.append(array([[5, 6]], type=UInt64))
+k = 0
+for i in xrange(N):
+    l = []
+    for j in xrange(numpy.random.randint(N)):
+        l.append(numpy.random.randn(*shape))
+        k += 1
+    vlarray.append(l)
 
-# Test with strings
-vlarray = fileh.createVLArray(root, 'vlarray3', StringAtom(length=10),
-#                                                           flavor="String"),
-                               "Ragged array of strings")
-vlarray.append(["This is", "a", "raggged", "array", "of", "strings"])
-vlarray.append(["That's", "all", "folks"])
-# This makes an error because of different string sizes than declared
-#vlarray.append(["1234", "456", "3"])
-
-# String flavor
-vlarray = fileh.createVLArray(root, 'vlarray3b', StringAtom(length=3,
-                                                            flavor="String"),
-                               "Ragged array of strings")
-vlarray.append(["123", "456", "3"])
-vlarray.append(["456", "3"])
-
-# Binary strings
-vlarray = fileh.createVLArray(root, 'vlarray4', UInt8Atom(),
-                              "pickled bytes")
-vlarray.append(array(cPickle.dumps((["123", "456"], "3")),type=UInt8))
-
-# In next example, the length of the array should be the same than before,
-# but it is not: it is sligthly greater!. This should be investigated?
-# However, both approachs seems to work well
-vlarray = fileh.createVLArray(root, 'vlarray5', ObjectAtom(),
-                              "pickled object")
-vlarray.append(["123", "456"], "3")
-# Boolean arrays are supported as well
-vlarray = fileh.createVLArray(root, 'vlarray6', BoolAtom(),
-                               "Boolean atoms")
-# The next lines are equivalent...
-vlarray.append([1,0])
-vlarray.append([1,0,3,0])  # This will be converted to a boolean
-# This gives a TypeError
-#vlarray.append([1,0,1])
-
-# Unicode variable length strings (latin-1 encoding
-vlarray = fileh.createVLArray(root, 'vlarray7', VLStringAtom(),
-                              "Variable Length String")
-vlarray.append(u"asd")
-vlarray.append(u"aaañá")
-
-# Unicode variable length strings (utf-8 encoding)
-vlarray = fileh.createVLArray(root, 'vlarray8', VLStringAtom(),
-                               "Variable Length String")
-vlarray.append(u"aaañá")
-vlarray.append(u"")   # The empty string
-vlarray.append(u"asd")
-
-# Close the file
-fileh.close()
-
-# Open the file for reading
-fileh = openFile("vlarray3.h5", mode = "r")
-# Get the root group
-root = fileh.root
-
-for object in fileh.listNodes(root, "Leaf"):
-    arr = object.read()
-    print object.name, "-->", arr
-    print "number of objects in this row:", len(arr)
-
-# Close the file
-fileh.close()
+print "Total number of atoms:", k
+f.close()
