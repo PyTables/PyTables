@@ -397,7 +397,7 @@ class TempFileMixin:
 
         self.h5file.close()
         self.h5file = None
-        ###os.remove(self.h5fname)   # comment this for debugging purposes only
+        os.remove(self.h5fname)   # comment this for debugging purposes only
 
 
     def _reopen(self, mode='r'):
