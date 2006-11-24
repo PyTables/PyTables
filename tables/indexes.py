@@ -69,7 +69,6 @@ def calcChunksize(expectedrows, optlevel, testmode):
         optmedian, optstarts, optstops, optfull = (True, False, False, False)
     else:
         optmedian, optstarts, optstops, optfull = (False, False, False, False)
-        
 
     if testmode:
         if 0 <= optlevel < 9:
@@ -428,7 +427,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         extdim -- The enlargeable dimension (always the first, or 0).
         nrows -- The number of slices in index.
         slicesize -- The number of elements per slice.
-        chunksize -- The HDF5 chunksize for the slice dimension (the 1).
+        chunksize -- The HDF5 chunksize for the slice dimension (the second, or 1).
 
     """
 

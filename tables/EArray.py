@@ -31,7 +31,7 @@ import sys
 import numpy
 
 from tables.constants import EXPECTED_ROWS_EARRAY
-from tables.utils import convertToNPAtom, processRangeRead, calcBufferSize
+from tables.utils import convertToNPAtom, processRangeRead
 from tables.Atom import Atom, EnumAtom, StringAtom, Time32Atom, Time64Atom
 from tables.Array import Array
 
@@ -58,12 +58,6 @@ class EArray(Array):
 
     Methods (Specific of EArray):
         append(sequence)
-
-    Instance variables (Specific of EArray):
-
-        extdim -- The enlargeable dimension.
-        nrows -- The value of the enlargeable dimension.
-
 
     """
 
@@ -124,6 +118,8 @@ class EArray(Array):
         """Whether the *Array objects has to be converted or not."""
         self.shape = None
         """The shape of the stored array."""
+        self.extdim = None
+        """The index of the enlargeable dimension."""
         self._enum = None
         """The enumerated type containing the values in this array."""
 
@@ -166,13 +162,6 @@ class EArray(Array):
         the atomic objects to be saved.  One of the dimensions of the
         shape is 0, meaning that the array can be extended along it.
         """
-        self.extdim = None
-        """
-        The enlargeable dimension, i.e. the dimension this array can
-        be extended along.
-        """
-        self.nrows = None
-        """The length of the enlargeable dimension of the array."""
 
         if new:
             if shape is None:
@@ -221,12 +210,12 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
             raise ValueError, \
                   "When creating EArrays, you need to set one of the dimensions of the Atom instance to zero."
 
-        # Compute some values for buffering and I/O parameters
-        self._v_chunkshape = self._calcChunkshape(self.itemsize,
-                                                  self._v_expectedrows)
-        self._v_maxTuples = self._calcMaxTuples(self.itemsize,
-                                                self._v_chunkshape)
-        self.nrows = 0   # No rows initially
+        # Compute the chunksize, if needed
+        if self._v_chunkshape is None:
+            self._v_chunkshape = self._calcChunkshape(self._v_expectedrows)
+
+        # Compute the buffer size for copying purposes
+        self._v_maxTuples = self._calcMaxTuples(self._v_expectedrows)
 
         self._v_objectID = self._createEArray(self._v_new_title)
         return self._v_objectID
@@ -262,12 +251,8 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
             typeclass = getattr(atom_mod, typeclassname)
             self.atom = typeclass(flavor=flavor, warn=False)
 
-        # nrows in this instance
-        self.nrows = self.shape[self.extdim]
         # Compute the optimal buffer sizes
-        self._v_chunkshape = self._calcChunkshape(self.itemsize, self.nrows)
-        self._v_maxTuples = self._calcMaxTuples(self.itemsize,
-                                                self._v_chunkshape)
+        self._v_maxTuples = self._calcMaxTuples(self.nrows)
 
         return self._v_objectID
 
@@ -334,8 +319,9 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
                          title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf"
         # Build the new EArray object
+        maindim = self.maindim
         shape = list(self.shape)
-        shape[self.extdim] = 0
+        shape[maindim] = 0
         object = EArray(
             group, name, atom=self.atom, shape=shape, title=title,
             filters=filters, expectedrows=self.nrows, _log=_log)
@@ -354,7 +340,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
             if stop2 > stop:
                 stop2 = stop
             # Set the proper slice in the extensible dimension
-            slices[self.extdim] = slice(start2, stop2, step)
+            slices[maindim] = slice(start2, stop2, step)
             object._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
         self._v_convert = True
@@ -370,7 +356,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         return """%s
   atom := %r
   shape := %r
-  extdim := %r
+  maindim := %r
   flavor := %r
-  byteorder := %r""" % (self, self.atom, self.shape, self.extdim,
+  byteorder := %r""" % (self, self.atom, self.shape, self.maindim,
                         self.flavor, self.byteorder)

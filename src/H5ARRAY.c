@@ -56,7 +56,7 @@ herr_t H5ARRAYmake( hid_t loc_id,
  int     chunked = 0;
  int     i;
 
- /* Check if the array has to be chunked or not */
+ /* Check whether the array has to be chunked or not */
  if (dims_chunk) {
    chunked = 1;
  }

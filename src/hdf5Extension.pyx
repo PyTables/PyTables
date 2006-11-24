@@ -1074,7 +1074,6 @@ cdef class Array(Leaf):
     shape = list(self.shape)
     shape[self.extdim] = self.dims[self.extdim]
     self.shape = tuple(shape)
-    self.nrows = self.dims[self.extdim]
 
 
   def _modify(self, ndarray startl, ndarray stepl, ndarray countl,
@@ -1118,7 +1117,6 @@ cdef class Array(Leaf):
     shape = list(self.shape)
     shape[self.extdim] = size
     self.shape = tuple(shape)
-    self.nrows = size
 
 
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step,

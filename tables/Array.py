@@ -79,11 +79,14 @@ class Array(hdf5Extension.Array, Leaf):
 
         flavor -- The object representation of this array.
         nrows -- The length of the first dimension of the array.
+        extdim -- The extendable dimension (-1 if dataset is not extendable).
+        maindim -- The dimension on which iterators do work.
+        rowsize -- The size (in bytes) of the row in dimensions orthogonal to maindim.
         nrow -- On iterators, this is the index of the current row.
         dtype -- The NumPy type of the represented array.
         ptype -- The PyTables type of the represented array.
-        itemsize -- The size of the base dtype (shortcut).
-        byteorder --  The byte ordering of the base dtype (shortcut).
+        itemsize -- The size of the base dtype.
+        byteorder --  The byte ordering of the base dtype.
 
     """
 
@@ -100,6 +103,36 @@ class Array(hdf5Extension.Array, Leaf):
     itemsize = property(
         lambda self: self.dtype.itemsize, None, None,
         "The size of the base items (shortcut for self.dtype.itemsize).")
+
+    def _getmaindim(self):
+        if self.extdim > 0:
+            return self.extdim
+        else:
+            return 0   # choose the first dimension
+    maindim = property(
+        _getmaindim, None, None,
+        "The main (enlargeable or first) dimension of the array.")
+
+    def _getnrows(self):
+        if self.shape == ():
+            return 1  # scalar case
+        else:
+            return self.shape[self.maindim]
+    nrows = property(
+        _getnrows, None, None,
+        "The length of the main dimension of the array.")
+
+    def _getrowsize(self):
+        maindim = self.maindim
+        rowsize = self.itemsize
+        for i, dim in enumerate(self.shape):
+            if i != maindim:
+                rowsize *= dim
+        return rowsize
+    rowsize = property(
+        _getrowsize, None, None,
+        "The size of the rows in dimensions orthogonal to maindim.")
+
 
     # </properties>
 
@@ -172,8 +205,6 @@ class Array(hdf5Extension.Array, Leaf):
         self.flavor = None
         """The object representation of this array.  It can be any of
         'numpy', 'numarray', 'numeric' or 'python' values."""
-        self.nrows = None
-        """The length of the first dimension of the array."""
         self.nrow = None
         """On iterators, this is the index of the current row."""
         self.dtype = None
@@ -187,36 +218,30 @@ class Array(hdf5Extension.Array, Leaf):
         super(Array, self).__init__(parentNode, name, new, Filters(), _log)
 
 
-    def _calcChunkshape(self, atomsize, expectedrows):
+    def _calcChunkshape(self, expectedrows):
         """Calculate the HDF5 chunk size."""
 
-        if hasattr(self, 'extdim') and self.extdim != -1:
-            extdim = self.extdim
-        else:
-            extdim = 0   # choose the first dimension
-
-        rowsize = atomsize
-        for i, dim in enumerate(self.shape):
-            if i != extdim:
-                rowsize *= dim
+        atomsize = self.itemsize
+        rowsize = self.rowsize
         expectedsizeinKB = (expectedrows * rowsize) / 1024
         self._v_buffersize = buffersize = calcBufferSize(expectedsizeinKB)
         # In case of a scalar shape, return the unit chunksize
         if self.shape == ():
             return (1,)
 
+        maindim = self.maindim
         # Max Tuples to fill the buffer
         maxTuples = buffersize // (rowsize * CHUNKTIMES)
         chunkshape = list(self.shape)
         # Check if at least 1 tuple fits in buffer
         if maxTuples >= 1:
-            # Yes. So the chunk sizes for the non-extendeable dims will be
+            # Yes. So the chunk sizes for the non-extendable dims will be
             # unchanged
-            chunkshape[extdim] = maxTuples
+            chunkshape[maindim] = maxTuples
         else:
             # No. reduce other dimensions until we get a proper chunkshape
             # shape
-            chunkshape[extdim] = 1  # Only one row in extendeable dimension
+            chunkshape[maindim] = 1  # Only one row in extendable dimension
             for j in range(len(chunkshape)):
                 newrowsize = atomsize
                 for i in chunkshape[j+1:]:
@@ -237,18 +262,12 @@ class Array(hdf5Extension.Array, Leaf):
         return tuple(chunkshape)
 
 
-    def _calcMaxTuples(self, atomsize, chunkshape):
+    def _calcMaxTuples(self, expectedrows):
         """Calculate the maximun number of tuples for buffers."""
 
-        if hasattr(self, 'extdim') and self.extdim != -1:
-            extdim = self.extdim
-        else:
-            extdim = 0   # choose the first dimension
-
-        rowsize = atomsize
-        for i, dim in enumerate(self.shape):
-            if i != extdim:
-                rowsize *= dim
+        rowsize = self.rowsize
+        expectedsizeinKB = (expectedrows * rowsize) / 1024
+        self._v_buffersize = calcBufferSize(expectedsizeinKB)
         maxTuples = self._v_buffersize // rowsize
         # Safeguard against row sizes being extremely large
         if maxTuples == 0:
@@ -276,18 +295,8 @@ class Array(hdf5Extension.Array, Leaf):
         # Decrease the number of references to the object
         self._object = None
 
-        if nparr.shape:
-            expectedrows = nparr.shape[0]
-        else:
-            expectedrows = 1  # Scalar case
-
-        # If shape has not been assigned yet, assign it.
-        if self.shape is None:
-            self.shape = nparr.shape
-        if self.shape != ():
-            self.nrows = nparr.shape[0]
-        else:
-            self.nrows = 1    # Scalar case
+        # The shape of this array
+        self.shape = nparr.shape
 
         # Create the array on-disk
         try:
@@ -299,8 +308,7 @@ class Array(hdf5Extension.Array, Leaf):
             raise
 
         # Compute the optimal buffer sizes
-        chunkshape = self._calcChunkshape(self.itemsize, expectedrows)
-        self._v_maxTuples = self._calcMaxTuples(self.itemsize, chunkshape)
+        self._v_maxTuples = self._calcMaxTuples(self.nrows)
         return self._v_objectID
 
 
@@ -313,19 +321,9 @@ class Array(hdf5Extension.Array, Leaf):
         # Get enumeration from disk.
         if self.ptype == 'Enum':
             (self._enum, self.dtype) = self._g_loadEnum()
-        # Compute the rowsize for each element
-        rowsize = self.itemsize
-        for i in xrange(len(self.shape)):
-            rowsize *= self.shape[i]
-        # Assign a value to nrows in case we are a non-enlargeable object
-        if self.shape:
-            self.nrows = self.shape[0]
-        else:
-            self.nrows = 1L   # Scalar case
 
         # Compute the optimal buffer sizes
-        chunkshape = self._calcChunkshape(self.itemsize, self.nrows)
-        self._v_maxTuples = self._calcMaxTuples(self.itemsize, chunkshape)
+        self._v_maxTuples = self._calcMaxTuples(self.nrows)
 
         return self._v_objectID
 
@@ -598,17 +596,14 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
     def read(self, start=None, stop=None, step=None):
         """Read the array from disk and return it as a self.flavor object."""
 
-        if self.extdim < 0:
-            extdim = 0
-        else:
-            extdim = self.extdim
+        maindim = self.maindim
 
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         #rowstoread = ((stop - start - 1) / step) + 1
         rowstoread = len(xrange(start, stop, step))
         shape = list(self.shape)
         if shape:
-            shape[extdim] = rowstoread
+            shape[maindim] = rowstoread
             shape = tuple(shape)
         arr = numpy.empty(dtype=self.dtype, shape=shape)
         # Set the correct byteorder for this array
@@ -653,8 +648,9 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         return """%s
   ptype := %r
   shape := %r
+  maindim := %r
   flavor := %r
-  byteorder := %r""" % (self, self.ptype, self.shape,
+  byteorder := %r""" % (self, self.ptype, self.shape, self.maindim,
                         self.flavor, self.byteorder)
 
 

@@ -7557,6 +7557,26 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
         </glossentry>
 
         <glossentry>
+        <glossterm><emphasis role="bold">extdim</emphasis></glossterm>
+        <glossdef><para>The extendable dimension, i.e. the dimension this
+        array can be extended along.  It takes the -1 value if array is not
+        extendable.</para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">maindim</emphasis></glossterm>
+        <glossdef><para>The dimension along which iterators do work.  It takes
+        the 0 value if dataset is not extendable and self.extdim for
+        extendable arrays.</para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">rowsize</emphasis></glossterm>
+        <glossdef><para>The size (in bytes) of the row in dimensions
+        orthogonal to maindim.</para></glossdef>
+        </glossentry>
+
+        <glossentry>
         <glossterm><emphasis role="bold">nrow</emphasis></glossterm>
         <glossdef><para>On iterators, this is the index of the current row.
         </para></glossdef>
@@ -7876,13 +7896,6 @@ Object Tree:
         </glossentry>
 
         <glossentry>
-        <glossterm><emphasis role="bold">extdim</emphasis></glossterm>
-
-        <glossdef><para>The enlargeable dimension, i.e. the dimension this
-        array can be extended along.</para></glossdef>
-        </glossentry>
-
-        <glossentry>
         <glossterm><emphasis role="bold">nrows</emphasis></glossterm>
         <glossdef><para>The length of the enlargeable dimension of the
         array.</para></glossdef>
@@ -7957,21 +7970,22 @@ array_c[4] => 'cccccccc']]></screen>
 	<section id="VLArrayClassDescr">
 	  <title>The <literal>VLArray</literal> class</title>
 
-	  <para>Instances of this class represents array objects in the
-	    object tree with the property that their rows can have a
-	    <emphasis>variable</emphasis> number of
-	    (homogeneous) elements (called <emphasis>atomic</emphasis> objects, or
-	    just <emphasis>atoms</emphasis>). Variable length arrays (or
-	    <emphasis>VLA's</emphasis> for short), similarly to <literal>Table</literal>
-	    instances, can have only one dimension, and likewise
-	    <literal>Table</literal>, the compound elements (the
-	    <emphasis>atoms</emphasis>) of the rows of <literal>VLArrays</literal> can be
-	    fully multidimensional objects.
+	  <para>Instances of this class represents array objects in the object
+	    tree with the property that their rows can have a
+	    <emphasis>variable</emphasis> number of (homogeneous) elements
+	    (called <emphasis>atomic</emphasis> objects, or just
+	    <emphasis>atoms</emphasis>). Variable length arrays (or
+	    <emphasis>VLA's</emphasis> for short), similarly to
+	    <literal>Table</literal> instances, can have only one dimension,
+	    and likewise <literal>Table</literal>, the compound elements (the
+	    <emphasis>atoms</emphasis>) of the rows of
+	    <literal>VLArrays</literal> can be fully multidimensional objects.
 	  </para>
 	  <para><literal>VLArray</literal> provides methods to read/write data
-	    from/to variable length array objects residents on disk.
-	    Also, note that this object inherits all the public
-	    attributes and methods that <literal>Leaf</literal> already has.
+	    from/to variable length array objects residents on disk.  Also,
+	    note that this object inherits all the public attributes and
+	    methods that <literal>Leaf</literal> (not
+	    <literal>Array</literal>, beware!) already has.
 	  </para>
 
 	  <section>
@@ -8013,24 +8027,26 @@ array_c[4] => 'cccccccc']]></screen>
 	      <para>Get the enumerated type associated with this array.
 	      </para>
 
-	      <para>If this array is of an enumerated type, the
-		corresponding <literal>Enum</literal> instance (see <xref xrefstyle="select: labelnumber" linkend="EnumClassDescr"/>) is returned.  If it is
-		not of an enumerated type, a <literal>TypeError</literal> is
-		raised.
+	      <para>If this array is of an enumerated type, the corresponding
+		<literal>Enum</literal> instance (see <xref xrefstyle="select:
+		labelnumber" linkend="EnumClassDescr"/>) is returned.  If it
+		is not of an enumerated type, a <literal>TypeError</literal>
+		is raised.
 	      </para>
 	    </section>
 
 	    <section id="VLArray.append">
 	      <title>append(sequence, *objects)</title>
 
-	      <para>Append objects in the <literal>sequence</literal> to the array.</para>
+	      <para>Append objects in the <literal>sequence</literal> to the
+	      array.</para>
 
-	      <para>This method appends the objects in the <literal>sequence</literal>
-		to a <emphasis>single row</emphasis> in this array.
-		The type of individual objects must be compliant with
-		the type of atoms in the array.
-		In the case of variable length strings, the very string to append
-		is the <literal>sequence</literal>.
+	      <para>This method appends the objects in the
+		<literal>sequence</literal> to a <emphasis>single
+		row</emphasis> in this array.  The type of individual objects
+		must be compliant with the type of atoms in the array.  In the
+		case of variable length strings, the very string to append is
+		the <literal>sequence</literal>.
 	      </para>
 
 	      <para>Example of use (code available in
@@ -8073,23 +8089,26 @@ vlarray1[2]--> [5 6 9 8]]]></screen>
 	      <title>iterrows(start=None,
 		stop=None, step=1)</title>
 
-	      <para>Returns an iterator yielding one row per iteration. If
-		a range is supplied (i.e. some of the <emphasis>start</emphasis>,
-		<emphasis>stop</emphasis> or <emphasis>step</emphasis> parameters are passed),
-		only the appropriate rows are returned. Else, all the
-		rows are returned. See also the <literal>__iter__()</literal>
-		special methods in <xref xrefstyle="select: label" linkend="VLArraySpecialMethods"/> for a
-		shorter way to call this iterator.
+	      <para>Returns an iterator yielding one row per iteration. If a
+		range is supplied (i.e. some of the
+		<emphasis>start</emphasis>, <emphasis>stop</emphasis> or
+		<emphasis>step</emphasis> parameters are passed), only the
+		appropriate rows are returned. Else, all the rows are
+		returned. See also the <literal>__iter__()</literal> special
+		methods in <xref xrefstyle="select: label"
+		linkend="VLArraySpecialMethods"/> for a shorter way to call
+		this iterator.
 	      </para>
-	      <para>The meaning of the <emphasis>start</emphasis>, <emphasis>stop</emphasis> and
-		<emphasis>step</emphasis> parameters is the same as in the
-		<literal>range()</literal> python function, except that
-		negative values of <literal>step</literal> are not
-		allowed. Moreover, if only <literal>start</literal> is
-		specified, then <literal>stop</literal> will be set to
+	      <para>The meaning of the <emphasis>start</emphasis>,
+		<emphasis>stop</emphasis> and <emphasis>step</emphasis>
+		parameters is the same as in the <literal>range()</literal>
+		python function, except that negative values of
+		<literal>step</literal> are not allowed. Moreover, if only
+		<literal>start</literal> is specified, then
+		<literal>stop</literal> will be set to
 		<literal>start+1</literal>. If you do not specify neither
-		<emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then all the rows in
-		the object are selected.
+		<emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then
+		all the rows in the object are selected.
 	      </para>
 
 	      <para>Example of use:</para>
@@ -13898,7 +13917,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
             role="bold">EXTDIM</emphasis></glossterm>
 
             <glossdef><para>(<emphasis>Integer</emphasis>) Must be set to the
-            extensible dimension. Only one extensible dimension is supported
+            extendable dimension. Only one extendable dimension is supported
             right now. </para></glossdef></glossentry>
 
             <glossentry><glossterm><emphasis

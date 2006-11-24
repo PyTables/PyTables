@@ -33,7 +33,7 @@ import numpy
 
 from tables.Atom import Atom, StringAtom
 from tables.Array import Array
-from tables.utils import processRangeRead, calcBufferSize
+from tables.utils import processRangeRead
 
 
 __version__ = "$Revision$"
@@ -70,15 +70,6 @@ class CArray(Array):
 
     # <properties>
 
-    def _g_getnrows(self):
-        if not self.shape:
-            return 1  # scalar case
-        else:
-            return self.shape[0]
-
-    nrows = property(
-        _g_getnrows, None, None,
-        "The length of the enlargeable dimension of the array.")
 
     # </properties>
 
@@ -208,7 +199,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s
 
 
     def _g_create(self):
-        """Create a fresh array (i.e., not present on HDF5 file)."""
+        """Create a new array in file."""
 
         if not isinstance(self.atom, Atom):
             raise TypeError(
@@ -224,16 +215,10 @@ atom parameter should be an instance of tables.Atom and you passed a %s
 
         # Compute the chunksize, if needed
         if self._v_chunkshape is None:
-            self._v_chunkshape = self._calcChunkshape(
-                self.itemsize, self.nrows)
-        else:
-            expectedsizeinKB = numpy.product(self.shape) * \
-                               self.atom.atomsize() / 1024
-            self._v_buffersize = calcBufferSize(expectedsizeinKB)
+            self._v_chunkshape = self._calcChunkshape(self.nrows)
 
         # Compute the buffer size for copying purposes
-        self._v_maxTuples = self._calcMaxTuples(self.itemsize,
-                                                self._v_chunkshape)
+        self._v_maxTuples = self._calcMaxTuples(self.nrows)
 
         try:
             return self._createEArray(self._v_new_title)
@@ -263,11 +248,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s
                              flavor=self.flavor, warn=False)
 
         # Compute the maximum number of tuples
-        expectedsizeinKB = numpy.product(self.shape) * \
-                           self.atom.atomsize() / 1024
-        self._v_buffersize = calcBufferSize(expectedsizeinKB)
-        self._v_maxTuples = self._calcMaxTuples(self.itemsize,
-                                                self._v_chunkshape)
+        self._v_maxTuples = self._calcMaxTuples(self.nrows)
 
         return oid
 
@@ -315,6 +296,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s
         return """%s
   atom := %r
   shape := %r
+  maindim := %r
   flavor := %r
-  byteorder := %r""" % (self, self.atom, self.shape,
+  byteorder := %r""" % (self, self.atom, self.shape, self.maindim,
                         self.flavor, self.byteorder)
