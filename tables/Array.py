@@ -49,6 +49,7 @@ from tables.utils import processRange, processRangeRead, convToFlavor, \
      convToNP, is_idx, byteorders, calcChunksize
 from tables.Leaf import Leaf, Filters
 from tables.constants import CHUNKTIMES, BUFFERTIMES, MB
+from tables.exceptions import PerformanceWarning
 
 
 __version__ = "$Revision$"

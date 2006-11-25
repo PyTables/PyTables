@@ -429,14 +429,10 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
 class GroupsArrayTestCase(unittest.TestCase):
     """This test class checks combinations of arrays with groups.
-    It also uses arrays ranks which ranges until 10.
     """
 
     def test00_iterativeGroups(self):
-
-        """Checking combinations of arrays with groups
-        It also uses arrays ranks which ranges until 10.
-        """
+        """Checking combinations of arrays with groups."""
 
         if verbose:
             print '\n', '-=' * 30
@@ -459,19 +455,13 @@ class GroupsArrayTestCase(unittest.TestCase):
         # http://projects.scipy.org/scipy/numpy/ticket/290
         typecodes = ['b','B','h','H','i','I','l','L','q','f','d','F','D']
 
-        i = 1
-        for typecode in typecodes:
-            # Create an array of typecode, with incrementally bigger ranges
-            a = numpy.ones((3,) * i, typecode)
-            # Save it on the HDF5 file
+        for i, typecode in enumerate(typecodes):
+            a = numpy.ones((3,), typecode)
             dsetname = 'array_' + typecode
             if verbose:
                 print "Creating dataset:", group._g_join(dsetname)
             hdfarray = fileh.createArray(group, dsetname, a, "Large array")
-            # Create a new group
             group = fileh.createGroup(group, 'group' + str(i))
-            # increment the range for next iteration
-            i += 1
 
         # Close the file
         fileh.close()
@@ -482,11 +472,11 @@ class GroupsArrayTestCase(unittest.TestCase):
         group = fileh.root
 
         # Get the metadata on the previosly saved arrays
-        for i in range(1,len(typecodes)):
+        for i in range(len(typecodes)):
             # Create an array for later comparison
-            a = numpy.ones((3,) * i, typecodes[i - 1])
+            a = numpy.ones((3,), typecodes[i])
             # Get the dset object hanging from group
-            dset = getattr(group, 'array_' + typecodes[i-1])
+            dset = getattr(group, 'array_' + typecodes[i])
             # Get the actual array
             b = dset.read()
             if verbose:
