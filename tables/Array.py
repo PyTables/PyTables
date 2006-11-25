@@ -221,43 +221,36 @@ class Array(hdf5Extension.Array, Leaf):
     def _calcChunkshape(self, expectedrows):
         """Calculate the HDF5 chunk size."""
 
-        atomsize = self.itemsize
-        rowsize = self.rowsize
-        expectedsizeinKB = (expectedrows * rowsize) / 1024
-        self._v_buffersize = buffersize = calcBufferSize(expectedsizeinKB)
         # In case of a scalar shape, return the unit chunksize
         if self.shape == ():
             return (1,)
 
+        # Compute the chunksize
+        expectedsizeinKB = (expectedrows * self.rowsize) / 1024
+        self._v_buffersize = buffersize = calcBufferSize(expectedsizeinKB)
+
         maindim = self.maindim
-        # Max Tuples to fill the buffer
-        maxTuples = buffersize // (rowsize * CHUNKTIMES)
+        # Compute the chunknitems (in itemsize units)
+        chunknitems = buffersize // (self.itemsize * CHUNKTIMES)
         chunkshape = list(self.shape)
-        # Check if at least 1 tuple fits in buffer
-        if maxTuples >= 1:
-            # Yes. So the chunk sizes for the non-extendable dims will be
-            # unchanged
-            chunkshape[maindim] = maxTuples
+        # Check whether trimming the main dimension is enough
+        chunkshape[maindim] = 1
+        newrowsize = numpy.prod(chunkshape)
+        if newrowsize <= chunknitems:
+            chunkshape[maindim] = chunknitems // newrowsize
         else:
-            # No. reduce other dimensions until we get a proper chunkshape
-            # shape
-            chunkshape[maindim] = 1  # Only one row in extendable dimension
-            for j in range(len(chunkshape)):
-                newrowsize = atomsize
-                for i in chunkshape[j+1:]:
-                    newrowsize *= i
-                maxTuples = buffersize // newrowsize
-                if maxTuples >= 1 and newrowsize < 16000:
-                    break
+            # Start trimming other dimensions as well
+            for j in xrange(len(chunkshape)):
+                # Check whether trimming this dimension is enough
                 chunkshape[j] = 1
-            # Compute the chunkshape correctly for this j index
-            chunksize = maxTuples
-            if j < len(chunkshape):
-                # Only modify chunkshape[j] if needed
-                if chunksize < chunkshape[j]:
-                    chunkshape[j] = chunksize
+                newrowsize = numpy.prod(chunkshape)
+                if newrowsize <= chunknitems:
+                    chunkshape[j] = chunknitems // newrowsize
+                    break
             else:
-                chunkshape[-1] = 1 # very large itemsizes!
+                # Ops, we ran out of the loop without a break
+                # Set the last dimension to chunknitems
+                chunkshape[-1] = chunknitems
 
         return tuple(chunkshape)
 
@@ -592,7 +585,6 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
             return convToFlavor(self, arr)
 
 
-    # Accessor for the _readArray method in superclass
     def read(self, start=None, stop=None, step=None):
         """Read the array from disk and return it as a self.flavor object."""
 
@@ -604,7 +596,6 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         shape = list(self.shape)
         if shape:
             shape[maindim] = rowstoread
-            shape = tuple(shape)
         arr = numpy.empty(dtype=self.dtype, shape=shape)
         # Set the correct byteorder for this array
         arr.dtype = arr.dtype.newbyteorder(self.byteorder)
@@ -618,7 +609,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
             # No conversion needed
             return arr
         # Fixes #968131
-        elif arr.shape == ():  # Scalar case
+        elif arr.shape == ():  # Scalar case and flavor is not 'numpy'
             return arr.item()  # return the python value
         else:
             return convToFlavor(self, arr)

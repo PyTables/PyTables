@@ -5,12 +5,13 @@
 import numpy, tables
 from time import time
 
-N = 20*1000
-M = 30
+L = 20
+N = 200
+M = 300
 
 recarray = numpy.empty(shape=2, dtype='(2,2,2)i4,(2,3,3)f8,i4,i8')
 
-f = tables.openFile("table4.h5", mode = "w")
+f = tables.openFile("chunkshape.h5", mode = "w")
 
 # t = f.createTable(f.root, 'table', recarray, "mdim recarray")
 
@@ -23,9 +24,62 @@ f = tables.openFile("table4.h5", mode = "w")
 # c1 = f.createCArray(f.root, 'cfield1',
 #                     tables.Float64Atom(), (2,3,3),
 #                     "mdim float64 carray")
-c2 = f.createCArray(f.root, 'cfield2',
-                    tables.Int32Atom(), (M, N),
-                    "scalar int32 carray")
+
+f1 = tables.openFile("chunkshape1.h5", mode = "w")
+c1 = f.createCArray(f1.root, 'cfield1',
+                    tables.Int32Atom(), (L, N, M),
+                    "scalar int32 carray", tables.Filters(complevel=0))
+
+t1=time()
+c1[:] = numpy.empty(shape=(L,1,1), dtype="int32")
+print "carray1 populate time:", time()-t1
+f1.close()
+
+
+f2 = tables.openFile("chunkshape2.h5", mode = "w")
+c2 = f.createCArray(f2.root, 'cfield2',
+                    tables.Int32Atom(), (L, M, N),
+                    "scalar int32 carray", tables.Filters(complevel=0))
+
+t1=time()
+c2[:] = numpy.empty(shape=(L,1,1), dtype="int32")
+print "carray2 populate time:", time()-t1
+f2.close()
+
+f0 = tables.openFile("chunkshape0.h5", mode = "w")
+e0 = f.createEArray(f0.root, 'efield0',
+                    tables.Int32Atom(), (0, L, M),
+                    "scalar int32 carray", tables.Filters(complevel=0),
+                    expectedrows=N)
+
+t1=time()
+e0.append(numpy.empty(shape=(N, L, M), dtype="int32"))
+print "earray0 populate time:", time()-t1
+f0.close()
+
+f1 = tables.openFile("chunkshape1.h5", mode = "w")
+e1 = f.createEArray(f1.root, 'efield1',
+                    tables.Int32Atom(), (L, 0, M),
+                    "scalar int32 carray", tables.Filters(complevel=0),
+                    expectedrows=N)
+
+t1=time()
+e1.append(numpy.empty(shape=(L, N, M), dtype="int32"))
+print "earray1 populate time:", time()-t1
+f1.close()
+
+
+f2 = tables.openFile("chunkshape2.h5", mode = "w")
+e2 = f.createEArray(f2.root, 'efield2',
+                    tables.Int32Atom(), (L, M, 0),
+                    "scalar int32 carray", tables.Filters(complevel=0),
+                    expectedrows=N)
+
+t1=time()
+e2.append(numpy.empty(shape=(L, M, N), dtype="int32"))
+print "earray2 populate time:", time()-t1
+f2.close()
+
 # t1=time()
 # c2[:] = numpy.empty(shape=(M, N), dtype="int32")
 # print "carray populate time:", time()-t1
