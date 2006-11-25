@@ -6,8 +6,9 @@ import numpy, tables
 from time import time
 
 L = 20
-N = 200
-M = 300
+N = 2000
+M = 30
+complevel = 1
 
 recarray = numpy.empty(shape=2, dtype='(2,2,2)i4,(2,3,3)f8,i4,i8')
 
@@ -39,7 +40,7 @@ f1.close()
 f2 = tables.openFile("chunkshape2.h5", mode = "w")
 c2 = f.createCArray(f2.root, 'cfield2',
                     tables.Int32Atom(), (L, M, N),
-                    "scalar int32 carray", tables.Filters(complevel=0))
+                    "scalar int32 carray", tables.Filters(complevel))
 
 t1=time()
 c2[:] = numpy.empty(shape=(L,1,1), dtype="int32")
@@ -49,7 +50,7 @@ f2.close()
 f0 = tables.openFile("chunkshape0.h5", mode = "w")
 e0 = f.createEArray(f0.root, 'efield0',
                     tables.Int32Atom(), (0, L, M),
-                    "scalar int32 carray", tables.Filters(complevel=0),
+                    "scalar int32 carray", tables.Filters(complevel),
                     expectedrows=N)
 
 t1=time()
@@ -60,7 +61,7 @@ f0.close()
 f1 = tables.openFile("chunkshape1.h5", mode = "w")
 e1 = f.createEArray(f1.root, 'efield1',
                     tables.Int32Atom(), (L, 0, M),
-                    "scalar int32 carray", tables.Filters(complevel=0),
+                    "scalar int32 carray", tables.Filters(complevel),
                     expectedrows=N)
 
 t1=time()
@@ -72,7 +73,7 @@ f1.close()
 f2 = tables.openFile("chunkshape2.h5", mode = "w")
 e2 = f.createEArray(f2.root, 'efield2',
                     tables.Int32Atom(), (L, M, 0),
-                    "scalar int32 carray", tables.Filters(complevel=0),
+                    "scalar int32 carray", tables.Filters(complevel),
                     expectedrows=N)
 
 t1=time()

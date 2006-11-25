@@ -37,10 +37,9 @@ import numpy
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRangeRead, convertToNPAtom, convToFlavor, \
-     idx2long, byteorders, calcBufferSize
+     idx2long, byteorders, calcChunksize
 from tables.Atom import Atom, ObjectAtom, VLStringAtom, StringAtom, EnumAtom
 from tables.Leaf import Leaf
-from tables.constants import CHUNKTIMES
 
 
 __version__ = "$Revision$"
@@ -138,8 +137,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 
         self._v_maxTuples = 100       # maybe enough for most applications
         """The maximum number of rows that are read on each chunk iterator."""
-        self._v_chunksize = None
-        """The HDF5 chunk size for ``VLArray`` objects."""
+        self._v_chunkshape = None
+        """The HDF5 chunk shape for ``VLArray`` objects (scalar)."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
@@ -175,23 +174,22 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         super(VLArray, self).__init__(parentNode, name, new, filters, _log)
 
 
-    def _calcChunksize(self, expectedsizeinMB):
-        """Calculate the maxTuples for a buffer and HDF5 chunk size."""
+    def _calcChunkshape(self, expectedsizeinMB):
+        """Calculate the size for the HDF5 chunk."""
 
-        expectedsizeinKB = expectedsizeinMB * 1024
-        buffersize = calcBufferSize(expectedsizeinKB)
+        chunksize = calcChunksize(expectedsizeinMB)
 
-        # For computing the chunksize for HDF5 VL types, we have to
+        # For computing the chunkshape for HDF5 VL types, we have to
         # choose the itemsize of the *each* element of the atom
         # and not the size of the entire atom.
         # F. Altet 2006-11-23
         elemsize = self.atom.dtype.itemsize
-        # Set the chunksize
-        chunksize = buffersize // (elemsize * CHUNKTIMES)
+        # Set the chunkshape
+        chunkshape = chunksize // elemsize
         # Safeguard against atoms being extremely large
-        if chunksize == 0:
-            chunksize = 1
-        return chunksize
+        if chunkshape == 0:
+            chunkshape = 1
+        return chunkshape
 
 
     def _g_create(self):
@@ -212,8 +210,8 @@ be zero."""
         self._basesize = self.atom.dtype.itemsize
         self.flavor = self.atom.flavor
 
-        # Compute the optimal chunksize
-        self._v_chunkshape = self._calcChunksize(self._v_expectedsizeinMB)
+        # Compute the optimal chunkshape
+        self._v_chunkshape = self._calcChunkshape(self._v_expectedsizeinMB)
         self.nrows = 0     # No rows at creation time
 
         self._v_objectID = self._createArray(self._v_new_title)

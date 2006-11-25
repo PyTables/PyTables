@@ -150,8 +150,8 @@ it does not match the pattern ``%s``; %s"""
         raise ValueError("``__members__`` is not allowed as an object name")
 
 
-def calcBufferSize(expectedsizeinKb):
-    """Compute the optimum buffer size for I/O purposes.
+def calcChunksize(expectedsizeinMB):
+    """Compute the optimum HDF5 chunksize for I/O purposes.
 
     Rational: HDF5 takes the data in bunches of chunksize length to
     write the on disk. A BTree in memory is used to map structures on
@@ -161,38 +161,31 @@ def calcBufferSize(expectedsizeinKb):
     data cache.  You have to balance between memory and I/O overhead
     (small B-trees) and time to access to data (big B-trees).
 
-    The tuning of the buffersize parameter affects the performance and
+    The tuning of the chunksize parameter affects the performance and
     the memory consumed. This is based on my own experiments and, as
     always, your mileage may vary.
     """
-    
-#     Increasing the bufmultfactor would enable a good compression
-#     ratio (up to an extend), but it would affect to the reading
-#     performance. Be careful when touching this.
-    #bufmultfactor = int(1000 * 5) # Conservative value
-    bufmultfactor = int(1000 * 10) # Medium value
-    #bufmultfactor = int(1000 * 20)  # Agressive value
-    #bufmultfactor = int(1000 * 50) # Very Aggresive value
 
-    if expectedsizeinKb <= 100:
-        # Values for files less than 100 KB of size
-        buffersize = 10 * bufmultfactor
-    elif (expectedsizeinKb > 100 and
-        expectedsizeinKb <= 1000):
+    basesize = 1024
+    if expectedsizeinMB < 1:
         # Values for files less than 1 MB of size
-        buffersize = 20 * bufmultfactor
-    elif (expectedsizeinKb > 1000 and
-          expectedsizeinKb <= 20 * 1000):
-        # Values for sizes between 1 MB and 20 MB
-        buffersize = 40  * bufmultfactor
-    elif (expectedsizeinKb > 20 * 1000 and
-          expectedsizeinKb <= 200 * 1000):
-        # Values for sizes between 20 MB and 200 MB
-        buffersize = 50 * bufmultfactor
-    else:  # Greater than 200 MB
-        buffersize = 60 * bufmultfactor
+        chunksize = basesize
+    elif (expectedsizeinMB >= 1 and
+        expectedsizeinMB < 10):
+        # Values for files between 1 MB and 10 MB
+        chunksize = 2 * basesize
+    elif (expectedsizeinMB >= 10 and
+          expectedsizeinMB < 100):
+        # Values for sizes between 10 MB and 100 MB
+        chunksize = 4 * basesize
+    elif (expectedsizeinMB >= 100 and
+          expectedsizeinMB < 1000):
+        # Values for sizes between 100 MB and 1 GB
+        chunksize = 8 * basesize
+    else:  # Greater than 1 GB
+        chunksize = 16 * basesize
 
-    return buffersize
+    return chunksize
 
 
 def is_idx(index):

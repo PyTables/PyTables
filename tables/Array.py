@@ -46,9 +46,9 @@ except ImportError:
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRange, processRangeRead, convToFlavor, \
-     convToNP, is_idx, byteorders, calcBufferSize
+     convToNP, is_idx, byteorders, calcChunksize
 from tables.Leaf import Leaf, Filters
-from tables.constants import CHUNKTIMES
+from tables.constants import CHUNKTIMES, BUFFERTIMES, MB
 
 
 __version__ = "$Revision$"
@@ -226,26 +226,26 @@ class Array(hdf5Extension.Array, Leaf):
             return (1,)
 
         # Compute the chunksize
-        expectedsizeinKB = (expectedrows * self.rowsize) / 1024
-        self._v_buffersize = buffersize = calcBufferSize(expectedsizeinKB)
+        expectedsizeinMB = (expectedrows * self.rowsize) / MB
+        chunksize = calcChunksize(expectedsizeinMB)
 
         maindim = self.maindim
-        # Compute the chunknitems (in itemsize units)
-        chunknitems = buffersize // (self.itemsize * CHUNKTIMES)
+        # Compute the chunknitems
+        chunknitems = chunksize // self.itemsize
         chunkshape = list(self.shape)
         # Check whether trimming the main dimension is enough
         chunkshape[maindim] = 1
-        newrowsize = numpy.prod(chunkshape)
-        if newrowsize <= chunknitems:
-            chunkshape[maindim] = chunknitems // newrowsize
+        newchunknitems = numpy.prod(chunkshape)
+        if newchunknitems <= chunknitems:
+            chunkshape[maindim] = chunknitems // newchunknitems
         else:
-            # Start trimming other dimensions as well
+            # No, so start trimming other dimensions as well
             for j in xrange(len(chunkshape)):
                 # Check whether trimming this dimension is enough
                 chunkshape[j] = 1
-                newrowsize = numpy.prod(chunkshape)
-                if newrowsize <= chunknitems:
-                    chunkshape[j] = chunknitems // newrowsize
+                newchunknitems = numpy.prod(chunkshape)
+                if newchunknitems <= chunknitems:
+                    chunkshape[j] = chunknitems // newchunknitems
                     break
             else:
                 # Ops, we ran out of the loop without a break
@@ -256,15 +256,25 @@ class Array(hdf5Extension.Array, Leaf):
 
 
     def _calcMaxTuples(self, expectedrows):
-        """Calculate the maximun number of tuples for buffers."""
+        """Calculate the buffersize for this array."""
 
         rowsize = self.rowsize
-        expectedsizeinKB = (expectedrows * rowsize) / 1024
-        self._v_buffersize = calcBufferSize(expectedsizeinKB)
-        maxTuples = self._v_buffersize // rowsize
+        expectedsizeinMB = (expectedrows * rowsize) / MB
+        buffersize = calcChunksize(expectedsizeinMB) * CHUNKTIMES
+        maxTuples = buffersize // rowsize
         # Safeguard against row sizes being extremely large
         if maxTuples == 0:
             maxTuples = 1
+            maxbuffersize = BUFFERTIMES * buffersize
+            if rowsize > maxbuffersize:
+                warnings.warn("""\
+array ``%s`` is exceeding the recommended rowsize (%d); \
+be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
+You may want to reduce the rowsize by trimming the value of dimensions
+that are orthogonal to the main dimension of this array."""
+                          % (self._v_pathname, maxbuffersize),
+                          PerformanceWarning)
+                
         return maxTuples
 
 

@@ -167,7 +167,7 @@ cdef class Table:  # XXX extends Leaf
     class_ = PyString_AsString(self._c_classId)
     self.dataset_id = H5TBOmake_table(title, self.parent_id, self.name,
                                       obversion, class_, self.type_id,
-                                      self.nrows, self._v_chunksize,
+                                      self.nrows, self._v_chunkshape[0],
                                       self.filters.complevel, complib,
                                       self.filters.shuffle,
                                       self.filters.fletcher32,
