@@ -415,7 +415,7 @@ class File(hdf5Extension.File, object):
     * createCArray(where, name, shape, atom[, title][, filters]
                    [, chunkshape] [, createparents])
     * createEArray(where, name, atom, shape [, title][, filters]
-                   [, expectedrows][, createparents])
+                   [, chunkshape] [, expectedrows][, createparents])
     * createVLArray(where, name, atom[, title][, filters]
                     [, expectedsizeinMB][, createparents])
     * removeNode(where[, name][, recursive])
@@ -780,9 +780,10 @@ class File(hdf5Extension.File, object):
             during the life of this object.
 
         chunkshape -- The shape of the data chunk read or written as a
-            single HDF5 I/O operation. The filters are applied to
-            chunks of data. Its dimensionality has to be the same as
-            shape.
+            single HDF5 I/O operation. The filters are applied to chunks
+            of data. Its dimensionality has to be the same as shape.  If
+            not specified, a sensible value is calculated (this is the
+            recommended action).
 
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
@@ -795,7 +796,7 @@ class File(hdf5Extension.File, object):
 
 
     def createEArray(self, where, name, atom, shape, title="",
-                     filters=None, expectedrows=1000,
+                     filters=None, expectedrows=1000, chunkshape=None,
                      createparents=False):
         """Create a new instance EArray with name "name" in "where" location.
 
@@ -828,6 +829,13 @@ class File(hdf5Extension.File, object):
             this will optimize the HDF5 B-Tree creation and management
             process time and the amount of memory used.
 
+        chunkshape -- The shape of the data chunk to be read or written
+            as a single HDF5 I/O operation. The filters are applied to
+            those chunks of data. Its dimensionality has to be the same
+            as shape (beware: no dimension should be zero this time!).
+            If None, a sensible value is calculated (which is
+            recommended).
+
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
         """
@@ -835,7 +843,8 @@ class File(hdf5Extension.File, object):
         _checkfilters(filters)
         return EArray(parentNode, name,
                       atom=atom, shape=shape, title=title,
-                      filters=filters, expectedrows=expectedrows)
+                      filters=filters, expectedrows=expectedrows,
+                      chunkshape=chunkshape)
 
 
     def createVLArray(self, where, name, atom, title="",

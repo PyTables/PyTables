@@ -4192,7 +4192,8 @@ Object Tree:
         <glossdef><para>The shape of the data chunk to be read or written as a
         single HDF5 I/O operation. The filters are applied to chunks of
         data. Its dimensionality has to be the same as
-        <emphasis>shape</emphasis>.</para></glossdef>
+        <emphasis>shape</emphasis>.  If None, a sensible value is calculated
+        (which is recommended).</para></glossdef>
         </glossentry>
 
 	<glossentry>
@@ -4212,8 +4213,8 @@ Object Tree:
 	  </section>
 
 	  <section id="createEArrayDescr">
-	    <title>createEArray(where, name,
-	      atom, shape, title='', filters=None, expectedrows=1000,
+	    <title>createEArray(where, name, atom, shape, title='',
+	      filters=None, expectedrows=1000, chunksize=None,
 	      createparents=False)
 	    </title>
 
@@ -4254,6 +4255,15 @@ Object Tree:
         much smaller or much bigger earrays try providing a guess; this will
         optimize the HDF5 B-Tree creation and management process time and the
         amount of memory used.  </para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">chunkshape</emphasis></glossterm>
+        <glossdef><para>The shape of the data chunk to be read or written as a
+        single HDF5 I/O operation.  The filters are applied to those chunks of
+        data. Its dimensionality has to be the same as shape (beware: no
+        dimension should be zero this time!).  If None, a sensible value is
+        calculated (which is recommended). </para></glossdef>
         </glossentry>
 
 	<glossentry>

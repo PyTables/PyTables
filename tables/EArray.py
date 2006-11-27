@@ -65,9 +65,9 @@ class EArray(Array):
     _c_classId = 'EARRAY'
 
 
-    def __init__(self, parentNode, name,
-                 atom=None, shape=None, title="",
-                 filters=None, expectedrows=EXPECTED_ROWS_EARRAY,
+    def __init__(self, parentNode, name, atom=None, shape=None,
+                 title="", filters=None, chunkshape=None,
+                 expectedrows=EXPECTED_ROWS_EARRAY,
                  _log=True):
         """Create EArray instance.
 
@@ -94,6 +94,13 @@ class EArray(Array):
             optimize the HDF5 B-Tree creation and management process
             time and the amount of memory used.
 
+        chunkshape -- The shape of the data chunk to be read or
+            written as a single HDF5 I/O operation. The filters are
+            applied to those chunks of data. Its dimensionality has to
+            be the same as shape (beware: no dimension should be zero
+            this time!).  If None, a sensible value is calculated
+            (which is recommended).
+
         """
 
         # `Array` has some attributes that are lacking from `EArray`,
@@ -108,8 +115,6 @@ class EArray(Array):
         self._v_new_title = title
         """New title for this node."""
 
-        self._v_expectedrows = expectedrows
-        """The expected number of rows to be stored in the array."""
         self._v_nrowsinbuf = None
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_chunkshape = None
@@ -118,10 +123,14 @@ class EArray(Array):
         """Whether the *Array objects has to be converted or not."""
         self.shape = None
         """The shape of the stored array."""
-        self.extdim = None
-        """The index of the enlargeable dimension."""
         self._enum = None
         """The enumerated type containing the values in this array."""
+        self.extdim = None
+        """The index of the enlargeable dimension."""
+
+        # Specific of EArray
+        self._v_expectedrows = expectedrows
+        """The expected number of rows to be stored in the array."""
 
         # Miscellaneous iteration rubbish.
         self.nrow = None
@@ -166,19 +175,21 @@ class EArray(Array):
         if new:
             if shape is None:
                 raise ValueError, """\
-you must specify the shape for building an EArray"""
+you must specify the shape for building an EArray."""
 
             if type(shape) not in (list, tuple):
                 raise ValueError, """\
-shape parameter should be either a tuple or a list and you passed a %s""" \
+shape parameter should be either a tuple or a list and you passed a %s.""" \
                 % type(shape)
 
             if not isinstance(atom, Atom):
                 raise ValueError, """\
-atom parameter should be an instance of tables.Atom and you passed a %s""" \
+atom parameter should be an instance of tables.Atom and you passed a %s.""" \
                 % type(atom)
 
             self.shape = tuple(shape)
+            if chunkshape is not None:
+                self._v_chunkshape = tuple(chunkshape)
 
         # The `Array` class is not abstract enough! :(
         super(Array, self).__init__(parentNode, name, new, filters, _log)

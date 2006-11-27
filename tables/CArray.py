@@ -95,14 +95,14 @@ class CArray(Array):
         chunkshape -- The shape of the data chunk to be read or
             written as a single HDF5 I/O operation. The filters are
             applied to those chunks of data. Its dimensionality has to
-            be the same as shape.
+            be the same as shape.  If not specified, a sensible value
+            is calculated (this is the recommended action).
 
         """
 
         self._v_version = None
         """The object version of this array."""
-
-        self._v_new = new = shape is not None and atom is not None
+        self._v_new = new = atom is not None
         """Is this the first time the node has been created?"""
         self._v_new_title = title
         """New title for this node."""
@@ -111,8 +111,14 @@ class CArray(Array):
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
+        self.shape = None
+        """The shape of the stored array."""
+        self._v_chunkshape = None
+        """The HDF5 chunk size for ``CArray/EArray`` objects."""
         self._enum = None
         """The enumerated type containing the values in this array."""
+        self.extdim = -1  # `CArray` objects are not enlargeable
+        """The index of the enlargeable dimension."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
@@ -143,8 +149,6 @@ class CArray(Array):
         """The NumPy type of the represented array."""
         self.ptype = None
         """The PyTables type of the represented array."""
-        self.extdim = -1  # `CArray` objects are not enlargeable
-        """The index of the enlargeable dimension."""
 
         # Documented (*public*) attributes.
         self.atom = atom
@@ -154,45 +158,35 @@ class CArray(Array):
         """
 
         if new:
-            # Different checks for shape and chunkshape
-            if not shape:
+            if not isinstance(atom, Atom):
                 raise ValueError, """\
-you must specify a non-empty shape for building a CArray"""
+atom parameter should be an instance of tables.Atom and you passed a %s.""" \
+% type(atom)
+
+            if shape is None:
+                raise ValueError, """\
+you must specify a non-empty shape."""
             elif type(shape) not in (list, tuple):
                 raise ValueError, """\
-shape parameter should be either a tuple or a list and you passed a %s
-"""  % type(shape)
-            elif min(shape) < 1:
-                raise ValueError, """\
-shape parameter cannot have zero-dimensions."""
+shape parameter should be either a tuple or a list and you passed a %s.""" \
+% type(shape)
 
+            self.shape = tuple(shape)
 
             if chunkshape is not None:
                 if type(chunkshape) not in (list, tuple):
                     raise ValueError, """\
-chunkshape parameter should be either a tuple or a list and you passed a %s
+chunkshape parameter should be either a tuple or a list and you passed a %s.
 """ % type(chunkshape)
+                elif len(shape) != len(chunkshape):
+                    raise ValueError, """\
+the shape (%s) and chunkshape (%s) ranks must be equal.""" \
+% (shape, chunkshape)
                 elif min(chunkshape) < 1:
                     raise ValueError, """ \
 chunkshape parameter cannot have zero-dimensions."""
-                elif len(shape) != len(chunkshape):
-                    raise ValueError, """\
-the shape and chunkshape ranks must be equal: shape = %s, shape = %s.
-""" % (shape, chunkshape)
-
-            if not isinstance(atom, Atom):
-                raise ValueError, """\
-atom parameter should be an instance of tables.Atom and you passed a %s
-""" % type(atom)
-
-            self.shape = tuple(shape)
-            """The shape of the stored array."""
-
-            if type(chunkshape) == list:
-                self._v_chunkshape = tuple(chunkshape)
-            else:
-                self._v_chunkshape = chunkshape
-            """The shape of the HDF5 chunk for ``CArray`` objects."""
+                else:
+                    self._v_chunkshape = tuple(chunkshape)
 
         # The `Array` class is not abstract enough! :(
         super(Array, self).__init__(parentNode, name, new, filters, _log)
@@ -201,11 +195,10 @@ atom parameter should be an instance of tables.Atom and you passed a %s
     def _g_create(self):
         """Create a new array in file."""
 
-        if not isinstance(self.atom, Atom):
-            raise TypeError(
-                "the ``atom`` passed to the ``CArray`` constructor "
-                "must be a descendent of the ``Atom`` class: %r"
-                % (self.atom,))
+        # Different checks for shape and chunkshape
+        if min(self.shape) < 1:
+            raise ValueError, """\
+shape parameter cannot have zero-dimensions."""
 
         # Version, types, flavor
         self._v_version = obversion
@@ -213,14 +206,14 @@ atom parameter should be an instance of tables.Atom and you passed a %s
         self.ptype = self.atom.ptype
         self.flavor = self.atom.flavor
 
-        # Compute the optimal chunk size, if needed
         if self._v_chunkshape is None:
+            # Compute the optimal chunk size
             self._v_chunkshape = self._calc_chunkshape(self.nrows,
                                                        self.rowsize)
         # Compute the optimal nrowsinbuf
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
                                                    self.rowsize)
-
+            
         try:
             return self._createEArray(self._v_new_title)
         except:  #XXX
@@ -272,7 +265,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s
         # Build the new CArray object
         object = CArray(group, name, atom=self.atom, shape=shape,
                         title=title, filters=filters,
-                        chunkshape = self._v_chunkshape, _log=_log)
+                        chunkshape=self._v_chunkshape, _log=_log)
         # Start the copy itself
         for start2 in range(start, stop, step*nrowsinbuf):
             # Save the records on disk
