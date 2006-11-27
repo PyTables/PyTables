@@ -66,8 +66,9 @@ class EArray(Array):
 
 
     def __init__(self, parentNode, name, atom=None, shape=None,
-                 title="", filters=None, chunkshape=None,
+                 title="", filters=None,
                  expectedrows=EXPECTED_ROWS_EARRAY,
+                 chunkshape=None,
                  _log=True):
         """Create EArray instance.
 
