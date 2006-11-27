@@ -595,10 +595,10 @@ class NetCDFVariable:
         if datatype == 'c':
         # Special case for Numeric character objects
         # (on which base Scientific.IO.NetCDF works)
-            atom = tables.StringAtom(shape=tuple(vardimsizes), length=1)
+            atom = tables.StringAtom(length=1)
         else:
             dtype = _rev_typecode_dict[datatype]
-            atom = tables.Atom(dtype=dtype, shape=tuple(vardimsizes))
+            atom = tables.Atom(dtype=dtype)
         if filters is None:
             # default filters instance.
             filters = tables.Filters(complevel=6,complib='zlib',shuffle=1)
@@ -609,7 +609,7 @@ class NetCDFVariable:
             # enlargeable dimension, use EArray
             self._NetCDF_varobj = NetCDFFile._NetCDF_h5file.createEArray(
                            where=NetCDFFile._NetCDF_h5file.root,
-                           name=varname,atom=atom,shape=atom.shape,
+                           name=varname,atom=atom,shape=tuple(vardimsizes),
                            title=varname,filters=filters,
                            expectedrows=expectedsize)
         else:
@@ -617,7 +617,7 @@ class NetCDFVariable:
             self._NetCDF_varobj = NetCDFFile._NetCDF_h5file.createCArray(
                            where=NetCDFFile._NetCDF_h5file.root,
                            name=varname,atom=atom,shape=tuple(vardimsizes),
-                           title=varname,filters=filters,chunkshape=atom.shape)
+                           title=varname,filters=filters)
             # fill with _FillValue
             if datatype == 'c':
                 # numpy string arrays with itemsize=1 used for char arrays.

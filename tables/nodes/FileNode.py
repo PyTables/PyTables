@@ -529,10 +529,10 @@ class FileNode(object):
 	"""
 
 	# The atom representing a byte in the array, for each version.
-	_byteAtom = [
+	_byteShape = [
 		None,
-		tables.UInt8Atom(shape=(0, 1)),
-		tables.UInt8Atom(shape=(0,))]
+		(0, 1),
+		(0,)]
 
 	# A lambda to turn a size into a shape, for each version.
 	_sizeToShape = [
@@ -786,9 +786,9 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
 
 			# Create a new array in the specified PyTables file.
 			self._version = NodeTypeVersions[-1]
-			atom = self._byteAtom[self._version]
+			shape = self._byteShape[self._version]
 			node = h5file.createEArray(
-				atom=atom , shape=atom.shape, **kwargs)
+				atom=tables.UInt8Atom(), shape=shape, **kwargs)
 
 			# Set the node attributes, else remove the array itself.
 			try:
@@ -807,7 +807,7 @@ class RAFileNode(ReadableMixin, AppendableMixin, FileNode):
 		# this cannot be used as an index.
 		# Will force a conversion to an integer.
 		version = int(self._version)
-		self._vType = self._byteAtom[version].dtype.base.type
+		self._vType = tables.UInt8Atom().dtype.base.type
 		self._vShape = self._sizeToShape[version]
 
 
