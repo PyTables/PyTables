@@ -210,8 +210,6 @@ class BasicTestCase(unittest.TestCase):
             self.fileh = openFile(self.file, "r")
         carray = self.fileh.getNode("/carray1")
 
-        # Choose a small value for buffer size
-        #carray._v_nrowsinbuf = 3   # this does not really changes the chunkshape
         if verbose:
             print "CArray descr:", repr(carray)
             print "shape of read array ==>", carray.shape
@@ -252,7 +250,7 @@ class BasicTestCase(unittest.TestCase):
 
         if verbose:
             print "Object read:\n", repr(data) #, data.info()
-            print "Should look like:\n", repr(object) #, objact.info()
+            print "Should look like:\n", repr(object) #, object.info()
             if hasattr(object, "shape"):
                 print "Original object shape:", self.shape
                 print "Shape read:", data.shape
@@ -284,8 +282,6 @@ class BasicTestCase(unittest.TestCase):
             self.fileh = openFile(self.file, "a")
         carray = self.fileh.getNode("/carray1")
 
-        # Choose a small value for buffer size
-        #carray._v_nrowsinbuf = 3   # this does not really changes the chunkshape
         if verbose:
             print "CArray descr:", repr(carray)
             print "shape of read array ==>", carray.shape
@@ -496,7 +492,7 @@ class MD5WriteTestCase(BasicTestCase):
 class MD6WriteTestCase(BasicTestCase):
     type = 'Int32'
     shape = (2, 3, 3, 2, 5, 6)
-    chunkshape = (1, 1, 1, 1, 1, 1)
+    chunkshape = (1, 1, 1, 1, 5, 6)
     start = 1
     stop = 10
     step = 3

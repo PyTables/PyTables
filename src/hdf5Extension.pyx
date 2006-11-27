@@ -170,8 +170,7 @@ cdef object getshape(int rank, hsize_t *dims):
 
   shape = []
   for i from 0 <= i < rank:
-    # The <int> cast avoids returning a Long integer
-    shape.append(<int>dims[i])
+    shape.append(dims[i])
 
   return tuple(shape)
 

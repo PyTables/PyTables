@@ -17,6 +17,7 @@ from tables import *
 # important objects to test
 from tables import File, Group, Leaf, Table, Array
 from tables.tests.common import verbose, heavy, cleanup
+from tables.constants import MAX_COLUMNS
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -160,11 +161,10 @@ class createTestCase(unittest.TestCase):
         assert arr.getAttr("TITLE") == "t" * titlelength
 
     def test04_maxFields(self):
-        "Checking a large number of fields (257) in tables"
+        "Checking a large number of fields in tables"
 
         # The number of fields for a table
-        #varnumber = 256
-        varnumber = 257
+        varnumber = MAX_COLUMNS
 
         varnames = []
         for i in range(varnumber):
@@ -207,10 +207,10 @@ class createTestCase(unittest.TestCase):
 
     # The next limitation has been released. A warning is still there, though
     def test05_maxFieldsExceeded(self):
-        "Checking an excess (1025) of the maximum number of fields in tables"
+        "Checking an excess of the maximum number of fields in tables"
 
         # The number of fields for a table
-        varnumber = 1025
+        varnumber = MAX_COLUMNS + 1
 
         varnames = []
         for i in range(varnumber):

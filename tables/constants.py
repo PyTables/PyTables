@@ -58,7 +58,7 @@ MB = 1024*1024
 
 # The maximum recommened number of columns in a table.
 # However, this limit is somewhat arbitrary and can be increased.
-MAX_COLUMNS = 256
+MAX_COLUMNS = 512
 """Maximum number of columns in ``Table`` objects before a
 ``PerformanceWarning`` is issued.
 """

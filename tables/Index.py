@@ -797,9 +797,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         shape = (self.nrows, ss)
         atom = Atom(self.dtype)
         CArray(self.tmp, 'sorted', atom, shape,
-               "Temporary sorted", filters, chunksize=(1,cs))
+               "Temporary sorted", filters, (1,cs))
         CArray(self.tmp, 'indices', Int64Atom(), shape,
-               "Temporary indices", filters, chunksize=(1,cs))
+               "Temporary indices", filters, (1,cs))
         # temporary bounds
         shape = (self.nchunks,)
         atom = Atom(self.dtype)
