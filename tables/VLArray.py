@@ -37,9 +37,9 @@ import numpy
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRangeRead, convertToNPAtom, convToFlavor, \
-     idx2long, byteorders, calc_chunksize
+     idx2long, byteorders
 from tables.Atom import Atom, ObjectAtom, VLStringAtom, StringAtom, EnumAtom
-from tables.Leaf import Leaf
+from tables.Leaf import Leaf, calc_chunksize
 
 
 __version__ = "$Revision$"
@@ -174,6 +174,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         super(VLArray, self).__init__(parentNode, name, new, filters, _log)
 
 
+    # This is too specific for sharing it in Leaf
     def _calc_chunkshape(self, expectedsizeinMB):
         """Calculate the size for the HDF5 chunk."""
 

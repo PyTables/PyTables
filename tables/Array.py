@@ -46,10 +46,8 @@ except ImportError:
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRange, processRangeRead, convToFlavor, \
-     convToNP, is_idx, byteorders, calc_chunksize
+     convToNP, is_idx, byteorders
 from tables.Leaf import Leaf, Filters
-from tables.constants import CHUNKTIMES, BUFFERTIMES, MB
-from tables.exceptions import PerformanceWarning
 
 
 __version__ = "$Revision$"
@@ -81,8 +79,8 @@ class Array(hdf5Extension.Array, Leaf):
         flavor -- The object representation of this array.
         nrows -- The length of the first dimension of the array.
         extdim -- The extendable dimension (-1 if dataset is not extendable).
-        maindim -- The dimension on which iterators do work.
-        rowsize -- The size (in bytes) of the row in dimensions orthogonal to maindim.
+        rowsize -- The size (in bytes) of the row in dimensions orthogonal to
+                   maindim.
         nrow -- On iterators, this is the index of the current row.
         dtype -- The NumPy type of the represented array.
         ptype -- The PyTables type of the represented array.
@@ -105,15 +103,6 @@ class Array(hdf5Extension.Array, Leaf):
         lambda self: self.dtype.itemsize, None, None,
         "The size of the base items (shortcut for self.dtype.itemsize).")
 
-    def _getmaindim(self):
-        if self.extdim > 0:
-            return self.extdim
-        else:
-            return 0   # choose the first dimension
-    maindim = property(
-        _getmaindim, None, None,
-        "The main (enlargeable or first) dimension of the array.")
-
     def _getnrows(self):
         if self.shape == ():
             return 1  # scalar case
@@ -133,7 +122,6 @@ class Array(hdf5Extension.Array, Leaf):
     rowsize = property(
         _getrowsize, None, None,
         "The size of the rows in dimensions orthogonal to maindim.")
-
 
     # </properties>
 
@@ -217,71 +205,6 @@ class Array(hdf5Extension.Array, Leaf):
 
         # Ordinary arrays have no filters: leaf is created with default ones.
         super(Array, self).__init__(parentNode, name, new, Filters(), _log)
-
-
-    def _calc_chunkshape(self, expectedrows, rowsize):
-        """Calculate the shape for the HDF5 chunk."""
-
-        # Compute the chunksize
-        expectedsizeinMB = (expectedrows * rowsize) / MB
-        chunksize = calc_chunksize(expectedsizeinMB)
-
-        # In case of a scalar shape, return the unit chunksize
-        if self.shape == ():
-            return (1,)
-
-        maindim = self.maindim
-        # Compute the chunknitems
-        chunknitems = chunksize // self.itemsize
-        # Safeguard against itemsizes being extremely large
-        if chunknitems == 0:
-            chunknitems = 1
-        chunkshape = list(self.shape)
-        # Check whether trimming the main dimension is enough
-        chunkshape[maindim] = 1
-        newchunknitems = numpy.prod(chunkshape)
-        if newchunknitems <= chunknitems:
-            chunkshape[maindim] = chunknitems // newchunknitems
-        else:
-            # No, so start trimming other dimensions as well
-            for j in xrange(len(chunkshape)):
-                # Check whether trimming this dimension is enough
-                chunkshape[j] = 1
-                newchunknitems = numpy.prod(chunkshape)
-                if newchunknitems <= chunknitems:
-                    chunkshape[j] = chunknitems // newchunknitems
-                    break
-            else:
-                # Ops, we ran out of the loop without a break
-                # Set the last dimension to chunknitems
-                chunkshape[-1] = chunknitems
-
-        print "chunkshape-->", chunkshape
-        return tuple(chunkshape)
-
-
-    def _calc_nrowsinbuf(self, chunkshape, rowsize):
-        """Calculate the number of rows that fits on a PyTables buffer."""
-
-        # Compute the nrowsinbuf
-        chunksize = numpy.prod(chunkshape) * self.itemsize
-        buffersize = chunksize * CHUNKTIMES
-        nrowsinbuf = buffersize // rowsize
-        # Safeguard against row sizes being extremely large
-        if nrowsinbuf == 0:
-            nrowsinbuf = 1
-            # If rowsize is too large, issue a Performance warning
-            maxrowsize = BUFFERTIMES * buffersize
-            if rowsize > maxrowsize:
-                warnings.warn("""\
-array or table ``%s`` is exceeding the maximum recommended rowsize (%d); \
-be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
-You may want to reduce the rowsize by trimming the value of dimensions
-that are orthogonal to the main dimension of this array or table."""
-                              % (self._v_pathname, maxrowsize),
-                              PerformanceWarning)
-
-        return nrowsinbuf
 
 
     def _g_create(self):

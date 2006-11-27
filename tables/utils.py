@@ -150,44 +150,6 @@ it does not match the pattern ``%s``; %s"""
         raise ValueError("``__members__`` is not allowed as an object name")
 
 
-def calc_chunksize(expectedsizeinMB):
-    """Compute the optimum HDF5 chunksize for I/O purposes.
-
-    Rational: HDF5 takes the data in bunches of chunksize length to
-    write the on disk. A BTree in memory is used to map structures on
-    disk. The more chunks that are allocated for a dataset the larger
-    the B-tree. Large B-trees take memory and causes file storage
-    overhead as well as more disk I/O and higher contention for the meta
-    data cache.  You have to balance between memory and I/O overhead
-    (small B-trees) and time to access to data (big B-trees).
-
-    The tuning of the chunksize parameter affects the performance and
-    the memory consumed. This is based on my own experiments and, as
-    always, your mileage may vary.
-    """
-
-    basesize = 1024
-    if expectedsizeinMB < 1:
-        # Values for files less than 1 MB of size
-        chunksize = basesize
-    elif (expectedsizeinMB >= 1 and
-        expectedsizeinMB < 10):
-        # Values for files between 1 MB and 10 MB
-        chunksize = 2 * basesize
-    elif (expectedsizeinMB >= 10 and
-          expectedsizeinMB < 100):
-        # Values for sizes between 10 MB and 100 MB
-        chunksize = 4 * basesize
-    elif (expectedsizeinMB >= 100 and
-          expectedsizeinMB < 1000):
-        # Values for sizes between 100 MB and 1 GB
-        chunksize = 8 * basesize
-    else:  # Greater than 1 GB
-        chunksize = 16 * basesize
-
-    return chunksize
-
-
 def is_idx(index):
     """Checks if an object can work as an index or not."""
 

@@ -19,6 +19,7 @@ Classes:
 
 Functions:
 
+    calc_chunksize
 
 Misc variables:
 
@@ -30,15 +31,57 @@ Misc variables:
 import sys
 import warnings
 
+import numpy
+
 import tables
 import tables.hdf5Extension as hdf5Extension
 import tables.utilsExtension as utilsExtension
-from tables.utils import processRangeRead
 from tables.Node import Node
+from tables.utils import processRangeRead
+from tables.constants import CHUNKTIMES, BUFFERTIMES, MB
+from tables.exceptions import PerformanceWarning
 
 
 
 __version__ = "$Revision$"
+
+
+def calc_chunksize(expectedsizeinMB):
+    """Compute the optimum HDF5 chunksize for I/O purposes.
+
+    Rational: HDF5 takes the data in bunches of chunksize length to
+    write the on disk. A BTree in memory is used to map structures on
+    disk. The more chunks that are allocated for a dataset the larger
+    the B-tree. Large B-trees take memory and causes file storage
+    overhead as well as more disk I/O and higher contention for the meta
+    data cache.  You have to balance between memory and I/O overhead
+    (small B-trees) and time to access to data (big B-trees).
+
+    The tuning of the chunksize parameter affects the performance and
+    the memory consumed. This is based on my own experiments and, as
+    always, your mileage may vary.
+    """
+
+    basesize = 1024
+    if expectedsizeinMB < 1:
+        # Values for files less than 1 MB of size
+        chunksize = basesize
+    elif (expectedsizeinMB >= 1 and
+        expectedsizeinMB < 10):
+        # Values for files between 1 MB and 10 MB
+        chunksize = 2 * basesize
+    elif (expectedsizeinMB >= 10 and
+          expectedsizeinMB < 100):
+        # Values for sizes between 10 MB and 100 MB
+        chunksize = 4 * basesize
+    elif (expectedsizeinMB >= 100 and
+          expectedsizeinMB < 1000):
+        # Values for sizes between 100 MB and 1 GB
+        chunksize = 8 * basesize
+    else:  # Greater than 1 GB
+        chunksize = 16 * basesize
+
+    return chunksize
 
 
 
@@ -141,53 +184,33 @@ class Leaf(Node):
 
     Instance variables (in addition to those in `Node`):
 
-    shape
-        The shape of data in the leaf.
-    byteorder
-        The byte ordering of data in the leaf.
-    filters
-        Filter properties for this leaf --see `Filters`.
-
-    name
-        The name of this node in its parent group (a string).  An
+    shape -- The shape of data in the leaf.
+    maindim -- The dimension on which iterators do work.
+    byteorder -- The byte ordering of data in the leaf.
+    filters -- Filter properties for this leaf --see `Filters`.
+    name -- The name of this node in its parent group (a string).  An
         alias for `Node._v_name`.
-    hdf5name
-        The name of this node in the hosting HDF5 file (a string).  An
-        alias for `Node._v_hdf5name`.
-    objectID
-        The identifier of this node in the hosting HDF5 file.  An
+    hdf5name -- The name of this node in the hosting HDF5 file (a string).
+        An alias for `Node._v_hdf5name`.
+    objectID -- The identifier of this node in the hosting HDF5 file.  An
         alias for `Node._v_objectID`.
-    attrs
-        The associated `AttributeSet` instance.  An alias for
+    attrs -- The associated `AttributeSet` instance.  An alias for
         `Node._v_attrs`.
-    title
-        A description for this node.  An alias for `Node._v_title`.
+    title -- A description for this node.  An alias for `Node._v_title`.
 
     Public methods (in addition to those in `Node`):
 
     flush()
-        Flush pending data to disk.
     _f_close([flush])
-        Close this node in the tree.
     close([flush])
-        Close this node in the tree.
     remove()
-        Remove this node from the hierarchy.
     rename(newname)
-        Rename this node in place.
     move([newparent][, newname][, overwrite])
-        Move or rename this node.
     copy([newparent][, newname][, overwrite][, **kwags])
-        Copy this node and return the new one.
     isVisible()
-        Is this node visible?
-
     getAttr(name)
-        Get a PyTables attribute from this node.
     setAttr(name, value)
-        Set a PyTables attribute for this node.
     delAttr(name)
-        Delete a PyTables attribute from this node.
     """
 
     # <properties>
@@ -233,6 +256,15 @@ class Leaf(Node):
 
     filters = property(_getfilters, None, None,
                        "Filter properties for this leaf.")
+
+    def _getmaindim(self):
+        if self.extdim > 0:
+            return self.extdim
+        else:
+            return 0   # choose the first dimension
+    maindim = property(
+        _getmaindim, None, None,
+        "The main (enlargeable or first) dimension of the array.")
 
     # </properties>
 
@@ -290,6 +322,69 @@ class Leaf(Node):
                     filters.fletcher32 = True
 
         return filters
+
+
+    def _calc_chunkshape(self, expectedrows, rowsize):
+        """Calculate the shape for the HDF5 chunk."""
+
+        # Compute the chunksize
+        expectedsizeinMB = (expectedrows * rowsize) / MB
+        chunksize = calc_chunksize(expectedsizeinMB)
+
+        # In case of a scalar shape, return the unit chunksize
+        if self.shape == ():
+            return (1,)
+
+        maindim = self.maindim
+        # Compute the chunknitems
+        chunknitems = chunksize // self.itemsize
+        # Safeguard against itemsizes being extremely large
+        if chunknitems == 0:
+            chunknitems = 1
+        chunkshape = list(self.shape)
+        # Check whether trimming the main dimension is enough
+        chunkshape[maindim] = 1
+        newchunknitems = numpy.prod(chunkshape)
+        if newchunknitems <= chunknitems:
+            chunkshape[maindim] = chunknitems // newchunknitems
+        else:
+            # No, so start trimming other dimensions as well
+            for j in xrange(len(chunkshape)):
+                # Check whether trimming this dimension is enough
+                chunkshape[j] = 1
+                newchunknitems = numpy.prod(chunkshape)
+                if newchunknitems <= chunknitems:
+                    chunkshape[j] = chunknitems // newchunknitems
+                    break
+            else:
+                # Ops, we ran out of the loop without a break
+                # Set the last dimension to chunknitems
+                chunkshape[-1] = chunknitems
+
+        return tuple(chunkshape)
+
+
+    def _calc_nrowsinbuf(self, chunkshape, rowsize):
+        """Calculate the number of rows that fits on a PyTables buffer."""
+
+        # Compute the nrowsinbuf
+        chunksize = numpy.prod(chunkshape) * self.itemsize
+        buffersize = chunksize * CHUNKTIMES
+        nrowsinbuf = buffersize // rowsize
+        # Safeguard against row sizes being extremely large
+        if nrowsinbuf == 0:
+            nrowsinbuf = 1
+            # If rowsize is too large, issue a Performance warning
+            maxrowsize = BUFFERTIMES * buffersize
+            if rowsize > maxrowsize:
+                warnings.warn("""\
+array or table ``%s`` is exceeding the maximum recommended rowsize (%d); \
+be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
+You may want to reduce the rowsize by trimming the value of dimensions
+that are orthogonal to the main dimension of this array or table."""
+                              % (self._v_pathname, maxrowsize),
+                              PerformanceWarning)
+        return nrowsinbuf
 
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):

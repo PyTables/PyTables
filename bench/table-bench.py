@@ -167,7 +167,7 @@ def readFile(filename, recsize, verbose):
 #                       if p['grid_i'] <= 2 ]
 #                e = [ p['grid_i'] for p in table.where("grid_i<=20")]
                 e = [ p['grid_i'] for p in
-                      table.where(table.cols.grid_i<20)]
+                      table.where('grid_i <= 20')]
 #                 e = [ p['grid_i'] for p in table.iterrows()
 #                       if p.nrow() == 20 ]
 #                 e = [ table.delrow(p.nrow()) for p in table.iterrows()
@@ -204,9 +204,9 @@ def readFile(filename, recsize, verbose):
                      # than ten times faster than the next one
 #                e = [ p['var3'] for p in table
 #                      if p['var1'] == "10"]
-#                 e = [ p['var3'] for p in table.where(table.cols.var2 <=20)
-                e = [ p['var3'] for p in table
-                       if p['var2'] <= 10 ]
+#                 e = [ p['var3'] for p in table.where('var2 <= 20')]
+                 e = [ p['var3'] for p in table
+                        if p['var2'] <= 20 ]
 #                  e = [ p['var3'] for p in table._whereInRange(table.cols.var2 <=20)]
                 #e = [ p['var3'] for p in table.iterrows(0,21) ]
 #                  e = [ p['var3'] for p in table.iterrows()

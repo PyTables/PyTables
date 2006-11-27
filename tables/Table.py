@@ -54,7 +54,7 @@ import tables.TableExtension as TableExtension
 from tables.conditions import split_condition, call_on_recarr
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
-from tables.utils import processRange, processRangeRead, calc_chunksize, \
+from tables.utils import processRange, processRangeRead, \
      joinPath, convertNPToNumeric, convertNPToNumArray, fromnumpy, tonumpy, \
      fromnumarray, is_idx, flattenNames, byteorders, getNestedField
 from tables.Leaf import Leaf
@@ -236,6 +236,11 @@ class Table(TableExtension.Table, Leaf):
         lambda self: self.description._v_dtype.itemsize, None, None,
         "The size in bytes of each row in the table.")
 
+    # itemsize & rowsize are the same for a unidimensional table
+    itemsize = property(
+        lambda self: self.description._v_dtype.itemsize, None, None,
+        "The size in bytes of each element in the table.")
+
     byteorder = property(
         lambda self: self.description._v_byteorder, None, None,
         "The endianness of data in memory "
@@ -326,6 +331,8 @@ class Table(TableExtension.Table, Leaf):
         """New title for this node."""
         self._v_new_filters = filters
         """New filter properties for this node."""
+        self.extdim = 0   # Tables only have one dimension currently
+        """The index of the enlargeable dimension."""
 
         self._v_recarray = None
         """A record array to be stored in the table."""
@@ -640,24 +647,6 @@ class Table(TableExtension.Table, Leaf):
         return idgroup
 
 
-    def _calc_chunksizes(self, expectedrows):
-        """Calculate the sizes for a PyTables buffer and HDF5 chunk."""
-
-        rowsize = self.rowsize
-        expectedsizeinMB = expectedrows * rowsize / MB
-        chunksize = calc_chunksize(expectedsizeinMB)
-        chunkshape = chunksize // rowsize
-        # Number of rows to fill the buffer
-        buffersize = chunksize * CHUNKTIMES
-        nrowsinbuf = buffersize // rowsize
-        # Safeguard against row sizes being extremely large
-        if chunkshape == 0:
-            chunkshape = 1
-        if nrowsinbuf == 0:
-            nrowsinbuf = 1
-        return (nrowsinbuf, (chunkshape,))
-
-
     def _g_create(self):
         """Create a new table on disk."""
 
@@ -677,9 +666,12 @@ class Table(TableExtension.Table, Leaf):
         # Get a mapping of enumerated columns to their `Enum` instances.
         self._colenums = self._getEnumMap()
 
-        # Compute some values for buffering and I/O parameters
-        (self._v_nrowsinbuf, self._v_chunkshape) = \
-                            self._calc_chunksizes(self._v_expectedrows)
+        # Compute the optimal chunk size
+        self._v_chunkshape = self._calc_chunkshape(self._v_expectedrows,
+                                                   self.rowsize)
+        # Compute the optimal nrowsinbuf
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
+                                                   self.rowsize)
 
         # Create the table on disk
         # self._v_objectID needs to be assigned here because is needed for
@@ -795,9 +787,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Get a mapping of enumerated columns to their `Enum` instances.
         self._colenums = self._getEnumMap()
 
-        # Compute buffer & chuksize sizes
-        (self._v_nrowsinbuf, self._v_chunkshape) = \
-                            self._calc_chunksizes(self.nrows)
+        # Compute the optimal chunk size
+        self._v_chunkshape = self._calc_chunkshape(self.nrows,
+                                                   self.rowsize)
+        # Compute the optimal nrowsinbuf
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
+                                                   self.rowsize)
 
         # Get info about columns
         for colobj in self.description._f_walk(type="Col"):
