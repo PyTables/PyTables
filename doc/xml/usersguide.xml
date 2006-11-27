@@ -7219,19 +7219,19 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
         <glossentry>
         <glossterm><emphasis role="bold">_v_colObjects</emphasis></glossterm>
         <glossdef><para>A dictionary mapping the names of the columns hanging
-        directly from this description instance to their respective descriptions
-        (<literal>Col</literal> &#8212;see
-         <xref xrefstyle="select: labelnumber" linkend="ColClassDescr"/>&#8212; or
-        <literal>Description</literal> &#8212;see
-        <xref xrefstyle="select: labelnumber" linkend="DescriptionClassDescr"/>
-        &#8212; instances).</para></glossdef>
+        directly from this description instance to their respective
+        descriptions (<literal>Col</literal> &#8212;see <xref
+        xrefstyle="select: labelnumber" linkend="ColClassDescr"/>&#8212; or
+        <literal>Description</literal> &#8212;see <xref xrefstyle="select:
+        labelnumber" linkend="DescriptionClassDescr"/> &#8212;
+        instances).</para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">_v_itemsizes</emphasis></glossterm>
         <glossdef><para>A dictionary mapping the names of non-nested columns
-        hanging directly from this description instance to their respective item
-        size (in bytes).</para></glossdef>
+        hanging directly from this description instance to their respective
+        item size (in bytes).</para></glossdef>
         </glossentry>
 
         <glossentry>
@@ -7251,17 +7251,14 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 
         <para>Iterate over nested columns.</para>
 
-        <para>If <literal>type</literal> is
-        <literal>'All'</literal> (the default), all
-        column description objects
-        (<literal>Col</literal> and
-        <literal>Description</literal> instances) are
-        returned in top-to-bottom order (pre-order).</para>
+        <para>If <literal>type</literal> is <literal>'All'</literal> (the
+        default), all column description objects (<literal>Col</literal> and
+        <literal>Description</literal> instances) are returned in
+        top-to-bottom order (pre-order).</para>
 
-        <para>If <literal>type</literal> is
-        <literal>'Col'</literal> or
-        <literal>'Description'</literal>, only column
-        descriptions of that type are returned.</para>
+        <para>If <literal>type</literal> is <literal>'Col'</literal> or
+        <literal>'Description'</literal>, only column descriptions of that
+        type are returned.</para>
 
       </section>
 
@@ -7271,10 +7268,10 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	<section id="ColumnClassDescr">
 	  <title>The <literal>Column</literal> class</title>
 
-	  <para>Each instance of this class is associated with one column
-	    of every table. These instances are mainly used to fetch and
-	    set actual data from the table columns, but there are a few
-	    other associated methods to deal with indexes.
+	  <para>Each instance of this class is associated with one column of
+	    every table. These instances are mainly used to fetch and set
+	    actual data from the table columns, but there are a few other
+	    associated methods to deal with indexes.
 	  </para>
 
 	  <section>
@@ -7285,8 +7282,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 
         <glossentry>
         <glossterm><emphasis role="bold">table</emphasis></glossterm>
-        <glossdef><para>The parent
-        <literal>Table</literal> instance.
+        <glossdef><para>The parent <literal>Table</literal> instance.
         </para></glossdef>
         </glossentry>
 
@@ -7297,10 +7293,9 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 
         <glossentry>
         <glossterm><emphasis role="bold">pathname</emphasis></glossterm>
-        <glossdef><para>The complete pathname of the associated
-        column. This is mainly useful in nested columns; for
-        non-nested ones this value is the same a
-        <literal>name</literal>.  </para></glossdef>
+        <glossdef><para>The complete pathname of the associated column. This
+        is mainly useful in nested columns; for non-nested ones this value is
+        the same a <literal>name</literal>.  </para></glossdef>
         </glossentry>
 
         <glossentry>
@@ -7321,10 +7316,9 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 
         <glossentry>
         <glossterm><emphasis role="bold">index</emphasis></glossterm>
-        <glossdef><para>The associated
-        <literal>Index</literal> object
-        (see <xref xrefstyle="select: labelnumber" linkend="IndexClassDescr"/>) to this
-        column (<literal>None</literal> if it does not
+        <glossdef><para>The associated <literal>Index</literal> object (see
+        <xref xrefstyle="select: labelnumber" linkend="IndexClassDescr"/>) to
+        this column (<literal>None</literal> if it does not
         exist).</para></glossdef>
         </glossentry>
 
@@ -7380,10 +7374,9 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	      <title><literal>reIndex()</literal>
 	      </title>
 
-	      <para>Recompute the index associated with this column. This
-		can be useful when you suspect that, for any reason, the
-		index information is no longer valid and want to rebuild
-		it.
+	      <para>Recompute the index associated with this column. This can
+		be useful when you suspect that, for any reason, the index
+		information is no longer valid and want to rebuild it.
 	      </para>
 
 	    </section>
@@ -7392,13 +7385,12 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 	      <title><literal>reIndexDirty()</literal>
 	      </title>
 
-	      <para>Recompute the existing index only if it is dirty. This
-		can be useful when you have set the <literal>reindex</literal>
+	      <para>Recompute the existing index only if it is dirty. This can
+		be useful when you have set the <literal>reindex</literal>
 		parameter to 0 in <literal>IndexProps</literal> constructor
-		(see <xref linkend="IndexPropsInitDescr"/>) for the
-		table and want to update the column's index after a
-		invalidating index operation
-		(<literal>Table.removeRows</literal>, for example).
+		(see <xref linkend="IndexPropsInitDescr"/>) for the table and
+		want to update the column's index after a invalidating index
+		operation (<literal>Table.removeRows</literal>, for example).
 	      </para>
 
 	    </section>
@@ -7410,10 +7402,10 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 		Remove the index associated with this column.
 	      </para>
 	      <para>
-		If the column is not indexed, nothing happens.
-		The index can be created again by calling the
-		<literal>createIndex()</literal> method
-		(see <xref linkend="createIndexColumnDescr"/>).
+		If the column is not indexed, nothing happens.  The index can
+		be created again by calling the
+		<literal>createIndex()</literal> method (see <xref
+		linkend="createIndexColumnDescr"/>).
 	      </para>
 	    </section>
 
@@ -7432,16 +7424,19 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
 		parameter:
 	      </para>
 
-	      <glosslist><glossentry><glossterm><emphasis role="bold"><literal>key</literal></emphasis> is an
-		  <literal>Integer</literal></glossterm><glossdef><para>The corresponding
-		  element in the column is returned as a scalar object
-		  or as a <literal>numarray</literal> object, depending on
-		  its shape.
-		</para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold"><literal>key</literal></emphasis> is a
-		  <literal>Slice</literal></glossterm><glossdef><para>The row range
-		  determined by this slice is returned as a
-		  <literal>numarray</literal> object.
-		</para></glossdef></glossentry></glosslist>
+	      <glosslist><glossentry><glossterm><emphasis
+	      role="bold"><literal>key</literal></emphasis> is an
+	      <literal>Integer</literal></glossterm><glossdef><para>The
+	      corresponding element in the column is returned as a scalar
+	      object or as a <literal>numarray</literal> object, depending on
+	      its shape.</para></glossdef></glossentry>
+
+               <glossentry><glossterm><emphasis
+	       role="bold"><literal>key</literal></emphasis> is a
+	       <literal>Slice</literal></glossterm><glossdef><para>The row
+	       range determined by this slice is returned as a
+	       <literal>numarray</literal> object.
+	       </para></glossdef></glossentry></glosslist>
 
 	      <para>Example of use:
     <screen><![CDATA[print "Column handlers:"
@@ -7481,19 +7476,23 @@ Select table.cols['temperature'][:]--> [ 100.  121.  144.]]]></screen>
 	      <para>It takes different actions depending on the
 		type of the <literal>key</literal> parameter:</para>
 
-	      <glosslist><glossentry><glossterm><emphasis role="bold"><literal>key</literal></emphasis> is an
-		  <literal>Integer</literal></glossterm><glossdef><para>The corresponding
-		  element in the column is set to
-		  <emphasis>value</emphasis>. <emphasis>value</emphasis> must be a scalar or
-		  <literal>numarray</literal>/<literal>NumPy</literal> object,
-		  depending on column's shape.
-		</para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold"><literal>key</literal></emphasis> is a
-		  <literal>Slice</literal></glossterm><glossdef><para>The row slice
-		  determined by <emphasis>key</emphasis> is set to
-		  <emphasis>value</emphasis>. <emphasis>value</emphasis> must be a list of
-		  elements or a
-		  <literal>numarray</literal>/<literal>NumPy</literal>.
-		</para></glossdef></glossentry></glosslist>
+	      <glosslist><glossentry><glossterm><emphasis
+              role="bold"><literal>key</literal></emphasis> is an
+              <literal>Integer</literal></glossterm><glossdef><para>The
+              corresponding element in the column is set to
+              <emphasis>value</emphasis>. <emphasis>value</emphasis> must be a
+              scalar or <literal>numarray</literal>/<literal>NumPy</literal>
+              object, depending on column's shape.
+              </para></glossdef></glossentry>
+
+              <glossentry><glossterm><emphasis
+              role="bold"><literal>key</literal></emphasis> is a
+              <literal>Slice</literal></glossterm><glossdef><para>The row
+              slice determined by <emphasis>key</emphasis> is set to
+              <emphasis>value</emphasis>. <emphasis>value</emphasis> must be a
+              list of elements or a
+              <literal>numarray</literal>/<literal>NumPy</literal>.
+              </para></glossdef></glossentry></glosslist>
 
 	      <para>Example of use:</para>
 
@@ -7520,7 +7519,7 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 
 	  <para>Represents an array on file. It provides methods to write/read
 	    data to/from array objects in the file. This class does not allow
-	    you to enlarge the datasets on disk; see the
+	    you to enlarge the datasets on disk nor compress data; see the
 	    <literal>EArray</literal> descendant in <xref xrefstyle="select:
 	    label" linkend="EArrayClassDescr"/> if you want enlargeable
 	    dataset support and/or compression features.  See also
@@ -7529,17 +7528,19 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 	  </para>
 
 	  <para>The array data types supported are the same as the set
-	    provided by the <literal>numarray</literal> package.  For
-	    details of these data types see <xref xrefstyle="select: label" linkend="datatypesSupported"/>, or the
-	    <literal>numarray</literal> reference manual (<biblioref linkend="Numarray"/>).
+	    provided by the <literal>numarray</literal> package.  For details
+	    of these data types see <xref xrefstyle="select: label"
+	    linkend="datatypesSupported"/>, or the <literal>numarray</literal>
+	    reference manual (<biblioref linkend="Numarray"/>).
 	  </para>
 
 	  <para>An interesting property of the <literal>Array</literal> class
 	    is that it remembers the <emphasis>flavor</emphasis> of the object
 	    that has been saved so that if you saved, for example, a
-	    <literal>List</literal>, you will get a <literal>List</literal> during
-	    readings afterwards, or if you saved a <literal>NumPy</literal>
-	    array, you will get a <literal>NumPy</literal> object.
+	    <literal>List</literal>, you will get a <literal>List</literal>
+	    during readings afterwards, or if you saved a
+	    <literal>NumPy</literal> array, you will get a
+	    <literal>NumPy</literal> object.
 	  </para>
 
 	  <para>Note that this object inherits all the public attributes
@@ -7551,46 +7552,6 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 
       <glosslist>
       <?dbfo glosslist-presentation="list" ?>
-
-        <glossentry>
-        <glossterm><emphasis role="bold">flavor</emphasis></glossterm>
-        <glossdef><para>The object representation for this array. It can be any of
-        <emphasis>"numarray"</emphasis>, <emphasis>"numpy"</emphasis>,
-        <emphasis>"numeric"</emphasis> or <emphasis>"python"</emphasis> values.
-        </para></glossdef>
-        </glossentry>
-
-        <glossentry>
-        <glossterm><emphasis role="bold">nrows</emphasis></glossterm>
-        <glossdef><para>The length of the first dimension of the array.
-        </para></glossdef>
-        </glossentry>
-
-        <glossentry>
-        <glossterm><emphasis role="bold">extdim</emphasis></glossterm>
-        <glossdef><para>The extendable dimension, i.e. the dimension this
-        array can be extended along.  It takes the -1 value if array is not
-        extendable.</para></glossdef>
-        </glossentry>
-
-        <glossentry>
-        <glossterm><emphasis role="bold">maindim</emphasis></glossterm>
-        <glossdef><para>The dimension along which iterators do work.  It takes
-        the 0 value if dataset is not extendable and self.extdim for
-        extendable arrays.</para></glossdef>
-        </glossentry>
-
-        <glossentry>
-        <glossterm><emphasis role="bold">rowsize</emphasis></glossterm>
-        <glossdef><para>The size (in bytes) of the row in dimensions
-        orthogonal to maindim.</para></glossdef>
-        </glossentry>
-
-        <glossentry>
-        <glossterm><emphasis role="bold">nrow</emphasis></glossterm>
-        <glossdef><para>On iterators, this is the index of the current row.
-        </para></glossdef>
-        </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">type</emphasis></glossterm>
@@ -7608,6 +7569,47 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
         <glossterm><emphasis role="bold">itemsize</emphasis></glossterm>
         <glossdef><para>The size of the base items. Specially useful for
         <literal>CharType</literal> objects.
+        </para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">flavor</emphasis></glossterm>
+        <glossdef><para>The object representation for this array. It can be
+        any of <emphasis>"numarray"</emphasis>, <emphasis>"numpy"</emphasis>,
+        <emphasis>"numeric"</emphasis> or <emphasis>"python"</emphasis>
+        values.  </para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">extdim</emphasis></glossterm>
+        <glossdef><para>The extendable dimension, i.e. the dimension this
+        array can be extended along.  It takes the -1 value if array is not
+        extendable.</para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">maindim</emphasis></glossterm>
+        <glossdef><para>The dimension along which iterators do work.  It takes
+        the 0 value (i.e. the first dimension) if dataset is not extendable
+        and <literal>self.extdim</literal> for extendable ones.
+        </para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">nrows</emphasis></glossterm>
+        <glossdef><para>The length of the main dimension of the array.
+        </para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">rowsize</emphasis></glossterm>
+        <glossdef><para>The size (in bytes) of the row in dimensions
+        orthogonal to the main dimension.</para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">nrow</emphasis></glossterm>
+        <glossdef><para>On iterators, this is the index of the current row.
         </para></glossdef>
         </glossentry>
 
@@ -7632,10 +7634,11 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 	      <para>Get the enumerated type associated with this array.
 	      </para>
 
-	      <para>If this array is of an enumerated type, the
-		corresponding <literal>Enum</literal> instance (see <xref xrefstyle="select: labelnumber" linkend="EnumClassDescr"/>) is returned.  If it is
-		not of an enumerated type, a <literal>TypeError</literal> is
-		raised.
+	      <para>If this array is of an enumerated type, the corresponding
+		<literal>Enum</literal> instance (see <xref xrefstyle="select:
+		labelnumber" linkend="EnumClassDescr"/>) is returned.  If it
+		is not of an enumerated type, a <literal>TypeError</literal>
+		is raised.
 	      </para>
 	    </section>
 
@@ -7645,11 +7648,8 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 
 	      <para>Returns an iterator yielding <literal>numarray</literal>
 		instances built from rows in array. The return rows are taken
-		from the first dimension in case of an
-		<literal>Array</literal> and <literal>CArray</literal>
-		instance and the enlargeable dimension in case of an
-		<literal>EArray</literal> instance. If a range is supplied
-		(i.e. some of the <emphasis>start</emphasis>,
+		from the <emphasis>main</emphasis> dimension. If a range is
+		supplied (i.e. some of the <emphasis>start</emphasis>,
 		<emphasis>stop</emphasis> or <emphasis>step</emphasis>
 		parameters are passed), only the appropriate rows are
 		returned. Else, all the rows are returned. See also the and
@@ -7658,15 +7658,16 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 		a shorter way to call this iterator.
 	      </para>
 
-	      <para>The meaning of the <emphasis>start</emphasis>, <emphasis>stop</emphasis> and
-		<emphasis>step</emphasis> parameters is the same as in the
-		<literal>range()</literal> python function, except that
-		negative values of <literal>step</literal> are not
-		allowed. Moreover, if only <literal>start</literal> is
-		specified, then <literal>stop</literal> will be set to
+	      <para>The meaning of the <emphasis>start</emphasis>,
+		<emphasis>stop</emphasis> and <emphasis>step</emphasis>
+		parameters is the same as in the <literal>range()</literal>
+		python function, except that negative values of
+		<literal>step</literal> are not allowed. Moreover, if only
+		<literal>start</literal> is specified, then
+		<literal>stop</literal> will be set to
 		<literal>start+1</literal>. If you do not specify neither
-		<emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then all the rows in
-		the object are selected.
+		<emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then
+		all the rows in the object are selected.
 	      </para>
 
 	      <para>Example of use:</para>
@@ -7682,20 +7683,20 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 		with the same original <emphasis>flavor</emphasis> that it was
 		saved. It accepts <emphasis>start</emphasis>,
 		<emphasis>stop</emphasis> and <emphasis>step</emphasis>
-		parameters to select rows (the first dimension in the case of
-		an <literal>Array</literal> and <literal>CArray</literal>
-		instance and the <emphasis>enlargeable</emphasis> dimension in
-		case of an <literal>EArray</literal>) for reading.
+		parameters to select rows (in the <emphasis>main</emphasis>
+		dimension) for reading.
 	      </para>
-	      <para>The meaning of the <emphasis>start</emphasis>, <emphasis>stop</emphasis> and
-		<emphasis>step</emphasis> parameters is the same as in the
-		<literal>range()</literal> python function, except that
-		negative values of <literal>step</literal> are not
-		allowed. Moreover, if only <literal>start</literal> is
-		specified, then <literal>stop</literal> will be set to
+
+	      <para>The meaning of the <emphasis>start</emphasis>,
+		<emphasis>stop</emphasis> and <emphasis>step</emphasis>
+		parameters is the same as in the <literal>range()</literal>
+		python function, except that negative values of
+		<literal>step</literal> are not allowed. Moreover, if only
+		<literal>start</literal> is specified, then
+		<literal>stop</literal> will be set to
 		<literal>start+1</literal>. If you do not specify neither
-		<emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then all the rows in
-		the object are selected.
+		<emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then
+		all the rows in the object are selected.
 	      </para>
 	    </section>
 	  </section>
@@ -7820,6 +7821,12 @@ a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))]]></screen>
 
       </glosslist>
 
+        <glossentry>
+        <glossterm><emphasis role="bold">nrows</emphasis></glossterm>
+        <glossdef><para>The length of the main dimension of the
+        array.</para></glossdef>
+        </glossentry>
+
 	  </section>
 
 	  <section>
@@ -7872,21 +7879,21 @@ Object Tree:
 	<section id="EArrayClassDescr">
 	  <title>The <literal>EArray</literal> class</title>
 
-	  <para>This is a child of the <literal>Array</literal> class (see
-	    <xref xrefstyle="select: labelnumber" linkend="ArrayClassDescr"/>)
-	    and as such, <literal>EArray</literal> represents an array on the
-	    file. The difference is that <literal>EArray</literal> allows to
-	    enlarge datasets along any single dimension<footnote><para>In the
-	    future, multiple enlargeable dimensions might be implemented as
-	    well.</para></footnote> you select. Another important difference
-	    is that it also supports compression.
+	  <para>This is a child of the <literal>CArray</literal> class (see
+	    <xref xrefstyle="select: labelnumber"
+	    linkend="CArrayClassDescr"/>) and as such,
+	    <literal>EArray</literal> represents an array on the file. The
+	    difference is that <literal>EArray</literal> allows to enlarge
+	    datasets along any single dimension<footnote><para>In the future,
+	    multiple enlargeable dimensions might be implemented as
+	    well.</para></footnote> you select.
 	  </para>
 
 	  <para>So, in addition to the attributes and methods that
-	    <literal>EArray</literal> inherits from <literal>Array</literal>,
+	    <literal>EArray</literal> inherits from <literal>CArray</literal>,
 	    it supports a few more that provide a way to enlarge the arrays on
 	    disk. Following are described the new variables and methods as
-	    well as some that already exist in <literal>Array</literal> but
+	    well as some that already exist in <literal>CArray</literal> but
 	    that differ somewhat on the meaning and/or functionality in the
 	    <literal>EArray</literal> context.
 	  </para>
@@ -7898,17 +7905,9 @@ Object Tree:
       <?dbfo glosslist-presentation="list" ?>
 
         <glossentry>
-        <glossterm><emphasis role="bold">atom</emphasis></glossterm>
-        <glossdef><para>An <literal>Atom</literal> (see <xref
-        xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>) instance
-        representing the shape, type and flavor of the atomic objects to be
-        saved.</para></glossdef>
-        </glossentry>
-
-        <glossentry>
         <glossterm><emphasis role="bold">nrows</emphasis></glossterm>
-        <glossdef><para>The length of the enlargeable dimension of the
-        array.</para></glossdef>
+        <glossdef><para>The length of the main (i.e. the enlargeable one)
+        dimension of the array.</para></glossdef>
         </glossentry>
 
       </glosslist>
@@ -7923,10 +7922,11 @@ Object Tree:
 
 	      <para>Get the enumerated type associated with this array.</para>
 
-	      <para>If this array is of an enumerated type, the
-		corresponding <literal>Enum</literal> instance (see <xref xrefstyle="select: labelnumber" linkend="EnumClassDescr"/>) is returned.  If it is
-		not of an enumerated type, a <literal>TypeError</literal> is
-		raised.
+	      <para>If this array is of an enumerated type, the corresponding
+		<literal>Enum</literal> instance (see <xref xrefstyle="select:
+		labelnumber" linkend="EnumClassDescr"/>) is returned.  If it
+		is not of an enumerated type, a <literal>TypeError</literal>
+		is raised.
 	      </para>
 
 	    </section>
@@ -8925,11 +8925,10 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	      <literal>CArray</literal>, <literal>EArray</literal> and
 	      <literal>VLArray</literal> objects. The <literal>Atom</literal>
 	      instances have the property that their length is always the
-	      same. However, you can grow objects along the extensible
-	      dimension in the case of <literal>EArray</literal> or put a
-	      variable number of them on a <literal>VLArray</literal>
-	      row. Moreover, the atoms are not restricted to scalar values,
-	      and they can be fully multidimensional objects.
+	      same. However, you can put a variable number of them on a
+	      <literal>VLArray</literal> row. Moreover, the atoms are not
+	      restricted to scalar values, and they can be fully
+	      multidimensional objects.
 	    </para>
 	    <para>A series of descendant classes are offered in order to
 	      make the use of these element descriptions easier. In
@@ -9313,8 +9312,8 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    <para>This class is meant to serve as a container that keeps
 	      information about the filter properties associated with the
 	      enlargeable leaves, that is <literal>Table</literal>,
-	      <literal>EArray</literal> and <literal>VLArray</literal> as well
-	      as <literal>CArray</literal>.
+	      <literal>CArray</literal>, <literal>EArray</literal> and
+	      <literal>VLArray</literal>.
 	    </para>
 
 	    <para>The public variables of <literal>Filters</literal> are listed

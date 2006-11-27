@@ -33,7 +33,7 @@ import numpy
 from tables.constants import EXPECTED_ROWS_EARRAY
 from tables.utils import convertToNPAtom, processRangeRead
 from tables.Atom import Atom, EnumAtom, StringAtom, Time32Atom, Time64Atom
-from tables.Array import Array
+from tables.CArray import CArray
 
 atom_mod = __import__("tables.Atom")
 
@@ -48,7 +48,7 @@ obversion = "1.3"    # This adds support for enumerated datatypes.
 
 
 
-class EArray(Array):
+class EArray(CArray):
     """Represent an homogeneous dataset in HDF5 file.
 
     It enables to create new datasets on-disk from NumPy, Numeric and
@@ -66,11 +66,9 @@ class EArray(Array):
 
 
     def __init__(self, parentNode, name, atom=None, shape=None,
-                 title="", filters=None,
-                 expectedrows=EXPECTED_ROWS_EARRAY,
-                 chunkshape=None,
-                 _log=True):
-        """Create EArray instance.
+                 title="", filters=None, expectedrows=EXPECTED_ROWS_EARRAY,
+                 chunkshape=None, _log=True):
+        """Create an EArray instance.
 
         Keyword arguments:
 
@@ -104,96 +102,13 @@ class EArray(Array):
 
         """
 
-        # `Array` has some attributes that are lacking from `EArray`,
-        # so the constructor of the former can not be used
-        # and attributes must be defined all over again. :(
-
-        self._v_version = None
-        """The object version of this array."""
-
-        self._v_new = new = atom is not None
-        """Is this the first time the node has been created?"""
-        self._v_new_title = title
-        """New title for this node."""
-
-        self._v_nrowsinbuf = None
-        """The maximum number of rows that are read on each chunk iterator."""
-        self._v_chunkshape = None
-        """The HDF5 chunk size for ``EArray`` objects."""
-        self._v_convert = True
-        """Whether the *Array objects has to be converted or not."""
-        self.shape = None
-        """The shape of the stored array."""
-        self._enum = None
-        """The enumerated type containing the values in this array."""
-        self.extdim = None
-        """The index of the enlargeable dimension."""
-
         # Specific of EArray
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the array."""
 
-        # Miscellaneous iteration rubbish.
-        self.nrow = None
-        """On iterators, this is the index of the current row."""
-        self._start = None
-        """Starting row for the current iteration."""
-        self._stop = None
-        """Stopping row for the current iteration."""
-        self._step = None
-        """Step size for the current iteration."""
-        self._nrowsread = None
-        """Number of rows read up to the current state of iteration."""
-        self._startb = None
-        """Starting row for current buffer."""
-        self._stopb = None
-        """Stopping row for current buffer. """
-        self._row = None
-        """Current row in iterators (sentinel)."""
-        self._init = False
-        """Whether we are in the middle of an iteration or not (sentinel)."""
-        self.listarr = None
-        """Current buffer in iterators."""
-
-        self.flavor = None
-        """
-        The object representation of this array.  It can be any of
-        'numpy', 'numarray', 'numeric' or 'python'.
-        """
-        self.dtype = None
-        """The NumPy type of the represented array."""
-        self.ptype = None
-        """The PyTables type of the represented array."""
-
-        # Documented (*public*) attributes.
-        self.atom = atom
-        """
-        An `Atom` instance representing the shape, type and flavor of
-        the atomic objects to be saved.  One of the dimensions of the
-        shape is 0, meaning that the array can be extended along it.
-        """
-
-        if new:
-            if shape is None:
-                raise ValueError, """\
-you must specify the shape for building an EArray."""
-
-            if type(shape) not in (list, tuple):
-                raise ValueError, """\
-shape parameter should be either a tuple or a list and you passed a %s.""" \
-                % type(shape)
-
-            if not isinstance(atom, Atom):
-                raise ValueError, """\
-atom parameter should be an instance of tables.Atom and you passed a %s.""" \
-                % type(atom)
-
-            self.shape = tuple(shape)
-            if chunkshape is not None:
-                self._v_chunkshape = tuple(chunkshape)
-
-        # The `Array` class is not abstract enough! :(
-        super(Array, self).__init__(parentNode, name, new, filters, _log)
+        # Call the parent (CArray) init code
+        super(EArray, self).__init__(parentNode, name, atom, shape, title,
+                                     filters, chunkshape, _log)
 
 
     def _g_create(self):
@@ -236,7 +151,7 @@ instance to zero."""
 
 
     def _g_open(self):
-        """Get the metadata info for an array in file."""
+        """Get the metadata info for an EArray in file."""
 
         (self._v_objectID, self.dtype, self.ptype, self.shape,
          self.flavor, self._v_chunkshape) = self._openArray()
@@ -268,28 +183,11 @@ instance to zero."""
         # Compute the optimal nrowsinbuf
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
                                                    self.rowsize)
-
         return self._v_objectID
 
 
-    def getEnum(self):
-        """
-        Get the enumerated type associated with this array.
-
-        If this array is of an enumerated type, the corresponding `Enum`
-        instance is returned.  If it is not of an enumerated type, a
-        ``TypeError`` is raised.
-        """
-
-        if self.atom.ptype != 'Enum':
-            raise TypeError("array ``%s`` is not of an enumerated type"
-                            % self._v_pathname)
-
-        return self.atom.enum
-
-
     def _checkShape(self, nparr):
-        "Test that nparr shape is consistent with underlying EArray"
+        "Test that nparr shape is consistent with underlying EArray."
 
         # The arrays conforms self expandibility?
         myshlen = len(self.shape)
@@ -308,7 +206,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
 
     def append(self, sequence):
-        """Append the sequence to this (enlargeable) object"""
+        """Append the sequence to this (enlargeable) object."""
 
         self._v_file._checkWritable()
 
@@ -323,7 +221,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
 
     def truncate(self, size):
-        "Truncate the extendable dimension to at most size rows"
+        "Truncate the extendable dimension to at most size rows."
 
         if size <= 0:
             raise ValueError("`size` must be greater than 0")
@@ -332,11 +230,13 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, _log):
-        "Private part of Leaf.copy() for each kind of leaf"
+        "Private part of Leaf.copy() for each kind of leaf."
         # Build the new EArray object
         maindim = self.maindim
         shape = list(self.shape)
         shape[maindim] = 0
+        # Build the new EArray object (do not specify the chunkshape so that
+        # a sensible value would be calculated)
         object = EArray(
             group, name, atom=self.atom, shape=shape, title=title,
             filters=filters, expectedrows=self.nrows, _log=_log)
@@ -359,14 +259,12 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
             object._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
         self._v_convert = True
-        nbytes = self.itemsize
-        for i in self.shape:
-            nbytes*=i
+        nbytes = numpy.product(self.shape)*self.itemsize
 
         return (object, nbytes)
 
     def __repr__(self):
-        """This provides more metainfo in addition to standard __str__"""
+        """This provides more metainfo in addition to standard __str__."""
 
         return """%s
   atom := %r

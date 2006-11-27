@@ -1189,7 +1189,10 @@ class CopyTestCase(unittest.TestCase):
         assert array1.ptype == array2.ptype
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
-        assert array1._v_chunkshape == array2._v_chunkshape
+        # The next line is commented out because a copy should not
+        # keep the same chunkshape anymore.
+        # F. Altet 2006-11-27
+        #assert array1._v_chunkshape == array2._v_chunkshape
 
         # Close the file
         fileh.close()
@@ -1250,7 +1253,10 @@ class CopyTestCase(unittest.TestCase):
         assert array1.ptype == array2.ptype
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
-        assert array1._v_chunkshape == array2._v_chunkshape
+        # The next line is commented out because a copy should not
+        # keep the same chunkshape anymore.
+        # F. Altet 2006-11-27
+        #assert array1._v_chunkshape == array2._v_chunkshape
 
         # Close the file
         fileh.close()
@@ -1311,7 +1317,10 @@ class CopyTestCase(unittest.TestCase):
         assert array1.ptype == array2.ptype
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
-        assert array1._v_chunkshape == array2._v_chunkshape
+        # The next line is commented out because a copy should not
+        # keep the same chunkshape anymore.
+        # F. Altet 2006-11-27
+        #assert array1._v_chunkshape == array2._v_chunkshape
 
         # Close the file
         fileh.close()
@@ -1373,7 +1382,10 @@ class CopyTestCase(unittest.TestCase):
         assert array1.ptype == array2.ptype
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
-        assert array1._v_chunkshape == array2._v_chunkshape
+        # The next line is commented out because a copy should not
+        # keep the same chunkshape anymore.
+        # F. Altet 2006-11-27
+        #assert array1._v_chunkshape == array2._v_chunkshape
 
         # Close the file
         fileh.close()
@@ -1431,7 +1443,10 @@ class CopyTestCase(unittest.TestCase):
         assert array1.ptype == array2.ptype
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
-        assert array1._v_chunkshape == array2._v_chunkshape
+        # The next line is commented out because a copy should not
+        # keep the same chunkshape anymore.
+        # F. Altet 2006-11-27
+        #assert array1._v_chunkshape == array2._v_chunkshape
 
         # Close the file
         fileh.close()
@@ -1487,7 +1502,10 @@ class CopyTestCase(unittest.TestCase):
         assert array1.ptype == array2.ptype
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
-        assert array1._v_chunkshape == array2._v_chunkshape
+        # The next line is commented out because a copy should not
+        # keep the same chunkshape anymore.
+        # F. Altet 2006-11-27
+        #assert array1._v_chunkshape == array2._v_chunkshape
 
         # Close the file
         fileh.close()
@@ -1546,7 +1564,10 @@ class CopyTestCase(unittest.TestCase):
         assert array1.ptype == array2.ptype
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
-        assert array1._v_chunkshape == array2._v_chunkshape
+        # The next line is commented out because a copy should not
+        # keep the same chunkshape anymore.
+        # F. Altet 2006-11-27
+        #assert array1._v_chunkshape == array2._v_chunkshape
 
         # Close the file
         fileh.close()
@@ -1602,7 +1623,10 @@ class CopyTestCase(unittest.TestCase):
         assert array1.ptype == array2.ptype
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
-        assert array1._v_chunkshape == array2._v_chunkshape
+        # The next line is commented out because a copy should not
+        # keep the same chunkshape anymore.
+        # F. Altet 2006-11-27
+        #assert array1._v_chunkshape == array2._v_chunkshape
 
         # Close the file
         fileh.close()
@@ -1811,7 +1835,10 @@ class CopyIndexTestCase(unittest.TestCase):
             print "nrows in array2-->", array2.nrows
             print "and it should be-->", r2.shape[0]
 
-        assert array1._v_chunkshape == array2._v_chunkshape
+        # The next line is commented out because a copy should not
+        # keep the same chunkshape anymore.
+        # F. Altet 2006-11-27
+        #assert array1._v_chunkshape == array2._v_chunkshape
         assert r2.shape[0] == array2.nrows
 
         # Close the file
@@ -1955,8 +1982,8 @@ class Rows64bitsTestCase(unittest.TestCase):
         shape = (self.narows*self.nanumber,)
         array = fileh.createCArray(fileh.root, 'array',
                                    Int8Atom(), shape,
-                                   filters=Filters(complib='lzo', complevel=1),
-                                   chunkshape=(1024,))
+                                   filters=Filters(complib='lzo',
+                                                   complevel=1))
 
         # Fill the array
         na = numpy.arange(self.narows, dtype='int8')
@@ -2031,6 +2058,38 @@ class Rows64bitsTestCase1(Rows64bitsTestCase):
 class Rows64bitsTestCase2(Rows64bitsTestCase):
     close = 1
 
+
+class MDAtomTestCase(unittest.TestCase):
+
+    def test01_notimplemented(self):
+        "Check that multidimensional atoms raise NotImplemented error."
+
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        fileh = self.fileh = openFile(self.file, "a")
+
+        # Try to create a carray with a multidimensional Atom
+        # Here, NotImplemented error should be raised!
+        try:
+            carray = fileh.createCArray(fileh.root, 'carray',
+                                        Int8Atom(shape=(2,)), (2,3))
+        except NotImplementedError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next error was catched:"
+                print value
+        else:
+            self.fail("expected a NotImplementedError")
+
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
+
+
 #----------------------------------------------------------------------
 
 
@@ -2093,6 +2152,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
+        theSuite.addTest(unittest.makeSuite(MDAtomTestCase))
     if heavy:
         theSuite.addTest(unittest.makeSuite(Slices3CArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4CArrayTestCase))

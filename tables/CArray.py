@@ -100,25 +100,41 @@ class CArray(Array):
 
         """
 
+        # Documented (*public*) attributes.
+        self.dtype = None
+        """The NumPy type of the represented array."""
+        self.ptype = None
+        """The PyTables type of the represented array."""
+        self.atom = atom
+        """
+        An `Atom` instance representing the shape, type and flavor of
+        the atomic objects to be saved.
+        """
+        self.shape = None
+        """The shape of the stored array."""
+        self.extdim = -1  # `CArray` objects are not enlargeable by default
+        """The index of the enlargeable dimension."""
+        self.flavor = None
+        """
+        The object representation of this array.  It can be any of
+        'numpy', 'numarray', 'numeric' or 'python' values.
+        """
+
+        # Other private attributes
         self._v_version = None
         """The object version of this array."""
         self._v_new = new = atom is not None
         """Is this the first time the node has been created?"""
         self._v_new_title = title
         """New title for this node."""
-
         self._v_nrowsinbuf = None
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
-        self.shape = None
-        """The shape of the stored array."""
         self._v_chunkshape = None
         """The HDF5 chunk size for ``CArray/EArray`` objects."""
         self._enum = None
         """The enumerated type containing the values in this array."""
-        self.extdim = -1  # `CArray` objects are not enlargeable
-        """The index of the enlargeable dimension."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
@@ -140,28 +156,14 @@ class CArray(Array):
         self.listarr = None
         """Current buffer in iterators."""
 
-        self.flavor = None
-        """
-        The object representation of this array.  It can be any of
-        'numpy', 'numarray', 'numeric' or 'python' values.
-        """
-        self.dtype = None
-        """The NumPy type of the represented array."""
-        self.ptype = None
-        """The PyTables type of the represented array."""
-
-        # Documented (*public*) attributes.
-        self.atom = atom
-        """
-        An `Atom` instance representing the shape, type and flavor of
-        the atomic objects to be saved.
-        """
-
         if new:
             if not isinstance(atom, Atom):
                 raise ValueError, """\
 atom parameter should be an instance of tables.Atom and you passed a %s.""" \
 % type(atom)
+            elif atom.shape not in ((), 1):
+                raise NotImplementedError, """\
+sorry, but multidimensional atoms are not supported in this context yet."""
 
             if shape is None:
                 raise ValueError, """\
@@ -170,8 +172,8 @@ you must specify a non-empty shape."""
                 raise ValueError, """\
 shape parameter should be either a tuple or a list and you passed a %s.""" \
 % type(shape)
-
-            self.shape = tuple(shape)
+            else:
+                self.shape = tuple(shape)
 
             if chunkshape is not None:
                 if type(chunkshape) not in (list, tuple):
@@ -244,13 +246,31 @@ shape parameter cannot have zero-dimensions."""
         # Compute the optimal nrowsinbuf
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
                                                    self.rowsize)
-
         return oid
+
+
+    def getEnum(self):
+        """
+        Get the enumerated type associated with this array.
+
+        If this array is of an enumerated type, the corresponding `Enum`
+        instance is returned.  If it is not of an enumerated type, a
+        ``TypeError`` is raised.
+        """
+
+        if self.atom.ptype != 'Enum':
+            raise TypeError("array ``%s`` is not of an enumerated type"
+                            % self._v_pathname)
+
+        return self.atom.enum
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf"
+        maindim = self.maindim
+        shape = list(self.shape)
+        shape[maindim] = len(xrange(start, stop, step))
         # Now, fill the new carray with values from source
         nrowsinbuf = self._v_nrowsinbuf
         # The slices parameter for self.__getitem__
@@ -259,25 +279,24 @@ shape parameter cannot have zero-dimensions."""
         # when copying buffers
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         self._v_convert = False
-        shape = list(self.shape)
-        #shape[0] = ((stop - start - 1) / step) + 1
-        shape[0] = len(xrange(start, stop, step))
-        # Build the new CArray object
+        # Build the new CArray object (do not specify the chunkshape so that
+        # a sensible value would be calculated)
         object = CArray(group, name, atom=self.atom, shape=shape,
-                        title=title, filters=filters,
-                        chunkshape=self._v_chunkshape, _log=_log)
+                        title=title, filters=filters, _log=_log)
         # Start the copy itself
         for start2 in range(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
-            # Set the proper slice in the first dimension
-            slices[0] = slice(start2, stop2, step)
+            # Set the proper slice in the main dimension
+            slices[maindim] = slice(start2, stop2, step)
             start3 = (start2-start)/step
             stop3 = start3 + nrowsinbuf
-            if stop3 > shape[0]:
-                stop3 = shape[0]
+            if stop3 > shape[maindim]:
+                stop3 = shape[maindim]
+            # The next line should be generalised when maindim would be
+            # different from 0
             object[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True

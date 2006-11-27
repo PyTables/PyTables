@@ -896,6 +896,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         from this group *before* closing it.
         """
 
+        if not hasattr(self, "_v_isopen"):
+            return  # the node is probably being aborted during creation time
         if not self._v_isopen:
             return  # the node is already closed
 

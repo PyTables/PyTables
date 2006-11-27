@@ -236,7 +236,9 @@ class Table(TableExtension.Table, Leaf):
         lambda self: self.description._v_dtype.itemsize, None, None,
         "The size in bytes of each row in the table.")
 
-    # itemsize & rowsize are the same for a unidimensional table
+    # itemsize & rowsize are the same for a unidimensional table.
+    # This property is needed in order to allow a generalization
+    # for buffersize/chunksize calculation.
     itemsize = property(
         lambda self: self.description._v_dtype.itemsize, None, None,
         "The size in bytes of each element in the table.")

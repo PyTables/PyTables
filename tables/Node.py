@@ -318,8 +318,10 @@ class Node(object):
         #    revived, the user would also need to force the closed
         #    `Node` out of memory, which is not a trivial task.
         #
+        if not hasattr(self, "_v_isopen"):
+            return  # the node is probably being aborted during creation time
         if not self._v_isopen:
-            return
+            return  # the node is already closed
 
         # If we get here, the `Node` is still open.
         file_ = self._v_file
