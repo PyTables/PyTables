@@ -150,7 +150,7 @@ it does not match the pattern ``%s``; %s"""
         raise ValueError("``__members__`` is not allowed as an object name")
 
 
-def calcChunksize(expectedsizeinMB):
+def calc_chunksize(expectedsizeinMB):
     """Compute the optimum HDF5 chunksize for I/O purposes.
 
     Rational: HDF5 takes the data in bunches of chunksize length to

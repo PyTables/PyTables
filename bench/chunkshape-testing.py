@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Simple benchmark for testing chunkshapes and maxTuples."""
+"""Simple benchmark for testing chunkshapes and nrowsinbuf."""
 
 import numpy, tables
 from time import time

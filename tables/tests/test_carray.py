@@ -120,7 +120,7 @@ class BasicTestCase(unittest.TestCase):
         carray = self.fileh.getNode("/carray1")
 
         # Choose a small value for buffer size
-        carray._v_maxTuples = 3
+        carray._v_nrowsinbuf = 3
         if verbose:
             print "CArray descr:", repr(carray)
             print "shape of read array ==>", carray.shape
@@ -211,7 +211,7 @@ class BasicTestCase(unittest.TestCase):
         carray = self.fileh.getNode("/carray1")
 
         # Choose a small value for buffer size
-        #carray._v_maxTuples = 3   # this does not really changes the chunkshape
+        #carray._v_nrowsinbuf = 3   # this does not really changes the chunkshape
         if verbose:
             print "CArray descr:", repr(carray)
             print "shape of read array ==>", carray.shape
@@ -285,7 +285,7 @@ class BasicTestCase(unittest.TestCase):
         carray = self.fileh.getNode("/carray1")
 
         # Choose a small value for buffer size
-        #carray._v_maxTuples = 3   # this does not really changes the chunkshape
+        #carray._v_nrowsinbuf = 3   # this does not really changes the chunkshape
         if verbose:
             print "CArray descr:", repr(carray)
             print "shape of read array ==>", carray.shape
@@ -1770,7 +1770,7 @@ class OpenCopyTestCase(CopyTestCase):
     close = 0
 
 class CopyIndexTestCase(unittest.TestCase):
-    maxTuples = 2
+    nrowsinbuf = 2
 
     def test01_index(self):
         """Checking CArray.copy() method with indexes"""
@@ -1793,7 +1793,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1[...] = r
 
         # Select a different buffer size:
-        array1._v_maxTuples = self.maxTuples
+        array1._v_nrowsinbuf = self.nrowsinbuf
 
         # Copy to another array
         array2 = array1.copy("/", 'array2',
@@ -1843,7 +1843,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1[...] = r
 
         # Select a different buffer size:
-        array1._v_maxTuples = self.maxTuples
+        array1._v_nrowsinbuf = self.nrowsinbuf
 
         # Copy to another array
         array2 = array1.copy("/", 'array2',
@@ -1878,37 +1878,37 @@ class CopyIndexTestCase(unittest.TestCase):
         os.remove(file)
 
 class CopyIndex1TestCase(CopyIndexTestCase):
-    maxTuples = 1
+    nrowsinbuf = 1
     start = 0
     stop = 7
     step = 1
 
 class CopyIndex2TestCase(CopyIndexTestCase):
-    maxTuples = 2
+    nrowsinbuf = 2
     start = 0
     stop = -1
     step = 1
 
 class CopyIndex3TestCase(CopyIndexTestCase):
-    maxTuples = 3
+    nrowsinbuf = 3
     start = 1
     stop = 7
     step = 1
 
 class CopyIndex4TestCase(CopyIndexTestCase):
-    maxTuples = 4
+    nrowsinbuf = 4
     start = 0
     stop = 6
     step = 1
 
 class CopyIndex5TestCase(CopyIndexTestCase):
-    maxTuples = 2
+    nrowsinbuf = 2
     start = 3
     stop = 7
     step = 1
 
 class CopyIndex6TestCase(CopyIndexTestCase):
-    maxTuples = 2
+    nrowsinbuf = 2
     start = 3
     stop = 6
     step = 2
@@ -1929,7 +1929,7 @@ class CopyIndex9TestCase(CopyIndexTestCase):
     step = 1
 
 class CopyIndex10TestCase(CopyIndexTestCase):
-    maxTuples = 1
+    nrowsinbuf = 1
     start = 3
     stop = 4
     step = 2

@@ -46,7 +46,7 @@ except ImportError:
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRange, processRangeRead, convToFlavor, \
-     convToNP, is_idx, byteorders, calcChunksize
+     convToNP, is_idx, byteorders, calc_chunksize
 from tables.Leaf import Leaf, Filters
 from tables.constants import CHUNKTIMES, BUFFERTIMES, MB
 from tables.exceptions import PerformanceWarning
@@ -168,7 +168,7 @@ class Array(hdf5Extension.Array, Leaf):
         integer of floating point types, provided that they are
         regular (i.e. they are not like ``[[1, 2], 2]``).
         """
-        self._v_maxTuples = None
+        self._v_nrowsinbuf = None
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_chunkshape = None
         """
@@ -219,20 +219,23 @@ class Array(hdf5Extension.Array, Leaf):
         super(Array, self).__init__(parentNode, name, new, Filters(), _log)
 
 
-    def _calcChunkshape(self, expectedrows):
-        """Calculate the HDF5 chunk size."""
+    def _calc_chunkshape(self, expectedrows, rowsize):
+        """Calculate the shape for the HDF5 chunk."""
+
+        # Compute the chunksize
+        expectedsizeinMB = (expectedrows * rowsize) / MB
+        chunksize = calc_chunksize(expectedsizeinMB)
 
         # In case of a scalar shape, return the unit chunksize
         if self.shape == ():
             return (1,)
 
-        # Compute the chunksize
-        expectedsizeinMB = (expectedrows * self.rowsize) / MB
-        chunksize = calcChunksize(expectedsizeinMB)
-
         maindim = self.maindim
         # Compute the chunknitems
         chunknitems = chunksize // self.itemsize
+        # Safeguard against itemsizes being extremely large
+        if chunknitems == 0:
+            chunknitems = 1
         chunkshape = list(self.shape)
         # Check whether trimming the main dimension is enough
         chunkshape[maindim] = 1
@@ -253,30 +256,32 @@ class Array(hdf5Extension.Array, Leaf):
                 # Set the last dimension to chunknitems
                 chunkshape[-1] = chunknitems
 
+        print "chunkshape-->", chunkshape
         return tuple(chunkshape)
 
 
-    def _calcMaxTuples(self, expectedrows):
-        """Calculate the buffersize for this array."""
+    def _calc_nrowsinbuf(self, chunkshape, rowsize):
+        """Calculate the number of rows that fits on a PyTables buffer."""
 
-        rowsize = self.rowsize
-        expectedsizeinMB = (expectedrows * rowsize) / MB
-        buffersize = calcChunksize(expectedsizeinMB) * CHUNKTIMES
-        maxTuples = buffersize // rowsize
+        # Compute the nrowsinbuf
+        chunksize = numpy.prod(chunkshape) * self.itemsize
+        buffersize = chunksize * CHUNKTIMES
+        nrowsinbuf = buffersize // rowsize
         # Safeguard against row sizes being extremely large
-        if maxTuples == 0:
-            maxTuples = 1
-            maxbuffersize = BUFFERTIMES * buffersize
-            if rowsize > maxbuffersize:
+        if nrowsinbuf == 0:
+            nrowsinbuf = 1
+            # If rowsize is too large, issue a Performance warning
+            maxrowsize = BUFFERTIMES * buffersize
+            if rowsize > maxrowsize:
                 warnings.warn("""\
-array ``%s`` is exceeding the recommended rowsize (%d); \
+array or table ``%s`` is exceeding the maximum recommended rowsize (%d); \
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
 You may want to reduce the rowsize by trimming the value of dimensions
-that are orthogonal to the main dimension of this array."""
-                          % (self._v_pathname, maxbuffersize),
-                          PerformanceWarning)
-                
-        return maxTuples
+that are orthogonal to the main dimension of this array or table."""
+                              % (self._v_pathname, maxrowsize),
+                              PerformanceWarning)
+
+        return nrowsinbuf
 
 
     def _g_create(self):
@@ -311,8 +316,10 @@ that are orthogonal to the main dimension of this array."""
             self.close(flush=0)
             raise
 
-        # Compute the optimal buffer sizes
-        self._v_maxTuples = self._calcMaxTuples(self.nrows)
+        # Compute the optimal buffer size (nrowsinbuf)
+        chunkshape = self._calc_chunkshape(self.nrows, self.rowsize)
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(chunkshape, self.rowsize)
+
         return self._v_objectID
 
 
@@ -326,8 +333,9 @@ that are orthogonal to the main dimension of this array."""
         if self.ptype == 'Enum':
             (self._enum, self.dtype) = self._g_loadEnum()
 
-        # Compute the optimal buffer sizes
-        self._v_maxTuples = self._calcMaxTuples(self.nrows)
+        # Compute the optimal buffer size (nrowsinbuf)
+        chunkshape = self._calc_chunkshape(self.nrows, self.rowsize)
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(chunkshape, self.rowsize)
 
         return self._v_objectID
 
@@ -393,8 +401,8 @@ that are orthogonal to the main dimension of this array."""
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
-            if self._row+1 >= self._v_maxTuples or self._row < 0:
-                self._stopb = self._startb+self._step*self._v_maxTuples
+            if self._row+1 >= self._v_nrowsinbuf or self._row < 0:
+                self._stopb = self._startb+self._step*self._v_nrowsinbuf
                 # Protection for reading more elements than needed
                 if self._stopb > self._stop:
                     self._stopb = self._stop

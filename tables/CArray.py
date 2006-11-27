@@ -107,7 +107,7 @@ class CArray(Array):
         self._v_new_title = title
         """New title for this node."""
 
-        self._v_maxTuples = None
+        self._v_nrowsinbuf = None
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
@@ -213,12 +213,13 @@ atom parameter should be an instance of tables.Atom and you passed a %s
         self.ptype = self.atom.ptype
         self.flavor = self.atom.flavor
 
-        # Compute the chunksize, if needed
+        # Compute the optimal chunk size, if needed
         if self._v_chunkshape is None:
-            self._v_chunkshape = self._calcChunkshape(self.nrows)
-
-        # Compute the buffer size for copying purposes
-        self._v_maxTuples = self._calcMaxTuples(self.nrows)
+            self._v_chunkshape = self._calc_chunkshape(self.nrows,
+                                                       self.rowsize)
+        # Compute the optimal nrowsinbuf
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
+                                                   self.rowsize)
 
         try:
             return self._createEArray(self._v_new_title)
@@ -247,8 +248,9 @@ atom parameter should be an instance of tables.Atom and you passed a %s
             self.atom = Atom(dtype=self.ptype,
                              flavor=self.flavor, warn=False)
 
-        # Compute the maximum number of tuples
-        self._v_maxTuples = self._calcMaxTuples(self.nrows)
+        # Compute the optimal nrowsinbuf
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
+                                                   self.rowsize)
 
         return oid
 
@@ -257,7 +259,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s
                          title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf"
         # Now, fill the new carray with values from source
-        nrowsinbuf = self._v_maxTuples
+        nrowsinbuf = self._v_nrowsinbuf
         # The slices parameter for self.__getitem__
         slices = [slice(0, dim, 1) for dim in self.shape]
         # This is a hack to prevent doing innecessary conversions
@@ -274,7 +276,7 @@ atom parameter should be an instance of tables.Atom and you passed a %s
         # Start the copy itself
         for start2 in range(start, stop, step*nrowsinbuf):
             # Save the records on disk
-            stop2 = start2+step*nrowsinbuf
+            stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:
                 stop2 = stop
             # Set the proper slice in the first dimension

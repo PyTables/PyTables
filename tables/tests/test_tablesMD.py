@@ -294,7 +294,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/table0")
 
         # Choose a small value for buffer size
-        table._v_maxTuples = 3
+        table._v_nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var2'][0][0] for rec in table.iterrows()
                    if rec['var2'][0][0] < 20 ]
@@ -336,7 +336,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/table0")
 
         # Choose a small value for buffer size
-        table._v_maxTuples = 3
+        table._v_nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var5'] for rec in table.iterrows()
                    if rec['var2'][0][0] < 20 ]
@@ -475,7 +475,7 @@ class DictWriteTestCase(BasicTestCase):
     record = RecordDescriptionDict
     recordro = RecordDescriptionDictRevOrder
     nrows = 21
-    maxTuples = 3  # Choose a small value for the buffer size
+    nrowsinbuf = 3  # Choose a small value for the buffer size
     start = 0
     stop = 10
     step = 3
@@ -554,7 +554,7 @@ class BasicRangeTestCase(unittest.TestCase):
     compress = 0
     # Default values
     nrows = 20
-    maxTuples = 3  # Choose a small value for the buffer size
+    nrowsinbuf = 3  # Choose a small value for the buffer size
     start = 1
     stop = nrows
     checkrecarray = 0
@@ -622,7 +622,7 @@ class BasicRangeTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, "r")
         table = self.fileh.getNode("/table0")
 
-        table._v_maxTuples = self.maxTuples
+        table._v_nrowsinbuf = self.nrowsinbuf
         r = slice(self.start, self.stop, self.step)
         resrange = r.indices(table.nrows)
         reslength = len(range(*resrange))
@@ -691,9 +691,9 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_range..." % self.__class__.__name__
 
-        # Case where step < maxTuples < 2*step
+        # Case where step < nrowsinbuf < 2*step
         self.nrows = 21
-        self.maxTuples = 3
+        self.nrowsinbuf = 3
         self.start = 0
         self.stop = self.expectedrows
         self.step = 2
@@ -707,9 +707,9 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_range..." % self.__class__.__name__
 
-        # Case where step < maxTuples < 10*step
+        # Case where step < nrowsinbuf < 10*step
         self.nrows = 21
-        self.maxTuples = 31
+        self.nrowsinbuf = 31
         self.start = 11
         self.stop = self.expectedrows
         self.step = 3
@@ -723,9 +723,9 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03_range..." % self.__class__.__name__
 
-        # Case where step < maxTuples < 1.1*step
+        # Case where step < nrowsinbuf < 1.1*step
         self.nrows = self.expectedrows
-        self.maxTuples = 11  # Choose a small value for the buffer size
+        self.nrowsinbuf = 11  # Choose a small value for the buffer size
         self.start = 0
         self.stop = self.expectedrows
         self.step = 10
@@ -739,9 +739,9 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04_range..." % self.__class__.__name__
 
-        # Case where step == maxTuples
+        # Case where step == nrowsinbuf
         self.nrows = self.expectedrows
-        self.maxTuples = 11  # Choose a small value for the buffer size
+        self.nrowsinbuf = 11  # Choose a small value for the buffer size
         self.start = 1
         self.stop = self.expectedrows
         self.step = 11
@@ -755,9 +755,9 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05_range..." % self.__class__.__name__
 
-        # Case where step > 1.1*maxTuples
+        # Case where step > 1.1*nrowsinbuf
         self.nrows = 21
-        self.maxTuples = 10  # Choose a small value for the buffer size
+        self.nrowsinbuf = 10  # Choose a small value for the buffer size
         self.start = 1
         self.stop = self.expectedrows
         self.step = 11
@@ -771,9 +771,9 @@ class BasicRangeTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06_range..." % self.__class__.__name__
 
-        # Case where step > 3*maxTuples
+        # Case where step > 3*nrowsinbuf
         self.nrows = 3
-        self.maxTuples = 3  # Choose a small value for the buffer size
+        self.nrowsinbuf = 3  # Choose a small value for the buffer size
         self.start = 2
         self.stop = self.expectedrows
         self.step = 10
@@ -789,7 +789,7 @@ class BasicRangeTestCase(unittest.TestCase):
 
         # Case where start == stop
         self.nrows = 2
-        self.maxTuples = 3  # Choose a small value for the buffer size
+        self.nrowsinbuf = 3  # Choose a small value for the buffer size
         self.start = self.nrows
         self.stop = self.nrows
         self.step = 10
@@ -805,7 +805,7 @@ class BasicRangeTestCase(unittest.TestCase):
 
         # Case where start > stop
         self.nrows = 2
-        self.maxTuples = 3  # Choose a small value for the buffer size
+        self.nrowsinbuf = 3  # Choose a small value for the buffer size
         self.start = self.nrows + 1
         self.stop = self.nrows
         self.step = 1
@@ -821,7 +821,7 @@ class BasicRangeTestCase(unittest.TestCase):
 
         # Case where stop = None
         self.nrows = 100
-        self.maxTuples = 3  # Choose a small value for the buffer size
+        self.nrowsinbuf = 3  # Choose a small value for the buffer size
         self.start = 1
         self.stop = None
         self.step = 1
@@ -837,7 +837,7 @@ class BasicRangeTestCase(unittest.TestCase):
 
         # Case where start < 0 and stop = 0
         self.nrows = self.expectedrows
-        self.maxTuples = 5  # Choose a small value for the buffer size
+        self.nrowsinbuf = 5  # Choose a small value for the buffer size
         self.start = -6
         self.startr = self.expectedrows + self.start
         self.stop = 0
@@ -855,7 +855,7 @@ class BasicRangeTestCase(unittest.TestCase):
 
         # Case where start < 0 and stop < 0
         self.nrows = self.expectedrows
-        self.maxTuples = 5  # Choose a small value for the buffer size
+        self.nrowsinbuf = 5  # Choose a small value for the buffer size
         self.start = -6
         self.startr = self.expectedrows + self.start
         self.stop = -2
@@ -873,7 +873,7 @@ class BasicRangeTestCase(unittest.TestCase):
 
         # Case where start < 0 and stop < 0 and start > stop
         self.nrows = self.expectedrows
-        self.maxTuples = 5  # Choose a small value for the buffer size
+        self.nrowsinbuf = 5  # Choose a small value for the buffer size
         self.start = -1
         self.startr = self.expectedrows + self.start
         self.stop = -2
@@ -1080,7 +1080,7 @@ class DefaultValues(unittest.TestCase):
         table = fileh.createTable(fileh.root, 'table', Record)
 
         # Take a number of records a bit large
-        #nrows = int(table._v_maxTuples * 1.1)
+        #nrows = int(table._v_nrowsinbuf * 1.1)
         nrows = 5  # for test
         # Fill the table with nrows records
         for i in xrange(nrows):
@@ -1114,7 +1114,7 @@ class DefaultValues(unittest.TestCase):
         r2 = table.read()
 
         # This generates too much output. Activate only when
-        # self._v_maxTuples is very small (<10)
+        # self._v_nrowsinbuf is very small (<10)
         if verbose and 1:
             print "Table values:"
             print r2

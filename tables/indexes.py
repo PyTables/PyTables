@@ -510,7 +510,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
 
 
     def _calcTuplesAndChunks(self, atom, extdim, expectedrows, compress):
-        return (0, (1, self.chunksize))  # (_v_maxTuples, _v_chunkshape)
+        return (0, (1, self.chunksize))  # (_v_nrowsinbuf, _v_chunkshape)
 
 
     def _createEArray(self, title):

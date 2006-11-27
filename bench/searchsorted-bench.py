@@ -85,10 +85,10 @@ def readFile(filename, atom, niter, verbose):
     else:
         idxcol = table.cols.var3.index
     if verbose:
-        print "Max rows in buf:", table._v_maxTuples
+        print "Max rows in buf:", table._v_nrowsinbuf
         print "Rows in", table._v_pathname, ":", table.nrows
-        print "Buffersize:", table.rowsize * table._v_maxTuples
-        print "MaxTuples:", table._v_maxTuples
+        print "Buffersize:", table.rowsize * table._v_nrowsinbuf
+        print "MaxTuples:", table._v_nrowsinbuf
         print "Chunk size:", idxcol.sorted.chunksize
         print "Number of elements per slice:", idxcol.nelemslice
         print "Slice number in", table._v_pathname, ":", idxcol.nrows

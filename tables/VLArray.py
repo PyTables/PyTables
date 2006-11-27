@@ -37,7 +37,7 @@ import numpy
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRangeRead, convertToNPAtom, convToFlavor, \
-     idx2long, byteorders, calcChunksize
+     idx2long, byteorders, calc_chunksize
 from tables.Atom import Atom, ObjectAtom, VLStringAtom, StringAtom, EnumAtom
 from tables.Leaf import Leaf
 
@@ -135,7 +135,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         self._v_expectedsizeinMB = expectedsizeinMB
         """The expected size of the array in MiB."""
 
-        self._v_maxTuples = 100       # maybe enough for most applications
+        self._v_nrowsinbuf = 100       # maybe enough for most applications
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_chunkshape = None
         """The HDF5 chunk shape for ``VLArray`` objects (scalar)."""
@@ -174,19 +174,22 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         super(VLArray, self).__init__(parentNode, name, new, filters, _log)
 
 
-    def _calcChunkshape(self, expectedsizeinMB):
+    def _calc_chunkshape(self, expectedsizeinMB):
         """Calculate the size for the HDF5 chunk."""
 
-        chunksize = calcChunksize(expectedsizeinMB)
+        chunksize = calc_chunksize(expectedsizeinMB)
 
         # For computing the chunkshape for HDF5 VL types, we have to
-        # choose the itemsize of the *each* element of the atom
-        # and not the size of the entire atom.
+        # choose the itemsize of the *each* element of the atom and
+        # not the size of the entire atom.  I don't know why this
+        # should be like this, perhaps I should report this to the
+        # HDF5 list.
         # F. Altet 2006-11-23
+        #elemsize = self.atom.atomsize()
         elemsize = self.atom.dtype.itemsize
         # Set the chunkshape
         chunkshape = chunksize // elemsize
-        # Safeguard against atoms being extremely large
+        # Safeguard against itemsizes being extremely large
         if chunkshape == 0:
             chunkshape = 1
         return chunkshape
@@ -211,7 +214,7 @@ be zero."""
         self.flavor = self.atom.flavor
 
         # Compute the optimal chunkshape
-        self._v_chunkshape = self._calcChunkshape(self._v_expectedsizeinMB)
+        self._v_chunkshape = self._calc_chunkshape(self._v_expectedsizeinMB)
         self.nrows = 0     # No rows at creation time
 
         self._v_objectID = self._createArray(self._v_new_title)
@@ -431,8 +434,8 @@ please put them in a single sequence object"""),
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
-            if self._row+1 >= self._v_maxTuples or self._row < 0:
-                self._stopb = self._startb+self._step*self._v_maxTuples
+            if self._row+1 >= self._v_nrowsinbuf or self._row < 0:
+                self._stopb = self._startb+self._step*self._v_nrowsinbuf
                 self.listarr = self.read(self._startb, self._stopb, self._step)
                 self._row = -1
                 self._startb = self._stopb

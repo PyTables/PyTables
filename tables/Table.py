@@ -54,7 +54,7 @@ import tables.TableExtension as TableExtension
 from tables.conditions import split_condition, call_on_recarr
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
-from tables.utils import processRange, processRangeRead, calcChunksize, \
+from tables.utils import processRange, processRangeRead, calc_chunksize, \
      joinPath, convertNPToNumeric, convertNPToNumArray, fromnumpy, tonumpy, \
      fromnumarray, is_idx, flattenNames, byteorders, getNestedField
 from tables.Leaf import Leaf
@@ -343,7 +343,7 @@ class Table(TableExtension.Table, Leaf):
         """The names of ``String`` columns."""
         self._colenums = {}
         """Maps the name of an enumerated column to its ``Enum`` instance."""
-        self._v_maxTuples = None
+        self._v_nrowsinbuf = None
         """The number of rows that fit in the table buffer."""
         self._v_chunksize = None
         """The HDF5 chunk size."""
@@ -516,7 +516,7 @@ class Table(TableExtension.Table, Leaf):
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
 
-        recarr = self._get_container(self._v_maxTuples)
+        recarr = self._get_container(self._v_nrowsinbuf)
         # Initialize the recarray with the defaults in description
         if init:
             for objcol in self.description._f_walk("Col"):
@@ -640,22 +640,22 @@ class Table(TableExtension.Table, Leaf):
         return idgroup
 
 
-    def _calcBuffersizes(self, expectedrows):
+    def _calc_chunksizes(self, expectedrows):
         """Calculate the sizes for a PyTables buffer and HDF5 chunk."""
 
         rowsize = self.rowsize
         expectedsizeinMB = expectedrows * rowsize / MB
-        chunksize = calcChunksize(expectedsizeinMB)
+        chunksize = calc_chunksize(expectedsizeinMB)
         chunkshape = chunksize // rowsize
-        # Max tuples to fill the buffer
+        # Number of rows to fill the buffer
         buffersize = chunksize * CHUNKTIMES
-        maxTuples = chunkshape * CHUNKTIMES
+        nrowsinbuf = buffersize // rowsize
         # Safeguard against row sizes being extremely large
         if chunkshape == 0:
             chunkshape = 1
-        if maxTuples == 0:
-            maxTuples = 1
-        return (maxTuples, (chunkshape,))
+        if nrowsinbuf == 0:
+            nrowsinbuf = 1
+        return (nrowsinbuf, (chunkshape,))
 
 
     def _g_create(self):
@@ -678,8 +678,8 @@ class Table(TableExtension.Table, Leaf):
         self._colenums = self._getEnumMap()
 
         # Compute some values for buffering and I/O parameters
-        (self._v_maxTuples, self._v_chunkshape) = \
-                            self._calcBuffersizes(self._v_expectedrows)
+        (self._v_nrowsinbuf, self._v_chunkshape) = \
+                            self._calc_chunksizes(self._v_expectedrows)
 
         # Create the table on disk
         # self._v_objectID needs to be assigned here because is needed for
@@ -796,8 +796,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._colenums = self._getEnumMap()
 
         # Compute buffer & chuksize sizes
-        (self._v_maxTuples, self._v_chunkshape) = \
-                            self._calcBuffersizes(self.nrows)
+        (self._v_nrowsinbuf, self._v_chunkshape) = \
+                            self._calc_chunksizes(self.nrows)
 
         # Get info about columns
         for colobj in self.description._f_walk(type="Col"):
@@ -937,7 +937,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         Currently, the key is a tuple of `condition`, column variables
         names, normal variables names, column paths and variable paths
-        (all tuples).
+        (all are tuples).
         """
 
         # Variable names for column and normal variables.
@@ -1529,7 +1529,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         # Create a read buffer only if needed
         if field is None or ncoords > 0:
             # Doing a copy is faster when ncoords is small (<1000)
-            if ncoords < min(1000, self._v_maxTuples):
+            if ncoords < min(1000, self._v_nrowsinbuf):
                 result = self._v_rbuffer[:ncoords].copy()
             else:
                 result = self._get_container(ncoords)
@@ -2149,7 +2149,7 @@ The 'names' parameter must be a list of strings.""")
     def _g_copyRows(self, object, start, stop, step):
         "Copy rows from self to object"
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
-        nrowsinbuf = self._v_maxTuples
+        nrowsinbuf = self._v_nrowsinbuf
         object._open_append(self._v_wbuffer)
         nrowsdest = object.nrows
         for start2 in xrange(start, stop, step*nrowsinbuf):

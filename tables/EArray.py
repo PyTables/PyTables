@@ -110,7 +110,7 @@ class EArray(Array):
 
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the array."""
-        self._v_maxTuples = None
+        self._v_nrowsinbuf = None
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_chunkshape = None
         """The HDF5 chunk size for ``EArray`` objects."""
@@ -205,17 +205,19 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
                 self.extdim = list(self.shape).index(0)
             else:
                 raise NotImplementedError, \
-                      "Multiple enlargeable (0-)dimensions are not supported."
+"Multiple enlargeable (0-)dimensions are not supported."
         else:
             raise ValueError, \
-                  "When creating EArrays, you need to set one of the dimensions of the Atom instance to zero."
+"""When creating EArrays, you need to set one of the dimensions of the Atom
+instance to zero."""
 
-        # Compute the chunksize, if needed
+        # Compute the optimal chunk size, if needed
         if self._v_chunkshape is None:
-            self._v_chunkshape = self._calcChunkshape(self._v_expectedrows)
-
-        # Compute the buffer size for copying purposes
-        self._v_maxTuples = self._calcMaxTuples(self._v_expectedrows)
+            self._v_chunkshape = self._calc_chunkshape(self._v_expectedrows,
+                                                       self.rowsize)
+        # Compute the optimal nrowsinbuf
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
+                                                   self.rowsize)
 
         self._v_objectID = self._createEArray(self._v_new_title)
         return self._v_objectID
@@ -251,8 +253,9 @@ atom parameter should be an instance of tables.Atom and you passed a %s""" \
             typeclass = getattr(atom_mod, typeclassname)
             self.atom = typeclass(flavor=flavor, warn=False)
 
-        # Compute the optimal buffer sizes
-        self._v_maxTuples = self._calcMaxTuples(self.nrows)
+        # Compute the optimal nrowsinbuf
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
+                                                   self.rowsize)
 
         return self._v_objectID
 
@@ -326,7 +329,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
             group, name, atom=self.atom, shape=shape, title=title,
             filters=filters, expectedrows=self.nrows, _log=_log)
         # Now, fill the new earray with values from source
-        nrowsinbuf = self._v_maxTuples
+        nrowsinbuf = self._v_nrowsinbuf
         # The slices parameter for self.__getitem__
         slices = [slice(0, dim, 1) for dim in self.shape]
         # This is a hack to prevent doing innecessary conversions

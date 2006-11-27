@@ -295,7 +295,7 @@ class CompareTestCase(unittest.TestCase):
         vla = h5file.createVLArray('/', 'test', self.myTime64Atom)
 
         # Size of the test.
-        nrows = vla._v_maxTuples + 34  # Add some more rows than buffer.
+        nrows = vla._v_nrowsinbuf + 34  # Add some more rows than buffer.
         # Only for home checks; the value above should check better
         # the I/O with multiple buffers.
         #nrows = 10
@@ -358,7 +358,7 @@ class CompareTestCase(unittest.TestCase):
         tbl = h5file.createTable('/', 'test', self.MyTimeRow)
 
         # Size of the test.
-        nrows = tbl._v_maxTuples + 34  # Add some more rows than buffer.
+        nrows = tbl._v_nrowsinbuf + 34  # Add some more rows than buffer.
         # Only for home checks; the value above should check better
         # the I/O with multiple buffers.
         ##nrows = 10
@@ -428,7 +428,7 @@ class CompareTestCase(unittest.TestCase):
                 '/', 'test', tables.Time64Atom(), shape=(0, 2))
 
         # Size of the test.
-        nrows = ea._v_maxTuples + 34  # Add some more rows than buffer.
+        nrows = ea._v_nrowsinbuf + 34  # Add some more rows than buffer.
         # Only for home checks; the value above should check better
         # the I/O with multiple buffers.
         ##nrows = 10
@@ -493,7 +493,7 @@ class UnalignedTestCase(unittest.TestCase):
         tbl = h5file.createTable('/', 'test', self.MyTimeRow)
 
         # Size of the test.
-        nrows = tbl._v_maxTuples + 34  # Add some more rows than buffer.
+        nrows = tbl._v_nrowsinbuf + 34  # Add some more rows than buffer.
         # Only for home checks; the value above should check better
         # the I/O with multiple buffers.
         ##nrows = 10

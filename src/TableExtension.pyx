@@ -480,7 +480,7 @@ cdef class Table:  # XXX extends Leaf
     # Using self.disk_type_id should be faster (i.e. less conversions)
     if (H5TBOdelete_records(self.dataset_id, self.disk_type_id,
                             self.totalrecords, rowsize, nrow, nrecords,
-                            self._v_maxTuples) < 0):
+                            self._v_nrowsinbuf) < 0):
       raise HDF5ExtError("Problems deleting records.")
       #print "Problems deleting records."
       # Return no removed records
@@ -576,7 +576,7 @@ cdef class Row:
     self.chunked = table._chunked
     self.colenums = table._colenums
     self.exist_enum_cols = len(self.colenums)
-    self.nrowsinbuf = table._v_maxTuples
+    self.nrowsinbuf = table._v_nrowsinbuf
     self.dtype = table._v_dtype
 
 

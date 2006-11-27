@@ -101,7 +101,7 @@ def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
                               None, nrows)
     t1 = time.time()
     cpu1 = time.clock()
-    nrowsbuf = table._v_maxTuples
+    nrowsbuf = table._v_nrowsinbuf
     minimum = 0
     maximum = nrows
     for i in xrange(0, nrows, nrowsbuf):
@@ -237,17 +237,17 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
     elif indexmode == "inkernel":
         where = table._whereInRange
     if verbose:
-        print "Max rows in buf:", table._v_maxTuples
+        print "Max rows in buf:", table._v_nrowsinbuf
         print "Rows in", table._v_pathname, ":", table.nrows
-        print "Buffersize:", table.rowsize * table._v_maxTuples
-        print "MaxTuples:", table._v_maxTuples
+        print "Buffersize:", table.rowsize * table._v_nrowsinbuf
+        print "MaxTuples:", table._v_nrowsinbuf
         if indexmode == "indexed":
             print "Chunk size:", var2.index.sorted.chunksize
             print "Number of elements per slice:", var2.index.nelemslice
             print "Slice number in", table._v_pathname, ":", var2.index.nrows
 
-    table._v_maxTuples = 10
-    print "maxTuples-->", table._v_maxTuples
+    table._v_nrowsinbuf = 10
+    print "nrowsinbuf-->", table._v_nrowsinbuf
     rowselected = 0
     time2 = 0.
     tcpu2 = 0.

@@ -151,10 +151,10 @@ def readFile(filename, recsize, verbose):
             rowsize = table.rowsize
             print "reading", table
             if verbose:
-                print "Max rows in buf:", table._v_maxTuples
+                print "Max rows in buf:", table._v_nrowsinbuf
                 print "Rows in", table._v_pathname, ":", table.nrows
-                print "Buffersize:", table.rowsize * table._v_maxTuples
-                print "MaxTuples:", table._v_maxTuples
+                print "Buffersize:", table.rowsize * table._v_nrowsinbuf
+                print "MaxTuples:", table._v_nrowsinbuf
 
             if recsize == "big" or recsize == "medium":
                 #e = [ p.float1 for p in table.iterrows()
@@ -244,12 +244,12 @@ def readField(filename, field, rng, verbose):
         row = 0
         for table in fileh.listNodes(groupobj, 'Table'):
             rowsize = table.rowsize
-            #table._v_maxTuples = 3 # For testing purposes
+            #table._v_nrowsinbuf = 3 # For testing purposes
             if verbose:
-                print "Max rows in buf:", table._v_maxTuples
+                print "Max rows in buf:", table._v_nrowsinbuf
                 print "Rows in", table._v_pathname, ":", table.nrows
-                print "Buffersize:", table.rowsize * table._v_maxTuples
-                print "MaxTuples:", table._v_maxTuples
+                print "Buffersize:", table.rowsize * table._v_nrowsinbuf
+                print "MaxTuples:", table._v_nrowsinbuf
                 print "(field, start, stop, step) ==>", (field, rng[0], rng[1], rng[2])
 
             e = table.read(rng[0], rng[1], rng[2], field)
