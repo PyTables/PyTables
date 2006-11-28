@@ -1,18 +1,11 @@
 #!/usr/bin/env python
 
-import copy
-import numarray as NA
+import numpy as NP
 from tables import *
 import random
 
 # This class is accessible only for the examples
 class Small(IsDescription):
-    """ A record has several columns. They are represented here as
-    class attributes, whose names are the column names and their
-    values will become their types. The IsDescription class will take care
-    the user will not add any new variables and that its type is
-    correct."""
-
     var1 = StringCol(length=4, dflt="",pos=2)
     var2 = IntCol(0,pos=1)
     var3 = FloatCol(0,pos=0)
@@ -20,7 +13,7 @@ class Small(IsDescription):
 # Define a user record to characterize some kind of particles
 class Medium(IsDescription):
     name        = StringCol(length=16, dflt="",pos=0)  # 16-character String
-    float1      = Col("Float64", 2, NA.arange(2),pos=1)
+    float1      = Col("Float64", 2, NP.arange(2),pos=1)
     #float1      = Col("Float64", 1, 2.3)
     #float2      = Col("Float64", 1, 2.3)
     #zADCcount    = Col("Int16", 1, 0)    # signed short integer
@@ -33,7 +26,7 @@ class Medium(IsDescription):
 # Define a user record to characterize some kind of particles
 class Big(IsDescription):
     name        = StringCol(length=16, dflt="")  # 16-character String
-    float1      = Col("Float64", 32, NA.arange(32))
+    float1      = Col("Float64", 32, NP.arange(32))
     float2      = Col("Float64", 32, 2.2)
     TDCcount    = Col("Int8", 1, 0)    # signed short integer
     #ADCcount    = Col("Int32", 1, 0)
@@ -61,13 +54,13 @@ def createFile(filename, totalrows, filters, recsize):
             table = fileh.createTable(group, 'tuple'+str(j), Big, title,
                                       None,
                                       totalrows)
-            arr = NA.array(NA.arange(32), type=NA.Float64)
-            arr2 = NA.array(NA.arange(32), type=NA.Float64)
+            arr = NP.array(NP.arange(32), type=NP.float64)
+            arr2 = NP.array(NP.arange(32), type=NP.float64)
         elif recsize == "medium":
             table = fileh.createTable(group, 'tuple'+str(j), Medium, title,
                                       None,
                                       totalrows)
-            arr = NA.array(NA.arange(2), type=NA.Float64)
+            arr = NP.array(NP.arange(2), type=NP.float64)
         elif recsize == "small":
             table = fileh.createTable(group, 'tuple'+str(j), Small, title,
                                       None,
@@ -84,8 +77,8 @@ def createFile(filename, totalrows, filters, recsize):
             for i in xrange(totalrows):
                 # d['name']  = 'Part: %6d' % (i)
                 d['TDCcount'] = i % 256
-                #d['float1'] = NA.array([i]*32, NA.Float64)
-                #d['float2'] = NA.array([i**2]*32, NA.Float64)
+                #d['float1'] = NP.array([i]*32, NP.float64)
+                #d['float2'] = NP.array([i**2]*32, NP.float64)
                 #d['float1'][0] = float(i)
                 #d['float2'][0] = float(i*2)
                 # Common part with medium
@@ -99,7 +92,7 @@ def createFile(filename, totalrows, filters, recsize):
         elif recsize == "medium":
             for i in xrange(totalrows):
                 #d['name']  = 'Part: %6d' % (i)
-                #d['float1'] = NA.array([i]*2, NA.Float64)
+                #d['float1'] = NP.array([i]*2, NP.float64)
                 #d['float1'] = arr
                 #d['float1'] = i
                 #d['float2'] = float(i)
@@ -358,7 +351,9 @@ if __name__=="__main__":
     file = pargs[0]
 
     if verbose:
-        print "numarray version:", NA.__version__
+        print "numpy version:", NP.__version__
+        if psyco_imported and usepsyco:
+            print "Using psyco version:", psyco.version_info
 
     if testwrite:
         print "Compression level:", complevel

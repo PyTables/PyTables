@@ -36,7 +36,7 @@ from tables.utils import getNestedField
 
 # numpy functions & objects
 from definitions cimport import_array, ndarray, \
-     malloc, free, strcpy, strcmp, strdup, \
+     malloc, free, strchr, strcpy, strcmp, strdup, \
      PyString_AsString, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      PyArray_GETITEM, PyArray_SETITEM, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
@@ -103,8 +103,6 @@ cdef extern from "H5TB-opt.h":
 import_array()
 
 #-------------------------------------------------------------
-
-
 
 # XXX This should inherit from `tables.hdf5Extension.Leaf`,
 # XXX but I don't know the Pyrex machinery to make it work.
@@ -552,6 +550,7 @@ cdef class Row:
   cdef object  indexValid, coords, bufcoords, index, indices
   cdef object  condfunc, condargs
   cdef object  mod_elements, colenums
+  cdef object  cachefields
 
   #def __new__(self, Table table):
     # The MIPSPro C compiler on a SGI does not like to have an assignation
@@ -580,6 +579,7 @@ cdef class Row:
     self.exist_enum_cols = len(self.colenums)
     self.nrowsinbuf = table._v_nrowsinbuf
     self.dtype = table._v_dtype
+    self.cachefields = {}
 
 
   def __call__(self, start=0, stop=0, step=1, coords=None, ncoords=0):
@@ -967,17 +967,25 @@ cdef class Row:
     cdef ndarray field
     cdef object field2
 
+    # The cachefields dictionary only accelerates things just a 5%
+    # but as it only should exist during table iterators,
+    # this should not take many memory resources.
+    if fieldName in self.cachefields:
+      field = self.cachefields[fieldName]
+    else:
+      try:
+        if strchr(fieldName, 47) != NULL:   # ord('/') = 47
+          field = getNestedField(self._rfields, fieldName)
+        else:
+          field = self._rfields[fieldName]
+      except KeyError:
+        raise KeyError("no such column: %s" % (fieldName,))
+      self.cachefields[fieldName] = field
+
     # Optimization follows for the case that the field dimension is
     # == 1, i.e. columns elements are scalars, and the column is not
     # of String type. This code accelerates the access to column
     # elements a 20%
-
-    try:
-      field = getNestedField(self._rfields, fieldName)
-    except KeyError:
-      raise KeyError("no such column: %s" % (fieldName,))
-
-    # Get the column index. This is very fast!
     if field.nd == 1:
       #return field[self._row]
       # Optimization for numpy

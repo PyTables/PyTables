@@ -21,6 +21,7 @@ cdef extern from "stdlib.h":
   void free(void *ptr)
 
 cdef extern from "string.h":
+  char *strchr(char *s, int c)
   char *strcpy(char *dest, char *src)
   char *strncpy(char *dest, char *src, size_t n)
   int strcmp(char *s1, char *s2)
