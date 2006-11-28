@@ -3405,6 +3405,37 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     step = 1
 
 
+class ChunkshapeTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp('.h5')
+        self.fileh = openFile(self.file, 'w', title='Chunkshape test')
+        atom = Int32Atom(shape=(2,))
+        self.fileh.createVLArray('/', 'vlarray', atom, "t array1",
+                                 chunkshape=13)
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+
+    def test00(self):
+        """Test setting the chunkshape in a table (no reopen)."""
+
+        vla = self.fileh.root.vlarray
+        if verbose:
+            print "chunkshape-->", vla._v_chunkshape
+        assert vla._v_chunkshape == (13,)
+
+    def test01(self):
+        """Test setting the chunkshape in a table (reopen)."""
+
+        self.fileh.close()
+        self.fileh = openFile(self.file, 'r')
+        vla = self.fileh.root.vlarray
+        if verbose:
+            print "chunkshape-->", vla._v_chunkshape
+        assert vla._v_chunkshape == (13,)
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -3449,6 +3480,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
+        theSuite.addTest(unittest.makeSuite(ChunkshapeTestCase))
+
         if numeric_imported:
             theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
             theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))

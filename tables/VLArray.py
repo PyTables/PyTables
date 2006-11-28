@@ -97,9 +97,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     # </properties>
 
 
-    def __init__(self, parentNode, name,
-                 atom=None, title="",
-                 filters=None, expectedsizeinMB=1.0,
+    def __init__(self, parentNode, name, atom=None, title="",
+                 filters=None, expectedsizeinMB=1.0, chunkshape=None,
                  _log=True):
         """Create the instance Array.
 
@@ -121,6 +120,11 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             optimize the HDF5 B-Tree creation and management process
             time and the amount of memory used.
 
+        chunkshape -- The shape of the data chunk to be read or
+            written as a single HDF5 I/O operation. The filters are
+            applied to those chunks of data. Its rank for vlarrays has
+            to be 1. If None, a sensible value is calculated (which is
+            recommended).
         """
 
         self._v_version = None
@@ -138,7 +142,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         self._v_nrowsinbuf = 100       # maybe enough for most applications
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_chunkshape = None
-        """The HDF5 chunk shape for ``VLArray`` objects (scalar)."""
+        """The HDF5 chunk shape for ``VLArray`` objects."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
@@ -171,10 +175,24 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         self.nrows = None
         """The total number of rows."""
 
+        # Check the chunkshape parameter
+        if new and chunkshape is not None:
+            if type(chunkshape) in (int, long):
+                chunkshape = (long(chunkshape),)
+            if type(chunkshape) not in (tuple, list):
+                raise ValueError, """\
+chunkshape parameter should be an int, tuple or list and you passed a %s.
+""" % type(chunkshape)
+            elif len(chunkshape) != 1:
+                    raise ValueError, """\
+the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
+            else:
+                self._v_chunkshape = chunkshape
+                
         super(VLArray, self).__init__(parentNode, name, new, filters, _log)
 
 
-    # This is too specific for sharing it in Leaf
+    # This is too specific for moving it to Leaf
     def _calc_chunkshape(self, expectedsizeinMB):
         """Calculate the size for the HDF5 chunk."""
 
@@ -193,7 +211,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         # Safeguard against itemsizes being extremely large
         if chunkshape == 0:
             chunkshape = 1
-        return chunkshape
+        return (chunkshape,)
 
 
     def _g_create(self):
@@ -214,8 +232,10 @@ be zero."""
         self._basesize = self.atom.dtype.itemsize
         self.flavor = self.atom.flavor
 
-        # Compute the optimal chunkshape
-        self._v_chunkshape = self._calc_chunkshape(self._v_expectedsizeinMB)
+        # Compute the optimal chunkshape, if needed
+        if self._v_chunkshape is None:
+            self._v_chunkshape = self._calc_chunkshape(
+                self._v_expectedsizeinMB)
         self.nrows = 0     # No rows at creation time
 
         self._v_objectID = self._createArray(self._v_new_title)
@@ -225,7 +245,8 @@ be zero."""
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        (self._v_objectID, self.nrows, self.flavor) = self._openArray()
+        self._v_objectID, self.nrows, self.flavor, self._v_chunkshape = \
+                          self._openArray()
 
         flavor = self.flavor
         ptype = self._atomicptype

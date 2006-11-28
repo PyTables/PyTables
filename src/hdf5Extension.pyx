@@ -1252,7 +1252,7 @@ cdef class VLArray(Leaf):
     self.dataset_id = H5VLARRAYmake(self.parent_id, self.name, class_, title,
                                     flavor, version, self.rank, self.scalar,
                                     self.dims, self.base_type_id,
-                                    self._v_chunkshape, rbuf,
+                                    self._v_chunkshape[0], rbuf,
                                     self.filters.complevel, complib,
                                     self.filters.shuffle,
                                     self.filters.fletcher32,
@@ -1271,7 +1271,7 @@ cdef class VLArray(Leaf):
     cdef char byteorder[11]  # "irrelevant" fits easily here
     cdef int i, enumtype
     cdef herr_t ret
-    cdef hsize_t nrecords
+    cdef hsize_t nrecords, chunksize
     cdef object shape, dtype, type_, flavor
 
     # Open the dataset (and keep it open)
@@ -1313,8 +1313,11 @@ cdef class VLArray(Leaf):
     for i from 0 <= i < self.rank:
       self._atomicsize = self._atomicsize * self.dims[i]
 
+    # Get the chunkshape (VLArrays are unidimensional entities)
+    H5ARRAYget_chunkshape(self.dataset_id, 1, &chunksize)
+
     self.nrecords = nrecords  # Initialize the number of records saved
-    return (self.dataset_id, nrecords, flavor)
+    return self.dataset_id, nrecords, flavor, (chunksize,)
 
 
   def _convertTypes(self, object nparr, int sense):

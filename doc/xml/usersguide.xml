@@ -4294,7 +4294,9 @@ Object Tree:
         provided, the default value is 1000 rows. If you plan to create both
         much smaller or much bigger earrays try providing a guess; this will
         optimize the HDF5 B-Tree creation and management process time and the
-        amount of memory used.  </para></glossdef>
+        amount of memory used.  If you want to specify your own chunk size for
+        I/O purposes, see also the <literal>chunkshape</literal> parameter
+        below.  </para></glossdef>
         </glossentry>
 
         <glossentry>
@@ -4326,79 +4328,95 @@ Object Tree:
 
 	<section id="createVLArrayDescr">
 	    <title>createVLArray(where, name, atom=None, title='',
-	      filters=None, expectedsizeinMB=1.0, createparents=False)
+	      filters=None, expectedsizeinMB=1.0, chunkshape=chunkshape,
+	      createparents=False)
 	    </title>
 
 	    <para>Create a new <literal>VLArray</literal> instance with name
-	      <emphasis>name</emphasis> in <emphasis>where</emphasis> location. See the <xref xrefstyle="select: label" linkend="VLArrayClassDescr"/> for a
-	      description of the <literal>VLArray</literal> class.
+	      <emphasis>name</emphasis> in <emphasis>where</emphasis>
+	      location. See the <xref xrefstyle="select: label"
+	      linkend="VLArrayClassDescr"/> for a description of the
+	      <literal>VLArray</literal> class.
 	    </para>
 
 	    <glosslist>
 
         <glossentry>
         <glossterm><emphasis role="bold">atom</emphasis></glossterm>
-        <glossdef><para>An <literal>Atom</literal>
-        instance representing the shape, type and flavor of the atomic object to
-        be saved. See <xref xrefstyle="select: label" linkend="AtomClassDescr"/>
-        for the supported set of
-        <literal>Atom</literal> class descendants.
-        </para></glossdef>
+        <glossdef><para>An <literal>Atom</literal> instance representing the
+        shape, type and flavor of the atomic object to be saved. See <xref
+        xrefstyle="select: label" linkend="AtomClassDescr"/> for the supported
+        set of <literal>Atom</literal> class descendants.  </para></glossdef>
         </glossentry>
 
         <glossentry>
-        <glossterm><emphasis role="bold">expectedsizeinMB</emphasis></glossterm>
-        <glossdef><para>An user estimate about the size (in MB) in the final
-        <literal>VLArray</literal> object. If not
-        provided, the default value is 1 MB. If you plan to create both much
-        smaller or much bigger VLA's try providing a guess; this will optimize
-        the HDF5 B-Tree creation and management process time and the amount of
-        memory used.</para></glossdef>
+        <glossterm><emphasis
+        role="bold">expectedsizeinMB</emphasis></glossterm> <glossdef><para>An
+        user estimate about the size (in MB) in the final
+        <literal>VLArray</literal> object. If not provided, the default value
+        is 1 MB. If you plan to create both much smaller or much bigger VLA's
+        try providing a guess; this will optimize the HDF5 B-Tree creation and
+        management process time and the amount of memory used.  If you want to
+        specify your own chunk size for I/O purposes, see also the
+        <literal>chunkshape</literal> parameter below.</para></glossdef>
+        </glossentry>
+
+        <glossentry>
+        <glossterm><emphasis role="bold">chunkshape</emphasis></glossterm>
+        <glossdef> <para>The shape of the data chunk to be read or written as
+        a single HDF5 I/O operation. The filters are applied to those chunks
+        of data. Its rank for vlarrays has to be 1. If None, a sensible value
+        is calculated (which is recommended).</para></glossdef>
         </glossentry>
 
 	<glossentry>
-	  <glossterm><emphasis role="bold">createparents</emphasis></glossterm>
-	  <glossdef><para>Whether to create the needed groups
-	  for the parent path to exist (not done by default).</para>
+	  <glossterm><emphasis
+	  role="bold">createparents</emphasis></glossterm>
+	  <glossdef><para>Whether to create the needed groups for the parent
+	  path to exist (not done by default).</para>
 	  </glossdef>
 	</glossentry>
 
       </glosslist>
 
-	    <para>See <literal>createTable</literal> <xref linkend="createTableDescr"/> for more information on the
-	      <emphasis>where</emphasis>, <emphasis>name</emphasis>, <emphasis>title</emphasis>, and
-	      <emphasis>filters</emphasis> parameters.
+	    <para>See <literal>createTable</literal> <xref
+	      linkend="createTableDescr"/> for more information on the
+	      <emphasis>where</emphasis>, <emphasis>name</emphasis>,
+	      <emphasis>title</emphasis>, and <emphasis>filters</emphasis>
+	      parameters.
 	    </para>
 	  </section>
 
 	  <section id="File.getNode" xreflabel="description">
 	    <title>getNode(where, name=None, classname=None)</title>
 
-	    <para>Get the node under <emphasis>where</emphasis> with the given <emphasis>name</emphasis>.</para>
+	    <para>Get the node under <emphasis>where</emphasis> with the given
+	    <emphasis>name</emphasis>.</para>
 
-	    <para><emphasis>where</emphasis> can be a <literal>Node</literal> instance
-	      or a path string leading to a node.
-	      If no <emphasis>name</emphasis> is specified, that node is returned.
+	    <para><emphasis>where</emphasis> can be a <literal>Node</literal>
+	      instance or a path string leading to a node.  If no
+	      <emphasis>name</emphasis> is specified, that node is returned.
 	    </para>
 
-	    <para>If a <emphasis>name</emphasis> is specified, this must be a string
-	      with the name of a node under <emphasis>where</emphasis>.
-	      In this case the <emphasis>where</emphasis> argument can only lead to
-	      a <literal>Group</literal> instance
-	      (else a <literal>TypeError</literal> is raised).
-	      The node called <emphasis>name</emphasis> under the group <emphasis>where</emphasis>
-	      is returned.
+	    <para>If a <emphasis>name</emphasis> is specified, this must be a
+	      string with the name of a node under <emphasis>where</emphasis>.
+	      In this case the <emphasis>where</emphasis> argument can only
+	      lead to a <literal>Group</literal> instance (else a
+	      <literal>TypeError</literal> is raised).  The node called
+	      <emphasis>name</emphasis> under the group
+	      <emphasis>where</emphasis> is returned.
 	    </para>
 
 	    <para>In both cases, if the node to be returned does not exist, a
-	      <literal>NoSuchNodeError</literal> is raised.
-	      Please, note that hidden nodes are also considered.
+	      <literal>NoSuchNodeError</literal> is raised.  Please, note that
+	      hidden nodes are also considered.
 	    </para>
 
 	    <para>If the <emphasis>classname</emphasis> argument is specified,
-	      it must be the name of a class derived from <literal>Node</literal>.
-	      If the node is found but it is not an instance of that class,
-	      a <literal>NoSuchNodeError</literal> is also raised.
+	      it must be the name of a class derived from
+	      <literal>Node</literal>.  If the node is found but it is not an
+	      instance of that class, a <literal>NoSuchNodeError</literal> is
+	      also raised.
 	    </para>
 	  </section>
 
@@ -4438,9 +4456,10 @@ Object Tree:
 	    <title>setNodeAttr(where, attrname, attrvalue, name=None)</title>
 
 	    <para>Sets the attribute <emphasis>attrname</emphasis> with value
-	      <emphasis>attrvalue</emphasis> under <emphasis>where.name</emphasis> location.
-	      If the node already has a large number of attributes,
-	      a <literal>PerformanceWarning</literal> will be issued.
+	      <emphasis>attrvalue</emphasis> under
+	      <emphasis>where.name</emphasis> location.  If the node already
+	      has a large number of attributes, a
+	      <literal>PerformanceWarning</literal> will be issued.
 	    </para>
 
 	    <glosslist>
@@ -4464,10 +4483,9 @@ Object Tree:
         <glossdef><para>The value of the attribute to set. Any kind of python
         object (like string, ints, floats, lists, tuples, dicts, small
         Numeric/NumPy/numarray objects...) can be stored as an attribute.
-        However, if necessary,
-        <literal>(c)Pickle</literal> is automatically
-        used so as to serialize objects that you might want to save
-        (see <xref xrefstyle="select: labelnumber" linkend="AttributeSetClassDescr"/> for
+        However, if necessary, <literal>(c)Pickle</literal> is automatically
+        used so as to serialize objects that you might want to save (see <xref
+        xrefstyle="select: labelnumber" linkend="AttributeSetClassDescr"/> for
         details).</para></glossdef>
         </glossentry>
 
@@ -4487,9 +4505,8 @@ Object Tree:
         <glossentry>
         <glossterm><emphasis role="bold">where, name</emphasis></glossterm>
         <glossdef><para>These arguments work as in
-        <literal>getNode()</literal>
-        (see <xref linkend="File.getNode"/>), referencing
-        the node to be acted upon.</para></glossdef>
+        <literal>getNode()</literal> (see <xref linkend="File.getNode"/>),
+        referencing the node to be acted upon.</para></glossdef>
         </glossentry>
 
         <glossentry>
@@ -4508,8 +4525,8 @@ Object Tree:
 
 	    <title>copyNodeAttrs(where, dstnode, name=None)</title>
 
-	    <para>Copy the attributes from node <emphasis>where.name</emphasis> to
-	      <emphasis>dstnode</emphasis>.
+	    <para>Copy the attributes from node
+	      <emphasis>where.name</emphasis> to <emphasis>dstnode</emphasis>.
 	    </para>
 
 	    <glosslist>
@@ -4517,16 +4534,15 @@ Object Tree:
         <glossentry>
         <glossterm><emphasis role="bold">where, name</emphasis></glossterm>
         <glossdef><para>These arguments work as in
-        <literal>getNode()</literal>
-        (see <xref linkend="File.getNode"/>), referencing
-        the node to be acted upon.</para></glossdef>
+        <literal>getNode()</literal> (see <xref linkend="File.getNode"/>),
+        referencing the node to be acted upon.</para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">dstnode</emphasis></glossterm>
         <glossdef><para>This is the destination node where the attributes will
-        be copied. It can be either a path string or a
-        <literal>Node</literal> object.</para>
+        be copied. It can be either a path string or a <literal>Node</literal>
+        object.</para>
         </glossdef>
         </glossentry>
 
@@ -4539,8 +4555,8 @@ Object Tree:
 	  <section id="File.iterNodes" xreflabel="description">
 	    <title>iterNodes(where, classname=None)</title>
 
-	    <para>Returns an <emphasis>iterator</emphasis> yielding children nodes
-	      hanging from <emphasis>where</emphasis>.  These nodes are
+	    <para>Returns an <emphasis>iterator</emphasis> yielding children
+	      nodes hanging from <emphasis>where</emphasis>.  These nodes are
 	      alpha-numerically sorted by its node name.
 	    </para>
 
@@ -4548,10 +4564,9 @@ Object Tree:
 
         <glossentry>
         <glossterm><emphasis role="bold">where</emphasis></glossterm>
-        <glossdef><para>This argument works as in
-        <literal>getNode()</literal>
-        (see <xref linkend="File.getNode"/>), referencing
-        the node to be acted upon.</para></glossdef>
+        <glossdef><para>This argument works as in <literal>getNode()</literal>
+        (see <xref linkend="File.getNode"/>), referencing the node to be acted
+        upon.</para></glossdef>
         </glossentry>
 
         <glossentry>
@@ -4569,9 +4584,9 @@ Object Tree:
 	  <section id="File.listNodes" xreflabel="description">
 	    <title>listNodes(where, classname=None)</title>
 
-	    <para>Returns a <emphasis>list</emphasis> with children nodes hanging
-	      from <emphasis>where</emphasis>.  The list is alpha-numerically
-	      sorted by node name.
+	    <para>Returns a <emphasis>list</emphasis> with children nodes
+	      hanging from <emphasis>where</emphasis>.  The list is
+	      alpha-numerically sorted by node name.
 	    </para>
 
 	    <glosslist>
@@ -4579,11 +4594,9 @@ Object Tree:
         <glossentry>
         <glossterm><emphasis role="bold">where</emphasis></glossterm>
 
-        <glossdef><para>This argument works as in
-        <literal>getNode()</literal>
-        (see <xref linkend="File.getNode"/>), referencing
-        the node to be acted upon.
-        </para></glossdef>
+        <glossdef><para>This argument works as in <literal>getNode()</literal>
+        (see <xref linkend="File.getNode"/>), referencing the node to be acted
+        upon.  </para></glossdef>
         </glossentry>
 
         <glossentry>
@@ -4601,8 +4614,8 @@ Object Tree:
 	  <section id="File.removeNode" xreflabel="description">
 	    <title>removeNode(where, name=None, recursive=False)</title>
 
-	    <para>Removes the object node
-	      <emphasis>name</emphasis> under <emphasis>where</emphasis> location.
+	    <para>Removes the object node <emphasis>name</emphasis> under
+	      <emphasis>where</emphasis> location.
 	    </para>
 
 	    <glosslist>
@@ -4610,19 +4623,17 @@ Object Tree:
         <glossentry>
         <glossterm><emphasis role="bold">where, name</emphasis></glossterm>
         <glossdef><para>These arguments work as in
-        <literal>getNode()</literal>
-        (see <xref linkend="File.getNode"/>), referencing
-        the node to be acted upon.</para></glossdef>
+        <literal>getNode()</literal> (see <xref linkend="File.getNode"/>),
+        referencing the node to be acted upon.</para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">recursive</emphasis></glossterm>
 
         <glossdef><para>If not supplied, the object will be removed only if it
-        has no children; if it does, a
-        <literal>NodeError</literal> will be raised.
-        If supplied with a true value, the object and all its descendants will
-        be completely removed.</para></glossdef>
+        has no children; if it does, a <literal>NodeError</literal> will be
+        raised.  If supplied with a true value, the object and all its
+        descendants will be completely removed.</para></glossdef>
         </glossentry>
 
       </glosslist>
@@ -4634,35 +4645,33 @@ Object Tree:
 	      overwrite=False, recursive=False, createparents=False, **kwargs)
 	    </title>
 
-	    <para>Copy the node specified by <emphasis>where</emphasis> and <emphasis>name</emphasis>
-	      to <emphasis>newparent/newname</emphasis>.</para>
+	    <para>Copy the node specified by <emphasis>where</emphasis> and
+	      <emphasis>name</emphasis> to
+	      <emphasis>newparent/newname</emphasis>.</para>
 
 	    <glosslist>
 
         <glossentry>
         <glossterm><emphasis role="bold">where, name</emphasis></glossterm>
         <glossdef><para>These arguments work as in
-        <literal>getNode()</literal>
-        (see <xref linkend="File.getNode"/>), referencing
-        the node to be acted upon. </para></glossdef>
+        <literal>getNode()</literal> (see <xref linkend="File.getNode"/>),
+        referencing the node to be acted upon. </para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">newparent</emphasis></glossterm>
-        <glossdef><para>The destination group that the node will be copied to (a
-        path name or a <literal>Group</literal>
-        instance). If <emphasis>newparent</emphasis> is
-        <literal>None</literal>, the parent of the
-        source node is selected as the new parent.
-        </para></glossdef>
+        <glossdef><para>The destination group that the node will be copied to
+        (a path name or a <literal>Group</literal> instance). If
+        <emphasis>newparent</emphasis> is <literal>None</literal>, the parent
+        of the source node is selected as the new parent.  </para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">newname</emphasis></glossterm>
         <glossdef><para>The name to be assigned to the new copy in its
         destination (a string). If <emphasis>newname</emphasis> is
-        <literal>None</literal> or not specified, the
-        name of the source node is used.</para></glossdef>
+        <literal>None</literal> or not specified, the name of the source node
+        is used.</para></glossdef>
         </glossentry>
 
         <glossentry>
@@ -4670,56 +4679,54 @@ Object Tree:
         <glossdef><para>Whether the possibly existing node
         <emphasis>newparent/newname</emphasis> should be overwritten or not.
         Note that trying to copy over an existing node without overwriting it
-        will issue a <literal>NodeError</literal>.
-        </para></glossdef>
+        will issue a <literal>NodeError</literal>.  </para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">recursive</emphasis></glossterm>
-        <glossdef><para>Specifies whether the copy should recurse into children
-        of the copied node. This argument is ignored for leaf nodes. The default
-        is not recurse.</para></glossdef>
+        <glossdef><para>Specifies whether the copy should recurse into
+        children of the copied node. This argument is ignored for leaf
+        nodes. The default is not recurse.</para></glossdef>
         </glossentry>
 
 	<glossentry>
-	  <glossterm><emphasis role="bold">createparents</emphasis></glossterm>
-	  <glossdef><para>Whether to create the needed groups
-	  for the new parent path to exist (not done by default).</para>
+	  <glossterm><emphasis
+	  role="bold">createparents</emphasis></glossterm>
+	  <glossdef><para>Whether to create the needed groups for the new
+	  parent path to exist (not done by default).</para>
 	  </glossdef>
 	</glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">kwargs</emphasis></glossterm>
-        <glossdef><para> Additional keyword arguments may be passed to customize
-        the copying process. The supported arguments depend on the kind of node
-        being copied. The following are some of them:
+        <glossdef><para> Additional keyword arguments may be passed to
+        customize the copying process. The supported arguments depend on the
+        kind of node being copied. The following are some of them:
         </para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">title</emphasis></glossterm>
         <glossdef><para>The new title for the destination. If
-        <literal>None</literal>, the original title is
-        used. This only applies to the topmost node for recursive copies.
-        </para></glossdef>
+        <literal>None</literal>, the original title is used. This only applies
+        to the topmost node for recursive copies.  </para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">filters</emphasis></glossterm>
-        <glossdef><para>Specifying this parameter overrides the original filter
-        properties in the source node. If specified, it must be an instance of
-        the <literal>Filters</literal> class (see
-        <xref xrefstyle="select: label" linkend="FiltersClassDescr"/>). The
-        default is to copy the filter attribute from the source node.
+        <glossdef><para>Specifying this parameter overrides the original
+        filter properties in the source node. If specified, it must be an
+        instance of the <literal>Filters</literal> class (see <xref
+        xrefstyle="select: label" linkend="FiltersClassDescr"/>). The default
+        is to copy the filter attribute from the source node.
         </para></glossdef>
         </glossentry>
 
         <glossentry>
         <glossterm><emphasis role="bold">copyuserattrs</emphasis></glossterm>
-        <glossdef><para>You can prevent the user attributes from being copied by
-        setting this parameter to
-        <literal>False</literal>. The default is to
-        copy them.</para></glossdef>
+        <glossdef><para>You can prevent the user attributes from being copied
+        by setting this parameter to <literal>False</literal>. The default is
+        to copy them.</para></glossdef>
         </glossentry>
 
         <glossentry>
@@ -4733,11 +4740,10 @@ Object Tree:
         <glossterm><emphasis role="bold">stats</emphasis></glossterm>
         <glossdef><para>This argument may be used to collect statistics on the
         copy process. When used, it should be a dictionary with keys
-        <literal>groups</literal>,
-        <literal>leaves</literal> and
-        <literal>bytes</literal> having a numeric
-        value. Their values will be incremented to reflect the number of groups,
-        leaves and bytes, respectively, that have been copied in the operation.
+        <literal>groups</literal>, <literal>leaves</literal> and
+        <literal>bytes</literal> having a numeric value. Their values will be
+        incremented to reflect the number of groups, leaves and bytes,
+        respectively, that have been copied in the operation.
         </para></glossdef>
         </glossentry>
 
@@ -4750,62 +4756,77 @@ Object Tree:
 	      renameNode(where, newname, name=None)
 	    </title>
 
-	    <para>Change the name of the node specified by <emphasis>where</emphasis> and <emphasis>name</emphasis>
-	      to <emphasis>newname</emphasis>.</para>
+	    <para>Change the name of the node specified by
+	      <emphasis>where</emphasis> and <emphasis>name</emphasis> to
+	      <emphasis>newname</emphasis>.</para>
 
-	    <glosslist><glossentry><glossterm><emphasis role="bold">where, name</emphasis></glossterm><glossdef><para>These arguments work as in <literal>getNode()</literal>
-		(see <xref linkend="File.getNode"/>),
-		referencing the node to be acted upon.
-	      </para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">newname</emphasis></glossterm><glossdef><para>The new name to be assigned to the node (a string).
-	      </para></glossdef></glossentry></glosslist>
+	    <glosslist><glossentry><glossterm><emphasis role="bold">where,
+            name</emphasis></glossterm><glossdef><para>These arguments work as
+            in <literal>getNode()</literal> (see <xref
+            linkend="File.getNode"/>), referencing the node to be acted upon.
+            </para></glossdef></glossentry><glossentry><glossterm><emphasis
+            role="bold">newname</emphasis></glossterm><glossdef><para>The new
+            name to be assigned to the node (a string).
+            </para></glossdef></glossentry></glosslist>
 	  </section>
 
 	  <section id="File.moveNode">
 	    <title>
-	      moveNode(where, newparent=None, newname=None, name=None, overwrite=False, createparents=False)
+	      moveNode(where, newparent=None, newname=None, name=None,
+	      overwrite=False, createparents=False)
 	    </title>
 
-	    <para>Move the node specified by <emphasis>where</emphasis> and <emphasis>name</emphasis>
-	      to <emphasis>newparent/newname</emphasis>.</para>
+	    <para>Move the node specified by <emphasis>where</emphasis> and
+	      <emphasis>name</emphasis> to
+	      <emphasis>newparent/newname</emphasis>.</para>
 
-	    <glosslist><glossentry><glossterm><emphasis role="bold">where, name</emphasis></glossterm><glossdef><para>These arguments work as in <literal>getNode()</literal>
-		(see <xref linkend="File.getNode"/>),
-		referencing the node to be acted upon.
-	      </para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">newparent</emphasis></glossterm><glossdef><para>The destination group the node will be moved to
-		(a path name or a <literal>Group</literal> instance).
-		If <emphasis>newparent</emphasis> is <literal>None</literal>,
-		the original node parent is selected as the new parent.
-	      </para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">newname</emphasis></glossterm><glossdef><para>The new name to be assigned to the node in its destination (a string).
-		If <emphasis>newname</emphasis> is <literal>None</literal> or not specified,
-		the original node name is used.
-	      </para></glossdef></glossentry></glosslist>
-	      <para>
-		The other arguments work as in <computeroutput>Node._f_move()</computeroutput>
-		(see <xref linkend="Node._f_move"/>).
-	      </para>
+	    <glosslist><glossentry><glossterm><emphasis role="bold">where,
+	    name</emphasis></glossterm><glossdef><para>These arguments work as
+	    in <literal>getNode()</literal> (see <xref
+	    linkend="File.getNode"/>), referencing the node to be acted upon.
+	    </para></glossdef></glossentry><glossentry><glossterm><emphasis
+	    role="bold">newparent</emphasis></glossterm><glossdef><para>The
+	    destination group the node will be moved to (a path name or a
+	    <literal>Group</literal> instance).  If
+	    <emphasis>newparent</emphasis> is <literal>None</literal>, the
+	    original node parent is selected as the new parent.
+	    </para></glossdef></glossentry><glossentry><glossterm><emphasis
+	    role="bold">newname</emphasis></glossterm><glossdef><para>The new
+	    name to be assigned to the node in its destination (a string).  If
+	    <emphasis>newname</emphasis> is <literal>None</literal> or not
+	    specified, the original node name is used.
+	    </para></glossdef></glossentry></glosslist>
+	    
+            <para>The other arguments work as in
+	    <computeroutput>Node._f_move()</computeroutput> (see <xref
+	    linkend="Node._f_move"/>).
+	    </para>
+
 	  </section>
 
 	  <section id="walkGroupsDescr" xreflabel="description">
 	    <title>walkGroups(where='/')</title>
 
-	    <para><emphasis>Iterator</emphasis> that returns the list of Groups (not
-	      Leaves) hanging from (and including) <emphasis>where</emphasis>.
-	      The <emphasis>where</emphasis> Group is listed first (pre-order),
-	      then each of its child Groups (following an
-	      alpha-numerical order) is also traversed, following the
-	      same procedure.  If <emphasis>where</emphasis> is not supplied, the
-	      root object is used.
+	    <para><emphasis>Iterator</emphasis> that returns the list of
+	      Groups (not Leaves) hanging from (and including)
+	      <emphasis>where</emphasis>.  The <emphasis>where</emphasis>
+	      Group is listed first (pre-order), then each of its child Groups
+	      (following an alpha-numerical order) is also traversed,
+	      following the same procedure.  If <emphasis>where</emphasis> is
+	      not supplied, the root object is used.
 	    </para>
-	    <glosslist><glossentry><glossterm><emphasis role="bold">where</emphasis></glossterm><glossdef><para>The origin group. Can be a
-		  path string or <literal>Group</literal> instance.
-		</para></glossdef></glossentry></glosslist>
+	    <glosslist><glossentry><glossterm><emphasis
+            role="bold">where</emphasis></glossterm><glossdef><para>The origin
+            group. Can be a path string or <literal>Group</literal> instance.
+            </para></glossdef></glossentry></glosslist>
 	  </section>
 
 	  <section id="File.walkNodes" xreflabel="description">
 	    <title>walkNodes(where="/", classname="")</title>
 
 	    <para>Recursively iterate over the nodes in the
-	      <literal>File</literal> instance. It takes two parameters:</para>
+	      <literal>File</literal> instance. It takes two
+	      parameters:</para>
 
 	    <glosslist>
 
@@ -4815,13 +4836,14 @@ Object Tree:
         this group.</para></glossdef>
         </glossentry>
 
-        <glossentry><glossterm><emphasis role="bold">classname</emphasis></glossterm><glossdef><para><emphasis>(String)</emphasis> If
-	      supplied, only instances of this class are
-	      returned.</para></glossdef></glossentry>
+        <glossentry><glossterm><emphasis
+	role="bold">classname</emphasis></glossterm><glossdef><para><emphasis>(String)</emphasis>
+	If supplied, only instances of this class are
+	returned.</para></glossdef></glossentry>
 
       </glosslist>
 
-	    <para>Example of use:</para>
+      <para>Example of use:</para>
 
       <screen><![CDATA[# Recursively print all the nodes hanging from '/detector'
 print "Nodes hanging from group '/detector':"
@@ -4838,51 +4860,51 @@ for node in h5file.walkNodes("/detector"):
 
 	    <para>Copy the children of a group into another group.</para>
 
-	    <para>This method copies the nodes hanging from the source group <literal>srcgroup</literal>
-	      into the destination group <literal>dstgroup</literal>.
-	      Existing destination nodes can be replaced by asserting
-	      the <literal>overwrite</literal> argument.
-	      If the <literal>recursive</literal> argument is true,
-	      all descendant nodes of <literal>srcnode</literal> are recursively copied.
-	      If <computeroutput>createparents</computeroutput> is true,
-	      the needed groups for the given destination parent group path
-	      to exist will be created.
+	    <para>This method copies the nodes hanging from the source group
+	      <literal>srcgroup</literal> into the destination group
+	      <literal>dstgroup</literal>.  Existing destination nodes can be
+	      replaced by asserting the <literal>overwrite</literal> argument.
+	      If the <literal>recursive</literal> argument is true, all
+	      descendant nodes of <literal>srcnode</literal> are recursively
+	      copied.  If <computeroutput>createparents</computeroutput> is
+	      true, the needed groups for the given destination parent group
+	      path to exist will be created.
 	    </para>
 
-	    <para><literal>kwargs</literal> takes keyword arguments used to customize
-	      the copying process.
-	      See the documentation of <literal>Group._f_copyChildren()</literal>
-	      (see <xref linkend="Group._f_copyChildren"/>)
-	      for a description of those arguments.
+	    <para><literal>kwargs</literal> takes keyword arguments used to
+	      customize the copying process.  See the documentation of
+	      <literal>Group._f_copyChildren()</literal> (see <xref
+	      linkend="Group._f_copyChildren"/>) for a description of those
+	      arguments.
 	    </para>
 	  </section>
 
 	  <section id="File.copyFile" xreflabel="description">
 	    <title>copyFile(dstfilename, overwrite=False, **kwargs)</title>
 
-      <para role="l3">Copy the contents of this file to <literal>dstfilename</literal>.</para>
+      <para role="l3">Copy the contents of this file to
+      <literal>dstfilename</literal>.</para>
 
 	    <para><literal>dstfilename</literal> must be a path string
-	      indicating the name of the destination file.  If it
-	      already exists, the copy will fail with an
-	      <literal>IOError</literal>, unless the <literal>overwrite</literal>
-	      argument is true, in which case the destination file
-	      will be overwritten in place. In this last case, the
-	      destination file should be closed or ugly errors will
-	      happen.
+	      indicating the name of the destination file.  If it already
+	      exists, the copy will fail with an <literal>IOError</literal>,
+	      unless the <literal>overwrite</literal> argument is true, in
+	      which case the destination file will be overwritten in place. In
+	      this last case, the destination file should be closed or ugly
+	      errors will happen.
 	    </para>
 
-	    <para>Additional keyword arguments may be passed to customize the copying process.
-	      For instance, title and filters may be changed,
-	      user attributes may be or may not be copied, data may be sub-sampled,
-	      stats may be collected, etc.
-	      Arguments unknown to nodes are simply ignored.
-	      Check the documentation for copying operations of nodes
-	      to see which options they support.
+	    <para>Additional keyword arguments may be passed to customize the
+	      copying process.  For instance, title and filters may be
+	      changed, user attributes may be or may not be copied, data may
+	      be sub-sampled, stats may be collected, etc.  Arguments unknown
+	      to nodes are simply ignored.  Check the documentation for
+	      copying operations of nodes to see which options they support.
 	    </para>
 
-	    <para>Copying a file usually has the beneficial side effect
-	      of creating a more compact and cleaner version of the original file.
+	    <para>Copying a file usually has the beneficial side effect of
+	      creating a more compact and cleaner version of the original
+	      file.
 	    </para>
 	  </section>
 
@@ -4904,11 +4926,10 @@ for node in h5file.walkNodes("/detector"):
           <title>isUndoEnabled()</title>
 
           <para>Is the Undo/Redo mechanism enabled?</para> <para>Returns
-          <literal>True</literal> if the Undo/Redo
-          mechanism has been enabled for this file,
-          <literal>False</literal> otherwise. Please,
-          note that this mechanism is persistent, so a newly opened PyTables
-          file may already have Undo/Redo support.</para>
+          <literal>True</literal> if the Undo/Redo mechanism has been enabled
+          for this file, <literal>False</literal> otherwise. Please, note that
+          this mechanism is persistent, so a newly opened PyTables file may
+          already have Undo/Redo support.</para>
 
           </section>
 
@@ -4917,22 +4938,18 @@ for node in h5file.walkNodes("/detector"):
 
           <para>Enable the Undo/Redo mechanism.</para><para> This operation
           prepares the database for undoing and redoing modifications in the
-          node hierarchy. This allows
-          <literal>mark()</literal>,
-          <literal>undo()</literal>,
-          <literal>redo()</literal> and other methods
-          to be called. </para> <para>The
-          <literal>filters</literal> argument, when
-          specified, must be an instance of class
-          <literal>Filters</literal>
-          (see <xref xrefstyle="select: label" linkend="FiltersClassDescr"/>) and is meant
-          for setting the compression values for the action log. The default is
-          having compression enabled, as the gains in terms of space can be
-          considerable. You may want to disable compression if you want maximum
-          speed for Undo/Redo operations. </para> <para>Calling
-          <literal>enableUndo()</literal> when the
-          Undo/Redo mechanism is already enabled raises an
-          <literal>UndoRedoError</literal>.</para>
+          node hierarchy. This allows <literal>mark()</literal>,
+          <literal>undo()</literal>, <literal>redo()</literal> and other
+          methods to be called. </para> <para>The <literal>filters</literal>
+          argument, when specified, must be an instance of class
+          <literal>Filters</literal> (see <xref xrefstyle="select: label"
+          linkend="FiltersClassDescr"/>) and is meant for setting the
+          compression values for the action log. The default is having
+          compression enabled, as the gains in terms of space can be
+          considerable. You may want to disable compression if you want
+          maximum speed for Undo/Redo operations. </para> <para>Calling
+          <literal>enableUndo()</literal> when the Undo/Redo mechanism is
+          already enabled raises an <literal>UndoRedoError</literal>.</para>
 
         </section>
 
@@ -4942,31 +4959,25 @@ for node in h5file.walkNodes("/detector"):
           <para>Disable the Undo/Redo mechanism.</para><para>Disabling the
           Undo/Redo mechanism leaves the database in the current state and
           forgets past and future database states. This makes
-          <literal>mark()</literal>,
-          <literal>undo()</literal>,
-          <literal>redo()</literal> and other methods
-          fail with an
-          <literal>UndoRedoError</literal>.
-          </para><para>Calling
-          <literal>disableUndo()</literal> when the
-          Undo/Redo mechanism is already disabled raises an
-          <literal>UndoRedoError</literal>. </para>
+          <literal>mark()</literal>, <literal>undo()</literal>,
+          <literal>redo()</literal> and other methods fail with an
+          <literal>UndoRedoError</literal>.  </para><para>Calling
+          <literal>disableUndo()</literal> when the Undo/Redo mechanism is
+          already disabled raises an <literal>UndoRedoError</literal>. </para>
 
         </section>
 
         <section id="File.mark" xreflabel="method description">
           <title>mark(name=None)</title>
 
-          <para>Mark the state of the database.</para><para> Creates a mark for
-          the current state of the database. A unique (and immutable) identifier
-          for the mark is returned. An optional
-          <literal>name</literal> (a string) can be
-          assigned to the mark. Both the identifier of a mark and its name can
-          be used in <literal>undo()</literal> and
-          <literal>redo()</literal> operations. When
-          the <literal>name</literal> has already been
-          used for another mark, an
-          <literal>UndoRedoError</literal> is raised.
+          <para>Mark the state of the database.</para><para> Creates a mark
+          for the current state of the database. A unique (and immutable)
+          identifier for the mark is returned. An optional
+          <literal>name</literal> (a string) can be assigned to the mark. Both
+          the identifier of a mark and its name can be used in
+          <literal>undo()</literal> and <literal>redo()</literal>
+          operations. When the <literal>name</literal> has already been used
+          for another mark, an <literal>UndoRedoError</literal> is raised.
           </para><para>This method can only be called when the Undo/Redo
           mechanism has been enabled. Otherwise, an
           <literal>UndoRedoError</literal> is raised.
@@ -4977,14 +4988,14 @@ for node in h5file.walkNodes("/detector"):
         <section id="File.getCurrentMark" xreflabel="method description">
           <title>getCurrentMark()</title>
 
-          <para>Get the identifier of the current mark.</para><para>Returns the
-          identifier of the current mark. This can be used to know the state of
-          a database after an application crash, or to get the identifier of the
-          initial implicit mark after a call to
-          <literal>enableUndo()</literal>.
-          </para><para>This method can only be called when the Undo/Redo
-          mechanism has been enabled. Otherwise, an
-          <literal>UndoRedoError</literal> is raised.
+          <para>Get the identifier of the current mark.</para>
+
+          <para>Returns the identifier of the current mark. This can be used
+          to know the state of a database after an application crash, or to
+          get the identifier of the initial implicit mark after a call to
+          <literal>enableUndo()</literal>.  </para><para>This method can only
+          be called when the Undo/Redo mechanism has been enabled. Otherwise,
+          an <literal>UndoRedoError</literal> is raised.
           </para>
 
         </section>
@@ -4994,16 +5005,13 @@ for node in h5file.walkNodes("/detector"):
 
           <para>Go to a past state of the database.</para><para>Returns the
           database to the state associated with the specified
-          <literal>mark</literal>. Both the identifier
-          of a mark and its name can be used. If the
-          <literal>mark</literal> is omitted, the last
+          <literal>mark</literal>. Both the identifier of a mark and its name
+          can be used. If the <literal>mark</literal> is omitted, the last
           created mark is used. If there are no past marks, or the specified
-          <literal>mark</literal> is not older than
-          the current one, an
-          <literal>UndoRedoError</literal> is raised.
-          </para><para>This method can only be called when the Undo/Redo
-          mechanism has been enabled. Otherwise, an
-          <literal>UndoRedoError</literal> is
+          <literal>mark</literal> is not older than the current one, an
+          <literal>UndoRedoError</literal> is raised.  </para><para>This
+          method can only be called when the Undo/Redo mechanism has been
+          enabled. Otherwise, an <literal>UndoRedoError</literal> is
           raised.</para>
 
         </section>
@@ -5013,16 +5021,13 @@ for node in h5file.walkNodes("/detector"):
 
           <para>Go to a future state of the database.</para><para>Returns the
           database to the state associated with the specified
-          <literal>mark</literal>. Both the identifier
-          of a mark and its name can be used. If the
-          <literal>mark</literal> is omitted, the next
+          <literal>mark</literal>. Both the identifier of a mark and its name
+          can be used. If the <literal>mark</literal> is omitted, the next
           created mark is used. If there are no future marks, or the specified
-          <literal>mark</literal> is not newer than
-          the current one, an
-          <literal>UndoRedoError</literal> is raised.
-          </para><para>This method can only be called when the Undo/Redo
-          mechanism has been enabled. Otherwise, an
-          <literal>UndoRedoError</literal> is
+          <literal>mark</literal> is not newer than the current one, an
+          <literal>UndoRedoError</literal> is raised.  </para><para>This
+          method can only be called when the Undo/Redo mechanism has been
+          enabled. Otherwise, an <literal>UndoRedoError</literal> is
           raised.</para>
 
         </section>
@@ -5032,11 +5037,10 @@ for node in h5file.walkNodes("/detector"):
 
           <para>Go to a specific mark of the database.</para><para>Returns the
           database to the state associated with the specified
-          <literal>mark</literal>. Both the identifier
-          of a mark and its name can be used. </para><para>This method can only
-          be called when the Undo/Redo mechanism has been enabled. Otherwise, an
-          <literal>UndoRedoError</literal> is
-          raised.</para>
+          <literal>mark</literal>. Both the identifier of a mark and its name
+          can be used. </para><para>This method can only be called when the
+          Undo/Redo mechanism has been enabled. Otherwise, an
+          <literal>UndoRedoError</literal> is raised.</para>
 
         </section>
 
@@ -5046,17 +5050,17 @@ for node in h5file.walkNodes("/detector"):
 	  <title><literal>File</literal> special
 	      methods</title>
 
-	  <para>Following are described the methods that automatically
-	    trigger actions when a <literal>File</literal> instance is
-	    accessed in a special way.
+	  <para>Following are described the methods that automatically trigger
+	    actions when a <literal>File</literal> instance is accessed in a
+	    special way.
 	  </para>
 
 	  <section id="File.__contains__">
-	    <title>__contains__(path)</title>
-	    <para>Is there a node with that <emphasis>path</emphasis>?</para>
-	    <para>Returns <literal>True</literal> if the file has a node
-	      with the given <emphasis>path</emphasis> (a string),
-	      <literal>False</literal> otherwise.
+	    <title>__contains__(path)</title> <para>Is there a node with that
+	    <emphasis>path</emphasis>?</para> <para>Returns
+	    <literal>True</literal> if the file has a node with the given
+	    <emphasis>path</emphasis> (a string), <literal>False</literal>
+	    otherwise.
 	    </para>
 	  </section>
 

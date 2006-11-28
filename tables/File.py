@@ -851,7 +851,7 @@ class File(hdf5Extension.File, object):
 
 
     def createVLArray(self, where, name, atom, title="",
-                      filters=None, expectedsizeinMB=1.0,
+                      filters=None, expectedsizeinMB=1.0, chunkshape=None,
                       createparents=False):
         """Create a new instance VLArray with name "name" in "where" location.
 
@@ -879,6 +879,11 @@ class File(hdf5Extension.File, object):
             optimize the HDF5 B-Tree creation and management process
             time and the amount of memory used.
 
+        chunkshape -- The shape of the data chunk to be read or written
+            as a single HDF5 I/O operation. The filters are applied to
+            those chunks of data. Its rank for vlarrays has to be 1. If
+            None, a sensible value is calculated (which is recommended).
+
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
         """
@@ -886,7 +891,9 @@ class File(hdf5Extension.File, object):
         _checkfilters(filters)
         return VLArray(parentNode, name,
                        atom=atom, title=title, filters=filters,
-                       expectedsizeinMB=expectedsizeinMB)
+                       expectedsizeinMB=expectedsizeinMB,
+                       chunkshape=chunkshape)
+
 
     # There is another version of _getNode in Pyrex space, but only
     # marginally faster (5% or less, but sometimes slower!) than this one.
