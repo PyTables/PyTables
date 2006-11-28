@@ -238,7 +238,7 @@ class Table(TableExtension.Table, Leaf):
 
     # itemsize & rowsize are the same for a unidimensional table.
     # This property is needed in order to allow a generalization
-    # for buffersize/chunksize calculation.
+    # for buffersize/chunkshape calculation.
     itemsize = property(
         lambda self: self.description._v_dtype.itemsize, None, None,
         "The size in bytes of each element in the table.")
@@ -298,19 +298,19 @@ class Table(TableExtension.Table, Leaf):
     # </properties>
 
 
-    def __init__(self, parentNode, name,
-                 description=None, title="", filters=None,
-                 expectedrows=EXPECTED_ROWS_TABLE,
-                 _log=True):
-        """Create an instance Table.
+    def __init__(self, parentNode, name, description=None, title="",
+                 filters=None, expectedrows=EXPECTED_ROWS_TABLE,
+                 chunkshape=None, _log=True):
+        """Create an instance of Table.
 
         Keyword arguments:
 
         description -- A IsDescription subclass or a dictionary where
             the keys are the field names, and the values the type
-            definitions. And it can be also a RecArray, NestedRecArray
-            or heterogenous numpy object. If None, the table metadata is
-            read from disk, else, it's taken from previous parameters.
+            definitions. And it can be also a recarray NumPy object,
+            RecArray numarray object or NestedRecArray. If None, the
+            table metadata is read from disk, else, it's taken from
+            previous parameters.
 
         title -- Sets a TITLE attribute on the HDF5 table entity.
 
@@ -325,6 +325,10 @@ class Table(TableExtension.Table, Leaf):
             tables, try providing a guess; this will optimize the HDF5
             B-Tree creation and management process time and memory used.
 
+        chunkshape -- The shape of the data chunk to be read or written
+            as a single HDF5 I/O operation. The filters are applied to
+            those chunks of data. Its rank for tables has to be 1.  If
+            None, a sensible value is calculated (which is recommended).
         """
 
         self._v_new = new = description is not None
@@ -354,8 +358,8 @@ class Table(TableExtension.Table, Leaf):
         """Maps the name of an enumerated column to its ``Enum`` instance."""
         self._v_nrowsinbuf = None
         """The number of rows that fit in the table buffer."""
-        self._v_chunksize = None
-        """The HDF5 chunk size."""
+        self._v_chunkshape = None
+        """The HDF5 chunk shape."""
 
         self.indexed = False
         """Does this table have any indexed columns?"""
@@ -442,6 +446,20 @@ class Table(TableExtension.Table, Leaf):
                 "``IsDescription`` subclass, ``Description`` instance,"
                 "dictionary or ``RecArray`` or instance.""")
 
+        # Check the chunkshape parameter
+        if new and chunkshape is not None:
+            if type(chunkshape) in (int, long):
+                chunkshape = (long(chunkshape),)
+            if type(chunkshape) not in (tuple, list):
+                raise ValueError, """\
+chunkshape parameter should be an int, tuple or list and you passed a %s.
+""" % type(chunkshape)
+            elif len(chunkshape) != 1:
+                    raise ValueError, """\
+the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
+            else:
+                self._v_chunkshape = chunkshape
+                
         super(Table, self).__init__(parentNode, name, new, filters, _log)
 
 
@@ -669,8 +687,9 @@ class Table(TableExtension.Table, Leaf):
         self._colenums = self._getEnumMap()
 
         # Compute the optimal chunk size
-        self._v_chunkshape = self._calc_chunkshape(self._v_expectedrows,
-                                                   self.rowsize)
+        if self._v_chunkshape is None:
+            self._v_chunkshape = self._calc_chunkshape(self._v_expectedrows,
+                                                       self.rowsize)
         # Compute the optimal nrowsinbuf
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
                                                    self.rowsize)
@@ -747,7 +766,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         """
         # Get table info
-        self._v_objectID, description = self._getInfo()
+        self._v_objectID, description, chunksize = self._getInfo()
         if self._v_file._isPTFile:
             # Checking validity names for fields is not necessary
             # when opening a PyTables file
@@ -789,9 +808,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Get a mapping of enumerated columns to their `Enum` instances.
         self._colenums = self._getEnumMap()
 
-        # Compute the optimal chunk size
-        self._v_chunkshape = self._calc_chunkshape(self.nrows,
-                                                   self.rowsize)
+        if chunksize == 0:
+            # Not a chunked dataset. Compute the optimal chunkshape
+            self._v_chunkshape = self._calc_chunkshape(self.nrows,
+                                                       self.rowsize)
+        else:
+            self._v_chunkshape = (chunksize,)
         # Compute the optimal nrowsinbuf
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
                                                    self.rowsize)

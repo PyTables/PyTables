@@ -404,6 +404,7 @@ cdef extern from "hdf5.h":
   herr_t H5Pset_fapl_log(hid_t fapl_id, char *logfile,
                          unsigned int flags, size_t buf_size)
   H5D_layout_t H5Pget_layout(hid_t plist)
+  int H5Pget_chunk(hid_t plist, int max_ndims, hsize_t *dims) 
 
 
 # Specific HDF5 functions for PyTables

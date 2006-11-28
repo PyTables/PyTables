@@ -2407,11 +2407,11 @@ Object Tree:
         <literal>temperature</literal>).</para>
 
         <para>We also introduce a new manner to describe a
-        <literal>Table</literal> as a dictionary, as
-        you can see in the <literal>Event</literal>
-        description. See <xref xrefstyle="select: label" linkend="createTableDescr"/>
-        about the different kinds of descriptor objects that can be passed to
-        the <literal>createTable()</literal> method.
+        <literal>Table</literal> as a dictionary, as you can see in the
+        <literal>Event</literal> description. See <xref xrefstyle="select:
+        label" linkend="createTableDescr"/> about the different kinds of
+        descriptor objects that can be passed to the
+        <literal>createTable()</literal> method.
         </para>
 
         <screen><![CDATA[ from numarray import *
@@ -4048,78 +4048,115 @@ Object Tree:
 	  </section>
 
 	  <section id="createTableDescr" xreflabel="description">
-	    <title>createTable(where, name,
-	      description, title='', filters=None,
-	      expectedrows=10000, createparents=False)
+	    <title>createTable(where, name, description, title='',
+	      filters=None, expectedrows=10000, chunkshape=None,
+	      createparents=False)
 	    </title>
 	    <para>Create a new <literal>Table</literal> instance with name
-	      <emphasis>name</emphasis> in <emphasis>where</emphasis> location.  See the <xref xrefstyle="select: label" linkend="TableClassDescr"/> for a description
-	      of the <literal>Table</literal> class.
+	      <emphasis>name</emphasis> in <emphasis>where</emphasis>
+	      location.  See the <xref xrefstyle="select: label"
+	      linkend="TableClassDescr"/> for a description of the
+	      <literal>Table</literal> class.
 	    </para>
-	    <glosslist><glossentry><glossterm><emphasis role="bold">where</emphasis></glossterm><glossdef><para>The parent group where the new
-		table will hang from. <emphasis>where</emphasis> parameter can be
-		a path string (for example
-		<literal>"/level1/leaf5"</literal>), or Group instance.
-               </para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">name</emphasis></glossterm><glossdef><para>The name of the new table.
-              </para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">description</emphasis></glossterm><glossdef><para>
+	    <glosslist><glossentry><glossterm><emphasis
+		role="bold">where</emphasis></glossterm><glossdef><para>The
+		parent group where the new table will hang
+		from. <emphasis>where</emphasis> parameter can be a path
+		string (for example <literal>"/level1/leaf5"</literal>), or
+		Group instance.
+		</para></glossdef></glossentry><glossentry><glossterm><emphasis
+		role="bold">name</emphasis></glossterm><glossdef><para>The
+		name of the new table.
+		</para></glossdef></glossentry><glossentry><glossterm><emphasis
+		role="bold">description</emphasis></glossterm><glossdef><para>
 
 		</para><para>This is an object that describes the table, that
-		  is, how many columns has it, and properties for each
-		  column: the type, the shape, etc. as well as other
-		  table properties.
-		</para><para>
+		  is, how many columns has it, and properties for each column:
+		  the type, the shape, etc. as well as other table properties.
+		  </para><para>
 
-		</para><para><emphasis>description</emphasis> can be any of the next several
-		  objects:
-		</para><para>
+		</para><para><emphasis>description</emphasis> can be any of
+		  the next several objects: </para><para>
 
 		</para>
 
-		<glosslist><glossentry><glossterm><emphasis role="bold">A user-defined class</emphasis></glossterm><glossdef><para>This should
-		    inherit from the <literal>IsDescription</literal> class
-		    (see <xref xrefstyle="select: labelnumber" linkend="IsDescriptionClassDescr"/>)
-		    where table fields are specified.
-		  </para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">A dictionary</emphasis></glossterm><glossdef><para>For example, when
-		    you do not know beforehand which structure will
-		    have your table). See <xref xrefstyle="select: label" linkend="secondExample"/> for an example
-		    of use.
-		  </para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">A <literal>RecArray</literal></emphasis></glossterm><glossdef><para>This
-		    object from the <literal>numarray</literal> package is
-		    also accepted, and all the information about
-		    columns and other metadata is used as a basis to
-		    create the <literal>Table</literal> object. Moreover, if
-		    the <literal>RecArray</literal> has actual data this is
-		    also injected on the newly created
-		    <literal>Table</literal> object.
-		  </para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">A <literal>NestedRecArray</literal></emphasis></glossterm><glossdef><para>Finally, if you want to have nested columns
-		    in your table, you can use this object (see <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>)
-		    and all the information about columns and other
-		    metadata is used as a basis to create the
-		    <literal>Table</literal> object. Moreover, if the
-		    <literal>NestedRecArray</literal> has actual data this
-		    is also injected on the newly created
-		    <literal>Table</literal> object.
-		  </para></glossdef></glossentry></glosslist><para>
+		<glosslist>
 
-	      </para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">title</emphasis></glossterm><glossdef><para>A description for this object.
-	      </para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">filters</emphasis></glossterm><glossdef><para>An instance of the
-		<literal>Filters</literal> class (see <xref xrefstyle="select: label" linkend="FiltersClassDescr"/>) that provides
-		information about the desired I/O filters to be
-		applied during the life of this object.
-	      </para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">expectedrows</emphasis></glossterm><glossdef><para>An user estimate of the
-		number of records that will be on table. If not
-		provided, the default value is appropriate for tables
-		until 10 MB in size (more or less). If you plan to
-		save bigger tables you should provide a guess; this
-		will optimize the HDF5 B-Tree creation and management
-		process time and memory used. See <xref xrefstyle="select: label" linkend="expectedRowsOptim"/> for a
-		discussion on that issue.
-	      </para></glossdef></glossentry>
+                <glossentry><glossterm><emphasis role="bold">A user-defined
+		class</emphasis></glossterm><glossdef><para>This should
+		inherit from the <literal>IsDescription</literal> class (see
+		<xref xrefstyle="select: labelnumber"
+		linkend="IsDescriptionClassDescr"/>) where table fields are
+		specified.
+		</para></glossdef></glossentry>
+
+                <glossentry><glossterm><emphasis role="bold">A
+		dictionary</emphasis></glossterm><glossdef> <para>For example,
+		when you do not know beforehand which structure will have your
+		table). See <xref xrefstyle="select: label"
+		linkend="secondExample"/> for an example of use.
+		</para></glossdef></glossentry>
+
+                <glossentry><glossterm><emphasis role="bold">A
+		<literal>RecArray</literal></emphasis></glossterm><glossdef>
+		<para>This object from the <literal>numarray</literal> package
+		is also accepted, and all the information about columns and
+		other metadata is used as a basis to create the
+		<literal>Table</literal> object. Moreover, if the
+		<literal>RecArray</literal> has actual data this is also
+		injected on the newly created <literal>Table</literal> object.
+		</para></glossdef></glossentry>
+
+                <glossentry><glossterm><emphasis role="bold">A
+		<literal>NestedRecArray</literal></emphasis></glossterm><glossdef>
+		<para>Finally, if you want to have nested columns in your
+		table, you can use this object (see <xref xrefstyle="select:
+		label" linkend="NestedRecArrayClassDescr"/>) and all the
+		information about columns and other metadata is used as a
+		basis to create the <literal>Table</literal> object. Moreover,
+		if the <literal>NestedRecArray</literal> has actual data this
+		is also injected on the newly created <literal>Table</literal>
+		object.  </para></glossdef></glossentry></glosslist>
+
+                </glossdef></glossentry>
+
+                <glossentry><glossterm><emphasis
+	        role="bold">title</emphasis></glossterm><glossdef> <para>A
+	        description for this object.
+	        </para></glossdef></glossentry><glossentry><glossterm><emphasis
+	        role="bold">filters</emphasis></glossterm><glossdef><para>An
+	        instance of the <literal>Filters</literal> class (see <xref
+	        xrefstyle="select: label" linkend="FiltersClassDescr"/>) that
+	        provides information about the desired I/O filters to be
+	        applied during the life of this object.
+	        </para></glossdef></glossentry>
+
+                <glossentry><glossterm><emphasis
+	        role="bold">expectedrows</emphasis></glossterm><glossdef>
+	        <para>An user estimate of the number of records that will be
+	        on table. If not provided, the default value is appropriate
+	        for tables until 10 MB in size (more or less). If you plan to
+	        save bigger tables you should provide a guess; this will
+	        optimize the HDF5 B-Tree creation and management process time
+	        and memory used. See <xref xrefstyle="select: label"
+	        linkend="expectedRowsOptim"/> for a discussion on that issue.
+	        If you want to specify your own chunk size for I/O purposes,
+	        see also the <literal>chunkshape</literal> parameter below.
+	        </para></glossdef></glossentry>
+
+                <glossentry><glossterm><emphasis
+	        role="bold">chunkshape</emphasis></glossterm><glossdef>
+	        <para>The shape of the data chunk to be read or written as a
+	        single HDF5 I/O operation. The filters are applied to those
+	        chunks of data. Its rank for tables has to be 1.  If None, a
+	        sensible value is calculated (which is recommended).
+	        </para></glossdef></glossentry>
 
 	      <glossentry>
-		<glossterm><emphasis role="bold">createparents</emphasis></glossterm>
-		<glossdef><para>Whether to create the needed groups
-		for the parent path to exist (not done by default).</para>
+		<glossterm><emphasis
+		role="bold">createparents</emphasis></glossterm> <glossdef>
+		<para>Whether to create the needed groups for the parent path
+		to exist (not done by default).</para>
 		</glossdef>
 	      </glossentry>
 	    </glosslist>
@@ -4130,22 +4167,24 @@ Object Tree:
 	      object, title='', createparents=False)</title>
 
 	    <para>Create a new <literal>Array</literal> instance with name
-	      <emphasis>name</emphasis> in <emphasis>where</emphasis> location.  See the <xref xrefstyle="select: label" linkend="ArrayClassDescr"/> for a
-	      description of the <literal>Array</literal> class.
+	      <emphasis>name</emphasis> in <emphasis>where</emphasis>
+	      location.  See the <xref xrefstyle="select: label"
+	      linkend="ArrayClassDescr"/> for a description of the
+	      <literal>Array</literal> class.
 	    </para>
-	    <glosslist><glossentry><glossterm><emphasis role="bold">object</emphasis></glossterm><glossdef><para>The regular array to be
-		saved. Currently accepted values are:
+	    <glosslist><glossentry><glossterm><emphasis
+		role="bold">object</emphasis></glossterm><glossdef> <para>The
+		regular array to be saved. Currently accepted values are:
 		<literal>NumPy</literal>, <literal>Numeric</literal>,
 		<literal>numarray</literal> arrays (including
-		<literal>CharArray</literal> string numarrays) or other
-		native Python types, provided that they are regular
-		(i.e. they are not like <literal>[[1,2],2]</literal>) and
-		homogeneous (i.e. all the elements are of the same
-		type). Also, objects that have some of their
-		dimensions equal to zero are not supported (use an
-		<literal>EArray</literal> object if you want to create an
-		array with one of its dimensions equal to 0).
-	      </para></glossdef></glossentry>
+		<literal>CharArray</literal> string numarrays) or other native
+		Python types, provided that they are regular (i.e. they are
+		not like <literal>[[1,2],2]</literal>) and homogeneous
+		(i.e. all the elements are of the same type). Also, objects
+		that have some of their dimensions equal to zero are not
+		supported (use an <literal>EArray</literal> object if you want
+		to create an array with one of its dimensions equal to 0).
+		</para></glossdef></glossentry>
 	      <glossentry>
 		<glossterm><emphasis role="bold">createparents</emphasis></glossterm>
 		<glossdef><para>Whether to create the needed groups
@@ -4153,9 +4192,10 @@ Object Tree:
 		</glossdef>
 	      </glossentry>
 	    </glosslist>
-	    <para>See <literal>createTable</literal> <xref linkend="createTableDescr"/> for more information on the
-	      <emphasis>where</emphasis>, <emphasis>name</emphasis> and <emphasis>title</emphasis>,
-	      parameters.
+	    <para>See <literal>createTable</literal> <xref
+	      linkend="createTableDescr"/> for more information on the
+	      <emphasis>where</emphasis>, <emphasis>name</emphasis> and
+	      <emphasis>title</emphasis>, parameters.
 	    </para>
 	  </section>
 
@@ -4214,7 +4254,7 @@ Object Tree:
 
 	  <section id="createEArrayDescr">
 	    <title>createEArray(where, name, atom, shape, title='',
-	      filters=None, expectedrows=1000, chunksize=None,
+	      filters=None, expectedrows=1000, chunkshape=None,
 	      createparents=False)
 	    </title>
 

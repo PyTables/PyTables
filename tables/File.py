@@ -410,7 +410,7 @@ class File(hdf5Extension.File, object):
 
     * createGroup(where, name[, title][, filters][, createparents])
     * createTable(where, name, description[, title][, filters]
-                  [, expectedrows][, createparents])
+                  [, expectedrows][, chunkshape][, createparents])
     * createArray(where, name, array[, title][, createparents])
     * createCArray(where, name, shape, atom[, title][, filters]
                    [, chunkshape] [, createparents])
@@ -688,11 +688,8 @@ class File(hdf5Extension.File, object):
 
     def createTable(self, where, name, description, title="",
                     filters=None, expectedrows=10000,
-                    createparents=False):
+                    chunkshape=None, createparents=False):
         """Create a new Table instance with name "name" in "where" location.
-
-        "where" parameter can be a path string, or another group
-        instance.
 
         Keyword arguments:
 
@@ -719,6 +716,11 @@ class File(hdf5Extension.File, object):
             guess; this will optimize the HDF5 B-Tree creation and
             management process time and the amount of memory used.
 
+        chunkshape -- The shape of the data chunk to be read or written
+            as a single HDF5 I/O operation. The filters are applied to
+            those chunks of data. Its rank for tables has to be 1. If
+            None, a sensible value is calculated (which is recommended).
+
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
         """
@@ -726,7 +728,8 @@ class File(hdf5Extension.File, object):
         _checkfilters(filters)
         return Table(parentNode, name,
                      description=description, title=title,
-                     filters=filters, expectedrows=expectedrows)
+                     filters=filters, expectedrows=expectedrows,
+                     chunkshape=chunkshape)
 
 
     def createArray(self, where, name, object, title="", createparents=False):

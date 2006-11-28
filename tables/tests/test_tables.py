@@ -4608,22 +4608,15 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 class DerivedTableTestCase(unittest.TestCase):
 
-    """Test creating a table from the description of another table."""
-
     def setUp(self):
         self.file = tempfile.mktemp('.h5')
         self.fileh = openFile(self.file, 'w', title='DeriveFromTable')
 
         self.fileh.createTable('/', 'original', Record)
 
-
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-
-        del self.fileh
-        del self.file
-
 
     def test00(self):
         """Deriving a table from the description of another."""
@@ -4632,6 +4625,36 @@ class DerivedTableTestCase(unittest.TestCase):
         tbl2 = self.fileh.createTable('/', 'derived', tbl1.description)
 
         self.assertEqual(tbl1.description, tbl2.description)
+
+
+class ChunkshapeTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp('.h5')
+        self.fileh = openFile(self.file, 'w', title='Chunkshape test')
+        self.fileh.createTable('/', 'table', Record, chunkshape=13)
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+
+    def test00(self):
+        """Test setting the chunkshape in a table (no reopen)."""
+
+        tbl = self.fileh.root.table
+        if verbose:
+            print "chunkshape-->", tbl._v_chunkshape
+        assert tbl._v_chunkshape == (13,)
+
+    def test01(self):
+        """Test setting the chunkshape in a table (reopen)."""
+
+        self.fileh.close()
+        self.fileh = openFile(self.file, 'r')
+        tbl = self.fileh.root.table
+        if verbose:
+            print "chunkshape-->", tbl._v_chunkshape
+        assert tbl._v_chunkshape == (13,)
 
 
 
@@ -4691,6 +4714,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Length2TestCase))
         theSuite.addTest(unittest.makeSuite(WhereAppendTestCase))
         theSuite.addTest(unittest.makeSuite(DerivedTableTestCase))
+        theSuite.addTest(unittest.makeSuite(ChunkshapeTestCase))
 
     if heavy:
         theSuite.addTest(unittest.makeSuite(CompressBZIP2TablesTestCase))

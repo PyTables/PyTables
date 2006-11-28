@@ -43,10 +43,10 @@ from definitions cimport import_array, ndarray, \
      H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, \
      size_t, hid_t, herr_t, hsize_t, htri_t, H5D_layout_t, \
      H5Gunlink, H5Fflush, H5Dopen, H5Dclose, H5Dread, H5Dget_type,\
-     H5Dget_space, H5Dget_create_plist, H5Pget_layout, H5Pclose, \
-     H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, H5Sclose, \
-     H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose, H5Tget_sign, \
-     H5ATTRset_attribute_string, H5ATTRset_attribute, \
+     H5Dget_space, H5Dget_create_plist, H5Pget_layout, H5Pget_chunk, \
+     H5Pclose, H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, \
+     H5Sclose, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose, \
+     H5Tget_sign, H5ATTRset_attribute_string, H5ATTRset_attribute, \
      get_len_of_range, get_order
 
 
@@ -217,10 +217,9 @@ cdef class Table:  # XXX extends Leaf
 
   def _getInfo(self):
     "Get info from a table on disk."
-    cdef hid_t   space_id
+    cdef hid_t   space_id, plist
     cdef size_t  type_size, size2
-    cdef hsize_t dims[1]  # enough for unidimensional tables
-    cdef hid_t   plist
+    cdef hsize_t dims[1], chunksize[1]  # enough for unidimensional tables
     cdef H5D_layout_t layout
 
     # Open the dataset
@@ -239,11 +238,14 @@ cdef class Table:  # XXX extends Leaf
     # Get the layout of the datatype
     plist = H5Dget_create_plist(self.dataset_id)
     layout = H5Pget_layout(plist)
-    H5Pclose(plist)
     if layout == H5D_CHUNKED:
       self._chunked = 1
+      # Get the chunksize
+      H5Pget_chunk(plist, 1, chunksize)
     else:
       self._chunked = 0
+      chunksize[0] = 0
+    H5Pclose(plist)
 
     # Get the type size
     type_size = H5Tget_size(self.disk_type_id)
@@ -262,7 +264,7 @@ cdef class Table:  # XXX extends Leaf
       H5Tset_size(self.type_id, size2)
 
     # Return the object ID and the description
-    return (self.dataset_id, desc)
+    return (self.dataset_id, desc, chunksize[0])
 
 
   def _g_loadEnum(self, hid_t fieldTypeId):

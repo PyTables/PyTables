@@ -914,8 +914,7 @@ out:
 /*-------------------------------------------------------------------------
  * Function: H5ARRAYget_chunkshape
  *
- * Purpose: Gets the chunkshape along the extensible dimension of a
- *          carray/earray.
+ * Purpose: Gets the chunkshape of a dataset.
  *
  * Return: Success: chunkshape, Failure: -1
  *
