@@ -1890,13 +1890,19 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 
     def flush(self):
-        """Flush all the objects on all the HDF5 objects tree."""
+        """Flush all the alive nodes and HDF5 buffers."""
 
         self._checkOpen()
 
-        for group in self.walkGroups(self.root):
-            for leaf in self.listNodes(group, classname = 'Leaf'):
-                leaf.flush()
+        # First, flush PyTables buffers on alive leaves.
+        # Leaves that are dead should have been flushed already (at least,
+        # users are directed to do this through a PerformanceWarning!)
+        for path, refnode in self._aliveNodes.iteritems():
+            # Indexes are not necessary to be flushed
+            if not path.startswith('/_i_'):
+                node = refnode()
+                if isinstance(node, Leaf):
+                    node.flush()
 
         # Flush the cache to disk
         self._flushFile(0)  # 0 means local scope, 1 global (virtual) scope
