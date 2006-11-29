@@ -104,6 +104,36 @@ import_array()
 
 #-------------------------------------------------------------
 
+
+# Private functions
+
+# Get a (nested) fieldName in a faster way (only possible in Pyrex)
+cdef object getNestedField2(recarray, fieldName):
+  # Faster approach for non-nested columns
+  if strchr(fieldName, 47) != NULL:   # ord('/') = 47
+    fields = getNestedField(recarray, fieldName)
+  else:
+    fields = recarray[fieldName]
+  return fields
+
+
+# This is a private function for getting the (nested) fields of a recarray
+# but using a user-provided cache.
+cdef object getNestedFieldCache(recarray, fieldName, fieldCache):
+  if fieldName in fieldCache:
+    field = fieldCache[fieldName]
+  else:
+    try:
+      field = getNestedField(recarray, fieldName)
+    except KeyError:
+      raise KeyError("no such column: %s" % (fieldName,))
+    fieldCache[fieldName] = field
+  return field
+
+
+
+# Public classes
+
 # XXX This should inherit from `tables.hdf5Extension.Leaf`,
 # XXX but I don't know the Pyrex machinery to make it work.
 # XXX ivb(2005-07-21)
@@ -299,7 +329,7 @@ cdef class Table:  # XXX extends Leaf
 
     # This should be generalised to support other type conversions.
     for t64cname in self._time64colnames:
-      column = getNestedField(recarr, t64cname)
+      column = getNestedField2(recarr, t64cname)
       convertTime64(column, nrecords, sense)
 
 
@@ -546,11 +576,11 @@ cdef class Row:
   cdef Table   table
   cdef object  dtype
   cdef object  rbufRA, wbufRA
-  cdef object  _wfields, _rfields
+  cdef object  wfields, rfields
   cdef object  indexValid, coords, bufcoords, index, indices
   cdef object  condfunc, condargs
   cdef object  mod_elements, colenums
-  cdef object  cachefields
+  cdef object  rfieldscache, wfieldscache
 
   #def __new__(self, Table table):
     # The MIPSPro C compiler on a SGI does not like to have an assignation
@@ -579,7 +609,8 @@ cdef class Row:
     self.exist_enum_cols = len(self.colenums)
     self.nrowsinbuf = table._v_nrowsinbuf
     self.dtype = table._v_dtype
-    self.cachefields = {}
+    self.rfieldscache = {}
+    self.wfieldscache = {}
 
 
   def __call__(self, start=0, stop=0, step=1, coords=None, ncoords=0):
@@ -601,11 +632,11 @@ cdef class Row:
     if write:
       # Get the write buffer in table (it is unique, remember!)
       buff = self.wbufRA = self.table._v_wbuffer
-      #self._wfields = buff._fields
-      # Build the _rfields dictionary for faster access to columns
-      self._wfields = {}
+      #self.wfields = buff._fields
+      # Build the rfields dictionary for faster access to columns
+      self.wfields = {}
       for name in self.dtype.names:
-        self._wfields[name] = buff[name]
+        self.wfields[name] = buff[name]
       # Initialize an array for keeping the modified elements
       # (just in case Row.update() would be used)
       self.mod_elements = numpy.empty(shape=self.nrowsinbuf,
@@ -614,13 +645,13 @@ cdef class Row:
       #buff = self.rbufRA = self.table._newBuffer(init=0)
       buff = self.rbufRA = numpy.empty(shape=self.nrowsinbuf,
                                        dtype=self.dtype)
-      # Build the _rfields dictionary for faster access to columns
+      # Build the rfields dictionary for faster access to columns
       # This is quite fast, as it only takes around 5 us per column
       # in my laptop (Pentium 4 @ 2 GHz).
       # F. Altet 2006-08-18
-      self._rfields = {}
+      self.rfields = {}
       for name in self.dtype.names:
-        self._rfields[name] = buff[name]
+        self.rfields[name] = buff[name]
 
     # Get the stride of this buffer
     self._stride = buff.strides[0]
@@ -717,7 +748,7 @@ cdef class Row:
           if self.whereCond:
             # Evaluate the condition on this table fragment.
             self.indexValid = call_on_recarr(
-              self.condfunc, self.condargs, self._rfields )
+              self.condfunc, self.condargs, self.rfields )
           else:
             # No residual condition, all selected rows are valid.
             self.indexValid = numpy.ones(recout, numpy.bool8)
@@ -777,7 +808,7 @@ cdef class Row:
 
         # Evaluate the condition on this table fragment.
         self.indexValid = call_on_recarr(
-          self.condfunc, self.condargs, self._rfields )
+          self.condfunc, self.condargs, self.rfields )
 
         # Is still there any interesting information in this buffer?
         if not numpy.sometrue(self.indexValid):
@@ -844,6 +875,8 @@ cdef class Row:
   cdef finish_riterator(self):
     """Clean-up things after iterator has been done"""
 
+    self.rfieldscache = {}     # delete rfields cache
+    self.wfieldscache = {}     # delete wfields cache
     self._riterator = 0        # out of iterator
     if self._mod_nrows > 0:    # Check if there is some modified row
       self._flushModRows()       # Flush any possible modified row
@@ -878,7 +911,7 @@ cdef class Row:
       # Assign the correct part to result
       fields = self.rbufRA
       if field:
-        fields = getNestedField(fields, field)
+        fields = getNestedField2(fields, field)
       result[startr:stopr] = fields[istartb:istopb:istep]
 
       # Compute some indexes for the next iteration
@@ -970,17 +1003,7 @@ cdef class Row:
     # The cachefields dictionary only accelerates things just a 5%
     # but as it only should exist during table iterators,
     # this should not take many memory resources.
-    if fieldName in self.cachefields:
-      field = self.cachefields[fieldName]
-    else:
-      try:
-        if strchr(fieldName, 47) != NULL:   # ord('/') = 47
-          field = getNestedField(self._rfields, fieldName)
-        else:
-          field = self._rfields[fieldName]
-      except KeyError:
-        raise KeyError("no such column: %s" % (fieldName,))
-      self.cachefields[fieldName] = field
+    field = getNestedFieldCache(self.rfields, fieldName, self.rfieldscache)
 
     # Optimization follows for the case that the field dimension is
     # == 1, i.e. columns elements are scalars, and the column is not
@@ -1018,18 +1041,14 @@ cdef class Row:
         for cenval in numpy.asarray(value).flat:
           enum(cenval)  # raises ``ValueError`` on invalid values
 
-    try:
-      if self._riterator:
-        # We are in the middle of an iterator for reading. So the
-        # user most probably wants to update this row.
-        field2 = self._rfields
-        offset = <long>self._row
-      else:
-        field2 = self._wfields
-        offset = <long>self._unsaved_nrows
-      field = getNestedField(field2, fieldName)
-    except KeyError:
-      raise KeyError("no such column: %s" % (fieldName,))
+    if self._riterator:
+      # We are in the middle of an iterator for reading. So the
+      # user most probably wants to update this row.
+      field = getNestedFieldCache(self.rfields, fieldName, self.rfieldscache)
+      offset = <long>self._row
+    else:
+      field = getNestedFieldCache(self.wfields, fieldName, self.wfieldscache)
+      offset = <long>self._unsaved_nrows
 
     try:
       # field[offset] = value
@@ -1053,7 +1072,7 @@ cdef class Row:
       # row['var7'] = row['var1'][-1]
       # during table fillings. This is to allow this to continue happening.
       # F. Altet 2005-04-25
-      self._rfields = self._wfields
+      self.rfields = self.wfields
       self._row = self._unsaved_nrows
 
 
@@ -1073,9 +1092,9 @@ cdef class Row:
              (self.table, \
 "You will normally want to use to use this object in iterator or writing contexts.")
     if self.rbufRA is not None:
-      buf = self.rbufRA;  fields = self._rfields
+      buf = self.rbufRA;  fields = self.rfields
     else:
-      buf = self.wbufRA;  fields = self._wfields
+      buf = self.wbufRA;  fields = self.wfields
     for name in buf.dtype.names:
       outlist.append(`fields[name][self._row]`)
     return "(" + ", ".join(outlist) + ")"
