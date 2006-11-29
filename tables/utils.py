@@ -667,20 +667,6 @@ def flattenNames(names):
                   """elements of the ``names`` list must be strings or 2-tuples"""
 
 
-def getNestedField(array, fieldname):
-    """
-    Get the maybe nested field named `fieldname` from the `array`.
-
-    The `fieldname` may be a simple field name or a nested field name
-    with slah-separated components.
-    """
-    # It may be convenient to implement this way of descending nested
-    # fields into the ``__getitem__()`` method of a subclass of
-    # ``numpy.ndarray``.  -- ivb
-    for nfieldname in fieldname.split('/'):
-        array = array[nfieldname]
-    return array
-
 
 if __name__=="__main__":
     import sys

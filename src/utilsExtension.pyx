@@ -32,7 +32,7 @@ from tables.IsDescription import Description, StringCol, EnumCol, \
 from tables.utils import checkFileAccess
 
 from definitions cimport import_array, ndarray, \
-     malloc, free, strcpy, strncpy, strcmp, strdup, \
+     malloc, free, strchr, strcpy, strncpy, strcmp, strdup, \
      PyString_AsString, PyString_FromString, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      size_t, hid_t, herr_t, hsize_t, htri_t, \
@@ -333,6 +333,29 @@ Dataset object '%s' contains unsupported H5T_ARRAY datatypes.""" % (name,))
 
   # Fallback
   return classId
+
+
+def getNestedField(recarray, fieldname):
+  """
+  Get the maybe nested field named `fieldname` from the `array`.
+
+  The `fieldname` may be a simple field name or a nested field name
+  with slah-separated components.
+  """
+  try:
+    if strchr(fieldname, 47) != NULL:   # ord('/') == 47
+      # It may be convenient to implement this way of descending nested
+      # fields into the ``__getitem__()`` method of a subclass of
+      # ``numpy.ndarray``.  -- ivb
+      field = recarray
+      for nfieldname in fieldname.split('/'):
+        field = field[nfieldname]
+    else:
+      # Faster approach for non-nested columns
+      field = recarray[fieldname]
+  except KeyError:
+    raise KeyError("no such column: %s" % (fieldname,))
+  return field
 
 
 def getIndices(object s, hsize_t length):

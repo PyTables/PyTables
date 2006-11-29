@@ -31,12 +31,12 @@ import tables.hdf5Extension
 from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
 from tables.utilsExtension import createNestedType, \
-     getNestedType, convertTime64, getTypeEnum, enumFromHDF5
-from tables.utils import getNestedField
+     getNestedType, convertTime64, getTypeEnum, enumFromHDF5, \
+     getNestedField
 
 # numpy functions & objects
 from definitions cimport import_array, ndarray, \
-     malloc, free, strchr, strcpy, strcmp, strdup, \
+     malloc, free, strdup, \
      PyString_AsString, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      PyArray_GETITEM, PyArray_SETITEM, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
@@ -104,32 +104,25 @@ import_array()
 
 #-------------------------------------------------------------
 
-
 # Private functions
+# It is *critical* that this function to be defined as cdef
+# as this can accelerate __getitem__ and __setitem__ operations
+# in read/write iterators up to a factor 2x (!)
+cdef object getNestedFieldCache(recarray, fieldname, fieldcache):
+  """
+  Get the maybe nested field named `fieldname` from the `array`.
 
-# Get a (nested) fieldName in a faster way (only possible in Pyrex)
-cdef object getNestedField2(recarray, fieldName):
-  # Faster approach for non-nested columns
-  if strchr(fieldName, 47) != NULL:   # ord('/') = 47
-    fields = getNestedField(recarray, fieldName)
+  The `fieldname` may be a simple field name or a nested field name
+  with slah-separated components.
+
+  This version takes advantage of an user-provided cache.
+  """
+  if fieldname in fieldcache:
+    field = fieldcache[fieldname]
   else:
-    fields = recarray[fieldName]
-  return fields
-
-
-# This is a private function for getting the (nested) fields of a recarray
-# but using a user-provided cache.
-cdef object getNestedFieldCache(recarray, fieldName, fieldCache):
-  if fieldName in fieldCache:
-    field = fieldCache[fieldName]
-  else:
-    try:
-      field = getNestedField(recarray, fieldName)
-    except KeyError:
-      raise KeyError("no such column: %s" % (fieldName,))
-    fieldCache[fieldName] = field
+    field = getNestedField(recarray, fieldname)
+    fieldcache[fieldname] = field
   return field
-
 
 
 # Public classes
@@ -329,7 +322,7 @@ cdef class Table:  # XXX extends Leaf
 
     # This should be generalised to support other type conversions.
     for t64cname in self._time64colnames:
-      column = getNestedField2(recarr, t64cname)
+      column = getNestedField(recarr, t64cname)
       convertTime64(column, nrecords, sense)
 
 
@@ -875,8 +868,8 @@ cdef class Row:
   cdef finish_riterator(self):
     """Clean-up things after iterator has been done"""
 
-    self.rfieldscache = {}     # delete rfields cache
-    self.wfieldscache = {}     # delete wfields cache
+    self.rfieldscache = {}     # empty rfields cache
+    self.wfieldscache = {}     # empty wfields cache
     self._riterator = 0        # out of iterator
     if self._mod_nrows > 0:    # Check if there is some modified row
       self._flushModRows()       # Flush any possible modified row
@@ -911,7 +904,7 @@ cdef class Row:
       # Assign the correct part to result
       fields = self.rbufRA
       if field:
-        fields = getNestedField2(fields, field)
+        fields = getNestedField(fields, field)
       result[startr:stopr] = fields[istartb:istopb:istep]
 
       # Compute some indexes for the next iteration

@@ -25,7 +25,7 @@ import re
 from tables.numexpr.compiler import (
     typecode_to_kind, stringToExpression,
     expressionToAST, typeCompileAst, numexpr )
-from tables.utils import getNestedField
+from tables.utilsExtension import getNestedField
 
 
 class SplittedCondition(object):
