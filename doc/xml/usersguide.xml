@@ -3728,7 +3728,8 @@ Object Tree:
           </section>
 
           <section id="openFileDescr" xreflabel="description">
-            <title>openFile(filename, mode='r', title='', trMap={}, rootUEP="/", filters=None)</title>
+            <title>openFile(filename, mode='r', title='', trMap={},
+            rootUEP="/", filters=None)</title>
 
             <para>Open a PyTables
             (or generic HDF5) file
@@ -3920,7 +3921,7 @@ Object Tree:
             <glossentry>
             <glossterm id="File.title"><emphasis role="bold">title
             </emphasis></glossterm><glossdef><para>The title of the root group
-            in the file.</para></glossdef>
+            in the file.  </para></glossdef>
             </glossentry>
 
             <glossentry>
@@ -3929,67 +3930,34 @@ Object Tree:
             names between PyTables and HDF5 domain names. Its initial values
             are set from the <literal>trMap</literal> parameter passed to the
             <literal>openFile</literal> function. You cannot change its
-            contents <emphasis>after</emphasis> a file is
-            opened. </para></glossdef>
+            contents <emphasis>after</emphasis> a file is opened.
+            </para></glossdef>
             </glossentry>
 
             <glossentry>
             <glossterm id="File.rootUEP">
             <emphasis role="bold">rootUEP</emphasis>
-            </glossterm><glossdef><para>The UEP (user entry point) group in the
-            file (see <xref linkend="openFileDescr"/>).</para></glossdef>
+            </glossterm><glossdef><para>The UEP (user entry point) group in
+            the file (see <xref linkend="openFileDescr"/>).</para></glossdef>
             </glossentry>
 
             <glossentry>
             <glossterm id="File.filters">
             <emphasis role="bold">filters</emphasis>
             </glossterm><glossdef><para>Default filter properties for the root
-            group (see <xref xrefstyle="select: labelnumber" linkend="FiltersClassDescr"/>).
-            </para></glossdef>
+            group (see <xref xrefstyle="select: labelnumber"
+            linkend="FiltersClassDescr"/>).  </para></glossdef>
             </glossentry>
 
             <glossentry>
             <glossterm id="File.root">
-            <emphasis role="bold">root</emphasis></glossterm><glossdef><para>The
+            <emphasis
+            role="bold">root</emphasis></glossterm><glossdef><para>The
             <emphasis>root</emphasis> of the object tree hierarchy (a
-            <literal>Group</literal> instance).
-            </para></glossdef>
-            </glossentry>
-
-            <glossentry>
-            <glossterm id="File.objects"><emphasis role="bold">objects
-            </emphasis>
-            </glossterm><glossdef><para>A dictionary which maps path names to
-            objects, for every visible node in the tree (deprecated, see note
-            below).</para></glossdef>
-            </glossentry>
-
-            <glossentry>
-            <glossterm id="File.groups"><emphasis role="bold">groups</emphasis>
-            </glossterm><glossdef><para>A dictionary which maps path names to
-            objects, for every visible group in the tree (deprecated, see note
-            below).</para></glossdef>
-            </glossentry>
-
-            <glossentry>
-            <glossterm id="File.leaves"><emphasis role="bold">leaves</emphasis>
-            </glossterm><glossdef><para>A dictionary which maps path names to
-            objects, for every visible leaf in the tree (deprecated, see note
-            below).</para></glossdef>
+            <literal>Group</literal> instance).  </para></glossdef>
             </glossentry>
 
           </glosslist>
-
-	  <para><emphasis>Note:</emphasis> From PyTables 1.2 on,
-	    the dictionaries <literal>objects</literal>, <literal>groups</literal>
-	    and <literal>leaves</literal> are just instances of objects
-	    faking the old functionality. Actually, they internally
-	    use <literal>File.getNode()</literal>
-	    (see <xref linkend="File.getNode"/>)
-	    and <literal>File.walknodes()</literal>
-	    (see <xref linkend="File.walkNodes"/>),
-	    which are recommended instead.
-	  </para>
 
 	</section>
 
@@ -3997,10 +3965,12 @@ Object Tree:
 	  <title><literal>File</literal> methods</title>
 
 	  <section id="createGroupDescr" xreflabel="description">
-	    <title>createGroup(where, name, title='', filters=None, createparents=False)</title>
+	    <title>createGroup(where, name, title='', filters=None,
+	    createparents=False)</title>
 
-	    <para>Create a new Group instance with name <emphasis>name</emphasis> in
-	      <emphasis>where</emphasis> location.
+	    <para>Create a new Group instance with name
+	      <emphasis>name</emphasis> in <emphasis>where</emphasis>
+	      location.
 	    </para>
 
 	    <glosslist>
@@ -4027,14 +3997,13 @@ Object Tree:
 
         <glossterm><emphasis role="bold">filters</emphasis></glossterm>
 
-        <glossdef><para>An instance of the
-        <literal>Filters</literal> class
-        (see <xref xrefstyle="select: label" linkend="FiltersClassDescr"/>) that provides
-        information about the desired I/O filters applicable to the leaves that
-        hangs directly from this new group (unless other filters properties are
-        specified for these leaves). Besides, if you do not specify filter
-        properties for its child groups, they will inherit these ones.
-        </para></glossdef>
+        <glossdef><para>An instance of the <literal>Filters</literal> class
+        (see <xref xrefstyle="select: label" linkend="FiltersClassDescr"/>)
+        that provides information about the desired I/O filters applicable to
+        the leaves that hangs directly from this new group (unless other
+        filters properties are specified for these leaves). Besides, if you do
+        not specify filter properties for its child groups, they will inherit
+        these ones.  </para></glossdef>
         </glossentry>
 
 	<glossentry>
@@ -4912,14 +4881,14 @@ for node in h5file.walkNodes("/detector"):
 	  <section>
 	    <title>flush()</title>
 
-	    <para>Flush all the leaves in the object tree.
+	    <para>Flush all the alive leaves in the object tree.
 	    </para>
 	  </section>
 
 	  <section>
 	    <title>close()</title>
 
-	    <para>Flush all the leaves in object tree and close the file.
+	    <para>Flush all the alive leaves in object tree and close the file.
 	    </para>
 	  </section>
 
@@ -5427,39 +5396,40 @@ Object Tree:
 
 	<para>Working with groups and leaves is similar in many ways to
 	  working with directories and files, respectively, in a Unix
-	  filesystem. As with Unix directories and files, objects in
-	  the object tree are often described by giving their full (or
-	  absolute) path names. This full path can be specified either
-	  as a string (like in <literal>'/group1/group2'</literal>) or as a
-	  complete object path written in <emphasis>natural name</emphasis> schema
-	  (like in <literal>file.root.group1.group2</literal>) as
-	  discussed in the <xref xrefstyle="select: label" linkend="ObjectTreeSection"/>.
+	  filesystem. As with Unix directories and files, objects in the
+	  object tree are often described by giving their full (or absolute)
+	  path names. This full path can be specified either as a string (like
+	  in <literal>'/group1/group2'</literal>) or as a complete object path
+	  written in <emphasis>natural name</emphasis> schema (like in
+	  <literal>file.root.group1.group2</literal>) as discussed in the
+	  <xref xrefstyle="select: label" linkend="ObjectTreeSection"/>.
 	</para>
 
-	<para>A collateral effect of the <emphasis>natural naming</emphasis> schema
-	  is that names of <literal>Group</literal> members must be carefully chosen
-	  to avoid colliding with existing children node names.
-	  For this reason and not to pollute the children namespace,
-	  it is explicitly forbidden to assign <emphasis>normal</emphasis> attributes
-	  to Group instances, and all existing members start with some reserved prefixes,
-	  like <literal>_f_</literal> (for methods) or <literal>_v_</literal> (for instance variables).
-	  Any attempt to set a new child node whose name starts with one of these prefixes
-	  will raise a <literal>ValueError</literal> exception.
+	<para>A collateral effect of the <emphasis>natural naming</emphasis>
+	  schema is that names of <literal>Group</literal> members must be
+	  carefully chosen to avoid colliding with existing children node
+	  names.  For this reason and not to pollute the children namespace,
+	  it is explicitly forbidden to assign <emphasis>normal</emphasis>
+	  attributes to Group instances, and all existing members start with
+	  some reserved prefixes, like <literal>_f_</literal> (for methods) or
+	  <literal>_v_</literal> (for instance variables).  Any attempt to set
+	  a new child node whose name starts with one of these prefixes will
+	  raise a <literal>ValueError</literal> exception.
 	</para>
 
-	<para>Another effect of natural naming is that
-	  nodes having reserved Python names and other non-allowed Python names
-	  (like for example <literal>$a</literal> or <literal>44</literal>)
-	  can not be accessed using the <literal>node.child</literal> syntax.
-	  You will be forced to use <literal>getattr(node, child)</literal>
-	  and <literal>delattr(node, child)</literal> to access them.
+	<para>Another effect of natural naming is that nodes having reserved
+	  Python names and other non-allowed Python names (like for example
+	  <literal>$a</literal> or <literal>44</literal>) can not be accessed
+	  using the <literal>node.child</literal> syntax.  You will be forced
+	  to use <literal>getattr(node, child)</literal> and
+	  <literal>delattr(node, child)</literal> to access them.
 	</para>
 
 	<para>
-	  You can also make use of the <literal>trMap</literal>
-	  (translation map dictionary) parameter in the <literal>openFile</literal> function
-	  (see <xref linkend="openFileDescr"/>) in order to
-	  translate HDF5 names not suited for natural naming into more convenient ones.
+	  You can also make use of the <literal>trMap</literal> (translation
+	  map dictionary) parameter in the <literal>openFile</literal>
+	  function (see <xref linkend="openFileDescr"/>) in order to translate
+	  HDF5 names not suited for natural naming into more convenient ones.
 	</para>
 
 	<section>
@@ -5473,34 +5443,39 @@ Object Tree:
     <?dbfo glosslist-presentation="list" ?>
 
       <glossentry>
-      <glossterm id="Group._v_nchildren"><emphasis role="bold">_v_nchildren</emphasis></glossterm>
-      <glossdef><para>The number of children hanging from this group.</para>
+      <glossterm id="Group._v_nchildren"><emphasis
+      role="bold">_v_nchildren</emphasis></glossterm> <glossdef><para>The
+      number of children hanging from this group.</para>
       </glossdef>
       </glossentry>
 
       <glossentry>
-      <glossterm id="Group._v_children"><emphasis role="bold"> _v_children</emphasis></glossterm>
-      <glossdef><para>Dictionary with all nodes hanging from this group.</para>
+      <glossterm id="Group._v_children"><emphasis role="bold">
+      _v_children</emphasis></glossterm> <glossdef><para>Dictionary with all
+      nodes hanging from this group.</para>
       </glossdef>
       </glossentry>
 
       <glossentry>
-      <glossterm id="Group._v_groups"><emphasis role="bold"> _v_groups</emphasis></glossterm>
-      <glossdef><para>Dictionary with all groups hanging from this group.</para>
+      <glossterm id="Group._v_groups"><emphasis role="bold">
+      _v_groups</emphasis></glossterm> <glossdef><para>Dictionary with all
+      groups hanging from this group.</para>
       </glossdef>
       </glossentry>
 
       <glossentry>
-      <glossterm id="Group._v_leaves"><emphasis role="bold"> _v_leaves</emphasis></glossterm>
-      <glossdef><para>Dictionary with all leaves hanging from this group.</para>
+      <glossterm id="Group._v_leaves"><emphasis role="bold">
+      _v_leaves</emphasis></glossterm> <glossdef><para>Dictionary with all
+      leaves hanging from this group.</para>
       </glossdef>
       </glossentry>
 
       <glossentry>
-      <glossterm id="Group._v_filters"><emphasis role="bold"> _v_filters</emphasis></glossterm>
-      <glossdef><para>Default filter properties for child nodes &#8212;see
-      <xref xrefstyle="select: labelnumber" linkend="FiltersClassDescr"/>.
-      A shorthand for <literal>FILTERS</literal> attribute.</para></glossdef>
+      <glossterm id="Group._v_filters"><emphasis role="bold">
+      _v_filters</emphasis></glossterm> <glossdef><para>Default filter
+      properties for child nodes &#8212;see <xref xrefstyle="select:
+      labelnumber" linkend="FiltersClassDescr"/>.  A shorthand for
+      <literal>FILTERS</literal> attribute.</para></glossdef>
       </glossentry>
 
     </glosslist>

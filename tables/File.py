@@ -1888,8 +1888,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         # Leaves that are dead should have been flushed already (at least,
         # users are directed to do this through a PerformanceWarning!)
         for path, refnode in self._aliveNodes.iteritems():
-            # Indexes are not necessary to be flushed
-            if not path.startswith('/_i_'):
+            if '/_i_' not in path:  # Indexes are not necessary to be flushed
                 node = refnode()
                 if isinstance(node, Leaf):
                     node.flush()
