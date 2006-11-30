@@ -23,7 +23,8 @@ Classes:
 Functions:
 
     copyFile(srcfilename, dstfilename[, overwrite][, **kwargs])
-    openFile(name[, mode][, title][, trMap])
+    openFile(name[, mode][, title][, trMap][, rootUEP][, filters]
+             [, nodeCacheSize])
 
 Misc variables:
 
@@ -216,9 +217,11 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
     return File(path, mode, title, trMap, rootUEP, filters,
                 METADATA_CACHE_SIZE, nodeCacheSize)
 
+
 # It is necessary to import Table after openFile, because it solves a circular
 # import reference.
 from tables.Table import Table
+
 
 class _AliveNodes(dict):
 
@@ -387,9 +390,8 @@ class File(hdf5Extension.File, object):
     trMap
         A dictionary that maps node names between PyTables and HDF5
         domain names.  Its initial values are set from the ``trMap``
-        parameter passed to the `openFile()` function.  You can change
-        its contents *after* a file is opened and the new map will take
-        effect over any new object added to the tree.
+        parameter passed to the `openFile()` function.  You cannot change
+        its contents *after* a file is opened.
     rootUEP
         The UEP (user entry point) group in the file (see the
         `openFile()` function).
@@ -471,8 +473,9 @@ class File(hdf5Extension.File, object):
     def _deltitle(self):
         del self.root._v_title
 
-    title = property(_gettitle, _settitle, _deltitle,
-                     "The title of the root group in the file.")
+    title = property(
+        _gettitle, _settitle, _deltitle,
+        "The title of the root group in the file.")
 
     def _getfilters(self):
         return self.root._v_filters
@@ -481,28 +484,15 @@ class File(hdf5Extension.File, object):
     def _delfilters(self):
         del self.root._v_filters
 
-    filters = property(_getfilters, _setfilters, _delfilters,
-                       "Default filter properties for the root group "
-                       "(see the `Filters` class).")
+    filters = property(
+        _getfilters, _setfilters, _delfilters,
+        "Default filter properties for the root group "
+        "(see the `Filters` class).")
 
-    def _gettrMap(self):
-        return self._pttoh5
-    def _settrMap(self, trMap):
-        self._pttoh5 = trMap
-        self._h5topt = {}
-        for (ptname, h5name) in self._pttoh5.iteritems():
-            if h5name in self._h5topt:
-                warnings.warn(
-                    "the translation map has a duplicate HDF5 name %r"
-                    % (h5name,))
-            self._h5topt[h5name] = ptname
-    def _deltrMap(self):
-        self._pttoh5 = {}
-        self._h5topt = {}
-
-    trMap = property(_gettrMap, _settrMap, _deltrMap,
-                     "Translation map between PyTables <--> HDF5 "
-                     "namespaces.")
+    trMap = property(
+        lambda self: self._pttoh5, None, None,
+        "Translation map between PyTables <--> HDF5 "
+        "namespaces.")
 
     ## </properties>
 
@@ -535,8 +525,8 @@ class File(hdf5Extension.File, object):
         else:
             self._deadNodes = _NoDeadNodes()
 
-        # Assign the trMap and build the reverse translation
-        self.trMap = trMap
+        # Assign the trMap to a private variable
+        self._pttoh5 = trMap
 
         # For the moment Undo/Redo is not enabled.
         self._undoEnabled = False

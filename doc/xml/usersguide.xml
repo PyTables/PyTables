@@ -3728,7 +3728,7 @@ Object Tree:
           </section>
 
           <section id="openFileDescr" xreflabel="description">
-            <title>openFile(filename, mode='r', title='', trMap={},     rootUEP="/", filters=None)</title>
+            <title>openFile(filename, mode='r', title='', trMap={}, rootUEP="/", filters=None)</title>
 
             <para>Open a PyTables
             (or generic HDF5) file
@@ -3768,24 +3768,27 @@ Object Tree:
               </glosslist>
               </glossdef></glossentry>
 
-              <glossentry><glossterm><emphasis role="bold">title</emphasis></glossterm><glossdef><para>If filename is
-              new, this will set a title for the root group in this file. If
-              filename is not new, the title will be read from disk, and this
-              will not have any effect. </para></glossdef></glossentry>
+              <glossentry><glossterm><emphasis
+              role="bold">title</emphasis></glossterm><glossdef><para>If
+              filename is new, this will set a title for the root group in
+              this file. If filename is not new, the title will be read from
+              disk, and this will not have any
+              effect. </para></glossdef></glossentry>
 
-              <glossentry><glossterm><emphasis role="bold">trMap</emphasis></glossterm><glossdef><para>A dictionary to
-              map names in the object tree Python namespace into different HDF5
-              names in file namespace. The keys are the Python names, while the
-              values are the HDF5 names. This is useful when you need to use
-              HDF5 node names with invalid or reserved words in Python.
-              </para></glossdef></glossentry>
+              <glossentry><glossterm><emphasis
+              role="bold">trMap</emphasis></glossterm><glossdef><para>A
+              dictionary to map names in the object tree Python namespace into
+              different HDF5 names in file namespace. The keys are the Python
+              names, while the values are the HDF5 names. This is useful when
+              you need to use HDF5 node names with invalid or reserved words
+              in Python.  </para></glossdef></glossentry>
 
-              <glossentry><glossterm><emphasis role="bold">rootUEP</emphasis></glossterm><glossdef><para>The root User
-              Entry Point. This is a group in the HDF5 hierarchy which will be
-              taken as the starting point to create the object tree. The group
-              has to be named after its HDF5 name and can be a path. If it does
-              not exist, an
-              <literal>HDF5ExtError</literal>
+              <glossentry><glossterm><emphasis
+              role="bold">rootUEP</emphasis></glossterm><glossdef><para>The
+              root User Entry Point. This is a group in the HDF5 hierarchy
+              which will be taken as the starting point to create the object
+              tree. The group has to be named after its HDF5 name and can be a
+              path. If it does not exist, an <literal>HDF5ExtError</literal>
               exception is issued. Use this if you do not want to build the
               <emphasis>entire</emphasis> object tree, but rather only a
               <emphasis>subtree</emphasis> of it.
@@ -3923,13 +3926,11 @@ Object Tree:
             <glossentry>
             <glossterm id="File.trMap"><emphasis role="bold">trMap
             </emphasis></glossterm><glossdef><para>A dictionary that maps node
-            names between PyTables and HDF5 domain names. Its initial values are
-            set from the <literal>trMap</literal>
-            parameter passed to the
-            <literal>openFile</literal> function. You
-            can change its contents <emphasis>after</emphasis> a file is opened
-            and the new map will take effect over any new object added to the
-            tree. </para></glossdef>
+            names between PyTables and HDF5 domain names. Its initial values
+            are set from the <literal>trMap</literal> parameter passed to the
+            <literal>openFile</literal> function. You cannot change its
+            contents <emphasis>after</emphasis> a file is
+            opened. </para></glossdef>
             </glossentry>
 
             <glossentry>
