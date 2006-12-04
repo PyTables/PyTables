@@ -2872,7 +2872,7 @@ class Column(object):
                 else:
                     dname += '/'+iname
                 try:
-                    idgroup = getNode('%s/%s' % (tableParent._v_name, dname))
+                    idgroup = getNode('%s/%s' % (itgroup._v_pathname, dname))
                 except NodeError:
                     idgroup = table._createIndexesDescr(
                         idgroup, dname, iname, filters)

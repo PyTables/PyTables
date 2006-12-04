@@ -1266,11 +1266,79 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
                      "Column nested names doesn't match.")
 
 
+    def test02a(self):
+        """Indexing two simple columns under the same nested column."""
+
+        self._verboseHeader()
+
+        desc = {
+            'nested': {
+            'i1': t.IntCol(pos=1),
+            'i2': t.IntCol(pos=2) } }
+
+        correct_names = ['', 'nested', 'nested/i1', 'nested/i2']
+
+        tbl = self.h5file.createTable(
+            '/', 'test', desc, title=self._getMethodName())
+
+        tbl.cols.nested.i1.createIndex()
+        tbl.cols.nested.i2.createIndex()
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
+        if verbose:
+           print "Retrieved names:", names
+           print "Should look like:", correct_names
+
+        self.assert_(names == correct_names,
+                     "Column nested names doesn't match.")        
+
+
+    def test02b(self):
+        """Indexing two simple columns under the same (very) nested column."""
+
+        self._verboseHeader()
+
+        desc = {
+            'nested1': {
+            'nested2': {
+            'nested3': {
+            'i1': t.IntCol(pos=1),
+            'i2': t.IntCol(pos=2) } } } }
+
+        correct_names = ['', 'nested1', 'nested1/nested2',
+                         'nested1/nested2/nested3',
+                         'nested1/nested2/nested3/i1',
+                         'nested1/nested2/nested3/i2']
+
+        tbl = self.h5file.createTable(
+            '/', 'test', desc, title=self._getMethodName())
+
+        tbl.cols.nested1.nested2.nested3.i1.createIndex()
+        tbl.cols.nested1.nested2.nested3.i2.createIndex()
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
+        if verbose:
+           print "Retrieved names:", names
+           print "Should look like:", correct_names
+
+        self.assert_(names == correct_names,
+                     "Column nested names doesn't match.")        
+
+
 class SameNestedNoReopen(SameNestedTestCase):
     reopen = 0
 
 class SameNestedReopen(SameNestedTestCase):
     reopen = 1
+
 
 
 
