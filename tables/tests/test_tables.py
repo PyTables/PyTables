@@ -4328,8 +4328,8 @@ class DefaultValues(unittest.TestCase):
                           formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16')
 
         # Assign the value exceptions
-        r["f2"][3] = 2
-        r["f2"][4] = 2
+        r["f1"][3] = 2
+        r["f1"][4] = 2
 
         # Read the table in another recarray
         #r2 = table.read()
@@ -4342,10 +4342,10 @@ class DefaultValues(unittest.TestCase):
             for row in table.iterrows(0, 10):
                 print row
             print "The last 5 read recarray values:"
-            #print r2[:10]
+            #print r2[:5]
             print r2[-5:]
             print "Records should look like:"
-            #print r[:10]
+            #print r[:5]
             print r[-5:]
 
         assert r.tostring() == r2.tostring()

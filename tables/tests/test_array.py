@@ -338,7 +338,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         "Checking an unaligned signed short integer array"
 
         r = numpy.rec.array('a'*200, formats='i1,f4,i2', shape=10)
-        a = r["f3"]
+        a = r["f2"]
         # Ensure that this array is non-aligned
         assert a.flags.aligned == False
         assert a.dtype.type == numpy.int16
@@ -349,7 +349,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         "Checking an unaligned single precision array"
 
         r = numpy.rec.array('a'*200, formats='i1,f4,i2', shape=10)
-        a = r["f2"]
+        a = r["f1"]
         # Ensure that this array is non-aligned
         assert a.flags.aligned == 0
         assert a.dtype.type == numpy.float32
@@ -408,7 +408,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         "Checking an unaligned and offsetted single precision array"
 
         r = numpy.rec.array('a'*200, formats='i1,3f4,i2', shape=10)
-        a = r["f2"][3]
+        a = r["f1"][3]
         # Ensure that this array is non-aligned
         assert a.flags.aligned == False
         assert a.dtype.type == numpy.float32
@@ -419,7 +419,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         "Checking an unaligned and offsetted double precision array"
 
         r = numpy.rec.array('a'*400, formats='i1,3f8,i2', shape=10)
-        a = r["f2"][3]
+        a = r["f1"][3]
         # Ensure that this array is non-aligned
         assert a.flags.aligned == False
         assert a.dtype.type == numpy.float64
