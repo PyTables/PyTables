@@ -429,7 +429,8 @@ class NetCDFFile:
                     varout[n] = ((1./scale_factor[varname])*(varin[n] - add_offset[varname])).astype('s')
                 else:
                     if datatype == 'c':
-                        varout[n] = Numeric.reshape(Numeric.array(varin[n].flat,'c'),varin.shape[1:])
+                        tmp = Numeric.array(varin[n].flatten(),'c')
+                        varout[n] = Numeric.reshape(tmp, varin.shape[1:])
                     else:
                         varout[n] = varin[n]
         # close file.
@@ -506,7 +507,7 @@ class NetCDFFile:
                     if stop2 > stop:
                         stop2 = stop
                     # Set the proper slice in the extensible dimension
-                    slices[extdim] = slice(start2, stop2, step)
+                    slices[extdim] = slice(start2, stop2, 1)
                     idata = ncvar[tuple(slices)]
                     if dounpackshort:
                         tmpdata = (ncvar.scale_factor*idata+ncvar.add_offset).astype('f')
