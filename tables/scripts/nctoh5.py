@@ -18,7 +18,7 @@ if not tables.NetCDF.ScientificIONetCDF_imported:
 from tables.Leaf import Filters
 
 
-def nctoh5(ncfilename, h5filename, filter, verbose, overwritefile):
+def nctoh5(ncfilename, h5filename, filters, verbose, overwritefile):
     # open h5 file
     if overwritefile:
         h5file = tables.NetCDF.NetCDFFile(h5filename, mode = "w")
