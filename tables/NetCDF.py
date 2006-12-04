@@ -530,11 +530,6 @@ class NetCDFFile:
                                          dtype="S1")
 
                 else:
-                    # if data is in a CArray, convert to numpy
-                    # (done automatically for EArrays)
-                    if isinstance(var._NetCDF_varobj,tables.CArray):
-                        tmpdata = convertToNPAtom(tmpdata,
-                                                  var._NetCDF_varobj.atom)
                     var[:] = tmpdata
             # Increment the counters
             nobjects += 1
@@ -635,10 +630,6 @@ class NetCDFVariable:
         self._NetCDF_FillValue = _NetCDF_FillValue
 
     def __setitem__(self,key,data):
-        # if assigning to a CArray, convert to numpy.
-        # (done automatically for EArrays)
-        if isinstance(self._NetCDF_varobj,tables.CArray):
-            data = convertToNPAtom(data, self._NetCDF_varobj.atom)
         if hasattr(self,'least_significant_digit'):
             self._NetCDF_varobj[key] = _quantize(data,self.least_significant_digit)
         else:
