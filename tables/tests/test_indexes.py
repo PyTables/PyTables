@@ -1469,6 +1469,37 @@ class AI12TestCase(AutomaticIndexingTestCase):
     klass = ChangeFilters
 
 
+
+class ManyNodesTestCase(PyTablesTestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
+
+    def test00(self):
+        """Indexing many nodes in one single session (based on bug #26)"""
+        IdxRecord = {
+            'f0': Int8Col(indexed=1),
+            'f1': Int8Col(indexed=1),
+            'f2': Int8Col(indexed=1),
+            }
+
+        h5 = self.fileh
+        for qn in range(5):
+            for sn in range(5):
+                qchr = 'chr' + str(qn)
+                name = 'chr' + str(sn)
+                path = "/at/%s/at" % (qchr)
+                table = h5.createTable(path, name, IdxRecord, createparents=1)
+                table.row.append()
+                table.flush()
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -1506,6 +1537,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AI10TestCase))
         theSuite.addTest(unittest.makeSuite(AI11TestCase))
         theSuite.addTest(unittest.makeSuite(AI12TestCase))
+        theSuite.addTest(unittest.makeSuite(ManyNodesTestCase))
 
     return theSuite
 
