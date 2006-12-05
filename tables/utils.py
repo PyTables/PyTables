@@ -388,6 +388,95 @@ def convToFlavor(object, arr, caller = "Array"):
     return arr
 
 
+def tonumarray(array, copy=False):
+    """
+    Create a new `NestedRecArray` from a numpy object.
+
+    If ``copy`` is True, the a copy of the data is made. The default is
+    not doing a copy.
+
+    Example
+    =======
+
+    >>> nra = tonumarray(numpy.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
+
+    """
+
+    if not (isinstance(array, numpy.ndarray) or
+            type(array) == numpy.rec.recarray or
+            type(array) == numpy.rec.record or
+            type(array) == numpy.void):    # Check scalar case.
+        raise ValueError, \
+"You need to pass a numpy object, and you passed a %s." % (type(array))
+
+    # Convert the original description based in the array protocol in
+    # something that can be understood by the NestedRecArray
+    # constructor.
+    descr = [i for i in nestedrecords.convertFromAPDescr(array.dtype.descr)]
+    # Flat the description
+    flatDescr = [i for i in nriterators.flattenDescr(descr)]
+    # Flat the structure descriptors
+    flatFormats = [i for i in nriterators.getFormatsFromDescr(flatDescr)]
+    flatNames = [i for i in nriterators.getNamesFromDescr(flatDescr)]
+    # Create a regular RecArray
+    if copy:
+        array = array.copy()  # copy the data before creating the object
+    if array.shape == ():
+        shape = 1     # Scalar case. Shape = 1 will provide an adequate buffer.
+    else:
+        shape = array.shape
+    ra = numarray.records.array(array.data, formats=flatFormats,
+                                names=flatNames,
+                                shape=shape,
+                                byteorder=sys.byteorder,
+                                aligned = False)  # aligned RecArrays
+                                                  # not supported yet
+    # Check whether we need a NestedRecArray as final output
+    nested = False
+    for name in flatNames:
+        if '/' in name:
+            nested = True
+            break
+    if nested:
+        # Create the nested recarray itself
+        ra = nestedrecords.NestedRecArray(ra, descr)
+
+    return ra
+
+
+
+def tonumpy(rna, copy=False):
+    """
+    Create a new heterogeneous numpy object from a numarray object.
+
+    If ``copy`` is True, then a copy of the data is made. The default is
+    not doing a copy.
+
+    Example
+    =======
+
+    >>> nrp = fromnumarray(records.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
+
+    """
+
+    if not isinstance(rna, numarray.records.RecArray):
+        raise ValueError, \
+"You need to pass a numarray (Nested)RecArray object, and you passed a %s." % \
+(type(array))
+
+    print "tonumpy..."
+    if type(rna) == numarray.records.RecArray:
+        # Create a NestedRecArray array from the RecArray to easy the
+        # conversion. This is sub-optimal and should be replaced by a
+        # better way to convert a plain RecArray into a numpy recarray.
+        # F. Altet 2006-06-19
+        rna = nestedrecords.array(rna)
+    rnp = numpy.ndarray(buffer=rna._data, shape=rna.shape,
+                        dtype=rna.array_descr,
+                        offset=rna._byteoffset, copy=copy)
+    return rnp
+
+
 def totuple(object, arr):
     """Returns array as a (nested) tuple of elements."""
     if len(arr._shape) == 1:
@@ -491,157 +580,6 @@ def checkFileAccess(filename, mode='r'):
         raise ValueError("invalid mode: %r" % (mode,))
 
 
-def fromnumpy(array, copy=False):
-    """
-    Create a new `NestedRecArray` from a numpy object.
-
-    If ``copy`` is True, the a copy of the data is made. The default is
-    not doing a copy.
-
-    Example
-    =======
-
-    >>> nra = fromnumpy(numpy.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
-
-    """
-
-    if not (isinstance(array, numpy.ndarray) or
-            type(array) == numpy.rec.recarray or
-            type(array) == numpy.rec.record or
-            type(array) == numpy.void):    # Check scalar case.
-        raise ValueError, \
-"You need to pass a numpy object, and you passed a %s." % (type(array))
-
-    # Convert the original description based in the array protocol in
-    # something that can be understood by the NestedRecArray
-    # constructor.
-    descr = [i for i in nestedrecords.convertFromAPDescr(array.dtype.descr)]
-    # Flat the description
-    flatDescr = [i for i in nriterators.flattenDescr(descr)]
-    # Flat the structure descriptors
-    flatFormats = [i for i in nriterators.getFormatsFromDescr(flatDescr)]
-    flatNames = [i for i in nriterators.getNamesFromDescr(flatDescr)]
-    # Create a regular RecArray
-    if copy:
-        array = array.copy()  # copy the data before creating the object
-    if array.shape == ():
-        shape = 1     # Scalar case. Shape = 1 will provide an adequate buffer.
-    else:
-        shape = array.shape
-    ra = numarray.records.array(array.data, formats=flatFormats,
-                                names=flatNames,
-                                shape=shape,
-                                byteorder=sys.byteorder,
-                                aligned = False)  # aligned RecArrays
-                                                  # not supported yet
-    # Create the nested recarray itself
-    nra = nestedrecords.NestedRecArray(ra, descr)
-
-    return nra
-
-
-# The next way of converting to NRA does not work because
-# nestedrecords.array factory seems too picky with buffer checks.
-# Also, this way of building the NRA does not allow to put '/'
-# in field names.
-# F. Altet 2006-01-16
-def fromnumpy_short(array):
-    """
-    Create a new `NestedRecArray` from a numpy object.
-
-    Warning: The code below is currently only meant for dealing with
-    numpy objects because we need to access to the buffer of the data,
-    and this is not accessible in the current array protocol. Perhaps it
-    would be good to propose such an addition to the protocol.
-
-    Example
-    =======
-
-    >>> nra = fromnumpy(numpy.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
-
-    """
-
-    if not isinstance(array, numpy.ndarray):
-        raise ValueError, \
-"You need to pass a numpy object, and you passed a %." % (type(array))
-
-    # Convert the original description based in the array protocol in
-    # something that can be understood by the NestedRecArray
-    # constructor.
-    descr = [i for i in nestedrecords.convertFromAPDescr(array.dtype.descr)]
-
-    # Create the nested recarray
-    nra = nestedrecords.array(array.data, descr=descr,
-                              shape=array.shape,
-                              byteorder=sys.byteorder)
-
-    return nra
-
-
-def tonumpy(array, copy=False):
-    """
-    Create a new `numpy` object from a NestedRecArray object.
-
-    If ``copy`` is True, the a copy of the data is made. The default is
-    not doing a copy.
-
-
-    Example
-    =======
-
-    >>> npr = tonumpy(nestedrecords.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
-
-    """
-
-    assert (isinstance(array, nestedrecords.NestedRecArray) or
-            isinstance(array, numarray.records.RecArray)), \
-"You need to pass a (Nested)RecArray object, and you passed a %s." % \
-(type(array))
-
-    if isinstance(array, numarray.records.RecArray):
-        # Create a NestedRecArray array from the RecArray to easy the
-        # conversion. This is sub-optimal and must be replaced by a
-        # better way to convert a plain RecArray into a numpy recarray.
-        # F. Altet 2006-06-19
-        array = nestedrecords.array(array)
-    #npa = numpy.array(array._flatArray, dtype=array.array_descr, copy=copy)
-    # Workaround for allowing creating numpy recarrays from
-    # unaligned buffers (this limitation was introduced in numpy 1.0b2)
-    # F. Altet 2006-08-23
-    npa = numpy.ndarray(buffer=buffer._data, dtype=array.array_descr,
-                        shape=buffer.shape)
-
-
-    return npa
-
-
-def fromnumarray(rna, copy=False):
-    """
-    Create a new heterogeneous numpy object from a numarray object.
-
-    If ``copy`` is True, the a copy of the data is made. The default is
-    not doing a copy.
-
-    Example
-    =======
-
-    >>> nrp = fromnumarray(records.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
-
-    """
-
-    if not isinstance(rna, numarray.records.RecArray):
-        raise ValueError, \
-"You need to pass a numarray RecArray object, and you passed a %s." % \
-(type(array))
-
-    dt = numpy.format_parser(rna._formats, rna._names, rna._formats)._descr
-    rnp = numpy.ndarray(buffer=rna._data, shape=rna.shape, dtype=dt,
-                        offset=rna._byteoffset)
-    if copy:
-        rnp = rnp.copy()
-    return rnp
-
-
 # This function really belongs to nriterators.py, but has been moved here
 # so as to facilitate its use without having numarray installed
 def flattenNames(names):
@@ -701,7 +639,7 @@ if __name__=="__main__":
     npr = numpy.zeros((3,), dtype=format)
     print "numpy RecArray:", repr(npr)
     # Convert it into a NestedRecArray
-    #nra = fromnumpy(npr)
+    #nra = tonumarray(npr)
     nra = nestedrecords.array(npr)
     print repr(nra)
     # Convert again into numpy

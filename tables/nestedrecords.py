@@ -479,7 +479,7 @@ def array(buffer=None, formats=None, shape=0, names=None,
                             type(buffer) == numpy.void)):
         # Try to convert into a nestedrecarray
         try:
-            nra = tables.utils.fromnumpy(buffer, copy=True)
+            nra = tables.utils.tonumarray(buffer, copy=True)
         except Exception, exc:  #XXX
             raise ValueError, \
 """buffer parameter of type numpy cannot be converted into a NestedRecArray
@@ -784,8 +784,6 @@ class NestedRecArray(numarray.records.RecArray):
         # ``_strides`` is not properly copied from the original array,
         # so, the copy must be made by hand. :[
         self._strides = recarray._strides
-
-        #print "creant un NRA..."
 
         self._flatArray = recarray
         self.descr = descr

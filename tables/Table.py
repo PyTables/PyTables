@@ -55,8 +55,8 @@ from tables.conditions import split_condition, call_on_recarr
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.utils import processRange, processRangeRead, \
-     joinPath, convertNPToNumeric, convertNPToNumArray, fromnumpy, tonumpy, \
-     fromnumarray, is_idx, flattenNames, byteorders
+     joinPath, convertNPToNumeric, convertNPToNumArray, tonumarray, tonumpy, \
+     is_idx, flattenNames, byteorders
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import \
@@ -431,7 +431,7 @@ class Table(TableExtension.Table, Leaf):
               isinstance(description, numarray.records.RecArray)):
             # numarray RecArray object case
             self._flavor = "numarray"
-            nra = fromnumarray(description)
+            nra = tonumpy(description)
             self._newRecArray(nra)
         elif (type(description) == type(IsDescription) and
               issubclass(description, IsDescription)):
@@ -1737,6 +1737,10 @@ You cannot append rows to a non-chunked table.""")
 
         # Try to convert the object into a recarray compliant with table
         try:
+            # Check whether rows is a (Nested)RecArray
+            if (numarray_imported and
+                isinstance(rows, numarray.strings.RecArray)):
+                rows = tonumpy(rows)
             # This always makes a copy of the original,
             # so the resulting object is safe for in-place conversion.
             recarray = numpy.rec.array(rows, dtype=self._v_dtype)

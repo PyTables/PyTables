@@ -25,8 +25,8 @@ typecodes += ['b1']   # boolean
 byteorder = {'little': '<', 'big': '>'}[sys.byteorder]
 
 class BasicTestCase(unittest.TestCase):
-    """Basic test for all the supported typecodes present in Numeric.
-    All of them are included on pytables.
+    """Basic test for all the supported typecodes present in NumPy.
+    All of them are included on PyTables.
     """
     endiancheck = 0
 
