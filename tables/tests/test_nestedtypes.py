@@ -1273,29 +1273,46 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         desc = {
             'nested': {
-            'i1': t.IntCol(pos=1),
-            'i2': t.IntCol(pos=2) } }
+            'i1': t.Int32Col(),
+            'i2': t.Int32Col() } }
 
-        correct_names = ['', 'nested', 'nested/i1', 'nested/i2']
-
+        i1 = 'nested/i1'
+        i2 = 'nested/i2'
         tbl = self.h5file.createTable(
             '/', 'test', desc, title=self._getMethodName())
 
-        tbl.cols.nested.i1.createIndex()
-        tbl.cols.nested.i2.createIndex()
+        row = tbl.row
+        for i in xrange(1000):
+            row[i1] = i
+            row[i2] = i*2
+            row.append()
+        tbl.flush()
+
+        cols = {'i1':tbl.cols.nested.i1,
+                'i2':tbl.cols.nested.i2,}
+        cols['i1'].createIndex(testmode=True)
+        cols['i2'].createIndex(testmode=True)
 
         if self.reopen:
             self._reopen()
             tbl = self.h5file.root.test
+            # Redefine the cols dictionary
+            cols = {'i1':tbl.cols.nested.i1,
+                    'i2':tbl.cols.nested.i2,}
 
-        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
+        i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
+        i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
+
         if verbose:
-           print "Retrieved names:", names
-           print "Should look like:", correct_names
+           print "Retrieved values (i1):", i1res
+           print "Should look like:", range(10)
+           print "Retrieved values (i2):", i2res
+           print "Should look like:", range(0, 10, 2)
 
-        self.assert_(names == correct_names,
-                     "Column nested names doesn't match.")        
-
+        self.assert_(i1res == range(10),
+                     "Select for nested column (i1) doesn't match.")
+        self.assert_(i2res == range(0, 10, 2),
+                     "Select for nested column (i2) doesn't match.")
 
     def test02b(self):
         """Indexing two simple columns under the same (very) nested column."""
@@ -1306,31 +1323,47 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             'nested1': {
             'nested2': {
             'nested3': {
-            'i1': t.IntCol(pos=1),
-            'i2': t.IntCol(pos=2) } } } }
+            'i1': t.Int32Col(),
+            'i2': t.Int32Col() } } } }
 
-        correct_names = ['', 'nested1', 'nested1/nested2',
-                         'nested1/nested2/nested3',
-                         'nested1/nested2/nested3/i1',
-                         'nested1/nested2/nested3/i2']
+        i1 = 'nested1/nested2/nested3/i1'
+        i2 = 'nested1/nested2/nested3/i2'
 
         tbl = self.h5file.createTable(
             '/', 'test', desc, title=self._getMethodName())
 
-        tbl.cols.nested1.nested2.nested3.i1.createIndex()
-        tbl.cols.nested1.nested2.nested3.i2.createIndex()
+        row = tbl.row
+        for i in xrange(1000):
+            row[i1] = i
+            row[i2] = i*2
+            row.append()
+        tbl.flush()
+
+        cols = {'i1':tbl.cols.nested1.nested2.nested3.i1,
+                'i2':tbl.cols.nested1.nested2.nested3.i2,}
+        cols['i1'].createIndex(testmode=True)
+        cols['i2'].createIndex(testmode=True)
 
         if self.reopen:
             self._reopen()
             tbl = self.h5file.root.test
+            # Redefine the cols dictionary
+            cols = {'i1':tbl.cols.nested1.nested2.nested3.i1,
+                    'i2':tbl.cols.nested1.nested2.nested3.i2,}
 
-        names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
+        i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
+        i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
+
         if verbose:
-           print "Retrieved names:", names
-           print "Should look like:", correct_names
+           print "Retrieved values (i1):", i1res
+           print "Should look like:", range(10)
+           print "Retrieved values (i2):", i2res
+           print "Should look like:", range(0, 10, 2)
 
-        self.assert_(names == correct_names,
-                     "Column nested names doesn't match.")        
+        self.assert_(i1res == range(10),
+                     "Select for nested column (i1) doesn't match.")
+        self.assert_(i2res == range(0, 10, 2),
+                     "Select for nested column (i2) doesn't match.")
 
 
 class SameNestedNoReopen(SameNestedTestCase):

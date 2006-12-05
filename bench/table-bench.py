@@ -197,9 +197,9 @@ def readFile(filename, recsize, verbose):
                      # than ten times faster than the next one
 #                e = [ p['var3'] for p in table
 #                      if p['var1'] == "10"]
-#                 e = [ p['var3'] for p in table.where('var2 <= 20')]
-                 e = [ p['var3'] for p in table
-                        if p['var2'] <= 20 ]
+                 e = [ p['var3'] for p in table.where('var2 <= 20')]
+#                 e = [ p['var3'] for p in table
+#                        if p['var2'] <= 20 ]
 #                  e = [ p['var3'] for p in table._whereInRange(table.cols.var2 <=20)]
                 #e = [ p['var3'] for p in table.iterrows(0,21) ]
 #                  e = [ p['var3'] for p in table.iterrows()
