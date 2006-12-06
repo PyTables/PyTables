@@ -1,4 +1,4 @@
-########################################################################
+#######################################################################
 #
 #       License: BSD
 #       Created: September 4, 2002
@@ -1739,7 +1739,7 @@ You cannot append rows to a non-chunked table.""")
         try:
             # Check whether rows is a (Nested)RecArray
             if (numarray_imported and
-                isinstance(rows, numarray.strings.RecArray)):
+                isinstance(rows, numarray.records.RecArray)):
                 rows = tonumpy(rows)
             # This always makes a copy of the original,
             # so the resulting object is safe for in-place conversion.
@@ -1830,6 +1830,11 @@ You cannot append rows to a non-chunked table.""")
            "The value has not enough elements to fill-in the specified range"
         # Try to convert the object into a recarray
         try:
+            # Check whether rows is a (Nested)RecArray
+            if (numarray_imported and
+                (isinstance(rows, numarray.records.RecArray) or
+                 isinstance(rows, numarray.records.Record))):
+                rows = tonumpy(rows)
             # This always makes a copy of the original,
             # so the resulting object is safe for in-place conversion.
             if hasattr(rows, "shape") and rows.shape == ():
@@ -1898,9 +1903,11 @@ table format '%s'. The error was: <%s>
         descr = [objcol._v_parent._v_nestedDescr[objcol._v_pos]]
         # Try to convert the column object into a recarray
         try:
-            if (isinstance(column, numpy.ndarray) or
-                (numarray_imported and
-                 isinstance(column, numarray.records.RecArray))):
+            # Check whether column is a (Nested)RecArray
+            if (numarray_imported and
+                isinstance(column, numarray.records.RecArray)):
+                column = tonumpy(column)
+            if isinstance(column, numpy.ndarray):
                 recarray = numpy.rec.array(column, dtype=descr)
             else:
                 recarray = numpy.rec.fromarrays([column], dtype=descr)
@@ -1973,9 +1980,11 @@ The 'names' parameter must be a list of strings.""")
             #descr.append(objcol._v_parent._v_dtype[objcol._v_pos])
         # Try to convert the columns object into a recarray
         try:
-            if (isinstance(columns, numpy.ndarray) or
-                (numarray_imported and
-                 isinstance(columns, numarray.records.RecArray))):
+            # Check whether columns is a (Nested)RecArray
+            if (numarray_imported and
+                isinstance(columns, numarray.records.RecArray)):
+                columns = tonumpy(columns)
+            if isinstance(columns, numpy.ndarray):
                 recarray = numpy.rec.array(columns, dtype=descr)
             else:
                 recarray = numpy.rec.fromarrays(columns, dtype=descr)

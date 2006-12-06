@@ -328,13 +328,16 @@ def convertNPToNumArray(arr):
             buffer_ = arr
         arr = numarray.strings.array(buffer=buffer_)
     else:
-        if not arr.flags.writeable or not arr.flags.aligned:
-            # These cases are not handled by the array protocol
-            # (at least in the current implementation)
-            # A copy will correct this
-            arr = arr.copy()
+        #if not arr.flags.writeable or not arr.flags.aligned:
+        #    # These cases are not handled by the array protocol
+        #    # (at least in the current implementation)
+        #    # A copy will correct this
+        #    arr = arr.copy()
         # This works for regular homogeneous arrays and even for rank-0 arrays
-        arr = numarray.asarray(arr)  # Array protocol
+        # Using asarray gives problems in some tests (I don't know exactly why,
+        # but perhaps the cases above are not enough)
+        #arr = numarray.asarray(arr)  # Array protocol
+        arr = numarray.array(arr)  # Array protocol
     return arr
 
 
@@ -459,21 +462,32 @@ def tonumpy(rna, copy=False):
 
     """
 
-    if not isinstance(rna, numarray.records.RecArray):
+    if not (isinstance(rna, numarray.records.RecArray) or
+            isinstance(rna, numarray.records.Record)):
         raise ValueError, \
 "You need to pass a numarray (Nested)RecArray object, and you passed a %s." % \
-(type(array))
+(type(rna))
 
-    print "tonumpy..."
+    record = False
+    if isinstance(rna, numarray.records.Record):
+        # Get a RecArray from a record
+        row = rna.row
+        rna = rna.array[row:row+1]
+        record = True
+    if copy:
+        rna = rna.copy()
     if type(rna) == numarray.records.RecArray:
         # Create a NestedRecArray array from the RecArray to easy the
         # conversion. This is sub-optimal and should be replaced by a
-        # better way to convert a plain RecArray into a numpy recarray.
+        # faster way to convert a plain RecArray into a numpy recarray.
         # F. Altet 2006-06-19
         rna = nestedrecords.array(rna)
     rnp = numpy.ndarray(buffer=rna._data, shape=rna.shape,
                         dtype=rna.array_descr,
-                        offset=rna._byteoffset, copy=copy)
+                        offset=rna._byteoffset)
+    if record:
+        # Get the numpy record
+        rnp = rnp[row]
     return rnp
 
 

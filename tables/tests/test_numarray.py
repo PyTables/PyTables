@@ -9,6 +9,7 @@ from numarray import records
 from numarray import *
 
 from tables import *
+from tables import nestedrecords
 from tables.tests.common import verbose, allequal, cleanup, heavy
 import tables.tests.common as common
 
@@ -34,8 +35,12 @@ class BasicTestCase(unittest.TestCase):
     def WriteRead(self, testArray):
         if verbose:
             print '\n', '-=' * 30
+            if type(testArray) == NumArray:
+                type_ = testArray.type()
+            else:
+                type_ = "String"
             print "Running test for array with type '%s'" % \
-                  testArray.type(),
+                  type_,
             print "for class check:", self.title
 
         # Create an instance of HDF5 Table
@@ -61,7 +66,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Compare them. They should be equal.
         #if not allequal(a,b, "numarray") and verbose:
-        if verbose:
+        if verbose and type(a) == NumArray:
             print "Array written:", a
             print "Array written shape:", a.shape
             print "Array written itemsize:", a.itemsize
@@ -498,606 +503,586 @@ class TableReadTestCase(common.PyTablesTestCase):
         assert record.field('var7') == 232
 
 
-# # The declaration of the nested table:
-# class Info(IsDescription):
-#     _v_pos = 3
-#     Name = StringCol(length=2)
-#     Value = Complex64Col()
+# The declaration of the nested table:
+class Info(IsDescription):
+    _v_pos = 3
+    Name = StringCol(length=2)
+    Value = Complex64Col()
 
-# class TestTDescr(IsDescription):
+class TestTDescr(IsDescription):
 
-#     """A description that has several nested columns."""
+    """A description that has several nested columns."""
 
-#     _v_flavor = "numarray"     # The default would be returning numarray objects on reads
-#     x = Int32Col(0, shape=2, pos=0) #0
-#     y = FloatCol(1, shape=(2,2))
-#     z = UInt8Col(1)
-#     z3 = EnumCol({'r':4, 'g':2, 'b':1}, 'r', shape=2)
-#     color = StringCol(4, "ab", pos=2)
-#     info = Info()
-#     class Info(IsDescription): #1
-#         _v_pos = 1
-#         name = StringCol(length=2)
-#         value = Complex64Col(pos=0) #0
-#         y2 = FloatCol(pos=1) #1
-#         z2 = UInt8Col()
-#         class Info2(IsDescription):
-#             y3 = Time64Col(shape=2)
-#             name = StringCol(length=2)
-#             value = Complex64Col(shape=2)
-
-
-# class TableNativeFlavorTestCase(common.PyTablesTestCase):
-#     nrows = 100
-
-#     def setUp(self):
-
-#         # Create an instance of an HDF5 Table
-#         self.file = tempfile.mktemp(".h5")
-#         fileh = openFile(self.file, "w")
-#         table = fileh.createTable(fileh.root, 'table', TestTDescr,
-#                                   expectedrows=self.nrows)
-#         for i in range(self.nrows):
-#             table.row.append()  # Fill 100 rows with default values
-#         table.flush()
-#         self.fileh = fileh
-
-#     def tearDown(self):
-#         self.fileh.close()
-#         os.remove(self.file)
-#         cleanup(self)
+    # The default would be returning numarray objects on reads
+    _v_flavor = "numarray"
+    x = Int32Col(0, shape=2, pos=0) #0
+    y = FloatCol(1, shape=(2,2))
+    z = UInt8Col(1)
+    z3 = EnumCol({'r':4, 'g':2, 'b':1}, 'r', shape=2)
+    color = StringCol(4, "ab", pos=2)
+    info = Info()
+    class Info(IsDescription): #1
+        _v_pos = 1
+        name = StringCol(length=2)
+        value = Complex64Col(pos=0) #0
+        y2 = FloatCol(pos=1) #1
+        z2 = UInt8Col()
+        class Info2(IsDescription):
+            y3 = Time64Col(shape=2)
+            name = StringCol(length=2)
+            value = Complex64Col(shape=2)
 
 
-#     def _test01a_basicTableRead(self):
-#         """Checking the return of a Numarray in read()."""
+class TableNativeFlavorTestCase(common.PyTablesTestCase):
+    nrows = 100
 
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#         table = self.fileh.root.table
-#         data = table[:]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Formats of the record:", data._formats
-#             print "First 3 elements of read:", data[:3]
-#         # Check the type of the recarray
-#         assert isinstance(data, records.RecArray)
-#         # Check the value of some columns
-#         # A flat column
-#         col = table.cols.x[:3]
-#         assert isinstance(col, NumArray)
-#         npcol = zeros((3,2), dtype="Int32")
-#         assert allequal(col, npcol, "numarray")
-#         # A nested column
-#         col = table.cols.Info[:3]
-#         assert isinstance(col, ndarray)
-#         dtype = [('value', '<c16'),
-#                  ('y2', '<f8'),
-#                  ('Info2',
-#                   [('name', '|S2'),
-#                    ('value', '<c16', (2,)),
-#                    ('y3', '<f8', (2,))]),
-#                  ('name', '|S2'),
-#                  ('z2', '|u1')]
-#         npcol = zeros((3,), dtype=dtype)
-#         assert col.dtype.descr == npcol.dtype.descr
-#         if verbose:
-#             print "col-->", col
-#             print "npcol-->", npcol
-#         # A copy() is needed in case the buffer can be in different segments
-#         assert col.copy().data == npcol.data
+    dtype = [('value', 'c16'),
+             ('y2', 'f8'),
+             ('Info2',
+              [('name', 'a2'),
+               ('value', '(2,)c16'),
+               ('y3', '(2,)f8')]),
+             ('name', 'a2'),
+             ('z2', 'u1')]
+    _infozeros = nestedrecords.array(descr=dtype, shape=3)
+    # Set the contents to zero (or empty strings)
+    _infozeros.field('value')[:] = 0
+    _infozeros.field('y2')[:] = 0
+    _infozeros.field('Info2/name')[:] = "\0"
+    _infozeros.field('Info2/value')[:] = 0
+    _infozeros.field('Info2/y3')[:] = 0
+    _infozeros.field('name')[:] = "\0"
+    _infozeros.field('z2')[:] = 0
 
-#     def test01b_basicTableRead(self):
-#         """Checking the return of a Numarray in read() (strided version)."""
+    _infoones = nestedrecords.array(descr=dtype, shape=3)
+    # Set the contents to one (or blank strings)
+    _infoones.field('value')[:] = 1
+    _infoones.field('y2')[:] = 1
+    _infoones.field('Info2/name')[:] = " "
+    _infoones.field('Info2/value')[:] = 1
+    _infoones.field('Info2/y3')[:] = 1
+    _infoones.field('name')[:] = " "
+    _infoones.field('z2')[:] = 1
 
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#         table = self.fileh.root.table
-#         data = table[::3]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check the value of some columns
-#         # A flat column
-#         col = table.cols.x[:9:3]
-#         assert isinstance(col, ndarray)
-#         npcol = zeros((3,2), dtype="int32")
-#         assert allequal(col, npcol, "numarray")
-#         # A nested column
-#         col = table.cols.Info[:9:3]
-#         assert isinstance(col, ndarray)
-#         dtype = [('value', '%sc16' % byteorder),
-#                  ('y2', '%sf8' % byteorder),
-#                  ('Info2',
-#                   [('name', '|S2'),
-#                    ('value', '%sc16' % byteorder, (2,)),
-#                    ('y3', '%sf8' % byteorder, (2,))]),
-#                  ('name', '|S2'),
-#                  ('z2', '|u1')]
-#         npcol = zeros((3,), dtype=dtype)
-#         assert col.dtype.descr == npcol.dtype.descr
-#         if verbose:
-#             print "col-->", col
-#             print "npcol-->", npcol
-#         # A copy() is needed in case the buffer can be in different segments
-#         assert col.copy().data == npcol.data
+    def setUp(self):
 
-#     def test02_getWhereList(self):
-#         """Checking the return of Numarray in getWhereList method."""
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        fileh = openFile(self.file, "w")
+        table = fileh.createTable(fileh.root, 'table', TestTDescr,
+                                  expectedrows=self.nrows)
+        for i in range(self.nrows):
+            table.row.append()  # Fill 100 rows with default values
+        table.flush()
+        self.fileh = fileh
 
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#         table = self.fileh.root.table
-#         data = table.getWhereList('z == 1')
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check that all columns have been selected
-#         assert len(data) == 100
-#         # Finally, check that the contents are ok
-#         assert allequal(data, arange(100, dtype="i8"), "numarray")
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
 
-#     def test03a_readWhere(self):
-#         """Checking the return of Numarray in readWhere method (strings)."""
 
-#         table = self.fileh.root.table
-#         table.cols.color.createIndex(warn=1, testmode=1)
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         data = table.readWhere('color == "ab"')
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check that all columns have been selected
-#         assert len(data) == self.nrows
+    def test01a_basicTableRead(self):
+        """Checking the return of a Numarray in read()."""
 
-#     def test03b_readWhere(self):
-#         """Checking the return of Numarray in readWhere method (numeric)."""
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+        table = self.fileh.root.table
+        data = table[:]
+        if verbose:
+            print "Type of read:", type(data)
+            print "Formats of the record:", data._formats
+            print "First 3 elements of read:", data[:3]
+        # Check the type of the recarray
+        assert isinstance(data, records.RecArray)
+        # Check the value of some columns
+        # A flat column
+        col = table.cols.x[:3]
+        assert isinstance(col, NumArray)
+        npcol = zeros((3,2), type="Int32")
+        if verbose:
+            print "Plain column:"
+            print "read column-->", col
+            print "should look like-->", npcol
+        assert allequal(col, npcol, "numarray")
+        # A nested column
+        col = table.cols.Info[:3]
+        assert isinstance(col, records.RecArray)
+        npcol = self._infozeros
+        if verbose:
+            print "Nested column:"
+            print "read column-->", col
+            print "should look like-->", npcol
+        assert col.descr == npcol.descr
+        assert str(col) == str(npcol)
 
-#         table = self.fileh.root.table
-#         table.cols.z.createIndex(warn=1, testmode=1)
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         data = table.readWhere('z == 0')
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check that all columns have been selected
-#         assert len(data) == 0
+    def test01b_basicTableRead(self):
+        """Checking the return of a Numarray in read() (strided version)."""
 
-#     def test04a_createTable(self):
-#         """Checking the Table creation from a numarray recarray."""
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+        table = self.fileh.root.table
+        data = table[::3]
+        if verbose:
+            print "Type of read:", type(data)
+            print "Description of the record:", data.descr
+            print "First 3 elements of read:", data[:3]
+        # Check that both Numarray objects are equal
+        assert isinstance(data, records.RecArray)
+        # Check the value of some columns
+        # A flat column
+        col = table.cols.x[:9:3]
+        assert isinstance(col, NumArray)
+        npcol = zeros((3,2), dtype="Int32")
+        if verbose:
+            print "Plain column:"
+            print "read column-->", col
+            print "should look like-->", npcol
+        assert allequal(col, npcol, "numarray")
+        # A nested column
+        col = table.cols.Info[:9:3]
+        assert isinstance(col, records.RecArray)
+        npcol = self._infozeros
+        if verbose:
+            print "Nested column:"
+            print "read column-->", col
+            print "should look like-->", npcol
+        assert col.descr == npcol.descr
+        assert str(col) == str(npcol)
 
-#         dtype = [('value', '%sc16' % byteorder),
-#                  ('y2', '%sf8' % byteorder),
-#                  ('Info2',
-#                   [('name', '|S2'),
-#                    ('value', '%sc16' % byteorder, (2,)),
-#                    ('y3', '%sf8' % byteorder, (2,))]),
-#                  ('name', '|S2'),
-#                  ('z2', '|u1')]
-#         npdata = zeros((3,), dtype=dtype)
-#         table = self.fileh.createTable(self.fileh.root, 'table2', npdata)
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table2
-#         data = table[:]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check the type
-#         assert data.dtype.descr == npdata.dtype.descr
-#         if verbose:
-#             print "npdata-->", npdata
-#             print "data-->", data
-#         # A copy() is needed in case the buffer would be in different segments
-#         assert data.copy().data == npdata.data
+    def test02_getWhereList(self):
+        """Checking the return of Numarray in getWhereList method."""
 
-#     def test04b_appendTable(self):
-#         """Checking appending a numarray recarray."""
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+        table = self.fileh.root.table
+        data = table.getWhereList('z == 1')
+        if verbose:
+            print "Type of read:", type(data)
+            print "First 3 elements of read:", data[:3]
+        # Check that both Numarray objects are equal
+        assert isinstance(data, NumArray)
+        # Check that all columns have been selected
+        assert len(data) == 100
+        # Finally, check that the contents are ok
+        assert allequal(data, arange(100, type="Int64"), "numarray")
 
-#         table = self.fileh.root.table
-#         npdata = table[3:6]
-#         table.append(npdata)
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         data = table[-3:]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "Last 3 elements of read:", data[-3:]
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check the type
-#         assert data.dtype.descr == npdata.dtype.descr
-#         if verbose:
-#             print "npdata-->", npdata
-#             print "data-->", data
-#         # A copy() is needed in case the buffer would be in different segments
-#         assert data.copy().data == npdata.data
+    def test03a_readWhere(self):
+        """Checking the return of Numarray in readWhere method (strings)."""
 
-#     def test05a_assignColumn(self):
-#         """Checking assigning to a column."""
+        table = self.fileh.root.table
+        table.cols.color.createIndex(warn=True, testmode=True)
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        data = table.readWhere('color == "ab"')
+        if verbose:
+            print "Type of read:", type(data)
+            print "Length of the data read:", len(data)
+        # Check that both Numarray objects are equal
+        assert isinstance(data, records.RecArray)
+        # Check that all columns have been selected
+        assert len(data) == self.nrows
 
-#         table = self.fileh.root.table
-#         table.cols.z[:] = zeros((100,), dtype='u1')
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         data = table.cols.z[:]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check that all columns have been selected
-#         assert len(data) == 100
-#         # Finally, check that the contents are ok
-#         assert allequal(data, zeros((100,), dtype="u1"), "numarray")
+    def test03b_readWhere(self):
+        """Checking the return of Numarray in readWhere method (numeric)."""
 
-#     def test05b_modifyingColumns(self):
-#         """Checking modifying several columns at once."""
+        table = self.fileh.root.table
+        table.cols.z.createIndex(warn=1, testmode=1)
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        data = table.readWhere('z == 0')
+        if verbose:
+            print "Type of read:", type(data)
+            print "Length of the data read:", len(data)
+        # Check that both Numarray objects are equal
+        assert isinstance(data, records.RecArray)
+        # Check that all columns have been selected
+        assert len(data) == 0
 
-#         table = self.fileh.root.table
-#         xcol = ones((3,2), 'int32')
-#         ycol = zeros((3,2,2), 'float64')
-#         zcol = zeros((3,), 'uint8')
-#         table.modifyColumns(3, 6, 1, [xcol, ycol, zcol], ['x', 'y', 'z'])
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         data = table.cols.y[3:6]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check the type
-#         assert data.dtype.descr == ycol.dtype.descr
-#         if verbose:
-#             print "ycol-->", ycol
-#             print "data-->", data
-#         # A copy() is needed in case the buffer would be in different segments
-#         assert data.copy().data == ycol.data
+    def test04a_createTable(self):
+        """Checking the Table creation from a numarray recarray."""
 
-#     def test05c_modifyingColumns(self):
-#         """Checking modifying several columns using a single numarray buffer."""
+        npdata = self._infozeros
+        table = self.fileh.createTable(self.fileh.root, 'table2', npdata)
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table2
+        data = table[:]
+        if verbose:
+            print "Type of read:", type(data)
+            print "Description of the record:", data.descr
+            print "First 3 elements of read:", data[:3]
+            print "Length of the data read:", len(data)
+        if verbose:
+            print "npdata-->", npdata
+            print "data-->", data
+        # Check that both Numarray objects are equal
+        assert isinstance(data, records.RecArray)
+        # Check the type
+        assert data.descr == npdata.descr
+        assert str(data) == str(npdata)
 
-#         table = self.fileh.root.table
-#         dtype=[('x', 'i4', (2,)), ('y', 'f8', (2, 2)), ('z', 'u1')]
-#         nparray = zeros((3,), dtype=dtype)
-#         table.modifyColumns(3, 6, 1, nparray, ['x', 'y', 'z'])
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         ycol = zeros((3, 2, 2), 'float64')
-#         data = table.cols.y[3:6]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check the type
-#         assert data.dtype.descr == ycol.dtype.descr
-#         if verbose:
-#             print "ycol-->", ycol
-#             print "data-->", data
-#         # A copy() is needed in case the buffer would be in different segments
-#         assert data.copy().data == ycol.data
+    def test04b_appendTable(self):
+        """Checking appending a numarray recarray."""
 
-#     def test06a_assignNestedColumn(self):
-#         """Checking assigning a nested column (using modifyColumn)."""
+        table = self.fileh.root.table
+        npdata = table[3:6]
+        table.append(npdata)
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        data = table[-3:]
+        if verbose:
+            print "Type of read:", type(data)
+            print "Description of the record:", data.descr
+            print "Last 3 elements of read:", data[-3:]
+            print "Length of the data read:", len(data)
+        if verbose:
+            print "npdata-->", npdata
+            print "data-->", data
+        # Check that both Numarray objects are equal
+        assert isinstance(data, records.RecArray)
+        # Check the type
+        assert data.descr == npdata.descr
+        assert str(data) == str(npdata)
 
-#         table = self.fileh.root.table
-#         dtype = [('value', '%sc16' % byteorder),
-#                  ('y2', '%sf8' % byteorder),
-#                  ('Info2',
-#                   [('name', '|S2'),
-#                    ('value', '%sc16' % byteorder, (2,)),
-#                    ('y3', '%sf8' % byteorder, (2,))]),
-#                  ('name', '|S2'),
-#                  ('z2', '|u1')]
-#         npdata = zeros((3,), dtype=dtype)
-#         data = table.cols.Info[3:6]
-#         table.modifyColumn(3, 6, 1, column=npdata, colname='Info')
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         data = table.cols.Info[3:6]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check the type
-#         assert data.dtype.descr == npdata.dtype.descr
-#         if verbose:
-#             print "npdata-->", npdata
-#             print "data-->", data
-#         # A copy() is needed in case the buffer would be in different segments
-#         assert data.copy().data == npdata.data
+    def test05a_assignColumn(self):
+        """Checking assigning to a column."""
 
-#     def test06b_assignNestedColumn(self):
-#         """Checking assigning a nested column (using the .cols accessor)."""
+        table = self.fileh.root.table
+        table.cols.z[:] = ones((100,), dtype='UInt8')
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        data = table.cols.z[:]
+        if verbose:
+            print "Type of read:", type(data)
+            print "First 3 elements of read:", data[:3]
+            print "Length of the data read:", len(data)
+        # Check that both Numarray objects are equal
+        assert isinstance(data, NumArray)
+        # Check that all columns have been selected
+        assert len(data) == 100
+        # Finally, check that the contents are ok
+        assert allequal(data, ones((100,), dtype="UInt8"), "numarray")
 
-#         table = self.fileh.root.table
-#         dtype = [('value', '%sc16' % byteorder),
-#                  ('y2', '%sf8' % byteorder),
-#                  ('Info2',
-#                   [('name', '|S2'),
-#                    ('value', '%sc16' % byteorder, (2,)),
-#                    ('y3', '%sf8' % byteorder, (2,))]),
-#                  ('name', '|S2'),
-#                  ('z2', '|u1')]
-#         npdata = zeros((3,), dtype=dtype)
-# #         self.assertRaises(NotImplementedError,
-# #                           table.cols.Info.__setitem__, slice(3,6,1),  npdata)
-#         table.cols.Info[3:6] = npdata
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         data = table.cols.Info[3:6]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check the type
-#         assert data.dtype.descr == npdata.dtype.descr
-#         if verbose:
-#             print "npdata-->", npdata
-#             print "data-->", data
-#         # A copy() is needed in case the buffer would be in different segments
-#         assert data.copy().data == npdata.data
+    def test05b_modifyingColumns(self):
+        """Checking modifying several columns at once."""
 
-#     def test07a_modifyingRows(self):
-#         """Checking modifying several rows at once (using modifyRows)."""
+        table = self.fileh.root.table
+        xcol = ones((3,2), 'Int32')
+        ycol = ones((3,2,2), 'Float64')
+        zcol = zeros((3,), 'UInt8')
+        table.modifyColumns(3, 6, 1, [xcol, ycol, zcol], ['x', 'y', 'z'])
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        data = table.cols.y[3:6]
+        if verbose:
+            print "Type of read:", type(data)
+            print "First 3 elements of read:", data[:3]
+            print "Length of the data read:", len(data)
+        if verbose:
+            print "ycol-->", ycol
+            print "data-->", data
+        # Check that both Numarray objects are equal
+        assert isinstance(data, NumArray)
+        # Check the type
+        assert data.type() == ycol.type()
+        assert allequal(data, ycol, "numarray")
 
-#         table = self.fileh.root.table
-#         # Read a chunk of the table
-#         chunk = table[0:3]
-#         # Modify it somewhat
-#         chunk['y'][:] = -1
-#         table.modifyRows(3, 6, 1, rows=chunk)
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         ycol = zeros((3,2,2), 'float64')-1
-#         data = table.cols.y[3:6]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check the type
-#         assert data.dtype.descr == ycol.dtype.descr
-#         if verbose:
-#             print "ycol-->", ycol
-#             print "data-->", data
-#         # A copy() is needed in case the buffer would be in different segments
-#         assert allequal(ycol, data, "numarray")
+    def test05c_modifyingColumns(self):
+        """Checking modifying several columns using a numarray buffer."""
 
-#     def test07b_modifyingRows(self):
-#         """Checking modifying several rows at once (using cols accessor)."""
+        table = self.fileh.root.table
+        dtype=[('x', '(2,)i4'), ('y', '(2,2)f8'), ('z', 'u1')]
+        nparray = nestedrecords.array(shape=(3,), descr=dtype)
+        nparray.field('x')[:] = 1
+        nparray.field('y')[:] = 1
+        nparray.field('z')[:] = 2
+        table.modifyColumns(3, 6, 1, nparray, ['x', 'y', 'z'])
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        ycol = ones((3, 2, 2), 'Float64')
+        data = table.cols.y[3:6]
+        if verbose:
+            print "Type of read:", type(data)
+            print "First 3 elements of read:", data[:3]
+            print "Length of the data read:", len(data)
+        if verbose:
+            print "ycol-->", ycol
+            print "data-->", data
+        # Check that both Numarray objects are equal
+        assert isinstance(data, NumArray)
+        # Check the type
+        assert data.type() == ycol.type()
+        assert str(data) == str(ycol)
 
-#         table = self.fileh.root.table
-#         # Read a chunk of the table
-#         chunk = table[0:3]
-#         # Modify it somewhat
-#         chunk['y'][:] = -1
-#         table.cols[3:6] = chunk
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         # Check that some column has been actually modified
-#         ycol = zeros((3,2,2), 'float64')-1
-#         data = table.cols.y[3:6]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check the type
-#         assert data.dtype.descr == ycol.dtype.descr
-#         if verbose:
-#             print "ycol-->", ycol
-#             print "data-->", data
-#         # A copy() is needed in case the buffer would be in different segments
-#         assert allequal(ycol, data, "numarray")
+    def test06a_assignNestedColumn(self):
+        """Checking assigning a nested column (using modifyColumn)."""
 
-#     def test08a_modifyingRows(self):
-#         """Checking modifying just one row at once (using modifyRows)."""
+        npdata = self._infoones
+        table = self.fileh.root.table
+        data = table.cols.Info[3:6]
+        table.modifyColumn(3, 6, 1, column=npdata, colname='Info')
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        data = table.cols.Info[3:6]
+        if verbose:
+            print "Type of read:", type(data)
+            print "Description of the record:", data.descr
+            print "First 3 elements of read:", data[:3]
+            print "Length of the data read:", len(data)
+        if verbose:
+            print "npdata-->", npdata
+            print "data-->", data
+        # Check that both Numarray objects are equal
+        assert isinstance(data, records.RecArray)
+        # Check the type
+        assert data.descr == npdata.descr
+        assert str(data) == str(npdata)
 
-#         table = self.fileh.root.table
-#         # Read a chunk of the table
-#         chunk = table[3]
-#         # Modify it somewhat
-#         chunk['y'][:] = -1
-#         table.modifyRows(6, 7, 1, chunk)
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         # Check that some column has been actually modified
-#         ycol = zeros((2,2), 'float64')-1
-#         data = table.cols.y[6]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check the type
-#         assert data.dtype.descr == ycol.dtype.descr
-#         if verbose:
-#             print "ycol-->", ycol
-#             print "data-->", data
-#         # A copy() is needed in case the buffer would be in different segments
-#         assert allequal(ycol, data, "numarray")
+    def test06b_assignNestedColumn(self):
+        """Checking assigning a nested column (using the .cols accessor)."""
 
-#     def test08b_modifyingRows(self):
-#         """Checking modifying just one row at once (using cols accessor)."""
+        table = self.fileh.root.table
+        npdata = self._infoones
+        table.cols.Info[3:6] = npdata
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        data = table.cols.Info[3:6]
+        if verbose:
+            print "Type of read:", type(data)
+            print "Description of the record:", data.descr
+            print "First 3 elements of read:", data[:3]
+            print "Length of the data read:", len(data)
+        if verbose:
+            print "npdata-->", npdata
+            print "data-->", data
+        # Check that both Numarray objects are equal
+        assert isinstance(data, records.RecArray)
+        # Check the type
+        assert data.descr == npdata.descr
+        assert str(data) == str(npdata)
 
-#         table = self.fileh.root.table
-#         # Read a chunk of the table
-#         chunk = table[3]
-#         # Modify it somewhat
-#         chunk['y'][:] = -1
-#         table.cols[6] = chunk
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#             table = self.fileh.root.table
-#         # Check that some column has been actually modified
-#         ycol = zeros((2,2), 'float64')-1
-#         data = table.cols.y[6]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#             print "Length of the data read:", len(data)
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check the type
-#         assert data.dtype.descr == ycol.dtype.descr
-#         if verbose:
-#             print "ycol-->", ycol
-#             print "data-->", data
-#         # A copy() is needed in case the buffer would be in different segments
-#         assert allequal(ycol, data, "numarray")
+    def test07a_modifyingRows(self):
+        """Checking modifying several rows at once (using modifyRows)."""
 
-#     def test09a_getStrings(self):
-#         """Checking the return of string columns with spaces."""
+        table = self.fileh.root.table
+        # Read a chunk of the table
+        chunk = table[0:3]
+        # Modify it somewhat
+        chunk.field('y')[:] = -1
+        table.modifyRows(3, 6, 1, rows=chunk)
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        ycol = zeros((3,2,2), 'Float64')-1
+        data = table.cols.y[3:6]
+        if verbose:
+            print "Type of read:", type(data)
+            print "First 3 elements of read:", data[:3]
+            print "Length of the data read:", len(data)
+        if verbose:
+            print "ycol-->", ycol
+            print "data-->", data
+        # Check that both Numarray objects are equal
+        assert isinstance(data, NumArray)
+        # Check the type
+        assert data.type() == ycol.type()
+        assert allequal(ycol, data, "numarray")
 
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#         table = self.fileh.root.table
-#         rdata = table.getWhereList('color == "ab"')
-#         data = table.readCoordinates(rdata)
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check that all columns have been selected
-#         assert len(data) == 100
-#         # Finally, check that the contents are ok
-#         for idata in data['color']:
-#             assert idata == array("ab", dtype="|S4")
+    def test07b_modifyingRows(self):
+        """Checking modifying several rows at once (using cols accessor)."""
 
-#     def test09b_getStrings(self):
-#         """Checking the return of string columns with spaces. (modify)"""
+        table = self.fileh.root.table
+        # Read a chunk of the table
+        chunk = table[0:3]
+        # Modify it somewhat
+        chunk.field('y')[:] = -1
+        table.cols[3:6] = chunk
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        # Check that some column has been actually modified
+        ycol = zeros((3,2,2), 'Float64')-1
+        data = table.cols.y[3:6]
+        if verbose:
+            print "Type of read:", type(data)
+            print "First 3 elements of read:", data[:3]
+            print "Length of the data read:", len(data)
+        if verbose:
+            print "ycol-->", ycol
+            print "data-->", data
+        # Check that both Numarray objects are equal
+        assert isinstance(data, NumArray)
+        # Check the type
+        assert data.type() == ycol.type()
+        assert allequal(ycol, data, "numarray")
 
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#         table = self.fileh.root.table
-#         for i in range(50):
-#             table.cols.color[i] = "a  "
-#         table.flush()
-#         data = table[:]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check that all columns have been selected
-#         assert len(data) == 100
-#         # Finally, check that the contents are ok
-#         for i in range(100):
-#             idata = data['color'][i]
-#             if i >= 50:
-#                 assert idata == array("ab", dtype="|S4")
-#             else:
-#                 assert idata == array("a  ", dtype="|S4")
+    def test08a_modifyingRows(self):
+        """Checking modifying just one row at once (using modifyRows)."""
 
-#     def test09c_getStrings(self):
-#         """Checking the return of string columns with spaces. (append)"""
+        table = self.fileh.root.table
+        # Read a chunk of the table
+        chunk = table[3]
+        # Modify it somewhat
+        chunk.field('y')[:] = -1
+        table.modifyRows(6, 7, 1, chunk)
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        # Check that some column has been actually modified
+        ycol = zeros((2,2), 'Float64')-1
+        data = table.cols.y[6]
+        if verbose:
+            print "Type of read:", type(data)
+            print "First 3 elements of read:", data[:3]
+            print "Length of the data read:", len(data)
+        if verbose:
+            print "ycol-->", ycol
+            print "data-->", data
+        # Check that both Numarray objects are equal
+        assert isinstance(data, NumArray)
+        # Check the type
+        assert data.type() == ycol.type()
+        assert allequal(ycol, data, "numarray")
 
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#         table = self.fileh.root.table
-#         row = table.row
-#         for i in range(50):
-#             row["color"] = "a  "   # note the trailing spaces
-#             row.append()
-#         table.flush()
-#         if self.close:
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "a")
-#         data = self.fileh.root.table[:]
-#         if verbose:
-#             print "Type of read:", type(data)
-#             print "Description of the record:", data.dtype.descr
-#             print "First 3 elements of read:", data[:3]
-#         # Check that both Numarray objects are equal
-#         assert isinstance(data, ndarray)
-#         # Check that all columns have been selected
-#         assert len(data) == 150
-#         # Finally, check that the contents are ok
-#         # Finally, check that the contents are ok
-#         for i in range(150):
-#             idata = data['color'][i]
-#             if i < 100:
-#                 assert idata == array("ab", dtype="|S4")
-#             else:
-#                 assert idata == array("a  ", dtype="|S4")
+    def test08b_modifyingRows(self):
+        """Checking modifying just one row at once (using cols accessor)."""
 
-# class TableNativeFlavorOpenTestCase(TableNativeFlavorTestCase):
-#     close = 0
+        table = self.fileh.root.table
+        # Read a chunk of the table
+        chunk = table[3]
+        # Modify it somewhat
+        chunk['y'][:] = -1
+        table.cols[6] = chunk
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+        # Check that some column has been actually modified
+        ycol = zeros((2,2), 'Float64')-1
+        data = table.cols.y[6]
+        if verbose:
+            print "Type of read:", type(data)
+            print "First 3 elements of read:", data[:3]
+            print "Length of the data read:", len(data)
+        if verbose:
+            print "ycol-->", ycol
+            print "data-->", data
+        # Check that both Numarray objects are equal
+        assert isinstance(data, NumArray)
+        # Check the type
+        assert data.type() == ycol.type()
+        assert allequal(ycol, data, "numarray")
 
-# class TableNativeFlavorCloseTestCase(TableNativeFlavorTestCase):
-#     close = 1
+    def test09a_getStrings(self):
+        """Checking the return of string columns with spaces."""
+
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+        table = self.fileh.root.table
+        rdata = table.getWhereList('color == "ab"')
+        data = table.readCoordinates(rdata)
+        if verbose:
+            print "Type of read:", type(data)
+            print "Description of the record:", data.descr
+            print "First 3 elements of read:", data[:3]
+        # Check that both Numarray objects are equal
+        assert isinstance(data, records.RecArray)
+        # Check that all columns have been selected
+        assert len(data) == 100
+        # Finally, check that the contents are ok
+        for idata in data.field('color'):
+            assert idata == "ab"
+
+    def test09b_getStrings(self):
+        """Checking the return of string columns with spaces. (modify)"""
+
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+        table = self.fileh.root.table
+        for i in range(50):
+            table.cols.color[i] = "a  "
+        table.flush()
+        data = table[:]
+        if verbose:
+            print "Type of read:", type(data)
+            print "Description of the record:", data.descr
+            print "First 3 elements of read:", data[:3]
+        # Check that both Numarray objects are equal
+        assert isinstance(data, records.RecArray)
+        # Check that all columns have been selected
+        assert len(data) == 100
+        # Finally, check that the contents are ok
+        for i in range(100):
+            idata = data.field('color')[i]
+            if i >= 50:
+                assert idata == "ab"
+            else:
+                assert idata == "a"
+
+    def test09c_getStrings(self):
+        """Checking the return of string columns with spaces. (append)"""
+
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+        table = self.fileh.root.table
+        row = table.row
+        for i in range(50):
+            row["color"] = "a  "   # note the trailing spaces
+            row.append()
+        table.flush()
+        if self.close:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+        data = self.fileh.root.table[:]
+        if verbose:
+            print "Type of read:", type(data)
+            print "Description of the record:", data.descr
+            print "First 3 elements of read:", data[:3]
+        # Check that both Numarray objects are equal
+        assert isinstance(data, records.RecArray)
+        # Check that all columns have been selected
+        assert len(data) == 150
+        # Finally, check that the contents are ok
+        # Finally, check that the contents are ok
+        for i in range(150):
+            idata = data.field('color')[i]
+            if i < 100:
+                assert idata == "ab"
+            else:
+                assert idata == "a"
+
+class TableNativeFlavorOpenTestCase(TableNativeFlavorTestCase):
+    close = 0
+
+class TableNativeFlavorCloseTestCase(TableNativeFlavorTestCase):
+    close = 1
 
 class StrlenTestCase(common.PyTablesTestCase):
 
@@ -1196,8 +1181,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Basic2DTestCase))
         theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
         theSuite.addTest(unittest.makeSuite(TableReadTestCase))
-#         theSuite.addTest(unittest.makeSuite(TableNativeFlavorOpenTestCase))
-#         theSuite.addTest(unittest.makeSuite(TableNativeFlavorCloseTestCase))
+        theSuite.addTest(unittest.makeSuite(TableNativeFlavorOpenTestCase))
+        theSuite.addTest(unittest.makeSuite(TableNativeFlavorCloseTestCase))
         theSuite.addTest(unittest.makeSuite(StrlenOpenTestCase))
         theSuite.addTest(unittest.makeSuite(StrlenCloseTestCase))
         if heavy:

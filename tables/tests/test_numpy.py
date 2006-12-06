@@ -595,7 +595,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         cleanup(self)
 
 
-    def _test01a_basicTableRead(self):
+    def test01a_basicTableRead(self):
         """Checking the return of a NumPy in read()."""
 
         if self.close:
@@ -963,7 +963,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         if verbose:
             print "ycol-->", ycol
             print "data-->", data
-        # A copy() is needed in case the buffer would be in different segments
         assert allequal(ycol, data, "numpy")
 
     def test07b_modifyingRows(self):
@@ -994,7 +993,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         if verbose:
             print "ycol-->", ycol
             print "data-->", data
-        # A copy() is needed in case the buffer would be in different segments
         assert allequal(ycol, data, "numpy")
 
     def test08a_modifyingRows(self):
@@ -1025,7 +1023,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         if verbose:
             print "ycol-->", ycol
             print "data-->", data
-        # A copy() is needed in case the buffer would be in different segments
         assert allequal(ycol, data, "numpy")
 
     def test08b_modifyingRows(self):
@@ -1056,7 +1053,6 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         if verbose:
             print "ycol-->", ycol
             print "data-->", data
-        # A copy() is needed in case the buffer would be in different segments
         assert allequal(ycol, data, "numpy")
 
     def test09a_getStrings(self):
@@ -1178,7 +1174,6 @@ class AttributesTestCase(common.PyTablesTestCase):
         if verbose:
             print "npcomp-->", npcomp
             print "data-->", data
-        # A copy() is needed in case the buffer would be in different segments
         assert allequal(npcomp, data, "numpy")
 
     def test02_updateAttribute(self):
@@ -1202,7 +1197,6 @@ class AttributesTestCase(common.PyTablesTestCase):
         if verbose:
             print "npcomp-->", npcomp
             print "data-->", data
-        # A copy() is needed in case the buffer would be in different segments
         assert allequal(npcomp, data, "numpy")
 
 class AttributesOpenTestCase(AttributesTestCase):
