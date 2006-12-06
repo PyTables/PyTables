@@ -42,7 +42,6 @@ def suite():
         'test_nestedtypes',
         'test_hdf5compat',
         'test_numpy',
-        'test_numarray',
         ###'test_queries',  # Please, activate this when almost tests passes
         # Sub-packages
         'test_filenode',
@@ -81,6 +80,7 @@ def suite():
             print \
 "*Warning*: Numarray version is lower than recommended: %s < %s" % \
                   (numarray.__version__, minimum_numarray_version)
+        test_modules.append("test_numarray")
         test_modules.append("test_nestedrecords")
     except:
         print "Skipping numarray test suite"
