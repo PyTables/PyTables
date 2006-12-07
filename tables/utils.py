@@ -43,6 +43,20 @@ from tables import nriterators
 from tables import nestedrecords
 
 
+# A map between Numpy types and Numeric
+NPtype2Numtype = {numpy.int8: Numeric.Int8,
+                  numpy.int16: Numeric.Int16,
+                  numpy.int32: Numeric.Int32,
+                  numpy.uint8: Numeric.UInt8,
+                  numpy.uint16: Numeric.UInt16,
+                  numpy.uint32: Numeric.UInt32,
+                  numpy.float32: Numeric.Float32,
+                  numpy.float64: Numeric.Float64,
+                  numpy.complex64: Numeric.Complex32,
+                  numpy.complex128: Numeric.Complex64,
+                  numpy.bool_: Numeric.UInt8,
+                  }
+
 # The map between byteorders in NumPy and PyTables
 byteorders = {'>': 'big',
               '<': 'little',
@@ -285,23 +299,26 @@ def convertNPToNumeric(arr):
   Returning a NumPy object instead!.""")
         return arr
 
+    # First, convert to a contiguous buffer (.tostring() is very efficient)
+    arrstr = arr.tostring()
+    shape = list(arr.shape)
     if arr.dtype.kind == "S":
-        arrstr = arr.tostring()
-        shape = list(arr.shape)
         if arr.itemsize > 1:
             # Numeric does not support arrays with elements with a
             # size > 1. Simulate this by adding an additional dimension
             shape.append(arr.itemsize)
-        arr = Numeric.reshape(Numeric.array(arrstr), shape)
+        arr = Numeric.fromstring(arrstr, typecode='c')
+        arr = Numeric.reshape(arr, shape)
     else:
-        if not arr.flags.writeable or not arr.flags.aligned:
-            # These cases are not handled by the array protocol
-            # (at least in the current implementation)
-            # A copy will correct this
-            arr = arr.copy()
         # Try to convert to Numeric and catch possible errors
         try:
-            arr = Numeric.asarray(arr)  # Array protocol
+            #arr = Numeric.asarray(arr)  # Array protocol
+            # It seems that the array protocol in Numeric does leak. See:
+            # http://comments.gmane.org/gmane.comp.python.numeric.general/12563
+            # for more info on this issue.
+            typecode = NPtype2Numtype[arr.dtype.type]
+            arr = Numeric.fromstring(arrstr, typecode)
+            arr = Numeric.reshape(arr, shape)
         except Exception, exc:
             warnings.warn( \
 """Array cannot be converted into a Numeric object!. The error was: <%s>
@@ -334,10 +351,9 @@ def convertNPToNumArray(arr):
         #    # A copy will correct this
         #    arr = arr.copy()
         # This works for regular homogeneous arrays and even for rank-0 arrays
-        # Using asarray gives problems in some tests (I don't know exactly why,
-        # but perhaps the cases above are not enough)
+        # Using asarray gives problems in some tests (I don't know exactly why)
         #arr = numarray.asarray(arr)  # Array protocol
-        arr = numarray.array(arr)  # Array protocol
+        arr = numarray.array(arr)  # Array protocol (with copy)
     return arr
 
 

@@ -204,10 +204,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         group = fileh.root
 
         # Set the type codes to test
-        # "w" and "u" not tested due to some inconsistencies in charcodes
-        # between NumPy and Numeric
-        typecodes = ["c", 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
-        #typecodes = ['c', 'b', '1', 's', 'i', 'l', 'f', 'd', 'F', 'D']
+        typecodes = ['c', 'b', '1', 's', 'w', 'i', 'u', 'l', 'f', 'd']
         i = 1
         for typecode in typecodes:
             # Create an array of typecode, with incrementally bigger ranges
