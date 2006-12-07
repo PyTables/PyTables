@@ -24,6 +24,20 @@ import numpy
 try:
     import Numeric
     Numeric_imported = True
+    # A map between Numpy types and Numeric
+    NPtype2Numtype = {numpy.int8: Numeric.Int8,
+                      numpy.int16: Numeric.Int16,
+                      numpy.int32: Numeric.Int32,
+                      numpy.uint8: Numeric.UInt8,
+                      numpy.uint16: Numeric.UInt16,
+                      numpy.uint32: Numeric.UInt32,
+                      numpy.float32: Numeric.Float32,
+                      numpy.float64: Numeric.Float64,
+                      numpy.complex64: Numeric.Complex32,
+                      numpy.complex128: Numeric.Complex64,
+                      numpy.bool_: Numeric.UInt8,
+                      }
+
 except ImportError:
     Numeric_imported = False
 
@@ -42,20 +56,6 @@ from tables.registry import classNameDict
 from tables import nriterators
 from tables import nestedrecords
 
-
-# A map between Numpy types and Numeric
-NPtype2Numtype = {numpy.int8: Numeric.Int8,
-                  numpy.int16: Numeric.Int16,
-                  numpy.int32: Numeric.Int32,
-                  numpy.uint8: Numeric.UInt8,
-                  numpy.uint16: Numeric.UInt16,
-                  numpy.uint32: Numeric.UInt32,
-                  numpy.float32: Numeric.Float32,
-                  numpy.float64: Numeric.Float64,
-                  numpy.complex64: Numeric.Complex32,
-                  numpy.complex128: Numeric.Complex64,
-                  numpy.bool_: Numeric.UInt8,
-                  }
 
 # The map between byteorders in NumPy and PyTables
 byteorders = {'>': 'big',
