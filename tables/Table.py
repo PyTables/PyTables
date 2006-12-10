@@ -2511,7 +2511,7 @@ class Cols(object):
                 if hasattr(crecarray, "field"):
                     return crecarray.field(colgroup)  # RecArray case
                 else:
-                    return crecarray[colgroup]  # numpy case
+                    return getNestedField(crecarray, colgroup)  # numpy case
         elif isinstance(key, str):
             warnings.warn( "``table.cols['colname']`` is deprecated; "
                            "please use ``table.cols._f_col('colname')``",
