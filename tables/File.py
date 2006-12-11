@@ -2111,11 +2111,12 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 def close_open_files():
     global _open_files
     if len(_open_files):
-        print "Closing remaining opened files...",
+        print >> sys.stderr, "Closing remaining opened files:",
     for fileh in _open_files.keys():
-        print " %s..." % (fileh.filename,),
+        print >> sys.stderr, "%s..." % (fileh.filename,),
         fileh.close()
-        print "done.",
+        print >> sys.stderr, "done",
+    print >> sys.stderr
 
 import atexit
 atexit.register(close_open_files)
