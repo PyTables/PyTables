@@ -13,10 +13,7 @@ class PyTables_DB(DB):
         self.docompress = docompress
         self.complib = complib
         # Complete the filename
-        if tables.__version__ == "1.0alpha":
-            self.filename = "pro-" + self.filename
-        else:
-            self.filename = "std-" + self.filename
+        self.filename = "pro-" + self.filename
         if optlevel > 0:
             self.filename += '-' + 'O%s' % optlevel
         if docompress:
@@ -100,42 +97,32 @@ class PyTables_DB(DB):
         # condvars = {"col": colobj}
 
         ncoords = 0
+        #print "colobj-->", colobj
         if colobj.is_indexed:
-            #coords = table.getWhereList(self.rng[0]+base == colobj)
-#             coords = [ r.nrow for r in
-#                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
 #             results = [ r[column] for r in
-#                         table.where(self.rng[0]+base <= colobj <= self.rng[1]+base) ]
+#                         table.where(condition, self.condvars) ]
 
-#             results = [ r[column] for r in
-#                         table._whereIndexed2XXX(condition, self.condvars) ]
-
-            #coords = table.getWhereList(self.rng[0]+base <= colobj <= self.rng[1]+base)
-
-#             coords = table.getWhereList2XXX(condition, self.condvars,
-#                                             flavor="numpy")
+#             coords = table.getWhereList(condition, self.condvars,
+#                                         flavor="numpy")
 #             results = table.readCoordinates(coords, field=column,
 #                                             flavor="numpy")
 
-            results = table.readIndexed2XXX(condition, self.condvars,
-                                            field=column, flavor="numpy")
-
-            ncoords = len(results)
+            results = table.readWhere(condition, self.condvars,
+                                      field=column, flavor="numpy")
 
         elif True:
-            #coords = [r.nrow for r in table._whereInRange2XXX(condition, condvars)]
-            #results = [r[column] for r in table._whereInRange2XXX(condition, condvars)]
-            for r in table._whereInRange2XXX(condition, self.condvars):
-                var = r[column]
-                ncoords += 1
-            #print "rows-->", coords
-        else:
-            coords = [r.nrow for r in
-                      #table.where(self.rng[0]+base == colobj)]
-                      table.where(self.rng[0]+base <= colobj <= self.rng[1]+base)]
-            t1 = time()
+            coords = [r.nrow for r in table.where(condition, self.condvars)]
+            #results = [r[column] for r in table.where(condition, condvars)]
             results = table.readCoordinates(coords)
-            ncoords = len(coords)
+#             for r in table.where(condition, self.condvars):
+#                 var = r[column]
+#                 ncoords += 1
+        else:
+            coords = [r.nrow for r in table
+                      if (self.rng[0]+base <= r[column] <= self.rng[1]+base)]
+            results = table.readCoordinates(coords)
+
+        ncoords = len(results)
 
         #return coords
         #print "results-->", results

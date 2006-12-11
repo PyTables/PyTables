@@ -1,6 +1,5 @@
 from time import time
-import subprocess  # requires Python 2.4
-import popen2
+import subprocess
 import random
 import numpy
 
@@ -12,7 +11,7 @@ STEP = 1000*100  # the size of the buffer to fill the table, in rows
 SCALE = 0.1      # standard deviation of the noise compared with actual values
 NI_NTIMES = 2      # The number of queries for doing a mean (non-idx cols)
 I_NTIMES = 10      # The number of queries for doing a mean (idx cols)
-READ_TIMES = 100    # The number of complete calls to DB.query_db()
+READ_TIMES = 1000    # The number of complete calls to DB.query_db()
 MROW = 1000*1000.
 
 # global variables
@@ -45,7 +44,6 @@ class DB(object):
     def get_db_size(self):
         sout = subprocess.Popen("sync;du -s %s" % self.filename, shell=True,
                                 stdout=subprocess.PIPE).stdout
-#         (sout, sin) = popen2.popen2("sync;du -s %s" % self.filename)
         line = [l for l in sout][0]
         return int(line.split()[0])
 
@@ -142,8 +140,8 @@ class DB(object):
                 t1=time()
                 for i in range(NI_NTIMES):
                     results = self.do_query(self.con, colname,
-                                            #base)
-                                            numpy.random.randint(self.nrows))
+                                            base)
+                                            #numpy.random.randint(self.nrows))
                 ltimes.append((time()-t1)/NI_NTIMES)
                 #results.sort()
                 if verbose:
@@ -226,9 +224,9 @@ if __name__=="__main__":
     optlevel = 0
     docompress = 0
     complib = "zlib"
-    doquery = 0
-    onlyidxquery = 0
-    onlynonidxquery = 0
+    doquery = True
+    onlyidxquery = False
+    onlynonidxquery = False
     avoidfscache = 0
     rng = [-10, 10]
     repeatquery = 0
@@ -262,9 +260,9 @@ if __name__=="__main__":
         elif option[0] == '-q':
             doquery = 1
         elif option[0] == '-i':
-            onlyidxquery = 1
+            onlyidxquery = True
         elif option[0] == '-I':
-            onlynonidxquery = 1
+            onlynonidxquery = True
         elif option[0] == '-x':
             avoidfscache = 1
         elif option[0] == '-z':
