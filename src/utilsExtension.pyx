@@ -429,33 +429,6 @@ def convertTime64(ndarray nparr, hsize_t nrecords, int sense):
     t64buf, byteoffset, bytestride, nrecords, nelements, sense)
 
 
-def getLeafHDF5Type(hid_t parentId, char *name):
-  """_getLeafHDF5Type(parentId, name) -> hid_t
-  Get the HDF5 type of a leaf object.
-
-  The leaf called `name` under the `parentId` HDF5 group must be
-  closed, and it is guaranteed to be closed again when the function
-  ends (be it successfully or with an `HDF5ExtError`.  The HDF5 type
-  (be it simple or compound) of the leaf is returned.
-  """
-
-  cdef hid_t dsetId, typeId
-
-  dsetId = H5Dopen(parentId, name)
-  if dsetId < 0:
-    raise HDF5ExtError("failed to open HDF5 dataset")
-
-  try:
-    typeId = H5Dget_type(dsetId)
-    if typeId < 0:
-      raise HDF5ExtError("failed to get type of HDF5 dataset")
-    return typeId
-  finally:
-    # (Yes, the ``finally`` clause *is* executed.)
-    if H5Dclose(dsetId) < 0:
-      raise HDF5ExtError("failed to close HDF5 dataset")
-
-
 def getTypeEnum(hid_t h5type):
   """_getTypeEnum(h5type) -> hid_t
   Get the HDF5 enumerated type of `h5type`.

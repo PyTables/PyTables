@@ -42,7 +42,7 @@ from tables.utils import checkFileAccess, byteorders
 
 from tables.utilsExtension import  \
      enumToHDF5, enumFromHDF5, getTypeEnum, \
-     convertTime64, getLeafHDF5Type, isHDF5File, isPyTablesFile
+     convertTime64, isHDF5File, isPyTablesFile
 
 from lrucacheExtension cimport NodeCache
 
