@@ -224,7 +224,7 @@ if __name__=="__main__":
     optlevel = 0
     docompress = 0
     complib = "zlib"
-    doquery = True
+    doquery = False
     onlyidxquery = False
     onlynonidxquery = False
     avoidfscache = 0
@@ -258,10 +258,12 @@ if __name__=="__main__":
             docreate = 1
             createindex = 1
         elif option[0] == '-q':
-            doquery = 1
+            doquery = True
         elif option[0] == '-i':
+            doquery = True
             onlyidxquery = True
         elif option[0] == '-I':
+            doquery = True
             onlynonidxquery = True
         elif option[0] == '-x':
             avoidfscache = 1

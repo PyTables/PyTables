@@ -396,6 +396,8 @@ class Table(TableExtension.Table, Leaf):
         """Path of the indexed column to be used in an indexed search."""
         self._conditionCache = NailedDict()
         """Cache of already splitted conditions."""
+        self._exprvarsCache = {}
+        """Cache of variables participating in numexpr expressions."""
         self._enabledIndexingInQueries = True
         """Is indexing enabled in queries?  *Use only for testing.*"""
         self._emptyArrayCache = {}
@@ -887,10 +889,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         non-column variable values are converted to NumPy arrays.
         """
         # Get the names of variables used in the expression.
-        cexpr = compile(expression, '<string>', 'eval')
-        exprvars = [ var for var in cexpr.co_names
-                     if var not in ['None', 'False', 'True']
-                     and var not in numexpr_functions ]
+        if not expression in self._exprvarsCache:
+            cexpr = compile(expression, '<string>', 'eval')
+            exprvars = [ var for var in cexpr.co_names
+                         if var not in ['None', 'False', 'True']
+                         and var not in numexpr_functions ]
+            self._exprvarsCache[expression] = exprvars
+        else:
+            exprvars = self._exprvarsCache[expression]
 
         # Get the local and global variable mappings of the user frame
         # if no mapping has been explicitly given for user variables.

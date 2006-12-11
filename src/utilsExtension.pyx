@@ -589,15 +589,15 @@ def enumToHDF5(object enumCol, char *byteorder):
 
 def conv2HDF5Type(object col, char *byteorder):
   cdef hid_t   tid
-  cdef int     rank, atomic
+  cdef int     rank, scalar
   cdef hsize_t *dims
 
   shape = col.dtype.shape
   if shape == ():
-    atomic = True
+    scalar = True
     dims = NULL
   else:
-    atomic = False
+    scalar = False
     rank = len(shape)
     dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
     # Fill the dimension axis info with adequate info (and type!)
@@ -605,7 +605,7 @@ def conv2HDF5Type(object col, char *byteorder):
       dims[i] = col.dtype.shape[i]
   # Create the column type
   if col.ptype in PTTypeToHDF5:
-    if atomic:
+    if scalar:
       tid = H5Tcopy(PTTypeToHDF5[col.ptype])
     else:
       tid = H5Tarray_create(PTTypeToHDF5[col.ptype], rank, dims, NULL)
@@ -626,7 +626,7 @@ def conv2HDF5Type(object col, char *byteorder):
       H5Tset_size(tid, col.dtype.base.itemsize)
     elif col.ptype == 'Enum':
       tid = enumToHDF5(col, byteorder)
-    if not atomic:
+    if not scalar:
       tid2 = H5Tarray_create(tid, rank, dims, NULL)
       H5Tclose(tid)
       tid = tid2
