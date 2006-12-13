@@ -487,6 +487,10 @@ class Array(hdf5Extension.Array, Leaf):
         countl = ((stopl - startl - 1) / stepl) + 1
         # Create an array compliant with the specified slice
         narr = numpy.empty(shape=shape, dtype=self.dtype)
+        # Set the same byteorder than on-disk (if well-defined)
+        if self.byteorder in ['little', 'big']:
+            # Note that .newbyteorder() doesn't make a data copy
+            narr = narr.newbyteorder(self.byteorder)
 
         # Assign the value to it
         try:

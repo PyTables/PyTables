@@ -600,6 +600,48 @@ class TypesTestCase(unittest.TestCase):
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
+    def test03a_IntAtom(self):
+        """Checking vlarray with integer atoms (byteorder swapped)"""
+
+        ttypes = {"Int8": numpy.int8,
+                  "UInt8": numpy.uint8,
+                  "Int16": numpy.int16,
+                  "UInt16": numpy.uint16,
+                  "Int32": numpy.int32,
+                  "UInt32": numpy.uint32,
+                  "Int64": numpy.int64,
+                  #"UInt64": numpy.int64,  # Unavailable in some platforms
+                  }
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03a_IntAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        for atype in ttypes.iterkeys():
+            vlarray = self.fileh.createVLArray(root, atype,
+                                               Atom(ttypes[atype]))
+            a0 = numpy.array([1,2,3], dtype=atype)
+            a0 = a0.byteswap(); a0 = a0.newbyteorder()
+            vlarray.append(a0)
+            a1 = numpy.array([-1,0], dtype=atype)
+            a1 = a1.byteswap(); a1 = a1.newbyteorder()
+            vlarray.append(a1)
+
+            # Read all the rows:
+            row = vlarray.read()
+            if verbose:
+                print "Testing type:", atype
+                print "Object read:", row
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "First row in vlarray ==>", row[0]
+
+            assert vlarray.nrows == 2
+            assert allequal(row[0], numpy.array([1,2,3], dtype=ttypes[atype]))
+            assert allequal(row[1], numpy.array([-1,0], dtype=ttypes[atype]))
+            assert len(row[0]) == 3
+            assert len(row[1]) == 2
+
     def test03b_IntAtom(self):
         """Checking updating vlarray with integer atoms"""
 
@@ -627,6 +669,55 @@ class TypesTestCase(unittest.TestCase):
             # Modify rows
             vlarray[0] = (3,2,1)
             vlarray[1] = (0,-1)
+
+            # Read all the rows:
+            row = vlarray.read()
+            if verbose:
+                print "Testing type:", atype
+                print "Object read:", row
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "First row in vlarray ==>", row[0]
+
+            assert vlarray.nrows == 2
+            assert allequal(row[0], numpy.array([3,2,1], dtype=ttypes[atype]))
+            assert allequal(row[1], numpy.array([0,-1], dtype=ttypes[atype]))
+            assert len(row[0]) == 3
+            assert len(row[1]) == 2
+
+    def test03c_IntAtom(self):
+        """Checking updating vlarray with integer atoms (byteorder swapped)"""
+
+        ttypes = {"Int8": numpy.int8,
+                  "UInt8": numpy.uint8,
+                  "Int16": numpy.int16,
+                  "UInt16": numpy.uint16,
+                  "Int32": numpy.int32,
+                  "UInt32": numpy.uint32,
+                  "Int64": numpy.int64,
+                  #"UInt64": numpy.int64,  # Unavailable in some platforms
+                  }
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03c_IntAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        for atype in ttypes.iterkeys():
+            vlarray = self.fileh.createVLArray(root, atype,
+                                               Atom(ttypes[atype]))
+            a0 = numpy.array([1,2,3], dtype=atype)
+            vlarray.append(a0)
+            a1 = numpy.array([-1,0], dtype=atype)
+            vlarray.append(a1)
+
+
+            # Modify rows
+            a0 = numpy.array([3,2,1], dtype=atype)
+            a0 = a0.byteswap(); a0 = a0.newbyteorder()
+            vlarray[0] = a0
+            a1 = numpy.array([0, -1], dtype=atype)
+            a1 = a1.byteswap(); a1 = a1.newbyteorder()
+            vlarray[1] = a1
 
             # Read all the rows:
             row = vlarray.read()
@@ -675,6 +766,44 @@ class TypesTestCase(unittest.TestCase):
             assert len(row[1]) == 2
 
     def test04a_FloatAtom(self):
+        """Checking vlarray with float atoms (byteorder swapped)"""
+
+        ttypes = {"Float32": numpy.float32,
+                  "Float64": numpy.float64,
+                  }
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04a_FloatAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        for atype in ttypes.iterkeys():
+            vlarray = self.fileh.createVLArray(root, atype,
+                                               Atom(ttypes[atype]))
+            a0 = numpy.array([1.3,2.2,3.3], dtype=atype)
+            a0 = a0.byteswap(); a0 = a0.newbyteorder()
+            vlarray.append(a0)
+            a1 = numpy.array([-1.3e34,1.e-32], dtype=atype)
+            a1 = a1.byteswap(); a1 = a1.newbyteorder()
+            vlarray.append(a1)
+
+            # Read all the rows:
+            row = vlarray.read()
+            if verbose:
+                print "Testing type:", atype
+                print "Object read:", row
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "First row in vlarray ==>", row[0]
+
+            assert vlarray.nrows == 2
+            assert allequal(row[0], numpy.array([1.3,2.2,3.3],
+                                                dtype=ttypes[atype]))
+            assert allequal(row[1], numpy.array([-1.3e34,1.e-32],
+                                                dtype=ttypes[atype]))
+            assert len(row[0]) == 3
+            assert len(row[1]) == 2
+
+    def test04b_FloatAtom(self):
         """Checking updating vlarray with floating point atoms"""
 
         ttypes = {"Float32": numpy.float32,
@@ -683,7 +812,7 @@ class TypesTestCase(unittest.TestCase):
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test04_FloatAtom..." % self.__class__.__name__
+            print "Running %s.test04b_FloatAtom..." % self.__class__.__name__
 
         # Create an string atom
         for atype in ttypes.iterkeys():
@@ -710,7 +839,52 @@ class TypesTestCase(unittest.TestCase):
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
-    def test04b_ComplexAtom(self):
+    def test04c_FloatAtom(self):
+        """Checking updating vlarray with float atoms (byteorder swapped)"""
+
+        ttypes = {"Float32": numpy.float32,
+                  "Float64": numpy.float64,
+                  }
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04c_FloatAtom..." % self.__class__.__name__
+
+        # Create an string atom
+        for atype in ttypes.iterkeys():
+            vlarray = self.fileh.createVLArray(root, atype,
+                                               Atom(ttypes[atype]))
+            a0 = numpy.array([1.3,2.2,3.3], dtype=atype)
+            vlarray.append(a0)
+            a1 = numpy.array([-1,0], dtype=atype)
+            vlarray.append(a1)
+
+
+            # Modify rows
+            a0 = numpy.array([4.3,2.2,4.3], dtype=atype)
+            a0 = a0.byteswap(); a0 = a0.newbyteorder()
+            vlarray[0] = a0
+            a1 = numpy.array([-1.1e34,1.3e-32], dtype=atype)
+            a1 = a1.byteswap(); a1 = a1.newbyteorder()
+            vlarray[1] = a1
+
+            # Read all the rows:
+            row = vlarray.read()
+            if verbose:
+                print "Testing type:", atype
+                print "Object read:", row
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "First row in vlarray ==>", row[0]
+
+            assert vlarray.nrows == 2
+            assert allequal(row[0], numpy.array([4.3,2.2,4.3],
+                                                dtype=ttypes[atype]))
+            assert allequal(row[1], numpy.array([-1.1e34,1.3e-32],
+                                                dtype=ttypes[atype]))
+            assert len(row[0]) == 3
+            assert len(row[1]) == 2
+
+    def test04_ComplexAtom(self):
         """Checking vlarray with numerical complex atoms"""
 
         ttypes = {"Complex32": numpy.complex64,
@@ -719,7 +893,7 @@ class TypesTestCase(unittest.TestCase):
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test04b_ComplexAtom..." % self.__class__.__name__
+            print "Running %s.test04_ComplexAtom..." % self.__class__.__name__
 
         # Create an string atom
         for atype in ttypes.iterkeys():
@@ -744,7 +918,7 @@ class TypesTestCase(unittest.TestCase):
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
-    def test04c_ComplexAtom(self):
+    def test04b_ComplexAtom(self):
         """Checking modifying vlarray with numerical complex atoms"""
 
         ttypes = {"Complex32": numpy.complex64,
@@ -753,7 +927,7 @@ class TypesTestCase(unittest.TestCase):
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test04c_ComplexAtom..." % self.__class__.__name__
+            print "Running %s.test04b_ComplexAtom..." % self.__class__.__name__
 
         # Create an string atom
         for atype in ttypes.iterkeys():

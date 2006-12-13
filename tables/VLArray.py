@@ -50,7 +50,6 @@ __version__ = "$Revision$"
 #obversion = "1.1"    # This adds support for time datatypes.
 obversion = "1.2"    # This adds support for enumerated datatypes.
 
-
 class VLArray(hdf5Extension.VLArray, Leaf):
     """Represent a variable length (ragged) array in HDF5 file.
 
@@ -270,7 +269,9 @@ be zero."""
         return self._v_objectID
 
 
-    def _checkShape(self, nparr):
+    def _getnobjects(self, nparr):
+        "Return the number of objects in a NumPy array."
+
         # Check for zero dimensionality array
         zerodims = numpy.sum(numpy.array(nparr.shape) == 0)
         if zerodims > 0:
@@ -406,7 +407,13 @@ please put them in a single sequence object"""),
             # to in-place conversion.
             copy = self._atomicptype in ['Time64']
             nparr = convertToNPAtom(object, self.atom, copy)
-            nobjects = self._checkShape(nparr)
+            nobjects = self._getnobjects(nparr)
+            # Finally, check the byteorder and change it if needed
+            if (self.byteorder in ['little', 'big'] and
+                byteorders[nparr.dtype.byteorder] != self.byteorder):
+                    # The byteorder needs to be fixed (a copy is made
+                    # so that the original array is not modified)
+                    nparr = nparr.byteswap()
         else:
             nobjects = 0
             nparr = None
@@ -563,7 +570,7 @@ please put them in a single sequence object"""),
             object = numpy.ndarray(buffer=object, dtype='uint8', shape=len(object))
 
         value = convertToNPAtom(object, self.atom)
-        nobjects = self._checkShape(value)
+        nobjects = self._getnobjects(value)
 
         # Get the previous value
         nrow = idx2long(nrow)   # To convert any possible numpy scalar value

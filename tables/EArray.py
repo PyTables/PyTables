@@ -31,7 +31,7 @@ import sys
 import numpy
 
 from tables.constants import EXPECTED_ROWS_EARRAY
-from tables.utils import convertToNPAtom, processRangeRead
+from tables.utils import convertToNPAtom, processRangeRead, byteorders
 from tables.Atom import Atom, EnumAtom, StringAtom, Time32Atom, Time64Atom
 from tables.CArray import CArray
 
@@ -201,8 +201,6 @@ the ranks of the appended object (%d) and the ``%s`` EArray (%d) differ"""
                 raise ValueError("""\
 the shapes of the appended object and the ``%s`` EArray \
 differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
-        # Ok. All conditions are met. Return the NumPy object.
-        return nparr
 
 
     def append(self, sequence):
@@ -216,7 +214,13 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         # Convert the sequence into a NumPy object
         nparr = convertToNPAtom(sequence, self.atom, copy)
         # Check if it has a consistent shape with underlying EArray
-        nparr = self._checkShape(nparr)
+        self._checkShape(nparr)
+        # Finally, check the byteorder and change it if needed
+        if (self.byteorder in ['little', 'big'] and
+            byteorders[nparr.dtype.byteorder] != self.byteorder):
+            # The byteorder needs to be fixed (a copy is made
+            # so that the original array is not modified)
+            nparr = nparr.byteswap()
         self._append(nparr)
 
 
@@ -244,7 +248,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         nrowsinbuf = self._v_nrowsinbuf
         # The slices parameter for self.__getitem__
         slices = [slice(0, dim, 1) for dim in self.shape]
-        # This is a hack to prevent doing innecessary conversions
+        # This is a hack to prevent doing unnecessary conversions
         # when copying buffers
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         self._v_convert = False

@@ -426,6 +426,74 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         self.WriteRead(a)
         return
 
+    def test11_int_byteorder(self):
+        "Checking setting data with different byteorder in a range (integer)"
+
+        # Open a new empty HDF5 file
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Save an array with the reversed byteorder on it
+        a = numpy.arange(25, dtype=numpy.int32).reshape(5,5)
+        a = a.byteswap()
+        a = a.newbyteorder()
+        array = fileh.createArray(fileh.root, 'array', a, "byteorder (int)")
+        # Read a subarray (got an array with the machine byteorder)
+        b = array[2:4, 3:5]
+        b = b.byteswap()
+        b = b.newbyteorder()
+        # Set this subarray back to the array
+        array[2:4, 3:5] = b
+        b = b.byteswap()
+        b = b.newbyteorder()
+        # Set this subarray back to the array
+        array[2:4, 3:5] = b
+        # Check that the array is back in the correct byteorder
+        c = array[...]
+        if verbose:
+            print "byteorder of array on disk-->", array.byteorder
+            print "byteorder of subarray-->", b.dtype.byteorder
+            print "subarray-->", b
+            print "retrieved array-->", c
+        assert allequal(a,c)
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+
+    def test12_float_byteorder(self):
+        "Checking setting data with different byteorder in a range (float)"
+
+        # Open a new empty HDF5 file
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, mode = "w")
+        # Save an array with the reversed byteorder on it
+        a = numpy.arange(25, dtype=numpy.float64).reshape(5,5)
+        a = a.byteswap()
+        a = a.newbyteorder()
+        array = fileh.createArray(fileh.root, 'array', a, "byteorder (float)")
+        # Read a subarray (got an array with the machine byteorder)
+        b = array[2:4, 3:5]
+        b = b.byteswap()
+        b = b.newbyteorder()
+        # Set this subarray back to the array
+        array[2:4, 3:5] = b
+        b = b.byteswap()
+        b = b.newbyteorder()
+        # Set this subarray back to the array
+        array[2:4, 3:5] = b
+        # Check that the array is back in the correct byteorder
+        c = array[...]
+        if verbose:
+            print "byteorder of array on disk-->", array.byteorder
+            print "byteorder of subarray-->", b.dtype.byteorder
+            print "subarray-->", b
+            print "retrieved array-->", c
+        assert allequal(a,c)
+        # Close the file
+        fileh.close()
+        # Then, delete the file
+        os.remove(file)
+
 
 class GroupsArrayTestCase(unittest.TestCase):
     """This test class checks combinations of arrays with groups.
