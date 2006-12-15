@@ -31,14 +31,15 @@ Misc variables:
 
 import sys
 import warnings
-import cPickle
 
 import numpy
 
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRangeRead, convertToNPAtom, convToFlavor, \
      idx2long, byteorders
-from tables.Atom import Atom, ObjectAtom, VLStringAtom, StringAtom, EnumAtom
+from tables.atom import (
+    ObjectAtom, VLStringAtom, EnumAtom,
+    atom_from_dtype, atom_from_kind, split_type )
 from tables.Leaf import Leaf, calc_chunksize
 
 
@@ -51,79 +52,92 @@ __version__ = "$Revision$"
 obversion = "1.2"    # This adds support for enumerated datatypes.
 
 class VLArray(hdf5Extension.VLArray, Leaf):
-    """Represent a variable length (ragged) array in HDF5 file.
+    """
+    This class represents variable length (ragged) arrays in an HDF5 file.
 
-    It enables to create new datasets on-disk from NumPy, Numeric,
-    numarray, lists, tuples, strings or scalars, or open existing
-    ones. The datasets are made of records that are made of a variable
-    length number of atomic objects (which has to have always the same
-    shape).
+    Instances of this class represent array objects in the object tree
+    with the property that their rows can have a *variable* number of
+    homogeneous elements, called *atoms*.  Like `Table` datasets,
+    variable length arrays can have only one dimension, and the
+    elements (atoms) of their rows can be fully multidimensional.
+    `VLArray` objects do also support compression.
 
-    All NumPy, Numeric and numarray typecodes are supported except for
-    complex datatypes.
+    This class provides methods to write or read data to or from
+    variable length array objects in the file.  Note that it also
+    inherits all the public attributes and methods that `Leaf` already
+    provides.
 
-    Methods:
+    Instance variables (specific of `VLArray`):
 
-        append(sequence)
-        read(start, stop, step)
-        __iter__()
-        iterrows(start, stop, step)
-        __getitem__(slice)
-        __setitem__(slice, value)
-
-    Instance variables:
-
-        atom -- The class instance choosed for the atomic object
-        nrow -- On iterators, this is the index of the row currently
-            dealed with
-        nrows -- The total number of rows
-        shape -- The shape of self (expressed as (self.nrows,))
-        byteorder -- The byte ordering of atoms in self
-
+    `atom`
+        An `Atom` instance representing the shape and type of the
+        atomic objects to be saved.
+    `nrows`
+        The total number of rows of the array.
+    `nrow`
+        On iterators, this is the index of the current row.
+    `shape`
+        The shape of the array (expressed as ``(self.nrows,)``).
+    `byteorder`
+        The byte ordering of the items in the array.
     """
 
     # Class identifier.
     _c_classId = 'VLARRAY'
 
 
-    # <properties>
+    # Properties
+    # ~~~~~~~~~~
     shape = property(
         lambda self: (self.nrows,), None, None,
         "The shape of the stored array.")
+
+    def _getbyteorder(self):
+        if not hasattr(self.atom, 'size'):  # it is a pseudo-atom
+            return 'irrelevant'
+        else:
+            return byteorders[self.atom.dtype.byteorder]
     byteorder = property(
-        lambda self: byteorders[self.atom.dtype.byteorder], None, None,
-        "The endianness of data in memory ('big', 'little' or 'irrelevant').")
-    # </properties>
+        _getbyteorder, None, None,
+        "The endianness of data ('big', 'little' or 'irrelevant').")
 
 
-    def __init__(self, parentNode, name, atom=None, title="",
-                 filters=None, expectedsizeinMB=1.0, chunkshape=None,
-                 _log=True):
+    # Other methods
+    # ~~~~~~~~~~~~~
+    def __init__( self, parentNode, name,
+                  atom=None, title="",
+                  filters=None, expectedsizeinMB=1.0,
+                  flavor='numpy', chunkshape=None,
+                  _log=True ):
         """Create the instance Array.
 
         Keyword arguments:
 
-        atom -- An Atom object representing the shape, type and
-            flavor of the atomic objects to be saved.
-
-        title -- Sets a TITLE attribute on the HDF5 array entity.
-
-        filters -- An instance of the Filters class that provides
+        `atom`
+            An `Atom` instance representing the shape and type of the
+            atomic objects to be saved.
+        `title`
+            Sets a ``TITLE`` attribute on the array entity.
+        `filters`
+            An instance of the `Filters` class that provides
             information about the desired I/O filters to be applied
             during the life of this object.
-
-        expectedsizeinMB -- An user estimate about the size (in MB) of
-            the final VLArray object. If not provided, the default
-            value is 1 MB.  If you plan to create both much smaller or
-            much bigger Arrays try providing a guess; this will
-            optimize the HDF5 B-Tree creation and management process
-            time and the amount of memory used.
-
-        chunkshape -- The shape of the data chunk to be read or
-            written as a single HDF5 I/O operation. The filters are
-            applied to those chunks of data. Its rank for vlarrays has
-            to be 1. If None, a sensible value is calculated (which is
+        `expectedsizeinMB`
+            An user estimate about the size (in MB) in the final
+            `VLArray` object.  If not provided, the default value is 1
+            MB.  If you plan to create a much smaller or a much
+            bigger `VLArray` try providing a guess; this will optimize
+            the HDF5 B-Tree creation and management process time and
+            the amount of memory used.
+        `flavor`
+            Sets the representation of data read from this array.
+        `chunkshape`
+            The shape of the data chunk to be read or written as a
+            single HDF5 I/O operation. Filters are applied to those
+            chunks of data. Its rank for `VLArray` objects must be
+            1. If ``None``, a sensible value is calculated (which is
             recommended).
+
         """
 
         self._v_version = None
@@ -174,20 +188,27 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         self.nrows = None
         """The total number of rows."""
 
-        # Check the chunkshape parameter
-        if new and chunkshape is not None:
-            if type(chunkshape) in (int, long):
-                chunkshape = (long(chunkshape),)
-            if type(chunkshape) not in (tuple, list):
-                raise ValueError, """\
+        if new:
+            if flavor not in ['numpy', 'numarray', 'numeric', 'python']:
+                raise ValueError(
+                    "``flavor`` argument must be one of "
+                    "'numpy', 'numarray', 'numeric' or 'python': %r"
+                    % (flavor,) )
+            self.flavor = flavor
+
+            if chunkshape is not None:
+                if type(chunkshape) in (int, long):
+                    chunkshape = (long(chunkshape),)
+                if type(chunkshape) not in (tuple, list):
+                    raise ValueError, """\
 chunkshape parameter should be an int, tuple or list and you passed a %s.
 """ % type(chunkshape)
-            elif len(chunkshape) != 1:
+                elif len(chunkshape) != 1:
                     raise ValueError, """\
 the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
-            else:
-                self._v_chunkshape = chunkshape
-                
+                else:
+                    self._v_chunkshape = chunkshape
+
         super(VLArray, self).__init__(parentNode, name, new, filters, _log)
 
 
@@ -204,7 +225,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # HDF5 list.
         # F. Altet 2006-11-23
         #elemsize = self.atom.atomsize()
-        elemsize = self.atom.dtype.itemsize
+        elemsize = self._basesize
         # Set the chunkshape
         chunkshape = chunksize // elemsize
         # Safeguard against itemsizes being extremely large
@@ -216,20 +237,25 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
     def _g_create(self):
         """Create a variable length array (ragged array)."""
 
+        atom = self.atom
         self._v_version = obversion
         # Check for zero dims in atom shape (not allowed in VLArrays)
-        zerodims = numpy.sum(numpy.array(self.atom.shape) == 0)
+        zerodims = numpy.sum(numpy.array(atom.shape) == 0)
         if zerodims > 0:
             raise ValueError, \
 """When creating VLArrays, none of the dimensions of the Atom instance can
 be zero."""
 
-        self._atomicdtype = self.atom.dtype
-        self._atomicptype = self.atom.ptype
-        self._atomicshape = self.atom.shape
-        self._atomicsize = self.atom.atomsize()
-        self._basesize = self.atom.dtype.itemsize
-        self.flavor = self.atom.flavor
+        if not hasattr(atom, 'size'):  # it is a pseudo-atom
+            self._atomicdtype = atom.base.dtype.base
+            self._atomicsize = atom.base.size
+            self._basesize = atom.base.itemsize
+        else:
+            self._atomicdtype = atom.dtype.base
+            self._atomicsize = atom.size
+            self._basesize = atom.itemsize
+        self._atomictype = atom.type
+        self._atomicshape = atom.shape
 
         # Compute the optimal chunkshape, if needed
         if self._v_chunkshape is None:
@@ -247,25 +273,23 @@ be zero."""
         self._v_objectID, self.nrows, self.flavor, self._v_chunkshape = \
                           self._openArray()
 
-        flavor = self.flavor
-        ptype = self._atomicptype
-
-        # First, check the special cases VLString and Object types
-        if flavor == "VLString":
-            self.atom = VLStringAtom()
-        elif flavor == "Object":
-            self.atom = ObjectAtom()
-        elif ptype == 'String':
-            self.atom = StringAtom(self._atomicshape, self._basesize,
-                                   flavor, warn=False)
-        elif ptype == 'Enum':
-            (enum, type_) = self._g_loadEnum()
-            self.atom = EnumAtom(enum, type_, self._atomicshape,
-                                 flavor, warn=False)
-            self._atomicdtype = type_
+        kind, itemsize = split_type(self._atomictype)
+        if kind == 'vlstring':
+            atom = VLStringAtom()
+        elif kind == 'object':
+            atom = ObjectAtom()
+        elif kind == 'enum':
+            (enum, self._atomicdtype) = self._g_loadEnum()
+            dflt = iter(enum).next()[0]  # ignored, any of them is OK
+            base = atom_from_dtype(self._atomicdtype)
+            atom = EnumAtom(enum, dflt, base, shape=self._atomicshape)
         else:
-            self.atom = Atom(ptype, self._atomicshape, flavor, warn=False)
+            if itemsize is None:  # some types don't include precision
+                itemsize = self._atomicdtype.itemsize
+            shape = self._atomicshape
+            atom = atom_from_kind(kind, itemsize, shape=shape)
 
+        self.atom = atom
         return self._v_objectID
 
 
@@ -316,14 +340,14 @@ be zero."""
         ``TypeError`` is raised.
         """
 
-        if self.atom.ptype != 'Enum':
+        if self.atom.kind != 'enum':
             raise TypeError("array ``%s`` is not of an enumerated type"
                             % self._v_pathname)
 
         return self.atom.enum
 
 
-    def append(self, sequence, *objects):
+    def append(self, sequence):
         """
         Append objects in the `sequence` to the array.
 
@@ -340,9 +364,10 @@ be zero."""
 
             # Create a VLArray:
             fileh = tables.openFile("vlarray1.h5", mode = "w")
-            vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
-            tables.Int32Atom(flavor="Numeric"),
-                             "ragged array of ints", Filters(complevel=1))
+            vlarray = fileh.createVLArray(
+                fileh.root, 'vlarray1',
+                tables.Int32Atom(), "ragged array of ints",
+                filters=Filters(complevel=1), flavor="Numeric")
             # Append some (variable length) rows:
             vlarray.append(array([5, 6]))
             vlarray.append(array([5, 6, 7]))
@@ -360,53 +385,30 @@ be zero."""
             vlarray1[0]--> [5 6]
             vlarray1[1]--> [5 6 7]
             vlarray1[2]--> [5 6 9 8]
-
-        The `objects` argument is only retained for backwards
-        compatibility; please do *not* use it.
         """
 
         self._v_file._checkWritable()
 
-        isseq = True
         try:  # fastest check in most cases
             len(sequence)
         except TypeError:
-            isseq = False
-
-        if not isseq or len(objects) > 0:
-            warnings.warn(DeprecationWarning("""\
-using multiple arguments with ``append()`` is *strongly deprecated*; \
-please put them in a single sequence object"""),
-                          stacklevel=2)
-            # This is not optimum, but neither frequent.
-            object = (sequence,) + tuple(objects)
+            raise TypeError("argument is not a sequence")
         else:
             object = sequence
-        # After that, `object` is assured to be a sequence.
 
         # Prepare the object to convert it into a NumPy object
-        if self.atom.flavor == "Object":
-            # Special case for a generic object
-            # (to be pickled and saved as an array of unsigned bytes)
-            buf = cPickle.dumps(object, 0)
-            object = numpy.ndarray(buffer=buf, dtype='uint8', shape=len(buf))
-        elif self.atom.flavor == "VLString":
-            # Special case for a generic object
-            # (to be pickled and saved as an array of unsigned bytes)
-            if type(object) not in (str,unicode):
-                raise TypeError, \
-"""The object "%s" is not of type String or Unicode.""" % (str(object))
-            try:
-                object = object.encode('utf-8')
-            except UnicodeError, ue:
-                raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, ue)
-            object = numpy.ndarray(buffer=object, dtype='uint8', shape=len(object))
+        atom = self.atom
+        if not hasattr(atom, 'size'):  # it is a pseudo-atom
+            object = atom.toarray(object)
+            statom = atom.base
+        else:
+            statom = atom
 
         if len(object) > 0:
             # The object needs to be copied to make the operation safe
             # to in-place conversion.
-            copy = self._atomicptype in ['Time64']
-            nparr = convertToNPAtom(object, self.atom, copy)
+            copy = self._atomictype in ['time64']
+            nparr = convertToNPAtom(object, statom, copy)
             nobjects = self._getnobjects(nparr)
             # Finally, check the byteorder and change it if needed
             if (self.byteorder in ['little', 'big'] and
@@ -552,24 +554,13 @@ please put them in a single sequence object"""),
 
         object = value
         # Prepare the object to convert it into a NumPy object
-        if self.atom.flavor == "Object":
-            # Special case for a generic object
-            # (to be pickled and saved as an array of unsigned bytes)
-            buf = cPickle.dumps(object, 0)
-            object = numpy.ndarray(buffer=buf, dtype='uint8', shape=len(buf))
-        elif self.atom.flavor == "VLString":
-            # Special case for a generic object
-            # (to be pickled and saved as an array of unsigned bytes)
-            if type(object) not in (str,unicode):
-                raise TypeError, \
-"""The object "%s" is not of type String or Unicode.""" % (str(object))
-            try:
-                object = object.encode('utf-8')
-            except UnicodeError, ue:
-                raise ValueError, "Problems when converting the object '%s' to the encoding 'utf-8'. The error was: %s" % (object, ue)
-            object = numpy.ndarray(buffer=object, dtype='uint8', shape=len(object))
-
-        value = convertToNPAtom(object, self.atom)
+        atom = self.atom
+        if not hasattr(atom, 'size'):  # it is a pseudo-atom
+            object = atom.toarray(object)
+            statom = atom.base
+        else:
+            statom = atom
+        value = convertToNPAtom(object, statom)
         nobjects = self._getnobjects(value)
 
         # Get the previous value
@@ -606,12 +597,12 @@ please put them in a single sequence object"""),
         else:
             listarr = self._readArray(start, stop, step)
 
-        if self.flavor <> "numpy":
+        atom = self.atom
+        if not hasattr(atom, 'size'):  # it is a pseudo-atom
+            outlistarr = [atom.fromarray(arr) for arr in listarr]
+        elif self.flavor != 'numpy':
             # Convert the list to the right flavor
-            outlistarr = [ convToFlavor(self, arr, "VLArray")
-                           for arr in listarr ]
-            if self.flavor == "Tuple":
-                outlistarr = tuple(outlistarr)
+            outlistarr = [convToFlavor(arr, self.flavor) for arr in listarr]
         else:
             # 'numpy' flavor does not need additional conversion
             outlistarr = listarr
@@ -625,7 +616,8 @@ please put them in a single sequence object"""),
         # Build the new VLArray object
         object = VLArray(
             group, name, self.atom, title=title, filters=filters,
-            expectedsizeinMB=self._v_expectedsizeinMB, _log=_log)
+            expectedsizeinMB=self._v_expectedsizeinMB, flavor=self.flavor,
+            _log=_log)
         # Now, fill the new vlarray with values from the old one
         # This is not buffered because we cannot forsee the length
         # of each record. So, the safest would be a copy row by row.
@@ -636,7 +628,7 @@ please put them in a single sequence object"""),
         # Optimized version (no conversions, no type and shape checks, etc...)
         nrowscopied = 0
         nbytes = 0
-        atomsize = self.atom.atomsize()
+        atomsize = self.atom.size
         for start2 in xrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf

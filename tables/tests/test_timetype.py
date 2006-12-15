@@ -60,7 +60,7 @@ class LeafCreationTestCase(unittest.TestCase):
 
         # Table creation.
         class MyTimeRow(tables.IsDescription):
-            intcol = tables.IntCol()
+            intcol = tables.col_from_kind('int')
             t32col = tables.Time32Col()
             t64col = tables.Time64Col()
         self.h5file.createTable('/', 'table', MyTimeRow)
@@ -81,7 +81,7 @@ class LeafCreationTestCase(unittest.TestCase):
 
         # Table creation.
         class MyTimeRow(tables.IsDescription):
-            intcol = tables.IntCol(shape = (2, 1))
+            intcol = tables.col_from_kind('int', shape = (2, 1))
             t32col = tables.Time32Col(shape = (2, 1))
             t64col = tables.Time64Col(shape = (2, 1))
         self.h5file.createTable('/', 'table', MyTimeRow)
@@ -189,23 +189,23 @@ class OpenTestCase(unittest.TestCase):
         # Test the Table node.
         tbl = h5file.root.table
         self.assertEqual(
-                tbl.colptypes['t32col'],
-                self.MyTimeRow.columns['t32col'].ptype,
+                tbl.coltypes['t32col'],
+                self.MyTimeRow.columns['t32col'].type,
                 "Column types do not match.")
         self.assertEqual(
-                tbl.colptypes['t64col'],
-                self.MyTimeRow.columns['t64col'].ptype,
+                tbl.coltypes['t64col'],
+                self.MyTimeRow.columns['t64col'].type,
                 "Column types do not match.")
 
         # Test the VLArray nodes.
         vla4 = h5file.root.vlarray4
         self.assertEqual(
-                vla4.atom.ptype, self.myTime32Atom.ptype,
+                vla4.atom.type, self.myTime32Atom.type,
                 "Atom types do not match.")
 
         vla8 = h5file.root.vlarray8
         self.assertEqual(
-                vla8.atom.ptype, self.myTime64Atom.ptype,
+                vla8.atom.type, self.myTime64Atom.type,
                 "Atom types do not match.")
 
         h5file.close()

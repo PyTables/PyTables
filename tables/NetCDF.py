@@ -9,7 +9,7 @@ NetCDF emulation API to keep in mind are:
 1) data is stored in an HDF5 file instead of a netCDF file.
 2) Although each variable can have only one unlimited
    dimension, it need not be the first as in a true NetCDF file.
-   Complex data types 'F' (Complex32) and 'D' (Complex64) are supported
+   Complex data types 'F' (complex64) and 'D' (complex128) are supported
    in tables.NetCDF, but are not supported in netCDF
    (or Scientific.IO.NetCDF). Files with variables that have
    these datatypes, or an unlimited dimension other than the first,
@@ -113,14 +113,14 @@ import tables
 from tables.utils import convertToNPAtom
 
 # dictionary that maps pytables types to single-character Numeric typecodes.
-_typecode_dict = {'Float64':'d',
-                  'Float32':'f',
-                  'Int32':'i',
-                  'Int16':'s',
-                  'Int8':'1',
-                  'String':'c',
-                  'Complex32':'F',
-                  'Complex64':'D',
+_typecode_dict = {'float64':'d',
+                  'float32':'f',
+                  'int32':'i',
+                  'int16':'s',
+                  'int8':'1',
+                  'string':'c',
+                  'complex64':'F',
+                  'complex128':'D',
                   }
 
 # The reverse typecode dict
@@ -140,7 +140,7 @@ _reprtype_dict = {'s':'short','1':'byte','l':'int','i':'int',
 _fillvalue_dict = {'f': 9.9692099683868690e+36,
                    'd': 9.9692099683868690e+36, # near 15 * 2^119
                    'F': 9.9692099683868690e+36+0j, # next two I made up
-                   'D': 9.9692099683868690e+36+0j, # (no Complex in netCDF)
+                   'D': 9.9692099683868690e+36+0j, # (no complex in netCDF)
                    'i': -2147483647,
                    'l': -2147483647,
                    's': -32767,
@@ -204,8 +204,8 @@ class NetCDFFile:
                 if not isinstance(var,tables.CArray) and not isinstance(var,tables.EArray):
                     print 'object',var,'is not a EArray or CArray, skipping ..'
                     continue
-                if var.ptype not in _typecode_dict.keys():
-                    print 'object',var.name,'is not a supported datatype (',var.ptype,'), skipping ..'
+                if var.type not in _typecode_dict.keys():
+                    print 'object',var.name,'is not a supported datatype (',var.type,'), skipping ..'
                     continue
                 if var.attrs.__dict__.has_key('dimensions'):
                     n = 0
@@ -591,10 +591,10 @@ class NetCDFVariable:
         if datatype == 'c':
         # Special case for Numeric character objects
         # (on which base Scientific.IO.NetCDF works)
-            atom = tables.StringAtom(length=1)
+            atom = tables.StringAtom(itemsize=1)
         else:
-            dtype = _rev_typecode_dict[datatype]
-            atom = tables.Atom(dtype=dtype)
+            type_ = _rev_typecode_dict[datatype]
+            atom = tables.atom_from_type(type_)
         if filters is None:
             # default filters instance.
             filters = tables.Filters(complevel=6,complib='zlib',shuffle=1)
@@ -621,6 +621,7 @@ class NetCDFVariable:
                 self[:] = numpy.ndarray(buffer=_NetCDF_FillValue*deflen,
                                         shape=tuple(vardimsizes), dtype="S1")
             else:
+                dtype = _rev_typecode_dict[datatype]
                 self[:] = _NetCDF_FillValue*numpy.ones(tuple(vardimsizes),
                                                        dtype=dtype)
         if least_significant_digit != None:
@@ -667,14 +668,14 @@ class NetCDFVariable:
         """
  return a single character Numeric typecode.
  Allowed values are
- 'd' == Float64, 'f' == Float32, 'l' == Int32,
- 'i' == Int32, 's' == Int16, '1' == Int8,
- 'c' == StringType (length 1), 'F' == Complex32 and 'D' == Complex64.
+ 'd' == float64, 'f' == float32, 'l' == int32,
+ 'i' == int32, 's' == int16, '1' == int8,
+ 'c' == string (length 1), 'F' == complex64 and 'D' == complex128.
  The corresponding NetCDF data types are
  'double', 'float', 'int', 'int', 'short', 'byte' and 'character'.
  ('D' and 'F' have no corresponding netCDF data types).
         """
-        return _typecode_dict[self._NetCDF_varobj.ptype]
+        return _typecode_dict[self._NetCDF_varobj.type]
 
     def ncattrs(self):
         """return attributes corresponding to netCDF variable attributes"""

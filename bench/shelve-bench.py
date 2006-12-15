@@ -14,34 +14,34 @@ class Small(IsDescription):
     the user will not add any new variables and that its type is
     correct."""
 
-    var1 = defineType("CharType", 4, "")
-    var2 = defineType("Int32", 1, 0)
-    var3 = defineType("Float64", 1, 0)
+    var1 = StringCol(itemsize=4)
+    var2 = Int32Col()
+    var3 = Float64Col()
 
 # Define a user record to characterize some kind of particles
 class Medium(IsDescription):
-    name        = defineType('CharType', 16, "")  # 16-character String
-    float1      = defineType("Float64", 2, 2.3)
-    #float1      = defineType("Float64", 1, 1.3)
-    #float2      = defineType("Float64", 1, 2.3)
-    ADCcount    = defineType("Int32", 1, 0)    # signed short integer
-    grid_i      = defineType("Int32", 1, 0)    # integer
-    grid_j      = defineType("Int32", 1, 0)    # integer
-    pressure    = defineType("Float32", 1, 0)    # float  (single-precision)
-    energy      = defineType("Float64", 1, 0)    # double (double-precision)
+    name        = StringCol(itemsize=16)  # 16-character String
+    float1      = Float64Col(shape=2, dflt=2.3)
+    #float1      = Float64Col(dflt=1.3)
+    #float2      = Float64Col(dflt=2.3)
+    ADCcount    = Int16Col()    # signed short integer
+    grid_i      = Int32Col()    # integer
+    grid_j      = Int32Col()    # integer
+    pressure    = Float32Col()    # float  (single-precision)
+    energy      = Flaot64Col()    # double (double-precision)
 
 # Define a user record to characterize some kind of particles
 class Big(IsDescription):
-    name        = defineType('CharType', 16, "")  # 16-character String
-    #float1      = defineType("Float64", 32, NA.arange(32))
-    #float2      = defineType("Float64", 32, NA.arange(32))
-    float1      = defineType("Float64", 32, range(32))
-    float2      = defineType("Float64", 32, [2.2]*32)
-    ADCcount    = defineType("Int16", 1, 0)    # signed short integer
-    grid_i      = defineType("Int32", 1, 0)    # integer
-    grid_j      = defineType("Int32", 1, 0)    # integer
-    pressure    = defineType("Float32", 1, 0)    # float  (single-precision)
-    energy      = defineType("Float64", 1, 0)    # double (double-precision)
+    name        = StringCol(itemsize=16)  # 16-character String
+    #float1      = Float64Col(shape=32, dflt=NA.arange(32))
+    #float2      = Float64Col(shape=32, dflt=NA.arange(32))
+    float1      = Float64Col(shape=32, dflt=range(32))
+    float2      = Float64Col(shape=32, dflt=[2.2]*32)
+    ADCcount    = Int16Col()    # signed short integer
+    grid_i      = Int32Col()    # integer
+    grid_j      = Int32Col()    # integer
+    pressure    = Float32Col()    # float  (single-precision)
+    energy      = Float64Col()    # double (double-precision)
 
 def createFile(filename, totalrows, recsize):
 

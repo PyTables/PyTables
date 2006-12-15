@@ -31,6 +31,7 @@ Misc variables:
 import sys
 import warnings
 import re
+import copy
 from time import time
 
 import numpy
@@ -59,9 +60,8 @@ from tables.utils import processRange, processRangeRead, \
      is_idx, flattenNames, byteorders
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
-from tables.IsDescription import \
-     IsDescription, Description, Col, StringCol, checkIndexable
-from tables.Atom import Atom, StringAtom
+from tables.IsDescription import IsDescription, Description, col_from_dtype
+from tables.atom import atom_from_dtype
 from tables.Group import IndexesTableG, IndexesDescG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES, \
@@ -209,7 +209,7 @@ class Table(TableExtension.Table, Leaf):
         colnames -- the field names for the table (list)
         colinstances -- the column instances for the table fields (dictionary)
         coldtypes -- the dtype class for the table fields (dictionary)
-        colptypes -- the PyTables type for the table fields (dictionary)
+        coltypes -- the PyTables type for the table fields (dictionary)
         coldflts -- the defaults for each column (dictionary)
         colindexed -- whether the table fields are indexed (dictionary)
         indexed -- whether or not some field in Table is indexed
@@ -221,13 +221,14 @@ class Table(TableExtension.Table, Leaf):
     _c_classId = 'TABLE'
 
 
-    # <properties>
-
+    # Properties
+    # ~~~~~~~~~~
     row = property(
         lambda self: TableExtension.Row(self), None, None,
         "The associated `Row` instance.")
 
-    # Some read-only shorthands.
+    # Read-only shorthands
+    # ````````````````````
 
     shape = property(
         lambda self: (self.nrows,), None, None,
@@ -261,18 +262,8 @@ class Table(TableExtension.Table, Leaf):
     flavor = property(_g_getflavor, _g_setflavor, None,
                       "The flavor that will be used when returning read data.")
 
-
-    def _g_getemptyarray(self, dtype):
-        # Acts as a cache for empty arrays
-        key = dtype
-        if key in self._emptyArrayCache:
-            return self._emptyArrayCache[key]
-        else:
-            self._emptyArrayCache[key] = arr = numpy.empty(shape=0, dtype=key)
-            return arr
-
-
-    # List here the lazy attributes.
+    # Lazy attributes
+    # ```````````````
     def _g_getrbuffer(self):
         mydict = self.__dict__
         if '_v_rbuffer' in mydict:
@@ -296,11 +287,42 @@ class Table(TableExtension.Table, Leaf):
     _v_wbuffer = property(_g_getwbuffer, None, None,
                           "*The* buffer for writing.")
 
-    # </properties>
+    # Other
+    # `````
+    def _setindexprops(self, value):
+        if not isinstance(value, IndexProps):
+            raise TypeError("not an instance of ``IndexProps``: %r" % value)
+        oldprops, newprops = self._indexprops, value
+
+        setAttr = self._v_attrs._g__setattr
+        for (prop, attr) in [ ('auto', 'AUTOMATIC_INDEX'),
+                              ('reindex', 'REINDEX'),
+                              ('filters', 'FILTERS_INDEX') ]:
+            # Only store values that have changed or were undefined.
+            newvalue = getattr(newprops, prop)
+            if not oldprops or getattr(oldprops, prop) != newvalue:
+                setAttr(attr, newvalue)
+
+        self._indexprops = value
+
+    indexprops = property(
+        lambda self: self._indexprops, _setindexprops, None,
+        """
+        Properties of the indexes of this table.
+
+        This is an `IndexProps` instance.  You may replace it at any
+        time, but only some changes will affect existing indexes.
+        Particularly, changing automatic and reindexing parameters
+        affects existing indexes immediatly, while changing the filters
+        parameter only affects newly created indexes.
+        """ )
 
 
-    def __init__(self, parentNode, name, description=None, title="",
-                 filters=None, expectedrows=EXPECTED_ROWS_TABLE,
+    # Other methods
+    # ~~~~~~~~~~~~~
+    def __init__(self, parentNode, name,
+                 description=None, title="", filters=None,
+                 expectedrows=EXPECTED_ROWS_TABLE,
                  chunkshape=None, _log=True):
         """Create an instance of Table.
 
@@ -364,11 +386,8 @@ class Table(TableExtension.Table, Leaf):
 
         self.indexed = False
         """Does this table have any indexed columns?"""
-        self.indexprops = None
-        """
-        Index properties for this table (an `IndexProps` instance).
-        ``None`` if the table is not indexed.
-        """
+        self._indexprops = None
+        """Properties of the indexes of this table."""
         self._indexedrows = 0
         """Number of rows indexed in disk."""
         self._unsaved_indexedrows = 0
@@ -383,7 +402,7 @@ class Table(TableExtension.Table, Leaf):
         """Maps the name of a column to its `Column` or `Cols` instance."""
         self.coldtypes = {}
         """Maps the name of a column to its NumPy data type."""
-        self.colptypes = {}
+        self.coltypes = {}
         """Maps the name of a column to its PyTables data type."""
         self.coldflts = {}
         """Maps the name of a column to its default value."""
@@ -510,14 +529,15 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # It does not matter to which column 'indexobj' belongs,
         # since their respective index objects share
         # the same filters and number of elements.
-        autoindex = getattr(self.attrs, 'AUTOMATIC_INDEX', None)
-        reindex = getattr(self.attrs, 'REINDEX', None)
+        autoindex = getattr( self.attrs, 'AUTOMATIC_INDEX',
+                             IndexProps.auto_default )
+        reindex = getattr(self.attrs, 'REINDEX', IndexProps.reindex_default)
         if self.indexed:
             filters = indexobj.filters
         else:
             filters = getattr(self.attrs, 'FILTERS_INDEX', None)
-        self.indexprops = IndexProps(auto=autoindex, reindex=reindex,
-                                     filters=filters)
+        self._indexprops = IndexProps( auto=autoindex, reindex=reindex,
+                                       filters=filters )
         if self.indexed:
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
@@ -534,6 +554,16 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                                          'data limits')
         """A cache for data based on search limits and table colum."""
         self._dirtycache = False
+
+
+    def _getemptyarray(self, dtype):
+        # Acts as a cache for empty arrays
+        key = dtype
+        if key in self._emptyArrayCache:
+            return self._emptyArrayCache[key]
+        else:
+            self._emptyArrayCache[key] = arr = numpy.empty(shape=0, dtype=key)
+            return arr
 
 
     def _get_container(self, shape):
@@ -560,45 +590,34 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         "Get a description dictionary from a (nested) RecArray."
 
         fields = {}
-        byteorder = '|'
-        for i, colname in enumerate(recarr.dtype.names):
-            # Getting the type and shape of a multidimensional field
-            # is a bit involved in numpy.
-            dtype = numpy.dtype(recarr.dtype.descr[i][1])
-            kind = dtype.kind
-            if dtype.byteorder in ['<', '>', '=']:
-                if byteorder != '|' and byteorder != dtype.byteorder:
-                    raise NotImplementedError, \
-                          "Recarrays with mixed byteorders not yet accepted."
-                byteorder = dtype.byteorder
-            shape = recarr.dtype.fields[colname][0].shape
-            if shape == ():  # Way to denote a scalar in NumPy
-                shape = 1
-            # Case for bools, ints, uints, floats and complex types
-            if kind in ['b', 'i', 'u', 'f', 'c']:
-                PTtype = numpy.typeNA[dtype.type]
-                fields[colname] = Col(dtype=PTtype,
-                                      shape=shape,
-                                      pos=i)  # Position matters
-            # Special case for strings
-            elif kind == "S":
-                fields[colname] = StringCol(length=dtype.itemsize,
-                                            shape=shape,
-                                            pos=i)
-            elif kind == "V" and shape in [1, (1,)]:
-                # Nested column
-                fields[colname] = self._descrFromRA(recarr[colname])
-                fields[colname]["_v_pos"] = i
+        fbyteorder = '|'
+        for (name, (dtype, pos)) in recarr.dtype.fields.items():
+            kind = dtype.base.kind
+            byteorder = dtype.base.byteorder
+            if byteorder in '<>=':
+                if fbyteorder not in ['|', byteorder]:
+                    raise NotImplementedError(
+                        "record arrays with mixed byteorders "
+                        "are not supported yet, sorry" )
+                fbyteorder = byteorder
+            # Non-nested column
+            if kind in 'biufSc':
+                col = col_from_dtype(dtype, pos=pos)
+            # Nested column
+            elif kind == 'V' and dtype.shape in [(), (1,)]:
+                col = self._descrFromRA(recarr[name])
+                col['_v_pos'] = pos
             else:
-                raise NotImplementedError, \
-"""Sorry, recarrays with columns with a type descr '%s' are not supported yet.
-""" % (dtype)
+                raise NotImplementedError(
+                    "record arrays with columns with type description ``%s`` "
+                    "are not supported yet, sorry" % dtype )
+            fields[name] = col
 
         # Set the byteorder
         # The columns in records should always have the same byteorder
         # (until different byterorder in columns would be implemented
         # at the HDF5 extension level)
-        fields['_v_byteorder'] = byteorders[byteorder]
+        fields['_v_byteorder'] = byteorders[fbyteorder]
         return fields
 
 
@@ -629,12 +648,12 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # is called
 
 
-    def _getTypeColNames(self, ptype):
-        """Returns a list containing 'ptype' column names."""
+    def _getTypeColNames(self, type_):
+        """Returns a list containing 'type_' column names."""
 
         return [ colobj._v_pathname
                  for colobj in self.description._f_walk('Col')
-                 if colobj.ptype == ptype ]
+                 if colobj.type == type_ ]
 
 
     def _getEnumMap(self):
@@ -642,7 +661,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
         enumMap = {}
         for colobj in self.description._f_walk('Col'):
-            if colobj.ptype == 'Enum':
+            if colobj.kind == 'enum':
                 enumMap[colobj._v_pathname] = colobj.enum
         return enumMap
 
@@ -683,9 +702,9 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 # for a row size of %s bytes.""" % (self.rowsize)
 
         # Find Time64 column names. (This should be generalised.)
-        self._time64colnames = self._getTypeColNames('Time64')
+        self._time64colnames = self._getTypeColNames('time64')
         # Find String column names.
-        self._strcolnames = self._getTypeColNames('String')
+        self._strcolnames = self._getTypeColNames('string')
         # Get a mapping of enumerated columns to their `Enum` instances.
         self._colenums = self._getEnumMap()
 
@@ -718,15 +737,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Compute some important parameters for createTable
         for colobj in self.description._f_walk(type="Col"):
             colname = colobj._v_pathname
-            # Get the column dtypes, ptypes and defaults
+            # Get the column dtypes, types and defaults
             self.coldtypes[colname] = colobj.dtype
-            self.colptypes[colname] = colobj.ptype
+            self.coltypes[colname] = colobj.type
             self.coldflts[colname] = colobj.dflt
-            # Indexed?
-            colindexed = colobj.indexed
-            self.colindexed[colname] = colindexed
-            if colindexed:
-                self.indexed = True
+            self.colindexed[colname] = False  # never indexed on creation
 
         setAttr = self._v_attrs._g__setattr
         # Assign the value of FLAVOR
@@ -734,25 +749,16 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             self._flavor = getattr(self.description, '_v_flavor', "numpy")
         setAttr('FLAVOR', self._flavor)
 
-        # We have to define indexprops here in order to propagate
-        # index properties for eventual future index creation
-        self.indexprops = getattr(self.description, '_v_indexprops',
-                                  IndexProps())
-        # Save AUTOMATIC_INDEX and REINDEX flags as attributes
-        setAttr('AUTOMATIC_INDEX', self.indexprops.auto)
-        setAttr('REINDEX', self.indexprops.reindex)
-        # Filters is saved here until one index is created.
-        setAttr('FILTERS_INDEX', self.indexprops.filters)
-        if self.indexed:
-            self._indexedrows = 0
-            self._unsaved_indexedrows = 0
-
         # Attach the FIELD_N_FILL attributes. We write all the level defaults
         i = 0
         for colobj in self.description._f_walk(type="Col"):
             fieldname = "FIELD_%s_FILL" % i
             setAttr(fieldname, colobj.dflt)
             i += 1
+
+        # Create index properties attributes by triggering changes in
+        # the ``indexprops`` property.
+        self.indexprops = IndexProps()
 
         # Cache _v_dtype for this table
         self._v_dtype = self.description._v_dtype
@@ -770,14 +776,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
         # Get table info
         self._v_objectID, description, chunksize = self._getInfo()
-        if self._v_file._isPTFile:
-            # Checking validity names for fields is not necessary
-            # when opening a PyTables file
-            # Do this nested!
-            description['__check_validity__'] = 0
+
+        # Checking validity names for fields is not necessary
+        # when opening a PyTables file
+        # Do this nested!
+        validate = not self._v_file._isPTFile
 
         # Create an instance description to host the record fields
-        self.description = Description(description)
+        self.description = Description(description, validate=validate)
         getAttr = self._v_attrs.__getattr__
         # Check if there is some "FIELD_0_FILL" attribute
         has_fill_attrs = "FIELD_0_FILL" in self._v_attrs._f_list("sys")
@@ -792,22 +798,18 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 # Set also the correct value in the desc._v_dflts dictionary
                 self.description._v_dflts[colname] = defval
                 i += 1
-            # Add info for indexed columns
-            indexname = _getIndexColName(self._v_parent, self._v_name, colname)
-            colindexed = indexname in self._v_file
-            objcol.indexed = colindexed
 
         # The expectedrows would be the actual number
         self._v_expectedrows = self.nrows
 
-        # Extract the coldtypes, colptypes, coldflts
+        # Extract the coldtypes, coltypes, coldflts
         # self.colnames, coldtypes, col*... should be removed?
         self.colnames = tuple(self.description._v_nestedNames)
 
         # Find Time64 column names.
-        self._time64colnames = self._getTypeColNames('Time64')
+        self._time64colnames = self._getTypeColNames('time64')
         # Find String column names.
-        self._strcolnames = self._getTypeColNames('String')
+        self._strcolnames = self._getTypeColNames('string')
         # Get a mapping of enumerated columns to their `Enum` instances.
         self._colenums = self._getEnumMap()
 
@@ -824,9 +826,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Get info about columns
         for colobj in self.description._f_walk(type="Col"):
             colname = colobj._v_pathname
-            # Get the column types, ptypes and defaults
+            # Get the column types, types and defaults
             self.coldtypes[colname] = colobj.dtype
-            self.colptypes[colname] = colobj.ptype
+            self.coltypes[colname] = colobj.type
             self.coldflts[colname] = colobj.dflt
 
         # Assign _v_dtype for this table
@@ -1316,7 +1318,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 coords = coords.copy()
             else:
                 #coords = numpy.empty(type=numpy.int64, shape=0)
-                coords = self._g_getemptyarray("int64")
+                coords = self._getemptyarray("int64")
 
             # Filter out rows not fulfilling the residual condition.
             rescond = splitted.residual_function
@@ -1405,7 +1407,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             else:
                 # The column hangs directly from the top
                 dtypeField = self.coldtypes[field]
-                ptypeField = self.colptypes[field]
+                typeField = self.coltypes[field]
 
         # Return a rank-0 array if start > stop
         if start >= stop:
@@ -1581,7 +1583,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 na = getNestedField(result, field)
             else:
                 # Get an empty array from the cache
-                na = self._g_getemptyarray(self.coldtypes[field])
+                na = self._getemptyarray(self.coldtypes[field])
             if flavor == "numpy":
                 return na
             elif numarray_imported and flavor == "numarray":
@@ -2208,50 +2210,37 @@ The 'names' parameter must be a list of strings.""")
         object.nrows = nrowsdest
         return
 
+    def _g_copyIndexes(self, other):
+        """Generate index in `other` table for every indexed column here."""
+        oldcols, newcols = self.colinstances, other.colinstances
+        for colname in newcols:
+            oldcolindex = oldcols[colname].index
+            if oldcolindex:
+                optlevel = oldcolindex.optlevel
+                testmode = oldcolindex.testmode
+                newcol = newcols[colname]
+                newcol.createIndex(optlevel=optlevel, testmode=testmode)
 
-    # This is an optimized version of copy
+
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf"
-        # Build the new Table object
-        description = self.description
-        # Checking validity names for fields in destination is not necessary
-        description.__dict__['__check_validity__'] = 0
-        # Ensure backward compatibility with old index format
-        if hasattr(self.attrs, "VERSION") and self.attrs.VERSION < "2.3":
-            # Set the appropriate indexes properties for these old indexes
-            autoindex = getattr(self.attrs, 'AUTOMATIC_INDEX', None)
-            reindex = getattr(self.attrs, 'REINDEX', None)
-            self.indexprops = IndexProps(auto=autoindex, reindex=reindex)
-            for colname in self.colnames:
-                indexname = "_i_%s_%s" % (self.name, colname)
-                indexpathname = joinPath(self._v_parent._v_pathname, indexname)
-                try:
-                    index = self._v_file._getNode(indexpathname)
-                    # Get the filters values
-                    self.indexprops.filters = self._g_getFilters()
-                    getattr(description, colname).indexed = 1
-                except NodeError:
-                    getattr(description, colname).indexed = 0
+        # Create the new table and copy the selected data.
+        newtable = Table( group, name, self.description, title=title,
+                          filters=filters, expectedrows=self.nrows,
+                          _log=_log )
+        self._g_copyRows(newtable, start, stop, step)
+        nbytes = newtable.nrows * newtable.rowsize
+        # Generate equivalent indexes in the new table, if any.
+        newtable.indexprops = copy.copy(self.indexprops)
+        if self.indexed:
+            warnings.warn(
+                "generating indexes for destination table ``%s:%s``; "
+                "please be patient"
+                % (newtable._v_file.filename, newtable._v_pathname) )
+            self._g_copyIndexes(newtable)
 
-        # Add a possible IndexProps property to that
-        if self.indexprops is not None:
-            description.__dict__["_v_indexprops"] = self.indexprops
-
-        object = Table(
-            group, name, description, title=title, filters=filters,
-            expectedrows=self.nrows, _log=_log)
-        # Now, fill the new table with values from the old one
-        self._g_copyRows(object, start, stop, step)
-        nbytes=self.nrows*self.rowsize
-        if object.indexed:
-            warnings.warn( \
-"Regenerating indexes for destination table %s:%s. This may take a while, be patient please." % (object._v_file.filename, object._v_pathname))
-            object._indexedrows = 0
-            object._unsaved_indexedrows = object.nrows
-            if object.indexprops.auto:
-                object.flushRowsToIndex(lastrow=True)
-        return (object, nbytes)
+        return (newtable, nbytes)
 
 
     def _g_cleanIOBuf(self):
@@ -2417,7 +2406,7 @@ class Cols(object):
                 itgroup = table._createIndexesTable(table._v_parent)
         # Put the column in the local dictionary
         for name in desc._v_names:
-            if name in desc._v_ptypes:
+            if name in desc._v_types:
                 myDict[name] = Column(table, name, desc)
             else:
                 myDict[name] = Cols(table, desc._v_colObjects[name])
@@ -2635,8 +2624,8 @@ class Column(object):
         pathname -- the complete pathname of the column (the same as `name`
                     if column is non-nested)
         descr -- the parent description object
-        type -- the type of the column
-        ptype -- the string representation of the type of the column
+        type -- the PyTables type of the column
+        dtype -- the NumPy data type of the column
         shape -- the shape of the column
         index -- the Index object (None if doesn't exists)
         dirty -- whether the index is dirty or not (property)
@@ -2689,7 +2678,7 @@ class Column(object):
         self.pathname = descr._v_colObjects[name]._v_pathname
         self.descr = descr
         self.dtype = descr._v_dtypes[name]
-        self.ptype = descr._v_ptypes[name]
+        self.type = descr._v_types[name]
         # Check whether an index exists or not
         indexname = _getIndexColName(table._v_parent, table._v_name,
                                      self.pathname)
@@ -2868,7 +2857,15 @@ class Column(object):
             raise ValueError, \
 "%s for column '%s' already exists. If you want to re-create it, please, try with reIndex() method better" % (str(index), str(self.pathname))
 
-        checkIndexable(dtype)
+        # Check that the datatype is indexable.
+        if dtype.char == 'Q':
+            raise NotImplementedError(
+                "indexing 64-bit unsigned integer columns "
+                "is not supported yet, sorry" )
+        if dtype.kind == 'c':
+            raise TypeError("complex columns can not be indexed")
+        if dtype.shape != ():
+            raise TypeError("multidimensional columns can not be indexed")
 
         # Get the indexes group for table, and if not exists, create it
         try:
@@ -2897,13 +2894,8 @@ class Column(object):
                         idgroup, dname, iname, filters)
 
         # Create the atom
-        atomtype = self.ptype
-        if atomtype == "String":
-            atom = StringAtom(shape=(0,), length=dtype.base.itemsize)
-        elif atomtype == "Enum":
-            atom = Atom(dtype=dtype, shape=(0,))
-        else:
-            atom = Atom(dtype=atomtype, shape=(0,))
+        assert dtype.shape == ()
+        atom = atom_from_dtype(numpy.dtype((dtype, (0,))))
 
         # Create the index itself
         index = Index(
@@ -2929,9 +2921,6 @@ class Column(object):
         # (i.e. we should not pass the optlevel parameter here!)
         index.optimize(verbose=verbose)
         self.dirty = False
-        # If the user has not defined properties, assign the default
-        table.indexprops = getattr(
-            table.description, '_v_indexprops', IndexProps())
         table._indexedrows = indexedrows
         table._unsaved_indexedrows = table.nrows - indexedrows
         return indexedrows
@@ -3019,7 +3008,7 @@ column '%s' is not indexed, so it can't be optimized."""
         # The shape for this column
         shape = self.descr._v_dtypes[self.name].shape
         # The type
-        tcol = self.descr._v_ptypes[self.name]
+        tcol = self.descr._v_types[self.name]
         return "%s.cols.%s (%s%s, %s, idx=%s)" % \
                (tablepathname, pathname, classname, shape, tcol, self.index)
 

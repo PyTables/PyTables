@@ -18,9 +18,9 @@ class Particle(IsDescription):
     ADCcount  = UInt16Col()     # Unsigned short integer
     TDCcount  = UInt8Col()      # unsigned byte
     grid_i    = Int32Col()      # integer
-    grid_j    = IntCol()        # integer (equivalent to Int32Col)
+    grid_j    = Int32Col()      # integer
     pressure  = Float32Col()    # float  (single-precision)
-    energy    = FloatCol()      # double (double-precision)
+    energy    = Float64Col()    # double (double-precision)
 
 print
 print   '-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-'
@@ -44,6 +44,11 @@ print "Group '/detector' created"
 table = h5file.createTable(group, 'readout', Particle, "Readout example")
 print "Table '/detector/readout' created"
 
+# Print the file
+print h5file
+print
+print repr(h5file)
+
 # Get a shortcut to the record object in table
 particle = table.row
 
@@ -57,7 +62,6 @@ for i in xrange(10):
     particle['pressure'] = float(i*i)
     particle['energy'] = float(particle['pressure'] ** 4)
     particle['idnumber'] = i * (2 ** 34)
-    # Insert a new particle record
     particle.append()
 
 # Flush the buffers for table
@@ -68,15 +72,18 @@ print   '-**-**-**-**-**-**- table data reading & selection  -**-**-**-**-**-'
 
 # Read actual data from table. We are interested in collecting pressure values
 # on entries where TDCcount field is greater than 3 and pressure less than 50
-pressure = [ x['pressure'] for x in table
-             if x['TDCcount']>3 and 20<=x['pressure']<50 ]
+pressure = [ x['pressure'] for x in table.iterrows()
+             if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50 ]
 print "Last record read:"
-print x
-print "Field pressure elements satisfying the cuts ==>", pressure
+print repr(x)
+print "Field pressure elements satisfying the cuts:"
+print repr(pressure)
 
 # Read also the names with the same cuts
 names = [ x['name'] for x in table
           if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50 ]
+print "Field names elements satisfying the cuts:"
+print repr(names)
 
 print
 print   '-**-**-**-**-**-**- array object creation  -**-**-**-**-**-**-**-'
@@ -87,9 +94,14 @@ gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
 print "Creating an array called 'pressure' under '/columns' group"
 h5file.createArray(gcolumns, 'pressure', array(pressure),
                    "Pressure column selection")
+print repr(h5file.root.columns.pressure)
 
 print "Creating another array called 'name' under '/columns' group"
-h5file.createArray('/columns', 'name', names, "Name column selection")
+h5file.createArray(gcolumns, 'name', names, "Name column selection")
+print repr(h5file.root.columns.name)
+
+print "HDF5 file:"
+print h5file
 
 # Close the file
 h5file.close()

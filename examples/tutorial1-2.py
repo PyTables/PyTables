@@ -6,19 +6,13 @@ that create the tutorial1.h5 file needed here.
 """
 
 
-import sys
-from numarray import *
 from tables import *
-
-# Filename to work with
-
-filename="tutorial1.h5"
 
 print
 print   '-**-**-**-**- open the previous tutorial file -**-**-**-**-**-'
 
 # Reopen the file in append mode
-h5file = openFile(filename, "a")
+h5file = openFile("tutorial1.h5", "a")
 
 # Print the object tree created from this filename
 print "Object tree from filename:", h5file.filename
@@ -38,14 +32,14 @@ print
 
 # Now, only list all the groups on tree
 print "Groups in file:"
-for group in h5file.walkNodes(classname="Group"):
+for group in h5file.walkGroups():
     print group
 print
 
 # List only the arrays hanging from /
 print "Arrays in file (I):"
 for group in h5file.walkGroups("/"):
-    for array in h5file.listNodes(group, classname = 'Array'):
+    for array in h5file.listNodes(group, classname='Array'):
         print array
 
 # This do the same result
@@ -68,17 +62,16 @@ for leaf in h5file.root.detector._f_walkNodes('Leaf'):
 print
 print   '-**-**-**-**-**-**- setting/getting object attributes -**-**--**-**-'
 
-# Get a pointer to '/detector' and '/detector/readout' nodes
-detector = h5file.root.detector
+# Get a pointer to '/detector/readout' node
 table = h5file.root.detector.readout
-
 # Attach it a string (date) attribute
 table.attrs.gath_date = "Wed, 06/12/2003 18:33"
-
 # Attach a floating point attribute
 table.attrs.temperature = 18.4
 table.attrs.temp_scale = "Celsius"
 
+# Get a pointer to '/detector' node
+detector = h5file.root.detector
 # Attach a general object to the parent (/detector) group
 detector._v_attrs.stuff = [5, (2.3, 4.5), "Integer and tuple"]
 
@@ -105,15 +98,13 @@ print
 # Rename an attribute
 print "renaming 'temp_scale' attribute to 'tempScale'"
 table.attrs._f_rename("temp_scale","tempScale")
+print table.attrs._f_list()
 
 # Try to rename a system attribute:
 try:
     table.attrs._f_rename("VERSION", "version")
 except:
     print "You can not rename a VERSION attribute: it is read only!."
-
-# Get all the attributes of /detector/table
-print "List of all attributes in /detector:", detector._v_attrs._f_list("all")
 
 print
 print   '-**-**-**-**-**-**- getting object metadata -**-**-**-**-**-**-'
@@ -137,18 +128,23 @@ pressureObject = h5file.getNode("/columns", "pressure")
 
 # Get some metadata on this object
 print "Info on the object:", repr(pressureObject)
+print "  shape: ==>", pressureObject.shape
+print "  title: ==>", pressureObject.title
+print "  type: ==>", pressureObject.type
 print
 print   '-**-**-**-**-**- reading actual data from arrays -**-**-**-**-**-**-'
 
 # Read the 'pressure' actual data
 pressureArray = pressureObject.read()
+print repr(pressureArray)
+# Check the kind of object we have created (it should be a numarray array)
+print "pressureArray is an object of type:", type(pressureArray)
 
 # Read the 'name' Array actual data
 nameArray = h5file.root.columns.name.read()
-
-# Check the kind of object we have created (they should be numarray arrays)
-print "pressureArray is an object of type:", type(pressureArray)
+# Check the kind of object we have created (it should be a numarray array)
 print "nameArray is an object of type:", type(nameArray)
+
 print
 
 # Print the data for both arrays
@@ -175,6 +171,7 @@ print
 print   '-**-**-**-**- append records to existing table -**-**-**-**-**-'
 
 # Get the object row from table
+table = h5file.root.detector.readout
 particle = table.row
 
 # Append 5 new particles to table
@@ -208,7 +205,7 @@ print   '-**-**-**-**- modify records of a table -**-**-**-**-**-'
 print "First row of readout table."
 print "Before modif-->", table[0]
 table.cols.TDCcount[0] = 1
-print "After modifying first row of ADCcount-->", table[0]
+print "After modifying first row of TDCcount-->", table[0]
 table.cols.energy[0] = 2
 print "After modifying first row of energy-->", table[0]
 
@@ -234,6 +231,7 @@ print
 print   '-**-**-**-**- modify elements of an array -**-**-**-**-**-'
 
 print "pressure array"
+pressureObject = h5file.root.columns.pressure
 print "Before modif-->", pressureObject[:]
 pressureObject[0] = 2
 print "First modif-->", pressureObject[:]

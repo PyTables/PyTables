@@ -3,9 +3,9 @@ import sys, time, random, gc
 from tables import *
 
 class Test(IsDescription):
-    ngroup = IntCol(pos=1)
-    ntable = IntCol(pos=2)
-    nrow = IntCol(pos=3)
+    ngroup = Int32Col(pos=1)
+    ntable = Int32Col(pos=2)
+    nrow = Int32Col(pos=3)
     time = Float64Col(pos=5)
     random = Float32Col(pos=4)
 

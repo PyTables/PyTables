@@ -12,7 +12,7 @@ nrows=10000-1
 
 class Distance(tables.IsDescription):
     frame = tables.Int32Col(pos=0)
-    distance = tables.FloatCol(pos=1)
+    distance = tables.Float64Col(pos=1)
 
 h5file = tables.openFile('index.h5', mode='w')
 table = h5file.createTable(h5file.root, 'distance_table', Distance,

@@ -17,10 +17,10 @@ from tables.tests.common import verbose, heavy, cleanup, allequal
 unittest.TestCase.tearDown = cleanup
 
 class Record(IsDescription):
-    var1 = StringCol(length=4)     # 4-character String
-    var2 = IntCol()                # integer
+    var1 = StringCol(itemsize=4)   # 4-character String
+    var2 = col_from_kind('int')    # integer
     var3 = Int16Col()              # short integer
-    var4 = FloatCol()              # double (double-precision)
+    var4 = col_from_kind('float')  # double (double-precision)
     var5 = Float32Col()            # float  (single-precision)
 
 class CreateTestCase(unittest.TestCase):

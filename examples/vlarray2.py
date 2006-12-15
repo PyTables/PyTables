@@ -36,7 +36,7 @@ vlarray.append(array([[5, 6]], type=Int64))
 #vlarray.append(array([[5, 6]], type=UInt64))
 
 # Test with strings
-vlarray = fileh.createVLArray(root, 'vlarray3', StringAtom(length=3),
+vlarray = fileh.createVLArray(root, 'vlarray3', StringAtom(itemsize=3),
                                "Ragged array of strings")
 vlarray.append(["123", "456", "3"])
 vlarray.append(["456", "3"])
@@ -44,9 +44,9 @@ vlarray.append(["456", "3"])
 #vlarray.append(["1234", "456", "3"])
 
 # Python flavor
-vlarray = fileh.createVLArray(root, 'vlarray3b', StringAtom(length=3,
-                                                            flavor="python"),
-                               "Ragged array of strings")
+vlarray = fileh.createVLArray(root, 'vlarray3b', StringAtom(itemsize=3),
+                              "Ragged array of strings",
+                              flavor="python")
 vlarray.append(["123", "456", "3"])
 vlarray.append(["456", "3"])
 
@@ -60,7 +60,7 @@ vlarray.append(array(cPickle.dumps((["123", "456"], "3")),type=UInt8))
 # However, both approachs seems to work well
 vlarray = fileh.createVLArray(root, 'vlarray5', ObjectAtom(),
                               "pickled object")
-vlarray.append(["123", "456", "3"])
+vlarray.append([["123", "456"], "3"])
 # Boolean arrays are supported as well
 vlarray = fileh.createVLArray(root, 'vlarray6', BoolAtom(),
                                "Boolean atoms")

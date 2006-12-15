@@ -8,18 +8,18 @@ from tables import *
 from tables.Index import Index
 from tables.indexes import calcChunksize, minRowIndex
 from tables.tests.common import verbose, allequal, heavy, cleanup, \
-     PyTablesTestCase
+     PyTablesTestCase, TempFileMixin
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
 import numpy
 
-class Small(IsDescription):
-    var1 = StringCol(length=4, dflt="", pos=1)
-    var2 = BoolCol(0, pos=2)
-    var3 = IntCol(0, pos=3)
-    var4 = FloatCol(0, pos=4)
+class TDescr(IsDescription):
+    var1 = StringCol(itemsize=4, dflt="", pos=1)
+    var2 = BoolCol(dflt=0, pos=2)
+    var3 = col_from_kind('int', dflt=0, pos=3)
+    var4 = col_from_kind('float', dflt=0, pos=4)
 
 class BasicTestCase(PyTablesTestCase):
     compress = 0
@@ -46,7 +46,7 @@ class BasicTestCase(PyTablesTestCase):
                                complib = self.complib,
                                shuffle = self.shuffle,
                                fletcher32 = self.fletcher32)
-        table = self.fileh.createTable(group, 'table', Small, title,
+        table = self.fileh.createTable(group, 'table', TDescr, title,
                                        self.filters, self.nrows)
         for i in range(self.nrows):
             table.row['var1'] = str(i)
@@ -446,7 +446,7 @@ class BasicTestCase(PyTablesTestCase):
         assert "table" not in self.fileh.root
 
         # re-create the table and the index again
-        table = self.fileh.createTable("/", 'table', Small, "New table",
+        table = self.fileh.createTable("/", 'table', TDescr, "New table",
                                        self.filters, self.nrows)
         for i in range(self.nrows):
             table.row['var1'] = str(i)
@@ -494,7 +494,7 @@ class BasicTestCase(PyTablesTestCase):
         self.fileh = openFile(self.file, mode = "r+")
 
         # re-create the table and the index again
-        table = self.fileh.createTable("/", 'table', Small, "New table",
+        table = self.fileh.createTable("/", 'table', TDescr, "New table",
                                        self.filters, self.nrows)
         for i in range(self.nrows):
             table.row['var1'] = str(i)
@@ -524,8 +524,8 @@ class BasicTestCase(PyTablesTestCase):
             print "Running %s.test11c_removeTableWithIndex..." % self.__class__.__name__
 
         class Distance(IsDescription):
-            frame = Int32Col(pos=0, indexed=True)
-            distance = FloatCol(pos=1)
+            frame = Int32Col(pos=0)
+            distance = col_from_kind('float', pos=1)
 
         # Delete the old temporal file
         os.remove(self.file)
@@ -533,6 +533,7 @@ class BasicTestCase(PyTablesTestCase):
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, mode='w')
         table = self.fileh.createTable(self.fileh.root, 'distance_table', Distance)
+        table.cols.frame.createIndex(testmode=1)
         r = table.row
         for i in range(10):
             r['frame']=i
@@ -628,7 +629,7 @@ class WarningTestCase(unittest.TestCase):
         # Create a table
         title = "This is the IndexArray title"
         rowswritten = 0
-        table = self.fileh.createTable(group, 'table', Small, title,
+        table = self.fileh.createTable(group, 'table', TDescr, title,
                                        None, self.nrows)
         for i in range(self.nrows):
             # Fill rows with defaults
@@ -664,7 +665,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         # Create a table
         title = "This is the IndexArray title"
         rowswritten = 0
-        table = self.fileh.createTable(group, 'table', Small, title,
+        table = self.fileh.createTable(group, 'table', TDescr, title,
                                        None, self.nrows)
         for i in range(self.nrows):
             # Fill rows with defaults
@@ -690,7 +691,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         # Create a table
         title = "This is the IndexArray title"
         rowswritten = 0
-        table = self.fileh.createTable(group, 'table', Small, title,
+        table = self.fileh.createTable(group, 'table', TDescr, title,
                                        None, self.nrows)
         for i in range(self.nrows):
             # Fill rows with defaults
@@ -723,7 +724,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         # Create a table
         title = "This is the IndexArray title"
         rowswritten = 0
-        table = self.fileh.createTable(group, 'table', Small, title,
+        table = self.fileh.createTable(group, 'table', TDescr, title,
                                        None, self.nrows)
         for i in range(self.nrows):
             # Fill rows with defaults
@@ -751,7 +752,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         # Create a table
         title = "This is the IndexArray title"
         rowswritten = 0
-        table = self.fileh.createTable(group, 'table', Small, title,
+        table = self.fileh.createTable(group, 'table', TDescr, title,
                                        None, self.nrows)
         for i in range(self.nrows):
             # Fill rows with defaults
@@ -784,7 +785,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
         # Create a table
         title = "This is the IndexArray title"
         rowswritten = 0
-        table = self.fileh.createTable(group, 'table', Small, title,
+        table = self.fileh.createTable(group, 'table', TDescr, title,
                                        None, self.nrows)
         for i in range(self.nrows):
             # Fill rows with defaults
@@ -801,32 +802,18 @@ class DeepTableIndexTestCase(unittest.TestCase):
         self.fileh.close()
         os.remove(self.file)
 
-class NoAuto(IsDescription):
-    _v_indexprops = IndexProps(auto=0)
-    var1 = StringCol(length=4, dflt="", pos=1, indexed=1)
-    var2 = BoolCol(0, indexed=1, pos = 2)
-    var3 = IntCol(0, indexed=1, pos = 3)
-    var4 = FloatCol(0, indexed=0, pos = 4)
 
-class NoReindex(IsDescription):
-    _v_indexprops = IndexProps(reindex=0)
-    var1 = StringCol(length=4, dflt="", indexed=1, pos=1)
-    var2 = BoolCol(0, indexed=1, pos=2)
-    var3 = IntCol(0, indexed=1, pos=3)
-    var4 = FloatCol(0, indexed=0, pos=4)
-
-class ChangeFilters(IsDescription):
-    _v_indexprops = IndexProps(filters=Filters(complevel=6, complib="zlib",
-                                               shuffle=False, fletcher32=True))
-    var1 = StringCol(length=4, dflt="", indexed=1, pos=1)
-    var2 = BoolCol(0, indexed=1, pos=2)
-    var3 = IntCol(0, indexed=1, pos=3)
-    var4 = FloatCol(0, indexed=0, pos=4)
-
+DefaultProps = IndexProps()
+NoAutoProps = IndexProps(auto=False)
+NoReindexProps = IndexProps(reindex=False)
+ChangeFiltersProps = IndexProps(
+    filters=Filters( complevel=6, complib="zlib",
+                     shuffle=False, fletcher32=True ) )
 
 class AutomaticIndexingTestCase(unittest.TestCase):
     reopen = 1
-    klass = NoAuto
+    iprops = NoAutoProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
     def setUp(self):
         # Create an instance of an HDF5 Table
@@ -836,8 +823,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         title = "This is the IndexArray title"
         rowswritten = 0
         root = self.fileh.root
-        self.table = self.fileh.createTable(root, 'table', self.klass, title,
+        self.table = self.fileh.createTable(root, 'table', TDescr, title,
                                             None, self.nrows)
+        self.table.indexprops = self.iprops
+        for colname in self.colsToIndex:
+            self.table.colinstances[colname].createIndex(testmode=1)
         for i in range(self.nrows):
             # Fill rows with defaults
             self.table.row.append()
@@ -859,11 +849,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "Running %s.test01_attrs..." % self.__class__.__name__
 
         table = self.table
-        if self.klass is Small:
+        if self.iprops is DefaultProps:
             assert table.indexed == 0
         else:
             assert table.indexed == 1
-        if self.klass is Small:
+        if self.iprops is DefaultProps:
             assert table.colindexed["var1"] == 0
             assert table.cols.var1.index is None
             assert table.colindexed["var2"] == 0
@@ -898,21 +888,21 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             else:
                 print "Table is not indexed"
         # Check non-default values for index saving policy
-        if self.klass is Small:
+        if self.iprops is DefaultProps:
             assert table.indexprops is not None
-        elif self.klass is NoAuto:
+        elif self.iprops is NoAutoProps:
             assert table.indexprops.auto == False
             assert table.indexprops.reindex == True
             filters = Filters(complevel=1, complib="zlib",
                               shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
-        elif self.klass is NoReindex:
+        elif self.iprops is NoReindexProps:
             assert table.indexprops.auto == True
             assert table.indexprops.reindex == False
             filters = Filters(complevel=1, complib="zlib",
                               shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
-        elif self.klass is ChangeFilters:
+        elif self.iprops is ChangeFiltersProps:
             assert table.indexprops.auto == True
             assert table.indexprops.reindex == True
             filters = Filters(complevel=6, complib="zlib",
@@ -920,7 +910,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert str(table.indexprops.filters) == str(filters)
 
         # Check Index() objects exists and are properly placed
-        if self.klass is Small:
+        if self.iprops is DefaultProps:
             assert table.cols.var1.index == None
             assert table.cols.var2.index == None
             assert table.cols.var3.index == None
@@ -947,7 +937,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "computed indexed rows:", index.nrows * index.slicesize
             else:
                 print "Table is not indexed"
-        if self.klass is not Small:
+        if self.iprops is not DefaultProps:
             index = table.cols.var1.index
             indexedrows = index.nelements
             assert table._indexedrows == indexedrows
@@ -974,7 +964,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
 
         # No unindexated rows should remain
         index = table.cols.var1.index
-        if self.klass is Small:
+        if self.iprops is DefaultProps:
             assert index is None
         else:
             indexedrows = index.nelements
@@ -982,21 +972,21 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table._unsaved_indexedrows == self.nrows - indexedrows
 
         # Check non-default values for index saving policy
-        if self.klass is Small:
+        if self.iprops is DefaultProps:
             assert table.indexprops is not None
-        elif self.klass is NoAuto:
+        elif self.iprops is NoAutoProps:
             assert table.indexprops.auto == False
             assert table.indexprops.reindex == True
             filters = Filters(complevel=1, complib="zlib",
                               shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
-        elif self.klass is NoReindex:
+        elif self.iprops is NoReindexProps:
             assert table.indexprops.auto == True
             assert table.indexprops.reindex == False
             filters = Filters(complevel=1, complib="zlib",
                               shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
-        elif self.klass is ChangeFilters:
+        elif self.iprops is ChangeFiltersProps:
             assert table.indexprops.auto == True
             assert table.indexprops.reindex == True
             filters = Filters(complevel=6, complib="zlib",
@@ -1013,7 +1003,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Force a sync in indexes
         table.flushRowsToIndex()
         # Non indexated rows should remain here
-        if self.klass is not Small:
+        if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
         # Now, remove some rows:
@@ -1036,7 +1026,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
 
         # Check the counters
         assert table.nrows == self.nrows - 2
-        if self.klass is NoReindex:
+        if self.iprops is NoReindexProps:
             # I'm not sure that the results below are what we want...
             # But I don't think this is going to be important:
             # the important thing is that dirtiness is working right
@@ -1050,7 +1040,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
 #             assert table._indexedrows == 0
 #             assert table._unsaved_indexedrows == table.nrows
             pass
-        elif self.klass is NoAuto:
+        elif self.iprops is NoAutoProps:
             index = table.cols.var1.index
             indexedrows = index.nelements
             assert table._indexedrows == indexedrows
@@ -1058,21 +1048,21 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table._unsaved_indexedrows == self.nrows - indexedrows - 2
 
         # Check non-default values for index saving policy
-        if self.klass is Small:
+        if self.iprops is DefaultProps:
             assert table.indexprops is not None
-        elif self.klass is NoAuto:
+        elif self.iprops is NoAutoProps:
             assert table.indexprops.auto == False
             assert table.indexprops.reindex == True
             filters = Filters(complevel=1, complib="zlib",
                               shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
-        elif self.klass is NoReindex:
+        elif self.iprops is NoReindexProps:
             assert table.indexprops.auto == True
             assert table.indexprops.reindex == False
             filters = Filters(complevel=1, complib="zlib",
                               shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
-        elif self.klass is ChangeFilters:
+        elif self.iprops is ChangeFiltersProps:
             assert table.indexprops.auto == True
             assert table.indexprops.reindex == True
             filters = Filters(complevel=6, complib="zlib",
@@ -1119,7 +1109,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Force a sync in indexes
         table.flushRowsToIndex()
         # No unindexated rows should remain here
-        if self.klass is not Small:
+        if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
         # Now, modify just one row:
@@ -1141,7 +1131,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "Table is not indexed"
         # Check the counters
         assert table.nrows == self.nrows
-        if self.klass is NoReindex:
+        if self.iprops is NoReindexProps:
             # The unsaved indexed rows counter should be unchanged
 #             assert table._indexedrows == indexedrows
 #             assert table._unsaved_indexedrows == unsavedindexedrows
@@ -1155,7 +1145,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
 #             else:
 #                 assert table._indexedrows == indexedrows
             pass
-        elif self.klass is NoAuto:
+        elif self.iprops is NoAutoProps:
             index = table.cols.var1.index
             indexedrows = index.nelements
             assert table._indexedrows == indexedrows
@@ -1186,7 +1176,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Force a sync in indexes
         table.flushRowsToIndex()
         # Non indexated rows should remain here
-        if self.klass is not Small:
+        if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
         # Now, modify a couple of rows:
@@ -1199,11 +1189,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
 
         # Check the counters
         assert table.nrows == self.nrows
-        if self.klass is NoReindex:
+        if self.iprops is NoReindexProps:
             # The unsaved indexed rows counter should be unchanged
             assert table._indexedrows == indexedrows
             assert table._unsaved_indexedrows == unsavedindexedrows
-        elif self.klass is NoAuto:
+        elif self.iprops is NoAutoProps:
             index = table.cols.var1.index
             indexedrows = index.nelements
             assert table._indexedrows == indexedrows
@@ -1235,7 +1225,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Don't force a sync in indexes
         #table.flushRowsToIndex()
         # Non indexated rows should remain here
-        if self.klass is not Small:
+        if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
         # Now, remove some rows to make columns dirty
@@ -1262,20 +1252,12 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         assert table.nrows == table2.nrows
         if table.indexed:
             assert table2.indexed
-            assert table._indexedrows == table2._indexedrows
-            assert table._unsaved_indexedrows == table2._unsaved_indexedrows
-        if self.klass is Small:
+        if self.iprops is DefaultProps:
             # No index: the index should not exist
             assert index1 is None
             assert index2 is None
-        elif self.klass is NoAuto:
-            # No auto: the index should exists, but be empty
+        elif self.iprops is NoAutoProps:
             assert index2 is not None
-            assert index2.nelements == 0
-        elif self.klass is NoReindex:
-            # Auto: the index should exists, and have elements
-            assert index2 is not None
-            assert index2.nelements == index1.nelements
 
         # Check the dirty flag for indexes
         if verbose:
@@ -1297,7 +1279,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Don't force a sync in indexes
         #table.flushRowsToIndex()
         # Non indexated rows should remain here
-        if self.klass is not Small:
+        if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
         # Now, remove some rows to make columns dirty
@@ -1320,21 +1302,6 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             if index1:
                 print "Elements in copied index:", index2.nelements
                 print "Elements in original index:", index1.nelements
-                if index2.nelements > 10:
-                    print "First 10 elements in copied index (sorted):\n", \
-                          index2.sorted[0,:10]
-                    print "First 10 elements in orig index (sorted):\n", \
-                          index1.sorted[0,:10]
-                    print "First 10 elements in copied index (indices):\n", \
-                          index2.indices[0,:10]
-                    print "First 10 elements in orig index (indices):\n", \
-                          index1.indices[0,:10]
-        if self.klass is NoReindex:
-            # Auto: the index should exists, and have equal elements
-            assert allequal(index2.sorted.read(), index1.sorted.read())
-            # The next assertion cannot be guaranteed. Why?
-            # sorting algorithm in numpy is not deterministic?
-            #assert allequal(index2.indices.read(), index1.indices.read())
 
     def test11_copyIndex(self):
         "Checking copy Index feature in copyTable (dirty flags)"
@@ -1345,7 +1312,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Force a sync in indexes
         table.flushRowsToIndex()
         # Non indexated rows should remain here
-        if self.klass is not Small:
+        if self.iprops is not DefaultProps:
             indexedrows = table._indexedrows
             unsavedindexedrows = table._unsaved_indexedrows
         # Now, modify an indexed column and an unindexed one
@@ -1393,81 +1360,93 @@ class AI1TestCase(AutomaticIndexingTestCase):
     #nrows = 10002
     nrows = 102
     reopen = 0
-    klass = NoAuto
+    iprops = NoAutoProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
 class AI2TestCase(AutomaticIndexingTestCase):
     #nrows = 10002
     nrows = 102
     reopen = 1
-    klass = NoAuto
+    iprops = NoAutoProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
 class AI3TestCase(AutomaticIndexingTestCase):
     #nrows = 10002
     nrows = 102
     reopen = 1
-    klass = NoReindex
+    iprops = NoReindexProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
 class AI4aTestCase(AutomaticIndexingTestCase):
     #nrows = 10002
     nrows = 102
     reopen = 0
-    klass = NoReindex
+    iprops = NoReindexProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
 class AI4bTestCase(AutomaticIndexingTestCase):
     #nrows = 10012
     nrows = 112
     reopen = 1
-    klass = NoReindex
+    iprops = NoReindexProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
 class AI5TestCase(AutomaticIndexingTestCase):
     sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
     nrows = ss*11-1
     reopen = 0
-    klass = NoAuto
+    iprops = NoAutoProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
 class AI6TestCase(AutomaticIndexingTestCase):
     sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
     nrows = ss*21+1
     reopen = 1
-    klass = NoAuto
+    iprops = NoAutoProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
 class AI7TestCase(AutomaticIndexingTestCase):
     sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
     nrows = ss*12-1
     reopen = 0
-    klass = NoReindex
+    iprops = NoReindexProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
 class AI8TestCase(AutomaticIndexingTestCase):
     sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
     nrows = ss*15+100
     #nrows = ss*1+100  # faster test
     reopen = 1
-    klass = NoReindex
+    iprops = NoReindexProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
 class AI9TestCase(AutomaticIndexingTestCase):
     sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss
     reopen = 0
-    klass = Small
+    iprops = DefaultProps
+    colsToIndex = []
 
 class AI10TestCase(AutomaticIndexingTestCase):
     #nrows = 10002
     nrows = 102
     reopen = 1
-    klass = Small
+    iprops = DefaultProps
+    colsToIndex = []
 
 class AI11TestCase(AutomaticIndexingTestCase):
     #nrows = 10002
     nrows = 102
     reopen = 0
-    klass = ChangeFilters
+    iprops = ChangeFiltersProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
 class AI12TestCase(AutomaticIndexingTestCase):
     #nrows = 10002
     nrows = 102
     reopen = 0
-    klass = ChangeFilters
-
+    iprops = ChangeFiltersProps
+    colsToIndex = ['var1', 'var2', 'var3']
 
 
 class ManyNodesTestCase(PyTablesTestCase):
@@ -1500,6 +1479,63 @@ class ManyNodesTestCase(PyTablesTestCase):
         cleanup(self)
 
 
+class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
+
+    """Test case for changing the ``indexprops`` attribute."""
+
+    class MyDescription(IsDescription):
+        icol = col_from_kind('int')
+    oldIndexProps = IndexProps()
+    newIndexProps = IndexProps(auto=False, filters=Filters(complevel=9))
+
+    def setUp(self):
+        super(IndexPropsChangeTestCase, self).setUp()
+        table = self.h5file.createTable('/', 'test', self.MyDescription)
+        table.indexprops = self.oldIndexProps
+        row = table.row
+        for i in xrange(100):
+            row['icol'] = i % 25
+            row.append()
+        table.flush()
+        self.table = table
+
+    def test_attributes(self):
+        """Storing index properties as table attributes."""
+        attrs = self.table.attrs
+        for refprops in [self.oldIndexProps, self.newIndexProps]:
+            self.assertEqual(attrs.AUTOMATIC_INDEX, refprops.auto)
+            self.assertEqual( attrs.FILTERS_INDEX.complevel,
+                              refprops.filters.complevel )
+            self.table.indexprops = self.newIndexProps
+
+    def test_copyattrs(self):
+        """Copying index properties attributes."""
+        oldtable = self.table
+        newtable = oldtable.copy('/', 'test2')
+
+        for attr in ['AUTOMATIC_INDEX', 'REINDEX', 'FILTERS_INDEX']:
+            self.assertEqual( getattr(oldtable.attrs, attr),
+                              getattr(newtable.attrs, attr) )
+
+    def test_newindex(self):
+        """Using changed index properties in new indexes."""
+        self.table.indexprops = self.newIndexProps
+        icol = self.table.cols.icol
+        icol.createIndex(testmode=True)
+        self.assertEqual( icol.index.filters.complevel,
+                          self.newIndexProps.filters.complevel )
+
+    def test_reindex(self):
+        """Using changed index properties in recomputed indexes."""
+        icol = self.table.cols.icol
+        icol.createIndex(testmode=True)
+        self.assertEqual( icol.index.filters.complevel,
+                          self.oldIndexProps.filters.complevel )
+        self.table.indexprops = self.newIndexProps
+        icol.reIndex()
+        self.assertEqual( icol.index.filters.complevel,
+                          self.newIndexProps.filters.complevel )
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -1525,6 +1561,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AI2TestCase))
         theSuite.addTest(unittest.makeSuite(AI9TestCase))
         theSuite.addTest(unittest.makeSuite(DeepTableIndexTestCase))
+        theSuite.addTest(unittest.makeSuite(IndexPropsChangeTestCase))
     if heavy:
         # These are too heavy for normal testing
         theSuite.addTest(unittest.makeSuite(AI3TestCase))

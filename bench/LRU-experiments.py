@@ -13,10 +13,10 @@ NROWS = 1000
 
 class Particle(IsDescription):
     name        = StringCol(16, pos=1)   # 16-character String
-    lati        = IntCol(pos=2)        # integer
-    longi       = IntCol(pos=3)        # integer
-    pressure    = Float32Col(pos=4)    # float  (single-precision)
-    temperature = FloatCol(pos=5)      # double (double-precision)
+    lati        = Int32Col(pos=2)        # integer
+    longi       = Int32Col(pos=3)        # integer
+    pressure    = Float32Col(pos=4)      # float  (single-precision)
+    temperature = Float64Col(pos=5)      # double (double-precision)
 
 def create_junk():
     # Open a file in "w"rite mode

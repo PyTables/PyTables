@@ -14,33 +14,33 @@ class Small(IsDescription):
     the user will not add any new variables and that its type is
     correct."""
 
-    var1 = StringCol(length=4, dflt="",pos=2)
-    var2 = IntCol(0,pos=1)
-    var3 = FloatCol(0,pos=0)
+    var1 = StringCol(itemsize=4, pos=2)
+    var2 = Int32Col(pos=1)
+    var3 = Float64Col(pos=0)
 
 # Define a user record to characterize some kind of particles
 class Medium(IsDescription):
-    name        = StringCol(length=16, dflt="",pos=0)  # 16-character String
-    float1      = Col("Float64", 2, NA.arange(2),pos=1)
-    #float1      = Col("Float64", 1, 2.3)
-    #float2      = Col("Float64", 1, 2.3)
-    #zADCcount    = Col("Int16", 1, 0)    # signed short integer
-    ADCcount    = Col("Int32", 1, 0,pos=6)    # signed short integer
-    grid_i      = Col("Int32", 1, 0,pos=7)    # integer
-    grid_j      = Col("Int32", 1, 0,pos=8)    # integer
-    pressure    = Col("Float32", 1, 0,pos=9)    # float  (single-precision)
-    energy      = Col("Float64", 1, 0,pos=2)    # double (double-precision)
+    name        = StringCol(itemsize=16 ,pos=0)  # 16-character String
+    float1      = Float64Col(shape=2, dflt=NA.arange(2),pos=1)
+    #float1      = Float64Col(dflt=2.3)
+    #float2      = Float64Col(dflt=2.3)
+    #zADCcount    = Int16Col()    # signed short integer
+    ADCcount    = Int32Col(pos=6)    # signed short integer
+    grid_i      = Int32Col(pos=7)    # integer
+    grid_j      = Int32Col(pos=8)    # integer
+    pressure    = Float32Col(pos=9)    # float  (single-precision)
+    energy      = Float64Col(pos=2)    # double (double-precision)
 
 # Define a user record to characterize some kind of particles
 class Big(IsDescription):
-    name        = StringCol(length=16, dflt="", pos=0)  # 16-character String
-    float1      = Col("Float64", 32, NA.arange(32), pos=1)
-    float2      = Col("Float64", 32, 2.2, pos=2)
-    TDCcount    = Col("UInt8", 1, 0, pos=3)    # signed short integer
-    grid_i      = Col("Int32", 1, 0, pos=4)    # integer
-    grid_j      = Col("Int32", 1, 0, pos=5)    # integer
-    pressure    = Col("Float32", 1, 0, pos=6)    # float  (single-precision)
-    energy      = Col("Float64", 1, 0, pos=7)    # double (double-precision)
+    name        = StringCol(itemsize=16, pos=0)  # 16-character String
+    float1      = Float64Col(shape=32, dflt=NA.arange(32), pos=1)
+    float2      = Float64Col(shape=32, dflt=2.2, pos=2)
+    TDCcount    = UInt8Col(pos=3)    # unsigned short integer
+    grid_i      = Int32Col(pos=4)    # integer
+    grid_j      = Int32Col(pos=5)    # integer
+    pressure    = Float32Col(pos=6)    # float  (single-precision)
+    energy      = Float64Col(pos=7)    # double (double-precision)
 
 def createFile(filename, totalrows, filters, recsize):
 

@@ -19,15 +19,15 @@ def open_db(filename, remove=0):
 def create_db(filename, nrows):
 
     class Record(tables.IsDescription):
-        _v_indexprops = tables.IndexProps(filters=filters)
-        col1 = tables.IntCol()
-        col2 = tables.IntCol()
-        col3 = tables.FloatCol()
-        col4 = tables.FloatCol()
+        col1 = tables.Int32Col()
+        col2 = tables.Int32Col()
+        col3 = tables.Float64Col()
+        col4 = tables.Float64Col()
 
     con = open_db(filename, remove=1)
     table = con.createTable(con.root, 'table', Record,
                             filters=filters, expectedrows=nrows)
+    table.indexprops = tables.IndexProps(filters=filters)
     step = 1000*100
     scale = 0.1
     t1=time()

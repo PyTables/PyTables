@@ -21,38 +21,36 @@ randomvalues = 0
 worst=0
 
 Small = {
-    #"_v_indexprops" : IndexProps(auto=1),
-    # var1 column will be indexed if not heavy test
-    "var1" : StringCol(length=4, dflt="Hi!", indexed=1, pos=2),
-    "var2" : IntCol(0, indexed=1, pos=1),
-    "var3" : FloatCol(0, indexed=1, pos=0),
-    #"var4" : BoolCol(0, indexed=1),
+    "var1" : StringCol(itemsize=4, dflt="Hi!", pos=2),
+    "var2" : Int32Col(pos=1),
+    "var3" : Float64Col(pos=0),
+    #"var4" : BoolCol(),
     }
 
 def createNewBenchFile(bfile, verbose):
 
     class Create(IsDescription):
-        nrows   = IntCol(pos=0)
-        irows   = IntCol(pos=1)
-        tfill   = FloatCol(pos=2)
-        tidx    = FloatCol(pos=3)
-        tcfill  = FloatCol(pos=4)
-        tcidx   = FloatCol(pos=5)
-        rowsecf = FloatCol(pos=6)
-        rowseci = FloatCol(pos=7)
-        fsize   = FloatCol(pos=8)
-        isize   = FloatCol(pos=9)
+        nrows   = Int32Col(pos=0)
+        irows   = Int32Col(pos=1)
+        tfill   = Float64Col(pos=2)
+        tidx    = Float64Col(pos=3)
+        tcfill  = Float64Col(pos=4)
+        tcidx   = Float64Col(pos=5)
+        rowsecf = Float64Col(pos=6)
+        rowseci = Float64Col(pos=7)
+        fsize   = Float64Col(pos=8)
+        isize   = Float64Col(pos=9)
         psyco   = BoolCol(pos=10)
 
     class Search(IsDescription):
-        nrows   = IntCol(pos=0)
-        rowsel  = IntCol(pos=1)
-        time1   = FloatCol(pos=2)
-        time2   = FloatCol(pos=3)
-        tcpu1   = FloatCol(pos=4)
-        tcpu2   = FloatCol(pos=5)
-        rowsec1 = FloatCol(pos=6)
-        rowsec2 = FloatCol(pos=7)
+        nrows   = Int32Col(pos=0)
+        rowsel  = Int32Col(pos=1)
+        time1   = Float64Col(pos=2)
+        time2   = Float64Col(pos=3)
+        tcpu1   = Float64Col(pos=4)
+        tcpu2   = Float64Col(pos=5)
+        rowsec1 = Float64Col(pos=6)
+        rowsec2 = Float64Col(pos=7)
         psyco   = BoolCol(pos=8)
 
     if verbose:
@@ -87,18 +85,22 @@ def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
                      filters=filters)
     rowswritten = 0
     # set the properties of the index (the same of table)
+    indexprops = IndexProps()
     if index:
-        Small["_v_indexprops"] = IndexProps(auto=auto, filters=filters)
+        indexprops = IndexProps(auto=auto, filters=filters)
     else:
         auto = 0
-        Small["_v_indexprops"] = IndexProps(auto=0, filters=filters)
-    if heavy:
-        # make the string entry not indexed
-        Small["var1"] = StringCol(length=4, dflt="Hi!", indexed=0)
+        indexprops = IndexProps(auto=0, filters=filters)
 
     # Create the test table
     table = fileh.createTable(fileh.root, 'table', Small, "test table",
                               None, nrows)
+    table.indexprops = indexprops
+    if not heavy:
+        table.cols.var1.createIndex()
+    for colname in ['var2', 'var3']:
+        table.colinstances[colname].createIndex()
+
     t1 = time.time()
     cpu1 = time.clock()
     nrowsbuf = table._v_nrowsinbuf

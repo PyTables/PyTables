@@ -18,74 +18,74 @@ unittest.TestCase.tearDown = cleanup
 
 # Test Record class
 class Record(IsDescription):
-    var0 = StringCol(4, "", shape=2)  # 4-character string array
-    var1 = StringCol(4, ["abcd","efgh"], shape=(2,2))
-    var1_= IntCol(((1,1),), shape=2)            # integer array
-    var2 = IntCol(((1,1),(1,1)), shape=(2,2))   # integer array
-    var3 = Int16Col(2)                          # short integer
-    var4 = FloatCol(3.1)                        # double (double-precision)
-    var5 = Float32Col(4.2)                      # float  (single-precision)
-    var6 = UInt16Col(5)                         # unsigned short integer
-    var7 = StringCol(length=1, dflt="e")        # 1-character String
+    var0 = StringCol(itemsize=4, dflt="", shape=2)  # 4-character string array
+    var1 = StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2))
+    var1_= col_from_kind('int', dflt=((1,1),), shape=2) # integer array
+    var2 = col_from_kind('int', dflt=((1,1),(1,1)), shape=(2,2)) # integer array
+    var3 = Int16Col(dflt=2)                         # short integer
+    var4 = col_from_kind('float', dflt=3.1)         # double (double-precision)
+    var5 = Float32Col(dflt=4.2)                     # float  (single-precision)
+    var6 = UInt16Col(dflt=5)                        # unsigned short integer
+    var7 = StringCol(itemsize=1, dflt="e")          # 1-character String
 
 # A byte-reversed class definition
 class RecordRevOrder(IsDescription):
     # Change the byteorder property for this table
     _v_byteorder = {"little":"big","big":"little"}[sys.byteorder]
-    var0 = StringCol(4, "", shape=2)  # 4-character string array
-    var1 = StringCol(4, ["abcd","efgh"], shape=(2,2))
-    var1_= IntCol(((1,1),), shape=2)            # integer array
-    var2 = IntCol(((1,1),(1,1)), shape=(2,2))   # integer array
-    var3 = Int16Col(2)                          # short integer
-    var4 = FloatCol(3.1)                        # double (double-precision)
-    var5 = Float32Col(4.2)                      # float  (single-precision)
-    var6 = UInt16Col(5)                         # unsigned short integer
-    var7 = StringCol(length=1, dflt="e")        # 1-character String
+    var0 = StringCol(itemsize=4, dflt="", shape=2)  # 4-character string array
+    var1 = StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2))
+    var1_= col_from_kind('int', dflt=((1,1),), shape=2) # integer array
+    var2 = col_from_kind('int', dflt=((1,1),(1,1)), shape=(2,2)) # integer array
+    var3 = Int16Col(dflt=2)                         # short integer
+    var4 = col_from_kind('float', dflt=3.1)         # double (double-precision)
+    var5 = Float32Col(dflt=4.2)                     # float  (single-precision)
+    var6 = UInt16Col(dflt=5)                        # unsigned short integer
+    var7 = StringCol(itemsize=1, dflt="e")          # 1-character String
 
 #  Dictionary definition
 RecordDescriptionDict = {
-    'var0': StringCol(4, "", shape=2),  # 4-character string array
-    'var1': StringCol(4, ["abcd","efgh"], shape=(2,2)),
-#     'var0': StringCol(length=4, shape=2),         # 4-character String
-#     'var1': StringCol(length=4, shape=(2,2)),     # 4-character String
-    'var1_':IntCol(shape=2),                      # integer array
-    'var2': IntCol(shape=(2,2)),                  # integer array
+    'var0': StringCol(itemsize=4, dflt="", shape=2), # 4-character string array
+    'var1': StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2)),
+#     'var0': StringCol(itemsize=4, shape=2),       # 4-character String
+#     'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
+    'var1_':col_from_kind('int', shape=2),        # integer array
+    'var2': col_from_kind('int', shape=(2,2)),    # integer array
     'var3': Int16Col(),                           # short integer
-    'var4': FloatCol(),                           # double (double-precision)
+    'var4': col_from_kind('float'),               # double (double-precision)
     'var5': Float32Col(),                         # float  (single-precision)
     'var6': Int16Col(),                           # unsigned short integer
-    'var7': StringCol(length=1),                  # 1-character String
+    'var7': StringCol(itemsize=1),                # 1-character String
     }
 
 # A byte-reversed dictionary definition
 RecordDescriptionDictRevOrder = {
     # Change the byteorder property for this table
     '_v_byteorder': {"little":"big","big":"little"}[sys.byteorder],
-    'var0': StringCol(4, "", shape=2),  # 4-character string array
-    'var1': StringCol(4, ["abcd","efgh"], shape=(2,2)),
-#     'var0': StringCol(length=4, shape=2),         # 4-character String
-#     'var1': StringCol(length=4, shape=(2,2)),     # 4-character String
-    'var1_':IntCol(shape=2),                      # integer array
-    'var2': IntCol(shape=(2,2)),                  # integer array
+    'var0': StringCol(itemsize=4, dflt="", shape=2), # 4-character string array
+    'var1': StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2)),
+#     'var0': StringCol(itemsize=4, shape=2),       # 4-character String
+#     'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
+    'var1_':col_from_kind('int', shape=2),        # integer array
+    'var2': col_from_kind('int', shape=(2,2)),    # integer array
     'var3': Int16Col(),                           # short integer
-    'var4': FloatCol(),                           # double (double-precision)
+    'var4': col_from_kind('float'),               # double (double-precision)
     'var5': Float32Col(),                         # float  (single-precision)
     'var6': Int16Col(),                           # unsigned short integer
-    'var7': StringCol(length=1),                  # 1-character String
+    'var7': StringCol(itemsize=1),                # 1-character String
     }
 
 
 # Record class with numpy dtypes (mixed shapes is checkd here)
 class RecordDT(IsDescription):
-    var0 = Col(numpy.dtype("2S4"), shape=1, dflt="")       # shape in dtype
-    var1 = Col("2S4", shape=(2,), dflt=["abcd","efgh"])    # shape is a mix
-    var1_= Col("2i4", shape=(), dflt=((1,1),))             # shape in dtype
-    var2 = Col("2i4", shape=(2,), dflt=((1,1),(1,1)))      # shape is a mix
-    var3 = Col("i2", shape=1, dflt=2)
-    var4 = Col("2f8", shape=(), dflt=3.1)
-    var5 = Col(numpy.dtype("f4"), shape=1, dflt=4.2)
-    var6 = Col("()u2", shape=(), dflt=5)
-    var7 = Col("1S1", dflt="e")   # no shape 
+    var0 = col_from_dtype(numpy.dtype("2S4"), dflt="")  # shape in dtype
+    var1 = col_from_sctype("S4", shape=(2, 2), dflt=["abcd","efgh"]) # shape is a mix
+    var1_= col_from_dtype(numpy.dtype("2i4"), dflt=((1,1),))  # shape in dtype
+    var2 = col_from_sctype("i4", shape=(2, 2), dflt=((1,1),(1,1)))  # shape is a mix
+    var3 = col_from_dtype(numpy.dtype("i2"), dflt=2)
+    var4 = col_from_dtype(numpy.dtype("2f8"), dflt=3.1)
+    var5 = col_from_dtype(numpy.dtype("f4"), dflt=4.2)
+    var6 = col_from_dtype(numpy.dtype("()u2"), dflt=5)
+    var7 = col_from_dtype(numpy.dtype("1S1"), dflt="e")   # no shape 
 
 
 
@@ -248,12 +248,12 @@ class BasicTestCase(common.PyTablesTestCase):
                          [desc._v_dtypes[v] for v in expectedNames])
 
         # Column string types.
-        expectedPtypes = [columns[colname].ptype
+        expectedTypes = [columns[colname].type
                           for colname in expectedNames]
-        self.assertEqual(expectedPtypes,
-                         [tbl.colptypes[v] for v in expectedNames])
-        self.assertEqual(expectedPtypes,
-                         [desc._v_ptypes[v] for v in expectedNames])
+        self.assertEqual(expectedTypes,
+                         [tbl.coltypes[v] for v in expectedNames])
+        self.assertEqual(expectedTypes,
+                         [desc._v_types[v] for v in expectedNames])
 
 
         # Column defaults.
@@ -265,12 +265,6 @@ class BasicTestCase(common.PyTablesTestCase):
             assert common.areArraysEqual(tbl.coldflts[v], columns[v].dflt)
             assert common.areArraysEqual(desc._v_dflts[v], columns[v].dflt)
 
-        # Column indexation.
-        expectedIndexed = [columns[colname].indexed
-                           for colname in expectedNames]
-        self.assertEqual(expectedIndexed,
-                         [tbl.colindexed[v] for v in expectedNames])
-
         # Column path names.
         self.assertEqual(expectedNames, list(desc._v_pathnames))
 
@@ -279,7 +273,7 @@ class BasicTestCase(common.PyTablesTestCase):
             expectedCol = columns[colName]
             col = desc._v_colObjects[colName]
             self.assertEqual(expectedCol.dtype, col.dtype)
-            self.assertEqual(expectedCol.ptype, col.ptype)
+            self.assertEqual(expectedCol.type, col.type)
 
     def test01_readTable(self):
         """Checking table read and cuts"""
@@ -1129,11 +1123,11 @@ class DefaultValues(unittest.TestCase):
         os.remove(file)
 
 class RecordT(IsDescription):
-    var0 = IntCol(1, shape=1)   # native int
-    var1 = IntCol([1], shape=(1,))   # 1-D int (one element)
-    var2_s = IntCol([1,1], shape=2)   # 1-D int (two elements)
-    var2 = IntCol([1,1], shape=(2,))   # 1-D int (two elements)
-    var3 = IntCol([[0,0],[1,1]], shape=(2,2))   # 2-D int
+    var0 = col_from_kind('int', dflt=1, shape=1) # native int
+    var1 = col_from_kind('int', dflt=[1], shape=(1,)) # 1-D int (one element)
+    var2_s = col_from_kind('int', dflt=[1,1], shape=2) # 1-D int (two elements)
+    var2 = col_from_kind('int', dflt=[1,1], shape=(2,)) # 1-D int (two elements)
+    var3 = col_from_kind('int', dflt=[[0,0],[1,1]], shape=(2,2)) # 2-D int
 
 class ShapeTestCase(unittest.TestCase):
 

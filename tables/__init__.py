@@ -37,7 +37,7 @@ from tables.utilsExtension import isHDF5  # deprecated
 from tables.utilsExtension import isHDF5File, isPyTablesFile, whichLibVersion
 
 from tables.enum import *
-from tables.Atom import *
+from tables.atom import *
 from tables.IsDescription import *
 
 # Import the user classes from the proper modules
@@ -74,19 +74,25 @@ __all__ = [
     # Types:
     'Enum',
     # Atom types:
-    'Atom', 'ObjectAtom', 'VLStringAtom', 'StringAtom', 'BoolAtom',
-    'IntAtom', 'Int8Atom', 'UInt8Atom', 'Int16Atom', 'UInt16Atom',
+    'split_type',
+    'atom_from_kind','atom_from_type',
+    'atom_from_sctype', 'atom_from_dtype',
+    'Atom', 'StringAtom', 'BoolAtom',
+    'IntAtom', 'UIntAtom', 'Int8Atom', 'UInt8Atom', 'Int16Atom', 'UInt16Atom',
     'Int32Atom', 'UInt32Atom', 'Int64Atom', 'UInt64Atom',
     'FloatAtom', 'Float32Atom', 'Float64Atom',
-    'ComplexAtom', 'Complex32Atom', 'Complex64Atom',
+    'ComplexAtom', 'Complex32Atom', 'Complex64Atom', 'Complex128Atom',
     'TimeAtom', 'Time32Atom', 'Time64Atom',
     'EnumAtom',
+    'PseudoAtom', 'ObjectAtom', 'VLStringAtom',
     # Column types:
-    'Col', 'BoolCol', 'StringCol',
-    'IntCol', 'Int8Col', 'UInt8Col', 'Int16Col', 'UInt16Col',
+    'col_from_kind','col_from_type',
+    'col_from_sctype', 'col_from_dtype',
+    'Col', 'StringCol', 'BoolCol',
+    'IntCol', 'UIntCol', 'Int8Col', 'UInt8Col', 'Int16Col', 'UInt16Col',
     'Int32Col', 'UInt32Col', 'Int64Col', 'UInt64Col',
     'FloatCol', 'Float32Col', 'Float64Col',
-    'ComplexCol', 'Complex32Col', 'Complex64Col',
+    'ComplexCol', 'Complex32Col', 'Complex64Col', 'Complex128Col',
     'TimeCol', 'Time32Col', 'Time64Col',
     'EnumCol',
     # Node classes:

@@ -55,10 +55,11 @@ class BasicTestCase(unittest.TestCase):
                           shuffle = self.shuffle,
                           fletcher32 = self.fletcher32)
         vlarray = self.fileh.createVLArray(group, 'vlarray1',
-                                           Int32Atom(flavor=self.flavor),
+                                           Int32Atom(),
                                            "ragged array if ints",
                                            filters = filters,
-                                           expectedsizeinMB = 1)
+                                           expectedsizeinMB = 1,
+                                           flavor = self.flavor)
 
         # Fill it with 5 rows
         vlarray.append([1, 2])
@@ -262,8 +263,9 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, flavor="numpy"),
-                                           "Ragged array of strings")
+                                           StringAtom(itemsize=3),
+                                           "Ragged array of strings",
+                                           flavor="numpy")
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
         vlarray.append(numpy.array(["1", "12345"]))
 
@@ -291,8 +293,9 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, flavor="numarray"),
-                                           "Ragged array of strings")
+                                           StringAtom(itemsize=3),
+                                           "Ragged array of strings",
+                                           flavor="numarray")
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"], dtype="S"))
         vlarray.append(numpy.array(["1", "12345"], dtype="S"))
 
@@ -322,8 +325,9 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, flavor="numpy"),
-                                           "Ragged array of strings")
+                                           StringAtom(itemsize=3),
+                                           "Ragged array of strings",
+                                           flavor="numpy")
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"][::2]))
         vlarray.append(numpy.array(["1", "12345","2", "321"])[::3])
 
@@ -350,8 +354,9 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, flavor="numpy"),
-                                           "Ragged array of strings")
+                                           StringAtom(itemsize=3),
+                                           "Ragged array of strings",
+                                           flavor="numpy")
         vlarray.append(numpy.array(["1", "12", "123", "123"]))
         vlarray.append(numpy.array(["1", "2", "321"]))
 
@@ -378,9 +383,9 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom2',
-                                           StringAtom(length=3,
-                                                      flavor="python"),
-                                           "Ragged array of strings")
+                                           StringAtom(itemsize=3),
+                                           "Ragged array of strings",
+                                           flavor="python")
         vlarray.append(["1", "12", "123", "1234", "12345"])
         vlarray.append(["1", "12345"])
 
@@ -408,8 +413,9 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, flavor="numpy"),
-                                           "Ragged array of strings")
+                                           StringAtom(itemsize=3),
+                                           "Ragged array of strings",
+                                           flavor="numpy")
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
         vlarray.append(numpy.array(["1", "12345"]))
 
@@ -440,9 +446,9 @@ class TypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom2',
-                                           StringAtom(length=3,
-                                                      flavor="python"),
-                                           "Ragged array of strings")
+                                           StringAtom(itemsize=3),
+                                           "Ragged array of strings",
+                                           flavor="python")
         vlarray.append(["1", "12", "123", "1234", "12345"])
         vlarray.append(["1", "12345"])
 
@@ -482,9 +488,9 @@ class TypesTestCase(unittest.TestCase):
 
 #         # Create an string atom
 #         vlarray = self.fileh.createVLArray(root, 'stringAtom2',
-#                                            StringAtom(length=3,
-#                                                       flavor="UString"),
-#                                            "Ragged array of unicode strings")
+#                                            StringAtom(itemsize=3),
+#                                            "Ragged array of unicode strings",
+#                                            flavor="UString")
 #         vlarray.append(["áéç", "èàòÉ", "ñ"])
 #         vlarray.append(["ççççç", "asaËÏÖÜ"])
 
@@ -565,24 +571,24 @@ class TypesTestCase(unittest.TestCase):
     def test03_IntAtom(self):
         """Checking vlarray with integer atoms"""
 
-        ttypes = {"Int8": numpy.int8,
-                  "UInt8": numpy.uint8,
-                  "Int16": numpy.int16,
-                  "UInt16": numpy.uint16,
-                  "Int32": numpy.int32,
-                  "UInt32": numpy.uint32,
-                  "Int64": numpy.int64,
-                  #"UInt64": numpy.int64,  # Unavailable in some platforms
-                  }
+        ttypes = ["Int8",
+                  "UInt8",
+                  "Int16",
+                  "UInt16",
+                  "Int32",
+                  "UInt32",
+                  "Int64",
+                  #"UInt64",  # Unavailable in some platforms
+                  ]
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
         # Create an string atom
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype]))
+                                               atom_from_sctype(atype))
             vlarray.append([1,2,3])
             vlarray.append([-1,0])
 
@@ -595,8 +601,8 @@ class TypesTestCase(unittest.TestCase):
                 print "First row in vlarray ==>", row[0]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([1,2,3], dtype=ttypes[atype]))
-            assert allequal(row[1], numpy.array([-1,0], dtype=ttypes[atype]))
+            assert allequal(row[0], numpy.array([1,2,3], dtype=atype))
+            assert allequal(row[1], numpy.array([-1,0], dtype=atype))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
@@ -620,7 +626,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes.iterkeys():
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype]))
+                                               atom_from_sctype(ttypes[atype]))
             a0 = numpy.array([1,2,3], dtype=atype)
             a0 = a0.byteswap(); a0 = a0.newbyteorder()
             vlarray.append(a0)
@@ -645,24 +651,24 @@ class TypesTestCase(unittest.TestCase):
     def test03b_IntAtom(self):
         """Checking updating vlarray with integer atoms"""
 
-        ttypes = {"Int8": numpy.int8,
-                  "UInt8": numpy.uint8,
-                  "Int16": numpy.int16,
-                  "UInt16": numpy.uint16,
-                  "Int32": numpy.int32,
-                  "UInt32": numpy.uint32,
-                  "Int64": numpy.int64,
-                  #"UInt64": numpy.int64,  # Unavailable in some platforms
-                  }
+        ttypes = ["Int8",
+                  "UInt8",
+                  "Int16",
+                  "UInt16",
+                  "Int32",
+                  "UInt32",
+                  "Int64",
+                  #"UInt64",  # Unavailable in some platforms
+                  ]
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
         # Create an string atom
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype]))
+                                               atom_from_sctype(atype))
             vlarray.append([1,2,3])
             vlarray.append([-1,0])
 
@@ -679,8 +685,8 @@ class TypesTestCase(unittest.TestCase):
                 print "First row in vlarray ==>", row[0]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([3,2,1], dtype=ttypes[atype]))
-            assert allequal(row[1], numpy.array([0,-1], dtype=ttypes[atype]))
+            assert allequal(row[0], numpy.array([3,2,1], dtype=atype))
+            assert allequal(row[1], numpy.array([0,-1], dtype=atype))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
@@ -704,7 +710,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes.iterkeys():
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype]))
+                                               atom_from_sctype(ttypes[atype]))
             a0 = numpy.array([1,2,3], dtype=atype)
             vlarray.append(a0)
             a1 = numpy.array([-1,0], dtype=atype)
@@ -736,18 +742,18 @@ class TypesTestCase(unittest.TestCase):
     def test04_FloatAtom(self):
         """Checking vlarray with floating point atoms"""
 
-        ttypes = {"Float32": numpy.float32,
-                  "Float64": numpy.float64,
-                  }
+        ttypes = ["Float32",
+                  "Float64",
+                  ]
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_FloatAtom..." % self.__class__.__name__
 
         # Create an string atom
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype]))
+                                               atom_from_sctype(atype))
             vlarray.append([1.3,2.2,3.3])
             vlarray.append([-1.3e34,1.e-32])
 
@@ -760,8 +766,8 @@ class TypesTestCase(unittest.TestCase):
                 print "First row in vlarray ==>", row[0]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([1.3,2.2,3.3], ttypes[atype]))
-            assert allequal(row[1], numpy.array([-1.3e34,1.e-32], ttypes[atype]))
+            assert allequal(row[0], numpy.array([1.3,2.2,3.3], atype))
+            assert allequal(row[1], numpy.array([-1.3e34,1.e-32], atype))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
@@ -779,7 +785,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes.iterkeys():
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype]))
+                                               atom_from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3,2.2,3.3], dtype=atype)
             a0 = a0.byteswap(); a0 = a0.newbyteorder()
             vlarray.append(a0)
@@ -806,18 +812,18 @@ class TypesTestCase(unittest.TestCase):
     def test04b_FloatAtom(self):
         """Checking updating vlarray with floating point atoms"""
 
-        ttypes = {"Float32": numpy.float32,
-                  "Float64": numpy.float64,
-                  }
+        ttypes = ["Float32",
+                  "Float64",
+                  ]
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_FloatAtom..." % self.__class__.__name__
 
         # Create an string atom
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype]))
+                                               atom_from_sctype(atype))
             vlarray.append([1.3,2.2,3.3])
             vlarray.append([-1.3e34,1.e-32])
 
@@ -834,8 +840,8 @@ class TypesTestCase(unittest.TestCase):
                 print "First row in vlarray ==>", row[0]
 
             assert vlarray.nrows == 2
-            assert allequal(row[0], numpy.array([4.3,2.2,4.3], ttypes[atype]))
-            assert allequal(row[1], numpy.array([-1.1e34,1.3e-32], ttypes[atype]))
+            assert allequal(row[0], numpy.array([4.3,2.2,4.3], atype))
+            assert allequal(row[1], numpy.array([-1.1e34,1.3e-32], atype))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
@@ -853,7 +859,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes.iterkeys():
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype]))
+                                               atom_from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3,2.2,3.3], dtype=atype)
             vlarray.append(a0)
             a1 = numpy.array([-1,0], dtype=atype)
@@ -887,18 +893,18 @@ class TypesTestCase(unittest.TestCase):
     def test04_ComplexAtom(self):
         """Checking vlarray with numerical complex atoms"""
 
-        ttypes = {"Complex32": numpy.complex64,
-                  "Complex64": numpy.complex128,
-                  }
+        ttypes = ["Complex32",
+                  "Complex64",
+                  ]
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_ComplexAtom..." % self.__class__.__name__
 
         # Create an string atom
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype]))
+                                               atom_from_sctype(atype))
             vlarray.append([(1.3+0j),(0+2.2j),(3.3+3.3j)])
             vlarray.append([(0-1.3e34j),(1.e-32+0j)])
 
@@ -912,27 +918,27 @@ class TypesTestCase(unittest.TestCase):
 
             assert vlarray.nrows == 2
             assert allequal(row[0], numpy.array([(1.3+0j),(0+2.2j),(3.3+3.3j)],
-                                                ttypes[atype]))
+                                                atype))
             assert allequal(row[1], numpy.array([(0-1.3e34j),(1.e-32+0j)],
-                                                ttypes[atype]))
+                                                atype))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
     def test04b_ComplexAtom(self):
         """Checking modifying vlarray with numerical complex atoms"""
 
-        ttypes = {"Complex32": numpy.complex64,
-                  "Complex64": numpy.complex128,
-                  }
+        ttypes = ["Complex32",
+                  "Complex64",
+                  ]
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_ComplexAtom..." % self.__class__.__name__
 
         # Create an string atom
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype]))
+                                               atom_from_sctype(atype))
             vlarray.append([(1.3+0j),(0+2.2j),(3.3+3.3j)])
             vlarray.append([(0-1.3e34j),(1.e-32+0j)])
 
@@ -950,9 +956,9 @@ class TypesTestCase(unittest.TestCase):
 
             assert vlarray.nrows == 2
             assert allequal(row[0], numpy.array([(1.4+0j),(0+4.2j),(3.3+4.3j)],
-                                                ttypes[atype]))
+                                                atype))
             assert allequal(row[1], numpy.array([(4-1.3e34j),(1.e-32+4j)],
-                                                ttypes[atype]))
+                                                atype))
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
@@ -1119,7 +1125,7 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, shape=(2,)),
+                                           StringAtom(itemsize=3, shape=(2,)),
                                            "Ragged array of strings")
         vlarray.append([["123", "45"],["45", "123"]])
         vlarray.append([["s", "abc"],["abc", "f"],
@@ -1149,9 +1155,9 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, shape=(2,),
-                                                      flavor="python"),
-                                           "Ragged array of strings")
+                                           StringAtom(itemsize=3, shape=(2,)),
+                                           "Ragged array of strings",
+                                           flavor="python")
         vlarray.append([["123", "45"],["45", "123"]])
         vlarray.append([["s", "abc"],["abc", "f"],
                         ["s", "ab"],["ab", "f"]])
@@ -1181,9 +1187,9 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, shape=(2,),
-                                                      flavor="python"),
-                                           "Ragged array of strings")
+                                           StringAtom(itemsize=3, shape=(2,)),
+                                           "Ragged array of strings",
+                                           flavor="python")
         a = numpy.array([["a","b"],["123", "45"],["45", "123"]], dtype="S3")
         vlarray.append(a[1:])
         a = numpy.array([["s", "a"],["ab", "f"],
@@ -1215,9 +1221,9 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
-                                           StringAtom(length=3, shape=(2,),
-                                                      flavor="python"),
-                                           "Ragged array of strings")
+                                           StringAtom(itemsize=3, shape=(2,)),
+                                           "Ragged array of strings",
+                                           flavor="python")
         a = numpy.array([["a","b"],["123", "45"],["45", "123"]], dtype="S3")
         vlarray.append(a[1::2])
         a = numpy.array([["s", "a"],["ab", "f"],
@@ -1329,28 +1335,27 @@ class MDTypesTestCase(unittest.TestCase):
     def test03_IntAtom(self):
         """Checking vlarray with MD integer atoms"""
 
-        ttypes = {"Int8": numpy.int8,
-                  "UInt8": numpy.uint8,
-                  "Int16": numpy.int16,
-                  "UInt16": numpy.uint16,
-                  "Int32": numpy.int32,
-                  "UInt32": numpy.uint32,
-                  "Int64": numpy.int64,
-                  #"UInt64": numpy.int64,  # Unavailable in some platforms
-                  }
+        ttypes = ["Int8",
+                  "UInt8",
+                  "Int16",
+                  "UInt16",
+                  "Int32",
+                  "UInt32",
+                  "Int64",
+                  #"UInt64",  # Unavailable in some platforms
+                  ]
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
         # Create an string atom
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype],
-                                                    shape = (2,3)))
-            vlarray.append([numpy.ones((2,3), ttypes[atype]),
-                            numpy.zeros((2,3), ttypes[atype])])
-            vlarray.append([numpy.ones((2,3), ttypes[atype])*100])
+                                               atom_from_sctype(atype, (2,3)))
+            vlarray.append([numpy.ones((2,3), atype),
+                            numpy.zeros((2,3), atype)])
+            vlarray.append([numpy.ones((2,3), atype)*100])
 
             # Read all the rows:
             row = vlarray.read()
@@ -1362,33 +1367,32 @@ class MDTypesTestCase(unittest.TestCase):
             assert vlarray.nrows == 2
             assert allequal(row[0], numpy.array([numpy.ones((2,3)),
                                                  numpy.zeros((2,3))],
-                                                ttypes[atype]))
+                                                atype))
             assert allequal(row[1], numpy.array([numpy.ones((2,3))*100],
-                                                ttypes[atype]))
+                                                atype))
             assert len(row[0]) == 2
             assert len(row[1]) == 1
 
     def test04_FloatAtom(self):
         """Checking vlarray with MD floating point atoms"""
 
-        ttypes = {"Float32": numpy.float32,
-                  "Float64": numpy.float64,
-                  "Complex32": numpy.complex64,
-                  "Complex64": numpy.complex128
-                  }
+        ttypes = ["Float32",
+                  "Float64",
+                  "Complex32",
+                  "Complex64",
+                  ]
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_FloatAtom..." % self.__class__.__name__
 
         # Create an string atom
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype],
-                                                    shape=(5,2,6)))
-            vlarray.append([numpy.ones((5,2,6), ttypes[atype])*1.3,
-                            numpy.zeros((5,2,6), ttypes[atype])])
-            vlarray.append([numpy.ones((5,2,6), ttypes[atype])*2.e4])
+                                               atom_from_sctype(atype, (5,2,6)))
+            vlarray.append([numpy.ones((5,2,6), atype)*1.3,
+                            numpy.zeros((5,2,6), atype)])
+            vlarray.append([numpy.ones((5,2,6), atype)*2.e4])
 
             # Read all the rows:
             row = vlarray.read()
@@ -1400,9 +1404,9 @@ class MDTypesTestCase(unittest.TestCase):
             assert vlarray.nrows == 2
             assert allequal(row[0], numpy.array([numpy.ones((5,2,6))*1.3,
                                                  numpy.zeros((5,2,6))],
-                                                ttypes[atype]))
+                                                atype))
             assert allequal(row[1], numpy.array([numpy.ones((5,2,6))*2.e4],
-                                                ttypes[atype]))
+                                                atype))
             assert len(row[0]) == 2
             assert len(row[1]) == 1
 
@@ -1437,19 +1441,12 @@ class AppendShapeTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'vlarray',
-                                           Int32Atom(flavor="python"),
-                                           "Ragged array of ints")
+                                           Int32Atom(),
+                                           "Ragged array of ints",
+                                           flavor="python")
 
         # Check different ways to input
-        ## Strange filtering behaviour... (Python #1191104).
-        ## warnings.filterwarnings("error", category=DeprecationWarning)
-        ## self.assertRaises(DeprecationWarning, vlarray.append, 1, 2, 3)
-        ## warnings.filterwarnings("default", category=DeprecationWarning)
-
         # All of the next should lead to the same rows
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
-        vlarray.append(1,2,3) # a list of parameters
-        warnings.filterwarnings("default", category=DeprecationWarning)
         vlarray.append((1,2,3)) # a tuple
         vlarray.append([1,2,3]) # a unique list
         vlarray.append(numpy.array([1,2,3], dtype='int32')) # and array
@@ -1468,11 +1465,10 @@ class AppendShapeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 4
+        assert vlarray.nrows == 3
         assert row[0] == [1,2,3]
         assert row[1] == [1,2,3]
         assert row[2] == [1,2,3]
-        assert row[3] == [1,2,3]
 
     def test01_toomanydims(self):
         """Checking vlarray.append() with too many dimensions"""
@@ -1484,7 +1480,7 @@ class AppendShapeTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'vlarray',
-                                           StringAtom(length=3),
+                                           StringAtom(itemsize=3),
                                            "Ragged array of strings")
         # Adding an array with one dimensionality more than allowed
         try:
@@ -1646,8 +1642,8 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, "vlarray",
-                                           IntAtom(itemsize=4,
-                                                   flavor=self.flavor))
+                                           atom_from_kind('int', itemsize=4),
+                                           flavor=self.flavor)
         self.fileh.close()
         self.fileh = openFile(self.file, "r")
         # Read all the rows (it should be empty):
@@ -1671,8 +1667,8 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, "vlarray",
-                                           IntAtom(itemsize=4,
-                                                   flavor=self.flavor))
+                                           atom_from_kind('int', itemsize=4),
+                                           flavor=self.flavor)
         # Read all the rows (it should be empty):
         row = vlarray.read()
         if verbose:
@@ -1693,7 +1689,7 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, "Bool",
-                                           BoolAtom(flavor=self.flavor))
+                                           BoolAtom(), flavor=self.flavor)
         vlarray.append([1,2,3])
         vlarray.append(())   # Empty row
         vlarray.append([100,0])
@@ -1740,28 +1736,28 @@ class FlavorTestCase(unittest.TestCase):
     def test03_IntAtom(self):
         """Checking vlarray with different flavors (integer versions)"""
 
-        ttypes = {"Int8": numpy.int8,
-                  "UInt8": numpy.uint8,
-                  "Int16": numpy.int16,
-                  "UInt16": numpy.uint16,
-                  "Int32": numpy.int32,
+        ttypes = ["Int8",
+                  "UInt8",
+                  "Int16",
+                  "UInt16",
+                  "Int32",
                   # Not checked because of Numeric <-> numarray
                   # conversion problems
-                  #"UInt32": UInt32,
-                  #"Int64": Int64,
+                  #"UInt32",
+                  #"Int64",
                   # Not checked because some platforms does not support it
-                  #"UInt64": UInt64,
-                  }
+                  #"UInt64",
+                  ]
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
         # Create an string atom
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype],
-                                                    flavor=self.flavor))
+                                               atom_from_sctype(atype),
+                                               flavor=self.flavor)
             vlarray.append([1,2,3])
             vlarray.append(())
             vlarray.append([100,0])
@@ -1783,13 +1779,14 @@ class FlavorTestCase(unittest.TestCase):
                 arr2 = []
                 arr3 = [100,0]
             elif self.flavor == "numpy":
-                arr1 = numpy.array([1,2,3], dtype=ttypes[atype])
-                arr2 = numpy.array([], dtype=ttypes[atype])
-                arr3 = numpy.array([100,0], dtype=ttypes[atype])
+                arr1 = numpy.array([1,2,3], dtype=atype)
+                arr2 = numpy.array([], dtype=atype)
+                arr3 = numpy.array([100,0], dtype=atype)
             elif self.flavor == "numeric":
-                arr1 = Numeric.array([1,2,3], typecode=typecode[atype])
-                arr2 = Numeric.array([], typecode=typecode[atype])
-                arr3 = Numeric.array([100,0], typecode=typecode[atype])
+                type_ = numpy.dtype(atype).base.name
+                arr1 = Numeric.array([1,2,3], typecode=typecode[type_])
+                arr2 = Numeric.array([], typecode=typecode[type_])
+                arr3 = Numeric.array([100,0], typecode=typecode[type_])
             elif self.flavor == "numarray":
                 arr1 = numarray.array([1,2,3], type=atype)
                 arr2 = numarray.array([], type=atype)
@@ -1808,28 +1805,28 @@ class FlavorTestCase(unittest.TestCase):
     def test03b_IntAtom(self):
         """Checking vlarray flavors (integer versions and closed file)"""
 
-        ttypes = {"Int8": numpy.int8,
-                  "UInt8": numpy.uint8,
-                  "Int16": numpy.int16,
-                  "UInt16": numpy.uint16,
-                  "Int32": numpy.int32,
+        ttypes = ["Int8",
+                  "UInt8",
+                  "Int16",
+                  "UInt16",
+                  "Int32",
                   # Not checked because of Numeric <-> NumPy
                   # conversion problems
-                  #"UInt32": UInt32,
-                  #"Int64": Int64,
+                  #"UInt32",
+                  #"Int64",
                   # Not checked because some platforms does not support it
-                  #"UInt64": UInt64,
-                  }
+                  #"UInt64",
+                  ]
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
         # Create an string atom
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype],
-                                                    flavor=self.flavor))
+                                               atom_from_sctype(atype),
+                                               flavor=self.flavor)
             vlarray.append([1,2,3])
             vlarray.append(())
             vlarray.append([100,0])
@@ -1854,13 +1851,14 @@ class FlavorTestCase(unittest.TestCase):
                 arr2 = []
                 arr3 = [100,0]
             elif self.flavor == "numpy":
-                arr1 = numpy.array([1,2,3], dtype=ttypes[atype])
-                arr2 = numpy.array([], dtype=ttypes[atype])
-                arr3 = numpy.array([100,0], dtype=ttypes[atype])
+                arr1 = numpy.array([1,2,3], dtype=atype)
+                arr2 = numpy.array([], dtype=atype)
+                arr3 = numpy.array([100,0], dtype=atype)
             elif self.flavor == "numeric":
-                arr1 = Numeric.array([1,2,3], typecode=typecode[atype])
-                arr2 = Numeric.array([], typecode=typecode[atype])
-                arr3 = Numeric.array([100,0], typecode=typecode[atype])
+                type_ = numpy.dtype(atype).base.name
+                arr1 = Numeric.array([1,2,3], typecode=typecode[type_])
+                arr2 = Numeric.array([], typecode=typecode[type_])
+                arr3 = Numeric.array([100,0], typecode=typecode[type_])
             elif self.flavor == "numarray":
                 arr1 = numarray.array([1,2,3], type=atype)
                 arr2 = numarray.array([], type=atype)
@@ -1880,21 +1878,21 @@ class FlavorTestCase(unittest.TestCase):
         """Checking vlarray with different flavors (floating point versions)"""
 
 
-        ttypes = {"Float32": numpy.float32,
-                  "Float64": numpy.float64,
-                  "Complex32": numpy.complex64,
-                  "Complex64": numpy.complex128
-                  }
+        ttypes = ["Float32",
+                  "Float64",
+                  "Complex32",
+                  "Complex64",
+                  ]
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_FloatAtom..." % self.__class__.__name__
 
         # Create an string atom
-        for atype in ttypes.iterkeys():
+        for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom(ttypes[atype],
-                                                    flavor=self.flavor))
+                                               atom_from_sctype(atype),
+                                               flavor=self.flavor)
             vlarray.append([1.3,2.2,3.3])
             vlarray.append(())
             vlarray.append([-1.3e34,1.e-32])
@@ -1912,17 +1910,18 @@ class FlavorTestCase(unittest.TestCase):
             assert len(row[1]) == 0
             assert len(row[2]) == 2
             if self.flavor == "python":
-                arr1 = list(numpy.array([1.3,2.2,3.3], ttypes[atype]))
-                arr2 = list(numpy.array([], ttypes[atype]))
-                arr3 = list(numpy.array([-1.3e34,1.e-32], ttypes[atype]))
+                arr1 = list(numpy.array([1.3,2.2,3.3], atype))
+                arr2 = list(numpy.array([], atype))
+                arr3 = list(numpy.array([-1.3e34,1.e-32], atype))
             elif self.flavor == "numpy":
-                arr1 = numpy.array([1.3,2.2,3.3], dtype=ttypes[atype])
-                arr2 = numpy.array([], dtype=ttypes[atype])
-                arr3 = numpy.array([-1.3e34,1.e-32], dtype=ttypes[atype])
+                arr1 = numpy.array([1.3,2.2,3.3], dtype=atype)
+                arr2 = numpy.array([], dtype=atype)
+                arr3 = numpy.array([-1.3e34,1.e-32], dtype=atype)
             elif self.flavor == "numeric":
-                arr1 = Numeric.array([1.3,2.2,3.3], typecode[atype])
-                arr2 = Numeric.array([], typecode[atype])
-                arr3 = Numeric.array([-1.3e34,1.e-32], typecode[atype])
+                type_ = numpy.dtype(atype).base.name
+                arr1 = Numeric.array([1.3,2.2,3.3], typecode[type_])
+                arr2 = Numeric.array([], typecode[type_])
+                arr3 = Numeric.array([-1.3e34,1.e-32], typecode[type_])
             elif self.flavor == "numarray":
                 arr1 = numarray.array([1.3,2.2,3.3], type=atype)
                 arr2 = numarray.array([], type=atype)
@@ -3020,8 +3019,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an Vlarray
-        arr = Int16Atom(shape=2, flavor="python")
-        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1")
+        arr = Int16Atom(shape=2)
+        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1",
+                                     flavor="python")
         array1.append([[2,3]])
         array1.append(())  # an empty row
         array1.append([[3, 457],[2,4]])
@@ -3057,7 +3057,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
-        assert array1.atom.flavor == array2.atom.flavor
+        assert array1.flavor == array2.flavor
         assert array1.atom.dtype == array2.atom.dtype
         assert repr(array1.atom) == repr(array1.atom)
 
@@ -3079,8 +3079,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an VLArray
-        arr = Int16Atom(shape=2, flavor="python")
-        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1")
+        arr = Int16Atom(shape=2)
+        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1",
+                                     flavor="python")
         array1.append([[2,3]])
         array1.append(())  # an empty row
         array1.append([[3, 457],[2,4]])
@@ -3117,7 +3118,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
-        assert array1.atom.flavor == array2.atom.flavor
+        assert array1.flavor == array2.flavor
         assert array1.atom.dtype == array2.atom.dtype
         assert repr(array1.atom) == repr(array1.atom)
         assert array1.title == array2.title
@@ -3139,11 +3140,12 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an VLArray
         if numarray_imported:
-            arr = Int16Atom(shape=2, flavor="numarray")
+            flavor = "numarray"
         else:
-            arr = Int16Atom(shape=2, flavor="numpy")
+            flavor = "numpy"
+        arr = Int16Atom(shape=2)
         array1 = fileh.createVLArray(fileh.root, 'array1', arr,
-                                     "title array1")
+                                     "title array1", flavor=flavor)
         array1.append([[2,3]])
         array1.append(())  # an empty row
         array1.append([[3, 457],[2,4]])
@@ -3173,7 +3175,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
-        assert array1.atom.flavor == array2.atom.flavor  # Very important here
+        assert array1.flavor == array2.flavor  # Very important here
         assert array1.atom.dtype == array2.atom.dtype
         assert repr(array1.atom) == repr(array1.atom)
         assert array1.title == array2.title
@@ -3195,11 +3197,12 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an VLArray
         if numeric_imported:
-            arr = Int16Atom(shape=2, flavor="numeric")
+            flavor = "numeric"
         else:
-            arr = Int16Atom(shape=2, flavor="numpy")
+            flavor = "numpy"
+        arr = Int16Atom(shape=2)
         array1 = fileh.createVLArray(fileh.root, 'array1', arr,
-                                     "title array1")
+                                     "title array1", flavor=flavor)
         array1.append([[2,3]])
         array1.append(())  # an empty row
         array1.append([[3, 457],[2,4]])
@@ -3229,7 +3232,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
-        assert array1.atom.flavor == array2.atom.flavor  # Very important here
+        assert array1.flavor == array2.flavor  # Very important here
         assert array1.atom.dtype == array2.atom.dtype
         assert repr(array1.atom) == repr(array1.atom)
         assert array1.title == array2.title
@@ -3250,9 +3253,9 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an VLArray
-        arr = Int16Atom(shape=2, flavor="python")
+        arr = Int16Atom(shape=2)
         array1 = fileh.createVLArray(fileh.root, 'array1', arr,
-                                     "title array1")
+                                     "title array1", flavor="python")
         array1.append(((2,3),))
         array1.append(())  # an empty row
         array1.append(((3, 457),(2,4)))
@@ -3282,7 +3285,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.shape == array2.shape
-        assert array1.atom.flavor == array2.atom.flavor  # Very important here
+        assert array1.flavor == array2.flavor  # Very important here
         assert array1.atom.dtype == array2.atom.dtype
         assert repr(array1.atom) == repr(array1.atom)
         assert array1.title == array2.title
@@ -3467,8 +3470,9 @@ class CopyIndexTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an VLArray
-        atom = Int32Atom(shape=(2,), flavor="python")
-        array1 = fileh.createVLArray(fileh.root, 'array1', atom, "t array1")
+        atom = Int32Atom(shape=(2,))
+        array1 = fileh.createVLArray(fileh.root, 'array1', atom, "t array1",
+                                     flavor="python")
         # The next creates 20 rows of variable length
         r = []
         for row in range(20):

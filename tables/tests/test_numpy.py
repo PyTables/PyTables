@@ -70,16 +70,16 @@ class BasicTestCase(unittest.TestCase):
             print "Array read itemsize:", b.itemsize
             print "Array read type:", b.dtype.char
 
-        ptype = self.root.somearray.ptype
+        type_ = self.root.somearray.type
         # Check strictly the array equality
         assert type(a) == type(b)
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         assert a.dtype == b.dtype
         if a.dtype.char[0] == "S":
-            assert ptype == "String"
+            assert type_ == "string"
         else:
-            assert typeNA[a.dtype.type] == ptype
+            assert a.dtype.base.name == type_
 
         assert allequal(a,b, "numpy")
         self.fileh.close()
@@ -374,20 +374,20 @@ class GroupsArrayTestCase(unittest.TestCase):
 
 # Test Record class
 class Record(IsDescription):
-    var1  = StringCol(length=4, dflt="abcd", pos=0)
-    var2  = StringCol(length=1, dflt="a", pos=1)
-    var3  = BoolCol(1)  # Typecode == '1' in Numeric. 'B' in numarray
-    var4  = Int8Col(1)
-    var5  = UInt8Col(1)
-    var6  = Int16Col(1)
-    var7  = UInt16Col(1)
-    var8  = Int32Col(1)
-    var9  = UInt32Col(1)
-    var10 = Int64Col(1)
-    var11 = Float32Col(1.0)
-    var12 = Float64Col(1.0)
-    var13 = Complex32Col((1.+0.j))
-    var14 = Complex64Col((1.+0.j))
+    var1  = StringCol(itemsize=4, dflt="abcd", pos=0)
+    var2  = StringCol(itemsize=1, dflt="a", pos=1)
+    var3  = BoolCol(dflt=1)  # Typecode == '1' in Numeric. 'B' in numarray
+    var4  = Int8Col(dflt=1)
+    var5  = UInt8Col(dflt=1)
+    var6  = Int16Col(dflt=1)
+    var7  = UInt16Col(dflt=1)
+    var8  = Int32Col(dflt=1)
+    var9  = UInt32Col(dflt=1)
+    var10 = Int64Col(dflt=1)
+    var11 = Float32Col(dflt=1.0)
+    var12 = Float64Col(dflt=1.0)
+    var13 = ComplexCol(itemsize=8, dflt=(1.+0.j))
+    var14 = ComplexCol(itemsize=16, dflt=(1.+0.j))
 
 
 class TableReadTestCase(common.PyTablesTestCase):
@@ -416,10 +416,10 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numpy")
-            typecol = table.colptypes[colname]
+            typecol = table.coltypes[colname]
             itemsizecol = table.description._v_dtypes[colname].base.itemsize
             nctypecode = numcol.dtype.char
-            if typecol == "String":
+            if typecol == "string":
                 if itemsizecol > 1:
                     orignumcol = array(['abcd']*self.nrows, dtype='S4')
                 else:
@@ -440,12 +440,12 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numpy")
-            typecol = table.colptypes[colname]
+            typecol = table.coltypes[colname]
             nctypecode = typeNA[numcol.dtype.char[0]]
-            if typecol <> "String":
+            if typecol <> "string":
                 if verbose:
                     print "Typecode of NumPy column read:", nctypecode
-                    print "Should look like:", typeNA[typecol]
+                    print "Should look like:", typecol
                 orignumcol = ones(shape=self.nrows, dtype=numcol.dtype.char)
                 # Check that both NumPy objects are equal
                 assert allequal(numcol, orignumcol, "numpy")
@@ -460,10 +460,10 @@ class TableReadTestCase(common.PyTablesTestCase):
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname,
                                            flavor="numpy")
-            typecol = table.colptypes[colname]
+            typecol = table.coltypes[colname]
             itemsizecol = table.description._v_dtypes[colname].base.itemsize
             nctypecode = numcol.dtype.char
-            if typecol == "String":
+            if typecol == "string":
                 if itemsizecol > 1:
                     orignumcol = array(['abcd']*self.nrows, dtype='S4')
                 else:
@@ -487,14 +487,14 @@ class TableReadTestCase(common.PyTablesTestCase):
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname,
                                            flavor="numpy")
-            typecol = table.colptypes[colname]
-            type = numcol.dtype.type
-            if typecol <> "String":
-                if typecol == "Int64":
+            typecol = table.coltypes[colname]
+            type_ = numcol.dtype.type
+            if typecol <> "string":
+                if typecol == "int64":
                     return
                 if verbose:
-                    print "Type of read NumPy column:", type
-                    print "Should look like:", typeNA[typecol]
+                    print "Type of read NumPy column:", type_
+                    print "Should look like:", typecol
                 orignumcol = ones(shape=self.nrows, dtype=numcol.dtype.char)
                 # Check that both NumPy objects are equal
                 assert allequal(numcol, orignumcol, "numpy")
@@ -506,15 +506,15 @@ class TableReadTestCase(common.PyTablesTestCase):
         coords = numpy.array([1,2,3], dtype='int8')
         for colname in table.colnames:
             numcol = [ table[coord][colname] for coord in coords ]
-            typecol = table.colptypes[colname]
-            if typecol <> "String":
-                if typecol == "Int64":
+            typecol = table.coltypes[colname]
+            if typecol <> "string":
+                if typecol == "int64":
                     return
-                numcol = numpy.array(numcol, typeNA[typecol])
+                numcol = numpy.array(numcol, typecol)
                 if verbose:
-                    type = numcol.dtype.type
-                    print "Type of read NumPy column:", type
-                    print "Should look like:", typeNA[typecol]
+                    type_ = numcol.dtype.type
+                    print "Type of read NumPy column:", type_
+                    print "Should look like:", typecol
                 orignumcol = ones(shape=len(numcol), dtype=numcol.dtype.char)
                 # Check that both NumPy objects are equal
                 assert allequal(numcol, orignumcol, "numpy")
@@ -548,30 +548,30 @@ class TableReadTestCase(common.PyTablesTestCase):
 # The declaration of the nested table:
 class Info(IsDescription):
     _v_pos = 3
-    Name = StringCol(length=2)
-    Value = Complex64Col()
+    Name = StringCol(itemsize=2)
+    Value = ComplexCol(itemsize=16)
 
 class TestTDescr(IsDescription):
 
     """A description that has several nested columns."""
 
     _v_flavor = "numpy"     # The default would be returning numpy objects on reads
-    x = Int32Col(0, shape=2, pos=0) #0
-    y = FloatCol(1, shape=(2,2))
-    z = UInt8Col(1)
-    z3 = EnumCol({'r':4, 'g':2, 'b':1}, 'r', shape=2)
-    color = StringCol(4, "ab", pos=2)
+    x = Int32Col(dflt=0, shape=2, pos=0) #0
+    y = col_from_kind('float', dflt=1, shape=(2,2))
+    z = UInt8Col(dflt=1)
+    z3 = EnumCol({'r':4, 'g':2, 'b':1}, 'r', 'int32', shape=2)
+    color = StringCol(itemsize=4, dflt="ab", pos=2)
     info = Info()
     class Info(IsDescription): #1
         _v_pos = 1
-        name = StringCol(length=2)
-        value = Complex64Col(pos=0) #0
-        y2 = FloatCol(pos=1) #1
+        name = StringCol(itemsize=2)
+        value = ComplexCol(itemsize=16, pos=0) #0
+        y2 = col_from_kind('float', pos=1) #1
         z2 = UInt8Col()
         class Info2(IsDescription):
             y3 = Time64Col(shape=2)
-            name = StringCol(length=2)
-            value = Complex64Col(shape=2)
+            name = StringCol(itemsize=2)
+            value = ComplexCol(itemsize=16, shape=2)
 
 
 class TableNativeFlavorTestCase(common.PyTablesTestCase):
@@ -1213,7 +1213,7 @@ class StrlenTestCase(common.PyTablesTestCase):
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
         group = self.fileh.createGroup(self.fileh.root, 'group')
-        tablelayout = {'_v_flavor':'numpy', 'Text': StringCol(length=1000),}
+        tablelayout = {'_v_flavor':'numpy', 'Text': StringCol(itemsize=1000),}
         self.table = self.fileh.createTable(group, 'table', tablelayout)
         row = self.table.row
         row['Text'] = 'Hello Francesc!'
@@ -1310,7 +1310,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(StrlenCloseTestCase))
         if heavy:
             theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
-            # The 32 dimensions case thakes forever to run!!
+            # The 32 dimensions case takes forever to run!!
             # theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
     return theSuite
 

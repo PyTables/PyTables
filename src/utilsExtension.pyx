@@ -26,8 +26,9 @@ import numpy
 
 from tables.exceptions import HDF5ExtError
 from tables.enum import Enum
-from tables.IsDescription import Description, StringCol, EnumCol, \
-     Time32Col, Time64Col
+from tables.atom import atom_from_dtype
+from tables.IsDescription import Description, EnumCol, \
+     col_from_kind, col_from_sctype
 
 from tables.utils import checkFileAccess
 
@@ -99,8 +100,6 @@ cdef extern from "typeconv.h":
 # The NumPy API requires this function to be called before
 # using any NumPy facilities in an extension module.
 import_array()
-
-isdescr_mod = __import__("tables.IsDescription")
 
 if sys.platform == "win32":
   # We need a different approach in Windows, because it compains when
@@ -462,7 +461,7 @@ def getTypeEnum(hid_t h5type):
 
 
 def enumFromHDF5(hid_t enumId, char *byteorder):
-  """_enumFromHDF5(enumId) -> (Enum, npType)
+  """enumFromHDF5(enumId) -> (Enum, npType)
   Convert an HDF5 enumerated type to a PyTables one.
 
   This function takes an HDF5 enumerated type and returns an `Enum`
@@ -537,12 +536,12 @@ sorry, only integer concrete values are supported at this moment""")
   return Enum(enumDict), dtype
 
 
-def enumToHDF5(object enumCol, char *byteorder):
-  """enumToHDF5(enumCol, byteorder) -> hid_t
+def enumToHDF5(object enumAtom, char *byteorder):
+  """enumToHDF5(enumAtom, byteorder) -> hid_t
   Convert a PyTables enumerated type to an HDF5 one.
 
   This function creates an HDF5 enumerated type from the information
-  contained in `enumCol` (a ``Col`` object), with the specified
+  contained in `enumAtom` (an ``Atom`` object), with the specified
   `byteorder` (a string).  The resulting HDF5 enumerated type is
   returned.
   """
@@ -556,8 +555,8 @@ def enumToHDF5(object enumCol, char *byteorder):
   cdef ndarray npValues
 
   # Get the base HDF5 type and create the enumerated type.
-  npenum = NPTypeToCode[enumCol.dtype.base.type]
-  itemsize = enumCol.dtype.base.itemsize
+  npenum = NPTypeToCode[enumAtom.dtype.base.type]
+  itemsize = enumAtom.dtype.base.itemsize
   baseId = convArrayType(npenum, itemsize, byteorder)
   if baseId < 0:
     raise HDF5ExtError("failed to convert NumPy base type to HDF5")
@@ -571,12 +570,12 @@ def enumToHDF5(object enumCol, char *byteorder):
       raise HDF5ExtError("failed to close HDF5 base type")
 
   # Set the name and value of each of the members.
-  naNames = enumCol._npNames
-  npValues = enumCol._npValues
+  npNames = enumAtom._names
+  npValues = enumAtom._values
   bytestride = npValues.strides[0]
   rbuffer = npValues.data
-  for i from 0 <= i < len(naNames):
-    name = PyString_AsString(naNames[i])
+  for i from 0 <= i < len(npNames):
+    name = PyString_AsString(npNames[i])
     rbuf = <void *>(<char *>rbuffer + bytestride * i)
     if H5Tenum_insert(enumId, name, rbuf) < 0:
       if H5Tclose(enumId) < 0:
@@ -604,27 +603,27 @@ def conv2HDF5Type(object col, char *byteorder):
     for i from  0 <= i < rank:
       dims[i] = col.dtype.shape[i]
   # Create the column type
-  if col.ptype in PTTypeToHDF5:
+  if col.type in PTTypeToHDF5:
     if scalar:
-      tid = H5Tcopy(PTTypeToHDF5[col.ptype])
+      tid = H5Tcopy(PTTypeToHDF5[col.type])
     else:
-      tid = H5Tarray_create(PTTypeToHDF5[col.ptype], rank, dims, NULL)
+      tid = H5Tarray_create(PTTypeToHDF5[col.type], rank, dims, NULL)
     # All types in PTTypeToHDF5 needs to fix the byte order
     # but this may change in the future!
     set_order(tid, byteorder)
-  elif col.ptype in PTSpecialTypes:
+  elif col.kind in PTSpecialKinds:
     # Special cases
-    if col.ptype == 'Bool':
+    if col.kind == 'bool':
       tid = H5Tcopy(H5T_STD_B8)
-      H5Tset_precision(tid, 1)
-    elif col.ptype == 'Complex32':
+      H5Tset_precision(tid, col.itemsize)
+    elif col.type == 'complex64':
       tid = create_ieee_complex64(byteorder)
-    elif col.ptype == 'Complex64':
+    elif col.type == 'complex128':
       tid = create_ieee_complex128(byteorder)
-    elif col.ptype == 'String':
+    elif col.kind == 'string':
       tid = H5Tcopy(H5T_C_S1);
-      H5Tset_size(tid, col.dtype.base.itemsize)
-    elif col.ptype == 'Enum':
+      H5Tset_size(tid, col.itemsize)
+    elif col.kind == 'enum':
       tid = enumToHDF5(col, byteorder)
     if not scalar:
       tid2 = H5Tarray_create(tid, rank, dims, NULL)
@@ -632,7 +631,7 @@ def conv2HDF5Type(object col, char *byteorder):
       tid = tid2
   else:
     raise TypeError("Invalid type for column %s: %s" % \
-                    (col._v_name, col.ptype))
+                    (col._v_name, col.type))
 
   # Release resources
   if dims:
@@ -795,32 +794,19 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
                                                      H5T_DIR_DEFAULT)
         # Create the Col object.
         # Indexes will be treated later on, in Table._open()
-        if colstype[0] == 'a':
-          tsize = int(colstype[1:])
-          colobj = StringCol(length = tsize, shape = colshape, pos = i)
-        elif colstype == 'e':
-          colpath2 = _joinPath(colpath, colname)
+        if colstype == 'e':
           (enum, nptype) = table._g_loadEnum(native_member_type_id)
           # Take one of the names as the default in the enumeration.
           dflt = iter(enum).next()[0]
-          colobj = EnumCol(enum, dflt, dtype = nptype, shape = colshape,
-                           pos = i)
-        elif colstype[0] == 't':
-          #tsize = int(colstype[1:])
-          #colobj = TimeCol(itemsize = tsize, shape = colshape, pos = i)
-          # Make the columns descend from a more specific classes
-          # (this is better for representation -- repr() -- purposes)
-          if colstype == 't4':
-            colobj = Time32Col(shape = colshape, pos = i)
-          else:  # has to be 't8'
-            colobj = Time64Col(shape = colshape, pos = i)
+          base = atom_from_dtype(nptype)
+          colobj = EnumCol(enum, dflt, base, shape=colshape, pos=i)
+        elif colstype[0] in 'at':
+          kind = {'a': 'string', 't': 'time'}[colstype[0]]
+          tsize = int(colstype[1:])
+          colobj = col_from_kind(kind, tsize, shape=colshape, pos=i)
         else:
-          #colobj = Col(dtype = colstype, shape = colshape, pos = i)
-          # Make the columns instantiate from a more specific classes
-          # (this is better for representation -- repr() -- purposes)
-          typeclassname = numpy.sctypeNA[numpy.sctypeDict[colstype]] + "Col"
-          typeclass = getattr(isdescr_mod, typeclassname)
-          colobj = typeclass(shape = colshape, pos = i)
+          sctype = numpy.sctypeDict[colstype]
+          colobj = col_from_sctype(sctype, shape=colshape, pos=i)
         desc[colname] = colobj
         # If *any* column has a different byteorder than sys, it is
         # changed here. This should be further refined for columns

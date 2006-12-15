@@ -57,19 +57,19 @@ if '--heavy' in sys.argv:
 
 # Map between PyTables types and Numeric typecodes
 typecode = {
-    'Bool': 'B',
-    'Int8': '1',
-    'Int16': 's',
-    'Int32': 'i',
-    'Int64': 'N',
-    'UInt8': 'b',
-    'UInt16': 'w',
-    'UInt32': 'u',
-    'UInt64': 'U',
-    'Float32': 'f',
-    'Float64': 'd',
-    'Complex64': 'D',
-    'Complex32': 'F',
+    'bool': 'B',
+    'int8': '1',
+    'int16': 's',
+    'int32': 'i',
+    'int64': 'N',
+    'uint8': 'b',
+    'uint16': 'w',
+    'uint32': 'u',
+    'uint64': 'U',
+    'float32': 'f',
+    'float64': 'd',
+    'complex64': 'F',
+    'complex128': 'D',
     }
 
 def verbosePrint(string, nonl=False):

@@ -9,9 +9,6 @@ with ptdump or any HDF5 generic utility.
 
 from tables import *
 
-# An example of an enumerated structure
-colors = Enum(['red', 'green', 'blue'])
-
         #'-**-**-**-**- The sample nested class description  -**-**-**-**-**-'
 
 class Info(IsDescription):
@@ -20,17 +17,19 @@ class Info(IsDescription):
     name = StringCol(10)
     value = Float64Col(pos=0)
 
+colors = Enum(['red', 'green', 'blue'])
+
 class NestedDescr(IsDescription):
     """A description that has several nested columns"""
-    color = EnumCol(colors, 'red', dtype='UInt32', indexed=1) # indexed column
+    color = EnumCol(colors, 'red', base='uint32')
     info1 = Info()
     class info2(IsDescription):
         _v_pos = 1
         name = StringCol(10)
         value = Float64Col(pos=0)
         class info3(IsDescription):
-            x = FloatCol(1)
-            y = UInt8Col(1)
+            x = Float64Col(dflt=1)
+            y = UInt8Col(dflt=1)
 
 print
 print   '-**-**-**-**-**-**- file creation  -**-**-**-**-**-**-**-'
@@ -56,13 +55,23 @@ for i in range(10):
     row.append()
 
 table.flush()  # flush the row buffer to disk
+print repr(table.nrows)
 
 nra = table[::4]
+print nra
 # Append some additional rows
 table.append(nra)
+print repr(table.nrows)
 
 # Create a new table
 table2 = fileh.createTable(fileh.root, 'table2', nra)
+print repr(table2[:])
+
+# Read also the info2/name values with color == colors.red
+names = [ x['info2/name'] for x in table if x['color'] == colors.red ]
+
+print
+print "**** info2/name elements satisfying color == 'red':", repr(names)
 
 print
 print   '-**-**-**-**-**-**- table data reading & selection  -**-**-**-**-**-'
@@ -72,23 +81,36 @@ print
 print "**** table data contents:\n", table[:]
 
 print
-print "**** table.info2 data contents:\n", table.cols.info2[1:5]
+print "**** table.info2 data contents:\n", repr(table.cols.info2[1:5])
 
 print
-print "**** table.info2.info3 data contents:\n", table.cols.info2.info3[1:5]
+print "**** table.info2.info3 data contents:\n", repr(table.cols.info2.info3[1:5])
 
-# Read also the info2/name values with color == colors.red
-names = [ x['info2/name'] for x in table if x['color'] == colors.red ]
-
-print
-print "**** info2/name elements satisfying color == 'red':", names
+print "**** _f_col() ****"
+print repr(table.cols._f_col('info2'))
+print repr(table.cols._f_col('info2/info3/y'))
 
 print
 print   '-**-**-**-**-**-**- table metadata  -**-**-**-**-**-'
 
 # Read description metadata
 print
-print "**** table description (short):\n", table.description
+print "**** table description (short):\n", repr(table.description)
+print
+print "**** more from manual, period ***"
+print repr(table.description.info1)
+print repr(table.description.info2.info3)
+print repr(table.description._v_nestedNames)
+print repr(table.description.info1._v_nestedNames)
+print
+print "**** now some for nestedrecords, take that ****"
+from tables import nestedrecords
+print repr(table.description._v_nestedDescr)
+print repr(nestedrecords.array(None, descr=table.description._v_nestedDescr))
+print
+print "**** and some iteration over descriptions, too ****"
+for coldescr in table.description._f_walk():
+    print "column-->",coldescr
 print
 print "**** info2 sub-structure description:\n", table.description.info2
 print

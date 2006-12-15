@@ -33,14 +33,14 @@ class PyTables_DB(DB):
                                  complib=self.complib,
                                  shuffle=1)
         class Record(tables.IsDescription):
-            _v_indexprops = tables.IndexProps(filters=filters)
-            col1 = tables.IntCol()
-            col2 = tables.IntCol()
-            col3 = tables.FloatCol()
-            col4 = tables.FloatCol()
+            col1 = tables.Int32Col()
+            col2 = tables.Int32Col()
+            col3 = tables.Float64Col()
+            col4 = tables.Float64Col()
 
         table = con.createTable(con.root, 'table', Record,
                                 filters=filters, expectedrows=self.nrows)
+        table.indexprops = tables.IndexProps(filters=filters)
 
     def fill_table(self, con):
         "Fills the table"

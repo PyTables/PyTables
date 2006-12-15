@@ -2,10 +2,10 @@
 from tables import *
 class Particle(IsDescription):
     name        = StringCol(16, pos=1)   # 16-character String
-    lati        = ComplexCol(pos=2)        # Complex-64
-    longi       = Complex32Col(pos=3)
-    vector      = Complex32Col(shape=(2,), pos=4)
-    matrix2D    = Complex64Col(shape=(2,2), pos=5)
+    lati        = ComplexCol(itemsize=16, pos=2)
+    longi       = ComplexCol(itemsize=8, pos=3)
+    vector      = ComplexCol(itemsize=8, shape=(2,), pos=4)
+    matrix2D    = ComplexCol(itemsize=16, shape=(2,2), pos=5)
 
 # Open a file in "w"rite mode
 fileh = openFile("table3.h5", mode = "w")

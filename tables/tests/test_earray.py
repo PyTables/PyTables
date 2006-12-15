@@ -30,8 +30,8 @@ unittest.TestCase.tearDown = cleanup
 class BasicTestCase(unittest.TestCase):
     # Default values
     flavor = "numpy"
-    type = 'Int32'
-    dtype = 'Int32'
+    type = 'int32'
+    dtype = 'int32'
     shape = (2,0)
     start = 0
     stop = 10
@@ -58,17 +58,18 @@ class BasicTestCase(unittest.TestCase):
 
     def populateFile(self):
         group = self.rootgroup
-        if self.type == "String":
-            atom = StringAtom(length=self.length, flavor=self.flavor)
+        if self.type == "string":
+            atom = StringAtom(itemsize=self.length)
         else:
-            atom = Atom(dtype=self.dtype, flavor=self.flavor)
+            atom = atom_from_type(self.type)
         title = self.__class__.__name__
         filters = Filters(complevel = self.compress,
                           complib = self.complib,
                           shuffle = self.shuffle,
                           fletcher32 = self.fletcher32)
         earray = self.fileh.createEArray(group, 'earray1', atom, self.shape,
-                                         title, filters = filters,
+                                         title, flavor = self.flavor,
+                                         filters = filters,
                                          expectedrows = 1)
 
         # Fill it with rows
@@ -81,7 +82,7 @@ class BasicTestCase(unittest.TestCase):
         self.objsize *= self.chunksize
         self.rowshape[earray.extdim] = self.chunksize
 
-        if self.type == "String":
+        if self.type == "string":
             object = numpy.ndarray(buffer="a"*self.objsize,
                                    shape=self.rowshape,
                                    dtype="S%s" % earray.itemsize)
@@ -99,14 +100,14 @@ class BasicTestCase(unittest.TestCase):
             else:
                 print "Object to append -->", repr(object)
         for i in range(self.nappends):
-            if self.type == "String":
+            if self.type == "string":
                 earray.append(object)
             elif self.flavor in ["numarray","numpy"]:
                 earray.append(object*i)
             else:
                 object = object * i
                 # For Numeric arrays, we still have to undo the type upgrade
-                earray.append(object.astype(typecode[earray.ptype]))
+                earray.append(object.astype(typecode[earray.type]))
 
     def tearDown(self):
         self.fileh.close()
@@ -136,7 +137,7 @@ class BasicTestCase(unittest.TestCase):
             print "reopening?:", self.reopen
 
         # Build the array to do comparisons
-        if self.type == "String":
+        if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.itemsize)
@@ -153,12 +154,12 @@ class BasicTestCase(unittest.TestCase):
         for row in earray:
             chunk = int(earray.nrow % self.chunksize)
             if chunk == 0:
-                if self.type == "String":
+                if self.type == "string":
                     object__ = object_
                 else:
                     object__ = object_ * (earray.nrow / self.chunksize)
                     if self.flavor == "numeric":
-                        object__ = object__.astype(typecode[earray.ptype])
+                        object__ = object__.astype(typecode[earray.type])
             object = object__[chunk]
             # The next adds much more verbosity
             if verbose and 0:
@@ -215,7 +216,7 @@ class BasicTestCase(unittest.TestCase):
             print "reopening?:", self.reopen
 
         # Build the array to do comparisons
-        if self.type == "String":
+        if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.itemsize)
@@ -236,12 +237,12 @@ class BasicTestCase(unittest.TestCase):
                 index = 0
             else:
                 index = int(earray.nrow % self.chunksize)
-            if self.type == "String":
+            if self.type == "string":
                 object__ = object_
             else:
                 object__ = object_ * (earray.nrow / self.chunksize)
                 if self.flavor == "numeric":
-                    object__ = object__.astype(typecode[earray.ptype])
+                    object__ = object__.astype(typecode[earray.type])
             object = object__[index]
             # The next adds much more verbosity
             if verbose and 0:
@@ -285,7 +286,7 @@ class BasicTestCase(unittest.TestCase):
             print "reopening?:", self.reopen
 
         # Build the array to do comparisons
-        if self.type == "String":
+        if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s" % earray.itemsize)
@@ -300,7 +301,7 @@ class BasicTestCase(unittest.TestCase):
 
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
-        if self.type == "String":
+        if self.type == "string":
             object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
         else:
             object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
@@ -318,13 +319,13 @@ class BasicTestCase(unittest.TestCase):
 
         for i in range(self.nappends):
             j = i * self.chunksize
-            if self.type == "String":
+            if self.type == "string":
                 object__[j:j+self.chunksize] = object_
             else:
                 if self.flavor in ["numarray", "numpy"]:
                     object__[j:j+self.chunksize] = object_ * i
                 else:
-                    object__[j:j+self.chunksize] = (object_ * i).astype(typecode[earray.ptype])
+                    object__[j:j+self.chunksize] = (object_ * i).astype(typecode[earray.type])
         stop = self.stop
 
         if self.nappends:
@@ -411,7 +412,7 @@ class BasicTestCase(unittest.TestCase):
             print "reopening?:", self.reopen
 
         # Build the array to do comparisons
-        if self.type == "String":
+        if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s"%earray.itemsize)
@@ -428,7 +429,7 @@ class BasicTestCase(unittest.TestCase):
 
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
-        if self.type == "String":
+        if self.type == "string":
             object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
         else:
             object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
@@ -441,7 +442,7 @@ class BasicTestCase(unittest.TestCase):
 
         for i in range(self.nappends):
             j = i * self.chunksize
-            if self.type == "String":
+            if self.type == "string":
                 object__[j:j+self.chunksize] = object_
             else:
                 object__[j:j+self.chunksize] = object_ * i
@@ -524,7 +525,7 @@ class BasicTestCase(unittest.TestCase):
             print "reopening?:", self.reopen
 
         # Build the array to do comparisons
-        if self.type == "String":
+        if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
                                     dtype="S%s"%earray.itemsize)
@@ -541,7 +542,7 @@ class BasicTestCase(unittest.TestCase):
 
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
-        if self.type == "String":
+        if self.type == "string":
             object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
         else:
             object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
@@ -554,7 +555,7 @@ class BasicTestCase(unittest.TestCase):
 
         for i in range(self.nappends):
             j = i * self.chunksize
-            if self.type == "String":
+            if self.type == "string":
                 object__[j:j+self.chunksize] = object_
             else:
                 object__[j:j+self.chunksize] = object_ * i
@@ -580,7 +581,7 @@ class BasicTestCase(unittest.TestCase):
         elif self.flavor == "numeric":
             object = Numeric.asarray(object)
 
-        if self.type == "String":
+        if self.type == "string":
             if hasattr(self, "wslice"):
                 # These sentences should be equivalent
                 #object[self.wslize] = object[self.wslice].pad("xXx")
@@ -632,7 +633,7 @@ class BasicTestCase(unittest.TestCase):
 
 
 class BasicWriteTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (0,)
     chunksize = 5
     nappends = 10
@@ -641,7 +642,7 @@ class BasicWriteTestCase(BasicTestCase):
     wslice = 1  # single element case
 
 class Basic2WriteTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     dtype = 'i4'
     shape = (0,)
     chunksize = 5
@@ -651,7 +652,7 @@ class Basic2WriteTestCase(BasicTestCase):
     reopen = 0  # This case does not reopen files
 
 class EmptyEArrayTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     dtype = numpy.dtype('int32')
     shape = (2, 0)
     chunksize = 5
@@ -661,7 +662,7 @@ class EmptyEArrayTestCase(BasicTestCase):
     step = 1
 
 class NP_EmptyEArrayTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     dtype = numpy.dtype('()int32')
     shape = (2, 0)
     chunksize = 5
@@ -672,7 +673,7 @@ class NP_EmptyEArrayTestCase(BasicTestCase):
         step = numpy.int64(1)
 
 class Empty2EArrayTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     dtype = 'int32'
     shape = (2, 0)
     chunksize = 5
@@ -685,7 +686,7 @@ class Empty2EArrayTestCase(BasicTestCase):
 class SlicesEArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 0)
     chunksize = 5
     nappends = 2
@@ -694,14 +695,14 @@ class SlicesEArrayTestCase(BasicTestCase):
 class Slices2EArrayTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 0, 4)
     chunksize = 5
     nappends = 20
     slices = (slice(1,2,1), slice(None, None, None), slice(1,4,2))
 
 class EllipsisEArrayTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 0)
     chunksize = 5
     nappends = 2
@@ -709,7 +710,7 @@ class EllipsisEArrayTestCase(BasicTestCase):
     slices = (Ellipsis, slice(1,2,1))
 
 class Ellipsis2EArrayTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 0, 4)
     chunksize = 5
     nappends = 20
@@ -718,7 +719,7 @@ class Ellipsis2EArrayTestCase(BasicTestCase):
 class Slices3EArrayTestCase(BasicTestCase):
     compress = 1      # To show the chunks id DEBUG is on
     complib = "lzo"
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
@@ -733,7 +734,7 @@ class Slices3EArrayTestCase(BasicTestCase):
     #slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), slice(0,100,1)) # N
 
 class Slices4EArrayTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 3, 4, 0, 5, 6)
     chunksize = 5
     nappends = 20
@@ -741,7 +742,7 @@ class Slices4EArrayTestCase(BasicTestCase):
               slice(0,4,2), slice(3,5,2), slice(2,7,1))
 
 class Ellipsis3EArrayTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
@@ -749,7 +750,7 @@ class Ellipsis3EArrayTestCase(BasicTestCase):
     slices = (slice(1,2,1), slice(0, 4, None), slice(1,4,2), Ellipsis)
 
 class Ellipsis4EArrayTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
@@ -757,14 +758,14 @@ class Ellipsis4EArrayTestCase(BasicTestCase):
     slices = (slice(1,2,1), Ellipsis, slice(1,4,2))
 
 class Ellipsis5EArrayTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 20
     slices = (slice(1,2,1), slice(0, 4, None), Ellipsis)
 
 class Ellipsis6EArrayTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 2
@@ -774,20 +775,20 @@ class Ellipsis6EArrayTestCase(BasicTestCase):
     slices = (slice(1,2,1), slice(0, 4, None), 2, Ellipsis)
 
 class Ellipsis7EArrayTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
     nappends = 2
     slices = (slice(1,2,1), slice(0, 4, None), slice(2,3), Ellipsis)
 
 class MD3WriteTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 0, 3)
     chunksize = 4
     step = 2
 
 class MD5WriteTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 0, 3, 4, 5)  # ok
     #shape = (1, 1, 0, 1)  # Minimum shape that shows problems with HDF5 1.6.1
     #shape = (2, 3, 0, 4, 5)  # Floating point exception (HDF5 1.6.1)
@@ -799,7 +800,7 @@ class MD5WriteTestCase(BasicTestCase):
     step = 10
 
 class MD6WriteTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 3, 3, 0, 5, 6)
     chunksize = 1
     nappends = 10
@@ -809,7 +810,7 @@ class MD6WriteTestCase(BasicTestCase):
 
 class NP_MD6WriteTestCase(BasicTestCase):
     "Testing NumPy scalars as indexes"
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 3, 3, 0, 5, 6)
     chunksize = 1
     nappends = 10
@@ -819,7 +820,7 @@ class NP_MD6WriteTestCase(BasicTestCase):
         step = numpy.int64(3)
 
 class MD6WriteTestCase__(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 0)
     chunksize = 1
     nappends = 3
@@ -828,7 +829,7 @@ class MD6WriteTestCase__(BasicTestCase):
     step = 1
 
 class MD7WriteTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (2, 3, 3, 4, 5, 0, 3)
     chunksize = 10
     nappends = 1
@@ -837,7 +838,7 @@ class MD7WriteTestCase(BasicTestCase):
     step = 2
 
 class MD10WriteTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (1, 2, 3, 4, 5, 5, 4, 3, 2, 0)
     chunksize = 5
     nappends = 10
@@ -846,7 +847,7 @@ class MD10WriteTestCase(BasicTestCase):
     step = 10
 
 class NP_MD10WriteTestCase(BasicTestCase):
-    type = 'Int32'
+    type = 'int32'
     shape = (1, 2, 3, 4, 5, 5, 4, 3, 2, 0)
     chunksize = 5
     nappends = 10
@@ -936,7 +937,7 @@ class AllFiltersTestCase(BasicTestCase):
 #     step = 2
 
 class FloatTypeTestCase(BasicTestCase):
-    type = 'Float64'
+    type = 'float64'
     shape = (2,0)
     chunksize = 5
     nappends = 10
@@ -945,7 +946,7 @@ class FloatTypeTestCase(BasicTestCase):
     step = 20
 
 class ComplexTypeTestCase(BasicTestCase):
-    type = 'Complex64'
+    type = 'complex128'
     shape = (2,0)
     chunksize = 5
     nappends = 10
@@ -954,7 +955,7 @@ class ComplexTypeTestCase(BasicTestCase):
     step = 20
 
 class StringTestCase(BasicTestCase):
-    type = "String"
+    type = "string"
     length = 20
     shape = (2, 0)
     #shape = (2,0,20)
@@ -966,7 +967,7 @@ class StringTestCase(BasicTestCase):
     slices = (slice(0,1),slice(1,2))
 
 class String2TestCase(BasicTestCase):
-    type = "String"
+    type = "string"
     length = 20
     shape = (0,)
     #shape = (0, 20)
@@ -977,7 +978,7 @@ class String2TestCase(BasicTestCase):
     step = 2
 
 class StringComprTestCase(BasicTestCase):
-    type = "String"
+    type = "string"
     length = 20
     shape = (20,0,10)
     #shape = (20,0,10,20)
@@ -993,7 +994,7 @@ class _Numarray1TestCase(BasicTestCase):
     # Setting flavor to Numeric here gives some problems due,
     # most probably to test implementation, not library code
     flavor = "numarray"
-    type = "Int32"
+    type = "int32"
     shape = (2,0)
     compress = 1
     shuffle = 1
@@ -1007,8 +1008,8 @@ class Numarray2TestCase(BasicTestCase):
     flavor = "numarray"
     # type = Float32 gives some problems on tests. It is *not* a
     # problem with Array.__setitem__(), just with test design
-    #type = "Float32"
-    type = "Float64"
+    #type = 'float32'
+    type = "float64"
     shape = (0,)
     compress = 1
     shuffle = 1
@@ -1020,7 +1021,7 @@ class Numarray2TestCase(BasicTestCase):
 
 class NumarrayComprTestCase(BasicTestCase):
     flavor = "numarray"
-    type = "Float64"
+    type = "float64"
     compress = 1
     shuffle = 1
     shape = (0,)
@@ -1033,7 +1034,7 @@ class NumarrayComprTestCase(BasicTestCase):
 
 class StringNumarrayTestCase(BasicTestCase):
     flavor = "numarray"
-    type = "String"
+    type = "string"
     length = 20
     shape = (2, 0)
     #shape = (2,0,20)
@@ -1046,7 +1047,7 @@ class StringNumarrayTestCase(BasicTestCase):
 
 class String2NumarrayTestCase(BasicTestCase):
     flavor = "numarray"
-    type = "String"
+    type = "string"
     length = 20
     shape = (0,)
     #shape = (0, 20)
@@ -1058,7 +1059,7 @@ class String2NumarrayTestCase(BasicTestCase):
 
 class StringComprNumarrayTestCase(BasicTestCase):
     flavor = "numarray"
-    type = "String"
+    type = "string"
     length = 20
     shape = (20,0,10)
     #shape = (20,0,10,20)
@@ -1074,7 +1075,7 @@ class Numeric1TestCase(BasicTestCase):
     # Setting flavor to Numeric here gives some problems due,
     # most probably, to test implementation, not library code
     #flavor = "numeric"
-    type = "Int32"
+    type = "int32"
     shape = (2,0)
     compress = 1
     shuffle = 1
@@ -1088,8 +1089,9 @@ class Numeric2TestCase(BasicTestCase):
     flavor = "numeric"
     # type = Float32 gives some problems on tests. It is *not* a
     # problem with Array.__setitem__(), just with test design
-    #type = "Float32"
-    type = "Float64"
+    #type = 'float32'
+    type = 'float64'
+    dtype = 'float64'
     shape = (0,)
     compress = 1
     shuffle = 1
@@ -1101,7 +1103,8 @@ class Numeric2TestCase(BasicTestCase):
 
 class NumericComprTestCase(BasicTestCase):
     flavor = "numeric"
-    type = "Float64"
+    type = 'float64'
+    dtype = 'float64'
     compress = 1
     shuffle = 1
     shape = (0,)
@@ -1143,7 +1146,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.createEArray(root, 'strings',
-                                         StringAtom(length=3), (0,2,2),
+                                         StringAtom(itemsize=3), (0,2,2),
                                          "Array of strings")
         a=numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
         earray.append(a[:,1:])
@@ -1173,7 +1176,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Create an string atom
         earray = self.fileh.createEArray(root, 'strings',
-                                         StringAtom(length=3), (0,2,2),
+                                         StringAtom(itemsize=3), (0,2,2),
                                          "Array of strings")
         a=numpy.array([[["a","b"],["123", "45"],["45", "123"]]], dtype="S3")
         earray.append(a[:,::2])
@@ -1205,9 +1208,9 @@ class OffsetStrideTestCase(unittest.TestCase):
         earray = self.fileh.createEArray(root, 'EAtom',
                                          Int32Atom(), (0,3),
                                          "array of ints")
-        a=numpy.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], dtype='Int32')
+        a=numpy.array([(0,0,0), (1,0,3), (1,1,1), (0,0,0)], dtype='int32')
         earray.append(a[2:])  # Create an offset
-        a=numpy.array([(1,1,1), (-1,0,0)], dtype='Int32')
+        a=numpy.array([(1,1,1), (-1,0,0)], dtype='int32')
         earray.append(a[1:])  # Create an offset
 
         # Read all the rows:
@@ -1218,9 +1221,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Third row in vlarray ==>", row[2]
 
         assert earray.nrows == 3
-        assert allequal(row[0], numpy.array([1,1,1], dtype='Int32'))
-        assert allequal(row[1], numpy.array([0,0,0], dtype='Int32'))
-        assert allequal(row[2], numpy.array([-1,0,0], dtype='Int32'))
+        assert allequal(row[0], numpy.array([1,1,1], dtype='int32'))
+        assert allequal(row[1], numpy.array([0,0,0], dtype='int32'))
+        assert allequal(row[2], numpy.array([-1,0,0], dtype='int32'))
 
     def test02b_int(self):
         """Checking earray with strided NumPy ints appends"""
@@ -1234,9 +1237,9 @@ class OffsetStrideTestCase(unittest.TestCase):
         earray = self.fileh.createEArray(root, 'EAtom',
                                          Int32Atom(), (0,3),
                                          "array of ints")
-        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Int32')
+        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='int32')
         earray.append(a[::3])  # Create an offset
-        a = numpy.array([(1,1,1), (-1,0,0)], dtype='Int32')
+        a = numpy.array([(1,1,1), (-1,0,0)], dtype='int32')
         earray.append(a[::2])  # Create an offset
 
         # Read all the rows:
@@ -1247,9 +1250,9 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Third row in vlarray ==>", row[2]
 
         assert earray.nrows == 3
-        assert allequal(row[0], numpy.array([0,0,0], dtype='Int32'))
-        assert allequal(row[1], numpy.array([3,3,3], dtype='Int32'))
-        assert allequal(row[2], numpy.array([1,1,1], dtype='Int32'))
+        assert allequal(row[0], numpy.array([0,0,0], dtype='int32'))
+        assert allequal(row[1], numpy.array([3,3,3], dtype='int32'))
+        assert allequal(row[2], numpy.array([1,1,1], dtype='int32'))
 
 
     def test03a_int(self):
@@ -1332,7 +1335,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(dtype='Int16')
+        arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
@@ -1371,7 +1374,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
         assert array1.dtype == array2.dtype
-        assert array1.ptype == array2.ptype
+        assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1392,7 +1395,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(dtype='Int16')
+        arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
@@ -1432,7 +1435,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
         assert array1.dtype == array2.dtype
-        assert array1.ptype == array2.ptype
+        assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1453,12 +1456,13 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         if numarray_imported:
-            arr = Atom(dtype='Int16', flavor="numarray")
+            flavor = "numarray"
         else:
-            arr = Atom(dtype='Int16')
+            flavor = "numpy"
 
+        arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1")
+                                    "title array1", flavor=flavor)
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
@@ -1489,7 +1493,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
         assert array1.dtype == array2.dtype
-        assert array1.ptype == array2.ptype
+        assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1510,12 +1514,13 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         if numeric_imported:
-            arr = Atom(dtype='Int16', flavor="numeric")
+            flavor = "numeric"
         else:
-            arr = Atom(dtype='Int16')
+            flavor = "numpy"
 
+        arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1")
+                                    "title array1", flavor=flavor)
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
@@ -1546,7 +1551,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
         assert array1.dtype == array2.dtype
-        assert array1.ptype == array2.ptype
+        assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1566,9 +1571,9 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        arr = Atom(dtype='Int16', flavor="python")
+        arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1")
+                                    "title array1", flavor="python")
         array1.append(((456, 2),(3, 457)))
 
         if self.close:
@@ -1601,7 +1606,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
         assert array1.dtype == array2.dtype
-        assert array1.ptype == array2.ptype
+        assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1621,9 +1626,9 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        arr = StringAtom(length=3, flavor="python")
+        arr = StringAtom(itemsize=3)
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1")
+                                    "title array1", flavor="python")
         array1.append([["456", "2"],["3", "457"]])
 
         if self.close:
@@ -1657,7 +1662,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
         assert array1.dtype == array2.dtype
-        assert array1.ptype == array2.ptype
+        assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1677,9 +1682,9 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        arr = StringAtom(length=4, flavor="numpy")
+        arr = StringAtom(itemsize=4)
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1")
+                                    "title array1", flavor="numpy")
         array1.append(numpy.array([["456", "2"],["3", "457"]], dtype="S4"))
 
         if self.close:
@@ -1712,7 +1717,7 @@ class CopyTestCase(unittest.TestCase):
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
         assert array1.dtype == array2.dtype
-        assert array1.ptype == array2.ptype
+        assert array1.type == array2.type
         assert array1.itemsize == array2.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
@@ -1893,7 +1898,7 @@ class CopyIndexTestCase(unittest.TestCase):
         atom = Int32Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
                                     "title array1")
-        r = numpy.arange(200, dtype='Int32')
+        r = numpy.arange(200, dtype='int32')
         r.shape=(100,2)
         array1.append(r)
 
@@ -1940,7 +1945,7 @@ class CopyIndexTestCase(unittest.TestCase):
         atom = Int32Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', atom, (0, 2),
                                     "title array1")
-        r = numpy.arange(200, dtype='Int32')
+        r = numpy.arange(200, dtype='int32')
         r.shape=(100,2)
         array1.append(r)
 
@@ -2059,7 +2064,7 @@ class TruncateTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(dtype='Int16')
+        arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
         # Append two rows
@@ -2101,7 +2106,7 @@ class TruncateTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(dtype='Int16')
+        arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
         # Append two rows
@@ -2143,7 +2148,7 @@ class TruncateTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(dtype='Int16')
+        arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
         # Append two rows
@@ -2186,7 +2191,7 @@ class TruncateTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an EArray
-        arr = Atom(dtype='Int16')
+        arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
                                     "title array1")
         # Append two rows

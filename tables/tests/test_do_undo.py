@@ -1199,10 +1199,10 @@ def populateTable(where, name):
     "Create a table under where with name name"
 
     class Indexed(IsDescription):
-        var1 = StringCol(length=4, dflt="", pos=1)
-        var2 = BoolCol(0, pos=2)
-        var3 = IntCol(0, pos = 3)
-        var4 = FloatCol(0, pos = 4)
+        var1 = StringCol(itemsize=4, dflt="", pos=1)
+        var2 = BoolCol(dflt=0, pos=2)
+        var3 = col_from_kind('int', dflt=0, pos=3)
+        var4 = col_from_kind('float', dflt=0, pos=4)
 
     nrows = minRowIndex
     table = where._v_file.createTable(where, name, Indexed, "Indexed",
@@ -1866,15 +1866,12 @@ class copyNodeTestCase(unittest.TestCase):
         # open the do/undo
         self.fileh.enableUndo()
         # /table => /agroup/agroup3/
+        warnings.filterwarnings("ignore", category=UserWarning)
         table = self.fileh.copyNode('/table', '/agroup/agroup3')
+        warnings.filterwarnings("default", category=UserWarning)
         self.assert_("/agroup/agroup3/table" in self.fileh)
+
         table = self.fileh.root.agroup.agroup3.table
-        # Re-create the indexes....
-        indexrows = table.cols.var1.createIndex(testmode=1)
-        indexrows = table.cols.var2.createIndex(testmode=1)
-        indexrows = table.cols.var3.createIndex(testmode=1)
-        # Do not index the var4 column
-        # indexrows = table.cols.var4.createIndex(testmode=1)
         assert table.title == "Indexed"
         assert table.cols.var1.index is not None
         assert table.cols.var2.index is not None

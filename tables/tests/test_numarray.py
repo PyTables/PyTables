@@ -73,16 +73,22 @@ class BasicTestCase(unittest.TestCase):
             print "Array read itemsize:", b.itemsize
             print "Array read type:", b.type()
 
-        ptype = self.root.somearray.ptype
+        type_ = self.root.somearray.type
         # Check strictly the array equality
         assert type(a) == type(b)
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         if type(a) == strings.CharArray:
-            assert ptype == "String"
+            assert type_ == "string"
         else:
             assert a.type() == b.type()
-            assert str(a.type()) == ptype
+            if not type_.startswith('complex'):
+                assert str(a.type()).lower() == type_
+            else:
+                if type_ == 'complex64':
+                    assert str(a.type()) == "Complex32"
+                else:
+                    assert str(a.type()) == "Complex64"
 
         assert allequal(a,b, "numarray")
         self.fileh.close()
@@ -337,20 +343,20 @@ class GroupsArrayTestCase(unittest.TestCase):
 
 # Test Record class
 class Record(IsDescription):
-    var1  = StringCol(length=4, dflt="abcd", pos=0)
-    var2  = StringCol(length=1, dflt="a", pos=1)
-    var3  = BoolCol(1)
-    var4  = Int8Col(1)
-    var5  = UInt8Col(1)
-    var6  = Int16Col(1)
-    var7  = UInt16Col(1)
-    var8  = Int32Col(1)
-    var9  = UInt32Col(1)
-    var10 = Int64Col(1)
-    var11 = Float32Col(1.0)
-    var12 = Float64Col(1.0)
-    var13 = Complex32Col((1.+0.j))
-    var14 = Complex64Col((1.+0.j))
+    var1  = StringCol(itemsize=4, dflt="abcd", pos=0)
+    var2  = StringCol(itemsize=1, dflt="a", pos=1)
+    var3  = BoolCol(dflt=1)
+    var4  = Int8Col(dflt=1)
+    var5  = UInt8Col(dflt=1)
+    var6  = Int16Col(dflt=1)
+    var7  = UInt16Col(dflt=1)
+    var8  = Int32Col(dflt=1)
+    var9  = UInt32Col(dflt=1)
+    var10 = Int64Col(dflt=1)
+    var11 = Float32Col(dflt=1.0)
+    var12 = Float64Col(dflt=1.0)
+    var13 = ComplexCol(dflt=(1.+0.j), itemsize=8)
+    var14 = ComplexCol(dflt=(1.+0.j), itemsize=16)
 
 
 class TableReadTestCase(common.PyTablesTestCase):
@@ -379,9 +385,9 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numarray")
-            typecol = table.colptypes[colname]
+            typecol = table.coltypes[colname]
             itemsizecol = table.description._v_dtypes[colname].base.itemsize
-            if typecol == "String":
+            if typecol == "string":
                 if itemsizecol > 1:
                     orignumcol = strings.array(['abcd']*self.nrows, itemsize=4)
                 else:
@@ -400,8 +406,8 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numarray")
-            typecol = table.colptypes[colname]
-            if typecol <> "String":
+            typecol = table.coltypes[colname]
+            if typecol != "string":
                 type_ = numcol.type()
                 if verbose:
                     print "Type of numarray column read:", type_
@@ -420,9 +426,9 @@ class TableReadTestCase(common.PyTablesTestCase):
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname,
                                            flavor="numarray")
-            typecol = table.colptypes[colname]
+            typecol = table.coltypes[colname]
             itemsizecol = table.description._v_dtypes[colname].base.itemsize
-            if typecol == "String":
+            if typecol == "string":
                 if itemsizecol > 1:
                     orignumcol = strings.array(['abcd']*self.nrows, itemsize=4)
                 else:
@@ -444,10 +450,10 @@ class TableReadTestCase(common.PyTablesTestCase):
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname,
                                            flavor="numarray")
-            typecol = table.colptypes[colname]
-            if typecol <> "String":
+            typecol = table.coltypes[colname]
+            if typecol != "string":
                 type_ = numcol.type()
-                if typecol == "Int64":
+                if typecol == "int64":
                     return
                 if verbose:
                     print "Type of read numarray column:", type_
@@ -463,9 +469,11 @@ class TableReadTestCase(common.PyTablesTestCase):
         coords = array([1,2,3], type='Int8')
         for colname in table.colnames:
             numcol = [ table[coord][colname].item() for coord in coords ]
-            typecol = table.colptypes[colname]
-            if typecol <> "String":
-                numcol = array(numcol, typecol)
+            typecol = table.coltypes[colname]
+            if typecol != "string":
+                if typecol == "bool":  # Special case for boolean translation
+                    typecol = "Bool"
+                numcol = array(numcol, dtype=typecol)
                 if verbose:
                     type_ = numcol.type()
                     print "Type of read numarray column:", type_
@@ -503,8 +511,8 @@ class TableReadTestCase(common.PyTablesTestCase):
 # The declaration of the nested table:
 class Info(IsDescription):
     _v_pos = 3
-    Name = StringCol(length=2)
-    Value = Complex64Col()
+    Name = StringCol(itemsize=2)
+    Value = ComplexCol(itemsize=16)
 
 class TestTDescr(IsDescription):
 
@@ -512,22 +520,22 @@ class TestTDescr(IsDescription):
 
     # The default would be returning numarray objects on reads
     _v_flavor = "numarray"
-    x = Int32Col(0, shape=2, pos=0) #0
-    y = FloatCol(1, shape=(2,2))
-    z = UInt8Col(1)
-    z3 = EnumCol({'r':4, 'g':2, 'b':1}, 'r', shape=2)
-    color = StringCol(4, "ab", pos=2)
+    x = Int32Col(dflt=0, shape=2, pos=0) #0
+    y = Float64Col(dflt=1, shape=(2,2))
+    z = UInt8Col(dflt=1)
+    z3 = EnumCol({'r':4, 'g':2, 'b':1}, dflt='r', base='int32', shape=2)
+    color = StringCol(itemsize=4, dflt="ab", pos=2)
     info = Info()
     class Info(IsDescription): #1
         _v_pos = 1
-        name = StringCol(length=2)
-        value = Complex64Col(pos=0) #0
-        y2 = FloatCol(pos=1) #1
+        name = StringCol(itemsize=2)
+        value = ComplexCol(itemsize=16, pos=0) #0
+        y2 = Float64Col(pos=1) #1
         z2 = UInt8Col()
         class Info2(IsDescription):
             y3 = Time64Col(shape=2)
-            name = StringCol(length=2)
-            value = Complex64Col(shape=2)
+            name = StringCol(itemsize=2)
+            value = ComplexCol(itemsize=16, shape=2)
 
 
 class TableNativeFlavorTestCase(common.PyTablesTestCase):
@@ -1089,7 +1097,7 @@ class StrlenTestCase(common.PyTablesTestCase):
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
         group = self.fileh.createGroup(self.fileh.root, 'group')
-        tablelayout = {'_v_flavor':'numarray', 'Text': StringCol(length=1000),}
+        tablelayout = {'_v_flavor':'numarray', 'Text': StringCol(itemsize=1000),}
         self.table = self.fileh.createTable(group, 'table', tablelayout)
         row = self.table.row
         row['Text'] = 'Hello Francesc!'

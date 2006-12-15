@@ -36,34 +36,34 @@ str_format = '%%0%dd' % _strlen
 
 # Type information
 # ----------------
-ptype_info = {
-    'Bool': (numpy.bool_, bool),
-    'Int8': (numpy.int8, int), 'UInt8': (numpy.uint8, int),
-    'Int16': (numpy.int16, int), 'UInt16': (numpy.uint16, int),
-    'Int32': (numpy.int32, int), 'UInt32': (numpy.uint32, long),
-    'Int64': (numpy.int64, long), 'UInt64': (numpy.uint64, long),
-    'Float32': (numpy.float32, float), 'Float64': (numpy.float32, float),
-    'Complex32': (numpy.complex64, complex),
-    'Complex64': (numpy.complex128, complex),
-    'Time32': (numpy.int32, int), 'Time64': (numpy.float64, float),
-    'Enum': (numpy.uint8, int),  # just for these tests
-    'String': (numpy.dtype('S%s' % _strlen), str) }  # just for these tests
+type_info = {
+    'bool': (numpy.bool_, bool),
+    'int8': (numpy.int8, int), 'uint8': (numpy.uint8, int),
+    'int16': (numpy.int16, int), 'uint16': (numpy.uint16, int),
+    'int32': (numpy.int32, int), 'uint32': (numpy.uint32, long),
+    'int64': (numpy.int64, long), 'uint64': (numpy.uint64, long),
+    'float32': (numpy.float32, float), 'float64': (numpy.float32, float),
+    'complex64': (numpy.complex64, complex),
+    'complex128': (numpy.complex128, complex),
+    'time32': (numpy.int32, int), 'time64': (numpy.float64, float),
+    'enum': (numpy.uint8, int),  # just for these tests
+    'string': ('S%s' % _strlen, str) }  # just for these tests
 """NumPy and Numexpr type for each PyTables type that will be tested."""
 
-dtype_from_ptype = dict(
-    (dtype, info[0]) for (dtype, info) in ptype_info.iteritems() )
-"""Maps PyTables types to NumPy data types."""
-nxtype_from_ptype = dict(
-    (dtype, info[1]) for (dtype, info) in ptype_info.iteritems() )
-"""Maps PyTables types to Numexpr data types."""
+sctype_from_type = dict( (type_, info[0])
+                         for (type_, info) in type_info.iteritems() )
+"""Maps PyTables types to NumPy scalar types."""
+nxtype_from_type = dict( (type_, info[1])
+                         for (type_, info) in type_info.iteritems() )
+"""Maps PyTables types to Numexpr types."""
 
-heavy_types = ['UInt8', 'Int16', 'UInt16', 'Float32', 'Complex32']
-"""Python types to be tested only in heavy mode."""
+heavy_types = ['uint8', 'int16', 'uint16', 'float32', 'complex64']
+"""PyTables types to be tested only in heavy mode."""
 
 if not tests.heavy:
-    for ptype in heavy_types:
-        for tdict in ptype_info, dtype_from_ptype, nxtype_from_ptype:
-            del tdict[ptype]
+    for type_ in heavy_types:
+        for tdict in type_info, sctype_from_type, nxtype_from_type:
+            del tdict[type_]
 
 enum = tables.Enum(dict(('n%d' % i, i) for i in range(_maxnvalue)))
 """Enumerated type to be used in tests."""
@@ -75,19 +75,19 @@ def append_columns(classdict, shape=()):
     """
     Append a ``Col`` of each PyTables data type to the `classdict`.
 
-    A column of a certain TYPE gets called ``cTYPE``.  The number of
+    A column of a certain TYPE gets called ``c_TYPE``.  The number of
     added columns is returned.
     """
-    for (itype, ptype) in enumerate(sorted(ptype_info.iterkeys())):
+    for (itype, type_) in enumerate(sorted(type_info.iterkeys())):
         colpos = itype + 1
-        colname = 'c%s' % ptype
-        colclass = getattr(tables, '%sCol' % ptype)
-        colargs, colkwargs = [], {'shape': shape, 'pos': colpos}
-        if ptype == 'Enum':
-            colargs = [enum, enum(0), dtype_from_ptype[ptype]] + colargs
-        elif ptype == 'String':
-            colkwargs.update({'length': dtype_from_ptype[ptype].itemsize})
-        classdict[colname] = colclass(*colargs, **colkwargs)
+        colname = 'c_%s' % type_
+        if type_ == 'enum':
+            base = tables.atom_from_sctype(sctype_from_type[type_])
+            col = tables.EnumCol(enum, enum(0), base, shape=shape, pos=colpos)
+        else:
+            sctype = sctype_from_type[type_]
+            col = tables.col_from_sctype(sctype, shape=shape, pos=colpos)
+        classdict[colname] = col
     ncols = colpos
     return ncols
 
@@ -95,7 +95,7 @@ def nested_description(classname, pos, shape=()):
     """
     Return a nested column description with all PyTables data types.
 
-    A column of a certain TYPE gets called ``cTYPE``.  The nested
+    A column of a certain TYPE gets called ``c_TYPE``.  The nested
     column will be placed in the position indicated by `pos`.
     """
     classdict = {}
@@ -108,20 +108,20 @@ def table_description(classname, nclassname, shape=()):
     Return a table description for testing queries.
 
     The description consists of all PyTables data types, both in the
-    top level and in the ``cNested`` nested column.  A column of a
-    certain TYPE gets called ``cTYPE``.  An extra integer column
-    ``cExtra`` is also provided.  If a `shape` is given, it will be
+    top level and in the ``c_nested`` nested column.  A column of a
+    certain TYPE gets called ``c_TYPE``.  An extra integer column
+    ``c_extra`` is also provided.  If a `shape` is given, it will be
     used for all columns.
     """
     classdict = {}
     colpos = append_columns(classdict, shape)
 
     ndescr = nested_description(nclassname, colpos, shape=shape)
-    classdict['cNested'] = ndescr
+    classdict['c_nested'] = ndescr
     colpos += 1
 
-    extracol = tables.IntCol(shape=shape, pos=colpos)
-    classdict['cExtra'] = extracol
+    extracol = tables.col_from_kind('int', shape=shape, pos=colpos)
+    classdict['c_extra'] = extracol
     colpos += 1
 
     return new.classobj(classname, (tables.IsDescription,), classdict)
@@ -149,7 +149,7 @@ def fill_table(table, shape, nrows):
     multidimensional field with M elements span from i to i+M-1.  For
     subsequent rows, values repeat cyclically.
 
-    The same goes for the ``cExtra`` column, but values range from
+    The same goes for the ``c_extra`` column, but values range from
     -`row_period`/2 to +`row_period`/2.
     """
     # Reuse already computed data if possible.
@@ -164,18 +164,18 @@ def fill_table(table, shape, nrows):
     row, value = table.row, 0
     for nrow in xrange(nrows):
         data = numpy.arange(value, value + size).reshape(shape)
-        for (ptype, dtype) in dtype_from_ptype.iteritems():
-            colname = 'c%s' % ptype
-            ncolname = 'cNested/%s' % colname
-            if ptype == 'Bool':
+        for (type_, sctype) in sctype_from_type.iteritems():
+            colname = 'c_%s' % type_
+            ncolname = 'c_nested/%s' % colname
+            if type_ == 'bool':
                 coldata = data > (row_period / 2)
-            elif ptype == 'String':
+            elif type_ == 'string':
                 sdata = [str_format % x for x in range(value, value + size)]
-                coldata = numpy.array(sdata, dtype=dtype).reshape(shape)
+                coldata = numpy.array(sdata, dtype=sctype).reshape(shape)
             else:
-                coldata = numpy.asarray(data, dtype=dtype)
+                coldata = numpy.asarray(data, dtype=sctype)
             row[ncolname] = row[colname] = coldata
-            row['cExtra'] = data - (row_period / 2)
+            row['c_extra'] = data - (row_period / 2)
         row.append()
         value += 1
         if value == row_period:
@@ -262,28 +262,28 @@ left_bound = row_period / 4
 """Operand of left side operator in comparisons with operator pairs."""
 right_bound = row_period * 3 / 4
 """Operand of right side operator in comparisons with operator pairs."""
-extra_conditions = ['', '& ((cExtra+1) > 0)', '| ((cExtra+1) > 0)']
+extra_conditions = ['', '& ((c_extra+1) > 0)', '| ((c_extra+1) > 0)']
 """Extra conditions to append to comparison conditions."""
 
 class TableDataTestCase(BaseTableQueryTestCase):
     """Base test case for querying table data."""
 
-def create_test_method(ptype, op, extracond):
-    dtype = dtype_from_ptype[ptype]
+def create_test_method(type_, op, extracond):
+    sctype = sctype_from_type[type_]
 
     # Compute the value of bounds.
     condvars = { 'bound': right_bound,
                  'lbound': left_bound,
                  'rbound': right_bound }
     for (bname, bvalue) in condvars.items():
-        if ptype == 'String':
+        if type_ == 'string':
             bvalue = str_format % bvalue
-        bvalue = nxtype_from_ptype[ptype](bvalue)
+        bvalue = nxtype_from_type[type_](bvalue)
         condvars[bname] = bvalue
 
     # Compute the name of columns.
-    colname = 'c%s' % ptype
-    ncolname = 'cNested/%s' % colname
+    colname = 'c_%s' % type_
+    ncolname = 'c_nested/%s' % colname
 
     # Compute the query condition.
     if not op:  # as is
@@ -319,7 +319,7 @@ def create_test_method(ptype, op, extracond):
             pyrownos, pyfvalues, pyvars = [], [], condvars.copy()
             for row in table:
                 pyvars[colname] = row[acolname]
-                pyvars['cExtra'] = row['cExtra']
+                pyvars['c_extra'] = row['c_extra']
                 try:
                     isvalidrow = eval(pycond, {}, pyvars)
                 except TypeError:
@@ -329,7 +329,7 @@ def create_test_method(ptype, op, extracond):
                     pyrownos.append(row.nrow)
                     pyfvalues.append(row[acolname])
             pyrownos = numpy.array(pyrownos)  # row numbers already sorted
-            pyfvalues = numpy.array(pyfvalues, dtype=dtype)
+            pyfvalues = numpy.array(pyfvalues, dtype=sctype)
             pyfvalues.sort()
             vprint( "* %d rows selected by Python from ``%s``."
                     % (len(pyrownos), acolname) )
@@ -343,7 +343,7 @@ def create_test_method(ptype, op, extracond):
             # Then the in-kernel or indexed version.
             ptvars = condvars.copy()
             ptvars[colname] = table.colinstances[acolname]
-            ptvars['cExtra'] = table.colinstances['cExtra']
+            ptvars['c_extra'] = table.colinstances['c_extra']
             try:
                 isidxq = table.willQueryUseIndexing(cond, ptvars)
                 ptrownos = table.getWhereList(cond, condvars, sort=True)
@@ -369,10 +369,10 @@ def create_test_method(ptype, op, extracond):
 # Create individual tests.  You may restrict which tests are generated
 # by replacing the sequences in the ``for`` statements.  For instance:
 testn = 0
-for ptype in ptype_info:  # for ptype in ['String']:
+for type_ in type_info:  # for type_ in ['String']:
     for op in operators:  # for op in ['!=']:
         for extracond in extra_conditions:  # for extracond in ['']:
-            tmethod = create_test_method(ptype, op, extracond)
+            tmethod = create_test_method(type_, op, extracond)
             tmethod.__name__ = 'test_a%04d' % testn
             ptmethod = tests.pyTablesTest(tmethod)
             imethod = new.instancemethod(ptmethod, None, TableDataTestCase)
@@ -472,13 +472,13 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         """Using a condition with an unsupported object."""
         self.assertRaises(TypeError, self.table.where, '[]')
         self.assertRaises(TypeError, self.table.where, 'obj', {'obj': {}})
-        self.assertRaises(TypeError, self.table.where, 'cBool < []')
+        self.assertRaises(TypeError, self.table.where, 'c_bool < []')
 
     def test_unsupported_syntax(self):
         """Using a condition with unsupported syntax."""
-        self.assertRaises(TypeError, self.table.where, 'cBool[0]')
-        self.assertRaises(TypeError, self.table.where, 'cBool()')
-        self.assertRaises(NameError, self.table.where, 'cBool.__init__')
+        self.assertRaises(TypeError, self.table.where, 'c_bool[0]')
+        self.assertRaises(TypeError, self.table.where, 'c_bool()')
+        self.assertRaises(NameError, self.table.where, 'c_bool.__init__')
 
     def test_no_column(self):
         """Using a condition with no participating columns."""
@@ -488,35 +488,35 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
         """Using a condition with a column from other table."""
         table2 = self.h5file.createTable('/', 'other', self.tableDescription)
         self.assertRaises( ValueError, self.table.where,
-                           'cInt32_a + cInt32_b > 0',
-                           { 'cInt32_a': self.table.cols.cInt32,
-                             'cInt32_b': table2.cols.cInt32 } )
+                           'c_int32_a + c_int32_b > 0',
+                           { 'c_int32_a': self.table.cols.c_int32,
+                             'c_int32_b': table2.cols.c_int32 } )
 
     def test_unsupported_op(self):
         """Using a condition with unsupported operations on types."""
         NIE = NotImplementedError
-        self.assertRaises(NIE, self.table.where, 'cComplex64 > 0j')
-        self.assertRaises(NIE, self.table.where, 'cString + "a" > "abc"')
+        self.assertRaises(NIE, self.table.where, 'c_complex128 > 0j')
+        self.assertRaises(NIE, self.table.where, 'c_string + "a" > "abc"')
 
     def test_not_boolean(self):
         """Using a non-boolean condition."""
-        self.assertRaises(TypeError, self.table.where, 'cInt32')
+        self.assertRaises(TypeError, self.table.where, 'c_int32')
 
     def test_nested_col(self):
         """Using a condition with nested columns."""
-        self.assertRaises(TypeError, self.table.where, 'cNested')
+        self.assertRaises(TypeError, self.table.where, 'c_nested')
 
     def test_implicit_col(self):
         """Using implicit column names in conditions."""
         # If implicit columns didn't work, a ``NameError`` would be raised.
-        self.assertRaises(TypeError, self.table.where, 'cInt32')
+        self.assertRaises(TypeError, self.table.where, 'c_int32')
         # If overriding didn't work, no exception would be raised.
         self.assertRaises( TypeError, self.table.where,
-                           'cBool', {'cBool': self.table.cols.cInt32} )
+                           'c_bool', {'c_bool': self.table.cols.c_int32} )
         # External variables do not override implicit columns.
         def where_with_locals():
-            cInt32 = self.table.cols.cBool  # this wouldn't cause an error
-            self.table.where('cInt32')
+            c_int32 = self.table.cols.c_bool  # this wouldn't cause an error
+            self.table.where('c_int32')
         self.assertRaises(TypeError, where_with_locals)
 
     def test_condition_vars(self):
@@ -524,18 +524,18 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
         # If condition variables didn't work, a ``NameError`` would be raised.
         self.assertRaises( NotImplementedError, self.table.where,
-                           'cString > bound', {'bound': 0})
+                           'c_string > bound', {'bound': 0})
 
         def where_with_locals():
             bound = 'foo'  # this wouldn't cause an error
-            self.table.where('cString > bound', {'bound': 0})
+            self.table.where('c_string > bound', {'bound': 0})
         self.assertRaises(NotImplementedError, where_with_locals)
 
         def where_with_globals():
             global _gvar
             _gvar = 'foo'  # this wouldn't cause an error
             try:
-                self.table.where('cString > _gvar', {'_gvar': 0})
+                self.table.where('c_string > _gvar', {'_gvar': 0})
             finally:
                 del _gvar  # to keep global namespace clean
         self.assertRaises(NotImplementedError, where_with_globals)
@@ -548,18 +548,18 @@ class ScalarTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
         # First scope: dictionary of condition variables.
         self.assertRaises( TypeError, self.table.where,
-                           'col', {'col': self.table.cols.cInt32} )
+                           'col', {'col': self.table.cols.c_int32} )
 
         # Second scope: local variables.
         def where_whith_locals():
-            col = self.table.cols.cInt32
+            col = self.table.cols.c_int32
             self.table.where('col')
         self.assertRaises(TypeError, where_whith_locals)
 
         # Third scope: global variables.
         def where_with_globals():
             global _gvar
-            _gvar = self.table.cols.cInt32
+            _gvar = self.table.cols.c_int32
             try:
                 self.table.where('_gvar')
             finally:
@@ -573,7 +573,7 @@ class MDTableUsageTestCase(MDTableMixin, BaseTableUsageTestCase):
     def test(self):
         """Using a condition on a multidimensional table."""
         # Easy: queries on multidimensional tables are not implemented yet!
-        self.assertRaises(NotImplementedError, self.table.where, 'cBool')
+        self.assertRaises(NotImplementedError, self.table.where, 'c_bool')
 
 class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
@@ -590,31 +590,31 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
     """List of conditions to be tested."""
 
     # Add boolean conditions.
-    for _cbase in ['cBool', '~cBool']:
+    for _cbase in ['c_bool', '~c_bool']:
         conditions.append(_cbase)
-        conditions.append('(%s) & (cExtra > 0)' % _cbase)
-        conditions.append('(cExtra > 0) & (%s)' % _cbase)
+        conditions.append('(%s) & (c_extra > 0)' % _cbase)
+        conditions.append('(c_extra > 0) & (%s)' % _cbase)
     # Add simple numeric conditions.
     for _usevar in [False, True]:
-        for _condt in ['cInt32 %(o)s %(v)s', '%(v)s %(o)s cInt32']:
+        for _condt in ['c_int32 %(o)s %(v)s', '%(v)s %(o)s c_int32']:
             for _op in ['<', '<=', '==', '>=', '>']:
                 if _usevar:
                     _cdict = {'o': _op, 'v': 'var'}
                 else:
                     _cdict = {'o': _op, 'v': 0}
                 conditions.append(_condt % _cdict)
-    conditions.append('(cInt32 > 0) & (cExtra > 0)')
-    conditions.append('(cExtra > 0) & (cInt32 > 0)')
+    conditions.append('(c_int32 > 0) & (c_extra > 0)')
+    conditions.append('(c_extra > 0) & (c_int32 > 0)')
     # Add double numeric conditions.
-    for _cbase in ['(0<cInt32) & (cInt32<10)', '(10>cInt32) & (cInt32>0)']:
+    for _cbase in ['(0<c_int32) & (c_int32<10)', '(10>c_int32) & (c_int32>0)']:
         conditions.append(_cbase)
-        conditions.append('(%s) & (cExtra > 0)' % _cbase)
-        conditions.append('(cExtra > 0) & (%s)' % _cbase)
+        conditions.append('(%s) & (c_extra > 0)' % _cbase)
+        conditions.append('(c_extra > 0) & (%s)' % _cbase)
 
     def setUp(self):
         super(IndexedTableUsageTestCase, self).setUp()
-        self.table.cols.cBool.createIndex(testmode=True)
-        self.table.cols.cInt32.createIndex(testmode=True)
+        self.table.cols.c_bool.createIndex(testmode=True)
+        self.table.cols.c_int32.createIndex(testmode=True)
 
     def test(self):
         """Using indexing in some queries."""

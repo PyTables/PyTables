@@ -25,12 +25,12 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Create an array
         fileh.createArray(root, 'array', [1,2],
                           title = "Array example")
-        table = fileh.createTable(root, 'table', {'var1':IntCol()},
+        table = fileh.createTable(root, 'table', {'var1':col_from_kind('int')},
                                    "Table example")
         # Create another array object
         array = fileh.createArray(root, 'anarray',
                                   [1], "Array title")
-        table = fileh.createTable(root, 'atable', {'var1':IntCol()},
+        table = fileh.createTable(root, 'atable', {'var1':col_from_kind('int')},
                                    "Table title")
         # Create a group object
         group = fileh.createGroup(root, 'agroup',
@@ -42,7 +42,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
         array1.attrs.testattr = 42
         array2 = fileh.createArray(group, 'anarray2',
                                    [2], "Array title 2")
-        table1 = fileh.createTable(group, 'atable1', {'var1':IntCol()},
+        table1 = fileh.createTable(group, 'atable1', {'var1':col_from_kind('int')},
                                    "Table title 1")
         ra = numpy.rec.array([(1,11,'a')],formats='u1,f4,a1')
         table2 = fileh.createTable(group, 'atable2', ra,

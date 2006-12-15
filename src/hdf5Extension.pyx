@@ -846,9 +846,11 @@ cdef class Array(Leaf):
     type_ = nparr.dtype.type
     try:
       if type_ == numpy.string_:
-        ptype = "String"
+        ptype = "string"
+      elif type_ == numpy.bool_:
+        ptype = "bool"
       else:
-        ptype = numpy.typeNA[type_]  # the PyTables string type
+        ptype = type_.__name__  # the PyTables string type
       enumtype = PTTypeToNPCode[ptype]
     except KeyError:
       raise TypeError, \
@@ -896,32 +898,30 @@ cdef class Array(Leaf):
     cdef char *flavor, *complib, *version, *class_
     cdef void *fill_value
     cdef int itemsize
-    cdef object ptype, byteorder
+    cdef object atom, kind, byteorder
 
     atom = self.atom
-    itemsize = atom.dtype.base.itemsize
-    ptype = atom.ptype
+    itemsize = atom.itemsize
     try:
-      enumtype = PTTypeToNPCode[ptype]
+      enumtype = PTTypeToNPCode[atom.type]
     except KeyError:
-      raise TypeError, \
-            """Type class '%s' not supported right now. Sorry about that.
-            """ % repr(self.type)
+      raise TypeError( "type ``%s`` is not supported right now; "
+                       "sorry about that" % atom.type )
 
-    if ptype == "String":
+    kind = atom.kind
+    if kind == "string":
       byteorder = "irrelevant"
     else:
       # Only support for creating objects in system byteorder
       byteorder = sys.byteorder
 
-    if ptype == 'Enum':
+    if kind == 'enum':
       self.type_id = enumToHDF5(atom, byteorder)
     else:
       self.type_id = convArrayType(enumtype, itemsize, byteorder)
       if self.type_id < 0:
-        raise TypeError, \
-          """type '%s' is not supported right now. Sorry about that.""" \
-      % self.type
+        raise TypeError( "type ``%s`` is not supported right now; "
+                         "sorry about that" % atom.type )
 
     self.rank = len(self.shape)
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
@@ -935,7 +935,7 @@ cdef class Array(Leaf):
 
     rbuf = NULL   # The data pointer. We don't have data to save initially
     # Manually convert some string values that can't be done automatically
-    flavor = PyString_AsString(atom.flavor)
+    flavor = PyString_AsString(self.flavor)
     complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
@@ -1030,7 +1030,7 @@ cdef class Array(Leaf):
 
 
   def _convertTypes(self, object nparr, int sense):
-    """Converts Time64 elements in 'nparr' between NumPy and HDF5 formats.
+    """Converts time64 elements in 'nparr' between NumPy and HDF5 formats.
 
     NumPy to HDF5 conversion is performed when 'sense' is 0.
     Otherwise, HDF5 to NumPy conversion is performed.
@@ -1038,7 +1038,7 @@ cdef class Array(Leaf):
     """
 
     # This should be generalised to support other type conversions.
-    if self.ptype == 'Time64':
+    if self.type == 'time64':
       convertTime64(nparr, len(nparr), sense)
 
 
@@ -1197,33 +1197,37 @@ cdef class VLArray(Leaf):
     cdef herr_t ret
     cdef void *rbuf
     cdef char *flavor, *complib, *version, *class_
-    cdef object ptype, byteorder, itemsize
+    cdef object type_, kind, byteorder, itemsize
 
     atom = self.atom
-    ptype = atom.ptype
-    try:
-      enumtype = PTTypeToNPCode[ptype]
-    except KeyError:
-      raise TypeError, \
-            """Type class '%s' not supported right now. Sorry about that.
-            """ % repr(ptype)
+    if not hasattr(atom, 'size'):  # it is a pseudo-atom
+      type_ = atom.base.type
+      itemsize = atom.base.itemsize
+    else:
+      type_ = atom.type
+      itemsize = atom.itemsize
 
-    itemsize = atom.dtype.base.itemsize
-    if ptype == "String":
+    try:
+      enumtype = PTTypeToNPCode[type_]
+    except KeyError:
+      raise TypeError( "type ``%s`` is not supported right now; "
+                       "sorry about that" % type_ )
+
+    kind = atom.kind
+    if kind == "string":
       byteorder = "irrelevant"
     else:
       # Only support for creating objects in system byteorder
       byteorder = sys.byteorder
 
-    if ptype == 'Enum':
+    if kind == 'enum':
       self.base_type_id = enumToHDF5(atom, byteorder)
     else:
       # Get the HDF5 type id
       self.base_type_id = convArrayType(enumtype, itemsize, byteorder)
       if self.base_type_id < 0:
-        raise TypeError, \
-          """type '%s' is not supported right now. Sorry about that.""" \
-      % ptype
+        raise TypeError( "type ``%s`` is not supported right now; "
+                         "orry about that." % type_)
 
     # Allocate space for the dimension axis info
     if atom.shape == ():
@@ -1244,7 +1248,7 @@ cdef class VLArray(Leaf):
     rbuf = NULL   # We don't have data to save initially
 
     # Manually convert some string values that can't be done automatically
-    flavor = PyString_AsString(atom.flavor)
+    flavor = PyString_AsString(self.flavor)
     complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
@@ -1305,7 +1309,7 @@ cdef class VLArray(Leaf):
       self._atomicdtype = numpy.dtype("S%s"%self._basesize)
     else:
       self._atomicdtype = numpy.dtype(type_).newbyteorder(byteorder)
-    self._atomicptype = NPCodeToPTType[enumtype]
+    self._atomictype = NPCodeToPTType[enumtype]
 
     # Get the size and shape of the atomic type
     self._atomicshape = getshape(self.rank, self.dims)
@@ -1329,7 +1333,7 @@ cdef class VLArray(Leaf):
     """
 
     # This should be generalised to support other type conversions.
-    if self._atomicptype == 'Time64':
+    if self._atomictype == 'time64':
       convertTime64(nparr, len(nparr), sense)
 
 

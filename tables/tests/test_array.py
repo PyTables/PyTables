@@ -80,7 +80,7 @@ class BasicTestCase(unittest.TestCase):
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         if a.dtype.kind == "S":
-            assert self.root.somearray.ptype == "String"
+            assert self.root.somearray.type == "string"
         else:
             assert a.dtype == b.dtype
             assert a.dtype == self.root.somearray.dtype
@@ -321,7 +321,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         if a.dtype.kind == "S":
-            assert self.root.somearray.ptype == "String"
+            assert self.root.somearray.type == "string"
         else:
             assert a.dtype == b.dtype
             assert a.dtype == self.root.somearray.dtype

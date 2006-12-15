@@ -27,14 +27,11 @@ Misc variables:
 
 """
 
-import warnings
 import math
-import cPickle
 import bisect
 from time import time, clock
 import os, os.path
 import tempfile
-import weakref
 
 import numpy
 
@@ -43,7 +40,7 @@ import tables.utilsExtension as utilsExtension
 from tables.File import openFile
 from tables.AttributeSet import AttributeSet
 from tables.Node import NotLoggedMixin
-from tables.Atom import Atom, StringAtom, Float64Atom, Int64Atom
+from tables.atom import Int64Atom, atom_from_dtype
 from tables.EArray import EArray
 from tables.CArray import CArray
 from tables.Leaf import Filters
@@ -311,8 +308,13 @@ class IndexProps(object):
         filters -- the filter properties for the Table indexes
 
     """
+    auto_default = True
+    reindex_default = True
 
-    def __init__(self, auto=True, reindex=True, filters=None):
+    def __init__( self,
+                  auto=auto_default,
+                  reindex=reindex_default,
+                  filters=None ):
         """Create a new IndexProps instance
 
         Parameters:
@@ -323,17 +325,10 @@ class IndexProps(object):
             after an invalidating index operation (like Table.removeRows).
             Default is reindexing.
         filters -- the filter properties. Default are ZLIB(1) and shuffle
+        """
 
-
-            """
-        if auto is None:
-            auto = True  # Default
-        if reindex is None:
-            reindex = True  # Default
-        assert auto in [False, True], "'auto' can only take values False or True"
-        assert reindex in [False, True], "'reindex' can only take values False or True"
-        self.auto = auto
-        self.reindex = reindex
+        self.auto = bool(auto)
+        self.reindex = bool(reindex)
         if filters is None:
             self.filters = Filters(complevel=1, complib="zlib",
                                    shuffle=True, fletcher32=False)
@@ -345,19 +340,8 @@ class IndexProps(object):
 "If you pass a filters parameter, it should be a Filters instance."
 
     def __repr__(self):
-        """The string reprsentation choosed for this object
-        """
-        descr = self.__class__.__name__
-        descr += "(auto=%s" % (self.auto)
-        descr += ", reindex=%s" % (self.reindex)
-        descr += ", filters=%s" % (self.filters)
-        return descr+")"
-
-    def __str__(self):
-        """The string reprsentation choosed for this object
-        """
-
-        return repr(self)
+        return ( 'IndexProps(auto=%s, reindex=%s, filters=%r)'
+                 % (self.auto, self.reindex, self.filters) )
 
 class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
@@ -479,8 +463,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.testmode = testmode
         """Enables test mode for index chunk size calculation."""
         if atom is not None:
-            self.dtype = atom.dtype
-            self.ptype = atom.ptype
+            self.dtype = atom.dtype.base
+            self.type = atom.type
             """The datatypes to be stored by the sorted index array."""
             ############### Important note ###########################
             #The datatypes saved as index values are NumPy native
@@ -513,7 +497,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # Set-up some variables from info on disk and return
             sorted = self.sorted
             self.dtype = sorted.dtype
-            self.ptype = sorted.ptype
+            self.type = sorted.type
             self.superblocksize = sorted.superblocksize
             self.blocksize = sorted.blocksize
             self.slicesize = sorted.slicesize
@@ -550,8 +534,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.filters = filters
 
         # Create the IndexArray for sorted values
-        sorted = IndexArray(self, 'sorted',
-                            Atom(self.dtype), (0,),
+        atom = atom_from_dtype(self.dtype)
+        sorted = IndexArray(self, 'sorted', atom, (0,),
                             "Sorted Values", filters, self.optlevel,
                             self.testmode, self._v_expectedrows)
 
@@ -564,28 +548,24 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Create the IndexArray for index values
         IndexArray(self, 'indices',
-                   Atom("Int64"), (0,), "Reverse Indices",
+                   Int64Atom(), (0,), "Reverse Indices",
                    filters, self.optlevel,
                    self.testmode, self._v_expectedrows)
 
         # Create the cache for range values  (1st order cache)
-        atom = Atom(self.dtype)
-        CacheArray(self, 'ranges', atom, (0,2), "Range Values",
-                   filters, self._v_expectedrows//self.slicesize)
+        CacheArray(self, 'ranges', atom, (0,2), "Range Values", filters,
+                   self._v_expectedrows//self.slicesize)
         # median ranges
-        atom = Atom(self.dtype)
-        EArray(self, 'mranges', atom, (0,), "Median ranges",
-               filters, _log=False)
+        EArray(self, 'mranges', atom, (0,), "Median ranges", filters,
+               _log=False)
 
         # Create the cache for boundary values (2nd order cache)
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
-        atom = Atom(self.dtype)
         CacheArray(self, 'bounds', atom, (0, nbounds_inslice),
                    "Boundary Values", filters,
                    self._v_expectedrows//self.chunksize)
 
         # begin, end & median bounds (only for numeric types)
-        atom = Atom(self.dtype)
         EArray(self, 'abounds', atom, (0,), "Start bounds", _log=False)
         EArray(self, 'zbounds', atom, (0,), "End bounds", filters, _log=False)
         EArray(self, 'mbounds', atom, (0,), "Median bounds", filters,
@@ -608,7 +588,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.bebounds = sortedLR[:nboundsLR]
 
         # The starts and lengths initialization
-        self.starts = numpy.empty(shape=self.nrows, dtype= numpy.int32)
+        self.starts = numpy.empty(shape=self.nrows, dtype=numpy.int32)
         """Where the values fulfiling conditions starts for every slice."""
         self.lengths = numpy.empty(shape=self.nrows, dtype=numpy.int32)
         """Lengths of the values fulfilling conditions for every slice."""
@@ -772,7 +752,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if nover < thnover or rmult < thmult:
             return True
         # Additional check for numerical values
-        if self.ptype != "String" and tover < thtover:
+        if self.type != "string" and tover < thtover:
             return True
         return False
 
@@ -795,27 +775,24 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         filters = None
         # temporary sorted & indices arrays
         shape = (self.nrows, ss)
-        atom = Atom(self.dtype)
+        atom = atom_from_dtype(self.dtype)
         CArray(self.tmp, 'sorted', atom, shape,
-               "Temporary sorted", filters, (1,cs))
+               "Temporary sorted", filters, chunkshape=(1,cs))
         CArray(self.tmp, 'indices', Int64Atom(), shape,
-               "Temporary indices", filters, (1,cs))
+               "Temporary indices", filters, chunkshape=(1,cs))
         # temporary bounds
         shape = (self.nchunks,)
-        atom = Atom(self.dtype)
         CArray(self.tmp, 'abounds', atom, shape, "Temp start bounds",
-               filters, (cs,))
+               filters, chunkshape=(cs,))
         CArray(self.tmp, 'zbounds', atom, shape, "Temp end bounds",
-               filters, (cs,))
+               filters, chunkshape=(cs,))
         CArray(self.tmp, 'mbounds', atom, shape, "Median bounds",
-               filters, (cs,))
+               filters, chunkshape=(cs,))
         # temporary ranges
-        CArray(self.tmp, 'ranges',
-               Atom(self.dtype), (self.nslices, 2), "Temporary range values",
-               filters, (cs,2))
-        CArray(self.tmp, 'mranges',
-               Atom(self.dtype), (self.nslices,), "Median ranges",
-               filters, (cs,))
+        CArray(self.tmp, 'ranges', atom, (self.nslices, 2),
+               "Temporary range values", filters, chunkshape=(cs,2))
+        CArray(self.tmp, 'mranges', atom, (self.nslices,),
+               "Median ranges", filters, chunkshape=(cs,))
 
 
     def cleanup_temps(self):
@@ -998,12 +975,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 if ranges[i,1] > ranges[j,0]:
                     noverlaps += 1
                     multiplicity[j-i] += 1
-                    if self.ptype != "String":
+                    if self.type != "string":
                         # Convert ranges into floats in order to allow
                         # doing operations with them without overflows
                         soverlap += float(ranges[i,1]) - float(ranges[j,0])
         # Return the overlap as the ratio between overlaps and entire range
-        if self.ptype != "String":
+        if self.type != "string":
             erange = float(ranges[-1,1]) - float(ranges[0,0])
             # Check that there is an effective range of values
             if erange > 0:
@@ -1070,16 +1047,16 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # The item is not in cache. Do the real lookup.
         sorted = self.sorted
         if sorted.nrows > 0:
-            if self.ptype != "String":
+            if self.type != "string":
                 item1, item2 = item
                 # The next are optimizations. However, they hide the
                 # CPU functions consumptions from python profiles.
                 # Activate only after development is done.
-                if self.dtype == "Float64":
+                if self.type == "float64":
                     tlen = sorted._searchBinNA_d(item1, item2)
-                elif self.dtype == "Int32":
+                elif self.type == "int32":
                     tlen = sorted._searchBinNA_i(item1, item2)
-                elif self.dtype == "Int64":
+                elif self.type == "int64":
                     tlen = sorted._searchBinNA_ll(item1, item2)
                 else:
                     tlen = self.search_scalar(item, sorted)
@@ -1261,7 +1238,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         cpathname = self.column.table._v_pathname + ".cols." + self.column.name
         retstr = """%s (Index for column %s)
-  ptype := %r
+  type := %r
   nelements := %s
   shape := %s
   chunksize := %s
@@ -1270,7 +1247,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
   dirty := %s
   sorted := %s
   indices := %s""" % (self._v_pathname, cpathname,
-                     self.sorted.ptype, self.nelements, self.shape,
+                     self.sorted.type, self.nelements, self.shape,
                      self.sorted.chunksize, self.sorted.byteorder,
                      self.filters, self.dirty, self.sorted, self.indices)
         retstr += "\n  ranges := %s" % self.ranges

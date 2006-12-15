@@ -414,12 +414,14 @@ class File(hdf5Extension.File, object):
     * createTable(where, name, description[, title][, filters]
                   [, expectedrows][, chunkshape][, createparents])
     * createArray(where, name, array[, title][, createparents])
-    * createCArray(where, name, shape, atom[, title][, filters]
-                   [, chunkshape] [, createparents])
+    * createCArray(where, name, atom, shape [, title][, filters]
+                   [, flavor][, chunkshape][, createparents])
     * createEArray(where, name, atom, shape [, title][, filters]
-                   [, chunkshape] [, expectedrows][, createparents])
+                   [, expectedrows][, flavor][, chunkshape]
+                   [, createparents])
     * createVLArray(where, name, atom[, title][, filters]
-                    [, expectedsizeinMB][, createparents])
+                    [, expectedsizeinMB][, flavor][, chunkshape]
+                    [, createparents])
     * removeNode(where[, name][, recursive])
     * renameNode(where, newname[, name])
     * moveNode(where, newparent, newname[, name][, overwrite])
@@ -750,7 +752,8 @@ class File(hdf5Extension.File, object):
 
 
     def createCArray(self, where, name, atom, shape, title="",
-                     filters=None, chunkshape=None, createparents=False):
+                     filters=None, flavor='numpy', chunkshape=None,
+                     createparents=False):
         """Create a new instance CArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -772,6 +775,8 @@ class File(hdf5Extension.File, object):
             information about the desired I/O filters to be applied
             during the life of this object.
 
+        flavor -- The representation of data read from this array.
+
         chunkshape -- The shape of the data chunk read or written as a
             single HDF5 I/O operation. The filters are applied to chunks
             of data. Its dimensionality has to be the same as shape.  If
@@ -785,11 +790,12 @@ class File(hdf5Extension.File, object):
         _checkfilters(filters)
         return CArray(parentNode, name,
                       atom=atom, shape=shape, title=title, filters=filters,
-                      chunkshape=chunkshape)
+                      flavor=flavor, chunkshape=chunkshape)
 
 
     def createEArray(self, where, name, atom, shape, title="",
-                     filters=None, expectedrows=1000, chunkshape=None,
+                     filters=None, expectedrows=1000,
+                     flavor='numpy', chunkshape=None,
                      createparents=False):
         """Create a new instance EArray with name "name" in "where" location.
 
@@ -822,6 +828,8 @@ class File(hdf5Extension.File, object):
             this will optimize the HDF5 B-Tree creation and management
             process time and the amount of memory used.
 
+        flavor -- The representation of data read from this array.
+
         chunkshape -- The shape of the data chunk to be read or written
             as a single HDF5 I/O operation. The filters are applied to
             those chunks of data. Its dimensionality has to be the same
@@ -837,11 +845,12 @@ class File(hdf5Extension.File, object):
         return EArray(parentNode, name,
                       atom=atom, shape=shape, title=title,
                       filters=filters, expectedrows=expectedrows,
-                      chunkshape=chunkshape)
+                      flavor=flavor, chunkshape=chunkshape)
 
 
     def createVLArray(self, where, name, atom, title="",
-                      filters=None, expectedsizeinMB=1.0, chunkshape=None,
+                      filters=None, expectedsizeinMB=1.0,
+                      flavor='numpy', chunkshape=None,
                       createparents=False):
         """Create a new instance VLArray with name "name" in "where" location.
 
@@ -869,6 +878,8 @@ class File(hdf5Extension.File, object):
             optimize the HDF5 B-Tree creation and management process
             time and the amount of memory used.
 
+        flavor -- The representation of data read from this array.
+
         chunkshape -- The shape of the data chunk to be read or written
             as a single HDF5 I/O operation. The filters are applied to
             those chunks of data. Its rank for vlarrays has to be 1. If
@@ -882,7 +893,7 @@ class File(hdf5Extension.File, object):
         return VLArray(parentNode, name,
                        atom=atom, title=title, filters=filters,
                        expectedsizeinMB=expectedsizeinMB,
-                       chunkshape=chunkshape)
+                       flavor=flavor, chunkshape=chunkshape)
 
 
     # There is another version of _getNode in Pyrex space, but only

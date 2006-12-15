@@ -283,8 +283,9 @@ def convertToNPAtom(arr, atom, copy=False):
 
     # Get copies of data if necessary for getting a contiguous buffer,
     # or if dtype is not the correct one.
-    if (copy or nparr.dtype <> atom.dtype):
-        nparr = numpy.array(nparr, dtype=atom.dtype)
+    basetype = atom.dtype.base
+    if (copy or nparr.dtype <> basetype):
+        nparr = numpy.array(nparr, dtype=basetype)
 
     return nparr
 
@@ -357,53 +358,20 @@ def convertNPToNumArray(arr):
     return arr
 
 
-def convToFlavor(object, arr, caller = "Array"):
+def convToFlavor(arr, flavor):
     "Convert the NumPy parameter to the correct flavor"
 
-    if object.flavor == "numarray":
+    if flavor == "numarray":
         arr = convertNPToNumArray(arr)
-    elif object.flavor == "numeric":
+    elif flavor == "numeric":
         arr = convertNPToNumeric(arr)
-    elif object.flavor == "python":
+    elif flavor == "python":
         if arr.shape <> ():
             # Lists are the default for returning multidimensional objects
             arr = arr.tolist()
         else:
             # 0-dim or scalar case
             arr = arr.item()
-    elif object.flavor == "string":
-        arr = arr.tostring()
-        # Set the shape to () for these objects
-        # F. Altet 2006-01-03
-        object.shape = ()
-    elif object.flavor == "Tuple":
-        arr = totuple(object, arr)
-    elif object.flavor == "List":
-        arr = arr.tolist()
-    if caller <> "VLArray":
-        # For backward compatibility
-        if object.flavor == "Int":
-            arr = int(arr)
-        elif object.flavor == "Float":
-            arr = float(arr)
-        elif object.flavor == "String":
-            arr = arr.tostring()
-            # Set the shape to () for these objects
-            # F. Altet 2006-01-03
-            object.shape = ()
-    else:
-        if object.flavor == "String":
-            arr = arr.tolist()
-        elif object.flavor == "VLString":
-            arr = arr.tostring().decode('utf-8')
-        elif object.flavor == "Object":
-            # We have to check for an empty array because of a
-            # possible bug in HDF5 that claims that a dataset
-            # has one record when in fact, it is empty
-            if arr.size == 0:
-                arr = []
-            else:
-                arr = cPickle.loads(arr.tostring())
     return arr
 
 

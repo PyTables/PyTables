@@ -8,23 +8,23 @@ from tables import *
 import random
 
 class Small(IsDescription):
-    var1 = StringCol(length=4, dflt="")
-    var2 = IntCol(0)
-    var3 = FloatCol(0)
-    var4 = BoolCol(0)
+    var1 = StringCol(itemsize=4)
+    var2 = Int32Col()
+    var3 = Float64Col()
+    var4 = BoolCol()
 
 # Define a user record to characterize some kind of particles
 class Medium(IsDescription):
-    var1        = StringCol(length=16, dflt="")  # 16-character String
-    #float1      = Col("Float64", 1, 2.3)
-    #float2      = Col("Float64", 1, 2.3)
-    #zADCcount    = Col("Int16", 1, 0)    # signed short integer
-    var2        = Col("Int32", 1, 0)    # signed short integer
-    var3        = Col("Float64", 1, 0)
-    grid_i      = Col("Int32", 1, 0)    # integer
-    grid_j      = Col("Int32", 1, 0)    # integer
-    pressure    = Col("Float32", 1, 0)    # float  (single-precision)
-    energy      = Col("Float64", 2, 0)    # double (double-precision)
+    var1        = StringCol(itemsize=16)  # 16-character String
+    #float1      = Float64Col(dflt=2.3)
+    #float2      = Float64Col(dflt=2.3)
+    #zADCcount    = Int16Col()    # signed short integer
+    var2        = Int32Col()    # signed short integer
+    var3        = Float64Col()
+    grid_i      = Int32Col()    # integer
+    grid_j      = Int32Col()    # integer
+    pressure    = Float32Col()    # float  (single-precision)
+    energy      = Float64Col(shape=2)    # double (double-precision)
 
 def createFile(filename, nrows, filters, atom, recsize, index, verbose):
 

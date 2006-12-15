@@ -10,19 +10,19 @@ from tables import *
 
 # Describe a particle record
 class Particle(IsDescription):
-    name        = StringCol(length=16) # 16-character String
-    lati        = IntCol()             # integer
-    longi       = IntCol()             # integer
+    name        = StringCol(itemsize=16)  # 16-character string
+    lati        = Int32Col()              # integer
+    longi       = Int32Col()              # integer
     pressure    = Float32Col(shape=(2,3)) # array of floats (single-precision)
-    temperature = FloatCol(shape=(2,3))   # array of doubles (double-precision)
+    temperature = Float64Col(shape=(2,3)) # array of doubles (double-precision)
 
 # Another way to describe the columns of a table
 Event = {
-    "name"        : StringCol(length=16),
-    "lati"        : IntCol(),
-    "longi"       : IntCol(),
-    "pressure"    : Float32Col(shape=(2,3)),
-    "temperature" : FloatCol(shape=(2,3)),
+    "name"     : StringCol(itemsize=16),
+    "TDCcount" : UInt8Col(),
+    "ADCcount" : UInt16Col(),
+    "xcoord"   : Float32Col(),
+    "ycoord"   : Float32Col(),
     }
 
 # Open a file in "w"rite mode
@@ -38,7 +38,7 @@ gparticles = root.Particles
 for tablename in ("TParticle1", "TParticle2", "TParticle3"):
     # Create a table
     table = fileh.createTable("/Particles", tablename, Particle,
-                           "Particles: "+tablename)
+                              "Particles: "+tablename)
     # Get the record object associated with the table:
     particle = table.row
     # Fill the table with 257 particles
@@ -61,7 +61,7 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
 for tablename in ("TEvent1", "TEvent2", "TEvent3"):
     # Create a table in Events group
     table = fileh.createTable(root.Events, tablename, Event,
-                           "Events: "+tablename)
+                              "Events: "+tablename)
     # Get the record object associated with the table:
     event = table.row
     # Fill the table with 257 events

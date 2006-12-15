@@ -11,11 +11,11 @@ unittest.TestCase.tearDown = cleanup
 
 # Test Record class
 class Record(IsDescription):
-    var1 = StringCol(length=4)    # 4-character String
-    var2 = IntCol()               # integer
-    var3 = IntCol(itemsize=2)     # short integer
-    var4 = FloatCol()             # double (double-precision)
-    var5 = FloatCol(itemsize=4)   # float  (single-precision)
+    var1 = StringCol(itemsize=4)  # 4-character String
+    var2 = col_from_kind('int')   # integer
+    var3 = col_from_kind('int', itemsize=2) # short integer
+    var4 = col_from_kind('float') # double (double-precision)
+    var5 = col_from_kind('float', itemsize=4) # float  (single-precision)
 
 
 class RangeTestCase(unittest.TestCase):
@@ -88,9 +88,13 @@ class RangeTestCase(unittest.TestCase):
 #----------------------------------------------------------------------
 
 def suite():
+    import doctest
+    import tables.atom
+
     theSuite = unittest.TestSuite()
 
     for i in range(1):
+        theSuite.addTest(doctest.DocTestSuite(tables.atom))
         theSuite.addTest(unittest.makeSuite(RangeTestCase))
 
     return theSuite

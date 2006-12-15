@@ -4,10 +4,10 @@ from tables import *
 
 class Particle(IsDescription):
     name        = StringCol(16, pos=1)   # 16-character String
-    lati        = IntCol(pos=2)        # integer
-    longi       = IntCol(pos=3)        # integer
+    lati        = Int32Col(pos=2)        # integer
+    longi       = Int32Col(pos=3)        # integer
     pressure    = Float32Col(pos=4)    # float  (single-precision)
-    temperature = FloatCol(pos=5)      # double (double-precision)
+    temperature = Float64Col(pos=5)      # double (double-precision)
 
 # Open a file in "w"rite mode
 fileh = openFile("add-column.h5", mode = "w")
@@ -37,7 +37,7 @@ descr = table.description._v_colObjects
 descr2 = descr.copy()
 
 # Add a column to description
-descr2["hot"] = BoolCol(False)
+descr2["hot"] = BoolCol(dflt=False)
 
 # Create a new table with the new description
 table2 = fileh.createTable(group, 'table2', descr2, "A table", Filters(1))

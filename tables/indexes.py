@@ -42,8 +42,6 @@ import numpy
 from tables.Node import NotLoggedMixin
 from tables.Array import Array
 from tables.EArray import EArray
-from tables.CArray import CArray
-from tables.VLArray import Atom, StringAtom
 import tables.indexesExtension as indexesExtension
 
 
@@ -509,7 +507,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         return objectId
 
 
-    def _calcTuplesAndChunks(self, atom, extdim, expectedrows, compress):
+    def _calcTuplesAndChunks(self, expectedrows):
         return (0, (1, self.chunksize))  # (_v_nrowsinbuf, _v_chunkshape)
 
 
@@ -612,11 +610,11 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         """A verbose representation of this class"""
 
         return """%s
-  ptype = %r
+  type = %r
   shape = %s
   itemsize = %s
   nrows = %s
   slicesize = %s
   chunksize = %s
-  byteorder = %r""" % (self, self.ptype, self.shape, self.itemsize, self.nrows,
+  byteorder = %r""" % (self, self.type, self.shape, self.itemsize, self.nrows,
                        self.slicesize, self.chunksize, self.byteorder)

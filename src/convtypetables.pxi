@@ -75,18 +75,18 @@ else:  # sys.byteorder == "big"
 # List only types that are susceptible of changing byteorder
 # (complex & enumerated types are special and should not be listed here)
 PTTypeToHDF5 = {
-  'Int8'   : H5T_STD_I8,   'UInt8'  : H5T_STD_U8,
-  'Int16'  : H5T_STD_I16,  'UInt16' : H5T_STD_U16,
-  'Int32'  : H5T_STD_I32,  'UInt32' : H5T_STD_U32,
-  'Int64'  : H5T_STD_I64,  'UInt64' : H5T_STD_U64,
-  'Float32': H5T_IEEE_F32, 'Float64': H5T_IEEE_F64,
+  'int8'   : H5T_STD_I8,   'uint8'  : H5T_STD_U8,
+  'int16'  : H5T_STD_I16,  'uint16' : H5T_STD_U16,
+  'int32'  : H5T_STD_I32,  'uint32' : H5T_STD_U32,
+  'int64'  : H5T_STD_I64,  'uint64' : H5T_STD_U64,
+  'float32': H5T_IEEE_F32, 'float64': H5T_IEEE_F64,
   # time datatypes cannot be distinguished if they are LE and BE
   # so, we (arbitrarily) always choose BE byteorder
-  'Time32' : H5T_UNIX_D32BE, 'Time64' : H5T_UNIX_D64BE,
+  'time32' : H5T_UNIX_D32BE, 'time64' : H5T_UNIX_D64BE,
   }
 
 # Special cases whose byteorder cannot be directly changed
-PTSpecialTypes = ['Bool', 'Complex32', 'Complex64', 'String', 'Enum']
+PTSpecialKinds = ['bool', 'complex', 'string', 'enum']
 
 
 # Names of HDF5 classes
@@ -135,16 +135,16 @@ NPTypeToCode = {
 
 # Conversion from NumPy codes to PyTables string types
 NPCodeToPTType = {
-  NPY_BOOL:      'Bool',      NPY_STRING:     'String',
-  NPY_INT8:      'Int8',      NPY_UINT8:      'UInt8',
-  NPY_INT16:     'Int16',     NPY_UINT16:     'UInt16',
-  NPY_INT32:     'Int32',     NPY_UINT32:     'UInt32',
-  NPY_INT64:     'Int64',     NPY_UINT64:     'UInt64',
-  NPY_FLOAT32:   'Float32',   NPY_FLOAT64:    'Float64',
-  NPY_COMPLEX64: 'Complex32', NPY_COMPLEX128: 'Complex64',
+  NPY_BOOL:      'bool',      NPY_STRING:     'string',
+  NPY_INT8:      'int8',      NPY_UINT8:      'uint8',
+  NPY_INT16:     'int16',     NPY_UINT16:     'uint16',
+  NPY_INT32:     'int32',     NPY_UINT32:     'uint32',
+  NPY_INT64:     'int64',     NPY_UINT64:     'uint64',
+  NPY_FLOAT32:   'float32',   NPY_FLOAT64:    'float64',
+  NPY_COMPLEX64: 'complex64', NPY_COMPLEX128: 'complex128',
   # Special cases:
-  ord('t'):      'Time32',    ord('T'):       'Time64',
-  ord('e'):      'Enum',
+  ord('t'):      'time32',    ord('T'):       'time64',
+  ord('e'):      'enum',
   }
 
 

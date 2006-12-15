@@ -66,14 +66,14 @@ class BasicTestCase(unittest.TestCase):
             # "l" and "i" typecode, and we can consider them the same
             # to all practical effects
             assert (b.typecode() == "l" or b.typecode() == "i")
-            assert typecode[self.root.somearray.ptype] == "l" or \
-                   typecode[self.root.somearray.ptype] == "i"
+            assert typecode[self.root.somearray.type] == "l" or \
+                   typecode[self.root.somearray.type] == "i"
         elif a.typecode() == "c":
             assert a.typecode() == b.typecode()
-            assert self.root.somearray.ptype == "String"
+            assert self.root.somearray.type == "string"
         else:
             assert a.typecode() == b.typecode()
-            assert a.typecode() == typecode[self.root.somearray.ptype]
+            assert a.typecode() == typecode[self.root.somearray.type]
 
         assert allequal(a,b, "numeric")
         self.fileh.close()
@@ -356,25 +356,25 @@ class GroupsArrayTestCase(unittest.TestCase):
 
 # Test Record class
 class Record(IsDescription):
-    var1  = StringCol(length=4, dflt="abcd")
-    var2  = StringCol(length=1, dflt="a")
-    var3  = BoolCol(1)
-    var4  = Int8Col(1)
-    var5  = UInt8Col(1)
-    var6  = Int16Col(1)
-    var7  = UInt16Col(1)
-    var8  = Int32Col(1)
-    var9  = UInt32Col(1)
+    var1  = StringCol(itemsize=4, dflt="abcd")
+    var2  = StringCol(itemsize=1, dflt="a")
+    var3  = BoolCol(dflt=1)
+    var4  = Int8Col(dflt=1)
+    var5  = UInt8Col(dflt=1)
+    var6  = Int16Col(dflt=1)
+    var7  = UInt16Col(dflt=1)
+    var8  = Int32Col(dflt=1)
+    var9  = UInt32Col(dflt=1)
     # Apparently, there is no way to convert a NumPy of 64-bits into
     # Numeric of 64-bits in 32-bit platforms
     # See
     # http://aspn.activestate.com/ASPN/Mail/Message/numpy-discussion/2569120
     # Uncomment this makes test breaks on 64-bit platforms 2005-09-23
     #var10 = Int64Col(1)
-    var11 = Float32Col(1.0)
-    var12 = Float64Col(1.0)
-    var13 = Complex32Col((1.+0.j))
-    var14 = Complex64Col((1.+0.j))
+    var11 = Float32Col(dflt=1.0)
+    var12 = Float64Col(dflt=1.0)
+    var13 = ComplexCol(itemsize=8, dflt=(1.+0.j))
+    var14 = ComplexCol(itemsize=16, dflt=(1.+0.j))
 
 
 class TableReadTestCase(common.PyTablesTestCase):
@@ -403,10 +403,10 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numeric")
-            typecol = table.colptypes[colname]
+            typecol = table.coltypes[colname]
             itemsizecol = table.description._v_dtypes[colname].base.itemsize
             nctypecode = numcol.typecode()
-            if typecol == "String":
+            if typecol == "string":
                 if itemsizecol > 1:
                     orignumcol = array(['abcd']*self.nrows, typecode='c')
                 else:
@@ -428,12 +428,12 @@ class TableReadTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         for colname in table.colnames:
             numcol = table.read(field=colname, flavor="numeric")
-            typecol = table.colptypes[colname]
+            typecol = table.coltypes[colname]
             nctypecode = numcol.typecode()
-            if typecol <> "String":
-                if typecol == "Int64":
+            if typecol <> "string":
+                if typecol == "int64":
                     return
-                if typecol == "Bool":
+                if typecol == "bool":
                     nctypecode = "B"
                 if verbose:
                     print "Typecode of Numeric column read:", nctypecode
@@ -452,10 +452,10 @@ class TableReadTestCase(common.PyTablesTestCase):
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname,
                                            flavor="numeric")
-            typecol = table.colptypes[colname]
+            typecol = table.coltypes[colname]
             itemsizecol = table.description._v_dtypes[colname].base.itemsize
             nctypecode = numcol.typecode()
-            if typecol == "String":
+            if typecol == "string":
                 if itemsizecol > 1:
                     orignumcol = array(['abcd']*self.nrows, typecode='c')
                 else:
@@ -480,12 +480,12 @@ class TableReadTestCase(common.PyTablesTestCase):
         for colname in table.colnames:
             numcol = table.readCoordinates(coords, field=colname,
                                            flavor="numeric")
-            typecol = table.colptypes[colname]
+            typecol = table.coltypes[colname]
             nctypecode = numcol.typecode()
-            if typecol <> "String":
-                if typecol == "Int64":
+            if typecol <> "string":
+                if typecol == "int64":
                     return
-                if typecol == "Bool":
+                if typecol == "bool":
                     nctypecode = "B"
                 if verbose:
                     print "Typecode of Numeric column read:", nctypecode

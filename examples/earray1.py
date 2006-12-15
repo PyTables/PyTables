@@ -2,7 +2,7 @@ import tables
 from numarray import strings
 
 fileh = tables.openFile("earray1.h5", mode = "w")
-a = tables.StringAtom(length=8)
+a = tables.StringAtom(itemsize=8)
 # Use 'a' as the object type for the enlargeable array
 array_c = fileh.createEArray(fileh.root, 'array_c', a, (0,), "Chars")
 array_c.append(strings.array(['a'*2, 'b'*4], itemsize=8))

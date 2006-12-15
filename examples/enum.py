@@ -39,7 +39,7 @@ h5f = tables.openFile('enum.h5', 'w')
 COMMENT("This describes a ball extraction.")
 class BallExt(tables.IsDescription):
     ballTime = tables.Time32Col()
-    ballColor = tables.EnumCol(colors, 'black', dtype='UInt8')
+    ballColor = tables.EnumCol(colors, 'black', base='uint8')
 
 COMMENT("Create a table of ball extractions.")
 tbl = h5f.createTable(
@@ -72,10 +72,10 @@ COMMENT("**** Enumerated arrays. ****")
 
 COMMENT("This describes a range of working days.")
 workingDays = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5}
-dayRange = tables.EnumAtom(workingDays, shape=(0, 2), flavor='Tuple')
+dayRange = tables.EnumAtom(workingDays, 'Mon', base='uint16', shape=(0, 2))
 
 COMMENT("Create an EArray of day ranges within a week.")
-earr = h5f.createEArray('/', 'days', dayRange, title="Working day ranges")
+earr = h5f.createEArray('/', 'days', dayRange, title="Working day ranges", flavor='python')
 
 COMMENT("Throw some day ranges in.")
 wdays = earr.getEnum()

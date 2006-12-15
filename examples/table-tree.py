@@ -5,26 +5,26 @@ import numpy
 from tables import *
 
 class Particle(IsDescription):
-    ADCcount    = Int16Col(0)              # signed short integer
-    TDCcount    = UInt8Col(0)              # unsigned byte
-    grid_i      = IntCol(0)                # integer
-    grid_j      = IntCol(0)                # integer
-    idnumber    = Int64Col(0)              # signed long long
-    name        = StringCol(16, dflt="")   # 16-character String
-    pressure    = Float32Col(0.0, shape=2) # float  (single-precision)
-    temperature = FloatCol(0.0)            # double (double-precision)
+    ADCcount    = Int16Col()              # signed short integer
+    TDCcount    = UInt8Col()              # unsigned byte
+    grid_i      = Int32Col()              # integer
+    grid_j      = Int32Col()              # integer
+    idnumber    = Int64Col()              # signed long long
+    name        = StringCol(16, dflt="")  # 16-character String
+    pressure    = Float32Col(shape=2)     # float  (single-precision)
+    temperature = Float64Col()            # double (double-precision)
 
 Particle2 = {
-    # The old way to declare columns is still supported, although its
-    # use is discouraged
-    "ADCcount"    : Col("Int16", 1, 0),    # signed short integer
-    "TDCcount"    : Col("UInt8", 1, 0),    # unsigned byte
-    "grid_i"      : Col("Int32", 1, 0),    # integer
-    "grid_j"      : Col("Int32", 1, 0),    # integer
-    "idnumber"    : Col("Int64", 1, 0),    # signed long long
-    "name"        : Col("String", 16, ""),  # 16-character String
-    "pressure"    : Col("Float32", 2, 0),  # float  (single-precision)
-    "temperature" : Col("Float64", 1, 0),  # double (double-precision)
+    # You can also use any of the atom factories, i.e. the one which
+    # accepts a PyTables type.
+    "ADCcount"    : col_from_type("int16"),    # signed short integer
+    "TDCcount"    : col_from_type("uint8"),    # unsigned byte
+    "grid_i"      : col_from_type("int32"),    # integer
+    "grid_j"      : col_from_type("int32"),    # integer
+    "idnumber"    : col_from_type("int64"),    # signed long long
+    "name"        : col_from_kind("string", 16),  # 16-character String
+    "pressure"    : col_from_type("float32"),  # float  (single-precision)
+    "temperature" : col_from_type("float64"),  # double (double-precision)
 }
 
 # The name of our HDF5 filename

@@ -47,6 +47,7 @@ except ImportError:
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRange, processRangeRead, convToFlavor, \
      convToNP, is_idx, byteorders
+from tables.atom import split_type
 from tables.Leaf import Leaf, Filters
 
 
@@ -62,39 +63,55 @@ obversion = "2.3"    # This adds support for enumerated datatypes.
 
 
 class Array(hdf5Extension.Array, Leaf):
-    """Represent an homogeneous dataset in HDF5 file.
+    """
+    This class represents homogeneous datasets in an HDF5 file.
 
-    It enables to create new datasets on-disk from NumPy, numarray,
-    Numeric, lists, tuples, strings or scalars, or open existing ones.
+    This class provides methods to write or read data to or from array
+    objects in the file.  This class does not allow you to enlarge the
+    datasets on disk; use the `EArray` class if you want enlargeable
+    dataset support or compression features, or `CArray` if you just
+    want compression.
 
-    All NumPy, Numeric and numarray typecodes are supported.
+    An interesting property of the `Array` class is that it remembers
+    the *flavor* of the object that has been saved so that if you
+    saved, for example, a ``list``, you will get a ``list`` during
+    readings afterwards; if you saved a NumPy array, you will get a
+    NumPy object, and so forth.
 
-    Methods:
+    Note that this class inherits all the public attributes and
+    methods that `Leaf` already provides.  However, as `Array`
+    instances have no internal I/O buffers, it is not necessary to use
+    the ``flush()`` method they inherit from `Leaf` in order to save
+    their internal state to disk.  When a writing method call returns,
+    all the data is already on disk.
 
-        read(start, stop, step)
-        iterrows(start, stop, step)
+    Instance variables (specific of `Array`):
 
-    Instance variables:
-
-        flavor -- The object representation of this array.
-        nrows -- The length of the first dimension of the array.
-        extdim -- The extendable dimension (-1 if dataset is not extendable).
-        rowsize -- The size (in bytes) of the row in dimensions orthogonal to
-                   maindim.
-        nrow -- On iterators, this is the index of the current row.
-        dtype -- The NumPy type of the represented array.
-        ptype -- The PyTables type of the represented array.
-        itemsize -- The size of the base dtype.
-        byteorder --  The byte ordering of the base dtype.
-
+    `flavor`
+        The representation of data read from this array.  It can be
+        any of 'numpy', 'numarray', 'numeric' or 'python' values.
+    `nrows`
+        The length of the first dimension of the array.
+    `nrow`
+        On iterators, this is the index of the current row.
+    `maindim`
+        The dimension along which iterators do work.
+    `dtype`
+        The NumPy type of the represented array.
+    `type`
+        The PyTables type of the represented array.
+    `itemsize`
+        The size in bytes of an item in the array.
+    `byteorder`
+        The byte ordering of the items in the array on disk.
     """
 
     # Class identifier.
     _c_classId = 'ARRAY'
 
 
-    # <properties>
-
+    # Properties
+    # ~~~~~~~~~~
     byteorder = property(
         lambda self: byteorders[self.dtype.byteorder], None, None,
         "The endianness of data in memory ('big', 'little' or 'irrelevant').")
@@ -123,22 +140,25 @@ class Array(hdf5Extension.Array, Leaf):
         _getrowsize, None, None,
         "The size of the rows in dimensions orthogonal to maindim.")
 
-    # </properties>
-
-
+    # Other methods
+    # ~~~~~~~~~~~~~
     def __init__(self, parentNode, name,
                  object=None, title="",
                  _log=True):
-        """Create the instance Array.
+        """
+        Create an `Array` instance.
 
         Keyword arguments:
 
-        object -- The (regular) object to be saved. It can be any of
-            numpy, numarray, numeric, list, tuple, string, integer of
-            floating point types, provided that they are regular
-            (i.e. they are not like [[1,2],2]).
-
-        title -- Sets a TITLE attribute on the HDF5 array entity.
+        `object`
+            The object to be saved.  It can be any object of one of
+            NumPy, numarray, Numeric, list, tuple, string, integer of
+            floating point types, provided that it is regular
+            (i.e. not like ``[[1,2], 2]``).
+        `title`
+            Sets a ``TITLE`` attribute on the array entity.
+        `flavor`
+            Sets the representation of data read from this array.
         """
 
         self._v_version = None
@@ -198,7 +218,7 @@ class Array(hdf5Extension.Array, Leaf):
         """On iterators, this is the index of the current row."""
         self.dtype = None
         """The NumPy type of the represented array."""
-        self.ptype = None
+        self.type = None
         """The PyTables type of the represented array."""
         self.extdim = -1   # ordinary arrays are not enlargeable
         """The index of the enlargeable dimension."""
@@ -232,7 +252,7 @@ class Array(hdf5Extension.Array, Leaf):
 
         # Create the array on-disk
         try:
-            (self._v_objectID, self.dtype, self.ptype) = (
+            (self._v_objectID, self.dtype, self.type) = (
                 self._createArray(nparr, self._v_new_title))
         except:  #XXX
             # Problems creating the Array on disk. Close node and re-raise.
@@ -249,11 +269,11 @@ class Array(hdf5Extension.Array, Leaf):
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        (self._v_objectID, self.dtype, self.ptype, self.shape,
+        (self._v_objectID, self.dtype, self.type, self.shape,
          self.flavor, self._v_chunkshape) = self._openArray()
 
         # Get enumeration from disk.
-        if self.ptype == 'Enum':
+        if split_type(self.type)[0] == 'enum':
             (self._enum, self.dtype) = self._g_loadEnum()
 
         # Compute the optimal buffer size (nrowsinbuf)
@@ -272,7 +292,7 @@ class Array(hdf5Extension.Array, Leaf):
         ``TypeError`` is raised.
         """
 
-        if self.ptype != 'Enum':
+        if split_type(self.type)[0] != 'enum':
             raise TypeError("array ``%s`` is not of an enumerated type"
                             % self._v_pathname)
 
@@ -528,7 +548,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         elif arr.shape == ():  # Scalar case
             return arr.item()  # return the python value
         else:
-            return convToFlavor(self, arr)
+            return convToFlavor(arr, self.flavor)
 
 
     def read(self, start=None, stop=None, step=None):
@@ -558,7 +578,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         elif arr.shape == ():  # Scalar case and flavor is not 'numpy'
             return arr.item()  # return the python value
         else:
-            return convToFlavor(self, arr)
+            return convToFlavor(arr, self.flavor)
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
@@ -583,7 +603,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         """This provides more metainfo in addition to standard __str__"""
 
         return """%s
-  ptype := %r
+  type := %r
   shape := %r
   maindim := %r
   flavor := %r

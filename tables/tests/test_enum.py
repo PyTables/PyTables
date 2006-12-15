@@ -22,13 +22,13 @@ class CreateColTestCase(common.PyTablesTestCase):
 
     """Test creating enumerated column descriptions."""
 
-    def _createCol(self, enum, dflt, dtype='UInt32', shape=()):
+    def _createCol(self, enum, dflt, base='uint32', shape=()):
         """Create and check an enumerated column description."""
 
-        enumcol = tables.EnumCol(enum, dflt, dtype=dtype, shape=shape)
+        enumcol = tables.EnumCol(enum, dflt, base=base, shape=shape)
         sameEnum = tables.Enum(enum)
-        self.assertEqual(enumcol.ptype, 'Enum')
-        self.assertEqual(enumcol.dtype.base.type, numpy.sctypeNA[dtype])
+        self.assertEqual(enumcol.type, 'enum')
+        self.assertEqual(enumcol.dtype.base.name, enumcol.base.type)
         # To avoid 'LongInt' vs 'Int' issues
         #self.assertEqual(enumcol.dflt, sameEnum[dflt])
         self.assertEqual(int(enumcol.dflt), int(sameEnum[dflt]))
@@ -59,14 +59,8 @@ class CreateColTestCase(common.PyTablesTestCase):
         self.assertRaises(TypeError, self._createCol, colors, 'red')
 
 
-    def test01a_invalidDfltType(self):
+    def test01_invalidDflt(self):
         """Describing an enumerated column with an invalid default object."""
-        colors = tables.Enum({'red': 4, 'green': 2, 'blue': 1})
-        self.assertRaises(TypeError, self._createCol, colors, colors.red)
-
-
-    def test01b_invalidDfltName(self):
-        """Describing an enumerated column with an invalid default name."""
         colors = {'red': 4, 'green': 2, 'blue': 1}
         self.assertRaises(KeyError, self._createCol, colors, 'black')
 
@@ -74,13 +68,13 @@ class CreateColTestCase(common.PyTablesTestCase):
     def test02a_validDtypeBroader(self):
         """Describing an enumerated column with a broader type."""
         colors = {'red': 4, 'green': 2, 'blue': 1}
-        self._createCol(colors, 'red', dtype='Int64')
+        self._createCol(colors, 'red', 'int64')
 
 
     def test02b_invalidDtypeTooNarrow(self):
         """Describing an enumerated column with a too narrow type."""
         colors = ['e%d' % i for i in range(300)]
-        self.assertRaises(TypeError, self._createCol, colors, 'e0', 'UInt8')
+        self.assertRaises(TypeError, self._createCol, colors, 'e0', 'uint8')
 
 
     def test03a_validShapeMD(self):
@@ -92,28 +86,30 @@ class CreateColTestCase(common.PyTablesTestCase):
     def test04a_validReprEnum(self):
         """Checking the string representation of an enumeration."""
         colors = tables.Enum(['red', 'green', 'blue'])
-        enumcol = tables.EnumCol(colors, 'red', dtype='UInt32', shape=())
+        enumcol = tables.EnumCol(colors, 'red', base='uint32', shape=())
         assert repr(enumcol) == \
-"""EnumCol(Enum({'blue': 2, 'green': 1, 'red': 0}), 'red', dtype='UInt32', shape=(), pos=None, indexed=False)"""
+"""EnumCol(enum=Enum({'blue': 2, 'green': 1, 'red': 0}), dflt='red', base=UInt32Atom(shape=(), dflt=0), shape=(), pos=None)"""
 
 
     def test99a_nonIntEnum(self):
         """Describing an enumerated column of floats (not implemented)."""
         colors = {'red': 1.0}
-        self.assertRaises(NotImplementedError, self._createCol, colors, 'red')
+        self.assertRaises(NotImplementedError, self._createCol, colors, 'red',
+                          base=tables.atom_from_kind('float'))
 
 
     def test99b_nonIntDtype(self):
         """Describing an enumerated column encoded as floats (not implemented)."""
         colors = ['red', 'green', 'blue']
         self.assertRaises(
-            NotImplementedError, self._createCol, colors, 'red', 'Float64')
+            NotImplementedError, self._createCol, colors, 'red', 'float64')
 
 
     def test99b_nonScalarEnum(self):
         """Describing an enumerated column of non-scalars (not implemented)."""
         colors = {'red': (1, 2, 3)}
-        self.assertRaises(NotImplementedError, self._createCol, colors, 'red')
+        self.assertRaises(NotImplementedError, self._createCol, colors, 'red',
+                          base=tables.atom_from_kind('int', shape=3))
 
 
 
@@ -121,13 +117,13 @@ class CreateAtomTestCase(common.PyTablesTestCase):
 
     """Test creating enumerated atoms."""
 
-    def _createAtom(self, enum, dtype='UInt32', shape=()):
+    def _createAtom(self, enum, dflt, base='uint32', shape=()):
         """Create and check an enumerated atom."""
 
-        enumatom = tables.EnumAtom(enum, dtype=dtype, shape=shape)
+        enumatom = tables.EnumAtom(enum, dflt, base=base, shape=shape)
         sameEnum = tables.Enum(enum)
-        self.assertEqual(enumatom.ptype, 'Enum')
-        self.assertEqual(enumatom.dtype.base.type, numpy.sctypeNA[dtype])
+        self.assertEqual(enumatom.type, 'enum')
+        self.assertEqual(enumatom.dtype.base.name, enumatom.base.type)
         self.assertEqual(enumatom.shape, shape)
         self.assertEqual(enumatom.enum, sameEnum)
 
@@ -135,62 +131,64 @@ class CreateAtomTestCase(common.PyTablesTestCase):
     def test00a_validFromEnum(self):
         """Describing an enumerated atom from an enumeration."""
         colors = tables.Enum(['red', 'green', 'blue'])
-        self._createAtom(colors)
+        self._createAtom(colors, 'red')
 
 
     def test00b_validFromDict(self):
         """Describing an enumerated atom from a dictionary."""
         colors = {'red': 4, 'green': 2, 'blue': 1}
-        self._createAtom(colors)
+        self._createAtom(colors, 'red')
 
 
     def test00c_validFromList(self):
         """Describing an enumerated atom from a list."""
         colors = ['red', 'green', 'blue']
-        self._createAtom(colors)
+        self._createAtom(colors, 'red')
 
 
     def test00d_invalidFromType(self):
         """Describing an enumerated atom from an invalid object."""
         colors = 123
-        self.assertRaises(TypeError, self._createAtom, colors)
+        self.assertRaises(TypeError, self._createAtom, colors, 'red')
 
 
     def test02a_validDtypeBroader(self):
         """Describing an enumerated atom with a broader type."""
         colors = {'red': 4, 'green': 2, 'blue': 1}
-        self._createAtom(colors, dtype='Int64')
+        self._createAtom(colors, 'red', base='int64')
 
 
     def test02b_invalidDtypeTooNarrow(self):
         """Describing an enumerated atom with a too narrow type."""
         colors = ['e%d' % i for i in range(300)]
-        self.assertRaises(TypeError, self._createAtom, colors, 'UInt8')
+        self.assertRaises(TypeError, self._createAtom, colors, 'red', 'uint8')
 
 
     def test03a_validShapeMD(self):
         """Describing an enumerated atom with multidimensional shape."""
         colors = ['red', 'green', 'blue']
-        self._createAtom(colors, shape=(2,))
+        self._createAtom(colors, 'red', shape=(2,))
 
 
     def test99a_nonIntEnum(self):
         """Describing an enumerated atom of floats (not implemented)."""
         colors = {'red': 1.0}
-        self.assertRaises(NotImplementedError, self._createAtom, colors)
+        self.assertRaises(NotImplementedError, self._createAtom, colors, 'red',
+                          base=tables.atom_from_kind('float'))
 
 
     def test99b_nonIntDtype(self):
         """Describing an enumerated atom encoded as a float (not implemented)."""
         colors = ['red', 'green', 'blue']
         self.assertRaises(
-            NotImplementedError, self._createAtom, colors, 'Float64')
+            NotImplementedError, self._createAtom, colors, 'red', 'float64')
 
 
     def test99b_nonScalarEnum(self):
         """Describing an enumerated atom of non-scalars (not implemented)."""
         colors = {'red': (1, 2, 3)}
-        self.assertRaises(NotImplementedError, self._createAtom, colors)
+        self.assertRaises(NotImplementedError, self._createAtom, colors, 'red',
+                          base=tables.atom_from_kind('int', shape=3))
 
 
 
@@ -202,15 +200,15 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     defaultName = 'black'
     valueInEnum = enum.red
     valueOutOfEnum = 1234
-    enumType = 'UInt16'
+    enumType = 'uint16'
 
 
     def _description(self, shape=1):
         class TestDescription(tables.IsDescription):
-            rid = tables.IntCol(pos=0)
+            rid = tables.col_from_kind('int', pos=0)
             rcolor = tables.EnumCol(
                 self.enum, self.defaultName,
-                dtype=self.enumType, shape=shape, pos=1)
+                base=self.enumType, shape=shape, pos=1)
 
         return TestDescription
 
@@ -378,12 +376,12 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     enum = tables.Enum({'red': 4, 'green': 2, 'blue': 1, 'black': 0})
     valueInEnum = enum.red
     valueOutOfEnum = 1234
-    enumType = 'UInt16'
+    enumType = 'uint16'
 
 
     def _atom(self, shape=1):
         return tables.EnumAtom(
-            self.enum, dtype=self.enumType, shape=shape, flavor='python')
+            self.enum, 'red', base=self.enumType, shape=shape)
 
 
     def test00a_reopen(self):
@@ -391,7 +389,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.h5file.createEArray(
             '/', 'test', self._atom(), shape=(0,),
-            title=self._getMethodName())
+            title=self._getMethodName(), flavor='python' )
 
         self._reopen()
 
@@ -408,7 +406,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.h5file.createEArray(
             '/', 'test', self._atom(), shape=(0, 2),
-            title=self._getMethodName())
+            title=self._getMethodName(), flavor='python' )
 
         self._reopen()
 
@@ -422,7 +420,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         earr = self.h5file.createEArray(
             '/', 'test', self._atom(), shape=(0,),
-            title=self._getMethodName())
+            title=self._getMethodName(), flavor='python' )
 
         appended = [self.valueInEnum, self.valueOutOfEnum]
 
@@ -437,7 +435,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         earr = self.h5file.createEArray(
             '/', 'test', self._atom(), shape=(0, 2),
-            title=self._getMethodName())
+            title=self._getMethodName(), flavor='python' )
 
         appended = [
             [self.valueInEnum, self.valueOutOfEnum],
@@ -454,7 +452,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         earr = self.h5file.createEArray(
             '/', 'test', self._atom(), shape=(0,),
-            title=self._getMethodName())
+            title=self._getMethodName(), flavor='python' )
 
         appended = (self.valueInEnum, self.valueInEnum)
         earr.append(appended)
@@ -473,19 +471,20 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     enum = tables.Enum({'red': 4, 'green': 2, 'blue': 1, 'black': 0})
     valueInEnum = enum.red
     valueOutOfEnum = 1234
-    enumType = 'UInt16'
+    enumType = 'uint16'
 
 
     def _atom(self, shape=1):
         return tables.EnumAtom(
-            self.enum, dtype=self.enumType, shape=shape, flavor='python')
+            self.enum, 'red', base=self.enumType, shape=shape)
 
 
     def test00a_reopen(self):
         """Reopening a file with variable-length arrays using enumerated data."""
 
         self.h5file.createVLArray(
-            '/', 'test', self._atom(), title=self._getMethodName())
+            '/', 'test', self._atom(),
+            title=self._getMethodName(), flavor='python' )
 
         self._reopen()
 
@@ -501,7 +500,8 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """
 
         self.h5file.createVLArray(
-            '/', 'test', self._atom((2,)), title=self._getMethodName())
+            '/', 'test', self._atom((2,)),
+            title=self._getMethodName(), flavor='python' )
 
         self._reopen()
 
@@ -514,7 +514,8 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Appending scalar elements of enumerated values."""
 
         vlarr = self.h5file.createVLArray(
-            '/', 'test', self._atom(), title=self._getMethodName())
+            '/', 'test', self._atom(),
+            title=self._getMethodName(), flavor='python' )
 
         appended = [
             [self.valueInEnum,],
@@ -535,7 +536,8 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Appending multi-dimensional elements of enumerated values."""
 
         vlarr = self.h5file.createVLArray(
-            '/', 'test', self._atom((2,)), title=self._getMethodName())
+            '/', 'test', self._atom((2,)),
+            title=self._getMethodName(), flavor='python' )
 
         appended = [
             [[self.valueInEnum, self.valueInEnum],],
@@ -557,7 +559,8 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Changing enumerated values using ``vlarray.__setitem__()``."""
 
         vlarr = self.h5file.createVLArray(
-            '/', 'test', self._atom(), title=self._getMethodName())
+            '/', 'test', self._atom(),
+            title=self._getMethodName(), flavor='python' )
 
         appended = (self.valueInEnum, self.valueInEnum)
         vlarr.append(appended)

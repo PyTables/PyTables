@@ -1,4 +1,4 @@
-########################################################################
+#######################################################################
 #
 #       License: BSD
 #       Created: December 15, 2003
@@ -32,10 +32,9 @@ import numpy
 
 from tables.constants import EXPECTED_ROWS_EARRAY
 from tables.utils import convertToNPAtom, processRangeRead, byteorders
-from tables.Atom import Atom, EnumAtom, StringAtom, Time32Atom, Time64Atom
+from tables.atom import (
+    Atom, EnumAtom, atom_from_dtype, atom_from_kind, split_type )
 from tables.CArray import CArray
-
-atom_mod = __import__("tables.Atom")
 
 __version__ = "$Revision$"
 
@@ -49,81 +48,160 @@ obversion = "1.3"    # This adds support for enumerated datatypes.
 
 
 class EArray(CArray):
-    """Represent an homogeneous dataset in HDF5 file.
+    """
+    This class represents extendible, homogeneous datasets in an HDF5 file.
 
-    It enables to create new datasets on-disk from NumPy, Numeric and
-    numarray packages, or open existing ones.
+    The main difference between an `EArray` and a `CArray`, from which
+    it inherits, is that the former can be enlarged along one of its
+    dimensions (the *enlargeable dimension*) using the `self.append()`
+    method (multiple enlargeable dimensions might be supported in the
+    future).  An `EArray` dataset can also be shrunken along its
+    enlargeable dimension using the `self.truncate()` method.
 
-    All NumPy, Numeric and numarray typecodes are supported.
+    Instance variables (specific of `EArray`):
 
-    Methods (Specific of EArray):
-        append(sequence)
-
+    `extdim`
+        The *enlargeable dimension*, i.e. the dimension this array can
+        be extended or shrunken along.
     """
 
     # Class identifier.
     _c_classId = 'EARRAY'
 
 
-    def __init__(self, parentNode, name, atom=None, shape=None,
-                 title="", filters=None, expectedrows=EXPECTED_ROWS_EARRAY,
-                 chunkshape=None, _log=True):
-        """Create an EArray instance.
+    # Properties
+    # ~~~~~~~~~~
+    def _getrowsize(self):
+        atom = self.atom
+        shape = list(atom.shape)
+        if shape:
+            shape[self.extdim] = 1
+        return int(numpy.prod(shape) * atom.itemsize)
+    rowsize = property(_getrowsize, None, None,
+                       "The size in bytes of each row in the array.")
+
+    # Special methods
+    # ~~~~~~~~~~~~~~~
+    def __init__( self, parentNode, name,
+                  atom=None, shape=None, title="",
+                  filters=None, expectedrows=EXPECTED_ROWS_EARRAY,
+                  flavor='numpy', chunkshape=None,
+                  _log=True ):
+        """
+        Create an `EArray` instance.
 
         Keyword arguments:
 
-        atom -- An Atom object representing the type, shape and flavor
-            of the atomic objects to be saved in the array.
-
-        shape -- The shape of the array. One of the shape dimensions
-            must be 0. The dimension being 0 means that the resulting
-            EArray object can be extended along it.
-
-        title -- Sets a TITLE attribute on the array entity.
-
-        filters -- An instance of the Filters class that provides
+        `atom`
+            An `Atom` instance representing the shape and type of the
+            atomic objects to be saved.
+        `shape`
+            The shape of the array. One of the dimensions of the
+            shape must be 0, meaning that the array can be extended
+            along it.
+        `title`
+            Sets a ``TITLE`` attribute on the array entity.
+        `filters`
+            An instance of the `Filters` class that provides
             information about the desired I/O filters to be applied
             during the life of this object.
-
-        expectedrows -- In the case of enlargeable arrays this
-            represents an user estimate about the number of row
-            elements that will be added to the growable dimension in
-            the EArray object. If you plan to create both much smaller
-            or much bigger EArrays try providing a guess; this will
-            optimize the HDF5 B-Tree creation and management process
-            time and the amount of memory used.
-
-        chunkshape -- The shape of the data chunk to be read or
-            written as a single HDF5 I/O operation. The filters are
-            applied to those chunks of data. Its dimensionality has to
-            be the same as shape (beware: no dimension should be zero
-            this time!).  If None, a sensible value is calculated
-            (which is recommended).
+        `expectedrows`
+            In the case of enlargeable arrays this represents an user
+            estimate about the number of row elements that will be
+            added to the growable dimension in the `EArray` object.
+            If you plan to create either a much smaller or a much
+            bigger `EArray` try providing a guess; this will optimize
+            the HDF5 B-Tree creation and management process time and
+            the amount of memory used.
+        `flavor`
+            Sets the representation of data read from this array.
+        `chunkshape`
+            The shape of the data chunk to be read or written as a
+            single HDF5 I/O operation. Filters are applied to those
+            chunks of data. Its dimensionality has to be the same as
+            shape (beware: no dimension should be zero this time!).
+            If ``None``, a sensible value is calculated (which is
+            recommended).
 
         """
-
         # Specific of EArray
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the array."""
 
         # Call the parent (CArray) init code
         super(EArray, self).__init__(parentNode, name, atom, shape, title,
-                                     filters, chunkshape, _log)
+                                     filters, flavor, chunkshape, _log)
+
+
+    def __repr__(self):
+        """This provides more metainfo in addition to standard __str__."""
+
+        return """%s
+  atom := %r
+  shape := %r
+  maindim := %r
+  flavor := %r
+  byteorder := %r""" % (self, self.atom, self.shape, self.maindim,
+                        self.flavor, self.byteorder)
+
+
+    # Public and private methods
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    def _calcTuplesAndChunks(self, expectedrows):
+        """Calculate the maximun number of tuples and the HDF5 chunk size."""
+
+        # The buffer size
+        rowsize = self.rowsize
+        expectedfsizeinKb = (expectedrows * rowsize) / 1024
+        buffersize = self._g_calcBufferSize(expectedfsizeinKb)
+
+        # Max Tuples to fill the buffer
+        maxTuples = buffersize // (rowsize * CHUNKTIMES)
+        chunksizes = list(self.shape)
+        # Check if at least 1 tuple fits in buffer
+        if maxTuples >= 1:
+            # Yes. So the chunk sizes for the non-extendeable dims will be
+            # unchanged
+            chunksizes[self.extdim] = maxTuples
+        else:
+            # No. reduce other dimensions until we get a proper chunksizes
+            # shape
+            chunksizes[self.extdim] = 1  # Only one row in extendeable dimension
+            for j in range(len(chunksizes)):
+                newrowsize = self.atom.itemsize
+                for i in chunksizes[j+1:]:
+                    newrowsize *= i
+                maxTuples = buffersize // newrowsize
+                if maxTuples >= 1:
+                    break
+                chunksizes[j] = 1
+            # Compute the chunksizes correctly for this j index
+            chunksize = maxTuples
+            if j < len(chunksizes):
+                # Only modify chunksizes[j] if needed
+                if chunksize < chunksizes[j]:
+                    chunksizes[j] = chunksize
+            else:
+                chunksizes[-1] = 1 # very large itemsizes!
+        # Compute the correct maxTuples number
+        newrowsize = self.atom.itemsize
+        for i in chunksizes:
+            newrowsize *= i
+        maxTuples = buffersize // (newrowsize * CHUNKTIMES)
+        # Safeguard against row sizes being extremely large
+        if maxTuples == 0:
+            maxTuples = 1
+        return (maxTuples, chunksizes)
 
 
     def _g_create(self):
         """Create a new EArray."""
 
-        # Version, dtype, ptype, shape, flavor
+        # Version, dtype, type, shape, flavor
         self._v_version = obversion
         # Create a scalar version of dtype
-        #self.dtype = numpy.dtype((self.atom.dtype.base.type, ()))
-        # Overwrite the dtype attribute of the atom to convert it to a scalar
-        # (heck, I should find a more elegant way for dealing with this)
-        #self.atom.dtype = self.dtype
-        self.dtype = self.atom.dtype
-        self.ptype = self.atom.ptype
-        self.flavor = self.atom.flavor
+        self.dtype = self.atom.dtype.base
+        self.type = self.atom.type
 
         # extdim computation
         zerodims = numpy.sum(numpy.array(self.shape) == 0)
@@ -153,32 +231,21 @@ instance to zero."""
     def _g_open(self):
         """Get the metadata info for an EArray in file."""
 
-        (self._v_objectID, self.dtype, self.ptype, self.shape,
+        (self._v_objectID, self.dtype, self.type, self.shape,
          self.flavor, self._v_chunkshape) = self._openArray()
         # Post-condition
         assert self.extdim >= 0, "extdim < 0: this should never happen!"
 
-        ptype = self.ptype
-        flavor = self.flavor
-
         # Create the atom instance and set definitive type
-        if ptype == "String":
-            length = self.dtype.itemsize
-            self.atom = StringAtom(length=length, flavor=flavor, warn=False)
-        elif ptype == 'Enum':
+        kind, itemsize = split_type(self.type)
+        if kind == 'enum':
             (enum, self.dtype) = self._g_loadEnum()
-            self.atom = EnumAtom(enum, self.dtype, flavor=flavor, warn=False)
-        elif ptype == "Time32":
-            self.atom = Time32Atom(flavor=flavor, warn=False)
-        elif ptype == "Time64":
-            self.atom = Time64Atom(flavor=flavor, warn=False)
+            dflt = iter(enum).next()[0]  # ignored, any of them is OK
+            base = atom_from_dtype(self.dtype)
+            self.atom = EnumAtom(enum, dflt, base)
         else:
-            #self.atom = Atom(ptype, flavor=flavor, warn=False)
-            # Make the atoms instantiate from a more specific classes
-            # (this is better for representation -- repr() -- purposes)
-            typeclassname = numpy.sctypeNA[numpy.sctypeDict[ptype]] + "Atom"
-            typeclass = getattr(atom_mod, typeclassname)
-            self.atom = typeclass(flavor=flavor, warn=False)
+            itemsize = self.dtype.itemsize  # string type has no precision
+            self.atom = atom_from_kind(kind, itemsize)
 
         # Compute the optimal nrowsinbuf
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
@@ -210,7 +277,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
         # The sequence needs to be copied to make the operation safe
         # to in-place conversion.
-        copy = self.ptype in ['Time64']
+        copy = self.type in ['time64']
         # Convert the sequence into a NumPy object
         nparr = convertToNPAtom(sequence, self.atom, copy)
         # Check if it has a consistent shape with underlying EArray
@@ -243,7 +310,8 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         # a sensible value would be calculated)
         object = EArray(
             group, name, atom=self.atom, shape=shape, title=title,
-            filters=filters, expectedrows=self.nrows, _log=_log)
+            filters=filters, expectedrows=self.nrows, flavor=self.flavor,
+            _log=_log)
         # Now, fill the new earray with values from source
         nrowsinbuf = self._v_nrowsinbuf
         # The slices parameter for self.__getitem__
@@ -266,14 +334,3 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         nbytes = numpy.product(self.shape)*self.itemsize
 
         return (object, nbytes)
-
-    def __repr__(self):
-        """This provides more metainfo in addition to standard __str__."""
-
-        return """%s
-  atom := %r
-  shape := %r
-  maindim := %r
-  flavor := %r
-  byteorder := %r""" % (self, self.atom, self.shape, self.maindim,
-                        self.flavor, self.byteorder)

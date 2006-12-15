@@ -4,15 +4,15 @@ from tables import Group, metaIsDescription
 from tables import *
 
 class Test(IsDescription):
-    ngroup = IntCol(pos=1)
-    ntable = IntCol(pos=2)
-    nrow = IntCol(pos=3)
-    #string = StringCol(length=500, pos = 4)
+    ngroup = Int32Col(pos=1)
+    ntable = Int32Col(pos=2)
+    nrow = Int32Col(pos=3)
+    #string = StringCol(itemsize=500, pos=4)
 
 TestDict = {
-    "ngroup": IntCol(pos=1),
-    "ntable": IntCol(pos=2),
-    "nrow": IntCol(pos=3),
+    "ngroup": Int32Col(pos=1),
+    "ntable": Int32Col(pos=2),
+    "nrow": Int32Col(pos=3),
     }
 
 def createFileArr(filename, ngroups, ntables, nrows):

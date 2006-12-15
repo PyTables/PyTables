@@ -15,7 +15,7 @@ fileh = openFile(filename, mode = "w")
 root = fileh.root
 
 # Create an string atom
-a = StringAtom(length=1)
+a = StringAtom(itemsize=1)
 # Use it as a type for the enlargeable array
 hdfarray = fileh.createEArray(root, 'array_c', a, (0,), "Character array")
 hdfarray.append(strings.array(['a', 'b', 'c']))
@@ -34,6 +34,7 @@ hdfarray = fileh.createEArray(root, 'array_e', a, (2,0,3),
 a = UInt8Atom()
 hdfarray = fileh.createEArray(root, 'array_b', a, (2,0,3),
                               "Unsigned byte array", Filters(complevel = 1))
+
 # Append an array to this table
 hdfarray.append(array([[1,2,3],[3,2,1]], type=UInt8, shape=(2,1,3)))
 hdfarray.append(array([[1,2,3],[3,2,1],[2,4,6],[6,4,2]],

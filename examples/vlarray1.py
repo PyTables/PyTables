@@ -4,9 +4,10 @@ from Numeric import *   # or, from numarray import *
 # Create a VLArray:
 fileh = tables.openFile("vlarray1.h5", mode = "w")
 vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
-                              tables.Int32Atom(shape=1, flavor="numeric"),
+                              tables.Int32Atom(shape=1),
                               "ragged array of ints",
-                              filters = tables.Filters(1))
+                              filters = tables.Filters(1),
+                              flavor = "numeric")
 # Append some (variable length) rows:
 vlarray.append(array([5, 6]))
 vlarray.append(array([5, 6, 7]))
@@ -19,9 +20,10 @@ for x in vlarray:
 
 # Now, do the same with native python strings
 vlarray2 = fileh.createVLArray(fileh.root, 'vlarray2',
-                              tables.StringAtom(length=2, flavor="python"),
+                              tables.StringAtom(itemsize=2),
                               "ragged array of strings",
-                              filters = tables.Filters(1))
+                              filters = tables.Filters(1),
+                              flavor = "python")
 # Append some (variable length) rows:
 print "-->", vlarray2.title
 vlarray2.append(["5", "66"])

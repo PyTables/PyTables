@@ -11,14 +11,13 @@ MAX_PARTICLES_PER_EVENT = 100
 # Particle description
 class Particle(IsDescription):
     _v_flavor   = "numpy"
-    #_v_indexprops = IndexProps(filters=Filters(0))
-    #event_id    = IntCol(pos=1, indexed=True) # event id (indexed)
-    event_id    = IntCol(pos=1)               # event id (not indexed)
-    particle_id = IntCol(pos=2)               # particle id in the event
-    parent_id   = IntCol(pos=3)               # the id of the parent particle
-                                              # (negative values means no parent)
-    momentum    = FloatCol(shape=3, pos=4)    # momentum of the particle
-    mass        = FloatCol(pos=5)             # mass of the particle
+    #event_id    = Int32Col(pos=1, indexed=True) # event id (indexed)
+    event_id    = Int32Col(pos=1)               # event id (not indexed)
+    particle_id = Int32Col(pos=2)               # particle id in the event
+    parent_id   = Int32Col(pos=3)               # the id of the parent particle
+                                                # (negative values means no parent)
+    momentum    = Float64Col(shape=3, pos=4)    # momentum of the particle
+    mass        = Float64Col(pos=5)             # mass of the particle
 
 # # Create a new table for events
 t1 = time()

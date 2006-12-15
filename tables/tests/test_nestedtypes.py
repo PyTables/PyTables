@@ -38,29 +38,29 @@ from tables.indexes import minRowIndex
 # The declaration of the nested table:
 class Info(t.IsDescription):
     _v_pos = 3
-    Name = t.StringCol(length=2)
-    Value = t.Complex64Col()
+    Name = t.StringCol(itemsize=2)
+    Value = t.ComplexCol(itemsize=16)
 
 class TestTDescr(t.IsDescription):
 
     """A description that has several nested columns."""
 
-    x = t.Int32Col(0, shape=2, pos=0) #0
-    y = t.Float64Col(1, shape=(2,2))
-    z = t.UInt8Col(1)
-    color = t.StringCol(2, " ", pos=2)
+    x = t.Int32Col(dflt=0, shape=2, pos=0) #0
+    y = t.Float64Col(dflt=1, shape=(2,2))
+    z = t.UInt8Col(dflt=1)
+    color = t.StringCol(itemsize=2, dflt=" ", pos=2)
     info = Info()
     class Info(t.IsDescription): #1
         _v_pos = 1
-        name = t.StringCol(length=2)
-        value = t.Complex64Col(pos=0) #0
-        y2 = t.Float64Col(1, pos=1) #1
-        z2 = t.UInt8Col(1)
+        name = t.StringCol(itemsize=2)
+        value = t.ComplexCol(itemsize=16, pos=0) #0
+        y2 = t.Float64Col(dflt=1, pos=1) #1
+        z2 = t.UInt8Col(dflt=1)
         class Info2(t.IsDescription):
-            y3 = t.Time64Col(1, shape=2)
-            z3 = t.EnumCol({'r':4, 'g':2, 'b':1}, 'r', shape=2)
-            name = t.StringCol(length=2)
-            value = t.Complex64Col(shape=2)
+            y3 = t.Time64Col(dflt=1, shape=2)
+            z3 = t.EnumCol({'r':4, 'g':2, 'b':1}, 'r', 'int32', shape=2)
+            name = t.StringCol(itemsize=2)
+            value = t.ComplexCol(itemsize=16, shape=2)
 
 # The corresponding nested array description:
 testADescr = [
@@ -72,7 +72,7 @@ testADescr = [
             ('name', 'a2'),
             ('value', '(2,)Complex64'),
             ('y3', '(2,)Float64'),
-            ('z3', '(2,)UInt32')]),
+            ('z3', '(2,)Int32')]),
         ('name', 'a2'),
         ('z2', 'UInt8')]),
     ('color', 'a2'),
@@ -92,7 +92,7 @@ testADescr2 = [
             ('name', '()S2'),
             ('value', '(2,)c16'),
             ('y3', '(2,)f8'),
-            ('z3', '(2,)u4')]),
+            ('z3', '(2,)i4')]),
         ('name', '()S2'),
         ('z2', '()u1')]),
     ('color', '()S2'),
@@ -130,10 +130,9 @@ def areDescriptionsEqual(desc1, desc2):
 
     if isinstance(desc1, t.Col):
         # This is a rough comparison but it suffices here.
-        return (desc1.ptype == desc2.ptype
+        return (desc1.type == desc2.type
                 and desc2.dtype == desc2.dtype
                 and desc1._v_pos == desc2._v_pos
-                and desc1.indexed == desc2.indexed
                 #and desc1.dflt == desc2.dflt)
                 and common.areArraysEqual(desc1.dflt, desc2.dflt))
 
@@ -156,7 +155,7 @@ def areDescriptionsEqual(desc1, desc2):
 
     for (colName, colobj1) in cols1.iteritems():
         colobj2 = cols2[colName]
-        if colName in ('_v_indexprops', '_v_pos'):
+        if colName == '_v_pos':
             # The comparison may not be quite exhaustive!
             return colobj1 == colobj2
         if not areDescriptionsEqual(colobj1, colobj2):
@@ -669,23 +668,23 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assert_(tblrepr == \
 """/test (Table(2L,)) 'test00'
   description := {
-  "x": Int32Col(dflt=0, shape=(2,), pos=0, indexed=False),
+  "x": Int32Col(shape=(2,), dflt=0, pos=0),
   "Info": {
-    "value": Complex64Col(dflt=0j, shape=(), pos=0),
-    "y2": Float64Col(dflt=1.0, shape=(), pos=1, indexed=False),
+    "value": ComplexCol(itemsize=16, shape=(), dflt=0j, pos=0),
+    "y2": Float64Col(shape=(), dflt=1.0, pos=1),
     "Info2": {
-      "name": StringCol(length=2, dflt='', shape=(), pos=0, indexed=False),
-      "value": Complex64Col(dflt=0j, shape=(2,), pos=1),
-      "y3": Time64Col(dflt=1.0, shape=(2,), pos=2, indexed=False),
-      "z3": EnumCol(Enum({'r': 4, 'b': 1, 'g': 2}), 'r', dtype='UInt32', shape=(2,), pos=3, indexed=False)},
-    "name": StringCol(length=2, dflt='', shape=(), pos=3, indexed=False),
-    "z2": UInt8Col(dflt=1, shape=(), pos=4, indexed=False)},
-  "color": StringCol(length=2, dflt=' ', shape=(), pos=2, indexed=False),
+      "name": StringCol(itemsize=2, shape=(), dflt='', pos=0),
+      "value": ComplexCol(itemsize=16, shape=(2,), dflt=0j, pos=1),
+      "y3": Time64Col(shape=(2,), dflt=1.0, pos=2),
+      "z3": EnumCol(enum=Enum({'r': 4, 'b': 1, 'g': 2}), dflt='r', base=Int32Atom(shape=(), dflt=0), shape=(2,), pos=3)},
+    "name": StringCol(itemsize=2, shape=(), dflt='', pos=3),
+    "z2": UInt8Col(shape=(), dflt=1, pos=4)},
+  "color": StringCol(itemsize=2, shape=(), dflt=' ', pos=2),
   "info": {
-    "Name": StringCol(length=2, dflt='', shape=(), pos=0, indexed=False),
-    "Value": Complex64Col(dflt=0j, shape=(), pos=1)},
-  "y": Float64Col(dflt=1.0, shape=(2, 2), pos=4, indexed=False),
-  "z": UInt8Col(dflt=1, shape=(), pos=5, indexed=False)}
+    "Name": StringCol(itemsize=2, shape=(), dflt='', pos=0),
+    "Value": ComplexCol(itemsize=16, shape=(), dflt=0j, pos=1)},
+  "y": Float64Col(shape=(2, 2), dflt=1.0, pos=4),
+  "z": UInt8Col(shape=(), dflt=1, pos=5)}
 """)
 
 
@@ -706,9 +705,9 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "repr(tbl.cols.y)-->'%s'" % repr(tbl.cols.y)
 
         self.assert_(str(tbl.cols.y) == \
-                     "/test.cols.y (Column(2, 2), Float64, idx=None)")
+                     "/test.cols.y (Column(2, 2), float64, idx=None)")
         self.assert_(repr(tbl.cols.y) == \
-                     "/test.cols.y (Column(2, 2), Float64, idx=None)")
+                     "/test.cols.y (Column(2, 2), float64, idx=None)")
 
     def test00c_repr(self):
         """Checking representation of a nested Column."""
@@ -727,9 +726,9 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "repr(tbl.cols.Info.z2)-->'%s'" % repr(tbl.cols.Info.z2)
 
         self.assert_(str(tbl.cols.Info.z2) == \
-                     "/test.cols.Info.z2 (Column(), UInt8, idx=None)")
+                     "/test.cols.Info.z2 (Column(), uint8, idx=None)")
         self.assert_(repr(tbl.cols.Info.z2) == \
-                     "/test.cols.Info.z2 (Column(), UInt8, idx=None)")
+                     "/test.cols.Info.z2 (Column(), uint8, idx=None)")
 
     def test01_read(self):
         """Checking Table.read with subgroups with a range index with step."""
@@ -1119,8 +1118,8 @@ class ColsReopen(ColsTestCase):
 
 
 class Nested(t.IsDescription):
-    uid = t.IntCol(pos=1)
-    value = t.FloatCol(pos=2)
+    uid = t.col_from_kind('int', pos=1)
+    value = t.col_from_kind('float', pos=2)
 
 class A_Candidate(t.IsDescription):
     nested1 = Nested()
@@ -1134,8 +1133,8 @@ class C_Candidate(t.IsDescription):
     nested1 = Nested()
     nested2 = Nested
 
-Dnested = {'uid': t.IntCol(pos=1),
-           'value': t.FloatCol(pos=2),
+Dnested = {'uid': t.col_from_kind('int', pos=1),
+           'value': t.col_from_kind('float', pos=2),
            }
 
 D_Candidate = {"nested1": Dnested,
