@@ -777,11 +777,11 @@ class File(hdf5Extension.File, object):
 
         flavor -- The representation of data read from this array.
 
-        chunkshape -- The shape of the data chunk read or written as a
-            single HDF5 I/O operation. The filters are applied to chunks
-            of data. Its dimensionality has to be the same as shape.  If
-            not specified, a sensible value is calculated (this is the
-            recommended action).
+        chunkshape -- The shape of the data chunk to be read or written
+            in a single HDF5 I/O operation. Filters are applied to those
+            chunks of data. The dimensionality of chunkshape must be the
+            same as that of shape. If None, a sensible value is
+            calculated (which is recommended).
 
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
@@ -831,11 +831,11 @@ class File(hdf5Extension.File, object):
         flavor -- The representation of data read from this array.
 
         chunkshape -- The shape of the data chunk to be read or written
-            as a single HDF5 I/O operation. The filters are applied to
-            those chunks of data. Its dimensionality has to be the same
-            as shape (beware: no dimension should be zero this time!).
-            If None, a sensible value is calculated (which is
-            recommended).
+            in a single HDF5 I/O operation. Filters are applied to those
+            chunks of data. The dimensionality of chunkshape must be the
+            same as that of shape (beware: no dimension should be zero
+            this time!).  If None, a sensible value is calculated (which
+            is recommended).
 
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
@@ -881,9 +881,10 @@ class File(hdf5Extension.File, object):
         flavor -- The representation of data read from this array.
 
         chunkshape -- The shape of the data chunk to be read or written
-            as a single HDF5 I/O operation. The filters are applied to
-            those chunks of data. Its rank for vlarrays has to be 1. If
-            None, a sensible value is calculated (which is recommended).
+            in a single HDF5 I/O operation. Filters are applied to those
+            chunks of data. The dimensionality of chunkshape must be
+            1. If None, a sensible value is calculated (which is
+            recommended).
 
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).

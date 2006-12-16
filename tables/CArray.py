@@ -59,6 +59,9 @@ class CArray(Array):
     `atom`
         An `Atom` instance representing the shape and type of the
         atomic objects to be saved.
+    `extdim`
+        The *enlargeable dimension*, i.e. the dimension this array can
+        be extended or shrunken along (-1 if it is not extendable).
     """
 
     # Class identifier.
@@ -95,12 +98,11 @@ class CArray(Array):
         `flavor`
             Sets the representation of data read from this array.
         `chunkshape`
-            The shape of the data chunk to be read or written as a
-            single HDF5 I/O operation. The filters are applied to
-            those chunks of data. Its dimensionality has to be the
-            same as shape.  If not specified, a sensible value is
-            calculated (this is the recommended action).
-
+            The shape of the data chunk to be read or written in a
+            single HDF5 I/O operation.  Filters are applied to those
+            chunks of data.  The dimensionality of `chunkshape` must
+            be the same as that of `shape`.  If ``None``, a sensible
+            value is calculated (which is recommended).
         """
 
         # Documented (*public*) attributes.

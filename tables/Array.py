@@ -91,11 +91,13 @@ class Array(hdf5Extension.Array, Leaf):
         The representation of data read from this array.  It can be
         any of 'numpy', 'numarray', 'numeric' or 'python' values.
     `nrows`
-        The length of the first dimension of the array.
+        The length of the main dimension of the array.
     `nrow`
         On iterators, this is the index of the current row.
     `maindim`
-        The dimension along which iterators do work.
+        The dimension along which iterators work.  Its value is 0
+        (i.e. the first dimension) when the dataset is not extendable,
+        and ``self.extdim`` (where available) for extendable ones.
     `dtype`
         The NumPy type of the represented array.
     `type`

@@ -1,4 +1,4 @@
-#######################################################################
+ç#######################################################################
 #
 #       License: BSD
 #       Created: December 15, 2003
@@ -57,12 +57,6 @@ class EArray(CArray):
     method (multiple enlargeable dimensions might be supported in the
     future).  An `EArray` dataset can also be shrunken along its
     enlargeable dimension using the `self.truncate()` method.
-
-    Instance variables (specific of `EArray`):
-
-    `extdim`
-        The *enlargeable dimension*, i.e. the dimension this array can
-        be extended or shrunken along.
     """
 
     # Class identifier.
@@ -116,13 +110,12 @@ class EArray(CArray):
         `flavor`
             Sets the representation of data read from this array.
         `chunkshape`
-            The shape of the data chunk to be read or written as a
-            single HDF5 I/O operation. Filters are applied to those
-            chunks of data. Its dimensionality has to be the same as
-            shape (beware: no dimension should be zero this time!).
-            If ``None``, a sensible value is calculated (which is
-            recommended).
-
+            The shape of the data chunk to be read or written in a
+            single HDF5 I/O operation.  Filters are applied to those
+            chunks of data.  The dimensionality of `chunkshape` must
+            be the same as that of `shape` (beware: no dimension
+            should be zero this time!).  If ``None``, a sensible value
+            is calculated (which is recommended).
         """
         # Specific of EArray
         self._v_expectedrows = expectedrows

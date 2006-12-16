@@ -132,12 +132,11 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         `flavor`
             Sets the representation of data read from this array.
         `chunkshape`
-            The shape of the data chunk to be read or written as a
+            The shape of the data chunk to be read or written in a
             single HDF5 I/O operation. Filters are applied to those
-            chunks of data. Its rank for `VLArray` objects must be
+            chunks of data. The dimensionality of `chunkshape` must be
             1. If ``None``, a sensible value is calculated (which is
             recommended).
-
         """
 
         self._v_version = None
