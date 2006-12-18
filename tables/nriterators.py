@@ -1,5 +1,16 @@
 import numarray.records
 
+def normalize_format(fmt):
+    """Normalize format to follow numarray conventions."""
+    # Remove shape '()' at the forefront which is equivalent to an scalar
+    if fmt[:2] == '()':
+        fmt = fmt[2:]
+    # Accept 'S' as a synonym of 'a'
+    if fmt.find('S') >= 0:
+        fmt = fmt.replace('S', 'a')
+    return fmt
+
+
 def getIter(object):
     """Return an iterator (if any) for object
     """
@@ -63,7 +74,7 @@ def flattenFormats(formats, check=False):
         item = i.next()
         while item:
             if isinstance(item, str):
-                yield item
+                yield normalize_format(item)
             elif isinstance(item, list) or isinstance(item, tuple):
                 for c in flattenFormats(item, check):
                     yield c
@@ -184,13 +195,7 @@ def getFormatsFromDescr(descr):
         while item:
             item1 = item[1]
             if isinstance(item1, str):
-                # Remove shape '()' which is equivalent to an scalar
-                if item1[:2] == '()':
-                    item1 = item1[2:]
-                # Accept 'S' as a synonym of 'a'
-                if item1[0] == 'S':
-                    item1 = 'a'+item1[1:]
-                yield item1
+                yield normalize_format(item1)
             else:
                 l = []
                 for j in getFormatsFromDescr(item1):

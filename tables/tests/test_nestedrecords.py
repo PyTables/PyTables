@@ -60,7 +60,7 @@ class NestedRecordTests(common.PyTablesTestCase):
 
         # Formats description of the nested/flat table structure
         self.formats = ['Int64',
-            [['a9', 'a9'],['Float32', 'f4', 'f4']]]
+            [['S9', '()a9'],['()Float32', 'f4', 'f4']]]
 
         self.flat_formats = ['Int64', 'a9', 'a9', 'Float32', 'f4', 'f4']
 
