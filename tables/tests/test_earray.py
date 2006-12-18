@@ -379,6 +379,7 @@ class BasicTestCase(unittest.TestCase):
         assert allequal(row, object, self.flavor)
         if hasattr(row, "shape"):
             assert len(row.shape) == len(self.shape)
+            assert row.itemsize() == earray.itemsize
         else:
             # Scalar case
             assert len(self.shape) == 1
@@ -980,7 +981,7 @@ class String2TestCase(BasicTestCase):
 class StringComprTestCase(BasicTestCase):
     type = "string"
     length = 20
-    shape = (20,0,10)
+    shape = (20, 0, 10)
     #shape = (20,0,10,20)
     compr = 1
     #shuffle = 1  # this shouldn't do nothing on chars

@@ -344,7 +344,8 @@ def convertNPToNumArray(arr):
             buffer_ = arr.item()
         else:
             buffer_ = arr
-        arr = numarray.strings.array(buffer=buffer_)
+        arr = numarray.strings.array(buffer=buffer_, shape=arr.shape,
+                                     itemsize=arr.itemsize, padc='\x00')
     else:
         #if not arr.flags.writeable or not arr.flags.aligned:
         #    # These cases are not handled by the array protocol
