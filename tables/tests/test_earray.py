@@ -379,7 +379,10 @@ class BasicTestCase(unittest.TestCase):
         assert allequal(row, object, self.flavor)
         if hasattr(row, "shape"):
             assert len(row.shape) == len(self.shape)
-            assert row.itemsize() == earray.itemsize
+            if self.flavor in ("numarray", "numeric"):
+                assert row.itemsize() == earray.itemsize
+            elif self.flavor in "numpy":
+                assert row.itemsize == earray.itemsize
         else:
             # Scalar case
             assert len(self.shape) == 1
