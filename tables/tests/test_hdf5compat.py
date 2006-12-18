@@ -235,18 +235,29 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
             self.assertEqual(row['d'], "d")
 
         self.h5file.close()
-        tmpfile = tempfile.mktemp(".h5")
-        # The next test modifies the access data, so it changes and SVN
-        # wants to upload it each time that the test runs. Comment this
-        # until a workaround is devised.
-        # F. Altet 2006-04-26
-#         self.h5file = tables.openFile(self.h5fname,'a')
-#         tbl = self.h5file.getNode('/test_var/structure variable')
-#         # Tests for appending
-#         self.assertRaises(tables.HDF5ExtError, tbl.append,
-#                           [(4.0,5.0,[2.0,3.0],'d')])
-#         # Appending using the Row interface
-#         self.assertRaises(tables.HDF5ExtError, tbl.row.append)
+
+
+class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
+
+    """
+    Test for appending data to native contiguous compound datasets.
+    """
+
+    h5fname = common.testFilename('non-chunked-table.h5')
+
+    def _test(self):
+        self.assert_('/test_var/structure variable' in self.h5file)
+        self.h5file.close()
+        # Reopen in 'a'ppend mode
+        self.h5file = self.assertWarns(
+            UserWarning, tables.openFile, self.h5fname, 'a')
+        tbl = self.h5file.getNode('/test_var/structure variable')
+        # Try to add rows to a non-chunked table (this should raise an error)
+        self.assertRaises(tables.HDF5ExtError, tbl.append,
+                          [(4.0,5.0,[2.0,3.0],'d')])
+        # Appending using the Row interface
+        self.assertRaises(tables.HDF5ExtError, tbl.row.append)
+
 
 
 class ExtendibleTestCase(HDF5CompatibilityTestCase):
@@ -305,6 +316,7 @@ def suite():
 
         theSuite.addTest(unittest.makeSuite(ChunkedCompoundTestCase))
         theSuite.addTest(unittest.makeSuite(ContiguousCompoundTestCase))
+        theSuite.addTest(unittest.makeSuite(ContiguousCompoundAppendTestCase))
 
         theSuite.addTest(unittest.makeSuite(ExtendibleTestCase))
 
