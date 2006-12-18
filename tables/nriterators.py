@@ -182,11 +182,18 @@ def getFormatsFromDescr(descr):
     try:
         item = i.next()
         while item:
-            if isinstance(item[1], str):
-                yield item[1]
+            item1 = item[1]
+            if isinstance(item1, str):
+                # Remove shape '()' which is equivalent to an scalar
+                if item1[:2] == '()':
+                    item1 = item1[2:]
+                # Accept 'S' as a synonym of 'a'
+                if item1[0] == 'S':
+                    item1 = 'a'+item1[1:]
+                yield item1
             else:
                 l = []
-                for j in getFormatsFromDescr(item[1]):
+                for j in getFormatsFromDescr(item1):
                     l.append(j)
                 yield l
             item = i.next()

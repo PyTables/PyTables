@@ -359,8 +359,8 @@ class Description(object):
                 newdict['_v_dtypes'][k] = dtype
                 newdict['_v_types'][k] = object.type
                 newdict['_v_dflts'][k] = object.dflt
-                baserecarrtype = dtype.base.str[1:]
                 nestedFormats.append(object.recarrtype)
+                baserecarrtype = dtype.base.str[1:]
                 nestedDType.append((k, baserecarrtype, dtype.shape))
             else:  # A description
                 nestedFormats.append(object._v_nestedFormats)

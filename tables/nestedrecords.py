@@ -662,7 +662,7 @@ def convertToAPDescr(descr, byteorder):
                     raise ValueError('format %s is not recognized' %  _fmt[i])
                 _dtype = _dtype.strip()
                 # String type needs special treatment
-                if _dtype[0] == 'a':
+                if _dtype[0] in ('a', 'S'):
                     _dtype = '|S'+_dtype[1:]
                 else:
                     if _dtype in revfmt:
@@ -676,7 +676,7 @@ def convertToAPDescr(descr, byteorder):
                         raise ValueError, \
                               "Fatal error: format %s not recognized." % (_dtype)
                 # Return the column
-                if _repeat in ['','1']:
+                if _repeat in ['','1','()']:
                     # scalar case
                     yield (item[0], _dtype)
                 else:

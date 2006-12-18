@@ -1,5 +1,5 @@
 # This test suite is still necessary in case the user still wants a
-# nested RecArray wich is based in numarray instead of NumPy.
+# nested RecArray which is based in numarray instead of NumPy.
 
 import unittest
 
@@ -66,11 +66,11 @@ class NestedRecordTests(common.PyTablesTestCase):
 
         # descr description of the nested/flat table structure
         self.descr = [('position', 'Int64'),
-            ('info', [('name', [('first','a9'), ('second','a9')]),
-            ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
+            ('info', [('name', [('first','S9'), ('second','()a9')]),
+            ('coord', [('x','()Float32'), ('y', 'f4'), ('z', 'f4')])])]
 
-        self.flat_descr = [('position', 'Int64'), ('first','a9'),
-            ('second','a9'), ('x','Float32'), ('y', 'f4'), ('z', 'f4')]
+        self.flat_descr = [('position', 'Int64'), ('first','S9'),
+            ('second','()a9'), ('x','()Float32'), ('y', 'f4'), ('z', 'f4')]
 
 
     def testArrayStructure(self):
