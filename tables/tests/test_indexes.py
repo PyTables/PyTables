@@ -75,6 +75,32 @@ class BasicTestCase(PyTablesTestCase):
 
     #----------------------------------------
 
+    def test00_flushLastRow(self):
+        """Checking flushing an Index incrementing only the last row."""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01_readIndex..." % self.__class__.__name__
+
+        # Open the HDF5 file in append mode
+        self.fileh = openFile(self.file, mode = "a")
+        table = self.fileh.root.table
+        # Add just 3 rows more
+        for i in range(3):
+            table.row['var1'] = str(i)
+            table.row.append()
+        table.flush()  # redo the indexes
+        idxcol = table.cols.var1.index
+        if verbose:
+            print "Max rows in buf:", table._v_nrowsinbuf
+            print "Number of elements per slice:", idxcol.slicesize
+            print "Chunk size:", idxcol.sorted.chunksize
+            print "Elements in last row:", idxcol.indicesLR[-1]
+
+        # Do a selection
+        results = [p["var1"] for p in table.where('var1 == "1"')]
+        assert len(results) == 2
+
     def test01_readIndex(self):
         """Checking reading an Index (string flavor)"""
 

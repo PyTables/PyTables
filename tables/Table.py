@@ -2062,11 +2062,11 @@ The 'names' parameter must be a list of strings.""")
             index.append(self._read(i, i+slicesize, 1, colname))
             indexedrows += slicesize
             i += slicesize
-        # index the remaining rows
+        # index the remaining rows in last row
         nremain = nrows - indexedrows
         if lastrow and nremain > 0:
-            index.appendLastRow(self._read(indexedrows, nrows, 1, colname),
-                                self.nrows)
+            remainvalues = self._read(indexedrows, self.nrows, 1, colname)
+            index.appendLastRow(remainvalues, self.nrows)
             indexedrows += nremain
         return indexedrows
 
