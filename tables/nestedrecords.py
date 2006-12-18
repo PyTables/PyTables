@@ -510,7 +510,6 @@ object. The error was: <%s>""" % (exc,)
 
     # Flatten the structure descriptors
     flatFormats = [item for item in nriterators.flattenFormats(formats)]
-    print "flatformats-->", flatFormats
     flatNames = [item for item in tables.utils.flattenNames(names)]
 
     # Check the buffer structure (order matters!)
