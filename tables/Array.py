@@ -609,7 +609,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
   shape := %r
   maindim := %r
   flavor := %r
-  byteorder := %r""" % (self, self.ptype, self.shape, self.maindim,
+  byteorder := %r""" % (self, self.type, self.shape, self.maindim,
                         self.flavor, self.byteorder)
 
 
