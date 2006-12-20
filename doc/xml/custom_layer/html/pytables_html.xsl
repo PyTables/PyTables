@@ -3,7 +3,7 @@
                 version="1.0">
 
     <!-- The base stylesheet -->
-    <xsl:import href="file:///usr/share/xml/docbook/stylesheet/nwalsh/html/tldp-chapters.xsl"/>
+    <xsl:import href="tldp-chapters.xsl"/>
     <xsl:include href="../common/pytables_common.xsl"/>
 
     <!-- The CSS location -->

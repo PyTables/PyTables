@@ -5,7 +5,7 @@
 
 <!-- This customisation layer adds support for the FOP implementation of PDF bookmarks as defined in the latest XSLT draft. It also ensures that the symbol geq is properly rendered in the final PDF document. -->
 
-    <xsl:import href="file:///usr/share/xml/docbook/stylesheet/nwalsh/fo/tldp-print.xsl"/>
+    <xsl:import href="tldp-print.xsl"/>
     <xsl:import href="bookmarks_fop.xsl"/>
     <xsl:include href="graphical_titlepage.xsl"/>
     <xsl:include href="../common/pytables_common.xsl"/>

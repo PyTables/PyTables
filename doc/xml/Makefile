@@ -8,7 +8,7 @@ no_svg = logo3-ombra.png objecttree-h5.png tutorial1-1-tableview.png tutorial1-2
 genpng := $(patsubst %.svg,%.png,$(svgs))
 allpng := $(genpng) $(no_svg)
 
-XML_CATALOG_FILES=./catalogs/pytables_catalog.xml
+XML_CATALOG_FILES=./custom_layer/pytables_catalog.xml
 XML_DEBUG_CATALOG=1
 export XML_CATALOG_FILES XML_DEBUG_CATALOG
 

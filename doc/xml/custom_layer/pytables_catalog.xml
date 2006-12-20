@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalog
+   PUBLIC "-//OASIS/DTD Entity Resolution XML Catalog V1.0//EN"
+   "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+<catalog  xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+
+  <nextCatalog catalog="/etc/xml/catalog"/>
+
+  <!-- Locate the Docbook XSL stylesheets -->
+  <group xml:base="file:///usr/share/xml/docbook/stylesheet/ldp/">
+    <uri name="custom_layer/fo/tldp-print.xsl" uri="fo/tldp-print.xsl"/>
+    <uri name="custom_layer/html/tldp-chapters.xsl" uri="html/tldp-chapters.xsl"/>
+  </group>
+
+  <!-- Locate the customisation layers for PyTables and ViTables guides -->
+  <!-- URIs are relative to the catalog entry file path -->
+  <uri name="pytables_fo.xsl" uri="fo/pytables_fo.xsl"/>
+  <uri name="pytables_html.xsl" uri="html/pytables_html.xsl"/>
+
+
+</catalog>
