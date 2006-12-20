@@ -6817,7 +6817,7 @@ if row['var1'] <= 20 ]]]></screen>
 	      </para>
 	    </section>
 
-	    <section id="Table.willQueryUseIndexing">
+	    <section id="Table.willQueryUseIndexing" xreflabel="description">
 	      <title>willQueryUseIndexing(condition, condvars=None)</title>
 
 	      <para>
@@ -9769,8 +9769,7 @@ True]]></screen>
 
         <screen><![CDATA[
 row = table.row
-result = [ row['var2'] for row in table if row['var1'] <= 20 ]
-        ]]></screen>
+result = [ row['var2'] for row in table if row['var1'] <= 20 ]]]></screen>
 
         (for future reference, we will call this the
         <emphasis>standard</emphasis> selection mode) and you want to improve
@@ -9789,8 +9788,7 @@ result = [ row['var2'] for row in table if row['var1'] <= 20 ]
 
           <screen><![CDATA[
 row = table
-result = [ row['var2'] for row in table.where('var1 <= 20')]
-          ]]></screen>
+result = [ row['var2'] for row in table.where('var1 <= 20')]]]></screen>
 
           This simple change of mode selection can account for an improvement in
           search times up to a factor of 10 (see the <xref xrefstyle="select: label" linkend="searchTimes-int"/>).
@@ -9853,9 +9851,9 @@ result = [ row['var2'] for row in table.where('var1 <= 20')]
 
           <screen><![CDATA[
 row = table
-result = [ row['var2'] for row in table.where('(var3 == "foo") & (var1 <= 20)')
-                                  if your_function(row['var2']) ]
-]]></screen>
+result = [ row['var2']
+           for row in table.where('(var3 == "foo") & (var1 <= 20)')
+           if your_function(row['var2']) ]]]></screen>
 
           Here, we use an <emphasis>in-kernel</emphasis> selection to choose rows
           according to the values of the <literal>var3</literal> and
@@ -9887,49 +9885,19 @@ result = [ row['var2'] for row in table.where('(var3 == "foo") & (var1 <= 20)')
           information using a <emphasis>binary search</emphasis> which is much
           faster than a <emphasis>sequential search</emphasis>.</para>
 
-          <para>You can index your selected columns in several ways:</para>
+          <para>You can index the columns you choose by calling the
+          <literal>Column.createIndex()</literal> method (see <xref
+          linkend="createIndexColumnDescr"/>) on an already created table.
+          For example:
 
-          <glosslist>
-
-            <glossentry><glossterm><emphasis
-            role="bold">Declaratively</emphasis></glossterm>
-
-            <glossdef><para>In this mode, you can declare a column as being
-            indexed by passing the <emphasis>indexed</emphasis> parameter to
-            the column descriptor. That is:</para>
-
-            <screen><![CDATA[
-class Example(IsDescription):
-    var1 = StringCol(length=4, dflt="", pos=1, indexed=1)
-    var2 = BoolCol(0, indexed=1, pos = 2)
-    var3 = IntCol(0, indexed=1, pos = 3)
-    var4 = FloatCol(0, indexed=0, pos = 4)
-            ]]></screen>
-
-            <para>In this case, we are telling that <literal>var1</literal>,
-            <literal>var2</literal> and <literal>var3</literal> columns will
-            be indexed automatically when you add rows to the table with this
-            description.</para></glossdef></glossentry>
-
-            <glossentry><glossterm><emphasis role="bold">Calling
-            Column.createIndex()</emphasis></glossterm><glossdef><para>In this
-            mode, you can create an index even on an already created
-            table. For example:</para>
-
-            <screen><![CDATA[
+	  <screen><![CDATA[
 indexrows = table.cols.var1.createIndex()
 indexrows = table.cols.var2.createIndex()
-indexrows = table.cols.var3.createIndex()
-            ]]></screen>
+indexrows = table.cols.var3.createIndex()]]></screen>
 
-            <para>will create indexes for all
-            <literal>var1</literal>,
-            <literal>var2</literal> and
-            <literal>var3</literal> columns, and after
-            doing that, they will behave as regular indexes.
-            </para></glossdef></glossentry>
-
-          </glosslist>
+	  will create indexes for all <literal>var1</literal>,
+	  <literal>var2</literal> and <literal>var3</literal> columns.
+	  </para>
 
           <para>After you have indexed a column, PyTables will try to use the
           index in your queries.  For the moment, a one-piece, non-empty range
@@ -9943,6 +9911,7 @@ indexrows = table.cols.var3.createIndex()
           <para>Example conditions where an index can be used:
           <itemizedlist>
             <listitem><para><literal>var1 >= "foo"</literal> (var1 is used)</para></listitem>
+            <listitem><para><literal>var1 >= mystr</literal> (var1 is used)</para></listitem>
             <listitem><para><literal>(var1 >= "foo") &amp; (var3 > 10)</literal> (var1 is used)</para></listitem>
             <listitem><para><literal>(var1 >= "foo") &amp; (var4 > 0.0)</literal> (var1 is used)</para></listitem>
             <listitem><para><literal>("bar" &lt;= var1) &amp; (var1 &lt; "foo")</literal> (var1 is used)</para></listitem>
@@ -9956,17 +9925,17 @@ indexrows = table.cols.var3.createIndex()
           <itemizedlist>
             <listitem><para><literal>var4 > 0.0</literal> (var4 is not indexed)</para></listitem>
             <listitem><para><literal>var1 != 0.0</literal> (range has two pieces)</para></listitem>
-            <listitem><para><literal>var1 >= mystr</literal> (comparison with a variable)</para></listitem>
             <listitem><para><literal>(var1 >= "foo") | (var3 > 10)</literal> (conditions are ORed)</para></listitem>
           </itemizedlist>
           </para>
 
 	  <para>Remember you can use the
 	  <literal>willQueryUseIndexing()</literal> method (see <xref
-	  linkend="Table.willQueryUseIndexing"/>) to check whether a
-	  particular query will used indexing or not. </para>
+	  xrefstyle="select: label" linkend="Table.willQueryUseIndexing"/>) to
+	  check whether a particular query will used indexing or not.
+	  </para>
 
-          <para>You can see in figures<xref xrefstyle="select: labelnumber"
+          <para>You can see in figures <xref xrefstyle="select: labelnumber"
           linkend="searchTimes-int"/> and <xref xrefstyle="select:
           labelnumber" linkend="searchTimes-float"/> that indexing can
           accelerate quite a lot your data selections in tables. For
