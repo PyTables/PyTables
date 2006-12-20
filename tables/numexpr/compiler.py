@@ -1,11 +1,12 @@
-
 import sys
 import numpy
 
 from tables.numexpr import interpreter, expressions
 
-typecode_to_kind = {'b': 'bool', 'i': 'int', 'l': 'long', 'f': 'float', 'c': 'complex', 's': 'str', 'n' : 'none'}
-kind_to_typecode = {'bool': 'b', 'int': 'i', 'long': 'l', 'float': 'f', 'complex': 'c', 'str': 's', 'none' : 'n'}
+typecode_to_kind = {'b': 'bool', 'i': 'int', 'l': 'long', 'f': 'float',
+                    'c': 'complex', 's': 'str', 'n' : 'none'}
+kind_to_typecode = {'bool': 'b', 'int': 'i', 'long': 'l', 'float': 'f',
+                    'complex': 'c', 'str': 's', 'none' : 'n'}
 type_to_kind = expressions.type_to_kind
 kind_to_type = expressions.kind_to_type
 
@@ -481,16 +482,16 @@ def precompile(ex, signature=(), **kwargs):
 
     input_order = getInputOrder(ast, input_order)
     constants_order, constants = getConstants(ast)
-    
+
     if isReduction(ast):
         ast.reg.temporary = False
-    
+
     optimizeTemporariesAllocation(ast)
-    
+
     ast.reg.temporary = False
     r_output = 0
     ast.reg.n = 0
-    
+
     r_inputs = r_output + 1
     r_constants = setOrderedRegisterNumbers(input_order, r_inputs)
     r_temps = setOrderedRegisterNumbers(constants_order, r_constants)
@@ -624,5 +625,3 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
         compiled_ex = _numexpr_cache[numexpr_key] = \
                       numexpr(ex, signature, **kwargs)
     return compiled_ex(*arguments)
-
-

@@ -98,8 +98,8 @@
         #define i_reduce    *(int *)reduce_ptr
         #define l_reduce    *(long long *)reduce_ptr
         #define f_reduce    *(double *)reduce_ptr
-        #define cr_reduce   *(double *)ptr       
-        #define ci_reduce   *((double *)ptr+1)                
+        #define cr_reduce   *(double *)ptr
+        #define ci_reduce   *((double *)ptr+1)
         #define b_dest ((char *)dest)[j]
         #define i_dest ((int *)dest)[j]
         #define l_dest ((long long *)dest)[j]
@@ -128,7 +128,7 @@
         #define c3r   ((double *)x3)[j*sf3]
         #define c3i   ((double *)x3)[j*sf3+1]
         #define s3    ((char   *)x3 + j*params.memsteps[arg3])
-        
+
         double fa, fb;
         cdouble ca, cb;
         char *ptr;
@@ -272,7 +272,7 @@
         case OP_SUM_CCN: VEC_ARG1(ptr = reduce_ptr;
                                   cr_reduce += c1r;
                                   ci_reduce += c1i);
-        
+
         case OP_PROD_IIN: VEC_ARG1(i_reduce *= i1);
         case OP_PROD_LLN: VEC_ARG1(l_reduce *= l1);
         case OP_PROD_FFN: VEC_ARG1(f_reduce *= f1);
@@ -280,7 +280,7 @@
                                    fa = cr_reduce*c1r - ci_reduce*c1i;
                                    ci_reduce = cr_reduce*c1i + ci_reduce*c1r;
                                    cr_reduce = fa);
-        
+
         default:
             *pc_error = pc;
             return -3;
