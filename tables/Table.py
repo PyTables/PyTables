@@ -1101,6 +1101,31 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         place the indexed columns as left and out in the condition as
         possible.  Anyway, this method has always better performance
         than standard Python selections on the table.
+
+        You can mix this method with standard Python selections in order
+        to have complex queries.  It is strongly recommended that you
+        pass the most restrictive condition as the parameter to this
+        method if you want to achieve maximum performance.
+
+        Example of use:
+
+        >>> passvalues = [ row['col3'] for row in
+        ...                table.where('(col1 > 0) & (col2 <= 20)', step=5)
+        ...                if your_function(row['col2']) ]
+        >>> print \"Values that pass the cuts:\", passvalues
+
+        Note that, from PyTables 1.1 on, you can nest several iterators
+        over the same table.  For example:
+
+        >>> for p in rout.where('pressure < 16'):
+        ...   for q in rout.where('pressure < 9'):
+        ...     for n in rout.where('energy < 10'):
+        ...       print \"pressure, energy:\", p['pressure'], n['energy']
+
+        In this example, iterators returned by ``where()`` have been
+        used, but you may as well use any of the other reading iterators
+        that ``Table`` objects offer.  See ``examples/nested-iter.py``
+        for the full code.
         """
         # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)

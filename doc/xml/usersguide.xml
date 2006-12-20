@@ -1354,6 +1354,18 @@ x['TDCcount'] > 3 and 20 <= x['pressure'] < 50]]></screen>
           when working with the data interactively.
           </para>
 
+	  <para>PyTables offers another, more powerful way of performing
+	  selections which may be more suitable if you have very large tables
+	  or if you need very high query speeds.  It is called
+	  <emphasis>in-kernel</emphasis>, and you can use it through
+	  <literal>Table.where()</literal> (see <xref linkend="Table.where"/>)
+	  and other related methods.  With it, you may also take advantage of
+	  column indexing.
+	  See <xref xrefstyle="select: label" linkend="conditionSyntax"/>
+	  and <xref xrefstyle="select: label" linkend="searchOptim"/>
+	  for more information on in-kernel and indexed selections.
+	  </para>
+
           <para>That's enough about selections. The next section will show you
           how to save these selected results to a file.</para>
 
@@ -6599,7 +6611,7 @@ if row['var1'] <= 20 ]]]></screen>
 		</para></glossdef></glossentry></glosslist>
 	    </section>
 
-	    <section id="Table.readWhere">
+	    <section id="Table.readWhere" xreflabel="description">
 	      <title>
 		readWhere(condition, condvars=None, field=None, flavor=None)
 	      </title>
@@ -6833,8 +6845,6 @@ if row['var1'] <= 20 ]]]></screen>
 	    </section>
 
 	    <section id="Table.where" xreflabel="description">
-	      <!-- ##XXX Explain condition syntax and oddities with logical ops and their preference
-		   ##XXX including two-ended ranges. -->
 	      <title>where(condition, condvars=None,
 		start=None, stop=None, step=None)
 	      </title>
@@ -6846,6 +6856,9 @@ if row['var1'] <= 20 ]]]></screen>
 		instances built from rows in the table that satisfy the
 		given <emphasis>condition</emphasis>
 		(an expression-like string).
+
+		For more information on condition syntax, see
+		<xref xrefstyle="select: label" linkend="conditionSyntax"/>.
 	      </para>
 
 	      <para>
@@ -6894,6 +6907,7 @@ if row['var1'] <= 20 ]]]></screen>
 		and out in the condition as possible.  Anyway, this
 		method has always better performance than standard
 		Python selections on the table.
+
 		Please check the <xref xrefstyle="select: label" linkend="searchOptim"/>
 		for more information about the performance of the different searching modes.
 	      </para>
@@ -6907,11 +6921,11 @@ if row['var1'] <= 20 ]]]></screen>
 
 	      <para>Example of use:</para>
 
-	      <screen>
-<![CDATA[passvalues = [
-    row['col3'] for row in table.where('(col1 > 0) & (col2 <= 20)', step=5)
-    if your_function(row['col2']) ]
-print "Values that pass the cuts:", passvalues]]></screen>
+	      <screen><![CDATA[
+>>> passvalues = [ row['col3'] for row in
+...                table.where('(col1 > 0) & (col2 <= 20)', step=5)
+...                if your_function(row['col2']) ]
+>>> print "Values that pass the cuts:", passvalues]]></screen>
 
 	      <para>Note that, from PyTables 1.1 on, you can
 		nest several iterators over the same table. For example:
@@ -6925,8 +6939,8 @@ print "Values that pass the cuts:", passvalues]]></screen>
 
 	      <para>In this example, iterators returned by
 		<literal>where()</literal> have been used,
-		but you may as well use any of the other reading iterators that the
-		<literal>Table</literal> object offers. Look at
+		but you may as well use any of the other reading iterators that
+		<literal>Table</literal> objects offer. See
 		<literal>examples/nested-iter.py</literal> for the full code.
 	      </para>
 
@@ -9779,7 +9793,10 @@ result = [ row['var2'] for row in table.where('var1 <= 20')]
           ]]></screen>
 
           This simple change of mode selection can account for an improvement in
-          search times up to a factor of 10 (see the <xref xrefstyle="select: label" linkend="searchTimes-int"/>).</para>
+          search times up to a factor of 10 (see the <xref xrefstyle="select: label" linkend="searchTimes-int"/>).
+	  For more information on the syntax of in-kernel conditions, see
+	  <xref xrefstyle="select: label" linkend="conditionSyntax"/>.
+	  </para>
 
           <figure id="searchTimes-int">
             <title>Times for different selection modes over
@@ -9840,11 +9857,12 @@ result = [ row['var2'] for row in table.where('(var3 == "foo") & (var1 <= 20)')
                                   if your_function(row['var2']) ]
 ]]></screen>
 
-          Here, use a <emphasis>in-kernel</emphasis> selection to choose rows
+          Here, we use an <emphasis>in-kernel</emphasis> selection to choose rows
           according to the values of the <literal>var3</literal> and
           <literal>var1</literal> fields. Then, we apply a
           <emphasis>standard</emphasis> selection to complete the
-          query.</para>
+          query.
+	  </para>
 
           <para>Of course, when you mix the <emphasis>in-kernel</emphasis> and
           <emphasis>standard</emphasis> selection modes you should pass the
@@ -12501,6 +12519,188 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
         </tgroup>
       </table>
 
+    </appendix>
+
+    <appendix id="conditionSyntax">
+      <title>Condition syntax</title>
+
+      <para>Conditions in PyTables are used in methods related with in-kernel
+      and indexed searches such as
+      <literal>Table.where()</literal> (see <xref linkend="Table.where"/>)
+      or <literal>Table.readWhere()</literal> (see <xref linkend="Table.readWhere"/>).
+      They are interpreted using a customized version of
+      <ulink url="http://scipy.org/SciPyPackages/NumExpr">Numexpr</ulink>,
+      a powerful package for C-speed computation of array operations,
+      originally written by David Cooke.
+      </para>
+
+      <para>A condition on a table is just a <emphasis>string</emphasis>
+      containing a Python expression involving <emphasis>at least one
+      column</emphasis>, and maybe some constants and external variables, all
+      combined with algebraic operators and functions.  The result of a valid
+      condition is always a <emphasis>boolean array</emphasis> of the same
+      length as the table, where the <emphasis>i</emphasis>-th element is true
+      if the value of the expression on the <emphasis>i</emphasis>-th row of
+      the table evaluates to true
+      <footnote>
+	<para>That is the reason why multidimensional fields in a table are
+	not supported in conditions, since the truth value of each resulting
+	multidimensional boolean value is not obvious.
+	</para>
+      </footnote>.
+      Usually, a method using a condition will only consider the rows where
+      the boolean result is true.
+      </para>
+
+      <para>For instance, the condition
+      <literal><![CDATA['sqrt(x*x + y*y) < 1']]></literal>
+      applied on a table with <literal>x</literal> and <literal>y</literal>
+      columns consisting of floating point numbers results in a boolean array
+      where the <emphasis>i</emphasis>-th element is true if (unsurprisingly)
+      the value of the square root of the sum of squares of
+      <literal>x</literal> and <literal>y</literal> is less than 1.
+      The <literal>sqrt()</literal> function works element-wise, the 1
+      constant is adequately broadcast to an array of ones of the length of
+      the table for evaluation, and the <emphasis>less than</emphasis>
+      operator makes the result a valid boolean array.
+      A condition like <literal>'mycolumn'</literal> alone will not usually be
+      valid, unless <literal>mycolumn</literal> is itself a column of scalar,
+      boolean values.
+      </para>
+
+      <para>In the previous conditions, <literal>mycolumn</literal>,
+      <literal>x</literal> and <literal>y</literal> are examples of
+      <emphasis>variables</emphasis> which are associated with columns.
+      Methods supporting conditions do usually provide their own ways of
+      binding variable names to columns and other values.
+      You can read the documentation of <literal>Table.where()</literal>
+      (see <xref linkend="Table.where"/>) for more information on that.
+      Also, please note that the names <literal>None</literal>,
+      <literal>True</literal> and <literal>False</literal>, besides the names
+      of functions (see below) <emphasis>can not be overridden</emphasis>, but
+      you can always define other new names for the objects you intend to use.
+      </para>
+
+      <para>Values in a condition may have the following types:
+      <itemizedlist>
+	<listitem>
+	  <para>8-bit boolean (<literal>bool</literal>).</para>
+	</listitem>
+	<listitem>
+	  <para>32-bit signed integer (<literal>int</literal>).</para>
+	</listitem>
+	<listitem>
+	  <para>64-bit signed integer (<literal>long</literal>).</para>
+	</listitem>
+	<listitem>
+	  <para>64-bit, double-precision floating point number
+	  (<literal>float</literal>).</para>
+	</listitem>
+	<listitem>
+	  <para>2x64-bit, double-precision complex number
+	  (<literal>complex</literal>).</para>
+	</listitem>
+	<listitem>
+	  <para>Raw string of bytes (<literal>str</literal>).</para>
+	</listitem>
+      </itemizedlist>
+      The types in PyTables conditions are somewhat stricter than those of
+      Python.  For instance, the <emphasis>only</emphasis> valid constants for
+      booleans are <literal>True</literal> and <literal>False</literal>, and
+      they are <emphasis>never</emphasis> automatically cast to integers.  The
+      type strengthening also affects the availability of operators and
+      functions.  Beyond that, the usual type inference rules apply.
+      </para>
+
+      <para>Conditions support the set of operators listed below:
+      <itemizedlist>
+	<listitem><para>Logical operators: &amp;, |, ~.</para></listitem>
+	<listitem><para>Comparison operators: &lt;, &le; ==, !=, &ge;, &gt;.</para></listitem>
+	<listitem><para>Unary arithmetic operators: -.</para></listitem>
+	<listitem><para>Binary arithmetic operators: +, -, *, /, **, %.</para></listitem>
+      </itemizedlist>
+      Types do not support all operators.  Boolean values only support logical
+      and strict (in)equality comparison operators, while strings only support
+      comparisons, numbers do not work with logical operators, and complex
+      comparisons can only check for strict (in)equality.  Unsupported
+      operations (including invalid castings) raise
+      <literal>NotImplementedError</literal> exceptions.
+      </para>
+
+      <para>
+      You may have noticed the special meaning of the usually bitwise
+      operators <literal>&amp;</literal>, <literal>|</literal> and
+      <literal>~</literal>.  Because of the way Python handles the
+      short-circuiting of logical operators and the truth values of their
+      operands, conditions must use the bitwise operator equivalents instead.
+      This is not difficult to remember, but you must be careful because
+      bitwise operators have a <emphasis>higher precedence</emphasis> than
+      logical operators.  For instance, <literal>'a and b == c'</literal>
+      (<emphasis><literal>a</literal> is true AND <literal>b</literal> is
+      equal to <literal>c</literal></emphasis>) is <emphasis>not</emphasis>
+      equivalent to <literal>'a &amp; b == c'</literal>
+      (<emphasis><literal>a</literal> AND <literal>b</literal> is equal to
+      <literal>c</literal>)</emphasis>.  The safest way to avoid confusions is
+      to <emphasis>use parentheses</emphasis> around logical operators, like
+      this: <literal>'a &amp; (b == c)'</literal>.  Another effect of
+      short-circuiting is that expressions like
+
+      <literal><![CDATA['0 < x < 1']]></literal>
+      will <emphasis>not</emphasis> work as expected; you should use
+      <literal><![CDATA['(0 < x) & (x < 1)']]></literal>
+
+      <footnote>
+	<para>All of this may be solved if Python supported overloadable
+	boolean operators (see PEP 335) or some kind of non-shortcircuiting
+	boolean operators (like C's <literal>&amp;&amp;</literal>,
+	<literal>||</literal> and <literal>!</literal>).
+	</para>
+      </footnote>
+      </para>
+
+      <para>You can also use the following functions in conditions:
+
+      <itemizedlist>
+	<listitem>
+	  <para><literal>where(bool, number1, number2): number</literal> —
+	  <literal>number1</literal> if the <literal>bool</literal> condition
+	  is true, <literal>number2</literal> otherwise.</para>
+	</listitem>
+	<listitem>
+	  <para><literal>{sin,cos,tan}(float|complex): float|complex</literal> —
+	  trigonometric sinus, cosinus or tangent.</para>
+	</listitem>
+	<listitem>
+	  <para><literal>{arcsin,arccos,arctan}(float|complex): float|complex</literal> —
+	  trigonometric inverse sinus, cosinus or tangent.</para>
+	</listitem>
+	<listitem>
+	  <para><literal>arctan2(float1, float2): float</literal> —
+	  trigonometric inverse tangent of <literal>float1/float2</literal>.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para><literal>{sinh,cosh,tanh}(float|complex): float|complex</literal> —
+	  hyperbolic sinus, cosinus or tangent.</para>
+	</listitem>
+	<listitem>
+	  <para><literal>sqrt(float|complex): float|complex</literal> —
+	  square root.</para>
+	</listitem>
+	<listitem>
+	  <para><literal>{real,imag}(complex): float</literal> —
+	  real or imaginary part of complex.</para>
+	</listitem>
+	<listitem>
+	  <para><literal>complex(float, float): complex</literal> —
+	  complex from real and imaginary parts.</para>
+	</listitem>
+	<listitem>
+	  <para><literal>pow(complex, complex): complex</literal> —
+	  complex exponentiation.</para>
+	</listitem>
+      </itemizedlist>
+      </para>
     </appendix>
 
     <appendix id="NestedRecArrayClassDescr">
