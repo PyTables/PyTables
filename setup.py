@@ -248,11 +248,15 @@ HDF5_DIR = os.environ.get('HDF5_DIR', '')
 LZO_DIR = os.environ.get('LZO_DIR', '')
 BZIP2_DIR = os.environ.get('BZIP2_DIR', '')
 LFLAGS = os.environ.get('LFLAGS', '').split()
+# in GCC-style compilers, -w in extra flags will get rid of copious
+# 'uninitialized variable' Pyrex warnings. However, this shouldn't be the default
+# as it will suppress *all* the warnings, which definitely is not a good idea.
+EFLAGS = os.environ.get('EFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
 
 # ...then the command line.
 # Handle --hdf5=[PATH] --lzo=[PATH] --bzip2=[PATH]
-# --lflags=[FLAGS] and --debug
+# --lflags=[FLAGS] --eflags=[FLAGS] and --debug
 args = sys.argv[:]
 for arg in args:
     if arg.find('--hdf5=') == 0:
@@ -267,9 +271,12 @@ for arg in args:
     elif arg.find('--lflags=') == 0:
         LFLAGS = arg.split('=')[1].split()
         sys.argv.remove(arg)
+    elif arg.find('--eflags=') == 0:
+        EFLAGS = arg.split('=')[1].split()
+        sys.argv.remove(arg)
     elif arg.find('--debug') == 0:
         # For debugging (mainly compression filters)
-        if os.name != 'nt': # to prevent including dlfcn.h by utils.c!!! 
+        if os.name != 'nt': # to prevent including dlfcn.h by utils.c!!!
             def_macros = [('DEBUG', 1)]
         # Don't delete this argument. It maybe useful for distutils
         # when adding more flags later on
@@ -490,6 +497,7 @@ interactively save and retrieve large amounts of data.
                                 library_dirs = lib_dirs,
                                 libraries = hdf5Extension_libs,
                                 extra_link_args = LFLAGS,
+                                extra_compile_args = EFLAGS,
                                 ),
                        Extension("tables.TableExtension",
                                 include_dirs = inc_dirs,
@@ -502,6 +510,7 @@ interactively save and retrieve large amounts of data.
                                 library_dirs = lib_dirs,
                                 libraries = TableExtension_libs,
                                 extra_link_args = LFLAGS,
+                                extra_compile_args = EFLAGS,
                                 ),
                        Extension("tables.indexesExtension",
                                 include_dirs = inc_dirs,
@@ -513,6 +522,7 @@ interactively save and retrieve large amounts of data.
                                 library_dirs = lib_dirs,
                                 libraries = indexesExtension_libs,
                                 extra_link_args = LFLAGS,
+                                extra_compile_args = EFLAGS,
                                 ),
                        Extension("tables.utilsExtension",
                                 include_dirs = inc_dirs,
@@ -527,6 +537,7 @@ interactively save and retrieve large amounts of data.
                                 library_dirs = lib_dirs,
                                 libraries = utilsExtension_libs,
                                 extra_link_args = LFLAGS,
+                                extra_compile_args = EFLAGS,
                                 ),
                        Extension("tables.lrucacheExtension",
                                 include_dirs = inc_dirs,
@@ -536,6 +547,7 @@ interactively save and retrieve large amounts of data.
                                 library_dirs = lib_dirs,
                                 libraries = lrucacheExtension_libs,
                                 extra_link_args = LFLAGS,
+                                extra_compile_args = EFLAGS,
                                 ),
                        Extension("tables._comp_lzo",
                                 include_dirs = inc_dirs,
@@ -546,6 +558,7 @@ interactively save and retrieve large amounts of data.
                                 library_dirs = lib_dirs,
                                 libraries = _comp_lzo_libs,
                                 extra_link_args = LFLAGS,
+                                extra_compile_args = EFLAGS,
                                 ),
                        Extension("tables._comp_bzip2",
                                 include_dirs = inc_dirs,
@@ -556,6 +569,7 @@ interactively save and retrieve large amounts of data.
                                 library_dirs = lib_dirs,
                                 libraries = _comp_bzip2_libs,
                                 extra_link_args = LFLAGS,
+                                extra_compile_args = EFLAGS,
                                 ),
                        Extension("tables.numexpr.interpreter",
                                 include_dirs = inc_dirs,

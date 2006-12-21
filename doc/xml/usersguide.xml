@@ -691,8 +691,19 @@ fileh.close()
             setting the <literal>LIBS</literal> environment variable:</para>
 
             <screen><![CDATA[
-LIBS="hdf5-1.6.5" LIBS="hdf5-1.6.5 nsl"
+LIBS="hdf5-1.6.5 nsl"
             ]]></screen>
+
+            <para>Finally, you can pass additional flags to your compiler by
+            passing them to the --eflags flag:</para>
+
+            <screen><![CDATA[
+ --eflags="-w -O3"
+            ]]></screen>
+
+            <para>In the above case, a gcc compiler is used and you instructed
+            it to suppress all the warnings and set the level 3 of
+            optimization.</para>
 
             </listitem></varlistentry>
 
