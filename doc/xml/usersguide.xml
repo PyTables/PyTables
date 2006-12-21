@@ -9773,14 +9773,11 @@ True]]></screen>
 
       <section id="searchOptim">
         <title>Accelerating your searches</title>
-        <!-- ##XXX Add some multi-column search examples here. -->
-        <!-- ##XXX Add examples using internal functions as well. -->
-
         <para>If you are going to use a lot of searches like the next one:
 
         <screen><![CDATA[
 row = table.row
-result = [ row['var2'] for row in table if row['var1'] <= 20 ]]]></screen>
+result = [row['var2'] for row in table if row['var1'] <= 20 ]]]></screen>
 
         (for future reference, we will call this the
         <emphasis>standard</emphasis> selection mode) and you want to improve
@@ -9803,8 +9800,6 @@ result = [ row['var2'] for row in table.where('var1 <= 20')]]]></screen>
 
           This simple change of mode selection can account for an improvement in
           search times up to a factor of 10 (see the <xref xrefstyle="select: label" linkend="searchTimes-int"/>).
-	  For more information on the syntax of in-kernel conditions, see
-	  <xref xrefstyle="select: label" linkend="conditionSyntax"/>.
 	  </para>
 
           <figure id="searchTimes-int">
@@ -9866,27 +9861,32 @@ result = [ row['var2']
            for row in table.where('(var3 == "foo") & (var1 <= 20)')
            if your_function(row['var2']) ]]]></screen>
 
-          Here, we use an <emphasis>in-kernel</emphasis> selection to choose rows
-          according to the values of the <literal>var3</literal> and
+          Here, we use an <emphasis>in-kernel</emphasis> selection to choose
+          rows according to the values of the <literal>var3</literal> and
           <literal>var1</literal> fields. Then, we apply a
-          <emphasis>standard</emphasis> selection to complete the
-          query.
-	  </para>
-
-          <para>Of course, when you mix the <emphasis>in-kernel</emphasis> and
+          <emphasis>standard</emphasis> selection to complete the query.  Of
+          course, when you mix the <emphasis>in-kernel</emphasis> and
           <emphasis>standard</emphasis> selection modes you should pass the
           most restrictive condition to the <emphasis>in-kernel</emphasis>
           part, i.e.  to the <literal>where</literal> iterator. In situations
           where it is not clear which is the most restrictive condition, you
           might want to experiment a bit in order to find the best
-          combination.</para>
+          combination.
+	  </para>
+
+          <para>However, since in-kernel condition strings allow rich
+          expressions with multiple columns, arithmetic operations and some
+          functions, it is unlikely that you will be forced to use external
+          standard selections in conditions of small to medium complexity.
+          See
+	  <xref xrefstyle="select: label" linkend="conditionSyntax"/>
+	  for more information on in-kernel condition syntax.
+	  </para>
 
         </section>
 
         <section id="indexedSearches">
           <title>Indexed searches</title>
-          <!-- ##XXX Include hints on writing indexable conditions. -->
-
           <para>When you need more speed than <emphasis>in-kernel</emphasis>
           selections can offer you, PyTables offers a third selection method,
           the so-called <emphasis>indexed</emphasis> mode. In this mode, you
