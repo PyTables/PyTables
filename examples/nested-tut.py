@@ -60,7 +60,7 @@ table.flush()  # flush the row buffer to disk
 print repr(table.nrows)
 
 nra = table[::4]
-print nra
+print repr(nra)
 # Append some additional rows
 table.append(nra)
 print repr(table.nrows)
@@ -105,19 +105,21 @@ print repr(table.description.info2.info3)
 print repr(table.description._v_nestedNames)
 print repr(table.description.info1._v_nestedNames)
 print
-print "**** now some for nestedrecords, take that ****"
-from tables import nestedrecords
+print "**** now some for nested records, take that ****"
 print repr(table.description._v_nestedDescr)
-print repr(nestedrecords.array(None, descr=table.description._v_nestedDescr))
-print repr(nestedrecords.array(None, names=table.description._v_nestedNames,
-                               formats=table.description._v_nestedFormats))
-print repr(numpy.rec.array(None, shape=1,
+print repr(numpy.rec.array(None, shape=0,
                            dtype=table.description._v_nestedDescr))
+print repr(numpy.rec.array(None, shape=0,
+                           dtype=table.description.info2._v_nestedDescr))
 # NumPy recarrays doesn't have the machinery to understand the idiom below,
 # please, use the above form instead.
 ###print repr(numpy.rec.array(None, shape=1,
 ###           names=table.description._v_nestedNames,
 ###           formats=table.description._v_nestedFormats))
+from tables import nestedrecords
+print repr(nestedrecords.array(None, descr=table.description._v_nestedDescr))
+print repr(nestedrecords.array(None, names=table.description._v_nestedNames,
+                               formats=table.description._v_nestedFormats))
 print
 print "**** and some iteration over descriptions, too ****"
 for coldescr in table.description._f_walk():

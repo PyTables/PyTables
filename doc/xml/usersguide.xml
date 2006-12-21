@@ -3349,43 +3349,42 @@ class NestedDescr(IsDescription):
           <title>Reading nested tables: introducing
           <literal>NestedRecArray</literal> objects</title>
 
-          <para>Now, what happens if we want to read the table? Which data
-          container will be used to keep the data? Well, it's worth trying it:
+          <para>Now, what happens if we want to read the table? What kind of
+          data container will we get? Well, it's worth trying it:
           </para>
 
           <screen><![CDATA[
 >>> nra = table[::4]
->>> print nra
-[(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L)
- (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L)
- (((1.0, 8), 'name2-8', 0.0), ('name1-8', 0.0), 2L)]
+>>> nra
+array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
+       (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L),
+       (((1.0, 8), 'name2-8', 0.0), ('name1-8', 0.0), 2L)], 
+      dtype=[('info2', [('info3', [('x', '>f8'), ('y', '|u1')]),
+             ('name', '|S10'), ('value', '>f8')]),
+	     ('info1', [('name', '|S10'), ('value', '>f8')]),
+	     ('color', '>u4')])
 >>> ]]></screen>
 
-	  <!-- XXX BEGIN OBSOLETE XXX -->
-          <para>We have read one row for each four in the table, giving a result
-          of three rows. What about the container? Well, we can see that it is a
-          new mysterious object known as
-          <literal>NestedRecArray</literal>. If we ask
-          for more info on that:</para>
+          <para>What we got is a NumPy array with a <emphasis>compound, nested
+          datatype</emphasis> (its <literal>dtype</literal> is a list of
+          name-datatype tuples).  We read one row for each four in the table,
+          giving a result of three rows.
+	  </para>
 
-          <screen><![CDATA[
->>> type(nra)
-<class 'tables.nestedrecords.NestedRecArray'>]]></screen>
-
-          <para>we see that it is an instance of the class
-          <literal>NestedRecArray</literal> that lives
-          in the module
-          <literal>nestedrecords</literal> of
-          <literal>tables</literal> package.
-          <literal>NestedRecArray</literal> is
-          actually a subclass of the
-          <literal>RecArray</literal> object of the
-          <literal>records</literal> module of
-          <literal>numarray</literal> package. You can
-          see more info about
-          <literal>NestedRecArray</literal> object in
-          <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>.</para>
-	  <!-- XXX END OBSOLETE XXX -->
+	  <note>
+	    <para>When using the <literal>numarray</literal> flavor,
+	    you will get an instance of the
+	    <literal>NestedRecArray</literal> class that lives in the
+	    <literal>tables.nestedrecords</literal> module.
+	    <literal>NestedRecArray</literal> is
+	    actually a subclass of the
+	    <literal>RecArray</literal> object of the
+	    <literal>numarray.records</literal> module. You can
+	    get more info about
+	    <literal>NestedRecArray</literal> object in
+	    <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>.
+	    </para>
+	  </note>
 
           <para>You can make use of the above object in many different ways. For
           example, you can use it to append new data to the existing table
@@ -3405,7 +3404,10 @@ class NestedDescr(IsDescription):
 array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
        (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L),
        (((1.0, 8), 'name2-8', 0.0), ('name1-8', 0.0), 2L)], 
-      dtype=[('info2', [('info3', [('x', '<f8'), ('y', '|u1')]), ('name', '|S10'), ('value', '<f8')]), ('info1', [('name', '|S10'), ('value', '<f8')]), ('color', '<u4')])
+      dtype=[('info2', [('info3', [('x', '<f8'), ('y', '|u1')]),
+             ('name', '|S10'), ('value', '<f8')]),
+	     ('info1', [('name', '|S10'), ('value', '<f8')]),
+	     ('color', '<u4')])
 >>> ]]></screen>
 
           <para>Finally, we can select nested values that fulfill some
@@ -3541,35 +3543,45 @@ array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)],
           <literal>Description</literal> objects
           themselves.</para>
 
-	  <!-- XXX BEGIN OBSOLETE XXX -->
           <para>There is a special attribute, called
-          <literal>_v_nestedDescr</literal> that can
-          be useful to create
-          <literal>NestedRecArrays</literal> objects
-          that imitate the structure of the table (or a subtable!):</para>
+          <literal>_v_nestedDescr</literal>, that can be useful to create
+          nested record arrays that imitate the structure of the table (or a
+          subtable thereof):
+	  </para>
 
           <screen><![CDATA[
- >>> from tables import nestedrecords
- >>> table.description._v_nestedDescr
- [('info2', [('info3', [('x', '1f8'), ('y', '1u1')]), ('name', '1a10'),
-  ('value', '1f8')]), ('info1', [('name', '1a10'), ('value', '1f8')]),
-  ('color', '1u4')]
- >>> nestedrecords.array(None, descr=table.description._v_nestedDescr)
- array(
- [],
- descr=[('info2', [('info3', [('x', '1f8'), ('y', '1u1')]), ('name',
-  '1a10'), ('value', '1f8')]), ('info1', [('name', '1a10'), ('value',
-  '1f8')]),('color', '1u4')], shape=0)
- >>> nestedrecords.array(None, descr=table.description.info2._v_nestedDescr)
- array(
- [],
- descr=[('info3', [('x', '1f8'), ('y', '1u1')]), ('name', '1a10'),
- ('value', '1f8')], shape=0)
- >>>]]></screen>
+>>> table.description._v_nestedDescr
+[('info2', [('info3', [('x', '()f8'), ('y', '()u1')]), ('name', '()S10'),
+ ('value', '()f8')]), ('info1', [('name', '()S10'), ('value', '()f8')]),
+ ('color', '()u4')]
+>>> numpy.rec.array(None, shape=0,
+...                 dtype=table.description._v_nestedDescr)
+recarray([], 
+      dtype=[('info2', [('info3', [('x', '>f8'), ('y', '|u1')]),
+             ('name', '|S10'), ('value', '>f8')]),
+	     ('info1', [('name', '|S10'), ('value', '>f8')]),
+	     ('color', '>u4')])
+>>> numpy.rec.array(None, shape=0,
+...                 dtype=table.description.info2._v_nestedDescr)
+recarray([], 
+      dtype=[('info3', [('x', '>f8'), ('y', '|u1')]), ('name', '|S10'),
+             ('value', '>f8')])
+>>> from tables import nestedrecords
+>>> nestedrecords.array(None, descr=table.description._v_nestedDescr)
+array(
+[],
+descr=[('info2', [('info3', [('x', '()f8'), ('y', '()u1')]),
+       ('name', '()S10'), ('value', '()f8')]), ('info1', [('name', '()S10'),
+       ('value', '()f8')]), ('color', '()u4')],
+shape=0)
+>>> ]]></screen>
 
-          <para>Look the <xref xrefstyle="select: label" linkend="DescriptionClassDescr"/> for the complete listing of
-          attributes.</para>
-	  <!-- XXX END OBSOLETE XXX -->
+	  <para>You can see we have created two equivalent arrays: one with
+	  NumPy (the first) and one with the <literal>nestedrecords</literal>
+	  module (the last).  The later implements nested record arrays for
+	  <literal>numarray</literal> (see
+	  <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>).
+	  </para>
 
           <para>Finally, there is a special iterator of the
           <literal>Description</literal> class, called
@@ -3592,6 +3604,12 @@ column--> Description([('x', '()f8'), ('y', '()u1')])
 column--> Float64Col(shape=(), dflt=1.0, pos=0)
 column--> UInt8Col(shape=(), dflt=1, pos=1)
 >>> ]]></screen>
+
+          <para>See the
+	  <xref xrefstyle="select: label" linkend="DescriptionClassDescr"/>
+	  for the complete listing of attributes and methods of
+	  <literal>Description</literal>.
+	  </para>
 
           <para>Well, this is the end of this tutorial. As always, do not forget
           to close your files:</para>
@@ -12895,14 +12913,24 @@ shape=2)]]></screen>
         <para>The <literal>field()</literal> method
         accepts also names of sub-fields. It will consist of several field
         name components separated by the string
-        <literal>'/'</literal>, for instance:
+        <literal>'/'</literal>
+	<footnote>
+	  <para>This way of specifying the names of sub-fields is
+	  <emphasis>very</emphasis> specific to the implementation of
+	  <literal>numarray</literal> nested arrays of PyTables.
+	  Particularly, if you are using NumPy arrays, keep in mind that
+	  sub-fields in such arrays must be accessed one at a time, like this:
+	  <literal>numpy_array['info']['name']</literal>, and not like this:
+	  <literal>numpy_array['info/name']</literal>.
+	  </para>
+	 </footnote>, for instance:
         </para>
 
         <screen><![CDATA[>>> print nra2.field('info/name')
 ['a1', 'a2']
 >>>]]></screen>
 
-        <para>Eventually, the top level fields of the nested recarray can be
+        <para>Finally, the top level fields of the nested recarray can be
         accessed passing an integer argument to the
         <literal>field()</literal> method:</para>
 
