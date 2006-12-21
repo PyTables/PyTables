@@ -695,10 +695,10 @@ LIBS="hdf5-1.6.5 nsl"
             ]]></screen>
 
             <para>Finally, you can pass additional flags to your compiler by
-            passing them to the --eflags flag:</para>
+            passing them to the --cflags flag:</para>
 
             <screen><![CDATA[
- --eflags="-w -O3"
+ --cflags="-w -O3"
             ]]></screen>
 
             <para>In the above case, a gcc compiler is used and you instructed
