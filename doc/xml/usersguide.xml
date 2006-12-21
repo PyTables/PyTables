@@ -4266,32 +4266,61 @@ ValueError: malformed type: 'foo bar']]></screen></section>
 		</para></glossdef></glossentry>
 
                 <glossentry><glossterm><emphasis role="bold">A
-		dictionary</emphasis></glossterm><glossdef> <para>For example,
-		when you do not know beforehand which structure will have your
-		table). See <xref xrefstyle="select: label"
-		linkend="secondExample"/> for an example of use.
-		</para></glossdef></glossentry>
+                dictionary</emphasis></glossterm><glossdef> <para>For example,
+                when you do not know beforehand which structure your table
+                will have). See <xref xrefstyle="select: label"
+                linkend="secondExample"/> for an example of use.
+                </para></glossdef></glossentry>
 
-                <glossentry><glossterm><emphasis role="bold">A
-		<literal>RecArray</literal></emphasis></glossterm><glossdef>
-		<para>This object from the <literal>numarray</literal> package
-		is also accepted, and all the information about columns and
-		other metadata is used as a basis to create the
-		<literal>Table</literal> object. Moreover, if the
-		<literal>RecArray</literal> has actual data this is also
-		injected on the newly created <literal>Table</literal> object.
-		</para></glossdef></glossentry>
+                <glossentry>
+		  <glossterm><emphasis role="bold">A <literal>Description</literal> instance</emphasis></glossterm>
+		  <glossdef>
+		    <para>You can use the <literal>description</literal>
+		    attribute of another table to create a new one with the
+		    same structure.
+		    </para>
+		  </glossdef>
+		</glossentry>
 
-                <glossentry><glossterm><emphasis role="bold">A
-		<literal>NestedRecArray</literal></emphasis></glossterm><glossdef>
-		<para>Finally, if you want to have nested columns in your
-		table, you can use this object (see <xref xrefstyle="select:
-		label" linkend="NestedRecArrayClassDescr"/>) and all the
-		information about columns and other metadata is used as a
-		basis to create the <literal>Table</literal> object. Moreover,
-		if the <literal>NestedRecArray</literal> has actual data this
-		is also injected on the newly created <literal>Table</literal>
-		object.  </para></glossdef></glossentry></glosslist>
+                <glossentry>
+		  <glossterm><emphasis role="bold">A NumPy (record) array</emphasis></glossterm>
+		  <glossdef>
+		    <para>You can use a NumPy array, whether nested or not,
+		    and its field structure will be reflected in the new
+		    <literal>Table</literal> object.
+		    Moreover, if the array has actual data it will be injected
+		    into the newly created table.
+		    If you are using <literal>numarray</literal> instead of
+		    NumPy, you may use one of the objects below for the same
+		    purpose.
+		    </para>
+		  </glossdef>
+		</glossentry>
+
+                <glossentry>
+		  <glossterm><emphasis role="bold">A <literal>RecArray</literal> instance</emphasis></glossterm>
+		  <glossdef>
+		    <para>This object from the <literal>numarray</literal>
+		    package is also accepted, but it does not give you the
+		    possibility to create a nested table.  Array data is
+		    injected into the new table.
+		    </para>
+		  </glossdef>
+		</glossentry>
+
+                <glossentry><glossterm>
+		  <emphasis role="bold">A <literal>NestedRecArray</literal> instance</emphasis></glossterm>
+		  <glossdef>
+		    <para>Finally, if you want to have nested columns in your
+		    table and you are using <literal>numarray</literal>, you
+		    can use this object (see <xref xrefstyle="select: label"
+		    linkend="NestedRecArrayClassDescr"/>).  Array data is
+		    injected into the new table.
+		    </para>
+		  </glossdef>
+		</glossentry>
+
+		</glosslist>
 
                 </glossdef></glossentry>
 
