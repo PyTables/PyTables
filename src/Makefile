@@ -1,13 +1,14 @@
 VERSION = $(shell cat ../VERSION)
+GENERATED = hdf5Extension.c TableExtension.c utilsExtension.c \
+		indexesExtension.c  lrucacheExtension.c \
+		_comp_lzo.c _comp_bzip2.c version.h
 
 .PHONY:		dist clean
 
-dist:		hdf5Extension.c TableExtension.c utilsExtension.c \
-		_comp_lzo.c _comp_bzip2.c version.h
+dist:		$(GENERATED)
 
 clean:
-	-rm hdf5Extension.c TableExtension.c utilsExtension.c \
-		_comp_lzo.c _comp_bzip2.c version.h
+	-rm -f $(GENERATED)
 
 
 %.c:		%.pyx
