@@ -11,7 +11,7 @@ recursive-include utils *
 recursive-include doc *.html *.pdf *.css *.gif *.jpg *.txt Makefile
 recursive-include doc/scripts *.py
 recursive-exclude doc/xml *
-recursive-include src *.pyx *.pxd *.c *.h *.h.in Makefile
+recursive-include src *.pyx *.pxd *.pxi *.c *.h *.h.in Makefile
 recursive-include examples *.py *.sh
 recursive-include bench *.sh *.py *.h5 *.txt *.gnuplot
 recursive-include contrib README *.py
