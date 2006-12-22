@@ -1946,8 +1946,9 @@ Represent a table in the object tree.
     file. A method is also provided to iterate over the rows without
     loading the entire table or column in memory.
 
-    Data can be written or read both as Row instances, numarray
-    (NumArray or RecArray) objects or NestedRecArray objects.
+    Data can be written or read both as Row instances and as homogeneous
+    or heterogeneous (record) arrays of the supported flavors (such as
+    NumPy and numarray, including NestedRecArray objects).
 
     Methods:
 
@@ -3346,8 +3347,7 @@ class NestedDescr(IsDescription):
         </section>
 
         <section>
-          <title>Reading nested tables: introducing
-          <literal>NestedRecArray</literal> objects</title>
+          <title>Reading nested tables</title>
 
           <para>Now, what happens if we want to read the table? What kind of
           data container will we get? Well, it's worth trying it:
@@ -6334,14 +6334,6 @@ for node in h5file.root.detector:
 	  and methods that <literal>Leaf</literal> already has.
 	</para>
 
-	<para>Finally, during the description of the different methods,
-	  there will appear references to a particular object called
-	  <literal>NestedRecArray</literal>. This inherits from
-	  <literal>numarray.records.RecArray</literal> and is designed to
-	  keep columns that have nested datatypes. Please, see <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/> for info on
-	  these objects.
-	</para>
-
 	  <section id="TableInstanceVariablesDescr">
 	    <title><literal>Table</literal> instance variables</title>
 
@@ -6629,8 +6621,7 @@ if row['var1'] <= 20 ]]]></screen>
 
 	      <para>Returns the actual data in <literal>Table</literal>. If
 		<emphasis>field</emphasis> is not supplied, it returns the data as a
-		<literal>NestedRecArray</literal> (see <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>) object
-		table.
+		NumPy record array.
 	      </para>
 
 	      <para>The meaning of the <emphasis>start</emphasis>, <emphasis>stop</emphasis> and
@@ -6704,11 +6695,13 @@ if row['var1'] <= 20 ]]]></screen>
 		select the wanted columns, instead of a column range.
 	      </para>
 
-	      <para>It returns the selected rows in a
-		<literal>NestedRecArray</literal> object (see <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>). If
+	      <para>It returns the selected rows in a NumPy record array. If
 		<literal>flavor</literal> is provided, an additional
 		conversion to an object of this flavor is made, just
-		as in <literal>read()</literal>.</para>
+		as in <literal>read()</literal>. If not specified, the
+		default flavor for this table will be chosen as the output
+		format.
+	      </para>
 	    </section>
 
 	    <section id="Table.modifyRows" xreflabel="description">
@@ -6745,17 +6738,15 @@ if row['var1'] <= 20 ]]]></screen>
 	      <title>modifyColumn(start=None, stop=None, step=1,
 		column=None, colname=None)</title>
 
-	      <para>Modify a series of rows in the
-		<literal>[start:stop:step]</literal> <emphasis>extended slice</emphasis>
-		row range. If you pass <literal>None</literal> to <emphasis>stop</emphasis>,
-		all the rows existing in <emphasis>column</emphasis> will be used.
+	      <para>Modify one single column in the row slice
+		<literal>[start:stop:step]</literal>.
 	      </para>
 
 	      <para><emphasis>column</emphasis> can be either a
-		<literal>NestedRecArray</literal> (see <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>),
-		<literal>RecArray</literal>, <literal>numarray</literal>,
-		<literal>NumPy</literal> object, list or tuple that is able
-		to be converted into a <literal>NestedRecArray</literal>
+		NumPy record array, <literal>NestedRecArray</literal> (see <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>),
+		<literal>RecArray</literal>, NumPy array,
+		<literal>NumArray</literal>, list or tuple that is able
+		to be converted into a record array
 		compliant with the specified <emphasis>colname</emphasis> column
 		of the table.
 	      </para>
@@ -6768,7 +6759,7 @@ if row['var1'] <= 20 ]]]></screen>
 	      </para>
 
 	      <para>It raises an
-		<literal>TypeError</literal>
+		<literal>ValueError</literal>
 		in case the <emphasis>column</emphasis> parameter
 		could not be converted into an object compliant with
 		<literal>column</literal>
@@ -6785,20 +6776,18 @@ if row['var1'] <= 20 ]]]></screen>
 	      <title>modifyColumns(start=None, stop=None, step=1,
 		columns=None, names=None)</title>
 
-	      <para>Modify a series of rows in the
-		<literal>[start:stop:step]</literal> <emphasis>extended slice</emphasis>
-		row range. If you pass <literal>None</literal> to <emphasis>stop</emphasis>,
-		all the rows existing in <emphasis>columns</emphasis> will be used.
+	      <para>Modify a series of columns in the row slice
+		<literal>[start:stop:step]</literal>.
 	      </para>
 
 	      <para><emphasis>columns</emphasis> can be either a
+		Numpy record array,
 		<literal>NestedRecArray</literal> (see <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>),
-		<literal>RecArray</literal>, a <literal>NumPy</literal> object, a
+		<literal>RecArray</literal>,
 		list of arrays or list or tuples (the columns) that
-		are able to be converted to a
-		<literal>NestedRecArray</literal> compliant with the
-		specified column <emphasis>names</emphasis> subset of the table
-		format.
+		are able to be converted into a record array compliant with the
+		format of the specified column <emphasis>names</emphasis>
+		in the table.
 	      </para>
 
 	      <para><emphasis>names</emphasis> specifies the column names of the table
@@ -7083,11 +7072,10 @@ if row['var1'] <= 20 ]]]></screen>
 	      <para>Get a row or a range of rows from the table.</para>
 
 	      <para>If the <literal>key</literal> argument is an integer, the
-		corresponding table row is returned as a
-		<literal>numarray.records.Record</literal> or as a	<literal>tables.nestedrecords.NestedRecord</literal> object, whichever is more appropriate.
-		If <literal>key</literal> is a slice, the range of rows
-		determined by it is returned as a
-		<literal>numarray.records.RecArray</literal> or as a <literal>tables.nestedrecords.NestedRecArray</literal> object, whichever is more appropriate.
+	      corresponding table row is returned as a record of the current
+	      flavor.  If <literal>key</literal> is a slice, the range of rows
+	      determined by it is returned as a record array of the current
+	      flavor.
 	      </para>
 
 	      <para>Using a string as <literal>key</literal> to get a column is
@@ -7114,46 +7102,34 @@ recarray = table.read(start=4, stop=1000, step=2)]]></screen>
 
 	    <section id="Table.__setitem__">
 	      <title>__setitem__(key, value)</title>
+	      <para>Sets a table row or table slice.</para>
 
-	      <para>It takes different actions depending on the
-		type of the <literal>key</literal> parameter:</para>
-
-	      <glosslist>
-
-          <glossentry>
-          <glossterm> <emphasis role="bold"><literal>key</literal></emphasis> is
-          an <literal>Integer</literal></glossterm>
-          <glossdef><para>The corresponding table row is set to
-          <emphasis>value</emphasis>. <emphasis>value</emphasis> must be a
-          <literal>List</literal> or
-          <literal>Tuple</literal> capable of being
-          converted to the table field format.</para></glossdef>
-          </glossentry>
-
-    <glossentry><glossterm><emphasis role="bold"><literal>key</literal></emphasis> is a
-		  <literal>Slice</literal></glossterm><glossdef><para>The row slice
-		  determined by key is set to
-		  <emphasis>value</emphasis>. <emphasis>value</emphasis> must be a
-		  <literal>NestedRecArray</literal> object or a
-		  <literal>RecArray</literal> object or a list of rows capable
-		  of being converted to the table field format.
-		</para></glossdef></glossentry></glosslist>
+	      <para>It takes different actions depending on the type of the
+	      <literal>key</literal> parameter: if it is an integer, the
+	      corresponding table row is set to <literal>value</literal> (a
+	      record, list or tuple capable of being converted to the table
+	      field format).  If the <literal>key</literal> is a slice, the
+	      row slice determined by it is set to <literal>value</literal> (a
+	      NumPy record array, <literal>NestedRecArray</literal> (see
+	      <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>)
+	      or list of rows).
+	      </para>
 
 	      <para>Example of use:</para>
 
         <screen><![CDATA[# Modify just one existing row
 table[2] = [456,'db2',1.2]
 # Modify two existing rows
-rows = numarray.records.array([[457,'db1',1.2],[6,'de2',1.3]],
-formats="i4,a3,f8")
+rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
+                       formats="i4,a3,f8")
 table[1:3:2] = rows]]></screen>
 
 	      <para>Which is equivalent to:</para>
 
         <screen><![CDATA[table.modifyRows(start=2, rows=[456,'db2',1.2])
-rows = numarray.records.array([[457,'db1',1.2],[6,'de2',1.3]],
-formats="i4,a3,f8")
-table.modifyRows(start=1, step=2, rows=rows)]]></screen>
+rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
+                       formats="i4,a3,f8")
+table.modifyRows(start=1, stop=3, step=2, rows=rows)]]></screen>
 
 	    </section>
 	  </section>
@@ -7328,16 +7304,14 @@ table.flush()]]></screen>
 	    <section id="Cols.__getitem__">
 	      <title>__getitem__(key)</title>
 
-	      <para>Get a row or a range of rows from the
-		<literal>Cols</literal> accessor.
+	      <para>Get a row or a range of rows from a (nested) column.
 	      </para>
 
 	      <para>If the <literal>key</literal> argument is an integer, the
-		corresponding <literal>Cols</literal> row is returned as a
-		<literal>numarray.records.Record</literal>	or as a	<literal>tables.nestedrecords.NestedRecord</literal> object, whichever is more appropriate.
-		If <literal>key</literal> is a slice, the range of rows
-		determined by it is returned as a
-		<literal>numarray.records.RecArray</literal> or as a <literal>tables.nestedrecords.NestedRecArray</literal> object, whichever is more appropriate.
+	      corresponding nested type row is returned as a record of the
+	      current flavor.  If <literal>key</literal> is a slice, the range
+	      of rows determined by it is returned as a record array of the
+	      current flavor.
 	      </para>
 
 	      <para>Using a string as <literal>key</literal> to get a column is
@@ -7476,10 +7450,10 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)]]></screen>
         <glossterm><emphasis role="bold">_v_nestedDescr</emphasis></glossterm>
         <glossdef><para>A nested list of pairs of
         <literal>(name, format)</literal> tuples for
-        all the columns under this table or nested column. You can use this for
-        the <literal>descr</literal> argument of
-        <literal>NestedRecArray</literal> factory
-        functions.</para></glossdef>
+        all the columns under this table or nested column. You can use this
+	as the <literal>dtype</literal> argument of NumPy array factories,
+	as well as the <literal>descr</literal> argument of
+        <literal>NestedRecArray</literal> factories.</para></glossdef>
         </glossentry>
 
         <glossentry>

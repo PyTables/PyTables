@@ -173,8 +173,9 @@ class Table(TableExtension.Table, Leaf):
     file. A method is also provided to iterate over the rows without
     loading the entire table or column in memory.
 
-    Data can be written or read both as Row instances, numarray
-    (NumArray or RecArray) objects or NestedRecArray objects.
+    Data can be written or read both as Row instances and as homogeneous
+    or heterogeneous (record) arrays of the supported flavors (such as
+    NumPy and numarray, including NestedRecArray objects).
 
     Methods:
 
@@ -1561,9 +1562,9 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         sequence (`coords`) of row indexes to select the wanted columns,
         instead of a column range.
 
-        It returns the selected rows in a ``NumPy`` object.  If `flavor`
-        is provided, an additional conversion to an object of this
-        flavor is made, just as in `read()`. If not specified, the
+        It returns the selected rows in a NumPy record array.  If
+        `flavor` is provided, an additional conversion to an object of
+        this flavor is made, just as in `read()`. If not specified, the
         default flavor for this table will be chosen as the output
         format.
         """
@@ -1670,10 +1671,10 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Get a row or a range of rows from the table.
 
-        If the `key` argument is an integer, the corresponding table row is
-        returned as a ``numpy.voidscalar`` (i.e. a ``record``) object.  If
-        `key` is a slice, the range of rows determined by it is returned as a
-        ``numpy.ndarray`` (i.e. a ``recarray`` object).
+        If the `key` argument is an integer, the corresponding table row
+        is returned as a record of the current flavor.  If `key` is a
+        slice, the range of rows determined by it is returned as a
+        record array of the current flavor.
 
         Using a string as `key` to get a column is supported but deprecated.
         Please use the `col()` method.
@@ -1722,13 +1723,28 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
     def __setitem__(self, key, value):
         """Sets a table row or table slice.
 
-        It takes different actions depending on the type of the 'key'
-        parameter:
+        It takes different actions depending on the type of the `key`
+        parameter: if it is an integer, the corresponding table row is
+        set to `value` (a record, list or tuple capable of being
+        converted to the table field format).  If the `key` is a slice,
+        the row slice determined by it is set to `value` (a NumPy record
+        array, ``NestedRecArray`` or list of rows).
 
-        If 'key' is an integer, the corresponding table row is set to
-        'value' (List or Tuple). If 'key' is a slice, the row slice
-        determined by key is set to value (a NestedRecArray or list of
-        rows).
+        Example of use::
+
+            # Modify just one existing row
+            table[2] = [456,'db2',1.2]
+            # Modify two existing rows
+            rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
+                                   formats="i4,a3,f8")
+            table[1:3:2] = rows
+
+        Which is equivalent to::
+
+            table.modifyRows(start=2, rows=[456,'db2',1.2])
+            rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
+                                   formats="i4,a3,f8")
+            table.modifyRows(start=1, stop=3, step=2, rows=rows)
 
         """
 
@@ -1898,12 +1914,12 @@ table format '%s'. The error was: <%s>
 
     def modifyColumn(self, start=None, stop=None, step=1,
                      column=None, colname=None):
-        """Modify one single column in the row slice [start:stop:step]
+        """Modify one single column in the row slice [start:stop:step].
 
-        `column` can be either a ``numpy recarray``, ``numarray.RecArray``,
-        ``numpy``, ``NumArray``, list or tuple that is able to be converted
-        into a ``numpy recarray`` compliant with the specified `colname`
-        column of the table.
+        `column` can be either a NumPy record array, ``NestedRecArray``,
+        ``RecArray``, NumPy array, ``NumArray``, list or tuple that is
+        able to be converted into a record array compliant with the
+        specified `colname` column of the table.
 
         `colname` specifies the column name of the table to be modified.
 
@@ -1974,12 +1990,18 @@ table format '%s'. The error was: <%s>
 
     def modifyColumns(self, start=None, stop=None, step=1,
                       columns=None, names=None):
-        """Modify a series of columns in the row slice [start:stop:step]
+        """Modify a series of columns in the row slice [start:stop:step].
 
-        `columns` can be either a ``numpy recarray``, ``numarray.RecArray``,
-        ``numpy``, ``NumArray``, list or tuple (the columns) that are able to
-        be converted into a ``numpy recarray`` compliant with the specified
-        column `names` subset of the table format.
+        `column` can be either a NumPy record array, ``NestedRecArray``,
+        ``RecArray``, NumPy array, ``NumArray``, list or tuple that is
+        able to be converted into a record array compliant with the
+        specified `colname` column of the table.
+
+        `columns` can be either a NumPy record array,
+        ``NestedRecArray``, ``RecArray``, list of arrays or list of
+        tuples (the columns) that is able to be converted into a record
+        array compliant with the format of the specified column `names`
+        in the table.
 
         `names` specifies the column names of the table to be modified.
 
@@ -2482,9 +2504,10 @@ class Cols(object):
         """
         Get a row or a range of rows from a (nested) column.
 
-        If the `key` argument is an integer, the corresponding nested type row
-        is returned.  If `key` is a slice, the range of rows determined by it
-        is returned.
+        If the `key` argument is an integer, the corresponding nested
+        type row is returned as a record of the current flavor.  If
+        `key` is a slice, the range of rows determined by it is returned
+        as a record array of the current flavor.
 
         Using a string as `key` to get a column is supported but deprecated.
         Please use the `_f_col()` method.
