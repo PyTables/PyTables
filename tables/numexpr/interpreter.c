@@ -811,8 +811,8 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
 
     mem = PyMem_New(char *, 1 + n_inputs + n_constants + n_temps);
     rawmem = PyMem_New(char, rawmemsize);
-    memsteps = PyMem_New(int, 1 + n_inputs + n_constants + n_temps);
-    memsizes = PyMem_New(int, 1 + n_inputs + n_constants + n_temps);
+    memsteps = PyMem_New(intp, 1 + n_inputs + n_constants + n_temps);
+    memsizes = PyMem_New(intp, 1 + n_inputs + n_constants + n_temps);
     if (!mem || !rawmem || !memsteps || !memsizes) {
         Py_DECREF(constants);
         Py_DECREF(constsig);
@@ -958,8 +958,8 @@ struct index_data {
     int count;
     int size;
     int findex;
-    int *shape;
-    int *strides;
+    intp *shape;
+    intp *strides;
     int *index;
     char *buffer;
 };
@@ -1094,7 +1094,7 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
     PyObject *output = NULL, *a_inputs = NULL;
     struct index_data *inddata = NULL;
     unsigned int n_inputs, n_dimensions = 0;
-    int shape[MAX_DIMS];
+    intp shape[MAX_DIMS];
     int i, j, size, r, pc_error;
     char **inputs = NULL;
     intp strides[MAX_DIMS]; /* clean up XXX */
@@ -1175,7 +1175,7 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
     for (i = 0; i < n_inputs; i++) {
         PyObject *a = PyTuple_GET_ITEM(a_inputs, i);
         PyObject *b;
-        int strides[MAX_DIMS];
+        intp strides[MAX_DIMS];
         int delta = n_dimensions - PyArray_NDIM(a);
         if (PyArray_NDIM(a)) {
             for (j = 0; j < n_dimensions; j++)
