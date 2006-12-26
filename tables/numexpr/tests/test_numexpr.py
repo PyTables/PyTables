@@ -384,7 +384,7 @@ class test_strings(NumpyTestCase):
 
     def check_add_numeric_array(self):
         sarr = self.str_array1
-        narr = arange(len(sarr))
+        narr = arange(len(sarr), dtype='int32')
         expr = 'sarr >= narr'
         self.assert_missing_op('ge_bsi', expr, locals())
 
