@@ -945,7 +945,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                     raise ValueError( "variable ``%s`` refers to a column "
                                       "which is not part of table ``%s``"
                                       % (var, tblpath) )
-                if val.dtype.char == 'Q':
+                if val.dtype.str[1:] == 'u8':
                     raise NotImplementedError(
                         "variable ``%s`` refers to "
                         "a 64-bit unsigned integer column, "
@@ -2906,7 +2906,7 @@ class Column(object):
 "%s for column '%s' already exists. If you want to re-create it, please, try with reIndex() method better" % (str(index), str(self.pathname))
 
         # Check that the datatype is indexable.
-        if dtype.char == 'Q':
+        if dtype.str[1:] == 'u8':
             raise NotImplementedError(
                 "indexing 64-bit unsigned integer columns "
                 "is not supported yet, sorry" )
