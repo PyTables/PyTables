@@ -546,18 +546,18 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         arr.shape = (extent,)
 
 
-    # This version of searchBin uses both rangeValues (1st level) and
+    # This version of searchBin uses both ranges (1st level) and
     # bounds (2nd level) caches. This is more than 40% faster than the
     # version that only uses the 1st cache.
     def _searchBin(self, nrow, item):
         item1, item2 = item
         result1 = -1; result2 = -1
         hi = self.slicesize
-        rangeValues = self._v_parent.rvcache
+        ranges = self._v_parent.rvcache
         #t1=time()
         # First, look at the beginning of the slice
-        #begin, end = rangeValues[nrow]  # this is slower
-        begin = rangeValues[nrow,0]
+        #begin, end = ranges[nrow]  # this is slower
+        begin = ranges[nrow,0]
         # Look for items at the beginning of sorted slices
         if item1 <= begin:
             result1 = 0
@@ -566,7 +566,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         if result1 >=0 and result2 >= 0:
             return (result1, result2)
         # Then, look for items at the end of the sorted slice
-        end = rangeValues[nrow,1]
+        end = ranges[nrow,1]
         if result1 < 0:
             if item1 > end:
                 result1 = hi

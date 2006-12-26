@@ -127,7 +127,7 @@ class DB(object):
             reg_cols = ['col1', 'col3']
             idx_cols = ['col2', 'col4']
         if avoidfscache:
-            rseed = numpy.random.randint(self.nrows)
+            rseed = int(numpy.random.randint(self.nrows))
         else:
             rseed = 19
         # Query for non-indexed columns

@@ -606,12 +606,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Save the sorted array
         sorted = self.sorted
         s=arr.argsort()
+        # Doing a sort in-place is 2x slower than a fancy selection
+        #arr.sort()
+        arr = arr[s]
         # Indexes in PyTables Pro systems are 64-bit long.
         offset = sorted.nrows * self.slicesize
         self.indices.append(numpy.array(s, dtype="int64") + offset)
-        arr = arr[s]
-        # Doing a sort in-place is slower than a fancy selection
-        #arr.sort()
         sorted.append(arr)
         cs = self.chunksize
         ncs = self.nchunkslice
@@ -1071,7 +1071,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             tlen += stop - start
 
         if self.limboundscache.couldenablecache():
-            # Get a startlengths tuple and save it in cache
+            # Get a startlengths tuple and save it in cache.
             # This is quite slow, but it is a good way to compress
             # the bounds info. Moreover, the .couldenablecache()
             # is doing a good work so as to avoid computing this

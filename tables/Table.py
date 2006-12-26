@@ -1203,7 +1203,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             raise ValueError, \
 """Numeric does not support heterogeneous datasets yet. You cannot specify a 'numeric' flavor without specifying a field."""
 
-
         # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)
         splitted = self._splitCondition(condition, condvars)

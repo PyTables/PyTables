@@ -169,17 +169,18 @@ NODE_MAX_SLOTS = 256
 """Maximum number of unreferenced nodes to be kept in memory."""
 
 #LIMDATA_MAX_SLOTS = 8  # for testing
-#LIMDATA_MAX_SLOTS = 128
-LIMDATA_MAX_SLOTS = 1
+LIMDATA_MAX_SLOTS = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in data lookups."""
 
 #LIMDATA_MAX_SIZE = 5    # for testing
 LIMDATA_MAX_SIZE = 256*1024   # 256 KB
 """The maximum space that will take LIMDATA cache (in bytes)."""
 
+TABLE_MAX_SLOTS = 1024
+"""The maximum number of rows cached during table reads."""
+
 #LIMBOUNDS_MAX_SLOTS = 8  # for testing
-#LIMBOUNDS_MAX_SLOTS = 128
-LIMBOUNDS_MAX_SLOTS = 1
+LIMBOUNDS_MAX_SLOTS = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
 
 #LIMBOUNDS_MAX_SIZE = 5    # for testing
@@ -196,9 +197,6 @@ BOUNDS_MAX_SLOTS = 4096
 
 INDICES_MAX_SLOTS = 1024
 """The maximum number of rows cached for indices values in index lookups."""
-
-TABLE_MAX_SLOTS = 1024
-"""The maximum number of rows cached during table reads."""
 
 ENABLE_EVERY_CYCLES = 50
 """The number of cycles that the LRU cache for data (indexes) will be

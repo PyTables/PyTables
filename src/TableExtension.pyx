@@ -752,7 +752,7 @@ cdef class Row:
         # [start:stop:step] range
         self.nextelement = self.nextelement + nrowsread - recout
         if recout == 0:
-          # no items where read, skipping
+          # no items were read, skip out
           continue
       self._row = self._row + 1
       self._nrow = self.bufcoords[self._row]
