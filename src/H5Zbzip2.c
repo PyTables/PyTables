@@ -159,6 +159,7 @@ size_t bzip2_deflate(unsigned int flags, size_t cd_nelmts,
      ** compression.
      **/
 
+    unsigned int odatalen;  /* maybe not the same size as outdatalen */
     int blockSize100k = 9;
 
     /* Get compression block size if present. */
@@ -179,9 +180,10 @@ size_t bzip2_deflate(unsigned int flags, size_t cd_nelmts,
     }
 
     /* Compress data. */
-    outdatalen = outbuflen;
-    ret = BZ2_bzBuffToBuffCompress(outbuf, &outdatalen, *buf, nbytes,
+    odatalen = outbuflen;
+    ret = BZ2_bzBuffToBuffCompress(outbuf, &odatalen, *buf, nbytes,
                                    blockSize100k, 0, 0);
+    outdatalen = odatalen;
     if (ret != BZ_OK) {
       fprintf(stderr, "bzip2 compression failed with error %d\n", ret);
       goto cleanupAndFail;
