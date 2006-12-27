@@ -557,19 +557,19 @@ def disassemble(nex):
 
 
 def getType(a):
-    t = a.dtype.type
-    if issubclass(t, numpy.bool_):
+    kind = a.dtype.kind
+    if kind == 'b':
         return bool
-    if issubclass(t, numpy.int64):  # catch 64-bit integers...
-        return long
-    if issubclass(t, numpy.integer):  # ...before proceeding to smaller ones
+    if kind in 'iu':
+        if a.dtype.itemsize > 4:
+            return long  # ``long`` is for integers of more than 32 bits
         return int
-    if issubclass(t, numpy.floating):
+    if kind == 'f':
         return float
-    if issubclass(t, numpy.complexfloating):
+    if kind == 'c':
         return complex
-    if issubclass(t, numpy.string_):
-       return str
+    if kind == 'S':
+        return str
     raise ValueError("unkown type %s" % a.dtype.name)
 
 
