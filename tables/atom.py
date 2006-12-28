@@ -20,6 +20,11 @@ Variables
     Set of all PyTables types.
 `prefix_map`
     Maps atom kinds to item sizes and class prefixes.
+
+    If there is a fixed set of possible item sizes for a given kind,
+    the kind maps to another mapping from item size in bytes to class
+    prefix.  Otherwise, the kind maps directly to the class prefix.
+
 `deftype_from_kind`
     Maps atom kinds to their default atom type (if any).
 """
