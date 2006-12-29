@@ -110,7 +110,6 @@ except:
     ScientificIONetCDF_imported = False
 
 import tables
-from tables.utils import convertToNPAtom
 
 # dictionary that maps pytables types to single-character Numeric typecodes.
 _typecode_dict = {'float64':'d',
