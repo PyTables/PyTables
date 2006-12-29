@@ -814,7 +814,6 @@ class ObjectAtom(_BufferedAtom):
 
 # Main part
 # =========
-
 def _test():
     """Run ``doctest`` on this module."""
     import doctest
