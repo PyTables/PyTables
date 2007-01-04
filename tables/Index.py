@@ -335,7 +335,6 @@ class IndexProps(object):
         elif isinstance(filters, Filters):
             self.filters = filters
         else:
-            #print "filters-->", filters
             raise TypeError, \
 "If you pass a filters parameter, it should be a Filters instance."
 
@@ -611,7 +610,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         arr = arr[s]
         # Indexes in PyTables Pro systems are 64-bit long.
         offset = sorted.nrows * self.slicesize
-        self.indices.append(numpy.array(s, dtype="int64") + offset)
+        s = numpy.array(s, dtype="int64") + offset
+        self.indices.append(s)
         sorted.append(arr)
         cs = self.chunksize
         ncs = self.nchunkslice
@@ -642,18 +642,20 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         assert nelementsLR == len(arr), \
 "The number of elements to append is incorrect!. Report this to the authors."
         # Sort the array
-        s=arr.argsort()
+        s = arr.argsort()
+        arr = arr[s]
         # build the cache of bounds
-        self.bebounds = numpy.concatenate((arr[s[::self.chunksize]],
-                                           [arr[s[-1]]]))
+        self.bebounds = numpy.concatenate((arr[::self.chunksize],
+                                           [arr[-1]]))
         # Save the reverse index array
-        indicesLR[:len(arr)] = numpy.array(s, dtype="int64") + offset
+        s = numpy.array(s, dtype="int64") + offset
+        indicesLR[:len(arr)] = s
         # The number of elements is at the end of the array
         indicesLR[-1] = nelementsLR
         # Save the number of elements, bounds and sorted values
         offset = len(self.bebounds)
         sortedLR[:offset] = self.bebounds
-        sortedLR[offset:offset+len(arr)] = arr[s]
+        sortedLR[offset:offset+len(arr)] = arr
         # Update nelements after a successful append
         self.nrows = sorted.nrows + 1
         self.nelements = sorted.nrows * self.slicesize + nelementsLR
@@ -661,10 +663,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.dirtycache = True   # the cache is dirty now
 
 
-    def optimize(self, level=None, verbose=0):
+    def optimize(self, level=None, verbose=False):
         "Optimize an index to allow faster searches."
 
         self.verbose=verbose
+        self.verbose = True  # uncomment for debugging purposes only
 
         # Optimize only when we have more than one slice
         if self.nslices <= 1:
@@ -672,10 +675,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 print "Less than 1 slice. Skipping optimization!"
             return
 
+        if self.verbose:
+            (nover, mult, tover) = self.compute_overlaps("init", self.verbose)
+
         if level is not None:
             optmedian, optstarts, optstops, optfull = (False,)*4
-            if level > 0:
-                optmedian = True
             if 3 <= level < 6:
                 optstarts = True
             elif 6 <= level < 9:
@@ -686,7 +690,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         else:
             optmedian, optstarts, optstops, optfull = self.reord_opts
 
-        # Start the optimization loop
+        # Start the optimization process
         if optmedian or optstarts or optstops or optfull:
             create_tmp = True
             swap_done = True
@@ -698,17 +702,20 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 if self.swap('create'):
                     swap_done = False  # No swap has been done!
                     break
-            if optmedian:
-                # Always do swap of chunks prior to anything
-                if self.swap('chunks', 'median'): break
             if optfull:
-                # Swap slices only in the case that we have several blocks
+                if self.swap('chunks', 'median'): break
                 if self.nblocks > 1:
+                    # Swap slices only in the case that we have several blocks
                     if self.swap('slices', 'median'): break
-                    if self.swap('chunks','median'): break
+                else:
+                    # Else, do an additional swap
+                    if self.swap('chunks','start'): break
+                if self.swap('chunks','median'): break
                 if self.swap('chunks', 'start'): break
                 if self.swap('chunks', 'stop'): break
             else:
+                if optmedian:
+                    if self.swap('chunks', 'median'): break
                 if optstarts:
                     if self.swap('chunks', 'start'): break
                 if optstops:
@@ -723,24 +730,23 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         return
 
 
-    def swap(self, what, bref=None):
+    def swap(self, what, mode=None):
         "Swap chunks or slices using a certain bounds reference."
 
         # Thresholds for avoiding continuing the optimization
         thnover = 4        # minimum number of overlapping slices
         thmult = 0.01      # minimum ratio of multiplicity (a 1%)
         thtover = 0.001    # minimum overlaping index for slices (a .1%)
-        #self.verbose = True  # uncomment for debugging purposes only
         if self.verbose:
             t1 = time();  c1 = clock()
         if what == "create":
             self.create_temps()
         elif what == "chunks":
-            self.swap_chunks(bref)
+            self.swap_chunks(mode)
         elif what == "slices":
-            self.swap_slices(bref)
-        if bref:
-            message = "swap_%s(%s)" % (what, bref)
+            self.swap_slices(mode)
+        if mode:
+            message = "swap_%s(%s)" % (what, mode)
         else:
             message = "swap_%s" % (what,)
         (nover, mult, tover) = self.compute_overlaps(message, self.verbose)
@@ -748,6 +754,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.verbose:
             t = round(time()-t1, 4);  c = round(clock()-c1, 4)
             print "time: %s. clock: %s" % (t, c)
+        # Check that entropy is actually decreasing
+        if what == "chunks":
+            tover_var = (self.last_tover - tover) / self.last_tover
+            if tover_var < 0.1:
+                # Less than a 10% of improvement is too few
+                return True
+        self.last_tover = tover
         # Check if some threshold has met
         if nover < thnover or rmult < thmult:
             return True
@@ -760,6 +773,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def create_temps(self):
         "Create some temporary objects for slice sorting purposes."
 
+        # The algorithms for doing the swap can be optimized so that
+        # one should be necessary to create temporaries for keeping just
+        # the contents of a single superblock.
+        # F. Altet 2007-01-03
         # Build the name of the temporary file
         dirname = os.path.dirname(self._v_file.filename)
         fd, self.tmpfilename = tempfile.mkstemp(".idx", "pytables-", dirname)
@@ -831,20 +848,21 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             if ncb2 <= 1:
                 # if only zero or one chunks remains we are done
                 break
+            nslices = ncb2/ncs
             bounds = boundsobj[nblock*ncb:nblock*ncb+ncb2]
             sbounds_idx = numpy.argsort(bounds)
-            offset = nblock*nsb
-            # Do a plain copy on complete block if it doesn't need
-            # to be swapped
-            if numpy.alltrue(sbounds_idx == numpy.arange(ncb2)):
-                for i in xrange(ncb2/ncs):
-                    ns = offset+i
-                    tmp_sorted[ns] = sorted[ns]
-                    tmp_indices[ns] = indices[ns]
+            # Don't swap the block at all if it doesn't need to
+            ndiff = (sbounds_idx != numpy.arange(ncb2)).sum()/2
+            if ndiff*20 < ncb2:
+                # The number of chunks to rearrange is less than 5%,
+                # so skip the reordering of this superblock
+                # (too expensive for such a little improvement)
+                if self.verbose:
+                    print "skipping reordering of block-->", nblock, ndiff, ncb2
                 continue
             # Swap sorted and indices following the new order
-            #for i in xrange(ncb2):
-            for i in xrange(ncb2/ncs):
+            offset = nblock*nsb
+            for i in xrange(nslices):
                 ns = offset + i;
                 # Get sorted & indices slices in new order
                 for j in xrange(ncs):
@@ -856,12 +874,44 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     tindices[nc:nc+cs] = indices[ins,inc:inc+cs]
                 tmp_sorted[ns] = tsorted
                 tmp_indices[ns] = tindices
-        # Reorder completely indices at slice level
-        self.reorder_slices(mode=mode)
+            # Reorder completely indices at slice level
+            self.reorder_slices(mode, nblock)
+
+
+    def reorder_slices(self, mode, nblock):
+        "Reorder completely a block at slice level."
+
+        sorted = self.sorted
+        indices = self.indices
+        tmp_sorted = self.tmp.sorted
+        tmp_indices = self.tmp.indices
+        cs = self.chunksize
+        ncs = self.nchunkslice
+        nsb = self.nslicesblock
+        # First, reorder the complete slices
+        for nslice in xrange(nblock*nsb, (nblock+1)*nsb):
+            # Protection against processing non-existing slices
+            if nslice >= self.sorted.nrows:
+                break
+            block = tmp_sorted[nslice]
+            sblock_idx = numpy.argsort(block)
+            block = block[sblock_idx]
+            sorted[nslice] = block
+            block_idx = tmp_indices[nslice]
+            indices[nslice] = block_idx[sblock_idx]
+            self.ranges[nslice] = block[[0,-1]]
+            self.bounds[nslice] = block[cs::cs]
+            # update start & stop bounds
+            self.abounds[nslice*ncs:(nslice+1)*ncs] = block[0::cs]
+            self.zbounds[nslice*ncs:(nslice+1)*ncs] = block[cs-1::cs]
+            # update median bounds
+            smedian = block[cs/2::cs]
+            self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
+            self.mranges[nslice] = smedian[ncs/2]
 
 
     def swap_slices(self, mode="median"):
-        "Swap the different slices in a block."
+        "Swap slices in a superblock."
 
         sorted = self.sorted
         indices = self.indices
@@ -885,9 +935,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 ranges = self.mranges[sblock*nss:sblock*nss+nss2]
             sranges_idx = numpy.argsort(ranges)
             # Don't swap the superblock at all if it doesn't need to
-            if numpy.alltrue(sranges_idx == numpy.arange(nss2)):
+            ndiff = (sranges_idx != numpy.arange(nss2)).sum()/2
+            if ndiff*50 < nss2:
+                # The number of slices to rearrange is less than 2.5%,
+                # so skip the reordering of this superblock
+                # (too expensive for such a little improvement)
+                if self.verbose:
+                    print "skipping reordering of superblock-->", sblock
                 continue
-            sranges = ranges[sranges_idx]
             ns = sblock*nss2
             # Swap sorted and indices slices following the new order
             for i in xrange(nss2):
@@ -911,8 +966,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 oi = ns+i
                 sorted[oi] = tmp_sorted[oi]
                 indices[oi] = tmp_indices[oi]
-                # Uncomment the next line for debugging
-                # print "sblock(swap_slices)-->", sorted[oi]
                 # copy start, stop & median ranges
                 self.ranges[oi] = self.tmp.ranges[oi]
                 self.mranges[oi] = self.tmp.mranges[oi]
@@ -921,36 +974,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 self.abounds[j:jn] = self.tmp.abounds[j:jn]
                 self.zbounds[j:jn] = self.tmp.zbounds[j:jn]
                 self.mbounds[j:jn] = self.tmp.mbounds[j:jn]
-
-
-    def reorder_slices(self, mode):
-        "Reorder completely the index at slice level."
-
-        sorted = self.sorted
-        indices = self.indices
-        tmp_sorted = self.tmp.sorted
-        tmp_indices = self.tmp.indices
-        cs = self.chunksize
-        ncs = self.nchunkslice
-        # First, reorder the complete slices
-        for nslice in xrange(0, self.sorted.nrows):
-            block = tmp_sorted[nslice]
-            sblock_idx = numpy.argsort(block)
-            sblock = block[sblock_idx]
-            # Uncomment the next line for debugging
-            #print "sblock(reorder_slices)-->", sblock
-            sorted[nslice] = sblock
-            block_idx = tmp_indices[nslice]
-            indices[nslice] = block_idx[sblock_idx]
-            self.ranges[nslice] = sblock[[0,-1]]
-            self.bounds[nslice] = sblock[cs::cs]
-            # update start & stop bounds
-            self.abounds[nslice*ncs:(nslice+1)*ncs] = sblock[0::cs]
-            self.zbounds[nslice*ncs:(nslice+1)*ncs] = sblock[cs-1::cs]
-            # update median bounds
-            smedian = sblock[cs/2::cs]
-            self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
-            self.mranges[nslice] = smedian[ncs/2]
 
 
     def compute_overlaps(self, message, verbose):
@@ -986,7 +1009,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             if erange > 0:
                 toverlap = soverlap / erange
         if verbose:
-            print "overlaps (%s):" % message, noverlaps, multiplicity, toverlap
+            print "overlaps (%s):" % message, noverlaps, toverlap
+            print multiplicity
         return (noverlaps, multiplicity, toverlap)
 
 

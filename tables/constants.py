@@ -224,7 +224,7 @@ CHUNKTIMES = 50 # Makes large seq writings and reads quite fast. (1.26 Mrw/s)
                  # Quite fast read times for small pieces (2.72 ms, no compr)
 """The buffersize/chunksize ratio for chunked datasets."""
 
-BUFFERTIMES = 10
+BUFFERTIMES = 50
 """The maximum buffersize/rowsize ratio before issuing a PerformanceWarning."""
 
 ## Local Variables:

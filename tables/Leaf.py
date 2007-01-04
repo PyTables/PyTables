@@ -389,7 +389,7 @@ you may want to increase it."""
 # It is difficult to forsee the level of code nesting to reach user code.
 #f = sys._getframe(8)
 ###Caller --> %s (%s:%s)"""
-#                    f.f_code.co_name, 
+#                    f.f_code.co_name,
 #                    f.f_code.co_filename, f.f_lineno,),
         return nrowsinbuf
 

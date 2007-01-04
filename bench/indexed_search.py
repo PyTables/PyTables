@@ -3,15 +3,14 @@ import subprocess
 import random
 import numpy
 
-# in order to always generate the same random sequence
-numpy.random.seed(20)
-
 # Constants
 STEP = 1000*100  # the size of the buffer to fill the table, in rows
 SCALE = 0.1      # standard deviation of the noise compared with actual values
 NI_NTIMES = 2      # The number of queries for doing a mean (non-idx cols)
-I_NTIMES = 10      # The number of queries for doing a mean (idx cols)
-READ_TIMES = 1000    # The number of complete calls to DB.query_db()
+#I_NTIMES = 10      # The number of queries for doing a mean (idx cols)
+I_NTIMES = 30      # The number of queries for doing a mean (idx cols)
+#READ_TIMES = 1000    # The number of complete calls to DB.query_db()
+READ_TIMES = 50    # The number of complete calls to DB.query_db()
 MROW = 1000*1000.
 
 # global variables
@@ -150,14 +149,18 @@ class DB(object):
         # Query for indexed columns
         if not onlynonidxquery:
             for colname in idx_cols:
+                # Pre-heating query
+                results = self.do_query(self.con, colname,
+                                        #base)
+                                        numpy.random.randint(self.nrows))
                 ltimes = []
                 for j in xrange(niter):
                     numpy.random.seed(rseed)
                     t1=time()
                     for i in range(I_NTIMES):
                         results = self.do_query(self.con, colname,
-                                                base)
-                                                #numpy.random.randint(self.nrows))
+                                                #base)
+                                                numpy.random.randint(self.nrows))
                     ltimes.append((time()-t1)/I_NTIMES)
                 #results.sort()
                 if verbose:
@@ -310,6 +313,10 @@ if __name__=="__main__":
     elif usepostgres:
         from postgres_backend import Postgres_DB
         db = Postgres_DB(krows, rng, userandom)
+
+    if not avoidfscache:
+        # in order to always generate the same random sequence
+        numpy.random.seed(20)
 
     if verbose:
         if userandom:
