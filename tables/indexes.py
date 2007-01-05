@@ -165,216 +165,218 @@ def calcChunksize(expectedrows, optlevel, testmode):
             chunksize = 1000
             slicesize = 800*chunksize
             optmedian = True
-        elif optlevel >= 9:
-            chunksize = 800
-            slicesize = 1100*chunksize
+        elif optlevel >= 9:   # best effort
+            chunksize = 1000
+            slicesize = 1000*chunksize
             optfull = True
         blocksize = computeblocksize(expectedrows, slicesize)
+	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
     elif expMrows < 100: # expected rows < 100 milions
         if optlevel == 0:
             chunksize = 2000
-            slicesize = 250*chunksize
+            slicesize = 100*chunksize
         elif optlevel == 1:
-            chunksize = 1500
-            slicesize = 350*chunksize
+            chunksize = 2000
+            slicesize = 200*chunksize
         elif optlevel == 2:
-            chunksize = 1000
+            chunksize = 2000
             slicesize = 500*chunksize
         elif optlevel == 3:
-            chunksize = 5000
-            slicesize = 100*chunksize
-            optstarts = True
+            chunksize = 10000
+            slicesize = 50*chunksize
+            optmedian = True
         elif optlevel == 4:
-            chunksize = 4000
-            slicesize = 150*chunksize
-            optstarts = True
+            chunksize = 7500
+            slicesize = 100*chunksize
+            optmedian = True
         elif optlevel == 5:
-            chunksize = 2000
-            slicesize = 250*chunksize
-            optstarts = True
+            chunksize = 5000
+            slicesize = 200*chunksize
+            optmedian = True
         elif optlevel == 6:
-            chunksize = 1000
-            slicesize = 500*chunksize
-            optstarts = True
+            chunksize = 7500
+            slicesize = 150*chunksize
+            optmedian = True
         elif optlevel == 7:
-            chunksize = 2000
-            slicesize = 250*chunksize
-            optstarts = True
-            optstops = True
+            chunksize = 7500
+            slicesize = 200*chunksize
+            optmedian = True
         elif optlevel == 8:
-            chunksize = 1000
-            slicesize = 500*chunksize
-            optstarts = True
-            optstops = True
+            chunksize = 5000
+            slicesize = 300*chunksize
+            optmedian = True
         elif optlevel >= 9:   # best effort
-            chunksize = 1000
-            slicesize = 1000*chunksize
+            chunksize = 5000
+            slicesize = 300*chunksize
             optfull = True
-        blocksize = 15*slicesize
+        blocksize = computeblocksize(expectedrows, slicesize)
+	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
     elif expMrows < 1000: # expected rows < 1000 millions
         if optlevel == 0:
-            chunksize = 3000
-            slicesize = 250*chunksize
-        elif optlevel == 1:
-            chunksize = 2500
-            slicesize = 350*chunksize
-        elif optlevel == 2:
-            chunksize = 2000
-            slicesize = 500*chunksize
-        elif optlevel == 3:
             chunksize = 5000
             slicesize = 200*chunksize
-            optstarts = True
+        elif optlevel == 1:
+            chunksize = 5000
+            slicesize = 300*chunksize
+        elif optlevel == 2:
+            chunksize = 5000
+            slicesize = 500*chunksize
+        elif optlevel == 3:
+            chunksize = 10000
+            slicesize = 100*chunksize
+            optmedian = True
         elif optlevel == 4:
-            chunksize = 4000
-            slicesize = 250*chunksize
-            optstarts = True
+            chunksize = 8000
+            slicesize = 125*chunksize
+            optmedian = True
         elif optlevel == 5:
-            chunksize = 3000
-            slicesize = 350*chunksize
-            optstarts = True
+            chunksize = 5000
+            slicesize = 200*chunksize
+            optmedian = True
         elif optlevel == 6:
-            chunksize = 4000
-            slicesize = 250*chunksize
+            chunksize = 20000
+            slicesize = 50*chunksize
             optfull = True
         elif optlevel == 7:
-            chunksize = 3000
-            slicesize = 350*chunksize
+            chunksize = 10000
+            slicesize = 125*chunksize
             optfull = True
         elif optlevel == 8:
-            chunksize = 2000
-            slicesize = 500*chunksize
+            chunksize = 7500
+            slicesize = 250*chunksize
             optfull = True
         elif optlevel >= 9:   # best effort
-            chunksize = 2000
-            slicesize = 1000*chunksize
+            chunksize = 5000
+            slicesize = 400*chunksize
             optfull = True
-        blocksize = 25*slicesize
+        blocksize = computeblocksize(expectedrows, slicesize)
+	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
     elif expMrows < 10*1000: # expected rows < 10 (american) billions
         if optlevel == 0:
-            chunksize = 5000
-            slicesize = 250*chunksize
+            chunksize = 10000
+            slicesize = 100*chunksize
         elif optlevel == 1:
-            chunksize = 4000
-            slicesize = 350*chunksize
+            chunksize = 10000
+            slicesize = 150*chunksize
         elif optlevel == 2:
-            chunksize = 3000
-            slicesize = 500*chunksize
-        elif optlevel == 3:
-            chunksize = 7500
-            slicesize = 200*chunksize
-            optstarts = True
-        elif optlevel == 4:
-            chunksize = 5000
-            slicesize = 250*chunksize
-            optstarts = True
-        elif optlevel == 5:
-            chunksize = 4000
-            slicesize = 350*chunksize
-            optstarts = True
-        elif optlevel == 6:
-            chunksize = 5000
-            slicesize = 250*chunksize
-            optfull = True
-        elif optlevel == 7:
-            chunksize = 4000
-            slicesize = 350*chunksize
-            optfull = True
-        elif optlevel == 8:
-            chunksize = 3000
-            slicesize = 500*chunksize
-            optfull = True
-        elif optlevel >= 9:   # best effort
-            chunksize = 20000  # test
-            slicesize = 100*chunksize  # test
-            #chunksize = 2000
-            #slicesize = 1500*chunksize
-            optfull = True
-        blocksize = 166*slicesize  # test   (3 superblocks)
-        #blocksize = 35*slicesize
-    elif expMrows < 100*1000: # expected rows < 100 (american) billions
-        if optlevel == 0:
-            chunksize = 7500
-            slicesize = 250*chunksize
-        elif optlevel == 1:
-            chunksize = 6000
-            slicesize = 350*chunksize
-        elif optlevel == 2:
-            chunksize = 5000
-            slicesize = 500*chunksize
-        elif optlevel == 3:
             chunksize = 10000
             slicesize = 200*chunksize
-            optstarts = True
+        elif optlevel == 3:
+            chunksize = 50000
+            slicesize = 40*chunksize
+            optmedian = True
         elif optlevel == 4:
-            chunksize = 7500
-            slicesize = 250*chunksize
-            optstarts = True
+            chunksize = 30000
+            slicesize = 80*chunksize
+            optmedian = True
         elif optlevel == 5:
-            chunksize = 5000
-            slicesize = 350*chunksize
-            optstarts = True
+            chunksize = 20000
+            slicesize = 125*chunksize
+            optmedian = True
         elif optlevel == 6:
-            chunksize = 5000
-            slicesize = 350*chunksize
-            optstarts = True
-            optstops = True
+            chunksize = 50000
+            slicesize = 40*chunksize
+            optfull = True
         elif optlevel == 7:
-            chunksize = 4000
-            slicesize = 500*chunksize
-            optstarts = True
-            optstops = True
+            chunksize = 30000
+            slicesize = 80*chunksize
+            optfull = True
         elif optlevel == 8:
-            chunksize = 4000
-            slicesize = 500*chunksize
+            chunksize = 20000
+            slicesize = 125*chunksize
             optfull = True
         elif optlevel >= 9:   # best effort
-            chunksize = 4000
-            slicesize = 1000*chunksize
+            chunksize = 20000
+            slicesize = 150*chunksize
             optfull = True
-        blocksize = 45*slicesize
-        superblocksize = 10*blocksize
+        #blocksize = 133*slicesize  # test   (3 superblocks)
+        blocksize = computeblocksize(expectedrows, slicesize)
+	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
+    elif expMrows < 100*1000: # expected rows < 100 (american) billions
+	# The next will need more than 100 MB of available memory
+        if optlevel == 0:
+            chunksize = 20000
+            slicesize = 100*chunksize
+        elif optlevel == 1:
+            chunksize = 20000
+            slicesize = 150*chunksize
+        elif optlevel == 2:
+            chunksize = 20000
+            slicesize = 200*chunksize
+        elif optlevel == 3:
+            chunksize = 100000
+            slicesize = 40*chunksize
+            optmedian = True
+        elif optlevel == 4:
+            chunksize = 50000
+            slicesize = 80*chunksize
+            optmedian = True
+        elif optlevel == 5:
+            chunksize = 40000
+            slicesize = 100*chunksize
+            optmedian = True
+        elif optlevel == 6:
+            chunksize = 100000
+            slicesize = 40*chunksize
+            optfull = True
+        elif optlevel == 7:
+            chunksize = 50000
+            slicesize = 80*chunksize
+            optfull = True
+        elif optlevel == 8:
+            chunksize = 40000
+            slicesize = 100*chunksize
+            optfull = True
+        elif optlevel >= 9:   # best effort
+            chunksize = 30000
+            slicesize = 150*chunksize
+            optfull = True
+        blocksize = computeblocksize(expectedrows, slicesize)
+	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
+        superblocksize = computeblocksize(expectedrows, blocksize)
     else:  # expected rows >= 1 (american) trillion (perhaps by year 2010
            # this will be useful, who knows...)
+	# The next will need more than 250 MB of available memory
         if optlevel == 0:
-            chunksize = 10000
-            slicesize = 500*chunksize
+            chunksize = 40000
+            slicesize = 100*chunksize
         elif optlevel == 1:
-            chunksize = 8500
-            slicesize = 750*chunksize
+            chunksize = 40000
+            slicesize = 150*chunksize
         elif optlevel == 2:
-            chunksize = 7500
-            slicesize = 1000*chunksize
+            chunksize = 40000
+            slicesize = 200*chunksize
         elif optlevel == 3:
-            chunksize = 12500
-            slicesize = 400*chunksize
-            optstarts = True
+            chunksize = 200000
+            slicesize = 40*chunksize
+            optfull = True
         elif optlevel == 4:
-            chunksize = 8500
-            slicesize = 500*chunksize
-            optstarts = True
+            chunksize = 100000
+            slicesize = 80*chunksize
+            optfull = True
         elif optlevel == 5:
-            chunksize = 6000
-            slicesize = 750*chunksize
-            optstarts = True
+            chunksize = 80000
+            slicesize = 100*chunksize
+            optfull = True
         elif optlevel == 6:
-            chunksize = 8500
-            slicesize = 500*chunksize
+            chunksize = 200000
+            slicesize = 50*chunksize
             optfull = True
         elif optlevel == 7:
-            chunksize = 7500
-            slicesize = 750*chunksize
+            chunksize = 150000
+            slicesize = 70*chunksize
             optfull = True
         elif optlevel == 8:
-            chunksize = 6000
-            slicesize = 1000*chunksize
+            chunksize = 150000
+            slicesize = 100*chunksize
             optfull = True
         elif optlevel >= 9:   # best effort
-            chunksize = 5000
-            slicesize = 1000*chunksize
+            chunksize = 100000
+            slicesize = 150*chunksize
             optfull = True
-        blocksize = 50*slicesize
-        superblocksize = 20*blocksize
+        blocksize = computeblocksize(expectedrows, slicesize)
+	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
+        superblocksize = computeblocksize(expectedrows, blocksize)
 
     # The defaults for blocksize & superblocksize
     if blocksize == None:
