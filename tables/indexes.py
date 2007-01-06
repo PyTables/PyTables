@@ -59,11 +59,11 @@ def computeblocksize(expectedrows, compoundsize):
     nblocks = expectedrows/(compoundsize*3)
     if nblocks == 0:
         # Protection against large compoundsize blocks
-        nblocks = 1
+        nblocks = expectedrows/compoundsize
     elif nblocks > 1000:
         # Protection against too large number of expected rows
         nblocks = 1000
-    return expectedrows / nblocks
+    return compoundsize * nblocks
 
 
 def calcChunksize(expectedrows, optlevel, testmode):
