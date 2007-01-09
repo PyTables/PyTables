@@ -24,9 +24,9 @@ unittest.TestCase.tearDown = cleanup
 
 class Record(IsDescription):
     var1 = StringCol(itemsize=4)   # 4-character String
-    var2 = col_from_kind('int')    # integer
+    var2 = Col.from_kind('int')    # integer
     var3 = Int16Col()              # short integer
-    var4 = col_from_kind('float')  # double (double-precision)
+    var4 = Col.from_kind('float')  # double (double-precision)
     var5 = Float32Col()            # float  (single-precision)
 
 class createTestCase(unittest.TestCase):
@@ -174,7 +174,7 @@ class createTestCase(unittest.TestCase):
         recordDict = {}
         i = 0
         for varname in varnames:
-            recordDict[varname] = col_from_type("int32", dflt=1, pos=i)
+            recordDict[varname] = Col.from_type("int32", dflt=1, pos=i)
             i += 1
         # Append this entry to indicate the alignment!
         recordDict['_v_align'] = "="
@@ -220,7 +220,7 @@ class createTestCase(unittest.TestCase):
         recordDict = {}
         i = 0
         for varname in varnames:
-            recordDict[varname] = col_from_type("int32", dflt=1)
+            recordDict[varname] = Col.from_type("int32", dflt=1)
             i += 1
 
         # Now, create a table with this record object
@@ -249,8 +249,8 @@ class createTestCase(unittest.TestCase):
 
         # Build a dictionary with the types as values and varnames as keys
         recordDict = {}
-        recordDict["a"*255] = col_from_kind('int', dflt=1)
-        recordDict["b"*256] = col_from_kind('int', dflt=1) # Should trigger a ValueError
+        recordDict["a"*255] = Col.from_kind('int', dflt=1)
+        recordDict["b"*256] = Col.from_kind('int', dflt=1) # Should trigger a ValueError
 
         # Now, create a table with this record object
         # This way of creating node objects has been deprecated
@@ -274,8 +274,8 @@ class createTestCase(unittest.TestCase):
 
         # Build a dictionary with the types as values and varnames as keys
         recordDict = {}
-        recordDict["a"*255] = col_from_kind('int', dflt=1, pos=0)
-        recordDict["b"*1024] = col_from_kind('int', dflt=1, pos=1) # Should work well
+        recordDict["a"*255] = Col.from_kind('int', dflt=1, pos=0)
+        recordDict["b"*1024] = Col.from_kind('int', dflt=1, pos=1) # Should work well
 
         # Attach the table to object tree
         # Here, IndexError should be raised!
@@ -782,7 +782,7 @@ class createAttrCloseTestCase(createAttrTestCase):
 
 class Record2(IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
-    var2 = col_from_kind('int')   # integer
+    var2 = Col.from_kind('int')   # integer
     var3 = Int16Col()             # short integer
 
 class FiltersTreeTestCase(unittest.TestCase):

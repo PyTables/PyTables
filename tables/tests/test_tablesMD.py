@@ -20,10 +20,10 @@ unittest.TestCase.tearDown = cleanup
 class Record(IsDescription):
     var0 = StringCol(itemsize=4, dflt="", shape=2)  # 4-character string array
     var1 = StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2))
-    var1_= col_from_kind('int', dflt=((1,1),), shape=2) # integer array
-    var2 = col_from_kind('int', dflt=((1,1),(1,1)), shape=(2,2)) # integer array
+    var1_= Col.from_kind('int', dflt=((1,1),), shape=2) # integer array
+    var2 = Col.from_kind('int', dflt=((1,1),(1,1)), shape=(2,2)) # integer array
     var3 = Int16Col(dflt=2)                         # short integer
-    var4 = col_from_kind('float', dflt=3.1)         # double (double-precision)
+    var4 = Col.from_kind('float', dflt=3.1)         # double (double-precision)
     var5 = Float32Col(dflt=4.2)                     # float  (single-precision)
     var6 = UInt16Col(dflt=5)                        # unsigned short integer
     var7 = StringCol(itemsize=1, dflt="e")          # 1-character String
@@ -34,10 +34,10 @@ class RecordRevOrder(IsDescription):
     _v_byteorder = {"little":"big","big":"little"}[sys.byteorder]
     var0 = StringCol(itemsize=4, dflt="", shape=2)  # 4-character string array
     var1 = StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2))
-    var1_= col_from_kind('int', dflt=((1,1),), shape=2) # integer array
-    var2 = col_from_kind('int', dflt=((1,1),(1,1)), shape=(2,2)) # integer array
+    var1_= Col.from_kind('int', dflt=((1,1),), shape=2) # integer array
+    var2 = Col.from_kind('int', dflt=((1,1),(1,1)), shape=(2,2)) # integer array
     var3 = Int16Col(dflt=2)                         # short integer
-    var4 = col_from_kind('float', dflt=3.1)         # double (double-precision)
+    var4 = Col.from_kind('float', dflt=3.1)         # double (double-precision)
     var5 = Float32Col(dflt=4.2)                     # float  (single-precision)
     var6 = UInt16Col(dflt=5)                        # unsigned short integer
     var7 = StringCol(itemsize=1, dflt="e")          # 1-character String
@@ -48,10 +48,10 @@ RecordDescriptionDict = {
     'var1': StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2)),
 #     'var0': StringCol(itemsize=4, shape=2),       # 4-character String
 #     'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
-    'var1_':col_from_kind('int', shape=2),        # integer array
-    'var2': col_from_kind('int', shape=(2,2)),    # integer array
+    'var1_':Col.from_kind('int', shape=2),        # integer array
+    'var2': Col.from_kind('int', shape=(2,2)),    # integer array
     'var3': Int16Col(),                           # short integer
-    'var4': col_from_kind('float'),               # double (double-precision)
+    'var4': Col.from_kind('float'),               # double (double-precision)
     'var5': Float32Col(),                         # float  (single-precision)
     'var6': Int16Col(),                           # unsigned short integer
     'var7': StringCol(itemsize=1),                # 1-character String
@@ -65,10 +65,10 @@ RecordDescriptionDictRevOrder = {
     'var1': StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2)),
 #     'var0': StringCol(itemsize=4, shape=2),       # 4-character String
 #     'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
-    'var1_':col_from_kind('int', shape=2),        # integer array
-    'var2': col_from_kind('int', shape=(2,2)),    # integer array
+    'var1_':Col.from_kind('int', shape=2),        # integer array
+    'var2': Col.from_kind('int', shape=(2,2)),    # integer array
     'var3': Int16Col(),                           # short integer
-    'var4': col_from_kind('float'),               # double (double-precision)
+    'var4': Col.from_kind('float'),               # double (double-precision)
     'var5': Float32Col(),                         # float  (single-precision)
     'var6': Int16Col(),                           # unsigned short integer
     'var7': StringCol(itemsize=1),                # 1-character String
@@ -77,15 +77,15 @@ RecordDescriptionDictRevOrder = {
 
 # Record class with numpy dtypes (mixed shapes is checkd here)
 class RecordDT(IsDescription):
-    var0 = col_from_dtype(numpy.dtype("2S4"), dflt="")  # shape in dtype
-    var1 = col_from_sctype("S4", shape=(2, 2), dflt=["abcd","efgh"]) # shape is a mix
-    var1_= col_from_dtype(numpy.dtype("2i4"), dflt=((1,1),))  # shape in dtype
-    var2 = col_from_sctype("i4", shape=(2, 2), dflt=((1,1),(1,1)))  # shape is a mix
-    var3 = col_from_dtype(numpy.dtype("i2"), dflt=2)
-    var4 = col_from_dtype(numpy.dtype("2f8"), dflt=3.1)
-    var5 = col_from_dtype(numpy.dtype("f4"), dflt=4.2)
-    var6 = col_from_dtype(numpy.dtype("()u2"), dflt=5)
-    var7 = col_from_dtype(numpy.dtype("1S1"), dflt="e")   # no shape 
+    var0 = Col.from_dtype(numpy.dtype("2S4"), dflt="")  # shape in dtype
+    var1 = Col.from_sctype("S4", shape=(2, 2), dflt=["abcd","efgh"]) # shape is a mix
+    var1_= Col.from_dtype(numpy.dtype("2i4"), dflt=((1,1),))  # shape in dtype
+    var2 = Col.from_sctype("i4", shape=(2, 2), dflt=((1,1),(1,1)))  # shape is a mix
+    var3 = Col.from_dtype(numpy.dtype("i2"), dflt=2)
+    var4 = Col.from_dtype(numpy.dtype("2f8"), dflt=3.1)
+    var5 = Col.from_dtype(numpy.dtype("f4"), dflt=4.2)
+    var6 = Col.from_dtype(numpy.dtype("()u2"), dflt=5)
+    var7 = Col.from_dtype(numpy.dtype("1S1"), dflt="e")   # no shape 
 
 
 
@@ -1123,11 +1123,11 @@ class DefaultValues(unittest.TestCase):
         os.remove(file)
 
 class RecordT(IsDescription):
-    var0 = col_from_kind('int', dflt=1, shape=1) # native int
-    var1 = col_from_kind('int', dflt=[1], shape=(1,)) # 1-D int (one element)
-    var2_s = col_from_kind('int', dflt=[1,1], shape=2) # 1-D int (two elements)
-    var2 = col_from_kind('int', dflt=[1,1], shape=(2,)) # 1-D int (two elements)
-    var3 = col_from_kind('int', dflt=[[0,0],[1,1]], shape=(2,2)) # 2-D int
+    var0 = Col.from_kind('int', dflt=1, shape=1) # native int
+    var1 = Col.from_kind('int', dflt=[1], shape=(1,)) # 1-D int (one element)
+    var2_s = Col.from_kind('int', dflt=[1,1], shape=2) # 1-D int (two elements)
+    var2 = Col.from_kind('int', dflt=[1,1], shape=(2,)) # 1-D int (two elements)
+    var3 = Col.from_kind('int', dflt=[[0,0],[1,1]], shape=(2,2)) # 2-D int
 
 class ShapeTestCase(unittest.TestCase):
 

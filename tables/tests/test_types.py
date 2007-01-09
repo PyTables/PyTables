@@ -12,10 +12,10 @@ unittest.TestCase.tearDown = cleanup
 # Test Record class
 class Record(IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
-    var2 = col_from_kind('int')   # integer
-    var3 = col_from_kind('int', itemsize=2) # short integer
-    var4 = col_from_kind('float') # double (double-precision)
-    var5 = col_from_kind('float', itemsize=4) # float  (single-precision)
+    var2 = Col.from_kind('int')   # integer
+    var3 = Col.from_kind('int', itemsize=2) # short integer
+    var4 = Col.from_kind('float') # double (double-precision)
+    var5 = Col.from_kind('float', itemsize=4) # float  (single-precision)
 
 
 class RangeTestCase(unittest.TestCase):

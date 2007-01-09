@@ -557,7 +557,7 @@ class TestTDescr(IsDescription):
 
     _v_flavor = "numpy"     # The default would be returning numpy objects on reads
     x = Int32Col(dflt=0, shape=2, pos=0) #0
-    y = col_from_kind('float', dflt=1, shape=(2,2))
+    y = Col.from_kind('float', dflt=1, shape=(2,2))
     z = UInt8Col(dflt=1)
     z3 = EnumCol({'r':4, 'g':2, 'b':1}, 'r', 'int32', shape=2)
     color = StringCol(itemsize=4, dflt="ab", pos=2)
@@ -566,7 +566,7 @@ class TestTDescr(IsDescription):
         _v_pos = 1
         name = StringCol(itemsize=2)
         value = ComplexCol(itemsize=16, pos=0) #0
-        y2 = col_from_kind('float', pos=1) #1
+        y2 = Col.from_kind('float', pos=1) #1
         z2 = UInt8Col()
         class Info2(IsDescription):
             y3 = Time64Col(shape=2)

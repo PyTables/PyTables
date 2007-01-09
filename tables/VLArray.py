@@ -37,9 +37,7 @@ import numpy
 import tables.hdf5Extension as hdf5Extension
 from tables.utils import processRangeRead, convertToNPAtom, convToFlavor, \
      idx2long, byteorders
-from tables.atom import (
-    ObjectAtom, VLStringAtom, EnumAtom,
-    atom_from_dtype, atom_from_kind, split_type )
+from tables.atom import ObjectAtom, VLStringAtom, EnumAtom, Atom, split_type
 from tables.Leaf import Leaf, calc_chunksize
 
 
@@ -280,13 +278,13 @@ be zero."""
         elif kind == 'enum':
             (enum, self._atomicdtype) = self._g_loadEnum()
             dflt = iter(enum).next()[0]  # ignored, any of them is OK
-            base = atom_from_dtype(self._atomicdtype)
+            base = Atom.from_dtype(self._atomicdtype)
             atom = EnumAtom(enum, dflt, base, shape=self._atomicshape)
         else:
             if itemsize is None:  # some types don't include precision
                 itemsize = self._atomicdtype.itemsize
             shape = self._atomicshape
-            atom = atom_from_kind(kind, itemsize, shape=shape)
+            atom = Atom.from_kind(kind, itemsize, shape=shape)
 
         self.atom = atom
         return self._v_objectID

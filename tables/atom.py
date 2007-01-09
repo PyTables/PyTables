@@ -101,94 +101,6 @@ def split_type(type_):
                               % precision )
     return (kind, itemsize)
 
-def atom_from_sctype(sctype, shape=1, dflt=None):
-    """
-    Create an `Atom` from a NumPy scalar type `sctype`.
-
-    Optional shape and default value may be specified as the `shape`
-    and `dflt` arguments, respectively.
-
-    >>> import numpy
-    >>> atom_from_sctype(numpy.int16, shape=(2, 2))
-    Int16Atom(shape=(2, 2), dflt=0)
-    >>> atom_from_sctype('S5', dflt='hello')
-    StringAtom(itemsize=5, shape=(), dflt='hello')
-    >>> atom_from_sctype('Float64')
-    Float64Atom(shape=(), dflt=0.0)
-    """
-    (prefix, kwargs) = _atomdata_from_sctype(sctype, shape, dflt)
-    atomclass = eval('%sAtom' % prefix)
-    return atomclass(**kwargs)
-
-def atom_from_dtype(dtype, dflt=None):
-    """
-    Create an `Atom` from a NumPy `dtype`.
-
-    An optional default value may be specified as the `dflt` argument.
-
-    >>> import numpy
-    >>> atom_from_dtype(numpy.dtype((numpy.int16, (2, 2))))
-    Int16Atom(shape=(2, 2), dflt=0)
-    >>> atom_from_dtype(numpy.dtype('S5'), dflt='hello')
-    StringAtom(itemsize=5, shape=(), dflt='hello')
-    >>> atom_from_dtype(numpy.dtype('Float64'))
-    Float64Atom(shape=(), dflt=0.0)
-    """
-    (prefix, kwargs) = _atomdata_from_dtype(dtype, dflt)
-    atomclass = eval('%sAtom' % prefix)
-    return atomclass(**kwargs)
-
-def atom_from_type(type, shape=1, dflt=None):
-    """
-    Create an `Atom` from a PyTables `type_`.
-
-    Optional shape and default value may be specified as the `shape`
-    and `dflt` arguments, respectively.
-
-    >>> atom_from_type('bool')
-    BoolAtom(shape=(), dflt=False)
-    >>> atom_from_type('int16', shape=(2, 2))
-    Int16Atom(shape=(2, 2), dflt=0)
-    >>> atom_from_type('string40', dflt='hello')
-    Traceback (most recent call last):
-      ...
-    ValueError: unknown type: 'string40'
-    >>> atom_from_type('Float64')
-    Traceback (most recent call last):
-      ...
-    ValueError: unknown type: 'Float64'
-    """
-    (prefix, kwargs) = _atomdata_from_type(type, shape, dflt)
-    atomclass = eval('%sAtom' % prefix)
-    return atomclass(**kwargs)
-
-def atom_from_kind(kind, itemsize=None, shape=1, dflt=None):
-    """
-    Create an `Atom` from a PyTables `kind`.
-
-    Optional item size, shape and default value may be specified as
-    the `itemsize`, `shape` and `dflt` arguments, respectively.  Bear
-    in mind that not all atoms support a default item size.
-
-    >>> atom_from_kind('int', itemsize=2, shape=(2, 2))
-    Int16Atom(shape=(2, 2), dflt=0)
-    >>> atom_from_kind('int', shape=(2, 2))
-    Int32Atom(shape=(2, 2), dflt=0)
-    >>> atom_from_kind('string', itemsize=5, dflt='hello')
-    StringAtom(itemsize=5, shape=(), dflt='hello')
-    >>> atom_from_kind('string', dflt='hello')
-    Traceback (most recent call last):
-      ...
-    ValueError: no default item size for kind ``string``
-    >>> atom_from_kind('Float')
-    Traceback (most recent call last):
-      ...
-    ValueError: unknown kind: 'Float'
-    """
-    (prefix, kwargs) = _atomdata_from_kind(kind, itemsize, shape, dflt)
-    atomclass = eval('%sAtom' % prefix)
-    return atomclass(**kwargs)
-
 
 # Private functions
 # =================
@@ -396,6 +308,99 @@ class Atom(object):
         """Return the atom class prefix."""
         cname = class_.__name__
         return cname[:cname.rfind('Atom')]
+
+    @classmethod
+    def from_sctype(class_, sctype, shape=1, dflt=None):
+        """
+        Create an `Atom` from a NumPy scalar type `sctype`.
+
+        Optional shape and default value may be specified as the
+        `shape` and `dflt` arguments, respectively.
+
+        >>> import numpy
+        >>> Atom.from_sctype(numpy.int16, shape=(2, 2))
+        Int16Atom(shape=(2, 2), dflt=0)
+        >>> Atom.from_sctype('S5', dflt='hello')
+        StringAtom(itemsize=5, shape=(), dflt='hello')
+        >>> Atom.from_sctype('Float64')
+        Float64Atom(shape=(), dflt=0.0)
+        """
+        (prefix, kwargs) = _atomdata_from_sctype(sctype, shape, dflt)
+        atomclass = eval('%sAtom' % prefix)
+        return atomclass(**kwargs)
+
+    @classmethod
+    def from_dtype(class_, dtype, dflt=None):
+        """
+        Create an `Atom` from a NumPy `dtype`.
+
+        An optional default value may be specified as the `dflt`
+        argument.
+
+        >>> import numpy
+        >>> Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
+        Int16Atom(shape=(2, 2), dflt=0)
+        >>> Atom.from_dtype(numpy.dtype('S5'), dflt='hello')
+        StringAtom(itemsize=5, shape=(), dflt='hello')
+        >>> Atom.from_dtype(numpy.dtype('Float64'))
+        Float64Atom(shape=(), dflt=0.0)
+        """
+        (prefix, kwargs) = _atomdata_from_dtype(dtype, dflt)
+        atomclass = eval('%sAtom' % prefix)
+        return atomclass(**kwargs)
+
+    @classmethod
+    def from_type(class_, type, shape=1, dflt=None):
+        """
+        Create an `Atom` from a PyTables `type_`.
+
+        Optional shape and default value may be specified as the
+        `shape` and `dflt` arguments, respectively.
+
+        >>> Atom.from_type('bool')
+        BoolAtom(shape=(), dflt=False)
+        >>> Atom.from_type('int16', shape=(2, 2))
+        Int16Atom(shape=(2, 2), dflt=0)
+        >>> Atom.from_type('string40', dflt='hello')
+        Traceback (most recent call last):
+          ...
+        ValueError: unknown type: 'string40'
+        >>> Atom.from_type('Float64')
+        Traceback (most recent call last):
+          ...
+        ValueError: unknown type: 'Float64'
+        """
+        (prefix, kwargs) = _atomdata_from_type(type, shape, dflt)
+        atomclass = eval('%sAtom' % prefix)
+        return atomclass(**kwargs)
+
+    @classmethod
+    def from_kind(class_, kind, itemsize=None, shape=1, dflt=None):
+        """
+        Create an `Atom` from a PyTables `kind`.
+
+        Optional item size, shape and default value may be specified
+        as the `itemsize`, `shape` and `dflt` arguments, respectively.
+        Bear in mind that not all atoms support a default item size.
+
+        >>> Atom.from_kind('int', itemsize=2, shape=(2, 2))
+        Int16Atom(shape=(2, 2), dflt=0)
+        >>> Atom.from_kind('int', shape=(2, 2))
+        Int32Atom(shape=(2, 2), dflt=0)
+        >>> Atom.from_kind('string', itemsize=5, dflt='hello')
+        StringAtom(itemsize=5, shape=(), dflt='hello')
+        >>> Atom.from_kind('string', dflt='hello')
+        Traceback (most recent call last):
+          ...
+        ValueError: no default item size for kind ``string``
+        >>> Atom.from_kind('Float')
+        Traceback (most recent call last):
+          ...
+        ValueError: unknown kind: 'Float'
+        """
+        (prefix, kwargs) = _atomdata_from_kind(kind, itemsize, shape, dflt)
+        atomclass = eval('%sAtom' % prefix)
+        return atomclass(**kwargs)
 
     # Properties
     # ~~~~~~~~~~
@@ -650,7 +655,7 @@ class EnumAtom(Atom):
     """
 
     # Registering this class in the prefix map may be a little wrong,
-    # since the ``atom_from_kind()`` function fails miserably with
+    # since the ``Atom.from_kind()`` method fails miserably with
     # enumerations, as they don't support an ``itemsize`` argument.
     # However, resetting ``__metaclass__`` to ``type`` doesn't seem to
     # work and I don't feel like creating a subclass of ``MetaAtom``.
@@ -709,7 +714,7 @@ class EnumAtom(Atom):
         self.enum = enum
 
         if type(base) is str:
-            base = atom_from_type(base)
+            base = Atom.from_type(base)
         self._checkBase(base)
         self.base = base
 

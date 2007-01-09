@@ -18,8 +18,8 @@ import numpy
 class TDescr(IsDescription):
     var1 = StringCol(itemsize=4, dflt="", pos=1)
     var2 = BoolCol(dflt=0, pos=2)
-    var3 = col_from_kind('int', dflt=0, pos=3)
-    var4 = col_from_kind('float', dflt=0, pos=4)
+    var3 = Col.from_kind('int', dflt=0, pos=3)
+    var4 = Col.from_kind('float', dflt=0, pos=4)
 
 class BasicTestCase(PyTablesTestCase):
     compress = 0
@@ -551,7 +551,7 @@ class BasicTestCase(PyTablesTestCase):
 
         class Distance(IsDescription):
             frame = Int32Col(pos=0)
-            distance = col_from_kind('float', pos=1)
+            distance = Col.from_kind('float', pos=1)
 
         # Delete the old temporal file
         os.remove(self.file)
@@ -1510,7 +1510,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
     """Test case for changing the ``indexprops`` attribute."""
 
     class MyDescription(IsDescription):
-        icol = col_from_kind('int')
+        icol = Col.from_kind('int')
     oldIndexProps = IndexProps()
     newIndexProps = IndexProps(auto=False, filters=Filters(complevel=9))
 

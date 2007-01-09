@@ -37,59 +37,6 @@ __version__ = '$Revision$'
 """Repository version of this file."""
 
 
-# Public functions
-# ================
-def col_from_sctype(sctype, shape=1, dflt=None, pos=None):
-    """
-    Create a `Col` definition from a NumPy scalar type `sctype`.
-
-    Optional shape, default value and position may be specified as the
-    `shape`, `dflt` and `pos` arguments, respectively.
-    """
-    (prefix, kwargs) = atom._atomdata_from_sctype(sctype, shape, dflt)
-    colclass = eval('%sCol' % prefix)
-    kwargs['pos'] = pos
-    return colclass(**kwargs)
-
-def col_from_dtype(dtype, dflt=None, pos=None):
-    """
-    Create a `Col` definition from a NumPy `dtype`.
-
-    Optional default value and position may be specified as the `dflt`
-    and `pos` arguments, respectively.
-    """
-    (prefix, kwargs) = atom._atomdata_from_dtype(dtype, dflt)
-    colclass = eval('%sCol' % prefix)
-    kwargs['pos'] = pos
-    return colclass(**kwargs)
-
-def col_from_type(type, shape=1, dflt=None, pos=None):
-    """
-    Create a `Col` definition from a PyTables `type_`.
-
-    Optional shape, default value and position may be specified as the
-    `shape`, `dflt` and `pos` arguments, respectively.
-    """
-    (prefix, kwargs) = atom._atomdata_from_type(type, shape, dflt)
-    colclass = eval('%sCol' % prefix)
-    kwargs['pos'] = pos
-    return colclass(**kwargs)
-
-def col_from_kind(kind, itemsize=None, shape=1, dflt=None, pos=None):
-    """
-    Create a `Col` definition from a PyTables `kind`.
-
-    Optional item size, shape, default value and position may be
-    specified as the `itemsize`, `shape`, `dflt` and `pos` arguments,
-    respectively.  Bear in mind that not all atoms support a default
-    item size.
-    """
-    (prefix, kwargs) = atom._atomdata_from_kind(kind, itemsize, shape, dflt)
-    colclass = eval('%sCol' % prefix)
-    kwargs['pos'] = pos
-    return colclass(**kwargs)
-
-
 # Column classes
 # ==============
 class Col(atom.Atom):
@@ -105,12 +52,70 @@ class Col(atom.Atom):
     # the same atom data would be entered, it is better not mangling it.
     __metaclass__ = type
 
+    # Class methods
+    # ~~~~~~~~~~~~~
     @classmethod
     def prefix(class_):
         """Return the column class prefix."""
         cname = class_.__name__
         return cname[:cname.rfind('Col')]
 
+    @classmethod
+    def from_sctype(class_, sctype, shape=1, dflt=None, pos=None):
+        """
+        Create a `Col` definition from a NumPy scalar type `sctype`.
+
+        Optional shape, default value and position may be specified as
+        the `shape`, `dflt` and `pos` arguments, respectively.
+        """
+        (prefix, kwargs) = atom._atomdata_from_sctype(sctype, shape, dflt)
+        colclass = eval('%sCol' % prefix)
+        kwargs['pos'] = pos
+        return colclass(**kwargs)
+
+    @classmethod
+    def from_dtype(class_, dtype, dflt=None, pos=None):
+        """
+        Create a `Col` definition from a NumPy `dtype`.
+
+        Optional default value and position may be specified as the
+        `dflt` and `pos` arguments, respectively.
+        """
+        (prefix, kwargs) = atom._atomdata_from_dtype(dtype, dflt)
+        colclass = eval('%sCol' % prefix)
+        kwargs['pos'] = pos
+        return colclass(**kwargs)
+
+    @classmethod
+    def from_type(class_, type, shape=1, dflt=None, pos=None):
+        """
+        Create a `Col` definition from a PyTables `type_`.
+
+        Optional shape, default value and position may be specified as
+        the `shape`, `dflt` and `pos` arguments, respectively.
+        """
+        (prefix, kwargs) = atom._atomdata_from_type(type, shape, dflt)
+        colclass = eval('%sCol' % prefix)
+        kwargs['pos'] = pos
+        return colclass(**kwargs)
+
+    @classmethod
+    def from_kind(class_, kind, itemsize=None, shape=1, dflt=None, pos=None):
+        """
+        Create a `Col` definition from a PyTables `kind`.
+
+        Optional item size, shape, default value and position may be
+        specified as the `itemsize`, `shape`, `dflt` and `pos`
+        arguments, respectively.  Bear in mind that not all columns
+        support a default item size.
+        """
+        (prefix, kwargs) = atom._atomdata_from_kind(kind, itemsize, shape, dflt)
+        colclass = eval('%sCol' % prefix)
+        kwargs['pos'] = pos
+        return colclass(**kwargs)
+
+    # Special methods
+    # ~~~~~~~~~~~~~~~
     def __repr__(self):
         # Reuse the atom representation.
         atomrepr = super(Col, self).__repr__()
@@ -593,8 +598,8 @@ if __name__=="__main__":
 
     class Test(IsDescription):
         """A description that has several columns"""
-        x = col_from_type("int32", 2, 0, pos=0)
-        y = col_from_kind('float', dflt=1, shape=(2,3))
+        x = Col.from_type("int32", 2, 0, pos=0)
+        y = Col.from_kind('float', dflt=1, shape=(2,3))
         z = UInt8Col(dflt=1)
         color = StringCol(2, dflt=" ")
         #color = UInt32Col(2)
@@ -603,17 +608,17 @@ if __name__=="__main__":
             _v_pos = 1
             name = UInt32Col()
             value = Float64Col(pos=0)
-            y2 = col_from_kind('float', dflt=1, shape=(2,3), pos=1)
+            y2 = Col.from_kind('float', dflt=1, shape=(2,3), pos=1)
             z2 = UInt8Col(dflt=1)
             class info2(IsDescription):
-                y3 = col_from_kind('float', dflt=1, shape=(2,3))
+                y3 = Col.from_kind('float', dflt=1, shape=(2,3))
                 z3 = UInt8Col(dflt=1)
                 name = UInt32Col()
                 value = Float64Col()
                 class info3(IsDescription):
                     name = UInt32Col()
                     value = Float64Col()
-                    y4 = col_from_kind('float', dflt=1, shape=(2,3))
+                    y4 = Col.from_kind('float', dflt=1, shape=(2,3))
                     z4 = UInt8Col(dflt=1)
 
 #     class Info(IsDescription):
@@ -623,8 +628,8 @@ if __name__=="__main__":
 
 #     class Test(IsDescription):
 #         """A description that has several columns"""
-#         x = col_from_type("int32", 2, 0, pos=0)
-#         y = col_from_kind('float', dflt=1, shape=(2,3))
+#         x = Col.from_type("int32", 2, 0, pos=0)
+#         y = Col.from_kind('float', dflt=1, shape=(2,3))
 #         z = UInt8Col(dflt=1)
 #         color = StringCol(2, dflt=" ")
 #         Info = Info()
@@ -632,17 +637,17 @@ if __name__=="__main__":
 #             _v_pos = 1
 #             name = StringCol(itemsize=2)
 #             value = ComplexCol(itemsize=16, pos=0)
-#             y2 = col_from_kind('float', dflt=1, shape=(2,3), pos=1)
+#             y2 = Col.from_kind('float', dflt=1, shape=(2,3), pos=1)
 #             z2 = UInt8Col(dflt=1)
 #             class info2(IsDescription):
-#                 y3 = col_from_kind('float', dflt=1, shape=(2,3))
+#                 y3 = Col.from_kind('float', dflt=1, shape=(2,3))
 #                 z3 = UInt8Col(dflt=1)
 #                 name = StringCol(itemsize=2)
 #                 value = ComplexCol(itemsize=16)
 #                 class info3(IsDescription):
 #                     name = StringCol(itemsize=2)
 #                     value = ComplexCol(itemsize=16)
-#                     y4 = col_from_kind('float', dflt=1, shape=(2,3))
+#                     y4 = Col.from_kind('float', dflt=1, shape=(2,3))
 #                     z4 = UInt8Col(dflt=1)
 
     # example cases of class Test

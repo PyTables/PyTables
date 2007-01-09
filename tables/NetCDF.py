@@ -593,7 +593,7 @@ class NetCDFVariable:
             atom = tables.StringAtom(itemsize=1)
         else:
             type_ = _rev_typecode_dict[datatype]
-            atom = tables.atom_from_type(type_)
+            atom = tables.Atom.from_type(type_)
         if filters is None:
             # default filters instance.
             filters = tables.Filters(complevel=6,complib='zlib',shuffle=1)

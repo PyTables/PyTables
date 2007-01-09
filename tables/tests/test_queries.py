@@ -82,11 +82,11 @@ def append_columns(classdict, shape=()):
         colpos = itype + 1
         colname = 'c_%s' % type_
         if type_ == 'enum':
-            base = tables.atom_from_sctype(sctype_from_type[type_])
+            base = tables.Atom.from_sctype(sctype_from_type[type_])
             col = tables.EnumCol(enum, enum(0), base, shape=shape, pos=colpos)
         else:
             sctype = sctype_from_type[type_]
-            col = tables.col_from_sctype(sctype, shape=shape, pos=colpos)
+            col = tables.Col.from_sctype(sctype, shape=shape, pos=colpos)
         classdict[colname] = col
     ncols = colpos
     return ncols
@@ -120,7 +120,7 @@ def table_description(classname, nclassname, shape=()):
     classdict['c_nested'] = ndescr
     colpos += 1
 
-    extracol = tables.col_from_kind('int', shape=shape, pos=colpos)
+    extracol = tables.Col.from_kind('int', shape=shape, pos=colpos)
     classdict['c_extra'] = extracol
     colpos += 1
 

@@ -75,8 +75,6 @@ __all__ = [
     'Enum',
     # Atom types:
     'split_type',
-    'atom_from_kind','atom_from_type',
-    'atom_from_sctype', 'atom_from_dtype',
     'Atom', 'StringAtom', 'BoolAtom',
     'IntAtom', 'UIntAtom', 'Int8Atom', 'UInt8Atom', 'Int16Atom', 'UInt16Atom',
     'Int32Atom', 'UInt32Atom', 'Int64Atom', 'UInt64Atom',
@@ -86,8 +84,6 @@ __all__ = [
     'EnumAtom',
     'PseudoAtom', 'ObjectAtom', 'VLStringAtom',
     # Column types:
-    'col_from_kind','col_from_type',
-    'col_from_sctype', 'col_from_dtype',
     'Col', 'StringCol', 'BoolCol',
     'IntCol', 'UIntCol', 'Int8Col', 'UInt8Col', 'Int16Col', 'UInt16Col',
     'Int32Col', 'UInt32Col', 'Int64Col', 'UInt64Col',

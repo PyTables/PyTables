@@ -26,9 +26,8 @@ import numpy
 
 from tables.exceptions import HDF5ExtError
 from tables.enum import Enum
-from tables.atom import atom_from_dtype
-from tables.IsDescription import Description, EnumCol, \
-     col_from_kind, col_from_sctype
+from tables.atom import Atom
+from tables.IsDescription import Description, EnumCol, Col
 
 from tables.utils import checkFileAccess
 
@@ -798,15 +797,15 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
           (enum, nptype) = table._g_loadEnum(native_member_type_id)
           # Take one of the names as the default in the enumeration.
           dflt = iter(enum).next()[0]
-          base = atom_from_dtype(nptype)
+          base = Atom.from_dtype(nptype)
           colobj = EnumCol(enum, dflt, base, shape=colshape, pos=i)
         elif colstype[0] in 'at':
           kind = {'a': 'string', 't': 'time'}[colstype[0]]
           tsize = int(colstype[1:])
-          colobj = col_from_kind(kind, tsize, shape=colshape, pos=i)
+          colobj = Col.from_kind(kind, tsize, shape=colshape, pos=i)
         else:
           sctype = numpy.sctypeDict[colstype]
-          colobj = col_from_sctype(sctype, shape=colshape, pos=i)
+          colobj = Col.from_sctype(sctype, shape=colshape, pos=i)
         desc[colname] = colobj
         # If *any* column has a different byteorder than sys, it is
         # changed here. This should be further refined for columns

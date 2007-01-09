@@ -588,7 +588,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(atype))
+                                               Atom.from_sctype(atype))
             vlarray.append([1,2,3])
             vlarray.append([-1,0])
 
@@ -626,7 +626,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes.iterkeys():
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(ttypes[atype]))
+                                               Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1,2,3], dtype=atype)
             a0 = a0.byteswap(); a0 = a0.newbyteorder()
             vlarray.append(a0)
@@ -668,7 +668,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(atype))
+                                               Atom.from_sctype(atype))
             vlarray.append([1,2,3])
             vlarray.append([-1,0])
 
@@ -710,7 +710,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes.iterkeys():
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(ttypes[atype]))
+                                               Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1,2,3], dtype=atype)
             vlarray.append(a0)
             a1 = numpy.array([-1,0], dtype=atype)
@@ -753,7 +753,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(atype))
+                                               Atom.from_sctype(atype))
             vlarray.append([1.3,2.2,3.3])
             vlarray.append([-1.3e34,1.e-32])
 
@@ -785,7 +785,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes.iterkeys():
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(ttypes[atype]))
+                                               Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3,2.2,3.3], dtype=atype)
             a0 = a0.byteswap(); a0 = a0.newbyteorder()
             vlarray.append(a0)
@@ -823,7 +823,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(atype))
+                                               Atom.from_sctype(atype))
             vlarray.append([1.3,2.2,3.3])
             vlarray.append([-1.3e34,1.e-32])
 
@@ -859,7 +859,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes.iterkeys():
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(ttypes[atype]))
+                                               Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3,2.2,3.3], dtype=atype)
             vlarray.append(a0)
             a1 = numpy.array([-1,0], dtype=atype)
@@ -904,7 +904,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(atype))
+                                               Atom.from_sctype(atype))
             vlarray.append([(1.3+0j),(0+2.2j),(3.3+3.3j)])
             vlarray.append([(0-1.3e34j),(1.e-32+0j)])
 
@@ -938,7 +938,7 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(atype))
+                                               Atom.from_sctype(atype))
             vlarray.append([(1.3+0j),(0+2.2j),(3.3+3.3j)])
             vlarray.append([(0-1.3e34j),(1.e-32+0j)])
 
@@ -1352,7 +1352,7 @@ class MDTypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(atype, (2,3)))
+                                               Atom.from_sctype(atype, (2,3)))
             vlarray.append([numpy.ones((2,3), atype),
                             numpy.zeros((2,3), atype)])
             vlarray.append([numpy.ones((2,3), atype)*100])
@@ -1389,7 +1389,7 @@ class MDTypesTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(atype, (5,2,6)))
+                                               Atom.from_sctype(atype, (5,2,6)))
             vlarray.append([numpy.ones((5,2,6), atype)*1.3,
                             numpy.zeros((5,2,6), atype)])
             vlarray.append([numpy.ones((5,2,6), atype)*2.e4])
@@ -1642,7 +1642,7 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, "vlarray",
-                                           atom_from_kind('int', itemsize=4),
+                                           Atom.from_kind('int', itemsize=4),
                                            flavor=self.flavor)
         self.fileh.close()
         self.fileh = openFile(self.file, "r")
@@ -1667,7 +1667,7 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, "vlarray",
-                                           atom_from_kind('int', itemsize=4),
+                                           Atom.from_kind('int', itemsize=4),
                                            flavor=self.flavor)
         # Read all the rows (it should be empty):
         row = vlarray.read()
@@ -1756,7 +1756,7 @@ class FlavorTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(atype),
+                                               Atom.from_sctype(atype),
                                                flavor=self.flavor)
             vlarray.append([1,2,3])
             vlarray.append(())
@@ -1825,7 +1825,7 @@ class FlavorTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(atype),
+                                               Atom.from_sctype(atype),
                                                flavor=self.flavor)
             vlarray.append([1,2,3])
             vlarray.append(())
@@ -1891,7 +1891,7 @@ class FlavorTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               atom_from_sctype(atype),
+                                               Atom.from_sctype(atype),
                                                flavor=self.flavor)
             vlarray.append([1.3,2.2,3.3])
             vlarray.append(())

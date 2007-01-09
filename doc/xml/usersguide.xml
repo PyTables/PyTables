@@ -3734,149 +3734,6 @@ $ ptdump -d nested-tut.h5
         <section id="GlobalFunctDescr">
 	  <title>Global functions</title>
 
-	  <section>
-	    <title>atom_from_dtype(dtype, dflt=None)</title>
-	    <para>Create an <literal>Atom</literal>
-	    (see <xref xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>)
-	    from a NumPy <emphasis>dtype</emphasis>.
-	    </para>
-
-	    <para>An optional default value may be specified
-	    as the <emphasis>dflt</emphasis> argument.
-	    </para>
-
-	    <screen><![CDATA[
->>> import numpy
->>> atom_from_dtype(numpy.dtype((numpy.int16, (2, 2))))
-Int16Atom(shape=(2, 2), dflt=0)
->>> atom_from_dtype(numpy.dtype('S5'), dflt='hello')
-StringAtom(itemsize=5, shape=(), dflt='hello')
->>> atom_from_dtype(numpy.dtype('Float64'))
-Float64Atom(shape=(), dflt=0.0)]]></screen>
-	  </section>
-
-	  <section>
-	    <title>atom_from_kind(kind, itemsize=None, shape=1, dflt=None)</title>
-	    <para>Create an <literal>Atom</literal>
-	    (see <xref xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>)
-	    from a PyTables <emphasis>kind</emphasis>.
-	    </para>
-
-	    <para>Optional item size, shape and default value
-	    may be specified as the <emphasis>itemsize</emphasis>,
-	    <emphasis>shape</emphasis> and <emphasis>dflt</emphasis> arguments, respectively.
-	    Bear in mind that not all atoms support a default item size.
-	    </para>
-
-	    <screen><![CDATA[
->>> atom_from_kind('int', itemsize=2, shape=(2, 2))
-Int16Atom(shape=(2, 2), dflt=0)
->>> atom_from_kind('int', shape=(2, 2))
-Int32Atom(shape=(2, 2), dflt=0)
->>> atom_from_kind('string', itemsize=5, dflt='hello')
-StringAtom(itemsize=5, shape=(), dflt='hello')
->>> atom_from_kind('string', dflt='hello')
-Traceback (most recent call last):
-  ...
-ValueError: no default item size for kind ``string``
->>> atom_from_kind('Float')
-Traceback (most recent call last):
-  ...
-ValueError: unknown kind: 'Float']]></screen>
-	  </section>
-
-	  <section>
-	    <title>atom_from_sctype(sctype, shape=1, dflt=None)</title>
-	    <para>Create an <literal>Atom</literal>
-	    (see <xref xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>)
-	    from a NumPy scalar type <emphasis>sctype</emphasis>.
-	    </para>
-
-	    <para>Optional shape and default value may be specified
-	    as the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis> arguments, respectively.
-	    </para>
-
-	    <screen><![CDATA[
->>> import numpy
->>> atom_from_sctype(numpy.int16, shape=(2, 2))
-Int16Atom(shape=(2, 2), dflt=0)
->>> atom_from_sctype('S5', dflt='hello')
-StringAtom(itemsize=5, shape=(), dflt='hello')
->>> atom_from_sctype('Float64')
-Float64Atom(shape=(), dflt=0.0)]]></screen>
-	  </section>
-
-	  <section>
-	    <title>atom_from_type(type, shape=1, dflt=None)</title>
-	    <para>Create an <literal>Atom</literal>
-	    (see <xref xrefstyle="select: labelnumber" linkend="AtomClassDescr"/>)
-	    from a PyTables <emphasis>type_</emphasis>.
-	    </para>
-
-	    <para>Optional shape and default value may be specified
-	    as the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis> arguments, respectively.
-	    </para>
-
-	    <screen><![CDATA[
->>> atom_from_type('bool')
-BoolAtom(shape=(), dflt=False)
->>> atom_from_type('int16', shape=(2, 2))
-Int16Atom(shape=(2, 2), dflt=0)
->>> atom_from_type('string40', dflt='hello')
-Traceback (most recent call last):
-  ...
-ValueError: unknown type: 'string40'
->>> atom_from_type('Float64')
-Traceback (most recent call last):
-  ...
-ValueError: unknown type: 'Float64']]></screen>
-	  </section>
-
-	  <section>
-	    <title>col_from_dtype(dtype, dflt=None, pos=None)</title>
-	    <para>Create a <literal>Col</literal>
-	    (see <xref xrefstyle="select: labelnumber" linkend="ColClassDescr"/>)
-	    definition from a NumPy <emphasis>dtype</emphasis>.
-	    </para>
-	    <para>Optional default value and position may be specified
-	    as the <emphasis>dflt</emphasis> and <emphasis>pos</emphasis> arguments, respectively.
-	    </para>
-	  </section>
-
-	  <section>
-	    <title>col_from_kind(kind, itemsize=None, shape=1, dflt=None, pos=None)</title>
-	    <para>Create a <literal>Col</literal>
-	    (see <xref xrefstyle="select: labelnumber" linkend="ColClassDescr"/>)
-	    definition from a PyTables <emphasis>kind</emphasis>.</para>
-	    <para>Optional item size, shape, default value and position
-	    may be specified as the <emphasis>itemsize</emphasis>,
-	    <emphasis>shape</emphasis>, <emphasis>dflt</emphasis> and <emphasis>pos</emphasis> arguments, respectively.
-	    Bear in mind that not all atoms support a default item size.
-	    </para>
-	  </section>
-
-	  <section>
-	    <title>col_from_sctype(sctype, shape=1, dflt=None, pos=None)</title>
-	    <para>Create a <literal>Col</literal>
-	    (see <xref xrefstyle="select: labelnumber" linkend="ColClassDescr"/>)
-	    definition from a NumPy scalar type <emphasis>sctype</emphasis>.</para>
-	    <para>Optional shape, default value and position may be specified
-	    as the <emphasis>shape</emphasis>, <emphasis>dflt</emphasis>
-	    and <emphasis>pos</emphasis> arguments, respectively.
-	    </para>
-	  </section>
-
-	  <section>
-	    <title>col_from_type(type, shape=1, dflt=None, pos=None)</title>
-	    <para>Create a <literal>Col</literal>
-	    (see <xref xrefstyle="select: labelnumber" linkend="ColClassDescr"/>)
-	    definition from a PyTables <emphasis>type_</emphasis>.</para>
-	    <para>Optional shape, default value and position may be specified
-	    as the <emphasis>shape</emphasis>, <emphasis>dflt</emphasis>
-	    and <emphasis>pos</emphasis> arguments, respectively.
-	    </para>
-	  </section>
-
           <section id="copyFileDescr">
             <title>copyFile(srcfilename, dstfilename, overwrite=False, **kwargs)</title>
 
@@ -8791,9 +8648,8 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    <para>In the same fashion as <literal>Atom</literal>, you should
 	    use a particular <literal>Col</literal> descendant class whenever
 	    you know the exact type you will need when writing your code.
-	    Otherwise, you may use one of the <literal>col_from_*()</literal>
-	    factories described in
-	    <xref xrefstyle="select: labelnumber" linkend="GlobalFunctDescr"/>.
+	    Otherwise, you may use one of the <literal>Col.from_*()</literal>
+	    factory methods.
 	    </para>
 
 	    <section>
@@ -8816,8 +8672,67 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    </section>
 
 	    <section>
-	      <title><literal>Col</literal> methods</title>
-	      <para>None.</para>
+	      <title><literal>Col</literal> factory methods</title>
+
+	      <glosslist>
+		<?dbfo glosslist-presentation="list" ?>
+		<glossentry>
+		  <glossterm><emphasis role="bold">from_dtype(dtype, dflt=None, pos=None)</emphasis></glossterm>
+		  <glossdef>
+		    <para>Create a <literal>Col</literal> definition from a
+		    NumPy <emphasis>dtype</emphasis>.
+		    </para>
+		    <para>Optional default value and position may be specified
+		    as the <emphasis>dflt</emphasis> and
+		    <emphasis>pos</emphasis> arguments, respectively.
+		    </para>
+		  </glossdef>
+		</glossentry>
+
+		<glossentry>
+		  <glossterm><emphasis role="bold">from_kind(kind, itemsize=None, shape=1, dflt=None, pos=None)</emphasis></glossterm>
+		  <glossdef>
+		    <para>Create a <literal>Col</literal> definition from a
+		    PyTables <emphasis>kind</emphasis>.
+		    </para>
+		    <para>Optional item size, shape, default value and
+		    position may be specified as the
+		    <emphasis>itemsize</emphasis>, <emphasis>shape</emphasis>,
+		    <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
+		    arguments, respectively.  Bear in mind that not all columns
+		    support a default item size.
+		    </para>
+		  </glossdef>
+		</glossentry>
+
+		<glossentry>
+		  <glossterm><emphasis role="bold">from_sctype(sctype, shape=1, dflt=None, pos=None)</emphasis></glossterm>
+		  <glossdef>
+		    <para>Create a <literal>Col</literal> definition from a
+		    NumPy scalar type <emphasis>sctype</emphasis>.
+		    </para>
+		    <para>Optional shape, default value and position may be
+		    specified as the <emphasis>shape</emphasis>,
+		    <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
+		    arguments, respectively.
+		    </para>
+		  </glossdef>
+		</glossentry>
+
+		<glossentry>
+		  <glossterm><emphasis role="bold">from_type(type, shape=1, dflt=None, pos=None)</emphasis></glossterm>
+		  <glossdef>
+		    <para>Create a <literal>Col</literal> definition from a
+		    PyTables <emphasis>type_</emphasis>.
+		    </para>
+		    <para>Optional shape, default value and position may be
+		    specified as the <emphasis>shape</emphasis>,
+		    <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
+		    arguments, respectively.
+		    </para>
+		  </glossdef>
+		</glossentry>
+	      </glosslist>
 	    </section>
 
 	    <section>
@@ -8867,9 +8782,8 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	      make the use of these element descriptions easier.
 	      You should use a particular <literal>Atom</literal> descendant class
 	      whenever you know the exact type you will need when writing your code.
-	      Otherwise, you may use one of the <literal>atom_from_*()</literal>
-	      factories described in
-	      <xref xrefstyle="select: labelnumber" linkend="GlobalFunctDescr"/>.
+	      Otherwise, you may use one of the <literal>Atom.from_*()</literal>
+	      factory methods.
 	    </para>
 
 	    <section>
@@ -8954,8 +8868,115 @@ del leaf.attrs.myattr           # Delete the attribute myattr]]></screen>
 	    </section>
 
 	    <section>
-	      <title><literal>Atom</literal> methods</title>
-	      <para>None.</para>
+	      <title><literal>Atom</literal> factory methods</title>
+
+	      <glosslist>
+		<?dbfo glosslist-presentation="list" ?>
+		<glossentry>
+		  <glossterm><emphasis role="bold">from_dtype(dtype, dflt=None)</emphasis></glossterm>
+		  <glossdef>
+		    <para>Create an <literal>Atom</literal>
+		    from a NumPy <emphasis>dtype</emphasis>.
+		    </para>
+
+		    <para>An optional default value may be specified
+		    as the <emphasis>dflt</emphasis> argument.
+		    </para>
+
+		    <screen><![CDATA[
+>>> import numpy
+>>> Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
+Int16Atom(shape=(2, 2), dflt=0)
+>>> Atom.from_dtype(numpy.dtype('S5'), dflt='hello')
+StringAtom(itemsize=5, shape=(), dflt='hello')
+>>> Atom.from_dtype(numpy.dtype('Float64'))
+Float64Atom(shape=(), dflt=0.0)]]></screen>
+		  </glossdef>
+		</glossentry>
+
+		<glossentry>
+		  <glossterm><emphasis role="bold">from_kind(kind, itemsize=None, shape=1, dflt=None)</emphasis></glossterm>
+		  <glossdef>
+		    <para>Create an <literal>Atom</literal>
+		    from a PyTables <emphasis>kind</emphasis>.
+		    </para>
+
+		    <para>Optional item size, shape and default value
+		    may be specified as the <emphasis>itemsize</emphasis>,
+		    <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
+		    arguments, respectively.
+		    Bear in mind that not all atoms support a default item size.
+		    </para>
+
+		    <screen><![CDATA[
+>>> Atom.from_kind('int', itemsize=2, shape=(2, 2))
+Int16Atom(shape=(2, 2), dflt=0)
+>>> Atom.from_kind('int', shape=(2, 2))
+Int32Atom(shape=(2, 2), dflt=0)
+>>> Atom.from_kind('string', itemsize=5, dflt='hello')
+StringAtom(itemsize=5, shape=(), dflt='hello')
+>>> Atom.from_kind('string', dflt='hello')
+Traceback (most recent call last):
+  ...
+ValueError: no default item size for kind ``string``
+>>> Atom.from_kind('Float')
+Traceback (most recent call last):
+  ...
+ValueError: unknown kind: 'Float']]></screen>
+		  </glossdef>
+		</glossentry>
+
+		<glossentry>
+		  <glossterm><emphasis role="bold">from_sctype(sctype, shape=1, dflt=None)</emphasis></glossterm>
+		  <glossdef>
+		    <para>Create an <literal>Atom</literal>
+		    from a NumPy scalar type <emphasis>sctype</emphasis>.
+		    </para>
+
+		    <para>Optional shape and default value may be specified
+		    as the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
+		    arguments, respectively.
+		    </para>
+
+		    <screen><![CDATA[
+>>> import numpy
+>>> Atom.from_sctype(numpy.int16, shape=(2, 2))
+Int16Atom(shape=(2, 2), dflt=0)
+>>> Atom.from_sctype('S5', dflt='hello')
+StringAtom(itemsize=5, shape=(), dflt='hello')
+>>> Atom.from_sctype('Float64')
+Float64Atom(shape=(), dflt=0.0)]]></screen>
+		  </glossdef>
+		</glossentry>
+
+		<glossentry>
+		  <glossterm><emphasis role="bold">from_type(type, shape=1, dflt=None)</emphasis></glossterm>
+		  <glossdef>
+		    <para>Create an <literal>Atom</literal>
+		    from a PyTables <emphasis>type_</emphasis>.
+		    </para>
+
+		    <para>Optional shape and default value may be specified
+		    as the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
+		    arguments, respectively.
+		    </para>
+
+		    <screen><![CDATA[
+>>> Atom.from_type('bool')
+BoolAtom(shape=(), dflt=False)
+>>> Atom.from_type('int16', shape=(2, 2))
+Int16Atom(shape=(2, 2), dflt=0)
+>>> Atom.from_type('string40', dflt='hello')
+Traceback (most recent call last):
+  ...
+ValueError: unknown type: 'string40'
+>>> Atom.from_type('Float64')
+Traceback (most recent call last):
+  ...
+ValueError: unknown type: 'Float64']]></screen>
+		  </glossdef>
+		</glossentry>
+	      </glosslist>
 	    </section>
 
 	    <section>

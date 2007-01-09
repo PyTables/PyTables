@@ -60,8 +60,8 @@ from tables.utils import processRange, processRangeRead, \
      is_idx, flattenNames, byteorders
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
-from tables.IsDescription import IsDescription, Description, col_from_dtype
-from tables.atom import atom_from_dtype
+from tables.IsDescription import IsDescription, Description, Col
+from tables.atom import Atom
 from tables.Group import IndexesTableG, IndexesDescG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES, \
@@ -603,7 +603,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 fbyteorder = byteorder
             # Non-nested column
             if kind in 'biufSc':
-                col = col_from_dtype(dtype, pos=pos)
+                col = Col.from_dtype(dtype, pos=pos)
             # Nested column
             elif kind == 'V' and dtype.shape in [(), (1,)]:
                 col = self._descrFromRA(recarr[name])
@@ -2942,7 +2942,7 @@ class Column(object):
 
         # Create the atom
         assert dtype.shape == ()
-        atom = atom_from_dtype(numpy.dtype((dtype, (0,))))
+        atom = Atom.from_dtype(numpy.dtype((dtype, (0,))))
 
         # Create the index itself
         index = Index(

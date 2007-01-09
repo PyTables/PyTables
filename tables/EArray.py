@@ -32,8 +32,7 @@ import numpy
 
 from tables.constants import EXPECTED_ROWS_EARRAY
 from tables.utils import convertToNPAtom, processRangeRead, byteorders
-from tables.atom import (
-    Atom, EnumAtom, atom_from_dtype, atom_from_kind, split_type )
+from tables.atom import Atom, EnumAtom, split_type
 from tables.CArray import CArray
 
 __version__ = "$Revision$"
@@ -234,11 +233,11 @@ instance to zero."""
         if kind == 'enum':
             (enum, self.dtype) = self._g_loadEnum()
             dflt = iter(enum).next()[0]  # ignored, any of them is OK
-            base = atom_from_dtype(self.dtype)
+            base = Atom.from_dtype(self.dtype)
             self.atom = EnumAtom(enum, dflt, base)
         else:
             itemsize = self.dtype.itemsize  # string type has no precision
-            self.atom = atom_from_kind(kind, itemsize)
+            self.atom = Atom.from_kind(kind, itemsize)
 
         # Compute the optimal nrowsinbuf
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,

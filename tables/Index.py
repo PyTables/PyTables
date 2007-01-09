@@ -40,7 +40,7 @@ import tables.utilsExtension as utilsExtension
 from tables.File import openFile
 from tables.AttributeSet import AttributeSet
 from tables.Node import NotLoggedMixin
-from tables.atom import Int64Atom, atom_from_dtype
+from tables.atom import Int64Atom, Atom
 from tables.EArray import EArray
 from tables.CArray import CArray
 from tables.Leaf import Filters
@@ -533,7 +533,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.filters = filters
 
         # Create the IndexArray for sorted values
-        atom = atom_from_dtype(self.dtype)
+        atom = Atom.from_dtype(self.dtype)
         sorted = IndexArray(self, 'sorted', atom, (0,),
                             "Sorted Values", filters, self.optlevel,
                             self.testmode, self._v_expectedrows)
@@ -792,7 +792,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         filters = None
         # temporary sorted & indices arrays
         shape = (self.nrows, ss)
-        atom = atom_from_dtype(self.dtype)
+        atom = Atom.from_dtype(self.dtype)
         CArray(self.tmp, 'sorted', atom, shape,
                "Temporary sorted", filters, chunkshape=(1,cs))
         CArray(self.tmp, 'indices', Int64Atom(), shape,

@@ -95,7 +95,7 @@ class CreateColTestCase(common.PyTablesTestCase):
         """Describing an enumerated column of floats (not implemented)."""
         colors = {'red': 1.0}
         self.assertRaises(NotImplementedError, self._createCol, colors, 'red',
-                          base=tables.atom_from_kind('float'))
+                          base=tables.Atom.from_kind('float'))
 
 
     def test99b_nonIntDtype(self):
@@ -109,7 +109,7 @@ class CreateColTestCase(common.PyTablesTestCase):
         """Describing an enumerated column of non-scalars (not implemented)."""
         colors = {'red': (1, 2, 3)}
         self.assertRaises(NotImplementedError, self._createCol, colors, 'red',
-                          base=tables.atom_from_kind('int', shape=3))
+                          base=tables.Atom.from_kind('int', shape=3))
 
 
 
@@ -174,7 +174,7 @@ class CreateAtomTestCase(common.PyTablesTestCase):
         """Describing an enumerated atom of floats (not implemented)."""
         colors = {'red': 1.0}
         self.assertRaises(NotImplementedError, self._createAtom, colors, 'red',
-                          base=tables.atom_from_kind('float'))
+                          base=tables.Atom.from_kind('float'))
 
 
     def test99b_nonIntDtype(self):
@@ -188,7 +188,7 @@ class CreateAtomTestCase(common.PyTablesTestCase):
         """Describing an enumerated atom of non-scalars (not implemented)."""
         colors = {'red': (1, 2, 3)}
         self.assertRaises(NotImplementedError, self._createAtom, colors, 'red',
-                          base=tables.atom_from_kind('int', shape=3))
+                          base=tables.Atom.from_kind('int', shape=3))
 
 
 
@@ -205,7 +205,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def _description(self, shape=1):
         class TestDescription(tables.IsDescription):
-            rid = tables.col_from_kind('int', pos=0)
+            rid = tables.Col.from_kind('int', pos=0)
             rcolor = tables.EnumCol(
                 self.enum, self.defaultName,
                 base=self.enumType, shape=shape, pos=1)

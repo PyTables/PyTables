@@ -61,7 +61,7 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "string":
             atom = StringAtom(itemsize=self.length)
         else:
-            atom = atom_from_type(self.type)
+            atom = Atom.from_type(self.type)
         title = self.__class__.__name__
         filters = Filters(complevel = self.compress,
                           complib = self.complib,
