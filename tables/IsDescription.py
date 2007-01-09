@@ -43,8 +43,8 @@ def col_from_sctype(sctype, shape=1, dflt=None, pos=None):
     """
     Create a `Col` definition from a NumPy scalar type `sctype`.
 
-    Optional shape and default value may be specified as the `shape`
-    and `dflt` arguments, respectively.
+    Optional shape, default value and position may be specified as the
+    `shape`, `dflt` and `pos` arguments, respectively.
     """
     (prefix, kwargs) = atom._atomdata_from_sctype(sctype, shape, dflt)
     colclass = eval('%sCol' % prefix)
@@ -67,8 +67,8 @@ def col_from_type(type, shape=1, dflt=None, pos=None):
     """
     Create a `Col` definition from a PyTables `type_`.
 
-    Optional shape and default value may be specified as the `shape`
-    and `dflt` arguments, respectively.
+    Optional shape, default value and position may be specified as the
+    `shape`, `dflt` and `pos` arguments, respectively.
     """
     (prefix, kwargs) = atom._atomdata_from_type(type, shape, dflt)
     colclass = eval('%sCol' % prefix)
@@ -79,9 +79,10 @@ def col_from_kind(kind, itemsize=None, shape=1, dflt=None, pos=None):
     """
     Create a `Col` definition from a PyTables `kind`.
 
-    Optional item size, shape and default value may be specified as the
-    `itemsize`, `shape` and `dflt` arguments, respectively.  Bear in
-    mind that not all atoms support a default item size.
+    Optional item size, shape, default value and position may be
+    specified as the `itemsize`, `shape`, `dflt` and `pos` arguments,
+    respectively.  Bear in mind that not all atoms support a default
+    item size.
     """
     (prefix, kwargs) = atom._atomdata_from_kind(kind, itemsize, shape, dflt)
     colclass = eval('%sCol' % prefix)

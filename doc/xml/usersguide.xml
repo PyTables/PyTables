@@ -3848,9 +3848,9 @@ ValueError: unknown type: 'Float64']]></screen>
 	    <para>Create a <literal>Col</literal>
 	    (see <xref xrefstyle="select: labelnumber" linkend="ColClassDescr"/>)
 	    definition from a PyTables <emphasis>kind</emphasis>.</para>
-	    <para>Optional item size, shape and default value may be specified
-	    as the <emphasis>itemsize</emphasis>, <emphasis>shape</emphasis>
-	    and <emphasis>dflt</emphasis> arguments, respectively.
+	    <para>Optional item size, shape, default value and position
+	    may be specified as the <emphasis>itemsize</emphasis>,
+	    <emphasis>shape</emphasis>, <emphasis>dflt</emphasis> and <emphasis>pos</emphasis> arguments, respectively.
 	    Bear in mind that not all atoms support a default item size.
 	    </para>
 	  </section>
@@ -3860,8 +3860,9 @@ ValueError: unknown type: 'Float64']]></screen>
 	    <para>Create a <literal>Col</literal>
 	    (see <xref xrefstyle="select: labelnumber" linkend="ColClassDescr"/>)
 	    definition from a NumPy scalar type <emphasis>sctype</emphasis>.</para>
-	    <para>Optional shape and default value may be specified
-	    as the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis> arguments, respectively.
+	    <para>Optional shape, default value and position may be specified
+	    as the <emphasis>shape</emphasis>, <emphasis>dflt</emphasis>
+	    and <emphasis>pos</emphasis> arguments, respectively.
 	    </para>
 	  </section>
 
@@ -3870,8 +3871,9 @@ ValueError: unknown type: 'Float64']]></screen>
 	    <para>Create a <literal>Col</literal>
 	    (see <xref xrefstyle="select: labelnumber" linkend="ColClassDescr"/>)
 	    definition from a PyTables <emphasis>type_</emphasis>.</para>
-	    <para>Optional shape and default value may be specified
-	    as the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis> arguments, respectively.
+	    <para>Optional shape, default value and position may be specified
+	    as the <emphasis>shape</emphasis>, <emphasis>dflt</emphasis>
+	    and <emphasis>pos</emphasis> arguments, respectively.
 	    </para>
 	  </section>
 
