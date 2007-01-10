@@ -58,7 +58,7 @@ enum OpCodes {
     OP_DIV_III,
     OP_POW_III,
     OP_MOD_III,
-    OP_WHERE_IFII,
+    OP_WHERE_IBII,
 
     OP_CAST_LI,
     OP_COPY_LL,
@@ -70,7 +70,7 @@ enum OpCodes {
     OP_DIV_LLL,
     OP_POW_LLL,
     OP_MOD_LLL,
-    OP_WHERE_LFLL,
+    OP_WHERE_LBLL,
 
     OP_CAST_FI,
     OP_CAST_FL,
@@ -88,7 +88,7 @@ enum OpCodes {
     OP_TAN_FF,
     OP_SQRT_FF,
     OP_ARCTAN2_FFF,
-    OP_WHERE_FFFF,
+    OP_WHERE_FBFF,
     OP_FUNC_FF,
     OP_FUNC_FFF,
 
@@ -105,7 +105,7 @@ enum OpCodes {
     OP_SUB_CCC,
     OP_MUL_CCC,
     OP_DIV_CCC,
-    OP_WHERE_CFCC,
+    OP_WHERE_CBCC,
     OP_FUNC_CC,
     OP_FUNC_CCC,
 
@@ -189,9 +189,9 @@ static char op_signature(int op, int n) {
         case OP_POW_III:
             if (n == 0 || n == 1 || n == 2) return 'i';
             break;
-        case OP_WHERE_IFII:
+        case OP_WHERE_IBII:
             if (n == 0 || n == 2 || n == 3) return 'i';
-            if (n == 1) return 'f';
+            if (n == 1) return 'b';
             break;
         case OP_CAST_LI:
             if (n == 0) return 'l';
@@ -210,9 +210,9 @@ static char op_signature(int op, int n) {
         case OP_POW_LLL:
             if (n == 0 || n == 1 || n == 2) return 'l';
             break;
-        case OP_WHERE_LFLL:
+        case OP_WHERE_LBLL:
             if (n == 0 || n == 2 || n == 3) return 'l';
-            if (n == 1) return 'f';
+            if (n == 1) return 'b';
             break;
         case OP_CAST_FI:
             if (n == 0) return 'f';
@@ -240,8 +240,9 @@ static char op_signature(int op, int n) {
         case OP_ARCTAN2_FFF:
             if (n == 0 || n == 1 || n == 2) return 'f';
             break;
-        case OP_WHERE_FFFF:
-            if (n == 0 || n == 1 || n == 2 || n == 3) return 'f';
+        case OP_WHERE_FBFF:
+            if (n == 0 || n == 2 || n == 3) return 'f';
+            if (n == 1) return 'b';
             break;
         case OP_FUNC_FF:
             if (n == 0 || n == 1) return 'f';
@@ -279,9 +280,9 @@ static char op_signature(int op, int n) {
         case OP_DIV_CCC:
             if (n == 0 || n == 1 || n == 2) return 'c';
             break;
-        case OP_WHERE_CFCC:
+        case OP_WHERE_CBCC:
             if (n == 0 || n == 2 || n == 3) return 'c';
-            if (n == 1) return 'f';
+            if (n == 1) return 'b';
             break;
         case OP_FUNC_CC:
             if (n == 0 || n == 1) return 'c';
@@ -1505,7 +1506,7 @@ initinterpreter(void)
     add_op("div_iii", OP_DIV_III);
     add_op("pow_iii", OP_POW_III);
     add_op("mod_iii", OP_MOD_III);
-    add_op("where_ifii", OP_WHERE_IFII);
+    add_op("where_ibii", OP_WHERE_IBII);
 
     add_op("cast_li", OP_CAST_LI);
     add_op("ones_like_ll", OP_ONES_LIKE_LL);
@@ -1517,7 +1518,7 @@ initinterpreter(void)
     add_op("div_lll", OP_DIV_LLL);
     add_op("pow_lll", OP_POW_LLL);
     add_op("mod_lll", OP_MOD_LLL);
-    add_op("where_lfll", OP_WHERE_LFLL);
+    add_op("where_lbll", OP_WHERE_LBLL);
 
     add_op("cast_fi", OP_CAST_FI);
     add_op("cast_fl", OP_CAST_FL);
@@ -1536,7 +1537,7 @@ initinterpreter(void)
     add_op("tan_ff", OP_TAN_FF);
     add_op("sqrt_ff", OP_SQRT_FF);
     add_op("arctan2_fff", OP_ARCTAN2_FFF);
-    add_op("where_ffff", OP_WHERE_FFFF);
+    add_op("where_fbff", OP_WHERE_FBFF);
     add_op("func_ff", OP_FUNC_FF);
     add_op("func_fff", OP_FUNC_FFF);
 
@@ -1553,7 +1554,7 @@ initinterpreter(void)
     add_op("sub_ccc", OP_SUB_CCC);
     add_op("mul_ccc", OP_MUL_CCC);
     add_op("div_ccc", OP_DIV_CCC);
-    add_op("where_cfcc", OP_WHERE_CFCC);
+    add_op("where_cbcc", OP_WHERE_CBCC);
     add_op("func_cc", OP_FUNC_CC);
     add_op("func_ccc", OP_FUNC_CCC);
 

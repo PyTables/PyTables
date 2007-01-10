@@ -182,7 +182,7 @@
         case OP_POW_III: VEC_ARG2(i_dest = (i2 < 0) ? (1 / i1) : (int)pow(i1, i2));
         case OP_MOD_III: VEC_ARG2(i_dest = i1 % i2);
 
-        case OP_WHERE_IFII: VEC_ARG3(i_dest = f1 ? i2 : i3);
+        case OP_WHERE_IBII: VEC_ARG3(i_dest = b1 ? i2 : i3);
 
         case OP_CAST_LI: VEC_ARG1(l_dest = (long long)(i1));
         case OP_ONES_LIKE_LL: VEC_ARG1(l_dest = 1);
@@ -195,7 +195,7 @@
         case OP_POW_LLL: VEC_ARG2(l_dest = (l2 < 0) ? (1 / l1) : (long long)pow(l1, l2));
         case OP_MOD_LLL: VEC_ARG2(l_dest = l1 % l2);
 
-        case OP_WHERE_LFLL: VEC_ARG3(l_dest = f1 ? l2 : l3);
+        case OP_WHERE_LBLL: VEC_ARG3(l_dest = b1 ? l2 : l3);
 
         case OP_CAST_FI: VEC_ARG1(f_dest = (double)(i1));
         case OP_CAST_FL: VEC_ARG1(f_dest = (double)(l1));
@@ -215,7 +215,7 @@
         case OP_SQRT_FF: VEC_ARG1(f_dest = sqrt(f1));
         case OP_ARCTAN2_FFF: VEC_ARG2(f_dest = atan2(f1, f2));
 
-        case OP_WHERE_FFFF: VEC_ARG3(f_dest = f1 ? f2 : f3);
+        case OP_WHERE_FBFF: VEC_ARG3(f_dest = b1 ? f2 : f3);
 
         case OP_FUNC_FF: VEC_ARG1(f_dest = functions_f[arg2](f1));
         case OP_FUNC_FFF: VEC_ARG2(f_dest = functions_ff[arg3](f1, f2));
@@ -246,8 +246,8 @@
         case OP_EQ_BCC: VEC_ARG2(b_dest = (c1r == c2r && c1i == c2i));
         case OP_NE_BCC: VEC_ARG2(b_dest = (c1r != c2r || c1i != c2i));
 
-        case OP_WHERE_CFCC: VEC_ARG3(cr_dest = f1 ? c2r : c3r;
-                                     ci_dest = f1 ? c2i : c3i);
+        case OP_WHERE_CBCC: VEC_ARG3(cr_dest = b1 ? c2r : c3r;
+                                     ci_dest = b1 ? c2i : c3i);
         case OP_FUNC_CC: VEC_ARG1(ca.real = c1r;
                                   ca.imag = c1i;
                                   functions_cc[arg2](&ca, &ca);
