@@ -104,6 +104,11 @@ def split_type(type_):
 
 # Private functions
 # =================
+
+# The following ``atomdata_from_*()`` functions can be assimilated
+# into ``Atom.from_*()`` when ``Col`` classes are no longer needed.
+# At the same time, `prefix_map` would be coverted to a mapping to
+# classes instead of prefixes.
 def _atomdata_from_sctype(sctype, shape=1, dflt=None):
     """
     Get atom prefix and constructor keyword args for a NumPy scalar
@@ -310,6 +315,12 @@ class Atom(object):
         return cname[:cname.rfind('Atom')]
 
     @classmethod
+    def _instance_of_prefix(class_, prefix, **kwargs):
+        """Return an `Atom` instance of the class with the given `prefix`."""
+        atomclass = eval('%sAtom' % prefix)
+        return atomclass(**kwargs)
+
+    @classmethod
     def from_sctype(class_, sctype, shape=1, dflt=None):
         """
         Create an `Atom` from a NumPy scalar type `sctype`.
@@ -326,8 +337,7 @@ class Atom(object):
         Float64Atom(shape=(), dflt=0.0)
         """
         (prefix, kwargs) = _atomdata_from_sctype(sctype, shape, dflt)
-        atomclass = eval('%sAtom' % prefix)
-        return atomclass(**kwargs)
+        return class_._instance_of_prefix(prefix, **kwargs)
 
     @classmethod
     def from_dtype(class_, dtype, dflt=None):
@@ -346,8 +356,7 @@ class Atom(object):
         Float64Atom(shape=(), dflt=0.0)
         """
         (prefix, kwargs) = _atomdata_from_dtype(dtype, dflt)
-        atomclass = eval('%sAtom' % prefix)
-        return atomclass(**kwargs)
+        return class_._instance_of_prefix(prefix, **kwargs)
 
     @classmethod
     def from_type(class_, type, shape=1, dflt=None):
@@ -371,8 +380,7 @@ class Atom(object):
         ValueError: unknown type: 'Float64'
         """
         (prefix, kwargs) = _atomdata_from_type(type, shape, dflt)
-        atomclass = eval('%sAtom' % prefix)
-        return atomclass(**kwargs)
+        return class_._instance_of_prefix(prefix, **kwargs)
 
     @classmethod
     def from_kind(class_, kind, itemsize=None, shape=1, dflt=None):
@@ -399,8 +407,7 @@ class Atom(object):
         ValueError: unknown kind: 'Float'
         """
         (prefix, kwargs) = _atomdata_from_kind(kind, itemsize, shape, dflt)
-        atomclass = eval('%sAtom' % prefix)
-        return atomclass(**kwargs)
+        return class_._instance_of_prefix(prefix, **kwargs)
 
     # Properties
     # ~~~~~~~~~~

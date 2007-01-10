@@ -61,6 +61,12 @@ class Col(atom.Atom):
         return cname[:cname.rfind('Col')]
 
     @classmethod
+    def _instance_of_prefix(class_, prefix, **kwargs):
+        """Return a `Col` instance of the class with the given `prefix`."""
+        colclass = eval('%sCol' % prefix)
+        return colclass(**kwargs)
+
+    @classmethod
     def from_sctype(class_, sctype, shape=1, dflt=None, pos=None):
         """
         Create a `Col` definition from a NumPy scalar type `sctype`.
@@ -69,9 +75,7 @@ class Col(atom.Atom):
         the `shape`, `dflt` and `pos` arguments, respectively.
         """
         (prefix, kwargs) = atom._atomdata_from_sctype(sctype, shape, dflt)
-        colclass = eval('%sCol' % prefix)
-        kwargs['pos'] = pos
-        return colclass(**kwargs)
+        return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
 
     @classmethod
     def from_dtype(class_, dtype, dflt=None, pos=None):
@@ -82,9 +86,7 @@ class Col(atom.Atom):
         `dflt` and `pos` arguments, respectively.
         """
         (prefix, kwargs) = atom._atomdata_from_dtype(dtype, dflt)
-        colclass = eval('%sCol' % prefix)
-        kwargs['pos'] = pos
-        return colclass(**kwargs)
+        return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
 
     @classmethod
     def from_type(class_, type, shape=1, dflt=None, pos=None):
@@ -95,9 +97,7 @@ class Col(atom.Atom):
         the `shape`, `dflt` and `pos` arguments, respectively.
         """
         (prefix, kwargs) = atom._atomdata_from_type(type, shape, dflt)
-        colclass = eval('%sCol' % prefix)
-        kwargs['pos'] = pos
-        return colclass(**kwargs)
+        return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
 
     @classmethod
     def from_kind(class_, kind, itemsize=None, shape=1, dflt=None, pos=None):
@@ -110,9 +110,7 @@ class Col(atom.Atom):
         support a default item size.
         """
         (prefix, kwargs) = atom._atomdata_from_kind(kind, itemsize, shape, dflt)
-        colclass = eval('%sCol' % prefix)
-        kwargs['pos'] = pos
-        return colclass(**kwargs)
+        return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
 
     # Special methods
     # ~~~~~~~~~~~~~~~
@@ -135,10 +133,9 @@ def _create_col_class(prefix):
 
         The constructor accepts the same arguments as the equivalent
         `Atom` class, plus an additional ``pos`` argument for position
-        information.
+        information, which is assigned to the `_v_pos` attribute.
         """
         def __init__(self, *args, **kwargs):
-            kwargs = kwargs.copy()
             pos = kwargs.pop('pos', None)
             atombase.__init__(self, *args, **kwargs)
             self._v_pos = pos
