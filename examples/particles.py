@@ -10,7 +10,6 @@ MAX_PARTICLES_PER_EVENT = 100
 
 # Particle description
 class Particle(IsDescription):
-    _v_flavor   = "numpy"
     #event_id    = Int32Col(pos=1, indexed=True) # event id (indexed)
     event_id    = Int32Col(pos=1)               # event id (not indexed)
     particle_id = Int32Col(pos=2)               # particle id in the event
@@ -28,6 +27,7 @@ group = fileh.createGroup(fileh.root, "events")
 table = fileh.createTable(group, 'table', Particle, "A table", Filters(0))
 # Choose this line if you want data compression
 #table = fileh.createTable(group, 'table', Particle, "A table", Filters(1))
+table.flavor = "numpy"
 
 # Fill the table with events
 random.seed(1)  # In order to have reproducible results

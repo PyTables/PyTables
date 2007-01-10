@@ -22,7 +22,7 @@ except:
     numarray_imported = 0
 
 from tables import *
-from tables.utils import convertNPToNumArray, convertNPToNumeric
+from tables.flavor import flavor_to_flavor
 from tables.tests.common import verbose, typecode, allequal, cleanup, heavy
 
 # To delete the internal attributes automagically
@@ -69,8 +69,8 @@ class BasicTestCase(unittest.TestCase):
                           fletcher32 = self.fletcher32)
         carray = self.fileh.createCArray(group, 'carray1', atom, self.shape,
                                          title, filters=filters,
-                                         flavor=self.flavor,
                                          chunkshape = self.chunkshape)
+        carray.flavor = self.flavor
 
         # Fill it with data
         self.rowshape = list(carray.shape)
@@ -234,10 +234,10 @@ class BasicTestCase(unittest.TestCase):
 
         if self.flavor == "numarray":
             # Convert the object to Numarray
-            object = convertNPToNumArray(object)
+            object = flavor_to_flavor(object, 'numpy', 'numarray')
         elif self.flavor == "numeric":
             # Convert the object to Numeric
-            object = convertNPToNumeric(object)
+            object = flavor_to_flavor(object, 'numpy', 'numeric')
 
         # Read data from the array
         try:
@@ -306,10 +306,10 @@ class BasicTestCase(unittest.TestCase):
 
         if self.flavor == "numarray":
             # Convert the object to numarray
-            object = convertNPToNumArray(object)
+            object = flavor_to_flavor(object, 'numpy', 'numarray')
         elif self.flavor == "numeric":
             # Convert the object to Numeric
-            object = convertNPToNumeric(object)
+            object = flavor_to_flavor(object, 'numpy', 'numeric')
 
         if self.type == "string":
             if hasattr(self, "wslice"):
@@ -1413,8 +1413,8 @@ class CopyTestCase(unittest.TestCase):
         arr = Int16Atom()
         shape = (2,2)
         array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
-                                    "title array1", flavor=flavor,
-                                    chunkshape=(2, 2))
+                                    "title array1", chunkshape=(2, 2))
+        array1.flavor = flavor
         array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
 
         if self.close:
@@ -1471,8 +1471,8 @@ class CopyTestCase(unittest.TestCase):
         shape = (2,2)
         arr = Int16Atom()
         array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
-                                    "title array1", flavor="python",
-                                    chunkshape=(2, 2))
+                                    "title array1", chunkshape=(2, 2))
+        array1.flavor = "python"
         array1[...] = [[456, 2],[3, 457]]
 
         if self.close:
@@ -1531,8 +1531,8 @@ class CopyTestCase(unittest.TestCase):
         shape = (2,2)
         arr = StringAtom(itemsize=4)
         array1 = fileh.createCArray(fileh.root, 'array1', arr, shape,
-                                    "title array1", flavor="python",
-                                    chunkshape=(2, 2))
+                                    "title array1", chunkshape=(2, 2))
+        array1.flavor = "python"
         array1[...] = [["456", "2"],["3", "457"]]
 
         if self.close:

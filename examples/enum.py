@@ -75,7 +75,8 @@ workingDays = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5}
 dayRange = tables.EnumAtom(workingDays, 'Mon', base='uint16', shape=(0, 2))
 
 COMMENT("Create an EArray of day ranges within a week.")
-earr = h5f.createEArray('/', 'days', dayRange, title="Working day ranges", flavor='python')
+earr = h5f.createEArray('/', 'days', dayRange, title="Working day ranges")
+earr.flavor = 'python'
 
 COMMENT("Throw some day ranges in.")
 wdays = earr.getEnum()

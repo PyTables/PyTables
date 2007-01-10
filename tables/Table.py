@@ -36,28 +36,13 @@ from time import time
 
 import numpy
 
-try:
-    import numarray
-    import numarray.records
-    import numarray.strings
-    numarray_imported = True
-except ImportError:
-    numarray_imported = False
-
-try:
-    import Numeric
-    Numeric_imported = True
-except ImportError:
-    Numeric_imported = False
-
-
 import tables.TableExtension as TableExtension
 from tables.conditions import split_condition, call_on_recarr
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
+from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import processRange, processRangeRead, \
-     joinPath, convertNPToNumeric, convertNPToNumArray, tonumarray, tonumpy, \
-     is_idx, flattenNames, byteorders
+     joinPath, is_idx, flattenNames, byteorders
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import IsDescription, Description, Col
@@ -81,9 +66,6 @@ __version__ = "$Revision$"
 # 2.5: Added the FIELD_%d_FILL attributes.
 # 2.6: Added the FLAVOR attribute (optional).
 obversion = "2.6"  # The Table VERSION number
-
-# The supported flavors for Table object
-supportedFlavors = ['numpy', 'numarray', 'numeric', 'python']
 
 # Paths and names for hidden nodes related with indexes.
 _indexName   = '_i_%s'  # %s -> encoded table path
@@ -190,15 +172,15 @@ class Table(TableExtension.Table, Leaf):
         modifyRows(start, rows)
         modifyColumn(columns, names, [start] [, stop] [, step])
         modifyColumns(columns, names, [start] [, stop] [, step])
-        read([start] [, stop] [, step] [, field [, flavor]])
-        readCoordinates(coords [, field [, flavor]])
-        readWhere(condition [, condvars] [, field] [, flavor])
+        read([start] [, stop] [, step] [, field])
+        readCoordinates(coords [, field])
+        readWhere(condition [, condvars] [, field])
         reIndex()
         reIndexDirty()
         removeRows(start [, stop])
         where(condition [, condvars] [, start] [, stop] [, step])
         whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
-        getWhereList(condition [, condvars] [, flavor] [, sort])
+        getWhereList(condition [, condvars] [, sort])
 
     Instance variables:
 
@@ -250,18 +232,6 @@ class Table(TableExtension.Table, Leaf):
         lambda self: self.description._v_byteorder, None, None,
         "The endianness of data in memory "
         "('big', 'little' or 'irrelevant').")
-
-    def _g_getflavor(self):
-        # Check if there is some "FLAVOR" attribute (remember, it is optional)
-        return getattr(self._v_attrs, "FLAVOR", "numpy")
-    def _g_setflavor(self, value):
-        if value not in ["numpy", "numarray"]:
-            raise ValueError, \
-"""The supported flavors for a table are: "numpy" and "numarray" and you passed %s.
-""" % (value)
-        setattr(self._v_attrs, "FLAVOR", value)
-    flavor = property(_g_getflavor, _g_setflavor, None,
-                      "The flavor that will be used when returning read data.")
 
     # Lazy attributes
     # ```````````````
@@ -432,42 +402,50 @@ class Table(TableExtension.Table, Leaf):
         self._dirtycache = True
         """Whether the data caches are dirty or not."""
 
-
-        # Private variable to keep the value of flavor until it the table
-        # would be created.
-        self._flavor = None
+        self._descflavor = None
+        """Temporarily keeps the flavor of a description with data."""
 
         # Initialize this object in case is a new Table
-        if type(description) is dict:
+
+        # Try purely descriptive description objects.
+        if new and isinstance(description, dict):
             # Dictionary case
             self.description = Description(description)
-        elif isinstance(description, numpy.ndarray):
-            self._flavor = "numpy"
-            self._newRecArray(description)
-            # Provide a better guess for the expected number of rows
-            # But beware with the small recarray lengths!
-            # Commented out until a better approach is found
-            #if self._v_expectedrows == expectedrows:
-            #    self._v_expectedrows = self.nrows
-        elif (numarray_imported and
-              isinstance(description, numarray.records.RecArray)):
-            # numarray RecArray object case
-            self._flavor = "numarray"
-            nra = tonumpy(description)
-            self._newRecArray(nra)
-        elif (type(description) == type(IsDescription) and
-              issubclass(description, IsDescription)):
+        elif new and ( type(description) == type(IsDescription)
+                       and issubclass(description, IsDescription) ):
             # IsDescription subclass case
             descr = description()
             self.description = Description(descr.columns)
-        elif isinstance(description, Description):
+        elif new and isinstance(description, Description):
             # It is a Description instance already
             self.description = description
-        elif description is not None:
+
+        # No description yet?
+        if new and self.description is None:
+            # Try record array description objects.
+            try:
+                self._descflavor = flavor = flavor_of(description)
+            except TypeError:  # probably not an array
+                pass
+            else:
+                if flavor == 'python':
+                    nparray = numpy.rec.array(description)
+                else:
+                    nparray = array_as_internal(description, flavor)
+                self.nrows = nrows = long(nparray.size)
+                # If `self._v_recarray` is set, it will be used as the
+                # initial buffer.
+                if nrows > 0:
+                    self._v_recarray = nparray
+                fields = self._descrFromRA(nparray)
+                self.description = Description(fields)
+
+        # No description yet?
+        if new and self.description is None:
             raise TypeError(
-                "The ``description`` argument is not of a supported type: "
-                "``IsDescription`` subclass, ``Description`` instance,"
-                "dictionary or ``RecArray`` or instance.""")
+                "the ``description`` argument is not of a supported type: "
+                "``IsDescription`` subclass, ``Description`` instance, "
+                "dictionary, or record array" )
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
@@ -490,6 +468,11 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # We are putting here the index-related issues
         # as well as filling general info for table
         # This is needed because we need first the index objects created
+
+        # First, get back the flavor of input data (if any) for
+        # `Leaf._g_postInitHook()`.
+        self._flavor, self._descflavor = self._descflavor, None
+        super(Table, self)._g_postInitHook()
 
         # Create a cols accessor.
         self.cols = Cols(self, self.description)
@@ -588,7 +571,11 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
 
     def _descrFromRA(self, recarr):
-        "Get a description dictionary from a (nested) RecArray."
+        """
+        Get a description dictionary from a (nested) record array.
+
+        This method is aware of byteswapped record arrays.
+        """
 
         fields = {}
         fbyteorder = '|'
@@ -620,33 +607,6 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # at the HDF5 extension level)
         fields['_v_byteorder'] = byteorders[fbyteorder]
         return fields
-
-
-    def _newRecArray(self, recarr):
-        """Save a recarray to disk, and map it as a Table object
-
-        This method is aware of byteswapped and non-contiguous recarrays
-        """
-
-        # Check if recarray is discontigous:
-        if not recarr.flags.contiguous:
-            # Make a copy to ensure that it is contiguous
-            # We always should make a copy because I think that
-            # HDF5 does not support strided buffers, but just offsets
-            # between fields
-            recarr = recarr.copy()
-        # Initialize the number of rows
-        self.nrows = long(recarr.size)
-        # If self._v_recarray exists, and has data, it would be marked as
-        # the initial buffer
-        if self.nrows > 0:
-            self._v_recarray = recarr
-        # Get the fields dictionary to feed the Description factory
-        fields = self._descrFromRA(recarr)
-        # Create an instance description to host the record fields
-        self.description = Description(fields)
-        # The rest of the info is automatically added when self.create()
-        # is called
 
 
     def _getTypeColNames(self, type_):
@@ -744,14 +704,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             self.coldflts[colname] = colobj.dflt
             self.colindexed[colname] = False  # never indexed on creation
 
-        setAttr = self._v_attrs._g__setattr
-        # Assign the value of FLAVOR
-        if self._flavor is None:
-            self._flavor = getattr(self.description, '_v_flavor', "numpy")
-        setAttr('FLAVOR', self._flavor)
-
         # Attach the FIELD_N_FILL attributes. We write all the level defaults
         i = 0
+        setAttr = self._v_attrs._g__setattr
         for colobj in self.description._f_walk(type="Col"):
             fieldname = "FIELD_%s_FILL" % i
             setAttr(fieldname, colobj.dflt)
@@ -764,7 +719,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Cache _v_dtype for this table
         self._v_dtype = self.description._v_dtype
 
-        # Finally, return the object identifier.
         return self._v_objectID
 
 
@@ -1181,7 +1135,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return row(start, stop, step, coords=None, ncoords=ncoords)
 
 
-    def readWhere(self, condition, condvars=None, field=None, flavor=None):
+    def _checkFieldIfNumeric(self, field):
+        """Check that `field` has been selected with ``numeric`` flavor."""
+        if self.flavor == 'numeric' and field is None:
+            raise ValueError(
+                "Numeric does not support heterogeneous datasets; "
+                "you must specify a field when using the ``numeric`` flavor" )
+
+
+    def readWhere(self, condition, condvars=None, field=None):
         """
         Read table data fulfilling the given `condition`.
 
@@ -1192,16 +1154,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         The meaning of the `condition` and `condvars` arguments is the
         same as in the `self.where()` method.
         """
-
-        if not flavor:
-            flavor = self.flavor
-        if flavor not in supportedFlavors:
-            raise ValueError("""\
-"%s" flavor is not allowed; please use some of %s.""" % \
-                             (flavor, supportedFlavors))
-        if Numeric_imported and flavor == "numeric" and field is None:
-            raise ValueError, \
-"""Numeric does not support heterogeneous datasets yet. You cannot specify a 'numeric' flavor without specifying a field."""
+        self._checkFieldIfNumeric(field)
 
         # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)
@@ -1211,7 +1164,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if not idxvar:
             coords = [p.nrow for p in self._where(splitted, condvars)]
             self._whereCondition = None  # reset the conditions
-            return self.readCoordinates(coords, field, flavor)
+            return self.readCoordinates(coords, field)
 
         # Retrieve the array of rows fulfilling the index condition.
 
@@ -1257,12 +1210,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         if field:
             recarr = getNestedField(recarr, field)
-
-        if numarray_imported and flavor == "numarray":
-            # do an additional conversion conversion (without a copy)
-            recarr = tonumarray(recarr, copy=False)
-
-        return recarr
+        return internal_to_flavor(recarr, self.flavor)
 
 
     def whereAppend( self, dstTable, condition, condvars=None,
@@ -1300,26 +1248,18 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         return nrows
 
 
-    def getWhereList(self, condition, condvars=None, flavor=None, sort=False):
+    def getWhereList(self, condition, condvars=None, sort=False):
         """
         Get the row coordinates fulfilling the given `condition`.
+
+        The coordinates are returned as a list of the current flavor.
 
         The meaning of the `condition` and `condvars` arguments is the
         same as in the `self.where()` method.
 
-        `flavor` is the desired type of the returned list. If it is not
-        provided, then it will take the value of `self.flavor`.
-
         `sort` means that you want to retrieve the coordinates ordered.
         The default is to not sort them.
         """
-
-        if not flavor:
-            flavor = self.flavor
-        if flavor not in supportedFlavors:
-            raise ValueError("""\
-"%s" flavor is not allowed; please use some of %s.""" % \
-                             (flavor, supportedFlavors))
 
         # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)
@@ -1350,7 +1290,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             if rescond and ncoords > 0:
                 indexValid = call_on_recarr(
                     rescond, splitted.residual_parameters,
-                    recarr=self.readCoordinates(coords, flavor='numpy'),
+                    recarr=self._readCoordinates(coords),
                     param2arg=condvars.__getitem__ )
                 coords = coords[indexValid]
                 ncoords = len(coords)
@@ -1361,15 +1301,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             self._whereCondition = None
         if sort:
             coords = numpy.sort(coords)
-        if flavor == "numpy":
-            return coords
-        if numarray_imported and flavor == "numarray":
-            coords = numarray.asarray(coords)
-        elif Numeric_imported and flavor == "numeric":
-            coords = numeric.asarray(coords)
-        elif flavor == "python":
-            coords = coords.tolist()
-        return coords
+        return internal_to_flavor(coords, self.flavor)
 
 
     def itersequence(self, sequence, sort=False):
@@ -1486,19 +1418,14 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def read(self, start=None, stop=None, step=None,
-             field=None, flavor=None, coords = None):
+             field=None, coords = None):
         """Read a range of rows and return an in-memory object.
 
         If `start`, `stop`, or `step` parameters are supplied, a row
         range is selected. If `field` is specified, only this `field` is
-        returned as a NumPy object. If `field` is not supplied all
-        the fields are selected and a NestedRecArray (or equivalent
-        numpy object, see description for `flavor` later on) is
-        returned.  If `flavor` is provided, an additional conversion to
-        an object of this flavor is made. `flavor` must have any of the
-        next values: "numarray", "numpy", "python" or "numeric" (only if
-        `field` has been specified). If `flavor` is not provided, then
-        it will take the value of self.flavor.
+        returned as an array of the current flavor. If `field` is not
+        supplied all the fields are selected and a record array of the
+        current flavor is returned.
 
         Nested fields can be specified in the `field` parameter by
         using a '/' as a separator between fields (e.g. 'Info/value').
@@ -1512,16 +1439,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         if field:
             self._checkColumn(field)
-
-        if not flavor:
-            flavor = self.flavor
-        if flavor not in supportedFlavors:
-            raise ValueError("""\
-"%s" flavor is not allowed; please use some of %s.""" % \
-                             (flavor, supportedFlavors))
-        if Numeric_imported and flavor == "numeric" and field is None:
-            raise ValueError, \
-"""Numeric does not support heterogeneous datasets. You cannot specify a 'numeric' flavor without specifying a field."""
+        else:
+            self._checkFieldIfNumeric(field)
 
         (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
 
@@ -1537,46 +1456,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 coords = numpy.asarray(coords, dtype=numpy.int64)
 
         arr = self._read(start, stop, step, field, coords)
-        # Convert to Numeric, tuple or list if needed
-        if field:
-            # homogeneous conversion
-            if numarray_imported and flavor == "numarray":
-                arr = convertNPToNumArray(arr)
-            elif Numeric_imported and flavor == "numeric":
-                arr = convertNPToNumeric(arr)
-        elif numarray_imported and flavor == "numarray":
-            # heterogeneous conversion (without a copy)
-            arr = tonumarray(arr, copy=False)
-        elif flavor == "python":
-            arr = arr.tolist()
-
-        return arr
+        return internal_to_flavor(arr, self.flavor)
 
 
-    def readCoordinates(self, coords, field=None, flavor=None):
-        """
-        Read a set of rows given their indexes into an in-memory object.
-
-        This method works much like the `read()` method, but it uses a
-        sequence (`coords`) of row indexes to select the wanted columns,
-        instead of a column range.
-
-        It returns the selected rows in a NumPy record array.  If
-        `flavor` is provided, an additional conversion to an object of
-        this flavor is made, just as in `read()`. If not specified, the
-        default flavor for this table will be chosen as the output
-        format.
-        """
-
-        if not flavor:
-            flavor = self.flavor
-        if flavor not in supportedFlavors:
-            raise ValueError("""\
-"%s" flavor is not allowed; please use some of %s.""" % \
-                             (flavor, supportedFlavors))
-        if Numeric_imported and flavor == "numeric" and field is None:
-            raise ValueError, \
-"""Numeric does not support heterogeneous datasets yet. You cannot specify a 'numeric' flavor without specifying a field."""
+    def _readCoordinates(self, coords, field=None):
+        """Private part of `readCoordinates()` with no flavor conversion."""
 
         ncoords = len(coords)
         # Create a read buffer only if needed
@@ -1596,31 +1480,28 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             self._read_elements(result, coords)
 
         # Do the final conversions, if needed
-        if field is None:
-            if numarray_imported and flavor == "numarray":
-                return tonumarray(result)
-            elif flavor == "numpy":
-                return result
-            else:
-                na = result
-        else:
+        if field:
             if ncoords > 0:
-                na = getNestedField(result, field)
+                result = getNestedField(result, field)
             else:
                 # Get an empty array from the cache
-                na = self._getemptyarray(self.coldtypes[field])
-            if flavor == "numpy":
-                return na
-            elif numarray_imported and flavor == "numarray":
-                return convertNPToNumArray(na)
-            elif Numeric_imported and flavor == "numeric":
-                return convertNPToNumeric(na)
+                result = self._getemptyarray(self.coldtypes[field])
+        return result
 
-        # Do an additional conversion, if needed
-        if flavor == "python":
-            return na.tolist()
+    def readCoordinates(self, coords, field=None):
+        """
+        Read a set of rows given their indexes into an in-memory object.
 
-        return na
+        This method works much like the `read()` method, but it uses a
+        sequence (`coords`) of row indexes to select the wanted columns,
+        instead of a column range.
+
+        It returns the selected rows in a record array of the current
+        flavor.
+        """
+        self._checkFieldIfNumeric(field)
+        result = self._readCoordinates(coords, field)
+        return internal_to_flavor(result, self.flavor)
 
 
     def getEnum(self, colname):
@@ -1785,11 +1666,10 @@ You cannot append rows to a non-chunked table.""")
 
         # Try to convert the object into a recarray compliant with table
         try:
-            # Check whether rows is a (Nested)RecArray
-            if (numarray_imported and
-                isinstance(rows, numarray.records.RecArray)):
-                rows = tonumpy(rows)
-            # This always makes a copy of the original,
+            iflavor = flavor_of(rows)
+            if iflavor != 'python':
+                rows = array_as_internal(rows, iflavor)
+            # Works for Python structures and always copies the original,
             # so the resulting object is safe for in-place conversion.
             recarray = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
@@ -1878,22 +1758,18 @@ You cannot append rows to a non-chunked table.""")
            "The value has not enough elements to fill-in the specified range"
         # Try to convert the object into a recarray
         try:
-            # Check whether rows is a (Nested)RecArray
-            if (numarray_imported and
-                (isinstance(rows, numarray.records.RecArray) or
-                 isinstance(rows, numarray.records.Record))):
-                rows = tonumpy(rows)
-            # This always makes a copy of the original,
-            # so the resulting object is safe for in-place conversion.
+            iflavor = flavor_of(rows)
+            if iflavor != 'python':
+                rows = array_as_internal(rows, iflavor)
             if hasattr(rows, "shape") and rows.shape == ():
-                # To allow conversion in array if rows is a scalar (void) type
+                # To allow conversion of scalars (void type) into arrays.
                 # See http://projects.scipy.org/scipy/numpy/ticket/315
                 # for discussion on how to pass buffers to constructors
                 # See also http://projects.scipy.org/scipy/numpy/ticket/348
                 recarray = numpy.array([rows], dtype=self._v_dtype)
-                #recarray = numpy.rec.array([rows], dtype=self._v_dtype)
             else:
-                #recarray = numpy.array(rows, dtype=self._v_dtype)
+                # Works for Python structures and always copies the original,
+                # so the resulting object is safe for in-place conversion.
                 recarray = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
@@ -1951,11 +1827,11 @@ table format '%s'. The error was: <%s>
         descr = [objcol._v_parent._v_nestedDescr[objcol._v_pos]]
         # Try to convert the column object into a recarray
         try:
-            # Check whether column is a (Nested)RecArray
-            if (numarray_imported and
-                isinstance(column, numarray.records.RecArray)):
-                column = tonumpy(column)
-            if isinstance(column, numpy.ndarray):
+            # Make sure the result is always a *copy* of the original,
+            # so the resulting object is safe for in-place conversion.
+            iflavor = flavor_of(column)
+            if iflavor != 'python':
+                column = array_as_internal(column, iflavor)
                 recarray = numpy.rec.array(column, dtype=descr)
             else:
                 recarray = numpy.rec.fromarrays([column], dtype=descr)
@@ -1976,7 +1852,7 @@ table format '%s'. The error was: <%s>
             raise ValueError, \
                   "The value has not enough elements to fill-in the specified range"
         # Now, read the original values:
-        mod_recarr = self.read(start, stop, step, flavor="numpy")
+        mod_recarr = self._read(start, stop, step)
         # Modify the appropriate column in the original recarray
         mod_recarr[colname] = recarray[colname]
         # save this modified rows in table
@@ -2034,11 +1910,11 @@ The 'names' parameter must be a list of strings.""")
             #descr.append(objcol._v_parent._v_dtype[objcol._v_pos])
         # Try to convert the columns object into a recarray
         try:
-            # Check whether columns is a (Nested)RecArray
-            if (numarray_imported and
-                isinstance(columns, numarray.records.RecArray)):
-                columns = tonumpy(columns)
-            if isinstance(columns, numpy.ndarray):
+            # Make sure the result is always a *copy* of the original,
+            # so the resulting object is safe for in-place conversion.
+            iflavor = flavor_of(columns)
+            if iflavor != 'python':
+                columns = array_as_internal(columns, iflavor)
                 recarray = numpy.rec.array(columns, dtype=descr)
             else:
                 recarray = numpy.rec.fromarrays(columns, dtype=descr)
@@ -2059,7 +1935,7 @@ The 'names' parameter must be a list of strings.""")
             raise ValueError, \
            "The value has not enough elements to fill-in the specified range"
         # Now, read the original values:
-        mod_recarr = self.read(start, stop, step, flavor="numpy")
+        mod_recarr = self._read(start, stop, step)
         # Modify the appropriate columns in the original recarray
         for name in recarray.dtype.names:
             mod_recarr[name] = recarray[name]

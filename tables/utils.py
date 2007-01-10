@@ -16,45 +16,14 @@ import re
 import warnings
 import keyword
 import os, os.path
-import cPickle
 import sys
 
 import numpy
 
-try:
-    import Numeric
-    Numeric_imported = True
-    # A map between Numpy types and Numeric
-    NPtype2Numtype = {numpy.int8: Numeric.Int8,
-                      numpy.int16: Numeric.Int16,
-                      numpy.int32: Numeric.Int32,
-                      numpy.uint8: Numeric.UInt8,
-                      numpy.uint16: Numeric.UInt16,
-                      numpy.uint32: Numeric.UInt32,
-                      numpy.float32: Numeric.Float32,
-                      numpy.float64: Numeric.Float64,
-                      numpy.complex64: Numeric.Complex32,
-                      numpy.complex128: Numeric.Complex64,
-                      numpy.bool_: Numeric.UInt8,
-                      }
-
-except ImportError:
-    Numeric_imported = False
-
-try:
-    import numarray
-    import numarray.strings
-    import numarray.records
-    numarray_imported = True
-except ImportError:
-    numarray_imported = False
-
 import tables.utilsExtension
 from tables.exceptions import NaturalNameWarning
-from tables.constants import CHUNKTIMES
+from tables.flavor import array_of_flavor
 from tables.registry import classNameDict
-from tables import nriterators
-from tables import nestedrecords
 
 
 # The map between byteorders in NumPy and PyTables
@@ -232,45 +201,6 @@ def processRangeRead(nrows, start=None, stop=None, step=1):
     return (start, stop, step)
 
 
-def convToNP(arr):
-    "Convert a generic, homogeneous, object into a NumPy contiguous object."
-
-    if (type(arr) == numpy.ndarray and
-        arr.dtype.kind not in ['V', 'U']):  # not in void, unicode
-        flavor = "numpy"
-        nparr = arr
-    elif (numarray_imported and
-          type(arr) in (numarray.NumArray, numarray.strings.CharArray)):
-        flavor = "numarray"
-        nparr = numpy.asarray(arr)
-    elif Numeric_imported and type(arr) == Numeric.ArrayType:
-        flavor = "numeric"
-        nparr = numpy.asarray(arr)
-    elif (type(arr) in (tuple, list, int, float, complex, str) or
-          numpy.isscalar(arr)):  # numpy scalars will be treated as python objects
-        flavor = "python"
-        # Test if this can be converted into a NumPy object
-        try:
-            nparr = numpy.array(arr)
-        # If not, issue an error
-        except Exception, exc:  #XXX
-            raise ValueError, \
-"""The object '%s' of type <%s> can't be converted into a NumPy array.
-Sorry, but this object is not supported. The error was <%s>:""" % \
-        (arr, type(arr), exc)
-    else:
-        raise TypeError, \
-"""The object '%s' of type <%s> is not in the list of supported objects:
-numpy, numarray, numeric, homogeneous list or tuple, int, float, complex or str.
-Sorry, but this object is not supported in this context.""" % (arr, type(arr))
-
-    # Make a copy of the array in case it is not contiguous
-    if nparr.flags.contiguous == False:
-        nparr = nparr.copy()
-
-    return nparr, flavor
-
-
 # This is used in VLArray and EArray to produce NumPy object compliant
 # with atom from a generic python type.  If copy is stated as True, it
 # is assured that it will return a copy of the object and never the same
@@ -279,7 +209,7 @@ def convertToNPAtom(arr, atom, copy=False):
     "Convert a generic object into a NumPy object compliant with atom."
 
     # First, convert the object to a NumPy array
-    nparr, flavor = convToNP(arr)
+    nparr = array_of_flavor(arr, 'numpy')
 
     # Get copies of data if necessary for getting a contiguous buffer,
     # or if dtype is not the correct one.
@@ -288,200 +218,6 @@ def convertToNPAtom(arr, atom, copy=False):
         nparr = numpy.array(nparr, dtype=basetype)
 
     return nparr
-
-
-def convertNPToNumeric(arr):
-    """Convert a NumPy object into a Numeric one."""
-
-    if not Numeric_imported:
-        # Warn the user
-        warnings.warn( \
-"""You are asking for a Numeric object, but Numeric is not installed locally.
-  Returning a NumPy object instead!.""")
-        return arr
-
-    # First, convert to a contiguous buffer (.tostring() is very efficient)
-    arrstr = arr.tostring()
-    shape = list(arr.shape)
-    if arr.dtype.kind == "S":
-        if arr.itemsize > 1:
-            # Numeric does not support arrays with elements with a
-            # size > 1. Simulate this by adding an additional dimension
-            shape.append(arr.itemsize)
-        arr = Numeric.fromstring(arrstr, typecode='c')
-        arr = Numeric.reshape(arr, shape)
-    else:
-        # Try to convert to Numeric and catch possible errors
-        try:
-            #arr = Numeric.asarray(arr)  # Array protocol
-            # It seems that the array protocol in Numeric does leak. See:
-            # http://comments.gmane.org/gmane.comp.python.numeric.general/12563
-            # for more info on this issue.
-            typecode = NPtype2Numtype[arr.dtype.type]
-            arr = Numeric.fromstring(arrstr, typecode)
-            arr = Numeric.reshape(arr, shape)
-        except Exception, exc:
-            warnings.warn( \
-"""Array cannot be converted into a Numeric object!. The error was: <%s>
-""" % (exc))
-
-    return arr
-
-
-def convertNPToNumArray(arr):
-    """Convert a NumPy (homogeneous) object into a NumArray one"""
-
-    if not numarray_imported:
-        # Warn the user
-        warnings.warn( \
-"""You are asking for a numarray object, but numarray is not installed locally.
-  Returning a NumPy object instead!.""")
-        return arr
-
-    if arr.dtype.kind == "S":
-        # We can't use the array protocol to do this conversion
-        if arr.shape == ():
-            buffer_ = arr.item()
-        else:
-            buffer_ = arr
-        arr = numarray.strings.array(buffer=buffer_, shape=arr.shape,
-                                     itemsize=arr.itemsize, padc='\x00')
-    else:
-        #if not arr.flags.writeable or not arr.flags.aligned:
-        #    # These cases are not handled by the array protocol
-        #    # (at least in the current implementation)
-        #    # A copy will correct this
-        #    arr = arr.copy()
-        # This works for regular homogeneous arrays and even for rank-0 arrays
-        # Using asarray gives problems in some tests (I don't know exactly why)
-        #arr = numarray.asarray(arr)  # Array protocol
-        arr = numarray.array(arr)  # Array protocol (with copy)
-    return arr
-
-
-def convToFlavor(arr, flavor):
-    "Convert the NumPy parameter to the correct flavor"
-
-    if flavor == "numarray":
-        arr = convertNPToNumArray(arr)
-    elif flavor == "numeric":
-        arr = convertNPToNumeric(arr)
-    elif flavor == "python":
-        if arr.shape <> ():
-            # Lists are the default for returning multidimensional objects
-            arr = arr.tolist()
-        else:
-            # 0-dim or scalar case
-            arr = arr.item()
-    return arr
-
-
-def tonumarray(array, copy=False):
-    """
-    Create a new `NestedRecArray` from a numpy object.
-
-    If ``copy`` is True, the a copy of the data is made. The default is
-    not doing a copy.
-
-    Example
-    =======
-
-    >>> nra = tonumarray(numpy.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
-
-    """
-
-    if not (isinstance(array, numpy.ndarray) or
-            type(array) == numpy.rec.recarray or
-            type(array) == numpy.rec.record or
-            type(array) == numpy.void):    # Check scalar case.
-        raise ValueError, \
-"You need to pass a numpy object, and you passed a %s." % (type(array))
-
-    # Convert the original description based in the array protocol in
-    # something that can be understood by the NestedRecArray
-    # constructor.
-    descr = [i for i in nestedrecords.convertFromAPDescr(array.dtype.descr)]
-    # Flat the description
-    flatDescr = [i for i in nriterators.flattenDescr(descr)]
-    # Flat the structure descriptors
-    flatFormats = [i for i in nriterators.getFormatsFromDescr(flatDescr)]
-    flatNames = [i for i in nriterators.getNamesFromDescr(flatDescr)]
-    # Create a regular RecArray
-    if copy:
-        array = array.copy()  # copy the data before creating the object
-    if array.shape == ():
-        shape = 1     # Scalar case. Shape = 1 will provide an adequate buffer.
-    else:
-        shape = array.shape
-    ra = numarray.records.array(array.data, formats=flatFormats,
-                                names=flatNames,
-                                shape=shape,
-                                byteorder=sys.byteorder,
-                                aligned = False)  # aligned RecArrays
-                                                  # not supported yet
-    # Check whether we need a NestedRecArray as final output
-    nested = False
-    for name in flatNames:
-        if '/' in name:
-            nested = True
-            break
-    if nested:
-        # Create the nested recarray itself
-        ra = nestedrecords.NestedRecArray(ra, descr)
-
-    return ra
-
-
-
-def tonumpy(rna, copy=False):
-    """
-    Create a new heterogeneous numpy object from a numarray object.
-
-    If ``copy`` is True, then a copy of the data is made. The default is
-    not doing a copy.
-
-    Example
-    =======
-
-    >>> nrp = fromnumarray(records.array([(1,11,'a'),(2,22,'b')], dtype='u1,f4,a1'))
-
-    """
-
-    if not (isinstance(rna, numarray.records.RecArray) or
-            isinstance(rna, numarray.records.Record)):
-        raise ValueError, \
-"You need to pass a numarray (Nested)RecArray object, and you passed a %s." % \
-(type(rna))
-
-    record = False
-    if isinstance(rna, numarray.records.Record):
-        # Get a RecArray from a record
-        row = rna.row
-        rna = rna.array[row:row+1]
-        record = True
-    if copy:
-        rna = rna.copy()
-    if type(rna) == numarray.records.RecArray:
-        # Create a NestedRecArray array from the RecArray to easy the
-        # conversion. This is sub-optimal and should be replaced by a
-        # faster way to convert a plain RecArray into a numpy recarray.
-        # F. Altet 2006-06-19
-        rna = nestedrecords.array(rna)
-    rnp = numpy.ndarray(buffer=rna._data, shape=rna.shape,
-                        dtype=rna.array_descr,
-                        offset=rna._byteoffset)
-    if record:
-        # Get the numpy record
-        rnp = rnp[row]
-    return rnp
-
-
-def totuple(object, arr):
-    """Returns array as a (nested) tuple of elements."""
-    if len(arr._shape) == 1:
-        return tuple([ x for x in arr ])
-    else:
-        return tuple([ totuple(object, ni) for ni in arr ])
 
 
 def joinPath(parentPath, name):
@@ -602,53 +338,6 @@ def flattenNames(names):
         else:
             raise TypeError, \
                   """elements of the ``names`` list must be strings or 2-tuples"""
-
-
-
-if __name__=="__main__":
-    import sys
-    import getopt
-
-    usage = \
-"""usage: %s [-v] format   # '[("f1", [("f1", "u2"),("f2","u4")])]'
-  -v means ...\n""" \
-    % sys.argv[0]
-    try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'v')
-    except getopt.GetoptError:
-        sys.stderr.write(usage)
-        sys.exit(0)
-    # if we pass too much parameters, abort
-    if len(pargs) <> 1:
-        sys.stderr.write(usage)
-        sys.exit(0)
-    # default options
-    verbose = 0
-    # Get the options
-    for option in opts:
-        if option[0] == '-v':
-            verbose = 1
-    # Catch the format
-    try:
-        format = eval(pargs[0])
-    except:
-        format = pargs[0]
-    print "format-->", format
-    # Create a numpy recarray
-    npr = numpy.zeros((3,), dtype=format)
-    print "numpy RecArray:", repr(npr)
-    # Convert it into a NestedRecArray
-    #nra = tonumarray(npr)
-    nra = nestedrecords.array(npr)
-    print repr(nra)
-    # Convert again into numpy
-    #nra = nestedrecords.array(npr.data, descr=format, shape=(3,))
-    print "nra._formats-->", nra._formats
-    print "nra.descr-->", nra.descr
-    print "na_descr-->", nra.array_descr
-    #npr2 = numpy.array(nra._flatArray, dtype=nra.array_descr)
-    npr2 = tonumpy(nra)
-    print repr(npr2)
 
 
 ## Local Variables:

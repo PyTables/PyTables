@@ -197,8 +197,8 @@ class BasicTestCase(PyTablesTestCase):
             print '\n', '-=' * 30
             print "Running %s.test05_getWhereList..." % self.__class__.__name__
 
-        # Open the HDF5 file in read-only mode
-        self.fileh = openFile(self.file, mode = "r")
+        # Open the HDF5 file in read-write mode
+        self.fileh = openFile(self.file, mode = "a")
         table = self.fileh.root.table
         idxcol = table.cols.var4.index
         if verbose:
@@ -207,7 +207,8 @@ class BasicTestCase(PyTablesTestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList('var1 < "10"', flavor="python")
+        table.flavor = "python"
+        rowList1 = table.getWhereList('var1 < "10"')
         rowList2 = [p.nrow for p in table if p['var1'] < "10"]
         if verbose:
             print "Selected values:", rowList1
@@ -222,8 +223,8 @@ class BasicTestCase(PyTablesTestCase):
             print '\n', '-=' * 30
             print "Running %s.test06_getWhereList..." % self.__class__.__name__
 
-        # Open the HDF5 file in read-only mode
-        self.fileh = openFile(self.file, mode = "r")
+        # Open the HDF5 file in read-write mode
+        self.fileh = openFile(self.file, mode = "a")
         table = self.fileh.root.table
         idxcol = table.cols.var2.index
         if verbose:
@@ -233,7 +234,8 @@ class BasicTestCase(PyTablesTestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList('var2 == False', flavor="numpy", sort=True)
+        table.flavor = "numpy"
+        rowList1 = table.getWhereList('var2 == False', sort=True)
         rowList2 = [p.nrow for p in table if p['var2'] == 0]
         # Convert to a NumPy object
         rowList2 = numpy.array(rowList2, numpy.int64)
@@ -250,8 +252,8 @@ class BasicTestCase(PyTablesTestCase):
             print '\n', '-=' * 30
             print "Running %s.test07_getWhereList..." % self.__class__.__name__
 
-        # Open the HDF5 file in read-only mode
-        self.fileh = openFile(self.file, mode = "r")
+        # Open the HDF5 file in read-write mode
+        self.fileh = openFile(self.file, mode = "a")
         table = self.fileh.root.table
         idxcol = table.cols.var4.index
         if verbose:
@@ -260,7 +262,8 @@ class BasicTestCase(PyTablesTestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList('var3 < 15', flavor="python", sort=True)
+        table.flavor = "python"
+        rowList1 = table.getWhereList('var3 < 15', sort=True)
         rowList2 = [p.nrow for p in table if p["var3"] < 15]
         if verbose:
             print "Selected values:", rowList1
@@ -275,8 +278,8 @@ class BasicTestCase(PyTablesTestCase):
             print '\n', '-=' * 30
             print "Running %s.test08_getWhereList..." % self.__class__.__name__
 
-        # Open the HDF5 file in read-only mode
-        self.fileh = openFile(self.file, mode = "r")
+        # Open the HDF5 file in read-write mode
+        self.fileh = openFile(self.file, mode = "a")
         table = self.fileh.root.table
         idxcol = table.cols.var4.index
         if verbose:
@@ -285,7 +288,8 @@ class BasicTestCase(PyTablesTestCase):
             print "Chunk size:", idxcol.sorted.chunksize
 
         # Do a selection
-        rowList1 = table.getWhereList('var4 < 10', flavor="python", sort=True)
+        table.flavor = "python"
+        rowList1 = table.getWhereList('var4 < 10', sort=True)
         rowList2 = [p.nrow for p in table if p['var4'] < 10]
         if verbose:
             print "Selected values:", rowList1
@@ -300,7 +304,7 @@ class BasicTestCase(PyTablesTestCase):
             print '\n', '-=' * 30
             print "Running %s.test09a_removeIndex..." % self.__class__.__name__
 
-        # Open the HDF5 file in read-only mode
+        # Open the HDF5 file in read-write mode
         self.fileh = openFile(self.file, mode = "a")
         table = self.fileh.root.table
         idxcol = table.cols.var1.index
@@ -334,7 +338,7 @@ class BasicTestCase(PyTablesTestCase):
             print '\n', '-=' * 30
             print "Running %s.test09b_removeIndex..." % self.__class__.__name__
 
-        # Open the HDF5 file in read-only mode
+        # Open the HDF5 file in read-write mode
         self.fileh = openFile(self.file, mode = "a")
         table = self.fileh.root.table
         idxcol = table.cols.var1.index
@@ -374,7 +378,7 @@ class BasicTestCase(PyTablesTestCase):
             print '\n', '-=' * 30
             print "Running %s.test10a_moveIndex..." % self.__class__.__name__
 
-        # Open the HDF5 file in read-only mode
+        # Open the HDF5 file in read-write mode
         self.fileh = openFile(self.file, mode = "a")
         table = self.fileh.root.table
         idxcol = table.cols.var1.index
@@ -396,7 +400,8 @@ class BasicTestCase(PyTablesTestCase):
         assert table.colindexed["var1"] == 1
 
         # Some sanity checks
-        rowList1 = table.getWhereList('var1 < "10"', flavor="python")
+        table.flavor = "python"
+        rowList1 = table.getWhereList('var1 < "10"')
         rowList2 = [p.nrow for p in table if p['var1'] < "10"]
         if verbose:
             print "Selected values:", rowList1
@@ -411,7 +416,7 @@ class BasicTestCase(PyTablesTestCase):
             print '\n', '-=' * 30
             print "Running %s.test10b_moveIndex..." % self.__class__.__name__
 
-        # Open the HDF5 file in read-only mode
+        # Open the HDF5 file in read-write mode
         self.fileh = openFile(self.file, mode = "a")
         table = self.fileh.root.table
         idxcol = table.cols.var1.index
@@ -439,7 +444,8 @@ class BasicTestCase(PyTablesTestCase):
         assert table.colindexed["var1"] == 1
 
         # Some sanity checks
-        rowList1 = table.getWhereList('var1 < "10"', flavor="python")
+        table.flavor = "python"
+        rowList1 = table.getWhereList('var1 < "10"')
         rowList2 = [p.nrow for p in table if p['var1'] < "10"]
         if verbose:
             print "Selected values:", rowList1, type(rowList1)
@@ -455,7 +461,7 @@ class BasicTestCase(PyTablesTestCase):
             print '\n', '-=' * 30
             print "Running %s.test11a_removeTableWithIndex..." % self.__class__.__name__
 
-        # Open the HDF5 file in read-only mode
+        # Open the HDF5 file in read-write mode
         self.fileh = openFile(self.file, mode = "a")
         table = self.fileh.root.table
         idxcol = table.cols.var1.index

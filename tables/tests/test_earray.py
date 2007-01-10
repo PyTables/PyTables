@@ -21,7 +21,7 @@ except:
     numarray_imported = 0
 
 from tables import *
-from tables.utils import convertNPToNumArray
+from tables.flavor import flavor_to_flavor
 from tables.tests.common import verbose, typecode, allequal, cleanup, heavy
 
 # To delete the internal attributes automagically
@@ -68,9 +68,9 @@ class BasicTestCase(unittest.TestCase):
                           shuffle = self.shuffle,
                           fletcher32 = self.fletcher32)
         earray = self.fileh.createEArray(group, 'earray1', atom, self.shape,
-                                         title, flavor = self.flavor,
-                                         filters = filters,
+                                         title, filters = filters,
                                          expectedrows = 1)
+        earray.flavor = self.flavor
 
         # Fill it with rows
         self.rowshape = list(earray.shape)
@@ -90,7 +90,7 @@ class BasicTestCase(unittest.TestCase):
             object = numpy.arange(self.objsize, dtype=earray.dtype.base)
             object.shape = self.rowshape
         if self.flavor == "numarray":
-            object = convertNPToNumArray(object)
+            object = flavor_to_flavor(object, 'numpy', 'numarray')
         elif self.flavor == "numeric":
             object = Numeric.asarray(object)
 
@@ -146,7 +146,7 @@ class BasicTestCase(unittest.TestCase):
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
-            object_ = convertNPToNumArray(object_)
+            object_ = flavor_to_flavor(object_, 'numpy', 'numarray')
         elif self.flavor == "numeric":
             object_ = Numeric.asarray(object_)
 
@@ -225,7 +225,7 @@ class BasicTestCase(unittest.TestCase):
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
-            object_ = convertNPToNumArray(object_)
+            object_ = flavor_to_flavor(object_, 'numpy', 'numarray')
         elif self.flavor == "numeric":
             object_ = Numeric.asarray(object_)
 
@@ -295,7 +295,7 @@ class BasicTestCase(unittest.TestCase):
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
-            object_ = convertNPToNumArray(object_)
+            object_ = flavor_to_flavor(object_, 'numpy', 'numarray')
         elif self.flavor == "numeric":
             object_ = Numeric.asarray(object_)
 
@@ -307,7 +307,7 @@ class BasicTestCase(unittest.TestCase):
             object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
 
         if self.flavor == "numarray":
-            object__ = convertNPToNumArray(object__)
+            object__ = flavor_to_flavor(object__, 'numpy', 'numarray')
             # This creates memory crashes
             #object__ = numarray.swapaxes(object__, 0, self.extdim)
             object__.swapaxes(0, self.extdim)
@@ -426,7 +426,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Additional conversion for the numarray case
         if self.flavor == "numarray":
-            object_ = convertNPToNumArray(object_)
+            object_ = flavor_to_flavor(object_, 'numpy', 'numarray')
             object_.swapaxes(earray.extdim, 0)
         else:
             object_ = object_.swapaxes(earray.extdim, 0)
@@ -439,7 +439,7 @@ class BasicTestCase(unittest.TestCase):
             object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
             # Additional conversion for the numpy case
         if self.flavor == "numarray":
-            object__ = convertNPToNumArray(object__)
+            object__ = flavor_to_flavor(object__, 'numpy', 'numarray')
             object__.swapaxes(0, earray.extdim)
         else:
             object__ = object__.swapaxes(0, earray.extdim)
@@ -539,7 +539,7 @@ class BasicTestCase(unittest.TestCase):
             
         # Additional conversion for the numarray case
         if self.flavor == "numarray":
-            object_ = convertNPToNumArray(object_)
+            object_ = flavor_to_flavor(object_, 'numpy', 'numarray')
             object_.swapaxes(earray.extdim, 0)
         else:
             object_ = object_.swapaxes(earray.extdim, 0)
@@ -552,7 +552,7 @@ class BasicTestCase(unittest.TestCase):
             object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
             # Additional conversion for the numpy case
         if self.flavor == "numarray":
-            object__ = convertNPToNumArray(object__)
+            object__ = flavor_to_flavor(object__, 'numpy', 'numarray')
             object__.swapaxes(0, earray.extdim)
         else:
             object__ = object__.swapaxes(0, earray.extdim)
@@ -1466,7 +1466,8 @@ class CopyTestCase(unittest.TestCase):
 
         arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1", flavor=flavor)
+                                    "title array1")
+        array1.flavor = flavor
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
@@ -1524,7 +1525,8 @@ class CopyTestCase(unittest.TestCase):
 
         arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1", flavor=flavor)
+                                    "title array1")
+        array1.flavor = flavor
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
@@ -1577,7 +1579,8 @@ class CopyTestCase(unittest.TestCase):
 
         arr = Int16Atom()
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1", flavor="python")
+                                    "title array1")
+        array1.flavor = "python"
         array1.append(((456, 2),(3, 457)))
 
         if self.close:
@@ -1632,7 +1635,8 @@ class CopyTestCase(unittest.TestCase):
 
         arr = StringAtom(itemsize=3)
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1", flavor="python")
+                                    "title array1")
+        array1.flavor = "python"
         array1.append([["456", "2"],["3", "457"]])
 
         if self.close:
@@ -1688,7 +1692,8 @@ class CopyTestCase(unittest.TestCase):
 
         arr = StringAtom(itemsize=4)
         array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1", flavor="numpy")
+                                    "title array1")
+        array1.flavor = "numpy"
         array1.append(numpy.array([["456", "2"],["3", "457"]], dtype="S4"))
 
         if self.close:

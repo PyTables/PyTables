@@ -35,9 +35,10 @@ import warnings
 import numpy
 
 import tables.hdf5Extension as hdf5Extension
-from tables.utils import processRangeRead, convertToNPAtom, convToFlavor, \
+from tables.utils import processRangeRead, convertToNPAtom, \
      idx2long, byteorders
 from tables.atom import ObjectAtom, VLStringAtom, EnumAtom, Atom, split_type
+from tables.flavor import internal_to_flavor
 from tables.Leaf import Leaf, calc_chunksize
 
 
@@ -105,7 +106,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     def __init__( self, parentNode, name,
                   atom=None, title="",
                   filters=None, expectedsizeinMB=1.0,
-                  flavor='numpy', chunkshape=None,
+                  chunkshape=None,
                   _log=True ):
         """Create the instance Array.
 
@@ -127,8 +128,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             bigger `VLArray` try providing a guess; this will optimize
             the HDF5 B-Tree creation and management process time and
             the amount of memory used.
-        `flavor`
-            Sets the representation of data read from this array.
         `chunkshape`
             The shape of the data chunk to be read or written in a
             single HDF5 I/O operation. Filters are applied to those
@@ -177,8 +176,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         # Documented (*public*) attributes.
         self.atom = atom
         """
-        An `Atom` instance representing the shape, type and flavor of
-        the atomic objects to be saved.
+        An `Atom` instance representing the shape and type of the
+        atomic objects to be saved.
         """
         self.nrow = None
         """On iterators, this is the index of the current row."""
@@ -186,13 +185,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         """The total number of rows."""
 
         if new:
-            if flavor not in ['numpy', 'numarray', 'numeric', 'python']:
-                raise ValueError(
-                    "``flavor`` argument must be one of "
-                    "'numpy', 'numarray', 'numeric' or 'python': %r"
-                    % (flavor,) )
-            self.flavor = flavor
-
             if chunkshape is not None:
                 if type(chunkshape) in (int, long):
                     chunkshape = (long(chunkshape),)
@@ -267,8 +259,7 @@ be zero."""
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        self._v_objectID, self.nrows, self.flavor, self._v_chunkshape = \
-                          self._openArray()
+        self._v_objectID, self.nrows, self._v_chunkshape = self._openArray()
 
         kind, itemsize = split_type(self._atomictype)
         if kind == 'vlstring':
@@ -364,7 +355,8 @@ be zero."""
             vlarray = fileh.createVLArray(
                 fileh.root, 'vlarray1',
                 tables.Int32Atom(), "ragged array of ints",
-                filters=Filters(complevel=1), flavor="Numeric")
+                filters=Filters(complevel=1))
+            vlarray.flavor = 'Numeric'
             # Append some (variable length) rows:
             vlarray.append(array([5, 6]))
             vlarray.append(array([5, 6, 7]))
@@ -597,12 +589,10 @@ be zero."""
         atom = self.atom
         if not hasattr(atom, 'size'):  # it is a pseudo-atom
             outlistarr = [atom.fromarray(arr) for arr in listarr]
-        elif self.flavor != 'numpy':
-            # Convert the list to the right flavor
-            outlistarr = [convToFlavor(arr, self.flavor) for arr in listarr]
         else:
-            # 'numpy' flavor does not need additional conversion
-            outlistarr = listarr
+            # Convert the list to the right flavor
+            flavor = self.flavor
+            outlistarr = [internal_to_flavor(arr, flavor) for arr in listarr]
         return outlistarr
 
 
@@ -613,8 +603,7 @@ be zero."""
         # Build the new VLArray object
         object = VLArray(
             group, name, self.atom, title=title, filters=filters,
-            expectedsizeinMB=self._v_expectedsizeinMB, flavor=self.flavor,
-            _log=_log)
+            expectedsizeinMB=self._v_expectedsizeinMB, _log=_log)
         # Now, fill the new vlarray with values from the old one
         # This is not buffered because we cannot forsee the length
         # of each record. So, the safest would be a copy row by row.

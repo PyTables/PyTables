@@ -66,6 +66,7 @@ __all__ = [
     'NaturalNameWarning', 'NodeError', 'NoSuchNodeError',
     'UndoRedoError', 'UndoRedoWarning',
     'PerformanceWarning',
+    'FlavorError', 'FlavorWarning',
     # Functions:
     'isHDF5',  # deprecated
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion', 'copyFile', 'openFile',

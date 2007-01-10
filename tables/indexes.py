@@ -428,7 +428,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         type -- The type class for the array.
         itemsize -- The size of the atomic items. Specially useful for
             CharArrays.
-        flavor -- The flavor of this object.
         nrow -- On iterators, this is the index of the row currently
             dealed with.
 
@@ -457,8 +456,8 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
 
         name -- The name of this node in its parent group (a string).
 
-        atom -- An Atom object representing the shape, type and flavor
-            of the atomic objects to be saved. Only scalar atoms are
+        atom -- An Atom object representing the shape and type of the
+            atomic objects to be saved. Only scalar atoms are
             supported.
 
         shape -- The shape of the index array.

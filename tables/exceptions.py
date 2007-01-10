@@ -35,6 +35,10 @@ Classes:
     Issued when a non-pythonic name is given for a node.
 `PerformanceWarning`
     Warning for operations which may cause a performance drop.
+`FlavorError`
+    Unsupported or unavailable flavor or flavor conversion.
+`FlavorWarning`
+    Unsupported or unavailable flavor conversion.
 """
 
 __docformat__ = 'reStructuredText'
@@ -164,6 +168,37 @@ class PerformanceWarning(Warning):
     This warning is issued when an operation is made on the database
     which may cause it to slow down on future operations (i.e. making
     the node tree grow too much).
+    """
+    pass
+
+
+
+class FlavorError(ValueError):
+    """
+    Unsupported or unavailable flavor or flavor conversion.
+
+    This exception is raised when an unsupported or unavailable flavor
+    is given to a dataset, or when a conversion of data between two
+    given flavors is not supported nor available.
+
+    A supported flavor may be unavailable if the package which
+    implements it is not installed locally, e.g. you may specify the
+    ``numeric`` flavor, which is supported by PyTables, but if Numeric
+    is not installed on your machine, you will get this error.
+    """
+    pass
+
+
+class FlavorWarning(Warning):
+    """
+    Unsupported or unavailable flavor conversion.
+
+    This warning is issued when a conversion of data between two given
+    flavors is not supported nor available, and raising an error would
+    render the data inaccessible (e.g. on a dataset of an unavailable
+    flavor in a read-only file).
+
+    See the `FlavorError` class for more information.
     """
     pass
 

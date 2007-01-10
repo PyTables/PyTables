@@ -245,12 +245,19 @@ for p in table:
     print p['name'], '-->', p['pressure']
 print
 
+oldflavor = table.flavor
 print table.read(field="ADCcount")
-print table.read(field="ADCcount", flavor="numeric")
+table.flavor = "numeric"
+print table.read(field="ADCcount")
+table.flavor = oldflavor
 print table.read(0, 0, 1, "name")
-print table.read(0, 0, 1, "name", flavor="python")
+table.flavor = "python"
+print table.read(0, 0, 1, "name")
+table.flavor = oldflavor
 print table.read(0, 0, 2, "pressure")
-print table.read(0, 0, 2, "pressure", flavor="python")
+table.flavor = "python"
+print table.read(0, 0, 2, "pressure")
+table.flavor = oldflavor
 
 # Several range selections
 print "Extended slice in selection: [0:7:6]"

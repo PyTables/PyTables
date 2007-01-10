@@ -102,13 +102,10 @@ class PyTables_DB(DB):
 #             results = [ r[column] for r in
 #                         table.where(condition, self.condvars) ]
 
-#             coords = table.getWhereList(condition, self.condvars,
-#                                         flavor="numpy")
-#             results = table.readCoordinates(coords, field=column,
-#                                             flavor="numpy")
+#             coords = table.getWhereList(condition, self.condvars)
+#             results = table.readCoordinates(coords, field=column)
 
-            results = table.readWhere(condition, self.condvars,
-                                      field=column, flavor="numpy")
+            results = table.readWhere(condition, self.condvars, field=column)
 
         elif True:
             coords = [r.nrow for r in table.where(condition, self.condvars)]

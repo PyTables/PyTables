@@ -11,7 +11,6 @@ herr_t H5VLARRAYmake( hid_t loc_id,
 		      const char *dset_name,
 		      const char *class_,
 		      const char *title,
-		      const char *flavor,
 		      const char *obversion,    /* The Array VERSION number */
 		      const int rank,
 		      const int scalar,

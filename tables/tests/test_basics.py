@@ -7,6 +7,7 @@ import warnings
 import numpy
 
 from tables import *
+from tables.flavor import all_flavors, array_of_flavor
 import tables.tests.common as common
 from tables.tests.common import cleanup
 from tables.tests.common import verbose
@@ -1801,6 +1802,65 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedNodeError, getattr, node, '_v_attrs')
 
 
+class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    """
+    Test that setting, getting and changing the ``flavor`` attribute
+    of a leaf works as expected.
+    """
+
+    array_data = numpy.arange(10)
+
+    def _reopen(self, mode='r'):
+        super(FlavorTestCase, self)._reopen(mode)
+        self.array = self.h5file.getNode('/test')
+        return True
+
+    def setUp(self):
+        super(FlavorTestCase, self).setUp()
+        self.array = self.h5file.createArray('/', 'test', self.array_data)
+
+    def tearDown(self):
+        self.array = None
+        super(FlavorTestCase, self).tearDown()
+
+    def test00_invalid(self):
+        """Setting an invalid flavor."""
+        self.assertRaises(FlavorError, setattr, self.array, 'flavor', 'foo')
+
+    def test01_readonly(self):
+        """Setting a flavor in a read-only file."""
+        self._reopen(mode='r')
+        self.assertRaises( FileModeError,
+                           setattr, self.array, 'flavor', 'numpy' )
+
+    def test02_change(self):
+        """Changing the flavor and reading data."""
+        for flavor in all_flavors:
+            self.array.flavor = flavor
+            self.assertEqual(self.array.flavor, flavor)
+            idata = array_of_flavor(self.array_data, flavor)
+            odata = self.array[:]
+            self.assert_(common.allequal(odata, idata, flavor))
+
+    def test03_store(self):
+        """Storing a changed flavor."""
+        for flavor in all_flavors:
+            self.array.flavor = flavor
+            self.assertEqual(self.array.flavor, flavor)
+            self._reopen(mode='r+')
+            self.assertEqual(self.array.flavor, flavor)
+
+    def test04_missing(self):
+        """Reading a dataset of a missing flavor."""
+        flavor = self.array.flavor  # default is internal
+        self.array._v_attrs.FLAVOR = 'foobar'  # breaks flavor
+        self._reopen(mode='r')
+        idata = array_of_flavor(self.array_data, flavor)
+        odata = self.assertWarns(FlavorWarning, self.array.read)
+        self.assert_(common.allequal(odata, idata, flavor))
+
+
 
 #----------------------------------------------------------------------
 
@@ -1813,6 +1873,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CheckFileTestCase))
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
+        theSuite.addTest(unittest.makeSuite(FlavorTestCase))
 
     return theSuite
 

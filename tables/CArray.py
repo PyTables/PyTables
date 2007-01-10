@@ -32,6 +32,7 @@ import sys, warnings
 import numpy
 
 from tables.atom import Atom, EnumAtom, split_type
+from tables.Leaf import Leaf
 from tables.Array import Array
 from tables.utils import processRangeRead
 
@@ -75,7 +76,7 @@ class CArray(Array):
     def __init__( self, parentNode, name,
                   atom=None, shape=None,
                   title="", filters=None,
-                  flavor='numpy', chunkshape=None,
+                  chunkshape=None,
                   _log=True ):
         """
         Create a `CArray` instance.
@@ -94,8 +95,6 @@ class CArray(Array):
             An instance of the `Filters` class that provides
             information about the desired I/O filters to be applied
             during the life of this object.
-        `flavor`
-            Sets the representation of data read from this array.
         `chunkshape`
             The shape of the data chunk to be read or written in a
             single HDF5 I/O operation.  Filters are applied to those
@@ -111,18 +110,13 @@ class CArray(Array):
         """The PyTables type of the represented array."""
         self.atom = atom
         """
-        An `Atom` instance representing the shape, type and flavor of
-        the atomic objects to be saved.
+        An `Atom` instance representing the shape, type of the atomic
+        objects to be saved.
         """
         self.shape = None
         """The shape of the stored array."""
         self.extdim = -1  # `CArray` objects are not enlargeable by default
         """The index of the enlargeable dimension."""
-        self.flavor = None
-        """
-        The object representation of this array.  It can be any of
-        'numpy', 'numarray', 'numeric' or 'python' values.
-        """
 
         # Other private attributes
         self._v_version = None
@@ -192,13 +186,6 @@ the shape (%s) and chunkshape (%s) ranks must be equal.""" \
 chunkshape parameter cannot have zero-dimensions."""
                 self._v_chunkshape = tuple(chunkshape)
 
-            if flavor not in ['numpy', 'numarray', 'numeric', 'python']:
-                raise ValueError(
-                    "``flavor`` argument must be one of "
-                    "'numpy', 'numarray', 'numeric' or 'python': %r"
-                    % (flavor,) )
-            self.flavor = flavor
-
         # The `Array` class is not abstract enough! :(
         super(Array, self).__init__(parentNode, name, new, filters, _log)
 
@@ -220,7 +207,7 @@ chunkshape parameter cannot have zero-dimensions."""
             raise ValueError, """\
 shape parameter cannot have zero-dimensions."""
 
-        # Version, types, flavor
+        # Version, types
         self._v_version = obversion
         self.dtype = self.atom.dtype.base
         self.type = self.atom.type
@@ -233,18 +220,19 @@ shape parameter cannot have zero-dimensions."""
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
                                                    self.rowsize)
         try:
-            return self._createEArray(self._v_new_title)
+            oid = self._createEArray(self._v_new_title)
         except:  #XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
+        return oid
 
 
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
         (oid, self.dtype, self.type, self.shape,
-         self.flavor, self._v_chunkshape) = self._openArray()
+         self._v_chunkshape) = self._openArray()
 
         # Post-condition
         assert self.extdim == -1, "extdim != -1: this should never happen!"
@@ -301,8 +289,7 @@ shape parameter cannot have zero-dimensions."""
         # Build the new CArray object (do not specify the chunkshape so that
         # a sensible value would be calculated)
         object = CArray(group, name, atom=self.atom, shape=shape,
-                        title=title, filters=filters, flavor=self.flavor,
-                        _log=_log)
+                        title=title, filters=filters, _log=_log)
         # Start the copy itself
         for start2 in range(start, stop, step*nrowsinbuf):
             # Save the records on disk

@@ -58,8 +58,8 @@ class BasicTestCase(unittest.TestCase):
                                            Int32Atom(),
                                            "ragged array if ints",
                                            filters = filters,
-                                           expectedsizeinMB = 1,
-                                           flavor = self.flavor)
+                                           expectedsizeinMB = 1)
+        vlarray.flavor = self.flavor
 
         # Fill it with 5 rows
         vlarray.append([1, 2])
@@ -264,8 +264,8 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
                                            StringAtom(itemsize=3),
-                                           "Ragged array of strings",
-                                           flavor="numpy")
+                                           "Ragged array of strings")
+        vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
         vlarray.append(numpy.array(["1", "12345"]))
 
@@ -294,8 +294,8 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
                                            StringAtom(itemsize=3),
-                                           "Ragged array of strings",
-                                           flavor="numarray")
+                                           "Ragged array of strings")
+        vlarray.flavor = "numarray"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"], dtype="S"))
         vlarray.append(numpy.array(["1", "12345"], dtype="S"))
 
@@ -326,8 +326,8 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
                                            StringAtom(itemsize=3),
-                                           "Ragged array of strings",
-                                           flavor="numpy")
+                                           "Ragged array of strings")
+        vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"][::2]))
         vlarray.append(numpy.array(["1", "12345","2", "321"])[::3])
 
@@ -355,8 +355,8 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
                                            StringAtom(itemsize=3),
-                                           "Ragged array of strings",
-                                           flavor="numpy")
+                                           "Ragged array of strings")
+        vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "123"]))
         vlarray.append(numpy.array(["1", "2", "321"]))
 
@@ -384,8 +384,8 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom2',
                                            StringAtom(itemsize=3),
-                                           "Ragged array of strings",
-                                           flavor="python")
+                                           "Ragged array of strings")
+        vlarray.flavor = "python"
         vlarray.append(["1", "12", "123", "1234", "12345"])
         vlarray.append(["1", "12345"])
 
@@ -414,8 +414,8 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
                                            StringAtom(itemsize=3),
-                                           "Ragged array of strings",
-                                           flavor="numpy")
+                                           "Ragged array of strings")
+        vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
         vlarray.append(numpy.array(["1", "12345"]))
 
@@ -447,8 +447,8 @@ class TypesTestCase(unittest.TestCase):
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom2',
                                            StringAtom(itemsize=3),
-                                           "Ragged array of strings",
-                                           flavor="python")
+                                           "Ragged array of strings")
+        vlarray.flavor = "python"
         vlarray.append(["1", "12", "123", "1234", "12345"])
         vlarray.append(["1", "12345"])
 
@@ -489,8 +489,8 @@ class TypesTestCase(unittest.TestCase):
 #         # Create an string atom
 #         vlarray = self.fileh.createVLArray(root, 'stringAtom2',
 #                                            StringAtom(itemsize=3),
-#                                            "Ragged array of unicode strings",
-#                                            flavor="UString")
+#                                            "Ragged array of unicode strings")
+#         vlarray.flavor = "UString"
 #         vlarray.append(["·ÈÁ", "Ë‡Ú…", "Ò"])
 #         vlarray.append(["ÁÁÁÁÁ", "asaÀœ÷‹"])
 
@@ -1156,8 +1156,8 @@ class MDTypesTestCase(unittest.TestCase):
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
                                            StringAtom(itemsize=3, shape=(2,)),
-                                           "Ragged array of strings",
-                                           flavor="python")
+                                           "Ragged array of strings")
+        vlarray.flavor = "python"
         vlarray.append([["123", "45"],["45", "123"]])
         vlarray.append([["s", "abc"],["abc", "f"],
                         ["s", "ab"],["ab", "f"]])
@@ -1188,8 +1188,8 @@ class MDTypesTestCase(unittest.TestCase):
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
                                            StringAtom(itemsize=3, shape=(2,)),
-                                           "Ragged array of strings",
-                                           flavor="python")
+                                           "Ragged array of strings")
+        vlarray.flavor = "python"
         a = numpy.array([["a","b"],["123", "45"],["45", "123"]], dtype="S3")
         vlarray.append(a[1:])
         a = numpy.array([["s", "a"],["ab", "f"],
@@ -1222,8 +1222,8 @@ class MDTypesTestCase(unittest.TestCase):
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'stringAtom',
                                            StringAtom(itemsize=3, shape=(2,)),
-                                           "Ragged array of strings",
-                                           flavor="python")
+                                           "Ragged array of strings")
+        vlarray.flavor = "python"
         a = numpy.array([["a","b"],["123", "45"],["45", "123"]], dtype="S3")
         vlarray.append(a[1::2])
         a = numpy.array([["s", "a"],["ab", "f"],
@@ -1442,8 +1442,8 @@ class AppendShapeTestCase(unittest.TestCase):
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, 'vlarray',
                                            Int32Atom(),
-                                           "Ragged array of ints",
-                                           flavor="python")
+                                           "Ragged array of ints")
+        vlarray.flavor = "python"
 
         # Check different ways to input
         # All of the next should lead to the same rows
@@ -1642,8 +1642,8 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, "vlarray",
-                                           Atom.from_kind('int', itemsize=4),
-                                           flavor=self.flavor)
+                                           Atom.from_kind('int', itemsize=4))
+        vlarray.flavor = self.flavor
         self.fileh.close()
         self.fileh = openFile(self.file, "r")
         # Read all the rows (it should be empty):
@@ -1667,8 +1667,8 @@ class FlavorTestCase(unittest.TestCase):
 
         # Create an string atom
         vlarray = self.fileh.createVLArray(root, "vlarray",
-                                           Atom.from_kind('int', itemsize=4),
-                                           flavor=self.flavor)
+                                           Atom.from_kind('int', itemsize=4))
+        vlarray.flavor = self.flavor
         # Read all the rows (it should be empty):
         row = vlarray.read()
         if verbose:
@@ -1688,8 +1688,8 @@ class FlavorTestCase(unittest.TestCase):
             print "Running %s.test02_BoolAtom..." % self.__class__.__name__
 
         # Create an string atom
-        vlarray = self.fileh.createVLArray(root, "Bool",
-                                           BoolAtom(), flavor=self.flavor)
+        vlarray = self.fileh.createVLArray(root, "Bool", BoolAtom())
+        vlarray.flavor = self.flavor
         vlarray.append([1,2,3])
         vlarray.append(())   # Empty row
         vlarray.append([100,0])
@@ -1756,8 +1756,8 @@ class FlavorTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom.from_sctype(atype),
-                                               flavor=self.flavor)
+                                               Atom.from_sctype(atype))
+            vlarray.flavor = self.flavor
             vlarray.append([1,2,3])
             vlarray.append(())
             vlarray.append([100,0])
@@ -1825,8 +1825,8 @@ class FlavorTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom.from_sctype(atype),
-                                               flavor=self.flavor)
+                                               Atom.from_sctype(atype))
+            vlarray.flavor = self.flavor
             vlarray.append([1,2,3])
             vlarray.append(())
             vlarray.append([100,0])
@@ -1891,8 +1891,8 @@ class FlavorTestCase(unittest.TestCase):
         # Create an string atom
         for atype in ttypes:
             vlarray = self.fileh.createVLArray(root, atype,
-                                               Atom.from_sctype(atype),
-                                               flavor=self.flavor)
+                                               Atom.from_sctype(atype))
+            vlarray.flavor = self.flavor
             vlarray.append([1.3,2.2,3.3])
             vlarray.append(())
             vlarray.append([-1.3e34,1.e-32])
@@ -3020,8 +3020,8 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an Vlarray
         arr = Int16Atom(shape=2)
-        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1",
-                                     flavor="python")
+        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1")
+        array1.flavor = "python"
         array1.append([[2,3]])
         array1.append(())  # an empty row
         array1.append([[3, 457],[2,4]])
@@ -3080,8 +3080,8 @@ class CopyTestCase(unittest.TestCase):
 
         # Create an VLArray
         arr = Int16Atom(shape=2)
-        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1",
-                                     flavor="python")
+        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1")
+        array1.flavor = "python"
         array1.append([[2,3]])
         array1.append(())  # an empty row
         array1.append([[3, 457],[2,4]])
@@ -3145,7 +3145,8 @@ class CopyTestCase(unittest.TestCase):
             flavor = "numpy"
         arr = Int16Atom(shape=2)
         array1 = fileh.createVLArray(fileh.root, 'array1', arr,
-                                     "title array1", flavor=flavor)
+                                     "title array1")
+        array1.flavor = flavor
         array1.append([[2,3]])
         array1.append(())  # an empty row
         array1.append([[3, 457],[2,4]])
@@ -3202,7 +3203,8 @@ class CopyTestCase(unittest.TestCase):
             flavor = "numpy"
         arr = Int16Atom(shape=2)
         array1 = fileh.createVLArray(fileh.root, 'array1', arr,
-                                     "title array1", flavor=flavor)
+                                     "title array1")
+        array1.flavor = flavor
         array1.append([[2,3]])
         array1.append(())  # an empty row
         array1.append([[3, 457],[2,4]])
@@ -3255,7 +3257,8 @@ class CopyTestCase(unittest.TestCase):
         # Create an VLArray
         arr = Int16Atom(shape=2)
         array1 = fileh.createVLArray(fileh.root, 'array1', arr,
-                                     "title array1", flavor="python")
+                                     "title array1")
+        array1.flavor = "python"
         array1.append(((2,3),))
         array1.append(())  # an empty row
         array1.append(((3, 457),(2,4)))
@@ -3471,8 +3474,8 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Create an VLArray
         atom = Int32Atom(shape=(2,))
-        array1 = fileh.createVLArray(fileh.root, 'array1', atom, "t array1",
-                                     flavor="python")
+        array1 = fileh.createVLArray(fileh.root, 'array1', atom, "t array1")
+        array1.flavor = "python"
         # The next creates 20 rows of variable length
         r = []
         for row in range(20):

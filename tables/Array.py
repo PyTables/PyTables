@@ -31,22 +31,10 @@ import types, warnings, sys
 
 import numpy
 
-try:
-    import Numeric
-    Numeric_imported = True
-except ImportError:
-    Numeric_imported = False
-
-try:
-    import numarray
-    import numarray.strings
-    numarray_imported = True
-except ImportError:
-    numarray_imported = False
-
 import tables.hdf5Extension as hdf5Extension
-from tables.utils import processRange, processRangeRead, convToFlavor, \
-     convToNP, is_idx, byteorders
+from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
+from tables.utils import processRange, processRangeRead, \
+     is_idx, byteorders
 from tables.atom import split_type
 from tables.Leaf import Leaf, Filters
 
@@ -87,9 +75,6 @@ class Array(hdf5Extension.Array, Leaf):
 
     Instance variables (specific of `Array`):
 
-    `flavor`
-        The representation of data read from this array.  It can be
-        any of 'numpy', 'numarray', 'numeric' or 'python' values.
     `nrows`
         The length of the main dimension of the array.
     `nrow`
@@ -159,8 +144,6 @@ class Array(hdf5Extension.Array, Leaf):
             (i.e. not like ``[[1,2], 2]``).
         `title`
             Sets a ``TITLE`` attribute on the array entity.
-        `flavor`
-            Sets the representation of data read from this array.
         """
 
         self._v_version = None
@@ -213,9 +196,6 @@ class Array(hdf5Extension.Array, Leaf):
         # Documented (*public*) attributes.
         self.shape = None
         """The shape of the stored array."""
-        self.flavor = None
-        """The object representation of this array.  It can be any of
-        'numpy', 'numarray', 'numeric' or 'python' values."""
         self.nrow = None
         """On iterators, this is the index of the current row."""
         self.dtype = None
@@ -234,7 +214,9 @@ class Array(hdf5Extension.Array, Leaf):
 
         self._v_version = obversion
         try:
-            nparr, self.flavor = convToNP(self._object)
+            # `Leaf._g_postInitHook()` should be setting the flavor on disk.
+            self._flavor = flavor = flavor_of(self._object)
+            nparr = array_as_internal(self._object, flavor)
         except:  #XXX
             # Problems converting data. Close the node and re-raise exception.
             #print "Problems converting input object:", str(self._object)
@@ -272,7 +254,7 @@ class Array(hdf5Extension.Array, Leaf):
         """Get the metadata info for an array in file."""
 
         (self._v_objectID, self.dtype, self.type, self.shape,
-         self.flavor, self._v_chunkshape) = self._openArray()
+         self._v_chunkshape) = self._openArray()
 
         # Get enumeration from disk.
         if split_type(self.type)[0] == 'enum':
@@ -351,34 +333,11 @@ class Array(hdf5Extension.Array, Leaf):
                 # Protection for reading more elements than needed
                 if self._stopb > self._stop:
                     self._stopb = self._stop
-                self.listarr = self.read(self._startb, self._stopb, self._step)
+                listarr = self._read(self._startb, self._stopb, self._step)
                 # Swap the axes to easy the return of elements
                 if self.extdim > 0:
-                    if self.flavor == "numarray":
-                        if numarray_imported:
-                            self.listarr = numarray.swapaxes(self.listarr,
-                                                             self.extdim, 0)
-                        else:
-                            # Warn the user
-                            warnings.warn( \
-"""The object on-disk has numarray flavor, but numarray is not installed locally. Returning a NumPy object instead!.""")
-                            # Default to NumPy
-                            self.listarr = numpy.swapaxes(self.listarr,
-                                                          self.extdim, 0)
-                    elif self.flavor == "numeric":
-                        if Numeric_imported:
-                            self.listarr = Numeric.swapaxes(self.listarr,
-                                                            self.extdim, 0)
-                        else:
-                            # Warn the user
-                            warnings.warn( \
-"""The object on-disk has numeric flavor, but Numeric is not installed locally. Returning a NumPy object instead!.""")
-                            # Default to NumPy
-                            self.listarr = numpy.swapaxes(self.listarr,
-                                                          self.extdim, 0)
-                    else:
-                        self.listarr = numpy.swapaxes(self.listarr,
-                                                      self.extdim, 0)
+                    listarr = listarr.swapaxes(self.extdim, 0)
+                self.listarr = internal_to_flavor(listarr, self.flavor)
                 self._row = -1
                 self._startb = self._stopb
             self._row += 1
@@ -480,9 +439,11 @@ class Array(hdf5Extension.Array, Leaf):
         "keys" is a slice, the row slice determined by key is returned.
 
         """
-
         startl, stopl, stepl, shape = self._interpret_indexing(keys)
-        return self._readSlice(startl, stopl, stepl, shape)
+        arr = self._readSlice(startl, stopl, stepl, shape)
+        if not self._v_convert:
+            return arr
+        return internal_to_flavor(arr, self.flavor)
 
 
     def __setitem__(self, keys, value):
@@ -529,41 +490,23 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
 
     # Accessor for the _readArray method in superclass
     def _readSlice(self, startl, stopl, stepl, shape):
-
         # Create the container for the slice
         arr = numpy.empty(dtype=self.dtype, shape=shape)
-
         # Protection against reading empty arrays
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._g_readSlice(startl, stopl, stepl, arr)
-
-        if not self._v_convert:
-            return arr
-
-        if self.flavor == 'numpy':
-            if arr.shape == ():  # Scalar case
-                return arr[()]  # Return a numpy scalar
-            else:             # No conversion needed
-                return arr
-        # Fixes #968131
-        elif arr.shape == ():  # Scalar case
-            return arr.item()  # return the python value
-        else:
-            return convToFlavor(arr, self.flavor)
+        return arr
 
 
-    def read(self, start=None, stop=None, step=None):
-        """Read the array from disk and return it as a self.flavor object."""
+    def _read(self, start, stop, step):
+        """Read the array from disk without slice or flavor processing."""
 
-        maindim = self.maindim
-
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
         #rowstoread = ((stop - start - 1) / step) + 1
         rowstoread = len(xrange(start, stop, step))
         shape = list(self.shape)
         if shape:
-            shape[maindim] = rowstoread
+            shape[self.maindim] = rowstoread
         arr = numpy.empty(dtype=self.dtype, shape=shape)
         # Set the correct byteorder for this array
         arr.dtype = arr.dtype.newbyteorder(self.byteorder)
@@ -572,15 +515,14 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._readArray(start, stop, step, arr)
+        return arr
 
-        if self.flavor == "numpy":
-            # No conversion needed
-            return arr
-        # Fixes #968131
-        elif arr.shape == ():  # Scalar case and flavor is not 'numpy'
-            return arr.item()  # return the python value
-        else:
-            return convToFlavor(arr, self.flavor)
+
+    def read(self, start=None, stop=None, step=None):
+        """Read the array from disk and return it as a self.flavor object."""
+        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        arr = self._read(start, stop, step)
+        return internal_to_flavor(arr, self.flavor)
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,

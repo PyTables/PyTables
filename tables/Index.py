@@ -432,8 +432,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         Keyword arguments:
 
-        atom -- An Atom object representing the shape, type and flavor
-            of the atomic objects to be saved. Only scalar atoms are
+        atom -- An Atom object representing the shape and type of the
+            atomic objects to be saved. Only scalar atoms are
             supported.
 
         column -- The column object to be indexed

@@ -371,7 +371,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         for i in range(self.nrows):
             table.row.append()  # Fill 100 rows with default values
         fileh.close()
-        self.fileh = openFile(self.file, "r")
+        self.fileh = openFile(self.file, "a")  # allow flavor changes
 
     def tearDown(self):
         self.fileh.close()
@@ -383,8 +383,9 @@ class TableReadTestCase(common.PyTablesTestCase):
         """Checking column conversion into numarray in read(). Chars."""
 
         table = self.fileh.root.table
+        table.flavor = "numarray"
         for colname in table.colnames:
-            numcol = table.read(field=colname, flavor="numarray")
+            numcol = table.read(field=colname)
             typecol = table.coltypes[colname]
             itemsizecol = table.description._v_dtypes[colname].base.itemsize
             if typecol == "string":
@@ -404,8 +405,9 @@ class TableReadTestCase(common.PyTablesTestCase):
         """Checking column conversion into numarray in read(). Numerical."""
 
         table = self.fileh.root.table
+        table.flavor="numarray"
         for colname in table.colnames:
-            numcol = table.read(field=colname, flavor="numarray")
+            numcol = table.read(field=colname)
             typecol = table.coltypes[colname]
             if typecol != "string":
                 type_ = numcol.type()
@@ -421,11 +423,11 @@ class TableReadTestCase(common.PyTablesTestCase):
         """Column conversion into numarray in readCoordinates(). Chars."""
 
         table = self.fileh.root.table
+        table.flavor = "numarray"
         coords = (1,2,3)
         self.nrows = len(coords)
         for colname in table.colnames:
-            numcol = table.readCoordinates(coords, field=colname,
-                                           flavor="numarray")
+            numcol = table.readCoordinates(coords, field=colname)
             typecol = table.coltypes[colname]
             itemsizecol = table.description._v_dtypes[colname].base.itemsize
             if typecol == "string":
@@ -445,11 +447,11 @@ class TableReadTestCase(common.PyTablesTestCase):
         """Column conversion into numarray in readCoordinates(). Numerical."""
 
         table = self.fileh.root.table
+        table.flavor="numarray"
         coords = (1,2,3)
         self.nrows = len(coords)
         for colname in table.colnames:
-            numcol = table.readCoordinates(coords, field=colname,
-                                           flavor="numarray")
+            numcol = table.readCoordinates(coords, field=colname)
             typecol = table.coltypes[colname]
             if typecol != "string":
                 type_ = numcol.type()
@@ -488,6 +490,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         self.fileh.close()
         self.fileh = openFile(self.file, "a")
         table = self.fileh.root.table
+        table.flavor = "numarray"
         coords = array([1,2,3], dtype='int8')
         # Modify row 1
         # From PyTables 2.0 on, assignments to records can be done
@@ -495,7 +498,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         #table[coords[0]] = ["aasa","x"]+[232]*12
         table[coords[0]] = tuple(["aasa","x"]+[232]*12)
         #record = list(table[coords[0]])
-        record = table.read(coords[0], flavor="numarray")[0]
+        record = table.read(coords[0])[0]
         if verbose:
             print """Original row:
 ['aasa', 'x', 232, -24, 232, 232, 1, 232L, 232, (232+0j), 232.0, 232L, (232+0j), 232.0]
@@ -518,8 +521,6 @@ class TestTDescr(IsDescription):
 
     """A description that has several nested columns."""
 
-    # The default would be returning numarray objects on reads
-    _v_flavor = "numarray"
     x = Int32Col(dflt=0, shape=2, pos=0) #0
     y = Float64Col(dflt=1, shape=(2,2))
     z = UInt8Col(dflt=1)
@@ -576,6 +577,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         fileh = openFile(self.file, "w")
         table = fileh.createTable(fileh.root, 'table', TestTDescr,
                                   expectedrows=self.nrows)
+        table.flavor = 'numarray'
         for i in range(self.nrows):
             table.row.append()  # Fill 100 rows with default values
         table.flush()
@@ -1097,8 +1099,9 @@ class StrlenTestCase(common.PyTablesTestCase):
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
         group = self.fileh.createGroup(self.fileh.root, 'group')
-        tablelayout = {'_v_flavor':'numarray', 'Text': StringCol(itemsize=1000),}
+        tablelayout = {'Text': StringCol(itemsize=1000),}
         self.table = self.fileh.createTable(group, 'table', tablelayout)
+        self.table.flavor = 'numarray'
         row = self.table.row
         row['Text'] = 'Hello Francesc!'
         row.append()

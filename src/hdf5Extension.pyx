@@ -88,7 +88,7 @@ __version__ = "$Revision$"
 cdef extern from "H5ARRAY.h":
 
   herr_t H5ARRAYmake(hid_t loc_id, char *dset_name, char *class_,
-                     char *title, char *flavor, char *obversion,
+                     char *title, char *obversion,
                      int rank, hsize_t *dims, int extdim,
                      hid_t type_id, hsize_t *dims_chunk, void *fill_data,
                      int complevel, char  *complib, int shuffle,
@@ -129,7 +129,7 @@ cdef extern from "H5ARRAY.h":
 cdef extern from "H5VLARRAY.h":
 
   herr_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *class_,
-                        char *title, char *flavor, char *obversion,
+                        char *title, char *obversion,
                         int rank, int scalar, hsize_t *dims, hid_t type_id,
                         hsize_t chunk_size, void *fill_data, int complevel,
                         char *complib, int shuffle, int flecther32,
@@ -796,21 +796,6 @@ cdef class Leaf(Node):
         raise HDF5ExtError("failed to close HDF5 enumerated type")
 
 
-  def _g_getflavor(self):
-    "Get the flavor for this object."
-    cdef char *cflavor
-    cdef object flavor
-
-    flavor = numpy.string_("numpy")   # Default value
-    if self._v_file._isPTFile:
-      cflavor = NULL
-      if H5ATTRget_attribute_string(self.dataset_id, "FLAVOR", &cflavor) == 0:
-        flavor = numpy.string_(cflavor)
-      # Important to release cflavor, because it has been malloc'ed!
-      if cflavor: free(<void *>cflavor)
-    return flavor
-
-
   def _g_flush(self):
     # Flush the dataset (in fact, the entire buffers in file!)
     if self.dataset_id >= 0:
@@ -838,7 +823,7 @@ cdef class Array(Leaf):
     cdef void *rbuf
     cdef int enumtype
     cdef long itemsize
-    cdef char *flavor, *complib, *version, *class_
+    cdef char *complib, *version, *class_
     cdef object type_, dtype, ptype, byteorder
 
     dtype = nparr.dtype.base
@@ -874,12 +859,11 @@ cdef class Array(Leaf):
     for i from  0 <= i < self.rank:
       self.dims[i] = nparr.dimensions[i]
     # Save the array
-    flavor = PyString_AsString(self.flavor)
     complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
     self.dataset_id = H5ARRAYmake(self.parent_id, self.name, class_, title,
-                                  flavor, version, self.rank, self.dims,
+                                  version, self.rank, self.dims,
                                   self.extdim, self.type_id, NULL, NULL,
                                   self.filters.complevel, complib,
                                   self.filters.shuffle,
@@ -895,7 +879,7 @@ cdef class Array(Leaf):
     cdef int i, enumtype
     cdef herr_t ret
     cdef void *rbuf
-    cdef char *flavor, *complib, *version, *class_
+    cdef char *complib, *version, *class_
     cdef void *fill_value
     cdef int itemsize
     cdef object atom, kind, byteorder
@@ -935,7 +919,6 @@ cdef class Array(Leaf):
 
     rbuf = NULL   # The data pointer. We don't have data to save initially
     # Manually convert some string values that can't be done automatically
-    flavor = PyString_AsString(self.flavor)
     complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
@@ -946,7 +929,7 @@ cdef class Array(Leaf):
 
     # Create the EArray
     self.dataset_id = H5ARRAYmake(
-      self.parent_id, self.name, class_, title, flavor, version,
+      self.parent_id, self.name, class_, title, version,
       self.rank, self.dims, self.extdim, self.type_id, self.dims_chunk,
       fill_value, self.filters.complevel, complib,
       self.filters.shuffle, self.filters.fletcher32, rbuf)
@@ -967,7 +950,7 @@ cdef class Array(Leaf):
     cdef int extdim
     cdef hid_t base_type_id
     cdef herr_t ret
-    cdef object shape, type_, dtype, flavor
+    cdef object shape, type_, dtype
 
     # Open the dataset (and keep it open)
     self.dataset_id = H5Dopen(self.parent_id, self.name)
@@ -998,9 +981,6 @@ cdef class Array(Leaf):
         self.extdim = i
         break
 
-    # Get the flavor
-    flavor = self._g_getflavor()
-
     # Allocate space for the dimension chunking info
     self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     if ((H5ARRAYget_chunkshape(self.dataset_id, self.rank,
@@ -1026,7 +1006,7 @@ cdef class Array(Leaf):
       dtype = numpy.dtype(type_).newbyteorder(byteorder)
 
     return (self.dataset_id, dtype, NPCodeToPTType[enumtype],
-            shape, flavor, chunkshapes)
+            shape, chunkshapes)
 
 
   def _convertTypes(self, object nparr, int sense):
@@ -1196,7 +1176,7 @@ cdef class VLArray(Leaf):
     cdef int i, enumtype
     cdef herr_t ret
     cdef void *rbuf
-    cdef char *flavor, *complib, *version, *class_
+    cdef char *complib, *version, *class_
     cdef object type_, kind, byteorder, itemsize
 
     atom = self.atom
@@ -1248,13 +1228,12 @@ cdef class VLArray(Leaf):
     rbuf = NULL   # We don't have data to save initially
 
     # Manually convert some string values that can't be done automatically
-    flavor = PyString_AsString(self.flavor)
     complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
     # Create the vlarray
     self.dataset_id = H5VLARRAYmake(self.parent_id, self.name, class_, title,
-                                    flavor, version, self.rank, self.scalar,
+                                    version, self.rank, self.scalar,
                                     self.dims, self.base_type_id,
                                     self._v_chunkshape[0], rbuf,
                                     self.filters.complevel, complib,
@@ -1276,7 +1255,7 @@ cdef class VLArray(Leaf):
     cdef int i, enumtype
     cdef herr_t ret
     cdef hsize_t nrecords, chunksize
-    cdef object shape, dtype, type_, flavor
+    cdef object shape, dtype, type_
 
     # Open the dataset (and keep it open)
     self.dataset_id = H5Dopen(self.parent_id, self.name)
@@ -1294,9 +1273,6 @@ cdef class VLArray(Leaf):
     # Get info on dimensions, class and type (of base class)
     H5VLARRAYget_info(self.dataset_id, self.type_id, &nrecords,
                       self.dims, &self.base_type_id, byteorder)
-
-    # Get the flavor
-    flavor = self._g_getflavor()
 
     # Get the array type & size
     self._basesize = getArrayType(self.base_type_id, &enumtype)
@@ -1321,7 +1297,7 @@ cdef class VLArray(Leaf):
     H5ARRAYget_chunkshape(self.dataset_id, 1, &chunksize)
 
     self.nrecords = nrecords  # Initialize the number of records saved
-    return self.dataset_id, nrecords, flavor, (chunksize,)
+    return self.dataset_id, nrecords, (chunksize,)
 
 
   def _convertTypes(self, object nparr, int sense):

@@ -34,6 +34,7 @@ import warnings
 import numpy
 
 import tables
+import tables.flavor
 import tables.hdf5Extension as hdf5Extension
 import tables.utilsExtension as utilsExtension
 from tables.Node import Node
@@ -197,6 +198,10 @@ class Leaf(Node):
     attrs -- The associated `AttributeSet` instance.  An alias for
         `Node._v_attrs`.
     title -- A description for this node.  An alias for `Node._v_title`.
+    flavor -- The representation of data read from this array.  It can
+        be any of 'numpy', 'numarray', 'numeric' or 'python' (the set of
+        supported flavors depends on which packages you have installed
+        on your system).
 
     Public methods (in addition to those in `Node`):
 
@@ -213,67 +218,71 @@ class Leaf(Node):
     delAttr(name)
     """
 
-    # <properties>
+    # Properties
+    # ~~~~~~~~~~
 
+    # Node property aliases
+    # `````````````````````
     # These are a little hard to override, but so are properties.
-
-    # `attrs` is an alias of `_v_attrs`.
     attrs = Node._v_attrs
-    # `title` is an alias of `_v_title`.
     title = Node._v_title
 
-
-    # The following are read-only aliases of their `Node` counterparts.
-
-    def _g_getname(self):
-        return self._v_name
+    # Read-only node property aliases
+    # ```````````````````````````````
     name = property(
-        _g_getname, None, None,
-        "The name of this node in its parent group (a string).")
+        lambda self: self._v_name, None, None,
+        "The name of this node in its parent group (a string)." )
 
-    def _g_gethdf5name(self):
-        return self._v_hdf5name
     hdf5name = property(
-        _g_gethdf5name, None, None,
-        "The name of this node in its parent group (a string).")
+        lambda self: self._v_hdf5name, None, None,
+        "The name of this node in its parent group (a string)." )
 
-    def _g_getobjectid(self):
-        return self._v_objectID
     objectID = property(
-        _g_getobjectid, None, None,
-        "The identifier of this node in the hosting HDF5 file.")
+        lambda self: self._v_objectID, None, None,
+        "The identifier of this node in the hosting HDF5 file." )
 
-
-    # `filters` is defined as a lazy read-only attribute.
-
+    # Lazy read-only attributes
+    # `````````````````````````
     def _getfilters(self):
         mydict = self.__dict__
         if 'filters' in mydict:
             return mydict['filters']
-        else:
-            mydict['filters'] = filters = self._g_getFilters()
-            return filters
+        mydict['filters'] = filters = self._g_getFilters()
+        return filters
 
     filters = property(_getfilters, None, None,
                        "Filter properties for this leaf.")
 
+    # Other properties
+    # ````````````````
     def _getmaindim(self):
-        if self.extdim > 0:
-            return self.extdim
-        else:
-            return 0   # choose the first dimension
+        if self.extdim < 0:
+            return 0  # choose the first dimension
+        return self.extdim
+
     maindim = property(
         _getmaindim, None, None,
-        "The main (enlargeable or first) dimension of the array.")
+        "The main (enlargeable or first) dimension of the array." )
 
-    # </properties>
+    def _setflavor(self, flavor):
+        self._v_file._checkWritable()
+        tables.flavor.check_flavor(flavor)
+        self._v_attrs.FLAVOR = self._flavor = flavor  # logs the change
+
+    flavor = property(
+        lambda self: self._flavor, _setflavor, None,
+        "The representation of data read from this array." )
 
 
+    # Special methods
+    # ~~~~~~~~~~~~~~~
     def __init__(self, parentNode, name,
                  new=False, filters=None,
                  _log=True):
         self._v_new = new
         """Is this the first time the node has been created?"""
+        self._flavor = None
+        """Private storage for the `flavor` property."""
 
         if new:
             if filters is None:
@@ -293,6 +302,54 @@ class Leaf(Node):
 
         super(Leaf, self).__init__(parentNode, name, _log)
 
+
+    def __len__(self):
+        "Useful for dealing with Leaf objects as sequences"
+        return self.nrows
+
+
+    def __str__(self):
+
+        """The string reprsentation choosed for this object is its pathname
+        in the HDF5 object tree.
+        """
+
+        # Get this class name
+        classname = self.__class__.__name__
+        # The title
+        title = self._v_title
+        # The filters
+        filters = ""
+        if self.filters.fletcher32:
+            filters += ", fletcher32"
+        if self.filters.complevel:
+            if self.filters.shuffle:
+                filters += ", shuffle"
+            filters += ", %s(%s)" % (self.filters.complib,
+                                     self.filters.complevel)
+        return "%s (%s%s%s) %r" % \
+               (self._v_pathname, classname, self.shape, filters, title)
+
+
+    # Private methods
+    # ~~~~~~~~~~~~~~~
+    def _g_postInitHook(self):
+        """
+        Code to be run after node creation and before creation logging.
+
+        This method gets or sets the flavor of the leaf.
+        """
+
+        super(Leaf, self)._g_postInitHook()
+        if self._v_new:  # set flavor of new node
+            if self._flavor is None:
+                self._flavor = tables.flavor.internal_flavor
+            self._v_attrs._g__setattr('FLAVOR', self._flavor)  # not logged
+        else:  # get flavor of existing node (if any)
+            try:
+                self._flavor = self._v_attrs.FLAVOR
+            except AttributeError:  # probably a plain HDF5 file
+                self._flavor = tables.flavor.internal_flavor
 
     def _g_getFilters(self):
         # Create a filters instance with default values
@@ -415,9 +472,12 @@ you may want to increase it."""
         (newNode, bytes) = self._g_copyWithStats(
             newParent, newName, start, stop, step, title, filters, _log)
 
-        # Copy user attributes if needed.
+        # Copy user attributes if requested (or the flavor at least).
         if kwargs.get('copyuserattrs', True):
             self._v_attrs._g_copy(newNode._v_attrs)
+        else:
+            newNode._v_attrs._g__setattr('FLAVOR', self._flavor)
+        newNode._flavor = self._flavor
 
         # Update statistics if needed.
         if stats is not None:
@@ -427,6 +487,10 @@ you may want to increase it."""
         return newNode
 
 
+    # Public methods
+    # ~~~~~~~~~~~~~~
+    # Tree manipulation
+    # `````````````````
     def remove(self):
         """
         Remove this node from the hierarchy.
@@ -503,8 +567,8 @@ you may want to increase it."""
         return self._f_isVisible()
 
 
-    # <attribute handling>
-
+    # Attribute handling
+    # ``````````````````
     def getAttr(self, name):
         """
         Get a PyTables attribute from this node.
@@ -531,9 +595,9 @@ you may want to increase it."""
         """
         self._f_delAttr(name)
 
-    # </attribute handling>
 
-
+    # Data handling
+    # `````````````
     def flush(self):
         """
         Flush pending data to disk.
@@ -574,34 +638,6 @@ you may want to increase it."""
         This method is completely equivalent to ``_f_close()``.
         """
         self._f_close(flush)
-
-
-    def __len__(self):
-        "Useful for dealing with Leaf objects as sequences"
-        return self.nrows
-
-
-    def __str__(self):
-
-        """The string reprsentation choosed for this object is its pathname
-        in the HDF5 object tree.
-        """
-
-        # Get this class name
-        classname = self.__class__.__name__
-        # The title
-        title = self._v_title
-        # The filters
-        filters = ""
-        if self.filters.fletcher32:
-            filters += ", fletcher32"
-        if self.filters.complevel:
-            if self.filters.shuffle:
-                filters += ", shuffle"
-            filters += ", %s(%s)" % (self.filters.complib,
-                                     self.filters.complevel)
-        return "%s (%s%s%s) %r" % \
-               (self._v_pathname, classname, self.shape, filters, title)
 
 
 

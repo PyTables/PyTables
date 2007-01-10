@@ -34,7 +34,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
 		    const char *dset_name,
 		    const char *class_,
 		    const char *title,
-		    const char *flavor,
 		    const char *obversion,    /* The Array VERSION number */
 		    const int rank,
 		    const hsize_t *dims,
@@ -180,10 +179,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
 			    0, NULL, (char *)&extdim ) < 0 )
      goto out;
  }
-
- /* Attach the FLAVOR attribute */
- if ( H5ATTRset_attribute_string( dataset_id, "FLAVOR", flavor ) < 0 )
-   goto out;
 
  /* Attach the VERSION attribute */
  if ( H5ATTRset_attribute_string( dataset_id, "VERSION", obversion ) < 0 )

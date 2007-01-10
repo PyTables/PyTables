@@ -45,8 +45,8 @@ vlarray.append(["456", "3"])
 
 # Python flavor
 vlarray = fileh.createVLArray(root, 'vlarray3b', StringAtom(itemsize=3),
-                              "Ragged array of strings",
-                              flavor="python")
+                              "Ragged array of strings")
+vlarray.flavor = "python"
 vlarray.append(["123", "456", "3"])
 vlarray.append(["456", "3"])
 

@@ -473,13 +473,11 @@ def array(buffer=None, formats=None, shape=0, names=None,
         return NestedRecArray(buffer, descr)
 
     # Check for numpy ndarrays, recarrays, records or scalar records
-    if (numpy_imported and (isinstance(buffer, numpy.ndarray) or
-                            type(buffer) == numpy.rec.recarray or
-                            type(buffer) == numpy.rec.record or
-                            type(buffer) == numpy.void)):
+    if numpy_imported and isinstance(buffer, (numpy.ndarray, numpy.void)):
+        buffer = buffer.copy()    # Always return a copy of the data
         # Try to convert into a nestedrecarray
         try:
-            nra = tables.utils.tonumarray(buffer, copy=True)
+            nra = fromnumpy(buffer)
         except Exception, exc:  #XXX
             raise ValueError, \
 """buffer parameter of type numpy cannot be converted into a NestedRecArray
@@ -638,6 +636,38 @@ def fromarrays(arrayList, formats=None, names=None, shape=0,
     nra = NestedRecArray(ra, descr)
 
     return nra
+
+
+def fromnumpy(array):
+    """
+    Create a new instance of a `RecArray` from NumPy `array`.
+
+    If nested records are present, a `NestedRecArray` is returned.  The
+    input `array` must be a NumPy array or record (it is not checked).
+    """
+    # Convert the original description based in the array protocol in
+    # something that can be understood by the NestedRecArray
+    # constructor.
+    descr = [i for i in convertFromAPDescr(array.dtype.descr)]
+    # Flat the description
+    flatDescr = [i for i in nriterators.flattenDescr(descr)]
+    # Flat the structure descriptors
+    flatFormats = [i for i in nriterators.getFormatsFromDescr(flatDescr)]
+    flatNames = [i for i in nriterators.getNamesFromDescr(flatDescr)]
+    # Create a regular RecArray
+    if array.shape == ():
+        shape = 1     # Scalar case. Shape = 1 will provide an adequate buffer.
+    else:
+        shape = array.shape
+    rarray = numarray.records.array(
+        array.data, formats=flatFormats, names=flatNames,
+        shape=shape, byteorder=sys.byteorder,
+        aligned=False)  # aligned RecArrays are not supported yet
+
+    # A ``NestedRecArray`` is only needed if there are nested fields.
+    if '/' in ''.join(flatNames):
+        return NestedRecArray(rarray, descr)
+    return rarray
 
 
 def convertToAPDescr(descr, byteorder):

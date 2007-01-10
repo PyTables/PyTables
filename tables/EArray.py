@@ -33,6 +33,7 @@ import numpy
 from tables.constants import EXPECTED_ROWS_EARRAY
 from tables.utils import convertToNPAtom, processRangeRead, byteorders
 from tables.atom import Atom, EnumAtom, split_type
+from tables.Leaf import Leaf
 from tables.CArray import CArray
 
 __version__ = "$Revision$"
@@ -78,7 +79,7 @@ class EArray(CArray):
     def __init__( self, parentNode, name,
                   atom=None, shape=None, title="",
                   filters=None, expectedrows=EXPECTED_ROWS_EARRAY,
-                  flavor='numpy', chunkshape=None,
+                  chunkshape=None,
                   _log=True ):
         """
         Create an `EArray` instance.
@@ -106,8 +107,6 @@ class EArray(CArray):
             bigger `EArray` try providing a guess; this will optimize
             the HDF5 B-Tree creation and management process time and
             the amount of memory used.
-        `flavor`
-            Sets the representation of data read from this array.
         `chunkshape`
             The shape of the data chunk to be read or written in a
             single HDF5 I/O operation.  Filters are applied to those
@@ -122,7 +121,7 @@ class EArray(CArray):
 
         # Call the parent (CArray) init code
         super(EArray, self).__init__(parentNode, name, atom, shape, title,
-                                     filters, flavor, chunkshape, _log)
+                                     filters, chunkshape, _log)
 
 
     def __repr__(self):
@@ -189,7 +188,7 @@ class EArray(CArray):
     def _g_create(self):
         """Create a new EArray."""
 
-        # Version, dtype, type, shape, flavor
+        # Version, dtype, type, shape
         self._v_version = obversion
         # Create a scalar version of dtype
         self.dtype = self.atom.dtype.base
@@ -224,7 +223,7 @@ instance to zero."""
         """Get the metadata info for an EArray in file."""
 
         (self._v_objectID, self.dtype, self.type, self.shape,
-         self.flavor, self._v_chunkshape) = self._openArray()
+         self._v_chunkshape) = self._openArray()
         # Post-condition
         assert self.extdim >= 0, "extdim < 0: this should never happen!"
 
@@ -302,8 +301,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         # a sensible value would be calculated)
         object = EArray(
             group, name, atom=self.atom, shape=shape, title=title,
-            filters=filters, expectedrows=self.nrows, flavor=self.flavor,
-            _log=_log)
+            filters=filters, expectedrows=self.nrows, _log=_log)
         # Now, fill the new earray with values from source
         nrowsinbuf = self._v_nrowsinbuf
         # The slices parameter for self.__getitem__

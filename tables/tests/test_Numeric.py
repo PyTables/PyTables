@@ -389,7 +389,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         for i in range(self.nrows):
             table.row.append()  # Fill 100 rows with default values
         fileh.close()
-        self.fileh = openFile(self.file, "r")
+        self.fileh = openFile(self.file, "a")  # allow flavor changes
 
     def tearDown(self):
         self.fileh.close()
@@ -401,8 +401,9 @@ class TableReadTestCase(common.PyTablesTestCase):
         """Checking column conversion into Numeric in read(). Char flavor"""
 
         table = self.fileh.root.table
+        table.flavor = "numeric"
         for colname in table.colnames:
-            numcol = table.read(field=colname, flavor="numeric")
+            numcol = table.read(field=colname)
             typecol = table.coltypes[colname]
             itemsizecol = table.description._v_dtypes[colname].base.itemsize
             nctypecode = numcol.typecode()
@@ -426,8 +427,9 @@ class TableReadTestCase(common.PyTablesTestCase):
         """Checking column conversion into Numeric in read(). Numeric flavor"""
 
         table = self.fileh.root.table
+        table.flavor="numeric"
         for colname in table.colnames:
-            numcol = table.read(field=colname, flavor="numeric")
+            numcol = table.read(field=colname)
             typecol = table.coltypes[colname]
             nctypecode = numcol.typecode()
             if typecol <> "string":
@@ -447,11 +449,11 @@ class TableReadTestCase(common.PyTablesTestCase):
         """Column conversion into Numeric in readCoords(). Chars"""
 
         table = self.fileh.root.table
+        table.flavor = "numeric"
         coords = (1,2,3)
         self.nrows = len(coords)
         for colname in table.colnames:
-            numcol = table.readCoordinates(coords, field=colname,
-                                           flavor="numeric")
+            numcol = table.readCoordinates(coords, field=colname)
             typecol = table.coltypes[colname]
             itemsizecol = table.description._v_dtypes[colname].base.itemsize
             nctypecode = numcol.typecode()
@@ -475,11 +477,11 @@ class TableReadTestCase(common.PyTablesTestCase):
         """Column conversion into Numeric in readCoordinates(). Numerical"""
 
         table = self.fileh.root.table
+        table.flavor = "numeric"
         coords = (1,2,3)
         self.nrows = len(coords)
         for colname in table.colnames:
-            numcol = table.readCoordinates(coords, field=colname,
-                                           flavor="numeric")
+            numcol = table.readCoordinates(coords, field=colname)
             typecol = table.coltypes[colname]
             nctypecode = numcol.typecode()
             if typecol <> "string":

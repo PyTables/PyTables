@@ -263,7 +263,8 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
             ValueError, operator.setitem, row, 'rcolor', appended[1][1])
 
         tbl.flush()
-        read = tbl.read(flavor='python')
+        tbl.flavor = 'python'
+        read = tbl.read()
         common.verbosePrint(
             "* appended value: %s\n"
             "* read value: %s\n"
@@ -284,7 +285,8 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         tbl.append(appended)
         tbl.flush()
-        read = tbl.read(flavor='python')
+        tbl.flavor = 'python'
+        read = tbl.read()
         common.verbosePrint(
             "* appended value: %s\n"
             "* read value: %s\n"
@@ -307,7 +309,8 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
             (10, self.valueInEnum),
             (20, self.valueOutOfEnum)]
         tbl[:] = written
-        read = tbl.read(flavor='python')
+        tbl.flavor = 'python'
+        read = tbl.read()
         common.verbosePrint(
             "* written value: %s\n"
             "* read value: %s\n"
@@ -332,7 +335,8 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         tbl.append(appended)
         tbl.flush()
-        read = tbl.read(flavor='python')
+        tbl.flavor = 'python'
+        read = tbl.read()
         for i in range(len(appended)):
             self.assertEqual(appended[i][0], read[i][0],
                              "Written and read values differ.")
@@ -389,7 +393,8 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.h5file.createEArray(
             '/', 'test', self._atom(), shape=(0,),
-            title=self._getMethodName(), flavor='python' )
+            title=self._getMethodName() )
+        self.h5file.root.test.flavor = 'python'
 
         self._reopen()
 
@@ -406,7 +411,8 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.h5file.createEArray(
             '/', 'test', self._atom(), shape=(0, 2),
-            title=self._getMethodName(), flavor='python' )
+            title=self._getMethodName() )
+        self.h5file.root.test.flavor = 'python'
 
         self._reopen()
 
@@ -420,7 +426,8 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         earr = self.h5file.createEArray(
             '/', 'test', self._atom(), shape=(0,),
-            title=self._getMethodName(), flavor='python' )
+            title=self._getMethodName() )
+        earr.flavor = 'python'
 
         appended = [self.valueInEnum, self.valueOutOfEnum]
 
@@ -435,7 +442,8 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         earr = self.h5file.createEArray(
             '/', 'test', self._atom(), shape=(0, 2),
-            title=self._getMethodName(), flavor='python' )
+            title=self._getMethodName() )
+        earr.flavor = 'python'
 
         appended = [
             [self.valueInEnum, self.valueOutOfEnum],
@@ -452,7 +460,8 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         earr = self.h5file.createEArray(
             '/', 'test', self._atom(), shape=(0,),
-            title=self._getMethodName(), flavor='python' )
+            title=self._getMethodName() )
+        earr.flavor = 'python'
 
         appended = (self.valueInEnum, self.valueInEnum)
         earr.append(appended)
@@ -484,7 +493,8 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.h5file.createVLArray(
             '/', 'test', self._atom(),
-            title=self._getMethodName(), flavor='python' )
+            title=self._getMethodName() )
+        self.h5file.root.test.flavor = 'python'
 
         self._reopen()
 
@@ -501,7 +511,8 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         self.h5file.createVLArray(
             '/', 'test', self._atom((2,)),
-            title=self._getMethodName(), flavor='python' )
+            title=self._getMethodName() )
+        self.h5file.root.test.flavor = 'python'
 
         self._reopen()
 
@@ -515,7 +526,8 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         vlarr = self.h5file.createVLArray(
             '/', 'test', self._atom(),
-            title=self._getMethodName(), flavor='python' )
+            title=self._getMethodName() )
+        vlarr.flavor = 'python'
 
         appended = [
             [self.valueInEnum,],
@@ -537,7 +549,8 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         vlarr = self.h5file.createVLArray(
             '/', 'test', self._atom((2,)),
-            title=self._getMethodName(), flavor='python' )
+            title=self._getMethodName() )
+        vlarr.flavor = 'python'
 
         appended = [
             [[self.valueInEnum, self.valueInEnum],],
@@ -560,7 +573,8 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         vlarr = self.h5file.createVLArray(
             '/', 'test', self._atom(),
-            title=self._getMethodName(), flavor='python' )
+            title=self._getMethodName() )
+        vlarr.flavor = 'python'
 
         appended = (self.valueInEnum, self.valueInEnum)
         vlarr.append(appended)

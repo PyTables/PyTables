@@ -1963,15 +1963,15 @@ Represent a table in the object tree.
         modifyRows(start, rows)
         modifyColumn(columns, names, [start] [, stop] [, step])
         modifyColumns(columns, names, [start] [, stop] [, step])
-        read([start] [, stop] [, step] [, field [, flavor]])
-        readCoordinates(coords [, field [, flavor]])
-        readWhere(condition [, condvars] [, field] [, flavor])
+        read([start] [, stop] [, step] [, field])
+        readCoordinates(coords [, field])
+        readWhere(condition [, condvars] [, field])
         reIndex()
         reIndexDirty()
         removeRows(start [, stop])
         where(condition [, condvars] [, start] [, stop] [, step])
         whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
-        getWhereList(condition [, condvars] [, flavor] [, sort])
+        getWhereList(condition [, condvars] [, sort])
 
     Instance variables:
 
@@ -3190,7 +3190,8 @@ Ball extracted on 1165860494 is of color white.
           <screen><![CDATA[
 >>> workingDays = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5}
 >>> dayRange = tables.EnumAtom(workingDays, 'Mon', base='uint16')
->>> earr = h5f.createEArray('/', 'days', dayRange, (0, 2), title="Working day ranges", flavor='python')
+>>> earr = h5f.createEArray('/', 'days', dayRange, (0, 2), title="Working day ranges")
+>>> earr.flavor = 'python'
 >>> ]]></screen>
 
           <para>Nothing surprising, except for a pair of details. In the first
@@ -4282,7 +4283,7 @@ ValueError: malformed type: 'foo bar']]></screen></section>
 
 	  <section id="createCArrayDescr">
 	    <title>createCArray(where, name, atom, shape,
-	      title='', filters=None, flavor='numpy',
+	      title='', filters=None,
 	      chunkshape=None, createparents=False)</title>
 
 	    <para>Create a new <literal>CArray</literal> instance with name
@@ -4297,8 +4298,8 @@ ValueError: malformed type: 'foo bar']]></screen></section>
         <glossentry>
         <glossterm><emphasis role="bold">atom</emphasis></glossterm>
         <glossdef><para>An <literal>Atom</literal> instance representing the
-        <emphasis>type</emphasis>, <emphasis>shape</emphasis> and
-        <emphasis>flavor</emphasis> of the chunk of the objects to be
+        <emphasis>type</emphasis> and <emphasis>shape</emphasis>
+        of the chunk of the objects to be
         saved. Multdimensional atoms (i.e. those with shape different from 1)
         are not supported yet.</para></glossdef>
         </glossentry>
@@ -4320,11 +4321,6 @@ ValueError: malformed type: 'foo bar']]></screen></section>
         </glossentry>
 
 	<glossentry>
-	  <glossterm><emphasis role="bold">flavor</emphasis></glossterm>
-	  <glossdef><para>The representation of data read from this array.</para></glossdef>
-	</glossentry>
-
-	<glossentry>
 	  <glossterm><emphasis role="bold">createparents</emphasis></glossterm>
 	  <glossdef><para>Whether to create the needed groups
 	  for the parent path to exist (not done by default).</para>
@@ -4342,7 +4338,7 @@ ValueError: malformed type: 'foo bar']]></screen></section>
 
 	  <section id="createEArrayDescr">
 	    <title>createEArray(where, name, atom, shape, title='',
-	      filters=None, expectedrows=1000, flavor='numpy', chunkshape=None,
+	      filters=None, expectedrows=1000, chunkshape=None,
 	      createparents=False)
 	    </title>
 
@@ -4358,8 +4354,8 @@ ValueError: malformed type: 'foo bar']]></screen></section>
         <glossentry>
         <glossterm><emphasis role="bold">atom</emphasis></glossterm>
         <glossdef><para>An <literal>Atom</literal> instance representing the
-        <emphasis>type</emphasis>, <emphasis>shape</emphasis> and
-        <emphasis>flavor</emphasis> of the atomic objects to be
+        <emphasis>type</emphasis> and <emphasis>shape</emphasis>
+        of the atomic objects to be
         saved. </para></glossdef>
         </glossentry>
 
@@ -4399,11 +4395,6 @@ ValueError: malformed type: 'foo bar']]></screen></section>
         </glossentry>
 
 	<glossentry>
-	  <glossterm><emphasis role="bold">flavor</emphasis></glossterm>
-	  <glossdef><para>The representation of data read from this array.</para></glossdef>
-	</glossentry>
-
-	<glossentry>
 	  <glossterm><emphasis role="bold">createparents</emphasis></glossterm>
 	  <glossdef><para>Whether to create the needed groups
 	  for the parent path to exist (not done by default).</para>
@@ -4423,7 +4414,7 @@ ValueError: malformed type: 'foo bar']]></screen></section>
 
 	<section id="createVLArrayDescr">
 	    <title>createVLArray(where, name, atom, title='',
-	      filters=None, expectedsizeinMB=1.0, flavor='numpy',
+	      filters=None, expectedsizeinMB=1.0,
 	      chunkshape=chunkshape, createparents=False)
 	    </title>
 
@@ -4439,7 +4430,7 @@ ValueError: malformed type: 'foo bar']]></screen></section>
         <glossentry>
         <glossterm><emphasis role="bold">atom</emphasis></glossterm>
         <glossdef><para>An <literal>Atom</literal> instance representing the
-        shape, type and flavor of the atomic object to be saved. See <xref
+        shape and type of the atomic object to be saved. See <xref
         xrefstyle="select: label" linkend="AtomClassDescr"/> for the supported
         set of <literal>Atom</literal> class descendants.  </para></glossdef>
         </glossentry>
@@ -4464,11 +4455,6 @@ ValueError: malformed type: 'foo bar']]></screen></section>
 	If <literal>None</literal>, a sensible value is
         calculated (which is recommended).</para></glossdef>
         </glossentry>
-
-	<glossentry>
-	  <glossterm><emphasis role="bold">flavor</emphasis></glossterm>
-	  <glossdef><para>The representation of data read from this array.</para></glossdef>
-	</glossentry>
 
 	<glossentry>
 	  <glossterm><emphasis role="bold">createparents</emphasis></glossterm>
@@ -6016,6 +6002,17 @@ for node in h5file.root.detector:
       </para></glossdef>
       </glossentry>
 
+      <glossentry>
+	<glossterm id="Leaf.flavor"><emphasis role="bold">flavor</emphasis></glossterm>
+	<glossdef><para>The representation of data read from this array.  It
+	can be any of <literal>'numpy'</literal>,
+	<literal>'numarray'</literal>, <literal>'numeric'</literal> or
+	<literal>'python'</literal> (the set of supported flavors depends on
+	which packages you have installed on your system).
+      </para>
+	</glossdef>
+      </glossentry>
+
     </glosslist>
 	</section>
 
@@ -6306,22 +6303,6 @@ for node in h5file.root.detector:
 	  </para>
 	</glossdef>
         </glossentry>
-
-        <glossentry>
-        <glossterm><emphasis role="bold">flavor</emphasis></glossterm>
-        <glossdef><para>The default flavor for this table. This determines the
-        type of objects returned during input (i.e. read) operations. It can
-        take the <emphasis>"numarray"</emphasis> (default) or
-        <emphasis>"numpy"</emphasis> values. Its value is derived from the
-        <literal>_v_flavor</literal> attribute of the
-        <literal>IsDescription</literal> metaclass
-        (see <xref xrefstyle="select:
-        labelnumber" linkend="IsDescriptionClassDescr"/>) or, if the table has been created directly from a
-        <literal>numarray</literal> or
-        <literal>NumPy</literal> object, the flavor is
-        set to the appropriate value.</para></glossdef>
-        </glossentry>
-
       </glosslist>
 	  </section>
 
@@ -6475,8 +6456,7 @@ if row['var1'] <= 20 ]]]></screen>
 	    </section>
 
 	    <section id="Table.read" xreflabel="description">
-	      <title>read(start=None, stop=None,
-		step=1, field=None, flavor=None)</title>
+	      <title>read(start=None, stop=None, step=1, field=None)</title>
 
 	      <para>Returns the actual data in <literal>Table</literal>. If
 		<emphasis>field</emphasis> is not supplied, it returns the data as a
@@ -6498,8 +6478,8 @@ if row['var1'] <= 20 ]]]></screen>
 
 	      <glosslist><glossentry><glossterm><emphasis role="bold">field</emphasis></glossterm><glossdef><para>If specified, only the column
 		  <emphasis>field</emphasis> is returned as an homogeneous
-		  <literal>numarray</literal>/<literal>NumPy</literal>/<literal>Numeric</literal>
-		  object, depending on the <emphasis>flavor</emphasis>. If this is
+		  <literal>numarray</literal>/<literal>NumPy</literal>/<literal>Numeric</literal> or Python
+		  object, depending on the current <emphasis>flavor</emphasis>. If this is
 		  not supplied, all the fields are selected and a
 		  <literal>NestedRecArray</literal> (see <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>) or
 		  <literal>NumPy</literal> object is returned.  Nested
@@ -6507,21 +6487,12 @@ if row['var1'] <= 20 ]]]></screen>
 		  parameter by using a <literal>'/'</literal> character as a
 		  separator between fields
 		  (e.g. <literal>Info/value</literal>).
-		</para></glossdef></glossentry><glossentry><glossterm><emphasis role="bold">flavor</emphasis></glossterm><glossdef><para>Passing a <emphasis>flavor</emphasis>
-		  parameter make an additional conversion to happen in
-		  the default returned object. <emphasis>flavor</emphasis> can
-		  have any of the next values: <literal>"numarray"</literal>
-		  <literal>"numpy"</literal>, <literal>"python"</literal> or
-		  <literal>"numeric"</literal> (only if <emphasis>field</emphasis> has
-		  been specified). If <emphasis>flavor</emphasis> is not
-		  specified, then it will take the value of
-		  <literal>self.flavor</literal>.
 		</para></glossdef></glossentry></glosslist>
 	    </section>
 
 	    <section id="Table.readWhere" xreflabel="description">
 	      <title>
-		readWhere(condition, condvars=None, field=None, flavor=None)
+		readWhere(condition, condvars=None, field=None)
 	      </title>
 	      <para>
 		Read table data fulfilling the given <emphasis>condition</emphasis>.
@@ -6542,8 +6513,7 @@ if row['var1'] <= 20 ]]]></screen>
 	    </section>
 
 	    <section id="Table.readCoordinates">
-	      <title>readCoordinates(coords, field=None,
-		flavor=None)</title>
+	      <title>readCoordinates(coords, field=None)</title>
 
 	      <para>Read a set of rows given their indexes into an
 		in-memory object.</para>
@@ -6554,12 +6524,8 @@ if row['var1'] <= 20 ]]]></screen>
 		select the wanted columns, instead of a column range.
 	      </para>
 
-	      <para>It returns the selected rows in a NumPy record array. If
-		<literal>flavor</literal> is provided, an additional
-		conversion to an object of this flavor is made, just
-		as in <literal>read()</literal>. If not specified, the
-		default flavor for this table will be chosen as the output
-		format.
+	      <para>It returns the selected rows in a record array of the
+	      current flavor.
 	      </para>
 	    </section>
 
@@ -6873,16 +6839,13 @@ if row['var1'] <= 20 ]]]></screen>
 	    </section>
 
 	    <section id="getWhereListTableDescr">
-	      <title>getWhereList(condition, condvars=None, flavor=None, sort=False)</title>
+	      <title>getWhereList(condition, condvars=None, sort=False)</title>
 
 	      <para>Get the row coordinates fulfilling the given
 		<emphasis>condition</emphasis>.
 	      </para>
 
-	      <para><emphasis>flavor</emphasis> is the desired type of the returned list.
-		If it is not provided, then it will take the value of
-		<literal>self.flavor</literal>.
-	      </para>
+	      <para>The coordinates are returned as a list of the current flavor.</para>
 
 	      <para>
 		<emphasis>sort</emphasis> means that
@@ -7677,15 +7640,6 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
       <glosslist>
 	<?dbfo glosslist-presentation="list" ?>
 	<glossentry>
-	  <glossterm><emphasis role="bold">flavor</emphasis></glossterm>
-	  <glossdef><para>The representation of data read from this array.
-	  It can be any of <literal>'numpy'</literal>,
-	  <literal>'numarray'</literal>, <literal>'numeric'</literal>
-	  or <literal>'python'</literal> values.
-	  </para></glossdef>
-	</glossentry>
-
-	<glossentry>
 	  <glossterm><emphasis role="bold">nrows</emphasis></glossterm>
 	  <glossdef><para>The length of the main dimension of the array.</para></glossdef>
 	</glossentry>
@@ -8156,8 +8110,8 @@ fileh = tables.openFile("vlarray1.h5", mode = "w")
 vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
                               tables.Int32Atom(shape=1),
                               "ragged array of ints",
-                              filters = tables.Filters(1),
-                              flavor = "numeric")
+                              filters = tables.Filters(1))
+vlarray.flavor = "numeric"
 # Append some (variable length) rows:
 vlarray.append(array([5, 6]))
 vlarray.append(array([5, 6, 7]))
@@ -8172,8 +8126,8 @@ for x in vlarray:
 vlarray2 = fileh.createVLArray(fileh.root, 'vlarray2',
                               tables.StringAtom(itemsize=2),
                               "ragged array of strings",
-                              filters = tables.Filters(1),
-                              flavor = "python")
+                              filters = tables.Filters(1))
+vlarray.flavor = "python"
 # Append some (variable length) rows:
 print "-->", vlarray2.title
 vlarray2.append(["5", "66"])
@@ -8321,8 +8275,8 @@ list2 = vlarray[4:1000:2]]]></screen>
 
 
 	      <para><emphasis>Note:</emphasis> When updating
-		<literal>VLStrings</literal> (codification UTF-8) or
-		<literal>Objects</literal> atoms, there is a problem: one can
+		<literal>vlstring</literal> (codification UTF-8) or
+		<literal>object</literal> pseudo-atoms, there is a problem: one can
 		only update values with <emphasis>exactly</emphasis> the same bytes
 		than in the original row. With UTF-8 encoding this is
 		problematic because, for instance, '<literal>c</literal>'
@@ -9192,7 +9146,7 @@ ValueError: unknown type: 'Float64']]></screen>
 	      <section><title>Pseudo atoms</title>
 	      <para>Now, there come two special classes,
 	      <literal>ObjectAtom</literal> and
-	      <literal>VLString</literal>, that actually do
+	      <literal>VLStringAtom</literal>, that actually do
 	      not descend from <literal>Atom</literal>, but
 	      which goal is so similar that they should be described here.
 	      Pseudo atom instances do not allow multidimensional
@@ -9229,10 +9183,8 @@ ValueError: unknown type: 'Float64']]></screen>
 		<literal>VLArray.append()</literal> method
 		as they will be regarded as a <emphasis>tuple</emphasis> of compound
 		objects (the parameters), so that we still have only one object to be
-		saved in a single row. It does not accept parameters and its flavor is
-		automatically set to
-		<literal>"Object"</literal>, so the reads of
-		rows always returns an arbitrary python object.
+		saved in a single row. It does not accept parameters and it causes the reads of
+		rows to always return Python objects.
 
 		You can regard <literal>ObjectAtom</literal>
 		types as an easy way to save an arbitrary number of generic python
@@ -9256,9 +9208,8 @@ ValueError: unknown type: 'Float64']]></screen>
 		uses the UTF-8 codification (this is why its
 		<literal>atomsize()</literal> method returns
 		always 1) when serializing to disk. It does not accept any parameter
-		and because its <emphasis>flavor</emphasis> is automatically set to
-		<literal>"VLString"</literal>, the reads of
-		rows always returns a python string. See the
+		and it causes the reads of
+		rows to always return Python strings. See the
 		<xref xrefstyle="select: label" linkend="VLArrayFormatDescr"/> if you are
 		curious on how this is implemented at the low-level.
 
@@ -13066,13 +13017,13 @@ NestedRecArray[
           to see the message usage:
 
           <screen><![CDATA[usage: ptdump [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
-  -R RANGE -- Select a RANGE of rows in the form "start,stop,step"
-  -a -- Show attributes in nodes (only useful when -v or -d are active)
-  -c -- Show info of columns in tables (only useful when -v or -d are active)
-  -i -- Show info of indexed columns (only useful when -v or -d are active)
-  -d -- Dump data information on leaves
-  -h -- Print help on usage
-  -v -- Dump more meta-information on nodes]]></screen>
+      -R RANGE -- Select a RANGE of rows in the form "start,stop,step"
+      -a -- Show attributes in nodes (only useful when -v or -d are active)
+      -c -- Show info of columns in tables (only useful when -v or -d are active)
+      -i -- Show info of indexed columns (only useful when -v or -d are active)
+      -d -- Dump data information on leaves
+      -h -- Print help on usage
+      -v -- Dump more metainformation on nodes]]></screen>
           </para>
 
         </section>
@@ -13084,10 +13035,12 @@ NestedRecArray[
           don't pass any flag, just the file as parameter:
 
           <screen><![CDATA[$ ptdump vlarray1.h5
-Filename: 'vlarray1.h5' Title: '' , Last modif.: 'Fri Feb  6 19:33:28 2004' ,
- rootUEP='/', filters=Filters(), Format version: 1.2
-/ (Group) ''
-/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints']]></screen>
+vlarray1.h5 (File) ''
+Last modif.: 'Mon Jan  8 16:21:25 2007'
+Object Tree: 
+/ (RootGroup) ''
+/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
+/vlarray2 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of strings']]></screen>
 
           we can see that the file contains just a leaf object called
           <literal>vlarray1</literal>, that is an
@@ -13101,13 +13054,17 @@ Filename: 'vlarray1.h5' Title: '' , Last modif.: 'Fri Feb  6 19:33:28 2004' ,
           <literal>-v</literal> (verbose) flag:
 
           <screen><![CDATA[$ ptdump -v vlarray1.h5
-/ (Group) ''
-  children := ['vlarray1' (VLArray)]
-/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints'
-  atom = Atom(type=Int32, shape=1, flavor='Numeric')
-  nrows = 4
-  flavor = 'Numeric'
-  byteorder = 'little']]></screen>
+/ (RootGroup) ''
+/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
+  atom = Int32Atom(shape=(), dflt=0)
+  byteorder = 'little'
+  nrows = 3
+  flavor = 'numeric'
+/vlarray2 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of strings'
+  atom = StringAtom(itemsize=2, shape=(), dflt='')
+  byteorder = 'irrelevant'
+  nrows = 3
+  flavor = 'python']]></screen>
 
           so we can see more info about the atoms that are the components of the
           <literal>vlarray1</literal> dataset, i.e.
@@ -13120,33 +13077,49 @@ Filename: 'vlarray1.h5' Title: '' , Last modif.: 'Fri Feb  6 19:33:28 2004' ,
           must add the <literal>-a</literal> flag:
 
           <screen><![CDATA[$ ptdump -va vlarray1.h5
-/ (Group) ''
-  children := ['vlarray1' (VLArray)]
+/ (RootGroup) ''
   /._v_attrs (AttributeSet), 5 attributes:
    [CLASS := 'GROUP',
-    FILTERS := None,
-    PYTABLES_FORMAT_VERSION := '1.2',
+    FILTERS := Filters(complevel=0, complib='zlib', shuffle=False, fletcher32=False),
+    PYTABLES_FORMAT_VERSION := '1.6',
     TITLE := '',
     VERSION := '1.0']
-/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints'
-  atom = Atom(type=Int32, shape=1, flavor='Numeric')
-  nrows = 4
-  flavor = 'Numeric'
+/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
+  atom = Int32Atom(shape=(), dflt=0)
   byteorder = 'little'
-  /vlarray1.attrs (AttributeSet), 4 attributes:
+  nrows = 3
+  flavor = 'numeric'
+  /vlarray1._v_attrs (AttributeSet), 4 attributes:
    [CLASS := 'VLARRAY',
-    FLAVOR := 'Numeric',
+    FLAVOR := 'numeric',
     TITLE := 'ragged array of ints',
-    VERSION := '1.0']]]></screen>
+    VERSION := '1.2']
+/vlarray2 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of strings'
+  atom = StringAtom(itemsize=2, shape=(), dflt='')
+  byteorder = 'irrelevant'
+  nrows = 3
+  flavor = 'python'
+  /vlarray2._v_attrs (AttributeSet), 4 attributes:
+   [CLASS := 'VLARRAY',
+    FLAVOR := 'python',
+    TITLE := 'ragged array of strings',
+    VERSION := '1.2']]]></screen>
           </para>
 
           <para>Let's have a look at the real data:
 
           <screen><![CDATA[$ ptdump -d vlarray1.h5
-/ (Group) ''
-/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints'
+/ (RootGroup) ''
+/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
   Data dump:
-[array([5, 6]), array([5, 6, 7]), array([5, 6, 9, 8]), array([ 5,  6,  9, 10, 12])]]]></screen>
+[0] [5 6]
+[1] [5 6 7]
+[2] [5 6 9 8]
+/vlarray2 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of strings'
+  Data dump:
+[0] ['5', '66']
+[1] ['5', '6', '77']
+[2] ['5', '6', '9', '88']]]></screen>
 
           we see here a data dump of the 4 rows in
           <literal>vlarray1</literal> object, in the
@@ -13157,10 +13130,10 @@ Filename: 'vlarray1.h5' Title: '' , Last modif.: 'Fri Feb  6 19:33:28 2004' ,
           range</emphasis> of the
           <literal>/vlarray1</literal> object:
 
-          <screen><![CDATA[ptdump -R2,4 -d vlarray1.h5:/vlarray1
-/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints'
+          <screen><![CDATA[ptdump -R2,3 -d vlarray1.h5:/vlarray1
+/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
   Data dump:
-[array([5, 6, 9, 8]), array([ 5,  6,  9, 10, 12])]]]></screen>
+[2] [5 6 9 8]]]></screen>
 
           Here, we have specified the range of rows between 2 and 4 (the upper
           limit excluded, as usual in Python). See how we have selected only the
@@ -13171,19 +13144,19 @@ Filename: 'vlarray1.h5' Title: '' , Last modif.: 'Fri Feb  6 19:33:28 2004' ,
 
           <para>Finally, you can mix several information at once:
 
-          <screen><![CDATA[$ ptdump -R2,4 -vad vlarray1.h5:/vlarray1
-/vlarray1 (VLArray(4,), shuffle, zlib(1)) 'ragged array of ints'
-  atom = Atom(type=Int32, shape=1, flavor='Numeric')
-  nrows = 4
-  flavor = 'Numeric'
+          <screen><![CDATA[$ ptdump -R2,3 -vad vlarray1.h5:/vlarray1
+/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
+  atom = Int32Atom(shape=(), dflt=0)
   byteorder = 'little'
-  /vlarray1.attrs (AttributeSet), 4 attributes:
+  nrows = 3
+  flavor = 'numeric'
+  /vlarray1._v_attrs (AttributeSet), 4 attributes:
    [CLASS := 'VLARRAY',
-    FLAVOR := 'Numeric',
+    FLAVOR := 'numeric',
     TITLE := 'ragged array of ints',
-    VERSION := '1.0']
+    VERSION := '1.2']
   Data dump:
-[array([5, 6, 9, 8]), array([ 5,  6,  9, 10, 12])]]]></screen>
+[2] [5 6 9 8]]]></screen>
 
           </para>
         </section>
@@ -13221,28 +13194,28 @@ Filename: 'vlarray1.h5' Title: '' , Last modif.: 'Fri Feb  6 19:33:28 2004' ,
   [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)]
   [--fletcher32=(0|1)] [--keep-source-filters]
   sourcefile:sourcegroup destfile:destgroup
- -h -- Print usage message.
- -v -- Show more information.
- -o -- Overwite destination file.
- -R RANGE -- Select a RANGE of rows (in the form "start,stop,step")
-     during the copy of *all* the leaves.
- --non-recursive -- Do not do a recursive copy. Default is to do it.
- --dest-title=title -- Title for the new file (if not specified,
-     the source is copied).
- --dont-copy-userattrs -- Do not copy the user attrs (default is to do it)
- --overwrite-nodes -- Overwrite destination nodes if they exist. Default is
-     to not overwrite them.
- --complevel=(0-9) -- Set a compression level (0 for no compression, which
-     is the default).
- --complib=lib -- Set the compression library to be used during the copy.
-     lib can be set to "zlib", "lzo" or "bzip2". Defaults to "zlib".
- --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
-     if complevel>0).
- --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not
-     active by default).
- --keep-source-filters -- Use the original filters in source files. The
-     default is not doing that if any of --complevel, --complib, --shuffle
-     or --fletcher32 option is specified.]]></screen>
+     -h -- Print usage message.
+     -v -- Show more information.
+     -o -- Overwite destination file.
+     -R RANGE -- Select a RANGE of rows (in the form "start,stop,step")
+         during the copy of *all* the leaves.
+     --non-recursive -- Do not do a recursive copy. Default is to do it.
+     --dest-title=title -- Title for the new file (if not specified,
+         the source is copied).
+     --dont-copy-userattrs -- Do not copy the user attrs (default is to do it)
+     --overwrite-nodes -- Overwrite destination nodes if they exist. Default is
+         to not overwrite them.
+     --complevel=(0-9) -- Set a compression level (0 for no compression, which
+         is the default).
+     --complib=lib -- Set the compression library to be used during the copy.
+         lib can be set to "zlib", "lzo" or "bzip2". Defaults to "zlib".
+     --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
+         if complevel>0).
+     --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter
+         (not active by default).
+     --keep-source-filters -- Use the original filters in source files. The
+         default is not doing that if any of --complevel, --complib, --shuffle
+         or --fletcher32 option is specified.]]></screen>
 
           </para>
         </section>
@@ -13258,12 +13231,13 @@ Filename: 'vlarray1.h5' Title: '' , Last modif.: 'Fri Feb  6 19:33:28 2004' ,
           <literal>examples/tutorial1.h5</literal>:
 
           <screen><![CDATA[$ ptdump tutorial1.h5
-Filename: 'tutorial1.h5' Title: 'Test file' , Last modif.: 'Fri Feb  6
-  19:33:28 2004' , rootUEP='/', filters=Filters(), Format version: 1.2
-/ (Group) 'Test file'
+tutorial1.h5 (File) 'Test file'
+Last modif.: 'Mon Jan  8 16:30:30 2007'
+Object Tree: 
+/ (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
-/columns/name (Array(3,)) 'Name column selection'
-/columns/pressure (Array(3,)) 'Pressure column selection'
+/columns/name (Array(3L,)) 'Name column selection'
+/columns/pressure (Array(3L,)) 'Pressure column selection'
 /detector (Group) 'Detector information'
 /detector/readout (Table(10L,)) 'Readout example']]></screen>
 
@@ -13276,11 +13250,12 @@ Filename: 'tutorial1.h5' Title: 'Test file' , Last modif.: 'Fri Feb  6
           <literal>reduced.h5</literal> file:
 
           <screen><![CDATA[$ ptdump reduced.h5
-Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:26:47 2004' ,
- rootUEP='/', filters=Filters(), Format version: 1.2
-/ (Group) ''
-/name (Array(3,)) 'Name column selection'
-/pressure (Array(3,)) 'Pressure column selection']]></screen>
+reduced.h5 (File) ''
+Last modif.: 'Mon Jan  8 16:31:31 2007'
+Object Tree: 
+/ (RootGroup) ''
+/name (Array(3L,)) 'Name column selection'
+/pressure (Array(3L,)) 'Pressure column selection']]></screen>
 
           so, you have copied the children of
           <literal>/columns</literal> group into the
@@ -13293,27 +13268,29 @@ Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:26:47 2004' ,
           You can do that by just specifying the destination group:
 
           <screen><![CDATA[$ ptrepack tutorial1.h5:/columns reduced.h5:/columns
-ptdump reduced.h5
-Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:39:15 2004' ,
- rootUEP='/', filters=Filters(), Format version: 1.2
-/ (Group) ''
-/name (Array(3,)) 'Name column selection'
-/pressure (Array(3,)) 'Pressure column selection'
+$ ptdump reduced.h5
+reduced.h5 (File) ''
+Last modif.: 'Mon Jan  8 16:32:25 2007'
+Object Tree: 
+/ (RootGroup) ''
+/name (Array(3L,)) 'Name column selection'
+/pressure (Array(3L,)) 'Pressure column selection'
 /columns (Group) ''
-/columns/name (Array(3,)) 'Name column selection'
-/columns/pressure (Array(3,)) 'Pressure column selection']]></screen>
+/columns/name (Array(3L,)) 'Name column selection'
+/columns/pressure (Array(3L,)) 'Pressure column selection']]></screen>
 
           OK. Much better. But you want to get rid of the existing nodes on the
           new file. You can achieve this by adding the -o flag:
 
           <screen><![CDATA[$ ptrepack -o tutorial1.h5:/columns reduced.h5:/columns
 $ ptdump reduced.h5
-Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:41:57 2004' ,
- rootUEP='/', filters=Filters(), Format version: 1.2
-/ (Group) ''
+reduced.h5 (File) ''
+Last modif.: 'Mon Jan  8 16:33:08 2007'
+Object Tree: 
+/ (RootGroup) ''
 /columns (Group) ''
-/columns/name (Array(3,)) 'Name column selection'
-/columns/pressure (Array(3,)) 'Pressure column selection']]></screen>
+/columns/name (Array(3L,)) 'Name column selection'
+/columns/pressure (Array(3L,)) 'Pressure column selection']]></screen>
 
           where you can see how the old contents of the
           <literal>reduced.h5</literal> file has been
@@ -13324,13 +13301,14 @@ Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:41:57 2004' ,
 
           <screen><![CDATA[$ ptrepack tutorial1.h5:/detector/readout reduced.h5:/rawdata
 $ ptdump reduced.h5
-Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:52:22 2004',
- rootUEP='/', filters=Filters(), Format version: 1.2
-/ (Group) ''
+reduced.h5 (File) ''
+Last modif.: 'Mon Jan  8 16:33:59 2007'
+Object Tree: 
+/ (RootGroup) ''
 /rawdata (Table(10L,)) 'Readout example'
 /columns (Group) ''
-/columns/name (Array(3,)) 'Name column selection'
-/columns/pressure (Array(3,)) 'Pressure column selection']]></screen>
+/columns/name (Array(3L,)) 'Name column selection'
+/columns/pressure (Array(3L,)) 'Pressure column selection']]></screen>
 
           where the
           <literal>/detector/readout</literal> has
@@ -13340,31 +13318,31 @@ Filename: 'reduced.h5' Title: '' , Last modif.: 'Fri Feb 20 15:52:22 2004',
           <para>We can change the filter properties as well:
 
           <screen><![CDATA[$ ptrepack --complevel=1 tutorial1.h5:/detector/readout reduced.h5:/rawdata
-Problems doing the copy from 'tutorial1.h5:/detector/readout' to
-'reduced.h5:/rawdata'
-The error was --> exceptions.ValueError: The destination
- (/rawdata (Table(10L,)) 'Readout example') already exists.
- Assert the overwrite parameter if you really want to overwrite it.
+Problems doing the copy from 'tutorial1.h5:/detector/readout' to 'reduced.h5:/rawdata'
+The error was --> tables.exceptions.NodeError: destination group ``/`` already has a node named ``rawdata``; you may want to use the ``overwrite`` argument
 The destination file looks like:
-Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 15:52:22 2004';
- rootUEP='/'; filters=Filters(), Format version: 1.2
-/ (Group) ''
+reduced.h5 (File) ''
+Last modif.: 'Mon Jan  8 16:33:59 2007'
+Object Tree: 
+/ (RootGroup) ''
 /rawdata (Table(10L,)) 'Readout example'
 /columns (Group) ''
-/columns/name (Array(3,)) 'Name column selection'
-/columns/pressure (Array(3,)) 'Pressure column selection'
+/columns/name (Array(3L,)) 'Name column selection'
+/columns/pressure (Array(3L,)) 'Pressure column selection'
 
 Traceback (most recent call last):
-  File "../utils/ptrepack", line 358, in ?
-    start=start, stop=stop, step=step)
-  File "../utils/ptrepack", line 111, in copyLeaf
+  File "utils/ptrepack", line 3, in ?
+    main()
+  File ".../tables/scripts/ptrepack.py", line 349, in main
+    stats = stats, start = start, stop = stop, step = step)
+  File ".../tables/scripts/ptrepack.py", line 107, in copyLeaf
     raise RuntimeError, "Please, check that the node names are not
-  duplicated in destination, and if so, add the --overwrite-nodes flag
-  if desired."
+    duplicated in destination, and if so, add the --overwrite-nodes flag
+    if desired."
 RuntimeError: Please, check that the node names are not duplicated in
- destination, and if so, add the --overwrite-nodes flag if desired.]]></screen>
+destination, and if so, add the --overwrite-nodes flag if desired.]]></screen>
 
-          ooops!. We ran into problems: we forgot that
+          Ooops! We ran into problems: we forgot that the
           <literal>/rawdata</literal> pathname already
           existed in destination file. Let's add the
           <literal>--overwrite-nodes</literal>, as the
@@ -13373,13 +13351,14 @@ RuntimeError: Please, check that the node names are not duplicated in
           <screen><![CDATA[$ ptrepack --overwrite-nodes --complevel=1 tutorial1.h5:/detector/readout
 reduced.h5:/rawdata
 $ ptdump reduced.h5
-Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
- rootUEP='/'; filters=Filters(), Format version: 1.2
-/ (Group) ''
+reduced.h5 (File) ''
+Last modif.: 'Mon Jan  8 16:36:54 2007'
+Object Tree: 
+/ (RootGroup) ''
 /rawdata (Table(10L,), shuffle, zlib(1)) 'Readout example'
 /columns (Group) ''
-/columns/name (Array(3,)) 'Name column selection'
-/columns/pressure (Array(3,)) 'Pressure column selection']]></screen>
+/columns/name (Array(3L,)) 'Name column selection'
+/columns/pressure (Array(3L,)) 'Pressure column selection']]></screen>
 
           you can check how the filter properties has been changed for the
           <literal>/rawdata</literal> table. Check as
@@ -13390,15 +13369,21 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
           to destination, under a new group called
           <literal>/slices</literal> and with the
           name, for example,
-          <literal>aslice</literal>: <screen><![CDATA[
-          $ ptrepack -R1,8,3 tutorial1.h5:/detector/readout
-          reduced.h5:/slices/aslice $ ptdump reduced.h5 Filename: 'reduced.h5'
-          Title: ''; Last modif.: 'Fri Feb 20 16:17:13 2004'; rootUEP='/';
-          filters=Filters(); Format version: 1.2 / (Group) '' /rawdata
-          (Table(10L,), shuffle, zlib(1)) 'Readout example' /columns (Group) ''
-          /columns/name (Array(3,)) 'Name column selection' /columns/pressure
-          (Array(3,)) 'Pressure column selection' /slices (Group) ''
-          /slices/aslice (Table(3L,)) 'Readout example' ]]></screen> note how
+          <literal>aslice</literal>:
+	  <screen><![CDATA[$ ptrepack -R1,8,3 tutorial1.h5:/detector/readout reduced.h5:/slices/aslice
+$ ptdump reduced.h5
+reduced.h5 (File) ''
+Last modif.: 'Mon Jan  8 16:38:13 2007'
+Object Tree: 
+/ (RootGroup) ''
+/rawdata (Table(10L,), shuffle, zlib(1)) 'Readout example'
+/columns (Group) ''
+/columns/name (Array(3L,)) 'Name column selection'
+/columns/pressure (Array(3L,)) 'Pressure column selection'
+/slices (Group) ''
+/slices/aslice (Table(3L,)) 'Readout example']]></screen>
+
+	  note how
           only 3 rows of the original
           <literal>readout</literal> table has been
           copied to the new <literal>aslice</literal>
@@ -13646,17 +13631,26 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
               can take one the next string values:</para>
               <glosslist>
 
-                <glossentry><glossterm><emphasis role="bold">"numarray"</emphasis></glossterm>
-
-                <glossdef><para>The read operations will return a
-                <literal>numarray</literal> object.
-                </para></glossdef></glossentry>
-
                 <glossentry><glossterm><emphasis role="bold">"numpy"</emphasis></glossterm>
-
-                <glossdef><para>The read operations will be return as a
-                <literal>NumPy</literal> object.
+                <glossdef><para>Read data (record arrays, arrays, records,
+                scalars) will be returned as <literal>NumPy</literal> objects.
                 </para></glossdef></glossentry>
+
+                <glossentry><glossterm><emphasis role="bold">"numarray"</emphasis></glossterm>
+                <glossdef><para>Read data will be returned as
+                <literal>numarray</literal> objects.
+                </para></glossdef></glossentry>
+
+                <glossentry><glossterm><emphasis role="bold">"numeric"</emphasis></glossterm>
+
+                <glossdef><para>Read data will be returned as
+                <literal>Numeric</literal> objects.
+                </para></glossdef></glossentry>
+
+                <glossentry><glossterm><emphasis role="bold">"python"</emphasis></glossterm>
+
+                <glossdef><para>Read data will be returned as Python lists,
+                tuples or scalars.</para></glossdef></glossentry>
 
               </glosslist>
               </glossdef></glossentry>
@@ -13907,41 +13901,11 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
 
               <glossentry><glossterm><emphasis role="bold">FLAVOR</emphasis></glossterm>
 
-              <glossdef><para>This is meant to provide the information about the
-              kind of object kept in the
-              <literal>Array</literal>, i.e. when the
-              dataset is read, it will be converted to the indicated flavor. It
-              can take one the next string values:</para>
-              <glosslist>
-
-                <glossentry><glossterm><emphasis role="bold">"numarray"</emphasis></glossterm>
-
-                <glossdef><para>The read operations will return a
-                <literal>numarray</literal> object.
-                </para></glossdef></glossentry>
-
-                <glossentry><glossterm><emphasis role="bold">"numpy"</emphasis></glossterm>
-
-                <glossdef><para>The read operations will return a
-                <literal>NumPy</literal> object.
-                </para></glossdef></glossentry>
-
-                <glossentry><glossterm><emphasis role="bold">"numeric"</emphasis></glossterm>
-
-                <glossdef><para>The read operations will return a
-                <literal>Numeric</literal> object.
-                </para></glossdef></glossentry>
-
-                <glossentry><glossterm><emphasis role="bold">"python"</emphasis></glossterm>
-
-                <glossdef><para>The read operations will return a Python
-                <literal>list</literal> object in case
-                the dataset has dimensionality. If the dataset is an scalar,
-                then an appropriate Python
-                <literal>scalar</literal> will be
-                returned instead.</para></glossdef></glossentry>
-
-              </glosslist>
+              <glossdef><para>This is meant to provide the information about
+              the kind of object kept in the <literal>Array</literal>,
+              i.e. when the dataset is read, it will be converted to the
+              indicated flavor. It can take the same values as
+              <literal>Table</literal>.</para>
               </glossdef></glossentry>
 
               <glossentry><glossterm><emphasis role="bold">TITLE</emphasis></glossterm>
@@ -14022,8 +13986,8 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
               <glossdef><para>This is meant to provide the information about
               the kind of objects kept in the <literal>CArray</literal>,
               i.e. when the dataset is read, it will be converted to the
-              indicated flavor. It can take the same values as the
-              <literal>Array</literal> object.
+              indicated flavor. It can take the same values as
+              <literal>Table</literal>.
               </para></glossdef></glossentry>
 
               <glossentry><glossterm><emphasis
@@ -14110,10 +14074,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
             <glossdef><para>This is meant to provide the information about the
             kind of objects kept in the <literal>EArray</literal>, i.e. when
             the dataset is read, it will be converted to the indicated
-            flavor. It can take the same values as the
-            <literal>Array</literal> object (see <xref xrefstyle="select:
-            labelnumber" linkend="ArrayFormatDescr"/>), except
-            <literal>"Int"</literal> and <literal>"Float"</literal>.</para>
+            flavor. It can take the same values as <literal>Table</literal>.</para>
             </glossdef></glossentry>
 
             <glossentry><glossterm><emphasis
@@ -14184,58 +14145,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
             kind of objects kept in the
             <literal>VLArray</literal>, i.e. when the
             dataset is read, it will be converted to the indicated flavor. It
-            can take one of the next values:</para>
-
-            <glosslist>
-
-              <glossentry><glossterm><emphasis role="bold">"numarray"</emphasis></glossterm>
-
-              <glossdef><para>The dataset will be returned as a
-              <literal>numarray</literal> object.
-              </para></glossdef></glossentry>
-
-              <glossentry><glossterm><emphasis role="bold">"numpy"</emphasis></glossterm>
-
-              <glossdef><para>The dataset will be returned as a
-              <literal>NumPy</literal> object.
-              </para></glossdef></glossentry>
-
-              <glossentry><glossterm><emphasis role="bold">"numeric"</emphasis></glossterm>
-
-              <glossdef><para>The dataset will be returned as an
-              <literal>Numeric</literal> object.
-              </para></glossdef></glossentry>
-
-              <glossentry><glossterm><emphasis role="bold">"python"</emphasis></glossterm>
-
-              <glossdef><para>The dataset will be returned as a Python
-              <literal>List</literal> object in case
-              the dataset has dimensionality. If the dataset is an scalar, then
-              an appropriate Python scalar will be returned instead.
-              </para></glossdef></glossentry>
-
-              <glossentry><glossterm><emphasis role="bold">"Object"</emphasis></glossterm>
-
-              <glossdef><para>The elements in the dataset will be interpreted as
-              pickled (i.e. serialized objects through the use of the
-              <literal>Pickle</literal> Python module)
-              objects and returned as Python <emphasis>generic</emphasis>
-              objects. Only one of such objects will be deserialized per entry.
-              As the <literal>Pickle</literal> module
-              is not normally available in other languages, this flavor won't be
-              useful in general. </para></glossdef></glossentry>
-
-              <glossentry><glossterm><emphasis role="bold">"VLString"</emphasis></glossterm>
-
-              <glossdef><para>The elements in the dataset will be returned as
-              Python <literal>String</literal> objects
-              of <emphasis>any</emphasis> length, with the twist that
-              <emphasis>Unicode</emphasis> strings are supported as well
-              (provided you use the <emphasis>UTF-8</emphasis> codification, see
-              below). However, only one of such objects will be deserialized per
-              entry.</para></glossdef></glossentry>
-
-            </glosslist>
+            can take the same values as <literal>Table</literal>.</para>
             </glossdef></glossentry>
 
             <glossentry><glossterm><emphasis role="bold">TITLE</emphasis></glossterm>
@@ -14289,15 +14199,15 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
             <para>You should note that this does not include another VL
             datatype, or a compound datatype that does not fit the description
             of a complex number. Note as well that, for
-            <literal>Object</literal> and
-            <literal>VLString</literal> special
-            flavors, the base for the VL datatype is always a H5T_NATIVE_UCHAR.
+            <literal>object</literal> and
+            <literal>vlstring</literal> pseudo-atoms,
+            the base for the VL datatype is always a H5T_NATIVE_UCHAR.
             That means that the complete row entry in the dataset has to be used
             in order to fully serialize the object or the variable length
             string.</para>
 
             <para>In addition, if you plan to use a
-            <literal>VLString</literal> flavor for
+            <literal>vlstring</literal> pseudo-atom for
             your text data and you are using ascii-7 (7 bits ASCII) codification
             for your strings, but you don't know (or just don't want) to convert
             it to the required UTF-8 codification, you should not worry too much
@@ -14307,7 +14217,7 @@ Filename: 'reduced.h5' Title: ''; Last modif.: 'Fri Feb 20 16:02:20 2004';
             an UTF-8 encoded ascii-7 string is indistinguishable from a
             traditional ascii-7 string. So, you will not need any further
             conversion in order to save your ascii-7 strings and have an
-            <literal>VLString</literal> flavor.
+            <literal>vlstring</literal> pseudo-atoms.
             </para>
 
           </section>

@@ -415,13 +415,11 @@ class File(hdf5Extension.File, object):
                   [, expectedrows][, chunkshape][, createparents])
     * createArray(where, name, array[, title][, createparents])
     * createCArray(where, name, atom, shape [, title][, filters]
-                   [, flavor][, chunkshape][, createparents])
+                   [, chunkshape][, createparents])
     * createEArray(where, name, atom, shape [, title][, filters]
-                   [, expectedrows][, flavor][, chunkshape]
-                   [, createparents])
+                   [, expectedrows][, chunkshape][, createparents])
     * createVLArray(where, name, atom[, title][, filters]
-                    [, expectedsizeinMB][, flavor][, chunkshape]
-                    [, createparents])
+                    [, expectedsizeinMB][, chunkshape][, createparents])
     * removeNode(where[, name][, recursive])
     * renameNode(where, newname[, name])
     * moveNode(where, newparent, newname[, name][, overwrite])
@@ -752,8 +750,7 @@ class File(hdf5Extension.File, object):
 
 
     def createCArray(self, where, name, atom, shape, title="",
-                     filters=None, flavor='numpy', chunkshape=None,
-                     createparents=False):
+                     filters=None, chunkshape=None, createparents=False):
         """Create a new instance CArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -764,8 +761,8 @@ class File(hdf5Extension.File, object):
 
         name -- The name of the new array.
 
-        atom -- An Atom instance representing the shape, type and
-            flavor of the chunks to be saved.
+        atom -- An Atom instance representing the shape and type of the
+            chunks to be saved.
 
         shape -- The shape of the new array.
 
@@ -774,8 +771,6 @@ class File(hdf5Extension.File, object):
         filters -- An instance of the Filters class that provides
             information about the desired I/O filters to be applied
             during the life of this object.
-
-        flavor -- The representation of data read from this array.
 
         chunkshape -- The shape of the data chunk to be read or written
             in a single HDF5 I/O operation. Filters are applied to those
@@ -790,13 +785,12 @@ class File(hdf5Extension.File, object):
         _checkfilters(filters)
         return CArray(parentNode, name,
                       atom=atom, shape=shape, title=title, filters=filters,
-                      flavor=flavor, chunkshape=chunkshape)
+                      chunkshape=chunkshape)
 
 
     def createEArray(self, where, name, atom, shape, title="",
                      filters=None, expectedrows=1000,
-                     flavor='numpy', chunkshape=None,
-                     createparents=False):
+                     chunkshape=None, createparents=False):
         """Create a new instance EArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -807,8 +801,8 @@ class File(hdf5Extension.File, object):
 
         name -- The name of the new array.
 
-        atom -- An Atom instance representing the shape, type and
-            flavor of the atomic objects to be saved.
+        atom -- An Atom instance representing the shape and type of the
+            atomic objects to be saved.
 
         shape -- The shape of the array. One of the shape dimensions
             must be 0. The dimension being 0 means that the resulting
@@ -828,8 +822,6 @@ class File(hdf5Extension.File, object):
             this will optimize the HDF5 B-Tree creation and management
             process time and the amount of memory used.
 
-        flavor -- The representation of data read from this array.
-
         chunkshape -- The shape of the data chunk to be read or written
             in a single HDF5 I/O operation. Filters are applied to those
             chunks of data. The dimensionality of chunkshape must be the
@@ -845,13 +837,12 @@ class File(hdf5Extension.File, object):
         return EArray(parentNode, name,
                       atom=atom, shape=shape, title=title,
                       filters=filters, expectedrows=expectedrows,
-                      flavor=flavor, chunkshape=chunkshape)
+                      chunkshape=chunkshape)
 
 
     def createVLArray(self, where, name, atom, title="",
                       filters=None, expectedsizeinMB=1.0,
-                      flavor='numpy', chunkshape=None,
-                      createparents=False):
+                      chunkshape=None, createparents=False):
         """Create a new instance VLArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -864,8 +855,8 @@ class File(hdf5Extension.File, object):
 
         title -- Sets a TITLE attribute on the array entity.
 
-        atom -- A Atom object representing the shape, type and flavor
-            of the atomic object to be saved.
+        atom -- A Atom object representing the shape and type of the
+            atomic objects to be saved.
 
         filters -- An instance of the Filters class that provides
             information about the desired I/O filters to be applied
@@ -877,8 +868,6 @@ class File(hdf5Extension.File, object):
             much bigger Arrays try providing a guess; this will
             optimize the HDF5 B-Tree creation and management process
             time and the amount of memory used.
-
-        flavor -- The representation of data read from this array.
 
         chunkshape -- The shape of the data chunk to be read or written
             in a single HDF5 I/O operation. Filters are applied to those
@@ -894,7 +883,7 @@ class File(hdf5Extension.File, object):
         return VLArray(parentNode, name,
                        atom=atom, title=title, filters=filters,
                        expectedsizeinMB=expectedsizeinMB,
-                       flavor=flavor, chunkshape=chunkshape)
+                       chunkshape=chunkshape)
 
 
     # There is another version of _getNode in Pyrex space, but only
