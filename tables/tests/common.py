@@ -420,8 +420,6 @@ class ShowMemTime(PyTablesTestCase):
     def test00(self):
         """Showing memory and time consumption."""
 
-        self._verboseHeader()
-
         # Build the command to obtain memory info (only for Linux 2.6.x)
         cmd = "cat /proc/%s/status" % os.getpid()
         sout, sin = popen2.popen2(cmd)
