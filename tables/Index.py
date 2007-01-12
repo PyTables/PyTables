@@ -928,9 +928,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             if nss2 <= 1:
                 break
             if mode == "start":
-                ranges = self.ranges[sblock*nss:sblock*nss+nss2:2]
+                ranges = self.ranges[sblock*nss:sblock*nss+nss2, 0]
             elif mode == "stop":
-                ranges = self.ranges[sblock*nss+1:sblock*nss+nss2:2]
+                ranges = self.ranges[sblock*nss:sblock*nss+nss2, 1]
             elif mode == "median":
                 ranges = self.mranges[sblock*nss:sblock*nss+nss2]
             sranges_idx = numpy.argsort(ranges)
