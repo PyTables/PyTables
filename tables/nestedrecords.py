@@ -36,7 +36,6 @@ except ImportError:
 
 from tables.attributeaccess import AttributeAccess
 import tables.nriterators as nriterators
-import tables.utils
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
