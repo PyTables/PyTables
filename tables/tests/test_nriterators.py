@@ -96,7 +96,7 @@ class NRIteratorsTests(unittest.TestCase):
         """
 
         common.verbosePrint('\nTesting names structure')
-        for item in tables.utils.flattenNames(self.names):
+        for item in tables.nriterators.flattenNames(self.names):
             self.failIfEqual(item, None)
 
 
