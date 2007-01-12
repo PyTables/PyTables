@@ -4,6 +4,8 @@ import tempfile
 import warnings
 import random
 
+import numpy
+
 from tables import *
 from tables.indexes import calcChunksize, minRowIndex
 from tables.tests.common import verbose, allequal, heavy, cleanup
@@ -870,7 +872,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test05b(self):
-        """Checking getWhereList & itersequence (string, python flavor)"""
+        """Checking getWhereList & itersequence (numpy string lims & python flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -880,8 +882,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = str(self.il)
-        sl = str(self.sl)
+        il = numpy.string_(self.il)
+        sl = numpy.string_(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var1
@@ -991,7 +993,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test06b(self):
-        """Checking getWhereList & itersequence (bool flavor)"""
+        """Checking getWhereList & itersequence (numpy bool limits & flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1002,7 +1004,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Do some selections and check the results
         t1var2 = table1.cols.var2
-        condition = 't1var2==False'
+        false = numpy.bool_(False)
+        condition = 't1var2==false'
         self.assert_(table1.willQueryUseIndexing(condition) == t1var2.pathname)
         table1.flavor = "python"
         rowList1 = table1.getWhereList(condition)
@@ -1112,7 +1115,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test07b(self):
-        """Checking getWhereList & itersequence (int flavor)"""
+        """Checking getWhereList & itersequence (numpy int limits & flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1122,8 +1125,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = int(self.il)
-        sl = int(self.sl)
+        il = numpy.int32(self.il)
+        sl = numpy.uint16(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var3
@@ -1301,7 +1304,7 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
     def test08b(self):
-        """Checking getWhereList & itersequence (float flavor)"""
+        """Checking getWhereList & itersequence (numpy float limits & flavor)"""
 
         if verbose:
             print '\n', '-=' * 30
@@ -1311,8 +1314,8 @@ class SelectValuesTestCase(unittest.TestCase):
         table2 = self.fileh.root.table2
 
         # Convert the limits to the appropriate type
-        il = float(self.il)
-        sl = float(self.sl)
+        il = numpy.float32(self.il)
+        sl = numpy.float64(self.sl)
 
         # Do some selections and check the results
         t1col = table1.cols.var4
