@@ -23,6 +23,10 @@ API additions
   associated ``Column`` or ``Cols`` object for simple or nested columns,
   respectively.  This is similar to ``Table.cols._f_col()``, but faster.
 
+- The new ``Table.itercolnames()`` method iterates over the (nested) names of
+  bottom-level columns.  This can be used to walk all ``Column`` objects in a
+  table when used with ``Table.colinstances``.
+
 - ``File.createEArray()`` received a new ``shape`` parameter.  This allows to
   not have to use the shape of the atom so as to set the shape of the
   underlying dataset (this change was needed for a future use of the atom

@@ -42,7 +42,7 @@ from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import processRange, processRangeRead, \
-     joinPath, is_idx, flattenNames, byteorders
+     joinPath, is_idx, byteorders
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import IsDescription, Description, Col
@@ -100,6 +100,18 @@ def _getIndexTableName(parent, tablename):
 
 def _getIndexColName(parent, tablename, colname):
     return joinPath(_getIndexTableName(parent, tablename), colname)
+
+
+def _iternames(names):
+    """Iterate over a sequence of names in `Table.colnames` format."""
+    for item in names:
+        # Non-nested column: just a column name.
+        if isinstance(item, basestring):
+            yield item
+            continue
+        # Nested column: a column name and a list of columns.
+        for nitem in _iternames(item[1]):
+            yield '%s/%s' % (item[0], nitem)
 
 
 class NailedDict(object):
@@ -166,6 +178,7 @@ class Table(TableExtension.Table, Leaf):
         __setitem__(key, value)
         append(rows)
         col(name)
+        itercolnames()
         flushRowsToIndex()
         iterrows(start, stop, step)
         itersequence(sequence)
@@ -1236,7 +1249,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Row objects do not support nested columns, so we must iterate
         # over the flat column paths.  When rows support nesting,
         # ``self.colnames`` can be directly iterated upon.
-        colNames = [colName for colName in flattenNames(self.colnames)]
+        colNames = [colName for colName in self.itercolnames()]
         dstRow = dstTable.row
         nrows = 0
         for srcRow in self._where(splitted, condvars, start, stop, step):
@@ -1302,6 +1315,29 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if sort:
             coords = numpy.sort(coords)
         return internal_to_flavor(coords, self.flavor)
+
+
+    def itercolnames(self):
+        """
+        Iterate over the (nested) names of bottom-level columns.
+
+        Column names are yielded from the leftmost to the rightmost
+        bottom-level column.  Since only bottom-level columns are
+        considered, the names of nested columns do not appear in the
+        result.  Names of columns inside a nested column do appear and
+        have a slash (``/``) separating components in their name.
+
+        For example, iterating over a table with ``colnames`` like::
+
+            ['a', ('b', ['x', 'y']), 'c']
+
+        yields the following column names::
+
+            ['a', 'b/x', 'b/y', 'c']
+
+        i.e. the *flattened* version of bottom-level column names.
+        """
+        return _iternames(self.colnames)
 
 
     def itersequence(self, sequence, sort=False):

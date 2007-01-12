@@ -1957,6 +1957,7 @@ Represent a table in the object tree.
         __setitem__(key, value)
         append(rows)
         col(name)
+        itercolnames()
         flushRowsToIndex()
         iterrows(start, stop, step)
         itersequence(sequence)
@@ -6397,10 +6398,36 @@ fileh.close()]]></screen>
 	      </para>
 	    </section>
 
+	    <section id="Table.itercolnames">
+	      <title>itercolnames()</title>
+
+	      <para>Iterate over the (nested) names of bottom-level columns.
+	      </para>
+
+	      <para>Column names are yielded from the leftmost to the
+	      rightmost bottom-level column.  Since only bottom-level columns
+	      are considered, the names of nested columns do not appear in the
+	      result.  Names of columns inside a nested column do appear and
+	      have a slash (<literal>/</literal>) separating components in
+	      their name.
+	      </para>
+
+	      <para>For example, iterating over a table with
+	      <literal>colnames</literal> like:
+
+	      <screen>['a', ('b', ['x', 'y']), 'c']</screen>
+
+	      yields the following column names:
+
+	      <screen>['a', 'b/x', 'b/y', 'c']</screen>
+
+	      i.e. the <emphasis>flattened</emphasis> version of bottom-level
+	      column names.
+	      </para>
+	    </section>
 
 	    <section id="Table.iterrows" xreflabel="description">
-	      <title>iterrows(start=None,
-		stop=None, step=1)</title>
+	      <title>iterrows(start=None, stop=None, step=1)</title>
 
 	      <para>Returns an iterator yielding <literal>Row</literal> (see <xref xrefstyle="select: label" linkend="RowClassDescr"/>) instances built
 		from rows in table. If a range is supplied (i.e. some of

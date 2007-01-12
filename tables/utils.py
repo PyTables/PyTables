@@ -315,31 +315,6 @@ def checkFileAccess(filename, mode='r'):
         raise ValueError("invalid mode: %r" % (mode,))
 
 
-# This function really belongs to nriterators.py, but has been moved here
-# so as to facilitate its use without having numarray installed
-def flattenNames(names):
-    """Flatten a names description of a buffer.
-
-    Names of nested fields are returned with its full path, i.e.
-    level1/level2/.../levelN.
-    """
-
-    for item in names:
-        if type(item) == str:
-            yield item
-        elif ((type(item) == tuple and len(item) == 2) and
-              type(item[0]) == str and type(item[1]) == list):
-            # Format for a nested name
-            for c in flattenNames(item[1]):
-                if c == None:
-                    yield c
-                else:
-                    yield '%s/%s' % (item[0], c)
-        else:
-            raise TypeError, \
-                  """elements of the ``names`` list must be strings or 2-tuples"""
-
-
 ## Local Variables:
 ## mode: python
 ## py-indent-offset: 4
