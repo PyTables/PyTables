@@ -33,8 +33,7 @@ import numpy
 
 import tables.hdf5Extension as hdf5Extension
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import processRange, processRangeRead, \
-     is_idx, byteorders
+from tables.utils import is_idx, byteorders
 from tables.atom import split_type
 from tables.Leaf import Leaf, Filters
 
@@ -290,7 +289,7 @@ class Array(hdf5Extension.Array, Leaf):
 
         try:
             (self._start, self._stop, self._step) = \
-                          processRangeRead(self.nrows, start, stop, step)
+                          self._processRangeRead(start, stop, step)
         except IndexError:
             # If problems with indexes, silently return the null tuple
             return ()
@@ -385,12 +384,12 @@ class Array(hdf5Extension.Array, Leaf):
                 if key < 0:
                     # To support negative values (Fixes bug #968149)
                     key += self.shape[dim]
-                start, stop, step = processRange(self.shape[dim],
-                                                 key, key+1, 1)
+                start, stop, step = self._processRange(
+                    self.shape[dim], key, key+1, 1 )
                 stop_None[dim] = 1
             elif isinstance(key, slice):
-                start, stop, step = processRange(self.shape[dim],
-                                                 key.start, key.stop, key.step)
+                start, stop, step = self._processRange(
+                    self.shape[dim], key.start, key.stop, key.step )
             else:
                 raise TypeError, "Non-valid index or slice: %s" % \
                       key
@@ -520,7 +519,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
 
     def read(self, start=None, stop=None, step=None):
         """Read the array from disk and return it as a self.flavor object."""
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRangeRead(start, stop, step)
         arr = self._read(start, stop, step)
         return internal_to_flavor(arr, self.flavor)
 

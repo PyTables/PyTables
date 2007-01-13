@@ -38,7 +38,7 @@ import tables.flavor
 import tables.hdf5Extension as hdf5Extension
 import tables.utilsExtension as utilsExtension
 from tables.Node import Node
-from tables.utils import processRangeRead
+from tables.utils import idx2long
 from tables.constants import CHUNKTIMES, BUFFERTIMES, MB
 from tables.exceptions import PerformanceWarning
 
@@ -451,6 +451,55 @@ you may want to increase it."""
         return nrowsinbuf
 
 
+    # This method is appropriate for calls to __getitem__ methods
+    def _processRange(self, nrows, start, stop, step):
+        # It seems that `nrows` is always the full range of a dimension,
+        # so it should be more correct to provide a dimension instead.
+        # However, not all leaves support the `maindim` attribute for
+        # using as a default value for that.  This should be fixed;
+        # then, this methoud would be a proper instance method.
+
+        if step and step < 0:
+            raise ValueError("slice step cannot be negative")
+        # (start, stop, step) = slice(start, stop, step).indices(nrows)  # Python > 2.3
+        # The next function is a substitute for slice().indices in order to
+        # support full 64-bit integer for slices (Python 2.4 does not
+        # support that yet)
+        # F. Altet 2005-05-08
+        # In order to convert possible numpy.integer values to long ones
+        # F. Altet 2006-05-02
+        if start is not None: start = idx2long(start)
+        if stop is not None: stop = idx2long(stop)
+        if step is not None: step = idx2long(step)
+        (start, stop, step) = utilsExtension.getIndices(
+            slice(start, stop, step), long(nrows) )
+
+        # Some protection against empty ranges
+        if start > stop:
+            start = stop
+        return (start, stop, step)
+
+
+    # This method is appropiate for calls to read() methods
+    def _processRangeRead(self, start, stop, step):
+        nrows = self.nrows
+        if start is not None and stop is None:
+            # Protection against start greater than available records
+            # nrows == 0 is a special case for empty objects
+            if nrows > 0 and start >= nrows:
+                raise IndexError( "start of range (%s) is greater than "
+                                  "number of rows (%s)" % (start, nrows) )
+            step = 1
+            if start == -1:  # corner case
+                stop = nrows
+            else:
+                stop = start + 1
+        # Finally, get the correct values (over the main dimension)
+        start, stop, step = self._processRange(nrows, start, stop, step)
+
+        return (start, stop, step)
+
+
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         # Compute default arguments.
         start = kwargs.get('start', 0)
@@ -466,7 +515,7 @@ you may want to increase it."""
         if filters is None:  filters = self.filters
 
         # Compute the correct indices.
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRangeRead(start, stop, step)
 
         # Create a copy of the object.
         (newNode, bytes) = self._g_copyWithStats(

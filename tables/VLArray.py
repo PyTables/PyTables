@@ -35,8 +35,7 @@ import warnings
 import numpy
 
 import tables.hdf5Extension as hdf5Extension
-from tables.utils import processRangeRead, convertToNPAtom, \
-     idx2long, byteorders
+from tables.utils import convertToNPAtom, idx2long, byteorders
 from tables.atom import ObjectAtom, VLStringAtom, EnumAtom, Atom, split_type
 from tables.flavor import internal_to_flavor
 from tables.Leaf import Leaf, calc_chunksize
@@ -419,7 +418,7 @@ be zero."""
         """
 
         (self._start, self._stop, self._step) = \
-                     processRangeRead(self.nrows, start, stop, step)
+                     self._processRangeRead(start, stop, step)
         self._initLoop()
         return self
 
@@ -580,7 +579,7 @@ be zero."""
     def read(self, start=None, stop=None, step=1):
         """Read the array from disk and return it as a self.flavor object."""
 
-        start, stop, step = processRangeRead(self.nrows, start, stop, step)
+        start, stop, step = self._processRangeRead(start, stop, step)
         if start == stop:
             listarr = []
         else:
@@ -610,7 +609,7 @@ be zero."""
         # In the future, some analysis can be done in order to buffer
         # the copy process.
         nrowsinbuf = 1
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRangeRead(start, stop, step)
         # Optimized version (no conversions, no type and shape checks, etc...)
         nrowscopied = 0
         nbytes = 0

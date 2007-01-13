@@ -137,48 +137,6 @@ def idx2long(index):
         raise TypeError, "not an integer type."
 
 
-# This function is appropriate for calls to __getitem__ methods
-def processRange(nrows, start=None, stop=None, step=1):
-
-    if step and step < 0:
-        raise ValueError, "slice step cannot be negative"
-    # (start, stop, step) = slice(start, stop, step).indices(nrows)  # Python > 2.3
-    # The next function is a substitute for slice().indices in order to
-    # support full 64-bit integer for slices (Python 2.4 does not
-    # support that yet)
-    # F. Altet 2005-05-08
-    # In order to convert possible numpy.integer values to long ones
-    # F. Altet 2006-05-02
-    if start is not None: start = idx2long(start)
-    if stop is not None: stop = idx2long(stop)
-    if step is not None: step = idx2long(step)
-    (start, stop, step) =  tables.utilsExtension.getIndices( \
-        slice(start, stop, step), long(nrows))
-    # Some protection against empty ranges
-    if start > stop:
-        start = stop
-    return (start, stop, step)
-
-
-# This function is appropiate for calls to read() methods
-def processRangeRead(nrows, start=None, stop=None, step=1):
-    if start is not None and stop is None:
-        # Protection against start greater than available records
-        # nrows == 0 is a special case for empty objects
-        #start = idx2long(start)    # XXX to delete
-        if nrows > 0 and start >= nrows:
-            raise IndexError, "Start of range (%s) is greater than number of rows (%s)." % (start, nrows)
-        step = 1
-        if start == -1:  # corner case
-            stop = nrows
-        else:
-            stop = start + 1
-    # Finally, get the correct values
-    start, stop, step = processRange(nrows, start, stop, step)
-
-    return (start, stop, step)
-
-
 # This is used in VLArray and EArray to produce NumPy object compliant
 # with atom from a generic python type.  If copy is stated as True, it
 # is assured that it will return a copy of the object and never the same

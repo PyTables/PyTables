@@ -41,8 +41,7 @@ from tables.conditions import split_condition, call_on_recarr
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import processRange, processRangeRead, \
-     joinPath, is_idx, byteorders
+from tables.utils import joinPath, is_idx, byteorders
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import IsDescription, Description, Col
@@ -1138,7 +1137,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 return iter([])
 
         # Adjust the slice to be used.
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRangeRead(start, stop, step)
         if start >= stop:  # empty range, reset conditions
             self._whereIndex = self._whereCondition = None
             return iter([])
@@ -1369,7 +1368,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         Specifying a negative value of step is not supported yet.
 
         """
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:
             row = TableExtension.Row(self)
             return row(start, stop, step, coords=None, ncoords=-1)
@@ -1478,7 +1477,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         else:
             self._checkFieldIfNumeric(field)
 
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRangeRead(start, stop, step)
 
         if coords is not None:
             # Check step value.
@@ -1616,7 +1615,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            (start, stop, step) = processRange(self.nrows, key, key+1, 1)
+            (start, stop, step) = self._processRange(self.nrows, key, key+1, 1)
             # For the scalar case, convert the Record and return it as a tuple
             # Fixes bug #972534
             # Reverted to return a numpy.void in order
@@ -1624,8 +1623,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             # return self.tolist(self.read(start, stop, step)[0])
             return self.read(start, stop, step)[0]
         elif isinstance(key, slice):
-            (start, stop, step) = processRange(self.nrows,
-                                               key.start, key.stop, key.step)
+            (start, stop, step) = self._processRange(
+                self.nrows, key.start, key.stop, key.step )
             return self.read(start, stop, step)
         elif isinstance(key, str):
             warnings.warn( "``table['colname']`` is deprecated; "
@@ -1675,8 +1674,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 key += self.nrows
             return self.modifyRows(key, key+1, 1, [value])
         elif isinstance(key, slice):
-            (start, stop, step) = processRange(self.nrows,
-                                               key.start, key.stop, key.step)
+            (start, stop, step) = self._processRange(
+                self.nrows, key.start, key.stop, key.step )
             return self.modifyRows(start, stop, step, value)
         else:
             raise ValueError, "Non-valid index or slice: %s" % key
@@ -1783,7 +1782,7 @@ You cannot append rows to a non-chunked table.""")
             # compute the stop value. start + len(rows)*step does not work
             stop = start + (len(rows)-1)*step + 1
 
-        (start, stop, step) = processRange(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRange(self.nrows, start, stop, step)
         if stop > self.nrows:
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
@@ -1878,7 +1877,7 @@ table format '%s'. The error was: <%s>
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
             stop = start + (len(recarray)-1)*step + 1
-        (start, stop, step) = processRange(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRange(self.nrows, start, stop, step)
         if stop > self.nrows:
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
@@ -1961,7 +1960,7 @@ The 'names' parameter must be a list of strings.""")
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
             stop = start + (len(recarray)-1)*step + 1
-        (start, stop, step) = processRange(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRange(self.nrows, start, stop, step)
         if stop > self.nrows:
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
@@ -2038,7 +2037,7 @@ The 'names' parameter must be a list of strings.""")
 
         """
 
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, 1)
+        (start, stop, step) = self._processRangeRead(start, stop, 1)
         nrows = stop - start
         if nrows >= self.nrows:
             raise NotImplementedError, \
@@ -2147,7 +2146,7 @@ The 'names' parameter must be a list of strings.""")
 
     def _g_copyRows(self, object, start, stop, step):
         "Copy rows from self to object"
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRangeRead(start, stop, step)
         nrowsinbuf = self._v_nrowsinbuf
         object._open_append(self._v_wbuffer)
         nrowsdest = object.nrows
@@ -2447,7 +2446,7 @@ class Cols(object):
             if key < 0:
                 # To support negative values
                 key += nrows
-            (start, stop, step) = processRange(nrows, key, key+1, 1)
+            (start, stop, step) = table._processRange(nrows, key, key+1, 1)
             colgroup = self._v_desc._v_pathname
             if colgroup == "":  # The root group
                 return table.read(start, stop, step)[0]
@@ -2455,8 +2454,8 @@ class Cols(object):
                 crecord = table.read(start, stop, step)[0]
                 return crecord[colgroup]
         elif isinstance(key, slice):
-            (start, stop, step) = processRange(nrows,
-                                               key.start, key.stop, key.step)
+            (start, stop, step) = table._processRange(
+                nrows, key.start, key.stop, key.step )
             colgroup = self._v_desc._v_pathname
             if colgroup == "":  # The root group
                 return table.read(start, stop, step)
@@ -2508,10 +2507,10 @@ class Cols(object):
             if key < 0:
                 # To support negative values
                 key += nrows
-            (start, stop, step) = processRange(nrows, key, key+1, 1)
+            (start, stop, step) = table._processRange(nrows, key, key+1, 1)
         elif isinstance(key, slice):
-            (start, stop, step) = processRange(nrows,
-                                               key.start, key.stop, key.step)
+            (start, stop, step) = table._processRange(
+                nrows, key.start, key.stop, key.step )
         else:
             raise TypeError("invalid index or slice: %r" % (key,))
 
@@ -2750,11 +2749,12 @@ class Column(object):
             if key < 0:
                 # To support negative values
                 key += table.nrows
-            (start, stop, step) = processRange(table.nrows, key, key+1, 1)
+            (start, stop, step) = table._processRange(
+                table.nrows, key, key+1, 1 )
             return table.read(start, stop, step, self.pathname)[0]
         elif isinstance(key, slice):
-            (start, stop, step) = processRange(table.nrows, key.start,
-                                               key.stop, key.step)
+            (start, stop, step) = table._processRange(
+                table.nrows, key.start, key.stop, key.step)
             return table.read(start, stop, step, self.pathname)
         else:
             raise TypeError, "'%s' key type is not valid in this context" % \
@@ -2787,8 +2787,8 @@ class Column(object):
             return table.modifyColumns(key, key+1, 1,
                                        [[value]], names=[self.pathname])
         elif isinstance(key, slice):
-            (start, stop, step) = processRange(table.nrows,
-                                               key.start, key.stop, key.step)
+            (start, stop, step) = table._processRange(
+                table.nrows, key.start, key.stop, key.step)
             return table.modifyColumns(start, stop, step,
                                        [value], names=[self.pathname])
         else:

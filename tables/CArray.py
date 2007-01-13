@@ -34,7 +34,6 @@ import numpy
 from tables.atom import Atom, EnumAtom, split_type
 from tables.Leaf import Leaf
 from tables.Array import Array
-from tables.utils import processRangeRead
 
 
 __version__ = "$Revision$"
@@ -284,7 +283,7 @@ shape parameter cannot have zero-dimensions."""
         slices = [slice(0, dim, 1) for dim in self.shape]
         # This is a hack to prevent doing innecessary conversions
         # when copying buffers
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRangeRead(start, stop, step)
         self._v_convert = False
         # Build the new CArray object (do not specify the chunkshape so that
         # a sensible value would be calculated)

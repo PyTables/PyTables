@@ -31,7 +31,7 @@ import sys
 import numpy
 
 from tables.constants import EXPECTED_ROWS_EARRAY
-from tables.utils import convertToNPAtom, processRangeRead, byteorders
+from tables.utils import convertToNPAtom, byteorders
 from tables.atom import Atom, EnumAtom, split_type
 from tables.Leaf import Leaf
 from tables.CArray import CArray
@@ -308,7 +308,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         slices = [slice(0, dim, 1) for dim in self.shape]
         # This is a hack to prevent doing unnecessary conversions
         # when copying buffers
-        (start, stop, step) = processRangeRead(self.nrows, start, stop, step)
+        (start, stop, step) = self._processRangeRead(start, stop, step)
         self._v_convert = False
         # Start the copy itself
         for start2 in range(start, stop, step*nrowsinbuf):
