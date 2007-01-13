@@ -413,7 +413,8 @@ if has_setuptools:
 else:
     # There is no other chance, these values must be hardwired.
     setuptools_kwargs['packages'] = [
-        'tables', 'tables.nodes', 'tables.scripts', 'tables.numexpr']
+        'tables', 'tables.nodes', 'tables.scripts', 'tables.numexpr',
+        'tables.nra']
     setuptools_kwargs['scripts'] = [
         'utils/ptdump', 'utils/ptrepack', 'utils/nctoh5']
 
