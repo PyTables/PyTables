@@ -383,11 +383,11 @@ class Array(hdf5Extension.Array, Leaf):
                     # To support negative values (Fixes bug #968149)
                     key += self.shape[dim]
                 start, stop, step = self._processRange(
-                    self.shape[dim], key, key+1, 1 )
+                    key, key+1, 1, dim=dim )
                 stop_None[dim] = 1
             elif isinstance(key, slice):
                 start, stop, step = self._processRange(
-                    self.shape[dim], key.start, key.stop, key.step )
+                    key.start, key.stop, key.step, dim=dim )
             else:
                 raise TypeError, "Non-valid index or slice: %s" % \
                       key

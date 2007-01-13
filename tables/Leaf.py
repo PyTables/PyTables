@@ -453,12 +453,11 @@ you may want to increase it."""
 
 
     # This method is appropriate for calls to __getitem__ methods
-    def _processRange(self, nrows, start, stop, step):
-        # It seems that `nrows` is always the full range of a dimension,
-        # so it should be more correct to provide a dimension instead.
-        # However, not all leaves support the `maindim` attribute for
-        # using as a default value for that.  This should be fixed;
-        # then, this methoud would be a proper instance method.
+    def _processRange(self, start, stop, step, dim=None):
+        if dim is None:
+            nrows = self.nrows  # self.shape[self.maindim]
+        else:
+            nrows = self.shape[dim]
 
         if step and step < 0:
             raise ValueError("slice step cannot be negative")
@@ -496,7 +495,7 @@ you may want to increase it."""
             else:
                 stop = start + 1
         # Finally, get the correct values (over the main dimension)
-        start, stop, step = self._processRange(nrows, start, stop, step)
+        start, stop, step = self._processRange(start, stop, step)
 
         return (start, stop, step)
 
