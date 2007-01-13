@@ -23,7 +23,6 @@ import numpy
 import tables.utilsExtension
 from tables.exceptions import NaturalNameWarning
 from tables.flavor import array_of_flavor
-from tables.registry import classNameDict
 
 
 # The map between byteorders in NumPy and PyTables
@@ -58,27 +57,6 @@ hiddenNameRE = re.compile('^_[pi]_')
 #   /a/_p_x/y -> hidden
 #
 hiddenPathRE = re.compile('/_[pi]_')
-
-
-def getClassByName(className):
-    """
-    Get the node class matching the `className`.
-
-    If the name is not registered, a ``TypeError`` is raised.  The empty
-    string and ``None`` are also accepted, and mean the ``Node`` class.
-    """
-
-    # The empty string is accepted for compatibility
-    # with old default arguments.
-    if className is None or className == '':
-        className = 'Node'
-
-    # Get the class object corresponding to `classname`.
-    if className not in classNameDict:
-        raise TypeError("there is no registered node class named ``%s``"
-                        % (className,))
-
-    return classNameDict[className]
 
 
 def checkNameValidity(name):
