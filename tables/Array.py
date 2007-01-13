@@ -74,8 +74,6 @@ class Array(hdf5Extension.Array, Leaf):
 
     Instance variables (specific of `Array`):
 
-    `nrows`
-        The length of the main dimension of the array.
     `nrow`
         On iterators, this is the index of the current row.
     `maindim`

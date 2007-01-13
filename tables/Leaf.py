@@ -186,7 +186,8 @@ class Leaf(Node):
     Instance variables (in addition to those in `Node`):
 
     shape -- The shape of data in the leaf.
-    maindim -- The dimension on which iterators do work.
+    maindim -- The dimension along which iterators work.
+    nrows -- The length of the main dimension of data in the leaf.
     byteorder -- The byte ordering of data in the leaf.
     filters -- Filter properties for this leaf --see `Filters`.
     name -- The name of this node in its parent group (a string).  An

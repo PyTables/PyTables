@@ -5954,6 +5954,16 @@ for node in h5file.root.detector:
       </glossentry>
 
       <glossentry>
+      <glossterm id="Leaf.maindim"><emphasis role="bold">maindim</emphasis></glossterm>
+      <glossdef><para>The dimension along which iterators work.</para></glossdef>
+      </glossentry>
+
+      <glossentry>
+      <glossterm id="Leaf.nrows"><emphasis role="bold">nrows</emphasis></glossterm>
+      <glossdef><para>The length of the main dimension of data in the leaf.</para></glossdef>
+      </glossentry>
+
+      <glossentry>
       <glossterm id="Leaf.byteorder"><emphasis role="bold">byteorder</emphasis></glossterm>
       <glossdef><para>The byte ordering of data in the leaf.</para></glossdef>
       </glossentry>
@@ -7666,11 +7676,6 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])]]></screen
 
       <glosslist>
 	<?dbfo glosslist-presentation="list" ?>
-	<glossentry>
-	  <glossterm><emphasis role="bold">nrows</emphasis></glossterm>
-	  <glossdef><para>The length of the main dimension of the array.</para></glossdef>
-	</glossentry>
-
 	<glossentry>
 	  <glossterm><emphasis role="bold">nrow</emphasis></glossterm>
 	  <glossdef><para>On iterators, this is the index of the current row.</para></glossdef>
