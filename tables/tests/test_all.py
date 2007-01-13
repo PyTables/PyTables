@@ -45,7 +45,6 @@ def suite():
         ###'test_queries',  # Please, activate this when almost tests passes
         # Sub-packages
         'test_filenode',
-        'test_NetCDF',
         ]
 
     # Add test_Numeric only if Numeric is installed
@@ -57,16 +56,6 @@ def suite():
             print "*Warning*: Numeric version is lower than recommended: %s < %s" % \
                   (Numeric.__version__, minimum_numeric_version)
         test_modules.append("test_Numeric")
-
-        # Warn about conversion between hdf5 <--> NetCDF will only be
-        # checked if Numeric *and* Scientific.IO.NetCDF are installed.
-        try:
-            import Scientific.IO.NetCDF as RealNetCDF
-            print \
-"Scientific.IO.NetCDF is present. Will check for HDF5 <--> NetCDF conversions."
-        except:
-            print \
-"Scientific.IO.NetCDF not found. Skipping HDF5 <--> NetCDF conversion tests."
     except:
         print "Skipping Numeric test suite"
 

@@ -1,20 +1,16 @@
-import sys
 import unittest
 import os
 import tempfile
-import warnings
 import numpy
 
-from tables import *
-import tables.NetCDF as NetCDF
-import tables.tests.common as common
-from tables.tests.common import verbose, allequal, cleanup, heavy
+from tables import netcdf3 as NetCDF
+from tables.tests.common import PyTablesTestCase, cleanup
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
 
-class NetCDFFileTestCase(common.PyTablesTestCase):
+class NetCDFFileTestCase(PyTablesTestCase):
 
     def setUp(self):
         # Create an HDF5 with the NetCDF interface.

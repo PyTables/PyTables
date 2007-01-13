@@ -11,8 +11,8 @@ http://starship.python.net/~hinsen/ScientificPython
 
 import sys, os.path, getopt, time
 
-import tables.NetCDF
-if not tables.NetCDF.ScientificIONetCDF_imported:
+import tables.netcdf3
+if not tables.netcdf3.ScientificIONetCDF_imported:
     raise ImportError, 'nctoh5 requires the ScientificIONetCDF module'
 
 from tables.Leaf import Filters
@@ -21,9 +21,9 @@ from tables.Leaf import Filters
 def nctoh5(ncfilename, h5filename, filters, verbose, overwritefile):
     # open h5 file
     if overwritefile:
-        h5file = tables.NetCDF.NetCDFFile(h5filename, mode = "w")
+        h5file = tables.netcdf3.NetCDFFile(h5filename, mode = "w")
     else:
-        h5file = tables.NetCDF.NetCDFFile(h5filename, mode = "a")
+        h5file = tables.netcdf3.NetCDFFile(h5filename, mode = "a")
     # convert to netCDF
     nobjects, nbytes = h5file.nctoh5(ncfilename,filters=filters)
     # ncdump-like output

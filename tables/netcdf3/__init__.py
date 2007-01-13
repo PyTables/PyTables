@@ -1,7 +1,7 @@
 """
 PyTables NetCDF version 3 emulation API.
 
-This module provides an API is nearly identical to Scientific.IO.NetCDF
+This package provides an API is nearly identical to Scientific.IO.NetCDF
 (http://starship.python.net/~hinsen/ScientificPython/ScientificPythonManual/Scientific.html).
 Some key differences between the Scientific.IO.NetCDF API and the pytables
 NetCDF emulation API to keep in mind are:
@@ -10,7 +10,7 @@ NetCDF emulation API to keep in mind are:
 2) Although each variable can have only one unlimited
    dimension, it need not be the first as in a true NetCDF file.
    Complex data types 'F' (complex64) and 'D' (complex128) are supported
-   in tables.NetCDF, but are not supported in netCDF
+   in tables.netcdf3, but are not supported in netCDF
    (or Scientific.IO.NetCDF). Files with variables that have
    these datatypes, or an unlimited dimension other than the first,
    cannot be converted to netCDF using h5tonc.
@@ -65,15 +65,15 @@ NetCDF emulation API to keep in mind are:
 9) output similar to 'ncdump -h' can be obtained by simply
    printing the NetCDFFile instance.
 
-A tables.NetCDF file consists of array objects (either EArrays or
+A tables.netcdf3 file consists of array objects (either EArrays or
 CArrays) located in the root group of a pytables hdf5 file.  Each of
 the array objects must have a dimensions attribute, consisting of a
 tuple of dimension names (the length of this tuple should be the same
 as the rank of the array object). Any such objects with one
 of the supported data types in a pytables file that conforms to
-this simple structure can be read with the tables.NetCDF module.
+this simple structure can be read with the tables.netcdf3 package.
 
-Note: This module does not yet create HDF5 files that are compatible
+Note: This package does not yet create HDF5 files that are compatible
 with netCDF version 4.
 
 Datasets created with the PyTables netCDF emulation API can be shared
@@ -227,7 +227,7 @@ class NetCDFFile:
                     continue
                 self.variables[var.name]=_NetCDFVariable(var,self)
             if len(self.variables.keys()) == 0:
-                raise IOError, 'file does not contain any objects compatible with tables.NetCDF'
+                raise IOError, 'file does not contain any objects compatible with tables.netcdf3'
         else:
         # initialize dimension and variable dictionaries for a new file.
             self.dimensions = {}
@@ -437,7 +437,7 @@ class NetCDFFile:
 
     def nctoh5(self,filename,unpackshort=True,filters=None):
         """convert a true netcdf file (filename) to a hdf5 file
-        compatible with this module.  Requires Scientific.IO.NetCDF
+        compatible with this package.  Requires Scientific.IO.NetCDF
         module. If unpackshort=True, variables stored as short
         integers with a scale and offset are unpacked to Float32
         variables in the hdf5 file.  If the least_significant_digit

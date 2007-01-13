@@ -404,7 +404,7 @@ if has_setuptools:
         'console_scripts': [
             'ptdump = tables.scripts.ptdump:main',
             'ptrepack = tables.scripts.ptrepack:main',
-            'nctoh5 = tables.scripts.nctoh5:main [netCDF]',
+            'nctoh5 = tables.netcdf3.scripts.nctoh5:main [netCDF]',
             ],
         }
     setuptools_kwargs['scripts'] = []
@@ -414,7 +414,7 @@ else:
     # There is no other chance, these values must be hardwired.
     setuptools_kwargs['packages'] = [
         'tables', 'tables.nodes', 'tables.scripts', 'tables.numexpr',
-        'tables.nra']
+        'tables.nra', 'tables.netcdf3']
     setuptools_kwargs['scripts'] = [
         'utils/ptdump', 'utils/ptrepack', 'utils/nctoh5']
 

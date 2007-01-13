@@ -11450,42 +11450,42 @@ owner := 'ivan']
         facto standard for gridded data, especially in meteorology and
         oceanography. The next version of netCDF (netCDF 4) will actually be a
         software layer on top of HDF5 (see <biblioref
-        linkend="NetCDF4Ref"/>). The <literal>tables.NetCDF</literal> module
+        linkend="NetCDF4Ref"/>). The <literal>tables.netcdf3</literal> package
         does not create HDF5 files that are compatible with netCDF 4 (although
         this is a long-term goal).</para>
       </section>
 
       <section>
-        <title>Using the <literal>tables.NetCDF</literal> module</title>
+        <title>Using the <literal>tables.netcdf3</literal> package</title>
 
-        <para>The module <literal>tables.NetCDF</literal> emulates the
+        <para>The package <literal>tables.netcdf3</literal> emulates the
         <literal>Scientific.IO.NetCDF</literal> API using PyTables. It
         presents the data in the form of objects that behave very much like
-        arrays. A <literal>tables.NetCDF</literal> file contains any number of
+        arrays. A <literal>tables.netcdf3</literal> file contains any number of
         dimensions and variables, both of which have unique names.  Each
         variable has a shape defined by a set of dimensions, and optionally
         attributes whose values can be numbers, number sequences, or strings.
         One dimension of a file can be defined as
         <emphasis>unlimited</emphasis>, meaning that the file can grow along
         that direction. In the sections that follow, a step-by-step tutorial
-        shows how to create and modify a <literal>tables.NetCDF</literal>
+        shows how to create and modify a <literal>tables.netcdf3</literal>
         file. All of the code snippets presented here are included in
         <literal>examples/netCDF_example.py</literal>.  The
-        <literal>tables.NetCDF</literal> module is designed to be used as a
+        <literal>tables.netcdf3</literal> package is designed to be used as a
         drop-in replacement for <literal>Scientific.IO.NetCDF</literal>, with
         only minor modifications to existing code. The differences between
-        <literal>table.NetCDF</literal> and
+        <literal>tables.netcdf3</literal> and
         <literal>Scientific.IO.NetCDF</literal> are summarized in the last
         section of this chapter.</para>
 
         <section>
-          <title>Creating/Opening/Closing a <literal>tables.NetCDF</literal>
+          <title>Creating/Opening/Closing a <literal>tables.netcdf3</literal>
           file</title>
 
-          <para>To create a <literal>tables.netCDF</literal> file from python,
+          <para>To create a <literal>tables.netcdf3</literal> file from python,
           you simply call the <literal>NetCDFFile</literal> constructor.  This
           is also the method used to open an existing
-          <literal>tables.netCDF</literal> file. The object returned is an
+          <literal>tables.netcdf3</literal> file. The object returned is an
           instance of the <literal>NetCDFFile</literal> class and all future
           access must be done through this object. If the file is open for
           write access (<literal>'w'</literal> or <literal>'a'</literal>), you
@@ -11493,7 +11493,7 @@ owner := 'ivan']
           and attributes.  The optional <literal>history</literal> keyword
           argument can be used to set the <literal>history</literal>
           <literal>NetCDFFile</literal> global file attribute. Closing the
-          <literal>tables.NetCDF</literal> file is accomplished via the
+          <literal>tables.netcdf3</literal> file is accomplished via the
           <literal>close</literal> method of <literal>NetCDFFile</literal>
           object.
           </para>
@@ -11501,7 +11501,7 @@ owner := 'ivan']
           <para>Here's an example:</para>
 
           <screen><![CDATA[
->>> import tables.NetCDF as NetCDF
+>>> import tables.netcdf3 as NetCDF
 >>> import time
 >>> history = 'Created ' + time.ctime(time.time())
 >>> file = NetCDF.NetCDFFile('test.h5', 'w', history=history)
@@ -11511,7 +11511,7 @@ owner := 'ivan']
         </section>
 
         <section>
-          <title>Dimensions in a <literal>tables.NetCDF</literal> file</title>
+          <title>Dimensions in a <literal>tables.netcdf3</literal> file</title>
 
           <para>NetCDF defines the sizes of all variables in terms of
           dimensions, so before any variables can be created the dimensions
@@ -11524,7 +11524,7 @@ owner := 'ivan']
           <literal>None</literal>.</para>
 
           <screen><![CDATA[
->>> import tables.NetCDF as NetCDF
+>>> import tables.netcdf3 as NetCDF
 >>> file = NetCDF.NetCDFFile('test.h5', 'a')
 >>> file.NetCDFFile.createDimension('level', 12)
 >>> file.NetCDFFile.createDimension('time', None)
@@ -11542,9 +11542,9 @@ owner := 'ivan']
         </section>
 
         <section>
-          <title>Variables in a <literal>tables.NetCDF</literal> file</title>
+          <title>Variables in a <literal>tables.netcdf3</literal> file</title>
 
-          <para>Most of the data in a <literal>tables.NetCDF</literal> file is
+          <para>Most of the data in a <literal>tables.netcdf3</literal> file is
           stored in a netCDF variable (except for global attributes). To
           create a netCDF variable, use the <literal>createVariable</literal>
           method of the <literal>NetCDFFile</literal> object.  The
@@ -11583,19 +11583,19 @@ owner := 'ivan']
 
           <screen><![CDATA[
 >>> print file.variables
-{'latitude': <tables.NetCDF.NetCDFVariable instance at 0x244f350>,
-'pressure': <tables.NetCDF.NetCDFVariable instance at 0x244f508>,
-'level': <tables.NetCDF.NetCDFVariable instance at 0x244f0d0>,
-'temp': <tables.NetCDF.NetCDFVariable instance at 0x244f3a0>,
-'time': <tables.NetCDF.NetCDFVariable instance at 0x2564c88>}
+{'latitude': <tables.netcdf3.NetCDFVariable instance at 0x244f350>,
+'pressure': <tables.netcdf3.NetCDFVariable instance at 0x244f508>,
+'level': <tables.netcdf3.NetCDFVariable instance at 0x244f0d0>,
+'temp': <tables.netcdf3.NetCDFVariable instance at 0x244f3a0>,
+'time': <tables.netcdf3.NetCDFVariable instance at 0x2564c88>}
           ]]></screen>
         </section>
 
         <section>
-          <title>Attributes in a <literal>tables.NetCDF</literal> file</title>
+          <title>Attributes in a <literal>tables.netcdf3</literal> file</title>
 
           <para>There are two types of attributes in a
-          <literal>tables.NetCDF</literal> file, global (or file) and
+          <literal>tables.netcdf3</literal> file, global (or file) and
           variable. Global attributes provide information about the dataset,
           or file, as a whole. Variable attributes provide information about
           one of the variables in the file. Global attributes are set by
@@ -11607,7 +11607,7 @@ owner := 'ivan']
           our example,</para>
 
           <screen><![CDATA[
->>> file.description = 'bogus example to illustrate the use of tables.NetCDF'
+>>> file.description = 'bogus example to illustrate the use of tables.netcdf3'
 >>> file.source = 'PyTables Users Guide'
 >>> latitudes.units = 'degrees north'
 >>> pressure.units = 'hPa'
@@ -11629,7 +11629,7 @@ owner := 'ivan']
           <screen><![CDATA[
 >>> for name in file.ncattrs():
 >>>     print 'Global attr', name, '=', getattr(file,name)
-Global attr description = bogus example to illustrate the use of tables.NetCDF
+Global attr description = bogus example to illustrate the use of tables.netcdf3
 Global attr history = Created Mon Nov  7 10:30:56 2005
 Global attr source = PyTables Users Guide
           ]]></screen>
@@ -11641,7 +11641,7 @@ Global attr source = PyTables Users Guide
 
         <section>
           <title>Writing data to and retrieving data from a
-          <literal>tables.NetCDF</literal> variable</title>
+          <literal>tables.netcdf3</literal> variable</title>
 
           <para>Now that you have a netCDF variable object, how do you put
           data into it? If the variable has no <emphasis>unlimited</emphasis>
@@ -11705,7 +11705,7 @@ times =  [ 0.  1.  2.  3.  4.  5.  6.  7.  8.  9.]
           instead entries are appended along the
           <emphasis>unlimited</emphasis> dimension one at a time by assigning
           to a slice. This is the biggest difference between the
-          <literal>tables.NetCDF</literal> and
+          <literal>tables.netcdf3</literal> and
           <literal>Scientific.IO.NetCDF</literal> interfaces.</para>
 
           <para> Once data has been appended to any variable with an
@@ -11772,7 +11772,7 @@ variables:
       time:scale_factor = 1 ;
       time:units = 'days since January 1, 2005' ;
 // global attributes:
-      :description = 'bogus example to illustrate the use of tables.NetCDF' ;
+      :description = 'bogus example to illustrate the use of tables.netcdf3' ;
       :history = 'Created Wed Nov  9 12:29:13 2005' ;
       :source = 'PyTables Users Guilde' ;
 }
@@ -11781,7 +11781,7 @@ variables:
         </section>
 
         <section>
-          <title>Efficient compression of <literal>tables.NetCDF</literal>
+          <title>Efficient compression of <literal>tables.netcdf3</literal>
           variables</title>
 
           <para>Data stored in <literal>NetCDFVariable</literal> objects is
@@ -11828,7 +11828,7 @@ variables:
           argument is not allowed in <literal>Scientific.IO.NetCDF</literal>,
           since netCDF version 3 does not support compression. The flexible,
           fast and efficient compression available in HDF5 is the main reason
-          I wrote the <literal>tables.NetCDF</literal> module - my netCDF
+          I wrote the <literal>tables.netcdf3</literal> package - my netCDF
           files were just getting too big. </para>
 
           <para>The <literal>createVariable</literal> method has one other
@@ -11848,7 +11848,7 @@ variables:
       </section>
 
       <section>
-        <title><literal>tables.NetCDF</literal> module reference</title>
+        <title><literal>tables.netcdf3</literal> package reference</title>
 
         <section>
           <title>Global constants</title>
@@ -11883,7 +11883,7 @@ variables:
           <para><emphasis>NetCDFFile(filename, mode='r',
           history=None)</emphasis></para>
 
-          <para>Opens an existing <literal>tables.NetCDF</literal> file (mode
+          <para>Opens an existing <literal>tables.netcdf3</literal> file (mode
           = <literal>'r'</literal> or <literal>'a'</literal>) or creates a new
           one (mode = <literal>'w'</literal>). The <literal>history</literal>
           keyword can be used to set the <literal>NetCDFFile.history</literal>
@@ -11965,7 +11965,7 @@ variables:
                 the predefined type constants from Numeric can also be
                 used. The <literal>F</literal> and <literal>D</literal> types
                 are not supported in netCDF or Scientific.IO.NetCDF, if they
-                are used in a <literal>tables.NetCDF</literal> file, that file
+                are used in a <literal>tables.netcdf3</literal> file, that file
                 cannot be converted to a true netCDF file nor can it be shared
                 over the internet with OPeNDAP. Dimensions must be a tuple
                 containing dimension names (strings) that have been defined
@@ -12010,7 +12010,7 @@ variables:
                 <literal>filters</literal> keyword can be set to a PyTables
                 <literal>Filters</literal> instance to change the default
                 parameters used to compress the data in the
-                <literal>tables.NetCDF</literal> file.  The default
+                <literal>tables.netcdf3</literal> file.  The default
                 corresponds to <literal>complevel=6</literal>,
                 <literal>complib='zlib'</literal>,
                 <literal>shuffle=True</literal> and
@@ -12022,7 +12022,7 @@ variables:
               <section>
                 <title>h5tonc(filename, packshort=False, scale_factor=None, add_offset=None)</title>
 
-                <para>Exports the data in a <literal>tables.NetCDF</literal>
+                <para>Exports the data in a <literal>tables.netcdf3</literal>
                 file defined by the <literal>NetCDFFile</literal> instance
                 into a netCDF version 3 file using
                 <literal>Scientific.IO.NetCDF</literal>
@@ -12149,18 +12149,18 @@ variables:
 
       <section>
         <title>Converting between true netCDF files and
-        <literal>tables.NetCDF</literal> files</title>
+        <literal>tables.netcdf3</literal> files</title>
 
         <para>If <literal>Scientific.IO.NetCDF</literal> is installed,
-        <literal>tables.NetCDF</literal> provides facilities for converting
+        <literal>tables.netcdf3</literal> provides facilities for converting
         between true netCDF version 3 files and
-        <literal>tables.NetCDF</literal> hdf5 files via the
+        <literal>tables.netcdf3</literal> hdf5 files via the
         <literal>NetCDFFile.h5tonc()</literal> and
         <literal>NetCDFFile.nctoh5()</literal> class methods. Also, the
         <literal>nctoh5</literal> command-line utility (see <xref
         xrefstyle="select: label" linkend="nctoh5Descr"/>) uses the
         <literal>NetCDFFile.nctoh5()</literal> class method. </para> <para>As
-        an example, look how to convert a <literal>tables.NetCDF</literal>
+        an example, look how to convert a <literal>tables.netcdf3</literal>
         hdf5 file to a true netCDF version 3 file (named
         <literal>test.nc</literal>)</para>
 
@@ -12186,7 +12186,7 @@ packing temp as short integers ...
         variable attributes set appropriately.</para>
 
         <para>To convert the netCDF file back to a
-        <literal>tables.NetCDF</literal> hdf5 file:
+        <literal>tables.netcdf3</literal> hdf5 file:
         </para>
 
         <screen><![CDATA[
@@ -12219,19 +12219,19 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
         <literal>nctoh5</literal> to unpack all of the variables which have
         the <literal>scale_factor</literal> and <literal>add_offset</literal>
         attributes back to floating point arrays. Note that
-        <literal>tables.NetCDF</literal> files have some features not
+        <literal>tables.netcdf3</literal> files have some features not
         supported in netCDF (such as Complex data types and the ability to
         make any dimension <emphasis>unlimited</emphasis>).
-        <literal>tables.NetCDF</literal> files which utilize these features
+        <literal>tables.netcdf3</literal> files which utilize these features
         cannot be converted to netCDF using
         <literal>NetCDFFile.h5tonc</literal>.</para>
 
       </section>
 
       <section>
-        <title><literal>tables.NetCDF</literal> file structure</title>
+        <title><literal>tables.netcdf3</literal> file structure</title>
 
-        <para> A <literal>tables.NetCDF</literal> file consists of array
+        <para> A <literal>tables.netcdf3</literal> file consists of array
         objects (either <literal> EArrays</literal> or
         <literal>CArrays</literal>) located in the root group of a pytables
         hdf5 file. Each of the array objects must have a
@@ -12239,16 +12239,16 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
         dimension names (the length of this tuple should be the same as the
         rank of the array object). Any array objects with one of the supported
         datatypes in a pytables file that conforms to this simple structure
-        can be read with the <literal>tables.NetCDF</literal> module.
+        can be read with the <literal>tables.netcdf3</literal> package.
         </para>
 
       </section>
 
       <section>
-        <title>Sharing data in <literal>tables.NetCDF</literal> files over the
+        <title>Sharing data in <literal>tables.netcdf3</literal> files over the
         internet with OPeNDAP </title>
 
-        <para><literal>tables.NetCDF</literal> datasets can be shared over the
+        <para><literal>tables.netcdf3</literal> datasets can be shared over the
         internet with the OPeNDAP protocol (<ulink
         url="http://opendap.org">http://opendap.org</ulink>), via the python
         opendap module (<ulink
@@ -12258,41 +12258,41 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
         copy that file into the <literal>plugins</literal> directory of the
         opendap python module source distribution, run <literal>python
         setup.py install</literal>, point the opendap server to the directory
-        containing your <literal>tables.NetCDF</literal> files, and away you
+        containing your <literal>tables.netcdf3</literal> files, and away you
         go. Any OPeNDAP aware client (such as Matlab or IDL) will now be able
         to access your data over http as if it were a local disk file.  The
-        only restriction is that your <literal>tables.NetCDF</literal> files
+        only restriction is that your <literal>tables.netcdf3</literal> files
         must have the extension <literal>.h5</literal> or
         <literal>.hdf5</literal>. Unfortunately,
-        <literal>tables.NetCDF</literal> itself cannot act as an OPeNDAP
+        <literal>tables.netcdf3</literal> itself cannot act as an OPeNDAP
         client, although there is a client included in the opendap python
         module, and <literal>Scientific.IO.NetCDF</literal> can act as an
         OPeNDAP client if it is linked with the OPeNDAP netCDF client
         library. Either of these python modules can be used to remotely acess
-        <literal>tables.NetCDF</literal> datasets with OPeNDAP.</para>
+        <literal>tables.netcdf3</literal> datasets with OPeNDAP.</para>
       </section>
 
       <section>
         <title>Differences between the <literal>Scientific.IO.NetCDF</literal>
-        API and the <literal>tables.NetCDF</literal> API </title>
+        API and the <literal>tables.netcdf3</literal> API </title>
 
         <orderedlist>
 
-          <listitem><para><literal>tables.NetCDF</literal> data is stored in
+          <listitem><para><literal>tables.netcdf3</literal> data is stored in
           an HDF5 file instead of a netCDF file.  </para></listitem>
 
           <listitem><para>Although each variable can have only one
           <emphasis>unlimited</emphasis> dimension in a
-          <literal>tables.NetCDF</literal> file, it need not be the first as
+          <literal>tables.netcdf3</literal> file, it need not be the first as
           in a true NetCDF file. Complex data types <literal>F</literal>
           (Complex32) and <literal>D</literal> (Complex64) are supported in
-          <literal>tables.NetCDF</literal>, but are not supported in netCDF
+          <literal>tables.netcdf3</literal>, but are not supported in netCDF
           (or <literal>Scientific.IO.NetCDF</literal>).  Files with variables
           that have these datatypes, or an <emphasis>unlimited</emphasis>
           dimension other than the first, cannot be converted to netCDF using
           <literal>h5tonc</literal>.  </para></listitem>
 
-          <listitem><para>Variables in a <literal>tables.NetCDF</literal> file
+          <listitem><para>Variables in a <literal>tables.netcdf3</literal> file
           are compressed on disk by default using HDF5 zlib compression with
           the <emphasis>shuffle</emphasis> filter. If the
           <emphasis>least_significant_digit</emphasis> keyword is used when a
@@ -12312,14 +12312,14 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           hence is not available in the
           <literal>Scientific.IO.NetCDF</literal> module. </para></listitem>
 
-          <listitem><para>In <literal>tables.NetCDF</literal>, data must be
+          <listitem><para>In <literal>tables.netcdf3</literal>, data must be
           appended to a variable with an <emphasis>unlimited</emphasis>
           dimension using the <literal>append</literal> method of the
           <literal>netCDF</literal> variable object.  In
           <literal>Scientific.IO.NetCDF</literal>, data can be added along an
           <emphasis>unlimited</emphasis> dimension by assigning it to a slice
           (there is no append method). The <literal>sync</literal> method of a
-          <literal>tables.NetCDF NetCDFVariable</literal> object synchronizes
+          <literal>tables.netcdf3 NetCDFVariable</literal> object synchronizes
           the size of all variables with an <emphasis>unlimited</emphasis>
           dimension by filling in data using the default netCDF
           <literal>_FillValue</literal>. The <literal>sync</literal> method is
@@ -12328,7 +12328,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           <literal>sync()</literal> method flushes the data to
           disk. </para></listitem>
 
-          <listitem><para>The <literal>tables.NetCDF
+          <listitem><para>The <literal>tables.netcdf3
           createVariable()</literal> method has three extra optional keyword
           arguments not found in the <literal>Scientific.IO.NetCDF</literal>
           interface, <emphasis>least_significant_digit</emphasis> (see item
@@ -12344,17 +12344,17 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           <literal>complib='zlib'</literal>, <literal>shuffle=True</literal>
           and <literal>fletcher32=False</literal>.  </para></listitem>
 
-          <listitem><para><literal>tables.NetCDF</literal> data can be saved
+          <listitem><para><literal>tables.netcdf3</literal> data can be saved
           to a true netCDF file using the <literal>NetCDFFile</literal> class
           method <literal>h5tonc</literal> (if
           <literal>Scientific.IO.NetCDF</literal> is installed). The
           <emphasis>unlimited</emphasis> dimension must be the first (for all
           variables in the file) in order to use the <literal>h5tonc</literal>
           method. Data can also be imported from a true netCDF file and saved
-          in an HDF5 <literal>tables.NetCDF</literal> file using the
+          in an HDF5 <literal>tables.netcdf3</literal> file using the
           <literal>nctoh5</literal> class method.  </para></listitem>
 
-          <listitem><para>In <literal>tables.NetCDF</literal> a list of
+          <listitem><para>In <literal>tables.netcdf3</literal> a list of
           attributes corresponding to global netCDF attributes defined in the
           file can be obtained with the <literal>NetCDFFile ncattrs
           </literal>method. Similarly, netCDF variable attributes can be
@@ -12364,12 +12364,12 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           </para></listitem>
 
           <listitem><para>You should not define
-          <literal>tables.NetCDF</literal> global or variable attributes that
+          <literal>tables.netcdf3</literal> global or variable attributes that
           start with <literal>_NetCDF_</literal>. Those names are reserved for
           internal use. </para></listitem>
 
           <listitem><para>Output similar to 'ncdump -h' can be obtained by
-          simply printing a <literal>tables.NetCDF</literal>
+          simply printing a <literal>tables.netcdf3</literal>
           <literal>NetCDFFile</literal> instance.  </para></listitem>
 
         </orderedlist>

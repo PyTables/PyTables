@@ -23,8 +23,8 @@ nextafterf math functions that despite the fact they are standard in
 C99 standard, they are not at the official places in Microsoft VC++
 6.x nor VC++ 7.x.
 
-Jeff Whitaker for providing the NetCDF module and the utilities for
-doing conversions between to HDF5 (nctoh5).
+Jeff Whitaker for providing the NetCDF module and the utility for
+converting netCDF files to HDF5 (nctoh5).
 
 Norbert Nemec for providing several interesting patches.
 
