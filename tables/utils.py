@@ -20,7 +20,6 @@ import sys
 
 import numpy
 
-import tables.utilsExtension
 from tables.exceptions import NaturalNameWarning
 from tables.flavor import array_of_flavor
 
