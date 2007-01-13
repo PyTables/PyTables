@@ -8,7 +8,7 @@ from numarray import records
 from numarray import *
 
 from tables import *
-from tables import nestedrecords
+from tables import nra
 from tables.tests.common import verbose, allequal, cleanup, heavy
 import tables.tests.common as common
 
@@ -550,7 +550,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
                ('y3', '(2,)f8')]),
              ('name', 'a2'),
              ('z2', 'u1')]
-    _infozeros = nestedrecords.array(descr=dtype, shape=3)
+    _infozeros = nra.array(descr=dtype, shape=3)
     # Set the contents to zero (or empty strings)
     _infozeros.field('value')[:] = 0
     _infozeros.field('y2')[:] = 0
@@ -560,7 +560,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     _infozeros.field('name')[:] = "\0"
     _infozeros.field('z2')[:] = 0
 
-    _infoones = nestedrecords.array(descr=dtype, shape=3)
+    _infoones = nra.array(descr=dtype, shape=3)
     # Set the contents to one (or blank strings)
     _infoones.field('value')[:] = 1
     _infoones.field('y2')[:] = 1
@@ -814,7 +814,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         dtype=[('x', '(2,)i4'), ('y', '(2,2)f8'), ('z', 'u1')]
-        nparray = nestedrecords.array(shape=(3,), descr=dtype)
+        nparray = nra.array(shape=(3,), descr=dtype)
         nparray.field('x')[:] = 1
         nparray.field('y')[:] = 1
         nparray.field('z')[:] = 2

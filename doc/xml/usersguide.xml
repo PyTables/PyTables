@@ -3377,7 +3377,7 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
 	    <para>When using the <literal>numarray</literal> flavor,
 	    you will get an instance of the
 	    <literal>NestedRecArray</literal> class that lives in the
-	    <literal>tables.nestedrecords</literal> module.
+	    <literal>tables.nra</literal> package.
 	    <literal>NestedRecArray</literal> is
 	    actually a subclass of the
 	    <literal>RecArray</literal> object of the
@@ -3568,8 +3568,8 @@ recarray([],
 recarray([], 
       dtype=[('info3', [('x', '>f8'), ('y', '|u1')]), ('name', '|S10'),
              ('value', '>f8')])
->>> from tables import nestedrecords
->>> nestedrecords.array(None, descr=table.description._v_nestedDescr)
+>>> from tables import nra
+>>> nra.array(None, descr=table.description._v_nestedDescr)
 array(
 [],
 descr=[('info2', [('info3', [('x', '()f8'), ('y', '()u1')]),
@@ -3579,8 +3579,8 @@ shape=0)
 >>> ]]></screen>
 
 	  <para>You can see we have created two equivalent arrays: one with
-	  NumPy (the first) and one with the <literal>nestedrecords</literal>
-	  module (the last).  The later implements nested record arrays for
+	  NumPy (the first) and one with the <literal>nra</literal>
+	  package (the last).  The later implements nested record arrays for
 	  <literal>numarray</literal> (see
 	  <xref xrefstyle="select: label" linkend="NestedRecArrayClassDescr"/>).
 	  </para>
@@ -12718,8 +12718,8 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
 
         <para>Each nested record array is a
         <literal>NestedRecArray</literal> object in
-        the <literal>tables.nestedrecords</literal>
-        module. Nested record arrays are intended to be as compatible as
+        the <literal>tables.nra</literal>
+        package. Nested record arrays are intended to be as compatible as
         possible with ordinary record arrays (in fact the
         <literal>NestedRecArray</literal> class
         inherits from <literal>RecArray</literal>).
@@ -12728,12 +12728,12 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
 
         <para>The easiest way to create a nested record array is to use the
         <literal>array()</literal> function in the
-        <literal>tables.nestedrecords</literal>
-        module. The only difference between this function and its non-nested
+        <literal>tables.nra</literal>
+        package. The only difference between this function and its non-nested
         capable analogous is that now, we <emphasis>must</emphasis> provide an
         structure for the buffer being stored. For instance: </para>
 
-        <screen><![CDATA[>>> from tables.nestedrecords import array
+        <screen><![CDATA[>>> from tables.nra import array
 >>> nra1 = array(
 ...     [(1, (0.5, 1.0), ('a1', 1j)), (2, (0, 0), ('a2', 1+.1j))],
 ...     formats=['Int64', '(2,)Float32', ['a2', 'Complex64']])]]></screen>
@@ -12814,7 +12814,7 @@ shape=2)
         This function works in a very similar way to the array function, but
         the passed buffer is a list of columns. For instance:</para>
 
-        <screen><![CDATA[>>> from tables.nestedrecords import fromarrays
+        <screen><![CDATA[>>> from tables.nra import fromarrays
 >>> nra = fromarrays([[1, 2], [4, 5]], descr=[('x', 'f8'),('y', 'f4')])
 >>>
 >>> nra
@@ -12848,15 +12848,20 @@ array(
 descr=[('x', 'f8'), ('z', 'f4')],
 shape=2)]]></screen>
 
-        <para>Finally it's worth to mention a small group of utility
-        functions, makeFormats, makeNames and makeDescr, that can be useful to
-        obtain the structure specification to be used with array and
-        fromarrays functions. Given a description list, makeFormats gets the
-        corresponding formats list. In the same way makeNames gets the names
-        list. On the other hand the descr list can be obtained from formats
-        and names lists using the makeDescr function. For example: </para>
+        <para>Finally it's worth to mention a small group of utility functions
+        in the <literal>tables.nra.nestedrecords</literal> module,
+        <literal>makeFormats</literal>, <literal>makeNames</literal> and
+        <literal>makeDescr</literal>, that can be useful to obtain the
+        structure specification to be used with the <literal>array</literal>
+        and <literal>fromarrays</literal> functions. Given a description list,
+        <literal>makeFormats</literal> gets the corresponding
+        <literal>formats</literal> list. In the same way
+        <literal>makeNames</literal> gets the <literal>names</literal>
+        list. On the other hand the <literal>descr</literal> list can be
+        obtained from <literal>formats</literal> and names lists using the
+        <literal>makeDescr</literal> function. For example: </para>
 
-        <screen><![CDATA[>>> from tables.nestedrecords import makeDescr, makeFormats, makeNames
+        <screen><![CDATA[>>> from tables.nra.nestedrecords import makeDescr, makeFormats, makeNames
 >>> descr =[('2D', [('x', 'f8'), ('y', 'f4')]),('z', 'f4')]
 >>>
 >>> formats = makeFormats(descr)
@@ -12934,7 +12939,7 @@ shape=2)]]></screen>
 (1L, array([ 0.5,  1. ], type=Float32), ('a1', 1j))
 >>>
 >>> nra2[0].__class__
-<class tables.nestedrecords.NestedRecord at 0x413cbb9c>]]></screen>
+<class tables.nra.nestedrecords.NestedRecord at 0x413cbb9c>]]></screen>
 
         <para>Slicing is also supported in the usual way:</para>
 

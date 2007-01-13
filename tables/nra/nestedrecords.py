@@ -34,8 +34,8 @@ try:
 except ImportError:
     numpy_imported = False
 
-from tables.attributeaccess import AttributeAccess
-import tables.nriterators as nriterators
+from tables.nra.attributeaccess import AttributeAccess
+from tables.nra import nriterators
 
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""

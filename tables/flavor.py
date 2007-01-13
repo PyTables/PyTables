@@ -305,7 +305,7 @@ def _conv_numarray_to_numpy(array):
         # conversion. This is sub-optimal and should be replaced by a
         # faster way to convert a plain RecArray into a numpy recarray.
         # F. Altet 2006-06-19
-        array = nestedrecords.array(array)
+        array = nra.array(array)
     nparray = numpy.ndarray( buffer=array._data, shape=array.shape,
                              dtype=array.array_descr,
                              offset=array._byteoffset )
@@ -364,7 +364,7 @@ def _conv_numpy_to_numeric(array):
     return array
 
 if 'numarray' in all_flavors:
-    from tables import nestedrecords
+    from tables import nra
 
 def _conv_numpy_to_numarray(array):
     kind = array.dtype.kind
@@ -381,8 +381,8 @@ def _conv_numpy_to_numarray(array):
         return numarray.array(array)  # use the array protocol (with copy)
 
     # For the remaining heterogeneous arrays and records, leave the
-    # task to ``nestedrecords``.
-    return nestedrecords.fromnumpy(array)
+    # task to ``nra``.
+    return nra.fromnumpy(array)
 
 def _conv_numpy_to_python(array):
     if array.shape != ():

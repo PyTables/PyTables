@@ -6,9 +6,8 @@ import unittest
 import numarray
 import numarray.records
 
-import tables
-from tables.tests.common import verbose
-import tables.tests.common as common
+from tables.tests import common
+from tables import nra
 
 class NestedRecordTests(common.PyTablesTestCase):
     """Define a set of unit tests for the nestedrecords module.
@@ -80,20 +79,20 @@ class NestedRecordTests(common.PyTablesTestCase):
         common.verbosePrint( '\nTesting array structure check function')
         common.verbosePrint( 'With descr description...')
         cse = \
-            tables.nestedrecords._isThereStructure( None, self.descr,
+            nra.nestedrecords._isThereStructure( None, self.descr,
             self.buffer)
         self.assertEqual(cse, None)
 
         common.verbosePrint( 'With formats description...')
         cse = \
-            tables.nestedrecords._isThereStructure(self.formats, None,
+            nra.nestedrecords._isThereStructure(self.formats, None,
             self.buffer)
         self.assertEqual(cse, None)
 
         common.verbosePrint( 'With no description...')
         self.assertRaises(NotImplementedError,
-            tables.nestedrecords._isThereStructure, None, None, self.buffer)
-        self.assertRaises(ValueError, tables.nestedrecords._isThereStructure,
+            nra.nestedrecords._isThereStructure, None, None, self.buffer)
+        self.assertRaises(ValueError, nra.nestedrecords._isThereStructure,
             None, None, None)
 
 
@@ -102,13 +101,13 @@ class NestedRecordTests(common.PyTablesTestCase):
         """
 
         common.verbosePrint( '\nTesting the uniqueness of the array syntax')
-        self.assertEqual(tables.nestedrecords._onlyOneSyntax(self.descr, None,
+        self.assertEqual(nra.nestedrecords._onlyOneSyntax(self.descr, None,
             None), None)
-        self.assertEqual(tables.nestedrecords._onlyOneSyntax(None,
+        self.assertEqual(nra.nestedrecords._onlyOneSyntax(None,
             self.formats, None), None)
-        self.assertRaises(ValueError, tables.nestedrecords._onlyOneSyntax,
+        self.assertRaises(ValueError, nra.nestedrecords._onlyOneSyntax,
             self.descr, self.formats, None)
-        self.assertRaises(ValueError, tables.nestedrecords._onlyOneSyntax,
+        self.assertRaises(ValueError, nra.nestedrecords._onlyOneSyntax,
             self.descr, None, self.names)
 
 
@@ -118,15 +117,15 @@ class NestedRecordTests(common.PyTablesTestCase):
 
         common.verbosePrint( '\nTesting samples of formats description')
         formats = 'formats should be a list'
-        self.assertRaises(TypeError, tables.nestedrecords._checkFormats,
+        self.assertRaises(TypeError, nra.nestedrecords._checkFormats,
             formats)
         # Formats must be a list of strings or sequences
         formats = [25,
             [['a5', 'a5'],['Float32', 'f4', 'f4']]]
-        self.assertRaises(TypeError, tables.nestedrecords._checkFormats,
+        self.assertRaises(TypeError, nra.nestedrecords._checkFormats,
             formats)
         # If formats is OK checkFormats returns None
-        self.assertEqual(tables.nestedrecords._checkFormats(self.formats),
+        self.assertEqual(nra.nestedrecords._checkFormats(self.formats),
             None)
 
 
@@ -136,22 +135,22 @@ class NestedRecordTests(common.PyTablesTestCase):
 
         common.verbosePrint( '\nTesting samples of names description')
         names = 'names should be a list'
-        self.assertRaises(TypeError, tables.nestedrecords._checkNames,
+        self.assertRaises(TypeError, nra.nestedrecords._checkNames,
             names)
         # Names must be a list of strings or 2-tuples
         names = [25,
             ('info', [('name', ['first', 'second']),
                                 ('coord', ['x', 'y', 'z'])])]
-        self.assertRaises(TypeError, tables.nestedrecords._checkNames, names)
+        self.assertRaises(TypeError, nra.nestedrecords._checkNames, names)
 
         # Names must be unique at any given level
         names = ['position',
             ('info', [('name', ['first', 'second']),
                                 ('coord', ['x', 'y', 'y'])])]
-        self.assertRaises(ValueError, tables.nestedrecords._checkNames, names)
+        self.assertRaises(ValueError, nra.nestedrecords._checkNames, names)
 
         # If names is OK checkNames returns None
-        self.assertEqual(tables.nestedrecords._checkNames(self.names), None)
+        self.assertEqual(nra.nestedrecords._checkNames(self.names), None)
 
 
     def testArrayDescr(self):
@@ -161,22 +160,22 @@ class NestedRecordTests(common.PyTablesTestCase):
         common.verbosePrint( '\nTesting samples of descr description')
         # Descr must be a list of 2-tuples
         descr = 'some descr specification'
-        self.assertRaises(TypeError, tables.nestedrecords._checkDescr, descr)
+        self.assertRaises(TypeError, nra.nestedrecords._checkDescr, descr)
 
         # names in descr must be strings
         # formats must be strings or list of 2-tuples
         descr = [(25, 'Int64'),
             ('info', [('name', [('first','a5'), ('second','a5')]),
                    ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
-        self.assertRaises(TypeError, tables.nestedrecords._checkDescr, descr)
+        self.assertRaises(TypeError, nra.nestedrecords._checkDescr, descr)
 
         descr = [('25', 'position', 'Int64'),
             ('info', [('name', [('first','a5'), ('second','a5')]),
                    ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
-        self.assertRaises(TypeError, tables.nestedrecords._checkDescr, descr)
+        self.assertRaises(TypeError, nra.nestedrecords._checkDescr, descr)
 
         # If descr is OK checkDescr returns None
-        self.assertEqual(tables.nestedrecords._checkDescr(self.descr), None)
+        self.assertEqual(nra.nestedrecords._checkDescr(self.descr), None)
 
 
     def testFieldsDescr(self):
@@ -188,7 +187,7 @@ class NestedRecordTests(common.PyTablesTestCase):
         descr = [('position', 'Int64'),
             ('info', [('name', [('first','a5'), ('second','a5')]),
                ('coord', [('x/equis','Float32'), ('y', 'f4'), ('z', 'f4')])])]
-        self.assertRaises(ValueError, tables.nestedrecords._checkFieldsInDescr,
+        self.assertRaises(ValueError, nra.nestedrecords._checkFieldsInDescr,
             descr)
 
 
@@ -200,8 +199,8 @@ class NestedRecordTests(common.PyTablesTestCase):
         # A buffer
         buffer = [row, self.row1, self.row2]
         self.assertRaises((ValueError, TypeError),
-            tables.nestedrecords._checkBufferStructure, self.descr, buffer,
-            tables.nriterators.zipBufferDescr)
+            nra.nestedrecords._checkBufferStructure, self.descr, buffer,
+            nra.nriterators.zipBufferDescr)
 
 
     def testCreateNestedRecArray(self):
@@ -212,16 +211,15 @@ class NestedRecordTests(common.PyTablesTestCase):
             self.flat_formats)
         common.verbosePrint( """\nTesting the creation of a nested """
             """recarray: buffer + formats""")
-        nra1 = tables.nestedrecords.array(formats=self.formats,
-            buffer=self.buffer)
+        nra1 = nra.array(formats=self.formats, buffer=self.buffer)
         common.verbosePrint(
             """\nTesting the creation of a nested recarray: buffer + """
             """formats + names""")
-        nra2 = tables.nestedrecords.array(names=self.names,
+        nra2 = nra.array(names=self.names,
             formats=self.formats, buffer=self.buffer)
         common.verbosePrint(
             """\nTesting the creation of a nested recarray: buffer + descr""")
-        nra3 = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
+        nra3 = nra.array(descr=self.descr, buffer=self.buffer)
 
         self.assertEqual(common.areArraysEqual(nra1, nra2), False)
 
@@ -240,19 +238,18 @@ class NestedRecordTests(common.PyTablesTestCase):
 ##            buffer_, names=names, formats=formats, aligned=True)
 
         names1 = ['newName', 'newValue', 'newPair']
-        nra = tables.nestedrecords.array(buffer=ra, descr=zip(names1, formats))
-        nra1 = tables.nestedrecords.array(buffer=buffer_,
-            descr=zip(names1, formats))
-        self.assert_(common.areArraysEqual(nra, nra1))
+        nra0 = nra.array(buffer=ra, descr=zip(names1, formats))
+        nra1 = nra.array(buffer=buffer_, descr=zip(names1, formats))
+        self.assert_(common.areArraysEqual(nra0, nra1))
 
         # Bad number of fields
         badFormats = ['Int8', '(2,)Int16']
-        self.assertRaises(ValueError, tables.nestedrecords.array, buffer=ra,
+        self.assertRaises(ValueError, nra.array, buffer=ra,
             formats=badFormats)
 
         # Bad format in the first field
         badFormats = ['a9', 'Int8', '(2,)Int16']
-        self.assertRaises(ValueError, tables.nestedrecords.array, buffer=ra,
+        self.assertRaises(ValueError, nra.array, buffer=ra,
             formats=badFormats)
 
 
@@ -260,54 +257,51 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the array function with a NestedRecArray instance.
         """
 
-        nra = tables.nestedrecords.array(buffer=self.buffer, descr=self.descr)
+        nra0 = nra.array(buffer=self.buffer, descr=self.descr)
         my_Descr = [('ID', 'Int64'),
             ('data', [('name', [('first','a9'), ('second','a9')]),
             ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
-        nra1 = tables.nestedrecords.array(buffer=self.buffer, descr=my_Descr)
-        nra2 = tables.nestedrecords.array(buffer=nra, descr=my_Descr)
+        nra1 = nra.array(buffer=self.buffer, descr=my_Descr)
+        nra2 = nra.array(buffer=nra0, descr=my_Descr)
         self.assert_(common.areArraysEqual(nra2, nra1))
 
         # Bad number of fields
         badDescr = [
             ('data', [('name', [('first','a9'), ('second','a9')]),
             ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
-        self.assertRaises(ValueError, tables.nestedrecords.array, buffer=nra,
+        self.assertRaises(ValueError, nra.array, buffer=nra0,
             descr=badDescr)
 
         # Bad format in the first field
         badDescr = [('ID', 'b1'),
             ('data', [('name', [('first','a9'), ('second','a9')]),
             ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])])]
-        self.assertRaises(ValueError, tables.nestedrecords.array, buffer=nra,
+        self.assertRaises(ValueError, nra.array, buffer=nra0,
             descr=badDescr)
 
 
     #
-    # Tests for the tables.nestedrecords.fromarrays function
+    # Tests for the nra.fromarrays function
     #
     def testNRAFromArrayList(self):
         """Check the fromarrays function.
         """
 
         # arrayList argument is a list of lists
-        nra = tables.nestedrecords.array(buffer=self.buffer, descr=self.descr)
-        nra1 = tables.nestedrecords.fromarrays(self.array_list,
-            formats=self.formats)
-        nra2 = tables.nestedrecords.fromarrays(self.array_list,
+        nra0 = nra.array(buffer=self.buffer, descr=self.descr)
+        nra1 = nra.fromarrays(self.array_list, formats=self.formats)
+        nra2 = nra.fromarrays(self.array_list,
             formats=self.formats, names=self.names)
-        nra3 = tables.nestedrecords.fromarrays(self.array_list,
-            descr=self.descr)
+        nra3 = nra.fromarrays(self.array_list, descr=self.descr)
 
         self.assertEqual(common.areArraysEqual(nra1, nra2), False)
         self.assert_(common.areArraysEqual(nra2, nra3))
-        self.assert_(common.areArraysEqual(nra, nra2))
+        self.assert_(common.areArraysEqual(nra0, nra2))
 
         # arrayList argument is a list of NestedRecArrays
-        nra = tables.nestedrecords.array(buffer=[[1,4],[2,4]],
-            formats=['f8','f4'])
-        self.assertRaises(TypeError, tables.nestedrecords.fromarrays,
-            [nra, nra.field('c2')], formats=[['f8','f4'],'f4'])
+        nra0 = nra.array(buffer=[[1,4],[2,4]], formats=['f8','f4'])
+        self.assertRaises(TypeError, nra.fromarrays,
+            [nra0, nra0.field('c2')], formats=[['f8','f4'],'f4'])
 
 
     def testGetSlice(self):
@@ -322,64 +316,64 @@ class NestedRecordTests(common.PyTablesTestCase):
             [6, (('Master', 'Yoda'), (0, 2.0, 10))],
             [7, (('Tofu', 'Robot'), (0, 2.0, 10))],
             [8, (('C3Peanut', 'Robot'), (10, 30, 20))]]
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=my_buffer)
+        nra0 = nra.array(descr=self.descr, buffer=my_buffer)
 
-        slice_ = nra[1:2]
-        model = tables.nestedrecords.array(
+        slice_ = nra0[1:2]
+        model = nra.array(
             [[2, (('Princess', 'Lettuce'), (0, 2.0, 10))]], descr=self.descr)
         self.assert_(common.areArraysEqual(slice_, model))
 
-        slice_ = nra[1:4]
-        model = tables.nestedrecords.array(
+        slice_ = nra0[1:4]
+        model = nra.array(
             [[2, (('Princess', 'Lettuce'), (0, 2.0, 10))],
             [3, (('Ham', 'Solo'), (0, 2.0, 10))],
             [4, (('Obi', 'Cannoli'), (0, 2.0, 10))]], descr=self.descr)
         self.assert_(common.areArraysEqual(slice_, model))
 
-        slice_ = nra[1:4:2]
-        model = tables.nestedrecords.array(
+        slice_ = nra0[1:4:2]
+        model = nra.array(
             [[2, (('Princess', 'Lettuce'), (0, 2.0, 10))],
             [4, (('Obi', 'Cannoli'), (0, 2.0, 10))]], descr=self.descr)
         self.assert_(common.areArraysEqual(slice_, model))
 
-        slice_ = nra[:4]
-        model = tables.nestedrecords.array(
+        slice_ = nra0[:4]
+        model = nra.array(
             [[1, (('Cuke', 'Skywalker'), (10, 20, 30))],
             [2, (('Princess', 'Lettuce'), (0, 2.0, 10))],
             [3, (('Ham', 'Solo'), (0, 2.0, 10))],
             [4, (('Obi', 'Cannoli'), (0, 2.0, 10))]], descr=self.descr)
         self.assert_(common.areArraysEqual(slice_, model))
 
-        slice_ = nra[:7:3]
-        model = tables.nestedrecords.array(
+        slice_ = nra0[:7:3]
+        model = nra.array(
             [[1, (('Cuke', 'Skywalker'), (10, 20, 30))],
             [4, (('Obi', 'Cannoli'), (0, 2.0, 10))],
             [7, (('Tofu', 'Robot'), (0, 2.0, 10))]], descr=self.descr)
         self.assert_(common.areArraysEqual(slice_, model))
 
-        slice_ = nra[:]
-        self.assert_(common.areArraysEqual(slice_, nra))
+        slice_ = nra0[:]
+        self.assert_(common.areArraysEqual(slice_, nra0))
 
-        slice_ = nra[::2]
-        model = tables.nestedrecords.array(
+        slice_ = nra0[::2]
+        model = nra.array(
             [[1, (('Cuke', 'Skywalker'), (10, 20, 30))],
             [3, (('Ham', 'Solo'), (0, 2.0, 10))],
             [5, (('Chew', 'Brocoli'), (0, 2.0, 10))],
             [7, (('Tofu', 'Robot'), (0, 2.0, 10))]], descr=self.descr)
         self.assert_(common.areArraysEqual(slice_, model))
 
-        slice_ = nra[4:-2]
-        model = tables.nestedrecords.array(
+        slice_ = nra0[4:-2]
+        model = nra.array(
             [[5, (('Chew', 'Brocoli'), (0, 2.0, 10))],
             [6, (('Master', 'Yoda'), (0, 2.0, 10))]], descr=self.descr)
         self.assert_(common.areArraysEqual(slice_, model))
 
-        slice_ = nra[-1:-3]
-        model = tables.nestedrecords.array(None, descr=self.descr)
+        slice_ = nra0[-1:-3]
+        model = nra.array(None, descr=self.descr)
         self.assert_(common.areArraysEqual(slice_, model))
 
-        slice_ = nra[-5::2]
-        model = tables.nestedrecords.array(
+        slice_ = nra0[-5::2]
+        model = nra.array(
             [[4, (('Obi', 'Cannoli'), (0, 2.0, 10))],
             [6, (('Master', 'Yoda'), (0, 2.0, 10))],
             [8, (('C3Peanut', 'Robot'), (10, 30, 20))]], descr=self.descr)
@@ -390,28 +384,28 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Set a nested array slice.
         """
 
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
+        nra0 = nra.array(descr=self.descr, buffer=self.buffer)
 
         buffer = [
             [10, (('Paco', 'Perez'), (10, 20, 30))],
             [20, (('Maria', 'Luisa'), (0, 2.0, 10))],
             [30, (('C3Peanut', 'Tofu'), (10, 30, 20))]
         ]
-        model = tables.nestedrecords.array(buffer, descr=self.descr)
+        model = nra.array(buffer, descr=self.descr)
 
-        nra[0:3] = model[0:3]
+        nra0[0:3] = model[0:3]
 
-        self.assert_(common.areArraysEqual(nra, model))
+        self.assert_(common.areArraysEqual(nra0, model))
 
 
     def testGetTopLevelFlatField(self):
         """Check the NestedRecArray.field method.
         """
 
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
+        nra0 = nra.array(descr=self.descr, buffer=self.buffer)
 
         # Test top level flat fields
-        nra1 = nra.field('position')
+        nra1 = nra0.field('position')
         ra1 = numarray.array([1, 2, 3], type='Int64')
         self.assert_(common.areArraysEqual(nra1, ra1))
 
@@ -420,10 +414,10 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the NestedRecArray.field method.
         """
 
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
+        nra0 = nra.array(descr=self.descr, buffer=self.buffer)
 
         # Test bottom level fields
-        nra1 = nra.field('info/coord/x')
+        nra1 = nra0.field('info/coord/x')
         ra1 = numarray.array([10, 0, 10], type='Float32')
         self.assert_(common.areArraysEqual(nra1, ra1))
 
@@ -432,7 +426,7 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the NestedRecArray.field method.
         """
 
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
+        nra0 = nra.array(descr=self.descr, buffer=self.buffer)
 
         # Test top level nested fields
         # The info field
@@ -443,10 +437,10 @@ class NestedRecordTests(common.PyTablesTestCase):
         ]
         my_descr = [('name', [('first','a9'), ('second','a9')]),
             ('coord', [('x','Float32'), ('y', 'f4'), ('z', 'f4')])]
-        model = tables.nestedrecords.array(buffer, descr=my_descr)
+        model = nra.array(buffer, descr=my_descr)
         modelFirst = model.field('name/first')
 
-        nra1 = nra.field('info')
+        nra1 = nra0.field('info')
         nra1First = nra1.field('name/first')
         nra2 = nra1.field('name')
         nra3=nra2.field('first')
@@ -460,20 +454,20 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the NestedRecArray.__setitem__ with NestedRecord instances.
         """
 
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
+        nra0 = nra.array(descr=self.descr, buffer=self.buffer)
 
         buffer = [
             [10, (('Paco', 'Perez'), (10, 20, 30))],
             [20, (('Maria', 'Luisa'), (0, 2.0, 10))],
             [30, (('C3Peanut', 'Tofu'), (10, 30, 20))]
         ]
-        model = tables.nestedrecords.array(buffer, descr=self.descr)
+        model = nra.array(buffer, descr=self.descr)
 
-        nra[0] = model[0]
-        nra[1] = model[1]
-        nra[2] = model[2]
+        nra0[0] = model[0]
+        nra0[1] = model[1]
+        nra0[2] = model[2]
 
-        self.assert_(common.areArraysEqual(nra, model))
+        self.assert_(common.areArraysEqual(nra0, model))
 
 
     def testNRAadd(self):
@@ -485,9 +479,9 @@ class NestedRecordTests(common.PyTablesTestCase):
         ra2 = numarray.records.array([[5, 6], [7, 8]],
             formats=['Int32', 'Int32'])
         ra3 = ra1 + ra2
-        nra1 = tables.nestedrecords.array(buffer=ra1,
+        nra1 = nra.array(buffer=ra1,
             descr=[('c1', 'Int32'), ('c2', 'Int32')])
-        nra2 = tables.nestedrecords.array(buffer=ra2,
+        nra2 = nra.array(buffer=ra2,
             descr=[('a', 'Int32'), ('b', 'Int32')])
         nra3 = nra1 + nra2
         nra4 = nra1 + ra1
@@ -495,8 +489,7 @@ class NestedRecordTests(common.PyTablesTestCase):
         self.assertEqual(nra3.descr, nra1.descr)
         self.assert_(common.areArraysEqual(nra4._flatArray,
             nra1._flatArray + ra1))
-        self.assertRaises(TypeError,
-            tables.nestedrecords.NestedRecArray.__add__, nra1, 3)
+        self.assertRaises(TypeError, nra.NestedRecArray.__add__, nra1, 3)
 
 
     # NestedRecord tests
@@ -505,11 +498,11 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the creation of NestedRecord instances from NestedRecArrays.
         """
 
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
+        nra0 = nra.array(descr=self.descr, buffer=self.buffer)
 
-        nrecord = nra[0]
-        self.assert_(isinstance(nrecord, tables.nestedrecords.NestedRecord))
-        self.assert_(common.areArraysEqual(nra, nrecord.array))
+        nrecord = nra0[0]
+        self.assert_(isinstance(nrecord, nra.NestedRecord))
+        self.assert_(common.areArraysEqual(nra0, nrecord.array))
         self.assertEqual(nrecord.row, 0)
 
 
@@ -517,12 +510,12 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Check the flattening of NestedRecord instances.
         """
 
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
-        nrecord = nra[0]
+        nra0 = nra.array(descr=self.descr, buffer=self.buffer)
+        nrecord = nra0[0]
         frecord = nrecord.asRecord()
 
         self.assert_(isinstance(frecord, numarray.records.Record))
-        self.assert_(common.areArraysEqual(nra.asRecArray(), frecord.array))
+        self.assert_(common.areArraysEqual(nra0.asRecArray(), frecord.array))
         self.assertEqual(nrecord.row, frecord.row)
 
 
@@ -530,10 +523,10 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Retrieving flat fields from nested records.
         """
 
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
+        nra0 = nra.array(descr=self.descr, buffer=self.buffer)
 
-        position = nra.field('position')[0]
-        firstName = nra.field('info/name/first')[0]
+        position = nra0.field('position')[0]
+        firstName = nra0.field('info/name/first')[0]
 
         self.assertEqual(position, 1)
         self.assertEqual(firstName, 'Paco')
@@ -543,8 +536,8 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Set flat fields of nested records.
         """
 
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
-        nrecord = nra[0]
+        nra0 = nra.array(descr=self.descr, buffer=self.buffer)
+        nrecord = nra0[0]
         nrecord.setfield('position', 24)
         nrecord.setfield('info/name/first', 'Joan')
 
@@ -559,9 +552,9 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Get nested fields from nested records.
         """
 
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
+        nra0 = nra.array(descr=self.descr, buffer=self.buffer)
 
-        name = nra.field('info/name')[0]
+        name = nra0.field('info/name')[0]
 
         self.assertEqual(name.array._names, ['first', 'second'])
         self.assertEqual(name.field('first'), 'Paco')
@@ -572,14 +565,14 @@ class NestedRecordTests(common.PyTablesTestCase):
         """Set nested fields of nested records.
         """
 
-        nra = tables.nestedrecords.array(descr=self.descr, buffer=self.buffer)
-        nrecord = nra[0]
+        nra0 = nra.array(descr=self.descr, buffer=self.buffer)
+        nrecord = nra0[0]
 
-##        nra2 = tables.nestedrecords.array(
+##        nra2 = nra.array(
 ##            buffer = [['Joan', 'Clos']],
 ##            descr = [('first', 'a9'), ('second', 'a9')])
 
-        nra2 = tables.nestedrecords.array(
+        nra2 = nra.array(
             buffer = [[1, (('Joan', 'Clos'), (10, 20, 30))]],
             descr = self.descr)
 
@@ -589,9 +582,9 @@ class NestedRecordTests(common.PyTablesTestCase):
         my_buffer = [[1, (('Joan', 'Clos'), (10, 20, 30))],
             [2, (('Maria', 'Luisa'), (0, 2.0, 10))],
             [3, (('C3Peanut', 'Tofu'), (10.0, 30.0, 20.0))]]
-        nra3 = tables.nestedrecords.array(buffer=my_buffer, descr=self.descr)
+        nra3 = nra.array(buffer=my_buffer, descr=self.descr)
 
-        self.assert_(common.areArraysEqual(nra, nra3))
+        self.assert_(common.areArraysEqual(nra0, nra3))
 
 
 def suite():

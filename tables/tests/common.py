@@ -30,7 +30,7 @@ except ImportError:
 
 
 import tables
-import tables.nestedrecords
+from tables import nra
 
 
 verbose = False
@@ -182,14 +182,14 @@ def areArraysEqual(arr1, arr2):
         return False
 
     if numarray_imported:
-        if isinstance(arr1, tables.nestedrecords.NestedRecArray):
+        if isinstance(arr1, nra.NestedRecArray):
             arr1 = arr1.asRecArray()
-        if isinstance(arr2, tables.nestedrecords.NestedRecArray):
+        if isinstance(arr2, nra.NestedRecArray):
             arr2 = arr2.asRecArray()
-        if isinstance(arr1, tables.nestedrecords.NestedRecord):
+        if isinstance(arr1, nra.NestedRecord):
             row = arr1.row
             arr1 = arr1.array[row:row+1]
-        if isinstance(arr2, tables.nestedrecords.NestedRecord):
+        if isinstance(arr2, nra.NestedRecord):
             row = arr2.row
             arr2 = arr2.array[row:row+1]
 

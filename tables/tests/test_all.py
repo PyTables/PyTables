@@ -70,7 +70,7 @@ def suite():
     except:
         print "Skipping Numeric test suite"
 
-    # Add test_nestedrecords only if numarray is installed
+    # Add test_numarray only if numarray is installed
     try:
         import numarray
         print \
@@ -81,7 +81,6 @@ def suite():
 "*Warning*: Numarray version is lower than recommended: %s < %s" % \
                   (numarray.__version__, minimum_numarray_version)
         test_modules.append("test_numarray")
-        test_modules.append("test_nestedrecords")
     except:
         print "Skipping numarray test suite"
     print '-=' * 38

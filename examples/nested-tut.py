@@ -116,10 +116,10 @@ print repr(numpy.rec.array(None, shape=0,
 ###print repr(numpy.rec.array(None, shape=1,
 ###           names=table.description._v_nestedNames,
 ###           formats=table.description._v_nestedFormats))
-from tables import nestedrecords
-print repr(nestedrecords.array(None, descr=table.description._v_nestedDescr))
-print repr(nestedrecords.array(None, names=table.description._v_nestedNames,
-                               formats=table.description._v_nestedFormats))
+from tables import nra
+print repr(nra.array(None, descr=table.description._v_nestedDescr))
+print repr(nra.array(None, names=table.description._v_nestedNames,
+                     formats=table.description._v_nestedFormats))
 print
 print "**** and some iteration over descriptions, too ****"
 for coldescr in table.description._f_walk():

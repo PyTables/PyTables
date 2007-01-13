@@ -1,7 +1,7 @@
 import unittest
 
-import tables
-import tables.tests.common as common
+from tables.tests import common
+from tables.nra import nriterators
 
 class NRIteratorsTests(unittest.TestCase):
     """Define a set of unit tests for the nriterators module.
@@ -78,7 +78,7 @@ class NRIteratorsTests(unittest.TestCase):
         """
 
         common.verbosePrint('\nTesting descr structure')
-        for item in tables.nriterators.flattenDescr(self.descr, check=True):
+        for item in nriterators.flattenDescr(self.descr, check=True):
             self.failIfEqual(item, None)
 
 
@@ -87,7 +87,7 @@ class NRIteratorsTests(unittest.TestCase):
         """
 
         common.verbosePrint('\nTesting formats structure')
-        for f in tables.nriterators.flattenFormats(self.formats, check=True):
+        for f in nriterators.flattenFormats(self.formats, check=True):
             self.failIfEqual(f, None)
 
 
@@ -96,7 +96,7 @@ class NRIteratorsTests(unittest.TestCase):
         """
 
         common.verbosePrint('\nTesting names structure')
-        for item in tables.nriterators.flattenNames(self.names):
+        for item in nriterators.flattenNames(self.names):
             self.failIfEqual(item, None)
 
 
@@ -105,10 +105,10 @@ class NRIteratorsTests(unittest.TestCase):
         """
 
         common.verbosePrint('\nTesting getDescr function')
-        mix = [f for f in tables.nriterators.getDescr(None, self.formats)]
+        mix = [f for f in nriterators.getDescr(None, self.formats)]
         self.assertEqual(mix, self.autoNamedDescr)
         mix = \
-            [f for f in tables.nriterators.getDescr(self.names, self.formats)]
+            [f for f in nriterators.getDescr(self.names, self.formats)]
         self.assertEqual(mix, self.descr)
 
 
@@ -119,7 +119,7 @@ class NRIteratorsTests(unittest.TestCase):
         # Check getNamesFromDescr function
         common.verbosePrint('\nTesting getNamesFromDescr function')
         new_names = \
-            [item for item in tables.nriterators.getNamesFromDescr(self.descr)]
+            [item for item in nriterators.getNamesFromDescr(self.descr)]
         self.assertEqual(self.names, new_names)
 
 
@@ -128,9 +128,8 @@ class NRIteratorsTests(unittest.TestCase):
         """
 
         # Check getFormatsFromDescr function
-        common.verbosePrint('\nTesting getFormatsFromDescr function')
         new_formats = \
-            [f for f in tables.nriterators.getFormatsFromDescr(self.descr)]
+            [f for f in nriterators.getFormatsFromDescr(self.descr)]
         self.assertEqual(self.formats, new_formats)
 
 
@@ -138,9 +137,8 @@ class NRIteratorsTests(unittest.TestCase):
         """Check the getFieldDescr function.
         """
 
-        common.verbosePrint('\nTesting getFieldDescr function')
         fieldName = 'info'
-        infoDescr = [fd for fd in tables.nriterators.getFieldDescr(fieldName,
+        infoDescr = [fd for fd in nriterators.getFieldDescr(fieldName,
             self.descr)]
         self.assertEqual(infoDescr, self.infoDescr)
 
@@ -150,7 +148,7 @@ class NRIteratorsTests(unittest.TestCase):
         """
 
         common.verbosePrint('\nTesting names list decomposition')
-        subnames = [sn for sn in tables.nriterators.getSubNames(self.names)]
+        subnames = [sn for sn in nriterators.getSubNames(self.names)]
         self.assertEqual(subnames, self.subnames)
 
 
@@ -159,7 +157,7 @@ class NRIteratorsTests(unittest.TestCase):
         """
 
         common.verbosePrint('\nTesting checkNamesUniqueness')
-        foo = tables.nriterators.checkNamesUniqueness
+        foo = nriterators.checkNamesUniqueness
         badNames = ['info',
         ('info', [('name', ['first', 'second']),
                                 ('coord', ['x', 'y', 'z'])])]
@@ -183,7 +181,7 @@ class NRIteratorsTests(unittest.TestCase):
         """
 
         common.verbosePrint('\nTesting buffer row structure with zipBufferDescr')
-        mix = [item for item in tables.nriterators.zipBufferDescr(self.row,
+        mix = [item for item in nriterators.zipBufferDescr(self.row,
             self.descr)]
         self.assertEqual(mix, zip(self.flat_row, self.flat_formats))
 
