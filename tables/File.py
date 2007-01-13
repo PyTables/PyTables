@@ -40,11 +40,11 @@ import os, os.path
 import sys
 import weakref
 
-import tables.lrucache
+import tables.misc.proxydict
+#import tables.misc.lrucache  # useful for debugging
+import tables.lrucacheExtension as lrucacheExtension
 import tables.hdf5Extension as hdf5Extension
 import tables.utilsExtension as utilsExtension
-import tables.lrucacheExtension as lrucacheExtension
-import tables.proxydict
 from tables.constants import \
      MAX_UNDO_PATH_LENGTH, METADATA_CACHE_SIZE, NODE_MAX_SLOTS
 from tables.exceptions import \
@@ -250,8 +250,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 
 
-# The tables.lrucache.LRUCache class is still useful for debugging
-#class _DeadNodes(tables.lrucache.LRUCache):
+#class _DeadNodes(tables.misc.lrucache.LRUCache):  # useful for debugging
 class _DeadNodes(lrucacheExtension.NodeCache):
     pass
 
@@ -269,7 +268,7 @@ class _NoDeadNodes(object):
         return iter([])
 
 
-class _NodeDict(tables.proxydict.ProxyDict):
+class _NodeDict(tables.misc.proxydict.ProxyDict):
 
     """
     A proxy dictionary which is able to delegate access to missing items

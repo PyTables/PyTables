@@ -36,7 +36,7 @@ hdf5Version = getHDF5Version()
 from tables.utilsExtension import isHDF5  # deprecated
 from tables.utilsExtension import isHDF5File, isPyTablesFile, whichLibVersion
 
-from tables.enum import *
+from tables.misc.enum import Enum
 from tables.atom import *
 from tables.IsDescription import *
 

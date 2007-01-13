@@ -595,13 +595,13 @@ def suite():
 
     # These two are for including Enum's doctests here.
     import doctest
-    import tables.enum
+    from tables.misc import enum
     theSuite = unittest.TestSuite()
     niter = 1
 
     #theSuite.addTest(unittest.makeSuite(EnumTableTestCase))
     for i in range(niter):
-        theSuite.addTest(doctest.DocTestSuite(tables.enum))
+        theSuite.addTest(doctest.DocTestSuite(enum))
         theSuite.addTest(unittest.makeSuite(CreateColTestCase))
         theSuite.addTest(unittest.makeSuite(CreateAtomTestCase))
         theSuite.addTest(unittest.makeSuite(EnumTableTestCase))

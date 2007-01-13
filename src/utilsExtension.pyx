@@ -24,8 +24,8 @@ except ImportError:
 
 import numpy
 
+from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError
-from tables.enum import Enum
 from tables.atom import Atom
 from tables.IsDescription import Description, EnumCol, Col
 

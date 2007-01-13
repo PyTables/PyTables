@@ -32,9 +32,9 @@ Misc variables:
 import warnings
 import weakref
 
+import tables.misc.proxydict
 import tables.hdf5Extension as hdf5Extension
 import tables.utilsExtension as utilsExtension
-import tables.proxydict
 from tables.constants import MAX_GROUP_WIDTH
 from tables.registry import classIdDict
 from tables.exceptions import \
@@ -54,7 +54,7 @@ obversion = "1.0"
 
 
 
-class _ChildrenDict(tables.proxydict.ProxyDict):
+class _ChildrenDict(tables.misc.proxydict.ProxyDict):
     def _getValueFromContainer(self, container, key):
         return container._f_getChild(key)
 

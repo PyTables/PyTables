@@ -36,7 +36,7 @@ import cPickle
 
 import numpy
 
-from tables.enum import Enum
+from tables.misc.enum import Enum
 
 
 # Public variables

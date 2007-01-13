@@ -36,8 +36,8 @@ import cPickle
 
 import numpy
 
+from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError
-from tables.enum import Enum
 from tables.utils import checkFileAccess, byteorders
 
 from tables.utilsExtension import  \
