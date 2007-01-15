@@ -4,7 +4,7 @@ Utilities for handling different array flavors in PyTables.
 :Author: Ivan Vilata i Balaguer
 :Contact: ivilata at carabos dot com
 :License: BSD
-:Created: December 28, 2004
+:Created: December 30, 2006
 :Revision: $Id$
 
 Variables
