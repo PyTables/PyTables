@@ -8,7 +8,7 @@ This requires Scientific from
 http://starship.python.net/~hinsen/ScientificPython
 
 """
-import Scientific.IO.NetCDF as NetCDF
+from Scientific.IO import NetCDF
 import tables, sys
 # open netCDF file
 ncfile = NetCDF.NetCDFFile(sys.argv[1],mode = "r")

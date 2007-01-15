@@ -24,7 +24,7 @@ import copy
 
 import numpy
 
-import tables.atom as atom
+from tables import atom
 from tables.utils import checkNameValidity
 
 

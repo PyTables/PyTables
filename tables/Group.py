@@ -33,8 +33,8 @@ import warnings
 import weakref
 
 import tables.misc.proxydict
-import tables.hdf5Extension as hdf5Extension
-import tables.utilsExtension as utilsExtension
+from tables import hdf5Extension
+from tables import utilsExtension
 from tables.constants import MAX_GROUP_WIDTH
 from tables.registry import classIdDict
 from tables.exceptions import \

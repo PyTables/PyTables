@@ -25,7 +25,7 @@ Misc variables:
 
 import warnings
 
-import tables.hdf5Extension as hdf5Extension
+from tables import hdf5Extension
 from tables.Leaf import Leaf
 
 

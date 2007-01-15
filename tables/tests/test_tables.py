@@ -8,7 +8,7 @@ from numpy import *
 from numpy import rec as records
 
 from tables import *
-import tables.tests.common as common
+from tables.tests import common
 from tables.tests.common import verbose, allequal, areArraysEqual, \
      heavy, cleanup
 

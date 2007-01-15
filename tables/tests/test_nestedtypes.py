@@ -15,7 +15,7 @@ import unittest
 import numpy
 
 import tables as t
-import tables.tests.common as common
+from tables.tests import common
 from tables.tests.common import verbose
 from tables.IsDescription import Description
 from tables.indexes import minRowIndex

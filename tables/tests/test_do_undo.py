@@ -9,7 +9,7 @@ from tables.Node import NotLoggedMixin
 from tables.indexes import minRowIndex
 from tables.utils import joinPath
 
-import tables.tests.common as common
+from tables.tests import common
 from tables.tests.common import verbose, cleanup, heavy
 
 # To delete the internal attributes automagically

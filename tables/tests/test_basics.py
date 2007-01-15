@@ -8,7 +8,7 @@ import numpy
 
 from tables import *
 from tables.flavor import all_flavors, array_of_flavor
-import tables.tests.common as common
+from tables.tests import common
 from tables.tests.common import cleanup
 from tables.tests.common import verbose
 

@@ -34,7 +34,7 @@ import warnings
 
 import numpy
 
-import tables.hdf5Extension as hdf5Extension
+from tables import hdf5Extension
 from tables.utils import convertToNPAtom, idx2long, byteorders
 from tables.atom import ObjectAtom, VLStringAtom, EnumAtom, Atom, split_type
 from tables.flavor import internal_to_flavor

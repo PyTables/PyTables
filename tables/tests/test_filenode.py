@@ -15,7 +15,7 @@ import warnings
 
 import tables
 from tables.nodes import FileNode
-import tables.tests.common as common
+from tables.tests import common
 
 
 __revision__ = '$Id$'

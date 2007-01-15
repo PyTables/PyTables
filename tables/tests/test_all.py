@@ -17,7 +17,7 @@ if numpy.__version__ < minimum_numpy_version:
     print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
                   (numpy.__version__, minimum_numpy_version)
 
-import tables.tests.common as common
+from tables.tests import common
 
 def suite():
     test_modules = [

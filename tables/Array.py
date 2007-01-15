@@ -31,7 +31,7 @@ import types, warnings, sys
 
 import numpy
 
-import tables.hdf5Extension as hdf5Extension
+from tables import hdf5Extension
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx, byteorders
 from tables.atom import split_type

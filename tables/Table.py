@@ -36,7 +36,7 @@ from time import time
 
 import numpy
 
-import tables.TableExtension as TableExtension
+from tables import TableExtension
 from tables.conditions import split_condition, call_on_recarr
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions

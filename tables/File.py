@@ -42,9 +42,9 @@ import weakref
 
 import tables.misc.proxydict
 #import tables.misc.lrucache  # useful for debugging
-import tables.lrucacheExtension as lrucacheExtension
-import tables.hdf5Extension as hdf5Extension
-import tables.utilsExtension as utilsExtension
+from tables import lrucacheExtension
+from tables import hdf5Extension
+from tables import utilsExtension
 from tables.constants import \
      MAX_UNDO_PATH_LENGTH, METADATA_CACHE_SIZE, NODE_MAX_SLOTS
 from tables.exceptions import \
@@ -53,7 +53,7 @@ from tables.exceptions import \
      UndoRedoWarning, PerformanceWarning
 from tables.registry import getClassByName
 from tables.utils import joinPath, splitPath, isVisiblePath, checkFileAccess
-import tables.undoredo as undoredo
+from tables import undoredo
 from tables.IsDescription import IsDescription, UInt8Col, StringCol
 from tables.Node import Node, NotLoggedMixin
 from tables.Group import Group, RootGroup

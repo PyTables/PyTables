@@ -7,7 +7,7 @@ import numpy
 from numpy import *
 
 from tables import *
-import tables.tests.common as common
+from tables.tests import common
 from tables.tests.common import verbose, heavy, allequal, cleanup
 
 # To delete the internal attributes automagically

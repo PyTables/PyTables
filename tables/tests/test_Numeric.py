@@ -6,7 +6,7 @@ from Numeric import *
 
 from tables import *
 from tables.tests.common import verbose, typecode, allequal, cleanup
-import tables.tests.common as common
+from tables.tests import common
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup

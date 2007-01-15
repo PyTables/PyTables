@@ -33,7 +33,7 @@ import warnings
 import cPickle
 import numpy
 
-import tables.hdf5Extension as hdf5Extension
+from tables import hdf5Extension
 from tables.constants import MAX_NODE_ATTRS
 from tables.registry import classNameDict
 from tables.exceptions import ClosedNodeError, PerformanceWarning

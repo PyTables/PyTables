@@ -35,8 +35,8 @@ import tempfile
 
 import numpy
 
-import tables.indexesExtension as indexesExtension
-import tables.utilsExtension as utilsExtension
+from tables import indexesExtension
+from tables import utilsExtension
 from tables.File import openFile
 from tables.AttributeSet import AttributeSet
 from tables.Node import NotLoggedMixin

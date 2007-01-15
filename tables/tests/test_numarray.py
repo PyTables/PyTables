@@ -10,7 +10,7 @@ from numarray import *
 from tables import *
 from tables import nra
 from tables.tests.common import verbose, allequal, cleanup, heavy
-import tables.tests.common as common
+from tables.tests import common
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup

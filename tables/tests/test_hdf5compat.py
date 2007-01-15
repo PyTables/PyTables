@@ -15,7 +15,7 @@ import tempfile
 import numpy
 
 import tables
-import tables.tests.common as common
+from tables.tests import common
 from tables.tests.common import verbose, allequal
 
 

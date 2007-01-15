@@ -10,7 +10,7 @@ except:
     numeric = 0
 
 from tables import *
-import tables.tests.common as common
+from tables.tests import common
 from tables.tests.common import verbose, cleanup, allequal, testFilename
 
 # To delete the internal attributes automagically

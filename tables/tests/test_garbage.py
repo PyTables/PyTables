@@ -16,7 +16,7 @@ all the tests.
 import unittest
 import gc
 
-import tables.tests.common as common
+from tables.tests import common
 from tables.tests.common import verbose
 
 

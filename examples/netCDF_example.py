@@ -46,7 +46,7 @@ print 'times = ',times[:]
 print 'temp.shape before sync = ',temp.shape
 file.sync()
 print 'temp.shape after sync = ',temp.shape
-import numarray.random_array as random_array
+from numarray import random_array
 for n in range(10):
     temp[n] = 10.*random_array.random(pressure.shape)
     print 'time, min/max temp, temp[n,0,0] = ',times[n],min(temp[n].flat),max(temp[n].flat),temp[n,0,0]

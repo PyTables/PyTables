@@ -35,8 +35,8 @@ import numpy
 
 import tables
 import tables.flavor
-import tables.hdf5Extension as hdf5Extension
-import tables.utilsExtension as utilsExtension
+from tables import hdf5Extension
+from tables import utilsExtension
 from tables.Node import Node
 from tables.utils import idx2long
 from tables.constants import CHUNKTIMES, BUFFERTIMES, MB

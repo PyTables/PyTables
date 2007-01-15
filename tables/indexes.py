@@ -42,7 +42,7 @@ import numpy
 from tables.Node import NotLoggedMixin
 from tables.Array import Array
 from tables.EArray import EArray
-import tables.indexesExtension as indexesExtension
+from tables import indexesExtension
 
 
 # The minimum row number in a column that can be indexed in tests
