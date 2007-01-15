@@ -175,23 +175,6 @@ cdef object getshape(int rank, hsize_t *dims):
   return tuple(shape)
 
 
-cdef object splitPath(object path):
-  """splitPath(path) -> (parentPath, name).  Splits a canonical path.
-
-  Splits the given canonical path into a parent path (without the trailing
-  slash) and a node name.
-  """
-
-  lastSlash = path.rfind('/')
-  ppath = path[:lastSlash]
-  name = path[lastSlash+1:]
-
-  if ppath == '':
-      ppath = '/'
-
-  return (ppath, name)
-
-
 # Helper function for quickly fetch an attribute string
 def get_attribute_string_or_none(node_id, attr_name):
   """
