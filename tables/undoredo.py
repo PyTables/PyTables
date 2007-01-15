@@ -29,7 +29,7 @@ Misc variables:
     Repository version of this file.
 """
 
-from tables.utils import splitPath
+from tables.path import splitPath
 
 
 

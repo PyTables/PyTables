@@ -29,7 +29,7 @@ from tables.constants import MAX_TREE_DEPTH
 from tables.registry import classNameDict, classIdDict
 from tables.exceptions import \
      ClosedNodeError, NodeError, UndoRedoWarning, PerformanceWarning
-from tables.utils import joinPath, splitPath, isVisiblePath
+from tables.path import joinPath, splitPath, isVisiblePath
 from tables.undoredo import moveToShadow
 from tables.AttributeSet import AttributeSet, NotLoggedAttributeSet
 

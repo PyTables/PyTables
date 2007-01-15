@@ -46,7 +46,7 @@ from tables.CArray import CArray
 from tables.Leaf import Filters
 from tables.indexes import CacheArray, LastRowArray, IndexArray
 from tables.Group import Group
-from tables.utils import joinPath
+from tables.path import joinPath
 from tables.constants import LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE
 
 from tables.lrucacheExtension import ObjectCache

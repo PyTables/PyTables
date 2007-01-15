@@ -40,7 +40,7 @@ from tables.registry import classIdDict
 from tables.exceptions import \
      NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning
 from tables.registry import getClassByName
-from tables.utils import checkNameValidity, joinPath, isVisibleName
+from tables.path import checkNameValidity, joinPath, isVisibleName
 from tables.Node import Node, NotLoggedMixin
 from tables.Leaf import Leaf, Filters
 from tables.UnImplemented import UnImplemented, OldIndexArray

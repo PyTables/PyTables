@@ -7,7 +7,7 @@ import warnings
 from tables import *
 from tables.Node import NotLoggedMixin
 from tables.indexes import minRowIndex
-from tables.utils import joinPath
+from tables.path import joinPath
 
 from tables.tests import common
 from tables.tests.common import verbose, cleanup, heavy

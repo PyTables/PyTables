@@ -37,7 +37,7 @@ from tables import hdf5Extension
 from tables.constants import MAX_NODE_ATTRS
 from tables.registry import classNameDict
 from tables.exceptions import ClosedNodeError, PerformanceWarning
-from tables.utils import checkNameValidity
+from tables.path import checkNameValidity
 from tables.undoredo import attrToShadow
 
 

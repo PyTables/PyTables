@@ -52,7 +52,8 @@ from tables.exceptions import \
      NodeError, NoSuchNodeError, UndoRedoError, \
      UndoRedoWarning, PerformanceWarning
 from tables.registry import getClassByName
-from tables.utils import joinPath, splitPath, isVisiblePath, checkFileAccess
+from tables.path import joinPath, splitPath, isVisiblePath
+from tables.utils import checkFileAccess
 from tables import undoredo
 from tables.IsDescription import IsDescription, UInt8Col, StringCol
 from tables.Node import Node, NotLoggedMixin

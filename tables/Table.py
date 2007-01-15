@@ -41,7 +41,8 @@ from tables.conditions import split_condition, call_on_recarr
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import joinPath, is_idx, byteorders
+from tables.path import joinPath
+from tables.utils import is_idx, byteorders
 from tables.Leaf import Leaf
 from tables.Index import Index, IndexProps
 from tables.IsDescription import IsDescription, Description, Col

@@ -25,7 +25,7 @@ import copy
 import numpy
 
 from tables import atom
-from tables.utils import checkNameValidity
+from tables.path import checkNameValidity
 
 
 # Public variables
