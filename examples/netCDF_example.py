@@ -1,7 +1,7 @@
-### bogus example to illustrate the use of tables.NetCDF
+### bogus example to illustrate the use of tables.netcdf3
 ### Author: Jeff Whitaker
 
-import tables.NetCDF as NetCDF
+import tables.netcdf3 as NetCDF
 import time
 
 history = 'Created ' + time.ctime(time.time())
@@ -22,7 +22,7 @@ pressure = file.createVariable('pressure','i',('level','lat',))
 print '**variables**'
 print file.variables
 
-file.description = 'bogus example to illustrate the use of tables.NetCDF'
+file.description = 'bogus example to illustrate the use of tables.netcdf3'
 file.source = 'PyTables Users Guide'
 latitudes.units = 'degrees north'
 pressure.units = 'hPa'

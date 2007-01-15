@@ -1,6 +1,6 @@
 import RandomArray, time, sys
 from tables import Filters
-import tables.NetCDF as NetCDF
+import tables.netcdf3 as NetCDF
 import Scientific.IO.NetCDF
 # create an n1dim by n2dim random array.
 n1dim = 1000

@@ -1,4 +1,4 @@
-"""Plugin for HDF5 files created with using pytables (tables.NetCDF)"""
+"""Plugin for HDF5 files created with using pytables (tables.netcdf3)"""
 
 __author__ = "Jeffrey Whitaker <jeffrey.s.whitaker@noaa.gov>"
 
@@ -8,8 +8,8 @@ import os.path
 import re
 import types
 
-# Requires tables.NetCDF 
-from tables.NetCDF import NetCDFFile
+# Requires tables.netcdf3
+from tables.netcdf3 import NetCDFFile
 
 from dap import dtypes
 from dap.server import BaseHandler

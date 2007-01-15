@@ -10,5 +10,5 @@ make_hdf.py: Converts general python data structures into hdf5
 Author: John Nielsen <John.N.1@bwc.state.oh.us>
 
 h5_dap_plugin.py: OPeNDAP plugin for HDF5 files created using PyTables'
-tables.NetCDF module.
+tables.netcdf3 package.
 Author: Jeff Whitaker <jeffrey.s.whitaker@noaa.gov>
