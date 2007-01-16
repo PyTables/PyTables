@@ -177,7 +177,7 @@ def flavor_of(array):
     supported_descs = "; ".join(description_map[fl] for fl in all_flavors)
     raise TypeError(
         "objects of type ``%s`` are not supported in this context, sorry; "
-        "supported objects are: %s." % (type_name, supported_descs) )
+        "supported objects are: %s" % (type_name, supported_descs) )
 
 def array_of_flavor(array, dst_flavor):
     """
