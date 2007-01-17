@@ -236,7 +236,7 @@ class BasicTestCase(PyTablesTestCase):
         # Do a selection
         table.flavor = "numpy"
         rowList1 = table.getWhereList('var2 == False', sort=True)
-        rowList2 = [p.nrow for p in table if p['var2'] == 0]
+        rowList2 = [p.nrow for p in table if p['var2'] == False]
         # Convert to a NumPy object
         rowList2 = numpy.array(rowList2, numpy.int64)
         if verbose:
