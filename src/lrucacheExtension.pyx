@@ -173,7 +173,7 @@ cdef class BaseCache:
     self.name = name
     self.incsetcount = False
     # The array for keeping the access times (using long ints here)
-    self.atimes = numpy.zeros(shape=nslots, dtype=numpy.int_)*sys.maxint
+    self.atimes = <ndarray>numpy.zeros(shape=nslots, dtype=numpy.int_)
     self.ratimes = <long *>self.atimes.data
 
 
@@ -261,9 +261,6 @@ cdef class BaseCache:
 
 cdef class ObjectNode:
   """Record of a cached value. Not for public consumption."""
-  cdef object key, obj
-  cdef long nslot
-
 
   def __init__(self, object key, object obj, long nslot):
     object.__init__(self)
@@ -303,9 +300,9 @@ cdef class ObjectCache(BaseCache):
     # (in case all the objects are of the same size)
     self.maxobjsize = <long>((<double>maxcachesize / nslots) * 2)
     self.__list = range(nslots);  self.__dict = {}
-    self.mrunode = None   # Most Recent Used node
+    self.mrunode = <ObjectNode>None   # Most Recent Used node
     # The array for keeping the object size (using long ints here)
-    self.sizes = numpy.zeros(shape=nslots, dtype=numpy.int_)
+    self.sizes = <ndarray>numpy.zeros(shape=nslots, dtype=numpy.int_)
     self.rsizes = <long *>self.sizes.data
 
 
@@ -402,7 +399,7 @@ cdef class ObjectCache(BaseCache):
       return node.nslot
     # No luck. Look in the dictionary.
     node = self.__dict.get(key)
-    if node is None:
+    if node is <ObjectNode>None:
       return -1
     else:
       return node.nslot
@@ -463,14 +460,14 @@ cdef class NumCache(BaseCache):
     super(NumCache, self).__init__(nslots, name)
     self.itemsize = itemsize
     # The cache object where all data will go
-    self.cacheobj = numpy.empty(shape=(nslots, self.slotsize),
-                                dtype=numpy.uint8)
-    self.rcache = self.cacheobj.data
+    self.cacheobj = <ndarray>numpy.empty(shape=(nslots, self.slotsize),
+                                         dtype=numpy.uint8)
+    self.rcache = <void *>self.cacheobj.data
     # The arrays for keeping the indexes of slots
-    self.sorted = -numpy.ones(shape=nslots, dtype=numpy.int64)
+    self.sorted = <ndarray>(-numpy.ones(shape=nslots, dtype=numpy.int64))
     self.rsorted = <long long *>self.sorted.data
     # 16-bits is more than enough for keeping the slot numbers
-    self.indices = numpy.arange(nslots, dtype=numpy.uint16)
+    self.indices = <ndarray>numpy.arange(nslots, dtype=numpy.uint16)
     self.rindices = <unsigned short *>self.indices.data
 
 

@@ -25,12 +25,19 @@ cdef class BaseCache:
   cdef long incseqn(self)
 
 
+#  Helper class for ObjectCache
+cdef class ObjectNode:
+  cdef object key, obj
+  cdef long nslot
+
+
 # The ObjectCache class is useful for general python objects
 cdef class ObjectCache(BaseCache):
   cdef long maxcachesize, cachesize, maxobjsize
   cdef long *rsizes
   cdef ndarray sizes
-  cdef object __list, __dict, mrunode
+  cdef object __list, __dict
+  cdef ObjectNode mrunode
   cdef removeslot_(self, long nslot)
   cdef addslot_(self, long nslot, long size, object key, object value)
   cdef long setitem_(self, object key, object value, long size)
