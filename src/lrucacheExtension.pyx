@@ -549,7 +549,7 @@ cdef class NumCache(BaseCache):
       mid = (lo+hi)/2
       if rsorted[mid] < key: lo = mid+1
       else: hi = mid
-    if key == rsorted[lo]:
+    if lo < self.nslots and key == rsorted[lo]:
       return self.rindices[lo]
     else:
       return -1
