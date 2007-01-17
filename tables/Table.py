@@ -491,7 +491,15 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             colinstances[colpathname] = cols._g_col(colpathname)
 
         if self._v_new:
+            # Columns are never indexed on creation.
+            self.colindexed = dict((cpn, False) for cpn in self.colpathnames)
+
+            # Create index properties attributes by triggering changes in
+            # the ``indexprops`` property.
+            self.indexprops = IndexProps()
+
             return
+
         # The following code is only for opened tables.
 
         # Do the indexes group exist?
@@ -661,74 +669,41 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
     def _g_create(self):
         """Create a new table on disk."""
 
-        # Protection against too large row sizes
-        # Set to a 512 KB limit (just because banana 640 KB limitation)
-        # Protection removed. CSTables should be improved to deal with
-        # this kind of situations. F. Altet 2006-01-11
-#         if self.rowsize > 512*1024:
-#             raise ValueError, \
-# """Row size too large. Maximum size is 512 Kbytes, and you are asking
-# for a row size of %s bytes.""" % (self.rowsize)
+        # Warning against assigning too much columns...
+        # F. Altet 2005-06-05
+        if (len(self.description._v_names) > MAX_COLUMNS):
+            warnings.warn(
+                "table ``%s`` is exceeding the recommended "
+                "maximum number of columns (%d); "
+                "be ready to see PyTables asking for *lots* of memory "
+                "and possibly slow I/O" % (self._v_pathname, MAX_COLUMNS),
+                PerformanceWarning )
 
-        # Find Time64 column names. (This should be generalised.)
-        self._time64colnames = self._getTypeColNames('time64')
-        # Find String column names.
-        self._strcolnames = self._getTypeColNames('string')
-        # Get a mapping of enumerated columns to their `Enum` instances.
-        self._colenums = self._getEnumMap()
-
-        # Compute the optimal chunk size
+        # 1. Create the HDF5 table (some parameters need to be computed).
         if self._v_chunkshape is None:
-            self._v_chunkshape = self._calc_chunkshape(self._v_expectedrows,
-                                                       self.rowsize)
-        # Compute the optimal nrowsinbuf
+            self._v_chunkshape = self._calc_chunkshape(
+                self._v_expectedrows, self.rowsize )
+        #    After creating the table, ``self._v_objectID`` needs to be
+        #    set because it is needed for setting attributes afterwards.
+        self._v_objectID = self._createTable(
+            self._v_new_title, self.filters.complib, obversion )
+        self._v_recarray = None  # not useful anymore
+
+        # 2. Compute or get chunk shape and buffer size parameters.
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
                                                    self.rowsize)
 
-        # Create the table on disk
-        # self._v_objectID needs to be assigned here because is needed for
-        # setting attributes afterwards
-        self._v_objectID = self._createTable(
-            self._v_new_title, self.filters.complib, obversion)
-        # self._v_recarray is not useful anymore. Get rid of it.
-        self._v_recarray = None
-
-        # Warning against assigning too much columns...
-        # F. Altet 2005-06-05
-        self.colnames = list(self.description._v_names)
-        if (len(self.colnames) > MAX_COLUMNS):
-            warnings.warn("""\
-table ``%s`` is exceeding the recommended maximum number of columns (%d); \
-be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (self._v_pathname, MAX_COLUMNS),
-                          PerformanceWarning)
-        self.colpathnames = [ col._v_pathname
-                              for col in self.description._f_walk()
-                              if not hasattr(col, '_v_names') ]  # bot-level
-
-        # Compute some important parameters for createTable
-        for colobj in self.description._f_walk(type="Col"):
-            colname = colobj._v_pathname
-            # Get the column dtypes, types and defaults
-            self.coldtypes[colname] = colobj.dtype
-            self.coltypes[colname] = colobj.type
-            self.coldflts[colname] = colobj.dflt
-            self.colindexed[colname] = False  # never indexed on creation
-
-        # Attach the FIELD_N_FILL attributes. We write all the level defaults
+        # 3. Get field fill attributes from the table description and
+        #    set them on disk.
         i = 0
         setAttr = self._v_attrs._g__setattr
         for colobj in self.description._f_walk(type="Col"):
-            fieldname = "FIELD_%s_FILL" % i
+            fieldname = "FIELD_%d_FILL" % i
             setAttr(fieldname, colobj.dflt)
             i += 1
 
-        # Create index properties attributes by triggering changes in
-        # the ``indexprops`` property.
-        self.indexprops = IndexProps()
-
-        # Cache _v_dtype for this table
-        self._v_dtype = self.description._v_dtype
+        # 4. Cache some data which is already in the description.
+        self._cacheDescriptionData()
 
         return self._v_objectID
 
@@ -740,23 +715,31 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         the actual data.
 
         """
-        # Get table info
+
+        # 1. Open the HDF5 table and get some data from it.
         self._v_objectID, description, chunksize = self._getInfo()
+        self._v_expectedrows = self.nrows  # the actual number of rows
 
-        # Checking validity names for fields is not necessary
-        # when opening a PyTables file
-        # Do this nested!
-        validate = not self._v_file._isPTFile
-
-        # Create an instance description to host the record fields
+        # 2. Create an instance description to host the record fields.
+        validate = not self._v_file._isPTFile  # only for non-PyTables files
         self.description = Description(description, validate=validate)
-        getAttr = self._v_attrs.__getattr__
-        # Check if there is some "FIELD_0_FILL" attribute
-        has_fill_attrs = "FIELD_0_FILL" in self._v_attrs._f_list("sys")
-        i = 0
-        for objcol in self.description._f_walk(type="Col"):
-            colname = objcol._v_pathname
-            if has_fill_attrs:
+
+        # 3. Compute or get chunk shape and buffer size parameters.
+        if chunksize == 0:
+            self._v_chunkshape = self._calc_chunkshape(self._v_expectedrows,
+                                                       self.rowsize)
+        else:
+            self._v_chunkshape = (chunksize,)
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
+                                                   self.rowsize)
+
+        # 4. If there are field fill attributes, get them from disk and
+        #    set them in the table description.
+        if "FIELD_0_FILL" in self._v_attrs._f_list("sys"):
+            i = 0
+            getAttr = self._v_attrs.__getattr__
+            for objcol in self.description._f_walk(type="Col"):
+                colname = objcol._v_pathname
                 # Get the default values for each column
                 fieldname = "FIELD_%s_FILL" % i
                 defval = getAttr(fieldname)
@@ -765,32 +748,41 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 self.description._v_dflts[colname] = defval
                 i += 1
 
-        # The expectedrows would be the actual number
-        self._v_expectedrows = self.nrows
+        # 5. Cache some data which is already in the description.
+        self._cacheDescriptionData()
 
-        # Extract the coldtypes, coltypes, coldflts
-        # self.colnames, coldtypes, col*... should be removed?
+        return self._v_objectID
+
+
+    def _cacheDescriptionData(self):
+        """
+        Cache some data which is already in the description.
+
+        Some information is extracted from `self.description` to build
+        some useful (but redundant) structures:
+
+        * `self.colnames`
+        * `self.colpathnames`
+        * `self.coltypes`
+        * `self.coldflts`
+        * `self.coldtypes`
+        * `self._v_dtype`
+        * `self._time64colnames`
+        * `self._strcolnames`
+        * `self._colenums`
+        """
+
         self.colnames = list(self.description._v_names)
-        self.colpathnames = [ col._v_pathname
-                              for col in self.description._f_walk()
-                              if not hasattr(col, '_v_names') ]  # bot-level
+        self.colpathnames = [
+            col._v_pathname for col in self.description._f_walk()
+            if not hasattr(col, '_v_names') ]  # bottom-level
 
-        # Find Time64 column names.
+        # Find ``time64`` column names.
         self._time64colnames = self._getTypeColNames('time64')
-        # Find String column names.
+        # Find ``string`` column names.
         self._strcolnames = self._getTypeColNames('string')
         # Get a mapping of enumerated columns to their `Enum` instances.
         self._colenums = self._getEnumMap()
-
-        if chunksize == 0:
-            # Not a chunked dataset. Compute the optimal chunkshape
-            self._v_chunkshape = self._calc_chunkshape(self.nrows,
-                                                       self.rowsize)
-        else:
-            self._v_chunkshape = (chunksize,)
-        # Compute the optimal nrowsinbuf
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
-                                                   self.rowsize)
 
         # Get info about columns
         for colobj in self.description._f_walk(type="Col"):
@@ -802,8 +794,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Assign _v_dtype for this table
         self._v_dtype = self.description._v_dtype
-
-        return self._v_objectID
 
 
     def _checkColumn(self, colname):
@@ -2337,9 +2327,7 @@ class Cols(object):
             itgroup = table._v_file._getNode(
                 _getIndexTableName(table._v_parent, table.name))
         except NodeError:
-            if table._v_new and table.indexed:
-                # The indexes group for table does not exist, create it
-                itgroup = table._createIndexesTable(table._v_parent)
+            pass
         # Put the column in the local dictionary
         for name in desc._v_names:
             if name in desc._v_types:
@@ -2627,12 +2615,6 @@ class Column(object):
         except NodeError:
             self._indexFile = None
             self._indexPath = None
-            # Only create indexes for newly-created tables
-            # (where `table.colindexed` has already been initialized).
-            if table._v_new and table.colindexed[self.pathname]:
-                # The user wants to indexate this column,
-                # but it doesn't exists yet. Create it without a warning.
-                self.createIndex(warn=0)         # self.index is assigned here
 
 
     def _g_updateTableLocation(self, table):
