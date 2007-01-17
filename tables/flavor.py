@@ -334,6 +334,8 @@ if 'numeric' in all_flavors:
         numpy.float64: Numeric.Float64,
         numpy.complex64: Numeric.Complex32,
         numpy.complex128: Numeric.Complex64 }
+    if hasattr(Numeric, "Int64"):  # Only defined for 64-bit platforms
+        _numtype_from_nptype[numpy.int64] = Numeric.Int64
 
 def _conv_numpy_to_numeric(array):
     kind = array.dtype.kind
