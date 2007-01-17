@@ -158,7 +158,7 @@ class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
 
         self.assertEqual(
             tbl.colnames,
-            ('a_name', 'c_name', 'd_name', 'e_name', 'f_name', 'g_name'))
+            ['a_name', 'c_name', 'd_name', 'e_name', 'f_name', 'g_name'])
 
         self.assertEqual(tbl.coltypes['a_name'], 'int32')
         self.assertEqual(tbl.coldtypes['a_name'].shape, ())
@@ -213,7 +213,7 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
 
         self.assertEqual(
             tbl.colnames,
-            ('a', 'b', 'c', 'd'))
+            ['a', 'b', 'c', 'd'])
 
         self.assertEqual(tbl.coltypes['a'], 'float64')
         self.assertEqual(tbl.coldtypes['a'].shape, ())

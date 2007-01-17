@@ -1911,12 +1911,12 @@ name := |S16, ()
 pressure := float32, ()</screen>
 
           <para>Here, the <literal>name</literal>, <literal>title</literal>,
-          <literal>nrows</literal>, <literal>colnames</literal>,
-          <literal>coltypes</literal> and <literal>colshapes</literal>
-          attributes (see <xref linkend="TableInstanceVariablesDescr"
-          xrefstyle="select: labelnumber" /> for a complete attribute list) of
-          the <literal>Table</literal> object gives us quite a bit of
-          information about the table data.</para>
+          <literal>nrows</literal>, <literal>colnames</literal> and
+          <literal>coldtypes</literal> attributes (see <xref
+          linkend="TableInstanceVariablesDescr" xrefstyle="select:
+          labelnumber" /> for a complete attribute list) of the
+          <literal>Table</literal> object gives us quite a bit of information
+          about the table data.</para>
 
           <para>You can interactively retrieve general information about the
           public objects in PyTables by printing their internal doc
@@ -1942,7 +1942,6 @@ Represent a table in the object tree.
         __setitem__(key, value)
         append(rows)
         col(name)
-        itercolnames()
         flushRowsToIndex()
         iterrows(start, stop, step)
         itersequence(sequence)
@@ -1966,7 +1965,8 @@ Represent a table in the object tree.
         nrows -- the number of rows in this table
         rowsize -- the size, in bytes, of each row
         cols -- accessor to the columns using a natural name schema
-        colnames -- the field names for the table (list)
+        colnames -- the top-level field names for the table (list)
+        colpathnames -- the bottom-level field pathnames for the table (list)
         colinstances -- the column instances for the table fields (dictionary)
         coldtypes -- the dtype class for the table fields (dictionary)
         coltypes -- the PyTables type for the table fields (dictionary)
@@ -6565,14 +6565,6 @@ for node in h5file.root.detector:
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis role="bold">nrows</emphasis></glossterm>
-
-              <glossdef>
-                <para>The number of rows in this table.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
               <glossterm><emphasis role="bold">rowsize</emphasis></glossterm>
 
               <glossdef>
@@ -6597,8 +6589,20 @@ for node in h5file.root.detector:
               <glossterm><emphasis role="bold">colnames</emphasis></glossterm>
 
               <glossdef>
-                <para>A tuple containing the (possibly nested) names of the
-                columns in the table.</para>
+                <para>A list containing the names of
+                <emphasis>top-level</emphasis> columns in the
+                table.</para></glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">colpathnames</emphasis></glossterm>
+              <glossdef>
+                <para>A list containing the pathnames of
+                <emphasis>bottom-level</emphasis> columns in the table.  These
+                are the leaf columns obtained when walking the table
+                description left-to-right, bottom-first.  Columns inside a
+                nested column have slashes (<literal>/</literal>) separating
+                name components in their pathname.</para>
               </glossdef>
             </glossentry>
 
@@ -6772,59 +6776,6 @@ fileh.close()</screen></para>
             <para>Here you can see how this method can be used as a shorthand
             for <literal>the read()</literal> (see <xref
             linkend="Table.read" />) method.</para>
-          </section>
-
-          <section id="Table.itercolnames">
-            <title>itercolnames()</title>
-
-            <para>Iterate over the (nested) names of bottom-level
-            columns.</para>
-
-            <para>Column names are yielded from the leftmost to the rightmost
-            bottom-level column. Since only bottom-level columns are
-            considered, the names of nested columns do not appear in the
-            result. Names of columns inside a nested column do appear and have
-            a slash (<literal>/</literal>) separating components in their
-            name.</para>
-
-            <para>For example, iterating over a table with
-            <literal>colnames</literal> like: <screen>['a', ('b', ['x', 'y']), 'c']</screen>
-            yields the following column names: <screen>['a', 'b/x', 'b/y', 'c']</screen>
-            i.e. the <emphasis>flattened</emphasis> version of bottom-level
-            column names.</para>
-          </section>
-
-          <section id="Table.iterrows" xreflabel="description">
-            <title>iterrows(start=None, stop=None, step=1)</title>
-
-            <para>Returns an iterator yielding <literal>Row</literal> (see
-            <xref linkend="RowClassDescr" xrefstyle="select: label" />)
-            instances built from rows in table. If a range is supplied (i.e.
-            some of the <emphasis>start</emphasis>, <emphasis>stop</emphasis>
-            or <emphasis>step</emphasis> parameters are passed), only the
-            appropriate rows are returned. Else, all the rows are returned.
-            See also the <literal>__iter__()</literal> special method in <xref
-            linkend="TableSpecialMethods" xrefstyle="select: label" /> for a
-            shorter way to call this iterator.</para>
-
-            <para>The meaning of the <emphasis>start</emphasis>,
-            <emphasis>stop</emphasis> and <emphasis>step</emphasis> parameters
-            is the same as in the <literal>range()</literal> python function,
-            except that negative values of <literal>step</literal> are not
-            allowed. Moreover, if only <literal>start</literal> is specified,
-            then <literal>stop</literal> will be set to
-            <literal>start+1</literal>. If you do not specify neither
-            <emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then
-            <emphasis>all the rows</emphasis> in the object are
-            selected.</para>
-
-            <para>Example of use:</para>
-
-            <screen>result = [ row['var2'] for row in table.iterrows(step=5)
-if row['var1'] &lt;= 20 ]</screen>
-
-            <para><emphasis>Note:</emphasis> This iterator can be nested (see
-            example in <xref linkend="Table.where" />).</para>
           </section>
 
           <section id="itersequenceDescr">

@@ -19,13 +19,13 @@ API additions
 
 - Posar ací les coses relacionades amb els indexos
 
+- The new ``Table.colpathnames`` is a sequence which contains the full
+  pathnames of all bottom-level columns in a table.  This can be used to walk
+  all ``Column`` objects in a table when used with ``Table.colinstances``.
+
 - The new ``Table.colinstances`` dictionary maps column pathnames to their
   associated ``Column`` or ``Cols`` object for simple or nested columns,
   respectively.  This is similar to ``Table.cols._f_col()``, but faster.
-
-- The new ``Table.itercolnames()`` method iterates over the (nested) names of
-  bottom-level columns.  This can be used to walk all ``Column`` objects in a
-  table when used with ``Table.colinstances``.
 
 - ``File.createEArray()`` received a new ``shape`` parameter.  This allows to
   not have to use the shape of the atom so as to set the shape of the
@@ -39,6 +39,11 @@ API additions
 
 Backward-incompatible changes
 =============================
+
+- Now the ``Table.colnames`` attribute is just a list of the names of
+  top-level columns in a table.  You can still get something similar to the
+  old structure by using ``Table.description._v_nestedNames``.  See also the
+  new ``Table.colpathnames`` attribute.
 
 - The dictionaries File.objects, File.leaves and File.groups has been removed.
   If you need this functionality, please, use the File.getNode() and

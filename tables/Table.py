@@ -102,18 +102,6 @@ def _getIndexColName(parent, tablename, colname):
     return joinPath(_getIndexTableName(parent, tablename), colname)
 
 
-def _iternames(names):
-    """Iterate over a sequence of names in `Table.colnames` format."""
-    for item in names:
-        # Non-nested column: just a column name.
-        if isinstance(item, basestring):
-            yield item
-            continue
-        # Nested column: a column name and a list of columns.
-        for nitem in _iternames(item[1]):
-            yield '%s/%s' % (item[0], nitem)
-
-
 class NailedDict(object):
 
     """A dictionary which ignores its items when it has nails on it."""
@@ -178,7 +166,6 @@ class Table(TableExtension.Table, Leaf):
         __setitem__(key, value)
         append(rows)
         col(name)
-        itercolnames()
         flushRowsToIndex()
         iterrows(start, stop, step)
         itersequence(sequence)
@@ -202,7 +189,8 @@ class Table(TableExtension.Table, Leaf):
         nrows -- the number of rows in this table
         rowsize -- the size, in bytes, of each row
         cols -- accessor to the columns using a natural name schema
-        colnames -- the field names for the table (list)
+        colnames -- the top-level field names for the table (list)
+        colpathnames -- the bottom-level field pathnames for the table (list)
         colinstances -- the column instances for the table fields (dictionary)
         coldtypes -- the dtype class for the table fields (dictionary)
         coltypes -- the PyTables type for the table fields (dictionary)
@@ -377,10 +365,17 @@ class Table(TableExtension.Table, Leaf):
         self._unsaved_indexedrows = 0
         """Number of rows indexed in memory but still not in disk."""
 
-        self.colnames = ()
+        self.colnames = []
         """
-        A tuple containing the (possibly nested) names of the columns in
-        the table.
+        A list containing the names of *top-level* columns in the table.
+        """
+        self.colpathnames = []
+        """
+        A list containing the pathnames of *bottom-level* columns in the
+        table.  These are the leaf columns obtained when walking the
+        table description left-to-right, bottom-first.  Columns inside a
+        nested column have slashes (``/``) separating name components in
+        their pathname.
         """
         self.colinstances = {}
         """Maps the name of a column to its `Column` or `Cols` instance."""
@@ -700,13 +695,16 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
         # Warning against assigning too much columns...
         # F. Altet 2005-06-05
-        self.colnames = tuple(self.description._v_nestedNames)
+        self.colnames = list(self.description._v_names)
         if (len(self.colnames) > MAX_COLUMNS):
             warnings.warn("""\
 table ``%s`` is exceeding the recommended maximum number of columns (%d); \
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                           % (self._v_pathname, MAX_COLUMNS),
                           PerformanceWarning)
+        self.colpathnames = [ col._v_pathname
+                              for col in self.description._f_walk()
+                              if not hasattr(col, '_v_names') ]  # bot-level
 
         # Compute some important parameters for createTable
         for colobj in self.description._f_walk(type="Col"):
@@ -772,7 +770,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Extract the coldtypes, coltypes, coldflts
         # self.colnames, coldtypes, col*... should be removed?
-        self.colnames = tuple(self.description._v_nestedNames)
+        self.colnames = list(self.description._v_names)
+        self.colpathnames = [ col._v_pathname
+                              for col in self.description._f_walk()
+                              if not hasattr(col, '_v_names') ]  # bot-level
 
         # Find Time64 column names.
         self._time64colnames = self._getTypeColNames('time64')
@@ -1249,7 +1250,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Row objects do not support nested columns, so we must iterate
         # over the flat column paths.  When rows support nesting,
         # ``self.colnames`` can be directly iterated upon.
-        colNames = [colName for colName in self.itercolnames()]
+        colNames = [colName for colName in self.colpathnames]
         dstRow = dstTable.row
         nrows = 0
         for srcRow in self._where(splitted, condvars, start, stop, step):
@@ -1315,29 +1316,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if sort:
             coords = numpy.sort(coords)
         return internal_to_flavor(coords, self.flavor)
-
-
-    def itercolnames(self):
-        """
-        Iterate over the (nested) names of bottom-level columns.
-
-        Column names are yielded from the leftmost to the rightmost
-        bottom-level column.  Since only bottom-level columns are
-        considered, the names of nested columns do not appear in the
-        result.  Names of columns inside a nested column do appear and
-        have a slash (``/``) separating components in their name.
-
-        For example, iterating over a table with ``colnames`` like::
-
-            ['a', ('b', ['x', 'y']), 'c']
-
-        yields the following column names::
-
-            ['a', 'b/x', 'b/y', 'c']
-
-        i.e. the *flattened* version of bottom-level column names.
-        """
-        return _iternames(self.colnames)
 
 
     def itersequence(self, sequence, sort=False):
@@ -1818,7 +1796,7 @@ table format '%s'. The error was: <%s>
 "This modification will exceed the length of the table. Giving up."
         self._update_records(start, stop, step, recarray)
         # Redo the index if needed
-        self._reIndex(self.colnames)
+        self._reIndex(self.colpathnames)
 
         return lenrows
 
@@ -2046,7 +2024,7 @@ The 'names' parameter must be a list of strings.""")
         nrows = self._remove_row(start, nrows)
         self.nrows -= nrows    # discount the removed rows from the total
         # removeRows is a invalidating index operation
-        self._reIndex(self.colnames)
+        self._reIndex(self.colpathnames)
 
         return nrows
 

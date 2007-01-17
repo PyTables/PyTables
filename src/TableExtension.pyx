@@ -983,7 +983,7 @@ cdef class Row:
     self._mod_nrows = 0
     # Redo the indexes if needed. This could be optimized if we would
     # be able to track the modified columns.
-    table._reIndex(table.colnames)
+    table._reIndex(table.colpathnames)
 
 
   # This method is twice as faster than __getattr__ because there is
