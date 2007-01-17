@@ -667,7 +667,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         "Optimize an index to allow faster searches."
 
         self.verbose=verbose
-        self.verbose = True  # uncomment for debugging purposes only
+        #self.verbose = True  # uncomment for debugging purposes only
 
         # Optimize only when we have more than one slice
         if self.nslices <= 1:
@@ -961,6 +961,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 self.tmp.zbounds[j:jn] = self.zbounds[xj:xjn]
                 self.tmp.mbounds[j:jn] = self.mbounds[xj:xjn]
             # tmp --> originals
+            # deuriem copiar-lo nomes en cas que el nou index
+            # tinga qualitat suficient
             for i in xrange(nss2):
                 # copy sorted & indices slices
                 oi = ns+i

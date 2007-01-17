@@ -547,7 +547,7 @@ fileh.close()
 
             <imageobject role="html">
               <imagedata align="center" fileref="objecttree-h5.png"
-                         format="PNG" />
+                         format="PNG" scale="100" />
             </imageobject>
           </mediaobject>
         </figure>
@@ -573,7 +573,8 @@ fileh.close()
             </imageobject>
 
             <imageobject role="html">
-              <imagedata align="center" fileref="objecttree.png" format="PNG" />
+              <imagedata align="center" fileref="objecttree.png" format="PNG"
+                         scale="100" />
             </imageobject>
           </mediaobject>
         </figure>
