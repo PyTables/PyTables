@@ -66,8 +66,8 @@ class BasicTestCase(unittest.TestCase):
             # "l" and "i" typecode, and we can consider them the same
             # to all practical effects
             assert (b.typecode() == "l" or b.typecode() == "i")
-            assert typecode[self.root.somearray.type] == "l" or \
-                   typecode[self.root.somearray.type] == "i"
+            # We have to add "N" that represent Int64 in 64-bit platforms
+            assert typecode[self.root.somearray.type] in ["i", "l" ,"N"]
         elif a.typecode() == "c":
             assert a.typecode() == b.typecode()
             assert self.root.somearray.type == "string"
