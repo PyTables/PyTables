@@ -1,11 +1,11 @@
-from tables.nodes import FileNode
+from tables.nodes import filenode
 
 
 import tables
 h5file = tables.openFile('fnode.h5', 'w')
 
 
-fnode = FileNode.newNode(h5file, where='/', name='fnode_test')
+fnode = filenode.newNode(h5file, where='/', name='fnode_test')
 
 
 print h5file.getNodeAttr('/fnode_test', 'NODE_TYPE')
@@ -27,7 +27,7 @@ print fnode.closed
 
 
 node = h5file.root.fnode_test
-fnode = FileNode.openNode(node, 'a+')
+fnode = filenode.openNode(node, 'a+')
 print repr(fnode.readline())
 print fnode.tell()
 print >> fnode, "This is a new line."

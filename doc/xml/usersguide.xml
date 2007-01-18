@@ -11340,15 +11340,15 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
   <part label="II">
     <title>Complementary modules</title>
 
-    <chapter id="FileNode">
-      <title>FileNode - simulating a filesystem with PyTables</title>
+    <chapter id="filenode">
+      <title>filenode - simulating a filesystem with PyTables</title>
 
       <para></para>
 
       <section>
-        <title>What is <literal>FileNode</literal>?</title>
+        <title>What is <literal>filenode</literal>?</title>
 
-        <para><literal>FileNode</literal> is a module which enables you to
+        <para><literal>filenode</literal> is a module which enables you to
         create a PyTables database of nodes which can be used like regular
         opened files in Python. In other words, you can store a file in a
         PyTables database, and read and write it as you would do with any
@@ -11358,7 +11358,7 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
         filesystem for data exchange with other systems (including backup
         purposes).</para>
 
-        <para>Between the main features of <literal>FileNode</literal>, one
+        <para>Between the main features of <literal>filenode</literal>, one
         can list:</para>
 
         <itemizedlist>
@@ -11380,9 +11380,9 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
 
           <listitem>
             <para><emphasis>Efficient:</emphasis> Thanks to PyTables' proven
-            extreme efficiency on handling huge amounts of data. FileNode can
-            make use of PyTables' on-the-fly compression and decompression of
-            data.</para>
+            extreme efficiency on handling huge amounts of data.
+            <literal>filenode</literal> can make use of PyTables' on-the-fly
+            compression and decompression of data.</para>
           </listitem>
 
           <listitem>
@@ -11410,9 +11410,9 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
       </section>
 
       <section>
-        <title>Finding a <literal>FileNode</literal> node</title>
+        <title>Finding a <literal>filenode</literal> node</title>
 
-        <para><literal>FileNode</literal> nodes can be recognized because they
+        <para><literal>filenode</literal> nodes can be recognized because they
         have a <literal>NODE_TYPE</literal> system attribute with a
         <literal>'file'</literal> value. It is recommended that you use the
         <literal>getNodeAttr()</literal> method (see <xref
@@ -11423,18 +11423,18 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
       </section>
 
       <section>
-        <title><literal>FileNode</literal> - simulating files inside
+        <title><literal>filenode</literal> - simulating files inside
         PyTables</title>
 
-        <para>The <literal>FileNode</literal> module is part of the
+        <para>The <literal>filenode</literal> module is part of the
         <literal>nodes</literal> sub-package of PyTables. The recommended way
         to import the module is:</para>
 
         <screen>
-&gt;&gt;&gt; from tables.nodes import FileNode
+&gt;&gt;&gt; from tables.nodes import filenode
         </screen>
 
-        <para>However, <literal>FileNode</literal> exports very few symbols,
+        <para>However, <literal>filenode</literal> exports very few symbols,
         so you can import <literal>*</literal> for interactive usage. In fact,
         you will most probably only use the <literal>NodeType</literal>
         constant and the <literal>newNode()</literal> and
@@ -11444,7 +11444,7 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
         the <literal>NODE_TYPE</literal> system attribute of a node file is
         expected to contain (<literal>'file'</literal>, as we have seen).
         Although this is not expected to change, you should use
-        <literal>FileNode.NodeType</literal> instead of the literal
+        <literal>filenode.NodeType</literal> instead of the literal
         <literal>'file'</literal> when possible.</para>
 
         <para><literal>newNode()</literal> and <literal>openNode()</literal>
@@ -11486,7 +11486,7 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
           the database hierarchy. This is that command:</para>
 
           <screen>
-&gt;&gt;&gt; fnode = FileNode.newNode(h5file, where='/', name='fnode_test')
+&gt;&gt;&gt; fnode = filenode.newNode(h5file, where='/', name='fnode_test')
           </screen>
 
           <para>That is basically all you need to create a file node. Simple,
@@ -11580,7 +11580,7 @@ True
 
           <screen>
 &gt;&gt;&gt; node = h5file.root.fnode_test
-&gt;&gt;&gt; fnode = FileNode.openNode(node, 'a+')
+&gt;&gt;&gt; fnode = filenode.openNode(node, 'a+')
 &gt;&gt;&gt; print repr(fnode.readline())
 'This is a test text line.\n'
 &gt;&gt;&gt; print fnode.tell()
@@ -11619,8 +11619,8 @@ True
           writable. Of course, you could use the
           <literal>setNodeAttr()</literal> method of
           <literal>tables.File</literal> to do it directly on the proper node,
-          but <literal>FileNode</literal> offers a much more comfortable way
-          to do it. <literal>FileNode</literal> objects have an
+          but <literal>filenode</literal> offers a much more comfortable way
+          to do it. <literal>filenode</literal> objects have an
           <literal>attrs</literal> property which gives you direct access to
           their corresponding <literal>AttributeSet</literal> object.</para>
 
@@ -11636,7 +11636,7 @@ True
           and more. Moreover, there is not a fixed list of attributes.
           However, you should avoid names in all caps or starting with
           <literal>'_'</literal>, since PyTables and
-          <literal>FileNode</literal> may use them internally. Some valid
+          <literal>filenode</literal> may use them internally. Some valid
           examples:</para>
 
           <screen>
@@ -11671,7 +11671,7 @@ keywords_en := ['FileNode', 'test', 'metadata'],
 owner := 'ivan']
           </screen>
 
-          <para>Note that <literal>FileNode</literal> makes no assumptions
+          <para>Note that <literal>filenode</literal> makes no assumptions
           about the meaning of your metadata, so its handling is entirely left
           to your needs and imagination.</para>
         </section>
@@ -11680,7 +11680,7 @@ owner := 'ivan']
       <section>
         <title>Complementary notes</title>
 
-        <para>You can use <literal>FileNode</literal>s and PyTables groups to
+        <para>You can use file nodes and PyTables groups to
         mimic a filesystem with files and directories. Since you can store
         nearly anything you want as file metadata, this enables you to use a
         PyTables file as a portable compressed backup, even between radically
@@ -11689,18 +11689,18 @@ owner := 'ivan']
         valid); however, remember that you can use node titles and metadata to
         overcome this limitation. Also, you may need to devise some strategy
         to represent special files such as devices, sockets and such (not
-        necessarily using <literal>FileNode</literal>).</para>
+        necessarily using <literal>filenode</literal>).</para>
 
         <para>We are eager to hear your opinion about
-        <literal>FileNode</literal> and its potential uses. Suggestions to
-        improve <literal>FileNode</literal> and create other node types are
+        <literal>filenode</literal> and its potential uses. Suggestions to
+        improve <literal>filenode</literal> and create other node types are
         also welcome. Do not hesitate to contact us!</para>
       </section>
 
       <section>
         <title>Current limitations</title>
 
-        <para><literal>FileNode</literal> is still a young piece of software,
+        <para><literal>filenode</literal> is still a young piece of software,
         so it lacks some functionality. This is a list of known current
         limitations:</para>
 
@@ -11738,13 +11738,13 @@ owner := 'ivan']
           </listitem>
         </orderedlist>
 
-        <para>These limitations still make <literal>FileNode</literal>
+        <para>These limitations still make <literal>filenode</literal>
         entirely adequate to work with most binary and text files. Of course,
         suggestions and patches are welcome.</para>
       </section>
 
       <section>
-        <title><literal>FileNode</literal> module reference</title>
+        <title><literal>filenode</literal> module reference</title>
 
         <section>
           <title>Global constants</title>
