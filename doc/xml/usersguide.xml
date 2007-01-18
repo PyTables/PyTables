@@ -11996,10 +11996,10 @@ owner := 'ivan']
     </chapter>
 
     <chapter>
-      <title>NetCDF - a PyTables NetCDF3 emulation API</title>
+      <title>netcdf3 - a PyTables NetCDF3 emulation API</title>
 
       <section>
-        <title>What is NetCDF?</title>
+        <title>What is <literal>netcdf3</literal>?</title>
 
         <para>The netCDF format is a popular format for binary files. It is
         portable between machines and self-describing, i.e. it contains the
@@ -12191,7 +12191,7 @@ Global attr source = PyTables Users Guide
           </screen>
 
           <para>Note that the <literal>ncattrs</literal> function is not part
-          of the <literal> Scientific.IO.NetCDF</literal> interface.</para>
+          of the <literal>Scientific.IO.NetCDF</literal> interface.</para>
         </section>
 
         <section>
