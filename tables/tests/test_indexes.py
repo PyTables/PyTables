@@ -1440,6 +1440,7 @@ class AI6TestCase(AutomaticIndexingTestCase):
 class AI7TestCase(AutomaticIndexingTestCase):
     sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
     nrows = ss*12-1
+    #nrows = ss*1-1  # faster test
     reopen = 0
     iprops = NoReindexProps
     colsToIndex = ['var1', 'var2', 'var3']

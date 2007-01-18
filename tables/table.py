@@ -1991,7 +1991,8 @@ The 'names' parameter must be a list of strings.""")
         # index the remaining rows in last row
         nremain = nrows - indexedrows
         if lastrow and nremain > 0:
-            remainvalues = self._read(indexedrows, self.nrows, 1, colname)
+            startLR = (index.sorted.nrows)*slicesize
+            remainvalues = self._read(startLR, self.nrows, 1, colname)
             index.appendLastRow(remainvalues, self.nrows)
             indexedrows += nremain
         return indexedrows
