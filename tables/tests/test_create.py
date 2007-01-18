@@ -196,7 +196,7 @@ class createTestCase(unittest.TestCase):
         table.flush()
 
         # Read all the data as a list
-        listout = table.read(flavor="python")
+        listout = table.read().tolist()
 
         # Compare the input rowlist and output row list. They should
         # be equal.

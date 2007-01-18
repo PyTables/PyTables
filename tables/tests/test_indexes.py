@@ -1490,11 +1490,10 @@ class ManyNodesTestCase(PyTablesTestCase):
     def test00(self):
         """Indexing many nodes in one single session (based on bug #26)"""
         IdxRecord = {
-            'f0': Int8Col(indexed=1),
-            'f1': Int8Col(indexed=1),
-            'f2': Int8Col(indexed=1),
+            'f0': Int8Col(),
+            'f1': Int8Col(),
+            'f2': Int8Col(),
             }
-
         h5 = self.fileh
         for qn in range(5):
             for sn in range(5):
@@ -1502,6 +1501,9 @@ class ManyNodesTestCase(PyTablesTestCase):
                 name = 'chr' + str(sn)
                 path = "/at/%s/at" % (qchr)
                 table = h5.createTable(path, name, IdxRecord, createparents=1)
+                table.cols.f0.createIndex()
+                table.cols.f1.createIndex()
+                table.cols.f2.createIndex()
                 table.row.append()
                 table.flush()
 
