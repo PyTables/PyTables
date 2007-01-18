@@ -38,7 +38,7 @@ from tables.utilsExtension import isHDF5File, isPyTablesFile, whichLibVersion
 
 from tables.misc.enum import Enum
 from tables.atom import *
-from tables.isdescription import *
+from tables.description import *
 
 # Import the user classes from the proper modules
 from tables.exceptions import *

@@ -17,7 +17,7 @@ import numpy
 import tables as t
 from tables.tests import common
 from tables.tests.common import verbose
-from tables.isdescription import Description
+from tables.description import Description
 from tables.indexes import minRowIndex
 
 

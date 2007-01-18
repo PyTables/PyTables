@@ -45,7 +45,7 @@ from tables.path import joinPath
 from tables.utils import is_idx, byteorders
 from tables.leaf import Leaf
 from tables.index import Index, IndexProps
-from tables.isdescription import IsDescription, Description, Col
+from tables.description import IsDescription, Description, Col
 from tables.atom import Atom
 from tables.group import IndexesTableG, IndexesDescG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning

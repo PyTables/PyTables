@@ -55,7 +55,7 @@ from tables.registry import getClassByName
 from tables.path import joinPath, splitPath, isVisiblePath
 from tables.utils import checkFileAccess
 from tables import undoredo
-from tables.isdescription import IsDescription, UInt8Col, StringCol
+from tables.description import IsDescription, UInt8Col, StringCol
 from tables.node import Node, NotLoggedMixin
 from tables.group import Group, RootGroup
 from tables.group import TransactionGroupG, TransactionG, MarkG
