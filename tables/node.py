@@ -31,7 +31,7 @@ from tables.exceptions import \
      ClosedNodeError, NodeError, UndoRedoWarning, PerformanceWarning
 from tables.path import joinPath, splitPath, isVisiblePath
 from tables.undoredo import moveToShadow
-from tables.AttributeSet import AttributeSet, NotLoggedAttributeSet
+from tables.attributeset import AttributeSet, NotLoggedAttributeSet
 
 
 

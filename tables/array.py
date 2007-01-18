@@ -35,7 +35,7 @@ from tables import hdf5Extension
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx, byteorders
 from tables.atom import split_type
-from tables.Leaf import Leaf, Filters
+from tables.leaf import Leaf, Filters
 
 
 __version__ = "$Revision$"

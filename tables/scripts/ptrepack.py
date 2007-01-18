@@ -19,9 +19,9 @@ import os.path
 import time
 import getopt
 
-from tables.File import openFile
-from tables.Group import Group
-from tables.Leaf import Filters
+from tables.file import openFile
+from tables.group import Group
+from tables.leaf import Filters
 
 
 

@@ -26,7 +26,7 @@ Misc variables:
 import warnings
 
 from tables import hdf5Extension
-from tables.Leaf import Leaf
+from tables.leaf import Leaf
 
 
 __version__ = "$Revision$"

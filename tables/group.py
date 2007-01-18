@@ -41,10 +41,10 @@ from tables.exceptions import \
      NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning
 from tables.registry import getClassByName
 from tables.path import checkNameValidity, joinPath, isVisibleName
-from tables.Node import Node, NotLoggedMixin
-from tables.Leaf import Leaf, Filters
-from tables.UnImplemented import UnImplemented, OldIndexArray
-from tables.AttributeSet import AttributeSet
+from tables.node import Node, NotLoggedMixin
+from tables.leaf import Leaf, Filters
+from tables.unimplemented import UnImplemented, OldIndexArray
+from tables.attributeset import AttributeSet
 
 
 

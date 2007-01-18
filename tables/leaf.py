@@ -37,7 +37,7 @@ import tables
 import tables.flavor
 from tables import hdf5Extension
 from tables import utilsExtension
-from tables.Node import Node
+from tables.node import Node
 from tables.utils import idx2long
 from tables.constants import CHUNKTIMES, BUFFERTIMES, MB
 from tables.exceptions import PerformanceWarning

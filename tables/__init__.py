@@ -38,21 +38,21 @@ from tables.utilsExtension import isHDF5File, isPyTablesFile, whichLibVersion
 
 from tables.misc.enum import Enum
 from tables.atom import *
-from tables.IsDescription import *
+from tables.isdescription import *
 
 # Import the user classes from the proper modules
 from tables.exceptions import *
-from tables.File import File, openFile, copyFile
-from tables.Node import Node
-from tables.Group import Group
-from tables.Leaf import Leaf, Filters
-from tables.Index import IndexProps
-from tables.Table import Table, Cols, Column
-from tables.Array import Array
-from tables.CArray import CArray
-from tables.EArray import EArray
-from tables.VLArray import VLArray
-from tables.UnImplemented import UnImplemented
+from tables.file import File, openFile, copyFile
+from tables.node import Node
+from tables.group import Group
+from tables.leaf import Leaf, Filters
+from tables.index import IndexProps
+from tables.table import Table, Cols, Column
+from tables.array import Array
+from tables.carray import CArray
+from tables.earray import EArray
+from tables.vlarray import VLArray
+from tables.unimplemented import UnImplemented
 
 # Import sub-packages
 ##import nodes

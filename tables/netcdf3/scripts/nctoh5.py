@@ -15,7 +15,7 @@ import tables.netcdf3
 if not tables.netcdf3.ScientificIONetCDF_imported:
     raise ImportError, 'nctoh5 requires the ScientificIONetCDF module'
 
-from tables.Leaf import Filters
+from tables.leaf import Filters
 
 
 def nctoh5(ncfilename, h5filename, filters, verbose, overwritefile):

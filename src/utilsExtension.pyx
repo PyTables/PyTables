@@ -27,7 +27,7 @@ import numpy
 from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError
 from tables.atom import Atom
-from tables.IsDescription import Description, EnumCol, Col
+from tables.isdescription import Description, EnumCol, Col
 
 from tables.utils import checkFileAccess
 

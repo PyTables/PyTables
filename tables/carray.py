@@ -32,8 +32,8 @@ import sys, warnings
 import numpy
 
 from tables.atom import Atom, EnumAtom, split_type
-from tables.Leaf import Leaf
-from tables.Array import Array
+from tables.leaf import Leaf
+from tables.array import Array
 
 
 __version__ = "$Revision$"

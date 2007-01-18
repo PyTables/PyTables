@@ -18,11 +18,11 @@ import sys
 import os.path
 import getopt
 
-from tables.File import openFile
-from tables.Group import Group
-from tables.Leaf import Leaf
-from tables.Table import Table
-from tables.UnImplemented import UnImplemented
+from tables.file import openFile
+from tables.group import Group
+from tables.leaf import Leaf
+from tables.table import Table
+from tables.unimplemented import UnImplemented
 
 
 # default options

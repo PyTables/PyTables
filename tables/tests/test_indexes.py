@@ -5,7 +5,7 @@ import warnings
 import sys
 
 from tables import *
-from tables.Index import Index
+from tables.index import Index
 from tables.indexes import calcChunksize, minRowIndex
 from tables.tests.common import verbose, allequal, heavy, cleanup, \
      PyTablesTestCase, TempFileMixin

@@ -36,18 +36,18 @@ from time import time
 
 import numpy
 
-from tables import TableExtension
+from tables import tableExtension
 from tables.conditions import split_condition, call_on_recarr
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.path import joinPath
 from tables.utils import is_idx, byteorders
-from tables.Leaf import Leaf
-from tables.Index import Index, IndexProps
-from tables.IsDescription import IsDescription, Description, Col
+from tables.leaf import Leaf
+from tables.index import Index, IndexProps
+from tables.isdescription import IsDescription, Description, Col
 from tables.atom import Atom
-from tables.Group import IndexesTableG, IndexesDescG
+from tables.group import IndexesTableG, IndexesDescG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES, \
      LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE, TABLE_MAX_SLOTS, MB
@@ -147,7 +147,7 @@ class NailedDict(object):
         self._cache[key] = value
 
 
-class Table(TableExtension.Table, Leaf):
+class Table(tableExtension.Table, Leaf):
     """Represent a table in the object tree.
 
     It provides methods to create new tables or open existing ones, as
@@ -208,7 +208,7 @@ class Table(TableExtension.Table, Leaf):
     # Properties
     # ~~~~~~~~~~
     row = property(
-        lambda self: TableExtension.Row(self), None, None,
+        lambda self: tableExtension.Row(self), None, None,
         "The associated `Row` instance.")
 
     # Read-only shorthands
@@ -1135,7 +1135,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             return iter([])
 
         # Iterate according to the index and residual conditions.
-        row = TableExtension.Row(self)
+        row = tableExtension.Row(self)
         return row(start, stop, step, coords=None, ncoords=ncoords)
 
 
@@ -1327,7 +1327,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         # although this is not totally clear.
         if sort:
             coords.sort()
-        row = TableExtension.Row(self)
+        row = tableExtension.Row(self)
         return row(coords=coords, ncoords=-1)
 
 
@@ -1339,7 +1339,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:
-            row = TableExtension.Row(self)
+            row = tableExtension.Row(self)
             return row(start, stop, step, coords=None, ncoords=-1)
         # Fall-back action is to return an empty iterator
         return iter([])
@@ -1406,7 +1406,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             # the row._fillCol method (up to 170 MB/s on a pentium IV @ 2GHz)
             self._read_records(start, stop-start, result)
         # Warning!: _read_field_name should not be used until
-        # H5TBread_fields_name in TableExtension will be finished
+        # H5TBread_fields_name in tableExtension will be finished
         # F. Altet 2005/05/26
         # XYX Ho implementem per a PyTables 2.0??
         elif field and step > 15 and 0:

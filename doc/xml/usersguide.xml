@@ -2547,7 +2547,7 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 74, in ?
     event['xcoor'] = float(i**2)     # Wrong spelling
-  File "TableExtension.pyx", line 1021, in TableExtension.Row.__setitem__
+  File "tableExtension.pyx", line 1021, in tableExtension.Row.__setitem__
 KeyError: 'no such column: xcoor'</screen>
 
           <para>This error indicates that we are attempting to assign a value
@@ -2584,7 +2584,7 @@ $ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 76, in ?
     event['ADCcount'] = "sss"          # Wrong type
-  File "TableExtension.pyx", line 1037, in TableExtension.Row.__setitem__
+  File "tableExtension.pyx", line 1037, in tableExtension.Row.__setitem__
 TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
 
           <para>You can see the structure created with this (corrected) script
@@ -3075,7 +3075,7 @@ ValueError: no enumerated value with that concrete value: 1234
 &gt;&gt;&gt; row['ballColor'] = 1234
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
-  File "TableExtension.pyx", line 1008, in TableExtension.Row.__setitem__
+  File "tableExtension.pyx", line 1008, in tableExtension.Row.__setitem__
   File ".../tables/enum.py", line 319, in __call__
     raise ValueError(
 ValueError: no enumerated value with that concrete value: 1234

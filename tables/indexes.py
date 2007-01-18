@@ -39,9 +39,9 @@ from time import time
 
 import numpy
 
-from tables.Node import NotLoggedMixin
-from tables.Array import Array
-from tables.EArray import EArray
+from tables.node import NotLoggedMixin
+from tables.array import Array
+from tables.earray import EArray
 from tables import indexesExtension
 
 

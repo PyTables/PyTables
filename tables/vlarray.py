@@ -38,7 +38,7 @@ from tables import hdf5Extension
 from tables.utils import convertToNPAtom, idx2long, byteorders
 from tables.atom import ObjectAtom, VLStringAtom, EnumAtom, Atom, split_type
 from tables.flavor import internal_to_flavor
-from tables.Leaf import Leaf, calc_chunksize
+from tables.leaf import Leaf, calc_chunksize
 
 
 __version__ = "$Revision$"

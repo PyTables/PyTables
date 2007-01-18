@@ -55,15 +55,15 @@ from tables.registry import getClassByName
 from tables.path import joinPath, splitPath, isVisiblePath
 from tables.utils import checkFileAccess
 from tables import undoredo
-from tables.IsDescription import IsDescription, UInt8Col, StringCol
-from tables.Node import Node, NotLoggedMixin
-from tables.Group import Group, RootGroup
-from tables.Group import TransactionGroupG, TransactionG, MarkG
-from tables.Leaf import Leaf, Filters
-from tables.Array import Array
-from tables.CArray import CArray
-from tables.EArray import EArray
-from tables.VLArray import VLArray
+from tables.isdescription import IsDescription, UInt8Col, StringCol
+from tables.node import Node, NotLoggedMixin
+from tables.group import Group, RootGroup
+from tables.group import TransactionGroupG, TransactionG, MarkG
+from tables.leaf import Leaf, Filters
+from tables.array import Array
+from tables.carray import CArray
+from tables.earray import EArray
+from tables.vlarray import VLArray
 
 
 
@@ -221,7 +221,7 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
 
 # It is necessary to import Table after openFile, because it solves a circular
 # import reference.
-from tables.Table import Table
+from tables.table import Table
 
 
 class _AliveNodes(dict):

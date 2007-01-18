@@ -347,7 +347,7 @@ else:
 # Set the appropriate flavor hdf5Extension.c source file:
 if pyrex:
     hdf5Extension = "src/hdf5Extension.pyx"
-    TableExtension = "src/TableExtension.pyx"
+    tableExtension = "src/tableExtension.pyx"
     indexesExtension = "src/indexesExtension.pyx"
     utilsExtension = "src/utilsExtension.pyx"
     lrucacheExtension = "src/lrucacheExtension.pyx"
@@ -355,19 +355,19 @@ if pyrex:
     _comp_bzip2 = "src/_comp_bzip2.pyx"
 else:
     hdf5Extension  = "src/hdf5Extension"
-    TableExtension = "src/TableExtension"
+    tableExtension = "src/tableExtension"
     indexesExtension = "src/indexesExtension"
     utilsExtension = "src/utilsExtension"
     lrucacheExtension = "src/lrucacheExtension"
     _comp_lzo = "src/_comp_lzo"
     _comp_bzip2 = "src/_comp_bzip2"
-    for ext in [hdf5Extension, TableExtension, indexesExtension,
+    for ext in [hdf5Extension, tableExtension, indexesExtension,
                 utilsExtension, lrucacheExtension,
                 _comp_lzo, _comp_bzip2]:
         if newer(ext+".pyx", ext+".c"):
             raise RuntimeError, "The '%s.c' file does not exist or is out of date and Pyrex is not available. Please, install Pyrex in order to properly generate the extension." % ext
     hdf5Extension += ".c"
-    TableExtension += ".c"
+    tableExtension += ".c"
     indexesExtension += ".c"
     utilsExtension += ".c"
     lrucacheExtension += ".c"
@@ -435,7 +435,7 @@ def find_name(base = 'tables-pro'):
 name = find_name()
 
 hdf5Extension_libs = LIBS + [hdf5_package.library_name]
-TableExtension_libs = LIBS + [hdf5_package.library_name]
+tableExtension_libs = LIBS + [hdf5_package.library_name]
 indexesExtension_libs = LIBS + [hdf5_package.library_name]
 utilsExtension_libs = LIBS + [hdf5_package.library_name]
 lrucacheExtension_libs = []    # Doesn't need external libraries
@@ -500,16 +500,16 @@ interactively save and retrieve large amounts of data.
                                 extra_link_args = LFLAGS,
                                 extra_compile_args = CFLAGS,
                                 ),
-                       Extension("tables.TableExtension",
+                       Extension("tables.tableExtension",
                                 include_dirs = inc_dirs,
                                 define_macros = def_macros,
-                                sources = [TableExtension,
+                                sources = [tableExtension,
                                            "src/H5ATTR.c",
                                            "src/H5TB-opt.c",
                                            "src/utils.c",
                                            ],
                                 library_dirs = lib_dirs,
-                                libraries = TableExtension_libs,
+                                libraries = tableExtension_libs,
                                 extra_link_args = LFLAGS,
                                 extra_compile_args = CFLAGS,
                                 ),

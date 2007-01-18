@@ -33,8 +33,8 @@ import numpy
 from tables.constants import EXPECTED_ROWS_EARRAY
 from tables.utils import convertToNPAtom, byteorders
 from tables.atom import Atom, EnumAtom, split_type
-from tables.Leaf import Leaf
-from tables.CArray import CArray
+from tables.leaf import Leaf
+from tables.carray import CArray
 
 __version__ = "$Revision$"
 

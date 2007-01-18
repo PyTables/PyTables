@@ -37,15 +37,15 @@ import numpy
 
 from tables import indexesExtension
 from tables import utilsExtension
-from tables.File import openFile
-from tables.AttributeSet import AttributeSet
-from tables.Node import NotLoggedMixin
+from tables.file import openFile
+from tables.attributeset import AttributeSet
+from tables.node import NotLoggedMixin
 from tables.atom import Int64Atom, Atom
-from tables.EArray import EArray
-from tables.CArray import CArray
-from tables.Leaf import Filters
+from tables.earray import EArray
+from tables.carray import CArray
+from tables.leaf import Filters
 from tables.indexes import CacheArray, LastRowArray, IndexArray
-from tables.Group import Group
+from tables.group import Group
 from tables.path import joinPath
 from tables.constants import LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE
 

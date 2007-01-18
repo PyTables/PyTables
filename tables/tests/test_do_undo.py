@@ -5,7 +5,7 @@ import tempfile
 import warnings
 
 from tables import *
-from tables.Node import NotLoggedMixin
+from tables.node import NotLoggedMixin
 from tables.indexes import minRowIndex
 from tables.path import joinPath
 
