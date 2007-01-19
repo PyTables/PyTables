@@ -45,6 +45,8 @@ def suite():
         ###'test_queries',  # Please, activate this when almost tests passes
         # Sub-packages
         'tables.nodes.tests.test_filenode',
+        'tables.netcdf3.tests.test_netcdf3',
+        ###'tables.numexpr.tests.test_numexpr',
         ]
 
     # Add test_Numeric only if Numeric is installed
@@ -70,6 +72,8 @@ def suite():
 "*Warning*: Numarray version is lower than recommended: %s < %s" % \
                   (numarray.__version__, minimum_numarray_version)
         test_modules.append("test_numarray")
+        test_modules.append("tables.nra.tests.test_nestedrecords")
+        test_modules.append("tables.nra.tests.test_nriterators")
     except:
         print "Skipping numarray test suite"
     print '-=' * 38
