@@ -801,6 +801,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         CArray(self.tmp, 'indices', Int64Atom(), shape,
                "Temporary indices", filters, chunkshape=(1,cs))
         # temporary bounds
+        nbounds_inslice = (ss - 1) // cs
+        shape = (self.nslices, nbounds_inslice)
+        CArray(self.tmp, 'bounds', atom, shape, "Temp chunk bounds",
+               filters, chunkshape=(cs, nbounds_inslice))
         shape = (self.nchunks,)
         CArray(self.tmp, 'abounds', atom, shape, "Temp start bounds",
                filters, chunkshape=(cs,))
@@ -957,6 +961,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 # Swap start, stop & median ranges
                 self.tmp.ranges[oi] = self.ranges[oidx]
                 self.tmp.mranges[oi] = self.mranges[oidx]
+                # Swap chunk bounds
+                self.tmp.bounds[oi] = self.bounds[oidx]
                 # Swap start, stop & median bounds
                 j = oi*ncs; jn = (oi+1)*ncs
                 xj = oidx*ncs; xjn = (oidx+1)*ncs
@@ -964,17 +970,17 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 self.tmp.zbounds[j:jn] = self.zbounds[xj:xjn]
                 self.tmp.mbounds[j:jn] = self.mbounds[xj:xjn]
             # tmp --> originals
-            # deuriem copiar-lo nomes en cas que el nou index
-            # tinga qualitat suficient
             for i in xrange(nss2):
-                # copy sorted & indices slices
+                # Copy sorted & indices slices
                 oi = ns+i
                 sorted[oi] = tmp_sorted[oi]
                 indices[oi] = tmp_indices[oi]
-                # copy start, stop & median ranges
+                # Copy start, stop & median ranges
                 self.ranges[oi] = self.tmp.ranges[oi]
                 self.mranges[oi] = self.tmp.mranges[oi]
-                # copy start, stop & median bounds
+                # Copy chunk bounds
+                self.bounds[oi] = self.tmp.bounds[oi]
+                # Copy start, stop & median bounds
                 j = oi*ncs; jn = (oi+1)*ncs
                 self.abounds[j:jn] = self.tmp.abounds[j:jn]
                 self.zbounds[j:jn] = self.tmp.zbounds[j:jn]
