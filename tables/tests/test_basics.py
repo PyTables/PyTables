@@ -1312,7 +1312,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         warnings.filterwarnings("error", category=UserWarning)
         # Open an existing generic HDF5 file
         try:
-            fileh = openFile(common.testFilename("ex-noattr.h5"), mode="r")
+            fileh = openFile(self._testFilename("ex-noattr.h5"), mode="r")
         except UserWarning:
             if verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -1320,7 +1320,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
                 print value
             # Ignore the warning and actually open the file
             warnings.filterwarnings("ignore", category=UserWarning)
-            fileh = openFile(common.testFilename("ex-noattr.h5"), mode="r")
+            fileh = openFile(self._testFilename("ex-noattr.h5"), mode="r")
         else:
             self.fail("expected an UserWarning")
 
@@ -1366,7 +1366,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         ###################################################################
 
         h5file = self.assertWarns(
-            UserWarning, openFile, common.testFilename('smpl_unsupptype.h5'))
+            UserWarning, openFile, self._testFilename('smpl_unsupptype.h5'))
         try:
             node = self.assertWarns(
                 UserWarning, h5file.getNode, '/CompoundChunked')
@@ -1380,7 +1380,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # Open an existing generic HDF5 file
         # We don't need to wrap this in a try clause because
         # it has already been tried and the warning will not happen again
-        fileh = openFile(common.testFilename("ex-noattr.h5"), mode="r")
+        fileh = openFile(self._testFilename("ex-noattr.h5"), mode="r")
         # An unsupported object (the deprecated H5T_ARRAY type in
         # Array, from pytables 0.8 on)
         ui = fileh.getNode(fileh.root.columns, "pressure")

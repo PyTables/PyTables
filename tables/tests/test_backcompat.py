@@ -11,13 +11,13 @@ except:
 
 from tables import *
 from tables.tests import common
-from tables.tests.common import verbose, cleanup, allequal, testFilename
+from tables.tests.common import verbose, cleanup, allequal
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
 # Check read Tables from pytables version 0.8
-class BackCompatTablesTestCase(unittest.TestCase):
+class BackCompatTablesTestCase(common.PyTablesTestCase):
 
     #----------------------------------------
 
@@ -30,7 +30,7 @@ class BackCompatTablesTestCase(unittest.TestCase):
 
         # Create an instance of an HDF5 Table
         warnings.filterwarnings("ignore", category=UserWarning)
-        self.fileh = openFile(self.file, "r")
+        self.fileh = openFile(self._testFilename(self.file), "r")
         warnings.filterwarnings("default", category=UserWarning)
 
         table = self.fileh.getNode("/tuple0")
@@ -47,23 +47,23 @@ class BackCompatTablesTestCase(unittest.TestCase):
 
 
 class Table2_1LZO(BackCompatTablesTestCase):
-    file = testFilename("Table2_1_lzo_nrv2e_shuffle.h5")  # pytables 0.8.x versions and after
+    file = "Table2_1_lzo_nrv2e_shuffle.h5"  # pytables 0.8.x versions and after
 
 class Tables_LZO1(BackCompatTablesTestCase):
-    file = testFilename("Tables_lzo1.h5")  # files compressed with LZO1
+    file = "Tables_lzo1.h5"  # files compressed with LZO1
 
 class Tables_LZO1_shuffle(BackCompatTablesTestCase):
-    file = testFilename("Tables_lzo1_shuffle.h5")  # files compressed with LZO1 and shuffle
+    file = "Tables_lzo1_shuffle.h5"  # files compressed with LZO1 and shuffle
 
 class Tables_LZO2(BackCompatTablesTestCase):
-    file = testFilename("Tables_lzo2.h5")  # files compressed with LZO2
+    file = "Tables_lzo2.h5"  # files compressed with LZO2
 
 class Tables_LZO2_shuffle(BackCompatTablesTestCase):
-    file = testFilename("Tables_lzo2_shuffle.h5")  # files compressed with LZO2 and shuffle
+    file = "Tables_lzo2_shuffle.h5"  # files compressed with LZO2 and shuffle
 
 # Check read attributes from PyTables >= 1.0 properly
-class BackCompatAttrsTestCase(unittest.TestCase):
-    file = testFilename("zerodim-attrs-%s.h5")
+class BackCompatAttrsTestCase(common.PyTablesTestCase):
+    file = "zerodim-attrs-%s.h5"
 
     def test01_readAttr(self):
         """Checking backward compatibility of old formats for attributes"""
@@ -73,7 +73,8 @@ class BackCompatAttrsTestCase(unittest.TestCase):
             print "Running %s.test01_readAttr..." % self.__class__.__name__
 
         # Read old formats
-        self.fileh = openFile(self.file % self.format, "r")
+        filename = self._testFilename(self.file)
+        self.fileh = openFile(filename % self.format, "r")
         a = self.fileh.getNode("/a")
         scalar = numpy.array(1, dtype="int32")
         vector = numpy.array([1], dtype="int32")
@@ -100,7 +101,8 @@ class VLArrayTestCase(common.PyTablesTestCase):
         """Checking backward compatibility with old flavors of VLArray"""
 
         # Open a PYTABLES_FORMAT_VERSION=1.6 file
-        fileh = openFile(testFilename("flavored_vlarrays-format1.6.h5"), "r")
+        filename = self._testFilename("flavored_vlarrays-format1.6.h5")
+        fileh = openFile(filename, "r")
         # Check that we can read the contents without problems (nor warnings!)
         vlarray1 = fileh.root.vlarray1
         assert vlarray1.flavor == "numeric"

@@ -42,6 +42,7 @@ class HDF5CompatibilityTestCase(common.PyTablesTestCase):
     def test(self):
         # There should be a warning telling the user
         # this is a plain HDF5 file, but not a PyTables one.
+        self.h5fname = self._testFilename(self.h5fname)
         self.h5file = self.assertWarns(
             UserWarning, tables.openFile, self.h5fname)
         self._test()
@@ -56,7 +57,7 @@ class EnumTestCase(HDF5CompatibilityTestCase):
     See ftp://ftp.ncsa.uiuc.edu/HDF/files/hdf5/samples/enum.c.
     """
 
-    h5fname = common.testFilename('smpl_enum.h5')
+    h5fname = 'smpl_enum.h5'
 
     def _test(self):
         self.assert_('/EnumTest' in self.h5file)
@@ -108,32 +109,32 @@ class NumericTestCase(HDF5CompatibilityTestCase):
 
 
 class F64BETestCase(NumericTestCase):
-    h5fname = common.testFilename('smpl_f64be.h5')
+    h5fname = 'smpl_f64be.h5'
     type = 'float64'
     byteorder = 'big'
 
 class F64LETestCase(NumericTestCase):
-    h5fname = common.testFilename('smpl_f64le.h5')
+    h5fname = 'smpl_f64le.h5'
     type = 'float64'
     byteorder = 'little'
 
 class I64BETestCase(NumericTestCase):
-    h5fname = common.testFilename('smpl_i64be.h5')
+    h5fname = 'smpl_i64be.h5'
     type = 'int64'
     byteorder = 'big'
 
 class I64LETestCase(NumericTestCase):
-    h5fname = common.testFilename('smpl_i64le.h5')
+    h5fname = 'smpl_i64le.h5'
     type = 'int64'
     byteorder = 'little'
 
 class I32BETestCase(NumericTestCase):
-    h5fname = common.testFilename('smpl_i32be.h5')
+    h5fname = 'smpl_i32be.h5'
     type = 'int32'
     byteorder = 'big'
 
 class I32LETestCase(NumericTestCase):
-    h5fname = common.testFilename('smpl_i32le.h5')
+    h5fname = 'smpl_i32le.h5'
     type = 'int32'
     byteorder = 'little'
 
@@ -148,7 +149,7 @@ class ChunkedCompoundTestCase(HDF5CompatibilityTestCase):
     ftp://ftp.ncsa.uiuc.edu/HDF/files/hdf5/samples/compound2.c.
     """
 
-    h5fname = common.testFilename('smpl_compound_chunked.h5')
+    h5fname = 'smpl_compound_chunked.h5'
 
     def _test(self):
         self.assert_('/CompoundChunked' in self.h5file)
@@ -203,7 +204,7 @@ class ContiguousCompoundTestCase(HDF5CompatibilityTestCase):
     This example has been provided by Dav Clark.
     """
 
-    h5fname = common.testFilename('non-chunked-table.h5')
+    h5fname = 'non-chunked-table.h5'
 
     def _test(self):
         self.assert_('/test_var/structure variable' in self.h5file)
@@ -243,7 +244,7 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
     Test for appending data to native contiguous compound datasets.
     """
 
-    h5fname = common.testFilename('non-chunked-table.h5')
+    h5fname = 'non-chunked-table.h5'
 
     def _test(self):
         self.assert_('/test_var/structure variable' in self.h5file)
@@ -268,7 +269,7 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
     See the example programs in the Introduction to HDF5.
     """
 
-    h5fname = common.testFilename('smpl_SDSextendible.h5')
+    h5fname = 'smpl_SDSextendible.h5'
 
     def _test(self):
         self.assert_('/ExtendibleArray' in self.h5file)

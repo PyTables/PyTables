@@ -44,7 +44,7 @@ def suite():
         'test_numpy',
         ###'test_queries',  # Please, activate this when almost tests passes
         # Sub-packages
-        'test_filenode',
+        'tables.nodes.tests.test_filenode',
         ]
 
     # Add test_Numeric only if Numeric is installed

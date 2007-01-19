@@ -224,21 +224,6 @@ def areArraysEqual(arr1, arr2):
 
 
 
-def testFilename(filename):
-    """
-    Returns an absolute version of the `filename`, taking care of
-    the location of the test module.
-    """
-    # When the definitive switch to ``setuptools`` is made,
-    # this should definitely use the ``pkg_resouces`` API::
-    #
-    #   return pkg_resources.resource_filename(__name__, filename)
-    #
-    dirname = os.path.dirname(__file__)
-    return os.path.join(dirname, filename)
-
-
-
 def pyTablesTest(oldmethod):
     def newmethod(self, *args, **kwargs):
         self._verboseHeader()
@@ -296,6 +281,22 @@ class PyTablesTestCase(unittest.TestCase):
 
             title = "Running %s.%s" % (name, methodName)
             print '%s\n%s' % (title, '-'*len(title))
+
+    @classmethod
+    def _testFilename(class_, filename):
+        """
+        Returns an absolute version of the `filename`, taking care of
+        the location of the calling test case class.
+        """
+        modname = class_.__module__
+        # When the definitive switch to ``setuptools`` is made,
+        # this should definitely use the ``pkg_resouces`` API::
+        #
+        #   return pkg_resources.resource_filename(modname, filename)
+        #
+        modfile = sys.modules[modname].__file__
+        dirname = os.path.dirname(modfile)
+        return os.path.join(dirname, filename)
 
 
     def failUnlessWarns(self, warnClass, callableObj, *args, **kwargs):

@@ -180,7 +180,7 @@ def copyFileToFile(srcfile, dstfile, blocksize = 4096):
 class WriteFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     "Tests writing, seeking and truncating a new file node."
 
-    datafname = common.testFilename('test_filenode.dat')
+    datafname = 'test_filenode.dat'
 
 
     def setUp(self):
@@ -193,6 +193,7 @@ class WriteFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """
         super(WriteFileTestCase, self).setUp()
         self.fnode = filenode.newNode(self.h5file, where = '/', name = 'test')
+        self.datafname = self._testFilename(self.datafname)
 
 
     def tearDown(self):
@@ -343,7 +344,7 @@ class OpenFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
 class ReadFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
     "Tests reading from an existing file node."
 
-    datafname = common.testFilename('test_filenode.xbm')
+    datafname = 'test_filenode.xbm'
 
 
     def setUp(self):
@@ -356,6 +357,7 @@ class ReadFileTestCase(common.TempFileMixin, common.PyTablesTestCase):
           * 'fnode', the readable file node in '/test', with data in it
         """
 
+        self.datafname = self._testFilename(self.datafname)
         self.datafile = file(self.datafname)
 
         super(ReadFileTestCase, self).setUp()
@@ -828,6 +830,7 @@ class OldVersionTestCase(common.PyTablesTestCase):
 
         self.h5fname = tempfile.mktemp(suffix = '.h5')
 
+        self.oldh5fname = self._testFilename(self.oldh5fname)
         oldh5f = tables.openFile(self.oldh5fname)
         oldh5f.copyFile(self.h5fname)
         oldh5f.close()
@@ -905,7 +908,7 @@ class Version1TestCase(OldVersionTestCase):
     "Basic test for version 1 format compatibility."
 
     oldversion = 1
-    oldh5fname = common.testFilename('test_filenode_v1.h5')
+    oldh5fname = 'test_filenode_v1.h5'
 
 
 
