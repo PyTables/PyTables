@@ -230,8 +230,8 @@ def pyTablesTest(oldmethod):
         try:
             try:
                 return oldmethod(self, *args, **kwargs)
-            except SkipTest:
-                pass
+            except SkipTest, se:
+                verbosePrint("\nSkipped test: %s" % se.args[0])
         finally:
             verbosePrint('')  # separator line between tests
     newmethod.__name__ = oldmethod.__name__

@@ -222,19 +222,18 @@ class BaseTableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
         if not self.indexed:
             return
         try:
-            vprint("* Indexing ``%s`` columns..." % colname, nonl=True)
+            vprint("* Indexing ``%s`` columns." % colname)
             for acolname in [colname, ncolname]:
                 acolumn = self.table.colinstances[acolname]
                 acolumn.createIndex(optlevel=self.optlevel, testmode=True)
-            vprint("ok.")
         except TypeError, te:
             if self.colNotIndexable_re.search(str(te)):
-                vprint("can not be indexed.")
-                raise tests.SkipTest  # can't be indexed, nothing new to test
+                raise tests.SkipTest(
+                    "Columns of this type can not be indexed." )
             raise
         except NotImplementedError:
-            vprint("not supported yet.")
-            raise tests.SkipTest  # column does not support indexing yet
+            raise tests.SkipTest(
+                "Indexing columns of this type is not supported yet." )
 
     def setUp(self):
         super(BaseTableQueryTestCase, self).setUp()
@@ -323,8 +322,8 @@ def create_test_method(type_, op, extracond):
                 try:
                     isvalidrow = eval(pycond, {}, pyvars)
                 except TypeError:
-                    vprint("* Python type does not support the operation.")
-                    raise tests.SkipTest
+                    raise tests.SkipTest(
+                        "The Python type does not support the operation." )
                 if isvalidrow:
                     pyrownos.append(row.nrow)
                     pyfvalues.append(row[acolname])
@@ -350,12 +349,11 @@ def create_test_method(type_, op, extracond):
                 ptfvalues = table.readWhere(cond, condvars, field=acolname)
             except TypeError, te:
                 if self.condNotBoolean_re.search(str(te)):
-                    vprint("* Condition is not boolean.")
-                    raise tests.SkipTest
+                    raise tests.SkipTest("The condition is not boolean.")
                 raise
             except NotImplementedError:
-                vprint("* PyTables type does not support the operation.")
-                raise tests.SkipTest
+                raise tests.SkipTest(
+                    "The PyTables type does not support the operation." )
             ptfvalues.sort()  # row numbers already sorted
             vprint( "* %d rows selected by PyTables from ``%s``"
                     % (len(ptrownos), acolname), nonl=True )
