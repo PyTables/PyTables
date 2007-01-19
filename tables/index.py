@@ -710,10 +710,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 if self.nblocks > 1:
                     # Swap slices only in the case that we have several blocks
                     if self.swap('slices', 'median'): break
-                else:
-                    # Else, do an additional swap
-                    if self.swap('chunks','start'): break
-                if self.swap('chunks','median'): break
+                    if self.swap('chunks','median'): break
                 if self.swap('chunks', 'start'): break
                 if self.swap('chunks', 'stop'): break
             else:
