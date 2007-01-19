@@ -758,17 +758,19 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             t = round(time()-t1, 4);  c = round(clock()-c1, 4)
             print "time: %s. clock: %s" % (t, c)
         # Check that entropy is actually decreasing
-        if what == "chunks" and self.last_tover > 0:
+        if what == "chunks" and self.last_tover > 0. and tover > 0.:
             tover_var = (self.last_tover - tover) / self.last_tover
             if tover_var < 0.1:
                 # Less than a 10% of improvement is too few
                 return True
         self.last_tover = tover
         # Check if some threshold has met
-        if nover < thnover or rmult < thmult:
+        if nover < thnover:
             return True
-        # Additional check for numerical values
-        if self.type != "string" and tover < thtover:
+        if rmult < thmult:
+            return True
+        # Additional check for the overlap ratio
+        if tover >= 0. and tover < thtover:
             return True
         return False
 
@@ -1002,7 +1004,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         ranges = self.ranges[:]
         nslices = self.nslices
-        noverlaps = 0; soverlap = 0.; toverlap = 0.
+        noverlaps = 0; soverlap = 0.; toverlap = -1.
         multiplicity = numpy.zeros(shape=nslices, dtype="int_")
         for i in xrange(nslices):
             for j in xrange(i+1, nslices):
@@ -1017,6 +1019,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.type != "string":
             erange = float(ranges[-1,1]) - float(ranges[0,0])
             # Check that there is an effective range of values
+            # Beware, erange can be negative in situations where
+            # the values are suffering overflow. This can happen
+            # specially on big signed integer values (on overflows,
+            # the end value will become negative!).
+            # Also, there is no way to compute overlap ratios for
+            # non-numerical types. So, be careful and always check
+            # that toverlap has a positive value (it must be
+            # initialized to -1. above) before using it.
+            # F. Altet 2007-01-19
             if erange > 0:
                 toverlap = soverlap / erange
         if verbose:
