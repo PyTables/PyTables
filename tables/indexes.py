@@ -283,11 +283,11 @@ def calcChunksize(expectedrows, optlevel, testmode):
             optfull = True
         elif optlevel == 8:
             chunksize = 20000
-            slicesize = 125*chunksize
+            slicesize = 150*chunksize
             optfull = True
         elif optlevel >= 9:   # best effort
             chunksize = 20000
-            slicesize = 150*chunksize
+            slicesize = 200*chunksize
             optfull = True
         #blocksize = 133*slicesize  # test   (3 superblocks)
         blocksize = computeblocksize(expectedrows, slicesize)
