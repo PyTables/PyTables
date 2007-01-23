@@ -60,6 +60,9 @@ def computeblocksize(expectedrows, compoundsize):
     if nblocks == 0:
         # Protection against large compoundsize blocks
         nblocks = expectedrows/compoundsize
+        # Check again
+        if nblocks == 0:
+            nblocks = 1
     elif nblocks > 1000:
         # Protection against too large number of expected rows
         nblocks = 1000
