@@ -43,7 +43,7 @@ from tables.registry import getClassByName
 from tables.path import checkNameValidity, joinPath, isVisibleName
 from tables.node import Node, NotLoggedMixin
 from tables.leaf import Leaf, Filters
-from tables.unimplemented import UnImplemented, OldIndexArray
+from tables.unimplemented import UnImplemented
 from tables.attributeset import AttributeSet
 
 
