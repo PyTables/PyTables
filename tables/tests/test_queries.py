@@ -265,7 +265,13 @@ extra_conditions = ['', '& ((c_extra+1) > 0)', '| ((c_extra+1) > 0)']
 """Extra conditions to append to comparison conditions."""
 
 class TableDataTestCase(BaseTableQueryTestCase):
-    """Base test case for querying table data."""
+    """
+    Base test case for querying table data.
+
+    Automatically created test method names have the format
+    ``test_aNNNN``, where ``NNNN`` is the zero-padded test number.
+    """
+    _testfmt = 'test_a%04d'
 
 def create_test_method(type_, op, extracond):
     sctype = sctype_from_type[type_]
@@ -371,7 +377,10 @@ for type_ in type_info:  # for type_ in ['String']:
     for op in operators:  # for op in ['!=']:
         for extracond in extra_conditions:  # for extracond in ['']:
             tmethod = create_test_method(type_, op, extracond)
-            tmethod.__name__ = 'test_a%04d' % testn
+            # The test number is appended to the docstring to help
+            # identify failing methods in non-verbose mode.
+            tmethod.__name__ = TableDataTestCase._testfmt % testn
+            tmethod.__doc__ += ' [#%d]' % testn
             ptmethod = tests.pyTablesTest(tmethod)
             imethod = new.instancemethod(ptmethod, None, TableDataTestCase)
             setattr(TableDataTestCase, tmethod.__name__, imethod)
@@ -398,7 +407,12 @@ if tests.heavy:
     table_sizes += ['Big']
 table_ndims = ['Scalar']  # to enable multidimensional testing, include 'MD'
 
-# Non-indexed queries: ``[SB][SM]TDTestCase``.
+# Non-indexed queries: ``[SB][SM]TDTestCase``, where:
+#
+# 1. S is for small and B is for big size table.
+#    Sizes are listed in `table_sizes`.
+# 2. S is for scalar and M for multidimensional columns.
+#    Dimensionalities are listed in `table_ndims`.
 def niclassdata():
     for size in table_sizes:
         for ndim in table_ndims:
@@ -423,7 +437,12 @@ if tests.heavy:
     itable_sizes += ['Medium', 'Big']
     itable_optvalues += [7, 9]
 
-# Indexed queries: ``[SMB]I[02379]TDTestCase``.
+# Indexed queries: ``[SMB]I[02379]TDTestCase``, where:
+#
+# 1. S is for small, M for medium and B for big size table.
+#    Sizes are listed in `itable_sizes`.
+# 2. 0 to 9 is the desired index optimization level.
+#    Optimizations are listed in `itable_optvalues`.
 def iclassdata():
     for size in itable_sizes:
         for optlevel in itable_optvalues:
