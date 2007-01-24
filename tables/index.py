@@ -54,6 +54,14 @@ from tables.lrucacheExtension import ObjectCache
 
 __version__ = "$Revision: 1236 $"
 
+
+# default version for INDEX objects
+#obversion = "1.0"    # Version of indexes in PyTables 1.x series
+obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series
+
+# The default method for sorting
+defsort = "quicksort"
+
 # Python implementations of NextAfter and NextAfterF
 #
 # These implementations exist because the standard function
@@ -366,7 +374,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     """
 
-    _c_classId = 'CINDEX'
+    _c_classId = 'INDEX'
 
 
     # <properties>
@@ -490,6 +498,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             parentNode, name, title, new, filters)
 
     def _g_postInitHook(self):
+        if self._v_new:
+            # The version for newly created indexes
+            self._v_version = obversion
         super(Index, self)._g_postInitHook()
 
         # Index arrays must only be created for new indexes
@@ -523,6 +534,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # The index is new. Initialize the values
         self.nrows = 0
         self.nelements = 0
+        self.nelementsLR = 0
 
         # Set the filters for this object (they are *not* inherited)
         filters = self._v_new_filters
@@ -605,7 +617,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Objects that arrive here should be numpy objects already
         # Save the sorted array
         sorted = self.sorted
-        s=arr.argsort()
+        s=arr.argsort(kind=defsort)
         # Doing a sort in-place is 2x slower than a fancy selection
         #arr.sort()
         arr = arr[s]
@@ -643,7 +655,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         assert nelementsLR == len(arr), \
 "The number of elements to append is incorrect!. Report this to the authors."
         # Sort the array
-        s = arr.argsort()
+        s = arr.argsort(kind=defsort)
         arr = arr[s]
         # build the cache of bounds
         self.bebounds = numpy.concatenate((arr[::self.chunksize],
@@ -668,7 +680,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         "Optimize an index to allow faster searches."
 
         self.verbose=verbose
-        #self.verbose = True  # uncomment for debugging purposes only
+        self.verbose = True  # uncomment for debugging purposes only
 
         # Initialize last_tover and last_nover
         self.last_tover = 0
@@ -860,7 +872,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 break
             nslices = ncb2/ncs
             bounds = boundsobj[nblock*ncb:nblock*ncb+ncb2]
-            sbounds_idx = numpy.argsort(bounds)
+            sbounds_idx = bounds.argsort(kind=defsort)
             # Don't swap the block at all if it doesn't need to
             ndiff = (sbounds_idx != numpy.arange(ncb2)).sum()/2
             if ndiff*20 < ncb2:
@@ -904,7 +916,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             if nslice >= self.sorted.nrows:
                 break
             block = tmp_sorted[nslice]
-            sblock_idx = numpy.argsort(block)
+            sblock_idx = block.argsort(kind=defsort)
             block = block[sblock_idx]
             sorted[nslice] = block
             block_idx = tmp_indices[nslice]
@@ -943,7 +955,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 ranges = self.ranges[sblock*nss:sblock*nss+nss2, 1]
             elif mode == "median":
                 ranges = self.mranges[sblock*nss:sblock*nss+nss2]
-            sranges_idx = numpy.argsort(ranges)
+            sranges_idx = ranges.argsort(kind=defsort)
             # Don't swap the superblock at all if it doesn't need to
             ndiff = (sranges_idx != numpy.arange(nss2)).sum()/2
             if ndiff*50 < nss2:

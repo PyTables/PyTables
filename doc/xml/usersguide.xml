@@ -7952,13 +7952,13 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
         file.</para>
 
         <para>This class provides methods to write or read data to or from
-        array objects in the file. This class does not allow you to enlarge
-        the datasets on disk; use the <literal>EArray</literal> (see <xref
-        linkend="EArrayClassDescr" xrefstyle="select: labelnumber" />) class
-        if you want enlargeable dataset support or compression features, or
-        <literal>CArray</literal> (see <xref linkend="CArrayClassDescr"
-        xrefstyle="select: labelnumber" />) if you just want
-        compression.</para>
+        array objects in the file. This class does not allow you neither to
+        enlarge nor compress the datasets on disk; use the
+        <literal>EArray</literal> (see <xref linkend="EArrayClassDescr"
+        xrefstyle="select: labelnumber" />) class if you want enlargeable
+        dataset support or compression features, or <literal>CArray</literal>
+        (see <xref linkend="CArrayClassDescr" xrefstyle="select: labelnumber"
+        />) if you just want compression.</para>
 
         <para>An interesting property of the <literal>Array</literal> class is
         that it remembers the <emphasis>flavor</emphasis> of the object that
