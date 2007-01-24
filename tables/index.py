@@ -301,34 +301,29 @@ class IndexProps(object):
 
     Instance variables:
 
-        auto -- whether an existing index should be updated or not after a
-            Table append operation
-        reindex -- whether the table fields are to be re-indexed
-            after an invalidating index operation (like Table.removeRows)
+        auto -- whether an existing index should be automatically
+            updated after a Table append operation, or reindexed after
+            an index-invalidating operation (like Table.removeRows)
         filters -- the filter properties for the Table indexes
 
     """
     auto_default = True
-    reindex_default = True
 
     def __init__( self,
                   auto=auto_default,
-                  reindex=reindex_default,
                   filters=None ):
         """Create a new IndexProps instance
 
         Parameters:
 
-        auto -- whether an existing index should be reindexed after a
-            Table append operation. Defaults is reindexing.
-        reindex -- whether the table fields are to be re-indexed
-            after an invalidating index operation (like Table.removeRows).
-            Default is reindexing.
+        auto -- whether an existing index should be automatically
+            updated after a Table append operation or, reindexed after
+            an index-invalidating operation (like Table.removeRows).
+            Default is automatic update ore reindexing.
         filters -- the filter properties. Default are ZLIB(1) and shuffle
         """
 
         self.auto = bool(auto)
-        self.reindex = bool(reindex)
         if filters is None:
             self.filters = Filters(complevel=1, complib="zlib",
                                    shuffle=True, fletcher32=False)
@@ -339,8 +334,7 @@ class IndexProps(object):
 "If you pass a filters parameter, it should be a Filters instance."
 
     def __repr__(self):
-        return ( 'IndexProps(auto=%s, reindex=%s, filters=%r)'
-                 % (self.auto, self.reindex, self.filters) )
+        return 'IndexProps(auto=%s, filters=%r)' % (self.auto, self.filters)
 
 class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
@@ -359,7 +353,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     Instance variables:
 
         column -- The column object this index belongs to
-        dirty -- Whether the index is dirty or not.
+        dirty -- Whether the index is dirty or not. Dirty indexes are
+            out of sync with column data, so they exist but they are
+            not usable.
         nrows -- The number of slices in the index.
         slicesize -- The number of elements per slice.
         nelements -- The number of indexed rows.
@@ -377,7 +373,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     dirty = property(
         lambda self: self.column.dirty, None, None,
-        "Whether the index is dirty or not.")
+        """
+        Whether the index is dirty or not.
+
+        Dirty indexes are out of sync with column data, so they exist
+        but they are not usable.
+        """ )
 
     nblockssuperblock = property(
         lambda self: self.superblocksize / self.blocksize, None, None,

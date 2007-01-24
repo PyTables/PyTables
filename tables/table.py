@@ -267,8 +267,7 @@ class Table(tableExtension.Table, Leaf):
         oldprops, newprops = self._indexprops, value
 
         setAttr = self._v_attrs._g__setattr
-        for (prop, attr) in [ ('auto', 'AUTOMATIC_INDEX'),
-                              ('reindex', 'REINDEX'),
+        for (prop, attr) in [ ('auto', 'AUTO_INDEX'),
                               ('filters', 'FILTERS_INDEX') ]:
             # Only store values that have changed or were undefined.
             newvalue = getattr(newprops, prop)
@@ -284,8 +283,8 @@ class Table(tableExtension.Table, Leaf):
 
         This is an `IndexProps` instance.  You may replace it at any
         time, but only some changes will affect existing indexes.
-        Particularly, changing automatic and reindexing parameters
-        affects existing indexes immediatly, while changing the filters
+        Particularly, changing the automatic indexing parameter affects
+        existing indexes immediatly, while changing the filters
         parameter only affects newly created indexes.
         """ )
 
@@ -529,15 +528,12 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # It does not matter to which column 'indexobj' belongs,
         # since their respective index objects share
         # the same filters and number of elements.
-        autoindex = getattr( self.attrs, 'AUTOMATIC_INDEX',
-                             IndexProps.auto_default )
-        reindex = getattr(self.attrs, 'REINDEX', IndexProps.reindex_default)
+        autoindex = getattr(self.attrs, 'AUTO_INDEX', IndexProps.auto_default)
         if self.indexed:
             filters = indexobj.filters
         else:
             filters = getattr(self.attrs, 'FILTERS_INDEX', None)
-        self._indexprops = IndexProps( auto=autoindex, reindex=reindex,
-                                       filters=filters )
+        self._indexprops = IndexProps(auto=autoindex, filters=filters)
         if self.indexed:
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
@@ -2077,7 +2073,7 @@ The 'names' parameter must be a list of strings.""")
 
 
     def _reIndex(self, colnames):
-        """ re-index all the columns in colnames is self.reindex is true """
+        """Re-index columns in `colnames` if automatic indexing is true."""
 
         if self.indexed:
             # Mark the proper indexes as dirty
@@ -2086,7 +2082,7 @@ The 'names' parameter must be a list of strings.""")
                     col = self.cols._g_col(colname)
                     col.dirty = True
             # Now, re-index the dirty ones
-            if self.indexprops.reindex:
+            if self.indexprops.auto:
                 self.reIndex()
 
 
@@ -2671,9 +2667,6 @@ class Column(object):
         # Only set the index column as dirty if it exists
         if index:
             setattr(index._v_attrs, "DIRTY", dirty)
-            if dirty:
-                index.nelementsLR = 0
-                index.nelements = 0
         # If an *actual* change in dirtiness happens,
         # notify the condition cache by setting or removing a nail.
         if index and not wasdirty and isdirty:

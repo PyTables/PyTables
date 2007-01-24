@@ -1772,19 +1772,19 @@ temperature := 18.399999999999999]</screen>
 
           <screen>
 &gt;&gt;&gt; print table.attrs._f_list("all")
-['AUTOMATIC_INDEX', 'CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL',
+['AUTO_INDEX', 'CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL',
 'FIELD_1_NAME', 'FIELD_2_FILL', 'FIELD_2_NAME', 'FIELD_3_FILL', 'FIELD_3_NAME',
 'FIELD_4_FILL', 'FIELD_4_NAME', 'FIELD_5_FILL', 'FIELD_5_NAME', 'FIELD_6_FILL',
 'FIELD_6_NAME', 'FIELD_7_FILL', 'FIELD_7_NAME', 'FILTERS_INDEX', 'FLAVOR',
-'NROWS', 'REINDEX', 'TITLE', 'VERSION', 'temp_scale', 'temperature']
+'NROWS', 'TITLE', 'VERSION', 'temp_scale', 'temperature']
 &gt;&gt;&gt; print table.attrs._f_list("user")
 ['temp_scale', 'temperature']
 &gt;&gt;&gt; print table.attrs._f_list("sys")
-['AUTOMATIC_INDEX', 'CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL',
+['AUTO_INDEX', 'CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL',
 'FIELD_1_NAME', 'FIELD_2_FILL', 'FIELD_2_NAME', 'FIELD_3_FILL', 'FIELD_3_NAME',
 'FIELD_4_FILL', 'FIELD_4_NAME', 'FIELD_5_FILL', 'FIELD_5_NAME', 'FIELD_6_FILL',
 'FIELD_6_NAME', 'FIELD_7_FILL', 'FIELD_7_NAME', 'FILTERS_INDEX', 'FLAVOR',
-'NROWS', 'REINDEX', 'TITLE', 'VERSION']</screen>
+'NROWS', 'TITLE', 'VERSION']</screen>
 
           <para>You can also rename attributes:</para>
 
@@ -6693,8 +6693,8 @@ for node in h5file.root.detector:
                 linkend="IndexPropsClassDescr"
                 xrefstyle="select: labelnumber" />) instance. You may replace
                 it at any time, but only some changes will affect existing
-                indexes. Particularly, changing automatic and reindexing
-                parameters affects existing indexes immediatly, while changing
+                indexes. Particularly, changing the automatic indexing
+		parameter affects existing indexes immediatly, while changing
                 the filters parameter only affects newly created
                 indexes.</para>
               </glossdef>
@@ -7032,7 +7032,7 @@ fileh.close()</screen></para>
 
             <para>Recompute the existing indexes in table, but
             <emphasis>only</emphasis> if they are dirty. This can be useful
-            when you have set the <literal>reindex</literal> parameter to 0 in
+            when you have set the <literal>auto</literal> parameter to 0 in
             <literal>IndexProps</literal> constructor (see <xref
             linkend="IndexPropsInitDescr" />) for the table and want to update
             the indexes after a invalidating index operation
@@ -7811,7 +7811,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             <title><literal>reIndexDirty()</literal></title>
 
             <para>Recompute the existing index only if it is dirty. This can
-            be useful when you have set the <literal>reindex</literal>
+            be useful when you have set the <literal>auto</literal>
             parameter to 0 in <literal>IndexProps</literal> constructor (see
             <xref linkend="IndexPropsInitDescr" />) for the table and want to
             update the column's index after a invalidating index operation
@@ -9801,17 +9801,9 @@ fileh.close()</screen> This enforces the use of the <literal>LZO</literal>
               <glossterm><emphasis role="bold">auto</emphasis></glossterm>
 
               <glossdef>
-                <para>Whether an existing index should be updated or not after
-                a table append operation.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">reindex</emphasis></glossterm>
-
-              <glossdef>
-                <para>Whether the table columns are to be re-indexed after an
-                invalidating index operation.</para>
+                <para>Whether an existing index should be automatically
+                updated after a table append operation or reindexed after an
+                index-invalidating operation.</para>
               </glossdef>
             </glossentry>
 
@@ -9830,8 +9822,7 @@ fileh.close()</screen> This enforces the use of the <literal>LZO</literal>
           next.</para>
 
           <section id="IndexPropsInitDescr" xreflabel="description">
-            <title><literal>IndexProps(auto=True, reindex=True,
-            filters=None)</literal></title>
+            <title><literal>IndexProps(auto=True, filters=None)</literal></title>
 
             <para>The parameters that can be passed to the
             <literal>IndexProps</literal> class constructor are:</para>
@@ -9841,22 +9832,12 @@ fileh.close()</screen> This enforces the use of the <literal>LZO</literal>
                 <glossterm><emphasis role="bold">auto</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Specifies whether an existing index should be updated
-                  or not after a table append operation. The default is enable
-                  automatic index updates.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">reindex</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Specifies whether the table columns are to be
-                  re-indexed after an invalidating index operation (like for
-                  example, after a <literal>Table.removeRows</literal> call).
-                  The default is to reindex after operations that invalidate
-                  indexes.</para>
+                  <para>Specifies whether an existing index should be
+                  automatically updated after a table append operation, or
+                  reindexed after an index-invalidating operation (like
+                  <literal>Table.removeRows()</literal>). The default is
+                  automatic update or reindexing after this kind of
+                  operations.</para>
                 </glossdef>
               </glossentry>
 
@@ -9934,7 +9915,9 @@ fileh.close()</screen> This enforces the use of the <literal>LZO</literal>
                 <glossterm><emphasis role="bold">dirty</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Whether the index is dirty or not.</para>
+                  <para>Whether the index is dirty or not. Dirty indexes are
+                  out of sync with column data, so they exist but they are not
+                  usable.</para>
                 </glossdef>
               </glossentry>
 

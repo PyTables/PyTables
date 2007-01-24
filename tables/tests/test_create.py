@@ -428,25 +428,25 @@ class createAttrTestCase(unittest.TestCase):
 
         assert self.root.atable.attrs._f_list() == ["a", "b", "c"]
         assert self.root.atable.attrs._f_list("sys") == \
-               ['AUTOMATIC_INDEX', 'CLASS',
+               ['AUTO_INDEX', 'CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
                 'FIELD_2_FILL', 'FIELD_2_NAME',
                 'FIELD_3_FILL', 'FIELD_3_NAME',
                 'FIELD_4_FILL', 'FIELD_4_NAME',
                 'FILTERS_INDEX', 'FLAVOR', 'NROWS',
-                'REINDEX', 'TITLE', 'VERSION']
+                'TITLE', 'VERSION']
 #         assert self.root.atable.attrs._f_list("readonly") == \
 #                ['CLASS', 'NROWS', 'VERSION']
         assert self.root.atable.attrs._f_list("all") == \
-               ['AUTOMATIC_INDEX', 'CLASS',
+               ['AUTO_INDEX', 'CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
                 'FIELD_2_FILL', 'FIELD_2_NAME',
                 'FIELD_3_FILL', 'FIELD_3_NAME',
                 'FIELD_4_FILL', 'FIELD_4_NAME',
                 'FILTERS_INDEX', 'FLAVOR', 'NROWS',
-                'REINDEX', 'TITLE', 'VERSION',
+                'TITLE', 'VERSION',
                 "a", "b", "c"]
 
         assert self.root.anarray.attrs._f_list() == ["i", "j", "k"]

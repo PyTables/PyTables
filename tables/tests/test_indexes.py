@@ -837,7 +837,6 @@ class DeepTableIndexTestCase(unittest.TestCase):
 
 DefaultProps = IndexProps()
 NoAutoProps = IndexProps(auto=False)
-NoReindexProps = IndexProps(reindex=False)
 ChangeFiltersProps = IndexProps(
     filters=Filters( complevel=6, complib="zlib",
                      shuffle=False, fletcher32=True ) )
@@ -924,19 +923,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table.indexprops is not None
         elif self.iprops is NoAutoProps:
             assert table.indexprops.auto == False
-            assert table.indexprops.reindex == True
-            filters = Filters(complevel=1, complib="zlib",
-                              shuffle=True, fletcher32=False)
-            assert str(table.indexprops.filters) == str(filters)
-        elif self.iprops is NoReindexProps:
-            assert table.indexprops.auto == True
-            assert table.indexprops.reindex == False
             filters = Filters(complevel=1, complib="zlib",
                               shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
         elif self.iprops is ChangeFiltersProps:
             assert table.indexprops.auto == True
-            assert table.indexprops.reindex == True
             filters = Filters(complevel=6, complib="zlib",
                               shuffle=False, fletcher32=True)
             assert str(table.indexprops.filters) == str(filters)
@@ -1008,19 +999,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert table.indexprops is not None
         elif self.iprops is NoAutoProps:
             assert table.indexprops.auto == False
-            assert table.indexprops.reindex == True
-            filters = Filters(complevel=1, complib="zlib",
-                              shuffle=True, fletcher32=False)
-            assert str(table.indexprops.filters) == str(filters)
-        elif self.iprops is NoReindexProps:
-            assert table.indexprops.auto == True
-            assert table.indexprops.reindex == False
             filters = Filters(complevel=1, complib="zlib",
                               shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
         elif self.iprops is ChangeFiltersProps:
             assert table.indexprops.auto == True
-            assert table.indexprops.reindex == True
             filters = Filters(complevel=6, complib="zlib",
                               shuffle=False, fletcher32=True)
             assert str(table.indexprops.filters) == str(filters)
@@ -1058,45 +1041,19 @@ class AutomaticIndexingTestCase(unittest.TestCase):
 
         # Check the counters
         assert table.nrows == self.nrows - 2
-        if self.iprops is NoReindexProps:
-            # I'm not sure that the results below are what we want...
-            # But I don't think this is going to be important:
-            # the important thing is that dirtiness is working right
-            # Francesc Altet 2004-12-31
-#             if self.reopen:
-#                 assert table._indexedrows == indexedrows - 2
-#                 assert table._unsaved_indexedrows == unsavedindexedrows + 2
-#             else:
-#                 assert table._indexedrows == indexedrows
-            # The next values should be more consistent... 2005-01-03
-#             assert table._indexedrows == 0
-#             assert table._unsaved_indexedrows == table.nrows
-            pass
-        elif self.iprops is NoAutoProps:
-            index = table.cols.var1.index
-            indexedrows = index.nelements
-            assert table._indexedrows == indexedrows
-            assert table._indexedrows == index.nelements
-            assert table._unsaved_indexedrows == self.nrows - indexedrows - 2
+        if self.iprops is NoAutoProps:
+            assert table.cols.var1.index.dirty
 
         # Check non-default values for index saving policy
         if self.iprops is DefaultProps:
             assert table.indexprops is not None
         elif self.iprops is NoAutoProps:
             assert table.indexprops.auto == False
-            assert table.indexprops.reindex == True
-            filters = Filters(complevel=1, complib="zlib",
-                              shuffle=True, fletcher32=False)
-            assert str(table.indexprops.filters) == str(filters)
-        elif self.iprops is NoReindexProps:
-            assert table.indexprops.auto == True
-            assert table.indexprops.reindex == False
             filters = Filters(complevel=1, complib="zlib",
                               shuffle=True, fletcher32=False)
             assert str(table.indexprops.filters) == str(filters)
         elif self.iprops is ChangeFiltersProps:
             assert table.indexprops.auto == True
-            assert table.indexprops.reindex == True
             filters = Filters(complevel=6, complib="zlib",
                               shuffle=False, fletcher32=True)
             assert str(table.indexprops.filters) == str(filters)
@@ -1118,25 +1075,25 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             table = self.fileh.root.table
         # Check the dirty flag for indexes
         if verbose:
-            print "reindex flag:", table.indexprops.reindex
+            print "auto flag:", table.indexprops.auto
             for colname in table.colnames:
                 print "dirty flag col %s: %s" % \
                       (colname, table.cols._f_col(colname).dirty)
         # Check the flags
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
-                if not table.indexprops.reindex:
+                if not table.indexprops.auto:
                     assert table.cols._f_col(colname).dirty == True
                 else:
                     assert table.cols._f_col(colname).dirty == False
             else:
                 assert table.cols._f_col(colname).dirty == True
 
-    def test07_noreindex(self):
-        "Checking indexing counters (modifyRows, no-reindex mode)"
+    def test07_noauto(self):
+        "Checking indexing counters (modifyRows, no-auto mode)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test07_noreindex..." % self.__class__.__name__
+            print "Running %s.test07_noauto..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
         table.flushRowsToIndex()
@@ -1161,29 +1118,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "computed indexed rows:", index.nelements
             else:
                 print "Table is not indexed"
+
         # Check the counters
         assert table.nrows == self.nrows
-        if self.iprops is NoReindexProps:
-            # The unsaved indexed rows counter should be unchanged
-#             assert table._indexedrows == indexedrows
-#             assert table._unsaved_indexedrows == unsavedindexedrows
-            # I'm not sure that the results below are what we want...
-            # But I don't think this is going to be important
-            # the important thing is that dirtiness is working right
-            # Francesc Altet 2004-12-31
-#             if self.reopen:
-#                 assert table._indexedrows == indexedrows - 2
-#                 assert table._unsaved_indexedrows == unsavedindexedrows + 2
-#             else:
-#                 assert table._indexedrows == indexedrows
-            pass
-        elif self.iprops is NoAutoProps:
-            index = table.cols.var1.index
-            indexedrows = index.nelements
-            assert table._indexedrows == indexedrows
-            indexedrows = index.nelements
-            assert table._indexedrows == indexedrows
-            assert table._unsaved_indexedrows == self.nrows - indexedrows
+        if self.iprops is NoAutoProps:
+            assert table.cols.var1.index.dirty
 
         # Check the dirty flag for indexes
         if verbose:
@@ -1192,7 +1131,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                       (colname, table.cols._f_col(colname).dirty)
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
-                if not table.indexprops.reindex:
+                if not table.indexprops.auto:
                     assert table.cols._f_col(colname).dirty == True
                 else:
                     assert table.cols._f_col(colname).dirty == False
@@ -1221,15 +1160,8 @@ class AutomaticIndexingTestCase(unittest.TestCase):
 
         # Check the counters
         assert table.nrows == self.nrows
-        if self.iprops is NoReindexProps:
-            # The unsaved indexed rows counter should be unchanged
-            assert table._indexedrows == indexedrows
-            assert table._unsaved_indexedrows == unsavedindexedrows
-        elif self.iprops is NoAutoProps:
-            index = table.cols.var1.index
-            indexedrows = index.nelements
-            assert table._indexedrows == indexedrows
-            assert table._unsaved_indexedrows == self.nrows - indexedrows
+        if self.iprops is NoAutoProps:
+            assert table.cols.var1.index.dirty
 
         # Check the dirty flag for indexes
         if verbose:
@@ -1238,7 +1170,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                       (colname, table.cols._f_col(colname).dirty)
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
-                if not table.indexprops.reindex:
+                if not table.indexprops.auto:
                     if colname in ["var1"]:
                         assert table.cols._f_col(colname).dirty == True
                     else:
@@ -1377,7 +1309,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                       (colname, table2.cols._f_col(colname).dirty)
         for colname in table2.colnames:
             if table2.cols._f_col(colname).index:
-                if table2.indexprops.reindex:
+                if table2.indexprops.auto:
                     # All the destination columns should be non-dirty because
                     # the copy removes the dirty state and puts the
                     # index in a sane state
@@ -1402,25 +1334,11 @@ class AI2TestCase(AutomaticIndexingTestCase):
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
 
-class AI3TestCase(AutomaticIndexingTestCase):
-    #nrows = 10002
-    nrows = 102
-    reopen = 1
-    iprops = NoReindexProps
-    colsToIndex = ['var1', 'var2', 'var3']
-
-class AI4aTestCase(AutomaticIndexingTestCase):
-    #nrows = 10002
-    nrows = 102
-    reopen = 0
-    iprops = NoReindexProps
-    colsToIndex = ['var1', 'var2', 'var3']
-
 class AI4bTestCase(AutomaticIndexingTestCase):
     #nrows = 10012
     nrows = 112
     reopen = 1
-    iprops = NoReindexProps
+    iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI5TestCase(AutomaticIndexingTestCase):
@@ -1442,7 +1360,7 @@ class AI7TestCase(AutomaticIndexingTestCase):
     nrows = ss*12-1
     #nrows = ss*1-1  # faster test
     reopen = 0
-    iprops = NoReindexProps
+    iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI8TestCase(AutomaticIndexingTestCase):
@@ -1450,7 +1368,7 @@ class AI8TestCase(AutomaticIndexingTestCase):
     nrows = ss*15+100
     #nrows = ss*1+100  # faster test
     reopen = 1
-    iprops = NoReindexProps
+    iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI9TestCase(AutomaticIndexingTestCase):
@@ -1538,7 +1456,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         """Storing index properties as table attributes."""
         attrs = self.table.attrs
         for refprops in [self.oldIndexProps, self.newIndexProps]:
-            self.assertEqual(attrs.AUTOMATIC_INDEX, refprops.auto)
+            self.assertEqual(attrs.AUTO_INDEX, refprops.auto)
             self.assertEqual( attrs.FILTERS_INDEX.complevel,
                               refprops.filters.complevel )
             self.table.indexprops = self.newIndexProps
@@ -1548,7 +1466,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         oldtable = self.table
         newtable = oldtable.copy('/', 'test2')
 
-        for attr in ['AUTOMATIC_INDEX', 'REINDEX', 'FILTERS_INDEX']:
+        for attr in ['AUTO_INDEX', 'FILTERS_INDEX']:
             self.assertEqual( getattr(oldtable.attrs, attr),
                               getattr(newtable.attrs, attr) )
 
@@ -1599,8 +1517,6 @@ def suite():
         theSuite.addTest(unittest.makeSuite(IndexPropsChangeTestCase))
     if heavy:
         # These are too heavy for normal testing
-        theSuite.addTest(unittest.makeSuite(AI3TestCase))
-        theSuite.addTest(unittest.makeSuite(AI4aTestCase))
         theSuite.addTest(unittest.makeSuite(AI4bTestCase))
         theSuite.addTest(unittest.makeSuite(AI5TestCase))
         theSuite.addTest(unittest.makeSuite(AI6TestCase))

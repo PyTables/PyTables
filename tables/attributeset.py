@@ -47,7 +47,7 @@ __version__ = "$Revision$"
 # System attributes
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
              "FLAVOR", "ENCODING", "PYTABLES_FORMAT_VERSION",
-             "FILTERS", "FILTERS_INDEX", "AUTOMATIC_INDEX", "REINDEX",
+             "FILTERS", "FILTERS_INDEX", "AUTO_INDEX",
              "DIRTY", "NODE_TYPE", "NODE_TYPE_VERSION"]
 # Prefixes of other system attributes
 SYS_ATTRS_PREFIXES = ["FIELD_"]
@@ -226,8 +226,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         format_version = self._v__format_version
         if (issysattrname(name) and
             not name.endswith("FILL") and
-            not name in ["NROWS", "EXTDIM", "AUTOMATIC_INDEX",
-                         "REINDEX", "DIRTY", "NODE_TYPE_VERSION"]):
+            not name in ["NROWS", "EXTDIM", "AUTO_INDEX",
+                         "DIRTY", "NODE_TYPE_VERSION"]):
             # The next is fastest for string attributes
             value = self._g_getSysAttr(name)
         else:
@@ -278,8 +278,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Save this attribute to disk
         # (overwriting an existing one if needed)
         if issysattrname(name):
-            if name in ["EXTDIM", "AUTOMATIC_INDEX", "REINDEX", "DIRTY",
-                        "NODE_TYPE_VERSION"]:
+            if name in ["EXTDIM", "AUTO_INDEX", "DIRTY", "NODE_TYPE_VERSION"]:
                 self._g_setAttr(name, numpy.array(value, dtype=numpy.int32))
             elif name == "NROWS":
                 self._g_setAttr(name, numpy.array(value, dtype=numpy.int64))
