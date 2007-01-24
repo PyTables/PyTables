@@ -83,6 +83,8 @@ def calcChunksize(expectedrows, optlevel, testmode):
 
     """
 
+    debug = False
+    #debug = True  # Uncomment this for debugging purposes
     superblocksize, blocksize, slicesize, chunksize = (None, None, None, None)
     optmedian, optstarts, optstops, optfull = (False, False, False, False)
 
@@ -107,14 +109,14 @@ def calcChunksize(expectedrows, optlevel, testmode):
             blocksize = 4*slicesize
         if superblocksize == None:
             superblocksize = 4*blocksize
-#         print "superblocksize, blocksize, slicesize, chunksize:", \
-#               (superblocksize, blocksize, slicesize, chunksize)
+        if debug:
+            print "superblocksize, blocksize, slicesize, chunksize:", \
+                  (superblocksize, blocksize, slicesize, chunksize)
         sizes = (superblocksize, blocksize, slicesize, chunksize)
         opts = (optmedian, optstarts, optstops, optfull)
         return (sizes, opts)
 
     expMrows = expectedrows / 1000000.  # Multiples of one million
-    #print "expMrows:", expMrows
 
     # Hint: the slicesize should not exceed 500 or 1000 thousand.
     # That would make NumPy to consume lots of memory for sorting
@@ -173,7 +175,9 @@ def calcChunksize(expectedrows, optlevel, testmode):
             slicesize = 1000*chunksize
             optfull = True
         blocksize = computeblocksize(expectedrows, slicesize)
-	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
+        if debug:
+            nblocks = expectedrows/blocksize
+            print "cs, ss, nblocks-->", chunksize, slicesize, nblocks
     elif expMrows < 100: # expected rows < 100 milions
         if optlevel == 0:
             chunksize = 2000
@@ -213,7 +217,9 @@ def calcChunksize(expectedrows, optlevel, testmode):
             slicesize = 300*chunksize
             optfull = True
         blocksize = computeblocksize(expectedrows, slicesize)
-	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
+        if debug:
+            nblocks = expectedrows/blocksize
+            print "cs, ss, nblocks-->", chunksize, slicesize, nblocks
     elif expMrows < 1000: # expected rows < 1000 millions
         if optlevel == 0:
             chunksize = 5000
@@ -253,7 +259,9 @@ def calcChunksize(expectedrows, optlevel, testmode):
             slicesize = 400*chunksize
             optfull = True
         blocksize = computeblocksize(expectedrows, slicesize)
-	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
+        if debug:
+            nblocks = expectedrows/blocksize
+            print "cs, ss, nblocks-->", chunksize, slicesize, nblocks
     elif expMrows < 10*1000: # expected rows < 10 (american) billions
         if optlevel == 0:
             chunksize = 10000
@@ -292,9 +300,10 @@ def calcChunksize(expectedrows, optlevel, testmode):
             chunksize = 20000
             slicesize = 200*chunksize
             optfull = True
-        #blocksize = 133*slicesize  # test   (3 superblocks)
         blocksize = computeblocksize(expectedrows, slicesize)
-	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
+        if debug:
+            nblocks = expectedrows/blocksize
+            print "cs, ss, nblocks-->", chunksize, slicesize, nblocks
     elif expMrows < 100*1000: # expected rows < 100 (american) billions
 	# The next will need more than 100 MB of available memory
         if optlevel == 0:
@@ -335,7 +344,6 @@ def calcChunksize(expectedrows, optlevel, testmode):
             slicesize = 150*chunksize
             optfull = True
         blocksize = computeblocksize(expectedrows, slicesize)
-	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
         superblocksize = computeblocksize(expectedrows, blocksize)
     else:  # expected rows >= 1 (american) trillion (perhaps by year 2010
            # this will be useful, who knows...)
@@ -378,7 +386,6 @@ def calcChunksize(expectedrows, optlevel, testmode):
             slicesize = 150*chunksize
             optfull = True
         blocksize = computeblocksize(expectedrows, slicesize)
-	print "cs, ss, nblocks-->", chunksize, slicesize, expectedrows/blocksize
         superblocksize = computeblocksize(expectedrows, blocksize)
 
     # The defaults for blocksize & superblocksize
@@ -391,8 +398,9 @@ def calcChunksize(expectedrows, optlevel, testmode):
     sizes = (superblocksize, blocksize, slicesize, chunksize)
     # The reordering optimization flags
     opts = (optmedian, optstarts, optstops, optfull)
-#     print "superblocksize, blocksize, slicesize, chunksize:", sizes
-#     print "optmedian, optstarts, optstops, optfull", opts
+    if debug:
+        print "superblocksize, blocksize, slicesize, chunksize:", sizes
+        print "optmedian, optstarts, optstops, optfull", opts
     return (sizes, opts)
 
 

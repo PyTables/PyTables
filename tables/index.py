@@ -669,8 +669,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.verbose=verbose
         #self.verbose = True  # uncomment for debugging purposes only
 
-        # Initialize last_tover
+        # Initialize last_tover and last_nover
         self.last_tover = 0
+        self.last_nover = 0
 
         # Optimize only when we have more than one slice
         if self.nslices <= 1:
@@ -755,12 +756,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             t = round(time()-t1, 4);  c = round(clock()-c1, 4)
             print "time: %s. clock: %s" % (t, c)
         # Check that entropy is actually decreasing
-        if what == "chunks" and self.last_tover > 0. and tover > 0.:
+        if what == "chunks" and self.last_tover > 0. and self.last_nover > 0:
             tover_var = (self.last_tover - tover) / self.last_tover
-            if tover_var < 0.1:
-                # Less than a 10% of improvement is too few
+            nover_var = (self.last_nover - nover) / self.last_nover
+            if tover_var < 0.05 and nover_var < 0.05:
+                # Less than a 5% of improvement is too few
                 return True
         self.last_tover = tover
+        self.last_nover = nover
         # Check if some threshold has met
         if nover < thnover:
             return True
