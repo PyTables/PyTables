@@ -171,6 +171,14 @@ class Filters(object):
 
         return repr(self)
 
+    def __eq__(self, other):
+        if not isinstance(other, Filters):
+            return False
+        for attr in ['complib', 'complevel', 'shuffle', 'fletcher32']:
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        return True
+
 
 
 class Leaf(Node):

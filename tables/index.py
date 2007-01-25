@@ -23,6 +23,7 @@ Functions:
 Misc variables:
 
     __version__
+    defaultIndexFilters
 
 
 """
@@ -61,6 +62,12 @@ obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series
 
 # The default method for sorting
 defsort = "quicksort"
+
+# Default filters used to compress indexes.  This is quite fast and
+# compression is pretty good.
+defaultIndexFilters = Filters( complevel=1, complib='zlib',
+                               shuffle=True, fletcher32=False )
+# Take care to update `IndexProps` docstrings if arguments change!
 
 # Python implementations of NextAfter and NextAfterF
 #
@@ -333,8 +340,7 @@ class IndexProps(object):
 
         self.auto = bool(auto)
         if filters is None:
-            self.filters = Filters(complevel=1, complib="zlib",
-                                   shuffle=True, fletcher32=False)
+            self.filters = defaultIndexFilters
         elif isinstance(filters, Filters):
             self.filters = filters
         else:

@@ -3,9 +3,10 @@ import os
 import tempfile
 import warnings
 import sys
+import copy
 
 from tables import *
-from tables.index import Index
+from tables.index import Index, defaultIndexFilters
 from tables.indexes import calcChunksize, minRowIndex
 from tables.tests.common import verbose, allequal, heavy, cleanup, \
      PyTablesTestCase, TempFileMixin
@@ -1479,6 +1480,54 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual( icol.index.filters.complevel,
                           self.newIndexProps.filters.complevel )
 
+
+class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
+
+    """Test case for setting index filters."""
+
+    def setUp(self):
+        super(IndexFiltersTestCase, self).setUp()
+        description = {'icol': Col.from_kind('int')}
+        self.table = self.h5file.createTable('/', 'test', description)
+
+    def tearDown(self):
+        self.table = None
+        super(IndexFiltersTestCase, self).tearDown()
+
+    def test(self):
+        # Different from default.
+        argfilters = copy.copy(defaultIndexFilters)
+        argfilters.shuffle = not defaultIndexFilters.shuffle
+
+        # Different bot from default and the previous one.
+        idxfilters = copy.copy(defaultIndexFilters)
+        idxfilters.shuffle = not defaultIndexFilters.shuffle
+        idxfilters.fletcher32 = not defaultIndexFilters.fletcher32
+
+        icol = self.table.cols.icol
+
+        # Filters not set in table nor in argument.
+        icol.createIndex(testmode=True)
+        self.assertEqual(icol.index.filters, defaultIndexFilters)
+        icol.removeIndex()
+
+        # Filters not set in table, set in argument.
+        icol.createIndex(filters=argfilters, testmode=True)
+        self.assertEqual(icol.index.filters, argfilters)
+        icol.removeIndex()
+
+        # Filters set in table, not in argument.
+        self.table.indexprops = IndexProps(filters=idxfilters)
+        icol.createIndex(testmode=True)
+        self.assertEqual(icol.index.filters, idxfilters)
+        icol.removeIndex()
+
+        # Filters set in table and in argument.
+        self.table.indexprops = IndexProps(filters=idxfilters)
+        icol.createIndex(filters=argfilters, testmode=True)
+        self.assertEqual(icol.index.filters, argfilters)
+        icol.removeIndex()
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -1505,6 +1554,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AI9TestCase))
         theSuite.addTest(unittest.makeSuite(DeepTableIndexTestCase))
         theSuite.addTest(unittest.makeSuite(IndexPropsChangeTestCase))
+        theSuite.addTest(unittest.makeSuite(IndexFiltersTestCase))
     if heavy:
         # These are too heavy for normal testing
         theSuite.addTest(unittest.makeSuite(AI4bTestCase))

@@ -7767,7 +7767,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
           <title><literal>Column</literal> methods</title>
 
           <section id="createIndexColumnDescr" xreflabel="description">
-            <title><literal>createIndex(optlevel=5)</literal></title>
+            <title><literal>createIndex(optlevel=5, filters=None)</literal></title>
 
             <para>Create an <literal>Index</literal> (see <xref
             linkend="IndexClassDescr" xrefstyle="select: labelnumber" />)
@@ -7778,6 +7778,13 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             memory consumption, but slowest lookup times) and a value of 9
             means maximum optimization (slowest time for index creation and
             more memory used, but fastest lookup times).</para>
+            <para>You can use the <literal>filters</literal> argument to set
+            the <literal>Filters</literal> (see <xref
+            linkend="FiltersClassDescr" xrefstyle="select: label" />) used to
+            compress the index. If <literal>None</literal>, they will be those
+            in the <literal>indexprops.filters</literal> of the associated
+            table if any; otherwise, default index filters will be used.
+            </para>
           </section>
 
           <section id="optimizeIndexColumnDescr" xreflabel="description">

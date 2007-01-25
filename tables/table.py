@@ -44,7 +44,7 @@ from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.path import joinPath
 from tables.utils import is_idx, byteorders
 from tables.leaf import Leaf
-from tables.index import Index, IndexProps
+from tables.index import Index, IndexProps, defaultIndexFilters
 from tables.description import IsDescription, Description, Col
 from tables.atom import Atom
 from tables.group import IndexesTableG, IndexesDescG
@@ -2707,11 +2707,14 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex(self, optlevel=5, warn=True, testmode=False,
-                    verbose=False):
+    def createIndex( self, optlevel=5, filters=None,
+                     warn=True, testmode=False, verbose=False ):
         """Create an index for this column.
 
         optlevel -- The default level of optimization for the index.
+        filters -- The Filters used to compress the index. If None, they
+            will be those in the indexprops.filters of the associated
+            table if any; otherwise, default index filters will be used.
         """
 
         name = self.name
@@ -2744,8 +2747,11 @@ class Column(object):
         except NodeError:
             itgroup = table._createIndexesTable(tableParent)
 
-        # Get the indexes group for table, and if not exists, create it
-        filters = table.indexprops.filters
+        # If no filters are specified, try the table and then the default.
+        if filters is None:
+            filters = table.indexprops.filters
+        if filters is None:
+            filters = defaultIndexFilters
 
         # Create the necessary intermediate groups for descriptors
         idgroup = itgroup
