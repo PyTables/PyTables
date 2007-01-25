@@ -121,14 +121,11 @@ if __name__ == '__main__':
     print 'Byte-ordering:     %s' % sys.byteorder
     print '-=' * 38
 
-    # Handle --show-versions-only
+    # Handle some global flags (i.e. only useful for test_all.py)
     only_versions = 0
     args = sys.argv[:]
     for arg in args:
-        if arg == '--show-versions-only':
-            only_versions = 1
-            sys.argv.remove(arg)
-        elif arg == '--show-versions':
+        if arg == '--show-versions':
             only_versions = 1
             sys.argv.remove(arg)
         elif arg == '--show-memory':

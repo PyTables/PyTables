@@ -851,16 +851,42 @@ LIBS="hdf5-1.6.5 nsl"
               simply add the flag <literal>-v</literal> and/or the word
               <literal>verbose</literal> to the command line. You can also run
               only the tests in a particular test module. For example, to
-              execute just the <literal>types</literal> test: <screen>
+              execute just the <literal>types</literal> test:</para>
+              <screen>
  python test_types.py -v
-            </screen> If a test fails, please enable verbose output (the
-              <literal>-v</literal> flag <emphasis>and</emphasis>
-              <literal>verbose</literal> option), run the failing test module
-              again, and, very important, get your PyTables version
-              information by running the command: <screen>
+              </screen>
+
+              <para> You have other options to pass to the
+              <literal>test_all.py</literal> driver:
+
+              <screen>
+ python test_all.py --heavy
+              </screen>
+              the above runs every test in the test unit. Beware, it can take
+              lots of CPU and memory resources to complete.
+
+              <screen>
  python test_all.py --show-versions
-            </screen> and send back the output to developers so that we may
-              continue improving PyTables.</para>
+              </screen>
+              the above shows the versions for all the packages that PyTables
+              relies on. Please, be sure to include this when reporting bugs.
+
+              <screen>
+ python test_all.py --show-memory
+              </screen>
+              the above prints out the evolution of the memory consumption
+              after each test module completion. It's useful for locating
+              memory leaks in PyTables (or packages behind it).</para>
+
+              <para>And last, but not least, in case a test fails, please run
+              the failing test module again and enable the verbose output:
+              <screen>
+ python test_<module>.py -v verbose
+              </screen>
+              and, very important, obtain your PyTables version information by
+              using the <literal>--show-versions</literal> flag (see above)
+              and send back both outputs to developers so that we may continue
+              improving PyTables.</para>
 
               <para>If you run into problems because Python can not load the
               HDF5 library or other shared libraries:</para>
@@ -6789,6 +6815,39 @@ fileh.close()</screen></para>
             <para>Here you can see how this method can be used as a shorthand
             for <literal>the read()</literal> (see <xref
             linkend="Table.read" />) method.</para>
+          </section>
+
+          <section id="Table.iterrows" xreflabel="description">
+            <title>iterrows(start=None, stop=None, step=1)</title>
+
+            <para>Returns an iterator yielding <literal>Row</literal> (see
+            <xref linkend="RowClassDescr" xrefstyle="select: label" />)
+            instances built from rows in table. If a range is supplied (i.e.
+            some of the <emphasis>start</emphasis>, <emphasis>stop</emphasis>
+            or <emphasis>step</emphasis> parameters are passed), only the
+            appropriate rows are returned. Else, all the rows are returned.
+            See also the <literal>__iter__()</literal> special method in <xref
+            linkend="TableSpecialMethods" xrefstyle="select: label" /> for a
+            shorter way to call this iterator.</para>
+
+            <para>The meaning of the <emphasis>start</emphasis>,
+            <emphasis>stop</emphasis> and <emphasis>step</emphasis> parameters
+            is the same as in the <literal>range()</literal> python function,
+            except that negative values of <literal>step</literal> are not
+            allowed. Moreover, if only <literal>start</literal> is specified,
+            then <literal>stop</literal> will be set to
+            <literal>start+1</literal>. If you do not specify neither
+            <emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then
+            <emphasis>all the rows</emphasis> in the object are
+            selected.</para>
+
+            <para>Example of use:</para>
+
+            <screen>result = [ row['var2'] for row in table.iterrows(step=5)
+if row['var1'] &lt;= 20 ]</screen>
+
+            <para><emphasis>Note:</emphasis> This iterator can be nested (see
+            example in <xref linkend="Table.where" />).</para>
           </section>
 
           <section id="itersequenceDescr">
