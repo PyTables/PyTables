@@ -1035,7 +1035,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "unsavedindexedrows:", table._unsaved_indexedrows
                 print "original unsavedindexedrows:", unsavedindexedrows
                 index = table.cols.var1.index
-                print "index dirty:", table.cols.var1.dirty
+                print "index dirty:", table.cols.var1.index.dirty
             else:
                 print "Table is not indexed"
 
@@ -1078,16 +1078,14 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             print "auto flag:", table.indexprops.auto
             for colname in table.colnames:
                 print "dirty flag col %s: %s" % \
-                      (colname, table.cols._f_col(colname).dirty)
+                      (colname, table.cols._f_col(colname).index.dirty)
         # Check the flags
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
                 if not table.indexprops.auto:
-                    assert table.cols._f_col(colname).dirty == True
+                    assert table.cols._f_col(colname).index.dirty == True
                 else:
-                    assert table.cols._f_col(colname).dirty == False
-            else:
-                assert table.cols._f_col(colname).dirty == True
+                    assert table.cols._f_col(colname).index.dirty == False
 
     def test07_noauto(self):
         "Checking indexing counters (modifyRows, no-auto mode)"
@@ -1128,15 +1126,13 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if verbose:
             for colname in table.colnames:
                 print "dirty flag col %s: %s" % \
-                      (colname, table.cols._f_col(colname).dirty)
+                      (colname, table.cols._f_col(colname).index.dirty)
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
                 if not table.indexprops.auto:
-                    assert table.cols._f_col(colname).dirty == True
+                    assert table.cols._f_col(colname).index.dirty == True
                 else:
-                    assert table.cols._f_col(colname).dirty == False
-            else:
-                assert table.cols._f_col(colname).dirty == True
+                    assert table.cols._f_col(colname).index.dirty == False
 
     def test08_dirty(self):
         "Checking dirty flags (modifyColumns)"
@@ -1167,18 +1163,16 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if verbose:
             for colname in table.colnames:
                 print "dirty flag col %s: %s" % \
-                      (colname, table.cols._f_col(colname).dirty)
+                      (colname, table.cols._f_col(colname).index.dirty)
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
                 if not table.indexprops.auto:
                     if colname in ["var1"]:
-                        assert table.cols._f_col(colname).dirty == True
+                        assert table.cols._f_col(colname).index.dirty == True
                     else:
-                        assert table.cols._f_col(colname).dirty == False
+                        assert table.cols._f_col(colname).index.dirty == False
                 else:
-                    assert table.cols._f_col(colname).dirty == False
-            else:
-                assert table.cols._f_col(colname).dirty == True
+                    assert table.cols._f_col(colname).index.dirty == False
 
     def test09_copyIndex(self):
         "Checking copy Index feature in copyTable (attrs)"
@@ -1227,12 +1221,10 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if verbose:
             for colname in table2.colnames:
                 print "dirty flag col %s: %s" % \
-                      (colname, table2.cols._f_col(colname).dirty)
+                      (colname, table2.cols._f_col(colname).index.dirty)
         for colname in table2.colnames:
             if table2.cols._f_col(colname).index:
-                assert table2.cols._f_col(colname).dirty == False
-            else:
-                assert table2.cols._f_col(colname).dirty == True
+                assert table2.cols._f_col(colname).index.dirty == False
 
     def test10_copyIndex(self):
         "Checking copy Index feature in copyTable (values)"
@@ -1306,17 +1298,15 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if verbose:
             for colname in table2.colnames:
                 print "dirty flag col %s: %s" % \
-                      (colname, table2.cols._f_col(colname).dirty)
+                      (colname, table2.cols._f_col(colname).index.dirty)
         for colname in table2.colnames:
             if table2.cols._f_col(colname).index:
                 if table2.indexprops.auto:
                     # All the destination columns should be non-dirty because
                     # the copy removes the dirty state and puts the
                     # index in a sane state
-                    assert table.cols._f_col(colname).dirty == False
-                    assert table2.cols._f_col(colname).dirty == False
-            else:
-                assert table2.cols._f_col(colname).dirty == True
+                    assert table.cols._f_col(colname).index.dirty == False
+                    assert table2.cols._f_col(colname).index.dirty == False
 
 
 # minRowIndex = 10000  # just if one wants more indexed rows to be checked

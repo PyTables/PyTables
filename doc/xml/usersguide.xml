@@ -7760,14 +7760,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
                 (<literal>None</literal> if it does not exist).</para>
               </glossdef>
             </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">dirty</emphasis></glossterm>
-
-              <glossdef>
-                <para>Whether the index is dirty or not (property).</para>
-              </glossdef>
-            </glossentry>
           </glosslist>
         </section>
 

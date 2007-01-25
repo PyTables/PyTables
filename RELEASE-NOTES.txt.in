@@ -53,6 +53,9 @@ Backward-incompatible changes
   column, one must use the ``removeIndex()`` method of the associated
   ``Column`` instance.
 
+- ``Column.dirty`` is no longer available.  If you want to check
+  column index dirtiness, use ``Column.index.dirty``.
+
 - ``complib`` and ``complevel`` parameters have been removed from
   ``File.createTable``, ``File.createEArray``, ``File.createCArray`` and
   ``File.createVLArray``. They were already deprecated in PyTables 1.x.

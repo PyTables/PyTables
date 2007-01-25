@@ -379,8 +379,36 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     # <properties>
 
+    def _getdirty(self):
+        if hasattr(self, "_dirty"):
+            return self._dirty
+
+        attrs = self._v_attrs
+        if not hasattr(attrs, 'DIRTY'):
+            # If there is no ``DIRTY`` attribute, index should be clean.
+            self._dirty = False
+            return False
+
+        # Retrieve and cache dirtiness from disk.
+        self._dirty = dirty = bool(attrs.DIRTY)
+        return dirty
+
+    def _setdirty(self, dirty):
+        wasdirty = self.dirty
+        self._dirty = isdirty = dirty
+        self._v_attrs.DIRTY = dirty
+        # If an *actual* change in dirtiness happens,
+        # notify the condition cache by setting or removing a nail.
+        conditionCache = self.column.table._conditionCache
+        if not wasdirty and isdirty:
+            conditionCache.nail()
+        if wasdirty and not isdirty:
+            conditionCache.unnail()
+
     dirty = property(
-        lambda self: self.column.dirty, None, None,
+        # Property assignment in groups does not work. :(
+        # _getdirty, _setdirty, None,
+        _getdirty, None, None,
         """
         Whether the index is dirty or not.
 

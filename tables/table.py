@@ -516,7 +516,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                     column = self.cols._g_col(colname)
                     indexobj = column.index  # to query properties later
                     # Tell the condition cache about dirty indexed columns.
-                    if column.dirty:
+                    if indexobj.dirty:
                         self._conditionCache.nail()
             else:
                 indexed = False
@@ -978,7 +978,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         def can_use_index(column):
             if not self._enabledIndexingInQueries:
                 return False  # looks like testing in-kernel searches
-            return self.colindexed[column.pathname] and not column.dirty
+            return self.colindexed[column.pathname] and not column.index.dirty
         indexedcols = frozenset(
             colname for colname in colnames
             if can_use_index(condvars[colname]) )
@@ -1104,7 +1104,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             idxcol = condvars[idxvar]
             index = idxcol.index
             assert index is not None, "the chosen column is not indexed"
-            assert not idxcol.dirty, "the chosen column has a dirty index"
+            assert not index.dirty, "the chosen column has a dirty index"
             self._whereIndex = idxcol.pathname
         rescond = splitted.residual_function
         if rescond:
@@ -1171,7 +1171,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         column = condvars[idxvar]
         index = column.index
         assert index is not None, "the chosen column is not indexed"
-        assert not column.dirty, "the chosen column has a dirty index"
+        assert not index.dirty, "the chosen column has a dirty index"
 
         # Clean the cache if needed
         if self._dirtycache:
@@ -1268,10 +1268,9 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # Take advantage of indexation, if present
         idxvar = splitted.index_variable
         if idxvar is not None:
-            column = condvars[idxvar]
-            index = column.index
+            index = condvars[idxvar].index
             assert index is not None, "the chosen column is not indexed"
-            assert not column.dirty, "the chosen column has a dirty index"
+            assert not index.dirty, "the chosen column has a dirty index"
 
             # get the number of coords and set-up internal variables
             range_ = index.getLookupRange(
@@ -1957,7 +1956,7 @@ The 'names' parameter must be a list of strings.""")
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed:
                     col = self.cols._g_col(colname)
-                    if nrows > 0 and not col.dirty:
+                    if nrows > 0 and not col.index.dirty:
                         rowsadded = self._addRowsToIndex(
                             colname, start, nrows, lastrow )
             self._unsaved_indexedrows -= rowsadded
@@ -2080,7 +2079,9 @@ The 'names' parameter must be a list of strings.""")
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed and colname in colnames:
                     col = self.cols._g_col(colname)
-                    col.dirty = True
+                    # Property assignment in groups does not work. :(
+                    # col.index.dirty = True
+                    col.index._setdirty(True)
             # Now, re-index the dirty ones
             if self.indexprops.auto:
                 self.reIndex()
@@ -2194,7 +2195,7 @@ The 'names' parameter must be a list of strings.""")
 #             for (colname, colindexed) in self.colindexed.iteritems():
 #                 if colindexed:
 #                     col = self.cols._g_col(colname)
-#                     if nrows > 0 and not col.dirty:
+#                     if nrows > 0 and not col.index.dirty:
 #                         print "*optimizing col-->", colname
 #                         col.index.optimize()
 # #***************************** end test ************************************
@@ -2636,49 +2637,6 @@ class Column(object):
             self._indexPath = index._v_pathname
 
 
-    # Define dirty as a property
-    def _get_dirty(self):
-        if hasattr(self, "_dirty"):
-            return self._dirty
-        index = self.index
-        if index:
-            if hasattr(index._v_attrs, "DIRTY"):
-                dirty = getattr(index._v_attrs, "DIRTY")
-                # Turn numbers into logical values
-                if dirty:
-                    dirty = True
-                else:
-                    dirty = False
-                self._dirty = dirty
-                return dirty
-            else:
-                # If don't have a DIRTY attribute, index should be clean
-                self._dirty = False
-                return False
-        else:
-            self._dirty = True  # If don't have index, this is like dirty
-            return True
-
-
-    def _set_dirty(self, dirty):
-        wasdirty = getattr(self, "_dirty", False)
-        self._dirty = isdirty = dirty
-        index = self.index
-        # Only set the index column as dirty if it exists
-        if index:
-            setattr(index._v_attrs, "DIRTY", dirty)
-        # If an *actual* change in dirtiness happens,
-        # notify the condition cache by setting or removing a nail.
-        if index and not wasdirty and isdirty:
-            self.table._conditionCache.nail()
-        if index and wasdirty and not isdirty:
-            self.table._conditionCache.unnail()
-
-    # Define a property.  The 'delete this attribute'
-    # method is defined as None, so the attribute can't be deleted.
-    dirty = property(_get_dirty, _set_dirty, None, "Column dirtiness")
-
-
     def __len__(self):
         return self.table.nrows
 
@@ -2833,7 +2791,9 @@ class Column(object):
         # Optimize indexes with computed parameters for optimising
         # (i.e. we should not pass the optlevel parameter here!)
         index.optimize(verbose=verbose)
-        self.dirty = False
+        # Property assignment in groups does not work. :(
+        # index.dirty = False
+        index._setdirty(False)
         table._indexedrows = indexedrows
         table._unsaved_indexedrows = table.nrows - indexedrows
         return indexedrows
@@ -2878,7 +2838,7 @@ column '%s' is not indexed, so it can't be optimized."""
         self._tableFile._checkWritable()
 
         index = self.index
-        if index is not None and self.dirty:
+        if index is not None and index.dirty:
             # Delete the existing Index
             index._f_remove()
             # Create a new Index without warnings
