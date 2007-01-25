@@ -852,6 +852,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                 % (self._v_pathname, name), NaturalNameWarning)
 
         myDict[name] = value
+        # The following line (instead of the one above) takes properties
+        # into account, so that assigning to a property works as
+        # expected.  However, it causes a segmentation fault for some
+        # reason.  -- Ivan (2007-01-25)
+        #
+        # super(Group, self).__setattr__(name, value)
 
 
     def _f_flush(self):
