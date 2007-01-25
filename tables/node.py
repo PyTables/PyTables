@@ -864,7 +864,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # However, we need to know Group here.
         # Using classNameDict avoids a circular import.
         if not isinstance(node, classNameDict['Node']):
-            raise TypeError("new parent is not a node: %r" % (node,))
+            raise TypeError("new parent is not a registered node: %s"
+                            % node._v_pathname)
         if not isinstance(node, classNameDict['Group']):
             raise TypeError("new parent node ``%s`` is not a group"
                             % node._v_pathname)

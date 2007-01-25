@@ -239,6 +239,10 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         if (isinstance(value, numpy.generic) and  # NumPy scalar?
             value.dtype.type == numpy.string_ and # string type?
             value.itemsize > 0 and value[-1] == "."):
+            if format_version[0] == '1' and name == "FILTERS":
+                # This is a big hack, but we don't have other way to recognize
+                # pickled filters of PyTables 1.x files.
+                value = value.replace('(ctables.Leaf\n', '(ctables.leaf\n', 1)
             try:
                 retval = cPickle.loads(value)
             #except cPickle.UnpicklingError:

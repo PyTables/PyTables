@@ -47,8 +47,9 @@ from tables.leaf import Leaf
 from tables.index import Index, IndexProps, defaultIndexFilters
 from tables.description import IsDescription, Description, Col
 from tables.atom import Atom
-from tables.group import IndexesTableG, IndexesDescG
-from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning
+from tables.group import IndexesTableG, IndexesDescG, IndexesColumnBackCompatG
+from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
+     OldIndexWarning
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES, \
      LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE, TABLE_MAX_SLOTS, MB
 from tables.utilsExtension import getNestedField
@@ -198,6 +199,7 @@ class Table(tableExtension.Table, Leaf):
         colindexed -- whether the table fields are indexed (dictionary)
         indexed -- whether or not some field in Table is indexed
         indexprops -- properties of an indexed Table
+        indexedcolpathnames -- the pathnames of the indexed columns (list)
 
     """
 
@@ -288,6 +290,14 @@ class Table(tableExtension.Table, Leaf):
         parameter only affects newly created indexes.
         """ )
 
+    indexedcolpathnames = property(
+        lambda self: [colpname for colpname in self.colpathnames
+                      if self.colindexed[colpname]], None, None,
+        """
+        The pathnames of the indexed columns of this table.
+        """)
+
+    # End of properties
 
     # Other methods
     # ~~~~~~~~~~~~~
@@ -504,6 +514,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # Do the indexes group exist?
         indexesGroupPath = _getIndexTableName(self._v_parent, self._v_name)
         igroup = indexesGroupPath in self._v_file
+        oldindexes = False; listoldindexes = []
         for colobj in self.description._f_walk(type="Col"):
             colname = colobj._v_pathname
             # Is this column indexed?
@@ -514,15 +525,33 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 self.colindexed[colname] = indexed
                 if indexed:
                     column = self.cols._g_col(colname)
-                    indexobj = column.index  # to query properties later
-                    # Tell the condition cache about dirty indexed columns.
-                    if indexobj.dirty:
-                        self._conditionCache.nail()
+                    indexobj = column.index
+                    if isinstance(indexobj, IndexesColumnBackCompatG):
+                        indexed = False  # Not a vaild index
+                        oldindexes = True
+                        listoldindexes.append(colname)
+                    else:
+                        # Tell the condition cache about dirty indexed columns.
+                        if indexobj.dirty:
+                            self._conditionCache.nail()
             else:
                 indexed = False
                 self.colindexed[colname] = False
             if indexed:
                 self.indexed = True
+
+        if oldindexes:
+            warnings.warn(
+                "table ``%s`` has columns indexed with PyTables 1.x format. "
+                "Unfortunately, this format is not supported in "
+                "PyTables 2.x series. If you want to continue using "
+                "indexation in 2.x, please, consider buying the PyTables Pro "
+                "version (http://www.carabos.com/products/pytables-pro). "
+                "Note that you can use the ``ptrepack`` utility in order "
+                "to recreate the indexes (only with the Pro version). "
+                "The 1.x indexed columns found are: %s" %
+                (self._v_pathname, listoldindexes),
+                OldIndexWarning )
 
         # Create an index properties object.
         # It does not matter to which column 'indexobj' belongs,
@@ -2270,8 +2299,10 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
 """%s
   description := %r
   byteorder := %r
-  indexprops := %r""" % \
-        (str(self), self.description, self.byteorder, self.indexprops)
+  indexprops := %r
+  indexedcolpathnames := %r""" % \
+        (str(self), self.description, self.byteorder,
+         self.indexprops, self.indexedcolpathnames)
         else:
             return "%s\n  description := %r\n  byteorder := %r\n" % \
                    (str(self), self.description, self.byteorder)

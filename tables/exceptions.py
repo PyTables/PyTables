@@ -39,6 +39,8 @@ Classes:
     Unsupported or unavailable flavor or flavor conversion.
 `FlavorWarning`
     Unsupported or unavailable flavor conversion.
+`OldIndexWarning`
+    Unsupported index format.
 """
 
 __docformat__ = 'reStructuredText'
@@ -199,6 +201,16 @@ class FlavorWarning(Warning):
     flavor in a read-only file).
 
     See the `FlavorError` class for more information.
+    """
+    pass
+
+class OldIndexWarning(Warning):
+    """
+    Unsupported index format.
+
+    This warning is issued when an index in an unsupported format is
+    found.  The index will be marked as invalid and will behave as if
+    doesn't exist.
     """
     pass
 

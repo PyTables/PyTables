@@ -73,15 +73,17 @@ __version__ = "$Revision$"
 #format_version = "1.0" # Initial format
 #format_version = "1.1" # Changes in ucl compression
 #format_version = "1.2"  # Support for enlargeable arrays and VLA's
-                        # 1.2 was introduced in pytables 0.8
+#                        # 1.2 was introduced in PyTables 0.8
 #format_version = "1.3"  # Support for indexes in Tables
-                        # 1.3 was introduced in pytables 0.9
+#                        # 1.3 was introduced in PyTables 0.9
 #format_version = "1.4"  # Support for multidimensional attributes
-#                        # 1.4 was introduced in pytables 1.1
+#                        # 1.4 was introduced in PyTables 1.1
 #format_version = "1.5"  # Support for persistent defaults in tables
-#                        # 1.5 was introduced in pytables 1.2
-format_version = "1.6"  # Support for NumPy objects and new flavors for objects
-                        # 1.6 was introduced in pytables 1.3
+#                        # 1.5 was introduced in PyTables 1.2
+#format_version = "1.6"  # Support for NumPy objects and new flavors for objects
+#                        # 1.6 was introduced in pytables 1.3
+format_version = "2.0"  # Pickles are not used anymore in system attrs
+                        # 2.0 was introduced in PyTables 2.0
 compatible_formats = [] # Old format versions we can read
                         # Empty means that we support all the old formats
 

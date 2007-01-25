@@ -1973,7 +1973,9 @@ Represent a table in the object tree.
         coldflts -- the defaults for each column (dictionary)
         colindexed -- whether the table fields are indexed (dictionary)
         indexed -- whether or not some field in Table is indexed
-        indexprops -- properties of an indexed Table</screen>
+        indexprops -- properties of an indexed Table
+        indexedcolpathnames -- the pathnames of the indexed columns (list)
+          </screen>
 
           <para>The <literal>help</literal> function is also a handy way to
           see PyTables reference documentation online. Try it yourself with
@@ -6699,6 +6701,17 @@ for node in h5file.root.detector:
                 indexes.</para>
               </glossdef>
             </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis
+              role="bold">indexedcolpathnames</emphasis></glossterm>
+
+              <glossdef>
+                <para>List of the pathnames of the indexed columns for this
+                table.</para>
+              </glossdef>
+            </glossentry>
+
           </glosslist>
         </section>
 

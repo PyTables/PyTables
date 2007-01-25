@@ -10,6 +10,7 @@ from tables.index import Index, defaultIndexFilters
 from tables.indexes import calcChunksize, minRowIndex
 from tables.tests.common import verbose, allequal, heavy, cleanup, \
      PyTablesTestCase, TempFileMixin
+from tables.exceptions import OldIndexWarning
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -646,44 +647,6 @@ class UpperBoundTestCase(BasicTestCase):
 class LowerBoundTestCase(BasicTestCase):
     sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
     nrows = ss*2-1
-
-# This warning has non-sense now in the PyTables Pro version, as *all*
-# the rows can be indexed there
-class WarningTestCase(unittest.TestCase):
-    nrows = 100 # Small enough to raise the warning
-
-    def test01(self):
-        "Checking the user warning for too few entries to index"
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, "w")
-        self.rootgroup = self.fileh.root
-        group = self.rootgroup
-        # Create a table
-        title = "This is the IndexArray title"
-        rowswritten = 0
-        table = self.fileh.createTable(group, 'table', TDescr, title,
-                                       None, self.nrows)
-        for i in range(self.nrows):
-            # Fill rows with defaults
-            table.row.append()
-        table.flush()
-        # try to index one entry
-        warnings.filterwarnings("error", category=UserWarning)
-        try:
-            indexrows = table.cols.var1.createIndex()
-        except UserWarning:
-            if verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next UserWarning was catched!"
-                print value
-        else:
-            self.fail("expected an UserWarning")
-        # Reset the warning
-        warnings.filterwarnings("default", category=UserWarning)
-
-        self.fileh.close()
-        os.remove(self.file)
 
 
 class DeepTableIndexTestCase(unittest.TestCase):
@@ -1528,6 +1491,17 @@ class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(icol.index.filters, argfilters)
         icol.removeIndex()
 
+
+class OldIndexTestCase(PyTablesTestCase):
+
+    def test1_x(self):
+        """Check that files with 1.x indexes are recognized and warned."""
+        
+        f = openFile("idx-std-1.x.h5")
+        self.assertWarns(OldIndexWarning, f.getNode, "/table")
+        f.close()
+        
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -1555,6 +1529,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(DeepTableIndexTestCase))
         theSuite.addTest(unittest.makeSuite(IndexPropsChangeTestCase))
         theSuite.addTest(unittest.makeSuite(IndexFiltersTestCase))
+        theSuite.addTest(unittest.makeSuite(OldIndexTestCase))
     if heavy:
         # These are too heavy for normal testing
         theSuite.addTest(unittest.makeSuite(AI4bTestCase))

@@ -216,7 +216,8 @@ class Group(hdf5Extension.Group, Node):
                 filters = newFilters
             setAttr('FILTERS', filters)
         else:
-            # We don't need to get attributes from disk,
+            self._v_version = self._v_attrs.VERSION
+            # We don't need to get more attributes from disk,
             # since the most important ones are defined as properties.
             # However, we *do* need to get the names of children nodes.
             self._g_addChildrenNames()
@@ -1146,8 +1147,8 @@ of memory and possibly slow I/O"""
 
 
 class IndexesColumnBackCompatG(NotLoggedMixin, Group):
-    """This is meant to hidden indexes of pre-PyTables 1.0 files."""
-    _c_classId = 'INDEX'
+    """This is meant to hidden indexes of PyTables 1.x files."""
+    _c_classId = 'CINDEX'
 
 
 
