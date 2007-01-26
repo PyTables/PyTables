@@ -1496,11 +1496,11 @@ class OldIndexTestCase(PyTablesTestCase):
 
     def test1_x(self):
         """Check that files with 1.x indexes are recognized and warned."""
-        
-        f = openFile("idx-std-1.x.h5")
+        fname = self._testFilename("idx-std-1.x.h5")
+        f = openFile(fname)
         self.assertWarns(OldIndexWarning, f.getNode, "/table")
         f.close()
-        
+
 
 #----------------------------------------------------------------------
 
