@@ -92,14 +92,14 @@ _nxTypeFromNPType = {
     numpy.str_: str, }
 
 
-def _getEncodedTableName(tablename):
-    return _indexName % tablename
+def _indexNameOf(table):
+    return _indexName % table._v_name
 
-def _getIndexTableName(parent, tablename):
-    return joinPath(parent._v_pathname, _getEncodedTableName(tablename))
+def _indexPathnameOf(table):
+    return joinPath(table._v_parent._v_pathname, _indexNameOf(table))
 
-def _getIndexColName(parent, tablename, colname):
-    return joinPath(_getIndexTableName(parent, tablename), colname)
+def _colIndexPathnameOf(table, colname):
+    return joinPath(_indexPathnameOf(table), colname)
 
 
 class NailedDict(object):
@@ -501,7 +501,7 @@ chunkshape parameter should be an int, tuple or list and you passed a %s.
 the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             else:
                 self._v_chunkshape = chunkshape
-                
+
         super(Table, self).__init__(parentNode, name, new, filters, _log)
 
 
@@ -537,15 +537,14 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # The following code is only for opened tables.
 
         # Do the indexes group exist?
-        indexesGroupPath = _getIndexTableName(self._v_parent, self._v_name)
+        indexesGroupPath = _indexPathnameOf(self)
         igroup = indexesGroupPath in self._v_file
         oldindexes = False; listoldindexes = []
         for colobj in self.description._f_walk(type="Col"):
             colname = colobj._v_pathname
             # Is this column indexed?
             if igroup:
-                indexname = _getIndexColName(
-                    self._v_parent, self._v_name, colname)
+                indexname = _colIndexPathnameOf(self, colname)
                 indexed = indexname in self._v_file
                 self.colindexed[colname] = indexed
                 if indexed:
@@ -696,7 +695,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
     def _createIndexesTable(self, igroup):
         itgroup = IndexesTableG(
-            igroup, _getEncodedTableName(self._v_name),
+            igroup, _indexNameOf(self),
             "Indexes container for table "+self._v_pathname, new=True)
         # Assign the pathname table to this Group
         itgroup._v_attrs._g__setattr('PATHNAME', self._v_pathname)
@@ -2083,27 +2082,24 @@ The 'names' parameter must be a list of strings.""")
         This overloads the Node._g_move() method.
         """
 
-        oldparent = self._v_parent
-        oldname = self._v_name
+        itgname = _indexPathnameOf(self)
 
         # First, move the table to the new location.
         super(Table, self)._g_move(newParent, newName)
 
         # Then move the associated indexes (if any)
         if self.indexed:
-            itgroup = self._v_file._getNode(_getIndexTableName(oldparent,
-                                                               oldname))
+            itgroup = self._v_file._getNode(itgname)
             oldiname = itgroup._v_name
             newigroup = self._v_parent
-            newiname = _getEncodedTableName(self._v_name)
+            newiname = _indexNameOf(self)
             itgroup._g_move(newigroup, newiname)
 
 
     def _g_remove(self, recursive=False):
         # Remove the associated indexes (if they exist).
         if self.indexed:
-            itgroup = self._v_file._getNode(
-                _getIndexTableName(self._v_parent, self.name))
+            itgroup = self._v_file._getNode(_indexPathnameOf(self))
             itgroup._f_remove(recursive=True)
             self.indexed = False   # The indexes are no longer valid
 
@@ -2385,8 +2381,7 @@ class Cols(object):
         # Bound the index table group because it will be referenced
         # quite a lot when populating the attrs with column objects.
         try:
-            itgroup = table._v_file._getNode(
-                _getIndexTableName(table._v_parent, table.name))
+            itgroup = table._v_file._getNode(_indexPathnameOf(table))
         except NodeError:
             pass
         # Put the column in the local dictionary
@@ -2666,8 +2661,7 @@ class Column(object):
         self.dtype = descr._v_dtypes[name]
         self.type = descr._v_types[name]
         # Check whether an index exists or not
-        indexname = _getIndexColName(table._v_parent, table._v_name,
-                                     self.pathname)
+        indexname = _colIndexPathnameOf(table, self.pathname)
         try:
             index = tableFile._getNode(indexname)
             index.column = self # points to this column
@@ -2806,7 +2800,7 @@ class Column(object):
 
         # Get the indexes group for table, and if not exists, create it
         try:
-            itgroup = getNode(_getIndexTableName(tableParent, tableName))
+            itgroup = getNode(_indexPathnameOf(table))
         except NodeError:
             itgroup = table._createIndexesTable(tableParent)
 
