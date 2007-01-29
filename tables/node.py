@@ -278,6 +278,10 @@ class Node(object):
             else:
                 self._v_objectID = self._g_open()
 
+            # The node *has* been created, log that.
+            if new and _log and file_.isUndoEnabled():
+                self._g_logCreate()
+
             # This allows extra operations after creating the node.
             self._g_postInitHook()
         except:
@@ -290,11 +294,6 @@ class Node(object):
             # since it might never be called anyway.
             self._f_close()
             raise
-
-        # Finally, log creation of the node.
-        # This is made after the ``try`` because the node *has* been created!
-        if new and _log and file_.isUndoEnabled():
-            self._g_logCreate()
 
 
     def _g_logCreate(self):
