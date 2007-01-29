@@ -216,7 +216,11 @@ class Group(hdf5Extension.Group, Node):
                 filters = newFilters
             setAttr('FILTERS', filters)
         else:
-            self._v_version = self._v_attrs.VERSION
+            # If the file has PyTables format, get the VERSION attr
+            if 'VERSION' in self._v_attrs._v_attrnamessys:
+                self._v_version = self._v_attrs.VERSION
+            else:
+                self._v_version = "0.0 (unknown)"
             # We don't need to get more attributes from disk,
             # since the most important ones are defined as properties.
             # However, we *do* need to get the names of children nodes.
