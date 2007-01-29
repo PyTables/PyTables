@@ -150,9 +150,11 @@ class DB(object):
         if not onlynonidxquery:
             for colname in idx_cols:
                 # Pre-heating query
+                t1=time()
                 results = self.do_query(self.con, colname,
                                         #base)
                                         numpy.random.randint(self.nrows))
+                print "First indexed query time:", round(time()-t1, 3)
                 ltimes = []
                 for j in xrange(niter):
                     numpy.random.seed(rseed)
