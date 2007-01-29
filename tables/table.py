@@ -2242,8 +2242,11 @@ The 'names' parameter must be a list of strings.""")
         if self.indexed and self.autoIndex:
             # Flush any unindexed row
             rowsadded = self.flushRowsToIndex(lastrow=True)
-            if rowsadded > 0 and self._indexedrows <> self.nrows:  ## XXX only for pro!
-                raise RuntimeError , "Internal error: the number of indexed rows (%s) and rows in table (%s) must be equal!. Please, report this to the authors." % (self._indexedrows, self.nrows)
+            assert rowsadded <= 0 or self._indexedrows == self.nrows, \
+                   ( "internal error: the number of indexed rows (%d) "
+                     "and rows in the table (%d) is not equal; "
+                     "please report this to the authors."
+                     % (self._indexedrows, self.nrows) )
 
 # #****************************** a test *************************************
 #         # XXX For pro
