@@ -261,8 +261,8 @@ class Table(tableExtension.Table, Leaf):
     _v_wbuffer = property(_g_getwbuffer, None, None,
                           "*The* buffer for writing.")
 
-    # Other
-    # `````
+    # Index-related properties
+    # ````````````````````````
     def _setautoIndex(self, auto):
         oldauto, newauto = self._autoIndex, bool(auto)
         if oldauto != newauto:
@@ -314,11 +314,10 @@ class Table(tableExtension.Table, Leaf):
         """ )
 
     indexedcolpathnames = property(
-        lambda self: [colpname for colpname in self.colpathnames
-                      if self.colindexed[colpname]], None, None,
-        """
-        The pathnames of the indexed columns of this table.
-        """)
+        lambda self: [ _colpname for _colpname in self.colpathnames
+                       if self.colindexed[_colpname] ],
+        None, None,
+        """The pathnames of the indexed columns of this table.""" )
 
     # End of properties
 
