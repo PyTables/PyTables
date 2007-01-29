@@ -38,7 +38,7 @@ from tables.conditions import split_condition, call_on_recarr
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.path import joinPath
+from tables.path import joinPath, splitPath
 from tables.utils import is_idx, byteorders
 from tables.leaf import Leaf, Filters
 from tables.index import Index, defaultAutoIndex, defaultIndexFilters
@@ -88,7 +88,8 @@ def _indexNameOf(table):
     return '_i_%s' % table._v_name
 
 def _indexPathnameOf(table):
-    return joinPath(table._v_parent._v_pathname, _indexNameOf(table))
+    tableParentPath = splitPath(table._v_pathname)[0]
+    return joinPath(tableParentPath, _indexNameOf(table))
 
 def _colIndexPathnameOf(table, colname):
     return joinPath(_indexPathnameOf(table), colname)
