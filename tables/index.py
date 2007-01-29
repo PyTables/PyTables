@@ -14,7 +14,6 @@ See Index class docstring for more info.
 
 Classes:
 
-    IndexProps
     Index
 
 Functions:
@@ -23,6 +22,7 @@ Functions:
 Misc variables:
 
     __version__
+    defaultAutoIndex
     defaultIndexFilters
 
 
@@ -63,11 +63,17 @@ obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series
 # The default method for sorting
 defsort = "quicksort"
 
+# Default policy for automatically updating indexes after a table
+# append operation, or automatically reindexing after an
+# index-invalidating operation like removing or modifying table rows.
+defaultAutoIndex = True
+# Keep in sync with ``Table.autoIndex`` docstring.
+
 # Default filters used to compress indexes.  This is quite fast and
 # compression is pretty good.
 defaultIndexFilters = Filters( complevel=1, complib='zlib',
                                shuffle=True, fletcher32=False )
-# Take care to update `IndexProps` docstrings if arguments change!
+# Keep in sync with ``Table.indexFilters`` docstring.
 
 # Python implementations of NextAfter and NextAfterF
 #
@@ -310,45 +316,6 @@ def nextafter(x, direction, dtype, itemsize):
     raise TypeError("data type ``%s`` is not supported" % dtype)
 
 
-
-class IndexProps(object):
-    """Container for index properties
-
-    Instance variables:
-
-        auto -- whether an existing index should be automatically
-            updated after a Table append operation, or reindexed after
-            an index-invalidating operation (like Table.removeRows)
-        filters -- the filter properties for the Table indexes
-
-    """
-    auto_default = True
-
-    def __init__( self,
-                  auto=auto_default,
-                  filters=None ):
-        """Create a new IndexProps instance
-
-        Parameters:
-
-        auto -- whether an existing index should be automatically
-            updated after a Table append operation or, reindexed after
-            an index-invalidating operation (like Table.removeRows).
-            Default is automatic update ore reindexing.
-        filters -- the filter properties. Default are ZLIB(1) and shuffle
-        """
-
-        self.auto = bool(auto)
-        if filters is None:
-            self.filters = defaultIndexFilters
-        elif isinstance(filters, Filters):
-            self.filters = filters
-        else:
-            raise TypeError, \
-"If you pass a filters parameter, it should be a Filters instance."
-
-    def __repr__(self):
-        return 'IndexProps(auto=%s, filters=%r)' % (self.auto, self.filters)
 
 class Index(NotLoggedMixin, indexesExtension.Index, Group):
 

@@ -1999,7 +1999,8 @@ Represent a table in the object tree.
         coldflts -- the defaults for each column (dictionary)
         colindexed -- whether the table fields are indexed (dictionary)
         indexed -- whether or not some field in Table is indexed
-        indexprops -- properties of an indexed Table
+        autoIndex -- automatically keep column indexes up to date?
+        indexFilters -- filters used to compress indexes
         indexedcolpathnames -- the pathnames of the indexed columns (list)
           </screen>
 
@@ -6711,20 +6712,48 @@ for node in h5file.root.detector:
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis
-              role="bold">indexprops</emphasis></glossterm>
+              <glossterm><emphasis role="bold">autoIndex</emphasis></glossterm>
 
               <glossdef>
-                <para>Properties of the indexes of this table.</para>
+                <para>Automatically keep column indexes up to date?</para>
 
-                <para>This is an <literal>IndexProps</literal> (see <xref
-                linkend="IndexPropsClassDescr"
-                xrefstyle="select: labelnumber" />) instance. You may replace
-                it at any time, but only some changes will affect existing
-                indexes. Particularly, changing the automatic indexing
-		parameter affects existing indexes immediatly, while changing
-                the filters parameter only affects newly created
-                indexes.</para>
+                <para>Setting this value states whether existing indexes
+                should be automatically updated after an append operation or
+                recomputed after an index-invalidating operation (i.e. removal
+                and modification of rows).  The default is true.
+                </para>
+
+                <para>This value gets into effect whenever a column is
+                altered.  For an immediate update use
+                <literal>self.flushRowsToIndex()</literal> (see <xref
+                linkend="Table.flushRowsToIndex" xrefstyle="select: label"
+                />); for immediate reindexation of invalidated indexes, use
+                <literal>self.reIndexDirty()</literal> (see <xref
+                linkend="Table.reIndexDirty" xrefstyle="select: label" />).
+                </para>
+
+                <para>This value is persistent.</para>
+              </glossdef>
+            </glossentry>
+
+              <glossdef>
+                <para>Filters used to compress indexes.</para>
+
+                <para>Setting this value to a <literal>Filters</literal> (see
+                <xref linkend="FiltersClassDescr" xrefstyle="select: label"
+                />) instance determines the compression to be used for
+                indexes.  Setting it to <literal>None</literal> means that no
+                filters will be used for indexes.  The default is zlib
+                compression level 1 with shuffling.
+                </para>
+
+                <para>This value is used when creating new indexes or
+                recomputing old ones.  To apply it to existing indexes, use
+                <literal>self.reIndex()</literal> (see <xref
+                linkend="Table.reIndex" xrefstyle="select: label" />).
+                </para>
+
+                <para>This value is persistent.</para>
               </glossdef>
             </glossentry>
 
@@ -7085,7 +7114,7 @@ if row['var1'] &lt;= 20 ]</screen>
 
             <para>Add remaining rows in buffers to non-dirty indexes. This can
             be useful when you have chosen non-automatic indexing for the
-            table (see <xref linkend="IndexPropsClassDescr"
+            table (see <xref linkend="Table.autoIndex"
             xrefstyle="select: label" />) and want to update the indexes on
             it.</para>
           </section>
@@ -7104,10 +7133,9 @@ if row['var1'] &lt;= 20 ]</screen>
 
             <para>Recompute the existing indexes in table, but
             <emphasis>only</emphasis> if they are dirty. This can be useful
-            when you have set the <literal>auto</literal> parameter to 0 in
-            <literal>IndexProps</literal> constructor (see <xref
-            linkend="IndexPropsInitDescr" />) for the table and want to update
-            the indexes after a invalidating index operation
+            when you have set <literal>autoIndex</literal> (see <xref
+            linkend="Table.autoIndex" />) to false for the table and want
+            to update the indexes after a invalidating index operation
             (<literal>Table.removeRows</literal>, for example).</para>
           </section>
 
@@ -7854,7 +7882,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             the <literal>Filters</literal> (see <xref
             linkend="FiltersClassDescr" xrefstyle="select: label" />) used to
             compress the index. If <literal>None</literal>, they will be those
-            in the <literal>indexprops.filters</literal> of the associated
+            in the <literal>indexFilters</literal> of the associated
             table if any; otherwise, default index filters will be used.
             </para>
           </section>
@@ -7882,11 +7910,11 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             <title><literal>reIndexDirty()</literal></title>
 
             <para>Recompute the existing index only if it is dirty. This can
-            be useful when you have set the <literal>auto</literal>
-            parameter to 0 in <literal>IndexProps</literal> constructor (see
-            <xref linkend="IndexPropsInitDescr" />) for the table and want to
-            update the column's index after a invalidating index operation
-            (<literal>Table.removeRows</literal>, for example).</para>
+            be useful when you have set <literal>autoIndex</literal> (see
+            <xref linkend="Table.autoIndex" />) to false for the table and
+            want to update the column's index after a invalidating index
+            operation (<literal>Table.removeRows</literal>, for
+            example).</para>
           </section>
 
           <section id="removeIndexColumnDescr">
@@ -9891,44 +9919,6 @@ fileh.close()</screen> This enforces the use of the <literal>LZO</literal>
           <para>There are no <literal>IndexProps</literal> public methods with
           the exception of the constructor itself that is described
           next.</para>
-
-          <section id="IndexPropsInitDescr" xreflabel="description">
-            <title><literal>IndexProps(auto=True, filters=None)</literal></title>
-
-            <para>The parameters that can be passed to the
-            <literal>IndexProps</literal> class constructor are:</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">auto</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Specifies whether an existing index should be
-                  automatically updated after a table append operation, or
-                  reindexed after an index-invalidating operation (like
-                  <literal>Table.removeRows()</literal>). The default is
-                  automatic update or reindexing after this kind of
-                  operations.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">filters</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Sets the filter properties for
-                  <literal>Column</literal> indexes. It has to be an instance
-                  of the <literal>Filters</literal> (see <xref
-                  linkend="FiltersClassDescr"
-                  xrefstyle="select: labelnumber" />) class. A
-                  <literal>None</literal> value means that the default
-                  settings for the <literal>Filters</literal> object are
-                  selected.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
         </section>
 
         <section id="IndexClassDescr">

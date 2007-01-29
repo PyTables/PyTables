@@ -31,7 +31,6 @@ Misc variables:
 import sys
 import warnings
 import re
-import copy
 from time import time
 
 import numpy
@@ -43,8 +42,8 @@ from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.path import joinPath
 from tables.utils import is_idx, byteorders
-from tables.leaf import Leaf
-from tables.index import Index, IndexProps, defaultIndexFilters
+from tables.leaf import Leaf, Filters
+from tables.index import Index, defaultAutoIndex, defaultIndexFilters
 from tables.description import IsDescription, Description, Col
 from tables.atom import Atom
 from tables.group import IndexesTableG, IndexesDescG, IndexesColumnBackCompatG
@@ -198,7 +197,8 @@ class Table(tableExtension.Table, Leaf):
         coldflts -- the defaults for each column (dictionary)
         colindexed -- whether the table fields are indexed (dictionary)
         indexed -- whether or not some field in Table is indexed
-        indexprops -- properties of an indexed Table
+        autoIndex -- automatically keep column indexes up to date?
+        indexFilters -- filters used to compress indexes
         indexedcolpathnames -- the pathnames of the indexed columns (list)
 
     """
@@ -263,31 +263,54 @@ class Table(tableExtension.Table, Leaf):
 
     # Other
     # `````
-    def _setindexprops(self, value):
-        if not isinstance(value, IndexProps):
-            raise TypeError("not an instance of ``IndexProps``: %r" % value)
-        oldprops, newprops = self._indexprops, value
+    def _setautoIndex(self, auto):
+        oldauto, newauto = self._autoIndex, bool(auto)
+        if oldauto != newauto:
+            self._v_attrs._g__setattr('AUTO_INDEX', newauto)
+        self._autoIndex = newauto
 
-        setAttr = self._v_attrs._g__setattr
-        for (prop, attr) in [ ('auto', 'AUTO_INDEX'),
-                              ('filters', 'FILTERS_INDEX') ]:
-            # Only store values that have changed or were undefined.
-            newvalue = getattr(newprops, prop)
-            if not oldprops or getattr(oldprops, prop) != newvalue:
-                setAttr(attr, newvalue)
-
-        self._indexprops = value
-
-    indexprops = property(
-        lambda self: self._indexprops, _setindexprops, None,
+    autoIndex = property(
+        lambda self: self._autoIndex, _setautoIndex, None,
         """
-        Properties of the indexes of this table.
+        Automatically keep column indexes up to date?
 
-        This is an `IndexProps` instance.  You may replace it at any
-        time, but only some changes will affect existing indexes.
-        Particularly, changing the automatic indexing parameter affects
-        existing indexes immediatly, while changing the filters
-        parameter only affects newly created indexes.
+        Setting this value states whether existing indexes should be
+        automatically updated after an append operation or recomputed
+        after an index-invalidating operation (i.e. removal and
+        modification of rows).  The default is true.
+
+        This value gets into effect whenever a column is altered.  For
+        an immediate update use `self.flushRowsToIndex()`; for immediate
+        reindexation of invalidated indexes, use `self.reIndexDirty()`.
+
+        This value is persistent.
+        """ )
+
+    def _setindexFilters(self, filters):
+        if filters is None:
+            raise NotImplementedError(
+                "setting index filters no ``None`` is not supported yet" )
+        if not isinstance(filters, Filters):
+            raise TypeError("not an instance of ``Filters``: %r" % filters)
+        oldfilters, newfilters = self._indexFilters, filters
+        if oldfilters != newfilters:
+            self._v_attrs._g__setattr('FILTERS_INDEX', newfilters)
+        self._indexFilters = newfilters
+
+    indexFilters = property(
+        lambda self: self._indexFilters, _setindexFilters, None,
+        """
+        Filters used to compress indexes.
+
+        Setting this value to a `Filters` instance determines the
+        compression to be used for indexes.  Setting it to ``None``
+        means that no filters will be used for indexes.  The default is
+        zlib compression level 1 with shuffling.
+
+        This value is used when creating new indexes or recomputing old
+        ones.  To apply it to existing indexes, use `self.reIndex()`.
+
+        This value is persistent.
         """ )
 
     indexedcolpathnames = property(
@@ -367,8 +390,10 @@ class Table(tableExtension.Table, Leaf):
 
         self.indexed = False
         """Does this table have any indexed columns?"""
-        self._indexprops = None
-        """Properties of the indexes of this table."""
+        self._autoIndex = None
+        """Whether to update or redo indexes automatically."""
+        self._indexFilters = None
+        """The filters used to compress new indexes."""
         self._indexedrows = 0
         """Number of rows indexed in disk."""
         self._unsaved_indexedrows = 0
@@ -504,8 +529,9 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             self.colindexed = dict((cpn, False) for cpn in self.colpathnames)
 
             # Create index properties attributes by triggering changes in
-            # the ``indexprops`` property.
-            self.indexprops = IndexProps()
+            # their respective properties.
+            self.autoIndex = defaultAutoIndex
+            self.indexFilters = defaultIndexFilters
 
             return
 
@@ -553,16 +579,17 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 (self._v_pathname, listoldindexes),
                 OldIndexWarning )
 
-        # Create an index properties object.
+        # Set index properties.
         # It does not matter to which column 'indexobj' belongs,
         # since their respective index objects share
         # the same filters and number of elements.
-        autoindex = getattr(self.attrs, 'AUTO_INDEX', IndexProps.auto_default)
+        self._autoIndex = getattr(self.attrs, 'AUTO_INDEX', defaultAutoIndex)
         if self.indexed:
             filters = indexobj.filters
         else:
-            filters = getattr(self.attrs, 'FILTERS_INDEX', None)
-        self._indexprops = IndexProps(auto=autoindex, filters=filters)
+            filters = getattr(self.attrs, 'FILTERS_INDEX', defaultIndexFilters)
+        self._indexFilters = filters
+
         if self.indexed:
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
@@ -1713,7 +1740,7 @@ You cannot append rows to a non-chunked table.""")
         if self.indexed:
             # Update the number of unsaved indexed rows
             self._unsaved_indexedrows += lenrows
-            if self.indexprops.auto:
+            if self.autoIndex:
                 self.flushRowsToIndex(lastrow=False)
 
 
@@ -1729,7 +1756,7 @@ You cannot append rows to a non-chunked table.""")
         self.nrows += self._unsaved_nrows
         if self.indexed:
             self._unsaved_indexedrows += self._unsaved_nrows
-            if self.indexprops.auto:
+            if self.autoIndex:
                 # Flush the unindexed rows (this needs to read the table)
                 self.flushRowsToIndex(lastrow=False)
         # Reset the number of unsaved rows
@@ -2112,7 +2139,7 @@ The 'names' parameter must be a list of strings.""")
                     # col.index.dirty = True
                     col.index._setdirty(True)
             # Now, re-index the dirty ones
-            if self.indexprops.auto:
+            if self.autoIndex:
                 self.reIndex()
 
 
@@ -2185,7 +2212,8 @@ The 'names' parameter must be a list of strings.""")
         self._g_copyRows(newtable, start, stop, step)
         nbytes = newtable.nrows * newtable.rowsize
         # Generate equivalent indexes in the new table, if any.
-        newtable.indexprops = copy.copy(self.indexprops)
+        newtable.autoIndex = self.autoIndex
+        newtable.indexFilters = self.indexFilters
         if self.indexed:
             warnings.warn(
                 "generating indexes for destination table ``%s:%s``; "
@@ -2211,7 +2239,7 @@ The 'names' parameter must be a list of strings.""")
         # Flush rows that remains to be appended
         if self._unsaved_nrows > 0:
             self._saveBufferedRows(flush=1)
-        if self.indexed and self.indexprops.auto:
+        if self.indexed and self.autoIndex:
             # Flush any unindexed row
             rowsadded = self.flushRowsToIndex(lastrow=True)
             if rowsadded > 0 and self._indexedrows <> self.nrows:  ## XXX only for pro!
@@ -2254,7 +2282,7 @@ The 'names' parameter must be a list of strings.""")
         # call self.flush() in case the tables is being preempted before doing it.
         # F. Altet 2006-08-03
         if (self._unsaved_nrows > 0 or (self.indexed and
-                                        self.indexprops.auto and
+                                        self.autoIndex and
                                         self._unsaved_indexedrows > 0)):
             warnings.warn("""\
 table ``%s`` is being preempted from alive nodes without its buffers being flushed. This may lead to very ineficient use of resources and even to fatal errors in certain situations. Please, do a call to the .flush() method on this table before start using other nodes."""
@@ -2295,14 +2323,16 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
         """This provides column metainfo in addition to standard __str__"""
 
         if self.indexed:
-            return \
-"""%s
+            format = """\
+%s
   description := %r
   byteorder := %r
-  indexprops := %r
-  indexedcolpathnames := %r""" % \
-        (str(self), self.description, self.byteorder,
-         self.indexprops, self.indexedcolpathnames)
+  autoIndex := %r
+  indexFilters := %r
+  indexedcolpathnames := %r"""
+            return format % ( str(self), self.description, self.byteorder,
+                              self.autoIndex, self.indexFilters,
+                              self.indexedcolpathnames )
         else:
             return "%s\n  description := %r\n  byteorder := %r\n" % \
                    (str(self), self.description, self.byteorder)
@@ -2744,8 +2774,8 @@ class Column(object):
 
         optlevel -- The default level of optimization for the index.
         filters -- The Filters used to compress the index. If None, they
-            will be those in the indexprops.filters of the associated
-            table if any; otherwise, default index filters will be used.
+            will be those in the indexFilters of the associated table if
+            any; otherwise, default index filters will be used.
         """
 
         name = self.name
@@ -2780,7 +2810,7 @@ class Column(object):
 
         # If no filters are specified, try the table and then the default.
         if filters is None:
-            filters = table.indexprops.filters
+            filters = table.indexFilters
         if filters is None:
             filters = defaultIndexFilters
 

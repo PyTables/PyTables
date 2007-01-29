@@ -27,7 +27,7 @@ def create_db(filename, nrows):
     con = open_db(filename, remove=1)
     table = con.createTable(con.root, 'table', Record,
                             filters=filters, expectedrows=nrows)
-    table.indexprops = tables.IndexProps(filters=filters)
+    table.indexFilters = filters
     step = 1000*100
     scale = 0.1
     t1=time()

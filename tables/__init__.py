@@ -46,7 +46,6 @@ from tables.file import File, openFile, copyFile
 from tables.node import Node
 from tables.group import Group
 from tables.leaf import Leaf, Filters
-from tables.index import IndexProps
 from tables.table import Table, Cols, Column
 from tables.array import Array
 from tables.carray import CArray
@@ -71,7 +70,7 @@ __all__ = [
     'isHDF5',  # deprecated
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion', 'copyFile', 'openFile',
     # Helper classes:
-    'IsDescription', 'Description', 'Filters', 'IndexProps', 'Cols', 'Column',
+    'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
     # Types:
     'Enum',
     # Atom types:

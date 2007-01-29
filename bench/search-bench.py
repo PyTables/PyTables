@@ -84,18 +84,15 @@ def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
     fileh = openFile(filename, mode = "w", title="Searchsorted Benchmark",
                      filters=filters)
     rowswritten = 0
-    # set the properties of the index (the same of table)
-    indexprops = IndexProps()
-    if index:
-        indexprops = IndexProps(auto=auto, filters=filters)
-    else:
-        auto = 0
-        indexprops = IndexProps(auto=0, filters=filters)
 
     # Create the test table
     table = fileh.createTable(fileh.root, 'table', Small, "test table",
                               None, nrows)
-    table.indexprops = indexprops
+    # set the properties of the index (the same of table)
+    if not index:
+        auto = False
+    table.autoIndex = auto
+    table.indexFilters = filters
     if not heavy:
         table.cols.var1.createIndex()
     for colname in ['var2', 'var3']:

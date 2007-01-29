@@ -40,7 +40,7 @@ class PyTables_DB(DB):
 
         table = con.createTable(con.root, 'table', Record,
                                 filters=filters, expectedrows=self.nrows)
-        table.indexprops = tables.IndexProps(filters=filters)
+        table.indexFilters = filters
 
     def fill_table(self, con):
         "Fills the table"
