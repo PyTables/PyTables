@@ -30,8 +30,6 @@ Misc variables:
 
 import sys
 import warnings
-import re
-from time import time
 
 import numpy
 
@@ -67,12 +65,6 @@ __version__ = "$Revision$"
 # 2.6: Added the FLAVOR attribute (optional).
 obversion = "2.6"  # The Table VERSION number
 
-# Paths and names for hidden nodes related with indexes.
-_indexName   = '_i_%s'  # %s -> encoded table path
-
-# Compile a regular expression for expressions like '(2,2)Int8'
-prog = re.compile(r'([\(\),\d\s]*)([A-Za-z]+[0-9]*)')
-
 
 # Maps NumPy types to the types used by Numexpr.
 _nxTypeFromNPType = {
@@ -93,7 +85,7 @@ _nxTypeFromNPType = {
 
 
 def _indexNameOf(table):
-    return _indexName % table._v_name
+    return '_i_%s' % table._v_name
 
 def _indexPathnameOf(table):
     return joinPath(table._v_parent._v_pathname, _indexNameOf(table))
