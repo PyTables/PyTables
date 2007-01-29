@@ -46,7 +46,7 @@ from tables.description import IsDescription, Description, Col
 from tables.atom import Atom
 from tables.group import IndexesTableG, IndexesDescG, IndexesColumnBackCompatG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
-     OldIndexWarning
+     OldIndexWarning, NoSuchNodeError
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES, \
      LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE, TABLE_MAX_SLOTS, MB
 from tables.utilsExtension import getNestedField
@@ -2075,14 +2075,17 @@ The 'names' parameter must be a list of strings.""")
         This overloads the Node._g_move() method.
         """
 
-        itgname = _indexPathnameOf(self)
+        itgpathname = _indexPathnameOf(self)
 
         # First, move the table to the new location.
         super(Table, self)._g_move(newParent, newName)
 
-        # Then move the associated indexes (if any)
-        if self.indexed:
-            itgroup = self._v_file._getNode(itgname)
+        # Then move the associated index group (if any).
+        try:
+            itgroup = self._v_file._getNode(itgpathname)
+        except NoSuchNodeError:
+            pass
+        else:
             oldiname = itgroup._v_name
             newigroup = self._v_parent
             newiname = _indexNameOf(self)
@@ -2090,11 +2093,15 @@ The 'names' parameter must be a list of strings.""")
 
 
     def _g_remove(self, recursive=False):
-        # Remove the associated indexes (if they exist).
-        if self.indexed:
-            itgroup = self._v_file._getNode(_indexPathnameOf(self))
+        # Remove the associated index group (if any).
+        itgpathname = _indexPathnameOf(self)
+        try:
+            itgroup = self._v_file._getNode(itgpathname)
+        except NoSuchNodeError:
+            pass
+        else:
             itgroup._f_remove(recursive=True)
-            self.indexed = False   # The indexes are no longer valid
+            self.indexed = False   # there are indexes no more
 
         # Remove the leaf itself from the hierarchy.
         super(Table, self)._g_remove(recursive)
