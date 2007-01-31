@@ -160,9 +160,10 @@ class DB(object):
                 if verbose:
                     print "Results len:", results
                 self.print_qtime(colname, ltimes)
-        # Always remove the cache after query loops
-        if hasattr(self, "table_cache"): 
-            del self.table_cache
+            # Always reopen the file after *every* query loop.
+            # Necessary to make the benchmark to run correctly.
+            self.close_db(self.con)
+            self.con = self.open_db()
         # Query for indexed columns
         if not onlynonidxquery:
             for colname in idx_cols:
@@ -176,6 +177,10 @@ class DB(object):
                     results = self.do_query(self.con, colname, base)
                     ltimes.append(time()-t1)
                 self.print_qtime_idx(colname, ltimes, False, verbose)
+                # Always reopen the file after *every* query loop.
+                # Necessary to make the benchmark to run correctly.
+                self.close_db(self.con)
+                self.con = self.open_db()
                 ltimes = []
                 # Second, repeated queries
                 for i in range(niter):
@@ -185,9 +190,11 @@ class DB(object):
                 if verbose:
                     print "Results len:", results
                 self.print_qtime_idx(colname, ltimes, True, verbose)
-        # Always remove the cache after query loops
-        if hasattr(self, "table_cache"): 
-            del self.table_cache
+                # Always reopen the file after *every* query loop.
+                # Necessary to make the benchmark to run correctly.
+                self.close_db(self.con)
+                self.con = self.open_db()
+        # Finally, close the file.
         self.close_db(self.con)
 
     def close_db(self, con):

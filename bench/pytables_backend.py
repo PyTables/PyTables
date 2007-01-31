@@ -27,6 +27,12 @@ class PyTables_DB(DB):
         con = tables.openFile(self.filename, 'a')
         return con
 
+    def close_db(self, con):
+        # Remove first the table_cache attribute if it exists
+        if hasattr(self, "table_cache"):
+            del self.table_cache
+        con.close()
+
     def create_table(self, con):
         # The filters chosen
         filters = tables.Filters(complevel=self.docompress,
