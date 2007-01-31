@@ -160,6 +160,9 @@ class DB(object):
                 if verbose:
                     print "Results len:", results
                 self.print_qtime(colname, ltimes)
+        # Always remove the cache after query loops
+        if hasattr(self, "table_cache"): 
+            del self.table_cache
         # Query for indexed columns
         if not onlynonidxquery:
             for colname in idx_cols:
@@ -182,6 +185,9 @@ class DB(object):
                 if verbose:
                     print "Results len:", results
                 self.print_qtime_idx(colname, ltimes, True, verbose)
+        # Always remove the cache after query loops
+        if hasattr(self, "table_cache"): 
+            del self.table_cache
         self.close_db(self.con)
 
     def close_db(self, con):

@@ -66,14 +66,27 @@ class PyTables_DB(DB):
 #         col.optimizeIndex(level=level, verbose=verbose)
 
     def do_query(self, con, column, base):
-        table = con.root.table
-        colobj = getattr(table.cols, column)
-        self.condvars = {"col": colobj,
-                         "col1": table.cols.col1,
-                         "col2": table.cols.col2,
-                         "col3": table.cols.col3,
-                         "col4": table.cols.col4,
-                         }
+        if True:
+            if not hasattr(self, "table_cache"): 
+                self.table_cache = table = con.root.table 
+                self.colobj = getattr(table.cols, column) 
+                self.condvars = {"col": self.colobj, 
+                                 "col1": table.cols.col1, 
+                                 "col2": table.cols.col2, 
+                                 "col3": table.cols.col3, 
+                                 "col4": table.cols.col4, 
+                                 } 
+            table = self.table_cache 
+            colobj = self.colobj 
+        else:
+            table = con.root.table
+            colobj = getattr(table.cols, column)
+            self.condvars = {"col": colobj,
+                             "col1": table.cols.col1,
+                             "col2": table.cols.col2,
+                             "col3": table.cols.col3,
+                             "col4": table.cols.col4,
+                             }
         condition = "(%s<=col) & (col<=%s)" % \
                     (self.rng[0]+base, self.rng[1]+base)
         # condition = "(%s<=col1*col2) & (col3*col4<=%s)" % \
