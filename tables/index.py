@@ -569,9 +569,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
         CacheArray(self, 'bounds', atom, (0, nbounds_inslice),
                    "Boundary Values", filters,
-                   self._v_expectedrows//self.chunksize)
+                   self._v_expectedrows//self.chunksize,
+                   (1, nbounds_inslice))
 
-        # begin, end & median bounds (only for numeric types)
+        # begin, end & median bounds (only for numerical types)
         EArray(self, 'abounds', atom, (0,), "Start bounds", _log=False)
         EArray(self, 'zbounds', atom, (0,), "End bounds", filters, _log=False)
         EArray(self, 'mbounds', atom, (0,), "Median bounds", filters,
