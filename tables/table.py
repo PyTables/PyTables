@@ -262,7 +262,7 @@ class Table(tableExtension.Table, Leaf):
         try:
             indexgroup = self._v_file._getNode(_indexPathnameOf(self))
         except NoSuchNodeError:
-            indexgroup = self._createIndexesTable(self._v_parent)
+            indexgroup = self._createIndexesTable()
         # Property assignment in groups does not work. :(
         # indexgroup.auto = auto
         indexgroup._setauto(auto)
@@ -298,7 +298,7 @@ class Table(tableExtension.Table, Leaf):
         try:
             indexgroup = self._v_file._getNode(_indexPathnameOf(self))
         except NoSuchNodeError:
-            indexgroup = self._createIndexesTable(self._v_parent)
+            indexgroup = self._createIndexesTable()
         # Property assignment in groups does not work. :(
         # indexgroup.filters = filters
         indexgroup._setfilters(filters)
@@ -689,9 +689,9 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         return enumMap
 
 
-    def _createIndexesTable(self, igroup):
+    def _createIndexesTable(self):
         itgroup = IndexesTableG(
-            igroup, _indexNameOf(self),
+            self._v_parent, _indexNameOf(self),
             "Indexes container for table "+self._v_pathname, new=True)
         return itgroup
 
@@ -2785,7 +2785,6 @@ class Column(object):
         name = self.name
         table = self.table
         tableName = table._v_name
-        tableParent = table._v_parent
         dtype = self.dtype
         descr = self.descr
         index = self.index
@@ -2810,7 +2809,7 @@ class Column(object):
         try:
             itgroup = getNode(_indexPathnameOf(table))
         except NodeError:
-            itgroup = table._createIndexesTable(tableParent)
+            itgroup = table._createIndexesTable()
 
         # If no filters are specified, try the table and then the default.
         if filters is None:
