@@ -85,15 +85,15 @@ _nxTypeFromNPType = {
     numpy.str_: str, }
 
 
-def _indexNameOf(table):
-    return '_i_%s' % table._v_name
+def _indexNameOf(node):
+    return '_i_%s' % node._v_name
 
-def _indexPathnameOf(table):
-    tableParentPath = splitPath(table._v_pathname)[0]
-    return joinPath(tableParentPath, _indexNameOf(table))
+def _indexPathnameOf(node):
+    nodeParentPath = splitPath(node._v_pathname)[0]
+    return joinPath(nodeParentPath, _indexNameOf(node))
 
-def _colIndexPathnameOf(table, colname):
-    return joinPath(_indexPathnameOf(table), colname)
+def _indexPathnameOfColumn(table, colpathname):
+    return joinPath(_indexPathnameOf(table), colpathname)
 
 
 class NailedDict(object):
@@ -548,7 +548,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             colname = colobj._v_pathname
             # Is this column indexed?
             if igroup:
-                indexname = _colIndexPathnameOf(self, colname)
+                indexname = _indexPathnameOfColumn(self, colname)
                 indexed = indexname in self._v_file
                 self.colindexed[colname] = indexed
                 if indexed:
@@ -2669,7 +2669,7 @@ class Column(object):
         self.dtype = descr._v_dtypes[name]
         self.type = descr._v_types[name]
         # Check whether an index exists or not
-        indexname = _colIndexPathnameOf(table, self.pathname)
+        indexname = _indexPathnameOfColumn(table, self.pathname)
         try:
             index = tableFile._getNode(indexname)
             index.column = self # points to this column
