@@ -422,9 +422,9 @@ cdef class ObjectCache(BaseCache):
 
 
   def __repr__(self):
-    return "<%s(%s) (%d maxslots, %d slots used, %.3f KB cachesize)>" % \
+    return "<%s(%s) (%d maxslots, %d slots used, %.3f KB cachesize, disabled? %s)>" % \
            (self.name, str(self.__class__), self.nslots, self.nextslot,
-            self.cachesize / 1024.)
+            self.cachesize / 1024., self.iscachedisabled)
 
 
 ###################################################################
@@ -580,9 +580,9 @@ cdef class NumCache(BaseCache):
   def __repr__(self):
 
     cachesize = (self.nextslot * self.slotsize) / 1024.
-    return "<%s(%s) (%d maxslots, %d slots used, %.3f KB cachesize)>" % \
+    return "<%s(%s) (%d maxslots, %d slots used, %.3f KB cachesize, disabled? %s)>" % \
            (self.name, str(self.__class__), self.nslots, self.nextslot,
-            cachesize)
+            cachesize, self.iscachedisabled)
 
 
 

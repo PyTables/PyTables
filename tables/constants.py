@@ -195,14 +195,14 @@ INDICES_MAX_SIZE = 1*MB
 """The maximum size for indices values cached during index lookups."""
 
 ENABLE_EVERY_CYCLES = 50
-"""The number of cycles that the LRU cache for data (indexes) will be
-forced to be (re-)enabled, irregardingly of the hit ratio. This will
-provide a chance for checking if we are in a better scenario for doing
-caching again."""
+"""The number of cycles that the several LRU caches for data (not nodes)
+will be forced to be (re-)enabled, irregardingly of the hit ratio. This
+will provide a chance for checking if we are in a better scenario for
+doing caching again."""
 
 LOWEST_HIT_RATIO = 0.6
-"""The minimum acceptable hit ratio for the LRU cache for data to avoid
-disabling the cache."""
+"""The minimum acceptable hit ratio for the several LRU caches for data
+(not nodes) to avoid disabling the cache."""
 
 EXPECTED_ROWS_TABLE = 10000
 """Default expected number of rows for ``Table`` objects."""
