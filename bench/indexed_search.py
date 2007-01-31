@@ -79,7 +79,7 @@ class DB(object):
         wmean, wstd = self.norm_times(wtimes)
         if verbose:
             print "Times for cold cache:\n", ctimes
-            print "Times for warm cache:\n", wtimes
+            #print "Times for warm cache:\n", wtimes
             print "Histogram for warm cache: %s\n%s" % numpy.histogram(wtimes)
         print "%s1st query time for %s:" % (r, colname), \
               round(qtime1, prec)
@@ -154,8 +154,7 @@ class DB(object):
                 random.seed(rseed)
                 for i in range(NI_NTIMES):
                     t1=time()
-                    results = self.do_query(self.con, colname,
-                                            base)
+                    results = self.do_query(self.con, colname, base)
                     ltimes.append(time()-t1)
                 if verbose:
                     print "Results len:", results
