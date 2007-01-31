@@ -1123,39 +1123,6 @@ class RootGroup(Group):
 
 
 
-class IndexesDescG(NotLoggedMixin, Group):
-    _c_classId = 'DINDEX'
-
-    def _g_widthWarning(self):
-        warnings.warn("""\
-the number of indexed columns on a single description group is exceeding
-the recommended maximum (%d); be ready to see PyTables asking for *lots*
-of memory and possibly slow I/O"""
-                      % (MAX_GROUP_WIDTH,), PerformanceWarning)
-
-
-class IndexesTableG(NotLoggedMixin, Group):
-    _c_classId = 'TINDEX'
-
-    def _g_widthWarning(self):
-        warnings.warn("""\
-the number of indexed columns on a single table is exceeding the \
-recommended maximum (%d); be ready to see PyTables asking for *lots* \
-of memory and possibly slow I/O"""
-                      % (MAX_GROUP_WIDTH,), PerformanceWarning)
-
-    def _g_checkName(self, name):
-        if not name.startswith('_i_'):
-            raise ValueError(
-                "names of index groups must start with ``_i_``: %s" % name)
-
-
-class IndexesColumnBackCompatG(NotLoggedMixin, Group):
-    """This is meant to hidden indexes of PyTables 1.x files."""
-    _c_classId = 'CINDEX'
-
-
-
 class TransactionGroupG(NotLoggedMixin, Group):
     _c_classId = 'TRANSGROUP'
 
@@ -1164,7 +1131,6 @@ class TransactionGroupG(NotLoggedMixin, Group):
 the number of transactions is exceeding the recommended maximum (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                       % (MAX_GROUP_WIDTH,), PerformanceWarning)
-
 
 
 class TransactionG(NotLoggedMixin, Group):
@@ -1178,15 +1144,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                       PerformanceWarning)
 
 
-
 class MarkG(NotLoggedMixin, Group):
     # Class identifier.
     _c_classId = 'MARKG'
 
-
     import re
     _c_shadowNameRE = re.compile(r'^a[0-9]+$')
-
 
     def _g_widthWarning(self):
         warnings.warn("""\
@@ -1194,7 +1157,6 @@ mark ``%s`` is exceeding the recommended maximum action storage (%d nodes);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                       % (self._v_pathname, MAX_GROUP_WIDTH),
                       PerformanceWarning)
-
 
     def _g_reset(self):
         """

@@ -1261,8 +1261,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Check the dirty flag for indexes
         if verbose:
             for colname in table2.colnames:
-                print "dirty flag col %s: %s" % \
-                      (colname, table2.cols._f_col(colname).index.dirty)
+                if table2.cols._f_col(colname).index:
+                    print "dirty flag col %s: %s" % \
+                          (colname, table2.cols._f_col(colname).index.dirty)
         for colname in table2.colnames:
             if table2.cols._f_col(colname).index:
                 if table2.autoIndex:
@@ -1409,10 +1410,9 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
 
     def test_attributes(self):
         """Storing index properties as table attributes."""
-        attrs = self.table.attrs
         for refprops in [self.oldIndexProps, self.newIndexProps]:
-            self.assertEqual(attrs.AUTO_INDEX, refprops.auto)
-            self.assertEqual(attrs.FILTERS_INDEX, refprops.filters)
+            self.assertEqual(self.table.autoIndex, refprops.auto)
+            self.assertEqual(self.table.indexFilters, refprops.filters)
             self.table.autoIndex = self.newIndexProps.auto
             self.table.indexFilters = self.newIndexProps.filters
 
@@ -1421,9 +1421,8 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         oldtable = self.table
         newtable = oldtable.copy('/', 'test2')
 
-        for attr in ['AUTO_INDEX', 'FILTERS_INDEX']:
-            self.assertEqual( getattr(oldtable.attrs, attr),
-                              getattr(newtable.attrs, attr) )
+        for prop in ['autoIndex', 'indexFilters']:
+            self.assertEqual(getattr(oldtable, prop), getattr(newtable, prop))
 
     def test_newindex(self):
         """Using changed index properties in new indexes."""

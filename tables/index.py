@@ -48,7 +48,9 @@ from tables.leaf import Filters
 from tables.indexes import CacheArray, LastRowArray, IndexArray
 from tables.group import Group
 from tables.path import joinPath
-from tables.constants import LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE
+from tables.constants import (
+    LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE, MAX_GROUP_WIDTH )
+from tables.exceptions import PerformanceWarning
 
 from tables.lrucacheExtension import ObjectCache
 
@@ -1315,3 +1317,63 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         retstr += "\n  sortedLR := %s" % self.sortedLR
         retstr += "\n  indicesLR := %s" % self.indicesLR
         return retstr
+
+
+
+class IndexesDescG(NotLoggedMixin, Group):
+    _c_classId = 'DINDEX'
+
+    def _g_widthWarning(self):
+        warnings.warn(
+            "the number of indexed columns on a single description group "
+            "is exceeding the recommended maximum (%d); "
+            "be ready to see PyTables asking for *lots* of memory "
+            "and possibly slow I/O" % MAX_GROUP_WIDTH, PerformanceWarning )
+
+
+class IndexesTableG(NotLoggedMixin, Group):
+    _c_classId = 'TINDEX'
+
+    def _getauto(self):
+        if 'AUTO_INDEX' not in self._v_attrs:
+            return defaultAutoIndex
+        return self._v_attrs.AUTO_INDEX
+    def _setauto(self, auto):
+        self._v_attrs.AUTO_INDEX = bool(auto)
+    def _delauto(self):
+        del self._v_attrs.AUTO_INDEX
+    # Property assignment in groups does not work. :(
+    # auto = property(_getauto, _setauto, _delauto)
+    auto = property(_getauto, None, _delauto)
+
+    def _getfilters(self):
+        if 'FILTERS' not in self._v_attrs:
+            return defaultIndexFilters
+        return self._v_attrs.FILTERS
+    _setfilters = Group._g_setfilters
+    _delfilters = Group._g_delfilters
+    # Property assignment in groups does not work. :(
+    # filters = property(_g_getfilters, _setfilters, _delfilters)
+    filters = property(_getfilters, None, _delfilters)
+
+    def _g_postInitHook(self):
+        super(IndexesTableG, self)._g_postInitHook()
+        if self._v_new and defaultIndexFilters is not None:
+            self._v_attrs._g__setattr('FILTERS', defaultIndexFilters)
+
+    def _g_widthWarning(self):
+        warnings.warn(
+            "the number of indexed columns on a single table "
+            "is exceeding the recommended maximum (%d); "
+            "be ready to see PyTables asking for *lots* of memory "
+            "and possibly slow I/O" % MAX_GROUP_WIDTH, PerformanceWarning )
+
+    def _g_checkName(self, name):
+        if not name.startswith('_i_'):
+            raise ValueError(
+                "names of index groups must start with ``_i_``: %s" % name )
+
+
+class IndexesColumnBackCompatG(NotLoggedMixin, Group):
+    """This is meant to hide indexes of PyTables 1.x files."""
+    _c_classId = 'CINDEX'

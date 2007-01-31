@@ -41,10 +41,11 @@ from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.path import joinPath, splitPath
 from tables.utils import is_idx, byteorders
 from tables.leaf import Leaf, Filters
-from tables.index import Index, defaultAutoIndex, defaultIndexFilters
+from tables.index import (
+    Index, defaultAutoIndex, defaultIndexFilters,
+    IndexesTableG, IndexesDescG, IndexesColumnBackCompatG )
 from tables.description import IsDescription, Description, Col
 from tables.atom import Atom
-from tables.group import IndexesTableG, IndexesDescG, IndexesColumnBackCompatG
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
      OldIndexWarning, NoSuchNodeError
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES, \
@@ -257,13 +258,25 @@ class Table(tableExtension.Table, Leaf):
     # Index-related properties
     # ````````````````````````
     def _setautoIndex(self, auto):
-        oldauto, newauto = self._autoIndex, bool(auto)
-        if oldauto != newauto:
-            self._v_attrs._g__setattr('AUTO_INDEX', newauto)
-        self._autoIndex = newauto
+        auto = bool(auto)
+        try:
+            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+        except NoSuchNodeError:
+            indexgroup = self._createIndexesTable(self._v_parent)
+        # Property assignment in groups does not work. :(
+        # indexgroup.auto = auto
+        indexgroup._setauto(auto)
+
+    def _getautoIndex(self):
+        try:
+            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+        except NoSuchNodeError:
+            return defaultAutoIndex
+        else:
+            return indexgroup.auto
 
     autoIndex = property(
-        lambda self: self._autoIndex, _setautoIndex, None,
+        _getautoIndex , _setautoIndex, None,
         """
         Automatically keep column indexes up to date?
 
@@ -280,18 +293,26 @@ class Table(tableExtension.Table, Leaf):
         """ )
 
     def _setindexFilters(self, filters):
-        if filters is None:
-            raise NotImplementedError(
-                "setting index filters no ``None`` is not supported yet" )
         if not isinstance(filters, Filters):
             raise TypeError("not an instance of ``Filters``: %r" % filters)
-        oldfilters, newfilters = self._indexFilters, filters
-        if oldfilters != newfilters:
-            self._v_attrs._g__setattr('FILTERS_INDEX', newfilters)
-        self._indexFilters = newfilters
+        try:
+            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+        except NoSuchNodeError:
+            indexgroup = self._createIndexesTable(self._v_parent)
+        # Property assignment in groups does not work. :(
+        # indexgroup.filters = filters
+        indexgroup._setfilters(filters)
+
+    def _getindexFilters(self):
+        try:
+            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+        except NoSuchNodeError:
+            return defaultIndexFilters
+        else:
+            return indexgroup.filters
 
     indexFilters = property(
-        lambda self: self._indexFilters, _setindexFilters, None,
+        _getindexFilters, _setindexFilters, None,
         """
         Filters used to compress indexes.
 
@@ -382,10 +403,6 @@ class Table(tableExtension.Table, Leaf):
 
         self.indexed = False
         """Does this table have any indexed columns?"""
-        self._autoIndex = None
-        """Whether to update or redo indexes automatically."""
-        self._indexFilters = None
-        """The filters used to compress new indexes."""
         self._indexedrows = 0
         """Number of rows indexed in disk."""
         self._unsaved_indexedrows = 0
@@ -519,12 +536,6 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         if self._v_new:
             # Columns are never indexed on creation.
             self.colindexed = dict((cpn, False) for cpn in self.colpathnames)
-
-            # Create index properties attributes by triggering changes in
-            # their respective properties.
-            self.autoIndex = defaultAutoIndex
-            self.indexFilters = defaultIndexFilters
-
             return
 
         # The following code is only for opened tables.
@@ -570,17 +581,9 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 (self._v_pathname, listoldindexes),
                 OldIndexWarning )
 
-        # Set index properties.
         # It does not matter to which column 'indexobj' belongs,
         # since their respective index objects share
-        # the same filters and number of elements.
-        self._autoIndex = getattr(self.attrs, 'AUTO_INDEX', defaultAutoIndex)
-        if self.indexed:
-            filters = indexobj.filters
-        else:
-            filters = getattr(self.attrs, 'FILTERS_INDEX', defaultIndexFilters)
-        self._indexFilters = filters
-
+        # the same number of elements.
         if self.indexed:
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
@@ -690,11 +693,6 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         itgroup = IndexesTableG(
             igroup, _indexNameOf(self),
             "Indexes container for table "+self._v_pathname, new=True)
-        # Assign the pathname table to this Group
-        itgroup._v_attrs._g__setattr('PATHNAME', self._v_pathname)
-        # Delete the FILTERS_INDEX attribute from table, so that
-        # we don't have to syncronize it
-        self._v_attrs._g__delattr('FILTERS_INDEX')
         return itgroup
 
 
@@ -703,9 +701,6 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             igroup, iname,
             "Indexes container for sub-description "+dname,
             filters=filters, new=True)
-        # Assign the pathname table to this Group
-        pathname = "%s.cols.%s" % (self._v_pathname, dname)
-        idgroup._v_attrs._g__setattr('PATHNAME', pathname)
         return idgroup
 
 
@@ -2206,9 +2201,22 @@ The 'names' parameter must be a list of strings.""")
                           _log=_log )
         self._g_copyRows(newtable, start, stop, step)
         nbytes = newtable.nrows * newtable.rowsize
+        # We need to look at the HDF5 attribute to tell whether an index
+        # property was explicitly set by the user.
+        try:
+            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+        except NoSuchNodeError:
+            pass
+        else:
+            if 'AUTO_INDEX' in indexgroup._v_attrs:
+                newtable.autoIndex = self.autoIndex
+            # There may be no filters; this is also a explicit change if
+            # the default is having filters.  This is the reason for the
+            # second part of the condition.
+            if ( 'FILTERS' in indexgroup._v_attrs
+                 or self.indexFilters != defaultIndexFilters ):
+                newtable.indexFilters = self.indexFilters
         # Generate equivalent indexes in the new table, if any.
-        newtable.autoIndex = self.autoIndex
-        newtable.indexFilters = self.indexFilters
         if self.indexed:
             warnings.warn(
                 "generating indexes for destination table ``%s:%s``; "

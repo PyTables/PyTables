@@ -1801,16 +1801,16 @@ temperature := 18.399999999999999]</screen>
 ['AUTO_INDEX', 'CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL',
 'FIELD_1_NAME', 'FIELD_2_FILL', 'FIELD_2_NAME', 'FIELD_3_FILL', 'FIELD_3_NAME',
 'FIELD_4_FILL', 'FIELD_4_NAME', 'FIELD_5_FILL', 'FIELD_5_NAME', 'FIELD_6_FILL',
-'FIELD_6_NAME', 'FIELD_7_FILL', 'FIELD_7_NAME', 'FILTERS_INDEX', 'FLAVOR',
-'NROWS', 'TITLE', 'VERSION', 'temp_scale', 'temperature']
+'FIELD_6_NAME', 'FIELD_7_FILL', 'FIELD_7_NAME', 'FLAVOR', 'NROWS', 'TITLE',
+'VERSION', 'temp_scale', 'temperature']
 &gt;&gt;&gt; print table.attrs._f_list("user")
 ['temp_scale', 'temperature']
 &gt;&gt;&gt; print table.attrs._f_list("sys")
 ['AUTO_INDEX', 'CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL',
 'FIELD_1_NAME', 'FIELD_2_FILL', 'FIELD_2_NAME', 'FIELD_3_FILL', 'FIELD_3_NAME',
 'FIELD_4_FILL', 'FIELD_4_NAME', 'FIELD_5_FILL', 'FIELD_5_NAME', 'FIELD_6_FILL',
-'FIELD_6_NAME', 'FIELD_7_FILL', 'FIELD_7_NAME', 'FILTERS_INDEX', 'FLAVOR',
-'NROWS', 'TITLE', 'VERSION']</screen>
+'FIELD_6_NAME', 'FIELD_7_FILL', 'FIELD_7_NAME', 'FLAVOR', 'NROWS', 'TITLE',
+'VERSION']</screen>
 
           <para>You can also rename attributes:</para>
 

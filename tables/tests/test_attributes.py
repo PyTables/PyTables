@@ -161,22 +161,22 @@ class CreateTestCase(unittest.TestCase):
 
         assert self.root.atable.attrs._f_list() == ["a", "b", "c"]
         assert self.root.atable.attrs._f_list("sys") == \
-               ['AUTO_INDEX', 'CLASS',
+               ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
                 'FIELD_2_FILL', 'FIELD_2_NAME',
                 'FIELD_3_FILL', 'FIELD_3_NAME',
                 'FIELD_4_FILL', 'FIELD_4_NAME',
-                'FILTERS_INDEX', 'FLAVOR', 'NROWS',
+                'FLAVOR', 'NROWS',
                 'TITLE', 'VERSION']
         assert self.root.atable.attrs._f_list("all") == \
-               ['AUTO_INDEX', 'CLASS',
+               ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
                 'FIELD_2_FILL', 'FIELD_2_NAME',
                 'FIELD_3_FILL', 'FIELD_3_NAME',
                 'FIELD_4_FILL', 'FIELD_4_NAME',
-                'FILTERS_INDEX', 'FLAVOR', 'NROWS',
+                'FLAVOR', 'NROWS',
                 'TITLE', 'VERSION',
                 "a", "b", "c"]
 
@@ -384,13 +384,13 @@ class CreateTestCase(unittest.TestCase):
             print "Complete attribute list:", self.root.atable._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
         assert self.root.atable._v_attrs._f_list("all") == \
-               ['AUTO_INDEX', 'CLASS',
+               ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
                 'FIELD_2_FILL', 'FIELD_2_NAME',
                 'FIELD_3_FILL', 'FIELD_3_NAME',
                 'FIELD_4_FILL', 'FIELD_4_NAME',
-                'FILTERS_INDEX', 'FLAVOR', 'NROWS',
+                'FLAVOR', 'NROWS',
                 'TITLE', 'VERSION',
                 "pq", "qr", "rs"]
 
@@ -419,13 +419,13 @@ class CreateTestCase(unittest.TestCase):
             print "Complete attribute list:", self.root.atable._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
         assert self.root.atable._v_attrs._f_list("all") == \
-               ['AUTO_INDEX', 'CLASS',
+               ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
                 'FIELD_2_FILL', 'FIELD_2_NAME',
                 'FIELD_3_FILL', 'FIELD_3_NAME',
                 'FIELD_4_FILL', 'FIELD_4_NAME',
-                'FILTERS_INDEX','FLAVOR', 'NROWS',
+                'FLAVOR', 'NROWS',
                 'TITLE', 'VERSION',
                 "pq", "qr", "rs"]
 
