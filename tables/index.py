@@ -355,22 +355,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     # <properties>
 
     def _getdirty(self):
-        if hasattr(self, "_dirty"):
-            return self._dirty
-
-        attrs = self._v_attrs
-        if not hasattr(attrs, 'DIRTY'):
+        if 'DIRTY' not in self._v_attrs:
             # If there is no ``DIRTY`` attribute, index should be clean.
-            self._dirty = False
             return False
-
-        # Retrieve and cache dirtiness from disk.
-        self._dirty = dirty = bool(attrs.DIRTY)
-        return dirty
+        return self._v_attrs.DIRTY
 
     def _setdirty(self, dirty):
-        wasdirty = self.dirty
-        self._dirty = isdirty = dirty
+        wasdirty, isdirty = self.dirty, bool(dirty)
         self._v_attrs.DIRTY = dirty
         # If an *actual* change in dirtiness happens,
         # notify the condition cache by setting or removing a nail.
