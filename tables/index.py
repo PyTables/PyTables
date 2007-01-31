@@ -683,7 +683,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         "Optimize an index to allow faster searches."
 
         self.verbose=verbose
-        self.verbose = True  # uncomment for debugging purposes only
+        #self.verbose = True  # uncomment for debugging purposes only
 
         # Initialize last_tover and last_nover
         self.last_tover = 0

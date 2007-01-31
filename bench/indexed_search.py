@@ -163,7 +163,6 @@ class DB(object):
         # Query for indexed columns
         if not onlynonidxquery:
             for colname in idx_cols:
-                print "idx-->", colname, niter
                 ltimes = []
                 numpy.random.seed(rseed)
                 rndbase = numpy.random.randint(self.nrows, size=niter)
