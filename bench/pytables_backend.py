@@ -83,7 +83,6 @@ class PyTables_DB(DB):
         # condvars = {"col": colobj}
 
         ncoords = 0
-        #print "colobj-->", colobj
         if colobj.is_indexed:
 #             results = [ r[column] for r in
 #                         table.where(condition, self.condvars) ]
