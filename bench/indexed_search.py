@@ -6,16 +6,13 @@ import numpy
 # Constants
 STEP = 1000*100  # the size of the buffer to fill the table, in rows
 SCALE = 0.1      # standard deviation of the noise compared with actual values
-NI_NTIMES = 2      # The number of queries for doing a mean (non-idx cols)
-#I_NTIMES = 10      # The number of queries for doing a mean (idx cols)
+NI_NTIMES = 1      # The number of queries for doing a mean (non-idx cols)
 I_NTIMES = 50      # The number of queries for doing a mean (idx cols)
-#READ_TIMES = 1000    # The number of complete calls to DB.query_db()
 READ_TIMES = 50    # The number of complete calls to DB.query_db()
+WARMCACHE = 10   # The number of reads until the cache is considered 'warmed'
 MROW = 1000*1000.
 
 # global variables
-reg_cols = ['col1','col3']
-idx_cols = ['col2','col4']
 rdm_cod = ['lin', 'rnd']
 
 
@@ -52,25 +49,44 @@ class DB(object):
         print "Krows/s:", round((self.nrows/1000.)/mtime, 6)
 
     def print_qtime(self, colname, ltimes):
-        ntimes = len(ltimes)
         qtime1 = ltimes[0] # First measured time
-        if colname in idx_cols and ntimes > 5:
-            # if indexed, wait until the 5th iteration (in order to
-            # insure that the index is effectively cached) to take times
-            qtime2 = sum(ltimes[5:])/(ntimes-5)
-        else:
-            qtime2 = ltimes[-1]  # Last measured time
+        qtime2 = ltimes[-1]  # Last measured time
         print "Query time for %s:" % colname, round(qtime1, 6)
         print "Mrows/s:", round((self.nrows/(MROW))/qtime1, 6)
-        if colname in idx_cols:
-            if ntimes > 5:
-                print "Query time for %s (cached):" % colname, round(qtime2, 6)
-                print "Mrows/s (cached):", round((self.nrows/(MROW))/qtime2, 6)
-            else:
-                print "Not enough iterations to compute cache times."
+        print "Query time for %s (cached):" % colname, round(qtime2, 6)
+        print "Mrows/s (cached):", round((self.nrows/(MROW))/qtime2, 6)
+
+    def norm_times(self, ltimes):
+        "Get the mean and stddev of ltimes, avoiding the extreme values."
+        lmean = ltimes.mean(); lstd = ltimes.std()
+        ntimes = ltimes[ltimes < lmean+lstd]
+        nmean = ntimes.mean(); nstd = ntimes.std()
+        return nmean, nstd
+
+    def print_qtime_idx(self, colname, ltimes, repeated, verbose):
+        if repeated:
+            r = "[REP] "
+            prec = 6
         else:
-            print "Query time for %s (cached):" % colname, round(qtime2, 6)
-            print "Mrows/s (cached):", round((self.nrows/(MROW))/qtime2, 6)
+            r = "[NOREP] "
+            prec = 3
+        ltimes = numpy.array(ltimes)
+        ntimes = len(ltimes)
+        qtime1 = ltimes[0] # First measured time
+        ctimes = ltimes[1:WARMCACHE]
+        cmean, cstd = self.norm_times(ctimes)
+        wtimes = ltimes[WARMCACHE:]
+        wmean, wstd = self.norm_times(wtimes)
+        if verbose:
+            print "Times for cold cache:\n", ctimes
+            print "Times for warm cache:\n", wtimes
+            print "Histogram for warm cache: %s\n%s" % numpy.histogram(wtimes)
+        print "%s1st query time for %s:" % (r, colname), \
+              round(qtime1, prec)
+        print "%sQuery time for %s (cold cache):" % (r, colname), \
+              round(cmean, prec), "+-", round(cstd, prec)
+        print "%sQuery time for %s (warm cache):" % (r, colname), \
+              round(wmean, prec), "+-", round(wstd, prec)
 
     def print_db_sizes(self, init, filled, indexed):
         table_size = (filled-init)/1024.
@@ -136,44 +152,42 @@ class DB(object):
             for colname in reg_cols:
                 ltimes = []
                 random.seed(rseed)
-                t1=time()
                 for i in range(NI_NTIMES):
+                    t1=time()
                     results = self.do_query(self.con, colname,
                                             base)
-                                            #numpy.random.randint(self.nrows))
-                ltimes.append((time()-t1)/NI_NTIMES)
-                #results.sort()
+                    ltimes.append(time()-t1)
                 if verbose:
                     print "Results len:", results
                 self.print_qtime(colname, ltimes)
         # Query for indexed columns
         if not onlynonidxquery:
             for colname in idx_cols:
-                # Pre-heating query
-                t1=time()
-                results = self.do_query(self.con, colname,
-                                        #base)
-                                        numpy.random.randint(self.nrows))
-                print "First indexed query time:", round(time()-t1, 3)
+                print "idx-->", colname, niter
                 ltimes = []
-                for j in xrange(niter):
-                    numpy.random.seed(rseed)
+                numpy.random.seed(rseed)
+                rndbase = numpy.random.randint(self.nrows, size=niter)
+                # First, non-repeated queries
+                for i in range(niter):
+                    base = rndbase[i]
                     t1=time()
-                    for i in range(I_NTIMES):
-                        results = self.do_query(self.con, colname,
-                                                #base)
-                                                numpy.random.randint(self.nrows))
-                    ltimes.append((time()-t1)/I_NTIMES)
-                #results.sort()
+                    results = self.do_query(self.con, colname, base)
+                    ltimes.append(time()-t1)
+                self.print_qtime_idx(colname, ltimes, False, verbose)
+                ltimes = []
+                # Second, repeated queries
+                for i in range(niter):
+                    t1=time()
+                    results = self.do_query(self.con, colname, base)
+                    ltimes.append(time()-t1)
                 if verbose:
                     print "Results len:", results
-                self.print_qtime(colname, ltimes)
-        if hasattr(self, "table_cache"):
-            del self.table_cache
+                self.print_qtime_idx(colname, ltimes, True, verbose)
         self.close_db(self.con)
 
     def close_db(self, con):
         con.close()
+
 
 if __name__=="__main__":
     import sys
