@@ -48,7 +48,9 @@ __version__ = '$Revision$'
 """Repository version of this file."""
 
 ############## INMUTABLE CONSTANTS (i.e. don't touch these) ###############
-MB = 1024*1024
+KB = 1024
+"""The size of a Kilobyte in bytes"""
+MB = 1024*KB
 """The size of a Megabyte in bytes"""
 
 #################### END OF INMUTABLE CONSTANTS  ##########################
@@ -168,35 +170,29 @@ NODE_MAX_SLOTS = 256
 #NODE_MAX_SLOTS = MAX_GROUP_WIDTH  # that would be ideal, but takes ages!
 """Maximum number of unreferenced nodes to be kept in memory."""
 
-#LIMDATA_MAX_SLOTS = 8  # for testing
+TABLE_MAX_SIZE = 1*MB
+"""The maximum size for table rows cached during table reads."""
+
 LIMDATA_MAX_SLOTS = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in data lookups."""
 
-#LIMDATA_MAX_SIZE = 5    # for testing
-LIMDATA_MAX_SIZE = 256*1024   # 256 KB
+LIMDATA_MAX_SIZE = 256*KB
 """The maximum space that will take LIMDATA cache (in bytes)."""
 
-TABLE_MAX_SLOTS = 1024
-"""The maximum number of rows cached during table reads."""
-
-#LIMBOUNDS_MAX_SLOTS = 8  # for testing
 LIMBOUNDS_MAX_SLOTS = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
 
-#LIMBOUNDS_MAX_SIZE = 5    # for testing
-LIMBOUNDS_MAX_SIZE = 256*1024    # 256 KB
+LIMBOUNDS_MAX_SIZE = 256*KB
 """The maximum space that will take LIMBOUNDS cache (in bytes)."""
 
-#SORTED_MAX_SLOTS = 256  # for testing
-SORTED_MAX_SLOTS = 4096
-"""The maximum number of rows cached for sorted values in index lookups."""
+BOUNDS_MAX_SIZE = 1*MB
+"""The maximum size for bounds values cached during index lookups."""
 
-#BOUNDS_MAX_SLOTS = 256  # for testing
-BOUNDS_MAX_SLOTS = 4096
-"""The maximum number of rows cached for bounds values in index lookups."""
+SORTED_MAX_SIZE = 1*MB
+"""The maximum size for sorted values cached during index lookups."""
 
-INDICES_MAX_SLOTS = 1024
-"""The maximum number of rows cached for indices values in index lookups."""
+INDICES_MAX_SIZE = 1*MB
+"""The maximum size for indices values cached during index lookups."""
 
 ENABLE_EVERY_CYCLES = 50
 """The number of cycles that the LRU cache for data (indexes) will be

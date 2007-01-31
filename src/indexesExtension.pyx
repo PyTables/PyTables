@@ -35,7 +35,8 @@ import numpy
 from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array
 from tables.constants import \
-     SORTED_MAX_SLOTS, BOUNDS_MAX_SLOTS, INDICES_MAX_SLOTS
+     SORTED_MAX_SIZE, BOUNDS_MAX_SIZE, INDICES_MAX_SIZE
+
 
 # numpy functions & objects
 from definitions cimport \
@@ -165,6 +166,7 @@ cdef class IndexArray(Array):
     "Initialize the structures for doing a binary search"
     cdef long buflen
     cdef ndarray starts, lengths
+    cdef object maxslots
 
     # Create buffers for reading reverse index data
     if <object>self.arrAbs is None or len(self.arrAbs) < ncoords:
@@ -186,8 +188,9 @@ cdef class IndexArray(Array):
       self.l_chunksize = index.chunksize
       if <object>self.indicescache is None:
         # Define a LRU cache for indices
+        maxslots = INDICES_MAX_SIZE / (self.l_chunksize*8)
         self.indicescache = <NumCache>NumCache(
-          shape=(INDICES_MAX_SLOTS, 1), itemsize=8, name="indices")
+          shape=(maxslots, 1), itemsize=8, name="indices")
 
 
   cdef _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
@@ -238,6 +241,7 @@ cdef class IndexArray(Array):
     cdef char *bname
     cdef hsize_t count[2]
     cdef ndarray starts, lengths, rvcache
+    cdef object maxslots, rowsize
 
     dtype = self.dtype
     # Create the buffer for reading sorted data chunks if not created yet
@@ -268,14 +272,18 @@ cdef class IndexArray(Array):
     self.bounds_ext = <CacheArray>index.bounds
     self.bounds_ext.initRead(self.nbounds)
     # The 2nd level cache and sorted values will be cached in a NumCache
+    rowsize = (self.bounds_ext._v_chunkshape[1] * self.dtype.itemsize)
+    maxslots = BOUNDS_MAX_SIZE / rowsize
     self.boundscache = <NumCache>NumCache(
-      (BOUNDS_MAX_SLOTS, self.nbounds), self.dtype.itemsize, 'bounds')
+      (maxslots, self.nbounds), self.dtype.itemsize, 'bounds')
     self.bufferbc = numpy.empty(dtype=dtype, shape=self.nbounds)
     # Get the pointer for the internal buffer for 2nd level cache
     self.rbufbc = self.bufferbc.data
     # Another NumCache for the sorted values
+    rowsize = (self.chunksize*self.dtype.itemsize)
+    maxslots = SORTED_MAX_SIZE / (self.chunksize*self.dtype.itemsize)
     self.sortedcache = <NumCache>NumCache(
-      (SORTED_MAX_SLOTS, self.chunksize), self.dtype.itemsize, 'sorted')
+      (maxslots, self.chunksize), self.dtype.itemsize, 'sorted')
 
 
   cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):

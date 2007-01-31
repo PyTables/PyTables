@@ -49,7 +49,7 @@ from tables.atom import Atom
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
      OldIndexWarning, NoSuchNodeError
 from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES, \
-     LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE, TABLE_MAX_SLOTS, MB
+     LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE, TABLE_MAX_SIZE
 from tables.utilsExtension import getNestedField
 
 from tables.lrucacheExtension import ObjectCache, NumCache
@@ -451,7 +451,7 @@ class Table(tableExtension.Table, Leaf):
         A `Cols` instance that serves as an accessor to `Column` objects.
         """
         self._dirtycache = True
-        """Whether the data caches are dirty or not."""
+        """Whether the data caches are dirty or not. Initially set to yes."""
 
         self._descflavor = None
         """Temporarily keeps the flavor of a description with data."""
@@ -591,8 +591,9 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
     def _restorecache(self):
         # Define a cache for sparse table reads
+        maxslots = TABLE_MAX_SIZE / self.rowsize
         self._sparsecache = NumCache(
-            shape=(TABLE_MAX_SLOTS, 1),
+            shape=(maxslots, 1),
             itemsize=self.rowsize, name="sparse rows")
         """A cache for row data based on row number."""
         self._limdatacache = ObjectCache(LIMDATA_MAX_SLOTS,
