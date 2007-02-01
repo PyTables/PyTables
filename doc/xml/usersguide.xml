@@ -881,7 +881,7 @@ LIBS="hdf5-1.6.5 nsl"
               <para>And last, but not least, in case a test fails, please run
               the failing test module again and enable the verbose output:
               <screen>
- python test_<module>.py -v verbose
+ python test_&lt;module&gt;.py -v verbose
               </screen>
               and, very important, obtain your PyTables version information by
               using the <literal>--show-versions</literal> flag (see above)
@@ -6711,7 +6711,7 @@ for node in h5file.root.detector:
               </glossdef>
             </glossentry>
 
-            <glossentry>
+            <glossentry id="Table.autoIndex">
               <glossterm><emphasis role="bold">autoIndex</emphasis></glossterm>
 
               <glossdef>
@@ -6735,6 +6735,9 @@ for node in h5file.root.detector:
                 <para>This value is persistent.</para>
               </glossdef>
             </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">indexFilters</emphasis></glossterm>
 
               <glossdef>
                 <para>Filters used to compress indexes.</para>
@@ -7109,7 +7112,7 @@ if row['var1'] &lt;= 20 ]</screen>
             </glosslist>
           </section>
 
-          <section id="flushRowsToIndexDescr">
+          <section id="Table.flushRowsToIndex">
             <title>flushRowsToIndex()</title>
 
             <para>Add remaining rows in buffers to non-dirty indexes. This can
@@ -7119,7 +7122,7 @@ if row['var1'] &lt;= 20 ]</screen>
             it.</para>
           </section>
 
-          <section id="reIndexDescr">
+          <section id="Table.reIndex">
             <title>reIndex()</title>
 
             <para>Recompute all the existing indexes in table. This can be
@@ -7128,7 +7131,7 @@ if row['var1'] &lt;= 20 ]</screen>
             indexes on it.</para>
           </section>
 
-          <section id="reIndexDirtyDescr">
+          <section id="Table.reIndexDirty">
             <title>reIndexDirty()</title>
 
             <para>Recompute the existing indexes in table, but
@@ -8959,8 +8962,8 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
 
         <para>In this section a series of classes that are meant to
         <emphasis>declare</emphasis> datatypes that are required for primary
-        PyTables (like <literal>Table</literal> or <literal>VLArray</literal>
-        ) objects are described.</para>
+        PyTables (like <literal>Table</literal> or <literal>VLArray</literal>)
+        objects are described.</para>
 
         <section id="IsDescriptionClassDescr">
           <title>The <literal>IsDescription</literal> class</title>
