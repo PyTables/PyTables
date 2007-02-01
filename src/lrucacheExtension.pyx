@@ -456,7 +456,8 @@ cdef class NumCache(BaseCache):
 
     nslots = shape[0];  self.slotsize = shape[1]*itemsize
     if nslots >= 2**16:
-      raise ValueError, "Too many slots (%s) in cache!" % nslots
+      # maxslots can't be higher than 2**16. Will silently ceil the number.
+      nslots = (2**16)-1
     super(NumCache, self).__init__(nslots, name)
     self.itemsize = itemsize
     # The cache object where all data will go
