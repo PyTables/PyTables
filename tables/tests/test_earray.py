@@ -8,21 +8,17 @@ import tempfile
 
 import numpy
 
-try:
-    import Numeric
-    numeric_imported = 1
-except:
-    numeric_imported = 0
-
-try:
-    import numarray
-    numarray_imported = 1
-except:
-    numarray_imported = 0
-
 from tables import *
 from tables.flavor import flavor_to_flavor
-from tables.tests.common import verbose, typecode, allequal, cleanup, heavy
+from tables.tests.common import (
+    verbose, typecode, allequal, cleanup, heavy,
+    numeric_imported, numarray_imported)
+
+if numarray_imported:
+    import numarray
+if numeric_imported:
+    import Numeric
+
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup

@@ -3,15 +3,13 @@ import unittest
 
 import numpy
 
-try:
-    import Numeric
-    numeric = 1
-except:
-    numeric = 0
-
 from tables import *
 from tables.tests import common
-from tables.tests.common import verbose, cleanup, allequal
+from tables.tests.common import (
+    verbose, cleanup, allequal, numeric_imported)
+
+if numeric_imported:
+    import Numeric
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -106,7 +104,7 @@ class VLArrayTestCase(common.PyTablesTestCase):
         # Check that we can read the contents without problems (nor warnings!)
         vlarray1 = fileh.root.vlarray1
         assert vlarray1.flavor == "numeric"
-        if numeric:
+        if numeric_imported:
             assert allequal(vlarray1[1], Numeric.array([5, 6, 7], typecode='i'),
                             "numeric")
         vlarray2 = fileh.root.vlarray2

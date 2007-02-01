@@ -7,16 +7,18 @@ import types
 
 import numpy
 
-try:
-    import Numeric
-    numeric = 1
-except:
-    numeric = 0
 from tables import *
 
 from tables.tests import common
-from tables.tests.common import verbose, allequal, cleanup
 from tables.utils import byteorders
+from tables.tests.common import (
+    verbose, allequal, cleanup,
+    numeric_imported, numarray_imported)
+
+if numarray_imported:
+    import numarray
+if numeric_imported:
+    import Numeric
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -755,7 +757,7 @@ class CopyTestCase(unittest.TestCase):
         fileh = openFile(file, "w")
 
         # Create an Array (Numeric flavor)
-        if numeric:
+        if numeric_imported:
             arr = Numeric.array([[456, 2],[3, 457]], typecode='s')
         else:
             # If Numeric not installed, use a numpy object

@@ -456,7 +456,7 @@ cdef class NumCache(BaseCache):
 
     nslots = shape[0];  self.slotsize = shape[1]*itemsize
     if nslots >= 2**16:
-      # maxslots can't be higher than 2**16. Will silently ceil the number.
+      # nslots can't be higher than 2**16. Will silently trunk the number.
       nslots = (2**16)-1
     super(NumCache, self).__init__(nslots, name)
     self.itemsize = itemsize

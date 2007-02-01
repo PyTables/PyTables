@@ -8,22 +8,17 @@ import tempfile
 
 import numpy
 
-try:
-    import Numeric
-    numeric = 1
-except:
-    numeric = 0
-
-try:
-    import numarray
-    from numarray import strings
-    numarray_imported = 1
-except:
-    numarray_imported = 0
-
 from tables import *
 from tables.flavor import flavor_to_flavor
-from tables.tests.common import verbose, typecode, allequal, cleanup, heavy
+from tables.tests.common import (
+    verbose, typecode, allequal, cleanup, heavy,
+    numeric_imported, numarray_imported)
+
+if numarray_imported:
+    import numarray
+
+if numeric_imported:
+    import Numeric
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -1405,7 +1400,7 @@ class CopyTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
-        if numeric:
+        if numeric_imported:
             flavor="numeric"
         else:
             flavor="numpy"
@@ -2138,7 +2133,7 @@ def suite():
             theSuite.addTest(unittest.makeSuite(NumarrayComplex128TestCase))
             theSuite.addTest(unittest.makeSuite(NumarrayComprTestCase))
             theSuite.addTest(unittest.makeSuite(NumarrayOffsetStrideTestCase))
-        if numeric:
+        if numeric_imported:
             theSuite.addTest(unittest.makeSuite(NumericInt8TestCase))
             theSuite.addTest(unittest.makeSuite(NumericInt16TestCase))
             theSuite.addTest(unittest.makeSuite(NumericInt32TestCase))

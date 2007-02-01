@@ -20,13 +20,27 @@ import time
 
 import numpy
 
-try:
-    import numarray
-    import numarray.strings
-    import numarray.records
-    numarray_imported = True
-except ImportError:
+# numarray and Numeric has serious problems with Python2.5 and 64-bit
+# platforms, so we won't even try to import them on this scenario
+plat64 = (numpy.int_(0).itemsize == 8)
+py25 = (sys.version_info[0] >= 2 and sys.version_info[1] >= 5)
+if plat64 and py25:
     numarray_imported = False
+    numeric_imported = False
+    print "***Python2.5 in 64-bit platform detected: disabling numarray/Numeric tests***"
+else:
+    try:
+        import numarray
+        import numarray.strings
+        import numarray.records
+        numarray_imported = True
+    except ImportError:
+        numarray_imported = False
+    try:
+        import Numeric
+        numeric_imported = True
+    except ImportError:
+        numeric_imported = False
 
 
 import tables

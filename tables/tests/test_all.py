@@ -50,7 +50,7 @@ def suite():
         ]
 
     # Add test_Numeric only if Numeric is installed
-    try:
+    if common.numeric_imported:
         import Numeric
         print "Numeric (version %s) is present. Adding the Numeric test suite." % \
               (Numeric.__version__)
@@ -58,11 +58,11 @@ def suite():
             print "*Warning*: Numeric version is lower than recommended: %s < %s" % \
                   (Numeric.__version__, minimum_numeric_version)
         test_modules.append("test_Numeric")
-    except:
-        print "Skipping Numeric test suite"
+    else:
+        print "Skipping Numeric test suite."
 
     # Add test_numarray only if numarray is installed
-    try:
+    if common.numarray_imported:
         import numarray
         print \
 """numarray (version %s) is present. Adding the numarray test suite.""" % \
@@ -74,8 +74,8 @@ def suite():
         test_modules.append("test_numarray")
         test_modules.append("tables.nra.tests.test_nestedrecords")
         test_modules.append("tables.nra.tests.test_nriterators")
-    except:
-        print "Skipping numarray test suite"
+    else:
+        print "Skipping numarray test suite."
     print '-=' * 38
 
 
