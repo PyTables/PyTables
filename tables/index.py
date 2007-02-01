@@ -1125,12 +1125,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 # The next are optimizations. However, they hide the
                 # CPU functions consumptions from python profiles.
                 # You may want to de-activate them during profiling.
-                if self.type == "float64":
-                    tlen = sorted._searchBinNA_d(*item)
-                elif self.type == "int32":
+                if self.type == "int32":
                     tlen = sorted._searchBinNA_i(*item)
                 elif self.type == "int64":
                     tlen = sorted._searchBinNA_ll(*item)
+                elif self.type == "float32":
+                    tlen = sorted._searchBinNA_f(*item)
+                elif self.type == "float64":
+                    tlen = sorted._searchBinNA_d(*item)
                 else:
                     assert False, "This can't happen!"
             else:
