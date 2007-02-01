@@ -79,9 +79,9 @@ defaultIndexFilters = Filters( complevel=1, complib='zlib',
                                shuffle=True, fletcher32=False )
 # Keep in sync with ``Table.indexFilters`` docstring.
 
-# The list of types that an optimised search in Pyrex and C has been
-# implemented. Always add here the name of the recently added type.
-opt_search_types = ("int32", "int64", "float64")
+# The list of types for which an optimised search in Pyrex and C has
+# been implemented. Always add here the name of a new optimised type.
+opt_search_types = ("int32", "int64", "float32", "float64")
 
 # Python implementations of NextAfter and NextAfterF
 #

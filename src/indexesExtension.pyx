@@ -81,12 +81,14 @@ cdef extern from "H5ARRAY-opt.h":
 
 # Functions for optimized operations for dealing with indexes
 cdef extern from "idx-opt.h":
-  int bisect_left_d(double *a, double x, int hi, int offset)
   int bisect_left_i(int *a, int x, int hi, int offset)
-  int bisect_left_ll(long long *a, long long x, int hi, int offset)
-  int bisect_right_d(double *a, double x, int hi, int offset)
   int bisect_right_i(int *a, int x, int hi, int offset)
+  int bisect_left_ll(long long *a, long long x, int hi, int offset)
   int bisect_right_ll(long long *a, long long x, int hi, int offset)
+  int bisect_left_f(float *a, float x, int hi, int offset)
+  int bisect_right_f(float *a, float x, int hi, int offset)
+  int bisect_left_d(double *a, double x, int hi, int offset)
+  int bisect_right_d(double *a, double x, int hi, int offset)
   int get_sorted_indices(int nrows, long long *rbufC,
                          int *rbufst, int *rbufln, int ssize)
   int convert_addr64(int nrows, int nelem, long long *rbufA,
@@ -420,55 +422,6 @@ cdef class IndexArray(Array):
     return vpointer
 
 
-  # Optimized version for doubles
-  def _searchBinNA_d(self, double item1, double item2):
-    cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
-    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
-    cdef int *rbufst, *rbufln
-    # Variables with specific type
-    cdef double *rbufrv, *rbufbc, *rbuflb
-
-    cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    # Limits not in cache, do a lookup
-    rbufrv = <double *>self.rbufrv
-    for nrow from 0 <= nrow < nrows:
-      rvrow = nrow*2;  bread = 0;  nchunk = -1
-      # Look if item1 is in this row
-      if item1 > rbufrv[rvrow]:
-        if item1 <= rbufrv[rvrow+1]:
-          # Get the bounds row from the LRU cache or read them.
-          rbufbc = <double *>self.getLRUbounds(nrow, nbounds)
-          bread = 1
-          nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
-          # Get the sorted row from the LRU cache or read it.
-          rbuflb = <double *>self.getLRUsorted(nrow, ncs, nchunk, cs)
-          start = bisect_left_d(rbuflb, item1, cs, 0) + cs*nchunk
-        else:
-          start = ss
-      else:
-        start = 0
-      # Now, for item2
-      if item2 >= rbufrv[rvrow]:
-        if item2 < rbufrv[rvrow+1]:
-          if not bread:
-            # Get the bounds row from the LRU cache or read them.
-            rbufbc = <double *>self.getLRUbounds(nrow, nbounds)
-          nchunk2 = bisect_right_d(rbufbc, item2, nbounds, 0)
-          if nchunk2 <> nchunk:
-            # Get the sorted row from the LRU cache or read it.
-            rbuflb = <double *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
-          stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
-        else:
-          stop = ss
-      else:
-        stop = 0
-      length = stop - start;  tlength = tlength + length
-      rbufst[nrow] = start;  rbufln[nrow] = length;
-    return tlength
-
-
   # Optimized version for ints
   def _searchBinNA_i(self, double item1, double item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
@@ -556,6 +509,102 @@ cdef class IndexArray(Array):
             # Get the sorted row from the LRU cache or read it.
             rbuflb = <long long *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_ll(rbuflb, item2, cs, 0) + cs*nchunk2
+        else:
+          stop = ss
+      else:
+        stop = 0
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
+
+
+  def _searchBinNA_f(self, float item1, float item2):
+    cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
+    cdef int *rbufst, *rbufln
+    # Variables with specific type
+    cdef float *rbufrv, *rbufbc, *rbuflb
+
+    cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    # Limits not in cache, do a lookup
+    rbufrv = <float *>self.rbufrv
+    for nrow from 0 <= nrow < nrows:
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
+      if item1 > rbufrv[rvrow]:
+        if item1 <= rbufrv[rvrow+1]:
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <float *>self.getLRUbounds(nrow, nbounds)
+          bread = 1
+          nchunk = bisect_left_f(rbufbc, item1, nbounds, 0)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <float *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          start = bisect_left_f(rbuflb, item1, cs, 0) + cs*nchunk
+        else:
+          start = ss
+      else:
+        start = 0
+      # Now, for item2
+      if item2 >= rbufrv[rvrow]:
+        if item2 < rbufrv[rvrow+1]:
+          if not bread:
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <float *>self.getLRUbounds(nrow, nbounds)
+          nchunk2 = bisect_right_f(rbufbc, item2, nbounds, 0)
+          if nchunk2 <> nchunk:
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <float *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+          stop = bisect_right_f(rbuflb, item2, cs, 0) + cs*nchunk2
+        else:
+          stop = ss
+      else:
+        stop = 0
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
+
+
+  def _searchBinNA_d(self, double item1, double item2):
+    cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
+    cdef int *rbufst, *rbufln
+    # Variables with specific type
+    cdef double *rbufrv, *rbufbc, *rbuflb
+
+    cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    # Limits not in cache, do a lookup
+    rbufrv = <double *>self.rbufrv
+    for nrow from 0 <= nrow < nrows:
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
+      if item1 > rbufrv[rvrow]:
+        if item1 <= rbufrv[rvrow+1]:
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <double *>self.getLRUbounds(nrow, nbounds)
+          bread = 1
+          nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <double *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          start = bisect_left_d(rbuflb, item1, cs, 0) + cs*nchunk
+        else:
+          start = ss
+      else:
+        start = 0
+      # Now, for item2
+      if item2 >= rbufrv[rvrow]:
+        if item2 < rbufrv[rvrow+1]:
+          if not bread:
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <double *>self.getLRUbounds(nrow, nbounds)
+          nchunk2 = bisect_right_d(rbufbc, item2, nbounds, 0)
+          if nchunk2 <> nchunk:
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <double *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+          stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
       else:

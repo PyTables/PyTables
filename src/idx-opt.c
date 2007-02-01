@@ -26,22 +26,7 @@
  */
 
 
-/*  Optimised version for Float64 */
-int bisect_left_d(double *a, double x, int hi, int offset) {
-  int lo = 0;
-  int mid;
-
-  if (x <= a[offset]) return 0;
-  if (a[hi-1+offset] < x) return hi;
-  while (lo < hi) {
-    mid = (lo+hi)/2;
-    if (a[mid+offset] < x) lo = mid+1;
-    else hi = mid;
-  }
-  return lo;
-}
-
-/*   Optimised version for Int32 */
+/*   Optimised version for int32 */
 int bisect_left_i(int *a, int x, int hi, int offset) {
   int lo = 0;
   int mid;
@@ -56,50 +41,7 @@ int bisect_left_i(int *a, int x, int hi, int offset) {
   return lo;
 }
 
-/*   Optimised version for Int64 */
-int bisect_left_ll(long long *a, long long x, int hi, int offset) {
-  int lo = 0;
-  int mid;
-
-  if (x <= a[offset]) return 0;
-  if (a[hi-1+offset] < x) return hi;
-  while (lo < hi) {
-    mid = (lo+hi)/2;
-    if (a[mid+offset] < x) lo = mid+1;
-    else hi = mid;
-  }
-  return lo;
-}
-
-/*   Optimised version for Int64 and no offset. Test for lrucacheExtension. */
-int bisect_left_ll2(long long *a, long long x, int hi) {
-  int lo = 0;
-  int mid;
-
-  while (lo < hi) {
-    mid = (lo+hi)/2;
-    if (a[mid] < x) lo = mid+1;
-    else hi = mid;
-  }
-  return lo;
-}
-
-/*   Optimised version for Float64 */
-int bisect_right_d(double *a, double x, int hi, int offset) {
-  int lo = 0;
-  int mid;
-
-  if (x < a[offset]) return 0;
-  if (a[hi-1+offset] <= x) return hi;
-  while (lo < hi) {
-    mid = (lo+hi)/2;
-    if (x < a[mid+offset]) hi = mid;
-    else lo = mid+1;
-  }
-  return lo;
-}
-
-/*   Optimised version for Int32 */
+/*   Optimised version for int32 */
 int bisect_right_i(int *a, int x, int hi, int offset) {
   int lo = 0;
   int mid;
@@ -114,8 +56,83 @@ int bisect_right_i(int *a, int x, int hi, int offset) {
   return lo;
 }
 
-/*   Optimised version for Int64 */
+/*   Optimised version for int64 */
+int bisect_left_ll(long long *a, long long x, int hi, int offset) {
+  int lo = 0;
+  int mid;
+
+  if (x <= a[offset]) return 0;
+  if (a[hi-1+offset] < x) return hi;
+  while (lo < hi) {
+    mid = (lo+hi)/2;
+    if (a[mid+offset] < x) lo = mid+1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/*   Optimised version for int64 */
 int bisect_right_ll(long long *a, long long x, int hi, int offset) {
+  int lo = 0;
+  int mid;
+
+  if (x < a[offset]) return 0;
+  if (a[hi-1+offset] <= x) return hi;
+  while (lo < hi) {
+    mid = (lo+hi)/2;
+    if (x < a[mid+offset]) hi = mid;
+    else lo = mid+1;
+  }
+  return lo;
+}
+
+/*  Optimised version for float32 */
+int bisect_left_f(float *a, float x, int hi, int offset) {
+  int lo = 0;
+  int mid;
+
+  if (x <= a[offset]) return 0;
+  if (a[hi-1+offset] < x) return hi;
+  while (lo < hi) {
+    mid = (lo+hi)/2;
+    if (a[mid+offset] < x) lo = mid+1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/*   Optimised version for float32 */
+int bisect_right_f(float *a, float x, int hi, int offset) {
+  int lo = 0;
+  int mid;
+
+  if (x < a[offset]) return 0;
+  if (a[hi-1+offset] <= x) return hi;
+  while (lo < hi) {
+    mid = (lo+hi)/2;
+    if (x < a[mid+offset]) hi = mid;
+    else lo = mid+1;
+  }
+  return lo;
+}
+
+/*  Optimised version for float64 */
+int bisect_left_d(double *a, double x, int hi, int offset) {
+  int lo = 0;
+  int mid;
+
+  if (x <= a[offset]) return 0;
+  if (a[hi-1+offset] < x) return hi;
+  while (lo < hi) {
+    mid = (lo+hi)/2;
+    if (a[mid+offset] < x) lo = mid+1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/*   Optimised version for float64 */
+int bisect_right_d(double *a, double x, int hi, int offset) {
   int lo = 0;
   int mid;
 
