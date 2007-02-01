@@ -49,7 +49,9 @@ from tables.indexes import CacheArray, LastRowArray, IndexArray
 from tables.group import Group
 from tables.path import joinPath
 from tables.constants import (
-    LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE, MAX_GROUP_WIDTH )
+    LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE,
+    BOUNDS_MAX_SLOTS, BOUNDS_MAX_SIZE,
+    MAX_GROUP_WIDTH )
 from tables.exceptions import PerformanceWarning
 
 from tables.lrucacheExtension import ObjectCache
@@ -76,6 +78,10 @@ defaultAutoIndex = True
 defaultIndexFilters = Filters( complevel=1, complib='zlib',
                                shuffle=True, fletcher32=False )
 # Keep in sync with ``Table.indexFilters`` docstring.
+
+# The list of types that an optimised search in Pyrex and C has been
+# implemented. Always add here the name of the recently added type.
+opt_search_types = ("int32", "int64", "float64")
 
 # Python implementations of NextAfter and NextAfterF
 #
@@ -487,9 +493,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """Dirty cache (for ranges, bounds & sorted) flag."""
         self.tmpfilename = None
         """Filename for temporary bounds."""
-
+        self.opt_search_types = opt_search_types
+        """The types for which and optimized search has been implemented."""
         super(Index, self).__init__(
             parentNode, name, title, new, filters)
+
 
     def _g_postInitHook(self):
         if self._v_new:
@@ -535,8 +543,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if filters is None:
             # If no filters have been passed to the constructor,
             # set a sensible default using zlib compression and shuffling.
-            filters = Filters(complevel = 1, complib = "zlib",
-                              shuffle = 1, fletcher32 = 0)
+            filters = Filters(complevel=1, complib="zlib",
+                              shuffle=True, fletcher32=False)
         self.filters = filters
 
         # Create the IndexArray for sorted values
@@ -1039,8 +1047,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # the end value will become negative!).
             # Also, there is no way to compute overlap ratios for
             # non-numerical types. So, be careful and always check
-            # that toverlap has a positive value (it must be
-            # initialized to -1. above) before using it.
+            # that toverlap has a positive value (it must have been
+            # initialized to -1. before) before using it.
             # F. Altet 2007-01-19
             if erange > 0:
                 toverlap = soverlap / erange
@@ -1053,9 +1061,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def restorecache(self):
         "Clean the limits cache and resize starts and lengths arrays"
 
+        self.sorted.boundscache = ObjectCache(BOUNDS_MAX_SLOTS,
+                                              BOUNDS_MAX_SIZE,
+                                              'non-opt types bounds')
+        """A cache for the bounds (2nd hash) data. Only used for
+        non-optimized types searches."""
         self.limboundscache = ObjectCache(LIMBOUNDS_MAX_SLOTS,
                                           LIMBOUNDS_MAX_SIZE,
-                                          'bounds limits')
+                                          'bounding limits')
+        """A cache for bounding limits."""
         self.starts = numpy.empty(shape=self.nrows, dtype = numpy.int32)
         self.lengths = numpy.empty(shape=self.nrows, dtype = numpy.int32)
         # Initialize the sorted array in extension
@@ -1107,19 +1121,18 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # The item is not in cache. Do the real lookup.
         sorted = self.sorted
         if sorted.nrows > 0:
-            if self.type != "string":
-                item1, item2 = item
+            if self.type in self.opt_search_types:
                 # The next are optimizations. However, they hide the
                 # CPU functions consumptions from python profiles.
-                # Activate only after development is done.
+                # You may want to de-activate them during profiling.
                 if self.type == "float64":
-                    tlen = sorted._searchBinNA_d(item1, item2)
+                    tlen = sorted._searchBinNA_d(*item)
                 elif self.type == "int32":
-                    tlen = sorted._searchBinNA_i(item1, item2)
+                    tlen = sorted._searchBinNA_i(*item)
                 elif self.type == "int64":
-                    tlen = sorted._searchBinNA_ll(item1, item2)
+                    tlen = sorted._searchBinNA_ll(*item)
                 else:
-                    tlen = self.search_scalar(item, sorted)
+                    assert False, "This can't happen!"
             else:
                 tlen = self.search_scalar(item, sorted)
         # Get possible remaing values in last row

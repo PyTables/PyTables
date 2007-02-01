@@ -185,6 +185,9 @@ LIMBOUNDS_MAX_SLOTS = 128
 LIMBOUNDS_MAX_SIZE = 256*KB
 """The maximum space that will take LIMBOUNDS cache (in bytes)."""
 
+BOUNDS_MAX_SLOTS = 4*1024
+"""The maximum number of boundrows cached during index lookups."""
+
 BOUNDS_MAX_SIZE = 1*MB
 """The maximum size for bounds values cached during index lookups."""
 

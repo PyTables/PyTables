@@ -271,19 +271,23 @@ cdef class IndexArray(Array):
     self.nbounds = index.bounds.shape[1]
     self.bounds_ext = <CacheArray>index.bounds
     self.bounds_ext.initRead(self.nbounds)
-    # The 2nd level cache and sorted values will be cached in a NumCache
-    rowsize = (self.bounds_ext._v_chunkshape[1] * self.dtype.itemsize)
-    maxslots = BOUNDS_MAX_SIZE / rowsize
-    self.boundscache = <NumCache>NumCache(
-      (maxslots, self.nbounds), self.dtype.itemsize, 'bounds')
-    self.bufferbc = numpy.empty(dtype=dtype, shape=self.nbounds)
-    # Get the pointer for the internal buffer for 2nd level cache
-    self.rbufbc = self.bufferbc.data
-    # Another NumCache for the sorted values
-    rowsize = (self.chunksize*self.dtype.itemsize)
-    maxslots = SORTED_MAX_SIZE / (self.chunksize*self.dtype.itemsize)
-    self.sortedcache = <NumCache>NumCache(
-      (maxslots, self.chunksize), self.dtype.itemsize, 'sorted')
+    if str(dtype) in self._v_parent.opt_search_types:
+      # The next caches should be defined only for optimized search types.
+      # The 2nd level cache will replace the already existing ObjectCache and
+      # already bound to the boundscache attribute. This way, the cache will
+      # not be duplicated (I know, this smells badly, but anyway).
+      rowsize = (self.bounds_ext._v_chunkshape[1] * dtype.itemsize)
+      maxslots = BOUNDS_MAX_SIZE / rowsize
+      self.boundscache = <NumCache>NumCache(
+        (maxslots, self.nbounds), dtype.itemsize, 'non-opt types bounds')
+      self.bufferbc = numpy.empty(dtype=dtype, shape=self.nbounds)
+      # Get the pointer for the internal buffer for 2nd level cache
+      self.rbufbc = self.bufferbc.data
+      # Another NumCache for the sorted values
+      rowsize = (self.chunksize*dtype.itemsize)
+      maxslots = SORTED_MAX_SIZE / (self.chunksize*dtype.itemsize)
+      self.sortedcache = <NumCache>NumCache(
+        (maxslots, self.chunksize), dtype.itemsize, 'sorted')
 
 
   cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):

@@ -561,12 +561,16 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
                 # Decode the reord_opts attribute (see especification
                 # for codification above)
                 value = self.attrs.reord_opts
-                # Decode the first 3 values
-                reord_opts = [((value>>i) & 0x01) is 1 for i in range(3)]
-                # Add the forth
-                reord_opts.append(value>>3)
+                # XXX eliminar aquest if quan acabem els benchmarks!
+                # F. Altet 2007-02-01
+                if type(value) == tuple:
+                    reord_opts = value
+                else:
+                    # Decode the first 3 values
+                    reord_opts = [((value>>i) & 0x01) is 1 for i in range(3)]
+                    # Add the forth
+                    reord_opts.append(value>>3)
                 self.reord_opts = tuple(reord_opts)
-                print "reord_opts-->", self.reord_opts
         super(IndexArray, self)._g_postInitHook()
 
 
@@ -580,13 +584,15 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
 
 
     # This version of searchBin uses both ranges (1st level) and
-    # bounds (2nd level) caches. This is more than 40% faster than the
-    # version that only uses the 1st cache.
+    # bounds (2nd level) caches. It uses a cache for boundary rows,
+    # but not for 'sorted' rows (this is only supported for the
+    # 'optimized' types.
     def _searchBin(self, nrow, item):
         item1, item2 = item
         result1 = -1; result2 = -1
         hi = self.slicesize
         ranges = self._v_parent.rvcache
+        boundscache = self.boundscache
         #t1=time()
         # First, look at the beginning of the slice
         #begin, end = ranges[nrow]  # this is slower
@@ -612,8 +618,16 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         # Lookup in the middle of slice for item1
         chunksize = self.chunksize # Number of elements/chunksize
         nchunk = -1
-        # XXX try to use a LRU cache here, if possible...
-        bounds = self._v_parent.bounds[nrow]
+        # Try to get the bounds row from the LRU cache
+        nslot = boundscache.getslot(nrow)
+        if nslot >= 0:
+            # Cache hit. Use the row kept there.
+            bounds = boundscache.getitem(nslot)
+        else:
+            # No luck with cached data. Read the row and put it in the cache.
+            bounds = self._v_parent.bounds[nrow]
+            size = bounds.size*bounds.itemsize
+            boundscache.setitem(nrow, bounds, size)
         if result1 < 0:
             # Search the appropriate chunk in bounds cache
             nchunk = bisect_left(bounds, item1)
