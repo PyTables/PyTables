@@ -859,7 +859,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             remainingchunks = self.nchunks - nblock*ncb
             if remainingchunks < ncb:
                 # To avoid reordering the chunks in last row (slice)
-                # This last row reordering should be supported later on
+                # This last row reordering should be supported later
+                # on.  Note: Reordering the last slice should only be
+                # useful for reducing the number of iterations needed
+                # to reach the warm cache zone. However, this suppose
+                # to complicate quite a bit the code for index
+                # optimization and perhaps this is not worth the
+                # effort. Well, perhaps in PyTables 3.0, who knows.
+                # F. Altet 2007-02-01
                 ncb2 = (remainingchunks/ncs)*ncs
             if ncb2 <= 1:
                 # if only zero or one chunks remains we are done

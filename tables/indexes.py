@@ -526,10 +526,22 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         # The superblocksize & blocksize will be saved as (pickled) attributes
         # (only necessary for sorted index)
         if self.name == "sorted":
-            self.attrs.superblocksize = self.superblocksize
-            self.attrs.blocksize = self.blocksize
+            self.attrs.superblocksize = numpy.int64(self.superblocksize)
+            self.attrs.blocksize = numpy.int64(self.blocksize)
             # The same goes for reordenation opts
-            self.attrs.reord_opts = self.reord_opts
+            # In order to not use pickles and save attributes,
+            # codify the reord opts values following the next convention:
+            # bit 0 --> first value (median opt)
+            # bit 1 --> second value (start opt)
+            # bit 2 --> third value (stop opt)
+            # bit 3-7 --> unused (reserved for future use)
+            # bit 8-15 --> forth value (full opt, can be numeric in the future)
+            # bit 16-63  --> unused (reserved for future use)
+            # Encode the first 3 values
+            value = sum((1<<i[0])*i[1] for i in enumerate(self.reord_opts[:3]))
+            # Now, the fourth one
+            value += self.reord_opts[3]<<3
+            self.attrs.reord_opts = numpy.int64(value)
         return objectId
 
 
@@ -546,7 +558,15 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
                 self.chunksize = self._v_chunkshape[1]
                 self.superblocksize = self.attrs.superblocksize
                 self.blocksize = self.attrs.blocksize
-                self.reord_opts = self.attrs.reord_opts
+                # Decode the reord_opts attribute (see especification
+                # for codification above)
+                value = self.attrs.reord_opts
+                # Decode the first 3 values
+                reord_opts = [((value>>i) & 0x01) is 1 for i in range(3)]
+                # Add the forth
+                reord_opts.append(value>>3)
+                self.reord_opts = tuple(reord_opts)
+                print "reord_opts-->", self.reord_opts
         super(IndexArray, self)._g_postInitHook()
 
 
