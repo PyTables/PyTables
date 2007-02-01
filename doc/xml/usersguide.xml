@@ -9070,71 +9070,57 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
           <section>
             <title><literal>Col</literal> factory methods</title>
 
-            <glosslist>
-              <?dbfo glosslist-presentation="list" ?>
+            <section>
+              <title>from_dtype(dtype, dflt=None, pos=None)</title>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">from_dtype(dtype, dflt=None,
-                pos=None)</emphasis></glossterm>
+              <para>Create a <literal>Col</literal> definition from a NumPy
+              <emphasis>dtype</emphasis>.</para>
 
-                <glossdef>
-                  <para>Create a <literal>Col</literal> definition from a
-                  NumPy <emphasis>dtype</emphasis>.</para>
+              <para>Optional default value and position may be specified as
+              the <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
+              arguments, respectively.</para>
+            </section>
 
-                  <para>Optional default value and position may be specified
-                  as the <emphasis>dflt</emphasis> and
-                  <emphasis>pos</emphasis> arguments, respectively.</para>
-                </glossdef>
-              </glossentry>
+            <section>
+              <title>from_kind(kind, itemsize=None, shape=1,
+              dflt=None, pos=None)</title>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">from_kind(kind,
-                itemsize=None, shape=1, dflt=None,
-                pos=None)</emphasis></glossterm>
+              <para>Create a <literal>Col</literal> definition from a
+              PyTables <emphasis>kind</emphasis>.</para>
 
-                <glossdef>
-                  <para>Create a <literal>Col</literal> definition from a
-                  PyTables <emphasis>kind</emphasis>.</para>
+              <para>Optional item size, shape, default value and position
+              may be specified as the <emphasis>itemsize</emphasis>,
+              <emphasis>shape</emphasis>, <emphasis>dflt</emphasis> and
+              <emphasis>pos</emphasis> arguments, respectively. Bear in
+              mind that not all columns support a default item
+              size.</para>
+            </section>
 
-                  <para>Optional item size, shape, default value and position
-                  may be specified as the <emphasis>itemsize</emphasis>,
-                  <emphasis>shape</emphasis>, <emphasis>dflt</emphasis> and
-                  <emphasis>pos</emphasis> arguments, respectively. Bear in
-                  mind that not all columns support a default item
-                  size.</para>
-                </glossdef>
-              </glossentry>
+            <section>
+              <title>from_sctype(sctype, shape=1, dflt=None,
+              pos=None)</title>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">from_sctype(sctype, shape=1,
-                dflt=None, pos=None)</emphasis></glossterm>
+              <para>Create a <literal>Col</literal> definition from a
+              NumPy scalar type <emphasis>sctype</emphasis>.</para>
 
-                <glossdef>
-                  <para>Create a <literal>Col</literal> definition from a
-                  NumPy scalar type <emphasis>sctype</emphasis>.</para>
+              <para>Optional shape, default value and position may be
+              specified as the <emphasis>shape</emphasis>,
+              <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
+              arguments, respectively.</para>
+            </section>
 
-                  <para>Optional shape, default value and position may be
-                  specified as the <emphasis>shape</emphasis>,
-                  <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
-                  arguments, respectively.</para>
-                </glossdef>
-              </glossentry>
+            <section>
+              <title>from_type(type, shape=1, dflt=None,
+              pos=None)</title>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">from_type(type, shape=1,
-                dflt=None, pos=None)</emphasis></glossterm>
+              <para>Create a <literal>Col</literal> definition from a
+              PyTables <emphasis>type_</emphasis>.</para>
 
-                <glossdef>
-                  <para>Create a <literal>Col</literal> definition from a
-                  PyTables <emphasis>type_</emphasis>.</para>
-
-                  <para>Optional shape, default value and position may be
-                  specified as the <emphasis>shape</emphasis>,
-                  <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
-                  arguments, respectively.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
+              <para>Optional shape, default value and position may be
+              specified as the <emphasis>shape</emphasis>,
+              <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
+              arguments, respectively.</para>
+            </section>
           </section>
 
           <section>
@@ -9287,21 +9273,16 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
           <section>
             <title><literal>Atom</literal> factory methods</title>
 
-            <glosslist>
-              <?dbfo glosslist-presentation="list" ?>
+            <section>
+              <title>from_dtype(dtype, dflt=None)</title>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">from_dtype(dtype,
-                dflt=None)</emphasis></glossterm>
+              <para>Create an <literal>Atom</literal> from a NumPy
+              <emphasis>dtype</emphasis>.</para>
 
-                <glossdef>
-                  <para>Create an <literal>Atom</literal> from a NumPy
-                  <emphasis>dtype</emphasis>.</para>
+              <para>An optional default value may be specified as the
+              <emphasis>dflt</emphasis> argument.</para>
 
-                  <para>An optional default value may be specified as the
-                  <emphasis>dflt</emphasis> argument.</para>
-
-                  <screen>
+              <screen>
 &gt;&gt;&gt; import numpy
 &gt;&gt;&gt; Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
 Int16Atom(shape=(2, 2), dflt=0)
@@ -9309,24 +9290,22 @@ Int16Atom(shape=(2, 2), dflt=0)
 StringAtom(itemsize=5, shape=(), dflt='hello')
 &gt;&gt;&gt; Atom.from_dtype(numpy.dtype('Float64'))
 Float64Atom(shape=(), dflt=0.0)</screen>
-                </glossdef>
-              </glossentry>
+            </section>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">from_kind(kind,
-                itemsize=None, shape=1, dflt=None)</emphasis></glossterm>
+            <section>
+              <title>from_kind(kind, itemsize=None, shape=1,
+              dflt=None)</title>
 
-                <glossdef>
-                  <para>Create an <literal>Atom</literal> from a PyTables
-                  <emphasis>kind</emphasis>.</para>
+              <para>Create an <literal>Atom</literal> from a PyTables
+              <emphasis>kind</emphasis>.</para>
 
-                  <para>Optional item size, shape and default value may be
-                  specified as the <emphasis>itemsize</emphasis>,
-                  <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
-                  arguments, respectively. Bear in mind that not all atoms
-                  support a default item size.</para>
+              <para>Optional item size, shape and default value may be
+              specified as the <emphasis>itemsize</emphasis>,
+              <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
+              arguments, respectively. Bear in mind that not all atoms
+              support a default item size.</para>
 
-                  <screen>
+              <screen>
 &gt;&gt;&gt; Atom.from_kind('int', itemsize=2, shape=(2, 2))
 Int16Atom(shape=(2, 2), dflt=0)
 &gt;&gt;&gt; Atom.from_kind('int', shape=(2, 2))
@@ -9341,22 +9320,19 @@ ValueError: no default item size for kind ``string``
 Traceback (most recent call last):
   ...
 ValueError: unknown kind: 'Float'</screen>
-                </glossdef>
-              </glossentry>
+            </section>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">from_sctype(sctype, shape=1,
-                dflt=None)</emphasis></glossterm>
+            <section>
+              <title>from_sctype(sctype, shape=1, dflt=None)</title>
 
-                <glossdef>
-                  <para>Create an <literal>Atom</literal> from a NumPy scalar
-                  type <emphasis>sctype</emphasis>.</para>
+              <para>Create an <literal>Atom</literal> from a NumPy scalar
+              type <emphasis>sctype</emphasis>.</para>
 
-                  <para>Optional shape and default value may be specified as
-                  the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
-                  arguments, respectively.</para>
+              <para>Optional shape and default value may be specified as
+              the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
+              arguments, respectively.</para>
 
-                  <screen>
+              <screen>
 &gt;&gt;&gt; import numpy
 &gt;&gt;&gt; Atom.from_sctype(numpy.int16, shape=(2, 2))
 Int16Atom(shape=(2, 2), dflt=0)
@@ -9364,22 +9340,19 @@ Int16Atom(shape=(2, 2), dflt=0)
 StringAtom(itemsize=5, shape=(), dflt='hello')
 &gt;&gt;&gt; Atom.from_sctype('Float64')
 Float64Atom(shape=(), dflt=0.0)</screen>
-                </glossdef>
-              </glossentry>
+            </section>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">from_type(type, shape=1,
-                dflt=None)</emphasis></glossterm>
+            <section>
+              <title>from_type(type, shape=1, dflt=None)</title>
 
-                <glossdef>
-                  <para>Create an <literal>Atom</literal> from a PyTables
-                  <emphasis>type_</emphasis>.</para>
+              <para>Create an <literal>Atom</literal> from a PyTables
+              <emphasis>type_</emphasis>.</para>
 
-                  <para>Optional shape and default value may be specified as
-                  the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
-                  arguments, respectively.</para>
+              <para>Optional shape and default value may be specified as
+              the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
+              arguments, respectively.</para>
 
-                  <screen>
+              <screen>
 &gt;&gt;&gt; Atom.from_type('bool')
 BoolAtom(shape=(), dflt=False)
 &gt;&gt;&gt; Atom.from_type('int16', shape=(2, 2))
@@ -9392,9 +9365,7 @@ ValueError: unknown type: 'string40'
 Traceback (most recent call last):
   ...
 ValueError: unknown type: 'Float64'</screen>
-                </glossdef>
-              </glossentry>
-            </glosslist>
+            </section>
           </section>
 
           <section>
@@ -9434,211 +9405,146 @@ ValueError: unknown type: 'Float64'</screen>
             </glosslist>
 
             <para>A relation of the different constructors with their
-            parameters follows:</para>
+            parameters follows.</para>
 
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">StringAtom(itemsize, shape=1,
-                dflt='')</emphasis></glossterm>
+            <section>
+              <title>StringAtom(itemsize, shape=1, dflt='')</title>
+              <para>Defines an atom of type <literal>string</literal>. The
+              item size can be any 8-bit positive multiple.</para>
+            </section>
 
-                <glossdef>
-                  <para>Defines an atom of type <literal>string</literal>. The
-                  item size can be any 8-bit positive multiple.</para>
-                </glossdef>
-              </glossentry>
+            <section>
+              <title>BoolAtom(shape=1, dflt=False)</title>
+              <para>Defines an atom of type
+              <literal>bool</literal>.</para>
+            </section>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">BoolAtom(shape=1,
-                dflt=False)</emphasis></glossterm>
+            <section>
+              <title>Int8Atom(shape=1, dflt=0)</title>
+              <para>Defines an atom of type
+              <literal>int8</literal>.</para>
+            </section>
 
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>bool</literal>.</para>
-                </glossdef>
-              </glossentry>
+            <section>
+              <title>Int16Atom(shape=1, dflt=0)</title>
+              <para>Defines an atom of type
+              <literal>int16</literal>.</para>
+            </section>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">Int8Atom(shape=1,
-                dflt=0)</emphasis></glossterm>
+            <section>
+              <title>Int32Atom(shape=1, dflt=0)</title>
+              <para>Defines an atom of type
+              <literal>int32</literal>.</para>
+            </section>
 
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>int8</literal>.</para>
-                </glossdef>
-              </glossentry>
+            <section>
+              <title>Int64Atom(shape=1, dflt=0)</title>
+              <para>Defines an atom of type
+              <literal>int64</literal>.</para>
+            </section>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">Int16Atom(shape=1,
-                dflt=0)</emphasis></glossterm>
+            <section>
+              <title>UInt8Atom(shape=1, dflt=0)</title>
+              <para>Defines an atom of type
+              <literal>uint8</literal>.</para>
+            </section>
 
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>int16</literal>.</para>
-                </glossdef>
-              </glossentry>
+            <section>
+              <title>UInt16Atom(shape=1, dflt=0)</title>
+              <para>Defines an atom of type
+              <literal>uint16</literal>.</para>
+            </section>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">Int32Atom(shape=1,
-                dflt=0)</emphasis></glossterm>
+            <section>
+              <title>UInt32Atom(shape=1, dflt=0)</title>
+              <para>Defines an atom of type
+              <literal>uint32</literal>.</para>
+            </section>
 
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>int32</literal>.</para>
-                </glossdef>
-              </glossentry>
+            <section>
+              <title>UInt64Atom(shape=1, dflt=0)</title>
+              <para>Defines an atom of type
+              <literal>uint64</literal>.</para>
+            </section>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">Int64Atom(shape=1,
-                dflt=0)</emphasis></glossterm>
+            <section>
+              <title>Float32Atom(shape=1, dflt=0.0)</title>
+              <para>Defines an atom of type
+              <literal>float32</literal>.</para>
+            </section>
 
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>int64</literal>.</para>
-                </glossdef>
-              </glossentry>
+            <section>
+              <title>Float64Atom(shape=1, dflt=0.0)</title>
+              <para>Defines an atom of type
+              <literal>float64</literal>.</para>
+            </section>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">UInt8Atom(shape=1,
-                dflt=0)</emphasis></glossterm>
+            <section>
+              <title>ComplexAtom(itemsize, shape=1, dflt=0j)</title>
+              <para>Defines an atom of kind <literal>complex</literal>.
+              Allowed item sizes are 8 (single precision) and 16 (double
+              precision). This class must be used instead of more concrete
+              ones to avoid confusions with
+              <literal>numarray</literal>-like precision specifications
+              used in PyTables 1.X.</para>
+            </section>
 
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>uint8</literal>.</para>
-                </glossdef>
-              </glossentry>
+            <section>
+              <title>Time32Atom(shape=1, dflt=0)</title>
+              <para>Defines an atom of type
+              <literal>time32</literal>.</para>
+            </section>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">UInt16Atom(shape=1,
-                dflt=0)</emphasis></glossterm>
+            <section>
+              <title>Time64Atom(shape=1, dflt=0.0)</title>
+              <para>Defines an atom of type
+              <literal>time64</literal>.</para>
+            </section>
 
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>uint16</literal>.</para>
-                </glossdef>
-              </glossentry>
+            <section>
+              <title>EnumAtom(enum, dflt, base, shape=1)</title>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">UInt32Atom(shape=1,
-                dflt=0)</emphasis></glossterm>
+              <para>Description of an atom of an enumerated type.</para>
 
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>uint32</literal>.</para>
-                </glossdef>
-              </glossentry>
+              <para>Instances of this class describe the atom type used to
+              store enumerated values. Those values belong to an
+              enumerated type, defined by the first argument
+              (<literal>enum</literal>) in the constructor of the atom,
+              which accepts the same kinds of arguments as the
+              <literal>Enum</literal> class (see <xref
+              linkend="EnumClassDescr"
+              xrefstyle="select: labelnumber" />). The enumerated type is
+              stored in the <literal>enum</literal> attribute of the
+              atom.</para>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">UInt64Atom(shape=1,
-                dflt=0)</emphasis></glossterm>
+              <para>A default value must be specified as the second
+              argument (<literal>dflt</literal>) in the constructor; it
+              must be the <emphasis>name</emphasis> (a string) of one of
+              the enumerated values in the enumerated type. When the atom
+              is created, the corresponding concrete value is broadcast
+              and stored in the <literal>dflt</literal> attribute (setting
+              different default values for items in a multidimensional
+              atom is not supported yet). If the name does not match any
+              value in the enumerated type, a <literal>KeyError</literal>
+              is raised.</para>
 
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>uint64</literal>.</para>
-                </glossdef>
-              </glossentry>
+              <para>Another atom must be specified as the
+              <literal>base</literal> argument in order to determine the
+              base type used for storing the values of enumerated values
+              in memory and disk. This <emphasis>storage atom</emphasis>
+              is kept in the <literal>base</literal> attribute of the
+              created atom. As a shorthand, you may specify a PyTables
+              type instead of the storage atom, implying that this has a
+              scalar shape.</para>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">Float32Atom(shape=1,
-                dflt=0.0)</emphasis></glossterm>
+              <para>The storage atom should be able to represent each and
+              every concrete value in the enumeration. If it is not, a
+              <literal>TypeError</literal> is raised. The default value of
+              the storage atom is ignored.</para>
 
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>float32</literal>.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">Float64Atom(shape=1,
-                dflt=0.0)</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>float64</literal>.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">ComplexAtom(itemsize,
-                shape=1, dflt=0j)</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Defines an atom of kind <literal>complex</literal>.
-                  Allowed item sizes are 8 (single precision) and 16 (double
-                  precision). This class must be used instead of more concrete
-                  ones to avoid confusions with
-                  <literal>numarray</literal>-like precision specifications
-                  used in PyTables 1.X.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">Time32Atom(shape=1,
-                dflt=0)</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>time32</literal>.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">Time64Atom(shape=1,
-                dflt=0.0)</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Defines an atom of type
-                  <literal>time64</literal>.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">EnumAtom(enum, dflt, base,
-                shape=1)</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Description of an atom of an enumerated type.</para>
-
-                  <para>Instances of this class describe the atom type used to
-                  store enumerated values. Those values belong to an
-                  enumerated type, defined by the first argument
-                  (<literal>enum</literal>) in the constructor of the atom,
-                  which accepts the same kinds of arguments as the
-                  <literal>Enum</literal> class (see <xref
-                  linkend="EnumClassDescr"
-                  xrefstyle="select: labelnumber" />). The enumerated type is
-                  stored in the <literal>enum</literal> attribute of the
-                  atom.</para>
-
-                  <para>A default value must be specified as the second
-                  argument (<literal>dflt</literal>) in the constructor; it
-                  must be the <emphasis>name</emphasis> (a string) of one of
-                  the enumerated values in the enumerated type. When the atom
-                  is created, the corresponding concrete value is broadcast
-                  and stored in the <literal>dflt</literal> attribute (setting
-                  different default values for items in a multidimensional
-                  atom is not supported yet). If the name does not match any
-                  value in the enumerated type, a <literal>KeyError</literal>
-                  is raised.</para>
-
-                  <para>Another atom must be specified as the
-                  <literal>base</literal> argument in order to determine the
-                  base type used for storing the values of enumerated values
-                  in memory and disk. This <emphasis>storage atom</emphasis>
-                  is kept in the <literal>base</literal> attribute of the
-                  created atom. As a shorthand, you may specify a PyTables
-                  type instead of the storage atom, implying that this has a
-                  scalar shape.</para>
-
-                  <para>The storage atom should be able to represent each and
-                  every concrete value in the enumeration. If it is not, a
-                  <literal>TypeError</literal> is raised. The default value of
-                  the storage atom is ignored.</para>
-
-                  <para>The <literal>type</literal> attribute of enumerated
-                  atoms is always <literal>enum</literal>.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
+              <para>The <literal>type</literal> attribute of enumerated
+              atoms is always <literal>enum</literal>.</para>
+            </section>
 
             <!-- You can place paragraphs and other block elements before a section, but you cannot place anything after it. See docbook reference. -->
 
@@ -15133,4 +15039,5 @@ Object Tree:
 </book>
 <!-- Local Variables: -->
 <!-- fill-column: 78 -->
+<!-- indent-tabs-mode: nil -->
 <!-- End: -->
