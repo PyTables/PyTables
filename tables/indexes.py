@@ -454,11 +454,9 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     _c_classId = 'INDEXARRAY'
 
     def __init__(self, parentNode, name,
-                 atom=None, shape=None, title="",
-                 filters=None,
-                 optlevel=0,
-                 testmode=False,
-                 expectedrows=0):
+                 atom=None, title="",
+                 filters=None, optlevel=0,
+                 testmode=False, expectedrows=None):
         """Create an IndexArray instance.
 
         Keyword arguments:
@@ -470,8 +468,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         atom -- An Atom object representing the shape and type of the
             atomic objects to be saved. Only scalar atoms are
             supported.
-
-        shape -- The shape of the index array.
 
         title -- Sets a TITLE attribute on the array entity.
 
@@ -508,9 +504,17 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
             (self.superblocksize, self.blocksize,
              self.slicesize, self.chunksize) = sizes
             self.reord_opts = reord_opts
+            # The shape and chunkshape needs to be fixed here
+            shape = (0, self.slicesize)
+            chunkshape = (1, self.chunksize)
+        else:
+            # The shape and chunkshape will be read from disk later on
+            shape = None
+            chunkshape = None
 
         super(IndexArray, self).__init__(
-            parentNode, name, atom, shape, title, filters, expectedrows)
+            parentNode, name, atom, shape, title, filters, expectedrows,
+            chunkshape)
 
 
     def _g_create(self):
@@ -518,6 +522,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         assert self.extdim == 0, "computed extendable dimension is wrong"
         assert self.shape == (0, self.slicesize), "invalid shape"
         assert self._v_chunkshape == (1, self.chunksize), "invalid chunkshape"
+
         # The superblocksize & blocksize will be saved as (pickled) attributes
         # (only necessary for sorted index)
         if self.name == "sorted":
@@ -526,19 +531,6 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
             # The same goes for reordenation opts
             self.attrs.reord_opts = self.reord_opts
         return objectId
-
-
-    def _calcTuplesAndChunks(self, expectedrows):
-        return (0, (1, self.chunksize))  # (_v_nrowsinbuf, _v_chunkshape)
-
-
-    def _createEArray(self, title):
-        # The shape of the index array needs to be fixed before creating it.
-        # Admitted, this is a bit too much convoluted :-(
-        self.shape = (0, self.slicesize)
-        self._v_chunkshape = (1, self.chunksize)
-        self._v_objectID = super(IndexArray, self)._createEArray(title)
-        return self._v_objectID
 
 
     def _g_postInitHook(self):

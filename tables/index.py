@@ -541,9 +541,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Create the IndexArray for sorted values
         atom = Atom.from_dtype(self.dtype)
-        sorted = IndexArray(self, 'sorted', atom, (0,),
-                            "Sorted Values", filters, self.optlevel,
-                            self.testmode, self._v_expectedrows)
+        sorted = IndexArray(self, 'sorted', atom, "Sorted Values",
+                            filters, self.optlevel, self.testmode,
+                            self._v_expectedrows)
 
         # After "sorted" is created, we can assign some attributes
         self.superblocksize = sorted.superblocksize
@@ -553,10 +553,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.reord_opts = sorted.reord_opts
 
         # Create the IndexArray for index values
-        IndexArray(self, 'indices',
-                   Int64Atom(), (0,), "Reverse Indices",
-                   filters, self.optlevel,
-                   self.testmode, self._v_expectedrows)
+        IndexArray(self, 'indices', Int64Atom(), "Reverse Indices",
+                   filters, self.optlevel, self.testmode,
+                   self._v_expectedrows)
 
         # Create the cache for range values  (1st order cache)
         CacheArray(self, 'ranges', atom, (0,2), "Range Values", filters,

@@ -138,53 +138,6 @@ class EArray(CArray):
 
     # Public and private methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def _calcTuplesAndChunks(self, expectedrows):
-        """Calculate the maximun number of tuples and the HDF5 chunk size."""
-
-        # The buffer size
-        rowsize = self.rowsize
-        expectedfsizeinKb = (expectedrows * rowsize) / 1024
-        buffersize = self._g_calcBufferSize(expectedfsizeinKb)
-
-        # Max Tuples to fill the buffer
-        maxTuples = buffersize // (rowsize * CHUNKTIMES)
-        chunksizes = list(self.shape)
-        # Check if at least 1 tuple fits in buffer
-        if maxTuples >= 1:
-            # Yes. So the chunk sizes for the non-extendeable dims will be
-            # unchanged
-            chunksizes[self.extdim] = maxTuples
-        else:
-            # No. reduce other dimensions until we get a proper chunksizes
-            # shape
-            chunksizes[self.extdim] = 1  # Only one row in extendeable dimension
-            for j in range(len(chunksizes)):
-                newrowsize = self.atom.itemsize
-                for i in chunksizes[j+1:]:
-                    newrowsize *= i
-                maxTuples = buffersize // newrowsize
-                if maxTuples >= 1:
-                    break
-                chunksizes[j] = 1
-            # Compute the chunksizes correctly for this j index
-            chunksize = maxTuples
-            if j < len(chunksizes):
-                # Only modify chunksizes[j] if needed
-                if chunksize < chunksizes[j]:
-                    chunksizes[j] = chunksize
-            else:
-                chunksizes[-1] = 1 # very large itemsizes!
-        # Compute the correct maxTuples number
-        newrowsize = self.atom.itemsize
-        for i in chunksizes:
-            newrowsize *= i
-        maxTuples = buffersize // (newrowsize * CHUNKTIMES)
-        # Safeguard against row sizes being extremely large
-        if maxTuples == 0:
-            maxTuples = 1
-        return (maxTuples, chunksizes)
-
-
     def _g_create(self):
         """Create a new EArray."""
 
