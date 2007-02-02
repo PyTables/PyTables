@@ -807,9 +807,10 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
           sctype = numpy.sctypeDict[colstype]
           colobj = Col.from_sctype(sctype, shape=colshape, pos=i)
         desc[colname] = colobj
-        # If *any* column has a different byteorder than sys, it is
-        # changed here. This should be further refined for columns
-        # with different byteorders, but this case is strange enough.
+        # If *any* column has a different byteorder than sys, the byteorder
+        # attribute for the entire table is changed here. This should be
+        # further refined for columns with different byteorders, but this case
+        # is strange enough.
         ret = get_order(member_type_id, byteorder2)
         if ret > 0 and byteorder2 in ["big", "little"]:  # exclude 'irrelevant'
           strcpy(byteorder, byteorder2)
