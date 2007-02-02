@@ -16,7 +16,6 @@ from tables.tests.common import (
 
 if numarray_imported:
     import numarray
-
 if numeric_imported:
     import Numeric
 

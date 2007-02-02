@@ -10,6 +10,7 @@ cdef class Leaf(Node):
   cdef hid_t   dataset_id
   cdef hid_t   type_id
   cdef hid_t   base_type_id
+  cdef hid_t   disk_type_id
 
 cdef class Array(Leaf):
   cdef int      rank

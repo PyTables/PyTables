@@ -27,7 +27,6 @@ Misc variables:
 
 import numpy
 
-import tables.hdf5Extension
 from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
 from tables.utilsExtension import createNestedType, \
@@ -35,6 +34,7 @@ from tables.utilsExtension import createNestedType, \
      getNestedField
 
 # numpy functions & objects
+from hdf5Extension cimport Leaf
 from definitions cimport import_array, ndarray, \
      malloc, free, strdup, \
      PyString_AsString, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
@@ -125,39 +125,13 @@ cdef object getNestedFieldCache(recarray, fieldname, fieldcache):
   return field
 
 
+
 # Public classes
 
-# XXX This should inherit from `tables.hdf5Extension.Leaf`,
-# XXX but I don't know the Pyrex machinery to make it work.
-# XXX ivb(2005-07-21)
-
-cdef class Table:  # XXX extends Leaf
+cdef class Table(Leaf):
   # instance variables
-  cdef void     *rbuf, *wbuf
+  cdef void     *wbuf
   cdef hsize_t  totalrecords
-  cdef char     *name  # XXX from Node
-  cdef hid_t    parent_id  # XXX from Node
-  cdef hid_t    dataset_id, type_id, disk_type_id
-
-
-  def _g_new(self, where, name, init):
-    self.name = strdup(name)  # XXX from Node._g_new()
-    # The parent group id for this object
-    self.parent_id = where._v_objectID  # XXX from Node._g_new()
-    if init:
-      self.dataset_id = -1
-      self.type_id = -1
-      self.disk_type_id = -1
-
-
-  def _g_delete(self):  # XXX Should inherit from Node
-    cdef int ret
-
-    # Delete this node
-    ret = H5Gunlink(self.parent_id, self.name)
-    if ret < 0:
-      raise HDF5ExtError("problems deleting the node ``%s``" % self.name)
-    return ret
 
 
   def _createTable(self, char *title, char *complib, char *obversion):
@@ -516,33 +490,6 @@ cdef class Table:  # XXX extends Leaf
     self._dirtycache = True
     # Return the number of records removed
     return nrecords
-
-
-  def  _get_type_id(self):
-    "Accessor to type_id"
-    return self.type_id
-
-
-  def _g_flush(self):
-    # Flush the dataset (in fact, the entire buffers in file!)
-    if self.dataset_id >= 0:
-        H5Fflush(self.dataset_id, H5F_SCOPE_GLOBAL)
-
-
-  def _g_close(self):
-    # Close dataset in HDF5 space
-    # Release resources
-    if self.type_id >= 0:
-      H5Tclose(self.type_id)
-    if self.disk_type_id >= 0:
-      H5Tclose(self.disk_type_id)
-    if self.dataset_id >= 0:
-      H5Dclose(self.dataset_id)
-
-
-  def __dealloc__(self):
-    #print "Destroying object Table in Extension"
-    free(<void *>self.name)  # XXX from Node
 
 
 

@@ -746,6 +746,7 @@ cdef class Leaf(Node):
       self.dataset_id = -1
       self.type_id = -1
       self.base_type_id = -1
+      self.disk_type_id = -1
     super(Leaf, self)._g_new(where, name, init)
 
 
@@ -790,6 +791,8 @@ cdef class Leaf(Node):
     # Release resources
     if self.type_id >= 0:
       H5Tclose(self.type_id)
+    if self.disk_type_id >= 0:
+      H5Tclose(self.disk_type_id)
     if self.base_type_id >= 0:
       H5Tclose(self.base_type_id)
     if self.dataset_id >= 0:
