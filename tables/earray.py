@@ -183,10 +183,9 @@ instance to zero."""
         # Create the atom instance and set definitive type
         kind, itemsize = split_type(self.type)
         if kind == 'enum':
-            (enum, self.dtype) = self._g_loadEnum()
-            dflt = iter(enum).next()[0]  # ignored, any of them is OK
+            dflt = iter(self._enum).next()[0]  # ignored, any of them is OK
             base = Atom.from_dtype(self.dtype)
-            self.atom = EnumAtom(enum, dflt, base)
+            self.atom = EnumAtom(self._enum, dflt, base)
         else:
             itemsize = self.dtype.itemsize  # string type has no precision
             self.atom = Atom.from_kind(kind, itemsize)

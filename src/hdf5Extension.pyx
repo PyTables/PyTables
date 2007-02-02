@@ -37,6 +37,7 @@ import cPickle
 import numpy
 
 from tables.misc.enum import Enum
+from tables.atom import split_type
 from tables.exceptions import HDF5ExtError
 from tables.utils import checkFileAccess, byteorders
 
@@ -750,7 +751,7 @@ cdef class Leaf(Node):
     super(Leaf, self)._g_new(where, name, init)
 
 
-  def _g_loadEnum(self):
+  def _g_loadEnum(self, hid_t type_id):
     """_g_loadEnum() -> (Enum, npType)
     Load enumerated type associated with this array.
 
@@ -759,14 +760,9 @@ cdef class Leaf(Node):
     NumPy type used to encode it.
     """
 
-    cdef hid_t enumId, type_id
+    cdef hid_t enumId
     cdef char  byteorder[11]  # "irrelevant" fits well here
 
-    if self._c_classId == "VLARRAY":
-      # For VLArray objects, the interesting type is the base type
-      type_id = self.base_type_id
-    else:
-      type_id = self.type_id
     # Get the enumerated type
     enumId = getTypeEnum(type_id)
     # Get the byteorder
@@ -936,7 +932,7 @@ cdef class Array(Leaf):
     cdef int extdim
     cdef hid_t base_type_id
     cdef herr_t ret
-    cdef object shape, type_, dtype
+    cdef object shape, type_, dtype, pttype
 
     # Open the dataset (and keep it open)
     self.dataset_id = H5Dopen(self.parent_id, self.name)
@@ -980,19 +976,23 @@ cdef class Array(Leaf):
 
     H5Tclose(base_type_id)    # Release resources
 
-    # Get the shape and chunkshapes as python tuples
-    shape = getshape(self.rank, self.dims)
-    chunkshapes = getshape(self.rank, self.dims_chunk)
-
-    # Finally, get the dtype
+    # Get the dtype
     type_ = NPCodeToType.get(enumtype, "int32")
     if type_ == numpy.string_:
       dtype = numpy.dtype("S%s"%type_size)
     else:
       dtype = numpy.dtype(type_).newbyteorder(byteorder)
 
-    return (self.dataset_id, dtype, NPCodeToPTType[enumtype],
-            shape, chunkshapes)
+    pttype = NPCodeToPTType[enumtype]
+    # Get enumeration from disk
+    if split_type(pttype)[0] == 'enum':
+      (self._enum, dtype) = self._g_loadEnum(self.type_id)
+
+    # Get the shape and chunkshapes as python tuples
+    shape = getshape(self.rank, self.dims)
+    chunkshapes = getshape(self.rank, self.dims_chunk)
+
+    return (self.dataset_id, dtype, pttype, shape, chunkshapes)
 
 
   def _convertTypes(self, object nparr, int sense):
@@ -1272,6 +1272,10 @@ cdef class VLArray(Leaf):
     else:
       self._atomicdtype = numpy.dtype(type_).newbyteorder(byteorder)
     self._atomictype = NPCodeToPTType[enumtype]
+
+    # Get enumeration from disk
+    if split_type(self._atomictype)[0] == 'enum':
+      (self._enum, self._atomicdtype) = self._g_loadEnum(self.base_type_id)
 
     # Get the size and shape of the atomic type
     self._atomicshape = getshape(self.rank, self.dims)

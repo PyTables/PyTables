@@ -262,31 +262,6 @@ cdef class Table(Leaf):
     return (self.dataset_id, desc, chunksize[0])
 
 
-  def _g_loadEnum(self, hid_t fieldTypeId):
-    """_g_loadEnum(colname) -> (Enum, naType)
-    Load enumerated type associated with `colname` column.
-
-    This method loads the HDF5 enumerated type associated with
-    `colname`.  It returns an `Enum` instance built from that, and the
-    NumPy type used to encode it.
-    """
-
-    cdef hid_t enumId
-    cdef char  byteorder[11]  # "irrelevant" fits well here
-
-    enumId = getTypeEnum(fieldTypeId)
-    # Get the byteorder
-    get_order(fieldTypeId, byteorder)
-
-    # Get the Enum and NumPy types and close the HDF5 type.
-    try:
-      return enumFromHDF5(enumId, byteorder)
-    finally:
-      # (Yes, the ``finally`` clause *is* executed.)
-      if H5Tclose(enumId) < 0:
-        raise HDF5ExtError("failed to close HDF5 enumerated type")
-
-
   def _convertTypes(self, object recarr, hsize_t nrecords, int sense):
     """Converts columns in 'recarr' between NumPy and HDF5 formats.
 

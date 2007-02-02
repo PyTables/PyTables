@@ -69,7 +69,7 @@ class DB(object):
             prec = 6
         else:
             r = "[NOREP] "
-            prec = 3
+            prec = 6
         ltimes = numpy.array(ltimes)
         ntimes = len(ltimes)
         qtime1 = ltimes[0] # First measured time

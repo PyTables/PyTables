@@ -253,10 +253,6 @@ class Array(hdf5Extension.Array, Leaf):
         (self._v_objectID, self.dtype, self.type, self.shape,
          self._v_chunkshape) = self._openArray()
 
-        # Get enumeration from disk.
-        if split_type(self.type)[0] == 'enum':
-            (self._enum, self.dtype) = self._g_loadEnum()
-
         # Compute the optimal buffer size (nrowsinbuf)
         chunkshape = self._calc_chunkshape(self.nrows, self.rowsize)
         self._v_nrowsinbuf = self._calc_nrowsinbuf(chunkshape, self.rowsize)

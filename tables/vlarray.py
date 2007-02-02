@@ -151,6 +151,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_chunkshape = None
         """The HDF5 chunk shape for ``VLArray`` objects."""
+        self._enum = None
+        """The enumerated type containing the values in this array."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
@@ -266,10 +268,9 @@ be zero."""
         elif kind == 'object':
             atom = ObjectAtom()
         elif kind == 'enum':
-            (enum, self._atomicdtype) = self._g_loadEnum()
-            dflt = iter(enum).next()[0]  # ignored, any of them is OK
+            dflt = iter(self._enum).next()[0]  # ignored, any of them is OK
             base = Atom.from_dtype(self._atomicdtype)
-            atom = EnumAtom(enum, dflt, base, shape=self._atomicshape)
+            atom = EnumAtom(self._enum, dflt, base, shape=self._atomicshape)
         else:
             if itemsize is None:  # some types don't include precision
                 itemsize = self._atomicdtype.itemsize
