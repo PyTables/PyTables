@@ -1,17 +1,16 @@
 import os, os.path
 from time import sleep
-#import subprocess  # Needs Python 2.4
-import popen2
+import subprocess  # Needs Python 2.4
 from indexed_search import DB
 import psycopg2 as db2
 
-CLUSTER_NAME = "bench"
+CLUSTER_NAME = "base"
 DATA_DIR = "/scratch/faltet/postgres/%s" % CLUSTER_NAME
 DSN = "dbname=%s port=%s"
 CREATE_DB = "createdb %s"
 DROP_DB = "dropdb %s"
 TABLE_NAME = "intsfloats"
-PORT = 5434
+PORT = 5432
 
 class StreamChar(object):
     "Object simulating a file for reading"
@@ -73,21 +72,18 @@ class Postgres_DB(DB):
 
     # Overloads the method in DB class
     def get_db_size(self):
-#         sout = subprocess.Popen("du -s %s" % DATA_DIR, shell=True,
-#                                 stdout=subprocess.PIPE).stdout
-        (sout, sin) = popen2.popen2("sync;du -s %s" % DATA_DIR)
+        sout = subprocess.Popen("du -s %s" % DATA_DIR, shell=True,
+                                stdout=subprocess.PIPE).stdout
         line = [l for l in sout][0]
         return int(line.split()[0])
 
     def open_db(self, remove=0):
         if remove:
-#             sout = subprocess.Popen(DROP_DB % self.filename, shell=True,
-#                                     stdout=subprocess.PIPE).stdout
-            (sout, sin) = popen2.popen2(DROP_DB % self.filename)
+            sout = subprocess.Popen(DROP_DB % self.filename, shell=True,
+                                    stdout=subprocess.PIPE).stdout
             for line in sout: print line
-#             sout = subprocess.Popen(CREATE_DB % self.filename, shell=True,
-#                                     stdout=subprocess.PIPE).stdout
-            (sout, sin) = popen2.popen2(CREATE_DB % self.filename)
+            sout = subprocess.Popen(CREATE_DB % self.filename, shell=True,
+                                    stdout=subprocess.PIPE).stdout
             for line in sout: print line
 
         print "Processing database:", self.filename
@@ -108,14 +104,14 @@ class Postgres_DB(DB):
         self.cur.copy_from(st, TABLE_NAME)
         con.commit()
 
-    def index_col(self, con, colname):
+    def index_col(self, con, colname, optlevel, verbose):
         self.cur.execute("create index %s on %s(%s)" % \
                          (colname+'_idx', TABLE_NAME, colname))
         con.commit()
 
     def do_query(self, con, column, base):
         self.cur.execute(
-            "select %s from %s where %s >= %s and %s <= %s" % \
+            "select sum(%s) from %s where %s >= %s and %s <= %s" % \
             (column, TABLE_NAME,
              column, base+self.rng[0],
              column, base+self.rng[1]))
