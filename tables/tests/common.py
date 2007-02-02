@@ -245,9 +245,17 @@ def pyTablesTest(oldmethod):
             try:
                 return oldmethod(self, *args, **kwargs)
             except SkipTest, se:
-                verbosePrint("\nSkipped test: %s" % se.args[0])
+                if se.args:
+                    msg = se.args[0]
+                else:
+                    msg = "<skipped>"
+                verbosePrint("\nSkipped test: %s" % msg)
             except self.failureException, fe:
-                verbosePrint("\nTest failed: %s" % fe.args[0])
+                if fe.args:
+                    msg = fe.args[0]
+                else:
+                    msg = "<failed>"
+                verbosePrint("\nTest failed: %s" % msg)
                 raise
             except Exception, exc:
                 cname = exc.__class__.__name__
