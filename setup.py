@@ -422,7 +422,7 @@ else:
 #Having the Python version included in the package name makes managing a
 #system with multiple versions of Python much easier.
 
-def find_name(base = 'tables-pro'):
+def find_name(base='tables'):
     '''If "--name-with-python-version" is on the command line then
     append "-pyX.Y" to the base name'''
     name = base
