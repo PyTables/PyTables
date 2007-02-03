@@ -6253,8 +6253,7 @@ for node in h5file.root.detector:
               role="bold">nrows</emphasis></glossterm>
 
               <glossdef>
-                <para>The length of the main dimension of data in the
-                leaf.</para>
+                <para>The length of the main dimension of the leaf data.</para>
               </glossdef>
             </glossentry>
 
@@ -6263,7 +6262,8 @@ for node in h5file.root.detector:
               role="bold">byteorder</emphasis></glossterm>
 
               <glossdef>
-                <para>The byte ordering of data in the leaf.</para>
+                <para>The byte ordering of the leaf data <emphasis>on
+                disk</emphasis>.</para>
               </glossdef>
             </glossentry>
 
@@ -8129,15 +8129,6 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
               </glossdef>
             </glossentry>
 
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">byteorder</emphasis></glossterm>
-
-              <glossdef>
-                <para>The byte ordering of the items in the array on
-                disk.</para>
-              </glossdef>
-            </glossentry>
           </glosslist>
         </section>
 
@@ -8516,14 +8507,6 @@ array_c[4] =&gt; 'cccccccc'</screen>
               </glossdef>
             </glossentry>
 
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">byteorder</emphasis></glossterm>
-
-              <glossdef>
-                <para>The byte ordering of the items in the array.</para>
-              </glossdef>
-            </glossentry>
           </glosslist>
         </section>
 

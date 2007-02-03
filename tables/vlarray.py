@@ -90,15 +90,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         lambda self: (self.nrows,), None, None,
         "The shape of the stored array.")
 
-    def _getbyteorder(self):
-        if not hasattr(self.atom, 'size'):  # it is a pseudo-atom
-            return 'irrelevant'
-        else:
-            return byteorders[self.atom.dtype.byteorder]
-    byteorder = property(
-        _getbyteorder, None, None,
-        "The endianness of data ('big', 'little' or 'irrelevant').")
-
 
     # Other methods
     # ~~~~~~~~~~~~~
@@ -135,9 +126,10 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             recommended).
         """
 
+        self.byteorder = None
+        "The endianness of data on disk ('big', 'little' or 'irrelevant')."
         self._v_version = None
         """The object version of this array."""
-
         self._v_new = new = atom is not None
         """Is this the first time the node has been created?"""
         self._v_new_title = title
@@ -401,7 +393,7 @@ be zero."""
             nobjects = self._getnobjects(nparr)
             # Finally, check the byteorder and change it if needed
             if (self.byteorder in ['little', 'big'] and
-                byteorders[nparr.dtype.byteorder] != self.byteorder):
+                byteorders[nparr.dtype.byteorder] != sys.byteorder):
                     # The byteorder needs to be fixed (a copy is made
                     # so that the original array is not modified)
                     nparr = nparr.byteswap()

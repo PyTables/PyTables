@@ -188,16 +188,7 @@ chunkshape parameter cannot have zero-dimensions."""
         # The `Array` class is not abstract enough! :(
         super(Array, self).__init__(parentNode, name, new, filters, _log)
 
-    def __repr__(self):
-        """This provides more metainfo in addition to standard __str__"""
 
-        return """%s
-  atom := %r
-  shape := %r
-  maindim := %r
-  flavor := %r
-  byteorder := %r""" % (self, self.atom, self.shape, self.maindim,
-                        self.flavor, self.byteorder)
     def _g_create(self):
         """Create a new array in file."""
 
@@ -308,3 +299,15 @@ shape parameter cannot have zero-dimensions."""
         nbytes = numpy.product(self.shape)*self.itemsize
 
         return (object, nbytes)
+
+
+    def __repr__(self):
+        """This provides more metainfo in addition to standard __str__"""
+
+        return """%s
+  atom := %r
+  shape := %r
+  maindim := %r
+  flavor := %r
+  byteorder := %r""" % (self, self.atom, self.shape, self.maindim,
+                        self.flavor, self.byteorder)

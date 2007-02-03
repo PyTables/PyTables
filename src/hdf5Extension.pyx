@@ -58,10 +58,11 @@ from definitions cimport  \
      time_t, size_t, hid_t, herr_t, hsize_t, hvl_t, \
      H5T_class_t, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
-     H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5S_SELECT_SET, \
+     H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5T_DIR_DEFAULT, H5S_SELECT_SET, \
      H5get_libversion, H5check_version, H5Fcreate, H5Fopen, H5Fclose, \
      H5Fflush, H5Gcreate, H5Gopen, H5Gclose, H5Glink, H5Gunlink, H5Gmove, \
-     H5Gmove2,  H5Dopen, H5Dclose, H5Dread, H5Dget_type, H5Dget_space, \
+     H5Gmove2,  H5Dopen, H5Dclose, H5Dread, H5Dget_type, \
+     H5Tget_native_type, H5Tget_class, H5Tcopy, H5Dget_space, \
      H5Dvlen_reclaim, H5Adelete, H5Aget_num_attrs, H5Aget_name, H5Aopen_idx, \
      H5Aread, H5Aclose, H5Tclose, H5Pcreate, H5Pclose, \
      H5Pset_cache, H5Pset_sieve_buf_size, H5Pset_fapl_log, \
@@ -650,10 +651,10 @@ cdef class Leaf(Node):
 
   def _g_loadEnum(self, hid_t type_id):
     """_g_loadEnum() -> (Enum, npType)
-    Load enumerated type associated with this array.
+    Load enumerated type associated with this leaf.
 
     This method loads the HDF5 enumerated type associated with this
-    array.  It returns an `Enum` instance built from that, and the
+    leaf.  It returns an `Enum` instance built from that, and the
     NumPy type used to encode it.
     """
 
@@ -671,6 +672,28 @@ cdef class Leaf(Node):
       # (Yes, the ``finally`` clause *is* executed.)
       if H5Tclose(enumId) < 0:
         raise HDF5ExtError("failed to close HDF5 enumerated type")
+
+
+  def _g_get_type_ids(self):
+    """_g_get_type_ids() -> (disk_type_id, native_type_id)
+    Get the disk and native HDF5 types associated with this leaf.
+
+    It is guaranteed that both disk and native types are not the same
+    descriptor (so that it is safe to close them separately).
+    """
+    cdef hid_t disk_type_id, native_type_id
+    cdef H5T_class_t class_id
+    
+    disk_type_id = H5Dget_type(self.dataset_id)
+    class_id = H5Tget_class(disk_type_id)
+    if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_COMPOUND, H5T_ENUM, H5T_ARRAY):
+      native_type_id = H5Tget_native_type(disk_type_id, H5T_DIR_DEFAULT)
+    else:
+      # These types are not supported yet for getting the native versions
+      native_type_id = H5Tcopy(disk_type_id)
+    if native_type_id < 0:
+      raise HDF5ExtError("Problems getting type id for dataset %s" % self.name)
+    return (disk_type_id, native_type_id)
 
 
   def _g_flush(self):
@@ -816,6 +839,9 @@ cdef class Array(Leaf):
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
+    # The byteorder in creation time is always the one of the system
+    self.byteorder = sys.byteorder
+
     # Release resources
     free(fill_value)
 
@@ -832,14 +858,12 @@ cdef class Array(Leaf):
     cdef herr_t ret
     cdef object shape, type_, dtype, pttype
 
-    # Open the dataset (and keep it open)
+    # Open the dataset
     self.dataset_id = H5Dopen(self.parent_id, self.name)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems opening dataset %s" % self.name)
-    # Get the datatype handle (and keep it open)
-    self.type_id = H5Dget_type(self.dataset_id)
-    if self.type_id < 0:
-      raise HDF5ExtError("Problems getting type id for dataset %s" % self.name)
+    # Get the datatype handles
+    self.disk_type_id, self.type_id = self._g_get_type_ids()
 
     # Get the rank for this array object
     if H5ARRAYget_ndims(self.dataset_id, self.type_id, &self.rank) < 0:
@@ -848,14 +872,14 @@ cdef class Array(Leaf):
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     self.maxdims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type (of base class)
-    ret = H5ARRAYget_info(self.dataset_id, self.type_id,
+    ret = H5ARRAYget_info(self.dataset_id, self.disk_type_id,
                           self.dims, self.maxdims,
                           &base_type_id, &class_id, byteorder)
     if ret < 0:
       raise HDF5ExtError("Unable to get array info.")
-
-    self.extdim = -1  # default is non-chunked Array
+    self.byteorder = byteorder
     # Get the extendeable dimension (if any)
+    self.extdim = -1  # default is non-chunked Array
     for i from 0 <= i < self.rank:
       if self.maxdims[i] == -1:
         self.extdim = i
@@ -879,7 +903,7 @@ cdef class Array(Leaf):
     if type_ == numpy.string_:
       dtype = numpy.dtype("S%s"%type_size)
     else:
-      dtype = numpy.dtype(type_).newbyteorder(byteorder)
+      dtype = numpy.dtype(type_)
 
     pttype = NPCodeToPTType[enumtype]
     # Get enumeration from disk
@@ -1128,8 +1152,11 @@ cdef class VLArray(Leaf):
       raise HDF5ExtError("Problems creating the VLArray.")
     self.nrecords = 0  # Initialize the number of records saved
 
-    # Get the datatype handle (and keep it open)
-    self.type_id = H5Dget_type(self.dataset_id)
+    # Get the datatype handles
+    self.disk_type_id, self.type_id = self._g_get_type_ids()
+
+    # The byteorder in creation time is always the one of the system
+    self.byteorder = sys.byteorder
 
     return self.dataset_id
 
@@ -1141,22 +1168,23 @@ cdef class VLArray(Leaf):
     cdef hsize_t nrecords, chunksize
     cdef object shape, dtype, type_
 
-    # Open the dataset (and keep it open)
+    # Open the dataset
     self.dataset_id = H5Dopen(self.parent_id, self.name)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems opening dataset %s" % self.name)
-    # Get the datatype handle (and keep it open)
-    self.type_id = H5Dget_type(self.dataset_id)
-    if self.type_id < 0:
-      raise HDF5ExtError("Problems getting type id for dataset %s" % self.name)
+    # Get the datatype handles
+    self.disk_type_id, self.type_id = self._g_get_type_ids()
 
     # Get the rank for the atom in the array object
     ret = H5VLARRAYget_ndims(self.dataset_id, self.type_id, &self.rank)
     # Allocate space for the dimension axis info
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
     # Get info on dimensions, class and type (of base class)
-    H5VLARRAYget_info(self.dataset_id, self.type_id, &nrecords,
+    H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
                       self.dims, &self.base_type_id, byteorder)
+
+    # Get the byteorder
+    self.byteorder = byteorder
 
     # Get the array type & size
     self._basesize = getArrayType(self.base_type_id, &enumtype)
@@ -1168,7 +1196,7 @@ cdef class VLArray(Leaf):
     if type_ == numpy.string_:
       self._atomicdtype = numpy.dtype("S%s"%self._basesize)
     else:
-      self._atomicdtype = numpy.dtype(type_).newbyteorder(byteorder)
+      self._atomicdtype = numpy.dtype(type_)
     self._atomictype = NPCodeToPTType[enumtype]
 
     # Get enumeration from disk

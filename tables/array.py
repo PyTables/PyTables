@@ -96,10 +96,6 @@ class Array(hdf5Extension.Array, Leaf):
 
     # Properties
     # ~~~~~~~~~~
-    byteorder = property(
-        lambda self: byteorders[self.dtype.byteorder], None, None,
-        "The endianness of data in memory ('big', 'little' or 'irrelevant').")
-
     itemsize = property(
         lambda self: self.dtype.itemsize, None, None,
         "The size of the base items (shortcut for self.dtype.itemsize).")
@@ -143,14 +139,14 @@ class Array(hdf5Extension.Array, Leaf):
             Sets a ``TITLE`` attribute on the array entity.
         """
 
+        self.byteorder = None
+        "The endianness of data on disk ('big', 'little' or 'irrelevant')."
         self._v_version = None
         """The object version of this array."""
-
         self._v_new = new = object is not None
         """Is this the first time the node has been created?"""
         self._v_new_title = title
         """New title for this node."""
-
         self._object = object
         """
         The object to be stored in the array.  It can be any of
@@ -243,6 +239,9 @@ class Array(hdf5Extension.Array, Leaf):
         # Compute the optimal buffer size (nrowsinbuf)
         chunkshape = self._calc_chunkshape(self.nrows, self.rowsize)
         self._v_nrowsinbuf = self._calc_nrowsinbuf(chunkshape, self.rowsize)
+
+        # The byteorder in creation time is always the one of the nparray
+        self.byteorder = byteorders[nparr.dtype.byteorder]
 
         return self._v_objectID
 
@@ -463,10 +462,6 @@ class Array(hdf5Extension.Array, Leaf):
         countl = ((stopl - startl - 1) / stepl) + 1
         # Create an array compliant with the specified slice
         narr = numpy.empty(shape=shape, dtype=self.dtype)
-        # Set the same byteorder than on-disk (if well-defined)
-        if self.byteorder in ['little', 'big']:
-            # Note that .newbyteorder() doesn't make a data copy
-            narr = narr.newbyteorder(self.byteorder)
 
         # Assign the value to it
         try:
@@ -501,8 +496,6 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         if shape:
             shape[self.maindim] = rowstoread
         arr = numpy.empty(dtype=self.dtype, shape=shape)
-        # Set the correct byteorder for this array
-        arr.dtype = arr.dtype.newbyteorder(self.byteorder)
 
         # Protection against reading empty arrays
         if 0 not in shape:

@@ -227,7 +227,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         self._checkShape(nparr)
         # Finally, check the byteorder and change it if needed
         if (self.byteorder in ['little', 'big'] and
-            byteorders[nparr.dtype.byteorder] != self.byteorder):
+            byteorders[nparr.dtype.byteorder] != sys.byteorder):
             # The byteorder needs to be fixed (a copy is made
             # so that the original array is not modified)
             nparr = nparr.byteswap()

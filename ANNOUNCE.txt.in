@@ -15,12 +15,15 @@ Changes more in depth
 
 Improvements:
 
-- Table buffers code refactored: now each Row read iterator has its own
-  buffers, completely independent of their table. Table only have now
-  its own buffer for writing. This separation makes the logic of
-  buffering much more clear and less prone to errors. Tests has been
-  carried out, and performance and memory consumption are more or less
-  equal than before.
+*** Escomençar ací a posar dings & bells ***
+
+- Now, all the data that is read from disk is converted, if necessary,
+  to the native byteorder of the hosting machine (before, this only
+  happened with Table objects). This should help to accelerate apps that
+  have to do computations with data generated in platforms with a
+  byteorder different than the user machine. The attribute ``byteorder``
+  of the leaves only tells now the order of the data *on disk* (in
+  memory, data is always now in the native byteorder).
 
 Bug fixes:
 

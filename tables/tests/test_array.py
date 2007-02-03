@@ -84,15 +84,15 @@ class BasicTestCase(unittest.TestCase):
         if a.dtype.kind == "S":
             assert self.root.somearray.type == "string"
         else:
-            assert a.dtype == b.dtype
-            assert a.dtype == self.root.somearray.dtype
-            assert a.dtype.byteorder == b.dtype.byteorder
+            assert a.dtype.type == b.dtype.type
+            assert a.dtype.type == self.root.somearray.dtype.type
             abo = byteorders[a.dtype.byteorder]
+            bbo = byteorders[b.dtype.byteorder]
             if abo <> "irrelevant":
                 assert abo == self.root.somearray.byteorder
-            if self.endiancheck:
-                bbo = byteorders[b.dtype.byteorder]
-                assert bbo <> sys.byteorder
+                assert bbo == sys.byteorder
+                if self.endiancheck:
+                    assert bbo <> abo
 
         assert allequal(a,b)
 
