@@ -621,14 +621,14 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # A nested column
         col = table.cols.Info[:3]
         assert isinstance(col, ndarray)
-        dtype = [('value', '<c16'),
-                 ('y2', '<f8'),
+        dtype = [('value', 'c16'),
+                 ('y2', 'f8'),
                  ('Info2',
-                  [('name', '|S2'),
-                   ('value', '<c16', (2,)),
-                   ('y3', '<f8', (2,))]),
-                 ('name', '|S2'),
-                 ('z2', '|u1')]
+                  [('name', 'S2'),
+                   ('value', 'c16', (2,)),
+                   ('y3', 'f8', (2,))]),
+                 ('name', 'S2'),
+                 ('z2', 'u1')]
         npcol = zeros((3,), dtype=dtype)
         assert col.dtype.descr == npcol.dtype.descr
         if verbose:
