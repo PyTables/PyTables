@@ -387,9 +387,9 @@ if has_setuptools:
     setuptools_kwargs['zip_safe'] = True
 
     # ``NumPy`` headers are needed for building the extensions.
-    setuptools_kwargs['install_requires'] = ['numpy>=1.0']
+    setuptools_kwargs['install_requires'] = ['numpy>1.0.1']
     # ``NumPy`` is absolutely required for running PyTables.
-    setuptools_kwargs['setup_requires'] = ['numpy>=1.0']
+    setuptools_kwargs['setup_requires'] = ['numpy>1.0.1']
     setuptools_kwargs['extras_require'] = {
         'Numeric': ['Numeric>=24.2'],  # for ``Numeric`` support
         'netCDF': ['ScientificPython'],  # for netCDF interchange
