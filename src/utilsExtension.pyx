@@ -738,7 +738,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   cdef size_t  itemsize, type_size
   cdef int     i, tsize
   cdef char    *colname
-  cdef H5T_class_t  klass
+  cdef H5T_class_t  class_id
   cdef char    byteorder[11], byteorder2[11]  # "irrelevant" fits easily here
   cdef herr_t  ret
   cdef object  sysbyteorder, desc, colobj, colpath2
@@ -760,8 +760,8 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
       # Get the member size
       itemsize = H5Tget_size(member_type_id)
       # Get the HDF5 class
-      klass = H5Tget_class(member_type_id)
-      if klass == H5T_COMPOUND and not is_complex(member_type_id):
+      class_id = H5Tget_class(member_type_id)
+      if class_id == H5T_COMPOUND and not is_complex(member_type_id):
         colpath2 = _joinPath(colpath, colname)
         # Create the native data in-memory
         native_member_type_id = H5Tcreate(H5T_COMPOUND, itemsize)
@@ -771,7 +771,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
       else:
         # Get the member format
         try:
-          colstype, colshape = getRAType(member_type_id, klass, itemsize)
+          colstype, colshape = getRAType(member_type_id, class_id, itemsize)
         except TypeError, te:
           # Re-raise TypeError again with more info
           raise TypeError(
@@ -779,8 +779,11 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
             % te.args[0])
         # Get the native type
         if colstype in ["b1", "t4", "t8"]:
-          # These types are not supported yet
+          # These types are not supported yet by H5Tget_native_type
           native_member_type_id = H5Tcopy(member_type_id)
+          if set_order(native_member_type_id, sys.byteorder) < 0:
+            raise HDF5ExtError(
+          "problems setting the byteorder for type of class %s" % class_id)
         else:
           native_member_type_id = H5Tget_native_type(member_type_id,
                                                      H5T_DIR_DEFAULT)
