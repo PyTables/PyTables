@@ -86,8 +86,6 @@ class Array(hdf5Extension.Array, Leaf):
         The PyTables type of the represented array.
     `itemsize`
         The size in bytes of an item in the array.
-    `byteorder`
-        The byte ordering of the items in the array on disk.
     """
 
     # Class identifier.
@@ -140,7 +138,7 @@ class Array(hdf5Extension.Array, Leaf):
         """
 
         self.byteorder = None
-        "The endianness of data on disk ('big', 'little' or 'irrelevant')."
+        """The byte ordering of the leaf data *on disk*."""
         self._v_version = None
         """The object version of this array."""
         self._v_new = new = object is not None

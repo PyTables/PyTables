@@ -195,8 +195,8 @@ class Leaf(Node):
 
     shape -- The shape of data in the leaf.
     maindim -- The dimension along which iterators work.
-    nrows -- The length of the main dimension of data in the leaf.
-    byteorder -- The byte ordering of data in the leaf.
+    nrows -- The length of the main dimension of the leaf data.
+    byteorder -- The byte ordering of the leaf data *on disk*.
     filters -- Filter properties for this leaf --see `Filters`.
     name -- The name of this node in its parent group (a string).  An
         alias for `Node._v_name`.

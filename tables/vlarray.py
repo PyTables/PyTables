@@ -76,8 +76,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         On iterators, this is the index of the current row.
     `shape`
         The shape of the array (expressed as ``(self.nrows,)``).
-    `byteorder`
-        The byte ordering of the items in the array.
     """
 
     # Class identifier.
@@ -127,7 +125,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         """
 
         self.byteorder = None
-        "The endianness of data on disk ('big', 'little' or 'irrelevant')."
+        """The byte ordering of the leaf data *on disk*."""
         self._v_version = None
         """The object version of this array."""
         self._v_new = new = atom is not None
