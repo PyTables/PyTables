@@ -75,6 +75,7 @@ else:  # sys.byteorder == "big"
 # List only types that are susceptible of changing byteorder
 # (complex & enumerated types are special and should not be listed here)
 PTTypeToHDF5 = {
+  'bool'   : H5T_STD_B8,
   'int8'   : H5T_STD_I8,   'uint8'  : H5T_STD_U8,
   'int16'  : H5T_STD_I16,  'uint16' : H5T_STD_U16,
   'int32'  : H5T_STD_I32,  'uint32' : H5T_STD_U32,
@@ -86,7 +87,7 @@ PTTypeToHDF5 = {
   }
 
 # Special cases whose byteorder cannot be directly changed
-PTSpecialKinds = ['bool', 'complex', 'string', 'enum']
+PTSpecialKinds = ['complex', 'string', 'enum']
 
 
 # Names of HDF5 classes

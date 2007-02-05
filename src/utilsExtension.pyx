@@ -730,6 +730,11 @@ def _joinPath(object parent, object name):
     return parent + '/' + name
 
 
+# Module variable. This is needed in order to keep all the byteorders in
+# nested types (used in getNestedType()).
+cdef object field_byteorders
+field_byteorders = []
+
 def getNestedType(hid_t type_id, hid_t native_type_id,
                   object table, object colpath=""):
   """Open a nested type and return a nested dictionary as description."""
@@ -739,13 +744,12 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   cdef int     i, tsize
   cdef char    *colname
   cdef H5T_class_t  class_id
-  cdef char    byteorder[11], byteorder2[11]  # "irrelevant" fits easily here
+  cdef char    byteorder2[11]  # "irrelevant" fits easily here
   cdef herr_t  ret
-  cdef object  sysbyteorder, desc, colobj, colpath2
-  cdef object  typeclassname, typeclass
+  cdef object  desc, colobj, colpath2, typeclassname, typeclass
+  cdef object  byteorder
+  global field_byteorders
 
-  sysbyteorder = sys.byteorder  # a workaround against temporary Pyrex error
-  strcpy(byteorder, sysbyteorder)  # default byteorder
   offset = 0
   desc = {}
   # Get the number of members
@@ -803,16 +807,10 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
           sctype = numpy.sctypeDict[colstype]
           colobj = Col.from_sctype(sctype, shape=colshape, pos=i)
         desc[colname] = colobj
-        # If *any* column has a different byteorder than sys, the byteorder
-        # attribute for the entire table is changed here.  Compound types with
-        # different orders are not supported (and never should be).
+        # Fetch the byteorder for this column
         ret = get_order(member_type_id, byteorder2)
-        if byteorder2 in ["big", "little"]:  # exclude 'irrelevant'
-          if strcmp(byteorder, byteorder2) != 0:
-            raise NotImplementedError(
-              "compound types with mixed byteorders "
-              "are not supported yet, sorry" )
-          strcpy(byteorder, byteorder2)
+        if byteorder2 in ["little", "big"]:
+          field_byteorders.append(byteorder2)
 
       # Insert the native member
       H5Tinsert(native_type_id, colname, offset, native_member_type_id)
@@ -825,7 +823,23 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
 
   # set the byteorder (just in top level)
   if colpath == "":
+    # Compute a decent byteorder for the entire table
+    if len(field_byteorders) > 0:
+      field_byteorders = numpy.array(field_byteorders)
+      # Pyrex doesn't interpret well the extended comparison operators so this:
+      # field_byteorders == "little"
+      # doesn't work as expected
+      if numpy.alltrue(field_byteorders.__eq__("little")):
+        byteorder = "little"
+      elif numpy.alltrue(field_byteorders.__eq__("big")):
+        byteorder = "big"
+      else:  # Yes! someone have done it!
+        byteorder = "mixed"
+    else:
+      byteorder = "irrelevant"
     desc["_v_byteorder"] = byteorder
+    # Reset the module variable for the next type
+    field_byteorders = []
   # return the Description object and the size of the compound type
   return desc, offset
 

@@ -7,7 +7,7 @@ import os
 import unittest
 
 # Recommended minimum versions for optional packages
-minimum_numpy_version = "1.0"
+minimum_numpy_version = "1.0.2"
 minimum_numeric_version = "24.2"
 minimum_numarray_version = "1.5.2"
 
