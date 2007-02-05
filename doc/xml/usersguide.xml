@@ -8987,19 +8987,6 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
               <?dbfo glosslist-presentation="list" ?>
 
               <glossentry>
-                <glossterm><emphasis
-                role="bold">_v_flavor</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The flavor of the table. It can take
-                  <emphasis>"numarray"</emphasis> (default) or
-                  <emphasis>"numpy"</emphasis> values. This determines the
-                  type of objects returned during input (i.e. read)
-                  operations.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
                 <glossterm><emphasis role="bold">_v_pos</emphasis></glossterm>
 
                 <glossdef>
