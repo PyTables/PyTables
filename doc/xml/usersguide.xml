@@ -9061,7 +9061,9 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
 
               <para>Optional default value and position may be specified as
               the <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
-              arguments, respectively.</para>
+              arguments, respectively. Information in the
+              <emphasis>dtype</emphasis> not represented in a
+              <literal>Col</literal> is ignored.</para>
             </section>
 
             <section>
@@ -9089,7 +9091,9 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
               <para>Optional shape, default value and position may be
               specified as the <emphasis>shape</emphasis>,
               <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
-              arguments, respectively.</para>
+              arguments, respectively. Information in the
+              <emphasis>sctype</emphasis> not represented in a
+              <literal>Col</literal> is ignored.</para>
             </section>
 
             <section>
@@ -9263,7 +9267,9 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
               <emphasis>dtype</emphasis>.</para>
 
               <para>An optional default value may be specified as the
-              <emphasis>dflt</emphasis> argument.</para>
+              <emphasis>dflt</emphasis> argument. Information in the
+              <emphasis>dtype</emphasis> not represented in an
+              <literal>Atom</literal> is ignored.</para>
 
               <screen>
 &gt;&gt;&gt; import numpy
@@ -9311,9 +9317,11 @@ ValueError: unknown kind: 'Float'</screen>
               <para>Create an <literal>Atom</literal> from a NumPy scalar
               type <emphasis>sctype</emphasis>.</para>
 
-              <para>Optional shape and default value may be specified as
-              the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
-              arguments, respectively.</para>
+              <para>Optional shape and default value may be specified as the
+              <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
+              arguments, respectively. Information in the
+              <emphasis>sctype</emphasis> not represented in an
+              <literal>Atom</literal> is ignored.</para>
 
               <screen>
 &gt;&gt;&gt; import numpy

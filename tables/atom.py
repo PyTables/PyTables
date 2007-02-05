@@ -326,7 +326,8 @@ class Atom(object):
         Create an `Atom` from a NumPy scalar type `sctype`.
 
         Optional shape and default value may be specified as the
-        `shape` and `dflt` arguments, respectively.
+        `shape` and `dflt` arguments, respectively.  Information in
+        the `sctype` not represented in an `Atom` is ignored.
 
         >>> import numpy
         >>> Atom.from_sctype(numpy.int16, shape=(2, 2))
@@ -345,7 +346,8 @@ class Atom(object):
         Create an `Atom` from a NumPy `dtype`.
 
         An optional default value may be specified as the `dflt`
-        argument.
+        argument.  Information in the `dtype` not represented in an
+        `Atom` is ignored.
 
         >>> import numpy
         >>> Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))

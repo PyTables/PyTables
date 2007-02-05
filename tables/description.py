@@ -73,6 +73,8 @@ class Col(atom.Atom):
 
         Optional shape, default value and position may be specified as
         the `shape`, `dflt` and `pos` arguments, respectively.
+        Information in the `sctype` not represented in a `Col` is
+        ignored.
         """
         (prefix, kwargs) = atom._atomdata_from_sctype(sctype, shape, dflt)
         return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
@@ -83,7 +85,10 @@ class Col(atom.Atom):
         Create a `Col` definition from a NumPy `dtype`.
 
         Optional default value and position may be specified as the
-        `dflt` and `pos` arguments, respectively.
+        `dflt` and `pos` arguments, respectively.  The `dtype` must have
+        a byte order which is irrelevant or compatible with that of the
+        system.  Information in the `dtype` not represented in a `Col`
+        is ignored.
         """
         (prefix, kwargs) = atom._atomdata_from_dtype(dtype, dflt)
         return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
