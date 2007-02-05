@@ -114,6 +114,36 @@ class VLArrayTestCase(common.PyTablesTestCase):
         fileh.close()
 
 
+# Make sure that 1.x files with TimeXX types continue to be readable
+# and that its byteorder is correctly retrieved.
+class TimeTestCase(common.PyTablesTestCase):
+
+    def setUp(self):
+        # Open a PYTABLES_FORMAT_VERSION=1.x file
+        filename = self._testFilename("time-table-vlarray-1_x.h5")
+        self.fileh = openFile(filename, "r")
+
+    def tearDown(self):
+        self.fileh.close()
+
+
+    def test00_table(self):
+        """Checking backward compatibility with old TimeXX types (tables)."""
+
+        # Check that we can read the contents without problems (nor warnings!)
+        table = self.fileh.root.table
+        self.assert_(table.byteorder == "little")
+
+    def test01_vlarray(self):
+        """Checking backward compatibility with old TimeXX types (vlarrays)."""
+
+        # Check that we can read the contents without problems (nor warnings!)
+        vlarray4 = self.fileh.root.vlarray4
+        self.assert_(vlarray4.byteorder == "little")
+        vlarray8 = self.fileh.root.vlarray4
+        self.assert_(vlarray8.byteorder == "little")
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -123,6 +153,7 @@ def suite():
     lzo_avail = whichLibVersion("lzo") is not None
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(VLArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(TimeTestCase))
         if lzo_avail:
             theSuite.addTest(unittest.makeSuite(Table2_1LZO))
             theSuite.addTest(unittest.makeSuite(Tables_LZO1))

@@ -23,6 +23,9 @@ hid_t convArrayType(int nptype, size_t size, char *byteorder)
 /*       H5Tset_strpad( attr_type, H5T_STR_NULLTERM ); */
       return type_id;
     /* The next two maps are for time datatypes. */
+    /* There are no generic H5T_UNIX_D32 and H5T_UNIX_D64, so we
+       will use the BE variant and the correct byteorder will be set
+       afterwards in the set_order call. */
     case 't':
       type_id = H5Tcopy(H5T_UNIX_D32BE);
       break;

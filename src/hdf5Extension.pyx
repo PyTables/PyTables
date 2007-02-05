@@ -1179,7 +1179,7 @@ cdef class VLArray(Leaf):
     ret = H5VLARRAYget_ndims(self.dataset_id, self.type_id, &self.rank)
     # Allocate space for the dimension axis info
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    # Get info on dimensions, class and type (of base class)
+    # Get info on dimensions & types (of base class)
     H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
                       self.dims, &self.base_type_id, byteorder)
 

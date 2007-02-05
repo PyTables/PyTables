@@ -667,6 +667,7 @@ herr_t get_order(hid_t type_id, char *byteorder) {
     return h5byteorder;
   }
   else {
+    /* This should never happen! */
     fprintf(stderr, "Error: unsupported byteorder <%d>\n", h5byteorder);
     strcpy(byteorder, "unsupported");
     return -1;

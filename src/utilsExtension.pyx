@@ -741,7 +741,8 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   cdef H5T_class_t  klass
   cdef char    byteorder[11], byteorder2[11]  # "irrelevant" fits easily here
   cdef herr_t  ret
-  cdef object  sysbyteorder, desc, colobj, colpath2, typeclassname, typeclass
+  cdef object  sysbyteorder, desc, colobj, colpath2
+  cdef object  typeclassname, typeclass
 
   sysbyteorder = sys.byteorder  # a workaround against temporary Pyrex error
   strcpy(byteorder, sysbyteorder)  # default byteorder
@@ -800,11 +801,14 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
           colobj = Col.from_sctype(sctype, shape=colshape, pos=i)
         desc[colname] = colobj
         # If *any* column has a different byteorder than sys, the byteorder
-        # attribute for the entire table is changed here. This should be
-        # further refined for columns with different byteorders, but this case
-        # is strange enough.
+        # attribute for the entire table is changed here.  Compound types with
+        # different orders are not supported (and never should be).
         ret = get_order(member_type_id, byteorder2)
-        if ret > 0 and byteorder2 in ["big", "little"]:  # exclude 'irrelevant'
+        if byteorder2 in ["big", "little"]:  # exclude 'irrelevant'
+          if strcmp(byteorder, byteorder2) != 0:
+            raise NotImplementedError(
+              "compound types with mixed byteorders "
+              "are not supported yet, sorry" )
           strcpy(byteorder, byteorder2)
 
       # Insert the native member
