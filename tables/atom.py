@@ -18,12 +18,12 @@ Variables
     Repository version of this file.
 `all_types`
     Set of all PyTables types.
-`prefix_map`
-    Maps atom kinds to item sizes and class prefixes.
+`class_map`
+    Maps atom kinds to item sizes and atom classes.
 
     If there is a fixed set of possible item sizes for a given kind,
-    the kind maps to another mapping from item size in bytes to class
-    prefix.  Otherwise, the kind maps directly to the class prefix.
+    the kind maps to another mapping from item size in bytes to atom
+    class.  Otherwise, the kind maps directly to the atom class.
 
 `deftype_from_kind`
     Maps atom kinds to their default atom type (if any).
@@ -51,13 +51,13 @@ __version__ = '$Revision$'
 all_types = set()  # filled as atom classes are created
 """Set of all PyTables types."""
 
-prefix_map = {}  # filled as atom classes are created
+class_map = {}  # filled as atom classes are created
 """
-Maps atom kinds to item sizes and class prefixes.
+Maps atom kinds to item sizes and atom classes.
 
 If there is a fixed set of possible item sizes for a given kind, the
-kind maps to another mapping from item size in bytes to class prefix.
-Otherwise, the kind maps directly to the class prefix.
+kind maps to another mapping from item size in bytes to atom class.
+Otherwise, the kind maps directly to the atom class.
 """
 
 deftype_from_kind = {}  # filled as atom classes are created
@@ -105,90 +105,6 @@ def split_type(type):
 
 # Private functions
 # =================
-
-# The following ``atomdata_from_*()`` functions can be assimilated
-# into ``Atom.from_*()`` when ``Col`` classes are no longer needed.
-# At the same time, `prefix_map` would be coverted to a mapping to
-# classes instead of prefixes.
-def _atomdata_from_sctype(sctype, shape=1, dflt=None):
-    """
-    Get atom prefix and constructor keyword args for a NumPy scalar
-    type `sctype`.
-
-    Optional shape and default value may be specified as the `shape`
-    and `dflt` arguments.
-    """
-    if not isinstance(sctype, type) or not issubclass(sctype, numpy.generic):
-        if sctype not in numpy.sctypeDict:
-            raise ValueError("unknown NumPy scalar type: %r" % (sctype,))
-        sctype = numpy.sctypeDict[sctype]
-    return _atomdata_from_dtype(numpy.dtype((sctype, shape)), dflt)
-
-def _atomdata_from_dtype(dtype, dflt=None):
-    """
-    Get atom prefix and constructor keyword args for a NumPy `dtype`.
-
-    An optional default value may be specified as the `dflt` argument.
-    """
-    basedtype = dtype.base
-    if basedtype.names:
-        raise ValueError("compound data types are not supported: %r" % dtype)
-    if basedtype.shape != ():
-        raise ValueError("nested data types are not supported: %r" % dtype)
-    if basedtype.kind == 'S':  # can not reuse something like 'string80'
-        itemsize = basedtype.itemsize
-        return _atomdata_from_kind('string', itemsize, dtype.shape, dflt)
-    # Most NumPy types have direct correspondence with PyTables types.
-    return _atomdata_from_type(basedtype.name, dtype.shape, dflt)
-
-def _atomdata_from_type(type_, shape=1, dflt=None):
-    """
-    Get atom prefix and constructor keyword args for a PyTables `type_`.
-
-    Optional shape and default value may be specified as the `shape`
-    and `dflt` arguments.
-    """
-    if type_ not in all_types:
-        raise ValueError("unknown type: %r" % (type_,))
-    kind, itemsize = split_type(type_)
-    return _atomdata_from_kind(kind, itemsize, shape, dflt)
-
-def _atomdata_from_kind(kind, itemsize=None, shape=1, dflt=None):
-    """
-    Get atom prefix and constructor keyword args for a PyTables `kind`.
-
-    Optional item size, shape and default value may be specified as
-    the `itemsize`, `shape` and `dflt` arguments.  Bear in mind that
-    not all atoms support a default item size.
-    """
-
-    kwargs = {'shape': shape}
-    if kind not in prefix_map:
-        raise ValueError("unknown kind: %r" % (kind,))
-    # If no `itemsize` is given, try to get the default type of the
-    # kind (which has a fixed item size).
-    if itemsize is None:
-        if kind not in deftype_from_kind:
-            raise ValueError("no default item size for kind ``%s``" % kind)
-        type_ = deftype_from_kind[kind]
-        kind, itemsize = split_type(type_)
-    kdata = prefix_map[kind]
-    # Look up the prefix and set a possible item size.
-    if hasattr(kdata, 'lower'):  # string: non-fixed item size
-        prefix = kdata
-        kwargs['itemsize'] = itemsize
-    else:  # dictionary: fixed item size
-        if itemsize not in kdata:
-            isizes = sorted(kdata.keys())
-            raise ValueError( "invalid item size for kind ``%s``: %r; "
-                              "it must be one of ``%r``"
-                              % (kind, itemsize, isizes) )
-        prefix = kdata[itemsize]
-    # Only set a `dflt` argument if given (`None` may not be understood).
-    if dflt is not None:
-        kwargs['dflt'] = dflt
-    return (prefix, kwargs)
-
 def _normalize_shape(shape):
     """Check that the `shape` is safe to be used and return it as a tuple."""
 
@@ -264,15 +180,15 @@ class MetaAtom(type):
         if kind and itemsize and not hasattr(itemsize, '__int__'):
             # Atom classes with a non-fixed item size do have an
             # ``itemsize``, but it's not a number (e.g. property).
-            prefix_map[kind] = class_.prefix()
+            class_map[kind] = class_
             return
 
         if kind:  # first definition of kind, make new entry
-            prefix_map[kind] = {}
+            class_map[kind] = {}
 
         if itemsize and hasattr(itemsize, '__int__'):  # fixed
             kind = class_.kind  # maybe from superclasses
-            prefix_map[kind][int(itemsize)] = class_.prefix()
+            class_map[kind][int(itemsize)] = class_
 
 
 # Atom classes
@@ -320,12 +236,6 @@ class Atom(object):
         return cname[:cname.rfind('Atom')]
 
     @classmethod
-    def _instance_of_prefix(class_, prefix, **kwargs):
-        """Return an `Atom` instance of the class with the given `prefix`."""
-        atomclass = eval('%sAtom' % prefix)
-        return atomclass(**kwargs)
-
-    @classmethod
     def from_sctype(class_, sctype, shape=1, dflt=None):
         """
         Create an `Atom` from a NumPy scalar type `sctype`.
@@ -344,8 +254,12 @@ class Atom(object):
         >>> Atom.from_sctype('Float64')
         Float64Atom(shape=(), dflt=0.0)
         """
-        (prefix, kwargs) = _atomdata_from_sctype(sctype, shape, dflt)
-        return class_._instance_of_prefix(prefix, **kwargs)
+        if ( not isinstance(sctype, type)
+             or not issubclass(sctype, numpy.generic) ):
+            if sctype not in numpy.sctypeDict:
+                raise ValueError("unknown NumPy scalar type: %r" % (sctype,))
+            sctype = numpy.sctypeDict[sctype]
+        return class_.from_dtype(numpy.dtype((sctype, shape)), dflt)
 
     @classmethod
     def from_dtype(class_, dtype, dflt=None):
@@ -364,8 +278,18 @@ class Atom(object):
         >>> Atom.from_dtype(numpy.dtype('Float64'))
         Float64Atom(shape=(), dflt=0.0)
         """
-        (prefix, kwargs) = _atomdata_from_dtype(dtype, dflt)
-        return class_._instance_of_prefix(prefix, **kwargs)
+        basedtype = dtype.base
+        if basedtype.names:
+            raise ValueError( "compound data types are not supported: %r"
+                              % dtype )
+        if basedtype.shape != ():
+            raise ValueError( "nested data types are not supported: %r"
+                              % dtype )
+        if basedtype.kind == 'S':  # can not reuse something like 'string80'
+            itemsize = basedtype.itemsize
+            return class_.from_kind('string', itemsize, dtype.shape, dflt)
+        # Most NumPy types have direct correspondence with PyTables types.
+        return class_.from_type(basedtype.name, dtype.shape, dflt)
 
     @classmethod
     def from_type(class_, type, shape=1, dflt=None):
@@ -388,8 +312,10 @@ class Atom(object):
           ...
         ValueError: unknown type: 'Float64'
         """
-        (prefix, kwargs) = _atomdata_from_type(type, shape, dflt)
-        return class_._instance_of_prefix(prefix, **kwargs)
+        if type not in all_types:
+            raise ValueError("unknown type: %r" % (type,))
+        kind, itemsize = split_type(type)
+        return class_.from_kind(kind, itemsize, shape, dflt)
 
     @classmethod
     def from_kind(class_, kind, itemsize=None, shape=1, dflt=None):
@@ -415,8 +341,35 @@ class Atom(object):
           ...
         ValueError: unknown kind: 'Float'
         """
-        (prefix, kwargs) = _atomdata_from_kind(kind, itemsize, shape, dflt)
-        return class_._instance_of_prefix(prefix, **kwargs)
+
+        kwargs = {'shape': shape}
+        if kind not in class_map:
+            raise ValueError("unknown kind: %r" % (kind,))
+        # If no `itemsize` is given, try to get the default type of the
+        # kind (which has a fixed item size).
+        if itemsize is None:
+            if kind not in deftype_from_kind:
+                raise ValueError( "no default item size for kind ``%s``"
+                                  % kind )
+            type_ = deftype_from_kind[kind]
+            kind, itemsize = split_type(type_)
+        kdata = class_map[kind]
+        # Look up the class and set a possible item size.
+        if hasattr(kdata, 'kind'):  # atom class: non-fixed item size
+            atomclass = kdata
+            kwargs['itemsize'] = itemsize
+        else:  # dictionary: fixed item size
+            if itemsize not in kdata:
+                isizes = sorted(kdata.keys())
+                raise ValueError( "invalid item size for kind ``%s``: %r; "
+                                  "it must be one of ``%r``"
+                                  % (kind, itemsize, isizes) )
+            atomclass = kdata[itemsize]
+        # Only set a `dflt` argument if given (`None` may not be understood).
+        if dflt is not None:
+            kwargs['dflt'] = dflt
+
+        return atomclass(**kwargs)
 
     # Properties
     # ~~~~~~~~~~
@@ -712,7 +665,7 @@ class EnumAtom(Atom):
     for 3x2 arrays of ``uint32``.
     """
 
-    # Registering this class in the prefix map may be a little wrong,
+    # Registering this class in the class map may be a little wrong,
     # since the ``Atom.from_kind()`` method fails miserably with
     # enumerations, as they don't support an ``itemsize`` argument.
     # However, resetting ``__metaclass__`` to ``type`` doesn't seem to

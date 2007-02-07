@@ -48,8 +48,7 @@ class Col(atom.Atom):
     column.  The stated position is kept in the `_v_pos` attribute.
     """
 
-    # Although registering prefix data again may not be dangerous since
-    # the same atom data would be entered, it is better not mangling it.
+    # Avoid mangling atom class data.
     __metaclass__ = type
 
     # Class methods
@@ -87,8 +86,8 @@ class Col(atom.Atom):
         Information in the `sctype` not represented in a `Col` is
         ignored.
         """
-        (prefix, kwargs) = atom._atomdata_from_sctype(sctype, shape, dflt)
-        return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
+        newatom = atom.Atom.from_sctype(sctype, shape, dflt)
+        return class_.from_atom(newatom, pos=pos)
 
     @classmethod
     def from_dtype(class_, dtype, dflt=None, pos=None):
@@ -101,8 +100,8 @@ class Col(atom.Atom):
         system.  Information in the `dtype` not represented in a `Col`
         is ignored.
         """
-        (prefix, kwargs) = atom._atomdata_from_dtype(dtype, dflt)
-        return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
+        newatom = atom.Atom.from_dtype(dtype, dflt)
+        return class_.from_atom(newatom, pos=pos)
 
     @classmethod
     def from_type(class_, type, shape=1, dflt=None, pos=None):
@@ -112,8 +111,8 @@ class Col(atom.Atom):
         Optional shape, default value and position may be specified as
         the `shape`, `dflt` and `pos` arguments, respectively.
         """
-        (prefix, kwargs) = atom._atomdata_from_type(type, shape, dflt)
-        return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
+        newatom = atom.Atom.from_type(type, shape, dflt)
+        return class_.from_atom(newatom, pos=pos)
 
     @classmethod
     def from_kind(class_, kind, itemsize=None, shape=1, dflt=None, pos=None):
@@ -125,8 +124,8 @@ class Col(atom.Atom):
         arguments, respectively.  Bear in mind that not all columns
         support a default item size.
         """
-        (prefix, kwargs) = atom._atomdata_from_kind(kind, itemsize, shape, dflt)
-        return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
+        newatom = atom.Atom.from_kind(kind, itemsize, shape, dflt)
+        return class_.from_atom(newatom, pos=pos)
 
     # Special methods
     # ~~~~~~~~~~~~~~~
@@ -160,14 +159,15 @@ def _create_col_class(prefix):
 
 def _generate_col_classes():
     """Generate all column classes."""
-    # Abstract classes are not in the prefix map.
+    # Abstract classes are not in the class map.
     cprefixes = ['Int', 'UInt', 'Float', 'Time']
-    for (kind, kdata) in atom.prefix_map.items():
-        if hasattr(kdata, 'lower'):  # string: non-fixed item size
-            cprefixes.append(kdata)
+    for (kind, kdata) in atom.class_map.items():
+        if hasattr(kdata, 'kind'):  # atom class: non-fixed item size
+            atomclass = kdata
+            cprefixes.append(atomclass.prefix())
         else:  # dictionary: fixed item size
-            for prefix in kdata.values():
-                cprefixes.append(prefix)
+            for atomclass in kdata.values():
+                cprefixes.append(atomclass.prefix())
 
     # Bottom-level complex classes are not in the type map, of course.
     # We still want the user to get the compatibility warning, though.
