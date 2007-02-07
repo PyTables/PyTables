@@ -118,6 +118,10 @@ def _atomdata_from_sctype(sctype, shape=1, dflt=None):
     Optional shape and default value may be specified as the `shape`
     and `dflt` arguments.
     """
+    if not isinstance(sctype, type) or not issubclass(sctype, numpy.generic):
+        if sctype not in numpy.sctypeDict:
+            raise ValueError("unknown NumPy scalar type: %r" % (sctype,))
+        sctype = numpy.sctypeDict[sctype]
     return _atomdata_from_dtype(numpy.dtype((sctype, shape)), dflt)
 
 def _atomdata_from_dtype(dtype, dflt=None):
@@ -334,7 +338,9 @@ class Atom(object):
         >>> Atom.from_sctype(numpy.int16, shape=(2, 2))
         Int16Atom(shape=(2, 2), dflt=0)
         >>> Atom.from_sctype('S5', dflt='hello')
-        StringAtom(itemsize=5, shape=(), dflt='hello')
+        Traceback (most recent call last):
+          ...
+        ValueError: unknown NumPy scalar type: 'S5'
         >>> Atom.from_sctype('Float64')
         Float64Atom(shape=(), dflt=0.0)
         """
