@@ -9256,6 +9256,37 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
           </section>
 
           <section>
+            <title><literal>Atom</literal> methods</title>
+
+            <section>
+              <title>copy(**override)</title>
+
+              <para>Get a copy of the atom, possibly overriding some
+              arguments.</para>
+
+              <para>Constructor arguments to be overridden must be passed as
+              keyword arguments.</para>
+
+              <screen>
+&gt;&gt;&gt; atom1 = StringAtom(itemsize=12)
+&gt;&gt;&gt; atom2 = atom1.copy()
+&gt;&gt;&gt; print atom1
+StringAtom(itemsize=12, shape=(), dflt='')
+&gt;&gt;&gt; print atom2
+StringAtom(itemsize=12, shape=(), dflt='')
+&gt;&gt;&gt; atom1 is atom2
+False
+&gt;&gt;&gt; atom3 = atom1.copy(itemsize=100, shape=(2, 2))
+&gt;&gt;&gt; print atom3
+StringAtom(itemsize=100, shape=(2, 2), dflt='')
+&gt;&gt;&gt; atom1.copy(foobar=42)
+Traceback (most recent call last):
+  ...
+TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
+            </section>
+          </section>
+
+          <section>
             <title><literal>Atom</literal> factory methods</title>
 
             <section>
