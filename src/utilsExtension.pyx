@@ -748,6 +748,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   cdef char    *colname
   cdef H5T_class_t class_id
   cdef char    byteorder2[11]  # "irrelevant" fits easily here
+  cdef char    *sys_byteorder
   cdef herr_t  ret
   cdef object  desc, colobj, colpath2, typeclassname, typeclass
   cdef object  byteorder
@@ -788,7 +789,8 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
         if colstype in ["b1", "t4", "t8"]:
           # These types are not supported yet by H5Tget_native_type
           native_member_type_id = H5Tcopy(member_type_id)
-          if set_order(native_member_type_id, sys.byteorder) < 0:
+          sys_byteorder = PyString_AsString(sys.byteorder)
+          if set_order(native_member_type_id, sys_byteorder) < 0:
             raise HDF5ExtError(
           "problems setting the byteorder for type of class %s" % class_id)
         else:

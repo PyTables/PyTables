@@ -653,6 +653,7 @@ cdef class Leaf(Node):
     """
     cdef hid_t disk_type_id, native_type_id
     cdef H5T_class_t class_id
+    cdef char *sys_byteorder
     
     disk_type_id = H5Dget_type(self.dataset_id)
     class_id = H5Tget_class(disk_type_id)
@@ -661,7 +662,8 @@ cdef class Leaf(Node):
     elif class_id in (H5T_BITFIELD, H5T_TIME):
       # These types are not supported yet by H5Tget_native_type
       native_type_id = H5Tcopy(disk_type_id)
-      if set_order(native_type_id, sys.byteorder) < 0:
+      sys_byteorder = PyString_AsString(sys.byteorder)
+      if set_order(native_type_id, sys_byteorder) < 0:
         raise HDF5ExtError(
           "problems setting the byteorder for type of class: %s" % class_id)
     else:
