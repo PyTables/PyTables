@@ -23,7 +23,8 @@ from definitions cimport \
      H5T_C_S1, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
      H5T_NO_CLASS, H5T_INTEGER, H5T_FLOAT, H5T_TIME, H5T_STRING, \
      H5T_BITFIELD, H5T_OPAQUE, H5T_COMPOUND, H5T_REFERENCE, \
-     H5T_ENUM, H5T_VLEN, H5T_ARRAY
+     H5T_ENUM, H5T_VLEN, H5T_ARRAY, \
+     npy_intp
 
 # Platform-dependent types
 if sys.byteorder == "little":
@@ -107,8 +108,8 @@ HDF5ClassToString = {
   }
 
 
-# Conversion table from NumPy codes to NumPy type classes
-NPCodeToType = {
+# Conversion table from NumPy extended codes to NumPy type classes
+NPExtToType = {
   NPY_BOOL:      numpy.bool_,     NPY_STRING:     numpy.string_,
   NPY_INT8:      numpy.int8,      NPY_UINT8:      numpy.uint8,
   NPY_INT16:     numpy.int16,     NPY_UINT16:     numpy.uint16,
@@ -118,7 +119,7 @@ NPCodeToType = {
   NPY_COMPLEX64: numpy.complex64, NPY_COMPLEX128: numpy.complex128,
   # Special cases:
   ord('t'): numpy.int32,          ord('T'):       numpy.float64,
-##  ord('e'):      'Enum',  # fake type (the actual type canbe different)
+##  ord('e'):      'Enum',  # fake type (the actual type can be different)
   }
 
 
@@ -134,8 +135,8 @@ NPTypeToCode = {
   }
 
 
-# Conversion from NumPy codes to PyTables string types
-NPCodeToPTType = {
+# Conversion from NumPy extended codes to PyTables string types
+NPExtToPTType = {
   NPY_BOOL:      'bool',      NPY_STRING:     'string',
   NPY_INT8:      'int8',      NPY_UINT8:      'uint8',
   NPY_INT16:     'int16',     NPY_UINT16:     'uint16',
@@ -143,16 +144,48 @@ NPCodeToPTType = {
   NPY_INT64:     'int64',     NPY_UINT64:     'uint64',
   NPY_FLOAT32:   'float32',   NPY_FLOAT64:    'float64',
   NPY_COMPLEX64: 'complex64', NPY_COMPLEX128: 'complex128',
-  # Special cases:
+  # Extended codes:
   ord('t'):      'time32',    ord('T'):       'time64',
   ord('e'):      'enum',
   }
 
 
-# Conversion from PyTables string types to NumPy codes
-PTTypeToNPCode = {}
-for key, value in NPCodeToPTType.items():
-  PTTypeToNPCode[value] = key
+# Conversion from PyTables string types to NumPy extended codes
+PTTypeToNPExt = {}
+for key, value in NPExtToPTType.items():
+  PTTypeToNPExt[value] = key
+
+
+# Helper routines. These are here so as to easy the including in .pyx files.
+# If the list starts to grow, these should be moved on its own .pxi
+# because they don't logically belongs to this one.
+cdef hsize_t *malloc_dims(object pdims):
+  "Returns a malloced hsize_t dims from a python pdims."
+  cdef int i, rank
+  cdef hsize_t *dims
+
+  dims = NULL
+  rank = len(pdims)
+  if rank > 0:
+    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+    for i from 0 <= i < rank:
+      dims[i] = pdims[i]
+  return dims
+
+
+cdef hsize_t *npy_malloc_dims(int rank, npy_intp *pdims):
+  "Returns a malloced hsize_t dims from a npy_intp *pdims."
+  cdef int i
+  cdef hsize_t *dims
+
+  dims = NULL
+  if rank > 0:
+    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+    for i from 0 <= i < rank:
+      dims[i] = pdims[i]
+  return dims
+
+
 
 ## Local Variables:
 ## mode: python

@@ -37,13 +37,14 @@ import cPickle
 import numpy
 
 from tables.misc.enum import Enum
-from tables.atom import split_type
 from tables.exceptions import HDF5ExtError
 from tables.utils import checkFileAccess, byteorders
+from tables.atom import Atom
 
 from tables.utilsExtension import  \
      enumToHDF5, enumFromHDF5, getTypeEnum, \
-     convertTime64, isHDF5File, isPyTablesFile
+     convertTime64, isHDF5File, isPyTablesFile, \
+     AtomToHDF5Type, loadEnum
 
 from lrucacheExtension cimport NodeCache
 
@@ -73,7 +74,7 @@ from definitions cimport  \
      H5ATTRfind_attribute, H5ATTRget_attribute_ndims, \
      H5ATTRget_attribute_info, \
      set_cache_size, Giterate, Aiterate, H5UIget_info, get_len_of_range, \
-     convArrayType, getArrayType, get_order, set_order
+     getArrayType, get_order, set_order
 
 
 
@@ -132,7 +133,7 @@ cdef extern from "H5VLARRAY.h":
 
   herr_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *class_,
                         char *title, char *obversion,
-                        int rank, int scalar, hsize_t *dims, hid_t type_id,
+                        int rank, hsize_t *dims, hid_t type_id,
                         hsize_t chunk_size, void *fill_data, int complevel,
                         char *complib, int shuffle, int flecther32,
                         void *data)
@@ -368,12 +369,11 @@ cdef class AttributeSet:
     type.
     """
 
-    cdef int ret, i, rank
+    cdef int ret
     cdef hid_t type_id
     cdef hsize_t *dims
     cdef ndarray ndv
-    cdef dtype ndt
-    cdef object byteorder
+    cdef object byteorder, baseatom
 
     # Convert a Python or NumPy scalar into a NumPy 0-dim ndarray
     if (type(value) in (bool, str, int, float, complex) or
@@ -383,24 +383,19 @@ cdef class AttributeSet:
     # Check if value is a NumPy ndarray and of a supported type
     if (isinstance(value, numpy.ndarray) and
         value.dtype.kind in ('S', 'b', 'i', 'u', 'f', 'c')):
-      # Get the associated native HDF5 type
+      # Get the associated native HDF5 type of the scalar type
+      baseatom = Atom.from_dtype(value.dtype.base)
       byteorder = byteorders[value.dtype.byteorder]
-      ndt = <dtype>value.dtype
-      type_id = convArrayType(ndt.type_num, ndt.elsize, byteorder)
+      type_id = AtomToHDF5Type(baseatom, byteorder)
       # Get dimensionality info
       ndv = <ndarray>value
-      rank = ndv.nd
-      dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-      for i from 0 <= i < rank:
-        dims[i] = ndv.dimensions[i]
-
+      dims = npy_malloc_dims(ndv.nd, ndv.dimensions)
       # Actually write the attribute
       ret = H5ATTRset_attribute(self.dataset_id, name, type_id,
-                                rank, dims, ndv.data)
+                                ndv.nd, dims, ndv.data)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
                            (name, self._v_node))
-
       # Release resources
       free(<void *>dims)
       H5Tclose(type_id)
@@ -474,7 +469,7 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
       return None
 
     # Get the dtype
-    dtype = NPCodeToType[enumtype]
+    dtype = NPExtToType[enumtype]
     if class_id == H5T_STRING:
       dtype = numpy.dtype((dtype, type_size))
     # Fix the byteorder
@@ -649,31 +644,6 @@ cdef class Leaf(Node):
     super(Leaf, self)._g_new(where, name, init)
 
 
-  def _g_loadEnum(self, hid_t type_id):
-    """_g_loadEnum() -> (Enum, npType)
-    Load enumerated type associated with this leaf.
-
-    This method loads the HDF5 enumerated type associated with this
-    leaf.  It returns an `Enum` instance built from that, and the
-    NumPy type used to encode it.
-    """
-
-    cdef hid_t enumId
-    cdef char  byteorder[11]  # "irrelevant" fits well here
-
-    # Get the enumerated type
-    enumId = getTypeEnum(type_id)
-    # Get the byteorder
-    get_order(type_id, byteorder)
-    # Get the Enum and NumPy types and close the HDF5 type.
-    try:
-      return enumFromHDF5(enumId, byteorder)
-    finally:
-      # (Yes, the ``finally`` clause *is* executed.)
-      if H5Tclose(enumId) < 0:
-        raise HDF5ExtError("failed to close HDF5 enumerated type")
-
-
   def _g_get_type_ids(self):
     """_g_get_type_ids() -> (disk_type_id, native_type_id)
     Get the disk and native HDF5 types associated with this leaf.
@@ -730,43 +700,20 @@ cdef class Array(Leaf):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
-    cdef int enumtype
-    cdef long itemsize
     cdef char *complib, *version, *class_
-    cdef object type_, dtype, ptype, byteorder
+    cdef object dtype, byteorder, atom
 
     dtype = nparr.dtype.base
-    # Get the ptype
-    type_ = nparr.dtype.type
-    try:
-      if type_ == numpy.string_:
-        ptype = "string"
-      elif type_ == numpy.bool_:
-        ptype = "bool"
-      else:
-        ptype = type_.__name__  # the PyTables string type
-      enumtype = PTTypeToNPCode[ptype]
-    except KeyError:
-      raise TypeError, \
-            """Type class '%s' not supported right now. Sorry about that.
-            """ % repr(type_)
-
     # Get the HDF5 type associated with this numpy type
-    itemsize = dtype.itemsize
+    atom = Atom.from_dtype(dtype)
     byteorder = byteorders[dtype.byteorder]
-    self.type_id = convArrayType(enumtype, itemsize, byteorder)
-    if self.type_id < 0:
-      raise TypeError, \
-        """Type '%s' is not supported right now. Sorry about that.""" \
-        % ptype
+    self.type_id = AtomToHDF5Type(atom, byteorder)
 
     # Get the pointer to the buffer data area
     rbuf = nparr.data
     # Allocate space for the dimension axis info and fill it
     self.rank = nparr.nd
-    self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    for i from  0 <= i < self.rank:
-      self.dims[i] = nparr.dimensions[i]
+    self.dims = npy_malloc_dims(nparr.nd, nparr.dimensions)
     # Save the array
     complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
@@ -781,57 +728,39 @@ cdef class Array(Leaf):
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
-    return (self.dataset_id, dtype, ptype)
+    return (self.dataset_id, dtype, atom.type)
 
 
   def _createEArray(self, char *title):
-    cdef int i, enumtype
+    cdef int i
     cdef herr_t ret
     cdef void *rbuf
     cdef char *complib, *version, *class_
     cdef void *fill_value
     cdef int itemsize
-    cdef object atom, kind, byteorder
+    cdef object atom, byteorder
 
     atom = self.atom
     itemsize = atom.itemsize
-    try:
-      enumtype = PTTypeToNPCode[atom.type]
-    except KeyError:
-      raise TypeError( "type ``%s`` is not supported right now; "
-                       "sorry about that" % atom.type )
-
-    kind = atom.kind
-    if kind == "string":
+    if atom.kind == "string":
       byteorder = "irrelevant"
     else:
       # Only support for creating objects in system byteorder
       byteorder = sys.byteorder
-
-    if kind == 'enum':
-      self.type_id = enumToHDF5(atom, byteorder)
-    else:
-      self.type_id = convArrayType(enumtype, itemsize, byteorder)
-      if self.type_id < 0:
-        raise TypeError( "type ``%s`` is not supported right now; "
-                         "sorry about that" % atom.type )
+      
+    self.type_id = AtomToHDF5Type(atom, byteorder)
 
     self.rank = len(self.shape)
-    self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
+    self.dims = malloc_dims(self.shape)
     if self._v_chunkshape:
-      self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    # Fill the dimension axis info with adequate info
-    for i from  0 <= i < self.rank:
-      self.dims[i] = self.shape[i]
-      if self._v_chunkshape:
-        self.dims_chunk[i] = self._v_chunkshape[i]
+      self.dims_chunk = malloc_dims(self._v_chunkshape)
 
     rbuf = NULL   # The data pointer. We don't have data to save initially
     # Manually convert some string values that can't be done automatically
     complib = PyString_AsString(self.filters.complib)
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
-    # Setup the fill values
+    # Set the fill values
     fill_value = <void *>malloc(<size_t> itemsize)
     for i from  0 <= i < itemsize:
       (<char *>fill_value)[i] = 0
@@ -899,22 +828,23 @@ cdef class Array(Leaf):
         raise HDF5ExtError, "Problems getting the chunkshapes!"
     # Get the array type & size
     type_size = getArrayType(base_type_id, &enumtype)
-    if type_size < 0:
+    # type_size is of type size_t (unsigned long), so cast it to a long first
+    if <long>type_size < 0:
       raise TypeError, "HDF5 class %d not supported. Sorry!" % class_id
 
     H5Tclose(base_type_id)    # Release resources
 
     # Get the dtype
-    type_ = NPCodeToType.get(enumtype, "int32")
+    type_ = NPExtToType.get(enumtype, "int32")
     if type_ == numpy.string_:
       dtype = numpy.dtype("S%s"%type_size)
     else:
       dtype = numpy.dtype(type_)
 
-    pttype = NPCodeToPTType[enumtype]
+    pttype = NPExtToPTType[enumtype]
     # Get enumeration from disk
-    if split_type(pttype)[0] == 'enum':
-      (self._enum, dtype) = self._g_loadEnum(self.type_id)
+    if pttype == 'enum':
+      (self._enum, dtype) = loadEnum(self.type_id)
 
     # Get the shape and chunkshapes as python tuples
     shape = getshape(self.rank, self.dims)
@@ -943,11 +873,7 @@ cdef class Array(Leaf):
     cdef object shape
 
     # Allocate space for the dimension axis info
-    dims_arr = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    # Fill the dimension axis info with adequate info
-    for i from  0 <= i < self.rank:
-        dims_arr[i] = nparr.dimensions[i]
-
+    dims_arr = npy_malloc_dims(self.rank, nparr.dimensions)
     # Get the pointer to the buffer data area
     rbuf = nparr.data
     # Convert some NumPy types to HDF5 before storing.
@@ -1080,64 +1006,33 @@ cdef class Array(Leaf):
 
 cdef class VLArray(Leaf):
   # Instance variables
-  cdef int     rank
-  cdef hsize_t *dims
   cdef hsize_t nrecords
-  cdef int     scalar
-
 
   def _createArray(self, char *title):
-    cdef int i, enumtype
+    cdef int rank
+    cdef hsize_t *dims
     cdef herr_t ret
     cdef void *rbuf
     cdef char *complib, *version, *class_
-    cdef object type_, kind, byteorder, itemsize
+    cdef object type_, byteorder, itemsize, atom, scatom
 
     atom = self.atom
     if not hasattr(atom, 'size'):  # it is a pseudo-atom
-      type_ = atom.base.type
-      itemsize = atom.base.itemsize
-    else:
-      type_ = atom.type
-      itemsize = atom.itemsize
+      atom = atom.base
 
-    try:
-      enumtype = PTTypeToNPCode[type_]
-    except KeyError:
-      raise TypeError( "type ``%s`` is not supported right now; "
-                       "sorry about that" % type_ )
-
-    kind = atom.kind
-    if kind == "string":
+    if atom.kind == "string":
       byteorder = "irrelevant"
     else:
       # Only support for creating objects in system byteorder
       byteorder = sys.byteorder
 
-    if kind == 'enum':
-      self.base_type_id = enumToHDF5(atom, byteorder)
-    else:
-      # Get the HDF5 type id
-      self.base_type_id = convArrayType(enumtype, itemsize, byteorder)
-      if self.base_type_id < 0:
-        raise TypeError( "type ``%s`` is not supported right now; "
-                         "orry about that." % type_)
+    # Get the HDF5 type of the *scalar* atom
+    scatom = Atom.from_kind(atom.kind, atom.itemsize)
+    self.base_type_id = AtomToHDF5Type(scatom, byteorder)
 
     # Allocate space for the dimension axis info
-    if atom.shape == ():
-      self.rank = 1
-      self.scalar = 1
-    else:
-      self.rank = len(atom.shape)
-      self.scalar = 0
-
-    self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    # Fill the dimension axis info with adequate info
-    for i from  0 <= i < self.rank:
-      if atom.shape == ():
-        self.dims[i] = 1
-      else:
-        self.dims[i] = atom.shape[i]
+    rank = len(atom.shape)
+    dims = malloc_dims(atom.shape)
 
     rbuf = NULL   # We don't have data to save initially
 
@@ -1147,13 +1042,14 @@ cdef class VLArray(Leaf):
     class_ = PyString_AsString(self._c_classId)
     # Create the vlarray
     self.dataset_id = H5VLARRAYmake(self.parent_id, self.name, class_, title,
-                                    version, self.rank, self.scalar,
-                                    self.dims, self.base_type_id,
+                                    version, rank, dims, self.base_type_id,
                                     self._v_chunkshape[0], rbuf,
                                     self.filters.complevel, complib,
                                     self.filters.shuffle,
                                     self.filters.fletcher32,
                                     rbuf)
+    if dims:
+      free(<void *>dims)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the VLArray.")
     self.nrecords = 0  # Initialize the number of records saved
@@ -1170,6 +1066,8 @@ cdef class VLArray(Leaf):
   def _openArray(self):
     cdef char byteorder[11]  # "irrelevant" fits easily here
     cdef int i, enumtype
+    cdef int rank
+    cdef hsize_t *dims
     cdef herr_t ret
     cdef hsize_t nrecords, chunksize
     cdef object shape, dtype, type_
@@ -1182,12 +1080,12 @@ cdef class VLArray(Leaf):
     self.disk_type_id, self.type_id = self._g_get_type_ids()
 
     # Get the rank for the atom in the array object
-    ret = H5VLARRAYget_ndims(self.dataset_id, self.type_id, &self.rank)
+    ret = H5VLARRAYget_ndims(self.dataset_id, self.type_id, &rank)
     # Allocate space for the dimension axis info
-    self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
+    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
     # Get info on dimensions & types (of base class)
     H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
-                      self.dims, &self.base_type_id, byteorder)
+                      dims, &self.base_type_id, byteorder)
 
     # Get the byteorder
     self.byteorder = byteorder
@@ -1198,22 +1096,24 @@ cdef class VLArray(Leaf):
       raise TypeError, "The HDF5 class of object does not seem VLEN. Sorry!"
 
     # Get the type of the atomic type
-    type_ = NPCodeToType.get(enumtype, None)
+    type_ = NPExtToType.get(enumtype, None)
     if type_ == numpy.string_:
       self._atomicdtype = numpy.dtype("S%s"%self._basesize)
     else:
       self._atomicdtype = numpy.dtype(type_)
-    self._atomictype = NPCodeToPTType[enumtype]
+    self._atomictype = NPExtToPTType[enumtype]
 
     # Get enumeration from disk
-    if split_type(self._atomictype)[0] == 'enum':
-      (self._enum, self._atomicdtype) = self._g_loadEnum(self.base_type_id)
+    if self._atomictype == 'enum':
+      (self._enum, self._atomicdtype) = loadEnum(self.base_type_id)
 
     # Get the size and shape of the atomic type
-    self._atomicshape = getshape(self.rank, self.dims)
+    self._atomicshape = getshape(rank, dims)
     self._atomicsize = self._basesize
-    for i from 0 <= i < self.rank:
-      self._atomicsize = self._atomicsize * self.dims[i]
+    for i from 0 <= i < rank:
+      self._atomicsize = self._atomicsize * dims[i]
+    if dims:
+      free(<void *>dims)
 
     # Get the chunkshape (VLArrays are unidimensional entities)
     H5ARRAYget_chunkshape(self.dataset_id, 1, &chunksize)
@@ -1351,11 +1251,6 @@ cdef class VLArray(Leaf):
     free(rdata)
 
     return datalist
-
-
-  def __dealloc__(self):
-    if self.dims:
-      free(<void *>self.dims)
 
 
 

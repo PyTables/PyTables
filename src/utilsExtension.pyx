@@ -48,7 +48,7 @@ from definitions cimport import_array, ndarray, \
      H5ATTRget_attribute_string, H5ATTRfind_attribute, \
      H5ARRAYget_ndims, H5ARRAYget_info, \
      create_ieee_complex64, create_ieee_complex128, \
-     convArrayType, getArrayType, get_order, set_order
+     getArrayType, get_order, set_order
 
 
 
@@ -486,7 +486,7 @@ def enumFromHDF5(hid_t enumId, char *byteorder):
     raise HDF5ExtError("failed to close HDF5 base type")
 
   try:
-    sctype = NPCodeToType[npenum]
+    sctype = NPExtToType[npenum]
   except KeyError:
     raise NotImplementedError("""\
 sorry, only scalar concrete values are supported at this moment""")
@@ -537,20 +537,16 @@ def enumToHDF5(object enumAtom, char *byteorder):
   returned.
   """
 
-  cdef int    npenum
-  cdef size_t itemsize
   cdef char  *name
   cdef hid_t  baseId, enumId
   cdef long   bytestride, i
   cdef void  *rbuffer, *rbuf
   cdef ndarray npValues
+  cdef object baseAtom
 
   # Get the base HDF5 type and create the enumerated type.
-  npenum = NPTypeToCode[enumAtom.dtype.base.type]
-  itemsize = enumAtom.dtype.base.itemsize
-  baseId = convArrayType(npenum, itemsize, byteorder)
-  if baseId < 0:
-    raise HDF5ExtError("failed to convert NumPy base type to HDF5")
+  baseAtom = Atom.from_dtype(enumAtom.dtype.base)
+  baseId = AtomToHDF5Type(baseAtom, byteorder)
 
   try:
     enumId = H5Tenum_create(baseId)
@@ -577,56 +573,35 @@ def enumToHDF5(object enumAtom, char *byteorder):
   return enumId
 
 
-def conv2HDF5Type(object col, char *byteorder):
+def AtomToHDF5Type(atom, char *byteorder):
   cdef hid_t   tid
-  cdef int     rank, scalar
   cdef hsize_t *dims
 
-  shape = col.dtype.shape
-  if shape == ():
-    scalar = True
-    dims = NULL
-  else:
-    scalar = False
-    rank = len(shape)
-    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-    # Fill the dimension axis info with adequate info (and type!)
-    for i from  0 <= i < rank:
-      dims[i] = col.dtype.shape[i]
-  # Create the column type
-  if col.type in PTTypeToHDF5:
-    if scalar:
-      tid = H5Tcopy(PTTypeToHDF5[col.type])
-    else:
-      tid = H5Tarray_create(PTTypeToHDF5[col.type], rank, dims, NULL)
-    # All types in PTTypeToHDF5 needs to fix the byte order
-    # but this may change in the future!
+  # Create the base HDF5 type
+  if atom.type in PTTypeToHDF5:
+    tid = H5Tcopy(PTTypeToHDF5[atom.type])
+    # Fix the byteorder
     set_order(tid, byteorder)
-  elif col.kind in PTSpecialKinds:
-    # Special cases
-    if col.kind == 'bool':
-      tid = H5Tcopy(H5T_STD_B8)
-      H5Tset_precision(tid, col.itemsize)
-    elif col.type == 'complex64':
+  elif atom.kind in PTSpecialKinds:
+    # Special cases (the byteorder doesn't need to be fixed afterwards)
+    if atom.type == 'complex64':
       tid = create_ieee_complex64(byteorder)
-    elif col.type == 'complex128':
+    elif atom.type == 'complex128':
       tid = create_ieee_complex128(byteorder)
-    elif col.kind == 'string':
+    elif atom.kind == 'string':
       tid = H5Tcopy(H5T_C_S1);
-      H5Tset_size(tid, col.itemsize)
-    elif col.kind == 'enum':
-      tid = enumToHDF5(col, byteorder)
-    if not scalar:
-      tid2 = H5Tarray_create(tid, rank, dims, NULL)
-      H5Tclose(tid)
-      tid = tid2
+      H5Tset_size(tid, atom.itemsize)
+    elif atom.kind == 'enum':
+      tid = enumToHDF5(atom, byteorder)
   else:
-    raise TypeError("Invalid type for column %s: %s" % \
-                    (col._v_name, col.type))
-
-  # Release resources
-  if dims:
+    raise TypeError("Invalid type for atom %s" % (atom,))
+  # Create an H5T_ARRAY in case of non-scalar atoms
+  if atom.shape != ():
+    dims = malloc_dims(atom.shape)
+    tid2 = H5Tarray_create(tid, len(atom.shape), dims, NULL)
     free(dims)
+    H5Tclose(tid)
+    tid = tid2
 
   return tid
 
@@ -647,7 +622,7 @@ def createNestedType(object desc, char *byteorder):
     if isinstance(obj, Description):
       tid2 = createNestedType(obj, byteorder)
     else:
-      tid2 = conv2HDF5Type(obj, byteorder)
+      tid2 = AtomToHDF5Type(obj, byteorder)
     ret = H5Tinsert(tid, k, offset, tid2)
     offset = offset + desc._v_dtype[k].itemsize
     # Release resources
@@ -656,54 +631,82 @@ def createNestedType(object desc, char *byteorder):
   return tid
 
 
-def getRAType(hid_t type_id, int klass, size_t size):
-  """Map the atomic type to a NumPy format.
+def loadEnum(hid_t type_id):
+  """loadEnum() -> (Enum, npType)
+  Load the enumerated HDF5 type associated with this type_id.
+
+  It returns an `Enum` instance built from that, and the
+  NumPy type used to encode it.
+  """
+
+  cdef hid_t enumId
+  cdef char  byteorder[11]  # "irrelevant" fits well here
+
+  # Get the enumerated type
+  enumId = getTypeEnum(type_id)
+  # Get the byteorder
+  get_order(type_id, byteorder)
+  # Get the Enum and NumPy types and close the HDF5 type.
+  try:
+    return enumFromHDF5(enumId, byteorder)
+  finally:
+    # (Yes, the ``finally`` clause *is* executed.)
+    if H5Tclose(enumId) < 0:
+      raise HDF5ExtError("failed to close HDF5 enumerated type")
+
+
+def HDF5ToStrNPExtType(hid_t type_id):
+  """Map the atomic HDF5 type to a string repr of NumPy extended codes.
 
   This follows the standard size and alignment.
 
-  Return the string repr of type and the shape.
+  Returns the string repr of type and the shape.
   """
   cdef H5T_sign_t  sign
   cdef hid_t       super_type_id
-  cdef int         super_klass
-  cdef size_t      super_size
+  cdef H5T_class_t class_id, super_class_id
+  cdef size_t      itemsize, super_itemsize
   cdef object      stype, shape, shape2
   cdef hsize_t     *dims
 
   # default shape
-  shape = 1
+  shape = ()
+  # Get the HDF5 class
+  class_id = H5Tget_class(type_id)
+  # Get the itemsize
+  itemsize = H5Tget_size(type_id)
 
-  if klass == H5T_BITFIELD:
+  if class_id == H5T_BITFIELD:
     stype = "b1"
-  elif klass ==  H5T_INTEGER:
+  elif class_id ==  H5T_INTEGER:
     # Get the sign
     sign = H5Tget_sign(type_id)
     if (sign):
-      stype = "i%s" % (size)
+      stype = "i%s" % (itemsize)
     else:
-      stype = "u%s" % (size)
-  elif klass ==  H5T_FLOAT:
-    stype = "f%s" % (size)
-  elif klass ==  H5T_COMPOUND:
+      stype = "u%s" % (itemsize)
+  elif class_id ==  H5T_FLOAT:
+    stype = "f%s" % (itemsize)
+  elif class_id ==  H5T_COMPOUND:
     # Here, this can only be a complex
-    stype = "c%s" % (size)
-  elif klass ==  H5T_STRING:
+    stype = "c%s" % (itemsize)
+  elif class_id ==  H5T_STRING:
     if H5Tis_variable_str(type_id):
       raise TypeError("variable length strings are not supported yet")
-    stype = "a%s" % (size)
-  elif klass ==  H5T_TIME:
-    stype = "t%s" % (size)
-  elif klass ==  H5T_ENUM:
+    stype = "S%s" % (itemsize)
+  elif class_id ==  H5T_TIME:
+    stype = "t%s" % (itemsize)
+  elif class_id ==  H5T_ENUM:
     stype = "e"
-  elif klass ==  H5T_ARRAY:
+  elif class_id ==  H5T_ARRAY:
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
     # Get the class
-    super_klass = H5Tget_class(super_type_id)
-    # Get the size
-    super_size = H5Tget_size(super_type_id)
+    super_class_id = H5Tget_class(super_type_id)
+    # Get the itemsize
+    super_itemsize = H5Tget_size(super_type_id)
     # Find the super member format
-    stype, shape2 = getRAType(super_type_id, super_klass, super_size)
+    stype, shape2 = HDF5ToStrNPExtType(super_type_id)
     # Get shape
     shape = []
     ndims = H5Tget_array_ndims(type_id)
@@ -718,7 +721,7 @@ def getRAType(hid_t type_id, int klass, size_t size):
   else:
     # Other types are not supported yet
     raise TypeError("the HDF5 class ``%s`` is not supported yet"
-                    % HDF5ClassToString[klass])
+                    % HDF5ClassToString[class_id])
 
   return stype, shape
 
@@ -743,7 +746,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   cdef size_t  itemsize, type_size
   cdef int     i, tsize
   cdef char    *colname
-  cdef H5T_class_t  class_id
+  cdef H5T_class_t class_id
   cdef char    byteorder2[11]  # "irrelevant" fits easily here
   cdef herr_t  ret
   cdef object  desc, colobj, colpath2, typeclassname, typeclass
@@ -775,7 +778,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
       else:
         # Get the member format
         try:
-          colstype, colshape = getRAType(member_type_id, class_id, itemsize)
+          colstype, colshape = HDF5ToStrNPExtType(member_type_id)
         except TypeError, te:
           # Re-raise TypeError again with more info
           raise TypeError(
@@ -794,13 +797,13 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
         # Create the Col object.
         # Indexes will be treated later on, in Table._open()
         if colstype == 'e':
-          (enum, nptype) = table._g_loadEnum(native_member_type_id)
+          (enum, nptype) = loadEnum(native_member_type_id)
           # Take one of the names as the default in the enumeration.
           dflt = iter(enum).next()[0]
           base = Atom.from_dtype(nptype)
           colobj = EnumCol(enum, dflt, base, shape=colshape, pos=i)
-        elif colstype[0] in 'at':
-          kind = {'a': 'string', 't': 'time'}[colstype[0]]
+        elif colstype[0] in 'St':
+          kind = {'S': 'string', 't': 'time'}[colstype[0]]
           tsize = int(colstype[1:])
           colobj = Col.from_kind(kind, tsize, shape=colshape, pos=i)
         else:

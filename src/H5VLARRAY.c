@@ -34,7 +34,6 @@ herr_t H5VLARRAYmake( hid_t loc_id,
 		      const char *title,
 		      const char *obversion,    /* The Array VERSION number */
 		      const int rank,
-		      const int scalar,
 		      const hsize_t *dims,
 		      hid_t type_id,
 		      hsize_t chunk_size,
@@ -69,7 +68,7 @@ herr_t H5VLARRAYmake( hid_t loc_id,
  vldata.len = 1;		/* Only one array type to save */
 
  /* Create a VL datatype */
- if (scalar == 1) {
+ if (rank == 0) {
    datatype = H5Tvlen_create(type_id);
  }
  else {

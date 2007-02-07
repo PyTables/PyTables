@@ -13,7 +13,6 @@ herr_t H5VLARRAYmake( hid_t loc_id,
 		      const char *title,
 		      const char *obversion,    /* The Array VERSION number */
 		      const int rank,
-		      const int scalar,
 		      const hsize_t *dims,
 		      hid_t type_id,
 		      hsize_t chunk_size,
