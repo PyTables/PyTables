@@ -161,7 +161,7 @@ def _generate_col_classes():
     """Generate all column classes."""
     # Abstract classes are not in the class map.
     cprefixes = ['Int', 'UInt', 'Float', 'Time']
-    for (kind, kdata) in atom.class_map.items():
+    for (kind, kdata) in atom.atom_map.items():
         if hasattr(kdata, 'kind'):  # atom class: non-fixed item size
             atomclass = kdata
             cprefixes.append(atomclass.prefix())

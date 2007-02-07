@@ -18,7 +18,7 @@ Variables
     Repository version of this file.
 `all_types`
     Set of all PyTables types.
-`class_map`
+`atom_map`
     Maps atom kinds to item sizes and atom classes.
 
     If there is a fixed set of possible item sizes for a given kind,
@@ -51,7 +51,7 @@ __version__ = '$Revision$'
 all_types = set()  # filled as atom classes are created
 """Set of all PyTables types."""
 
-class_map = {}  # filled as atom classes are created
+atom_map = {}  # filled as atom classes are created
 """
 Maps atom kinds to item sizes and atom classes.
 
@@ -180,15 +180,15 @@ class MetaAtom(type):
         if kind and itemsize and not hasattr(itemsize, '__int__'):
             # Atom classes with a non-fixed item size do have an
             # ``itemsize``, but it's not a number (e.g. property).
-            class_map[kind] = class_
+            atom_map[kind] = class_
             return
 
         if kind:  # first definition of kind, make new entry
-            class_map[kind] = {}
+            atom_map[kind] = {}
 
         if itemsize and hasattr(itemsize, '__int__'):  # fixed
             kind = class_.kind  # maybe from superclasses
-            class_map[kind][int(itemsize)] = class_
+            atom_map[kind][int(itemsize)] = class_
 
 
 # Atom classes
@@ -343,7 +343,7 @@ class Atom(object):
         """
 
         kwargs = {'shape': shape}
-        if kind not in class_map:
+        if kind not in atom_map:
             raise ValueError("unknown kind: %r" % (kind,))
         # If no `itemsize` is given, try to get the default type of the
         # kind (which has a fixed item size).
@@ -353,7 +353,7 @@ class Atom(object):
                                   % kind )
             type_ = deftype_from_kind[kind]
             kind, itemsize = split_type(type_)
-        kdata = class_map[kind]
+        kdata = atom_map[kind]
         # Look up the class and set a possible item size.
         if hasattr(kdata, 'kind'):  # atom class: non-fixed item size
             atomclass = kdata
