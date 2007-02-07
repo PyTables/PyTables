@@ -51,6 +51,9 @@ class Col(atom.Atom):
     # Avoid mangling atom class data.
     __metaclass__ = type
 
+    _class_from_prefix = {}  # filled as column classes are created
+    """Maps column prefixes to column classes."""
+
     # Class methods
     # ~~~~~~~~~~~~~
     @classmethod
@@ -58,12 +61,6 @@ class Col(atom.Atom):
         """Return the column class prefix."""
         cname = class_.__name__
         return cname[:cname.rfind('Col')]
-
-    @classmethod
-    def _instance_of_prefix(class_, prefix, **kwargs):
-        """Return a `Col` instance of the class with the given `prefix`."""
-        colclass = eval('%sCol' % prefix)
-        return colclass(**kwargs)
 
     @classmethod
     def from_atom(class_, atom, pos=None):
@@ -74,7 +71,8 @@ class Col(atom.Atom):
         """
         prefix = atom.prefix()
         kwargs = atom._get_init_args()
-        return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
+        colclass = class_._class_from_prefix[prefix]
+        return colclass(pos=pos, **kwargs)
 
     @classmethod
     def from_sctype(class_, sctype, shape=1, dflt=None, pos=None):
@@ -155,6 +153,7 @@ def _create_col_class(prefix):
             atombase.__init__(self, *args, **kwargs)
             self._v_pos = pos
     NewCol.__name__ = cname
+    Col._class_from_prefix[prefix] = NewCol
     return NewCol
 
 def _generate_col_classes():
