@@ -86,7 +86,8 @@ def append_columns(classdict, shape=()):
             col = tables.EnumCol(enum, enum(0), base, shape=shape, pos=colpos)
         else:
             sctype = sctype_from_type[type_]
-            col = tables.Col.from_sctype(sctype, shape=shape, pos=colpos)
+            dtype = numpy.dtype((sctype, shape))
+            col = tables.Col.from_dtype(dtype, pos=colpos)
         classdict[colname] = col
     ncols = colpos
     return ncols

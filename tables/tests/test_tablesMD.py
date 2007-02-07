@@ -78,7 +78,7 @@ RecordDescriptionDictRevOrder = {
 # Record class with numpy dtypes (mixed shapes is checkd here)
 class RecordDT(IsDescription):
     var0 = Col.from_dtype(numpy.dtype("2S4"), dflt="")  # shape in dtype
-    var1 = Col.from_sctype("S4", shape=(2, 2), dflt=["abcd","efgh"]) # shape is a mix
+    var1 = Col.from_dtype(numpy.dtype(("S4", (2, 2))), dflt=["abcd","efgh"]) # shape is a mix
     var1_= Col.from_dtype(numpy.dtype("2i4"), dflt=((1,1),))  # shape in dtype
     var2 = Col.from_sctype("i4", shape=(2, 2), dflt=((1,1),(1,1)))  # shape is a mix
     var3 = Col.from_dtype(numpy.dtype("i2"), dflt=2)
