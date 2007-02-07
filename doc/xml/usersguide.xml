@@ -9357,7 +9357,9 @@ ValueError: unknown kind: 'Float'</screen>
 &gt;&gt;&gt; Atom.from_sctype(numpy.int16, shape=(2, 2))
 Int16Atom(shape=(2, 2), dflt=0)
 &gt;&gt;&gt; Atom.from_sctype('S5', dflt='hello')
-StringAtom(itemsize=5, shape=(), dflt='hello')
+Traceback (most recent call last):
+  ...
+ValueError: unknown NumPy scalar type: 'S5'
 &gt;&gt;&gt; Atom.from_sctype('Float64')
 Float64Atom(shape=(), dflt=0.0)</screen>
             </section>
