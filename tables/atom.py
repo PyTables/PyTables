@@ -66,12 +66,12 @@ deftype_from_kind = {}  # filled as atom classes are created
 # Public functions
 # ================
 _type_re = re.compile(r'^([a-z]+)([0-9]*)$')
-def split_type(type_):
+def split_type(type):
     """
-    Split a PyTables `type_` into a PyTables kind and an item size.
+    Split a PyTables `type` into a PyTables kind and an item size.
 
     Returns a tuple of ``(kind, itemsize)``.  If no item size is
-    present in the `type_` (in the form of a precision), the returned
+    present in the `type` (in the form of a precision), the returned
     item size is `None`.
 
     >>> split_type('int32')
@@ -88,9 +88,9 @@ def split_type(type_):
     ValueError: malformed type: 'foo bar'
     """
 
-    match = _type_re.match(type_)
+    match = _type_re.match(type)
     if not match:
-        raise ValueError("malformed type: %r" % type_)
+        raise ValueError("malformed type: %r" % type)
     kind, precision = match.groups()
     itemsize = None
     if precision:
@@ -363,7 +363,7 @@ class Atom(object):
     @classmethod
     def from_type(class_, type, shape=1, dflt=None):
         """
-        Create an `Atom` from a PyTables `type_`.
+        Create an `Atom` from a PyTables `type`.
 
         Optional shape and default value may be specified as the
         `shape` and `dflt` arguments, respectively.

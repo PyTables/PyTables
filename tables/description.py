@@ -96,7 +96,7 @@ class Col(atom.Atom):
     @classmethod
     def from_type(class_, type, shape=1, dflt=None, pos=None):
         """
-        Create a `Col` definition from a PyTables `type_`.
+        Create a `Col` definition from a PyTables `type`.
 
         Optional shape, default value and position may be specified as
         the `shape`, `dflt` and `pos` arguments, respectively.

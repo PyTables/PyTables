@@ -3871,13 +3871,13 @@ $ ptdump -d nested-tut.h5
           </section>
 
           <section>
-            <title>split_type(type_)</title>
+            <title>split_type(type)</title>
 
-            <para>Split a PyTables <emphasis>type_</emphasis> into a PyTables
+            <para>Split a PyTables <emphasis>type</emphasis> into a PyTables
             kind and an item size.</para>
 
             <para>Returns a tuple of <literal>(kind, itemsize)</literal>. If
-            no item size is present in the <emphasis>type_</emphasis> (in the
+            no item size is present in the <emphasis>type</emphasis> (in the
             form of a precision), the returned item size is
             <emphasis>None</emphasis>.</para>
 
@@ -9088,7 +9088,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
               pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a
-              PyTables <emphasis>type_</emphasis>.</para>
+              PyTables <emphasis>type</emphasis>.</para>
 
               <para>Optional shape, default value and position may be
               specified as the <emphasis>shape</emphasis>,
@@ -9324,7 +9324,7 @@ Float64Atom(shape=(), dflt=0.0)</screen>
               <title>from_type(type, shape=1, dflt=None)</title>
 
               <para>Create an <literal>Atom</literal> from a PyTables
-              <emphasis>type_</emphasis>.</para>
+              <emphasis>type</emphasis>.</para>
 
               <para>Optional shape and default value may be specified as
               the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
