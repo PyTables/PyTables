@@ -438,6 +438,35 @@ class Atom(object):
             args = 'itemsize=%s, %s' % (self.itemsize, args)
         return '%s(%s)' % (self.__class__.__name__, args)
 
+    # Public methods
+    # ~~~~~~~~~~~~~~
+    def copy(self, **override):
+        """
+        Get a copy of the atom, possibly overriding some arguments.
+
+        Constructor arguments to be overridden must be passed as
+        keyword arguments.
+
+        >>> atom1 = StringAtom(itemsize=12)
+        >>> atom2 = atom1.copy()
+        >>> print atom1
+        StringAtom(itemsize=12, shape=(), dflt='')
+        >>> print atom2
+        StringAtom(itemsize=12, shape=(), dflt='')
+        >>> atom1 is atom2
+        False
+        >>> atom3 = atom1.copy(itemsize=100, shape=(2, 2))
+        >>> print atom3
+        StringAtom(itemsize=100, shape=(2, 2), dflt='')
+        >>> atom1.copy(foobar=42)
+        Traceback (most recent call last):
+          ...
+        TypeError: __init__() got an unexpected keyword argument 'foobar'
+        """
+        newargs = self._get_init_args()
+        newargs.update(override)
+        return self.__class__(**newargs)
+
     # Private methods
     # ~~~~~~~~~~~~~~~
     def _get_init_args(self):
