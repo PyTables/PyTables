@@ -192,6 +192,7 @@ cdef hid_t get_native_type(hid_t type_id):
   "Get the native type of a HDF5 type"
   cdef H5T_class_t class_id
   cdef hid_t native_type_id, super_type_id
+  cdef char *sys_byteorder
 
   class_id = H5Tget_class(type_id)
   if class_id == H5T_ARRAY:
@@ -205,7 +206,8 @@ cdef hid_t get_native_type(hid_t type_id):
   elif class_id in (H5T_BITFIELD, H5T_TIME):
     # These types are not supported yet by H5Tget_native_type
     native_type_id = H5Tcopy(type_id)
-    if set_order(native_type_id, sys.byteorder) < 0:
+    sys_byteorder = PyString_AsString(sys.byteorder)
+    if set_order(native_type_id, sys_byteorder) < 0:
       raise HDF5ExtError(
         "problems setting the byteorder for type of class: %s" % class_id)
   else:
