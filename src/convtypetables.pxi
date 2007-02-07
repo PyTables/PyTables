@@ -23,7 +23,7 @@ from definitions cimport \
      H5T_C_S1, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
      H5T_NO_CLASS, H5T_INTEGER, H5T_FLOAT, H5T_TIME, H5T_STRING, \
      H5T_BITFIELD, H5T_OPAQUE, H5T_COMPOUND, H5T_REFERENCE, \
-     H5T_ENUM, H5T_VLEN, H5T_ARRAY, \
+     H5T_ENUM, H5T_VLEN, H5T_ARRAY, H5T_class_t, \
      npy_intp
 
 # Platform-dependent types
@@ -107,58 +107,60 @@ HDF5ClassToString = {
   H5T_ARRAY     : 'H5T_ARRAY',
   }
 
+# The next conversion tables doesn't seem to be needed anymore.
+# I'll comment them out and will eventually be removed.
 
-# Conversion table from NumPy extended codes to NumPy type classes
-NPExtToType = {
-  NPY_BOOL:      numpy.bool_,     NPY_STRING:     numpy.string_,
-  NPY_INT8:      numpy.int8,      NPY_UINT8:      numpy.uint8,
-  NPY_INT16:     numpy.int16,     NPY_UINT16:     numpy.uint16,
-  NPY_INT32:     numpy.int32,     NPY_UINT32:     numpy.uint32,
-  NPY_INT64:     numpy.int64,     NPY_UINT64:     numpy.uint64,
-  NPY_FLOAT32:   numpy.float32,   NPY_FLOAT64:    numpy.float64,
-  NPY_COMPLEX64: numpy.complex64, NPY_COMPLEX128: numpy.complex128,
-  # Special cases:
-  ord('t'): numpy.int32,          ord('T'):       numpy.float64,
-##  ord('e'):      'Enum',  # fake type (the actual type can be different)
-  }
-
-
-# # Conversion table from NumPy type classes to NumPy type codes
-NPTypeToCode = {
-  numpy.bool_:     NPY_BOOL,      numpy.string_:    NPY_STRING,
-  numpy.int8:      NPY_INT8,      numpy.uint8:      NPY_UINT8,
-  numpy.int16:     NPY_INT16,     numpy.uint16:     NPY_UINT16,
-  numpy.int32:     NPY_INT32,     numpy.uint32:     NPY_UINT32,
-  numpy.int64:     NPY_INT64,     numpy.uint64:     NPY_UINT64,
-  numpy.float32:   NPY_FLOAT32,   numpy.float64:    NPY_FLOAT64,
-  numpy.complex64: NPY_COMPLEX64, numpy.complex128: NPY_COMPLEX128,
-  }
+# # Conversion table from NumPy extended codes to NumPy type classes
+# NPExtToType = {
+#   NPY_BOOL:      numpy.bool_,     NPY_STRING:     numpy.string_,
+#   NPY_INT8:      numpy.int8,      NPY_UINT8:      numpy.uint8,
+#   NPY_INT16:     numpy.int16,     NPY_UINT16:     numpy.uint16,
+#   NPY_INT32:     numpy.int32,     NPY_UINT32:     numpy.uint32,
+#   NPY_INT64:     numpy.int64,     NPY_UINT64:     numpy.uint64,
+#   NPY_FLOAT32:   numpy.float32,   NPY_FLOAT64:    numpy.float64,
+#   NPY_COMPLEX64: numpy.complex64, NPY_COMPLEX128: numpy.complex128,
+#   # Special cases:
+#   ord('t'): numpy.int32,          ord('T'):       numpy.float64,
+# ##  ord('e'):      'Enum',  # fake type (the actual type can be different)
+#   }
 
 
-# Conversion from NumPy extended codes to PyTables string types
-NPExtToPTType = {
-  NPY_BOOL:      'bool',      NPY_STRING:     'string',
-  NPY_INT8:      'int8',      NPY_UINT8:      'uint8',
-  NPY_INT16:     'int16',     NPY_UINT16:     'uint16',
-  NPY_INT32:     'int32',     NPY_UINT32:     'uint32',
-  NPY_INT64:     'int64',     NPY_UINT64:     'uint64',
-  NPY_FLOAT32:   'float32',   NPY_FLOAT64:    'float64',
-  NPY_COMPLEX64: 'complex64', NPY_COMPLEX128: 'complex128',
-  # Extended codes:
-  ord('t'):      'time32',    ord('T'):       'time64',
-  ord('e'):      'enum',
-  }
+# # # Conversion table from NumPy type classes to NumPy type codes
+# NPTypeToCode = {
+#   numpy.bool_:     NPY_BOOL,      numpy.string_:    NPY_STRING,
+#   numpy.int8:      NPY_INT8,      numpy.uint8:      NPY_UINT8,
+#   numpy.int16:     NPY_INT16,     numpy.uint16:     NPY_UINT16,
+#   numpy.int32:     NPY_INT32,     numpy.uint32:     NPY_UINT32,
+#   numpy.int64:     NPY_INT64,     numpy.uint64:     NPY_UINT64,
+#   numpy.float32:   NPY_FLOAT32,   numpy.float64:    NPY_FLOAT64,
+#   numpy.complex64: NPY_COMPLEX64, numpy.complex128: NPY_COMPLEX128,
+#   }
 
 
-# Conversion from PyTables string types to NumPy extended codes
-PTTypeToNPExt = {}
-for key, value in NPExtToPTType.items():
-  PTTypeToNPExt[value] = key
+# # Conversion from NumPy extended codes to PyTables string types
+# NPExtToPTType = {
+#   NPY_BOOL:      'bool',      NPY_STRING:     'string',
+#   NPY_INT8:      'int8',      NPY_UINT8:      'uint8',
+#   NPY_INT16:     'int16',     NPY_UINT16:     'uint16',
+#   NPY_INT32:     'int32',     NPY_UINT32:     'uint32',
+#   NPY_INT64:     'int64',     NPY_UINT64:     'uint64',
+#   NPY_FLOAT32:   'float32',   NPY_FLOAT64:    'float64',
+#   NPY_COMPLEX64: 'complex64', NPY_COMPLEX128: 'complex128',
+#   # Extended codes:
+#   ord('t'):      'time32',    ord('T'):       'time64',
+#   ord('e'):      'enum',
+#   }
 
 
-# Helper routines. These are here so as to easy the including in .pyx files.
-# If the list starts to grow, these should be moved on its own .pxi
-# because they don't logically belongs to this one.
+# # Conversion from PyTables string types to NumPy extended codes
+# PTTypeToNPExt = {}
+# for key, value in NPExtToPTType.items():
+#   PTTypeToNPExt[value] = key
+
+
+# The next functions are not directly related with this file
+# If the list below starts to grow, they should be moved to its own
+# .pxi file.
 cdef hsize_t *malloc_dims(object pdims):
   "Returns a malloced hsize_t dims from a python pdims."
   cdef int i, rank
@@ -186,7 +188,35 @@ cdef hsize_t *npy_malloc_dims(int rank, npy_intp *pdims):
   return dims
 
 
+cdef hid_t get_native_type(hid_t type_id):
+  "Get the native type of a HDF5 type"
+  cdef H5T_class_t class_id
+  cdef hid_t native_type_id, super_type_id
 
+  class_id = H5Tget_class(type_id)
+  if class_id == H5T_ARRAY:
+    # Get the array base component
+    super_type_id = H5Tget_super(type_id)
+    # Get the class
+    class_id = H5Tget_class(super_type_id)
+    H5Tclose(super_type_id)    
+  if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_COMPOUND, H5T_ENUM):
+    native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
+  elif class_id in (H5T_BITFIELD, H5T_TIME):
+    # These types are not supported yet by H5Tget_native_type
+    native_type_id = H5Tcopy(type_id)
+    if set_order(native_type_id, sys.byteorder) < 0:
+      raise HDF5ExtError(
+        "problems setting the byteorder for type of class: %s" % class_id)
+  else:
+    # Fixing the byteorder for these types shouldn't be needed
+    native_type_id = H5Tcopy(type_id)
+  if native_type_id < 0:
+    raise HDF5ExtError("Problems getting type id for class %s" % class_id)
+  return native_type_id
+
+
+# Helper routines. These are here so as to easy the including in .pyx files.
 ## Local Variables:
 ## mode: python
 ## py-indent-offset: 2

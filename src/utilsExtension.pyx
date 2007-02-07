@@ -26,8 +26,8 @@ import numpy
 
 from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError
-from tables.atom import Atom
-from tables.description import Description, EnumCol, Col
+from tables.atom import Atom, EnumAtom
+from tables.description import Description, Col
 
 from tables.utils import checkFileAccess
 
@@ -48,7 +48,7 @@ from definitions cimport import_array, ndarray, \
      H5ATTRget_attribute_string, H5ATTRfind_attribute, \
      H5ARRAYget_ndims, H5ARRAYget_info, \
      create_ieee_complex64, create_ieee_complex128, \
-     getArrayType, get_order, set_order
+     get_order, set_order
 
 
 
@@ -390,7 +390,7 @@ def read_f_attr(hid_t file_id, char *attr_name):
     if ret >= 0:
       retvalue = attr_value
     # Important to release attr_value, because it has been malloc'ed!
-    if value: free(attr_value)
+    if attr_value: free(attr_value)
 
   # Close root group
   H5Gclose(root_id)
@@ -472,31 +472,17 @@ def enumFromHDF5(hid_t enumId, char *byteorder):
   cdef void   *rbuf
   cdef char   *ename
   cdef ndarray npvalue
-  cdef object dtype, sctype
+  cdef object dtype
 
-  # Find the base type of the enumerated type.
+  # Find the base type of the enumerated type, and get the atom
   baseId = H5Tget_super(enumId)
-  if baseId < 0:
-    raise HDF5ExtError("failed to get base type of HDF5 enumerated type")
-
-  # Get the corresponding NumPy type and create temporary value.
-  if getArrayType(baseId, &npenum) < 0:
-    raise HDF5ExtError("failed to convert HDF5 base type to NumPy type")
-  if H5Tclose(baseId) < 0:
-    raise HDF5ExtError("failed to close HDF5 base type")
-
-  try:
-    sctype = NPExtToType[npenum]
-  except KeyError:
-    raise NotImplementedError("""\
-sorry, only scalar concrete values are supported at this moment""")
-
-  # Get the dtype
-  dtype = numpy.dtype(sctype)
-  if dtype.kind not in ['i', 'u']:   # not an integer check
+  atom = AtomFromHDF5Type(baseId)
+  H5Tclose(baseId)
+  if atom.kind not in ('int', 'uint'):
     raise NotImplementedError("""\
 sorry, only integer concrete values are supported at this moment""")
 
+  dtype = atom.dtype
   npvalue = numpy.array((0,), dtype=dtype)
   rbuf = npvalue.data
 
@@ -655,7 +641,7 @@ def loadEnum(hid_t type_id):
       raise HDF5ExtError("failed to close HDF5 enumerated type")
 
 
-def HDF5ToStrNPExtType(hid_t type_id):
+def HDF5ToNPExtType(hid_t type_id, issue_error):
   """Map the atomic HDF5 type to a string repr of NumPy extended codes.
 
   This follows the standard size and alignment.
@@ -706,7 +692,7 @@ def HDF5ToStrNPExtType(hid_t type_id):
     # Get the itemsize
     super_itemsize = H5Tget_size(super_type_id)
     # Find the super member format
-    stype, shape2 = HDF5ToStrNPExtType(super_type_id)
+    stype, shape2 = HDF5ToNPExtType(super_type_id, issue_error)
     # Get shape
     shape = []
     ndims = H5Tget_array_ndims(type_id)
@@ -720,10 +706,42 @@ def HDF5ToStrNPExtType(hid_t type_id):
     H5Tclose(super_type_id)
   else:
     # Other types are not supported yet
-    raise TypeError("the HDF5 class ``%s`` is not supported yet"
-                    % HDF5ClassToString[class_id])
+    if issue_error:
+      raise TypeError("the HDF5 class ``%s`` is not supported yet"
+                      % HDF5ClassToString[class_id])
+    else:
+      return None, None
 
   return stype, shape
+
+
+def AtomFromHDF5Type(hid_t type_id, issue_error = True):
+  """Get an atom from a type_id.
+
+  If warn is True, only issue a warning. Else, issue a TypeError."""
+  cdef object stype, shape, atom, sctype, tsize, kind
+  cdef object dflt, base, enum, nptype
+  
+  stype, shape = HDF5ToNPExtType(type_id, issue_error)
+  # Check if something has going on wrong
+  if stype == None:
+    return None
+  # Create the Atom
+  if stype == 'e':
+    (enum, nptype) = loadEnum(type_id)
+    # Take one of the names as the default in the enumeration.
+    dflt = iter(enum).next()[0]
+    base = Atom.from_dtype(nptype)
+    atom = EnumAtom(enum, dflt, base, shape=shape)
+  elif stype[0] in 'St':
+    kind = {'S': 'string', 't': 'time'}[stype[0]]
+    tsize = int(stype[1:])
+    atom = Atom.from_kind(kind, tsize, shape=shape)
+  else:
+    sctype = numpy.sctypeDict[stype]
+    atom = Atom.from_sctype(sctype, shape=shape)
+
+  return atom
 
 
 def _joinPath(object parent, object name):
@@ -744,7 +762,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
   cdef hid_t   member_type_id, native_member_type_id
   cdef hsize_t nfields, dims[1]
   cdef size_t  itemsize, type_size
-  cdef int     i, tsize
+  cdef int     i
   cdef char    *colname
   cdef H5T_class_t class_id
   cdef char    byteorder2[11]  # "irrelevant" fits easily here
@@ -777,40 +795,16 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
                                          table, colpath2)
         desc[colname]["_v_pos"] = i  # Remember the position
       else:
-        # Get the member format
+        # Get the member format and the corresponding Col object
         try:
-          colstype, colshape = HDF5ToStrNPExtType(member_type_id)
+          native_member_type_id = get_native_type(member_type_id)
+          atom = AtomFromHDF5Type(member_type_id)
+          colobj = Col.from_atom(atom, pos=i)
         except TypeError, te:
           # Re-raise TypeError again with more info
           raise TypeError(
             ("table ``%s``, column ``%s``: %%s" % (table.name, colname))
             % te.args[0])
-        # Get the native type
-        if colstype in ["b1", "t4", "t8"]:
-          # These types are not supported yet by H5Tget_native_type
-          native_member_type_id = H5Tcopy(member_type_id)
-          sys_byteorder = PyString_AsString(sys.byteorder)
-          if set_order(native_member_type_id, sys_byteorder) < 0:
-            raise HDF5ExtError(
-          "problems setting the byteorder for type of class %s" % class_id)
-        else:
-          native_member_type_id = H5Tget_native_type(member_type_id,
-                                                     H5T_DIR_DEFAULT)
-        # Create the Col object.
-        # Indexes will be treated later on, in Table._open()
-        if colstype == 'e':
-          (enum, nptype) = loadEnum(native_member_type_id)
-          # Take one of the names as the default in the enumeration.
-          dflt = iter(enum).next()[0]
-          base = Atom.from_dtype(nptype)
-          colobj = EnumCol(enum, dflt, base, shape=colshape, pos=i)
-        elif colstype[0] in 'St':
-          kind = {'S': 'string', 't': 'time'}[colstype[0]]
-          tsize = int(colstype[1:])
-          colobj = Col.from_kind(kind, tsize, shape=colshape, pos=i)
-        else:
-          sctype = numpy.sctypeDict[colstype]
-          colobj = Col.from_sctype(sctype, shape=colshape, pos=i)
         desc[colname] = colobj
         # Fetch the byteorder for this column
         ret = get_order(member_type_id, byteorder2)

@@ -446,9 +446,3 @@ cdef extern from "utils.h":
   herr_t set_order(hid_t type_id, char *byteorder)
   herr_t get_order(hid_t type_id, char *byteorder)
 
-
-# Conversion routines between NumPy <--> HDF5 data types
-cdef extern from "arraytypes.h":
-  hid_t convArrayType(int nptype, size_t size, char *byteorder)
-  size_t getArrayType(hid_t type_id, int *nptype)
-

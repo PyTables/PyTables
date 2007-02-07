@@ -44,7 +44,7 @@ from tables.atom import Atom
 from tables.utilsExtension import  \
      enumToHDF5, enumFromHDF5, getTypeEnum, \
      convertTime64, isHDF5File, isPyTablesFile, \
-     AtomToHDF5Type, loadEnum
+     AtomToHDF5Type, AtomFromHDF5Type, loadEnum
 
 from lrucacheExtension cimport NodeCache
 
@@ -74,7 +74,7 @@ from definitions cimport  \
      H5ATTRfind_attribute, H5ATTRget_attribute_ndims, \
      H5ATTRget_attribute_info, \
      set_cache_size, Giterate, Aiterate, H5UIget_info, get_len_of_range, \
-     getArrayType, get_order, set_order
+     get_order, set_order
 
 
 
@@ -456,10 +456,9 @@ Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
     # dims is not needed anymore
     free(<void *> dims)
 
-    # Get the attribute NumPy type & type size
-    type_size = getArrayType(type_id, &enumtype)
-    # type_size is of type size_t (unsigned long), so cast it to a long first
-    if <long>type_size < 0:
+    # Get the atom from the type_id
+    atom = AtomFromHDF5Type(type_id, issue_error=False)
+    if not atom:
       # This class is not supported. Instead of raising a TypeError,
       # issue a warning explaining the problem. This will allow to continue
       # browsing native HDF5 files, while informing the user about the problem.
@@ -468,14 +467,11 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
                       % (attrname, self.name, class_id))
       return None
 
-    # Get the dtype
-    dtype = NPExtToType[enumtype]
-    if class_id == H5T_STRING:
-      dtype = numpy.dtype((dtype, type_size))
-    # Fix the byteorder
+    dtype = atom.dtype
+    # Fix the byteorder of this dtype
     get_order(type_id, byteorder)
-    if byteorder in ('little', 'big'):
-      dtype = numpy.dtype(dtype).newbyteorder(byteorder)
+    if byteorder in ('little', 'big') and str(byteorder) != sys.byteorder:
+      dtype = numpy.dtype(atom.dtype).newbyteorder(byteorder)
     # Get the container for data
     ndvalue = numpy.empty(dtype=dtype, shape=shape)
     # Get the pointer to the buffer data area
@@ -652,25 +648,10 @@ cdef class Leaf(Node):
     descriptor (so that it is safe to close them separately).
     """
     cdef hid_t disk_type_id, native_type_id
-    cdef H5T_class_t class_id
     cdef char *sys_byteorder
     
     disk_type_id = H5Dget_type(self.dataset_id)
-    class_id = H5Tget_class(disk_type_id)
-    if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_COMPOUND, H5T_ENUM, H5T_ARRAY):
-      native_type_id = H5Tget_native_type(disk_type_id, H5T_DIR_DEFAULT)
-    elif class_id in (H5T_BITFIELD, H5T_TIME):
-      # These types are not supported yet by H5Tget_native_type
-      native_type_id = H5Tcopy(disk_type_id)
-      sys_byteorder = PyString_AsString(sys.byteorder)
-      if set_order(native_type_id, sys_byteorder) < 0:
-        raise HDF5ExtError(
-          "problems setting the byteorder for type of class: %s" % class_id)
-    else:
-      # Fixing the byteorder for these types shouldn't be needed
-      native_type_id = H5Tcopy(disk_type_id)
-    if native_type_id < 0:
-      raise HDF5ExtError("Problems getting type id for dataset %s" % self.name)
+    native_type_id = get_native_type(disk_type_id)
     return (disk_type_id, native_type_id)
 
 
@@ -789,11 +770,11 @@ cdef class Array(Leaf):
     cdef size_t type_size, type_precision
     cdef H5T_class_t class_id
     cdef char byteorder[11]  # "irrelevant" fits easily here
-    cdef int i, enumtype
+    cdef int i
     cdef int extdim
     cdef hid_t base_type_id
     cdef herr_t ret
-    cdef object shape, type_, dtype, pttype
+    cdef object shape, type_
 
     # Open the dataset
     self.dataset_id = H5Dopen(self.parent_id, self.name)
@@ -828,31 +809,20 @@ cdef class Array(Leaf):
                               self.dims_chunk)) < 0):
       if self.extdim >= 0 or self.__class__.__name__ == 'CArray':
         raise HDF5ExtError, "Problems getting the chunkshapes!"
-    # Get the array type & size
-    type_size = getArrayType(base_type_id, &enumtype)
-    # type_size is of type size_t (unsigned long), so cast it to a long first
-    if <long>type_size < 0:
-      raise TypeError, "HDF5 class %d not supported. Sorry!" % class_id
-
+    # Get the atom for this type
+    atom = AtomFromHDF5Type(base_type_id)
     H5Tclose(base_type_id)    # Release resources
 
-    # Get the dtype
-    type_ = NPExtToType.get(enumtype, "int32")
-    if type_ == numpy.string_:
-      dtype = numpy.dtype("S%s"%type_size)
-    else:
-      dtype = numpy.dtype(type_)
-
-    pttype = NPExtToPTType[enumtype]
-    # Get enumeration from disk
-    if pttype == 'enum':
-      (self._enum, dtype) = loadEnum(self.type_id)
+    # Get the enumeration list and put it in the _enum private variable
+    # This is needed mainly for Array objects that doesn't have an Atom()
+    if atom.type == 'enum':
+      self._enum = atom.enum
 
     # Get the shape and chunkshapes as python tuples
     shape = getshape(self.rank, self.dims)
     chunkshapes = getshape(self.rank, self.dims_chunk)
 
-    return (self.dataset_id, dtype, pttype, shape, chunkshapes)
+    return (self.dataset_id, atom.dtype, atom.type, shape, chunkshapes)
 
 
   def _convertTypes(self, object nparr, int sense):
@@ -1029,7 +999,7 @@ cdef class VLArray(Leaf):
       byteorder = sys.byteorder
 
     # Get the HDF5 type of the *scalar* atom
-    scatom = Atom.from_kind(atom.kind, atom.itemsize)
+    scatom = atom.copy(shape=())
     self.base_type_id = AtomToHDF5Type(scatom, byteorder)
 
     # Allocate space for the dimension axis info
@@ -1092,26 +1062,20 @@ cdef class VLArray(Leaf):
     # Get the byteorder
     self.byteorder = byteorder
 
-    # Get the array type & size
-    self._basesize = getArrayType(self.base_type_id, &enumtype)
-    if self._basesize < 0:
-      raise TypeError, "The HDF5 class of object does not seem VLEN. Sorry!"
+    # Get the atom for this type
+    atom = AtomFromHDF5Type(self.base_type_id)
 
     # Get the type of the atomic type
-    type_ = NPExtToType.get(enumtype, None)
-    if type_ == numpy.string_:
-      self._atomicdtype = numpy.dtype("S%s"%self._basesize)
-    else:
-      self._atomicdtype = numpy.dtype(type_)
-    self._atomictype = NPExtToPTType[enumtype]
+    self._atomicdtype = atom.dtype
+    self._atomictype = atom.type
 
     # Get enumeration from disk
     if self._atomictype == 'enum':
-      (self._enum, self._atomicdtype) = loadEnum(self.base_type_id)
+      self._enum = atom.enum
 
     # Get the size and shape of the atomic type
     self._atomicshape = getshape(rank, dims)
-    self._atomicsize = self._basesize
+    self._atomicsize = atom.itemsize
     for i from 0 <= i < rank:
       self._atomicsize = self._atomicsize * dims[i]
     if dims:
