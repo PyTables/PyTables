@@ -454,6 +454,9 @@ class StringAtom(Atom):
                               % ('string', itemsize) )
         Atom.__init__(self, 'S%d' % itemsize, shape, dflt)
 
+    def _get_init_args(self):
+        return dict(itemsize=self.itemsize, shape=self.shape, dflt=self.dflt)
+
 
 class BoolAtom(Atom):
     """Defines an atom of type ``bool``."""
@@ -464,6 +467,8 @@ class BoolAtom(Atom):
     _defvalue = False
     def __init__(self, shape=1, dflt=_defvalue):
         Atom.__init__(self, self.type, shape, dflt)
+    def _get_init_args(self):
+        return dict(shape=self.shape, dflt=self.dflt)
 
 
 class IntAtom(Atom):
@@ -498,7 +503,10 @@ def _create_numeric_class(baseclass, itemsize):
                   '__doc__': "Defines an atom of type ``%s``." % type_ }
     def __init__(self, shape=1, dflt=baseclass._defvalue):
         Atom.__init__(self, self.type, shape, dflt)
+    def _get_init_args(self):
+        return dict(shape=self.shape, dflt=self.dflt)
     classdict['__init__'] = __init__
+    classdict['_get_init_args'] = _get_init_args
     return type('%sAtom' % prefix, (baseclass,), classdict)
 
 
@@ -552,6 +560,9 @@ class ComplexAtom(Atom):
         self.type = '%s%d' % (self.kind, itemsize * 8)
         Atom.__init__(self, self.type, shape, dflt)
 
+    def _get_init_args(self):
+        return dict(itemsize=self.itemsize, shape=self.shape, dflt=self.dflt)
+
 class _ComplexErrorAtom(ComplexAtom):
     """Reminds the user to stop using the old complex atom names."""
     __metaclass__ = type  # do not register anything about this class
@@ -576,6 +587,8 @@ class TimeAtom(Atom):
     """
     kind = 'time'
     _deftype = 'time32'
+    def _get_init_args(self):
+        return dict(shape=self.shape, dflt=self.dflt)
 
 class Time32Atom(TimeAtom):
     """Defines an atom of type ``time32``."""
@@ -714,6 +727,10 @@ class EnumAtom(Atom):
         if len(npvalues.shape) > 1:
             raise NotImplementedError( "only scalar concrete values "
                                        "are supported for the moment, sorry" )
+
+    def _get_init_args(self):
+        return dict( enum=self.enum, dflt=self._defname,
+                     base=self.base, shape=self.shape )
 
     # Special methods
     # ~~~~~~~~~~~~~~~

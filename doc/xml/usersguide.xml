@@ -9041,6 +9041,17 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
             <title><literal>Col</literal> factory methods</title>
 
             <section>
+              <title>from_atom(atom, pos=None)</title>
+
+              <para>Create a <literal>Col</literal> definition from a PyTables
+              <emphasis>atom</emphasis>.</para>
+
+              <para>An optional position may be specified as the
+              <emphasis>pos</emphasis> argument.
+              </para>
+            </section>
+
+            <section>
               <title>from_dtype(dtype, dflt=None, pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a NumPy

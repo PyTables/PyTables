@@ -67,6 +67,17 @@ class Col(atom.Atom):
         return colclass(**kwargs)
 
     @classmethod
+    def from_atom(class_, atom, pos=None):
+        """
+        Create a `Col` definition from a PyTables `atom`.
+
+        An optional position may be specified as the `pos` argument.
+        """
+        prefix = atom.prefix()
+        kwargs = atom._get_init_args()
+        return class_._instance_of_prefix(prefix, pos=pos, **kwargs)
+
+    @classmethod
     def from_sctype(class_, sctype, shape=1, dflt=None, pos=None):
         """
         Create a `Col` definition from a NumPy scalar type `sctype`.
