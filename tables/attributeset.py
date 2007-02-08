@@ -224,15 +224,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # takes care of other types as well as for example NROWS for
         # Tables and EXTDIM for EArrays
         format_version = self._v__format_version
-        if (issysattrname(name) and
-            not name.endswith("FILL") and
-            not name in ["NROWS", "EXTDIM", "AUTO_INDEX",
-                         "DIRTY", "NODE_TYPE_VERSION"]):
-            # The next is fastest for string attributes
-            value = self._g_getSysAttr(name)
-        else:
-            # This the general way to read attributes (takes more time)
-            value = self._g_getAttr(name)
+        value = self._g_getAttr(name)
 
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
@@ -529,8 +521,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Get this class name
         classname = self.__class__.__name__
         # The attribute names
-        #attrnumber = len([ n for n in self._v_attrnames if not issysattrname(n) ])
-        # Showing all attributes by default
         attrnumber = len([ n for n in self._v_attrnames ])
         return "%s._v_attrs (%s), %s attributes" % (pathname, classname, attrnumber)
 
@@ -544,8 +534,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             return "<AttributeSet of closed Node>"
 
         # print additional info only if there are attributes to show
-        #attrnames = [ n for n in self._v_attrnames if not issysattrname(n) ]
-        # Showing all attributes by default
         attrnames = [ n for n in self._v_attrnames ]
         if len(attrnames):
             rep = [ '%s := %r' %  (attr, getattr(self, attr) )

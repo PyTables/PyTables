@@ -731,6 +731,7 @@ def AtomFromHDF5Type(hid_t type_id, issue_error = True):
     tsize = int(stype[1:])
     atom = Atom.from_kind(kind, tsize, shape=shape)
   else:
+    #XXX from_sctype -> from_dtype -> from_type -> from_kind
     sctype = numpy.sctypeDict[stype]
     atom = Atom.from_sctype(sctype, shape=shape)
 

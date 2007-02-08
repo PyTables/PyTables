@@ -68,7 +68,7 @@ def modify_junk_LRU2():
 def modify_junk_LRU3():
     fileh = openFile(filename,'a')
     group = fileh.root.newgroup
-    for j in range(10):
+    for j in range(3):
         t1 = time()
         for tt in fileh.walkNodes(group, "Table"):
             title = tt.attrs.TITLE

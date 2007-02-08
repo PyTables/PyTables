@@ -388,9 +388,12 @@ herr_t H5ATTRfind_attribute( hid_t loc_id,
  *-------------------------------------------------------------------------
  */
 
-herr_t H5ATTRget_attribute_ndims( hid_t obj_id,
-				  const char *attr_name,
-				  int *rank )
+herr_t H5ATTRget_type_ndims( hid_t obj_id,
+			     const char *attr_name,
+			     hid_t *type_id,
+			     H5T_class_t *class_id,
+			     size_t *type_size,
+			     int *rank )
 {
  hid_t       attr_id;
  hid_t       space_id;
@@ -400,6 +403,15 @@ herr_t H5ATTRget_attribute_ndims( hid_t obj_id,
  {
   return -1;
  }
+
+ /* Get an identifier for the datatype. */
+ *type_id = H5Aget_type( attr_id );
+
+ /* Get the class. */
+ *class_id = H5Tget_class( *type_id );
+
+ /* Get the size. */
+ *type_size = H5Tget_size( *type_id );
 
  /* Get the dataspace handle */
  if ( (space_id = H5Aget_space( attr_id )) < 0 )
@@ -420,6 +432,7 @@ herr_t H5ATTRget_attribute_ndims( hid_t obj_id,
  return 0;
 
 out:
+ H5Tclose( *type_id );
  H5Aclose( attr_id );
  return -1;
 
@@ -427,7 +440,7 @@ out:
 
 
 /*-------------------------------------------------------------------------
- * Function: H5ATTRget_attribute_info
+ * Function: H5ATTRget_dims
  *
  * Purpose: Gets information about an attribute.
  *
@@ -440,12 +453,9 @@ out:
  *-------------------------------------------------------------------------
  */
 
-herr_t H5ATTRget_attribute_info( hid_t obj_id,
-				 const char *attr_name,
-				 hsize_t *dims,
-				 H5T_class_t *type_class,
-				 size_t *type_size,
-				 hid_t *type_id)
+herr_t H5ATTRget_dims( hid_t obj_id,
+		       const char *attr_name,
+		       hsize_t *dims)
 {
  hid_t       attr_id;
  hid_t       space_id;
@@ -455,15 +465,6 @@ herr_t H5ATTRget_attribute_info( hid_t obj_id,
  {
   return -1;
  }
-
- /* Get an identifier for the datatype. */
- *type_id = H5Aget_type( attr_id );
-
- /* Get the class. */
- *type_class = H5Tget_class( *type_id );
-
- /* Get the size. */
- *type_size = H5Tget_size( *type_id );
 
   /* Get the dataspace handle */
  if ( (space_id = H5Aget_space( attr_id )) < 0 )
@@ -484,7 +485,6 @@ herr_t H5ATTRget_attribute_info( hid_t obj_id,
  return 0;
 
 out:
- H5Tclose( *type_id );
  H5Aclose( attr_id );
  return -1;
 

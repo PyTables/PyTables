@@ -44,7 +44,7 @@ from tables.atom import Atom
 from tables.utilsExtension import  \
      enumToHDF5, enumFromHDF5, getTypeEnum, \
      convertTime64, isHDF5File, isPyTablesFile, \
-     AtomToHDF5Type, AtomFromHDF5Type, loadEnum
+     AtomToHDF5Type, AtomFromHDF5Type, loadEnum, HDF5ToNPExtType
 
 from lrucacheExtension cimport NodeCache
 
@@ -57,7 +57,7 @@ from definitions cimport  \
      Py_INCREF, Py_DECREF, \
      import_array, ndarray, dtype, \
      time_t, size_t, hid_t, herr_t, hsize_t, hvl_t, \
-     H5T_class_t, \
+     H5T_class_t, H5T_sign_t, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
      H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5T_DIR_DEFAULT, H5S_SELECT_SET, \
      H5get_libversion, H5check_version, H5Fcreate, H5Fopen, H5Fclose, \
@@ -69,10 +69,10 @@ from definitions cimport  \
      H5Pset_cache, H5Pset_sieve_buf_size, H5Pset_fapl_log, \
      H5Sselect_hyperslab, H5Screate_simple, H5Sget_simple_extent_ndims, \
      H5Sget_simple_extent_dims, H5Sclose, \
+     H5Tis_variable_str, H5Tget_sign, \
      H5ATTRset_attribute, H5ATTRset_attribute_string, \
      H5ATTRget_attribute, H5ATTRget_attribute_string, \
-     H5ATTRfind_attribute, H5ATTRget_attribute_ndims, \
-     H5ATTRget_attribute_info, \
+     H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims, \
      set_cache_size, Giterate, Aiterate, H5UIget_info, get_len_of_range, \
      get_order, set_order
 
@@ -179,7 +179,7 @@ cdef object getshape(int rank, hsize_t *dims):
 
 
 # Helper function for quickly fetch an attribute string
-def get_attribute_string_or_none(node_id, attr_name):
+cdef object get_attribute_string_or_none(node_id, attr_name):
   """
   Returns a string attribute if it exists in node_id.
 
@@ -200,6 +200,31 @@ def get_attribute_string_or_none(node_id, attr_name):
     if ret < 0: return None
 
   return retvalue
+
+
+# Get the numpy dtype scalar attribute from an HDF5 type as fast as possible
+cdef object get_dtype_scalar(hid_t type_id, H5T_class_t class_id,
+                             size_t itemsize):
+  cdef H5T_sign_t sign
+  cdef object stype
+
+  if class_id == H5T_BITFIELD:
+    stype = "b1"
+  elif class_id ==  H5T_INTEGER:
+    # Get the sign
+    sign = H5Tget_sign(type_id)
+    if (sign > 0):
+      stype = "i%s" % (itemsize)
+    else:
+      stype = "u%s" % (itemsize)
+  elif class_id ==  H5T_FLOAT:
+    stype = "f%s" % (itemsize)
+  elif class_id ==  H5T_STRING:
+    if H5Tis_variable_str(type_id):
+      raise TypeError("variable length strings are not supported yet")
+    stype = "S%s" % (itemsize)
+
+  return numpy.dtype(stype)
 
 
 
@@ -346,21 +371,6 @@ cdef class AttributeSet:
     return lattrs
 
 
-  # Get a system attribute (they should be only strings)
-  def _g_getSysAttr(self, char *attrname):
-    return get_attribute_string_or_none(self.dataset_id, attrname)
-
-
-  # Set a system attribute (they should be only strings)
-  def _g_setAttrStr(self, char *attrname, char *attrvalue):
-    cdef int ret
-
-    ret = H5ATTRset_attribute_string(self.dataset_id, attrname, attrvalue)
-    if ret < 0:
-      raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
-                         (attrname, self._v_node))
-
-
   def _g_setAttr(self, char *name, object value):
     """Save Python or NumPy objects as HDF5 attributes.
 
@@ -420,68 +430,78 @@ cdef class AttributeSet:
     cdef hsize_t *dims, nelements
     cdef H5T_class_t class_id
     cdef size_t type_size
-    cdef hid_t mem_type, dset_id, type_id, type_id2
+    cdef hid_t mem_type, dset_id, type_id, native_type
     cdef int rank, ret, enumtype
     cdef void *rbuf
     cdef ndarray ndvalue
-    cdef char  byteorder[11]
-    cdef object retvalue, shape
+    cdef object shape, stype_atom, shape_atom
 
     dset_id = self.dataset_id
     dims = NULL
 
-    ret = H5ATTRget_attribute_ndims(dset_id, attrname, &rank )
+    ret = H5ATTRget_type_ndims(dset_id, attrname, &type_id, &class_id,
+                               &type_size, &rank )
     if ret < 0:
-      raise HDF5ExtError("Can't get ndims on attribute %s in node %s." %
-                             (attrname, self.name))
+      raise HDF5ExtError("Can't get type info on attribute %s in node %s." %
+                         (attrname, self.name))
 
-    # Get the dimensional info
-    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-    ret = H5ATTRget_attribute_info(dset_id, attrname, dims,
-                                   &class_id, &type_size, &type_id)
-    if ret < 0:
-      raise HDF5ExtError("Can't get info on attribute %s in node %s." %
-                               (attrname, self.name))
-
-    # Check that class_id is a supported type for attributes
-    if class_id not in (H5T_STRING, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT,
-                        H5T_COMPOUND):   # complex types are COMPOUND
-      warnings.warn("""\
+    # Call a fast function for scalar values and typical class types
+    if (rank == 0 and
+        class_id in (H5T_STRING, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)):
+      dtype = get_dtype_scalar(type_id, class_id, type_size)
+      shape = ()
+    else:
+      # Attribute is multidimensional
+      # Check that class_id is a supported type for attributes
+      # [complex types are COMPOUND]
+      if class_id not in (H5T_STRING, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT,
+                          H5T_COMPOUND, H5T_ARRAY):
+        warnings.warn("""\
 Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
-                    % (attrname, self.name))
-      return None
+                      % (attrname, self.name))
+        return None
 
-    # Get the dimensional info
-    shape = getshape(rank, dims)
-    # dims is not needed anymore
-    free(<void *> dims)
+      # Get the dimensional info
+      dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+      ret = H5ATTRget_dims(dset_id, attrname, dims)
+      if ret < 0:
+        raise HDF5ExtError("Can't get dims info on attribute %s in node %s." %
+                           (attrname, self.name))
 
-    # Get the atom from the type_id
-    atom = AtomFromHDF5Type(type_id, issue_error=False)
-    if not atom:
-      # This class is not supported. Instead of raising a TypeError,
-      # issue a warning explaining the problem. This will allow to continue
-      # browsing native HDF5 files, while informing the user about the problem.
-      warnings.warn("""\
+      # Get the dimensional info
+      shape = getshape(rank, dims)
+      # dims is not needed anymore
+      free(<void *> dims)
+      # Get the atom from the type_id
+      # This can be quite CPU consuming, and for attributes we just need
+      # the numpy dtype
+      #atom = AtomFromHDF5Type(type_id, issue_error=False)
+      stype_atom, shape_atom = HDF5ToNPExtType(type_id, False)
+      if not stype_atom:
+        # This class is not supported. Instead of raising a TypeError, issue a
+        # warning explaining the problem. This will allow to continue browsing
+        # native HDF5 files, while informing the user about the problem.
+        warnings.warn("""\
 Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
                       % (attrname, self.name, class_id))
-      return None
+        return None
+      # Get the dtype
+      #dtype = atom.dtype
+      dtype = numpy.dtype((stype_atom, shape_atom))
 
-    dtype = atom.dtype
-    # Fix the byteorder of this dtype
-    get_order(type_id, byteorder)
-    if byteorder in ('little', 'big') and str(byteorder) != sys.byteorder:
-      dtype = numpy.dtype(atom.dtype).newbyteorder(byteorder)
+    # Get the native type (so that it is HDF5 who is the responsible to deal
+    # with non-native byteorders on-disk)
+    native_type_id = get_native_type(type_id)
     # Get the container for data
     ndvalue = numpy.empty(dtype=dtype, shape=shape)
     # Get the pointer to the buffer data area
     rbuf = ndvalue.data
-
     # Actually read the attribute from disk
-    ret = H5ATTRget_attribute(dset_id, attrname, type_id, rbuf)
+    ret = H5ATTRget_attribute(dset_id, attrname, native_type_id, rbuf)
     if ret < 0:
       raise HDF5ExtError("Attribute %s exists in node %s, but can't get it."\
                          % (attrname, self.name))
+    H5Tclose(native_type_id)
     H5Tclose(type_id)
 
     if rank > 0:    # multidimensional case

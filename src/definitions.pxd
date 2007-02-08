@@ -420,10 +420,10 @@ cdef extern from "H5ATTR.h":
   herr_t H5ATTRset_attribute_string(hid_t loc_id, char *attr_name,
                                     char *attr_data)
   herr_t H5ATTRfind_attribute(hid_t loc_id, char *attr_name) 
-  herr_t H5ATTRget_attribute_ndims(hid_t loc_id, char *attr_name, int *rank)
-  herr_t H5ATTRget_attribute_info(hid_t loc_id, char *attr_name,
-                                  hsize_t *dims, H5T_class_t *class_id,
-                                  size_t *type_size, hid_t *type_id)
+  herr_t H5ATTRget_type_ndims(hid_t loc_id, char *attr_name,
+                              hid_t *type_id, H5T_class_t *class_id,
+                              size_t *type_size, int *rank)
+  herr_t H5ATTRget_dims(hid_t loc_id, char *attr_name, hsize_t *dims)
 
 
 # Functions for operations with ARRAY
