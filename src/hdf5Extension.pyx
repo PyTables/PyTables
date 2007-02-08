@@ -433,8 +433,9 @@ cdef class AttributeSet:
     cdef hid_t mem_type, dset_id, type_id, native_type
     cdef int rank, ret, enumtype
     cdef void *rbuf
+    cdef char *str_value
     cdef ndarray ndvalue
-    cdef object shape, stype_atom, shape_atom
+    cdef object shape, stype_atom, shape_atom, retvalue
 
     dset_id = self.dataset_id
     dims = NULL
@@ -446,8 +447,14 @@ cdef class AttributeSet:
                          (attrname, self.name))
 
     # Call a fast function for scalar values and typical class types
-    if (rank == 0 and
-        class_id in (H5T_STRING, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)):
+    if (rank == 0 and class_id == H5T_STRING):
+        ret = H5ATTRget_attribute_string(dset_id, attrname, &str_value)
+        retvalue = numpy.string_(str_value)
+        # Important to release attr_value, because it has been malloc'ed!
+        if str_value: free(str_value)
+        H5Tclose(type_id)
+        return retvalue
+    elif (rank == 0 and class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)):
       dtype = get_dtype_scalar(type_id, class_id, type_size)
       shape = ()
     else:
@@ -486,7 +493,6 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
                       % (attrname, self.name, class_id))
         return None
       # Get the dtype
-      #dtype = atom.dtype
       dtype = numpy.dtype((stype_atom, shape_atom))
 
     # Get the native type (so that it is HDF5 who is the responsible to deal
