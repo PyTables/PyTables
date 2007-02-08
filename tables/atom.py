@@ -340,11 +340,26 @@ class Atom(object):
         Traceback (most recent call last):
           ...
         ValueError: unknown kind: 'Float'
+
+        Moreover, some kinds with atypical constructor signatures are
+        not supported; you need to use the proper constructor:
+
+        >>> Atom.from_kind('enum')  #doctest: +ELLIPSIS
+        Traceback (most recent call last):
+          ...
+        ValueError: the ``enum`` kind is not supported...
         """
 
         kwargs = {'shape': shape}
         if kind not in atom_map:
             raise ValueError("unknown kind: %r" % (kind,))
+        # This incompatibility detection may get out-of-date and is
+        # too hard-wired, but I couldn't come up with something
+        # smarter.  -- Ivan (2007-02-08)
+        if kind in ['enum']:
+            raise ValueError( "the ``%s`` kind is not supported; "
+                              "please use the appropriate constructor"
+                              % kind )
         # If no `itemsize` is given, try to get the default type of the
         # kind (which has a fixed item size).
         if itemsize is None:

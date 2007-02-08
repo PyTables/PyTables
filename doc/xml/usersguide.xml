@@ -9338,6 +9338,17 @@ ValueError: no default item size for kind ``string``
 Traceback (most recent call last):
   ...
 ValueError: unknown kind: 'Float'</screen>
+
+              <para>Moreover, some kinds with atypical constructor signatures
+              are not supported; you need to use the proper
+              constructor:</para>
+
+              <screen>
+&gt;&gt;&gt; Atom.from_kind('enum')
+Traceback (most recent call last):
+  ...
+ValueError: the ``enum`` kind is not supported...
+              </screen>
             </section>
 
             <section>
