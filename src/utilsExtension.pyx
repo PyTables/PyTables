@@ -726,14 +726,10 @@ def AtomFromHDF5Type(hid_t type_id, issue_error = True):
     dflt = iter(enum).next()[0]
     base = Atom.from_dtype(nptype)
     atom = EnumAtom(enum, dflt, base, shape=shape)
-  elif stype[0] in 'St':
-    kind = {'S': 'string', 't': 'time'}[stype[0]]
+  else:
+    kind = NPExtPrefixesToPTKinds[stype[0]]
     tsize = int(stype[1:])
     atom = Atom.from_kind(kind, tsize, shape=shape)
-  else:
-    #XXX from_sctype -> from_dtype -> from_type -> from_kind
-    sctype = numpy.sctypeDict[stype]
-    atom = Atom.from_sctype(sctype, shape=shape)
 
   return atom
 

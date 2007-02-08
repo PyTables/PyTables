@@ -90,6 +90,17 @@ PTTypeToHDF5 = {
 # Special cases whose byteorder cannot be directly changed
 PTSpecialKinds = ['complex', 'string', 'enum']
 
+# Conversion table from NumPy extended codes prefixes to PyTables kinds
+NPExtPrefixesToPTKinds = {
+  "S": "string",
+  "b": "bool",
+  "i": "int",
+  "u": "uint",
+  "f": "float",
+  "c": "complex",
+  "t": "time",
+  "e": "enum",
+  }
 
 # Names of HDF5 classes
 HDF5ClassToString = {
