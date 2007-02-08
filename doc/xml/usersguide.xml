@@ -6810,11 +6810,11 @@ for node in h5file.root.detector:
 
             <para>Example of use: <screen>from tables import *
 class Particle(IsDescription):
-    name        = StringCol(16, pos=1)   # 16-character String
-    lati        = IntCol(pos=2)        # integer
-    longi       = IntCol(pos=3)        # integer
-    pressure    = Float32Col(pos=4)    # float  (single-precision)
-    temperature = FloatCol(pos=5)      # double (double-precision)
+    name        = StringCol(16, pos=1)          # 16-character String
+    lati        = Col.from_kind('int', pos=2)   # integer
+    longi       = Col.from_kind(pos=3)          # integer
+    pressure    = Float32Col(pos=4)             # float  (single-precision)
+    temperature = Col.from_kind('float', pos=5) # double (double-precision)
 
 fileh = openFile("test4.h5", mode = "w")
 table = fileh.createTable(fileh.root, 'table', Particle, "A table")
@@ -10518,8 +10518,8 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         <screen>
 class Bench(IsDescription):
     var1 = StringCol(length=4)
-    var2 = IntCol()
-    var3 = FloatCol()
+    var2 = Col.from_kind('int')
+    var3 = Col.from_kind('float')
         </screen>
 
         <para>With this setup, you can look at the compression ratios that can

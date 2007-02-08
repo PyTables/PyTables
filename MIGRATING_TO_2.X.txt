@@ -27,6 +27,10 @@ Things to have in mind when migrating from PyTables 1.x to PyTables
   know the particular type you need, use the proper subclass;
   otherwise, use the ``Atom.from_*()`` or ``Col.from_*()`` factory
   methods.  See the section on declarative classes in the reference.
+
+  Other ``Atom`` and ``Col`` abstract subclasses may no longer be
+  public as well.  If you want to know the kind or type of an
+  instance, use its ``kind`` and ``type`` arguments.
 - The ``dtype`` argument of ``EnumAtom`` and ``EnumCol`` constructors
   has been replaced by the ``base`` argument, which can take a
   full-blown atom, although it accepts bare PyTables types as well.
