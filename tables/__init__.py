@@ -33,7 +33,6 @@ from tables.utilsExtension import getPyTablesVersion, getHDF5Version
 __version__ = getPyTablesVersion()
 hdf5Version = getHDF5Version()
 
-from tables.utilsExtension import isHDF5  # deprecated
 from tables.utilsExtension import isHDF5File, isPyTablesFile, whichLibVersion
 
 from tables.misc.enum import Enum
@@ -67,7 +66,6 @@ __all__ = [
     'PerformanceWarning',
     'FlavorError', 'FlavorWarning',
     # Functions:
-    'isHDF5',  # deprecated
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion', 'copyFile', 'openFile',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',

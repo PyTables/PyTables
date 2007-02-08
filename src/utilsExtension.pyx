@@ -141,13 +141,6 @@ else:  # Unix systems
 
 # Main functions
 
-def isHDF5(char *filename):
-  warnings.warn(DeprecationWarning("""\
-``isHDF5()`` is deprecated; please use ``isHDF5File()``"""),
-                stacklevel=2)
-  return isHDF5File(filename)
-
-
 def isHDF5File(char *filename):
   """isHDF5File(filename) -> bool
   Determine whether a file is in the HDF5 format.
