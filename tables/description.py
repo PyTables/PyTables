@@ -125,6 +125,34 @@ class Col(atom.Atom):
         newatom = atom.Atom.from_kind(kind, itemsize, shape, dflt)
         return class_.from_atom(newatom, pos=pos)
 
+    @classmethod
+    def _subclass_from_prefix(class_, prefix):
+        """Get a column subclass for the given `prefix`."""
+
+        cname = '%sCol' % prefix
+        class_from_prefix = class_._class_from_prefix
+        if cname in class_from_prefix:
+            return class_from_prefix[cname]
+        atombase = getattr(atom, '%sAtom' % prefix)
+
+        class NewCol(class_, atombase):
+            """
+            Defines a non-nested column of a particular type.
+
+            The constructor accepts the same arguments as the equivalent
+            `Atom` class, plus an additional ``pos`` argument for
+            position information, which is assigned to the `_v_pos`
+            attribute.
+            """
+            def __init__(self, *args, **kwargs):
+                pos = kwargs.pop('pos', None)
+                atombase.__init__(self, *args, **kwargs)
+                self._v_pos = pos
+        NewCol.__name__ = cname
+
+        class_from_prefix[prefix] = NewCol
+        return NewCol
+
     # Special methods
     # ~~~~~~~~~~~~~~~
     def __repr__(self):
@@ -135,26 +163,6 @@ class Col(atom.Atom):
         atomargs = atomrepr[lpar + 1:rpar]
         classname = self.__class__.__name__
         return '%s(%s, pos=%s)' % (classname, atomargs, self._v_pos)
-
-def _create_col_class(prefix):
-    """Create a column class with the given `prefix`."""
-    cname = '%sCol' % prefix
-    atombase = getattr(atom, '%sAtom' % prefix)
-    class NewCol(Col, atombase):
-        """
-        Defines a non-nested column of a particular type.
-
-        The constructor accepts the same arguments as the equivalent
-        `Atom` class, plus an additional ``pos`` argument for position
-        information, which is assigned to the `_v_pos` attribute.
-        """
-        def __init__(self, *args, **kwargs):
-            pos = kwargs.pop('pos', None)
-            atombase.__init__(self, *args, **kwargs)
-            self._v_pos = pos
-    NewCol.__name__ = cname
-    Col._class_from_prefix[prefix] = NewCol
-    return NewCol
 
 def _generate_col_classes():
     """Generate all column classes."""
@@ -173,7 +181,7 @@ def _generate_col_classes():
     cprefixes.extend(['Complex32', 'Complex64', 'Complex128'])
 
     for cprefix in cprefixes:
-        newclass = _create_col_class(cprefix)
+        newclass = Col._subclass_from_prefix(cprefix)
         yield newclass
 
 # Create all column classes.
