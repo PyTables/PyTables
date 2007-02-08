@@ -667,7 +667,7 @@ def HDF5ToNPExtType(hid_t type_id, issue_error):
   elif class_id ==  H5T_INTEGER:
     # Get the sign
     sign = H5Tget_sign(type_id)
-    if (sign):
+    if (sign > 0):
       stype = "i%s" % (itemsize)
     else:
       stype = "u%s" % (itemsize)

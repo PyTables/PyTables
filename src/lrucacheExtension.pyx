@@ -457,7 +457,7 @@ cdef class NumCache(BaseCache):
     nslots = shape[0];  self.slotsize = shape[1]*itemsize
     if nslots >= 2**16:
       # nslots can't be higher than 2**16. Will silently trunk the number.
-      nslots = (2**16)-1
+      nslots = <long>((2**16)-1)  # Cast makes Pyrex happy here
     super(NumCache, self).__init__(nslots, name)
     self.itemsize = itemsize
     # The cache object where all data will go

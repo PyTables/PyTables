@@ -423,7 +423,7 @@ cdef class IndexArray(Array):
 
 
   # Optimized version for ints
-  def _searchBinNA_i(self, double item1, double item2):
+  def _searchBinNA_i(self, int item1, int item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
@@ -471,7 +471,7 @@ cdef class IndexArray(Array):
 
 
   # Optimized version for long long
-  def _searchBinNA_ll(self, double item1, double item2):
+  def _searchBinNA_ll(self, long long item1, long long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
