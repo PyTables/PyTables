@@ -456,7 +456,11 @@ class Atom(object):
 
 
 class StringAtom(Atom):
-    """Defines an atom of type ``string``."""
+    """
+    Defines an atom of type ``string``.
+
+    The item size is the *maximum* length in characters of strings.
+    """
     kind = 'string'
     itemsize = property(
         lambda self: self.dtype.base.itemsize,

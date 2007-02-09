@@ -9442,8 +9442,9 @@ ValueError: unknown type: 'Float64'</screen>
 
             <section>
               <title>StringAtom(itemsize, shape=1, dflt='')</title>
-              <para>Defines an atom of type <literal>string</literal>. The
-              item size can be any 8-bit positive multiple.</para>
+              <para>Defines an atom of type <literal>string</literal>.</para>
+              <para>The item size is the <emphasis>maximum</emphasis> length
+              in characters of strings.</para>
             </section>
 
             <section>
