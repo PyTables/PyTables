@@ -18,7 +18,7 @@ unittest.TestCase.tearDown = cleanup
 # Test Record class
 class Record(IsDescription):
     var1 = StringCol(itemsize=4, dflt="abcd", pos=0) # 4-character String
-    var2 = Col.from_kind('int', dflt=1, pos=1)     # integer
+    var2 = IntCol(dflt=1, pos=1)                   # integer
     var3 = Int16Col(dflt=2, pos=2)                 # short integer
     var4 = Float64Col(dflt=3.1, pos=3)             # double (double-precision)
     var5 = Float32Col(dflt=4.2, pos=4)             # float  (single-precision)
@@ -33,7 +33,7 @@ class RecordRevOrder(IsDescription):
     # Change the byteorder property for this table
     _v_byteorder = {"little":"big","big":"little"}[sys.byteorder]
     var1 = StringCol(itemsize=4, dflt="abcd", pos=0) # 4-character String
-    var2 = Col.from_kind('int', dflt=1, pos=1)     # integer
+    var2 = IntCol(dflt=1, pos=1)                   # integer
     var3 = Int16Col(dflt=2, pos=2)                 # short integer
     var4 = Float64Col(dflt=3.1, pos=3)             # double (double-precision)
     var5 = Float32Col(dflt=4.2, pos=4)             # float  (single-precision)
@@ -46,9 +46,9 @@ class RecordRevOrder(IsDescription):
 #  Dictionary definition
 RecordDescriptionDict = {
     'var1': StringCol(itemsize=4, dflt="abcd", pos=0), # 4-character String
-    'var2': Col.from_kind('int', dflt=1, pos=1), # integer
+    'var2': IntCol(dflt=1, pos=1),              # integer
     'var3': Int16Col(dflt=2, pos=2),            # short integer
-    'var4': Col.from_kind('float', dflt=3.1, pos=3), # double (double-precision)
+    'var4': FloatCol(dflt=3.1, pos=3),          # double (double-precision)
     'var5': Float32Col(dflt=4.2, pos=4),        # float  (single-precision)
     'var6': UInt16Col(dflt=5, pos=5),           # unsigned short integer
     'var7': StringCol(itemsize=1, dflt="e", pos=6), # 1-character String
@@ -62,9 +62,9 @@ RecordDescriptionDictRevOrder = {
     # Change the byteorder property for this table
     '_v_byteorder': {"little":"big","big":"little"}[sys.byteorder],
     'var1': StringCol(itemsize=4, dflt="abcd", pos=0), # 4-character String
-    'var2': Col.from_kind('int', dflt=1, pos=1), # integer
+    'var2': IntCol(dflt=1, pos=1),              # integer
     'var3': Int16Col(dflt=2, pos=2),            # short integer
-    'var4': Col.from_kind('float', dflt=3.1, pos=3), # double (double-precision)
+    'var4': FloatCol(dflt=3.1, pos=3),          # double (double-precision)
     'var5': Float32Col(dflt=4.2, pos=4),        # float  (single-precision)
     'var6': UInt16Col(dflt=5, pos=5),           # unsigned short integer
     'var7': StringCol(itemsize=1, dflt="e", pos=6), # 1-character String
@@ -1861,9 +1861,9 @@ class getItemTestCase(unittest.TestCase):
 
 
 class Rec(IsDescription):
-    col1 = Col.from_kind('int', pos=1)
+    col1 = IntCol(pos=1)
     col2 = StringCol(itemsize=3, pos=2)
-    col3 = Col.from_kind('float', pos=3)
+    col3 = FloatCol(pos=3)
 
 class setItem(common.PyTablesTestCase):
 
@@ -2925,9 +2925,9 @@ class RecArrayIO(unittest.TestCase):
         fileh = openFile(file, "w")
 
         class Rec(IsDescription):
-            col1 = Col.from_kind('int', pos=1)
+            col1 = IntCol(pos=1)
             col2 = StringCol(itemsize=3, pos=2)
-            col3 = Col.from_kind('float', pos=3)
+            col3 = FloatCol(pos=3)
 
         # Save it in a table:
         table = fileh.createTable(fileh.root, 'recarray', Rec)
@@ -4307,7 +4307,7 @@ class OldRecordDefaultValues(DefaultValues):
 
 class Record2(IsDescription):
     var1 = StringCol(itemsize=4, dflt="abcd")   # 4-character String
-    var2 = Col.from_kind('int', dflt=1)         # integer
+    var2 = IntCol(dflt=1)                       # integer
     var3 = Int16Col(dflt=2)                     # short integer
     var4 = Float64Col(dflt=3.1)                 # double (double-precision)
 
@@ -4395,8 +4395,8 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
 
     class SrcTblDesc(IsDescription):
-        id = Col.from_kind('int')
-        v1 = Col.from_kind('float')
+        id = IntCol()
+        v1 = FloatCol()
         v2 = StringCol(itemsize=8)
 
 
@@ -4444,10 +4444,10 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Query with compatible storage."""
 
         class DstTblDesc(IsDescription):
-            id = Col.from_kind('float')  # float, not int
-            v1 = Col.from_kind('float')
+            id = FloatCol()  # float, not int
+            v1 = FloatCol()
             v2 = StringCol(itemsize=16)  # a longer column
-            v3 = Col.from_kind('float')  # extra column
+            v3 = FloatCol()  # extra column
 
         tbl1 = self.h5file.root.test
         tbl2 = self.h5file.createTable('/', 'test2', DstTblDesc)
@@ -4469,8 +4469,8 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Query with less precise storage."""
 
         class DstTblDesc(IsDescription):
-            id = Col.from_kind('int')
-            v1 = Col.from_kind('int')  # int, not float
+            id = IntCol()
+            v1 = IntCol()  # int, not float
             v2 = StringCol(itemsize=8)
 
         tbl1 = self.h5file.root.test
@@ -4494,7 +4494,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         class DstTblDesc(IsDescription):
             id = StringCol(itemsize=4)  # string, not int
-            v1 = Col.from_kind('float')
+            v1 = FloatCol()
             v2 = StringCol(itemsize=8)
 
         tbl1 = self.h5file.root.test
@@ -4509,7 +4509,7 @@ class WhereAppendTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         class DstTblDesc(IsDescription):
             # no ``id`` field
-            v1 = Col.from_kind('float')
+            v1 = FloatCol()
             v2 = StringCol(itemsize=8)
 
         tbl1 = self.h5file.root.test

@@ -19,8 +19,8 @@ random.seed(19)
 class Small(IsDescription):
     var1 = StringCol(itemsize=4, dflt="")
     var2 = BoolCol(dflt=0)
-    var3 = Col.from_kind('int', dflt=0)
-    var4 = Col.from_kind('float', dflt=0)
+    var3 = IntCol(dflt=0)
+    var4 = FloatCol(dflt=0)
 
 class SelectValuesTestCase(unittest.TestCase):
     compress = 1

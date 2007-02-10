@@ -60,7 +60,7 @@ class LeafCreationTestCase(unittest.TestCase):
 
         # Table creation.
         class MyTimeRow(tables.IsDescription):
-            intcol = tables.Col.from_kind('int')
+            intcol = tables.IntCol()
             t32col = tables.Time32Col()
             t64col = tables.Time64Col()
         self.h5file.createTable('/', 'table', MyTimeRow)
@@ -81,7 +81,7 @@ class LeafCreationTestCase(unittest.TestCase):
 
         # Table creation.
         class MyTimeRow(tables.IsDescription):
-            intcol = tables.Col.from_kind('int', shape = (2, 1))
+            intcol = tables.IntCol(shape = (2, 1))
             t32col = tables.Time32Col(shape = (2, 1))
             t64col = tables.Time64Col(shape = (2, 1))
         self.h5file.createTable('/', 'table', MyTimeRow)

@@ -6810,11 +6810,11 @@ for node in h5file.root.detector:
 
             <para>Example of use: <screen>from tables import *
 class Particle(IsDescription):
-    name        = StringCol(16, pos=1)          # 16-character String
-    lati        = Col.from_kind('int', pos=2)   # integer
-    longi       = Col.from_kind(pos=3)          # integer
-    pressure    = Float32Col(pos=4)             # float  (single-precision)
-    temperature = Col.from_kind('float', pos=5) # double (double-precision)
+    name        = StringCol(16, pos=1) # 16-character String
+    lati        = IntCol(pos=2)        # integer
+    longi       = IntCol(pos=3)        # integer
+    pressure    = Float32Col(pos=4)    # float  (single-precision)
+    temperature = FloatCol(pos=5)      # double (double-precision)
 
 fileh = openFile("test4.h5", mode = "w")
 table = fileh.createTable(fileh.root, 'table', Particle, "A table")
@@ -9454,6 +9454,12 @@ ValueError: unknown type: 'Float64'</screen>
             </section>
 
             <section>
+              <title>IntAtom(itemsize=4, shape=1, dflt=0)</title>
+              <para>Defines an atom of a signed integral type
+              (<literal>int</literal> kind).</para>
+            </section>
+
+            <section>
               <title>Int8Atom(shape=1, dflt=0)</title>
               <para>Defines an atom of type
               <literal>int8</literal>.</para>
@@ -9475,6 +9481,12 @@ ValueError: unknown type: 'Float64'</screen>
               <title>Int64Atom(shape=1, dflt=0)</title>
               <para>Defines an atom of type
               <literal>int64</literal>.</para>
+            </section>
+
+            <section>
+              <title>UIntAtom(itemsize=4, shape=1, dflt=0)</title>
+              <para>Defines an atom of an unsigned integral type
+              (<literal>uint</literal> kind).</para>
             </section>
 
             <section>
@@ -9521,6 +9533,17 @@ ValueError: unknown type: 'Float64'</screen>
               ones to avoid confusions with
               <literal>numarray</literal>-like precision specifications
               used in PyTables 1.X.</para>
+            </section>
+
+            <section>
+              <title>TimeAtom(itemsize=4, shape=1, dflt=0)</title>
+              <para>Defines an atom of time type (<literal>time</literal>
+              kind).</para>
+              <para>There are two distinct supported types of time: a 32 bit
+              integer value and a 64 bit floating point value.  Both of them
+              reflect the number of seconds since the Unix epoch.  This atom
+              has the property of being stored using the HDF5 time datatypes.
+              </para>
             </section>
 
             <section>
@@ -10530,8 +10553,8 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         <screen>
 class Bench(IsDescription):
     var1 = StringCol(length=4)
-    var2 = Col.from_kind('int')
-    var3 = Col.from_kind('float')
+    var2 = IntCol()
+    var3 = FloatCol()
         </screen>
 
         <para>With this setup, you can look at the compression ratios that can
@@ -12977,7 +13000,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       <para>There are two types of <literal>time</literal>: 4-byte signed
       integer (<literal>time32</literal>) and 8-byte double precision floating
       point (<literal>time64</literal>). Both of them reflect the number of
-      seconds since the Unix Epoch, i.e. Jan 1 00:00:00 UTC 1970. They are
+      seconds since the Unix epoch, i.e. Jan 1 00:00:00 UTC 1970. They are
       stored in memory as NumPy's <literal>int32</literal> and
       <literal>float64</literal>, respectively, and in the HDF5 file using the
       <literal>H5T_TIME</literal> class. Integer times are stored on disk as

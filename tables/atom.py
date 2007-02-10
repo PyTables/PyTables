@@ -105,6 +105,26 @@ def split_type(type):
 
 # Private functions
 # =================
+def _invalid_itemsize_error(kind, itemsize, itemsizes):
+    isizes = sorted(itemsizes)
+    return ValueError( "invalid item size for kind ``%s``: %r; "
+                       "it must be one of ``%r``"
+                       % (kind, itemsize, isizes) )
+
+def _abstract_atom_init(deftype, defvalue):
+    """Return a constructor for an abstract `Atom` class."""
+    defitemsize = split_type(deftype)[1]
+    def __init__(self, itemsize=defitemsize, shape=1, dflt=defvalue):
+        assert self.kind in atom_map
+        try:
+            atomclass = atom_map[self.kind][itemsize]
+        except KeyError:
+            raise _invalid_itemsize_error( self.kind, itemsize,
+                                           atom_map[self.kind] )
+        self.__class__ = atomclass
+        atomclass.__init__(self, shape, dflt)
+    return __init__
+
 def _normalize_shape(shape):
     """Check that the `shape` is safe to be used and return it as a tuple."""
 
@@ -375,10 +395,7 @@ class Atom(object):
             kwargs['itemsize'] = itemsize
         else:  # dictionary: fixed item size
             if itemsize not in kdata:
-                isizes = sorted(kdata.keys())
-                raise ValueError( "invalid item size for kind ``%s``: %r; "
-                                  "it must be one of ``%r``"
-                                  % (kind, itemsize, isizes) )
+                raise _invalid_itemsize_error(kind, itemsize, kdata)
             atomclass = kdata[itemsize]
         # Only set a `dflt` argument if given (`None` may not be understood).
         if dflt is not None:
@@ -488,24 +505,27 @@ class BoolAtom(Atom):
 
 
 class IntAtom(Atom):
-    """Defines an atom of a signed integral type."""
+    """Defines an atom of a signed integral type (``int`` kind)."""
     kind = 'int'
     signed = True
     _deftype = 'int32'
     _defvalue = 0
+    __init__ = _abstract_atom_init(_deftype, _defvalue)
 
 class UIntAtom(Atom):
-    """Defines an atom of an unsigned integral type."""
+    """Defines an atom of an unsigned integral type (``uint`` kind)."""
     kind = 'uint'
     signed = False
     _deftype = 'uint32'
     _defvalue = 0
+    __init__ = _abstract_atom_init(_deftype, _defvalue)
 
 class FloatAtom(Atom):
-    """Defines an atom of a floating point type."""
+    """Defines an atom of a floating point type (``float`` kind)."""
     kind = 'float'
     _deftype = 'float64'
     _defvalue = 0.0
+    __init__ = _abstract_atom_init(_deftype, _defvalue)
 
 
 def _create_numeric_class(baseclass, itemsize):
@@ -567,9 +587,7 @@ class ComplexAtom(Atom):
     def __init__(self, itemsize, shape=1, dflt=_defvalue):
         isizes = [8, 16]
         if itemsize not in isizes:
-            raise ValueError( "invalid item size for kind ``%s``: %r; "
-                              "it must be one of ``%r``"
-                              % ('complex', itemsize, isizes) )
+            raise _invalid_itemsize_error('complex', itemsize, isizes)
         self.type = '%s%d' % (self.kind, itemsize * 8)
         Atom.__init__(self, self.type, shape, dflt)
 
@@ -588,15 +606,17 @@ Complex32Atom = Complex64Atom = Complex128Atom = _ComplexErrorAtom
 class TimeAtom(Atom):
 
     """
-    Defines an atom of time type.
+    Defines an atom of time type (``time`` kind).
 
     There are two distinct supported types of time: a 32 bit integer
     value and a 64 bit floating point value.  Both of them reflect the
-    number of seconds since the Epoch.  This atom has the property of
-    being stored using the HDF5 time datatypes.
+    number of seconds since the Unix epoch.  This atom has the
+    property of being stored using the HDF5 time datatypes.
     """
     kind = 'time'
     _deftype = 'time32'
+    _defvalue = 0
+    __init__ = _abstract_atom_init(_deftype, _defvalue)
 
 class Time32Atom(TimeAtom):
     """Defines an atom of type ``time32``."""

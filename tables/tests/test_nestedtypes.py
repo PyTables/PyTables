@@ -1080,8 +1080,8 @@ class ColsReopen(ColsTestCase):
 
 
 class Nested(t.IsDescription):
-    uid = t.Col.from_kind('int', pos=1)
-    value = t.Col.from_kind('float', pos=2)
+    uid = t.IntCol(pos=1)
+    value = t.FloatCol(pos=2)
 
 class A_Candidate(t.IsDescription):
     nested1 = Nested()
@@ -1095,8 +1095,8 @@ class C_Candidate(t.IsDescription):
     nested1 = Nested()
     nested2 = Nested
 
-Dnested = {'uid': t.Col.from_kind('int', pos=1),
-           'value': t.Col.from_kind('float', pos=2),
+Dnested = {'uid': t.IntCol(pos=1),
+           'value': t.FloatCol(pos=2),
            }
 
 D_Candidate = {"nested1": Dnested,

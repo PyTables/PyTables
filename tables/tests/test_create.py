@@ -23,11 +23,11 @@ from tables.constants import MAX_COLUMNS
 unittest.TestCase.tearDown = cleanup
 
 class Record(IsDescription):
-    var1 = StringCol(itemsize=4)   # 4-character String
-    var2 = Col.from_kind('int')    # integer
-    var3 = Int16Col()              # short integer
-    var4 = Col.from_kind('float')  # double (double-precision)
-    var5 = Float32Col()            # float  (single-precision)
+    var1 = StringCol(itemsize=4)  # 4-character String
+    var2 = IntCol()               # integer
+    var3 = Int16Col()             # short integer
+    var4 = FloatCol()             # double (double-precision)
+    var5 = Float32Col()           # float  (single-precision)
 
 class createTestCase(unittest.TestCase):
     file  = "test.h5"
@@ -249,8 +249,8 @@ class createTestCase(unittest.TestCase):
 
         # Build a dictionary with the types as values and varnames as keys
         recordDict = {}
-        recordDict["a"*255] = Col.from_kind('int', dflt=1)
-        recordDict["b"*256] = Col.from_kind('int', dflt=1) # Should trigger a ValueError
+        recordDict["a"*255] = IntCol(dflt=1)
+        recordDict["b"*256] = IntCol(dflt=1) # Should trigger a ValueError
 
         # Now, create a table with this record object
         # This way of creating node objects has been deprecated
@@ -274,8 +274,8 @@ class createTestCase(unittest.TestCase):
 
         # Build a dictionary with the types as values and varnames as keys
         recordDict = {}
-        recordDict["a"*255] = Col.from_kind('int', dflt=1, pos=0)
-        recordDict["b"*1024] = Col.from_kind('int', dflt=1, pos=1) # Should work well
+        recordDict["a"*255] = IntCol(dflt=1, pos=0)
+        recordDict["b"*1024] = IntCol(dflt=1, pos=1) # Should work well
 
         # Attach the table to object tree
         # Here, IndexError should be raised!
@@ -782,7 +782,7 @@ class createAttrCloseTestCase(createAttrTestCase):
 
 class Record2(IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
-    var2 = Col.from_kind('int')   # integer
+    var2 = IntCol()               # integer
     var3 = Int16Col()             # short integer
 
 class FiltersTreeTestCase(unittest.TestCase):

@@ -146,7 +146,14 @@ class Col(atom.Atom):
             """
             def __init__(self, *args, **kwargs):
                 pos = kwargs.pop('pos', None)
+                class_from_prefix = self._class_from_prefix
                 atombase.__init__(self, *args, **kwargs)
+                # The constructor of an abstract atom may have changed
+                # the class of `self` to something different of `NewCol`
+                # and `atombase` (that's why the prefix map is saved).
+                if self.__class__ is not NewCol:
+                    colclass = class_from_prefix[self.prefix()]
+                    self.__class__ = colclass
                 self._v_pos = pos
         NewCol.__name__ = cname
 
@@ -166,8 +173,8 @@ class Col(atom.Atom):
 
 def _generate_col_classes():
     """Generate all column classes."""
-
-    cprefixes = []
+    # Abstract classes are not in the class map.
+    cprefixes = ['Int', 'UInt', 'Float', 'Time']
     for (kind, kdata) in atom.atom_map.items():
         if hasattr(kdata, 'kind'):  # atom class: non-fixed item size
             atomclass = kdata

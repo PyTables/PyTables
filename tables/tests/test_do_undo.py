@@ -1201,8 +1201,8 @@ def populateTable(where, name):
     class Indexed(IsDescription):
         var1 = StringCol(itemsize=4, dflt="", pos=1)
         var2 = BoolCol(dflt=0, pos=2)
-        var3 = Col.from_kind('int', dflt=0, pos=3)
-        var4 = Col.from_kind('float', dflt=0, pos=4)
+        var3 = IntCol(dflt=0, pos=3)
+        var4 = FloatCol(dflt=0, pos=4)
 
     nrows = minRowIndex
     table = where._v_file.createTable(where, name, Indexed, "Indexed",

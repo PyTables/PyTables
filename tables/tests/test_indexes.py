@@ -20,8 +20,8 @@ import numpy
 class TDescr(IsDescription):
     var1 = StringCol(itemsize=4, dflt="", pos=1)
     var2 = BoolCol(dflt=0, pos=2)
-    var3 = Col.from_kind('int', dflt=0, pos=3)
-    var4 = Col.from_kind('float', dflt=0, pos=4)
+    var3 = IntCol(dflt=0, pos=3)
+    var4 = FloatCol(dflt=0, pos=4)
 
 class BasicTestCase(PyTablesTestCase):
     compress = 0
@@ -559,7 +559,7 @@ class BasicTestCase(PyTablesTestCase):
 
         class Distance(IsDescription):
             frame = Int32Col(pos=0)
-            distance = Col.from_kind('float', pos=1)
+            distance = FloatCol(pos=1)
 
         # Delete the old temporal file
         os.remove(self.file)
@@ -1392,7 +1392,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
     """Test case for changing index properties in a table."""
 
     class MyDescription(IsDescription):
-        icol = Col.from_kind('int')
+        icol = IntCol()
     oldIndexProps = IndexProps()
     newIndexProps = IndexProps(auto=False, filters=Filters(complevel=9))
 
@@ -1447,7 +1447,7 @@ class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
 
     def setUp(self):
         super(IndexFiltersTestCase, self).setUp()
-        description = {'icol': Col.from_kind('int')}
+        description = {'icol': IntCol()}
         self.table = self.h5file.createTable('/', 'test', description)
 
     def tearDown(self):

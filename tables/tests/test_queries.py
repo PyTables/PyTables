@@ -121,7 +121,7 @@ def table_description(classname, nclassname, shape=()):
     classdict['c_nested'] = ndescr
     colpos += 1
 
-    extracol = tables.Col.from_kind('int', shape=shape, pos=colpos)
+    extracol = tables.IntCol(shape=shape, pos=colpos)
     classdict['c_extra'] = extracol
     colpos += 1
 
