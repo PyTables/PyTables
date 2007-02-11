@@ -46,8 +46,6 @@ from tables.utilsExtension import  \
      convertTime64, isHDF5File, isPyTablesFile, \
      AtomToHDF5Type, AtomFromHDF5Type, loadEnum, HDF5ToNPExtType
 
-from lrucacheExtension cimport NodeCache
-
 # Types, constants, functions, classes & other objects from everywhere
 from definitions cimport  \
      strdup, malloc, free, \
