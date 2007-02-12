@@ -17,7 +17,7 @@ from tables import *
 # important objects to test
 from tables import File, Group, Leaf, Table, Array
 from tables.tests.common import verbose, heavy, cleanup
-from tables.constants import MAX_COLUMNS
+from tables.parameters import MAX_COLUMNS
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup

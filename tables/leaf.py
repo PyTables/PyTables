@@ -39,7 +39,7 @@ from tables import hdf5Extension
 from tables import utilsExtension
 from tables.node import Node
 from tables.utils import idx2long
-from tables.constants import CHUNKTIMES, BUFFERTIMES, MB
+from tables.parameters import CHUNKTIMES, BUFFERTIMES
 from tables.exceptions import PerformanceWarning
 
 
@@ -394,6 +394,7 @@ class Leaf(Node):
         """Calculate the shape for the HDF5 chunk."""
 
         # Compute the chunksize
+        MB = 1024 * 1024
         expectedsizeinMB = (expectedrows * rowsize) / MB
         chunksize = calc_chunksize(expectedsizeinMB)
 

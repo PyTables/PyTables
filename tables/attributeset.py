@@ -34,7 +34,7 @@ import cPickle
 import numpy
 
 from tables import hdf5Extension
-from tables.constants import MAX_NODE_ATTRS
+from tables.parameters import MAX_NODE_ATTRS
 from tables.registry import classNameDict
 from tables.exceptions import ClosedNodeError, PerformanceWarning
 from tables.path import checkNameValidity

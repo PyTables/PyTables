@@ -48,7 +48,7 @@ from tables.leaf import Filters
 from tables.indexes import CacheArray, LastRowArray, IndexArray
 from tables.group import Group
 from tables.path import joinPath
-from tables.constants import (
+from tables.parameters import (
     LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE,
     BOUNDS_MAX_SLOTS, BOUNDS_MAX_SIZE,
     MAX_GROUP_WIDTH )

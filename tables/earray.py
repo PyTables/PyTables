@@ -30,7 +30,7 @@ import sys
 
 import numpy
 
-from tables.constants import EXPECTED_ROWS_EARRAY
+from tables.parameters import EXPECTED_ROWS_EARRAY
 from tables.utils import convertToNPAtom, byteorders
 from tables.atom import Atom, EnumAtom, split_type
 from tables.leaf import Leaf

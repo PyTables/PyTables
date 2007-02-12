@@ -43,7 +43,7 @@ import weakref
 import tables.misc.proxydict
 from tables import hdf5Extension
 from tables import utilsExtension
-from tables.constants import \
+from tables.parameters import \
      MAX_UNDO_PATH_LENGTH, METADATA_CACHE_SIZE, NODE_MAX_SLOTS
 from tables.exceptions import \
      ClosedFileError, FileModeError, \

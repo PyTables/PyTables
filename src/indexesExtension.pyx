@@ -34,7 +34,7 @@ import numpy
 
 from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array
-from tables.constants import \
+from tables.parameters import \
      SORTED_MAX_SIZE, BOUNDS_MAX_SIZE, INDICES_MAX_SIZE
 
 

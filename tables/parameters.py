@@ -47,13 +47,10 @@ __docformat__ = 'reStructuredText'
 __version__ = '$Revision$'
 """Repository version of this file."""
 
-############## INMUTABLE CONSTANTS (i.e. don't touch these) ###############
-KB = 1024
+_KB = 1024
 """The size of a Kilobyte in bytes"""
-MB = 1024*KB
+_MB = 1024*_KB
 """The size of a Megabyte in bytes"""
-
-#################### END OF INMUTABLE CONSTANTS  ##########################
 
 
 ############# MUTABLE CONSTANTS (be careful when touching this!) ##########
@@ -80,7 +77,7 @@ MAX_UNDO_PATH_LENGTH = 10240
 """Maximum length of paths allowed in undo/redo operations."""
 
 # Size of cache for new metadata cache system in HDF5 1.8.x
-METADATA_CACHE_SIZE = 1*1024*1024  # 1 MB is the default for HDF5
+METADATA_CACHE_SIZE = 1*_MB  # 1 MB is the default for HDF5
 """Size (in bytes) of the HDF5 metadata cache."""
 
 ##########################################################################
@@ -170,31 +167,31 @@ NODE_MAX_SLOTS = 256
 #NODE_MAX_SLOTS = MAX_GROUP_WIDTH  # that would be ideal, but takes ages!
 """Maximum number of unreferenced nodes to be kept in memory."""
 
-TABLE_MAX_SIZE = 1*MB
+TABLE_MAX_SIZE = 1*_MB
 """The maximum size for table rows cached during table reads."""
 
 LIMDATA_MAX_SLOTS = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in data lookups."""
 
-LIMDATA_MAX_SIZE = 256*KB
+LIMDATA_MAX_SIZE = 256*_KB
 """The maximum space that will take LIMDATA cache (in bytes)."""
 
 LIMBOUNDS_MAX_SLOTS = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
 
-LIMBOUNDS_MAX_SIZE = 256*KB
+LIMBOUNDS_MAX_SIZE = 256*_KB
 """The maximum space that will take LIMBOUNDS cache (in bytes)."""
 
 BOUNDS_MAX_SLOTS = 4*1024
 """The maximum number of boundrows cached during index lookups."""
 
-BOUNDS_MAX_SIZE = 1*MB
+BOUNDS_MAX_SIZE = 1*_MB
 """The maximum size for bounds values cached during index lookups."""
 
-SORTED_MAX_SIZE = 1*MB
+SORTED_MAX_SIZE = 1*_MB
 """The maximum size for sorted values cached during index lookups."""
 
-INDICES_MAX_SIZE = 1*MB
+INDICES_MAX_SIZE = 1*_MB
 """The maximum size for indices values cached during index lookups."""
 
 ENABLE_EVERY_CYCLES = 50

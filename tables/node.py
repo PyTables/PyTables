@@ -25,7 +25,7 @@ Misc variables:
 
 import warnings
 
-from tables.constants import MAX_TREE_DEPTH
+from tables.parameters import MAX_TREE_DEPTH
 from tables.registry import classNameDict, classIdDict
 from tables.exceptions import \
      ClosedNodeError, NodeError, UndoRedoWarning, PerformanceWarning

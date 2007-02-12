@@ -35,7 +35,7 @@ import weakref
 import tables.misc.proxydict
 from tables import hdf5Extension
 from tables import utilsExtension
-from tables.constants import MAX_GROUP_WIDTH
+from tables.parameters import MAX_GROUP_WIDTH
 from tables.registry import classIdDict
 from tables.exceptions import \
      NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning
