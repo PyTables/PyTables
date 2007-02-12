@@ -9,29 +9,7 @@
 ########################################################################
 
 """
-Constant values for PyTables.
-
-Variables:
-
-`MAX_COLUMNS`
-    Maximum number of columns in ``Table`` objects before a
-    ``PerformanceWarning`` is issued.
-`MAX_TREE_DEPTH`
-    Maximum depth tree allowed in PyTables.
-`MAX_GROUP_WIDTH`
-    Maximum allowed number of children hanging from a group.
-`MAX_NODE_ATTRS`
-    Maximum allowed number of attributes in a node.
-`MAX_UNDO_PATH_LENGTH`
-    Maximum length of paths allowed in undo/redo operations.
-`METADATA_CACHE_SIZE`
-    Size (in bytes) of the HDF5 metadata cache.
-`NODE_CACHE_SIZE`
-    Maximum number of unreferenced to be kept in memory.
-`EXPECTED_ROWS_TABLE`
-    Default expected number of rows for ``Table`` objects.
-`EXPECTED_ROWS_EARRAY`
-    Default expected number of rows for ``EArray`` objects.
+Parameters for PyTables.
 
 Misc variables:
 
@@ -41,26 +19,24 @@ Misc variables:
     Repository version of this file.
 """
 
+from tables._parameters_common import _KB, _MB
+
+try:
+    from tables._parameters_index import *
+except ImportError:
+    pass
+
+
 __docformat__ = 'reStructuredText'
 """The format of documentation strings in this module."""
 
 __version__ = '$Revision$'
 """Repository version of this file."""
 
-_KB = 1024
-"""The size of a Kilobyte in bytes"""
-_MB = 1024*_KB
-"""The size of a Megabyte in bytes"""
 
-
-############# MUTABLE CONSTANTS (be careful when touching this!) ##########
-
-# The maximum recommened number of columns in a table.
-# However, this limit is somewhat arbitrary and can be increased.
-MAX_COLUMNS = 512
-"""Maximum number of columns in ``Table`` objects before a
-``PerformanceWarning`` is issued.
-"""
+# Mutable parameters
+# ==================
+# Be careful when touching these!
 
 # Recommended values for maximum number of groups and maximum depth in tree.
 # However, these limits are somewhat arbitrary and can be increased.
@@ -131,6 +107,7 @@ METADATA_CACHE_SIZE = 1*_MB  # 1 MB is the default for HDF5
 #                         # consumption.
 
 NODE_MAX_SLOTS = 256
+"""Maximum number of unreferenced nodes to be kept in memory."""
 
 # Negative value means that all the touched nodes will be kept in a
 # dictionary and the user will be warned when the number of nodes there
@@ -165,44 +142,16 @@ NODE_MAX_SLOTS = 256
 #NODE_MAX_SLOTS = 2000  # > 200 s
 #NODE_MAX_SLOTS = 2046  # Takes lots of time! > 200 s
 #NODE_MAX_SLOTS = MAX_GROUP_WIDTH  # that would be ideal, but takes ages!
-"""Maximum number of unreferenced nodes to be kept in memory."""
+
+# The maximum recommened number of columns in a table.
+# However, this limit is somewhat arbitrary and can be increased.
+MAX_COLUMNS = 512
+"""Maximum number of columns in ``Table`` objects before a
+``PerformanceWarning`` is issued.
+"""
 
 TABLE_MAX_SIZE = 1*_MB
 """The maximum size for table rows cached during table reads."""
-
-LIMDATA_MAX_SLOTS = 128
-"""The maximum number of limits (lim1 <= col < lim2) cached in data lookups."""
-
-LIMDATA_MAX_SIZE = 256*_KB
-"""The maximum space that will take LIMDATA cache (in bytes)."""
-
-LIMBOUNDS_MAX_SLOTS = 128
-"""The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
-
-LIMBOUNDS_MAX_SIZE = 256*_KB
-"""The maximum space that will take LIMBOUNDS cache (in bytes)."""
-
-BOUNDS_MAX_SLOTS = 4*1024
-"""The maximum number of boundrows cached during index lookups."""
-
-BOUNDS_MAX_SIZE = 1*_MB
-"""The maximum size for bounds values cached during index lookups."""
-
-SORTED_MAX_SIZE = 1*_MB
-"""The maximum size for sorted values cached during index lookups."""
-
-INDICES_MAX_SIZE = 1*_MB
-"""The maximum size for indices values cached during index lookups."""
-
-ENABLE_EVERY_CYCLES = 50
-"""The number of cycles that the several LRU caches for data (not nodes)
-will be forced to be (re-)enabled, irregardingly of the hit ratio. This
-will provide a chance for checking if we are in a better scenario for
-doing caching again."""
-
-LOWEST_HIT_RATIO = 0.6
-"""The minimum acceptable hit ratio for the several LRU caches for data
-(not nodes) to avoid disabling the cache."""
 
 EXPECTED_ROWS_TABLE = 10000
 """Default expected number of rows for ``Table`` objects."""
