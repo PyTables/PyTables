@@ -456,7 +456,8 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     def __init__(self, parentNode, name,
                  atom=None, title="",
                  filters=None, optlevel=0,
-                 testmode=False, expectedrows=None):
+                 testmode=False, expectedrows=None,
+                 byteorder=None):
         """Create an IndexArray instance.
 
         Keyword arguments:
@@ -483,6 +484,8 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
 
         expectedrows -- Represents an user estimate about the number
             of elements to index.
+
+        byteorder -- The byteroder of the data on-disk.
 
         """
         self.testmode = testmode
@@ -514,7 +517,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
 
         super(IndexArray, self).__init__(
             parentNode, name, atom, shape, title, filters, expectedrows,
-            chunkshape)
+            chunkshape, byteorder)
 
 
     def _g_create(self):

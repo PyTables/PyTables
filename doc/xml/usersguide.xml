@@ -4134,7 +4134,7 @@ ValueError: malformed type: 'foo bar'</screen>
           <section id="createTableDescr" xreflabel="description">
             <title>createTable(where, name, description, title='',
             filters=None, expectedrows=10000, chunkshape=None,
-            createparents=False)</title>
+            byteorder=None, createparents=False)</title>
 
             <para>Create a new <literal>Table</literal> instance with name
             <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
@@ -4319,6 +4319,21 @@ ValueError: malformed type: 'foo bar'</screen>
 
               <glossentry>
                 <glossterm><emphasis
+                role="bold">byteorder</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The byteorder of the data
+                  <emphasis>on-disk</emphasis>, specified as
+                  <literal>'little'</literal> or <literal>'big'</literal>. If
+                  this is not specified, the byteorder is that of the
+                  platform, unless you passed a recarray as the
+                  <literal>description</literal>, in which case the recarray
+                  byteorder will be chosen.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
                 role="bold">createparents</emphasis></glossterm>
 
                 <glossdef>
@@ -4331,7 +4346,7 @@ ValueError: malformed type: 'foo bar'</screen>
 
           <section id="createArrayDescr" xreflabel="description">
             <title>createArray(where, name, object, title='',
-            createparents=False)</title>
+            byteorder=None, createparents=False)</title>
 
             <para>Create a new <literal>Array</literal> instance with name
             <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
@@ -4360,6 +4375,19 @@ ValueError: malformed type: 'foo bar'</screen>
 
               <glossentry>
                 <glossterm><emphasis
+                role="bold">byteorder</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The byteorder of the data
+                  <emphasis>on-disk</emphasis>, specified as
+                  <literal>'little'</literal> or <literal>'big'</literal>. If
+                  this is not specified, the byteorder is that of the object
+                  specified in <literal>object</literal>.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
                 role="bold">createparents</emphasis></glossterm>
 
                 <glossdef>
@@ -4377,7 +4405,8 @@ ValueError: malformed type: 'foo bar'</screen>
 
           <section id="createCArrayDescr">
             <title>createCArray(where, name, atom, shape, title='',
-            filters=None, chunkshape=None, createparents=False)</title>
+            filters=None, chunkshape=None, byteorder=None,
+            createparents=False)</title>
 
             <para>Create a new <literal>CArray</literal> instance with name
             <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
@@ -4423,6 +4452,19 @@ ValueError: malformed type: 'foo bar'</screen>
 
               <glossentry>
                 <glossterm><emphasis
+                role="bold">byteorder</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The byteorder of the data
+                  <emphasis>on-disk</emphasis>, specified as
+                  <literal>'little'</literal> or <literal>'big'</literal>.  If
+                  this is not specified, the byteorder is that of the
+                  platform.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
                 role="bold">createparents</emphasis></glossterm>
 
                 <glossdef>
@@ -4441,7 +4483,7 @@ ValueError: malformed type: 'foo bar'</screen>
           <section id="createEArrayDescr">
             <title>createEArray(where, name, atom, shape, title='',
             filters=None, expectedrows=1000, chunkshape=None,
-            createparents=False)</title>
+            byteorder=None, createparents=False)</title>
 
             <para>Create a new <literal>EArray</literal> instance with name
             <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
@@ -4510,6 +4552,19 @@ ValueError: malformed type: 'foo bar'</screen>
 
               <glossentry>
                 <glossterm><emphasis
+                role="bold">byteorder</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The byteorder of the data
+                  <emphasis>on-disk</emphasis>, specified as
+                  <literal>'little'</literal> or <literal>'big'</literal>.  If
+                  this is not specified, the byteorder is that of the
+                  platform.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
                 role="bold">createparents</emphasis></glossterm>
 
                 <glossdef>
@@ -4529,7 +4584,7 @@ ValueError: malformed type: 'foo bar'</screen>
           <section id="createVLArrayDescr">
             <title>createVLArray(where, name, atom, title='', filters=None,
             expectedsizeinMB=1.0, chunkshape=chunkshape,
-            createparents=False)</title>
+            byteorder=None, createparents=False)</title>
 
             <para>Create a new <literal>VLArray</literal> instance with name
             <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
@@ -4577,6 +4632,19 @@ ValueError: malformed type: 'foo bar'</screen>
                   <literal>chunkshape</literal> must be 1. If
                   <literal>None</literal>, a sensible value is calculated
                   (which is recommended).</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">byteorder</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The byteorder of the data
+                  <emphasis>on-disk</emphasis>, specified as
+                  <literal>'little'</literal> or <literal>'big'</literal>.  If
+                  this is not specified, the byteorder is that of the
+                  platform.</para>
                 </glossdef>
               </glossentry>
 

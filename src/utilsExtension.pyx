@@ -714,7 +714,7 @@ def AtomFromHDF5Type(hid_t type_id, issue_error = True):
   If warn is True, only issue a warning. Else, issue a TypeError."""
   cdef object stype, shape, atom, sctype, tsize, kind
   cdef object dflt, base, enum, nptype
-  
+
   stype, shape = HDF5ToNPExtType(type_id, issue_error)
   # Check if something has going on wrong
   if stype == None:
@@ -826,7 +826,7 @@ def getNestedType(hid_t type_id, hid_t native_type_id,
         byteorder = "mixed"
     else:
       byteorder = "irrelevant"
-    desc["_v_byteorder"] = byteorder
+    table.byteorder = byteorder
     # Reset the module variable for the next type
     field_byteorders = []
   # return the Description object and the size of the compound type

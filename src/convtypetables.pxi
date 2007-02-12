@@ -211,7 +211,7 @@ cdef hid_t get_native_type(hid_t type_id):
     super_type_id = H5Tget_super(type_id)
     # Get the class
     class_id = H5Tget_class(super_type_id)
-    H5Tclose(super_type_id)    
+    H5Tclose(super_type_id)
   if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_COMPOUND, H5T_ENUM):
     native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
   elif class_id in (H5T_BITFIELD, H5T_TIME):

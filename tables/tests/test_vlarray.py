@@ -14,6 +14,7 @@ from tables.tests import common
 from tables.tests.common import (
     verbose, typecode, allequal, cleanup,
     numeric_imported, numarray_imported)
+from tables.utils import byteorders
 
 if numarray_imported:
     import numarray
@@ -238,7 +239,6 @@ class TypesTestCase(unittest.TestCase):
         # Create an instance of an HDF5 Table
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, self.mode)
-        self.rootgroup = self.fileh.root
 
     def tearDown(self):
         self.fileh.close()
@@ -250,18 +250,22 @@ class TypesTestCase(unittest.TestCase):
     def test01_StringAtom(self):
         """Checking vlarray with NumPy string atoms ('numpy' flavor)"""
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_StringAtom..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+        vlarray = self.fileh.createVLArray('/', 'stringAtom',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"]))
         vlarray.append(numpy.array(["1", "12345"]))
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -280,18 +284,23 @@ class TypesTestCase(unittest.TestCase):
     def _test01_1_StringAtom(self):
         """Checking vlarray with NumPy string atoms ('numarray' flavor)"""
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_1_StringAtom..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+        vlarray = self.fileh.createVLArray('/', 'stringAtom',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "numarray"
-        vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"], dtype="S"))
+        vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"],
+                                   dtype="S"))
         vlarray.append(numpy.array(["1", "12345"], dtype="S"))
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -312,18 +321,22 @@ class TypesTestCase(unittest.TestCase):
     def test01a_StringAtom(self):
         """Checking vlarray with NumPy string atoms ('numpy' flavor, strided)"""
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_StringAtom..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+        vlarray = self.fileh.createVLArray('/', 'stringAtom',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "1234", "12345"][::2]))
         vlarray.append(numpy.array(["1", "12345","2", "321"])[::3])
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -341,18 +354,22 @@ class TypesTestCase(unittest.TestCase):
     def test01a_2_StringAtom(self):
         """Checking vlarray with NumPy string atoms (NumPy flavor, no conv)"""
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_2_StringAtom..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+        vlarray = self.fileh.createVLArray('/', 'stringAtom',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "numpy"
         vlarray.append(numpy.array(["1", "12", "123", "123"]))
         vlarray.append(numpy.array(["1", "2", "321"]))
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -370,18 +387,22 @@ class TypesTestCase(unittest.TestCase):
     def test01b_StringAtom(self):
         """Checking vlarray with NumPy string atoms (python flavor)"""
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_StringAtom..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'stringAtom2',
+        vlarray = self.fileh.createVLArray('/', 'stringAtom2',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "python"
         vlarray.append(["1", "12", "123", "1234", "12345"])
         vlarray.append(["1", "12345"])
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -400,13 +421,11 @@ class TypesTestCase(unittest.TestCase):
     def test01c_StringAtom(self):
         """Checking updating vlarray with NumPy string atoms ('numpy' flavor)"""
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test01c_StringAtom..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'stringAtom',
+        vlarray = self.fileh.createVLArray('/', 'stringAtom',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "numpy"
@@ -416,6 +435,12 @@ class TypesTestCase(unittest.TestCase):
         # Modify the rows
         vlarray[0] = numpy.array(["1", "123", "12", "", "12345"])
         vlarray[1] = numpy.array(["44", "4"])  # This should work as well
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -433,13 +458,11 @@ class TypesTestCase(unittest.TestCase):
     def test01d_StringAtom(self):
         """Checking updating vlarray with string atoms (String flavor)"""
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test01d_StringAtom..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'stringAtom2',
+        vlarray = self.fileh.createVLArray('/', 'stringAtom2',
                                            StringAtom(itemsize=3),
                                            "Ragged array of strings")
         vlarray.flavor = "python"
@@ -449,6 +472,12 @@ class TypesTestCase(unittest.TestCase):
         # Modify the rows
         vlarray[0] = ["1", "123", "12", "", "12345"]
         vlarray[1] = ["44", "4"]
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -475,18 +504,22 @@ class TypesTestCase(unittest.TestCase):
 #     def test01c_StringAtom(self):
 #         """Checking vlarray with NumPy string atoms (UString flavor)"""
 
-#         root = self.rootgroup
 #         if verbose:
 #             print '\n', '-=' * 30
 #             print "Running %s.test01c_StringAtom..." % self.__class__.__name__
 
-#         # Create an string atom
-#         vlarray = self.fileh.createVLArray(root, 'stringAtom2',
+#         vlarray = self.fileh.createVLArray('/', 'stringAtom2',
 #                                            StringAtom(itemsize=3),
 #                                            "Ragged array of unicode strings")
 #         vlarray.flavor = "UString"
 #         vlarray.append(["áéç", "èàòÉ", "ñ"])
 #         vlarray.append(["ççççç", "asaËÏÖÜ"])
+
+#         if self.reopen:
+#             name = vlarray._v_pathname
+#             self.fileh.close()
+#             self.fileh = openFile(self.file, "r")
+#             vlarray = self.fileh.getNode(name)
 
 #         # Read all the rows:
 #         row = vlarray.read()
@@ -505,17 +538,21 @@ class TypesTestCase(unittest.TestCase):
     def test02_BoolAtom(self):
         """Checking vlarray with boolean atoms"""
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_BoolAtom..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'BoolAtom',
+        vlarray = self.fileh.createVLArray('/', 'BoolAtom',
                                            BoolAtom(),
                                            "Ragged array of Booleans")
         vlarray.append([1,0,3])
         vlarray.append([-1,0])
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -533,13 +570,11 @@ class TypesTestCase(unittest.TestCase):
     def test02b_BoolAtom(self):
         """Checking setting vlarray with boolean atoms"""
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_BoolAtom..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, 'BoolAtom',
+        vlarray = self.fileh.createVLArray('/', 'BoolAtom',
                                            BoolAtom(),
                                            "Ragged array of Booleans")
         vlarray.append([1,0,3])
@@ -548,6 +583,12 @@ class TypesTestCase(unittest.TestCase):
         # Modify the rows
         vlarray[0] = (0,1,3)
         vlarray[1] = (0,-1)
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -574,17 +615,21 @@ class TypesTestCase(unittest.TestCase):
                   "Int64",
                   #"UInt64",  # Unavailable in some platforms
                   ]
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
-        # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([1,2,3])
             vlarray.append([-1,0])
+
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -612,14 +657,12 @@ class TypesTestCase(unittest.TestCase):
                   "Int64": numpy.int64,
                   #"UInt64": numpy.int64,  # Unavailable in some platforms
                   }
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03a_IntAtom..." % self.__class__.__name__
 
-        # Create an string atom
         for atype in ttypes.iterkeys():
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1,2,3], dtype=atype)
             a0 = a0.byteswap(); a0 = a0.newbyteorder()
@@ -627,6 +670,12 @@ class TypesTestCase(unittest.TestCase):
             a1 = numpy.array([-1,0], dtype=atype)
             a1 = a1.byteswap(); a1 = a1.newbyteorder()
             vlarray.append(a1)
+
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -654,14 +703,12 @@ class TypesTestCase(unittest.TestCase):
                   "Int64",
                   #"UInt64",  # Unavailable in some platforms
                   ]
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
-        # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([1,2,3])
             vlarray.append([-1,0])
@@ -669,6 +716,12 @@ class TypesTestCase(unittest.TestCase):
             # Modify rows
             vlarray[0] = (3,2,1)
             vlarray[1] = (0,-1)
+
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -696,14 +749,12 @@ class TypesTestCase(unittest.TestCase):
                   "Int64": numpy.int64,
                   #"UInt64": numpy.int64,  # Unavailable in some platforms
                   }
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03c_IntAtom..." % self.__class__.__name__
 
-        # Create an string atom
         for atype in ttypes.iterkeys():
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1,2,3], dtype=atype)
             vlarray.append(a0)
@@ -719,6 +770,12 @@ class TypesTestCase(unittest.TestCase):
             a1 = a1.byteswap(); a1 = a1.newbyteorder()
             vlarray[1] = a1
 
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
+
             # Read all the rows:
             row = vlarray.read()
             if verbose:
@@ -733,23 +790,86 @@ class TypesTestCase(unittest.TestCase):
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
+    def test03d_IntAtom(self):
+        """Checking updating vlarray with integer atoms (another byteorder)"""
+
+        ttypes = {"Int8": numpy.int8,
+                  "UInt8": numpy.uint8,
+                  "Int16": numpy.int16,
+                  "UInt16": numpy.uint16,
+                  "Int32": numpy.int32,
+                  "UInt32": numpy.uint32,
+                  "Int64": numpy.int64,
+                  #"UInt64": numpy.int64,  # Unavailable in some platforms
+                  }
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03d_IntAtom..." % self.__class__.__name__
+
+        byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
+        for atype in ttypes.iterkeys():
+            vlarray = self.fileh.createVLArray('/', atype,
+                                               Atom.from_sctype(ttypes[atype]),
+                                               byteorder=byteorder)
+            a0 = numpy.array([1,2,3], dtype=atype)
+            vlarray.append(a0)
+            a1 = numpy.array([-1,0], dtype=atype)
+            vlarray.append(a1)
+
+
+            # Modify rows
+            a0 = numpy.array([3,2,1], dtype=atype)
+            a0 = a0.byteswap(); a0 = a0.newbyteorder()
+            vlarray[0] = a0
+            a1 = numpy.array([0, -1], dtype=atype)
+            a1 = a1.byteswap(); a1 = a1.newbyteorder()
+            vlarray[1] = a1
+
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
+
+            # Read all the rows:
+            row = vlarray.read()
+            if verbose:
+                print "Testing type:", atype
+                print "Object read:", row
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "First row in vlarray ==>", row[0]
+
+            byteorder2 = byteorders[row[0].dtype.byteorder]
+            if byteorder2 != "irrelevant":
+                assert byteorders[row[0].dtype.byteorder] == sys.byteorder
+                assert vlarray.byteorder == byteorder
+            assert vlarray.nrows == 2
+            assert allequal(row[0], numpy.array([3,2,1], dtype=ttypes[atype]))
+            assert allequal(row[1], numpy.array([0,-1], dtype=ttypes[atype]))
+            assert len(row[0]) == 3
+            assert len(row[1]) == 2
+
     def test04_FloatAtom(self):
         """Checking vlarray with floating point atoms"""
 
         ttypes = ["Float32",
                   "Float64",
                   ]
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_FloatAtom..." % self.__class__.__name__
 
-        # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([1.3,2.2,3.3])
             vlarray.append([-1.3e34,1.e-32])
+
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -771,14 +891,12 @@ class TypesTestCase(unittest.TestCase):
         ttypes = {"Float32": numpy.float32,
                   "Float64": numpy.float64,
                   }
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04a_FloatAtom..." % self.__class__.__name__
 
-        # Create an string atom
         for atype in ttypes.iterkeys():
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3,2.2,3.3], dtype=atype)
             a0 = a0.byteswap(); a0 = a0.newbyteorder()
@@ -786,6 +904,12 @@ class TypesTestCase(unittest.TestCase):
             a1 = numpy.array([-1.3e34,1.e-32], dtype=atype)
             a1 = a1.byteswap(); a1 = a1.newbyteorder()
             vlarray.append(a1)
+
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -809,14 +933,12 @@ class TypesTestCase(unittest.TestCase):
         ttypes = ["Float32",
                   "Float64",
                   ]
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_FloatAtom..." % self.__class__.__name__
 
-        # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([1.3,2.2,3.3])
             vlarray.append([-1.3e34,1.e-32])
@@ -824,6 +946,12 @@ class TypesTestCase(unittest.TestCase):
             # Modifiy some rows
             vlarray[0] = (4.3,2.2,4.3)
             vlarray[1] = (-1.1e34,1.3e-32)
+
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -845,14 +973,12 @@ class TypesTestCase(unittest.TestCase):
         ttypes = {"Float32": numpy.float32,
                   "Float64": numpy.float64,
                   }
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04c_FloatAtom..." % self.__class__.__name__
 
-        # Create an string atom
         for atype in ttypes.iterkeys():
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(ttypes[atype]))
             a0 = numpy.array([1.3,2.2,3.3], dtype=atype)
             vlarray.append(a0)
@@ -867,6 +993,12 @@ class TypesTestCase(unittest.TestCase):
             a1 = numpy.array([-1.1e34,1.3e-32], dtype=atype)
             a1 = a1.byteswap(); a1 = a1.newbyteorder()
             vlarray[1] = a1
+
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -884,23 +1016,81 @@ class TypesTestCase(unittest.TestCase):
             assert len(row[0]) == 3
             assert len(row[1]) == 2
 
+    def test04d_FloatAtom(self):
+        """Checking updating vlarray with float atoms (another byteorder)"""
+
+        ttypes = {"Float32": numpy.float32,
+                  "Float64": numpy.float64,
+                  }
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04d_FloatAtom..." % self.__class__.__name__
+
+        byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
+        for atype in ttypes.iterkeys():
+            vlarray = self.fileh.createVLArray('/', atype,
+                                               Atom.from_sctype(ttypes[atype]),
+                                               byteorder = byteorder)
+            a0 = numpy.array([1.3,2.2,3.3], dtype=atype)
+            vlarray.append(a0)
+            a1 = numpy.array([-1,0], dtype=atype)
+            vlarray.append(a1)
+
+
+            # Modify rows
+            a0 = numpy.array([4.3,2.2,4.3], dtype=atype)
+            a0 = a0.byteswap(); a0 = a0.newbyteorder()
+            vlarray[0] = a0
+            a1 = numpy.array([-1.1e34,1.3e-32], dtype=atype)
+            a1 = a1.byteswap(); a1 = a1.newbyteorder()
+            vlarray[1] = a1
+
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
+
+            # Read all the rows:
+            row = vlarray.read()
+            if verbose:
+                print "Testing type:", atype
+                print "Object read:", row
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "First row in vlarray ==>", row[0]
+
+            assert vlarray.byteorder == byteorder
+            byteorder2 = byteorders[row[0].dtype.byteorder]
+            assert byteorders[row[0].dtype.byteorder] == sys.byteorder
+            assert vlarray.nrows == 2
+            assert allequal(row[0], numpy.array([4.3,2.2,4.3],
+                                                dtype=ttypes[atype]))
+            assert allequal(row[1], numpy.array([-1.1e34,1.3e-32],
+                                                dtype=ttypes[atype]))
+            assert len(row[0]) == 3
+            assert len(row[1]) == 2
+
     def test04_ComplexAtom(self):
         """Checking vlarray with numerical complex atoms"""
 
         ttypes = ["Complex32",
                   "Complex64",
                   ]
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_ComplexAtom..." % self.__class__.__name__
 
-        # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([(1.3+0j),(0+2.2j),(3.3+3.3j)])
             vlarray.append([(0-1.3e34j),(1.e-32+0j)])
+
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -924,14 +1114,12 @@ class TypesTestCase(unittest.TestCase):
         ttypes = ["Complex32",
                   "Complex64",
                   ]
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_ComplexAtom..." % self.__class__.__name__
 
-        # Create an string atom
         for atype in ttypes:
-            vlarray = self.fileh.createVLArray(root, atype,
+            vlarray = self.fileh.createVLArray('/', atype,
                                                Atom.from_sctype(atype))
             vlarray.append([(1.3+0j),(0+2.2j),(3.3+3.3j)])
             vlarray.append([(0-1.3e34j),(1.e-32+0j)])
@@ -939,6 +1127,12 @@ class TypesTestCase(unittest.TestCase):
             # Modify the rows
             vlarray[0] = ((1.4+0j),(0+4.2j),(3.3+4.3j))
             vlarray[1] = ((4-1.3e34j),(1.e-32+4j))
+
+            if self.reopen:
+                name = vlarray._v_pathname
+                self.fileh.close()
+                self.fileh = openFile(self.file, "a")
+                vlarray = self.fileh.getNode(name)
 
             # Read all the rows:
             row = vlarray.read()
@@ -959,15 +1153,19 @@ class TypesTestCase(unittest.TestCase):
     def test05_VLStringAtom(self):
         """Checking vlarray with variable length strings"""
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_VLStringAtom..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, "VLStringAtom", VLStringAtom())
+        vlarray = self.fileh.createVLArray('/', "VLStringAtom", VLStringAtom())
         vlarray.append(u"asd")
         vlarray.append(u"aaañá")
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -985,13 +1183,11 @@ class TypesTestCase(unittest.TestCase):
     def test05b_VLStringAtom(self):
         """Checking updating vlarray with variable length strings"""
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test05b_VLStringAtom..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, "VLStringAtom", VLStringAtom())
+        vlarray = self.fileh.createVLArray('/', "VLStringAtom", VLStringAtom())
         vlarray.append(u"asd")
         vlarray.append(u"aaañá")
 
@@ -1003,6 +1199,12 @@ class TypesTestCase(unittest.TestCase):
         # does not have this problem, I don't know.
         vlarray[0] = u"as4"
         vlarray[1] = u"aaañç"
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1021,15 +1223,19 @@ class TypesTestCase(unittest.TestCase):
     def test06_Object(self):
         """Checking vlarray with object atoms """
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test06_Object..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, "Object", ObjectAtom())
+        vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
         vlarray.append([[1,2,3], "aaa", u"aaaççç"])
         vlarray.append([3,4, C()])
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1051,13 +1257,11 @@ class TypesTestCase(unittest.TestCase):
     def test06b_Object(self):
         """Checking updating vlarray with object atoms """
 
-        root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test06_Object..." % self.__class__.__name__
 
-        # Create an string atom
-        vlarray = self.fileh.createVLArray(root, "Object", ObjectAtom())
+        vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
         vlarray.append(([1,2,3], "aaa", u"aaaççç"))
         # When updating an object, this seems to change the number
         # of bytes that cPickle.dumps generates
@@ -1068,6 +1272,12 @@ class TypesTestCase(unittest.TestCase):
         vlarray[0] = ([1,2,4], "aa4", u"aaaçç4")
         #vlarray[1] = (3,4, C())
         vlarray[1] = [4,4, [24]]
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
 
         # Read all the rows:
         row = vlarray.read()
@@ -1087,8 +1297,13 @@ class TypesTestCase(unittest.TestCase):
         assert len(row[1]) == 3
 
 
-class TypesNumPyTestCase(TypesTestCase):
-    title = "Types"
+class TypesReopenTestCase(TypesTestCase):
+    title = "Reopen"
+    reopen = True
+
+class TypesNoReopenTestCase(TypesTestCase):
+    title = "No reopen"
+    reopen = False
 
 class MDTypesTestCase(unittest.TestCase):
     mode  = "w"
@@ -3629,7 +3844,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(BZIP2ComprTestCase))
-        theSuite.addTest(unittest.makeSuite(TypesNumPyTestCase))
+        theSuite.addTest(unittest.makeSuite(TypesReopenTestCase))
+        theSuite.addTest(unittest.makeSuite(TypesNoReopenTestCase))
         theSuite.addTest(unittest.makeSuite(MDTypesNumPyTestCase))
         theSuite.addTest(unittest.makeSuite(OpenAppendShapeTestCase))
         theSuite.addTest(unittest.makeSuite(CloseAppendShapeTestCase))

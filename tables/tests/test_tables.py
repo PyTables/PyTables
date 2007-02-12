@@ -28,21 +28,6 @@ class Record(IsDescription):
     var9 = ComplexCol(itemsize=8, dflt=(0.+1.j), pos=8) # Complex single precision
     var10 = ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9) # Complex double precision
 
-# A byte-reversed class definition
-class RecordRevOrder(IsDescription):
-    # Change the byteorder property for this table
-    _v_byteorder = {"little":"big","big":"little"}[sys.byteorder]
-    var1 = StringCol(itemsize=4, dflt="abcd", pos=0) # 4-character String
-    var2 = IntCol(dflt=1, pos=1)                   # integer
-    var3 = Int16Col(dflt=2, pos=2)                 # short integer
-    var4 = Float64Col(dflt=3.1, pos=3)             # double (double-precision)
-    var5 = Float32Col(dflt=4.2, pos=4)             # float  (single-precision)
-    var6 = UInt16Col(dflt=5, pos=5)                # unsigned short integer
-    var7 = StringCol(itemsize=1, dflt="e", pos=6)  # 1-character String
-    var8 = BoolCol(dflt=True, pos=7)               # boolean
-    var9 = ComplexCol(itemsize=8, dflt=(0.+1.j), pos=8) # Complex single precision
-    var10 = ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9) # Complex double precision
-
 #  Dictionary definition
 RecordDescriptionDict = {
     'var1': StringCol(itemsize=4, dflt="abcd", pos=0), # 4-character String
@@ -57,39 +42,9 @@ RecordDescriptionDict = {
     'var10': ComplexCol(itemsize=16, dflt=(1.-0.j), pos=9), # Complex double precision
     }
 
-# A byte-reversed dictionary definition
-RecordDescriptionDictRevOrder = {
-    # Change the byteorder property for this table
-    '_v_byteorder': {"little":"big","big":"little"}[sys.byteorder],
-    'var1': StringCol(itemsize=4, dflt="abcd", pos=0), # 4-character String
-    'var2': IntCol(dflt=1, pos=1),              # integer
-    'var3': Int16Col(dflt=2, pos=2),            # short integer
-    'var4': FloatCol(dflt=3.1, pos=3),          # double (double-precision)
-    'var5': Float32Col(dflt=4.2, pos=4),        # float  (single-precision)
-    'var6': UInt16Col(dflt=5, pos=5),           # unsigned short integer
-    'var7': StringCol(itemsize=1, dflt="e", pos=6), # 1-character String
-    'var8': BoolCol(dflt=True, pos=7),          # boolean
-    'var9': ComplexCol(itemsize=8, dflt=(0.+1.j), pos=8), # Complex single precision
-    'var10': ComplexCol(itemsize=8, dflt=(1.-0.j), pos=9), # Complex double precision
-    }
-
 
 # Old fashion of defining tables (for testing backward compatibility)
 class OldRecord(IsDescription):
-    var1 = StringCol(itemsize=4, dflt="abcd", pos=0)
-    var2 = Col.from_type("int32", 1, 1, pos=1)
-    var3 = Col.from_type("int16", 1, 2, pos=2)
-    var4 = Col.from_type("float64", 1, 3.1, pos=3)
-    var5 = Col.from_type("float32", 1, 4.2, pos=4)
-    var6 = Col.from_type("uint16", 1, 5, pos=5)
-    var7 = StringCol(itemsize=1, dflt="e", pos=6)
-    var8 = Col.from_type("bool", shape=1, dflt=1, pos=7)
-    var9 = ComplexCol(itemsize=8, shape=1, dflt=(0.+1.j), pos=8)
-    var10 = ComplexCol(itemsize=16, shape=1, dflt=(1.-0.j), pos = 9)
-
-class OldRecordRevOrder(IsDescription):
-    # Change the byteorder property for this table
-    _v_byteorder = {"little":"big","big":"little"}[sys.byteorder]
     var1 = StringCol(itemsize=4, dflt="abcd", pos=0)
     var2 = Col.from_type("int32", 1, 1, pos=1)
     var3 = Col.from_type("int16", 1, 2, pos=2)
@@ -112,7 +67,6 @@ class BasicTestCase(common.PyTablesTestCase):
     fletcher32 = 0
     complib = "zlib"  # Default compression library
     record = Record
-    recordro = RecordRevOrder
     recarrayinit = 0
     maxshort = 1 << 15
 
@@ -166,8 +120,6 @@ class BasicTestCase(common.PyTablesTestCase):
 
         self.record = records.array(buflist, dtype=record.dtype,
                                     shape = self.expectedrows)
-        # The swapped version
-        self.recordro = self.record.newbyteorder()
         return
 
     def populateFile(self):
@@ -182,14 +134,15 @@ class BasicTestCase(common.PyTablesTestCase):
                                   fletcher32 = self.fletcher32,
                                   complib = self.complib)
             if j < 2:
-                record = self.record
+                byteorder = sys.byteorder
             else:
                 # table2 will be byteswapped
-                record = self.recordro
-            table = self.fileh.createTable(group, 'table'+str(j), record,
+                byteorder = {"little":"big","big":"little"}[sys.byteorder]
+            table = self.fileh.createTable(group, 'table'+str(j), self.record,
                                            title = self.title,
                                            filters = filterprops,
-                                           expectedrows = self.expectedrows)
+                                           expectedrows = self.expectedrows,
+                                           byteorder = byteorder)
             if not self.recarrayinit:
                 # Get the row object associated with the new table
                 row = table.row
@@ -256,7 +209,6 @@ class BasicTestCase(common.PyTablesTestCase):
             # can be used as long as the method does not alter the table.
             # Maybe there is a better way of doing this.
             columns = tbl._descrFromRA(self.record)
-            del columns['_v_byteorder']  # '_v_byteorder' is spureous
         else:
             # This is an ordinary description.
             columns = self.record.columns
@@ -805,15 +757,17 @@ class BasicTestCase(common.PyTablesTestCase):
         self.fileh = openFile(self.file, "r")
         table = self.fileh.getNode("/group0/group1/table2")
 
-        # Read the records and select the ones with "var6" column less than 20
-        result = [ rec['var2'] for rec in table.iterrows() if rec['var6'] < 20]
+        # Read the records and select the ones with "var3" column less than 20
+        result = [ rec['var2'] for rec in table.iterrows() if rec['var3'] < 20]
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
+            print "On-disk byteorder ==>", table.byteorder
             print "Last record in table ==>", rec
             print "Selected records ==>", result
             print "Total selected records in table ==>", len(result)
         nrows = self.expectedrows - 1
-        assert (rec['var1'], rec['var6']) == ("0001", nrows)
+        assert table.byteorder == {"little":"big","big":"little"}[sys.byteorder]
+        assert (rec['var1'], rec['var3']) == ("0001", nrows)
         assert len(result) == 20
 
     def test04_delete(self):
@@ -1034,13 +988,11 @@ class BasicWriteTestCase(BasicTestCase):
 class OldRecordBasicWriteTestCase(BasicTestCase):
     title = "OldRecordBasicWrite"
     record = OldRecord
-    recordro = OldRecordRevOrder
 
 class DictWriteTestCase(BasicTestCase):
     # This checks also unidimensional arrays as columns
     title = "DictWrite"
     record = RecordDescriptionDict
-    recordro = RecordDescriptionDictRevOrder
     nrows = 21
     nrowsinbuf = 3  # Choose a small value for the buffer size
     start = 0
@@ -1123,7 +1075,6 @@ class CompressTwoTablesTestCase(BasicTestCase):
     compress = 1
     # This checks also unidimensional arrays as columns
     record = RecordDescriptionDict
-    recordro = RecordDescriptionDictRevOrder
 
 class BigTablesTestCase(BasicTestCase):
     title = "BigTables"

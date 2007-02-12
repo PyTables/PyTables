@@ -38,7 +38,7 @@ import numpy
 
 from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError
-from tables.utils import checkFileAccess, byteorders
+from tables.utils import checkFileAccess, byteorders, correct_byteorder
 from tables.atom import Atom
 
 from tables.utilsExtension import  \
@@ -672,8 +672,7 @@ cdef class Leaf(Node):
     descriptor (so that it is safe to close them separately).
     """
     cdef hid_t disk_type_id, native_type_id
-    cdef char *sys_byteorder
-    
+
     disk_type_id = H5Dget_type(self.dataset_id)
     native_type_id = get_native_type(disk_type_id)
     return (disk_type_id, native_type_id)
@@ -708,13 +707,12 @@ cdef class Array(Leaf):
     cdef herr_t ret
     cdef void *rbuf
     cdef char *complib, *version, *class_
-    cdef object dtype, byteorder, atom
+    cdef object dtype, atom
 
     dtype = nparr.dtype.base
     # Get the HDF5 type associated with this numpy type
     atom = Atom.from_dtype(dtype)
-    byteorder = byteorders[dtype.byteorder]
-    self.type_id = AtomToHDF5Type(atom, byteorder)
+    self.disk_type_id = AtomToHDF5Type(atom, self.byteorder)
 
     # Get the pointer to the buffer data area
     rbuf = nparr.data
@@ -727,7 +725,7 @@ cdef class Array(Leaf):
     class_ = PyString_AsString(self._c_classId)
     self.dataset_id = H5ARRAYmake(self.parent_id, self.name, class_, title,
                                   version, self.rank, self.dims,
-                                  self.extdim, self.type_id, NULL, NULL,
+                                  self.extdim, self.disk_type_id, NULL, NULL,
                                   self.filters.complevel, complib,
                                   self.filters.shuffle,
                                   self.filters.fletcher32,
@@ -735,7 +733,11 @@ cdef class Array(Leaf):
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
-    return (self.dataset_id, dtype, atom.type)
+    # Get the native type (so that it is HDF5 who is the responsible to deal
+    # with non-native byteorders on-disk)
+    self.type_id = get_native_type(self.disk_type_id)
+
+    return (self.dataset_id, atom.dtype, atom.type)
 
 
   def _createEArray(self, char *title):
@@ -745,17 +747,11 @@ cdef class Array(Leaf):
     cdef char *complib, *version, *class_
     cdef void *fill_value
     cdef int itemsize
-    cdef object atom, byteorder
+    cdef object atom
 
     atom = self.atom
     itemsize = atom.itemsize
-    if atom.kind == "string":
-      byteorder = "irrelevant"
-    else:
-      # Only support for creating objects in system byteorder
-      byteorder = sys.byteorder
-      
-    self.type_id = AtomToHDF5Type(atom, byteorder)
+    self.disk_type_id = AtomToHDF5Type(atom, self.byteorder)
 
     self.rank = len(self.shape)
     self.dims = malloc_dims(self.shape)
@@ -775,14 +771,15 @@ cdef class Array(Leaf):
     # Create the EArray
     self.dataset_id = H5ARRAYmake(
       self.parent_id, self.name, class_, title, version,
-      self.rank, self.dims, self.extdim, self.type_id, self.dims_chunk,
+      self.rank, self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
       fill_value, self.filters.complevel, complib,
       self.filters.shuffle, self.filters.fletcher32, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
 
-    # The byteorder in creation time is always the one of the system
-    self.byteorder = sys.byteorder
+    # Get the native type (so that it is HDF5 who is the responsible to deal
+    # with non-native byteorders on-disk)
+    self.type_id = get_native_type(self.disk_type_id)
 
     # Release resources
     free(fill_value)
@@ -819,7 +816,6 @@ cdef class Array(Leaf):
                           &base_type_id, &class_id, byteorder)
     if ret < 0:
       raise HDF5ExtError("Unable to get array info.")
-    self.byteorder = byteorder
     # Get the extendeable dimension (if any)
     self.extdim = -1  # default is non-chunked Array
     for i from 0 <= i < self.rank:
@@ -845,6 +841,9 @@ cdef class Array(Leaf):
     # Get the shape and chunkshapes as python tuples
     shape = getshape(self.rank, self.dims)
     chunkshapes = getshape(self.rank, self.dims_chunk)
+
+    # Get the byteorder
+    self.byteorder = correct_byteorder(atom.type, byteorder)
 
     return (self.dataset_id, atom.dtype, atom.type, shape, chunkshapes)
 
@@ -1010,21 +1009,15 @@ cdef class VLArray(Leaf):
     cdef herr_t ret
     cdef void *rbuf
     cdef char *complib, *version, *class_
-    cdef object type_, byteorder, itemsize, atom, scatom
+    cdef object type_, itemsize, atom, scatom
 
     atom = self.atom
     if not hasattr(atom, 'size'):  # it is a pseudo-atom
       atom = atom.base
 
-    if atom.kind == "string":
-      byteorder = "irrelevant"
-    else:
-      # Only support for creating objects in system byteorder
-      byteorder = sys.byteorder
-
     # Get the HDF5 type of the *scalar* atom
     scatom = atom.copy(shape=())
-    self.base_type_id = AtomToHDF5Type(scatom, byteorder)
+    self.base_type_id = AtomToHDF5Type(scatom, self.byteorder)
 
     # Allocate space for the dimension axis info
     rank = len(atom.shape)
@@ -1053,9 +1046,6 @@ cdef class VLArray(Leaf):
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._g_get_type_ids()
 
-    # The byteorder in creation time is always the one of the system
-    self.byteorder = sys.byteorder
-
     return self.dataset_id
 
 
@@ -1083,15 +1073,15 @@ cdef class VLArray(Leaf):
     H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
                       dims, &self.base_type_id, byteorder)
 
-    # Get the byteorder
-    self.byteorder = byteorder
-
     # Get the atom for this type
     atom = AtomFromHDF5Type(self.base_type_id)
 
     # Get the type of the atomic type
     self._atomicdtype = atom.dtype
     self._atomictype = atom.type
+
+    # Get the byteorder
+    self.byteorder = correct_byteorder(atom.type, byteorder)
 
     # Get enumeration from disk
     if self._atomictype == 'enum':

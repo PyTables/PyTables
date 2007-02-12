@@ -27,6 +27,15 @@ byteorders = {'>': 'big',
               '|': 'irrelevant'}
 
 
+def correct_byteorder(ptype, byteorder):
+    "Fix the byteorder depending on the PyTables types."
+
+    if ptype in ['string', 'bool', 'int8', 'uint8']:
+        return "irrelevant"
+    else:
+        return byteorder
+
+
 def is_idx(index):
     """Checks if an object can work as an index or not."""
 

@@ -34,6 +34,7 @@ import numpy
 from tables.atom import Atom, EnumAtom, split_type
 from tables.leaf import Leaf
 from tables.array import Array
+from tables.utils import correct_byteorder
 
 
 __version__ = "$Revision$"
@@ -75,7 +76,7 @@ class CArray(Array):
     def __init__( self, parentNode, name,
                   atom=None, shape=None,
                   title="", filters=None,
-                  chunkshape=None,
+                  chunkshape=None, byteorder = None,
                   _log=True ):
         """
         Create a `CArray` instance.
@@ -100,6 +101,9 @@ class CArray(Array):
             chunks of data.  The dimensionality of `chunkshape` must
             be the same as that of `shape`.  If ``None``, a sensible
             value is calculated (which is recommended).
+        `byteorder` -- The byteorder of the data *on-disk*, specified
+            as 'little' or 'big'. If this is not specified, the
+            byteorder is that of the platform.
         """
 
         # Documented (*public*) attributes.
@@ -186,7 +190,8 @@ chunkshape parameter cannot have zero-dimensions."""
                 self._v_chunkshape = tuple(chunkshape)
 
         # The `Array` class is not abstract enough! :(
-        super(Array, self).__init__(parentNode, name, new, filters, _log)
+        super(Array, self).__init__(parentNode, name, new, filters,
+                                    byteorder, _log)
 
 
     def _g_create(self):
@@ -209,6 +214,10 @@ shape parameter cannot have zero-dimensions."""
         # Compute the optimal nrowsinbuf
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
                                                    self.rowsize)
+        # Correct the byteorder if needed
+        if self.byteorder is None:
+            self.byteorder = correct_byteorder(self.atom.type, sys.byteorder)
+
         try:
             oid = self._createEArray(self._v_new_title)
         except:  #XXX

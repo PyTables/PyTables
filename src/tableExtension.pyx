@@ -46,7 +46,8 @@ from definitions cimport import_array, ndarray, \
      H5Dget_space, H5Dget_create_plist, H5Pget_layout, H5Pget_chunk, \
      H5Pclose, H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, \
      H5Sclose, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose, \
-     H5Tget_sign, H5ATTRset_attribute_string, H5ATTRset_attribute, \
+     H5Tget_sign, H5Tget_class, H5Tget_native_type, \
+     H5ATTRset_attribute_string, H5ATTRset_attribute, \
      get_len_of_range, get_order
 
 
@@ -144,9 +145,12 @@ cdef class Table(Leaf):
     cdef ndarray recarr
 
     # Compute the complete compound datatype based on the table description
-    self.type_id = createNestedType(self.description, self.byteorder)
-    # The on-disk type should be the same than in-memory
-    self.disk_type_id = H5Tcopy(self.type_id)
+    self.disk_type_id = createNestedType(self.description, self.byteorder)
+    # The in-memory type should be native
+    #self.type_id = get_native_type(self.disk_type_id)
+    # H5Tget_native_type doesn't work yet for all the types supported by
+    # PyTables
+    self.type_id = createNestedType(self.description, sys.byteorder)
 
     # test if there is data to be saved initially
     if self._v_recarray is not None:
@@ -159,7 +163,7 @@ cdef class Table(Leaf):
 
     class_ = PyString_AsString(self._c_classId)
     self.dataset_id = H5TBOmake_table(title, self.parent_id, self.name,
-                                      obversion, class_, self.type_id,
+                                      obversion, class_, self.disk_type_id,
                                       self.nrows, self._v_chunkshape[0],
                                       self.filters.complevel, complib,
                                       self.filters.shuffle,
@@ -550,7 +554,7 @@ cdef class Row:
       # Get the write buffer in table (it is unique, remember!)
       buff = self.wbufRA = self.table._v_wbuffer
       #self.wfields = buff._fields
-      # Build the rfields dictionary for faster access to columns
+      # Build the wfields dictionary for faster access to columns
       self.wfields = {}
       for name in self.dtype.names:
         self.wfields[name] = buff[name]

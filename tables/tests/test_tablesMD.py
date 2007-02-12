@@ -28,20 +28,6 @@ class Record(IsDescription):
     var6 = UInt16Col(dflt=5)                        # unsigned short integer
     var7 = StringCol(itemsize=1, dflt="e")          # 1-character String
 
-# A byte-reversed class definition
-class RecordRevOrder(IsDescription):
-    # Change the byteorder property for this table
-    _v_byteorder = {"little":"big","big":"little"}[sys.byteorder]
-    var0 = StringCol(itemsize=4, dflt="", shape=2)  # 4-character string array
-    var1 = StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2))
-    var1_= IntCol(dflt=((1,1),), shape=2)           # integer array
-    var2 = IntCol(dflt=((1,1),(1,1)), shape=(2,2))  # integer array
-    var3 = Int16Col(dflt=2)                         # short integer
-    var4 = FloatCol(dflt=3.1)                       # double (double-precision)
-    var5 = Float32Col(dflt=4.2)                     # float  (single-precision)
-    var6 = UInt16Col(dflt=5)                        # unsigned short integer
-    var7 = StringCol(itemsize=1, dflt="e")          # 1-character String
-
 #  Dictionary definition
 RecordDescriptionDict = {
     'var0': StringCol(itemsize=4, dflt="", shape=2), # 4-character string array
@@ -56,24 +42,6 @@ RecordDescriptionDict = {
     'var6': Int16Col(),                           # unsigned short integer
     'var7': StringCol(itemsize=1),                # 1-character String
     }
-
-# A byte-reversed dictionary definition
-RecordDescriptionDictRevOrder = {
-    # Change the byteorder property for this table
-    '_v_byteorder': {"little":"big","big":"little"}[sys.byteorder],
-    'var0': StringCol(itemsize=4, dflt="", shape=2), # 4-character string array
-    'var1': StringCol(itemsize=4, dflt=["abcd","efgh"], shape=(2,2)),
-#     'var0': StringCol(itemsize=4, shape=2),       # 4-character String
-#     'var1': StringCol(itemsize=4, shape=(2,2)),   # 4-character String
-    'var1_':IntCol(shape=2),                      # integer array
-    'var2': IntCol(shape=(2,2)),                  # integer array
-    'var3': Int16Col(),                           # short integer
-    'var4': FloatCol(),                           # double (double-precision)
-    'var5': Float32Col(),                         # float  (single-precision)
-    'var6': Int16Col(),                           # unsigned short integer
-    'var7': StringCol(itemsize=1),                # 1-character String
-    }
-
 
 # Record class with numpy dtypes (mixed shapes is checkd here)
 class RecordDT(IsDescription):
@@ -98,7 +66,6 @@ class BasicTestCase(common.PyTablesTestCase):
     compress = 0
     complib = "zlib"  # Default compression library
     record = Record
-    recordro = RecordRevOrder
     recarrayinit = 0
     maxshort = 1 << 15
 
@@ -146,8 +113,6 @@ class BasicTestCase(common.PyTablesTestCase):
 
         self.record=numpy.rec.array(buflist, dtype=record.dtype,
                                     shape = self.expectedrows)
-        # The swapped version
-        self.recordro = self.record.newbyteorder()
         return
 
     def populateFile(self):
@@ -160,14 +125,15 @@ class BasicTestCase(common.PyTablesTestCase):
             filters = Filters(complevel = self.compress,
                               complib = self.complib)
             if j < 2:
-                record = self.record
+                byteorder = sys.byteorder
             else:
                 # table2 will be byteswapped
-                record = self.recordro
-            table = self.fileh.createTable(group, 'table'+str(j), record,
+                byteorder = {"little":"big","big":"little"}[sys.byteorder]
+            table = self.fileh.createTable(group, 'table'+str(j), self.record,
                                            title = self.title,
                                            filters = filters,
-                                           expectedrows = self.expectedrows)
+                                           expectedrows = self.expectedrows,
+                                           byteorder = byteorder)
             if not self.recarrayinit:
                 # Get the row object associated with the new table
                 row = table.row
@@ -448,14 +414,15 @@ class BasicTestCase(common.PyTablesTestCase):
         self.fileh = openFile(self.file, "r")
         table = self.fileh.getNode("/group0/group1/table2")
 
-        # Read the records and select the ones with "var6" column less than 20
-        result = [ rec['var2'] for rec in table.iterrows() if rec['var6'] < 20]
+        # Read the records and select the ones with "var3" column less than 20
+        result = [ rec['var2'] for rec in table.iterrows() if rec['var3'] < 20]
         if verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
+            print "On-disk byteorder ==>", table.byteorder
             print "Last record in table ==>", rec
             print "Total selected records in table ==>", len(result)
         nrows = self.expectedrows - 1
-        assert (rec['var1'][0][0], rec['var6']) == ("0001", nrows)
+        assert (rec['var1'][0][0], rec['var3']) == ("0001", nrows)
         assert len(result) == 20
 
 class BasicWriteTestCase(BasicTestCase):
@@ -466,7 +433,6 @@ class DictWriteTestCase(BasicTestCase):
     # This checks also unidimensional arrays as columns
     title = "DictWrite"
     record = RecordDescriptionDict
-    recordro = RecordDescriptionDictRevOrder
     nrows = 21
     nrowsinbuf = 3  # Choose a small value for the buffer size
     start = 0
@@ -525,7 +491,6 @@ class CompressTwoTablesTestCase(BasicTestCase):
     compress = 1
     # This checks also unidimensional arrays as columns
     record = RecordDescriptionDict
-    recordro = RecordDescriptionDictRevOrder
 
 class BigTablesTestCase(BasicTestCase):
     title = "BigTables"

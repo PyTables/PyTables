@@ -38,7 +38,7 @@ import tables.flavor
 from tables import hdf5Extension
 from tables import utilsExtension
 from tables.node import Node
-from tables.utils import idx2long
+from tables.utils import idx2long, byteorders
 from tables.parameters import CHUNKTIMES, BUFFERTIMES
 from tables.exceptions import PerformanceWarning
 
@@ -287,7 +287,7 @@ class Leaf(Node):
     # ~~~~~~~~~~~~~~~
     def __init__(self, parentNode, name,
                  new=False, filters=None,
-                 _log=True):
+                 byteorder=None, _log=True):
         self._v_new = new
         """Is this the first time the node has been created?"""
         self._flavor = None
@@ -305,6 +305,13 @@ class Leaf(Node):
             # Also, cPickling the `filters` attribute is very slow (it
             # is as much as twice slower than the normal overhead for
             # creating a Table, for example).
+
+            if byteorder not in (None, 'little', 'big'):
+                raise ValueError(
+                    "the byteorder can only take 'little' or 'big' values "
+                    "and you passed: %s" % byteorder)
+            self.byteorder = byteorder
+            """The byte ordering of the leaf data *on disk*."""
 
         # Existing filters need not be read since `filters`
         # is a lazy property that automatically handles their loading.
@@ -359,6 +366,7 @@ class Leaf(Node):
                 self._flavor = self._v_attrs.FLAVOR
             except AttributeError:  # probably a plain HDF5 file
                 self._flavor = tables.flavor.internal_flavor
+
 
     def _g_getFilters(self):
         # Create a filters instance with default values
@@ -544,6 +552,30 @@ you may want to increase it."""
 
         return newNode
 
+
+    def _g_fix_byteorder_data(self, data, dbyteorder):
+        "Fix the byteorder of data passed in constructors."
+        dbyteorder = byteorders[dbyteorder]
+        # If self.byteorder has not been passed as an argument of
+        # the constructor, then set it to the same value of data.
+        if self.byteorder is None:
+            self.byteorder = dbyteorder
+        # Do an additional in-place byteswap of data if the in-memory
+        # byteorder doesn't match that of the on-disk.  This is the only
+        # place that we have to do the conversion manually. In all the
+        # other cases, it will be HDF5 the responsible of doing the
+        # byteswap properly.
+        if dbyteorder in ['little', 'big']:
+            if dbyteorder != self.byteorder:
+                # if data is not writeable, do a copy first
+                if not data.flags.writeable:
+                    data = data.copy()
+                data.byteswap(True)
+        else:
+            # Fix the byteorder again, no matter which byteorder have
+            # specified the user in the constructor.
+            self.byteorder = "irrelevant"
+        return data
 
     # Public methods
     # ~~~~~~~~~~~~~~

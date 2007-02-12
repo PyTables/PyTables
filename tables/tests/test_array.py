@@ -265,7 +265,6 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in numpy.
     Most of them are included on PyTables.
     """
-    endiancheck = False
 
     def setUp(self):
         # Create an instance of HDF5 Table
@@ -288,27 +287,28 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Create the array under root and name 'somearray'
         a = testArray
-        if self.endiancheck and a.dtype.kind <> "S":
-            b = a.byteswap()
-            b.dtype = a.dtype.newbyteorder()
-            a = b
+        if self.endiancheck:
+            byteorder = {"little":"big","big":"little"}[sys.byteorder]
+        else:
+            byteorder = sys.byteorder
 
-        self.fileh.createArray(self.root, 'somearray', a, "Some array")
+        self.fileh.createArray(self.root, 'somearray', a, "Some array",
+                               byteorder = byteorder)
 
-        # Do not close and re-open the file to catch-up
-        # possible errors during the creation and later reading
-        # of an array without an close/open in the middle
-        # Close the file
-        #self.fileh.close()
-        # Re-open the file in read-only mode
-        #self.fileh = openFile(self.file, mode = "r")
-        #self.root = self.fileh.root
+        if self.reopen:
+            self.fileh.close()
+            # Re-open the file in read-only mode
+            self.fileh = openFile(self.file, mode = "r")
+            self.root = self.fileh.root
 
         # Read the saved array
         b = self.root.somearray.read()
 
+        # Get an array to be compared in the correct byteorder
+        c = a.newbyteorder(byteorder)
+
         # Compare them. They should be equal.
-        if not allequal(a,b) and verbose:
+        if not allequal(c,b) and verbose:
             print "Write and read arrays differ!"
             print "Array written:", a
             print "Array written shape:", a.shape
@@ -322,17 +322,13 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Check strictly the array equality
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
-        if a.dtype.kind == "S":
-            assert self.root.somearray.type == "string"
-        else:
+        if a.dtype.byteorder != "|":
             assert a.dtype == b.dtype
             assert a.dtype == self.root.somearray.dtype
-            assert byteorders[a.dtype.byteorder] == \
-                   byteorders[b.dtype.byteorder]
-            assert byteorders[a.dtype.byteorder] == \
-                   self.root.somearray.byteorder
+            assert byteorders[b.dtype.byteorder] == sys.byteorder            
+            assert self.root.somearray.byteorder == byteorder
 
-        assert allequal(a,b)
+        assert allequal(c,b)
 
         return
 
@@ -460,7 +456,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Close the file
         fileh.close()
         # Then, delete the file
-        os.remove(file)
+        #os.remove(file)
 
     def test12_float_byteorder(self):
         "Checking setting data with different byteorder in a range (float)"
@@ -496,6 +492,21 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Then, delete the file
         os.remove(file)
 
+class ComplexNotReopenNotEndianTestCase(UnalignedAndComplexTestCase):
+    endiancheck = False
+    reopen = False
+
+class ComplexReopenNotEndianTestCase(UnalignedAndComplexTestCase):
+    endiancheck = False
+    reopen = True
+
+class ComplexNotReopenEndianTestCase(UnalignedAndComplexTestCase):
+    endiancheck = True
+    reopen = False
+
+class ComplexReopenEndianTestCase(UnalignedAndComplexTestCase):
+    endiancheck = True
+    reopen = True
 
 class GroupsArrayTestCase(unittest.TestCase):
     """This test class checks combinations of arrays with groups.
@@ -1940,7 +1951,10 @@ def suite():
         # The 32 dimensions case is tested on GroupsArray
         #theSuite.addTest(unittest.makeSuite(Basic32DTestCase))
         theSuite.addTest(unittest.makeSuite(GroupsArrayTestCase))
-        theSuite.addTest(unittest.makeSuite(UnalignedAndComplexTestCase))
+        theSuite.addTest(unittest.makeSuite(ComplexNotReopenNotEndianTestCase))
+        theSuite.addTest(unittest.makeSuite(ComplexReopenNotEndianTestCase))
+        theSuite.addTest(unittest.makeSuite(ComplexNotReopenEndianTestCase))
+        theSuite.addTest(unittest.makeSuite(ComplexReopenEndianTestCase))
         theSuite.addTest(unittest.makeSuite(CloseCopyTestCase))
         theSuite.addTest(unittest.makeSuite(OpenCopyTestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex1TestCase))

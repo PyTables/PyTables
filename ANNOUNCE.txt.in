@@ -25,6 +25,14 @@ Improvements:
   of the leaves only tells now the order of the data *on disk* (in
   memory, data is always now in the native byteorder).
 
+- All the leaf constructors have received a new pararameter called
+  'byteorder' that lets the user to specify the byteorder of his data
+  *on disk*. This effectively allows to create datasets in other
+  byteorders than the native which can be useful for distributing
+  datafiles created with a server that has different endianess than the
+  receiving machines (i.e. the endian conversion can be avoided in the
+  latter case).
+
 Bug fixes:
 
 

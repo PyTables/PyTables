@@ -13,6 +13,7 @@ from tables.flavor import flavor_to_flavor
 from tables.tests.common import (
     verbose, typecode, allequal, cleanup, heavy,
     numeric_imported, numarray_imported)
+from tables.utils import byteorders
 
 if numarray_imported:
     import numarray
@@ -1144,7 +1145,6 @@ class OffsetStrideTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01a_StringAtom..." % self.__class__.__name__
 
-        # Create an string atom
         earray = self.fileh.createEArray(root, 'strings',
                                          StringAtom(itemsize=3), (0,2,2),
                                          "Array of strings")
@@ -1174,7 +1174,6 @@ class OffsetStrideTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01b_StringAtom..." % self.__class__.__name__
 
-        # Create an string atom
         earray = self.fileh.createEArray(root, 'strings',
                                          StringAtom(itemsize=3), (0,2,2),
                                          "Array of strings")
@@ -1233,7 +1232,6 @@ class OffsetStrideTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02b_int..." % self.__class__.__name__
 
-        # Create an string atom
         earray = self.fileh.createEArray(root, 'EAtom',
                                          Int32Atom(), (0,3),
                                          "array of ints")
@@ -1256,14 +1254,13 @@ class OffsetStrideTestCase(unittest.TestCase):
 
 
     def test03a_int(self):
-        """Checking earray with byteswapped numarray appends (ints)"""
+        """Checking earray with byteswapped appends (ints)"""
 
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03a_int..." % self.__class__.__name__
 
-        # Create an string atom
         earray = self.fileh.createEArray(root, 'EAtom',
                                          Int32Atom(), (0,3),
                                          "array of ints")
@@ -1289,14 +1286,13 @@ class OffsetStrideTestCase(unittest.TestCase):
 
 
     def test03b_float(self):
-        """Checking earray with byteswapped numarray appends (floats)"""
+        """Checking earray with byteswapped appends (floats)"""
 
         root = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test03b_float..." % self.__class__.__name__
 
-        # Create an string atom
         earray = self.fileh.createEArray(root, 'EAtom',
                                          Float64Atom(), (0,3),
                                          "array of floats")
@@ -1318,6 +1314,148 @@ class OffsetStrideTestCase(unittest.TestCase):
             print "Swapped rows:", swapped
             print "Byteorder swapped rows:", swapped.dtype.byteorder
 
+        assert allequal(native, swapped)
+
+
+    def test04a_int(self):
+        """Checking earray with byteswapped appends (2, ints)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04a_int..." % self.__class__.__name__
+
+        byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
+        earray = self.fileh.createEArray(root, 'EAtom',
+                                         Int32Atom(), (0,3),
+                                         "array of ints",
+                                         byteorder=byteorder)
+        # Add a native ordered array
+        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Int32')
+        earray.append(a)
+        # Change the byteorder of the array
+        a = a.byteswap()
+        a = a.newbyteorder()
+        # Add a byteswapped array
+        earray.append(a)
+
+        # Read all the rows:
+        native = earray[:4,:]
+        swapped = earray[4:,:]
+        if verbose:
+            print "Byteorder native rows:", byteorders[native.dtype.byteorder]
+            print "Byteorder earray on-disk:", earray.byteorder
+
+        assert byteorders[native.dtype.byteorder] == sys.byteorder
+        assert earray.byteorder == byteorder
+        assert allequal(native, swapped)
+
+
+    def test04b_int(self):
+        """Checking earray with byteswapped appends (2, ints, reopen)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04b_int..." % self.__class__.__name__
+
+        byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
+        earray = self.fileh.createEArray(root, 'EAtom',
+                                         Int32Atom(), (0,3),
+                                         "array of ints",
+                                         byteorder=byteorder)
+        self.fileh.close()
+        self.fileh = openFile(self.file, "a")
+        earray = self.fileh.getNode("/EAtom")
+        # Add a native ordered array
+        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Int32')
+        earray.append(a)
+        # Change the byteorder of the array
+        a = a.byteswap()
+        a = a.newbyteorder()
+        # Add a byteswapped array
+        earray.append(a)
+
+        # Read all the rows:
+        native = earray[:4,:]
+        swapped = earray[4:,:]
+        if verbose:
+            print "Byteorder native rows:", byteorders[native.dtype.byteorder]
+            print "Byteorder earray on-disk:", earray.byteorder
+
+        assert byteorders[native.dtype.byteorder] == sys.byteorder
+        assert earray.byteorder == byteorder
+        assert allequal(native, swapped)
+
+
+    def test04c_float(self):
+        """Checking earray with byteswapped appends (2, floats)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04c_float..." % self.__class__.__name__
+
+        byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
+        earray = self.fileh.createEArray(root, 'EAtom',
+                                         Float64Atom(), (0,3),
+                                         "array of floats",
+                                         byteorder=byteorder)
+        # Add a native ordered array
+        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Float64')
+        earray.append(a)
+        # Change the byteorder of the array
+        a = a.byteswap()
+        a = a.newbyteorder()
+        # Add a byteswapped array
+        earray.append(a)
+
+        # Read all the rows:
+        native = earray[:4,:]
+        swapped = earray[4:,:]
+        if verbose:
+            print "Byteorder native rows:", byteorders[native.dtype.byteorder]
+            print "Byteorder earray on-disk:", earray.byteorder
+
+        assert byteorders[native.dtype.byteorder] == sys.byteorder
+        assert earray.byteorder == byteorder
+        assert allequal(native, swapped)
+
+
+    def test04d_float(self):
+        """Checking earray with byteswapped appends (2, floats, reopen)"""
+
+        root = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test04d_float..." % self.__class__.__name__
+
+        byteorder = {'little':'big', 'big': 'little'}[sys.byteorder]
+        earray = self.fileh.createEArray(root, 'EAtom',
+                                         Float64Atom(), (0,3),
+                                         "array of floats",
+                                         byteorder=byteorder)
+        self.fileh.close()
+        self.fileh = openFile(self.file, "a")
+        earray = self.fileh.getNode("/EAtom")
+        # Add a native ordered array
+        a = numpy.array([(0,0,0), (1,0,3), (1,1,1), (3,3,3)], dtype='Float64')
+        earray.append(a)
+        # Change the byteorder of the array
+        a = a.byteswap()
+        a = a.newbyteorder()
+        # Add a byteswapped array
+        earray.append(a)
+
+        # Read all the rows:
+        native = earray[:4,:]
+        swapped = earray[4:,:]
+        if verbose:
+            print "Byteorder native rows:", byteorders[native.dtype.byteorder]
+            print "Byteorder earray on-disk:", earray.byteorder
+
+        assert byteorders[native.dtype.byteorder] == sys.byteorder
+        assert earray.byteorder == byteorder
         assert allequal(native, swapped)
 
 
@@ -2236,7 +2374,7 @@ class TruncateCloseTestCase(TruncateTestCase):
 
 # The next test should be run only in **heavy** mode
 class Rows64bitsTestCase(unittest.TestCase):
-    narows = 1000*1000L   # each numarray will have 1 million entries
+    narows = 1000*1000L   # each numpy object will have 1 million entries
     #narows = 1000L   # for testing only
     nanumber = 1000*3L    # That should account for more than 2**31-1
 

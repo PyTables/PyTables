@@ -39,7 +39,7 @@ from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.path import joinPath, splitPath
-from tables.utils import is_idx, byteorders
+from tables.utils import is_idx
 from tables.leaf import Leaf, Filters
 from tables.index import (
     Index, defaultAutoIndex, defaultIndexFilters,
@@ -231,11 +231,6 @@ class Table(tableExtension.Table, Leaf):
         lambda self: self.description._v_dtype.itemsize, None, None,
         "The size in bytes of each element in the table.")
 
-    byteorder = property(
-        lambda self: self.description._v_byteorder, None, None,
-        "The endianness of data in memory "
-        "('big', 'little' or 'irrelevant').")
-
     # Lazy attributes
     # ```````````````
     def _g_getrbuffer(self):
@@ -346,7 +341,7 @@ class Table(tableExtension.Table, Leaf):
     def __init__(self, parentNode, name,
                  description=None, title="", filters=None,
                  expectedrows=EXPECTED_ROWS_TABLE,
-                 chunkshape=None, _log=True):
+                 chunkshape=None, byteorder=None, _log=True):
         """Create an instance of Table.
 
         Keyword arguments:
@@ -375,6 +370,13 @@ class Table(tableExtension.Table, Leaf):
             as a single HDF5 I/O operation. The filters are applied to
             those chunks of data. Its rank for tables has to be 1.  If
             None, a sensible value is calculated (which is recommended).
+
+        byteorder -- The byteorder of the data *on-disk*, specified as
+            'little' or 'big'. If this is not specified, the byteorder
+            is that of the platform, unless you passed a recarray as the
+            `description`, in which case the recarray byteorder will be
+            chosen.
+
         """
 
         self._v_new = new = description is not None
@@ -385,9 +387,10 @@ class Table(tableExtension.Table, Leaf):
         """New filter properties for this node."""
         self.extdim = 0   # Tables only have one dimension currently
         """The index of the enlargeable dimension."""
-
         self._v_recarray = None
         """A record array to be stored in the table."""
+        self._rabyteorder = None
+        """The computed byteorder of the self._v_recarray."""
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the table."""
         self.nrows = 0L
@@ -518,7 +521,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             else:
                 self._v_chunkshape = chunkshape
 
-        super(Table, self).__init__(parentNode, name, new, filters, _log)
+        super(Table, self).__init__(parentNode, name, new, filters,
+                                    byteorder, _log)
 
 
     def _g_postInitHook(self):
@@ -674,11 +678,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                     "are not supported yet, sorry" % dtype )
             fields[name] = col
 
-        # Set the byteorder
-        # The columns in records should always have the same byteorder
-        # (until different byterorder in columns would be implemented
-        # at the HDF5 extension level)
-        fields['_v_byteorder'] = byteorders[fbyteorder]
+        self._rabyteorder = fbyteorder
+
         return fields
 
 
@@ -732,11 +733,19 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         if self._v_chunkshape is None:
             self._v_chunkshape = self._calc_chunkshape(
                 self._v_expectedrows, self.rowsize )
+        # Fix the byteorder of the recarray
+        if self._v_recarray is not None:
+            self._v_recarray = self._g_fix_byteorder_data(self._v_recarray,
+                                                          self._rabyteorder)
+        # Correct the byteorder, if still needed
+        if self.byteorder is None:
+            self.byteorder = sys.byteorder
         #    After creating the table, ``self._v_objectID`` needs to be
         #    set because it is needed for setting attributes afterwards.
         self._v_objectID = self._createTable(
             self._v_new_title, self.filters.complib, obversion )
         self._v_recarray = None  # not useful anymore
+        self._rabyteorder = None # not useful anymore
 
         # 2. Compute or get chunk shape and buffer size parameters.
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
@@ -2861,7 +2870,8 @@ class Column(object):
             filters=filters,
             optlevel=optlevel,
             testmode=testmode,
-            expectedrows=table._v_expectedrows)
+            expectedrows=table._v_expectedrows,
+            byteorder=table.byteorder)
         self._updateIndexLocation(index)
 
         table._setColumnIndexing(self.pathname, True)

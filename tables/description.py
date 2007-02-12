@@ -407,9 +407,11 @@ class Description(object):
             self._g_setNestedNamesDescr()
             # Get pathnames for nested groups
             self._g_setPathNames()
-            # Assign the byteorder (if not yet)
-            if not hasattr(self, "_v_byteorder"):
-                newdict["_v_byteorder"] = sys.byteorder
+            # Check the _v_byteorder has been used an issue an Error
+            if hasattr(self, "_v_byteorder"):
+                raise ValueError(
+                    "Using a ``_v_byteorder`` in the description is obsolete. "
+                    "Use the byteorder parameter in the constructor instead.")
 
         # finally delegate the rest of the work to type.__new__
         return

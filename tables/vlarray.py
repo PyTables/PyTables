@@ -35,7 +35,9 @@ import warnings
 import numpy
 
 from tables import hdf5Extension
-from tables.utils import convertToNPAtom, idx2long, byteorders
+from tables.utils import convertToNPAtom, idx2long, byteorders, \
+     correct_byteorder
+
 from tables.atom import ObjectAtom, VLStringAtom, EnumAtom, Atom, split_type
 from tables.flavor import internal_to_flavor
 from tables.leaf import Leaf, calc_chunksize
@@ -94,7 +96,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     def __init__( self, parentNode, name,
                   atom=None, title="",
                   filters=None, expectedsizeinMB=1.0,
-                  chunkshape=None,
+                  chunkshape=None, byteorder=None,
                   _log=True ):
         """Create the instance Array.
 
@@ -122,10 +124,11 @@ class VLArray(hdf5Extension.VLArray, Leaf):
             chunks of data. The dimensionality of `chunkshape` must be
             1. If ``None``, a sensible value is calculated (which is
             recommended).
+        `byteorder` -- The byteorder of the data *on-disk*, specified
+            as 'little' or 'big'. If this is not specified, the
+            byteorder is that of the platform.
         """
 
-        self.byteorder = None
-        """The byte ordering of the leaf data *on disk*."""
         self._v_version = None
         """The object version of this array."""
         self._v_new = new = atom is not None
@@ -189,7 +192,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 else:
                     self._v_chunkshape = chunkshape
 
-        super(VLArray, self).__init__(parentNode, name, new, filters, _log)
+        super(VLArray, self).__init__(parentNode, name, new, filters,
+                                      byteorder, _log)
 
 
     # This is too specific for moving it to Leaf
@@ -242,6 +246,10 @@ be zero."""
             self._v_chunkshape = self._calc_chunkshape(
                 self._v_expectedsizeinMB)
         self.nrows = 0     # No rows at creation time
+
+        # Correct the byteorder if needed
+        if self.byteorder is None:
+            self.byteorder = correct_byteorder(atom.type, sys.byteorder)
 
         self._v_objectID = self._createArray(self._v_new_title)
         return self._v_objectID

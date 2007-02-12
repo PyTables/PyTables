@@ -79,7 +79,7 @@ class EArray(CArray):
     def __init__( self, parentNode, name,
                   atom=None, shape=None, title="",
                   filters=None, expectedrows=EXPECTED_ROWS_EARRAY,
-                  chunkshape=None,
+                  chunkshape=None, byteorder=None,
                   _log=True ):
         """
         Create an `EArray` instance.
@@ -114,6 +114,9 @@ class EArray(CArray):
             be the same as that of `shape` (beware: no dimension
             should be zero this time!).  If ``None``, a sensible value
             is calculated (which is recommended).
+        `byteorder` -- The byteorder of the data *on-disk*, specified
+            as 'little' or 'big'. If this is not specified, the
+            byteorder is that of the platform.
         """
         # Specific of EArray
         self._v_expectedrows = expectedrows
@@ -121,7 +124,7 @@ class EArray(CArray):
 
         # Call the parent (CArray) init code
         super(EArray, self).__init__(parentNode, name, atom, shape, title,
-                                     filters, chunkshape, _log)
+                                     filters, chunkshape, byteorder, _log)
 
 
     def __repr__(self):
@@ -167,6 +170,9 @@ instance to zero."""
         # Compute the optimal nrowsinbuf
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
                                                    self.rowsize)
+        # Correct the byteorder if needed
+        if self.byteorder is None:
+            self.byteorder = sys.byteorder
 
         self._v_objectID = self._createEArray(self._v_new_title)
         return self._v_objectID

@@ -33,6 +33,7 @@ import bisect
 from time import time, clock
 import os, os.path
 import tempfile
+import sys
 
 import numpy
 
@@ -436,6 +437,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                  title="", filters=None,
                  optlevel=0,
                  expectedrows=0,
+                 byteorder=None,
                  testmode=False, new=True):
         """Create an Index instance.
 
@@ -461,6 +463,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             of row slices that will be added to the growable dimension
             in the IndexArray object.
 
+        byteorder -- The byteorder of the index datasets *on-disk*.
+
         """
 
         self._v_version = None
@@ -468,6 +472,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         self._v_expectedrows = expectedrows
         """The expected number of items of index arrays."""
+        if byteorder in ["little", "big"]:
+            self.byteorder = byteorder
+        else:
+            self.byteorder = sys.byteorder
+        """The byteorder of the index datasets."""
         self.testmode = testmode
         """Enables test mode for index chunk size calculation."""
         if atom is not None:
@@ -551,7 +560,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         atom = Atom.from_dtype(self.dtype)
         sorted = IndexArray(self, 'sorted', atom, "Sorted Values",
                             filters, self.optlevel, self.testmode,
-                            self._v_expectedrows)
+                            self._v_expectedrows, self.byteorder)
 
         # After "sorted" is created, we can assign some attributes
         self.superblocksize = sorted.superblocksize
@@ -563,39 +572,44 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Create the IndexArray for index values
         IndexArray(self, 'indices', Int64Atom(), "Reverse Indices",
                    filters, self.optlevel, self.testmode,
-                   self._v_expectedrows)
+                   self._v_expectedrows, self.byteorder)
 
         # Create the cache for range values  (1st order cache)
         CacheArray(self, 'ranges', atom, (0,2), "Range Values", filters,
-                   self._v_expectedrows//self.slicesize)
+                   self._v_expectedrows//self.slicesize,
+                   byteorder=self.byteorder)
         # median ranges
         EArray(self, 'mranges', atom, (0,), "Median ranges", filters,
-               _log=False)
+               byteorder=self.byteorder, _log=False)
 
         # Create the cache for boundary values (2nd order cache)
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
         CacheArray(self, 'bounds', atom, (0, nbounds_inslice),
                    "Boundary Values", filters,
                    self._v_expectedrows//self.chunksize,
-                   (1, nbounds_inslice))
+                   (1, nbounds_inslice), byteorder=self.byteorder)
 
         # begin, end & median bounds (only for numerical types)
-        EArray(self, 'abounds', atom, (0,), "Start bounds", _log=False)
-        EArray(self, 'zbounds', atom, (0,), "End bounds", filters, _log=False)
+        EArray(self, 'abounds', atom, (0,), "Start bounds",
+               byteorder=self.byteorder, _log=False)
+        EArray(self, 'zbounds', atom, (0,), "End bounds", filters,
+               byteorder=self.byteorder, _log=False)
         EArray(self, 'mbounds', atom, (0,), "Median bounds", filters,
-               _log=False)
+               byteorder=self.byteorder, _log=False)
 
         # Create the Array for last (sorted) row values + bounds
         shape = (2 + nbounds_inslice + self.slicesize,)
         arr = numpy.empty(shape=shape, dtype=self.dtype)
         sortedLR = LastRowArray(self, 'sortedLR', arr,
-                                "Last Row sorted values + bounds")
+                                "Last Row sorted values + bounds",
+                                byteorder=self.byteorder)
 
         # Create the Array for reverse indexes in last row
         shape = (self.slicesize,)     # enough for indexes and length
         arr = numpy.zeros(shape=shape, dtype='int64')
         LastRowArray(self, 'indicesLR', arr,
-                     "Last Row reverse indices")
+                     "Last Row reverse indices",
+                     byteorder=self.byteorder)
 
         # All bounds values (+begin+end) are at the beginning of sortedLR
         nboundsLR = 0   # 0 bounds initially

@@ -33,7 +33,7 @@ import numpy
 
 from tables import hdf5Extension
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import is_idx, byteorders
+from tables.utils import is_idx
 from tables.atom import split_type
 from tables.leaf import Leaf, Filters
 
@@ -122,7 +122,7 @@ class Array(hdf5Extension.Array, Leaf):
     # ~~~~~~~~~~~~~
     def __init__(self, parentNode, name,
                  object=None, title="",
-                 _log=True):
+                 byteorder=None, _log=True):
         """
         Create an `Array` instance.
 
@@ -135,10 +135,13 @@ class Array(hdf5Extension.Array, Leaf):
             (i.e. not like ``[[1,2], 2]``).
         `title`
             Sets a ``TITLE`` attribute on the array entity.
+
+        `byteorder` -- The byteorder of the data *on-disk*, specified as
+            'little' or 'big'. If this is not specified, the byteorder
+            is that of the object specified in `object`.
+
         """
 
-        self.byteorder = None
-        """The byte ordering of the leaf data *on disk*."""
         self._v_version = None
         """The object version of this array."""
         self._v_new = new = object is not None
@@ -197,7 +200,8 @@ class Array(hdf5Extension.Array, Leaf):
         """The index of the enlargeable dimension."""
 
         # Ordinary arrays have no filters: leaf is created with default ones.
-        super(Array, self).__init__(parentNode, name, new, Filters(), _log)
+        super(Array, self).__init__(parentNode, name, new, Filters(),
+                                    byteorder, _log)
 
 
     def _g_create(self):
@@ -225,6 +229,9 @@ class Array(hdf5Extension.Array, Leaf):
         # The shape of this array
         self.shape = nparr.shape
 
+        # Fix the byteorder of data
+        nparr = self._g_fix_byteorder_data(nparr, nparr.dtype.byteorder)
+
         # Create the array on-disk
         try:
             (self._v_objectID, self.dtype, self.type) = (
@@ -237,9 +244,6 @@ class Array(hdf5Extension.Array, Leaf):
         # Compute the optimal buffer size (nrowsinbuf)
         chunkshape = self._calc_chunkshape(self.nrows, self.rowsize)
         self._v_nrowsinbuf = self._calc_nrowsinbuf(chunkshape, self.rowsize)
-
-        # The byteorder in creation time is always the one of the nparray
-        self.byteorder = byteorders[nparr.dtype.byteorder]
 
         return self._v_objectID
 

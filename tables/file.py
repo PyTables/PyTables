@@ -415,14 +415,16 @@ class File(hdf5Extension.File, object):
 
     * createGroup(where, name[, title][, filters][, createparents])
     * createTable(where, name, description[, title][, filters]
-                  [, expectedrows][, chunkshape][, createparents])
-    * createArray(where, name, array[, title][, createparents])
+                  [, expectedrows][, chunkshape][, byteorder][, createparents])
+    * createArray(where, name, array[, title][, byteorder][, createparents])
     * createCArray(where, name, atom, shape [, title][, filters]
-                   [, chunkshape][, createparents])
+                   [, chunkshape][, byteorder][, createparents])
     * createEArray(where, name, atom, shape [, title][, filters]
-                   [, expectedrows][, chunkshape][, createparents])
+                   [, expectedrows][, chunkshape][, byteorder]
+                   [, createparents])
     * createVLArray(where, name, atom[, title][, filters]
-                    [, expectedsizeinMB][, chunkshape][, createparents])
+                    [, expectedsizeinMB][, chunkshape][, byteorder]
+                    [, createparents])
     * removeNode(where[, name][, recursive])
     * renameNode(where, newname[, name])
     * moveNode(where, newparent, newname[, name][, overwrite])
@@ -681,7 +683,8 @@ class File(hdf5Extension.File, object):
 
     def createTable(self, where, name, description, title="",
                     filters=None, expectedrows=10000,
-                    chunkshape=None, createparents=False):
+                    chunkshape=None, byteorder=None,
+                    createparents=False):
         """Create a new Table instance with name "name" in "where" location.
 
         Keyword arguments:
@@ -714,6 +717,12 @@ class File(hdf5Extension.File, object):
             those chunks of data. Its rank for tables has to be 1. If
             None, a sensible value is calculated (which is recommended).
 
+        byteorder -- The byteorder of the data *on-disk*, specified as
+            'little' or 'big'. If this is not specified, the byteorder
+            is that of the platform, unless you passed a recarray as the
+            `description`, in which case the recarray byteorder will be
+            chosen.
+
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
         """
@@ -722,10 +731,11 @@ class File(hdf5Extension.File, object):
         return Table(parentNode, name,
                      description=description, title=title,
                      filters=filters, expectedrows=expectedrows,
-                     chunkshape=chunkshape)
+                     chunkshape=chunkshape, byteorder=byteorder)
 
 
-    def createArray(self, where, name, object, title="", createparents=False):
+    def createArray(self, where, name, object, title="",
+                    byteorder=None, createparents=False):
         """Create a new instance Array with name "name" in "where" location.
 
         Keyword arguments:
@@ -744,16 +754,22 @@ class File(hdf5Extension.File, object):
 
         title -- Sets a TITLE attribute on the array entity.
 
+        byteorder -- The byteorder of the data *on-disk*, specified as
+            'little' or 'big'. If this is not specified, the byteorder
+            is that of the object specified in `object`.
+
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
+
         """
         parentNode = self._getOrCreatePath(where, createparents)
         return Array(parentNode, name,
-                     object=object, title=title)
+                     object=object, title=title, byteorder=byteorder)
 
 
     def createCArray(self, where, name, atom, shape, title="",
-                     filters=None, chunkshape=None, createparents=False):
+                     filters=None, chunkshape=None,
+                     byteorder=None, createparents=False):
         """Create a new instance CArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -781,6 +797,10 @@ class File(hdf5Extension.File, object):
             same as that of shape. If None, a sensible value is
             calculated (which is recommended).
 
+        byteorder -- The byteorder of the data *on-disk*, specified as
+            'little' or 'big'. If this is not specified, the byteorder
+            is that of the platform.
+
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
         """
@@ -788,12 +808,13 @@ class File(hdf5Extension.File, object):
         _checkfilters(filters)
         return CArray(parentNode, name,
                       atom=atom, shape=shape, title=title, filters=filters,
-                      chunkshape=chunkshape)
+                      chunkshape=chunkshape, byteorder=byteorder)
 
 
     def createEArray(self, where, name, atom, shape, title="",
                      filters=None, expectedrows=1000,
-                     chunkshape=None, createparents=False):
+                     chunkshape=None, byteorder=None,
+                     createparents=False):
         """Create a new instance EArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -832,6 +853,10 @@ class File(hdf5Extension.File, object):
             this time!).  If None, a sensible value is calculated (which
             is recommended).
 
+        byteorder -- The byteorder of the data *on-disk*, specified as
+            'little' or 'big'. If this is not specified, the byteorder
+            is that of the platform.
+
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
         """
@@ -840,12 +865,13 @@ class File(hdf5Extension.File, object):
         return EArray(parentNode, name,
                       atom=atom, shape=shape, title=title,
                       filters=filters, expectedrows=expectedrows,
-                      chunkshape=chunkshape)
+                      chunkshape=chunkshape, byteorder=byteorder)
 
 
     def createVLArray(self, where, name, atom, title="",
                       filters=None, expectedsizeinMB=1.0,
-                      chunkshape=None, createparents=False):
+                      chunkshape=None, byteorder=None,
+                      createparents=False):
         """Create a new instance VLArray with name "name" in "where" location.
 
         Keyword arguments:
@@ -878,6 +904,10 @@ class File(hdf5Extension.File, object):
             1. If None, a sensible value is calculated (which is
             recommended).
 
+        byteorder -- The byteorder of the data *on-disk*, specified as
+            'little' or 'big'. If this is not specified, the byteorder
+            is that of the platform.
+
         createparents -- Whether to create the needed groups for the
             parent path to exist (not done by default).
         """
@@ -886,7 +916,7 @@ class File(hdf5Extension.File, object):
         return VLArray(parentNode, name,
                        atom=atom, title=title, filters=filters,
                        expectedsizeinMB=expectedsizeinMB,
-                       chunkshape=chunkshape)
+                       chunkshape=chunkshape, byteorder=byteorder)
 
 
     # There is another version of _getNode in Pyrex space, but only
