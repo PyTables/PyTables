@@ -49,7 +49,8 @@ __version__ = "$Revision$"
 #obversion = "1.0"    # initial version
 #obversion = "1.0"    # add support for complex datatypes
 #obversion = "1.1"    # This adds support for time datatypes.
-obversion = "1.2"    # This adds support for enumerated datatypes.
+#obversion = "1.2"    # This adds support for enumerated datatypes.
+obversion = "1.3"     # Introduced 'PSEUDOATOM' attribute.
 
 class VLArray(hdf5Extension.VLArray, Leaf):
     """
@@ -272,6 +273,9 @@ be zero."""
                 atom = VLStringAtom()
             elif kind == 'object':
                 atom = ObjectAtom()
+            else:
+                raise ValueError(
+                    "pseudo-atom name ``%s`` not known." % kind)
         else:
             kind, itemsize = split_type(self._atomictype)
             if kind == 'enum':
