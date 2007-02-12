@@ -486,7 +486,7 @@ cdef class NumCache(BaseCache):
     memcpy(self.rcache + base1, data + base2, self.slotsize)
     # Refresh the atimes, sorted and indices data with the new slot info
     self.ratimes[nslot] = self.incseqn()
-    nidx = self.slotlookup(nslot)
+    nidx = self.slotlookup_(nslot)
     self.rsorted[nidx] = key
     self.indices[:] = self.indices[self.sorted.argsort()]
     # The take() method seems similar in speed. This is striking,
@@ -498,8 +498,11 @@ cdef class NumCache(BaseCache):
     self.nextslot = self.nextslot + 1
 
 
+  def setitem(self, long long key, ndarray nparr, long start):
+    return self.setitem_(key, nparr.data, start)
+
   # Add new data into a cache slot
-  cdef long setitem(self, long long key, void *data, long start):
+  cdef long setitem_(self, long long key, void *data, long start):
     cdef long nslot
 
     if self.nslots == 0:   # Oops, the cache is set to empty
@@ -525,7 +528,7 @@ cdef class NumCache(BaseCache):
 
   # Return the index for element x in array self.rindices.
   # This should never fail because x should be always present.
-  cdef long slotlookup(self, unsigned short x):
+  cdef long slotlookup_(self, unsigned short x):
     cdef long nslot
     cdef unsigned short *a
 
@@ -536,8 +539,11 @@ cdef class NumCache(BaseCache):
     return nslot
 
 
+  def getslot(self, long long key):
+    return self.getslot_(key)
+
   # Tells in which slot key is. If not found, -1 is returned.
-  cdef long getslot(self, long long key):
+  cdef long getslot_(self, long long key):
     cdef long lo, hi, mid
     cdef long long *rsorted
 
@@ -557,17 +563,20 @@ cdef class NumCache(BaseCache):
 
 
   # Return the pointer to the data in cache
-  cdef void *getitem(self, long nslot):
+  cdef void *getitem_(self, long nslot):
 
     self.getcount = self.getcount + 1
     self.ratimes[nslot] = self.incseqn()
     return self.rcache + nslot * self.slotsize
 
 
+  def getitem2(self, long nslot, ndarray nparr, long start):
+    return self.getitem2_(nslot, nparr.data, start)
+
   # This version copies data in cache to data+start.
   # The user should be responsible to provide a large enough data buffer
   # to keep all the data.
-  cdef long getitem2(self, long nslot, void *data, long start):
+  cdef long getitem2_(self, long nslot, void *data, long start):
     cdef long base1, base2
 
     self.getcount = self.getcount + 1

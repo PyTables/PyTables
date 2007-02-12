@@ -53,8 +53,6 @@ from definitions cimport import_array, ndarray, \
 # Include HDF5 types
 include "convtypetables.pxi"
 
-from lrucacheExtension cimport NumCache
-
 __version__ = "$Revision$"
 
 
@@ -402,7 +400,7 @@ cdef class Table(Leaf):
     cdef hsize_t *coords, coord
     cdef int ret
     cdef long nslot
-    cdef NumCache sparsecache
+    cdef object sparsecache
 
 
     # Get the chunk of the coords that correspond to a buffer
@@ -419,13 +417,16 @@ cdef class Table(Leaf):
     if self._dirtycache:
       self._restorecache()
 
-    sparsecache = <NumCache>self._sparsecache
+    sparsecache = self._sparsecache
     for nrecord from 0 <= nrecord < nrecords:
       coord = coords[nrecord]
       # Look at the cache for this coord
-      nslot = sparsecache.getslot(coord)
+      if sparsecache is not None:
+        nslot = sparsecache.getslot(coord)
+      else:
+        nslot = -1
       if nslot >= 0:
-        sparsecache.getitem2(nslot, rbuf, nrecord)
+        sparsecache.getitem2(nslot, recarr, nrecord)
       else:
         rbuf2 = <void *>(<char *>rbuf + nrecord*rowsize)
         # The coord is not in cache. Read it and put it in the LRU cache.
@@ -433,7 +434,8 @@ cdef class Table(Leaf):
                                 coord, 1, rbuf2)
         if ret < 0:
           raise HDF5ExtError("Problems reading record: %s" % (coord))
-        sparsecache.setitem(coord, rbuf, nrecord)
+        if sparsecache is not None:
+          sparsecache.setitem(coord, recarr, nrecord)
 
     # Convert some HDF5 types to NumPy after reading.
     self._convertTypes(recarr, nrecords, 1)

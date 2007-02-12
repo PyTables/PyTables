@@ -393,13 +393,13 @@ cdef class IndexArray(Array):
     cdef void *vpointer
     cdef long nslot
 
-    nslot = self.boundscache.getslot(nrow)
+    nslot = self.boundscache.getslot_(nrow)
     if nslot >= 0:
-      vpointer = self.boundscache.getitem(nslot)
+      vpointer = self.boundscache.getitem_(nslot)
     else:
       # Bounds row is not in cache. Read it and put it in the LRU cache.
       self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
-      self.boundscache.setitem(nrow, self.rbufbc, 0)
+      self.boundscache.setitem_(nrow, self.rbufbc, 0)
       vpointer = self.rbufbc
     return vpointer
 
@@ -412,13 +412,13 @@ cdef class IndexArray(Array):
 
     # Compute the number of chunk read and use it as the key for the cache.
     nckey = nrow*ncs+nchunk
-    nslot = self.sortedcache.getslot(nckey)
+    nslot = self.sortedcache.getslot_(nckey)
     if nslot >= 0:
-      vpointer = self.sortedcache.getitem(nslot)
+      vpointer = self.sortedcache.getitem_(nslot)
     else:
       # The sorted chunk is not in cache. Read it and put it in the LRU cache.
       vpointer = self._g_readSortedSlice(nrow, cs*nchunk, cs*(nchunk+1))
-      self.sortedcache.setitem(nckey, vpointer, 0)
+      self.sortedcache.setitem_(nckey, vpointer, 0)
     return vpointer
 
 
@@ -647,13 +647,13 @@ cdef class IndexArray(Array):
         # Use the cache for reading reverse coordinates
         for relcoord from 0 <= relcoord < stopl-startl:
           coord = nrow * self.l_slicesize + startl + relcoord
-          nslot = self.indicescache.getslot(coord)
+          nslot = self.indicescache.getslot_(coord)
           if nslot >= 0:
-            self.indicescache.getitem2(nslot, self.rbufA, bcoords+relcoord)
+            self.indicescache.getitem2_(nslot, self.rbufA, bcoords+relcoord)
           else:
             # The coord is not in cache. Read it and put it in the LRU cache.
             self._readIndex_single(coord, bcoords+relcoord)
-            self.indicescache.setitem(coord, self.rbufA, bcoords+relcoord)
+            self.indicescache.setitem_(coord, self.rbufA, bcoords+relcoord)
         incr = stopl - startl
         bcoords = bcoords + incr
         startcoords = startcoords + incr
@@ -691,13 +691,13 @@ cdef class IndexArray(Array):
     for relcoord from 0 <= relcoord < ncoords:
       coord = rbufC[relcoord]
       # Look at the cache for this coord
-      nslot = self.indicescache.getslot(coord)
+      nslot = self.indicescache.getslot_(coord)
       if nslot >= 0:
-        self.indicescache.getitem2(nslot, self.rbufA, relcoord)
+        self.indicescache.getitem2_(nslot, self.rbufA, relcoord)
       else:
         # The coord is not in cache. Read it and put it in the LRU cache.
         self._readIndex_single(coord, relcoord) # Puts result in self.rbufA
-        self.indicescache.setitem(coord, self.rbufA, relcoord)
+        self.indicescache.setitem_(coord, self.rbufA, relcoord)
 
     # Return ncoords as maximum because arrAbs can have more elements
     return self.arrAbs[:ncoords]

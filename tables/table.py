@@ -52,7 +52,12 @@ from tables.constants import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES, \
      LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE, TABLE_MAX_SIZE
 from tables.utilsExtension import getNestedField
 
-from tables.lrucacheExtension import ObjectCache, NumCache
+try:
+    from tables.lrucacheExtension import ObjectCache, NumCache
+except ImportError:
+    _use_caches = False
+else:
+    _use_caches = True
 
 
 __version__ = "$Revision$"
@@ -590,15 +595,19 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
 
     def _restorecache(self):
-        # Define a cache for sparse table reads
-        maxslots = TABLE_MAX_SIZE / self.rowsize
-        self._sparsecache = NumCache(
-            shape=(maxslots, 1),
-            itemsize=self.rowsize, name="sparse rows")
+        if _use_caches:
+            # Define a cache for sparse table reads
+            maxslots = TABLE_MAX_SIZE / self.rowsize
+            sparsecache = NumCache( shape=(maxslots, 1), itemsize=self.rowsize,
+                                    name="sparse rows" )
+            limdatacache = ObjectCache( LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE,
+                                        "data limits" )
+        else:
+            sparsecache = limdatacache = None
+
+        self._sparsecache = sparsecache
         """A cache for row data based on row number."""
-        self._limdatacache = ObjectCache(LIMDATA_MAX_SLOTS,
-                                         LIMDATA_MAX_SIZE,
-                                         'data limits')
+        self._limdatacache = limdatacache
         """A cache for data based on search limits and table colum."""
         self._dirtycache = False
 
@@ -1226,10 +1235,14 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
         # Check whether the array is in the limdata cache or not.
         key = (column.name, range_)
-        nslot = self._limdatacache.getslot(key)
+        limdatacache = self._limdatacache
+        if limdatacache is not None:
+            nslot = limdatacache.getslot(key)
+        else:
+            nslot = -1
         if nslot >= 0:
             # Cache hit. Use the array kept there.
-            recarr = self._limdatacache.getitem(nslot)
+            recarr = limdatacache.getitem(nslot)
             nrecords = len(recarr)
         else:
             # No luck with cached data. Proceed with the regular search.
@@ -1241,7 +1254,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 recout = self._read_elements(recarr, coords)
             # Put this recarray in limdata cache.
             size = len(recarr) * self.rowsize + 1  # approx. size of array
-            self._limdatacache.setitem(key, recarr, size)
+            if limdatacache is not None:
+                limdatacache.setitem(key, recarr, size)
 
         # Filter out rows not fulfilling the residual condition.
         rescond = splitted.residual_function

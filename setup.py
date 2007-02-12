@@ -45,7 +45,7 @@ def check_import(pkgname, pkgver):
     except ImportError:
         print_error(
             "Can't find a local %s Python installation." % pkgname,
-            "Please, read carefully the ``README`` file "
+            "Please read carefully the ``README`` file "
             "and remember that PyTables needs the %s package "
             "to compile and run." % pkgname )
         sys.exit(1)
@@ -344,35 +344,39 @@ else:
 
 #------------------------------------------------------------------------------
 
-# Set the appropriate flavor hdf5Extension.c source file:
-if pyrex:
-    hdf5Extension = "src/hdf5Extension.pyx"
-    tableExtension = "src/tableExtension.pyx"
-    indexesExtension = "src/indexesExtension.pyx"
-    utilsExtension = "src/utilsExtension.pyx"
-    lrucacheExtension = "src/lrucacheExtension.pyx"
-    _comp_lzo = "src/_comp_lzo.pyx"
-    _comp_bzip2 = "src/_comp_bzip2.pyx"
-else:
-    hdf5Extension  = "src/hdf5Extension"
-    tableExtension = "src/tableExtension"
-    indexesExtension = "src/indexesExtension"
-    utilsExtension = "src/utilsExtension"
-    lrucacheExtension = "src/lrucacheExtension"
-    _comp_lzo = "src/_comp_lzo"
-    _comp_bzip2 = "src/_comp_bzip2"
-    for ext in [hdf5Extension, tableExtension, indexesExtension,
-                utilsExtension, lrucacheExtension,
-                _comp_lzo, _comp_bzip2]:
-        if newer(ext+".pyx", ext+".c"):
-            raise RuntimeError, "The '%s.c' file does not exist or is out of date and Pyrex is not available. Please, install Pyrex in order to properly generate the extension." % ext
-    hdf5Extension += ".c"
-    tableExtension += ".c"
-    indexesExtension += ".c"
-    utilsExtension += ".c"
-    lrucacheExtension += ".c"
-    _comp_lzo += ".c"
-    _comp_bzip2 += ".c"
+pyrex_extnames = [
+    'hdf5Extension',
+    'tableExtension',
+    'utilsExtension',
+    'indexesExtension',
+    '_comp_lzo',
+    '_comp_bzip2' ]
+if VERSION.endswith('pro'):
+    pyrex_extnames.extend([
+        'lrucacheExtension' ])
+
+def get_pyrex_extfiles(extnames):
+    extdir = 'src'
+    extfiles = {}
+
+    for extname in extnames:
+        extfile = os.path.join(extdir, extname)
+        extpfile = extfile = '%s.pyx' % extfile
+        extcfile = extfile = '%s.c' % extfile
+        if not pyrex and newer(extpfile, extcfile):
+            print_error(
+                "Need Pyrex to generate extensions.",
+                "The ``%s`` file does not exist or is out of date "
+                "and Pyrex is not available. Please install Pyrex "
+                "in order to properly generate the extension."
+                % extcfile )
+        if pyrex:
+            extfiles[extname] = extpfile
+        else:
+            extfiles[extname] = extcfile
+    return extfiles
+
+pyrex_extfiles = get_pyrex_extfiles(pyrex_extnames)
 
 # Update the version.h file if this file is newer
 if newer('VERSION', 'src/version.h'):
@@ -450,6 +454,96 @@ for (package, complibs) in [
     if package.tag in optional_libs:
         complibs.extend([hdf5_package.library_name, package.library_name])
 
+extensions = [
+    Extension( "tables.hdf5Extension",
+               include_dirs=inc_dirs,
+               define_macros=def_macros,
+               sources=[ pyrex_extfiles['hdf5Extension'],
+                         "src/utils.c",
+                         "src/H5ARRAY.c",
+                         "src/H5ARRAY-opt.c",
+                         "src/H5VLARRAY.c",
+                         "src/H5ATTR.c" ],
+               library_dirs=lib_dirs,
+               libraries=hdf5Extension_libs,
+               extra_link_args=LFLAGS,
+               extra_compile_args=CFLAGS ),
+
+    Extension( "tables.tableExtension",
+               include_dirs=inc_dirs,
+               define_macros=def_macros,
+               sources=[ pyrex_extfiles['tableExtension'],
+                         "src/H5ATTR.c",
+                         "src/H5TB-opt.c",
+                         "src/utils.c" ],
+               library_dirs=lib_dirs,
+               libraries=tableExtension_libs,
+               extra_link_args=LFLAGS,
+               extra_compile_args=CFLAGS ),
+
+    Extension( "tables.indexesExtension",
+               include_dirs=inc_dirs,
+               define_macros=def_macros,
+               sources = [ pyrex_extfiles['indexesExtension'],
+                           "src/H5ARRAY-opt.c",
+                           "src/idx-opt.c" ],
+               library_dirs=lib_dirs,
+               libraries=indexesExtension_libs,
+               extra_link_args=LFLAGS,
+               extra_compile_args=CFLAGS ),
+
+    Extension( "tables.utilsExtension",
+               include_dirs=inc_dirs,
+               define_macros=def_macros,
+               sources=[ pyrex_extfiles['utilsExtension'],
+                         "src/utils.c",
+                         "src/typeconv.c",
+                         "src/H5ARRAY.c",
+                         "src/H5ATTR.c" ],
+               library_dirs=lib_dirs,
+               libraries=utilsExtension_libs,
+               extra_link_args=LFLAGS,
+               extra_compile_args=CFLAGS ),
+
+    Extension( "tables._comp_lzo",
+               include_dirs=inc_dirs,
+               define_macros=def_macros,
+               sources=[ pyrex_extfiles['_comp_lzo'],
+                         "src/H5Zlzo.c" ],
+               library_dirs=lib_dirs,
+               libraries=_comp_lzo_libs,
+               extra_link_args=LFLAGS,
+               extra_compile_args=CFLAGS ),
+
+    Extension( "tables._comp_bzip2",
+               include_dirs=inc_dirs,
+               define_macros=def_macros,
+               sources=[ pyrex_extfiles['_comp_bzip2'],
+                         "src/H5Zbzip2.c" ],
+               library_dirs=lib_dirs,
+               libraries=_comp_bzip2_libs,
+               extra_link_args=LFLAGS,
+               extra_compile_args=CFLAGS ),
+
+    Extension( "tables.numexpr.interpreter",
+               include_dirs=inc_dirs,
+               sources=["tables/numexpr/interpreter.c"],
+               depends=[ "tables/numexpr/interp_body.c",
+                         "tables/numexpr/complex_functions.inc" ] ),
+    ]
+
+if 'lrucacheExtension' in pyrex_extnames:
+    extensions.append(
+        Extension( "tables.lrucacheExtension",
+                   include_dirs=inc_dirs,
+                   define_macros=def_macros,
+                   sources=[pyrex_extfiles['lrucacheExtension']],
+                   library_dirs=lib_dirs,
+                   libraries=lrucacheExtension_libs,
+                   extra_link_args=LFLAGS,
+                   extra_compile_args=CFLAGS ) )
+
+
 classifiers = """\
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
@@ -484,99 +578,7 @@ interactively save and retrieve large amounts of data.
       url = 'http://www.pytables.org/',
       license = 'http://www.opensource.org/licenses/bsd-license.php',
       platforms = ['any'],
-      ext_modules = [ Extension("tables.hdf5Extension",
-                                include_dirs = inc_dirs,
-                                define_macros = def_macros,
-                                sources = [hdf5Extension,
-                                           "src/utils.c",
-                                           "src/H5ARRAY.c",
-                                           "src/H5ARRAY-opt.c",
-                                           "src/H5VLARRAY.c",
-                                           "src/H5ATTR.c",
-                                           ],
-                                library_dirs = lib_dirs,
-                                libraries = hdf5Extension_libs,
-                                extra_link_args = LFLAGS,
-                                extra_compile_args = CFLAGS,
-                                ),
-                       Extension("tables.tableExtension",
-                                include_dirs = inc_dirs,
-                                define_macros = def_macros,
-                                sources = [tableExtension,
-                                           "src/H5ATTR.c",
-                                           "src/H5TB-opt.c",
-                                           "src/utils.c",
-                                           ],
-                                library_dirs = lib_dirs,
-                                libraries = tableExtension_libs,
-                                extra_link_args = LFLAGS,
-                                extra_compile_args = CFLAGS,
-                                ),
-                       Extension("tables.indexesExtension",
-                                include_dirs = inc_dirs,
-                                define_macros = def_macros,
-                                sources = [indexesExtension,
-                                           "src/H5ARRAY-opt.c",
-                                           "src/idx-opt.c",
-                                           ],
-                                library_dirs = lib_dirs,
-                                libraries = indexesExtension_libs,
-                                extra_link_args = LFLAGS,
-                                extra_compile_args = CFLAGS,
-                                ),
-                       Extension("tables.utilsExtension",
-                                include_dirs = inc_dirs,
-                                define_macros = def_macros,
-                                sources = [utilsExtension,
-                                           "src/utils.c",
-                                           "src/typeconv.c",
-                                           "src/H5ARRAY.c",
-                                           "src/H5ATTR.c",
-                                           ],
-                                library_dirs = lib_dirs,
-                                libraries = utilsExtension_libs,
-                                extra_link_args = LFLAGS,
-                                extra_compile_args = CFLAGS,
-                                ),
-                       Extension("tables.lrucacheExtension",
-                                include_dirs = inc_dirs,
-                                define_macros = def_macros,
-                                sources = [lrucacheExtension,
-                                           ],
-                                library_dirs = lib_dirs,
-                                libraries = lrucacheExtension_libs,
-                                extra_link_args = LFLAGS,
-                                extra_compile_args = CFLAGS,
-                                ),
-                       Extension("tables._comp_lzo",
-                                include_dirs = inc_dirs,
-                                define_macros = def_macros,
-                                sources = [_comp_lzo,
-                                           "src/H5Zlzo.c",
-                                           ],
-                                library_dirs = lib_dirs,
-                                libraries = _comp_lzo_libs,
-                                extra_link_args = LFLAGS,
-                                extra_compile_args = CFLAGS,
-                                ),
-                       Extension("tables._comp_bzip2",
-                                include_dirs = inc_dirs,
-                                define_macros = def_macros,
-                                sources = [_comp_bzip2,
-                                           "src/H5Zbzip2.c",
-                                           ],
-                                library_dirs = lib_dirs,
-                                libraries = _comp_bzip2_libs,
-                                extra_link_args = LFLAGS,
-                                extra_compile_args = CFLAGS,
-                                ),
-                       Extension("tables.numexpr.interpreter",
-                                include_dirs = inc_dirs,
-                                sources=["tables/numexpr/interpreter.c"],
-                                depends=["tables/numexpr/interp_body.c",
-                                         "tables/numexpr/complex_functions.inc"],
-                                ),
-                      ],
+      ext_modules = extensions,
       cmdclass = cmdclass,
 
       **setuptools_kwargs

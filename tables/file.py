@@ -41,8 +41,6 @@ import sys
 import weakref
 
 import tables.misc.proxydict
-#import tables.misc.lrucache  # useful for debugging
-from tables import lrucacheExtension
 from tables import hdf5Extension
 from tables import utilsExtension
 from tables.constants import \
@@ -64,6 +62,14 @@ from tables.array import Array
 from tables.carray import CArray
 from tables.earray import EArray
 from tables.vlarray import VLArray
+
+try:
+    from tables import lrucacheExtension
+except ImportError:
+    from tables.misc import lrucache
+    _LRUCache = lrucache.LRUCache
+else:
+    _LRUCache = lrucacheExtension.NodeCache
 
 
 
@@ -253,20 +259,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 
 
-#class _DeadNodes(tables.misc.lrucache.LRUCache):  # useful for debugging
-class _DeadNodes(lrucacheExtension.NodeCache):
+class _DeadNodes(_LRUCache):
     pass
-
 
 # A dumb class that doesn't keep nothing at all
 class _NoDeadNodes(object):
-
     def __len__(self):
         return 0
-
     def __contains__(self, key):
         return False
-
     def __iter__(self):
         return iter([])
 

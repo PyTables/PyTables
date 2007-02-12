@@ -54,11 +54,11 @@ cdef class NumCache(BaseCache):
   cdef unsigned short *rindices
   cdef removeslot_(self, long nslot)
   cdef addslot_(self, long nslot, long start, long long key, void *data)
-  cdef long setitem(self, long long key, void *data, long start)
-  cdef long slotlookup(self, unsigned short x)
-  cdef long getslot(self, long long key)
-  cdef void *getitem(self, long nslot)
-  cdef long getitem2(self, long nslot, void *data, long start)
+  cdef long setitem_(self, long long key, void *data, long start)
+  cdef long slotlookup_(self, unsigned short x)
+  cdef long getslot_(self, long long key)
+  cdef void *getitem_(self, long nslot)
+  cdef long getitem2_(self, long nslot, void *data, long start)
 
 
 
