@@ -252,6 +252,12 @@ be zero."""
             self.byteorder = correct_byteorder(atom.type, sys.byteorder)
 
         self._v_objectID = self._createArray(self._v_new_title)
+
+        # Add an attribute in case we have a pseudo-atom so that we
+        # can retrieve the proper class after a re-opening operation.
+        if atom.kind in ('vlstring', 'object'):
+            self.attrs.PSEUDOATOM = atom.kind
+
         return self._v_objectID
 
 
@@ -260,20 +266,24 @@ be zero."""
 
         self._v_objectID, self.nrows, self._v_chunkshape = self._openArray()
 
-        kind, itemsize = split_type(self._atomictype)
-        if kind == 'vlstring':
-            atom = VLStringAtom()
-        elif kind == 'object':
-            atom = ObjectAtom()
-        elif kind == 'enum':
-            dflt = iter(self._enum).next()[0]  # ignored, any of them is OK
-            base = Atom.from_dtype(self._atomicdtype)
-            atom = EnumAtom(self._enum, dflt, base, shape=self._atomicshape)
+        if "PSEUDOATOM" in self.attrs:
+            kind = self.attrs.PSEUDOATOM
+            if kind == 'vlstring':
+                atom = VLStringAtom()
+            elif kind == 'object':
+                atom = ObjectAtom()
         else:
-            if itemsize is None:  # some types don't include precision
-                itemsize = self._atomicdtype.itemsize
-            shape = self._atomicshape
-            atom = Atom.from_kind(kind, itemsize, shape=shape)
+            kind, itemsize = split_type(self._atomictype)
+            if kind == 'enum':
+                dflt = iter(self._enum).next()[0]  # ignored, any of them is OK
+                base = Atom.from_dtype(self._atomicdtype)
+                atom = EnumAtom(self._enum, dflt, base,
+                                shape=self._atomicshape)
+            else:
+                if itemsize is None:  # some types don't include precision
+                    itemsize = self._atomicdtype.itemsize
+                shape = self._atomicshape
+                atom = Atom.from_kind(kind, itemsize, shape=shape)
 
         self.atom = atom
         return self._v_objectID

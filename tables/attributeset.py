@@ -48,7 +48,8 @@ __version__ = "$Revision$"
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
              "FLAVOR", "ENCODING", "PYTABLES_FORMAT_VERSION",
              "FILTERS", "AUTO_INDEX",
-             "DIRTY", "NODE_TYPE", "NODE_TYPE_VERSION"]
+             "DIRTY", "NODE_TYPE", "NODE_TYPE_VERSION",
+             "PSEUDOATOM"]
 # Prefixes of other system attributes
 SYS_ATTRS_PREFIXES = ["FIELD_"]
 # RO_ATTRS will be disabled and let the user modify them if they
