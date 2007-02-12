@@ -3674,6 +3674,16 @@ $ ptdump -d nested-tut.h5
                 <para>The underlying HDF5 library version number.</para>
               </glossdef>
             </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis
+              role="bold">is_pro</emphasis></glossterm>
+
+              <glossdef>
+                <para>True for PyTables Professional edition, false
+                otherwise.</para>
+              </glossdef>
+            </glossentry>
           </glosslist>
         </section>
 

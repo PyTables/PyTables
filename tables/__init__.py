@@ -24,6 +24,7 @@ Misc variables:
 
     __version__
     hdf5Version
+    is_pro
 
 """
 
@@ -32,6 +33,7 @@ from tables.utilsExtension import getPyTablesVersion, getHDF5Version
 
 __version__ = getPyTablesVersion()
 hdf5Version = getHDF5Version()
+is_pro = __version__.endswith('pro')
 
 from tables.utilsExtension import isHDF5File, isPyTablesFile, whichLibVersion
 

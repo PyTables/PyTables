@@ -6,6 +6,7 @@ import random
 
 import numpy
 
+import tables
 from tables import *
 from tables.indexes import calcChunksize, minRowIndex
 from tables.tests.common import verbose, allequal, heavy, cleanup
@@ -784,6 +785,9 @@ class SelectValuesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05a..." % self.__class__.__name__
 
+        if not tables.is_pro:
+            return
+
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
 
@@ -877,6 +881,9 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test05b..." % self.__class__.__name__
+
+        if not tables.is_pro:
+            return
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -972,6 +979,9 @@ class SelectValuesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test06a..." % self.__class__.__name__
 
+        if not tables.is_pro:
+            return
+
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
 
@@ -998,6 +1008,9 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test06b..." % self.__class__.__name__
+
+        if not tables.is_pro:
+            return
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1026,6 +1039,9 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test07a..." % self.__class__.__name__
+
+        if not tables.is_pro:
+            return
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1121,6 +1137,9 @@ class SelectValuesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test07b..." % self.__class__.__name__
 
+        if not tables.is_pro:
+            return
+
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
 
@@ -1214,6 +1233,9 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test08a..." % self.__class__.__name__
+
+        if not tables.is_pro:
+            return
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1310,6 +1332,9 @@ class SelectValuesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test08b..." % self.__class__.__name__
 
+        if not tables.is_pro:
+            return
+
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
 
@@ -1403,6 +1428,9 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test09a..." % self.__class__.__name__
+
+        if not tables.is_pro:
+            return
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1504,6 +1532,9 @@ class SelectValuesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test09b..." % self.__class__.__name__
 
+        if not tables.is_pro:
+            return
+
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
 
@@ -1586,6 +1617,9 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test09c..." % self.__class__.__name__
+
+        if not tables.is_pro:
+            return
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1683,6 +1717,9 @@ class SelectValuesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test09d..." % self.__class__.__name__
 
+        if not tables.is_pro:
+            return
+
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
 
@@ -1778,6 +1815,9 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test10a..." % self.__class__.__name__
+
+        if not tables.is_pro:
+            return
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -1891,6 +1931,9 @@ class SelectValuesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test10b..." % self.__class__.__name__
 
+        if not tables.is_pro:
+            return
+
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
 
@@ -1984,6 +2027,9 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test10c..." % self.__class__.__name__
+
+        if not tables.is_pro:
+            return
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
@@ -2079,6 +2125,9 @@ class SelectValuesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test10d..." % self.__class__.__name__
 
+        if not tables.is_pro:
+            return
+
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2
 
@@ -2172,6 +2221,9 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test11a..." % self.__class__.__name__
+
+        if not tables.is_pro:
+            return
 
         table1 = self.fileh.root.table1
         table2 = self.fileh.root.table2

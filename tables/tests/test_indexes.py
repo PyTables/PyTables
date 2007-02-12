@@ -5,6 +5,7 @@ import warnings
 import sys
 import copy
 
+import tables
 from tables import *
 from tables.index import Index, defaultAutoIndex, defaultIndexFilters
 from tables.indexes import calcChunksize, minRowIndex
@@ -84,6 +85,9 @@ class BasicTestCase(PyTablesTestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_readIndex..." % self.__class__.__name__
 
+        if not tables.is_pro:
+            return
+
         # Open the HDF5 file in append mode
         self.fileh = openFile(self.file, mode = "a")
         table = self.fileh.root.table
@@ -109,6 +113,9 @@ class BasicTestCase(PyTablesTestCase):
         if verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_readIndex..." % self.__class__.__name__
+
+        if not tables.is_pro:
+            return
 
         # Open the HDF5 file in read-only mode
         self.fileh = openFile(self.file, mode = "r")

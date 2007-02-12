@@ -636,6 +636,10 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
     def test(self):
         """Using indexing in some queries."""
+
+        if not tables.is_pro:
+            raise tests.SkipTest("Using indexing in queries is not supported.")
+
         willQueryUseIndexing = self.table.willQueryUseIndexing
         for condition in self.conditions:
             self.assert_( willQueryUseIndexing(condition, {'var': 0}),
