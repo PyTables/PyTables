@@ -926,10 +926,9 @@ cdef class Row:
     # this should not take many memory resources.
     field = getNestedFieldCache(self.rfields, fieldName, self.rfieldscache)
 
-    # Optimization follows for the case that the field dimension is
-    # == 1, i.e. columns elements are scalars, and the column is not
-    # of String type. This code accelerates the access to column
-    # elements a 20%
+    # Optimization follows for the case that the field dimension is == 1
+    # i.e. columns elements are scalars. This code accelerates the access
+    # to column elements a 20%
     if field.nd == 1:
       #return field[self._row]
       # Optimization for numpy
@@ -995,6 +994,20 @@ cdef class Row:
       # F. Altet 2005-04-25
       self.rfields = self.wfields
       self._row = self._unsaved_nrows
+
+
+  def fetch_all_fields(self):
+    """Retrieve all the fields in the current row."""
+
+    # We need to do a cast for recognizing negative row numbers!
+    if <signed long long>self._nrow < 0:
+      return "Warning: Row iterator has not been initialized for table:\n  %s\n %s" % \
+             (self.table, \
+    "You will normally want to use this method in iterator contexts.")
+
+    # Always return a copy of the row so that new data that is written
+    # in self.rbufRA doesn't overwrite the original returned data.
+    return self.rbufRA[self._row].copy()
 
 
   def __str__(self):

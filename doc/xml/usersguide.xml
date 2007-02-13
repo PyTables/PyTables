@@ -7488,13 +7488,15 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
               row, calling this method actually append these new data to the
               disk (actually data are written to the output buffer).</para>
 
-              <para>Example of use: <screen>row = table.row
+              <para>Example of use:
+              <screen>
+row = table.row
 for i in xrange(nrows):
     row['col1'] = i-1
     row['col2'] = 'a'
     row['col3'] = -1.0
     row.append()
-table.flush()</screen> Please, note that, after the loop in which
+table.flush() </screen> Please, note that, after the loop in which
               <literal>Row.append()</literal> has been called, it is always
               convenient to make a call to <literal>Table.flush()</literal> in
               order to avoid losing the last rows that can be in internal
@@ -7514,18 +7516,34 @@ table.flush()</screen> Please, note that, after the loop in which
               these data to the disk (actually data are written to the output
               buffer).</para>
 
-              <para>Example of use: <screen>for row in table.iterrows(step=10):
+              <para>Example of use:
+              <screen>
+for row in table.iterrows(step=10):
     row['col1'] = row.nrow
     row['col2'] = 'b'
     row['col3'] = 0.0
     row.update()</screen> which modifies every tenth row in table. Or:
-              <screen>for row in table.where('col1 &gt; 3'):
+              <screen>
+for row in table.where('col1 &gt; 3'):
     row['col1'] = row.nrow
     row['col2'] = 'b'
     row['col3'] = 0.0
     row.update()</screen> which just updates the rows with values in first
               column bigger than 3.</para>
             </section>
+
+            <section id="Row.fetch_all_fields" xreflabel="description">
+              <title>fetch_all_fields()</title>
+
+              <para>Retrieve all the fields in the current row.</para>
+
+              <para>Example of use:
+              <screen>
+[ row.fetch_all_fields() for row in table.where('col1 < 0.3') ]
+              </screen> which select all the rows that fullfills a certain
+              condition.</para>
+            </section>
+
           </section>
         </section>
       </section>

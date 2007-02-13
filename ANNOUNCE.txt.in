@@ -17,6 +17,11 @@ Improvements:
 
 *** Escomençar ací a posar dings & bells ***
 
+- Row has received a new method called ``fetch_all_rows`` in order to
+  easily retrieve all the fields of a row in situations like:
+
+[row.fetch_all_rows() for row in table.where('column1 < 0.3')]
+
 - Now, all the data that is read from disk is converted, if necessary,
   to the native byteorder of the hosting machine (before, this only
   happened with Table objects). This should help to accelerate apps that
