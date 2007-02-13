@@ -63,7 +63,7 @@ def calc_chunksize(expectedsizeinMB):
     always, your mileage may vary.
     """
 
-    basesize = 1024
+    basesize = 1024*4   # 4KB is one page of memory
     if expectedsizeinMB < 1:
         # Values for files less than 1 MB of size
         chunksize = basesize
@@ -79,8 +79,12 @@ def calc_chunksize(expectedsizeinMB):
           expectedsizeinMB < 1000):
         # Values for sizes between 100 MB and 1 GB
         chunksize = 8 * basesize
-    else:  # Greater than 1 GB
+    elif (expectedsizeinMB >= 1000 and
+          expectedsizeinMB < 10000):
+        # Values for sizes between 1 GB and 10 GB
         chunksize = 16 * basesize
+    else:  # Greater than 10 GB
+        chunksize = 32 * basesize
 
     return chunksize
 
