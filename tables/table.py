@@ -538,7 +538,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 "table ``%s`` has columns indexed with PyTables 1.x format. "
                 "Unfortunately, this format is not supported in "
                 "PyTables 2.x series. If you want to continue using "
-                "indexation in 2.x, please, consider buying the PyTables Pro "
+                "indexation in 2.x, please, consider using the PyTables Pro "
                 "version (http://www.carabos.com/products/pytables-pro). "
                 "Note that you can use the ``ptrepack`` utility in order "
                 "to recreate the indexes (only with the Pro version). "
