@@ -232,6 +232,8 @@ class BaseTableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
                 raise tests.SkipTest(
                     "Columns of this type can not be indexed." )
             raise
+        except tables.NoIndexingError:
+            raise tests.SkipTest("Indexing is not supported.")
         except NotImplementedError:
             raise tests.SkipTest(
                 "Indexing columns of this type is not supported yet." )
@@ -636,10 +638,6 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
     def test(self):
         """Using indexing in some queries."""
-
-        if not tables.is_pro:
-            raise tests.SkipTest("Using indexing in queries is not supported.")
-
         willQueryUseIndexing = self.table.willQueryUseIndexing
         for condition in self.conditions:
             self.assert_( willQueryUseIndexing(condition, {'var': 0}),
@@ -667,7 +665,8 @@ def suite():
         # Tests on query usage.
         testSuite.addTest(unittest.makeSuite(ScalarTableUsageTestCase))
         testSuite.addTest(unittest.makeSuite(MDTableUsageTestCase))
-        testSuite.addTest(unittest.makeSuite(IndexedTableUsageTestCase))
+        if tables.is_pro:
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsageTestCase))
 
     return testSuite
 

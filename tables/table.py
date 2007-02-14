@@ -41,9 +41,7 @@ from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.path import joinPath, splitPath
 from tables.utils import is_idx
 from tables.leaf import Leaf, Filters
-from tables.index import (
-    Index, defaultAutoIndex, defaultIndexFilters,
-    IndexesTableG, IndexesDescG, OldIndexesTableG )
+from tables.index import defaultAutoIndex, defaultIndexFilters
 from tables.description import IsDescription, Description, Col
 from tables.atom import Atom
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
@@ -52,13 +50,36 @@ from tables.parameters import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES
 from tables.utilsExtension import getNestedField
 
 try:
-    from _table_pro import (
+    from tables.index import Index, IndexesDescG
+    from tables.index import IndexesTableG, OldIndexesTableG
+    from tables._table_pro import (
         NailedDict, _table__restorecache,
         _table__readWhere, _table__getWhereList )
 except ImportError:
+    from tables.exceptions import NoIndexingError, NoIndexingWarning
+    from tables.node import NotLoggedMixin
+    from tables.group import Group
+
+    # The following two classes are registered to avoid extra warnings
+    # when checking for indexes and to avoid logging node renames and
+    # the like on them.
+    class IndexesTableG(NotLoggedMixin, Group):
+        _c_classId = 'TINDEX'
+    class OldIndexesTableG(NotLoggedMixin, Group):
+        _c_classId = 'CINDEX'
+
     NailedDict = dict
+
     def _table__restorecache(self):
         pass
+
+    def _checkIndexingAvailable():
+        raise NoIndexingError
+    _is_pro = False
+else:
+    def _checkIndexingAvailable():
+        pass
+    _is_pro = True
 
 
 __version__ = "$Revision$"
@@ -214,6 +235,7 @@ class Table(tableExtension.Table, Leaf):
     # Index-related properties
     # ````````````````````````
     def _setautoIndex(self, auto):
+        _checkIndexingAvailable()
         auto = bool(auto)
         try:
             indexgroup = self._v_file._getNode(_indexPathnameOf(self))
@@ -249,6 +271,7 @@ class Table(tableExtension.Table, Leaf):
         """ )
 
     def _setindexFilters(self, filters):
+        _checkIndexingAvailable()
         if not isinstance(filters, Filters):
             raise TypeError("not an instance of ``Filters``: %r" % filters)
         try:
@@ -515,6 +538,10 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             if igroup:
                 indexname = _indexPathnameOfColumn(self, colname)
                 indexed = indexname in self._v_file
+                if indexed and not _is_pro:
+                    warnings.warn( "table ``%s`` has column indexes"
+                                   % self._v_pathname, NoIndexingWarning )
+                    indexed = False
                 self.colindexed[colname] = indexed
                 if indexed:
                     column = self.cols._g_col(colname)
@@ -533,15 +560,12 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             if indexed:
                 self.indexed = True
 
-        if oldindexes:
+        if oldindexes:  # this should only appear under 2.x Pro
             warnings.warn(
-                "table ``%s`` has columns indexed with PyTables 1.x format. "
+                "table ``%s`` has column indexes with PyTables 1.x format. "
                 "Unfortunately, this format is not supported in "
-                "PyTables 2.x series. If you want to continue using "
-                "indexation in 2.x, please, consider using the PyTables Pro "
-                "version (http://www.carabos.com/products/pytables-pro). "
-                "Note that you can use the ``ptrepack`` utility in order "
-                "to recreate the indexes (only with the Pro version). "
+                "PyTables 2.x series. Note that you can use the "
+                "``ptrepack`` utility in order to recreate the indexes. "
                 "The 1.x indexed columns found are: %s" %
                 (self._v_pathname, listoldindexes),
                 OldIndexWarning )
@@ -2679,6 +2703,8 @@ class Column(object):
             any; otherwise, default index filters will be used.
         """
 
+        _checkIndexingAvailable()
+
         name = self.name
         table = self.table
         tableName = table._v_name
@@ -2823,6 +2849,8 @@ column '%s' is not indexed, so it can't be optimized."""
         If the column is not indexed, nothing happens.  The index can be
         created again by calling the `self.createIndex()` method.
         """
+
+        _checkIndexingAvailable()
 
         self._tableFile._checkWritable()
 

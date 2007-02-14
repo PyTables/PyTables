@@ -7,6 +7,7 @@ from numarray import strings
 from numarray import records
 from numarray import *
 
+import tables
 from tables import *
 from tables import nra
 from tables.tests.common import verbose, allequal, cleanup, heavy
@@ -681,7 +682,8 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         """Checking the return of numarray in readWhere method (strings)."""
 
         table = self.fileh.root.table
-        table.cols.color.createIndex(warn=True, testmode=True)
+        if tables.is_pro:
+            table.cols.color.createIndex(warn=True, testmode=True)
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -699,7 +701,8 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         """Checking the return of numarray in readWhere method (numeric)."""
 
         table = self.fileh.root.table
-        table.cols.z.createIndex(warn=1, testmode=1)
+        if tables.is_pro:
+            table.cols.z.createIndex(warn=1, testmode=1)
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")

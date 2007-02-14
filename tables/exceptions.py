@@ -39,6 +39,10 @@ Classes:
     Unsupported or unavailable flavor or flavor conversion.
 `FlavorWarning`
     Unsupported or unavailable flavor conversion.
+`NoIndexingError`
+    Indexing is not supported.
+`NoIndexingWarning`
+    Indexing is not supported.
 `OldIndexWarning`
     Unsupported index format.
 """
@@ -203,6 +207,37 @@ class FlavorWarning(Warning):
     See the `FlavorError` class for more information.
     """
     pass
+
+
+_no_indexing_message = (
+    "This version of PyTables does not support indexing. "
+    "Please consider using the PyTables Pro edition "
+    "(http://www.carabos.com/products/pytables-pro)." )
+
+class NoIndexingError(NotImplementedError):
+    """
+    Indexing is not supported.
+
+    This exception is raised when an indexing-related operation is
+    requested under a version of PyTables which does not support
+    indexing.  Please consider using the PyTables Pro edition
+    (http://www.carabos.com/products/pytables-pro).
+    """
+    def __init__(self):
+        NotImplementedError.__init__(self, _no_indexing_message)
+
+class NoIndexingWarning(Warning):
+    """
+    Indexing is not supported.
+
+    This warning is issued when opening an indexed table under a version
+    of PyTables which does not support indexing.  Please consider using
+    the PyTables Pro edition
+    (http://www.carabos.com/products/pytables-pro).
+    """
+    def __init__(self, message):
+        message = '%s. %s' % (message, _no_indexing_message)
+        Warning.__init__(self, message)
 
 class OldIndexWarning(Warning):
     """

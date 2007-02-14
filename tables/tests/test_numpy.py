@@ -6,6 +6,7 @@ import numpy
 
 from numpy import *
 
+import tables
 from tables import *
 from tables.tests.common import verbose, allequal, cleanup, heavy
 from tables.tests import common
@@ -699,7 +700,8 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         """Checking the return of NumPy in readWhere method (strings)."""
 
         table = self.fileh.root.table
-        table.cols.color.createIndex(warn=1, testmode=1)
+        if tables.is_pro:
+            table.cols.color.createIndex(warn=1, testmode=1)
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -717,7 +719,8 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         """Checking the return of NumPy in readWhere method (numeric)."""
 
         table = self.fileh.root.table
-        table.cols.z.createIndex(warn=1, testmode=1)
+        if tables.is_pro:
+            table.cols.z.createIndex(warn=1, testmode=1)
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
