@@ -40,11 +40,8 @@ class HDF5CompatibilityTestCase(common.PyTablesTestCase):
 
 
     def test(self):
-        # There should be a warning telling the user
-        # this is a plain HDF5 file, but not a PyTables one.
         self.h5fname = self._testFilename(self.h5fname)
-        self.h5file = self.assertWarns(
-            UserWarning, tables.openFile, self.h5fname)
+        self.h5file = tables.openFile(self.h5fname)
         self._test()
 
 
@@ -250,8 +247,7 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
         self.assert_('/test_var/structure variable' in self.h5file)
         self.h5file.close()
         # Reopen in 'a'ppend mode
-        self.h5file = self.assertWarns(
-            UserWarning, tables.openFile, self.h5fname, 'a')
+        self.h5file = tables.openFile(self.h5fname, 'a')
         tbl = self.h5file.getNode('/test_var/structure variable')
         # Try to add rows to a non-chunked table (this should raise an error)
         self.assertRaises(tables.HDF5ExtError, tbl.append,

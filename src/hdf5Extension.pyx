@@ -268,10 +268,14 @@ cdef class File:
       if not isPyTablesFile(name):
         if isHDF5File(name):
           # HDF5 but not PyTables.
-          warnings.warn("file ``%s`` is a valid HDF5 file, " \
-                        "but is not in PyTables format; " \
-                        "attempting to determine its contents " \
-                        "by using the HDF5 metadata" % name)
+          # I'm going to disable the next warning because
+          # it should be enough to map unsupported objects to
+          # UnImplemented class.
+          # F. Altet 2007-02-14
+#           warnings.warn("file ``%s`` is a valid HDF5 file, " \
+#                         "but is not in PyTables format; " \
+#                         "attempting to determine its contents " \
+#                         "by using the HDF5 metadata" % name)
           self._isPTFile = False
         else:
           # The file is not even HDF5.
