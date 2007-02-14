@@ -43,7 +43,7 @@ from tables.utils import is_idx
 from tables.leaf import Leaf, Filters
 from tables.index import (
     Index, defaultAutoIndex, defaultIndexFilters,
-    IndexesTableG, IndexesDescG, IndexesColumnBackCompatG )
+    IndexesTableG, IndexesDescG, OldIndexesTableG )
 from tables.description import IsDescription, Description, Col
 from tables.atom import Atom
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
@@ -519,7 +519,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 if indexed:
                     column = self.cols._g_col(colname)
                     indexobj = column.index
-                    if isinstance(indexobj, IndexesColumnBackCompatG):
+                    if isinstance(indexobj, OldIndexesTableG):
                         indexed = False  # Not a vaild index
                         oldindexes = True
                         listoldindexes.append(colname)
