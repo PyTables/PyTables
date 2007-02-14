@@ -8,7 +8,7 @@
 #
 ########################################################################
 
-"""Here is defined the Table class (index)."""
+"""Here is defined the Table class (pro)."""
 
 from tables.parameters import (
     TABLE_MAX_SIZE, LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE )

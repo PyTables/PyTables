@@ -25,7 +25,7 @@ from tables.utilsExtension import getNestedField
 from tables._conditions_common import _unsupported_operation_error
 
 try:
-    from _conditions_index import _split_expression
+    from _conditions_pro import _split_expression
 except ImportError:
     def _split_expression(exprnode, indexedcols):
         return (None, [], [], exprnode)

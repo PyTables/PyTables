@@ -52,7 +52,7 @@ from tables.parameters import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES
 from tables.utilsExtension import getNestedField
 
 try:
-    from _table_index import _table__restorecache, _table__readWhere
+    from _table_pro import _table__restorecache, _table__readWhere
 except ImportError:
     def _table__restorecache(self):
         pass

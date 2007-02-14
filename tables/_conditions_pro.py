@@ -1,5 +1,5 @@
 """
-Utility functions and classes for supporting query conditions (index).
+Utility functions and classes for supporting query conditions (pro).
 
 :Author:   Ivan Vilata i Balaguer
 :Contact:  ivilata@carabos.com
