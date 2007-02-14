@@ -34,7 +34,7 @@ import warnings
 import numpy
 
 from tables import tableExtension
-from tables.conditions import split_condition, call_on_recarr
+from tables.conditions import split_condition
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
@@ -52,7 +52,9 @@ from tables.parameters import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES
 from tables.utilsExtension import getNestedField
 
 try:
-    from _table_pro import NailedDict, _table__restorecache, _table__readWhere
+    from _table_pro import (
+        NailedDict, _table__restorecache,
+        _table__readWhere, _table__getWhereList )
 except ImportError:
     NailedDict = dict
     def _table__restorecache(self):
@@ -1228,37 +1230,13 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
         # Take advantage of indexation, if present
         idxvar = splitted.index_variable
-        if idxvar is not None:
-            index = condvars[idxvar].index
-            assert index is not None, "the chosen column is not indexed"
-            assert not index.dirty, "the chosen column has a dirty index"
-
-            # get the number of coords and set-up internal variables
-            range_ = index.getLookupRange(
-                splitted.index_operators, splitted.index_limits, self )
-            ncoords = index.search(range_)
-            if ncoords > 0:
-                coords = index.indices._getCoords_sparse(index, ncoords)
-                # Get a copy of the internal buffer to handle it to the user
-                coords = coords.copy()
-            else:
-                #coords = numpy.empty(type=numpy.int64, shape=0)
-                coords = self._getemptyarray("int64")
-
-            # Filter out rows not fulfilling the residual condition.
-            rescond = splitted.residual_function
-            if rescond and ncoords > 0:
-                indexValid = call_on_recarr(
-                    rescond, splitted.residual_parameters,
-                    recarr=self._readCoordinates(coords),
-                    param2arg=condvars.__getitem__ )
-                coords = coords[indexValid]
-                ncoords = len(coords)
-        else:
+        if idxvar is None:
             coords = [p.nrow for p in self._where(splitted, condvars)]
             coords = numpy.array(coords, dtype=numpy.int64)
             # Reset the conditions
             self._whereCondition = None
+        else:
+            coords = _table__getWhereList(self, splitted, condvars)
         if sort:
             coords = numpy.sort(coords)
         return internal_to_flavor(coords, self.flavor)

@@ -121,3 +121,32 @@ def _table__readWhere(self, splitted, condvars, field):
     if field:
         recarr = getNestedField(recarr, field)
     return internal_to_flavor(recarr, self.flavor)
+
+def _table__getWhereList(self, splitted, condvars):
+    idxvar = splitted.index_variable
+    index = condvars[idxvar].index
+    assert index is not None, "the chosen column is not indexed"
+    assert not index.dirty, "the chosen column has a dirty index"
+
+    # get the number of coords and set-up internal variables
+    range_ = index.getLookupRange(
+        splitted.index_operators, splitted.index_limits, self )
+    ncoords = index.search(range_)
+    if ncoords > 0:
+        coords = index.indices._getCoords_sparse(index, ncoords)
+        # Get a copy of the internal buffer to handle it to the user
+        coords = coords.copy()
+    else:
+        #coords = numpy.empty(type=numpy.int64, shape=0)
+        coords = self._getemptyarray("int64")
+
+    # Filter out rows not fulfilling the residual condition.
+    rescond = splitted.residual_function
+    if rescond and ncoords > 0:
+        indexValid = call_on_recarr(
+            rescond, splitted.residual_parameters,
+            recarr=self._readCoordinates(coords),
+            param2arg=condvars.__getitem__ )
+        coords = coords[indexValid]
+
+    return coords
