@@ -52,8 +52,9 @@ from tables.parameters import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES
 from tables.utilsExtension import getNestedField
 
 try:
-    from _table_pro import _table__restorecache, _table__readWhere
+    from _table_pro import NailedDict, _table__restorecache, _table__readWhere
 except ImportError:
+    NailedDict = dict
     def _table__restorecache(self):
         pass
 
@@ -97,51 +98,6 @@ def _indexPathnameOf(node):
 
 def _indexPathnameOfColumn(table, colpathname):
     return joinPath(_indexPathnameOf(table), colpathname)
-
-
-class NailedDict(object):
-
-    """A dictionary which ignores its items when it has nails on it."""
-
-    def __init__(self):
-        self._cache = {}
-        self._nailcount = 0
-
-    # Only a restricted set of dictionary methods are supported.  That
-    # is why we buy instead of inherit.
-
-    # The following are intended to be used by ``Table`` code changing
-    # the set of usable indexes.
-
-    def clear(self):
-        self._cache.clear()
-    def nail(self):
-        self._nailcount -= 1
-    def unnail(self):
-        self._nailcount += 1
-
-    # The following are intended to be used by ``Table`` code handling
-    # conditions.
-
-    def __contains__(self, key):
-        if self._nailcount > 0:
-            return False
-        return key in self._cache
-
-    def __getitem__(self, key):
-        if self._nailcount > 0:
-            raise KeyError(key)
-        return self._cache[key]
-
-    def get(self, key, default=None):
-        if self._nailcount > 0:
-            return default
-        return self._cache.get(key, default)
-
-    def __setitem__(self, key, value):
-        if self._nailcount > 0:
-            return
-        self._cache[key] = value
 
 
 class Table(tableExtension.Table, Leaf):
