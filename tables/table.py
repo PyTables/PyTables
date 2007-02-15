@@ -38,23 +38,25 @@ from tables.conditions import split_condition
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.path import joinPath, splitPath
 from tables.utils import is_idx
 from tables.leaf import Leaf, Filters
 from tables.index import defaultAutoIndex, defaultIndexFilters
 from tables.description import IsDescription, Description, Col
-from tables.atom import Atom
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
      OldIndexWarning, NoSuchNodeError
 from tables.parameters import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES
 from tables.utilsExtension import getNestedField
 
+from tables._table_common import (
+    _indexNameOf, _indexPathnameOf, _indexPathnameOfColumn )
+
 try:
-    from tables.index import Index, IndexesDescG
+    from tables.index import IndexesDescG
     from tables.index import IndexesTableG, OldIndex
     from tables._table_pro import (
         NailedDict, _table__restorecache,
-        _table__readWhere, _table__getWhereList )
+        _table__readWhere, _table__getWhereList,
+        _column__createIndex )
 except ImportError:
     from tables.exceptions import NoIndexingError, NoIndexingWarning
     from tables.node import NotLoggedMixin
@@ -114,17 +116,6 @@ _nxTypeFromNPType = {
     numpy.complex64: complex,
     numpy.complex128: complex,
     numpy.str_: str, }
-
-
-def _indexNameOf(node):
-    return '_i_%s' % node._v_name
-
-def _indexPathnameOf(node):
-    nodeParentPath = splitPath(node._v_pathname)[0]
-    return joinPath(nodeParentPath, _indexNameOf(node))
-
-def _indexPathnameOfColumn(table, colpathname):
-    return joinPath(_indexPathnameOf(table), colpathname)
 
 
 class Table(tableExtension.Table, Leaf):
@@ -2708,93 +2699,7 @@ class Column(object):
         """
 
         _checkIndexingAvailable()
-
-        name = self.name
-        table = self.table
-        tableName = table._v_name
-        dtype = self.dtype
-        descr = self.descr
-        index = self.index
-        getNode = table._v_file._getNode
-
-        # Warn if the index already exists
-        if index:
-            raise ValueError, \
-"%s for column '%s' already exists. If you want to re-create it, please, try with reIndex() method better" % (str(index), str(self.pathname))
-
-        # Check that the datatype is indexable.
-        if dtype.str[1:] == 'u8':
-            raise NotImplementedError(
-                "indexing 64-bit unsigned integer columns "
-                "is not supported yet, sorry" )
-        if dtype.kind == 'c':
-            raise TypeError("complex columns can not be indexed")
-        if dtype.shape != ():
-            raise TypeError("multidimensional columns can not be indexed")
-
-        # Get the indexes group for table, and if not exists, create it
-        try:
-            itgroup = getNode(_indexPathnameOf(table))
-        except NodeError:
-            itgroup = table._createIndexesTable()
-
-        # If no filters are specified, try the table and then the default.
-        if filters is None:
-            filters = table.indexFilters
-        if filters is None:
-            filters = defaultIndexFilters
-
-        # Create the necessary intermediate groups for descriptors
-        idgroup = itgroup
-        dname = ""
-        pathname = descr._v_pathname
-        if pathname != '':
-            inames = pathname.split('/')
-            for iname in inames:
-                if dname == '':
-                    dname = iname
-                else:
-                    dname += '/'+iname
-                try:
-                    idgroup = getNode('%s/%s' % (itgroup._v_pathname, dname))
-                except NodeError:
-                    idgroup = table._createIndexesDescr(
-                        idgroup, dname, iname, filters)
-
-        # Create the atom
-        assert dtype.shape == ()
-        atom = Atom.from_dtype(numpy.dtype((dtype, (0,))))
-
-        # Create the index itself
-        index = Index(
-            idgroup, name, atom=atom, column=self,
-            title="Index for %s column" % name,
-            filters=filters,
-            optlevel=optlevel,
-            testmode=testmode,
-            expectedrows=table._v_expectedrows,
-            byteorder=table.byteorder)
-        self._updateIndexLocation(index)
-
-        table._setColumnIndexing(self.pathname, True)
-
-        # Feed the index with values
-        slicesize = index.slicesize
-        # Add rows to the index if necessary
-        if table.nrows > 0:
-            indexedrows = table._addRowsToIndex(
-                self.pathname, 0, table.nrows, lastrow=True )
-        else:
-            indexedrows = 0
-        # Optimize indexes with computed parameters for optimising
-        # (i.e. we should not pass the optlevel parameter here!)
-        index.optimize(verbose=verbose)
-        # Property assignment in groups does not work. :(
-        # index.dirty = False
-        index._setdirty(False)
-        table._indexedrows = indexedrows
-        table._unsaved_indexedrows = table.nrows - indexedrows
-        return indexedrows
+        _column__createIndex(self, optlevel, filters, warn, testmode, verbose)
 
 
     def optimizeIndex(self, level=9, verbose=0):
