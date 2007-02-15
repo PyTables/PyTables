@@ -82,7 +82,7 @@ array([0, 0], type=Bool)    # WRONG!
 
 Deprecated features:
 
-- Not much, really.
+- Not much, really. Please, see ``RELEASE-NOTES.txt`` file.
 
 Backward-incompatible changes:
 

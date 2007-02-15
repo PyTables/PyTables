@@ -74,14 +74,25 @@ Backward-incompatible changes
 Deprecated features
 ===================
 
-- Node._f_isOpen() and Leaf.isOpen() methods has been removed. Please, use
-  Node._v_isopen attribute instead (it is much faster). (XXX documentar!!!)
+- Node._v_rootgroup has been removed. Please use node._v_file.root instead.
+
+- Node._f_isOpen() and Leaf.isOpen() methods has been removed. Use
+  Node._v_isopen attribute instead (it is much faster).
+
+- File.getAttrNode(), File.setAttrNode() and File.delAttrNode() have been
+  removed. Please use File.getNodeAttr(), File.setNodeAttr() and
+  File.delNodeAttr() instead.
+
+- File.copyAttrs() has been removed. Use File.copyNodeAttrs() instead.
+
+- table[colname] idiom has been removed. You can use table.cols._f_col(column)
+  for doing the same.
 
 
 API refinements
 ===============
 
-- ????
+- ????  (XXX - què posem ahi, Ivan?)
 
 
 Bug fixes (affecting API)

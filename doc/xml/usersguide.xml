@@ -5602,12 +5602,11 @@ Object Tree:
               </glossentry>
 
               <glossentry>
-                <glossterm id="Node._v_rootgroup"><emphasis role="bold">
-                _v_rootgroup</emphasis></glossterm>
+                <glossterm id="Node._v_isopen"><emphasis role="bold">
+                _v_isopen</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The root group instance. This is deprecated; please
-                  use <literal>node._v_file.root</literal>.</para>
+                  <para>Whether this node is open or not.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -5679,12 +5678,6 @@ Object Tree:
               <para>The closing operation is <emphasis>not</emphasis>
               recursive, i.e. closing a group does not close its
               children.</para>
-            </section>
-
-            <section id="Node._f_isOpen">
-              <title>_f_isOpen()</title>
-
-              <para>Is this node open?</para>
             </section>
 
             <section id="Node._f_remove" xreflabel="description">
@@ -6453,15 +6446,6 @@ for node in h5file.root.detector:
 
             <para>This method is completely equivalent to
             <literal>_f_close()</literal>.</para>
-          </section>
-
-          <section id="Leaf.isOpen">
-            <title>isOpen()</title>
-
-            <para>Is this node open?</para>
-
-            <para>This method is completely equivalent to
-            <literal>_f_isOpen()</literal>.</para>
           </section>
 
           <section id="Leaf.remove">
@@ -7389,10 +7373,6 @@ for p in rout.where('pressure &lt; 16'):
             determined by it is returned as a record array of the current
             flavor.</para>
 
-            <para>Using a string as <literal>key</literal> to get a column is
-            supported but deprecated. Please use the <literal>col()</literal>
-            (see <xref linkend="Table.col" />) method.</para>
-
             <para>Example of use:</para>
 
             <screen>record = table[4]
@@ -7898,11 +7878,6 @@ for row in table.iterrows(step=10):
               current flavor. If <literal>key</literal> is a slice, the range
               of rows determined by it is returned as a record array of the
               current flavor.</para>
-
-              <para>Using a string as <literal>key</literal> to get a column
-              is supported but deprecated. Please use the
-              <literal>col()</literal> (see <xref linkend="Table.col" />)
-              method.</para>
 
               <para>Example of use:</para>
 

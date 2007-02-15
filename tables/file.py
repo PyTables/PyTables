@@ -288,52 +288,6 @@ class _NodeDict(tables.misc.proxydict.ProxyDict):
         raise NotImplementedError
 
 
-    def _warnOnGet(self):
-        warnings.warn("using this mapping object is deprecated; "
-                      "please use ``File.getNode()`` instead",
-                      DeprecationWarning)
-
-
-    def __contains__(self, key):
-        self._warnOnGet()
-
-        # If the key is here there is nothing else to check.
-        if super(_NodeDict, self).__contains__(key):
-            return True
-
-        # Look if the key is in the container `File`.
-        try:
-            file_ = self._getContainer()
-            node = file_.getNode(key)
-            # Does it fullfill the condition?
-            return self._condition(node)
-        except NoSuchNodeError:
-            # It is not in the container.
-            return False
-
-
-    def __getitem__(self, key):
-        self._warnOnGet()
-        return super(_NodeDict, self).__getitem__(key)
-
-
-    # The following operations are quite underperforming
-    # because they need to browse the entire tree.
-    # These objects are deprecated, anyway.
-
-    def __iter__(self):
-        return self.iterkeys()
-
-
-    def iterkeys(self):
-        warnings.warn("using this mapping object is deprecated; "
-                      "please use ``File.walkNodes()`` instead",
-                      DeprecationWarning)
-        for node in self._getContainer().walkNodes('/', self._className):
-            yield node._v_pathname
-        raise StopIteration
-
-
     def __len__(self):
         nnodes = 0
         for nodePath in self.iterkeys():
@@ -1096,18 +1050,6 @@ class File(hdf5Extension.File, object):
         obj._f_remove(recursive)
 
 
-    def getAttrNode(self, where, attrname, name=None):
-        """
-        Get a PyTables attribute from the given node.
-
-        This method is deprecated; please use `getNodeAttr()`.
-        """
-
-        warnings.warn("""\
-``File.getAttrNode()`` is deprecated; please use ``File.getNodeAttr()``""",
-                      DeprecationWarning)
-        return self.getNodeAttr(where, attrname, name)
-
     def getNodeAttr(self, where, attrname, name=None):
         """
         Get a PyTables attribute from the given node.
@@ -1119,18 +1061,6 @@ class File(hdf5Extension.File, object):
         obj = self.getNode(where, name=name)
         return obj._f_getAttr(attrname)
 
-
-    def setAttrNode(self, where, attrname, attrvalue, name=None):
-        """
-        Set a PyTables attribute for the given node.
-
-        This method is deprecated; please use `setNodeAttr()`.
-        """
-
-        warnings.warn("""\
-``File.setAttrNode()`` is deprecated; please use ``File.setNodeAttr()``""",
-                      DeprecationWarning)
-        self.setNodeAttr(where, attrname, attrvalue, name)
 
     def setNodeAttr(self, where, attrname, attrvalue, name=None):
         """
@@ -1144,18 +1074,6 @@ class File(hdf5Extension.File, object):
         obj._f_setAttr(attrname, attrvalue)
 
 
-    def delAttrNode(self, where, attrname, name=None):
-        """
-        Delete a PyTables attribute from the given node.
-
-        This method is deprecated; please use `delNodeAttr()`.
-        """
-
-        warnings.warn("""\
-``File.delAttrNode()`` is deprecated; please use ``File.delNodeAttr()``""",
-                      DeprecationWarning)
-        self.delNodeAttr(where, attrname, name)
-
     def delNodeAttr(self, where, attrname, name=None):
         """
         Delete a PyTables attribute from the given node.
@@ -1167,18 +1085,6 @@ class File(hdf5Extension.File, object):
         obj = self.getNode(where, name=name)
         obj._f_delAttr(attrname)
 
-
-    def copyAttrs(self, where, dstnode, name=None):
-        """
-        Copy attributes from one node to another.
-
-        This method is deprecated; please use `copyNodeAttrs()`.
-        """
-
-        warnings.warn("""\
-``File.copyAttrs()`` is deprecated; please use ``File.copyNodeAttrs()``""",
-                      DeprecationWarning)
-        self.copyNodeAttrs(where, dstnode, name)
 
     def copyNodeAttrs(self, where, dstnode, name=None):
         """

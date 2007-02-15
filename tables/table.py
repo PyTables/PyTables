@@ -1446,9 +1446,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         slice, the range of rows determined by it is returned as a
         record array of the current flavor.
 
-        Using a string as `key` to get a column is supported but deprecated.
-        Please use the `col()` method.
-
         Example of use::
 
             record = table[4]
@@ -1481,11 +1478,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             (start, stop, step) = self._processRange(
                 key.start, key.stop, key.step )
             return self.read(start, stop, step)
-        elif isinstance(key, str):
-            warnings.warn( "``table['colname']`` is deprecated; "
-                           "please use ``table.col('colname')``",
-                           DeprecationWarning, stacklevel=2 )
-            return self.col(key)
         else:
             raise TypeError("invalid index or slice: %r" % (key,))
 
@@ -2213,8 +2205,8 @@ class Cols(object):
 
     Methods:
 
+        _f_col(colname)
         __getitem__(slice)
-        __f_col(colname)
         __len__()
 
     """
@@ -2299,9 +2291,6 @@ class Cols(object):
         `key` is a slice, the range of rows determined by it is returned
         as a record array of the current flavor.
 
-        Using a string as `key` to get a column is supported but deprecated.
-        Please use the `_f_col()` method.
-
         Example of use::
 
             record = table.cols[4]  # equivalent to table[4]
@@ -2345,11 +2334,6 @@ class Cols(object):
                     return crecarray.field(colgroup)  # RecArray case
                 else:
                     return getNestedField(crecarray, colgroup)  # numpy case
-        elif isinstance(key, str):
-            warnings.warn( "``table.cols['colname']`` is deprecated; "
-                           "please use ``table.cols._f_col('colname')``",
-                           DeprecationWarning, stacklevel=2 )
-            return self._f_col(key)
         else:
             raise TypeError("invalid index or slice: %r" % (key,))
 

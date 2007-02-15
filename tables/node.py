@@ -120,9 +120,8 @@ class Node(object):
         The name of this node in the hosting HDF5 file (a string).
     _v_pathname
         The path of this node in the tree (a string).
-    _v_rootgroup
-        The root group instance.  This is deprecated; please use
-        ``node._v_file.root``.
+    _v_isopen
+        Whether this node is open or not.
 
     Instance variables (location independent):
 
@@ -178,17 +177,6 @@ class Node(object):
 
     _v_parent = property(
         _g_getparent, None, None, "The parent `Group` instance.")
-
-
-    # '_v_rootgroup' is deprecated in favour of 'node._v_file.root'.
-    def _g_getrootgroup(self):
-        warnings.warn(DeprecationWarning("""\
-``node._v_rootgroup`` is deprecated; please use ``node._v_file.root``"""),
-                      stacklevel=2)
-        return self._v_file.root
-
-    _v_rootgroup = property(
-        _g_getrootgroup, None, None, "The root group instance.")
 
 
     # '_v_attrs' is defined as a lazy read-only attribute.
@@ -355,17 +343,6 @@ class Node(object):
     def _g_open(self):
         """Open an existing HDF5 node and return its object identifier."""
         raise NotImplementedError
-
-# XXX to be removed
-#     def _f_isOpen(self):
-#         """Is this node open?"""
-
-#         if not '_v_file' in self.__dict__:
-#             return False
-#         # When the construction of a node is aborted because of an exception,
-#         # the ``_v_file`` attribute might exist but be set to `None`,
-#         # so the node is still considered closed.
-#         return self._v_file is not None
 
 
     def _g_checkOpen(self):
