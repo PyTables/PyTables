@@ -66,6 +66,9 @@ res = [ row['var3'] for row in table.where('var2 < 20') ]
   *on disk*. This effectively allows to create datasets in other
   byteorders than the native platform.
 
+- Native HDF5 datasets with H5T_ARRAY datatypes are fully supported for
+  reading now.
+
 Bug fixes:
 
 - As mentioned above, the fact that NumPy is at the core makes that

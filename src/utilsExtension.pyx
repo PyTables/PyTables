@@ -241,7 +241,7 @@ def whichClass(hid_t loc_id, char *name):
   cdef hsize_t      nfields
   cdef char         *field_name1, *field_name2
   cdef int          i
-  cdef hid_t        type_id, dataset_id, type_id2
+  cdef hid_t        type_id, dataset_id
   cdef object       classId
   cdef int          rank
   cdef hsize_t      *dims, *maxdims
@@ -251,25 +251,21 @@ def whichClass(hid_t loc_id, char *name):
   # Get The HDF5 class for the dattatype in this dataset
   class_id = getHDF5ClassID(loc_id, name, &layout, &type_id, &dataset_id)
   # Check if this a dataset of supported classtype for ARRAY
-  if class_id == H5T_ARRAY:
-    warnings.warn("""\
-Dataset object '%s' contains unsupported H5T_ARRAY datatypes.""" % (name,))
   if  ((class_id == H5T_INTEGER)  or
        (class_id == H5T_FLOAT)    or
        (class_id == H5T_BITFIELD) or
        (class_id == H5T_TIME)     or
        (class_id == H5T_ENUM)     or
-       (class_id == H5T_STRING)):
+       (class_id == H5T_STRING)   or
+       (class_id == H5T_ARRAY)):
     if layout == H5D_CHUNKED:
       if H5ARRAYget_ndims(dataset_id, type_id, &rank) < 0:
         raise HDF5ExtError("Problems getting ndims.")
       dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
       maxdims = <hsize_t *>malloc(rank * sizeof(hsize_t))
       if H5ARRAYget_info(dataset_id, type_id, dims, maxdims,
-                         &type_id2, &class_id, byteorder) < 0:
+                         &class_id, byteorder) < 0:
         raise HDF5ExtError("Unable to get array info.")
-      else:
-        H5Tclose(type_id2)
       classId = "CARRAY"
       # Check whether some dimension is enlargeable
       for i in range(rank):

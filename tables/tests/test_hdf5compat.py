@@ -291,6 +291,7 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
             [2, 0, 0, 0, 0],
             [2, 0, 0, 0, 0],
             [2, 0, 0, 0, 0]], dtype=arr.atom.type)
+
         self.assert_(common.areArraysEqual(data, expectedData))
 
 

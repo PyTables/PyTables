@@ -9,10 +9,10 @@
 :Contact: ivilata@carabos.com
 
 
-This document details the modifications of PyTables Pro since PyTables
-Standard version 1.x.  Its main purpose is help you ensure that your programs
-will be runnable when you switch from PyTables Std 1.x to PyTables Std/Pro
-@VERSION@.
+This document details the modifications of PyTables Std/Pro @VERSION@ since
+PyTables Standard version 1.x.  Its main purpose is help you ensure that your
+programs will be runnable when you switch from PyTables Std 1.x to PyTables
+Std/Pro @VERSION@.
 
 
 API additions
@@ -92,7 +92,7 @@ Deprecated features
 API refinements
 ===============
 
-- ????  (XXX - què posem ahi, Ivan?)
+- ????  (XXX - què posem ací, Ivan?)
 
 
 Bug fixes (affecting API)

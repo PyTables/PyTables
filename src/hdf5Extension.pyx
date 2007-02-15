@@ -61,7 +61,7 @@ from definitions cimport  \
      H5get_libversion, H5check_version, H5Fcreate, H5Fopen, H5Fclose, \
      H5Fflush, H5Gcreate, H5Gopen, H5Gclose, H5Glink, H5Gunlink, H5Gmove, \
      H5Gmove2,  H5Dopen, H5Dclose, H5Dread, H5Dget_type, \
-     H5Tget_native_type, H5Tget_class, H5Tcopy, H5Dget_space, \
+     H5Tget_native_type, H5Tget_super, H5Tget_class, H5Tcopy, H5Dget_space, \
      H5Dvlen_reclaim, H5Adelete, H5Aget_num_attrs, H5Aget_name, H5Aopen_idx, \
      H5Aread, H5Aclose, H5Tclose, H5Pcreate, H5Pclose, \
      H5Pset_cache, H5Pset_sieve_buf_size, H5Pset_fapl_log, \
@@ -71,6 +71,7 @@ from definitions cimport  \
      H5ATTRset_attribute, H5ATTRset_attribute_string, \
      H5ATTRget_attribute, H5ATTRget_attribute_string, \
      H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims, \
+     H5ARRAYget_ndims, H5ARRAYget_info, \
      set_cache_size, Giterate, Aiterate, H5UIget_info, get_len_of_range, \
      get_order, set_order
 
@@ -116,12 +117,6 @@ cdef extern from "H5ARRAY.h":
   herr_t H5ARRAYreadIndex(hid_t dataset_id, hid_t type_id, int notequal,
                           hsize_t *start, hsize_t *stop, hsize_t *step,
                           void *data)
-
-  herr_t H5ARRAYget_ndims(hid_t dataset_id, hid_t type_id, int *rank)
-
-  herr_t H5ARRAYget_info(hid_t dataset_id, hid_t type_id, hsize_t *dims,
-                         hsize_t *maxdims, hid_t *super_type_id,
-                         H5T_class_t *super_class_id, char *byteorder)
 
   herr_t H5ARRAYget_chunkshape(hid_t dataset_id, int rank, hsize_t *dims_chunk)
 
@@ -797,7 +792,6 @@ cdef class Array(Leaf):
     cdef char byteorder[11]  # "irrelevant" fits easily here
     cdef int i
     cdef int extdim
-    cdef hid_t base_type_id
     cdef herr_t ret
     cdef object shape, type_
 
@@ -817,7 +811,7 @@ cdef class Array(Leaf):
     # Get info on dimensions, class and type (of base class)
     ret = H5ARRAYget_info(self.dataset_id, self.disk_type_id,
                           self.dims, self.maxdims,
-                          &base_type_id, &class_id, byteorder)
+                          &class_id, byteorder)
     if ret < 0:
       raise HDF5ExtError("Unable to get array info.")
     # Get the extendeable dimension (if any)
@@ -834,8 +828,7 @@ cdef class Array(Leaf):
       if self.extdim >= 0 or self.__class__.__name__ == 'CArray':
         raise HDF5ExtError, "Problems getting the chunkshapes!"
     # Get the atom for this type
-    atom = AtomFromHDF5Type(base_type_id)
-    H5Tclose(base_type_id)    # Release resources
+    atom = AtomFromHDF5Type(self.disk_type_id)
 
     # Get the enumeration list and put it in the _enum private variable
     # This is needed mainly for Array objects that doesn't have an Atom()

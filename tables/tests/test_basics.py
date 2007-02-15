@@ -1309,20 +1309,8 @@ class CheckFileTestCase(common.PyTablesTestCase):
     def test04_openGenericHDF5File(self):
         """Checking opening of a generic HDF5 file"""
 
-        warnings.filterwarnings("error", category=UserWarning)
         # Open an existing generic HDF5 file
-        try:
-            fileh = openFile(self._testFilename("ex-noattr.h5"), mode="r")
-        except UserWarning:
-            if verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next UserWarning was catched:"
-                print value
-            # Ignore the warning and actually open the file
-            warnings.filterwarnings("ignore", category=UserWarning)
-            fileh = openFile(self._testFilename("ex-noattr.h5"), mode="r")
-        else:
-            self.fail("expected an UserWarning")
+        fileh = openFile(self._testFilename("ex-noattr.h5"), mode="r")
 
         # Check for some objects inside
 
@@ -1336,19 +1324,12 @@ class CheckFileTestCase(common.PyTablesTestCase):
 
         # (The new LRU code defers the appearance of a warning to this point).
 
-        # An unsupported object (the deprecated H5T_ARRAY type in
-        # Array, from pytables 0.8 on)
-        ui = fileh.getNode(columns, "pressure", classname="UnImplemented")
+        # Here comes an Array of H5T_ARRAY type
+        ui = fileh.getNode(columns, "pressure", classname="Array")
         assert ui._v_name == "pressure"
         if verbose:
-            print "UnImplement object -->",repr(ui)
-
-        # Reset the warnings
-        # Be careful with that, because this enables all the warnings
-        # on the rest of the tests!
-        #warnings.resetwarnings()
-        # better use:
-        warnings.filterwarnings("default", category=UserWarning)
+            print "Array object with type H5T_ARRAY -->",repr(ui)
+            print "Array contents -->", ui[:]
 
         # A Table
         table = fileh.getNode("/detector", "table", classname="Table")
@@ -1365,8 +1346,7 @@ class CheckFileTestCase(common.PyTablesTestCase):
         # uncommented in Group.py!                                        #
         ###################################################################
 
-        h5file = self.assertWarns(
-            UserWarning, openFile, self._testFilename('smpl_unsupptype.h5'))
+        h5file = openFile(self._testFilename('smpl_unsupptype.h5'))
         try:
             node = self.assertWarns(
                 UserWarning, h5file.getNode, '/CompoundChunked')
@@ -1375,6 +1355,47 @@ class CheckFileTestCase(common.PyTablesTestCase):
             h5file.close()
 
     def test05_copyUnimplemented(self):
+        """Checking that an UnImplemented object cannot be copied"""
+
+        # Open an existing generic HDF5 file
+        fileh = openFile(self._testFilename("smpl_unsupptype.h5"), mode="r")
+        ui = self.assertWarns(
+            UserWarning, fileh.getNode, '/CompoundChunked')
+        assert ui._v_name == 'CompoundChunked'
+        if verbose:
+            print "UnImplement object -->",repr(ui)
+
+        # Check that it cannot be copied to another file
+        file2 = tempfile.mktemp(".h5")
+        fileh2 = openFile(file2, mode = "w")
+        # Force the userwarning to issue an error
+        warnings.filterwarnings("error", category=UserWarning)
+        try:
+            ui.copy(fileh2.root, "newui")
+        except UserWarning:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next UserWarning was catched:"
+                print value
+        else:
+            self.fail("expected an UserWarning")
+
+        # Reset the warnings
+        # Be careful with that, because this enables all the warnings
+        # on the rest of the tests!
+        #warnings.resetwarnings()
+        # better use:
+        warnings.filterwarnings("default", category=UserWarning)
+
+        # Delete the new (empty) file
+        fileh2.close()
+        os.remove(file2)
+
+        fileh.close()
+
+    # The next can be used to check the copy of Array objects with H5T_ARRAY
+    # in the future
+    def _test05_copyUnimplemented(self):
         """Checking that an UnImplemented object cannot be copied"""
 
         # Open an existing generic HDF5 file

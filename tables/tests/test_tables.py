@@ -1630,6 +1630,7 @@ class IterRangeTestCase(BasicRangeTestCase):
 class RecArrayRangeTestCase(BasicRangeTestCase):
     checkrecarray = 1
 
+
 class getColRangeTestCase(BasicRangeTestCase):
     checkgetCol = 1
 
@@ -1657,25 +1658,6 @@ class getColRangeTestCase(BasicRangeTestCase):
         else:
             print rec
             self.fail("expected a KeyError")
-
-
-    def test02_getItemCol(self):
-        """Using ``__getitem__`` to get a column."""
-
-        if verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_getItemCol..." % self.__class__.__name__
-
-        # Create an instance of an HDF5 Table
-        self.fileh = openFile(self.file, "r")
-        self.root = self.fileh.root
-        table = self.fileh.getNode("/table0")
-
-        warnings.filterwarnings('error', category=DeprecationWarning)
-        self.assertRaises(DeprecationWarning, (lambda o, i: o[i]), table, 'var1')
-        warnings.filterwarnings('default', category=DeprecationWarning)
-
-        self.fileh.close()
 
 
 class getItemTestCase(unittest.TestCase):

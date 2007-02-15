@@ -833,65 +833,39 @@ out:
 
 
 /* Modified version of H5LTget_dataset_info. */
-/* Addition: Now, this routine can deal with both array and
-   atomic datatypes. 2003-01-29 */
 
 herr_t H5ARRAYget_info( hid_t dataset_id,
 			hid_t type_id,
 			hsize_t *dims,
 			hsize_t *maxdims,
-			hid_t *super_type_id,
-			H5T_class_t *super_class_id,
+			H5T_class_t *class_id,
 			char *byteorder)
 {
-
   hid_t       space_id;
-  H5T_class_t class_arr_id;
 
   /* Get the class. */
-  class_arr_id = H5Tget_class( type_id );
+  *class_id = H5Tget_class( type_id );
 
-  /* Check if this is an array class object*/
-  if ( class_arr_id == H5T_ARRAY) {
+  /* Get the dataspace handle */
+  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+    goto out;
 
-    /* Get the array base component. This will be released later on. */
-    *super_type_id = H5Tget_super( type_id );
+  /* Get dimensions */
+  if ( H5Sget_simple_extent_dims( space_id, dims, maxdims) < 0 )
+    goto out;
 
-    /* Get the class of base component. */
-    *super_class_id = H5Tget_class( *super_type_id );
-
-    /* Get dimensions */
-    if ( H5Tget_array_dims(type_id, dims, NULL) < 0 )
-      goto out;
-
-  }
-  else {
-    *super_class_id = class_arr_id;
-
-    /* Do a copy of type_id. This will be released later on. */
-    *super_type_id = H5Tcopy(type_id);
-
-    /* Get the dataspace handle */
-    if ( (space_id = H5Dget_space( dataset_id )) < 0 )
-      goto out;
-
-    /* Get dimensions */
-    if ( H5Sget_simple_extent_dims( space_id, dims, maxdims) < 0 )
-      goto out;
-
-    /* Terminate access to the dataspace */
-    if ( H5Sclose( space_id ) < 0 )
-      goto out;
-
-  }
+  /* Terminate access to the dataspace */
+  if ( H5Sclose( space_id ) < 0 )
+    goto out;
 
   /* Get the byteorder */
-  /* Only integer, float, time and enumerate classes can be
+  /* Only integer, float, time, enumerate and array classes can be
      byteordered */
-  if ((*super_class_id == H5T_INTEGER) || (*super_class_id == H5T_FLOAT)
-	   || (*super_class_id == H5T_BITFIELD) || (*super_class_id == H5T_COMPOUND)
-	   || (*super_class_id == H5T_TIME) || (*super_class_id == H5T_ENUM)) {
-    get_order(*super_type_id, byteorder);
+  if ((*class_id == H5T_INTEGER) || (*class_id == H5T_FLOAT)
+      || (*class_id == H5T_BITFIELD) || (*class_id == H5T_COMPOUND)
+      || (*class_id == H5T_TIME) || (*class_id == H5T_ENUM)
+      || (*class_id == H5T_ARRAY)) {
+    get_order(type_id, byteorder);
   }
   else {
     strcpy(byteorder, "irrelevant");
