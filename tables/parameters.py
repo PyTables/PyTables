@@ -22,7 +22,7 @@ Misc variables:
 from tables._parameters_common import _KB, _MB
 
 try:
-    from tables._parameters_index import *
+    from tables._parameters_pro import *
 except ImportError:
     pass
 
