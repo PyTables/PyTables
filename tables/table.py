@@ -60,13 +60,17 @@ except ImportError:
     from tables.node import NotLoggedMixin
     from tables.group import Group
 
-    # The following two classes are registered to avoid extra warnings
-    # when checking for indexes and to avoid logging node renames and
-    # the like on them.
-    class IndexesTableG(NotLoggedMixin, Group):
+    # The following classes are registered to avoid extra warnings when
+    # checking for the existence of indexes and to avoid logging node
+    # renames and the like on them.
+    class _DummyIndexesTableG(NotLoggedMixin, Group):
         _c_classId = 'TINDEX'
-    class OldIndex(NotLoggedMixin, Group):
+    class _DummyIndex(NotLoggedMixin, Group):
+        _c_classId = 'INDEX'
+    class _DummyOldIndex(NotLoggedMixin, Group):
         _c_classId = 'CINDEX'
+    class _DummyIndexesDescG(NotLoggedMixin, Group):
+        _c_classId = 'DINDEX'
 
     NailedDict = dict
 
