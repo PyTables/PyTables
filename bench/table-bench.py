@@ -25,7 +25,7 @@ class Medium(IsDescription):
 
 # Define a user record to characterize some kind of particles
 class Big(IsDescription):
-    name        = StringCol(ietmsize=16)  # 16-character String
+    name        = StringCol(itemsize=16)  # 16-character String
     float1      = Float64Col(shape=32, dflt=NP.arange(32))
     float2      = Float64Col(shape=32, dflt=2.2)
     TDCcount    = Int8Col()    # signed short integer
@@ -54,13 +54,13 @@ def createFile(filename, totalrows, filters, recsize):
             table = fileh.createTable(group, 'tuple'+str(j), Big, title,
                                       None,
                                       totalrows)
-            arr = NP.array(NP.arange(32), type=NP.float64)
-            arr2 = NP.array(NP.arange(32), type=NP.float64)
+            arr = NP.array(NP.arange(32), dtype=NP.float64)
+            arr2 = NP.array(NP.arange(32), dtype=NP.float64)
         elif recsize == "medium":
             table = fileh.createTable(group, 'tuple'+str(j), Medium, title,
                                       None,
                                       totalrows)
-            arr = NP.array(NP.arange(2), type=NP.float64)
+            arr = NP.array(NP.arange(2), dtype=NP.float64)
         elif recsize == "small":
             table = fileh.createTable(group, 'tuple'+str(j), Small, title,
                                       None,
@@ -197,9 +197,10 @@ def readFile(filename, recsize, verbose):
                      # than ten times faster than the next one
 #                e = [ p['var3'] for p in table
 #                      if p['var1'] == "10"]
-                 e = [ p['var3'] for p in table.where('var2 <= 20')]
-#                 e = [ p['var3'] for p in table
-#                        if p['var2'] <= 20 ]
+                # e = [ p['var3'] for p in table.where('var2 <= 20')]
+                # e = [ p[0] for p in table.where('var2 <= 20')]
+                e = [ p['var3'] for p in table if p['var2'] <= 20 ]
+                # e = [ p[:] for p in table if p[1] <= 20 ]
 #                  e = [ p['var3'] for p in table._whereInRange(table.cols.var2 <=20)]
                 #e = [ p['var3'] for p in table.iterrows(0,21) ]
 #                  e = [ p['var3'] for p in table.iterrows()

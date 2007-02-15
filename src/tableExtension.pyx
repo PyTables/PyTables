@@ -36,7 +36,7 @@ from tables.utilsExtension import createNestedType, \
 # numpy functions & objects
 from hdf5Extension cimport Leaf
 from definitions cimport import_array, ndarray, \
-     malloc, free, strdup, \
+     malloc, free, strdup, strcmp, \
      PyString_AsString, Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      PyArray_GETITEM, PyArray_SETITEM, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
@@ -104,22 +104,23 @@ import_array()
 #-------------------------------------------------------------
 
 # Private functions
-# It is *critical* that this function to be defined as cdef
-# as this can accelerate __getitem__ and __setitem__ operations
-# in read/write iterators up to a factor 2x (!)
-cdef object getNestedFieldCache(recarray, fieldname, fieldcache):
+cdef getNestedFieldCache(recarray, fieldname, fieldcache):
   """
   Get the maybe nested field named `fieldname` from the `array`.
 
   The `fieldname` may be a simple field name or a nested field name
-  with slah-separated components.
-
-  This version takes advantage of an user-provided cache.
+  with slah-separated components. It can also be an integer specifying
+  the position of the field.
   """
-  if fieldname in fieldcache:
+  try:
     field = fieldcache[fieldname]
-  else:
-    field = getNestedField(recarray, fieldname)
+  except KeyError:
+    # Check whether fieldname is an integer and if so, get the field
+    # straight from the recarray dictionary (it can't be anywhere else)
+    if isinstance(fieldname, int):
+      field = recarray[fieldname]
+    else:
+      field = getNestedField(recarray, fieldname)
     fieldcache[fieldname] = field
   return field
 
@@ -571,7 +572,8 @@ cdef class Row:
       # in my laptop (Pentium 4 @ 2 GHz).
       # F. Altet 2006-08-18
       self.rfields = {}
-      for name in self.dtype.names:
+      for i, name in enumerate(self.dtype.names):
+        self.rfields[i] = buff[name]
         self.rfields[name] = buff[name]
 
     # Get the stride of this buffer
@@ -916,34 +918,43 @@ cdef class Row:
 
   # This method is twice as faster than __getattr__ because there is
   # not a lookup in the local dictionary
-  def __getitem__(self, fieldName):
+  def __getitem__(self, key):
     cdef long offset
     cdef ndarray field
-    cdef object field2
+    cdef object row
 
-    # The cachefields dictionary only accelerates things just a 5%
-    # but as it only should exist during table iterators,
-    # this should not take many memory resources.
-    field = getNestedFieldCache(self.rfields, fieldName, self.rfieldscache)
+    try:
+      # Check whether this object is in the cache dictionary
+      field = self.rfieldscache[key]
+    except (KeyError, TypeError):
+      try:
+        # Try to get it from self.rfields (str or int keys)
+        field = getNestedFieldCache(self.rfields, key, self.rfieldscache)
+      except TypeError:
+        # No luck yet. Still, the key can be a slice.
+        try:
+          # Fetch the complete row and do a *copy*
+          row = self.rbufRA[self._row].copy()
+          # Convert the row into a tuple, and try with __getitem__()
+          return row.item().__getitem__(key)
+        except TypeError:
+          raise TypeError(
+            "row indices must be strings, integers or slices and you passed: "
+            "``%s``" % (key,))
 
-    # Optimization follows for the case that the field dimension is == 1
-    # i.e. columns elements are scalars. This code accelerates the access
-    # to column elements a 20%
     if field.nd == 1:
-      #return field[self._row]
-      # Optimization for numpy
+      # For an scalar it is not needed a copy (immutable object)
       offset = <long>(self._row * self._stride)
       return PyArray_GETITEM(field, field.data + offset)
-    else:  # Case when dimensions > 1
-      # Make a copy of the (multi) dimensional array
-      # so that the user does not have to do that!
+    else:
+      # Do a copy of the array, so that it can be overwritten by the user
+      # whitout damaging the internal self.rfields buffer
       return field[self._row].copy()
 
 
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, fieldName, object value):
     cdef ndarray field
-    cdef object field2
     cdef long offset
     cdef int ret
 

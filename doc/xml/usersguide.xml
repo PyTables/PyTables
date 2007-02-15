@@ -68,7 +68,7 @@
     </copyright>
 
     <copyright>
-      <year>2005, 2006</year>
+      <year>2005, 2006, 2007</year>
 
       <holder>Cárabos Coop. V.</holder>
     </copyright>
@@ -852,41 +852,34 @@ LIBS="hdf5-1.6.5 nsl"
               <literal>verbose</literal> to the command line. You can also run
               only the tests in a particular test module. For example, to
               execute just the <literal>types</literal> test:</para>
+
               <screen>
  python test_types.py -v
               </screen>
 
-              <para> You have other options to pass to the
-              <literal>test_all.py</literal> driver:
-
-              <screen>
+              <para>You have other options to pass to the
+              <literal>test_all.py</literal> driver: <screen>
  python test_all.py --heavy
-              </screen>
-              the above runs every test in the test unit. Beware, it can take
-              lots of CPU and memory resources to complete.
-
-              <screen>
+              </screen> the above runs every test in the test unit. Beware, it
+              can take lots of CPU and memory resources to complete. <screen>
  python test_all.py --show-versions
-              </screen>
-              the above shows the versions for all the packages that PyTables
-              relies on. Please, be sure to include this when reporting bugs.
-
-              <screen>
+              </screen> the above shows the versions for all the packages that
+              PyTables relies on. Please, be sure to include this when
+              reporting bugs. <screen>
  python test_all.py --show-memory
-              </screen>
-              the above prints out the evolution of the memory consumption
-              after each test module completion. It's useful for locating
-              memory leaks in PyTables (or packages behind it).</para>
+              </screen> the above prints out the evolution of the memory
+              consumption after each test module completion. It's useful for
+              locating memory leaks in PyTables (or packages behind
+              it).</para>
 
               <para>And last, but not least, in case a test fails, please run
               the failing test module again and enable the verbose output:
               <screen>
  python test_&lt;module&gt;.py -v verbose
-              </screen>
-              and, very important, obtain your PyTables version information by
-              using the <literal>--show-versions</literal> flag (see above)
-              and send back both outputs to developers so that we may continue
-              improving PyTables.</para>
+              </screen> and, very important, obtain your PyTables version
+              information by using the <literal>--show-versions</literal> flag
+              (see above) and send back both outputs to developers so that we
+              may continue improving PyTables.</para>
 
               <para>If you run into problems because Python can not load the
               HDF5 library or other shared libraries:</para>
@@ -1939,10 +1932,10 @@ pressure := float32, ()</screen>
           <para>Here, the <literal>name</literal>, <literal>title</literal>,
           <literal>nrows</literal>, <literal>colnames</literal> and
           <literal>coldtypes</literal> attributes (see <xref
-          linkend="TableInstanceVariablesDescr" xrefstyle="select:
-          labelnumber" /> for a complete attribute list) of the
-          <literal>Table</literal> object gives us quite a bit of information
-          about the table data.</para>
+          linkend="TableInstanceVariablesDescr"
+          xrefstyle="select:           labelnumber" /> for a complete
+          attribute list) of the <literal>Table</literal> object gives us
+          quite a bit of information about the table data.</para>
 
           <para>You can interactively retrieve general information about the
           public objects in PyTables by printing their internal doc
@@ -3676,8 +3669,7 @@ $ ptdump -d nested-tut.h5
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis
-              role="bold">is_pro</emphasis></glossterm>
+              <glossterm><emphasis role="bold">is_pro</emphasis></glossterm>
 
               <glossdef>
                 <para>True for PyTables Professional edition, false
@@ -4133,8 +4125,8 @@ ValueError: malformed type: 'foo bar'</screen>
 
           <section id="createTableDescr" xreflabel="description">
             <title>createTable(where, name, description, title='',
-            filters=None, expectedrows=10000, chunkshape=None,
-            byteorder=None, createparents=False)</title>
+            filters=None, expectedrows=10000, chunkshape=None, byteorder=None,
+            createparents=False)</title>
 
             <para>Create a new <literal>Table</literal> instance with name
             <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
@@ -4345,8 +4337,8 @@ ValueError: malformed type: 'foo bar'</screen>
           </section>
 
           <section id="createArrayDescr" xreflabel="description">
-            <title>createArray(where, name, object, title='',
-            byteorder=None, createparents=False)</title>
+            <title>createArray(where, name, object, title='', byteorder=None,
+            createparents=False)</title>
 
             <para>Create a new <literal>Array</literal> instance with name
             <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
@@ -4457,7 +4449,7 @@ ValueError: malformed type: 'foo bar'</screen>
                 <glossdef>
                   <para>The byteorder of the data
                   <emphasis>on-disk</emphasis>, specified as
-                  <literal>'little'</literal> or <literal>'big'</literal>.  If
+                  <literal>'little'</literal> or <literal>'big'</literal>. If
                   this is not specified, the byteorder is that of the
                   platform.</para>
                 </glossdef>
@@ -4482,8 +4474,8 @@ ValueError: malformed type: 'foo bar'</screen>
 
           <section id="createEArrayDescr">
             <title>createEArray(where, name, atom, shape, title='',
-            filters=None, expectedrows=1000, chunkshape=None,
-            byteorder=None, createparents=False)</title>
+            filters=None, expectedrows=1000, chunkshape=None, byteorder=None,
+            createparents=False)</title>
 
             <para>Create a new <literal>EArray</literal> instance with name
             <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
@@ -4557,7 +4549,7 @@ ValueError: malformed type: 'foo bar'</screen>
                 <glossdef>
                   <para>The byteorder of the data
                   <emphasis>on-disk</emphasis>, specified as
-                  <literal>'little'</literal> or <literal>'big'</literal>.  If
+                  <literal>'little'</literal> or <literal>'big'</literal>. If
                   this is not specified, the byteorder is that of the
                   platform.</para>
                 </glossdef>
@@ -4583,8 +4575,8 @@ ValueError: malformed type: 'foo bar'</screen>
 
           <section id="createVLArrayDescr">
             <title>createVLArray(where, name, atom, title='', filters=None,
-            expectedsizeinMB=1.0, chunkshape=chunkshape,
-            byteorder=None, createparents=False)</title>
+            expectedsizeinMB=1.0, chunkshape=chunkshape, byteorder=None,
+            createparents=False)</title>
 
             <para>Create a new <literal>VLArray</literal> instance with name
             <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
@@ -4642,7 +4634,7 @@ ValueError: malformed type: 'foo bar'</screen>
                 <glossdef>
                   <para>The byteorder of the data
                   <emphasis>on-disk</emphasis>, specified as
-                  <literal>'little'</literal> or <literal>'big'</literal>.  If
+                  <literal>'little'</literal> or <literal>'big'</literal>. If
                   this is not specified, the byteorder is that of the
                   platform.</para>
                 </glossdef>
@@ -6331,7 +6323,8 @@ for node in h5file.root.detector:
               role="bold">nrows</emphasis></glossterm>
 
               <glossdef>
-                <para>The length of the main dimension of the leaf data.</para>
+                <para>The length of the main dimension of the leaf
+                data.</para>
               </glossdef>
             </glossentry>
 
@@ -6697,17 +6690,19 @@ for node in h5file.root.detector:
 
               <glossdef>
                 <para>A list containing the names of
-                <emphasis>top-level</emphasis> columns in the
-                table.</para></glossdef>
+                <emphasis>top-level</emphasis> columns in the table.</para>
+              </glossdef>
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis role="bold">colpathnames</emphasis></glossterm>
+              <glossterm><emphasis
+              role="bold">colpathnames</emphasis></glossterm>
+
               <glossdef>
                 <para>A list containing the pathnames of
-                <emphasis>bottom-level</emphasis> columns in the table.  These
+                <emphasis>bottom-level</emphasis> columns in the table. These
                 are the leaf columns obtained when walking the table
-                description left-to-right, bottom-first.  Columns inside a
+                description left-to-right, bottom-first. Columns inside a
                 nested column have slashes (<literal>/</literal>) separating
                 name components in their pathname.</para>
               </glossdef>
@@ -6790,7 +6785,8 @@ for node in h5file.root.detector:
             </glossentry>
 
             <glossentry id="Table.autoIndex">
-              <glossterm><emphasis role="bold">autoIndex</emphasis></glossterm>
+              <glossterm><emphasis
+              role="bold">autoIndex</emphasis></glossterm>
 
               <glossdef>
                 <para>Automatically keep column indexes up to date?</para>
@@ -6798,41 +6794,40 @@ for node in h5file.root.detector:
                 <para>Setting this value states whether existing indexes
                 should be automatically updated after an append operation or
                 recomputed after an index-invalidating operation (i.e. removal
-                and modification of rows).  The default is true.
-                </para>
+                and modification of rows). The default is true.</para>
 
                 <para>This value gets into effect whenever a column is
-                altered.  For an immediate update use
+                altered. For an immediate update use
                 <literal>self.flushRowsToIndex()</literal> (see <xref
                 linkend="Table.flushRowsToIndex" xrefstyle="select: label"
-                />); for an immediate reindexing of invalidated indexes, use
+                />); for immediate reindexing of invalidated indexes, use
                 <literal>self.reIndexDirty()</literal> (see <xref
-                linkend="Table.reIndexDirty" xrefstyle="select: label" />).
-                </para>
+                linkend="Table.reIndexDirty" xrefstyle="select: label"
+                />).</para>
 
                 <para>This value is persistent.</para>
               </glossdef>
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis role="bold">indexFilters</emphasis></glossterm>
+              <glossterm><emphasis
+              role="bold">indexFilters</emphasis></glossterm>
 
               <glossdef>
                 <para>Filters used to compress indexes.</para>
 
                 <para>Setting this value to a <literal>Filters</literal> (see
-                <xref linkend="FiltersClassDescr" xrefstyle="select: label"
-                />) instance determines the compression to be used for
-                indexes.  Setting it to <literal>None</literal> means that no
-                filters will be used for indexes.  The default is zlib
-                compression level 1 with shuffling.
-                </para>
+                <xref linkend="FiltersClassDescr"
+                xrefstyle="select: label" />) instance determines the
+                compression to be used for indexes. Setting it to
+                <literal>None</literal> means that no filters will be used for
+                indexes. The default is zlib compression level 1 with
+                shuffling.</para>
 
                 <para>This value is used when creating new indexes or
-                recomputing old ones.  To apply it to existing indexes, use
+                recomputing old ones. To apply it to existing indexes, use
                 <literal>self.reIndex()</literal> (see <xref
-                linkend="Table.reIndex" xrefstyle="select: label" />).
-                </para>
+                linkend="Table.reIndex" xrefstyle="select: label" />).</para>
 
                 <para>This value is persistent.</para>
               </glossdef>
@@ -6847,7 +6842,6 @@ for node in h5file.root.detector:
                 table.</para>
               </glossdef>
             </glossentry>
-
           </glosslist>
         </section>
 
@@ -7215,8 +7209,8 @@ if row['var1'] &lt;= 20 ]</screen>
             <para>Recompute the existing indexes in table, but
             <emphasis>only</emphasis> if they are dirty. This can be useful
             when you have set <literal>autoIndex</literal> (see <xref
-            linkend="Table.autoIndex" />) to false for the table and want
-            to update the indexes after a invalidating index operation
+            linkend="Table.autoIndex" />) to false for the table and want to
+            update the indexes after a invalidating index operation
             (<literal>Table.removeRows</literal>, for example).</para>
           </section>
 
@@ -7447,19 +7441,218 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
           </section>
         </section>
 
+        <section id="DescriptionClassDescr">
+          <title>The <literal>Description</literal> class</title>
+
+          <para>This class represents descriptions of the structure of
+          tables.</para>
+
+          <para>An instance of this class is automatically bound to
+          <literal>Table</literal> (see <xref linkend="TableClassDescr"
+          xrefstyle="select: labelnumber" />) objects when they are created.
+          It provides a browseable representation of the structure of the
+          table, made of non-nested (<literal>Col</literal> —see <xref
+          linkend="ColClassDescr" xrefstyle="select: labelnumber" />) and
+          nested (<literal>Description</literal>) columns. It also contains
+          information that will allow you to build
+          <literal>NestedRecArray</literal> (see <xref
+          linkend="NestedRecArrayClassDescr" xrefstyle="select: label" />)
+          objects suited for the different columns in a table (be they nested
+          or not).</para>
+
+          <para>Column definitions (see <literal>Col</literal> class in <xref
+          linkend="ColClassDescr" xrefstyle="select: labelnumber" />) under a
+          description can be accessed as attributes of it. For instance, if
+          <literal>table.description</literal> is a
+          <literal>Description</literal> instance with a column named
+          <literal>col1</literal> under it, the later can be accessed as
+          <literal>table.description.col1</literal>. If
+          <literal>col1</literal> is nested and contains a
+          <literal>col2</literal> column, this can be accessed as
+          <literal>table.description.col1.col2</literal>.</para>
+
+          <section>
+            <title><literal>Description</literal> instance variables</title>
+
+            <glosslist>
+              <?dbfo glosslist-presentation="list" ?>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_name</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The name of this description group. The name of the
+                  root group is <literal>'/'</literal>.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_names</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A list of the names of the columns hanging directly
+                  from the associated table or nested column. The order of the
+                  names matches the order of their respective columns in the
+                  containing table.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_pathnames</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A list of the pathnames of the columns hanging
+                  directly from the associated table or nested column. If the
+                  table does not contain nested columns, this is exactly the
+                  same as the <literal>_v_names</literal> attribute.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_nestedNames</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A nested list of the names of all the columns under
+                  this table or nested column. You can use this for the
+                  <literal>names</literal> argument of
+                  <literal>NestedRecArray</literal> factory functions.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_nestedFormats</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A nested list of the NumPy string formats (and shapes)
+                  of all the columns under this table or nested column. You
+                  can use this for the <literal>formats</literal> argument of
+                  <literal>NestedRecArray</literal> factory functions.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_nestedDescr</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A nested list of pairs of <literal>(name,
+                  format)</literal> tuples for all the columns under this
+                  table or nested column. You can use this as the
+                  <literal>dtype</literal> argument of NumPy array factories,
+                  as well as the <literal>descr</literal> argument of
+                  <literal>NestedRecArray</literal> factories.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_types</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A dictionary mapping the names of non-nested columns
+                  hanging directly from the associated table or nested column
+                  to their respective PyTables types.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_dtypes</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A dictionary mapping the names of non-nested columns
+                  hanging directly from the associated table or nested column
+                  to their respective NumPy types.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_dflts</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A dictionary mapping the names of non-nested columns
+                  hanging directly from the associated table or nested column
+                  to their respective default values.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_colObjects</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A dictionary mapping the names of the columns hanging
+                  directly from the associated table or nested column to their
+                  respective descriptions (<literal>Col</literal> —see <xref
+                  linkend="ColClassDescr" xrefstyle="select: labelnumber" />—
+                  or <literal>Description</literal> —see <xref
+                  linkend="DescriptionClassDescr"
+                  xrefstyle="select: labelnumber" /> — instances).</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_nestedlvl</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The level of the associated table or nested column in
+                  the nested datatype.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_is_nested</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Whether the associated table has nested columns or not
+                  (boolean).</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+          </section>
+
+          <section>
+            <title><literal>Description</literal> methods</title>
+
+            <section>
+              <title>_f_walk(type='All')</title>
+
+              <para>Iterate over nested columns.</para>
+
+              <para>If <literal>type</literal> is <literal>'All'</literal>
+              (the default), all column description objects
+              (<literal>Col</literal> and <literal>Description</literal>
+              instances) are returned in top-to-bottom order
+              (pre-order).</para>
+
+              <para>If <literal>type</literal> is <literal>'Col'</literal> or
+              <literal>'Description'</literal>, only column descriptions of
+              that type are returned.</para>
+            </section>
+          </section>
+        </section>
+
         <section id="RowClassDescr">
           <title>The <literal>Row</literal> class</title>
 
           <para>This class is used to fetch and set values on the table
           fields. It works very much like a dictionary, where the keys are the
-          field names of the associated table and the values are the values of
-          those fields in a specific row.</para>
+          field names or positions (extended slicing is supported) of the
+          fields in the associated table in a specific row.</para>
 
           <para>This object turns out to actually be an extension type, so you
           won't be able to access its documentation interactively. However,
           you will be able to access some of its internal attributes through
           the use of Python properties. In addition, there are some important
-          methods that are useful for adding and modifying values in
+          methods that are useful for acessing, adding and modifying values in
           tables.</para>
 
           <section>
@@ -7481,29 +7674,29 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
           <section id="RowMethods">
             <title><literal>Row</literal> methods</title>
 
-            <section>
+            <section id="Row.append" xreflabel="Row.append()">
               <title>append()</title>
 
               <para>Once you have filled the proper fields for the current
               row, calling this method actually append these new data to the
               disk (actually data are written to the output buffer).</para>
 
-              <para>Example of use:
-              <screen>
+              <para>Example of use: <screen>
 row = table.row
 for i in xrange(nrows):
     row['col1'] = i-1
     row['col2'] = 'a'
     row['col3'] = -1.0
     row.append()
-table.flush() </screen> Please, note that, after the loop in which
-              <literal>Row.append()</literal> has been called, it is always
-              convenient to make a call to <literal>Table.flush()</literal> in
-              order to avoid losing the last rows that can be in internal
-              buffers.</para>
+table.flush() 
+            </screen> <emphasis>Warning:</emphasis> after completion of the
+              loop in which <literal>Row.append()</literal> has been called,
+              it is always convenient to make a call to
+              <literal>Table.flush()</literal> in order to avoid losing the
+              last rows that can be in internal buffers.</para>
             </section>
 
-            <section id="Row.update" xreflabel="description">
+            <section id="Row.update" xreflabel="Row.update()">
               <title>update()</title>
 
               <para>This allows you to modify values of your tables when you
@@ -7513,11 +7706,11 @@ table.flush() </screen> Please, note that, after the loop in which
               <literal>Table.where()</literal> (see <xref
               linkend="Table.where" />). Once you have filled the proper
               fields for the current row, calling this method actually commits
-              these data to the disk (actually data are written to the output
-              buffer).</para>
+              these data to the disk (actually data is written to the output
+              buffer, so the same warning noted in
+              <literal>Row.append()</literal> applies).</para>
 
-              <para>Example of use:
-              <screen>
+              <para>Example of use: <screen>
 for row in table.iterrows(step=10):
     row['col1'] = row.nrow
     row['col2'] = 'b'
@@ -7528,8 +7721,9 @@ for row in table.where('col1 &gt; 3'):
     row['col1'] = row.nrow
     row['col2'] = 'b'
     row['col3'] = 0.0
-    row.update()</screen> which just updates the rows with values in first
-              column bigger than 3.</para>
+    row.update()
+            </screen> which just updates the rows with values in first column
+              bigger than 3.</para>
             </section>
 
             <section id="Row.fetch_all_fields" xreflabel="description">
@@ -7537,532 +7731,409 @@ for row in table.where('col1 &gt; 3'):
 
               <para>Retrieve all the fields in the current row.</para>
 
-              <para>Example of use:
-              <screen>
-[ row.fetch_all_fields() for row in table.where('col1 < 0.3') ]
-              </screen> which select all the rows that fullfills a certain
+              <para>Contrarily to <literal>row[:]</literal> (see <xref
+              linkend="RowSpecialMethods" xrefstyle="select: labelnumber" />),
+              this returns the data as NumPy void scalars.</para>
+
+              <para>Example of use: <screen>
+[ row.fetch_all_fields() for row in table.where('col1 &lt; 3') ]
+            </screen> which select all the rows that fullfills a certain
               condition.</para>
             </section>
+          </section>
 
+          <section id="RowSpecialMethods" xreflabel="Row special methods">
+            <title><literal>Row</literal> special methods</title>
+
+            <section>
+              <title>__getitem__(key)</title>
+
+              <para>Returns the row field specified in
+              <literal>key</literal>.</para>
+
+              <para><literal>key</literal> can be a string (the name of the
+              field), an integer (the position of the field) or a slice (the
+              range of field positions). When <literal>key</literal> is a
+              slice, the returned value is a <emphasis>tuple</emphasis>
+              containing the values of the specified fields.</para>
+
+              <para>Examples of use: <screen>
+res = [ row['var3'] for row in table.where('var2 &lt; 20') ]
+            </screen> which selects the <literal>var3</literal> field for all
+              the rows that fullfill the condition. Or: <screen>
+res = [ row[4] for row in table if row[1] &lt; 20 ]
+            </screen> which selects the field in <literal>4th</literal>
+              position for all the rows that fullfill the condition. Or:
+              <screen>
+res = [ row[:] for row in table if row['var2'] &lt; 20 ]
+            </screen> which selects the all the fields (in the form of a
+              <emphasis>tuple</emphasis>) for all the rows that fullfill the
+              condition. Or: <screen>
+res = [ row[1::2] for row in table.iterrows(2, 3000, 3) ]
+            </screen> which selects the all the fields in even positions (in
+              the form of a <emphasis>tuple</emphasis>) for all the rows in
+              the slice <literal>[2:3000:3]</literal>.</para>
+            </section>
+
+            <section>
+              <title>__setitem__(key, value)</title>
+
+              <para>Set the <literal>key</literal> row field to the specified
+              <literal>value</literal>.</para>
+
+              <para>Differently from its <literal>__getitem__()</literal>
+              counterpart, in this case <literal>key</literal> can only be a
+              string (the name of the field). <literal>__setitem__()</literal>
+              will not take effect on the table data on-disk until any of the
+              <literal><xref linkend="Row.append"
+              xrefstyle="select:             labelnumber" /></literal> or
+              <literal><xref linkend="Row.update"
+              xrefstyle="select:             labelnumber" /></literal> methods
+              would be called.</para>
+
+              <para>Example of use: <screen>
+for row in table.iterrows(step=10):
+    row['col1'] = row.nrow
+    row['col2'] = 'b'
+    row['col3'] = 0.0
+    row.update()</screen> which modifies every tenth row in table.</para>
+            </section>
           </section>
         </section>
-      </section>
 
-      <section id="ColsClassDescr">
-        <title>The <literal>Cols</literal> class</title>
+        <section id="ColsClassDescr">
+          <title>The <literal>Cols</literal> class</title>
 
-        <para>This class is used as an <emphasis>accessor</emphasis> to the
-        table columns following the natural name convention, so that you can
-        access the different columns because there exists one attribute with
-        the name of the columns for each associated column, which can be a
-        <literal>Column</literal> instance (non-nested column) or another
-        <literal>Cols</literal> instance (nested column).</para>
+          <para>This class is used as an <emphasis>accessor</emphasis> to the
+          table columns following the natural name convention, so that you can
+          access the different columns because there exists one attribute with
+          the name of the columns for each associated column, which can be a
+          <literal>Column</literal> instance (non-nested column) or another
+          <literal>Cols</literal> instance (nested column).</para>
 
-        <para>Columns under a <literal>Cols</literal> accessor can be accessed
-        as attributes of it. For instance, if <literal>table.cols</literal> is
-        a <literal>Cols</literal> instance with a column named
-        <literal>col1</literal> under it, the later can be accessed as
-        <literal>table.cols.col1</literal>. If <literal>col1</literal> is
-        nested and contains a <literal>col2</literal> column, this can be
-        accessed as <literal>table.cols.col1.col2</literal> and so on and so
-        forth.</para>
-
-        <section>
-          <title><literal>Cols</literal> instance variables</title>
-
-          <glosslist>
-            <?dbfo glosslist-presentation="list" ?>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">_v_colnames</emphasis></glossterm>
-
-              <glossdef>
-                <para>A list of the names of the columns (or nested columns)
-                hanging directly from this <literal>Cols</literal> instance.
-                The order of the names matches the order of their respective
-                columns in the containing table.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">_v_colpathnames</emphasis></glossterm>
-
-              <glossdef>
-                <para>A list of the complete pathnames of the columns hanging
-                directly from this <literal>Cols</literal> instance. If the
-                table does not contain nested columns, this is exactly the
-                same as <literal>_v_colnames</literal> attribute.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">_v_table</emphasis></glossterm>
-
-              <glossdef>
-                <para>The parent <literal>Table</literal> instance.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">_v_desc</emphasis></glossterm>
-
-              <glossdef>
-                <para>The associated Description (see <xref
-                linkend="ColumnClassDescr" xrefstyle="select: label" />)
-                instance.</para>
-              </glossdef>
-            </glossentry>
-          </glosslist>
-        </section>
-
-        <section>
-          <title><literal>Cols</literal> methods</title>
-
-          <section id="Cols._f_col">
-            <title>_f_col(colname)</title>
-
-            <para>Return a handler to the <emphasis>colname</emphasis> column.
-            If <emphasis>colname</emphasis> is a nested column, a
-            <literal>Cols</literal> instance is returned. If
-            <emphasis>colname</emphasis> is a non-nested column a
-            <literal>Column</literal> object is returned instead.</para>
-          </section>
-
-          <section id="Cols.__getitem__">
-            <title>__getitem__(key)</title>
-
-            <para>Get a row or a range of rows from a (nested) column.</para>
-
-            <para>If the <literal>key</literal> argument is an integer, the
-            corresponding nested type row is returned as a record of the
-            current flavor. If <literal>key</literal> is a slice, the range of
-            rows determined by it is returned as a record array of the current
-            flavor.</para>
-
-            <para>Using a string as <literal>key</literal> to get a column is
-            supported but deprecated. Please use the <literal>col()</literal>
-            (see <xref linkend="Table.col" />) method.</para>
-
-            <para>Example of use:</para>
-
-            <screen>record = table.cols[4]  # equivalent to table[4]
-recarray = table.cols.Info[4:1000:2]</screen>
-
-            <para>Those statements are equivalent to:</para>
-
-            <screen>nrecord = table.read(start=4)[0]
-nrecarray = table.read(start=4, stop=1000, step=2).field('Info')</screen>
-
-            <para>Here you can see how a mix of natural naming, indexing and
-            slicing can be used as shorthands for the
-            <literal>read()</literal> (see <xref linkend="Table.read" />)
-            method.</para>
-          </section>
+          <para>Columns under a <literal>Cols</literal> accessor can be
+          accessed as attributes of it. For instance, if
+          <literal>table.cols</literal> is a <literal>Cols</literal> instance
+          with a column named <literal>col1</literal> under it, the later can
+          be accessed as <literal>table.cols.col1</literal>. If
+          <literal>col1</literal> is nested and contains a
+          <literal>col2</literal> column, this can be accessed as
+          <literal>table.cols.col1.col2</literal> and so on and so
+          forth.</para>
 
           <section>
-            <title>__setitem__(key)</title>
-
-            <para>Set a row or a range of rows to the <literal>Cols</literal>
-            accessor.</para>
-
-            <para>If the <literal>key</literal> argument is an integer, the
-            corresponding <literal>Cols</literal> row is set to the
-            <literal>value</literal> object. If <literal>key</literal> is a
-            slice, the range of rows determined by it is set to the
-            <literal>value</literal> object.</para>
-
-            <para>Example of use:</para>
-
-            <screen>table.cols[4] = record
-table.cols.Info[4:1000:2] = recarray</screen>
-
-            <para>Those statements are equivalent to:</para>
-
-            <screen>table.modifyRows(4, rows=record)
-table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
-
-            <para>Here you can see how a mix of natural naming, indexing and
-            slicing can be used as shorthands for the
-            <literal>modifyRows()</literal> and
-            <literal>modifyColumn()</literal> (see <xref
-            linkend="Table.modifyRows" /> and <xref
-            linkend="Table.modifyColumn" />) methods.</para>
-          </section>
-        </section>
-      </section>
-
-      <section id="DescriptionClassDescr">
-        <title>The <literal>Description</literal> class</title>
-
-        <para>This class represents descriptions of the structure of
-        tables.</para>
-
-        <para>An instance of this class is automatically bound to
-        <literal>Table</literal> (see <xref linkend="TableClassDescr"
-        xrefstyle="select: labelnumber" />) objects when they are created. It
-        provides a browseable representation of the structure of the table,
-        made of non-nested (<literal>Col</literal> —see <xref
-        linkend="ColClassDescr" xrefstyle="select: labelnumber" />) and nested
-        (<literal>Description</literal>) columns. It also contains information
-        that will allow you to build <literal>NestedRecArray</literal> (see
-        <xref linkend="NestedRecArrayClassDescr" xrefstyle="select: label" />)
-        objects suited for the different columns in a table (be they nested or
-        not).</para>
-
-        <para>Column definitions (see <literal>Col</literal> class in <xref
-        linkend="ColClassDescr" xrefstyle="select: labelnumber" />) under a
-        description can be accessed as attributes of it. For instance, if
-        <literal>table.description</literal> is a
-        <literal>Description</literal> instance with a column named
-        <literal>col1</literal> under it, the later can be accessed as
-        <literal>table.description.col1</literal>. If <literal>col1</literal>
-        is nested and contains a <literal>col2</literal> column, this can be
-        accessed as <literal>table.description.col1.col2</literal>.</para>
-
-        <section>
-          <title><literal>Description</literal> instance variables</title>
-
-          <glosslist>
-            <?dbfo glosslist-presentation="list" ?>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">_v_name</emphasis></glossterm>
-
-              <glossdef>
-                <para>The name of this description group. The name of the root
-                group is <literal>'/'</literal>.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">_v_names</emphasis></glossterm>
-
-              <glossdef>
-                <para>A list of the names of the columns hanging directly from
-                the associated table or nested column. The order of the names
-                matches the order of their respective columns in the
-                containing table.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">_v_pathnames</emphasis></glossterm>
-
-              <glossdef>
-                <para>A list of the pathnames of the columns hanging directly
-                from the associated table or nested column. If the table does
-                not contain nested columns, this is exactly the same as the
-                <literal>_v_names</literal> attribute.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">_v_nestedNames</emphasis></glossterm>
-
-              <glossdef>
-                <para>A nested list of the names of all the columns under this
-                table or nested column. You can use this for the
-                <literal>names</literal> argument of
-                <literal>NestedRecArray</literal> factory functions.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">_v_nestedFormats</emphasis></glossterm>
-
-              <glossdef>
-                <para>A nested list of the NumPy string formats (and shapes)
-                of all the columns under this table or nested column. You can
-                use this for the <literal>formats</literal> argument of
-                <literal>NestedRecArray</literal> factory functions.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">_v_nestedDescr</emphasis></glossterm>
-
-              <glossdef>
-                <para>A nested list of pairs of <literal>(name,
-                format)</literal> tuples for all the columns under this table
-                or nested column. You can use this as the
-                <literal>dtype</literal> argument of NumPy array factories, as
-                well as the <literal>descr</literal> argument of
-                <literal>NestedRecArray</literal> factories.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">_v_types</emphasis></glossterm>
-
-              <glossdef>
-                <para>A dictionary mapping the names of non-nested columns
-                hanging directly from the associated table or nested column to
-                their respective PyTables types.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">_v_dtypes</emphasis></glossterm>
-
-              <glossdef>
-                <para>A dictionary mapping the names of non-nested columns
-                hanging directly from the associated table or nested column to
-                their respective NumPy types.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">_v_dflts</emphasis></glossterm>
-
-              <glossdef>
-                <para>A dictionary mapping the names of non-nested columns
-                hanging directly from the associated table or nested column to
-                their respective default values.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">_v_colObjects</emphasis></glossterm>
-
-              <glossdef>
-                <para>A dictionary mapping the names of the columns hanging
-                directly from the associated table or nested column to their
-                respective descriptions (<literal>Col</literal> —see <xref
-                linkend="ColClassDescr" xrefstyle="select: labelnumber" />— or
-                <literal>Description</literal> —see <xref
-                linkend="DescriptionClassDescr"
-                xrefstyle="select: labelnumber" /> — instances).</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">_v_nestedlvl</emphasis></glossterm>
-
-              <glossdef>
-                <para>The level of the associated table or nested column in
-                the nested datatype.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">_v_is_nested</emphasis></glossterm>
-
-              <glossdef>
-                <para>Whether the associated table has nested columns or not
-                (boolean).</para>
-              </glossdef>
-            </glossentry>
-          </glosslist>
-        </section>
-
-        <section>
-          <title><literal>Description</literal> methods</title>
-
-          <section>
-            <title>_f_walk(type='All')</title>
-
-            <para>Iterate over nested columns.</para>
-
-            <para>If <literal>type</literal> is <literal>'All'</literal> (the
-            default), all column description objects (<literal>Col</literal>
-            and <literal>Description</literal> instances) are returned in
-            top-to-bottom order (pre-order).</para>
-
-            <para>If <literal>type</literal> is <literal>'Col'</literal> or
-            <literal>'Description'</literal>, only column descriptions of that
-            type are returned.</para>
-          </section>
-        </section>
-      </section>
-
-      <section id="ColumnClassDescr">
-        <title>The <literal>Column</literal> class</title>
-
-        <para>Each instance of this class is associated with one column of
-        every table. These instances are mainly used to fetch and set actual
-        data from the table columns, but there are a few other associated
-        methods to deal with indexes.</para>
-
-        <section>
-          <title><literal>Column</literal> instance variables</title>
-
-          <glosslist>
-            <?dbfo glosslist-presentation="list" ?>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">table</emphasis></glossterm>
-
-              <glossdef>
-                <para>The parent <literal>Table</literal> instance.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">name</emphasis></glossterm>
-
-              <glossdef>
-                <para>The name of the associated column.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">pathname</emphasis></glossterm>
-
-              <glossdef>
-                <para>The complete pathname of the associated column. This is
-                mainly useful in nested columns; for non-nested ones this
-                value is the same a <literal>name</literal>.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">type</emphasis></glossterm>
-
-              <glossdef>
-                <para>The data type of the column.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">stype</emphasis></glossterm>
-
-              <glossdef>
-                <para>The data type, in string format, of the column.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">shape</emphasis></glossterm>
-
-              <glossdef>
-                <para>The shape of the column.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">index</emphasis></glossterm>
-
-              <glossdef>
-                <para>The associated <literal>Index</literal> object (see
-                <xref linkend="IndexClassDescr"
-                xrefstyle="select: labelnumber" />) to this column
-                (<literal>None</literal> if it does not exist).</para>
-              </glossdef>
-            </glossentry>
-          </glosslist>
-        </section>
-
-        <section>
-          <title><literal>Column</literal> methods</title>
-
-          <section id="createIndexColumnDescr" xreflabel="description">
-            <title><literal>createIndex(optlevel=5, filters=None)</literal></title>
-
-            <para>Create an <literal>Index</literal> (see <xref
-            linkend="IndexClassDescr" xrefstyle="select: labelnumber" />)
-            object for this column. You can select the level of the
-            optimization of the index by setting <literal>optlevel</literal>
-            from 0 to 9. A value of 0 means that the index will be created,
-            but not optimized (fastest time for index creation and very low
-            memory consumption, but slowest lookup times) and a value of 9
-            means maximum optimization (slowest time for index creation and
-            more memory used, but fastest lookup times).</para>
-            <para>You can use the <literal>filters</literal> argument to set
-            the <literal>Filters</literal> (see <xref
-            linkend="FiltersClassDescr" xrefstyle="select: label" />) used to
-            compress the index. If <literal>None</literal>, they will be those
-            in the <literal>indexFilters</literal> of the associated
-            table if any; otherwise, default index filters will be used.
-            </para>
-          </section>
-
-          <section id="optimizeIndexColumnDescr" xreflabel="description">
-            <title><literal>optimizeIndex(optlevel=9)</literal></title>
-
-            <para>Optimize an already created index for this column. You can
-            select the level of the optimization of the index by setting
-            <literal>optlevel</literal> from 0 to 9. A value of 0 means no
-            optimization at all (i.e. it does nothing in this case), and a
-            value of 9 means maximum optimization (slowest time for index
-            creation and more memory used, but fastest lookup times).</para>
-          </section>
-
-          <section id="reIndexColumnDescr">
-            <title><literal>reIndex()</literal></title>
-
-            <para>Recompute the index associated with this column. This can be
-            useful when you suspect that, for any reason, the index
-            information is no longer valid and want to rebuild it.</para>
-          </section>
-
-          <section id="reIndexDirtyColumnDescr">
-            <title><literal>reIndexDirty()</literal></title>
-
-            <para>Recompute the existing index only if it is dirty. This can
-            be useful when you have set <literal>autoIndex</literal> (see
-            <xref linkend="Table.autoIndex" />) to false for the table and
-            want to update the column's index after a invalidating index
-            operation (<literal>Table.removeRows</literal>, for
-            example).</para>
-          </section>
-
-          <section id="removeIndexColumnDescr">
-            <title><literal>removeIndex()</literal></title>
-
-            <para>Remove the index associated with this column.</para>
-
-            <para>If the column is not indexed, nothing happens. The index can
-            be created again by calling the <literal>createIndex()</literal>
-            method (see <xref linkend="createIndexColumnDescr" />).</para>
-          </section>
-        </section>
-
-        <section>
-          <title><literal>Column</literal> special methods</title>
-
-          <section id="Column.__getitem__">
-            <title><literal>__getitem__(key)</literal></title>
-
-            <para>Returns a column element or slice. It takes different
-            actions depending on the type of the <emphasis>key</emphasis>
-            parameter:</para>
+            <title><literal>Cols</literal> instance variables</title>
 
             <glosslist>
+              <?dbfo glosslist-presentation="list" ?>
+
               <glossentry>
                 <glossterm><emphasis
-                role="bold"><literal>key</literal></emphasis> is an
-                <literal>Integer</literal></glossterm>
+                role="bold">_v_colnames</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The corresponding element in the column is returned as
-                  a scalar object or as a <literal>numarray</literal> object,
-                  depending on its shape.</para>
+                  <para>A list of the names of the columns (or nested columns)
+                  hanging directly from this <literal>Cols</literal> instance.
+                  The order of the names matches the order of their respective
+                  columns in the containing table.</para>
                 </glossdef>
               </glossentry>
 
               <glossentry>
                 <glossterm><emphasis
-                role="bold"><literal>key</literal></emphasis> is a
-                <literal>Slice</literal></glossterm>
+                role="bold">_v_colpathnames</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The row range determined by this slice is returned as
-                  a <literal>numarray</literal> object.</para>
+                  <para>A list of the complete pathnames of the columns
+                  hanging directly from this <literal>Cols</literal> instance.
+                  If the table does not contain nested columns, this is
+                  exactly the same as <literal>_v_colnames</literal>
+                  attribute.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_table</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The parent <literal>Table</literal> instance.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_desc</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The associated Description (see <xref
+                  linkend="ColumnClassDescr" xrefstyle="select: label" />)
+                  instance.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
+          </section>
 
-            <para>Example of use: <screen>print "Column handlers:"
+          <section>
+            <title><literal>Cols</literal> methods</title>
+
+            <section id="Cols._f_col">
+              <title>_f_col(colname)</title>
+
+              <para>Return a handler to the <emphasis>colname</emphasis>
+              column. If <emphasis>colname</emphasis> is a nested column, a
+              <literal>Cols</literal> instance is returned. If
+              <emphasis>colname</emphasis> is a non-nested column a
+              <literal>Column</literal> object is returned instead.</para>
+            </section>
+
+            <section id="Cols.__getitem__">
+              <title>__getitem__(key)</title>
+
+              <para>Get a row or a range of rows from a (nested)
+              column.</para>
+
+              <para>If the <literal>key</literal> argument is an integer, the
+              corresponding nested type row is returned as a record of the
+              current flavor. If <literal>key</literal> is a slice, the range
+              of rows determined by it is returned as a record array of the
+              current flavor.</para>
+
+              <para>Using a string as <literal>key</literal> to get a column
+              is supported but deprecated. Please use the
+              <literal>col()</literal> (see <xref linkend="Table.col" />)
+              method.</para>
+
+              <para>Example of use:</para>
+
+              <screen>record = table.cols[4]  # equivalent to table[4]
+recarray = table.cols.Info[4:1000:2]</screen>
+
+              <para>Those statements are equivalent to:</para>
+
+              <screen>nrecord = table.read(start=4)[0]
+nrecarray = table.read(start=4, stop=1000, step=2).field('Info')</screen>
+
+              <para>Here you can see how a mix of natural naming, indexing and
+              slicing can be used as shorthands for the
+              <literal>read()</literal> (see <xref linkend="Table.read" />)
+              method.</para>
+            </section>
+
+            <section>
+              <title>__setitem__(key)</title>
+
+              <para>Set a row or a range of rows to the
+              <literal>Cols</literal> accessor.</para>
+
+              <para>If the <literal>key</literal> argument is an integer, the
+              corresponding <literal>Cols</literal> row is set to the
+              <literal>value</literal> object. If <literal>key</literal> is a
+              slice, the range of rows determined by it is set to the
+              <literal>value</literal> object.</para>
+
+              <para>Example of use:</para>
+
+              <screen>table.cols[4] = record
+table.cols.Info[4:1000:2] = recarray</screen>
+
+              <para>Those statements are equivalent to:</para>
+
+              <screen>table.modifyRows(4, rows=record)
+table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
+
+              <para>Here you can see how a mix of natural naming, indexing and
+              slicing can be used as shorthands for the
+              <literal>modifyRows()</literal> and
+              <literal>modifyColumn()</literal> (see <xref
+              linkend="Table.modifyRows" /> and <xref
+              linkend="Table.modifyColumn" />) methods.</para>
+            </section>
+          </section>
+        </section>
+
+        <section id="ColumnClassDescr">
+          <title>The <literal>Column</literal> class</title>
+
+          <para>Each instance of this class is associated with one column of
+          every table. These instances are mainly used to fetch and set actual
+          data from the table columns, but there are a few other associated
+          methods to deal with indexes.</para>
+
+          <section>
+            <title><literal>Column</literal> instance variables</title>
+
+            <glosslist>
+              <?dbfo glosslist-presentation="list" ?>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">table</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The parent <literal>Table</literal> instance.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">name</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The name of the associated column.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">pathname</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The complete pathname of the associated column. This
+                  is mainly useful in nested columns; for non-nested ones this
+                  value is the same a <literal>name</literal>.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">type</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The data type of the column.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">stype</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The data type, in string format, of the column.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">shape</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The shape of the column.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">index</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The associated <literal>Index</literal> object (see
+                  <xref linkend="IndexClassDescr"
+                  xrefstyle="select: labelnumber" />) to this column
+                  (<literal>None</literal> if it does not exist).</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+          </section>
+
+          <section>
+            <title><literal>Column</literal> methods</title>
+
+            <section id="createIndexColumnDescr" xreflabel="description">
+              <title><literal>createIndex(optlevel=5,
+              filters=None)</literal></title>
+
+              <para>Create an <literal>Index</literal> (see <xref
+              linkend="IndexClassDescr" xrefstyle="select: labelnumber" />)
+              object for this column. You can select the level of the
+              optimization of the index by setting <literal>optlevel</literal>
+              from 0 to 9. A value of 0 means that the index will be created,
+              but not optimized (fastest time for index creation and very low
+              memory consumption, but slowest lookup times) and a value of 9
+              means maximum optimization (slowest time for index creation and
+              more memory used, but fastest lookup times).</para>
+
+              <para>You can use the <literal>filters</literal> argument to set
+              the <literal>Filters</literal> (see <xref
+              linkend="FiltersClassDescr" xrefstyle="select: label" />) used
+              to compress the index. If <literal>None</literal>, they will be
+              those in the <literal>indexFilters</literal> of the associated
+              table if any; otherwise, default index filters will be
+              used.</para>
+            </section>
+
+            <section id="optimizeIndexColumnDescr" xreflabel="description">
+              <title><literal>optimizeIndex(optlevel=9)</literal></title>
+
+              <para>Optimize an already created index for this column. You can
+              select the level of the optimization of the index by setting
+              <literal>optlevel</literal> from 0 to 9. A value of 0 means no
+              optimization at all (i.e. it does nothing in this case), and a
+              value of 9 means maximum optimization (slowest time for index
+              creation and more memory used, but fastest lookup times).</para>
+            </section>
+
+            <section id="reIndexColumnDescr">
+              <title><literal>reIndex()</literal></title>
+
+              <para>Recompute the index associated with this column. This can
+              be useful when you suspect that, for any reason, the index
+              information is no longer valid and want to rebuild it.</para>
+            </section>
+
+            <section id="reIndexDirtyColumnDescr">
+              <title><literal>reIndexDirty()</literal></title>
+
+              <para>Recompute the existing index only if it is dirty. This can
+              be useful when you have set <literal>autoIndex</literal> (see
+              <xref linkend="Table.autoIndex" />) to false for the table and
+              want to update the column's index after a invalidating index
+              operation (<literal>Table.removeRows</literal>, for
+              example).</para>
+            </section>
+
+            <section id="removeIndexColumnDescr">
+              <title><literal>removeIndex()</literal></title>
+
+              <para>Remove the index associated with this column.</para>
+
+              <para>If the column is not indexed, nothing happens. The index
+              can be created again by calling the
+              <literal>createIndex()</literal> method (see <xref
+              linkend="createIndexColumnDescr" />).</para>
+            </section>
+          </section>
+
+          <section>
+            <title><literal>Column</literal> special methods</title>
+
+            <section id="Column.__getitem__">
+              <title><literal>__getitem__(key)</literal></title>
+
+              <para>Returns a column element or slice. It takes different
+              actions depending on the type of the <emphasis>key</emphasis>
+              parameter:</para>
+
+              <glosslist>
+                <glossentry>
+                  <glossterm><emphasis
+                  role="bold"><literal>key</literal></emphasis> is an
+                  <literal>Integer</literal></glossterm>
+
+                  <glossdef>
+                    <para>The corresponding element in the column is returned
+                    as a scalar object or as a <literal>numarray</literal>
+                    object, depending on its shape.</para>
+                  </glossdef>
+                </glossentry>
+
+                <glossentry>
+                  <glossterm><emphasis
+                  role="bold"><literal>key</literal></emphasis> is a
+                  <literal>Slice</literal></glossterm>
+
+                  <glossdef>
+                    <para>The row range determined by this slice is returned
+                    as a <literal>numarray</literal> object.</para>
+                  </glossdef>
+                </glossentry>
+              </glosslist>
+
+              <para>Example of use: <screen>print "Column handlers:"
 for name in table.colnames:
     print table.cols[name]
 print
@@ -8072,7 +8143,8 @@ print "Select table.cols.name[1:2]--&gt;", table.cols.name[1:2]
 print "Select table.cols.lati[1:3]--&gt;", table.cols.lati[1:3]
 print "Select table.cols.pressure[:]--&gt;", table.cols.pressure[:]
 print "Select table.cols['temperature'][:]--&gt;", table.cols['temperature'][:]</screen>
-            and the output of this for a certain arbitrary table is: <screen>Column handlers:
+              and the output of this for a certain arbitrary table is:
+              <screen>Column handlers:
 /table.cols.name (Column(1,), CharType)
 /table.cols.lati (Column(2,), Int32)
 /table.cols.longi (Column(1,), Int32)
@@ -8086,59 +8158,60 @@ Select table.cols.lati[1:3]--&gt; [[11 12]
  [12 13]]
 Select table.cols.pressure[:]--&gt; [  90.  110.  132.]
 Select table.cols['temperature'][:]--&gt; [ 100.  121.  144.]</screen> See the
-            <literal>examples/table2.py</literal> for a more complete
-            example.</para>
-          </section>
+              <literal>examples/table2.py</literal> for a more complete
+              example.</para>
+            </section>
 
-          <section id="Column.__setitem__">
-            <title>__setitem__(key, value)</title>
+            <section id="Column.__setitem__">
+              <title>__setitem__(key, value)</title>
 
-            <para>It takes different actions depending on the type of the
-            <literal>key</literal> parameter:</para>
+              <para>It takes different actions depending on the type of the
+              <literal>key</literal> parameter:</para>
 
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis
-                role="bold"><literal>key</literal></emphasis> is an
-                <literal>Integer</literal></glossterm>
+              <glosslist>
+                <glossentry>
+                  <glossterm><emphasis
+                  role="bold"><literal>key</literal></emphasis> is an
+                  <literal>Integer</literal></glossterm>
 
-                <glossdef>
-                  <para>The corresponding element in the column is set to
-                  <emphasis>value</emphasis>. <emphasis>value</emphasis> must
-                  be a scalar or
-                  <literal>numarray</literal>/<literal>NumPy</literal> object,
-                  depending on column's shape.</para>
-                </glossdef>
-              </glossentry>
+                  <glossdef>
+                    <para>The corresponding element in the column is set to
+                    <emphasis>value</emphasis>. <emphasis>value</emphasis>
+                    must be a scalar or
+                    <literal>numarray</literal>/<literal>NumPy</literal>
+                    object, depending on column's shape.</para>
+                  </glossdef>
+                </glossentry>
 
-              <glossentry>
-                <glossterm><emphasis
-                role="bold"><literal>key</literal></emphasis> is a
-                <literal>Slice</literal></glossterm>
+                <glossentry>
+                  <glossterm><emphasis
+                  role="bold"><literal>key</literal></emphasis> is a
+                  <literal>Slice</literal></glossterm>
 
-                <glossdef>
-                  <para>The row slice determined by <emphasis>key</emphasis>
-                  is set to <emphasis>value</emphasis>.
-                  <emphasis>value</emphasis> must be a list of elements or a
-                  <literal>numarray</literal>/<literal>NumPy</literal>.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
+                  <glossdef>
+                    <para>The row slice determined by <emphasis>key</emphasis>
+                    is set to <emphasis>value</emphasis>.
+                    <emphasis>value</emphasis> must be a list of elements or a
+                    <literal>numarray</literal>/<literal>NumPy</literal>.</para>
+                  </glossdef>
+                </glossentry>
+              </glosslist>
 
-            <para>Example of use:</para>
+              <para>Example of use:</para>
 
-            <screen># Modify row 1
+              <screen># Modify row 1
 table.cols.col1[1] = -1
 # Modify rows 1 and 3
 table.cols.col1[1::2] = [2,3]</screen>
 
-            <para>Which is equivalent to:</para>
+              <para>Which is equivalent to:</para>
 
-            <screen># Modify row 1
+              <screen># Modify row 1
 table.modifyColumns(start=1, columns=[[-1]], names=["col1"])
 # Modify rows 1 and 3
 columns = numarray.records.fromarrays([[2,3]], formats="i4")
 table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
+            </section>
           </section>
         </section>
       </section>
@@ -8155,8 +8228,9 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
         <literal>EArray</literal> (see <xref linkend="EArrayClassDescr"
         xrefstyle="select: labelnumber" />) class if you want enlargeable
         dataset support or compression features, or <literal>CArray</literal>
-        (see <xref linkend="CArrayClassDescr" xrefstyle="select: labelnumber"
-        />) if you just want compression.</para>
+        (see <xref linkend="CArrayClassDescr"
+        xrefstyle="select: labelnumber" />) if you just want
+        compression.</para>
 
         <para>An interesting property of the <literal>Array</literal> class is
         that it remembers the <emphasis>flavor</emphasis> of the object that
@@ -8224,7 +8298,6 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
                 <para>The size in bytes of an item in the array.</para>
               </glossdef>
             </glossentry>
-
           </glosslist>
         </section>
 
@@ -8602,7 +8675,6 @@ array_c[4] =&gt; 'cccccccc'</screen>
                 <literal>(self.nrows,)</literal>).</para>
               </glossdef>
             </glossentry>
-
           </glosslist>
         </section>
 
@@ -9143,8 +9215,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
               <emphasis>atom</emphasis>.</para>
 
               <para>An optional position may be specified as the
-              <emphasis>pos</emphasis> argument.
-              </para>
+              <emphasis>pos</emphasis> argument.</para>
             </section>
 
             <section>
@@ -9161,26 +9232,24 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
             </section>
 
             <section>
-              <title>from_kind(kind, itemsize=None, shape=1,
-              dflt=None, pos=None)</title>
+              <title>from_kind(kind, itemsize=None, shape=1, dflt=None,
+              pos=None)</title>
 
-              <para>Create a <literal>Col</literal> definition from a
-              PyTables <emphasis>kind</emphasis>.</para>
+              <para>Create a <literal>Col</literal> definition from a PyTables
+              <emphasis>kind</emphasis>.</para>
 
-              <para>Optional item size, shape, default value and position
-              may be specified as the <emphasis>itemsize</emphasis>,
+              <para>Optional item size, shape, default value and position may
+              be specified as the <emphasis>itemsize</emphasis>,
               <emphasis>shape</emphasis>, <emphasis>dflt</emphasis> and
-              <emphasis>pos</emphasis> arguments, respectively. Bear in
-              mind that not all columns support a default item
-              size.</para>
+              <emphasis>pos</emphasis> arguments, respectively. Bear in mind
+              that not all columns support a default item size.</para>
             </section>
 
             <section>
-              <title>from_sctype(sctype, shape=1, dflt=None,
-              pos=None)</title>
+              <title>from_sctype(sctype, shape=1, dflt=None, pos=None)</title>
 
-              <para>Create a <literal>Col</literal> definition from a
-              NumPy scalar type <emphasis>sctype</emphasis>.</para>
+              <para>Create a <literal>Col</literal> definition from a NumPy
+              scalar type <emphasis>sctype</emphasis>.</para>
 
               <para>Optional shape, default value and position may be
               specified as the <emphasis>shape</emphasis>,
@@ -9191,11 +9260,10 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
             </section>
 
             <section>
-              <title>from_type(type, shape=1, dflt=None,
-              pos=None)</title>
+              <title>from_type(type, shape=1, dflt=None, pos=None)</title>
 
-              <para>Create a <literal>Col</literal> definition from a
-              PyTables <emphasis>type</emphasis>.</para>
+              <para>Create a <literal>Col</literal> definition from a PyTables
+              <emphasis>type</emphasis>.</para>
 
               <para>Optional shape, default value and position may be
               specified as the <emphasis>shape</emphasis>,
@@ -9416,8 +9484,8 @@ Float64Atom(shape=(), dflt=0.0)</screen>
               <para>Optional item size, shape and default value may be
               specified as the <emphasis>itemsize</emphasis>,
               <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
-              arguments, respectively. Bear in mind that not all atoms
-              support a default item size.</para>
+              arguments, respectively. Bear in mind that not all atoms support
+              a default item size.</para>
 
               <screen>
 &gt;&gt;&gt; Atom.from_kind('int', itemsize=2, shape=(2, 2))
@@ -9450,8 +9518,8 @@ ValueError: the ``enum`` kind is not supported...
             <section>
               <title>from_sctype(sctype, shape=1, dflt=None)</title>
 
-              <para>Create an <literal>Atom</literal> from a NumPy scalar
-              type <emphasis>sctype</emphasis>.</para>
+              <para>Create an <literal>Atom</literal> from a NumPy scalar type
+              <emphasis>sctype</emphasis>.</para>
 
               <para>Optional shape and default value may be specified as the
               <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
@@ -9477,8 +9545,8 @@ Float64Atom(shape=(), dflt=0.0)</screen>
               <para>Create an <literal>Atom</literal> from a PyTables
               <emphasis>type</emphasis>.</para>
 
-              <para>Optional shape and default value may be specified as
-              the <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
+              <para>Optional shape and default value may be specified as the
+              <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
               arguments, respectively.</para>
 
               <screen>
@@ -9538,120 +9606,126 @@ ValueError: unknown type: 'Float64'</screen>
 
             <section>
               <title>StringAtom(itemsize, shape=1, dflt='')</title>
+
               <para>Defines an atom of type <literal>string</literal>.</para>
+
               <para>The item size is the <emphasis>maximum</emphasis> length
               in characters of strings.</para>
             </section>
 
             <section>
               <title>BoolAtom(shape=1, dflt=False)</title>
-              <para>Defines an atom of type
-              <literal>bool</literal>.</para>
+
+              <para>Defines an atom of type <literal>bool</literal>.</para>
             </section>
 
             <section>
               <title>IntAtom(itemsize=4, shape=1, dflt=0)</title>
+
               <para>Defines an atom of a signed integral type
               (<literal>int</literal> kind).</para>
             </section>
 
             <section>
               <title>Int8Atom(shape=1, dflt=0)</title>
-              <para>Defines an atom of type
-              <literal>int8</literal>.</para>
+
+              <para>Defines an atom of type <literal>int8</literal>.</para>
             </section>
 
             <section>
               <title>Int16Atom(shape=1, dflt=0)</title>
-              <para>Defines an atom of type
-              <literal>int16</literal>.</para>
+
+              <para>Defines an atom of type <literal>int16</literal>.</para>
             </section>
 
             <section>
               <title>Int32Atom(shape=1, dflt=0)</title>
-              <para>Defines an atom of type
-              <literal>int32</literal>.</para>
+
+              <para>Defines an atom of type <literal>int32</literal>.</para>
             </section>
 
             <section>
               <title>Int64Atom(shape=1, dflt=0)</title>
-              <para>Defines an atom of type
-              <literal>int64</literal>.</para>
+
+              <para>Defines an atom of type <literal>int64</literal>.</para>
             </section>
 
             <section>
               <title>UIntAtom(itemsize=4, shape=1, dflt=0)</title>
+
               <para>Defines an atom of an unsigned integral type
               (<literal>uint</literal> kind).</para>
             </section>
 
             <section>
               <title>UInt8Atom(shape=1, dflt=0)</title>
-              <para>Defines an atom of type
-              <literal>uint8</literal>.</para>
+
+              <para>Defines an atom of type <literal>uint8</literal>.</para>
             </section>
 
             <section>
               <title>UInt16Atom(shape=1, dflt=0)</title>
-              <para>Defines an atom of type
-              <literal>uint16</literal>.</para>
+
+              <para>Defines an atom of type <literal>uint16</literal>.</para>
             </section>
 
             <section>
               <title>UInt32Atom(shape=1, dflt=0)</title>
-              <para>Defines an atom of type
-              <literal>uint32</literal>.</para>
+
+              <para>Defines an atom of type <literal>uint32</literal>.</para>
             </section>
 
             <section>
               <title>UInt64Atom(shape=1, dflt=0)</title>
-              <para>Defines an atom of type
-              <literal>uint64</literal>.</para>
+
+              <para>Defines an atom of type <literal>uint64</literal>.</para>
             </section>
 
             <section>
               <title>Float32Atom(shape=1, dflt=0.0)</title>
-              <para>Defines an atom of type
-              <literal>float32</literal>.</para>
+
+              <para>Defines an atom of type <literal>float32</literal>.</para>
             </section>
 
             <section>
               <title>Float64Atom(shape=1, dflt=0.0)</title>
-              <para>Defines an atom of type
-              <literal>float64</literal>.</para>
+
+              <para>Defines an atom of type <literal>float64</literal>.</para>
             </section>
 
             <section>
               <title>ComplexAtom(itemsize, shape=1, dflt=0j)</title>
+
               <para>Defines an atom of kind <literal>complex</literal>.
               Allowed item sizes are 8 (single precision) and 16 (double
               precision). This class must be used instead of more concrete
-              ones to avoid confusions with
-              <literal>numarray</literal>-like precision specifications
-              used in PyTables 1.X.</para>
+              ones to avoid confusions with <literal>numarray</literal>-like
+              precision specifications used in PyTables 1.X.</para>
             </section>
 
             <section>
               <title>TimeAtom(itemsize=4, shape=1, dflt=0)</title>
+
               <para>Defines an atom of time type (<literal>time</literal>
               kind).</para>
+
               <para>There are two distinct supported types of time: a 32 bit
-              integer value and a 64 bit floating point value.  Both of them
-              reflect the number of seconds since the Unix epoch.  This atom
-              has the property of being stored using the HDF5 time datatypes.
-              </para>
+              integer value and a 64 bit floating point value. Both of them
+              reflect the number of seconds since the Unix epoch. This atom
+              has the property of being stored using the HDF5 time
+              datatypes.</para>
             </section>
 
             <section>
               <title>Time32Atom(shape=1, dflt=0)</title>
-              <para>Defines an atom of type
-              <literal>time32</literal>.</para>
+
+              <para>Defines an atom of type <literal>time32</literal>.</para>
             </section>
 
             <section>
               <title>Time64Atom(shape=1, dflt=0.0)</title>
-              <para>Defines an atom of type
-              <literal>time64</literal>.</para>
+
+              <para>Defines an atom of type <literal>time64</literal>.</para>
             </section>
 
             <section>
@@ -9660,43 +9734,39 @@ ValueError: unknown type: 'Float64'</screen>
               <para>Description of an atom of an enumerated type.</para>
 
               <para>Instances of this class describe the atom type used to
-              store enumerated values. Those values belong to an
-              enumerated type, defined by the first argument
-              (<literal>enum</literal>) in the constructor of the atom,
-              which accepts the same kinds of arguments as the
-              <literal>Enum</literal> class (see <xref
-              linkend="EnumClassDescr"
-              xrefstyle="select: labelnumber" />). The enumerated type is
-              stored in the <literal>enum</literal> attribute of the
-              atom.</para>
+              store enumerated values. Those values belong to an enumerated
+              type, defined by the first argument (<literal>enum</literal>) in
+              the constructor of the atom, which accepts the same kinds of
+              arguments as the <literal>Enum</literal> class (see <xref
+              linkend="EnumClassDescr" xrefstyle="select: labelnumber" />).
+              The enumerated type is stored in the <literal>enum</literal>
+              attribute of the atom.</para>
 
-              <para>A default value must be specified as the second
-              argument (<literal>dflt</literal>) in the constructor; it
-              must be the <emphasis>name</emphasis> (a string) of one of
-              the enumerated values in the enumerated type. When the atom
-              is created, the corresponding concrete value is broadcast
-              and stored in the <literal>dflt</literal> attribute (setting
-              different default values for items in a multidimensional
-              atom is not supported yet). If the name does not match any
-              value in the enumerated type, a <literal>KeyError</literal>
-              is raised.</para>
+              <para>A default value must be specified as the second argument
+              (<literal>dflt</literal>) in the constructor; it must be the
+              <emphasis>name</emphasis> (a string) of one of the enumerated
+              values in the enumerated type. When the atom is created, the
+              corresponding concrete value is broadcast and stored in the
+              <literal>dflt</literal> attribute (setting different default
+              values for items in a multidimensional atom is not supported
+              yet). If the name does not match any value in the enumerated
+              type, a <literal>KeyError</literal> is raised.</para>
 
               <para>Another atom must be specified as the
-              <literal>base</literal> argument in order to determine the
-              base type used for storing the values of enumerated values
-              in memory and disk. This <emphasis>storage atom</emphasis>
-              is kept in the <literal>base</literal> attribute of the
-              created atom. As a shorthand, you may specify a PyTables
-              type instead of the storage atom, implying that this has a
-              scalar shape.</para>
+              <literal>base</literal> argument in order to determine the base
+              type used for storing the values of enumerated values in memory
+              and disk. This <emphasis>storage atom</emphasis> is kept in the
+              <literal>base</literal> attribute of the created atom. As a
+              shorthand, you may specify a PyTables type instead of the
+              storage atom, implying that this has a scalar shape.</para>
 
               <para>The storage atom should be able to represent each and
               every concrete value in the enumeration. If it is not, a
-              <literal>TypeError</literal> is raised. The default value of
-              the storage atom is ignored.</para>
+              <literal>TypeError</literal> is raised. The default value of the
+              storage atom is ignored.</para>
 
-              <para>The <literal>type</literal> attribute of enumerated
-              atoms is always <literal>enum</literal>.</para>
+              <para>The <literal>type</literal> attribute of enumerated atoms
+              is always <literal>enum</literal>.</para>
             </section>
 
             <!-- You can place paragraphs and other block elements before a section, but you cannot place anything after it. See docbook reference. -->
@@ -11786,13 +11856,13 @@ owner := 'ivan']
       <section>
         <title>Complementary notes</title>
 
-        <para>You can use file nodes and PyTables groups to
-        mimic a filesystem with files and directories. Since you can store
-        nearly anything you want as file metadata, this enables you to use a
-        PyTables file as a portable compressed backup, even between radically
-        different platforms. Take this with a grain of salt, since node files
-        are restricted in their naming (only valid Python identifiers are
-        valid); however, remember that you can use node titles and metadata to
+        <para>You can use file nodes and PyTables groups to mimic a filesystem
+        with files and directories. Since you can store nearly anything you
+        want as file metadata, this enables you to use a PyTables file as a
+        portable compressed backup, even between radically different
+        platforms. Take this with a grain of salt, since node files are
+        restricted in their naming (only valid Python identifiers are valid);
+        however, remember that you can use node titles and metadata to
         overcome this limitation. Also, you may need to devise some strategy
         to represent special files such as devices, sockets and such (not
         necessarily using <literal>filenode</literal>).</para>

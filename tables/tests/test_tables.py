@@ -56,6 +56,7 @@ class OldRecord(IsDescription):
     var9 = ComplexCol(itemsize=8, shape=1, dflt=(0.+1.j), pos=8)
     var10 = ComplexCol(itemsize=16, shape=1, dflt=(1.-0.j), pos = 9)
 
+
 class BasicTestCase(common.PyTablesTestCase):
     #file  = "test.h5"
     mode  = "w"
@@ -297,12 +298,12 @@ class BasicTestCase(common.PyTablesTestCase):
             assert (rec['var9']) == float(nrows)+0.j
         assert len(result) == 20
 
-    def test01a_readTable(self):
+    def test01a_fetch_all_fields(self):
         """Checking table read (using Row.fetch_all_fields)"""
 
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test01a_readTable..." % self.__class__.__name__
+            print "Running %s.test01a_fetch_all_fields..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
@@ -331,6 +332,115 @@ class BasicTestCase(common.PyTablesTestCase):
         else:
             assert (rec['var9']) == float(nrows)+0.j
         assert len(result) == 20
+
+    def test01a_integer(self):
+        """Checking table read (using Row[integer])"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01a_integer..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.getNode("/table0")
+
+        # Choose a small value for buffer size
+        table._v_nrowsinbuf = 3
+        # Read the records and select those with "var2" file less than 20
+        result = [ rec[1] for rec in table.iterrows()
+                   if rec['var2'] < 20 ]
+        if verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Total selected records in table ==> ", len(result)
+            print "All results ==>", result
+        assert len(result) == 20
+        self.assert_(result == range(20))
+
+    def test01a_extslice(self):
+        """Checking table read (using Row[::2])"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01a_extslice..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.getNode("/table0")
+
+        # Choose a small value for buffer size
+        table._v_nrowsinbuf = 3
+        # Read the records and select those with "var2" file less than 20
+        result = [ rec[::2] for rec in table.iterrows()
+                   if rec['var2'] < 20 ]
+        rec = result[-1]
+        if verbose:
+            print "Nrows in", table._v_pathname, ":", table.nrows
+            print "Last record in table ==>", rec
+            print "Total selected records in table ==> ", len(result)
+        nrows = 20 - 1
+        self.assert_(rec[:2] == ('0081', 19))
+        self.assert_(rec[3] == '1')
+        if isinstance(rec[2], ndarray):
+            assert allequal(rec[2], array((float(nrows),)*4, float32))
+        else:
+            self.assert_(rec[2] == nrows)
+        if isinstance(rec[4], ndarray):
+            assert allequal(rec[4],
+                            array([0.+float(nrows)*1.j,float(nrows)+0.j],
+                                  complex64))
+        else:
+            self.assert_(rec[4] == float(nrows)+0.j)
+        assert len(result) == 20
+
+    def test01a_nofield(self):
+        """Checking table read (using Row['no-field'])"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01a_nofield..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.getNode("/table0")
+
+        # Check that a KeyError is raised
+        # self.assertRaises only work with functions
+        #self.assertRaises(KeyError, [rec['no-field'] for rec in table])
+        try:
+            result = [rec['no-field'] for rec in table]
+        except KeyError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next KeyError was catched!"
+                print value
+        else:
+            print result
+            self.fail("expected a KeyError")
+
+    def test01a_badtypefield(self):
+        """Checking table read (using Row[{}])"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01a_badtypefield..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.getNode("/table0")
+
+        # Check that a TypeError is raised
+        # self.assertRaises only work with functions
+        #self.assertRaises(TypeError, [rec[{}] for rec in table])
+        try:
+            result = [rec[{}] for rec in table]
+        except TypeError:
+            if verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next TypeError was catched!"
+                print value
+        else:
+            print result
+            self.fail("expected a TypeError")
 
     def test01b_readTable(self):
         """Checking table read and cuts (multidimensional columns case)"""

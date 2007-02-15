@@ -1,6 +1,6 @@
-================================
- What's new in PyTables Pro @VERSION@
-================================
+====================================
+ What's new in PyTables Std/Pro @VERSION@
+====================================
 
 
 :Author: Francesc Altet
@@ -11,7 +11,8 @@
 
 This document details the modifications of PyTables Pro since PyTables
 Standard version 1.x.  Its main purpose is help you ensure that your programs
-will be runnable when you switch from PyTables Std 1.x to PyTables Pro @VERSION@.
+will be runnable when you switch from PyTables Std 1.x to PyTables Std/Pro
+@VERSION@.
 
 
 API additions
@@ -36,6 +37,11 @@ API additions
   allows to not have to use the shape of the atom so as to set the chunksize
   of the underlying dataset (this change was needed for a future use of the
   atom shape as the dimensionality of the atom type).
+
+- All the ``File.create*()`` factories for Leaf creation has received a new
+  ``byteorder`` parameter that allows the user to specify the byteorder in
+  which the data will be written to disk.
+
 
 Backward-incompatible changes
 =============================
@@ -63,6 +69,7 @@ Backward-incompatible changes
 - Parameters ``shape`` and ``atom`` has been swapped in
   ``File.createCArray()``. This has been done to be consistent with Atom()
   definitions (i.e. type comes before and shape after).
+
 
 Deprecated features
 ===================

@@ -15,7 +15,40 @@ Changes more in depth
 
 Improvements:
 
-*** Escomençar ací a posar dings & bells ***
+- NumPy is finally at the core! That means that PyTables no longer needs
+  numarray in order to operate, although it continues to be supported
+  (as well as Numeric). This also means that you should be able to run
+  PyTables in scenarios combining Python2.5 and 64-platforms (these are
+  a source of problems with numarray/Numeric because they don't support
+  this combination yet).
+
+- Most of the operations in PyTables has experimented noticeably
+  speed-ups (sometimes up to 2x, like in pythonical table selections) as
+  a consequence of using NumPy internally.
+
+- numexpr has been integrated in all in-kernel selections. So, now it is
+  possible to perform complex selections like:
+
+res = [ row['var3'] for row in table.where('(var2 < 20) | (var1 == "sas")') ]
+
+  or:
+
+cplx_cond = '((%s<=col5) & (col2<=%s)) | (sqrt(col1+3.1*col2+col3*col4)>3)'
+res = [ row['var3'] for row in table.where('cplx_cond' % (inf, sup)) ]
+
+  and run them at full C-speed (or even more, due to the cache-tuned
+  computing kernel of numexpr).
+
+- Row.__getitem__() now understands extended sliced notation for
+  specifying field positions. So now, you can do things like:
+
+res = [ row[4] for row in table if row[1] < 20 ]
+res = [ row[:] for row in table if row['var2'] < 20 ]
+res = [ row[1::2] for row in table.iterrows(2, 3000, 3) ]
+
+in addition to the classical:
+
+res = [ row['var3'] for row in table.where('var2 < 20') ]
 
 - Row has received a new method called ``fetch_all_rows`` in order to
   easily retrieve all the fields of a row in situations like:
@@ -26,27 +59,34 @@ Improvements:
   to the native byteorder of the hosting machine (before, this only
   happened with Table objects). This should help to accelerate apps that
   have to do computations with data generated in platforms with a
-  byteorder different than the user machine. The attribute ``byteorder``
-  of the leaves only tells now the order of the data *on disk* (in
-  memory, data is always now in the native byteorder).
+  byteorder different than the user machine.
 
 - All the leaf constructors have received a new pararameter called
   'byteorder' that lets the user to specify the byteorder of his data
   *on disk*. This effectively allows to create datasets in other
-  byteorders than the native which can be useful for distributing
-  datafiles created with a server that has different endianess than the
-  receiving machines (i.e. the endian conversion can be avoided in the
-  latter case).
+  byteorders than the native platform.
 
 Bug fixes:
 
+- As mentioned above, the fact that NumPy is at the core makes that
+  certain bizarre interactions between NumPy scalars like:
+
+>>> numarray.array([1980291274, 4006003351], "i8") == numpy.uint32(4006003351)
+array([0, 0], type=Bool)    # WRONG!
+
+  doesn't affect the behaviour of table selections anymore.  Fixes
+  http://www.pytables.org/trac/ticket/29.
+
+- Did I mentioned that PyTables 2.0 can be safely used in 64-bit
+  platforms in combination with Python 2.5? ;)
 
 Deprecated features:
 
+- Not much, really.
 
 Backward-incompatible changes:
 
-- Please, see ``RELEASE-NOTES.txt`` file.
+- Many. Please, see ``RELEASE-NOTES.txt`` file.
 
 
 Important note for Windows users
