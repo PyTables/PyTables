@@ -39,8 +39,7 @@ from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx
-from tables.leaf import Leaf, Filters
-from tables.index import defaultAutoIndex, defaultIndexFilters
+from tables.leaf import Leaf
 from tables.description import IsDescription, Description, Col
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
      OldIndexWarning, NoSuchNodeError
@@ -53,9 +52,11 @@ from tables._table_common import (
 try:
     from tables.index import IndexesDescG
     from tables.index import IndexesTableG, OldIndex
+    from tables.index import defaultIndexFilters
     from tables._table_pro import (
-        NailedDict, _table__restorecache,
-        _table__readWhere, _table__getWhereList,
+        NailedDict,
+        _table__autoIndex, _table__indexFilters,
+        _table__restorecache, _table__readWhere, _table__getWhereList,
         _column__createIndex )
 except ImportError:
     from tables.exceptions import NoIndexingError, NoIndexingWarning
@@ -75,6 +76,9 @@ except ImportError:
         _c_classId = 'DINDEX'
 
     NailedDict = dict
+
+    # Forbid accesses to these attributes.
+    _table__autoIndex = _table__indexFilters = property()
 
     def _table__restorecache(self):
         pass
@@ -229,85 +233,14 @@ class Table(tableExtension.Table, Leaf):
 
     # Index-related properties
     # ````````````````````````
-    def _setautoIndex(self, auto):
-        _checkIndexingAvailable()
-        auto = bool(auto)
-        try:
-            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
-        except NoSuchNodeError:
-            indexgroup = self._createIndexesTable()
-        # Property assignment in groups does not work. :(
-        # indexgroup.auto = auto
-        indexgroup._setauto(auto)
-
-    def _getautoIndex(self):
-        try:
-            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
-        except NoSuchNodeError:
-            return defaultAutoIndex
-        else:
-            return indexgroup.auto
-
-    autoIndex = property(
-        _getautoIndex , _setautoIndex, None,
-        """
-        Automatically keep column indexes up to date?
-
-        Setting this value states whether existing indexes should be
-        automatically updated after an append operation or recomputed
-        after an index-invalidating operation (i.e. removal and
-        modification of rows).  The default is true.
-
-        This value gets into effect whenever a column is altered.  For
-        an immediate update use `self.flushRowsToIndex()`; for immediate
-        reindexation of invalidated indexes, use `self.reIndexDirty()`.
-
-        This value is persistent.
-        """ )
-
-    def _setindexFilters(self, filters):
-        _checkIndexingAvailable()
-        if not isinstance(filters, Filters):
-            raise TypeError("not an instance of ``Filters``: %r" % filters)
-        try:
-            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
-        except NoSuchNodeError:
-            indexgroup = self._createIndexesTable()
-        # Property assignment in groups does not work. :(
-        # indexgroup.filters = filters
-        indexgroup._setfilters(filters)
-
-    def _getindexFilters(self):
-        try:
-            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
-        except NoSuchNodeError:
-            return defaultIndexFilters
-        else:
-            return indexgroup.filters
-
-    indexFilters = property(
-        _getindexFilters, _setindexFilters, None,
-        """
-        Filters used to compress indexes.
-
-        Setting this value to a `Filters` instance determines the
-        compression to be used for indexes.  Setting it to ``None``
-        means that no filters will be used for indexes.  The default is
-        zlib compression level 1 with shuffling.
-
-        This value is used when creating new indexes or recomputing old
-        ones.  To apply it to existing indexes, use `self.reIndex()`.
-
-        This value is persistent.
-        """ )
+    autoIndex = _table__autoIndex
+    indexFilters = _table__indexFilters
 
     indexedcolpathnames = property(
         lambda self: [ _colpname for _colpname in self.colpathnames
                        if self.colindexed[_colpname] ],
         None, None,
         """The pathnames of the indexed columns of this table.""" )
-
-    # End of properties
 
     # Other methods
     # ~~~~~~~~~~~~~
@@ -2124,12 +2057,12 @@ The 'names' parameter must be a list of strings.""")
         except NoSuchNodeError:
             pass
         else:
-            if 'AUTO_INDEX' in indexgroup._v_attrs:
+            if _is_pro and 'AUTO_INDEX' in indexgroup._v_attrs:
                 newtable.autoIndex = self.autoIndex
             # There may be no filters; this is also a explicit change if
             # the default is having filters.  This is the reason for the
             # second part of the condition.
-            if ( 'FILTERS' in indexgroup._v_attrs
+            if ( _is_pro and 'FILTERS' in indexgroup._v_attrs
                  or self.indexFilters != defaultIndexFilters ):
                 newtable.indexFilters = self.indexFilters
         # Generate equivalent indexes in the new table, if any.

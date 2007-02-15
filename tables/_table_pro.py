@@ -16,9 +16,10 @@ from tables.parameters import (
     TABLE_MAX_SIZE, LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE )
 from tables.atom import Atom
 from tables.conditions import call_on_recarr
-from tables.exceptions import NodeError
+from tables.exceptions import NoSuchNodeError
 from tables.flavor import internal_to_flavor
-from tables.index import defaultIndexFilters, Index
+from tables.index import defaultAutoIndex, defaultIndexFilters, Index
+from tables.leaf import Filters
 from tables.lrucacheExtension import ObjectCache, NumCache
 from tables.utilsExtension import getNestedField
 
@@ -72,6 +73,76 @@ class NailedDict(object):
             return
         self._cache[key] = value
 
+
+def _table__setautoIndex(self, auto):
+    auto = bool(auto)
+    try:
+        indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+    except NoSuchNodeError:
+        indexgroup = self._createIndexesTable()
+    # Property assignment in groups does not work. :(
+    # indexgroup.auto = auto
+    indexgroup._setauto(auto)
+
+def _table__getautoIndex(self):
+    try:
+        indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+    except NoSuchNodeError:
+        return defaultAutoIndex
+    else:
+        return indexgroup.auto
+
+_table__autoIndex = property(
+    _table__getautoIndex , _table__setautoIndex, None,
+    """
+    Automatically keep column indexes up to date?
+
+    Setting this value states whether existing indexes should be
+    automatically updated after an append operation or recomputed
+    after an index-invalidating operation (i.e. removal and
+    modification of rows).  The default is true.
+
+    This value gets into effect whenever a column is altered.  For
+    an immediate update use `self.flushRowsToIndex()`; for immediate
+    reindexation of invalidated indexes, use `self.reIndexDirty()`.
+
+    This value is persistent.
+    """ )
+
+def _table__setindexFilters(self, filters):
+    if not isinstance(filters, Filters):
+        raise TypeError("not an instance of ``Filters``: %r" % filters)
+    try:
+        indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+    except NoSuchNodeError:
+        indexgroup = self._createIndexesTable()
+    # Property assignment in groups does not work. :(
+    # indexgroup.filters = filters
+    indexgroup._setfilters(filters)
+
+def _table__getindexFilters(self):
+    try:
+        indexgroup = self._v_file._getNode(_indexPathnameOf(self))
+    except NoSuchNodeError:
+        return defaultIndexFilters
+    else:
+        return indexgroup.filters
+
+_table__indexFilters = property(
+    _table__getindexFilters, _table__setindexFilters, None,
+    """
+    Filters used to compress indexes.
+
+    Setting this value to a `Filters` instance determines the
+    compression to be used for indexes.  Setting it to ``None``
+    means that no filters will be used for indexes.  The default is
+    zlib compression level 1 with shuffling.
+
+    This value is used when creating new indexes or recomputing old
+    ones.  To apply it to existing indexes, use `self.reIndex()`.
+
+    This value is persistent.
+    """ )
 
 def _table__restorecache(self):
     # Define a cache for sparse table reads
@@ -185,7 +256,7 @@ def _column__createIndex(self, optlevel, filters, warn, testmode, verbose):
     # Get the indexes group for table, and if not exists, create it
     try:
         itgroup = getNode(_indexPathnameOf(table))
-    except NodeError:
+    except NoSuchNodeError:
         itgroup = table._createIndexesTable()
 
     # If no filters are specified, try the table and then the default.
@@ -207,7 +278,7 @@ def _column__createIndex(self, optlevel, filters, warn, testmode, verbose):
                 dname += '/'+iname
             try:
                 idgroup = getNode('%s/%s' % (itgroup._v_pathname, dname))
-            except NodeError:
+            except NoSuchNodeError:
                 idgroup = table._createIndexesDescr(
                     idgroup, dname, iname, filters)
 
