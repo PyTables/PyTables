@@ -348,12 +348,12 @@ pyrex_extnames = [
     'hdf5Extension',
     'tableExtension',
     'utilsExtension',
-    'indexesExtension',
     '_comp_lzo',
     '_comp_bzip2' ]
 if VERSION.endswith('pro'):
     pyrex_extnames.extend([
-        'lrucacheExtension' ])
+        'lrucacheExtension',
+        'indexesExtension' ])
 
 def get_pyrex_extfiles(extnames):
     extdir = 'src'
@@ -481,17 +481,6 @@ extensions = [
                extra_link_args=LFLAGS,
                extra_compile_args=CFLAGS ),
 
-    Extension( "tables.indexesExtension",
-               include_dirs=inc_dirs,
-               define_macros=def_macros,
-               sources = [ pyrex_extfiles['indexesExtension'],
-                           "src/H5ARRAY-opt.c",
-                           "src/idx-opt.c" ],
-               library_dirs=lib_dirs,
-               libraries=indexesExtension_libs,
-               extra_link_args=LFLAGS,
-               extra_compile_args=CFLAGS ),
-
     Extension( "tables.utilsExtension",
                include_dirs=inc_dirs,
                define_macros=def_macros,
@@ -540,6 +529,19 @@ if 'lrucacheExtension' in pyrex_extnames:
                    sources=[pyrex_extfiles['lrucacheExtension']],
                    library_dirs=lib_dirs,
                    libraries=lrucacheExtension_libs,
+                   extra_link_args=LFLAGS,
+                   extra_compile_args=CFLAGS ) )
+
+if 'indexesExtension' in pyrex_extnames:
+    extensions.append(
+        Extension( "tables.indexesExtension",
+                   include_dirs=inc_dirs,
+                   define_macros=def_macros,
+                   sources = [ pyrex_extfiles['indexesExtension'],
+                               "src/H5ARRAY-opt.c",
+                               "src/idx-opt.c" ],
+                   library_dirs=lib_dirs,
+                   libraries=indexesExtension_libs,
                    extra_link_args=LFLAGS,
                    extra_compile_args=CFLAGS ) )
 
