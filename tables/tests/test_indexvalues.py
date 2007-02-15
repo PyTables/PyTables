@@ -2448,7 +2448,7 @@ class SV15aTestCase(SelectValuesTestCase):
     # the indexed part, but they exist in the non-indexed region.
     # At least, test01b takes account of that
     random = 1
-    # Both values of seed below triggers a fail in indexation code
+    # Both values of seed below triggers a fail in indexing code
     #seed = 1885
     seed = 183
     minRowIndex = 10
@@ -2464,7 +2464,7 @@ class SV15bTestCase(SelectValuesTestCase):
     # the indexed part, but they exist in the non-indexed region.
     # At least, test01b takes account of that
     random = 1
-    # Both values of seed below triggers a fail in indexation code
+    # Both values of seed below triggers a fail in indexing code
     seed = 1885
     #seed = 183
     minRowIndex = 10

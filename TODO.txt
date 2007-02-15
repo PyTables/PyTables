@@ -40,7 +40,7 @@ should give: 7.9 as answer.
 
 - Add tutorials about EArray and VLArray objects.
 
-- Add tutorials about indexation.
+- Add tutorials about indexing.
 
 And as always...
 

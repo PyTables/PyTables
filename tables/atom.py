@@ -219,10 +219,10 @@ class Atom(object):
     Defines the type of atomic cells stored in a dataset.
 
     The meaning of *atomic* is that individual elements of a cell can
-    not be extracted directly by indexation (i.e. ``__getitem__()``)
-    of the dataset; e.g. if a dataset has shape (2, 2) and its atoms
-    have shape (3,), to get the third element of the cell at (1, 0)
-    one should use ``dataset[1,0][2]`` instead of ``dataset[1,0,2]``.
+    not be extracted directly by indexing (i.e. ``__getitem__()``) the
+    dataset; e.g. if a dataset has shape (2, 2) and its atoms have
+    shape (3,), to get the third element of the cell at (1, 0) one
+    should use ``dataset[1,0][2]`` instead of ``dataset[1,0,2]``.
 
     Atoms have the following common attributes:
 

@@ -1180,7 +1180,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         condvars = self._requiredExprVars(condition, condvars)
         splitted = self._splitCondition(condition, condvars)
 
-        # Take advantage of indexation, if present
+        # Take advantage of indexing, if present
         idxvar = splitted.index_variable
         if idxvar is None:
             coords = [p.nrow for p in self._where(splitted, condvars)]

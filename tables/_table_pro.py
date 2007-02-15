@@ -102,9 +102,9 @@ _table__autoIndex = property(
     after an index-invalidating operation (i.e. removal and
     modification of rows).  The default is true.
 
-    This value gets into effect whenever a column is altered.  For
-    an immediate update use `self.flushRowsToIndex()`; for immediate
-    reindexation of invalidated indexes, use `self.reIndexDirty()`.
+    This value gets into effect whenever a column is altered.  For an
+    immediate update use `self.flushRowsToIndex()`; for an immediate
+    reindexing of invalidated indexes, use `self.reIndexDirty()`.
 
     This value is persistent.
     """ )

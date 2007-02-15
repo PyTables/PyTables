@@ -6805,7 +6805,7 @@ for node in h5file.root.detector:
                 altered.  For an immediate update use
                 <literal>self.flushRowsToIndex()</literal> (see <xref
                 linkend="Table.flushRowsToIndex" xrefstyle="select: label"
-                />); for immediate reindexation of invalidated indexes, use
+                />); for an immediate reindexing of invalidated indexes, use
                 <literal>self.reIndexDirty()</literal> (see <xref
                 linkend="Table.reIndexDirty" xrefstyle="select: label" />).
                 </para>
@@ -9226,8 +9226,8 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
           <para><literal>Atom</literal> instances define the type of atomic
           cells stored in a dataset. The meaning of
           <emphasis>atomic</emphasis> is that individual elements of a cell
-          can not be extracted directly by indexation (i.e.
-          <literal>__getitem__()</literal>) of the dataset; e.g. if a dataset
+          can not be extracted directly by indexing (i.e.
+          <literal>__getitem__()</literal>) the dataset; e.g. if a dataset
           has shape (2, 2) and its atoms have shape (3,), to get the third
           element of the cell at (1, 0) one should use
           <literal>dataset[1,0][2]</literal> instead of
@@ -10511,7 +10511,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           <emphasis>in-kernel</emphasis> selections, and in the order of 1000x
           with regard to <emphasis>standard</emphasis> selections.</para>
 
-          <para>One important aspect of indexation in PyTables is that it has
+          <para>One important aspect of indexing in PyTables is that it has
           been implemented with the goal of being capable to manage
           effectively very large tables. In <xref linkend="indexTimes"
           xrefstyle="select: label" />, you can see that the times to index
