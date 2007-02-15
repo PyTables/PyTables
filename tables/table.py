@@ -51,7 +51,7 @@ from tables.utilsExtension import getNestedField
 
 try:
     from tables.index import Index, IndexesDescG
-    from tables.index import IndexesTableG, OldIndexesTableG
+    from tables.index import IndexesTableG, OldIndex
     from tables._table_pro import (
         NailedDict, _table__restorecache,
         _table__readWhere, _table__getWhereList )
@@ -65,7 +65,7 @@ except ImportError:
     # the like on them.
     class IndexesTableG(NotLoggedMixin, Group):
         _c_classId = 'TINDEX'
-    class OldIndexesTableG(NotLoggedMixin, Group):
+    class OldIndex(NotLoggedMixin, Group):
         _c_classId = 'CINDEX'
 
     NailedDict = dict
@@ -546,7 +546,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 if indexed:
                     column = self.cols._g_col(colname)
                     indexobj = column.index
-                    if isinstance(indexobj, OldIndexesTableG):
+                    if isinstance(indexobj, OldIndex):
                         indexed = False  # Not a vaild index
                         oldindexes = True
                         listoldindexes.append(colname)

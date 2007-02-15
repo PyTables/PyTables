@@ -1401,6 +1401,6 @@ class IndexesTableG(NotLoggedMixin, Group):
                 "names of index groups must start with ``_i_``: %s" % name )
 
 
-class OldIndexesTableG(NotLoggedMixin, Group):
+class OldIndex(NotLoggedMixin, Group):
     """This is meant to hide indexes of PyTables 1.x files."""
     _c_classId = 'CINDEX'
