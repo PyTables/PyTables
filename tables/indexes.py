@@ -45,9 +45,6 @@ from tables.earray import EArray
 from tables import indexesExtension
 
 
-# The minimum row number in a column that can be indexed in tests
-minRowIndex = 10
-
 def computeblocksize(expectedrows, compoundsize):
     """Calculate the optimum number of superblocks made from compounds blocks.
 

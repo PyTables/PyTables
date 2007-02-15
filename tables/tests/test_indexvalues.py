@@ -6,9 +6,8 @@ import random
 
 import numpy
 
-import tables
 from tables import *
-from tables.indexes import calcChunksize, minRowIndex
+from tables.indexes import calcChunksize
 from tables.tests.common import verbose, allequal, heavy, cleanup
 
 # To delete the internal attributes automagically
@@ -2481,8 +2480,6 @@ class SV15bTestCase(SelectValuesTestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    if not tables.is_pro:
-        return theSuite
 
     # Default is to run light benchmarks
     niter = 1

@@ -18,7 +18,8 @@ import tables as t
 from tables.tests import common
 from tables.tests.common import verbose
 from tables.description import Description
-from tables.indexes import minRowIndex
+
+minRowIndex = 10
 
 
 

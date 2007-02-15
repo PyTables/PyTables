@@ -7,7 +7,6 @@ import warnings
 import tables
 from tables import *
 from tables.node import NotLoggedMixin
-from tables.indexes import minRowIndex
 from tables.path import joinPath
 
 from tables.tests import common
@@ -1196,6 +1195,7 @@ class createGroupTestCase(unittest.TestCase):
         assert self.fileh.root.othergroup1.othergroup2.othergroup3._v_title == "Another group 3"
 
 
+minRowIndex = 10
 def populateTable(where, name):
     "Create a table under where with name name"
 

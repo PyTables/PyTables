@@ -17,6 +17,7 @@ if numpy.__version__ < minimum_numpy_version:
     print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
                   (numpy.__version__, minimum_numpy_version)
 
+import tables
 from tables.tests import common
 
 def suite():
@@ -29,8 +30,6 @@ def suite():
         'test_lists',
         'test_tables',
         'test_tablesMD',
-        'test_indexes',
-        'test_indexvalues',
         'test_array',
         'test_earray',
         'test_carray',
@@ -48,6 +47,11 @@ def suite():
         'tables.netcdf3.tests.test_netcdf3',
         ###'tables.numexpr.tests.test_numexpr',
         ]
+
+    # Run indexing tests only under Pro
+    if tables.is_pro:
+        test_modules.append('test_indexes')
+        test_modules.append('test_indexvalues')
 
     # Add test_Numeric only if Numeric is installed
     if common.numeric_imported:

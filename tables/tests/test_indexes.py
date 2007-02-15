@@ -5,10 +5,9 @@ import warnings
 import sys
 import copy
 
-import tables
 from tables import *
 from tables.index import Index, defaultAutoIndex, defaultIndexFilters
-from tables.indexes import calcChunksize, minRowIndex
+from tables.indexes import calcChunksize
 from tables.tests.common import verbose, allequal, heavy, cleanup, \
      PyTablesTestCase, TempFileMixin
 from tables.exceptions import OldIndexWarning
@@ -24,6 +23,7 @@ class TDescr(IsDescription):
     var3 = IntCol(dflt=0, pos=3)
     var4 = FloatCol(dflt=0, pos=4)
 
+minRowIndex = 10
 class BasicTestCase(PyTablesTestCase):
     compress = 0
     complib = "zlib"
@@ -1504,8 +1504,6 @@ class OldIndexTestCase(PyTablesTestCase):
 
 def suite():
     theSuite = unittest.TestSuite()
-    if not tables.is_pro:
-        return theSuite
 
     niter = 1
     #heavy = 1  # Uncomment this only for testing purposes!
