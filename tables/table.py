@@ -1976,6 +1976,7 @@ The 'names' parameter must be a list of strings.""")
 
     def reIndex(self):
         """Recompute the existing indexes in table"""
+        indexedrows = 0
         for (colname, colindexed) in self.colindexed.iteritems():
             if colindexed:
                 indexcol = self.cols._g_col(colname)
@@ -2616,7 +2617,8 @@ class Column(object):
         """
 
         _checkIndexingAvailable()
-        _column__createIndex(self, optlevel, filters, warn, testmode, verbose)
+        return _column__createIndex(self, optlevel, filters, warn,
+                                    testmode, verbose)
 
 
     def optimizeIndex(self, level=9, verbose=0):
