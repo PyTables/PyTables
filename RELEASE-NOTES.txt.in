@@ -1,6 +1,6 @@
-====================================
- What's new in PyTables Std/Pro @VERSION@
-====================================
+=================================
+ What's new in PyTables @VERSION@
+=================================
 
 
 :Author: Francesc Altet
@@ -9,16 +9,74 @@
 :Contact: ivilata@carabos.com
 
 
-This document details the modifications of PyTables Std/Pro @VERSION@ since
-PyTables Standard version 1.x.  Its main purpose is help you ensure that your
-programs will be runnable when you switch from PyTables Std 1.x to PyTables
-Std/Pro @VERSION@.
+This document details the modifications of PyTables @VERSION@ since PyTables
+version 1.x.  Its main purpose is help you ensure that your programs will be
+runnable when you switch from PyTables 1.x to PyTables @VERSION@.
+
+
+Migrating from PyTables 1.x to 2.x
+==================================
+
+- Tipus/Atoms/Cols
+- Indexs
+- Cosultes
+- Menors
+- Canvis significat shape
+- Flavor
+- Byteorder
+
+Things to have in mind when migrating from PyTables 1.x to PyTables
+2.x series:
+
+- Leaf.stype --> Leaf.type
+- Leaf.type --> Leaf.dtype
+- "CharType" --> "string"
+- "Complex32", "Complex64" --> "complex64", "complex128"
+- PyTables types (previously called "string types") are now written in
+  lower case, so "Type" becomes "type".  See the appendix on supported
+  data types in the manual for more information on PyTables types.
+- "non-relevant" --> "irrelevant" (applied to byteorders)
+- Table.colstypes --> Table.coltypes
+- Table.coltypes --> Table.coldtypes
+- Table.colshapes & Table.colitemsizes have disappeared
+- Description.itemsize have disappeared
+- In-kernel conditions must be written as strings.
+- New meanings of atom shape and array shape.
+- New argument ``chunkshape`` of chunked arrays.
+- ``Atom`` and ``Col`` are now abstract classes, so you can't use them
+  to create atoms or column definitions of an arbitrary type.  If you
+  know the particular type you need, use the proper subclass;
+  otherwise, use the ``Atom.from_*()`` or ``Col.from_*()`` factory
+  methods.  See the section on declarative classes in the reference.
+
+  You are also advised to avoid using the inheritance of atoms to
+  check for their kind or type; for that purpose, use their ``kind``
+  and ``type`` attributes.
+- The ``dtype`` argument of ``EnumAtom`` and ``EnumCol`` constructors
+  has been replaced by the ``base`` argument, which can take a
+  full-blown atom, although it accepts bare PyTables types as well.
+  This is a *mandatory* argument now.
+- Flavors can *only* be set through the ``flavor`` attribute of
+  leaves, and they are *persistent*, so changing a flavor requires
+  that the file be writable.
+
+  Flavors can no longer be set through ``File.create*()`` methods, the
+  ``flavor`` argument previously found in some ``Table`` methods, nor
+  through ``Atom`` constructors or the ``_v_flavor`` attribute of
+  descriptions.
 
 
 API additions
 =============
 
-- Posar ací les coses relacionades amb els indexos
+- ``Column.createIndex()`` has received a couple of new parameters:
+  ``optlevel`` and ``filters``.  The first one sets the desired quality level
+  of the index, while the second one allows the user to specify the filters
+  for the index.
+
+- ``Table.indexprops`` has been splitted into ``Table.indexFilters`` and
+  ``Table.autoIndex``.  The later groups the functionality of the old ``auto``
+  and ``reindex``.
 
 - The new ``Table.colpathnames`` is a sequence which contains the full
   pathnames of all bottom-level columns in a table.  This can be used to walk
@@ -45,6 +103,11 @@ API additions
 
 Backward-incompatible changes
 =============================
+
+- You can no longer mark a column for indexing in a ``Col`` declaration.  The
+  only way of creating an index for a column is to invoke the
+  ``createIndex()`` method of the proper column object *after the table has
+  been created*.
 
 - Now the ``Table.colnames`` attribute is just a list of the names of
   top-level columns in a table.  You can still get something similar to the
@@ -89,18 +152,6 @@ Deprecated features
   for doing the same.
 
 
-API refinements
-===============
-
-- ????  (XXX - què posem ací, Ivan?)
-
-
-Bug fixes (affecting API)
-=========================
-
-- None
-
-
 ----
 
   **Enjoy data!**
@@ -109,7 +160,7 @@ Bug fixes (affecting API)
 
 
 .. Local Variables:
-.. mode: text
+.. mode: rst
 .. coding: utf-8
 .. fill-column: 78
 .. End:

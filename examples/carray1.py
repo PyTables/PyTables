@@ -1,4 +1,4 @@
-import numarray
+import numpy
 import tables
 
 fileName = 'carray1.h5'
@@ -10,7 +10,7 @@ h5f = tables.openFile(fileName,'w')
 ca = h5f.createCArray(h5f.root, 'carray', atom, shape,
                       filters=filters, chunksize=(128,128))
 # Fill a hyperslab in ca
-ca[10:60,20:70] = numarray.ones((50,50))  # Will be converted to UInt8 elements
+ca[10:60,20:70] = numpy.ones((50,50))  # Will be converted to UInt8 elements
 h5f.close()
 
 # Re-open a read another hyperslab

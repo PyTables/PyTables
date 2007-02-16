@@ -4,7 +4,7 @@
 
 This is a new major release of PyTables. Blurb, blurb, blurb...
 
-Go to the (new) PyTables web site for downloading the beast:
+Go to the PyTables web site for downloading the beast:
 http://www.pytables.org/
 
 or keep reading for more info about the new features and bugs fixed.
@@ -18,15 +18,15 @@ Improvements:
 - NumPy is finally at the core! That means that PyTables no longer needs
   numarray in order to operate, although it continues to be supported
   (as well as Numeric). This also means that you should be able to run
-  PyTables in scenarios combining Python2.5 and 64-platforms (these are
-  a source of problems with numarray/Numeric because they don't support
-  this combination yet).
+  PyTables in scenarios combining Python2.5 and 64-bit platforms (these
+  are a source of problems with numarray/Numeric because they don't
+  support this combination yet).
 
-- Most of the operations in PyTables has experimented noticeably
-  speed-ups (sometimes up to 2x, like in pythonical table selections) as
-  a consequence of using NumPy internally.
+- Most of the operations in PyTables have experimented noticeable
+  speed-ups (sometimes up to 2x, like in regular Python table
+  selections) as a consequence of using NumPy internally.
 
-- numexpr has been integrated in all in-kernel selections. So, now it is
+- Numexpr has been integrated in all in-kernel selections. So, now it is
   possible to perform complex selections like:
 
 res = [ row['var3'] for row in table.where('(var2 < 20) | (var1 == "sas")') ]
@@ -37,7 +37,7 @@ cplx_cond = '((%s<=col5) & (col2<=%s)) | (sqrt(col1+3.1*col2+col3*col4)>3)'
 res = [ row['var3'] for row in table.where('cplx_cond' % (inf, sup)) ]
 
   and run them at full C-speed (or even more, due to the cache-tuned
-  computing kernel of numexpr).
+  computing kernel of Numexpr).
 
 - Row.__getitem__() now understands extended sliced notation for
   specifying field positions. So now, you can do things like:
@@ -50,10 +50,10 @@ in addition to the classical:
 
 res = [ row['var3'] for row in table.where('var2 < 20') ]
 
-- Row has received a new method called ``fetch_all_rows`` in order to
+- Row has received a new method called ``fetch_all_fields`` in order to
   easily retrieve all the fields of a row in situations like:
 
-[row.fetch_all_rows() for row in table.where('column1 < 0.3')]
+[row.fetch_all_fields() for row in table.where('column1 < 0.3')]
 
 - Now, all the data that is read from disk is converted, if necessary,
   to the native byteorder of the hosting machine (before, this only
@@ -62,9 +62,9 @@ res = [ row['var3'] for row in table.where('var2 < 20') ]
   byteorder different than the user machine.
 
 - All the leaf constructors have received a new pararameter called
-  'byteorder' that lets the user to specify the byteorder of his data
-  *on disk*. This effectively allows to create datasets in other
-  byteorders than the native platform.
+  'byteorder' that lets the user specify the byteorder of his data *on
+  disk*. This effectively allows to create datasets in other byteorders
+  than the native platform.
 
 - Native HDF5 datasets with H5T_ARRAY datatypes are fully supported for
   reading now.
@@ -72,20 +72,16 @@ res = [ row['var3'] for row in table.where('var2 < 20') ]
 Bug fixes:
 
 - As mentioned above, the fact that NumPy is at the core makes that
-  certain bizarre interactions between NumPy scalars like:
-
->>> numarray.array([1980291274, 4006003351], "i8") == numpy.uint32(4006003351)
-array([0, 0], type=Bool)    # WRONG!
-
-  doesn't affect the behaviour of table selections anymore.  Fixes
+  certain bizarre interactions between numarray and NumPy scalars don't
+  affect the behaviour of table selections anymore.  Fixes
   http://www.pytables.org/trac/ticket/29.
 
-- Did I mentioned that PyTables 2.0 can be safely used in 64-bit
-  platforms in combination with Python 2.5? ;)
+- Did I mention that PyTables 2.0 can be safely used in 64-bit platforms
+  in combination with Python 2.5? ;)
 
 Deprecated features:
 
-- Not much, really. Please, see ``RELEASE-NOTES.txt`` file.
+- Not many, really. Please, see ``RELEASE-NOTES.txt`` file.
 
 Backward-incompatible changes:
 
@@ -99,7 +95,7 @@ In order to keep PyTables happy, you will need to get the HDF5 library
 compiled for MSVC 7.1, aka .NET 2003.  It can be found at:
 ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current/bin/windows/5-165-win-net.ZIP
 
-Please, remind that, from PyTables 2.0 on, Python 2.3 (and lesser) is
+Please remember that, from PyTables 2.0 on, Python 2.3 (and lesser) is
 not supported anymore.
 
 
@@ -113,14 +109,14 @@ object-oriented interface that, combined with C extensions for the
 performance-critical parts of the code, makes it a very easy-to-use tool
 for high performance data storage and retrieval.
 
-PyTables runs on top of the HDF5 library and numarray (but NumPy and
+PyTables runs on top of the HDF5 library and NumPy (but numarray and
 Numeric are also supported) package for achieving maximum throughput and
 convenient use.
 
 Besides, PyTables I/O for table objects is buffered, implemented in C
 and carefully tuned so that you can reach much better performance with
 PyTables than with your own home-grown wrappings to the HDF5 library.
-PyTables sports indexing capabilities as well, allowing doing selections
+PyTables Pro sports indexing capabilities as well, allowing selections
 in tables exceeding one billion of rows in just seconds.
 
 
@@ -131,7 +127,7 @@ This version has been extensively checked on quite a few platforms, like
 Linux on Intel32 (Pentium), Win on Intel32 (Pentium), Linux on Intel64
 (Itanium2), FreeBSD on AMD64 (Opteron), Linux on PowerPC (and PowerPC64)
 and MacOSX on PowerPC.  For other platforms, chances are that the code
-can be easily compiled and run without further issues.  Please, contact
+can be easily compiled and run without further issues.  Please contact
 us in case you are experiencing problems.
 
 
@@ -146,11 +142,11 @@ About the HDF5 library:
 
 http://hdf.ncsa.uiuc.edu/HDF5/
 
-About numarray:
+About NumPy:
 
-http://www.stsci.edu/resources/software_hardware/numarray
+http://numpy.scipy.org/
 
-To know more about the company behind the PyTables development, see:
+To know more about the company behind the development of PyTables, see:
 
 http://www.carabos.com/
 
@@ -158,13 +154,11 @@ http://www.carabos.com/
 Acknowledgments
 ===============
 
-Thanks to various the users who provided feature improvements, patches,
-bug reports, support and suggestions.  See the ``THANKS`` file in the
+Thanks to various users who provided feature improvements, patches, bug
+reports, support and suggestions.  See the ``THANKS`` file in the
 distribution package for a (incomplete) list of contributors.  Many
 thanks also to SourceForge who have helped to make and distribute this
-package!  And last but not least, a big thank you to THG
-(http://www.hdfgroup.org/) for sponsoring many of the new features
-recently introduced in PyTables.
+package!
 
 
 Share your experience

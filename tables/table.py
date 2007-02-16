@@ -1419,7 +1419,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         Get a column from the table.
 
         If a column called `name` exists in the table, it is read and
-        returned as a ``numpy`` object or as a ``numarray`` object
+        returned as a NumPy object or as a ``numarray`` object
         (depending on the flavor of the Table).  If it does not exist, a
         ``KeyError`` is raised.
 
