@@ -63,17 +63,6 @@ class EArray(CArray):
     _c_classId = 'EARRAY'
 
 
-    # Properties
-    # ~~~~~~~~~~
-    def _getrowsize(self):
-        atom = self.atom
-        shape = list(atom.shape)
-        if shape:
-            shape[self.extdim] = 1
-        return int(numpy.prod(shape) * atom.itemsize)
-    rowsize = property(_getrowsize, None, None,
-                       "The size in bytes of each row in the array.")
-
     # Special methods
     # ~~~~~~~~~~~~~~~
     def __init__( self, parentNode, name,
@@ -127,81 +116,8 @@ class EArray(CArray):
                                      filters, chunkshape, byteorder, _log)
 
 
-    def __repr__(self):
-        """This provides more metainfo in addition to standard __str__."""
-
-        return """%s
-  atom := %r
-  shape := %r
-  maindim := %r
-  flavor := %r
-  byteorder := %r""" % (self, self.atom, self.shape, self.maindim,
-                        self.flavor, self.byteorder)
-
-
     # Public and private methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def _g_create(self):
-        """Create a new EArray."""
-
-        # Version, dtype, type, shape
-        self._v_version = obversion
-        # Create a scalar version of dtype
-        self.dtype = self.atom.dtype.base
-        self.type = self.atom.type
-
-        # extdim computation
-        zerodims = numpy.sum(numpy.array(self.shape) == 0)
-        if zerodims > 0:
-            if zerodims == 1:
-                self.extdim = list(self.shape).index(0)
-            else:
-                raise NotImplementedError, \
-"Multiple enlargeable (0-)dimensions are not supported."
-        else:
-            raise ValueError, \
-"""When creating EArrays, you need to set one of the dimensions of the Atom
-instance to zero."""
-
-        # Compute the optimal chunk size, if needed
-        if self._v_chunkshape is None:
-            self._v_chunkshape = self._calc_chunkshape(self._v_expectedrows,
-                                                       self.rowsize)
-        # Compute the optimal nrowsinbuf
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
-                                                   self.rowsize)
-        # Correct the byteorder if needed
-        if self.byteorder is None:
-            self.byteorder = sys.byteorder
-
-        self._v_objectID = self._createEArray(self._v_new_title)
-        return self._v_objectID
-
-
-    def _g_open(self):
-        """Get the metadata info for an EArray in file."""
-
-        (self._v_objectID, self.dtype, self.type, self.shape,
-         self._v_chunkshape) = self._openArray()
-        # Post-condition
-        assert self.extdim >= 0, "extdim < 0: this should never happen!"
-
-        # Create the atom instance and set definitive type
-        kind, itemsize = split_type(self.type)
-        if kind == 'enum':
-            dflt = iter(self._enum).next()[0]  # ignored, any of them is OK
-            base = Atom.from_dtype(self.dtype)
-            self.atom = EnumAtom(self._enum, dflt, base)
-        else:
-            itemsize = self.dtype.itemsize  # string type has no precision
-            self.atom = Atom.from_kind(kind, itemsize)
-
-        # Compute the optimal nrowsinbuf
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
-                                                   self.rowsize)
-        return self._v_objectID
-
-
     def _checkShape(self, nparr):
         "Test that nparr shape is consistent with underlying EArray."
 

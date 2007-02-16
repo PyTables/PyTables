@@ -736,10 +736,10 @@ cdef class Array(Leaf):
     # with non-native byteorders on-disk)
     self.type_id = get_native_type(self.disk_type_id)
 
-    return (self.dataset_id, atom.dtype, atom.type)
+    return (self.dataset_id, atom)
 
 
-  def _createEArray(self, char *title):
+  def _createCArray(self, char *title):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
@@ -767,7 +767,7 @@ cdef class Array(Leaf):
     for i from  0 <= i < itemsize:
       (<char *>fill_value)[i] = 0
 
-    # Create the EArray
+    # Create the CArray/EArray
     self.dataset_id = H5ARRAYmake(
       self.parent_id, self.name, class_, title, version,
       self.rank, self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
@@ -842,7 +842,7 @@ cdef class Array(Leaf):
     # Get the byteorder
     self.byteorder = correct_byteorder(atom.type, byteorder)
 
-    return (self.dataset_id, atom.dtype, atom.type, shape, chunkshapes)
+    return (self.dataset_id, atom, shape, chunkshapes)
 
 
   def _convertTypes(self, object nparr, int sense):

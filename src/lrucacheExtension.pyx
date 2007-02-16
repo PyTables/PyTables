@@ -49,7 +49,7 @@ import_array()
 # ------- Minimalist NodeCache for nodes in PyTables ---------
 
 # The next NodeCache code relies on the fact that a node that is
-# fetched from the cache will be removed for it. Said in other words:
+# fetched from the cache will be removed from it. Said in other words:
 # "A node cannot be alive and dead at the same time."
 
 # Thanks to the above behaviour, the next code has been stripped down

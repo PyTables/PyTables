@@ -106,11 +106,6 @@ class CArray(Array):
             byteorder is that of the platform.
         """
 
-        # Documented (*public*) attributes.
-        self.dtype = None
-        """The NumPy type of the represented array."""
-        self.type = None
-        """The PyTables type of the represented array."""
         self.atom = atom
         """
         An `Atom` instance representing the shape, type of the atomic
@@ -197,19 +192,33 @@ chunkshape parameter cannot have zero-dimensions."""
     def _g_create(self):
         """Create a new array in file."""
 
-        # Different checks for shape and chunkshape
-        if min(self.shape) < 1:
-            raise ValueError, """\
-shape parameter cannot have zero-dimensions."""
-
-        # Version, types
         self._v_version = obversion
-        self.dtype = self.atom.dtype.base
-        self.type = self.atom.type
+
+        # Post-conditions
+        if self._c_classId == 'CARRAY':
+            if min(self.shape) < 1:
+                raise ValueError(
+                    "shape parameter cannot have zero-dimensions.")
+            expectedrows = self.nrows
+        elif self._c_classId == 'EARRAY':
+            # extdim computation
+            zerodims = numpy.sum(numpy.array(self.shape) == 0)
+            if zerodims > 0:
+                if zerodims == 1:
+                    self.extdim = list(self.shape).index(0)
+                else:
+                    raise NotImplementedError(
+                        "Multiple enlargeable (0-)dimensions are not "
+                        "supported.")
+            else:
+                raise ValueError(
+                    "When creating EArrays, you need to set one of "
+                    "the dimensions of the Atom instance to zero.")
+            expectedrows = self._v_expectedrows
 
         if self._v_chunkshape is None:
             # Compute the optimal chunk size
-            self._v_chunkshape = self._calc_chunkshape(self.nrows,
+            self._v_chunkshape = self._calc_chunkshape(expectedrows,
                                                        self.rowsize)
         # Compute the optimal nrowsinbuf
         self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
@@ -219,7 +228,7 @@ shape parameter cannot have zero-dimensions."""
             self.byteorder = correct_byteorder(self.atom.type, sys.byteorder)
 
         try:
-            oid = self._createEArray(self._v_new_title)
+            oid = self._createCArray(self._v_new_title)
         except:  #XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
@@ -230,22 +239,24 @@ shape parameter cannot have zero-dimensions."""
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        (oid, self.dtype, self.type, self.shape,
-         self._v_chunkshape) = self._openArray()
+        (oid, self.atom, self.shape, self._v_chunkshape) = self._openArray()
 
         # Post-condition
-        assert self.extdim == -1, "extdim != -1: this should never happen!"
-        assert numpy.product(self._v_chunkshape) > 0, \
-                "product(self._v_chunkshape) > 0: this should never happen!"
+        if self._c_classId == 'CARRAY':
+            assert self.extdim == -1, "extdim != -1: this should never happen!"
+            assert numpy.product(self._v_chunkshape) > 0, \
+                   "product(self._v_chunkshape) > 0: this should never happen!"
+        elif self._c_classId == 'EARRAY':
+            assert self.extdim >= 0, "extdim < 0: this should never happen!"
 
         # Create the atom instance and set definitive type
         kind, itemsize = split_type(self.type)
         if kind == 'enum':
             dflt = iter(self._enum).next()[0]  # ignored, any of them is OK
-            base = Atom.from_dtype(self.dtype)
+            base = Atom.from_dtype(self.atom.dtype)
             self.atom = EnumAtom(self._enum, dflt, base)
         else:
-            itemsize = self.dtype.itemsize  # string type has no precision
+            itemsize = self.atom.itemsize  # string type has no precision
             self.atom = Atom.from_kind(kind, itemsize)
 
         # Compute the optimal nrowsinbuf
@@ -308,15 +319,3 @@ shape parameter cannot have zero-dimensions."""
         nbytes = numpy.product(self.shape)*self.itemsize
 
         return (object, nbytes)
-
-
-    def __repr__(self):
-        """This provides more metainfo in addition to standard __str__"""
-
-        return """%s
-  atom := %r
-  shape := %r
-  maindim := %r
-  flavor := %r
-  byteorder := %r""" % (self, self.atom, self.shape, self.maindim,
-                        self.flavor, self.byteorder)

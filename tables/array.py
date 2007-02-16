@@ -94,9 +94,17 @@ class Array(hdf5Extension.Array, Leaf):
 
     # Properties
     # ~~~~~~~~~~
+    type = property(
+        lambda self: self.atom.type, None, None,
+        "The type of the base items (shortcut for self.atom.type).")
+
+    dtype = property(
+        lambda self: self.atom.dtype, None, None,
+        "The dtype of the base items (shortcut for self.atom.dtype).")
+
     itemsize = property(
-        lambda self: self.dtype.itemsize, None, None,
-        "The size of the base items (shortcut for self.dtype.itemsize).")
+        lambda self: self.atom.itemsize, None, None,
+        "The size of the base items (shortcut for self.atom.itemsize).")
 
     def _getnrows(self):
         if self.shape == ():
@@ -192,10 +200,6 @@ class Array(hdf5Extension.Array, Leaf):
         """The shape of the stored array."""
         self.nrow = None
         """On iterators, this is the index of the current row."""
-        self.dtype = None
-        """The NumPy type of the represented array."""
-        self.type = None
-        """The PyTables type of the represented array."""
         self.extdim = -1   # ordinary arrays are not enlargeable
         """The index of the enlargeable dimension."""
 
@@ -234,8 +238,7 @@ class Array(hdf5Extension.Array, Leaf):
 
         # Create the array on-disk
         try:
-            (self._v_objectID, self.dtype, self.type) = (
-                self._createArray(nparr, self._v_new_title))
+            (oid, self.atom) = self._createArray(nparr, self._v_new_title)
         except:  #XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
@@ -245,20 +248,19 @@ class Array(hdf5Extension.Array, Leaf):
         chunkshape = self._calc_chunkshape(self.nrows, self.rowsize)
         self._v_nrowsinbuf = self._calc_nrowsinbuf(chunkshape, self.rowsize)
 
-        return self._v_objectID
+        return oid
 
 
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        (self._v_objectID, self.dtype, self.type, self.shape,
-         self._v_chunkshape) = self._openArray()
+        (oid, self.atom, self.shape, self._v_chunkshape) = self._openArray()
 
         # Compute the optimal buffer size (nrowsinbuf)
         chunkshape = self._calc_chunkshape(self.nrows, self.rowsize)
         self._v_nrowsinbuf = self._calc_nrowsinbuf(chunkshape, self.rowsize)
 
-        return self._v_objectID
+        return oid
 
 
     def getEnum(self):
@@ -463,7 +465,7 @@ class Array(hdf5Extension.Array, Leaf):
         startl, stopl, stepl, shape = self._interpret_indexing(keys)
         countl = ((stopl - startl - 1) / stepl) + 1
         # Create an array compliant with the specified slice
-        narr = numpy.empty(shape=shape, dtype=self.dtype)
+        narr = numpy.empty(shape=shape, dtype=self.atom.dtype)
 
         # Assign the value to it
         try:
@@ -481,7 +483,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
     # Accessor for the _readArray method in superclass
     def _readSlice(self, startl, stopl, stepl, shape):
         # Create the container for the slice
-        arr = numpy.empty(dtype=self.dtype, shape=shape)
+        arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
         # Protection against reading empty arrays
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
@@ -497,7 +499,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         shape = list(self.shape)
         if shape:
             shape[self.maindim] = rowstoread
-        arr = numpy.empty(dtype=self.dtype, shape=shape)
+        arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
 
         # Protection against reading empty arrays
         if 0 not in shape:
@@ -535,11 +537,11 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
         """This provides more metainfo in addition to standard __str__"""
 
         return """%s
-  type := %r
+  atom := %r
   shape := %r
   maindim := %r
   flavor := %r
-  byteorder := %r""" % (self, self.type, self.shape, self.maindim,
+  byteorder := %r""" % (self, self.atom, self.shape, self.maindim,
                         self.flavor, self.byteorder)
 
 

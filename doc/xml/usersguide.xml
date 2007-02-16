@@ -8229,6 +8229,17 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
             <?dbfo glosslist-presentation="list" ?>
 
             <glossentry>
+              <glossterm><emphasis role="bold">atom</emphasis></glossterm>
+
+              <glossdef>
+                <para>An <literal>Atom</literal> (see <xref
+                linkend="AtomClassDescr" xrefstyle="select: labelnumber" />)
+                instance representing the shape and type of the atomic objects
+                to be saved.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
               <glossterm><emphasis role="bold">nrow</emphasis></glossterm>
 
               <glossdef>
@@ -8252,7 +8263,8 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
               <glossterm><emphasis role="bold">dtype</emphasis></glossterm>
 
               <glossdef>
-                <para>The NumPy type of the represented array.</para>
+                <para>The NumPy type of the represented array (this is
+                actually a shortcut for <literal>atom.dtype</literal>).</para>
               </glossdef>
             </glossentry>
 
@@ -8260,7 +8272,8 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
               <glossterm><emphasis role="bold">type</emphasis></glossterm>
 
               <glossdef>
-                <para>The PyTables type of the represented array.</para>
+                <para>The PyTables type of the represented array (this is
+                actually a shortcut for <literal>atom.type</literal>).</para>
               </glossdef>
             </glossentry>
 
@@ -8268,9 +8281,12 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
               <glossterm><emphasis role="bold">itemsize</emphasis></glossterm>
 
               <glossdef>
-                <para>The size in bytes of an item in the array.</para>
+                <para>The size in bytes of an item in the array (this is
+                actually a shortcut for
+                <literal>atom.itemsize</literal>).</para>
               </glossdef>
             </glossentry>
+
           </glosslist>
         </section>
 
@@ -8455,17 +8471,6 @@ a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))</screen>
 
           <glosslist>
             <?dbfo glosslist-presentation="list" ?>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">atom</emphasis></glossterm>
-
-              <glossdef>
-                <para>An <literal>Atom</literal> (see <xref
-                linkend="AtomClassDescr" xrefstyle="select: labelnumber" />)
-                instance representing the shape and type of the atomic objects
-                to be saved.</para>
-              </glossdef>
-            </glossentry>
 
             <glossentry>
               <glossterm><emphasis role="bold">extdim</emphasis></glossterm>
