@@ -636,8 +636,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # Correct the byteorder, if still needed
         if self.byteorder is None:
             self.byteorder = sys.byteorder
-        #    After creating the table, ``self._v_objectID`` needs to be
-        #    set because it is needed for setting attributes afterwards.
+        # After creating the table, ``self._v_objectID`` needs to be
+        # set because it is needed for setting attributes afterwards.
         self._v_objectID = self._createTable(
             self._v_new_title, self.filters.complib, obversion )
         self._v_recarray = None  # not useful anymore

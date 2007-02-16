@@ -252,6 +252,8 @@ be zero."""
         if self.byteorder is None:
             self.byteorder = correct_byteorder(atom.type, sys.byteorder)
 
+        # After creating the vlarray, ``self._v_objectID`` needs to be
+        # set because it is needed for setting attributes afterwards.
         self._v_objectID = self._createArray(self._v_new_title)
 
         # Add an attribute in case we have a pseudo-atom so that we
