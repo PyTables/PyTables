@@ -206,7 +206,7 @@ cdef hid_t get_native_type(hid_t type_id):
   cdef char *sys_byteorder
 
   class_id = H5Tget_class(type_id)
-  if class_id == H5T_ARRAY:
+  if class_id in (H5T_ARRAY, H5T_VLEN):
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
     # Get the class
