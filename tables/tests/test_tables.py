@@ -320,7 +320,9 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
         nrows = 20 - 1
-        assert (rec['var1'], rec['var2'], rec['var7']) == ("0081", nrows, "1")
+        strnrows = "%04d" % (self.expectedrows - nrows)
+        self.assert_((rec['var1'], rec['var2'], rec['var7']) == \
+                     (strnrows, nrows, "1"))
         if isinstance(rec['var5'], ndarray):
             assert allequal(rec['var5'], array((float(nrows),)*4, float32))
         else:
@@ -330,7 +332,7 @@ class BasicTestCase(common.PyTablesTestCase):
                             array([0.+float(nrows)*1.j,float(nrows)+0.j],
                                   complex64))
         else:
-            assert (rec['var9']) == float(nrows)+0.j
+            self.assert_(rec['var9'] == float(nrows)+0.j)
         assert len(result) == 20
 
     def test01a_integer(self):
@@ -378,7 +380,8 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
         nrows = 20 - 1
-        self.assert_(rec[:2] == ('0081', 19))
+        strnrows = "%04d" % (self.expectedrows - nrows)
+        self.assert_(rec[:2] == (strnrows, 19))
         self.assert_(rec[3] == '1')
         if isinstance(rec[2], ndarray):
             assert allequal(rec[2], array((float(nrows),)*4, float32))
