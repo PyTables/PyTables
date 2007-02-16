@@ -8232,10 +8232,10 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
               <glossterm><emphasis role="bold">atom</emphasis></glossterm>
 
               <glossdef>
-                <para>An <literal>Atom</literal> (see <xref
-                linkend="AtomClassDescr" xrefstyle="select: labelnumber" />)
-                instance representing the shape and type of the atomic objects
-                to be saved.</para>
+                <para>An <literal>Atom</literal> instance representing the
+                shape and type of the atomic objects. See <xref
+                linkend="AtomClassDescr" xrefstyle="select: labelnumber" />
+                for a better explanation.</para>
               </glossdef>
             </glossentry>
 
@@ -8621,10 +8621,10 @@ array_c[4] =&gt; 'cccccccc'</screen>
               <glossterm><emphasis role="bold">atom</emphasis></glossterm>
 
               <glossdef>
-                <para>An <literal>Atom</literal> (see <xref
-                linkend="AtomClassDescr" xrefstyle="select: labelnumber" />)
-                instance representing the shape and type of the atomic objects
-                to be saved.</para>
+                <para>An <literal>Atom</literal> instance representing the
+                shape and type of the atomic objects. See <xref
+                linkend="AtomClassDescr" xrefstyle="select: labelnumber" />
+                for a better explanation.</para>
               </glossdef>
             </glossentry>
 
@@ -9279,13 +9279,15 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
           <para>The <literal>Atom</literal> class is meant to declare the
           different properties of the <emphasis>base element</emphasis> (also
           known as <emphasis>atom</emphasis>) of <literal>CArray</literal>,
-          <literal>EArray</literal> and <literal>VLArray</literal> objects.
-          <literal>Atom</literal> instances have the property that their
-          length is always the same. However, you can grow objects along the
-          extensible dimension in the case of <literal>EArray</literal> or put
-          a variable number of them on a <literal>VLArray</literal> row.
-          Moreover, the atoms are not restricted to scalar values, and they
-          can be fully multidimensional objects.</para>
+          <literal>EArray</literal> and <literal>VLArray</literal> objects,
+          although they are used also so as to describe the base elements of
+          <literal>Array</literal> objects as well.  <literal>Atom</literal>
+          instances have the property that their length is always the
+          same. However, you can grow objects along the extensible dimension
+          in the case of <literal>EArray</literal> or put a variable number of
+          them on a <literal>VLArray</literal> row.  Moreover, the atoms are
+          not restricted to scalar values, and they can be fully
+          multidimensional objects.</para>
 
           <para>A series of descendant classes are offered in order to make
           the use of these element descriptions easier. You should use a

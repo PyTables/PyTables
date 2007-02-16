@@ -80,12 +80,18 @@ class Array(hdf5Extension.Array, Leaf):
         The dimension along which iterators work.  Its value is 0
         (i.e. the first dimension) when the dataset is not extendable,
         and ``self.extdim`` (where available) for extendable ones.
+    `atom`
+        An Atom instance representing the shape and type of the atomic
+        objects.
     `dtype`
-        The NumPy type of the represented array.
+        The NumPy type of the represented array (this is actually a
+        shortcut for atom.dtype).
     `type`
-        The PyTables type of the represented array.
+        The PyTables type of the represented array (this is actually a
+        shortcut for atom.type).
     `itemsize`
-        The size in bytes of an item in the array.
+        The size in bytes of an item in the array (this is actually a
+        shortcut for atom.itemsize).
     """
 
     # Class identifier.
