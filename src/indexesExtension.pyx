@@ -245,7 +245,7 @@ cdef class IndexArray(Array):
     cdef ndarray starts, lengths, rvcache
     cdef object maxslots, rowsize
 
-    dtype = self.dtype
+    dtype = self.atom.dtype
     # Create the buffer for reading sorted data chunks if not created yet
     if <object>self.bufferlb is None:
       self.bufferlb = numpy.empty(dtype=dtype, shape=self.chunksize)

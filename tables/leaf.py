@@ -402,7 +402,7 @@ class Leaf(Node):
         return filters
 
 
-    def _calc_chunkshape(self, expectedrows, rowsize):
+    def _calc_chunkshape(self, expectedrows, rowsize, itemsize):
         """Calculate the shape for the HDF5 chunk."""
 
         # Compute the chunksize
@@ -416,7 +416,7 @@ class Leaf(Node):
 
         maindim = self.maindim
         # Compute the chunknitems
-        chunknitems = chunksize // self.itemsize
+        chunknitems = chunksize // itemsize
         # Safeguard against itemsizes being extremely large
         if chunknitems == 0:
             chunknitems = 1
@@ -443,11 +443,11 @@ class Leaf(Node):
         return tuple(chunkshape)
 
 
-    def _calc_nrowsinbuf(self, chunkshape, rowsize):
+    def _calc_nrowsinbuf(self, chunkshape, rowsize, itemsize):
         """Calculate the number of rows that fits on a PyTables buffer."""
 
         # Compute the nrowsinbuf
-        chunksize = numpy.prod(chunkshape) * self.itemsize
+        chunksize = numpy.prod(chunkshape) * itemsize
         buffersize = chunksize * CHUNKTIMES
         nrowsinbuf = buffersize // rowsize
         # Safeguard against row sizes being extremely large

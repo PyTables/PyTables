@@ -74,24 +74,11 @@ class Array(hdf5Extension.Array, Leaf):
 
     Instance variables (specific of `Array`):
 
-    `nrow`
-        On iterators, this is the index of the current row.
-    `maindim`
-        The dimension along which iterators work.  Its value is 0
-        (i.e. the first dimension) when the dataset is not extendable,
-        and ``self.extdim`` (where available) for extendable ones.
     `atom`
         An Atom instance representing the shape and type of the atomic
         objects.
-    `dtype`
-        The NumPy type of the represented array (this is actually a
-        shortcut for atom.dtype).
-    `type`
-        The PyTables type of the represented array (this is actually a
-        shortcut for atom.type).
-    `itemsize`
-        The size in bytes of an item in the array (this is actually a
-        shortcut for atom.itemsize).
+    `nrow`
+        On iterators, this is the index of the current row.
     """
 
     # Class identifier.
@@ -100,18 +87,6 @@ class Array(hdf5Extension.Array, Leaf):
 
     # Properties
     # ~~~~~~~~~~
-    type = property(
-        lambda self: self.atom.type, None, None,
-        "The type of the base items (shortcut for self.atom.type).")
-
-    dtype = property(
-        lambda self: self.atom.dtype, None, None,
-        "The dtype of the base items (shortcut for self.atom.dtype).")
-
-    itemsize = property(
-        lambda self: self.atom.itemsize, None, None,
-        "The size of the base items (shortcut for self.atom.itemsize).")
-
     def _getnrows(self):
         if self.shape == ():
             return 1  # scalar case
@@ -123,7 +98,7 @@ class Array(hdf5Extension.Array, Leaf):
 
     def _getrowsize(self):
         maindim = self.maindim
-        rowsize = self.itemsize
+        rowsize = self.atom.itemsize
         for i, dim in enumerate(self.shape):
             if i != maindim:
                 rowsize *= dim
@@ -178,8 +153,6 @@ class Array(hdf5Extension.Array, Leaf):
         """
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
-        self._enum = None
-        """The enumerated type containing the values in this array."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
@@ -244,17 +217,23 @@ class Array(hdf5Extension.Array, Leaf):
 
         # Create the array on-disk
         try:
-            (oid, self.atom) = self._createArray(nparr, self._v_new_title)
+            # ``self._v_objectID`` needs to be set because would be
+            # needed for setting attributes in some descendants later
+            # on
+            (self._v_objectID, self.atom) = self._createArray(
+                nparr, self._v_new_title)
         except:  #XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
 
-        # Compute the optimal buffer size (nrowsinbuf)
-        chunkshape = self._calc_chunkshape(self.nrows, self.rowsize)
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(chunkshape, self.rowsize)
+        # Compute the optimal buffer size
+        chunkshape = self._calc_chunkshape(
+            self.nrows, self.rowsize, self.atom.itemsize)
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(
+            chunkshape, self.rowsize, self.atom.itemsize)
 
-        return oid
+        return self._v_objectID
 
 
     def _g_open(self):
@@ -262,9 +241,15 @@ class Array(hdf5Extension.Array, Leaf):
 
         (oid, self.atom, self.shape, self._v_chunkshape) = self._openArray()
 
-        # Compute the optimal buffer size (nrowsinbuf)
-        chunkshape = self._calc_chunkshape(self.nrows, self.rowsize)
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(chunkshape, self.rowsize)
+        # Compute the optimal buffer size
+        if not self._v_chunkshape:  # non-chunked case
+            # Compute a sensible chunkshape
+            chunkshape = self._calc_chunkshape(
+                self.nrows, self.rowsize, self.atom.itemsize)
+        else:
+            chunkshape = self._v_chunkshape
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(
+            chunkshape, self.rowsize, self.atom.itemsize)
 
         return oid
 
@@ -278,11 +263,11 @@ class Array(hdf5Extension.Array, Leaf):
         ``TypeError`` is raised.
         """
 
-        if split_type(self.type)[0] != 'enum':
+        if self.atom.kind != 'enum':
             raise TypeError("array ``%s`` is not of an enumerated type"
                             % self._v_pathname)
 
-        return self._enum
+        return self.atom.enum
 
 
     def iterrows(self, start=None, stop=None, step=None):
@@ -532,7 +517,7 @@ The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
             arr = self[()]
         # Build the new Array object
         object = Array(group, name, arr, title=title, _log=_log)
-        nbytes = self.itemsize
+        nbytes = self.atom.itemsize
         for i in self.shape:
             nbytes*=i
 

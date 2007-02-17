@@ -82,10 +82,10 @@ class BasicTestCase(unittest.TestCase):
         assert a.shape == b.shape
         assert a.shape == self.root.somearray.shape
         if a.dtype.kind == "S":
-            assert self.root.somearray.type == "string"
+            assert self.root.somearray.atom.type == "string"
         else:
             assert a.dtype.type == b.dtype.type
-            assert a.dtype.type == self.root.somearray.dtype.type
+            assert a.dtype.type == self.root.somearray.atom.dtype.type
             abo = byteorders[a.dtype.byteorder]
             bbo = byteorders[b.dtype.byteorder]
             if abo <> "irrelevant":
@@ -324,7 +324,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         assert a.shape == self.root.somearray.shape
         if a.dtype.byteorder != "|":
             assert a.dtype == b.dtype
-            assert a.dtype == self.root.somearray.dtype
+            assert a.dtype == self.root.somearray.atom.dtype
             assert byteorders[b.dtype.byteorder] == sys.byteorder            
             assert self.root.somearray.byteorder == byteorder
 
@@ -700,8 +700,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.flavor == array2.flavor
-        assert array1.dtype == array2.dtype
-        assert array1.itemsize == array2.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
         assert array1.title == array2.title
 
         # Close the file
@@ -748,8 +747,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.flavor == array2.flavor
-        assert array1.dtype == array2.dtype
-        assert array1.itemsize == array2.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
         assert array1.title == array2.title
 
         # Close the file
@@ -794,8 +792,7 @@ class CopyTestCase(unittest.TestCase):
         # Assert other properties in array
         assert array1.nrows == array2.nrows
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.dtype == array2.dtype
-        assert array1.itemsize == array2.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
         assert array1.title == array2.title
 
         # Close the file

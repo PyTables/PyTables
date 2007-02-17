@@ -74,7 +74,7 @@ class BasicTestCase(unittest.TestCase):
             print "Array read itemsize:", b.itemsize
             print "Array read type:", b.type()
 
-        type_ = self.root.somearray.type
+        type_ = self.root.somearray.atom.type
         # Check strictly the array equality
         assert type(a) == type(b)
         assert a.shape == b.shape
@@ -256,7 +256,7 @@ class GroupsArrayTestCase(unittest.TestCase):
                 print "Array a original. Data: ==>", a
                 print "Info from dataset:", dset._v_pathname
                 print "  shape ==>", dset.shape,
-                print "  type ==> %s" % dset.type()
+                print "  type ==> %s" % dset.atom.type
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==> %s" % b.type()
 
@@ -321,9 +321,6 @@ class GroupsArrayTestCase(unittest.TestCase):
             if verbose:
                 print "%3d," % (rank),
             if not a.tolist() == b.tolist() and verbose:
-                print "Info from dataset:", dset._v_pathname
-                print "  Shape: ==>", dset.shape,
-                print "  type ==> %c" % dset.type()
                 print "Array b read from file. Shape: ==>", b.shape,
                 print ". Type ==> %c" % b.type()
             assert a.shape == b.shape

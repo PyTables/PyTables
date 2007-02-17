@@ -199,13 +199,6 @@ class Table(tableExtension.Table, Leaf):
         lambda self: self.description._v_dtype.itemsize, None, None,
         "The size in bytes of each row in the table.")
 
-    # itemsize & rowsize are the same for a unidimensional table.
-    # This property is needed in order to allow a generalization
-    # for buffersize/chunkshape calculation.
-    itemsize = property(
-        lambda self: self.description._v_dtype.itemsize, None, None,
-        "The size in bytes of each element in the table.")
-
     # Lazy attributes
     # ```````````````
     def _g_getrbuffer(self):
@@ -628,7 +621,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # 1. Create the HDF5 table (some parameters need to be computed).
         if self._v_chunkshape is None:
             self._v_chunkshape = self._calc_chunkshape(
-                self._v_expectedrows, self.rowsize )
+                self._v_expectedrows, self.rowsize, self.rowsize)
         # Fix the byteorder of the recarray
         if self._v_recarray is not None:
             self._v_recarray = self._g_fix_byteorder_data(self._v_recarray,
@@ -644,8 +637,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         self._rabyteorder = None # not useful anymore
 
         # 2. Compute or get chunk shape and buffer size parameters.
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
-                                                   self.rowsize)
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(
+            self._v_chunkshape, self.rowsize, self.rowsize)
 
         # 3. Get field fill attributes from the table description and
         #    set them on disk.
@@ -680,12 +673,12 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
         # 3. Compute or get chunk shape and buffer size parameters.
         if chunksize == 0:
-            self._v_chunkshape = self._calc_chunkshape(self._v_expectedrows,
-                                                       self.rowsize)
+            self._v_chunkshape = self._calc_chunkshape(
+                self._v_expectedrows, self.rowsize, self.rowsize)
         else:
             self._v_chunkshape = (chunksize,)
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
-                                                   self.rowsize)
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(
+            self._v_chunkshape, self.rowsize, self.rowsize)
 
         # 4. If there are field fill attributes, get them from disk and
         #    set them in the table description.

@@ -89,7 +89,7 @@ class NumericTestCase(HDF5CompatibilityTestCase):
         arr = self.h5file.getNode('/TestArray')
         self.assert_(isinstance(arr, tables.Array))
 
-        self.assertEqual(arr.type, self.type)
+        self.assertEqual(arr.atom.type, self.type)
         self.assertEqual(arr.byteorder, self.byteorder)
         self.assertEqual(arr.shape, (6, 5))
 

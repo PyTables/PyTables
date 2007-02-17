@@ -71,7 +71,7 @@ class BasicTestCase(unittest.TestCase):
             print "Array read itemsize:", b.itemsize
             print "Array read type:", b.dtype.char
 
-        type_ = self.root.somearray.type
+        type_ = self.root.somearray.atom.type
         # Check strictly the array equality
         assert type(a) == type(b)
         assert a.shape == b.shape

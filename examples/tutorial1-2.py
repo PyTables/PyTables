@@ -130,7 +130,7 @@ pressureObject = h5file.getNode("/columns", "pressure")
 print "Info on the object:", repr(pressureObject)
 print "  shape: ==>", pressureObject.shape
 print "  title: ==>", pressureObject.title
-print "  type: ==>", pressureObject.type
+print "  atom: ==>", pressureObject.atom
 print
 print   '-**-**-**-**-**- reading actual data from arrays -**-**-**-**-**-**-'
 
@@ -159,7 +159,7 @@ print   '-**-**-**-**-**- reading actual data from tables -**-**-**-**-**-**-'
 table = h5file.root.detector.readout
 
 # Read the 'energy' column of '/detector/readout'
-print "Column 'energy' of '/detector/readout':\n", table["energy"]
+print "Column 'energy' of '/detector/readout':\n", table.cols.energy
 print
 # Read the 3rd row of '/detector/readout'
 print "Third row of '/detector/readout':\n", table[2]

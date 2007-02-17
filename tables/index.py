@@ -518,8 +518,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if not self._v_new:
             # Set-up some variables from info on disk and return
             sorted = self.sorted
-            self.dtype = sorted.dtype
-            self.type = sorted.type
+            self.dtype = sorted.atom.dtype
+            self.type = sorted.atom.type
             self.superblocksize = sorted.superblocksize
             self.blocksize = sorted.blocksize
             self.slicesize = sorted.slicesize

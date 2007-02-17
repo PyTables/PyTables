@@ -73,12 +73,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     `atom`
         An `Atom` instance representing the shape and type of the
         atomic objects to be saved.
-    `nrows`
-        The total number of rows of the array.
     `nrow`
         On iterators, this is the index of the current row.
-    `shape`
-        The shape of the array (expressed as ``(self.nrows,)``).
     """
 
     # Class identifier.
@@ -145,8 +141,6 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         """The maximum number of rows that are read on each chunk iterator."""
         self._v_chunkshape = None
         """The HDF5 chunk shape for ``VLArray`` objects."""
-        self._enum = None
-        """The enumerated type containing the values in this array."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
@@ -197,7 +191,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                                       byteorder, _log)
 
 
-    # This is too specific for moving it to Leaf
+    # This is too specific for moving it into Leaf
     def _calc_chunkshape(self, expectedsizeinMB):
         """Calculate the size for the HDF5 chunk."""
 
@@ -258,7 +252,7 @@ be zero."""
 
         # Add an attribute in case we have a pseudo-atom so that we
         # can retrieve the proper class after a re-opening operation.
-        if atom.kind in ('vlstring', 'object'):
+        if not hasattr(atom, 'size'):  # it is a pseudo-atom
             self.attrs.PSEUDOATOM = atom.kind
 
         return self._v_objectID
@@ -267,8 +261,10 @@ be zero."""
     def _g_open(self):
         """Get the metadata info for an array in file."""
 
-        self._v_objectID, self.nrows, self._v_chunkshape = self._openArray()
+        self._v_objectID, self.nrows, self._v_chunkshape, atom = \
+                          self._openArray()
 
+        # Check if the atom can be a PseudoAtom
         if "PSEUDOATOM" in self.attrs:
             kind = self.attrs.PSEUDOATOM
             if kind == 'vlstring':
@@ -278,18 +274,6 @@ be zero."""
             else:
                 raise ValueError(
                     "pseudo-atom name ``%s`` not known." % kind)
-        else:
-            kind, itemsize = split_type(self._atomictype)
-            if kind == 'enum':
-                dflt = iter(self._enum).next()[0]  # ignored, any of them is OK
-                base = Atom.from_dtype(self._atomicdtype)
-                atom = EnumAtom(self._enum, dflt, base,
-                                shape=self._atomicshape)
-            else:
-                if itemsize is None:  # some types don't include precision
-                    itemsize = self._atomicdtype.itemsize
-                shape = self._atomicshape
-                atom = Atom.from_kind(kind, itemsize, shape=shape)
 
         self.atom = atom
         return self._v_objectID

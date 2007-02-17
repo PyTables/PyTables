@@ -82,9 +82,9 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "string":
             object = numpy.ndarray(buffer="a"*self.objsize,
                                    shape=self.rowshape,
-                                   dtype="S%s" % earray.itemsize)
+                                   dtype="S%s" % earray.atom.itemsize)
         else:
-            object = numpy.arange(self.objsize, dtype=earray.dtype.base)
+            object = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
             object.shape = self.rowshape
         if self.flavor == "numarray":
             object = flavor_to_flavor(object, 'numpy', 'numarray')
@@ -104,7 +104,7 @@ class BasicTestCase(unittest.TestCase):
             else:
                 object = object * i
                 # For Numeric arrays, we still have to undo the type upgrade
-                earray.append(object.astype(typecode[earray.type]))
+                earray.append(object.astype(typecode[earray.atom.type]))
 
     def tearDown(self):
         self.fileh.close()
@@ -137,9 +137,9 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
-                                    dtype="S%s" % earray.itemsize)
+                                    dtype="S%s" % earray.atom.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base)
+            object_ = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
@@ -156,7 +156,7 @@ class BasicTestCase(unittest.TestCase):
                 else:
                     object__ = object_ * (earray.nrow / self.chunksize)
                     if self.flavor == "numeric":
-                        object__ = object__.astype(typecode[earray.type])
+                        object__ = object__.astype(typecode[earray.atom.type])
             object = object__[chunk]
             # The next adds much more verbosity
             if verbose and 0:
@@ -216,9 +216,9 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
-                                    dtype="S%s" % earray.itemsize)
+                                    dtype="S%s" % earray.atom.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base)
+            object_ = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
@@ -239,7 +239,7 @@ class BasicTestCase(unittest.TestCase):
             else:
                 object__ = object_ * (earray.nrow / self.chunksize)
                 if self.flavor == "numeric":
-                    object__ = object__.astype(typecode[earray.type])
+                    object__ = object__.astype(typecode[earray.atom.type])
             object = object__[index]
             # The next adds much more verbosity
             if verbose and 0:
@@ -286,9 +286,9 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
-                                    dtype="S%s" % earray.itemsize)
+                                    dtype="S%s" % earray.atom.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base)
+            object_ = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
         object_ = object_.swapaxes(earray.extdim, 0)
         if self.flavor == "numarray":
@@ -299,7 +299,7 @@ class BasicTestCase(unittest.TestCase):
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
         if self.type == "string":
-            object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
+            object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.atom.itemsize)
         else:
             object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
 
@@ -322,7 +322,7 @@ class BasicTestCase(unittest.TestCase):
                 if self.flavor in ["numarray", "numpy"]:
                     object__[j:j+self.chunksize] = object_ * i
                 else:
-                    object__[j:j+self.chunksize] = (object_ * i).astype(typecode[earray.type])
+                    object__[j:j+self.chunksize] = (object_ * i).astype(typecode[earray.atom.type])
         stop = self.stop
 
         if self.nappends:
@@ -377,9 +377,9 @@ class BasicTestCase(unittest.TestCase):
         if hasattr(row, "shape"):
             assert len(row.shape) == len(self.shape)
             if self.flavor in ("numarray", "numeric"):
-                assert row.itemsize() == earray.itemsize
+                assert row.itemsize() == earray.atom.itemsize
             elif self.flavor in "numpy":
-                assert row.itemsize == earray.itemsize
+                assert row.itemsize == earray.atom.itemsize
         else:
             # Scalar case
             assert len(self.shape) == 1
@@ -416,9 +416,9 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
-                                    dtype="S%s"%earray.itemsize)
+                                    dtype="S%s"%earray.atom.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base)
+            object_ = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
 
         # Additional conversion for the numarray case
@@ -431,7 +431,7 @@ class BasicTestCase(unittest.TestCase):
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
         if self.type == "string":
-            object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
+            object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.atom.itemsize)
         else:
             object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
             # Additional conversion for the numpy case
@@ -529,9 +529,9 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.rowshape,
-                                    dtype="S%s"%earray.itemsize)
+                                    dtype="S%s"%earray.atom.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=earray.dtype.base)
+            object_ = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
             
         # Additional conversion for the numarray case
@@ -544,7 +544,7 @@ class BasicTestCase(unittest.TestCase):
         rowshape = self.rowshape
         rowshape[self.extdim] *= self.nappends
         if self.type == "string":
-            object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.itemsize)
+            object__ = numpy.empty(shape=rowshape, dtype="S%s"%earray.atom.itemsize)
         else:
             object__ = numpy.empty(shape=rowshape, dtype=self.dtype)
             # Additional conversion for the numpy case
@@ -1511,9 +1511,9 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
-        assert array1.itemsize == array2.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
+        assert array1.atom.itemsize == array2.atom.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
 
@@ -1572,9 +1572,9 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
-        assert array1.itemsize == array2.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
+        assert array1.atom.itemsize == array2.atom.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
 
@@ -1631,9 +1631,9 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
-        assert array1.itemsize == array2.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
+        assert array1.atom.itemsize == array2.atom.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
 
@@ -1690,9 +1690,9 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
-        assert array1.itemsize == array2.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
+        assert array1.atom.itemsize == array2.atom.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
 
@@ -1746,9 +1746,9 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
-        assert array1.itemsize == array2.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
+        assert array1.atom.itemsize == array2.atom.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
 
@@ -1803,9 +1803,9 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
-        assert array1.itemsize == array2.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
+        assert array1.atom.itemsize == array2.atom.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
 
@@ -1859,9 +1859,9 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
-        assert array1.itemsize == array2.itemsize
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
+        assert array1.atom.itemsize == array2.atom.itemsize
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
 

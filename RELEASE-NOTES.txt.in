@@ -28,21 +28,36 @@ Migrating from PyTables 1.x to 2.x
 Things to have in mind when migrating from PyTables 1.x to PyTables
 2.x series:
 
-- Leaf.stype --> Leaf.type
-- Leaf.type --> Leaf.dtype
+- *Array.stype --> *Array.atom.type
+
+- *Array.type --> *Array.atom.dtype
+
+- *Array.itemsize --> *Array.atom.itemsize
+
 - "CharType" --> "string"
+
 - "Complex32", "Complex64" --> "complex64", "complex128"
+
 - PyTables types (previously called "string types") are now written in
   lower case, so "Type" becomes "type".  See the appendix on supported
   data types in the manual for more information on PyTables types.
+
 - "non-relevant" --> "irrelevant" (applied to byteorders)
+
 - Table.colstypes --> Table.coltypes
+
 - Table.coltypes --> Table.coldtypes
+
 - Table.colshapes & Table.colitemsizes have disappeared
+
 - Description.itemsize have disappeared
-- In-kernel conditions must be written as strings.
-- New meanings of atom shape and array shape.
-- New argument ``chunkshape`` of chunked arrays.
+
+- In-kernel conditions must be written as strings
+
+- New meanings of atom shape and array shape
+
+- New argument ``chunkshape`` of chunked arrays
+
 - ``Atom`` and ``Col`` are now abstract classes, so you can't use them
   to create atoms or column definitions of an arbitrary type.  If you
   know the particular type you need, use the proper subclass;
@@ -52,10 +67,12 @@ Things to have in mind when migrating from PyTables 1.x to PyTables
   You are also advised to avoid using the inheritance of atoms to
   check for their kind or type; for that purpose, use their ``kind``
   and ``type`` attributes.
+
 - The ``dtype`` argument of ``EnumAtom`` and ``EnumCol`` constructors
   has been replaced by the ``base`` argument, which can take a
   full-blown atom, although it accepts bare PyTables types as well.
   This is a *mandatory* argument now.
+
 - Flavors can *only* be set through the ``flavor`` attribute of
   leaves, and they are *persistent*, so changing a flavor requires
   that the file be writable.

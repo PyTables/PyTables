@@ -793,7 +793,7 @@ cdef class Array(Leaf):
     cdef int i
     cdef int extdim
     cdef herr_t ret
-    cdef object shape, type_
+    cdef object shape, chunkshapes, atom
 
     # Open the dataset
     self.dataset_id = H5Dopen(self.parent_id, self.name)
@@ -801,6 +801,8 @@ cdef class Array(Leaf):
       raise HDF5ExtError("Problems opening dataset %s" % self.name)
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._g_get_type_ids()
+    # Get the atom for this type
+    atom = AtomFromHDF5Type(self.disk_type_id)
 
     # Get the rank for this array object
     if H5ARRAYget_ndims(self.dataset_id, self.type_id, &self.rank) < 0:
@@ -814,30 +816,25 @@ cdef class Array(Leaf):
                           &class_id, byteorder)
     if ret < 0:
       raise HDF5ExtError("Unable to get array info.")
-    # Get the extendeable dimension (if any)
-    self.extdim = -1  # default is non-chunked Array
+
+    # Get the extendable dimension (if any)
+    self.extdim = -1  # default is non-extensible Array
     for i from 0 <= i < self.rank:
       if self.maxdims[i] == -1:
         self.extdim = i
         break
 
+    # Get the shape as a python tuple
+    shape = getshape(self.rank, self.dims)
+
     # Allocate space for the dimension chunking info
     self.dims_chunk = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
-    if ((H5ARRAYget_chunkshape(self.dataset_id, self.rank,
-                              self.dims_chunk)) < 0):
-      if self.extdim >= 0 or self.__class__.__name__ == 'CArray':
-        raise HDF5ExtError, "Problems getting the chunkshapes!"
-    # Get the atom for this type
-    atom = AtomFromHDF5Type(self.disk_type_id)
-
-    # Get the enumeration list and put it in the _enum private variable
-    # This is needed mainly for Array objects that doesn't have an Atom()
-    if atom.type == 'enum':
-      self._enum = atom.enum
-
-    # Get the shape and chunkshapes as python tuples
-    shape = getshape(self.rank, self.dims)
-    chunkshapes = getshape(self.rank, self.dims_chunk)
+    if H5ARRAYget_chunkshape(self.dataset_id, self.rank, self.dims_chunk) < 0:
+      # The Array class is not chunked!
+      chunkshapes = None
+    else:
+      # Get the chunkshape as a python tuple
+      chunkshapes = getshape(self.rank, self.dims_chunk)
 
     # Get the byteorder
     self.byteorder = correct_byteorder(atom.type, byteorder)
@@ -854,7 +851,7 @@ cdef class Array(Leaf):
     """
 
     # This should be generalised to support other type conversions.
-    if self.type == 'time64':
+    if self.atom.type == 'time64':
       convertTime64(nparr, len(nparr), sense)
 
 
@@ -1069,34 +1066,29 @@ cdef class VLArray(Leaf):
     # Get info on dimensions & types (of base class)
     H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
                       dims, &self.base_type_id, byteorder)
+    # Get the shape for the base type
+    shape = getshape(rank, dims)
+    if dims:
+      free(<void *>dims)
 
-    # Get the atom for this type
-    atom = AtomFromHDF5Type(self.base_type_id)
+    # Get the scalar atom and the atom for this type
+    scatom = AtomFromHDF5Type(self.base_type_id)
+    atom = scatom.copy(shape=shape)
 
-    # Get the type of the atomic type
-    self._atomicdtype = atom.dtype
-    self._atomictype = atom.type
+    # Get some properties of the atomic type
+    self._atomicdtype = scatom.dtype
+    self._atomictype = scatom.type
+    self._atomicshape = atom.shape
+    self._atomicsize = atom.size
 
     # Get the byteorder
     self.byteorder = correct_byteorder(atom.type, byteorder)
-
-    # Get enumeration from disk
-    if self._atomictype == 'enum':
-      self._enum = atom.enum
-
-    # Get the size and shape of the atomic type
-    self._atomicshape = getshape(rank, dims)
-    self._atomicsize = atom.itemsize
-    for i from 0 <= i < rank:
-      self._atomicsize = self._atomicsize * dims[i]
-    if dims:
-      free(<void *>dims)
 
     # Get the chunkshape (VLArrays are unidimensional entities)
     H5ARRAYget_chunkshape(self.dataset_id, 1, &chunksize)
 
     self.nrecords = nrecords  # Initialize the number of records saved
-    return self.dataset_id, nrecords, (chunksize,)
+    return self.dataset_id, nrecords, (chunksize,), atom
 
 
   def _convertTypes(self, object nparr, int sense):
@@ -1164,7 +1156,7 @@ cdef class VLArray(Leaf):
     cdef hsize_t nrows
     cdef hid_t space_id
     cdef hid_t mem_space_id
-    cdef object buf, nparr, shape, datalist, dtype
+    cdef object buf, nparr, shape, datalist
 
     # Compute the number of rows to read
     nrows = get_len_of_range(start, stop, step)

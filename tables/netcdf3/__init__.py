@@ -203,8 +203,8 @@ class NetCDFFile:
                 if not isinstance(var,tables.CArray) and not isinstance(var,tables.EArray):
                     print 'object',var,'is not a EArray or CArray, skipping ..'
                     continue
-                if var.type not in _typecode_dict.keys():
-                    print 'object',var.name,'is not a supported datatype (',var.type,'), skipping ..'
+                if var.atom.type not in _typecode_dict.keys():
+                    print 'object',var.name,'is not a supported datatype (',var.atom.type,'), skipping ..'
                     continue
                 if var.attrs.__dict__.has_key('dimensions'):
                     n = 0
@@ -674,7 +674,7 @@ class NetCDFVariable:
  'double', 'float', 'int', 'int', 'short', 'byte' and 'character'.
  ('D' and 'F' have no corresponding netCDF data types).
         """
-        return _typecode_dict[self._NetCDF_varobj.type]
+        return _typecode_dict[self._NetCDF_varobj.atom.type]
 
     def ncattrs(self):
         """return attributes corresponding to netCDF variable attributes"""

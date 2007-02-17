@@ -3254,9 +3254,10 @@ class CopyTestCase(unittest.TestCase):
             array2 = fileh.root.array2
 
         if verbose:
-            print "array1-->", repr(array1.read())
-            print "array2-->", repr(array2.read())
-            #print "dirs-->", dir(array1), dir(array2)
+            print "array1-->", repr(array1)
+            print "array2-->", repr(array2)
+            print "array1[:]-->", repr(array1.read())
+            print "array2[:]-->", repr(array2.read())
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -3315,9 +3316,10 @@ class CopyTestCase(unittest.TestCase):
             array2 = fileh.root.group1.array2
 
         if verbose:
+            print "array1-->", repr(array1)
+            print "array2-->", repr(array2)
             print "array1-->", array1.read()
             print "array2-->", array2.read()
-            #print "dirs-->", dir(array1), dir(array2)
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 

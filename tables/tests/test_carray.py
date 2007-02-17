@@ -72,22 +72,22 @@ class BasicTestCase(unittest.TestCase):
         if self.flavor == "numarray":
             if self.type == "string":
                 object = strings.array("a"*self.objsize, shape=self.shape,
-                                       itemsize=carray.itemsize)
+                                       itemsize=carray.atom.itemsize)
             else:
-                type_ = numpy.sctypeNA[numpy.sctypeDict[carray.type]]
+                type_ = numpy.sctypeNA[numpy.sctypeDict[carray.atom.type]]
                 object = numarray.arange(self.objsize, shape=self.shape,
                                          type=type_)
         elif self.flavor == "numpy":
             if self.type == "string":
                 object = numpy.ndarray(buffer="a"*self.objsize,
                                        shape=self.shape,
-                                       dtype="S%s" % carray.itemsize)
+                                       dtype="S%s" % carray.atom.itemsize)
             else:
-                object = numpy.arange(self.objsize, dtype=carray.dtype)
+                object = numpy.arange(self.objsize, dtype=carray.atom.dtype)
                 object.shape = self.shape
         else:  # Numeric flavor
             object = Numeric.arange(self.objsize,
-                                    typecode=typecode[carray.type])
+                                    typecode=typecode[carray.atom.type])
             object = Numeric.reshape(object, self.shape)
         if verbose:
             print "Object to append -->", repr(object)
@@ -126,22 +126,22 @@ class BasicTestCase(unittest.TestCase):
         if self.flavor == "numarray":
             if self.type == "string":
                 object_ = strings.array("a"*self.objsize, shape=self.shape,
-                                        itemsize=carray.itemsize)
+                                        itemsize=carray.atom.itemsize)
             else:
-                type_ = numpy.sctypeNA[numpy.sctypeDict[carray.type]]
+                type_ = numpy.sctypeNA[numpy.sctypeDict[carray.atom.type]]
                 object_ = numarray.arange(self.objsize, shape=self.shape,
                                           type=type_)
         elif self.flavor == "numpy":
             if self.type == "string":
                 object_ = numpy.ndarray(buffer="a"*self.objsize,
                                         shape=self.shape,
-                                        dtype="S%s" % carray.itemsize)
+                                        dtype="S%s" % carray.atom.itemsize)
             else:
-                object_ = numpy.arange(self.objsize, dtype=carray.dtype)
+                object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
                 object_.shape = self.shape
         else:
             object_ = Numeric.arange(self.objsize,
-                                     typecode=typecode[carray.type])
+                                     typecode=typecode[carray.atom.type])
             object_ = Numeric.reshape(object_, self.shape)
 
         stop = self.stop
@@ -216,9 +216,9 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.shape,
-                                    dtype="S%s" % carray.itemsize)
+                                    dtype="S%s" % carray.atom.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=carray.dtype)
+            object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
             object_.shape = self.shape
 
         stop = self.stop
@@ -288,9 +288,9 @@ class BasicTestCase(unittest.TestCase):
         if self.type == "string":
             object_ = numpy.ndarray(buffer="a"*self.objsize,
                                     shape=self.shape,
-                                    dtype="S%s" % carray.itemsize)
+                                    dtype="S%s" % carray.atom.itemsize)
         else:
-            object_ = numpy.arange(self.objsize, dtype=carray.dtype)
+            object_ = numpy.arange(self.objsize, dtype=carray.atom.dtype)
             object_.shape = self.shape
 
         stop = self.stop
@@ -322,7 +322,7 @@ class BasicTestCase(unittest.TestCase):
                 if reduce(lambda x,y:x*y, object.shape) > 0:
                     carray[self.slices] = carray[self.slices] * 2 + 3
             # Cast again object to its original type
-            object = numpy.array(object, dtype=carray.dtype)
+            object = numpy.array(object, dtype=carray.atom.dtype)
         # Read datafrom the array
         try:
             data = carray.__getitem__(self.slices)
@@ -1182,8 +1182,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
@@ -1246,8 +1246,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
@@ -1310,8 +1310,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
@@ -1375,8 +1375,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
@@ -1438,8 +1438,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
@@ -1498,8 +1498,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
@@ -1561,8 +1561,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
@@ -1620,8 +1620,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.extdim == array2.extdim
         assert array1.flavor == array2.flavor   # Very important here!
-        assert array1.dtype == array2.dtype
-        assert array1.type == array2.type
+        assert array1.atom.dtype == array2.atom.dtype
+        assert array1.atom.type == array2.atom.type
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not

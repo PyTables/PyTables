@@ -1,5 +1,5 @@
 import tables
-from Numeric import *   # or, from numarray import *
+from Numeric import *   # or, from numpy import *
 
 # Create a VLArray:
 fileh = tables.openFile("vlarray1.h5", mode = "w")

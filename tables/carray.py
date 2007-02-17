@@ -190,95 +190,42 @@ chunkshape parameter cannot have zero-dimensions."""
 
 
     def _g_create(self):
-        """Create a new array in file."""
+        """Create a new array in file (specific part)."""
+
+        # Pre-conditions
+        if min(self.shape) < 1:
+            raise ValueError(
+                "shape parameter cannot have zero-dimensions.")
+        # Finish the common part of creation process
+        return self._g_create_common(self.nrows)
+
+
+    def _g_create_common(self, expectedrows):
+        """Create a new array in file (common part)."""
 
         self._v_version = obversion
 
-        # Post-conditions
-        if self._c_classId == 'CARRAY':
-            if min(self.shape) < 1:
-                raise ValueError(
-                    "shape parameter cannot have zero-dimensions.")
-            expectedrows = self.nrows
-        elif self._c_classId == 'EARRAY':
-            # extdim computation
-            zerodims = numpy.sum(numpy.array(self.shape) == 0)
-            if zerodims > 0:
-                if zerodims == 1:
-                    self.extdim = list(self.shape).index(0)
-                else:
-                    raise NotImplementedError(
-                        "Multiple enlargeable (0-)dimensions are not "
-                        "supported.")
-            else:
-                raise ValueError(
-                    "When creating EArrays, you need to set one of "
-                    "the dimensions of the Atom instance to zero.")
-            expectedrows = self._v_expectedrows
-
         if self._v_chunkshape is None:
             # Compute the optimal chunk size
-            self._v_chunkshape = self._calc_chunkshape(expectedrows,
-                                                       self.rowsize)
+            self._v_chunkshape = self._calc_chunkshape(
+                expectedrows, self.rowsize, self.atom.itemsize)
         # Compute the optimal nrowsinbuf
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
-                                                   self.rowsize)
+        self._v_nrowsinbuf = self._calc_nrowsinbuf(
+            self._v_chunkshape, self.rowsize, self.atom.itemsize)
         # Correct the byteorder if needed
         if self.byteorder is None:
             self.byteorder = correct_byteorder(self.atom.type, sys.byteorder)
 
         try:
-            oid = self._createCArray(self._v_new_title)
+            # ``self._v_objectID`` needs to be set because would be
+            # needed for setting attributes in some descendants later
+            # on
+            self._v_objectID = self._createCArray(self._v_new_title)
         except:  #XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
             raise
-        return oid
-
-
-    def _g_open(self):
-        """Get the metadata info for an array in file."""
-
-        (oid, self.atom, self.shape, self._v_chunkshape) = self._openArray()
-
-        # Post-condition
-        if self._c_classId == 'CARRAY':
-            assert self.extdim == -1, "extdim != -1: this should never happen!"
-            assert numpy.product(self._v_chunkshape) > 0, \
-                   "product(self._v_chunkshape) > 0: this should never happen!"
-        elif self._c_classId == 'EARRAY':
-            assert self.extdim >= 0, "extdim < 0: this should never happen!"
-
-        # Create the atom instance and set definitive type
-        kind, itemsize = split_type(self.type)
-        if kind == 'enum':
-            dflt = iter(self._enum).next()[0]  # ignored, any of them is OK
-            base = Atom.from_dtype(self.atom.dtype)
-            self.atom = EnumAtom(self._enum, dflt, base)
-        else:
-            itemsize = self.atom.itemsize  # string type has no precision
-            self.atom = Atom.from_kind(kind, itemsize)
-
-        # Compute the optimal nrowsinbuf
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(self._v_chunkshape,
-                                                   self.rowsize)
-        return oid
-
-
-    def getEnum(self):
-        """
-        Get the enumerated type associated with this array.
-
-        If this array is of an enumerated type, the corresponding `Enum`
-        instance is returned.  If it is not of an enumerated type, a
-        ``TypeError`` is raised.
-        """
-
-        if self.atom.kind != 'enum':
-            raise TypeError("array ``%s`` is not of an enumerated type"
-                            % self._v_pathname)
-
-        return self.atom.enum
+        return self._v_objectID
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
@@ -316,6 +263,6 @@ chunkshape parameter cannot have zero-dimensions."""
             object[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.product(self.shape)*self.itemsize
+        nbytes = numpy.product(self.shape)*self.atom.itemsize
 
         return (object, nbytes)

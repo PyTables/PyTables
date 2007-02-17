@@ -118,6 +118,27 @@ class EArray(CArray):
 
     # Public and private methods
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    def _g_create(self):
+        """Create a new array in file (specific part)."""
+
+        # Pre-conditions and extdim computation
+        zerodims = numpy.sum(numpy.array(self.shape) == 0)
+        if zerodims > 0:
+            if zerodims == 1:
+                self.extdim = list(self.shape).index(0)
+            else:
+                raise NotImplementedError(
+                    "Multiple enlargeable (0-)dimensions are not "
+                    "supported.")
+        else:
+            raise ValueError(
+                "When creating EArrays, you need to set one of "
+                "the dimensions of the Atom instance to zero.")
+
+        # Finish the common part of the creation process
+        return self._g_create_common(self._v_expectedrows)
+
+
     def _checkShape(self, nparr):
         "Test that nparr shape is consistent with underlying EArray."
 
@@ -142,7 +163,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
         # The sequence needs to be copied to make the operation safe
         # to in-place conversion.
-        copy = self.type in ['time64']
+        copy = self.atom.type in ['time64']
         # Convert the sequence into a NumPy object
         nparr = convertToNPAtom(sequence, self.atom, copy)
         # Check if it has a consistent shape with underlying EArray
@@ -195,6 +216,6 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
             object._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.product(self.shape)*self.itemsize
+        nbytes = numpy.product(self.shape)*self.atom.itemsize
 
         return (object, nbytes)

@@ -2020,8 +2020,8 @@ Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
   shape: ==&gt; (3,)
 &gt;&gt;&gt; print "  title: ==&gt;", pressureObject.title
   title: ==&gt; Pressure column selection
-&gt;&gt;&gt; print "  type: ==&gt;", pressureObject.type
-  type: ==&gt; float64</screen>
+&gt;&gt;&gt; print "  atom: ==&gt;", pressureObject.atom
+  atom: ==&gt; Float64Atom(shape=(), dflt=0.0)</screen>
 
           <para>Observe that we have used the <literal>getNode()</literal>
           method of the <literal>File</literal> class to access a node in the
@@ -8259,34 +8259,6 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
               </glossdef>
             </glossentry>
 
-            <glossentry>
-              <glossterm><emphasis role="bold">dtype</emphasis></glossterm>
-
-              <glossdef>
-                <para>The NumPy type of the represented array (this is
-                actually a shortcut for <literal>atom.dtype</literal>).</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">type</emphasis></glossterm>
-
-              <glossdef>
-                <para>The PyTables type of the represented array (this is
-                actually a shortcut for <literal>atom.type</literal>).</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">itemsize</emphasis></glossterm>
-
-              <glossdef>
-                <para>The size in bytes of an item in the array (this is
-                actually a shortcut for
-                <literal>atom.itemsize</literal>).</para>
-              </glossdef>
-            </glossentry>
-
           </glosslist>
         </section>
 
@@ -8645,14 +8617,6 @@ array_c[4] =&gt; 'cccccccc'</screen>
               </glossdef>
             </glossentry>
 
-            <glossentry>
-              <glossterm><emphasis role="bold">shape</emphasis></glossterm>
-
-              <glossdef>
-                <para>The shape of the array (expressed as
-                <literal>(self.nrows,)</literal>).</para>
-              </glossdef>
-            </glossentry>
           </glosslist>
         </section>
 
