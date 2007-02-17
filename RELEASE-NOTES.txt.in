@@ -27,7 +27,7 @@ New type system
 In PyTables 2.0 all the data types for leaves are described through a couple
 of classes:
 
-- Atom: Has info about homogeneous types of the atomic components in *Array
+- Atom: Has info about homogeneous types of the atomic components in \*Array
   (Array, CArray, EArray and VLArray) objects.
 
 - Description: Has info about (possibly nested) heterogeneous types in Table
@@ -36,11 +36,11 @@ of classes:
 So, in order to upgrade to the new type system, you must do the next
 replacements:
 
-- *Array.stype --> *Array.atom.type  (PyTables type)
+- \*Array.stype --> \*Array.atom.type  (PyTables type)
 
-- *Array.type --> *Array.atom.dtype  (NumPy type)
+- \*Array.type --> \*Array.atom.dtype  (NumPy type)
 
-- *Array.itemsize --> *Array.atom.itemsize   (the size of the item)
+- \*Array.itemsize --> \*Array.atom.itemsize   (the size of the item)
 
 Furthermore, the PyTables types (previously called "string types") have
 changed to better adapt to the NumPy conventions. The next changes have been
@@ -112,8 +112,8 @@ automatically re-create the indexes in PyTables 1.x format to the new 2.0
 format by using the ``ptrepack`` utility.
 
 
-New meanings for Atom shape and *Array shape argument
------------------------------------------------------
+New meanings for Atom shape and \*Array shape argument
+------------------------------------------------------
 
 With PyTables 1.x, the atom shape was used for different goals depending on
 the context it was used. For example, in createEArray, the shape of the Atom
@@ -125,8 +125,8 @@ disk.  Moreover, for VLArray objects, the very same Atom shape specified the
 Starting with PyTables 2.x, the Atom only specifies properties of the data
 type (à la VLArray in 1.x). This lets the door open for specifying
 multidimensional data types (that can be part of another layer of
-multidimensional datasets) in a consistent way along all the *Array objects in
-PyTables.
+multidimensional datasets) in a consistent way along all the \*Array objects
+in PyTables.
 
 As a consequence of this, ``File.createCArray()`` and ``File.createVLArray()``
 methods have received new parameters in order to be possible to specify the
