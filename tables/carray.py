@@ -129,8 +129,6 @@ class CArray(Array):
         """Whether the ``Array`` object must be converted or not."""
         self._v_chunkshape = None
         """The HDF5 chunk size for ``CArray/EArray`` objects."""
-        self._enum = None
-        """The enumerated type containing the values in this array."""
 
         # Miscellaneous iteration rubbish.
         self._start = None

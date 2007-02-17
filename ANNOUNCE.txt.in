@@ -39,21 +39,27 @@ res = [ row['var3'] for row in table.where('cplx_cond' % (inf, sup)) ]
   and run them at full C-speed (or even more, due to the cache-tuned
   computing kernel of Numexpr).
 
-- Row.__getitem__() now understands extended sliced notation for
-  specifying field positions. So now, you can do things like:
+- Now, it is possible to get fields of the Row iterator by specifiying their
+  position, o even ranges of positions (extended slicing is supported
+  now). For example, you can do now:
 
-res = [ row[4] for row in table if row[1] < 20 ]
-res = [ row[:] for row in table if row['var2'] < 20 ]
-res = [ row[1::2] for row in table.iterrows(2, 3000, 3) ]
+  res = [ row[4] for row in table if row[1] < 20 ]   # fetch field #4
+  res = [ row[:] for row in table if row['var2'] < 20 ]  # fetch all fields
+  res = [ row[1::2] for row in table.iterrows(2, 3000, 3) ] # fetch odd fields
 
-in addition to the classical:
+  in addition to the classical:
 
-res = [ row['var3'] for row in table.where('var2 < 20') ]
+  res = [ row['var3'] for row in table.where('var2 < 20') ]
 
 - Row has received a new method called ``fetch_all_fields`` in order to
   easily retrieve all the fields of a row in situations like:
 
-[row.fetch_all_fields() for row in table.where('column1 < 0.3')]
+  [row.fetch_all_fields() for row in table.where('column1 < 0.3')]
+
+  The difference between row[:] and row.fetch_all_fields() is that the former
+  will return all the fields as a tuple, while the latter will return the
+  fields in a NumPy void type and should be faster. Choose whatever fits
+  better to your needs.
 
 - Now, all the data that is read from disk is converted, if necessary,
   to the native byteorder of the hosting machine (before, this only
@@ -175,7 +181,7 @@ have.
   -- The PyTables Team
 
 .. Local Variables:
-.. mode: text
+.. mode: rst
 .. coding: utf-8
 .. fill-column: 72
 .. End:
