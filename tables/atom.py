@@ -171,6 +171,24 @@ def _normalize_default(value, dtype):
         default = default[()]
     return default
 
+def _cmp_dispatcher(other_method_name):
+    """
+    Dispatch comparisons to a method of the *other* object.
+
+    Returns a new *rich comparison* method which dispatches calls to
+    the method `other_method_name` of the *other* object.  If there is
+    no such method in the object, ``False`` is returned.
+
+    This is part of the implementation of a double dispatch pattern.
+    """
+    def dispatched_cmp(self, other):
+        try:
+            other_method = getattr(other, other_method_name)
+        except AttributeError:
+            return False
+        return other_method(self)
+    return dispatched_cmp
+
 
 # Helper classes
 # ==============
@@ -242,6 +260,23 @@ class Atom(object):
         The NumPy ``dtype`` that most closely matches this atom.
     `recarrtype`
         String type to be used in ``numpy.rec.array()``.
+
+    Atoms can be compared with atoms and other objects for strict
+    (in)equality without having to compare individual attributes:
+
+    >>> atom1 = StringAtom(itemsize=10)  # same as ``atom2``
+    >>> atom2 = Atom.from_kind('string', 10)  # same as ``atom1``
+    >>> atom3 = IntAtom()
+    >>> atom1 == 'foo'
+    False
+    >>> atom1 == atom2
+    True
+    >>> atom2 != atom1
+    False
+    >>> atom1 == atom3
+    False
+    >>> atom3 != atom2
+    True
     """
 
     # Register data for all subclasses.
@@ -429,6 +464,11 @@ class Atom(object):
             args = 'itemsize=%s, %s' % (self.itemsize, args)
         return '%s(%s)' % (self.__class__.__name__, args)
 
+    __eq__ = _cmp_dispatcher('_is_equal_to_atom')
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     # Public methods
     # ~~~~~~~~~~~~~~
     def copy(self, **override):
@@ -470,6 +510,12 @@ class Atom(object):
         return dict( (arg, getattr(self, arg))
                      for arg in inspect.getargspec(self.__init__)[0]
                      if arg != 'self' )
+
+    def _is_equal_to_atom(self, atom):
+        """Is this object equal to the given `atom`?"""
+        return ( self.type == atom.type and self.shape == atom.shape
+                 and self.itemsize == atom.itemsize
+                 and numpy.all(self.dflt == atom.dflt) )
 
 
 class StringAtom(Atom):
@@ -669,6 +715,26 @@ class EnumAtom(Atom):
 
     The ``type`` attribute of enumerated atoms is always ``'enum'``.
 
+    Enumerated atoms also support comparisons with other objects:
+
+    >>> enum = ['T0', 'T1', 'T2']
+    >>> atom1 = EnumAtom(enum, 'T0', 'int8')  # same as ``atom2``
+    >>> atom2 = EnumAtom(enum, 'T0', Int8Atom())  # same as ``atom1``
+    >>> atom3 = EnumAtom(enum, 'T0', 'int16')
+    >>> atom4 = Int8Atom()
+    >>> atom1 == enum
+    False
+    >>> atom1 == atom2
+    True
+    >>> atom2 != atom1
+    False
+    >>> atom1 == atom3
+    False
+    >>> atom1 == atom4
+    False
+    >>> atom4 != atom1
+    True
+
     Examples
     --------
 
@@ -761,6 +827,16 @@ class EnumAtom(Atom):
         return dict( enum=self.enum, dflt=self._defname,
                      base=self.base, shape=self.shape )
 
+    def _is_equal_to_atom(self, atom):
+        """Is this object equal to the given `atom`?"""
+        return False
+
+    def _is_equal_to_enumatom(self, enumatom):
+        """Is this object equal to the given `enumatom`?"""
+        return ( self.enum == enumatom.enum and self.shape == enumatom.shape
+                 and numpy.all(self.dflt == enumatom.dflt)
+                 and self.base == enumatom.base )
+
     # Special methods
     # ~~~~~~~~~~~~~~~
     def __init__(self, enum, dflt, base, shape=1):
@@ -792,6 +868,8 @@ class EnumAtom(Atom):
     def __repr__(self):
         return ( 'EnumAtom(enum=%r, dflt=%r, base=%r, shape=%r)'
                  % (self.enum, self._defname, self.base, self.shape) )
+
+    __eq__ = _cmp_dispatcher('_is_equal_to_enumatom')
 
 
 # Pseudo-atom classes

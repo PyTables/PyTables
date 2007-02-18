@@ -37,6 +37,21 @@ __version__ = '$Revision$'
 """Repository version of this file."""
 
 
+# Private functions
+# =================
+def same_position(oldmethod):
+    """Decorate `oldmethod` to also compare the `_v_pos` attribute."""
+    def newmethod(self, other):
+        try:
+            other_pos = other._v_pos
+        except AttributeError:
+            return False  # not a column definition
+        return self._v_pos == other._v_pos and oldmethod(self, other)
+    newmethod.__name__ = oldmethod.__name__
+    newmethod.__doc__ = oldmethod.__doc__
+    return newmethod
+
+
 # Column classes
 # ==============
 class Col(atom.Atom):
@@ -155,6 +170,14 @@ class Col(atom.Atom):
                     colclass = class_from_prefix[self.prefix()]
                     self.__class__ = colclass
                 self._v_pos = pos
+
+            __eq__ = same_position(atombase.__eq__)
+            _is_equal_to_atom = same_position(atombase._is_equal_to_atom)
+
+            if prefix == 'Enum':
+                _is_equal_to_enumatom = same_position(
+                    atombase._is_equal_to_enumatom )
+
         NewCol.__name__ = cname
 
         class_from_prefix[prefix] = NewCol
