@@ -67,13 +67,13 @@ class BasicTestCase(unittest.TestCase):
             # to all practical effects
             assert (b.typecode() == "l" or b.typecode() == "i")
             # We have to add "N" that represent Int64 in 64-bit platforms
-            assert typecode[self.root.somearray.type] in ["i", "l", "N"]
+            assert typecode[self.root.somearray.atom.type] in ["i", "l", "N"]
         elif a.typecode() == "c":
             assert a.typecode() == b.typecode()
-            assert self.root.somearray.type == "string"
+            assert self.root.somearray.atom.type == "string"
         else:
             assert a.typecode() == b.typecode()
-            assert a.typecode() == typecode[self.root.somearray.type]
+            assert a.typecode() == typecode[self.root.somearray.atom.type]
 
         assert allequal(a,b, "numeric")
         self.fileh.close()

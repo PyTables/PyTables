@@ -532,7 +532,7 @@ class NetCDFFile:
                     var[:] = tmpdata
             # Increment the counters
             nobjects += 1
-            nbytes += reduce(lambda x,y:x*y, var._NetCDF_varobj.shape) * var._NetCDF_varobj.itemsize
+            nbytes += reduce(lambda x,y:x*y, var._NetCDF_varobj.shape) * var._NetCDF_varobj.atom.itemsize
         # create global attributes.
         for key,val in ncfile.__dict__.iteritems():
             # convert Numeric rank-0 array to a python float/int/string
