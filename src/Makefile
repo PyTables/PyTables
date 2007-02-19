@@ -1,18 +1,23 @@
 VERSION = $(shell cat ../VERSION)
-GENERATED = hdf5Extension.c tableExtension.c utilsExtension.c \
-		indexesExtension.c  lrucacheExtension.c \
-		_comp_lzo.c _comp_bzip2.c version.h
+# Get all .pyx files
+pyxext = $(wildcard *.pyx)
 
-.PHONY:		dist clean
+# The generated C extensions from Pyrex files
+genc = $(patsubst %.pyx, %.c, $(pyxext))
 
-dist:		$(GENERATED)
+# All the generated files
+GENERATED = $(genc) version.h
+
+.PHONY:         dist clean
+
+dist:           $(GENERATED)
 
 clean:
 	-rm -f $(GENERATED)
 
 
-%.c:		%.pyx
+%.c:            %.pyx
 	pyrexc "$<"
 
-version.h:	version.h.in ../VERSION
+version.h:      version.h.in ../VERSION
 	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"
