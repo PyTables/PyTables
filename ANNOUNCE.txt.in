@@ -9,6 +9,11 @@ http://www.pytables.org/
 
 or keep reading for more info about the new features and bugs fixed.
 
+Please keep reading for more info about the new features. Please, also
+have an in-deep read of the RELEASE-NOTES.txt document where you will
+find an entire section devoted to how to migrate your existing PyTables
+1.x apps to the 2.0 version.
+
 
 Changes more in depth
 =====================
