@@ -96,18 +96,24 @@ __version__ = '20051110'
 import math
 
 import numpy
+
 # need Numeric for h5 <--> netCDF conversion.
-Numeric_imported = True
 try:
     import Numeric
+    Numeric_imported = True
 except:
     Numeric_imported = False
+
 # need Scientific to convert to/from real netCDF files.
-ScientificIONetCDF_imported = True
-try:
-    import Scientific.IO.NetCDF as RealNetCDF
-except:
+if Numeric_imported:
+    try:
+        import Scientific.IO.NetCDF as RealNetCDF
+        ScientificIONetCDF_imported = True
+    except:
+        ScientificIONetCDF_imported = False
+else:
     ScientificIONetCDF_imported = False
+
 
 import tables
 

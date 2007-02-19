@@ -34,6 +34,8 @@ else:
         import numarray.strings
         import numarray.records
         numarray_imported = True
+        # Import nra module only if numarray is installed
+        from tables import nra
     except ImportError:
         numarray_imported = False
     try:
@@ -44,8 +46,6 @@ else:
 
 
 import tables
-from tables import nra
-
 
 verbose = False
 """Show detailed output of the testing process."""
