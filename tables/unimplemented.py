@@ -37,7 +37,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
     """Represent an unimplemented dataset in HDF5 file.
 
     If you want to see this kind of HDF5 dataset implemented in PyTables,
-    please, contact the developers.
+    please contact the developers.
 
     """
 
@@ -106,7 +106,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
   NOTE: <The UnImplemented object represents a PyTables unimplemented
          dataset present in the '%s' HDF5 file.
          If you want to see this kind of HDF5 dataset implemented in
-         PyTables, please, contact the developers.>
+         PyTables, please contact the developers.>
 """ % (str(self), self._v_file.filename)
 
 

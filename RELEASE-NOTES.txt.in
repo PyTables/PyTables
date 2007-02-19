@@ -231,7 +231,7 @@ Backward-incompatible changes
   new ``Table.colpathnames`` attribute.
 
 - The dictionaries File.objects, File.leaves and File.groups has been removed.
-  If you need this functionality, please, use the File.getNode() and
+  If you need this functionality, please use the File.getNode() and
   File.walkNodes() instead.
 
 - ``Table.removeIndex()`` is no longer available; to remove an index on a

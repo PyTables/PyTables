@@ -2126,7 +2126,7 @@ The 'names' parameter must be a list of strings.""")
                                         self.autoIndex and
                                         self._unsaved_indexedrows > 0)):
             warnings.warn("""\
-table ``%s`` is being preempted from alive nodes without its buffers being flushed. This may lead to very ineficient use of resources and even to fatal errors in certain situations. Please, do a call to the .flush() method on this table before start using other nodes."""
+table ``%s`` is being preempted from alive nodes without its buffers being flushed. This may lead to very ineficient use of resources and even to fatal errors in certain situations. Please do a call to the .flush() method on this table before start using other nodes."""
                           % (self._v_pathname),
                           PerformanceWarning)
         return

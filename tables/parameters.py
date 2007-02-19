@@ -90,7 +90,7 @@ METADATA_CACHE_SIZE = 1*_MB  # 1 MB is the default for HDF5
 # The default value here is quite conservative. If you have a system
 # with tons of memory, and if you are touching regularly a very large
 # number of leaves, try increasing this value and see if it fits better for
-# you. Please, give us your feedback.
+# you. Please give us your feedback.
 #
 # F. Altet 2005-10-31
 

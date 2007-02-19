@@ -131,7 +131,7 @@ if __name__ == '__main__':
     colname = None
     yaxis = "No axis name"
     tit = None
-    gtitle = "Please, set a title!"
+    gtitle = "Please set a title!"
 
     # Get the options
     for option in opts:

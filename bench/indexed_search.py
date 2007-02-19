@@ -324,7 +324,7 @@ if __name__=="__main__":
 
     # If not database backend selected, abort
     if not usepytables and not usesqlite3 and not usepostgres:
-        print "Please, select a backend:"
+        print "Please select a backend:"
         print "PyTables: -T"
         print "Sqlite3:  -S"
         print "Postgres: -P"

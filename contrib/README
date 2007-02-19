@@ -1,5 +1,5 @@
 In these directories you can find some scripts contributed by PyTables
-users. If you have any suggestion on them, please, contact the original
+users. If you have any suggestion on them, please contact the original
 authors.
 
 nctoh5.py: Converts netcdf files to hdf5. You can find an improved nctoh5

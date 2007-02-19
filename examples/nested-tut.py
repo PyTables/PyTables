@@ -112,7 +112,7 @@ print repr(numpy.rec.array(None, shape=0,
 print repr(numpy.rec.array(None, shape=0,
                            dtype=table.description.info2._v_nestedDescr))
 # NumPy recarrays doesn't have the machinery to understand the idiom below,
-# please, use the above form instead.
+# please use the above form instead.
 ###print repr(numpy.rec.array(None, shape=1,
 ###           names=table.description._v_nestedNames,
 ###           formats=table.description._v_nestedFormats))

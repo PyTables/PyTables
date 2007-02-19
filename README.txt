@@ -121,7 +121,7 @@ http://www.pytables.org/moin/HowToUse).
 
         python test_types.py -v
 
-   If there is some test that does not pass, please, run the failing
+   If there is some test that does not pass, please run the failing
    test module with all verbosity enabled (use the flags ``-v`` or
    ``verbose``), and send the output back to us.
 

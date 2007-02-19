@@ -41,7 +41,7 @@ def suite():
         'test_nestedtypes',
         'test_hdf5compat',
         'test_numpy',
-        ###'test_queries',  # Please, activate this when almost tests passes
+        ###'test_queries',  # Please activate this when almost all tests pass
         # Sub-packages
         'tables.nodes.tests.test_filenode',
         'tables.netcdf3.tests.test_netcdf3',

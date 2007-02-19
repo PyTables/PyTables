@@ -864,7 +864,7 @@ LIBS="hdf5-1.6.5 nsl"
               can take lots of CPU and memory resources to complete. <screen>
  python test_all.py --show-versions
               </screen> the above shows the versions for all the packages that
-              PyTables relies on. Please, be sure to include this when
+              PyTables relies on. Please be sure to include this when
               reporting bugs. <screen>
  python test_all.py --show-memory
               </screen> the above prints out the evolution of the memory
@@ -1005,7 +1005,7 @@ LIBS="hdf5-1.6.5 nsl"
           installing the PyTables package), so that they can be found by the
           PyTables extensions.</para>
 
-          <para>Please, note that PyTables has internal machinery for dealing
+          <para>Please note that PyTables has internal machinery for dealing
           with uninstalled optional compression libraries, so, you don't need
           to install any of LZO or bzip2 dynamic libraries if you don't want
           to.</para>
@@ -1064,7 +1064,7 @@ LIBS="hdf5-1.6.5 nsl"
       formats, follow the corresponding hyperlink near each newly introduced
       entity.</para>
 
-      <para>Please, note that throughout this document the terms
+      <para>Please note that throughout this document the terms
       <emphasis>column</emphasis> and <emphasis>field</emphasis> will be used
       interchangeably, as will the terms <emphasis>row</emphasis> and
       <emphasis>record</emphasis>.</para>
@@ -2250,7 +2250,7 @@ After modifying the complete third row--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle: 
 
           <para>Apart of <literal>modifyRows()</literal>, there exists another
           method, called <literal>modifyColumn()</literal> to modify specific
-          columns as well. Please, check sections <xref
+          columns as well. Please check sections <xref
           linkend="Table.modifyRows" /> and <xref
           linkend="Table.modifyColumn" /> for a more in-depth description of
           them.</para>
@@ -2275,7 +2275,7 @@ After modifying energy column (where TDCcount &lt;=2)--&gt; [(0, 1, 2.0, 0, 10, 
 
           <para><emphasis>Note:</emphasis>The authors find this way of
           updating tables (i.e. using <literal>Row.update()</literal>) to be
-          both convenient and efficient. Please, make sure to use it
+          both convenient and efficient. Please make sure to use it
           extensively.</para>
         </section>
 
@@ -4677,7 +4677,7 @@ ValueError: malformed type: 'foo bar'</screen>
             <emphasis>where</emphasis> is returned.</para>
 
             <para>In both cases, if the node to be returned does not exist, a
-            <literal>NoSuchNodeError</literal> is raised. Please, note that
+            <literal>NoSuchNodeError</literal> is raised. Please note that
             hidden nodes are also considered.</para>
 
             <para>If the <emphasis>classname</emphasis> argument is specified,
@@ -5300,7 +5300,7 @@ for node in h5file.walkNodes("/detector"):
 
             <para>Returns <literal>True</literal> if the Undo/Redo mechanism
             has been enabled for this file, <literal>False</literal>
-            otherwise. Please, note that this mechanism is persistent, so a
+            otherwise. Please note that this mechanism is persistent, so a
             newly opened PyTables file may already have Undo/Redo
             support.</para>
           </section>
@@ -6420,7 +6420,7 @@ for node in h5file.root.detector:
 
             <para>Saves whatever remaining buffered data to disk. It also
             releases I/O buffers, so, if you are filling many objects (i.e.
-            tables) in the same PyTables session, please, call
+            tables) in the same PyTables session, please call
             <literal>flush()</literal> extensively so as to help PyTables to
             keep memory requirements low.</para>
           </section>
@@ -6454,7 +6454,7 @@ for node in h5file.root.detector:
 
             <para>This method has the behavior described in
             <literal>Node._f_remove()</literal> (see <xref
-            linkend="Node._f_remove" />). Please, note that there is no
+            linkend="Node._f_remove" />). Please note that there is no
             <literal>recursive</literal> flag since leaves do not have child
             nodes.</para>
           </section>
@@ -6468,7 +6468,7 @@ for node in h5file.root.detector:
             <para>This method has the behavior described in
             <literal>Node._f_copy()</literal> (see <xref
             linkend="Node._f_copy" xrefstyle="select: labelnumber" />).
-            Please, note that there is no <literal>recursive</literal> flag
+            Please note that there is no <literal>recursive</literal> flag
             since leaves do not have child nodes. In addition, this method
             recognizes the following keyword arguments:</para>
 
@@ -8869,7 +8869,7 @@ vlarray[99,-99:-89:2] = vlarray[5]*2+3</screen>
         <para>This is an elegant way to allow users to work with generic HDF5
         files despite the fact that some of its datasets would not be
         supported by PyTables. However, if you are really interested in having
-        access to an unimplemented dataset, please, get in contact with the
+        access to an unimplemented dataset, please get in contact with the
         developer team.</para>
 
         <para>This class does not have any public instance variables, except
@@ -10118,7 +10118,7 @@ True</screen>
             </listitem>
           </itemizedlist>
 
-          <para>Please, note that names starting with <literal>_</literal> are
+          <para>Please note that names starting with <literal>_</literal> are
           not allowed, since they are reserved for internal usage:</para>
 
           <screen>&gt;&gt;&gt; prio2 = Enum(['_xx'])
@@ -11439,7 +11439,7 @@ fileh = openFile("test.h5", rootUEP="/Group2/Group3")
         useful, not only to compact your already existing
         <emphasis>leaky</emphasis> files, but also to adjust some internal
         parameters (both in memory and in file) in order to create adequate
-        buffer sizes and chunk sizes for optimum I/O speed. Please, check the
+        buffer sizes and chunk sizes for optimum I/O speed. Please check the
         <xref linkend="ptrepackDescr" xrefstyle="select: label" /> for a brief
         tutorial on its use.</para>
 
@@ -14115,10 +14115,10 @@ Traceback (most recent call last):
   File ".../tables/scripts/ptrepack.py", line 349, in main
     stats = stats, start = start, stop = stop, step = step)
   File ".../tables/scripts/ptrepack.py", line 107, in copyLeaf
-    raise RuntimeError, "Please, check that the node names are not
+    raise RuntimeError, "Please check that the node names are not
     duplicated in destination, and if so, add the --overwrite-nodes flag
     if desired."
-RuntimeError: Please, check that the node names are not duplicated in
+RuntimeError: Please check that the node names are not duplicated in
 destination, and if so, add the --overwrite-nodes flag if desired.</screen>
           Ooops! We ran into problems: we forgot that the
           <literal>/rawdata</literal> pathname already existed in destination
