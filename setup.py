@@ -18,6 +18,9 @@ from distutils.core     import Extension
 from distutils.dep_util import newer
 from distutils.util     import convert_path
 
+# The minimum version of Pyrex required for compiling the extensions
+min_pyrex_version = '0.9.5.1a'
+
 # Some functions for showing errors and warnings.
 def _print_admonition(kind, head, body):
     tw = textwrap.TextWrapper(
@@ -361,15 +364,22 @@ def get_pyrex_extfiles(extnames):
 
     for extname in extnames:
         extfile = os.path.join(extdir, extname)
-        extpfile = extfile = '%s.pyx' % extfile
-        extcfile = extfile = '%s.c' % extfile
+        extpfile = '%s.pyx' % extfile
+        extcfile = '%s.c' % extfile
         if not pyrex and newer(extpfile, extcfile):
             print_error(
-                "Need Pyrex to generate extensions.",
+                "Need Pyrex (at least %s) to generate extensions. ",
                 "The ``%s`` file does not exist or is out of date "
                 "and Pyrex is not available. Please install Pyrex "
                 "in order to properly generate the extension."
-                % extcfile )
+                % (min_pyrex_version, extcfile) )
+        if pyrex and newer(extpfile, extcfile):
+            from Pyrex.Compiler.Main import Version
+            if Version.version < min_pyrex_version:
+                print_error(
+                    "At least Pyrex %s is needed so as to generate extensions!"
+                    % (min_pyrex_version) )
+                sys.exit()
         if pyrex:
             extfiles[extname] = extpfile
         else:

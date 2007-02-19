@@ -24,18 +24,11 @@ import numpy
 # platforms, so we won't even try to import them on this scenario
 plat64 = (numpy.int_(0).itemsize == 8)
 py25 = (sys.version_info[0] >= 2 and sys.version_info[1] >= 5)
-if plat64 and py25:
-    numarray_imported = False
-    numeric_imported = False
-    print "***Python2.5 in 64-bit platform detected: disabling numarray/Numeric tests***"
-else:
+if not (plat64 and py25):
     try:
         import numarray
         import numarray.strings
         import numarray.records
-        numarray_imported = True
-        # Import nra module only if numarray is installed
-        from tables import nra
     except ImportError:
         numarray_imported = False
     try:
@@ -43,9 +36,17 @@ else:
         numeric_imported = True
     except ImportError:
         numeric_imported = False
+else:
+    numarray_imported = False
+    numeric_imported = False
 
+if plat64 and py25 and (numarray_imported or Numeric_imported):
+    print "***Python2.5 in 64-bit platform detected: disabling numarray/Numeric tests***"
 
 import tables
+if numarray_imported == True:
+    # Import nra module only if numarray is installed
+    from tables import nra
 
 verbose = False
 """Show detailed output of the testing process."""
