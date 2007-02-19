@@ -6,6 +6,9 @@ include setup.py setup.cfg VERSION Makefile
 recursive-include LICENSES *
 recursive-include tables *.py
 recursive-include tables/tests *.py *.h5 *.dat *.xbm
+recursive-include tables/nodes/tests *.py *.h5 *.dat *.xbm
+recursive-include tables/netcdf3/tests *.py *.h5 *.dat *.xbm
+recursive-include tables/nra/tests *.py *.h5 *.dat *.xbm
 recursive-include tables/numexpr *.py *.c *.inc README.txt
 recursive-include utils *
 recursive-include doc *.html *.pdf *.css *.gif *.jpg *.txt Makefile

@@ -116,7 +116,7 @@ def write_earray(file, nchildren, niter):
         for child in range(nchildren):
             ea = fileh.createEArray(fileh.root, 'array' + str(child),
                                     tables.IntAtom(), shape=(0,),
-                                    "child: %d" % child)
+                                    title="child: %d" % child)
             ea.append([1,2,3])
         show_mem("After creating. Iter %s" % i)
         fileh.close()
