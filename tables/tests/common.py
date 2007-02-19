@@ -29,6 +29,7 @@ if not (plat64 and py25):
         import numarray
         import numarray.strings
         import numarray.records
+        numarray_imported = True
     except ImportError:
         numarray_imported = False
     try:
