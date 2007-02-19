@@ -40,7 +40,7 @@ else:
     numarray_imported = False
     numeric_imported = False
 
-if plat64 and py25 and (numarray_imported or Numeric_imported):
+if plat64 and py25 and (numarray_imported or numeric_imported):
     print "***Python2.5 in 64-bit platform detected: disabling numarray/Numeric tests***"
 
 import tables
