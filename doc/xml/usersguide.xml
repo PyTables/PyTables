@@ -9358,6 +9358,25 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
                 </glossdef>
               </glossentry>
             </glosslist>
+
+            <para>Atoms can be compared with atoms and other objects for
+            strict (in)equality without having to compare individual
+            attributes:</para>
+
+            <screen>
+&gt;&gt;&gt; atom1 = StringAtom(itemsize=10)  # same as ``atom2``
+&gt;&gt;&gt; atom2 = Atom.from_kind('string', 10)  # same as ``atom1``
+&gt;&gt;&gt; atom3 = IntAtom()
+&gt;&gt;&gt; atom1 == 'foo'
+False
+&gt;&gt;&gt; atom1 == atom2
+True
+&gt;&gt;&gt; atom2 != atom1
+False
+&gt;&gt;&gt; atom1 == atom3
+False
+&gt;&gt;&gt; atom3 != atom2
+True</screen>
           </section>
 
           <section>
@@ -9708,6 +9727,66 @@ ValueError: unknown type: 'Float64'</screen>
 
               <para>The <literal>type</literal> attribute of enumerated atoms
               is always <literal>enum</literal>.</para>
+
+              <para>Enumerated atoms also support comparisons with other
+              objects:</para>
+
+              <screen>
+&gt;&gt;&gt; enum = ['T0', 'T1', 'T2']
+&gt;&gt;&gt; atom1 = EnumAtom(enum, 'T0', 'int8')  # same as ``atom2``
+&gt;&gt;&gt; atom2 = EnumAtom(enum, 'T0', Int8Atom())  # same as ``atom1``
+&gt;&gt;&gt; atom3 = EnumAtom(enum, 'T0', 'int16')
+&gt;&gt;&gt; atom4 = Int8Atom()
+&gt;&gt;&gt; atom1 == enum
+False
+&gt;&gt;&gt; atom1 == atom2
+True
+&gt;&gt;&gt; atom2 != atom1
+False
+&gt;&gt;&gt; atom1 == atom3
+False
+&gt;&gt;&gt; atom1 == atom4
+False
+&gt;&gt;&gt; atom4 != atom1
+True</screen>
+
+              <section>
+                <title>Examples</title>
+
+                <para>The next C <literal>enum</literal> construction:</para>
+                <screen>
+enum myEnum {
+  T0,
+  T1,
+  T2
+};</screen>
+                <para>would correspond to the following PyTables
+                declaration:</para>
+                <screen>
+&gt;&gt;&gt; myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')</screen>
+
+                <para>Please note the <literal>dflt</literal> argument with a
+                value of <literal>'T0'</literal>.  Since the concrete value
+                matching <literal>T0</literal> is unknown right now (we have
+                not used explicit concrete values), using the name is the only
+                option left for defining a default value for the atom.</para>
+
+                <para>The chosen representation of values for this enumerated
+                atom uses unsigned 32-bit integers, which surely wastes quite
+                a lot of memory.  Another size could be selected by using the
+                <literal>base</literal> argument (this time with a full-blown
+                storage atom):</para>
+
+                <screen>
+&gt;&gt;&gt; myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', UInt8Atom())</screen>
+
+                <para>You can also define multidimensional arrays for data
+                elements:</para>
+                <screen>
+&gt;&gt;&gt; myEnumAtom = EnumAtom(
+...    ['T0', 'T1', 'T2'], 'T0', base='uint32', shape=(3,2))</screen>
+                <para>for 3x2 arrays of <literal>uint32</literal>.</para>
+              </section>
             </section>
 
             <!-- You can place paragraphs and other block elements before a section, but you cannot place anything after it. See docbook reference. -->
