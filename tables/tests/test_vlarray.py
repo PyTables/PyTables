@@ -126,11 +126,9 @@ class BasicTestCase(unittest.TestCase):
         if self.compress <> vlarray.filters.complevel and verbose:
             print "Error in compress. Class:", self.__class__.__name__
             print "self, vlarray:", self.compress, vlarray.filters.complevel
-        tinfo = whichLibVersion(self.complib)
-        if tinfo is None:
-            self.complib = "zlib"
-        assert vlarray.filters.complib == self.complib
         assert vlarray.filters.complevel == self.compress
+        if self.compress > 0:
+            assert vlarray.filters.complib == self.complib
         if self.shuffle <> vlarray.filters.shuffle and verbose:
             print "Error in shuffle. Class:", self.__class__.__name__
             print "self, vlarray:", self.shuffle, vlarray.filters.shuffle

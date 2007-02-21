@@ -719,7 +719,7 @@ cdef class Array(Leaf):
     self.rank = nparr.nd
     self.dims = npy_malloc_dims(nparr.nd, nparr.dimensions)
     # Save the array
-    complib = PyString_AsString(self.filters.complib)
+    complib = PyString_AsString(self.filters.complib or '')
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
     self.dataset_id = H5ARRAYmake(self.parent_id, self.name, class_, title,
@@ -759,7 +759,7 @@ cdef class Array(Leaf):
 
     rbuf = NULL   # The data pointer. We don't have data to save initially
     # Manually convert some string values that can't be done automatically
-    complib = PyString_AsString(self.filters.complib)
+    complib = PyString_AsString(self.filters.complib or '')
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
     # Set the fill values
@@ -1020,7 +1020,7 @@ cdef class VLArray(Leaf):
     rbuf = NULL   # We don't have data to save initially
 
     # Manually convert some string values that can't be done automatically
-    complib = PyString_AsString(self.filters.complib)
+    complib = PyString_AsString(self.filters.complib or '')
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
     # Create the vlarray

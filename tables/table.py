@@ -632,7 +632,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # After creating the table, ``self._v_objectID`` needs to be
         # set because it is needed for setting attributes afterwards.
         self._v_objectID = self._createTable(
-            self._v_new_title, self.filters.complib, obversion )
+            self._v_new_title, self.filters.complib or '', obversion )
         self._v_recarray = None  # not useful anymore
         self._rabyteorder = None # not useful anymore
 

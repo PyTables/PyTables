@@ -111,8 +111,7 @@ class Filters(object):
             is the default.
 
         complib -- Specifies the compression library to be used. Right
-            now, 'zlib', 'lzo' and 'bzip2' values are supported.  If
-            None, then 'zlib' is chosen.
+            now, 'zlib', 'lzo' and 'bzip2' values are supported.
 
         shuffle -- Whether or not to use the shuffle filter in the HDF5
             library. This is normally used to improve the compression
@@ -127,52 +126,36 @@ class Filters(object):
             default.
         """
 
-        libnames = ('zlib', 'lzo', 'bzip2', 'szip')
+        libnames = ('zlib', 'lzo', 'bzip2')
 
-        if complib is None:
-            complib = "zlib"
         if complib not in libnames:
-            raise ValueError("unsupported library %r; it must be one of %s"
-                             % (complib, str(libnames)[1:-1]))
+            raise ValueError( "compression library ``%s`` is not supported; "
+                              "it must be one of: %s"
+                              % (complib, ", ".join(libnames)) )
 
-        if shuffle and not complevel:
-            # Shuffling and not compressing makes non sense
-            shuffle = False
+        # Override some inputs when compression is not enabled.
+        if complevel == 0:
+            complib = None  # make it clear there is no compression
+            shuffle = False  # shuffling and not compressing makes no sense
+        elif utilsExtension.whichLibVersion(complib) is None:
+            warnings.warn( "compression library ``%s`` is not available; "
+                           "using ``zlib`` instead" % complib)
+            complib = 'zlib'  # always available
         self.complevel = complevel
+        self.complib = complib
         self.shuffle = shuffle
         self.fletcher32 = fletcher32
-        # Select the library to do compression
-        if utilsExtension.whichLibVersion(complib) is not None:
-            self.complib = complib
-        else:
-            warnings.warn( \
-"%s compression library is not available. Using zlib instead!." %(complib))
-            self.complib = "zlib"   # Should always exists
 
     def __repr__(self):
-        """The string reprsentation choosed for this object.
-        """
-        filters = "Filters("
-#         if self.complevel:
-#             filters += "complevel=%s" % (self.complevel)
-#             filters += ", complib='%s'" % (self.complib)
-#             if self.shuffle:
-#                 filters += ", shuffle=%s" % (self.shuffle)
-#             if self.fletcher32:
-#                 filters += ", "
-#         if self.fletcher32:
-#             filters += "fletcher32=%s" % (self.fletcher32)
-        filters += "complevel=%s" % (self.complevel)
-        filters += ", complib='%s'" % (self.complib)
-        filters += ", shuffle=%s" % (self.shuffle)
-        filters += ", fletcher32=%s" % (self.fletcher32)
-        filters += ")"
-        return filters
+        args = []
+        args.append('complevel=%d' % self.complevel)
+        if self.complevel:
+            args.append('complib=%r' % self.complib)
+        args.append('shuffle=%s' % self.shuffle)
+        args.append('fletcher32=%s' % self.fletcher32)
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(args))
 
     def __str__(self):
-        """The string reprsentation choosed for this object.
-        """
-
         return repr(self)
 
     def __eq__(self, other):
@@ -389,11 +372,6 @@ class Leaf(Node):
                 elif name.startswith("deflate"):
                     filters.complib = "zlib"
                     filters.complevel = filtersDict[name][0]
-                elif name.startswith("szip"):
-                    filters.complib = "szip"
-                    #filters.complevel = filtersDict[name][0]
-                    filters.complevel = 1  # Because there is not a compression
-                                           # level equivalent for szip
                 elif name.startswith("shuffle"):
                     filters.shuffle = True
                 elif name.startswith("fletcher32"):

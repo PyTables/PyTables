@@ -1116,11 +1116,9 @@ class BasicTestCase(common.PyTablesTestCase):
         if self.compress <> table.filters.complevel and verbose:
             print "Error in compress. Class:", self.__class__.__name__
             print "self, table:", self.compress, table.filters.complevel
-        tinfo = whichLibVersion(self.complib)
-        if tinfo is None:
-            self.complib = "zlib"
-        assert table.filters.complib == self.complib
         assert table.filters.complevel == self.compress
+        if self.compress > 0:
+            assert table.filters.complib == self.complib
         if self.shuffle <> table.filters.shuffle and verbose:
             print "Error in shuffle. Class:", self.__class__.__name__
             print "self, table:", self.shuffle, table.filters.shuffle
@@ -3911,7 +3909,6 @@ class CopyTestCase(unittest.TestCase):
         # Leaf attributes
         assert table1.title == table2.title
         assert 6 == table2.filters.complevel
-        assert table1.filters.complib == table2.filters.complib
         assert 1 == table2.filters.shuffle
         assert table1.filters.fletcher32 == table2.filters.fletcher32
 
@@ -3983,7 +3980,6 @@ class CopyTestCase(unittest.TestCase):
         # Leaf attributes
         assert table1.title == table2.title
         assert 6 == table2.filters.complevel
-        assert table1.filters.complib == table2.filters.complib
         assert 1 == table2.filters.shuffle
         assert table1.filters.fletcher32 == table2.filters.fletcher32
         # User attributes
@@ -4058,7 +4054,6 @@ class CopyTestCase(unittest.TestCase):
         # Leaf attributes
         assert table1.title == table2.title
         assert 6 == table2.filters.complevel
-        assert table1.filters.complib == table2.filters.complib
         assert 1 == table2.filters.shuffle
         assert table1.filters.fletcher32 == table2.filters.fletcher32
         # User attributes
