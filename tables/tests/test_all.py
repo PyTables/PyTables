@@ -22,25 +22,25 @@ from tables.tests import common
 
 def suite():
     test_modules = [
-        'test_attributes',
-        'test_basics',
-        'test_create',
-        'test_backcompat',
-        'test_types',
-        'test_lists',
-        'test_tables',
-        'test_tablesMD',
-        'test_array',
-        'test_earray',
-        'test_carray',
-        'test_vlarray',
-        'test_tree',
-        'test_timetype',
-        'test_do_undo',
-        'test_enum',
-        'test_nestedtypes',
-        'test_hdf5compat',
-        'test_numpy',
+        'tables.tests.test_attributes',
+        'tables.tests.test_basics',
+        'tables.tests.test_create',
+        'tables.tests.test_backcompat',
+        'tables.tests.test_types',
+        'tables.tests.test_lists',
+        'tables.tests.test_tables',
+        'tables.tests.test_tablesMD',
+        'tables.tests.test_array',
+        'tables.tests.test_earray',
+        'tables.tests.test_carray',
+        'tables.tests.test_vlarray',
+        'tables.tests.test_tree',
+        'tables.tests.test_timetype',
+        'tables.tests.test_do_undo',
+        'tables.tests.test_enum',
+        'tables.tests.test_nestedtypes',
+        'tables.tests.test_hdf5compat',
+        'tables.tests.test_numpy',
         ###'test_queries',  # Please activate this when almost all tests pass
         # Sub-packages
         'tables.nodes.tests.test_filenode',
@@ -50,8 +50,8 @@ def suite():
 
     # Run indexing tests only under Pro
     if tables.is_pro:
-        test_modules.append('test_indexes')
-        test_modules.append('test_indexvalues')
+        test_modules.append('tables.tests.test_indexes')
+        test_modules.append('tables.tests.test_indexvalues')
 
     # Add test_Numeric only if Numeric is installed
     if common.numeric_imported:
@@ -61,7 +61,7 @@ def suite():
         if Numeric.__version__ < minimum_numeric_version:
             print "*Warning*: Numeric version is lower than recommended: %s < %s" % \
                   (Numeric.__version__, minimum_numeric_version)
-        test_modules.append("test_Numeric")
+        test_modules.append("tables.tests.test_Numeric")
     else:
         print "Skipping Numeric test suite."
 
@@ -75,7 +75,7 @@ def suite():
             print \
 "*Warning*: Numarray version is lower than recommended: %s < %s" % \
                   (numarray.__version__, minimum_numarray_version)
-        test_modules.append("test_numarray")
+        test_modules.append("tables.tests.test_numarray")
         test_modules.append("tables.nra.tests.test_nestedrecords")
         test_modules.append("tables.nra.tests.test_nriterators")
     else:
@@ -85,7 +85,7 @@ def suite():
 
     # The test for garbage must be run *in the last place*.
     # Else, it is not as useful.
-    test_modules.append('test_garbage')
+    test_modules.append('tables.tests.test_garbage')
 
     alltests = unittest.TestSuite()
     if common.show_memory:
@@ -100,9 +100,8 @@ def suite():
     return alltests
 
 
-if __name__ == '__main__':
-    import tables
-
+def print_versions():
+    """Print all the versions on software that PyTables relies on."""
     print '-=' * 38
     print "PyTables version:  %s" % tables.__version__
     print "HDF5 version:      %s" % tables.whichLibVersion("hdf5")[1]
@@ -125,28 +124,54 @@ if __name__ == '__main__':
     print 'Byte-ordering:     %s' % sys.byteorder
     print '-=' * 38
 
+
+def test(verbose=False, heavy=False):
+    """Runs all the tests in the test suite.
+
+    If 'verbose' is set, the test suite will emit messages with full
+    verbosity (not recommended unless you are looking into a certain
+    problem).
+
+    If 'heavy' is set, the test suite will be run in *heavy* mode (you
+    should be careful with this because it can take a lot of resources
+    from your computer).
+    """
+    print_versions()
+    if verbose:
+        common.verbose = True
+    if heavy:
+        common.heavy = True
+    
+    if common.heavy:
+        print \
+"""Performing the complete test suite!"""
+    else:
+        print \
+"""Performing only a light (yet comprehensive) subset of the test
+suite.  If you have a big system and lots of CPU to waste and want to
+do a more complete test, try passing the --heavy flag to this script,
+or set the 'heavy' parameter in case you are using tables.test() call.
+The whole suite will take more than 4 minutes to complete on a
+relatively modern CPU and around 60 MB of main memory."""
+        print '-=' * 38
+
+    unittest.main(defaultTest='tables.tests.suite')
+
+
+if __name__ == '__main__':
+
     # Handle some global flags (i.e. only useful for test_all.py)
     only_versions = 0
     args = sys.argv[:]
     for arg in args:
         if arg == '--show-versions':
-            only_versions = 1
+            only_versions = True
             sys.argv.remove(arg)
         elif arg == '--show-memory':
             common.show_memory = True
             sys.argv.remove(arg)
 
-    if not only_versions:
-        if common.heavy:
-            print \
-"""Performing the complete test suite!"""
-        else:
-            print \
-"""Performing only a light (yet comprehensive) subset of the test
-suite.  If you have a big system and lots of CPU to waste and want to
-do a more complete test, try passing the --heavy flag to this script.
-The whole suite will take more than 10 minutes to complete on a
-relatively modern CPU and around 100 MB of main memory."""
-        print '-=' * 38
-
-        unittest.main( defaultTest='suite' )
+    if only_versions:
+        print_versions()
+    else:
+        test()

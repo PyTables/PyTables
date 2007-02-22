@@ -53,9 +53,7 @@ from tables.carray import CArray
 from tables.earray import EArray
 from tables.vlarray import VLArray
 from tables.unimplemented import UnImplemented
-
-# Import sub-packages
-##import nodes
+from tables.tests import print_versions, test
 
 
 # List here only the objects we want to be publicly available
@@ -68,7 +66,8 @@ __all__ = [
     'PerformanceWarning',
     'FlavorError', 'FlavorWarning',
     # Functions:
-    'isHDF5File', 'isPyTablesFile', 'whichLibVersion', 'copyFile', 'openFile',
+    'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
+    'copyFile', 'openFile', 'print_versions', 'test',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
     # Types:

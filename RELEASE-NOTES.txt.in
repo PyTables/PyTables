@@ -216,6 +216,12 @@ API additions
   return all the fields in the current row. This returns a NumPy void scalar
   for each call.
 
+- New ``tables.test(verbose=False, heavy=False)`` high level function for
+  interactively running the complete test suite from the Python console.
+
+- Added a ``tables.print_versions()`` for easily getting the versions for all
+  the software on which PyTables relies on.
+
 
 Backward-incompatible changes
 =============================

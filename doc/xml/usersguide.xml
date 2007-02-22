@@ -816,9 +816,7 @@ LIBS="hdf5-1.6.5 nsl"
             </listitem>
 
             <listitem>
-              <para>To run the test suite, change into the
-              <literal>tables/tests</literal> directory and execute this
-              command:</para>
+              <para>To run the test suite, execute this command:</para>
 
               <variablelist>
                 <varlistentry>
@@ -829,8 +827,17 @@ LIBS="hdf5-1.6.5 nsl"
                     variants:</para>
 
                     <screen>
- PYTHONPATH=../..  python test_all.py
-                </screen>
+ PYTHONPATH=.  python tables/tests/test_all.py
+                    </screen>
+
+                    <para>or, if you prefer:</para>
+
+                    <screen>
+ PYTHONPATH=.  python -c "import tables; tables.test()"
+                    </screen>
+
+                    <para>Both commands do the same thing.</para>
+
                   </listitem>
                 </varlistentry>
 
@@ -841,8 +848,17 @@ LIBS="hdf5-1.6.5 nsl"
                     <para>Open a DOS terminal and type:</para>
 
                     <screen>
- set PYTHONPATH=..\.. python test_all.py
-                </screen>
+ set PYTHONPATH=.
+ python tables\tests\test_all.py
+                    </screen>
+
+                    <para>or:</para>
+
+                    <screen>
+ set PYTHONPATH=.
+ python -c "import tables; tables.test()"
+                    </screen>
+
                   </listitem>
                 </varlistentry>
               </variablelist>
@@ -851,31 +867,32 @@ LIBS="hdf5-1.6.5 nsl"
               simply add the flag <literal>-v</literal> and/or the word
               <literal>verbose</literal> to the command line. You can also run
               only the tests in a particular test module. For example, to
-              execute just the <literal>types</literal> test:</para>
+              execute just the <literal>test_types</literal> test
+              suite, you only have to specify it:</para>
 
               <screen>
- python test_types.py -v
+ python tables/tests/test_types.py -v   # change to backslahes for win
               </screen>
 
               <para>You have other options to pass to the
               <literal>test_all.py</literal> driver: <screen>
- python test_all.py --heavy
+ python tables/tests/test_all.py --heavy  # change to backslahes for win
               </screen> the above runs every test in the test unit. Beware, it
               can take lots of CPU and memory resources to complete. <screen>
- python test_all.py --show-versions
+ python tables/tests/test_all.py --show-versions  # change to backslahes for win
               </screen> the above shows the versions for all the packages that
               PyTables relies on. Please be sure to include this when
               reporting bugs. <screen>
- python test_all.py --show-memory
+ python tables/tests/test_all.py --show-memory  # Only Linux 2.6.x
               </screen> the above prints out the evolution of the memory
               consumption after each test module completion. It's useful for
               locating memory leaks in PyTables (or packages behind
-              it).</para>
+              it). Only valid for Linux 2.6.x kernels.</para>
 
               <para>And last, but not least, in case a test fails, please run
               the failing test module again and enable the verbose output:
               <screen>
- python test_&lt;module&gt;.py -v verbose
+ python tables/tests/test_&lt;module&gt;.py -v verbose
               </screen> and, very important, obtain your PyTables version
               information by using the <literal>--show-versions</literal> flag
               (see above) and send back both outputs to developers so that we
@@ -1019,18 +1036,21 @@ LIBS="hdf5-1.6.5 nsl"
           file and execute it.</para>
 
           <para>You can (<emphasis>you should</emphasis>) test your
-          installation by unpacking the source tar-ball, changing to the
-          <literal>tables/tests/</literal> subdirectory and executing the
-          <literal>test_all.py</literal> script. If all the tests pass
-          (possibly with a few warnings, related to the potential
-          unavailability of LZO or bzip2 libs) you already have a working,
-          well-tested copy of PyTables installed! If any test fails, please
-          try to locate which test module is failing and execute: <screen>
- python test_&lt;module&gt;.py -v verbose
-          </screen> and also: <screen>
- python test_all.py --show-versions
-          </screen> and mail the output to the developers so that the problem
-          can be fixed in future releases.</para>
+          installation by running the next commands:
+          <screen>
+&gt;&gt;&gt; import tables
+&gt;&gt;&gt; tables.test()
+          </screen>
+          on your favorite python shell. If all the tests pass (possibly with
+          a few warnings, related to the potential unavailability of LZO or
+          bzip2 libs) you already have a working, well-tested copy of PyTables
+          installed! If any test fails, please copy the output of the error
+          messages as well as the output of:
+          <screen>
+&gt;&gt;&gt; tables.print_versions()
+          </screen>
+          and mail them to the developers so that the problem can be fixed in
+          future releases.</para>
 
           <para>You can proceed now to the next chapter to see how to use
           PyTables.</para>
@@ -3631,10 +3651,14 @@ $ ptdump -d nested-tut.h5
       utility functions are defined to guess if the user supplied file is a
       <emphasis>PyTables</emphasis> or <emphasis>HDF5</emphasis> file. These
       are called <literal>isPyTablesFile()</literal> and
-      <literal>isHDF5File()</literal>, respectively. Finally, there exists a
+      <literal>isHDF5File()</literal>, respectively. There exists also a
       function called <literal>whichLibVersion</literal> that informs about
       the versions of the underlying C libraries (for example, the HDF5 or the
-      <literal>Zlib</literal>).</para>
+      <literal>Zlib</literal>) and another called
+      <literal>print_versions</literal> that prints all the versions of the
+      software that PyTables relies on. Finally, <literal>test</literal> lets
+      you run the complete test suite from a Python console
+      interactively. </para>
 
       <para>Let's start discussing the first-level variables and functions
       available to the user, then the different classes defined in
@@ -3912,6 +3936,29 @@ ValueError: malformed type: 'foo bar'</screen>
             <literal>hdf5</literal>, <literal>zlib</literal>,
             <literal>lzo</literal> and <literal>bzip2</literal>. If another
             name is given, a <literal>ValueError</literal> is raised.</para>
+          </section>
+
+          <section id="print_versions">
+            <title>print_versions()</title>
+
+            <para>Print all the versions on software that PyTables relies
+            on.</para>
+
+          </section>
+
+          <section id="testDescr">
+            <title>test(verbose=False, heavy=False)</title>
+
+            <para>Runs all the tests in the test suite.</para>
+
+            <para>If <literal>verbose</literal> is set, the test suite will
+            emit messages with full verbosity.</para>
+
+            <para>If <literal>heavy</literal> is set, the test suite will be
+            run in <emphasis>heavy</emphasis> mode (you should be careful with
+            this because it can take a lot of resources from your
+            computer).</para>
+
           </section>
         </section>
       </section>

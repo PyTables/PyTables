@@ -108,26 +108,18 @@ http://www.pytables.org/moin/HowToUse).
 
         python setup.py build_ext --inplace
 
-3. To run the test suite change into the test directory, set the
-   PYTHONPATH environment variable to include the ``../..`` directory
-   and issue the command::
+3. To run the test suite, set the PYTHONPATH environment variable to
+   include the ``.`` directory, enter the Python interpreter and issue
+   the commands::
 
-        python test_all.py
+        >>> import tables
+        >>> tables.test()
 
-   If you would like to see some verbose output from the tests simply
-   add the flag ``-v`` and/or the word ``verbose`` to the command
-   line. You can also run just the tests in a particular test module.
-   For example::
+   If there is some test that does not pass, please run send the
+   complete output for tests back to us.
 
-        python test_types.py -v
-
-   If there is some test that does not pass, please run the failing
-   test module with all verbosity enabled (use the flags ``-v`` or
-   ``verbose``), and send the output back to us.
-
-4. To install the entire PyTables Python package, change back to the
-   root distribution directory and run this command as the root user
-   (remember to add any extra flags needed)::
+4. To install the entire PyTables Python package, run this command as
+   the root user (remember to add any extra flags needed)::
 
         python setup.py install
 

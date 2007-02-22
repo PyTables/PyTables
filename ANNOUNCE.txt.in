@@ -80,6 +80,13 @@ res = [ row['var3'] for row in table.where('cplx_cond' % (inf, sup)) ]
 - Native HDF5 datasets with H5T_ARRAY datatypes are fully supported for
   reading now.
 
+- The test suites for the differents packages are installed now, so you
+  don't need a copy of the PyTables sources to run the tests. Besides,
+  you can run the test suite from the Python console by using:
+
+  >>> tables.tests()
+
+
 Bug fixes:
 
 - As mentioned above, the fact that NumPy is at the core makes that

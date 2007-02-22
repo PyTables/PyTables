@@ -421,9 +421,13 @@ if has_setuptools:
             'nctoh5 = tables.netcdf3.scripts.nctoh5:main [netCDF]',
             ],
         }
-    setuptools_kwargs['scripts'] = []
     # Test suites.
     setuptools_kwargs['test_suite'] = 'tables.tests.test_all.suite'
+    # Copy additional data for packages that need it.
+    setuptools_kwargs['package_data'] = {
+        'tables.tests': ['*.h5'],
+        'tables.nodes.tests': ['*.dat', '*.xbm', '*.h5']}
+    setuptools_kwargs['scripts'] = []
 else:
     # There is no other chance, these values must be hardwired.
     setuptools_kwargs['packages'] = [
@@ -432,6 +436,10 @@ else:
         # Test suites.
         'tables.tests', 'tables.nodes.tests', 'tables.netcdf3.tests',
         'tables.nra.tests']
+    # Copy additional data for packages that need it.
+    setuptools_kwargs['package_data'] = {
+        'tables.tests': ['*.h5'],
+        'tables.nodes.tests': ['*.dat', '*.xbm', '*.h5']}
     setuptools_kwargs['scripts'] = [
         'utils/ptdump', 'utils/ptrepack', 'utils/nctoh5']
 
