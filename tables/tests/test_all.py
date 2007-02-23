@@ -41,7 +41,7 @@ def suite():
         'tables.tests.test_nestedtypes',
         'tables.tests.test_hdf5compat',
         'tables.tests.test_numpy',
-        ###'test_queries',  # Please activate this when almost all tests pass
+        'tables.tests.test_queries',
         # Sub-packages
         'tables.nodes.tests.test_filenode',
         'tables.netcdf3.tests.test_netcdf3',
@@ -141,18 +141,17 @@ def test(verbose=False, heavy=False):
         common.verbose = True
     if heavy:
         common.heavy = True
-    
+
     if common.heavy:
         print \
 """Performing the complete test suite!"""
     else:
         print \
-"""Performing only a light (yet comprehensive) subset of the test
-suite.  If you have a big system and lots of CPU to waste and want to
-do a more complete test, try passing the --heavy flag to this script,
-or set the 'heavy' parameter in case you are using tables.test() call.
-The whole suite will take more than 4 minutes to complete on a
-relatively modern CPU and around 60 MB of main memory."""
+"""Performing only a light (yet comprehensive) subset of the test suite.
+If you want a more complete test, try passing the --heavy flag to this script
+(or set the 'heavy' parameter in case you are using tables.test() call).
+The whole suite will take more than 50 minutes to complete on a relatively
+modern CPU and around 100 MB of main memory."""
         print '-=' * 38
 
     unittest.main(defaultTest='tables.tests.suite')
