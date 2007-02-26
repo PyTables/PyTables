@@ -123,7 +123,7 @@ cdef class CacheArray(Array):
 
 
   cdef initRead(self, int nbounds):
-    "Actions to accelerate the reads afterwards."
+    # "Actions to accelerate the reads afterwards."
 
     # Precompute the space_id and mem_space_id
     if (H5ARRAYOinit_readSlice(self.dataset_id, self.type_id,
@@ -134,7 +134,7 @@ cdef class CacheArray(Array):
 
 
   cdef readSlice(self, hsize_t nrow, hsize_t start, hsize_t stop, void *rbuf):
-    "Read an slice of bounds."
+    # "Read an slice of bounds."
 
     if (H5ARRAYOread_readBoundsSlice(self.dataset_id, self.space_id,
                                      self.mem_space_id, self.type_id,
@@ -292,8 +292,9 @@ cdef class IndexArray(Array):
         (maxslots, self.chunksize), dtype.itemsize, 'sorted')
 
 
-  cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start, hsize_t stop):
-    "Read the sorted part of an index."
+  cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start,
+                                hsize_t stop):
+#    "Read the sorted part of an index."
 
     Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,

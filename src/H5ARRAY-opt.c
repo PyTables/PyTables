@@ -182,7 +182,7 @@ herr_t H5ARRAYOread_readSortedSlice( hid_t dataset_id,
 				     void *data )
 {
  hsize_t  count[2] = {1, stop-start};
- hssize_t offset[2] = {irow, start};
+ hsize_t  offset[2] = {irow, start};
  hsize_t  stride[2] = {1, 1};
 
  /* Define a hyperslab in the dataset of the size of the records */
@@ -232,7 +232,7 @@ herr_t H5ARRAYOread_readBoundsSlice( hid_t dataset_id,
 				     void *data )
 {
  hsize_t  count[2] = {1, stop-start};
- hssize_t offset[2] = {irow, start};
+ hsize_t  offset[2] = {irow, start};
  hsize_t  stride[2] = {1, 1};
 
  /* Define a hyperslab in the dataset of the size of the records */
@@ -276,7 +276,7 @@ herr_t H5ARRAYOreadSliceLR(hid_t dataset_id,
  hid_t    type_id;
  hsize_t  count[1] = {stop - start};
  hsize_t  stride[1] = {1};
- hssize_t offset[1] = {start};
+ hsize_t  offset[1] = {start};
 
  /* Get the datatype */
  if ( (type_id = H5Dget_type(dataset_id)) < 0 )

@@ -13,6 +13,7 @@
 
 """
 
+import sys
 
 # Standard C functions.
 cdef extern from "stdlib.h":
@@ -146,6 +147,7 @@ cdef extern from "numpy/arrayobject.h":
 
 
 #-----------------------------------------------------------------------------
+
 
 # Structs and types from HDF5
 cdef extern from "hdf5.h":
@@ -445,4 +447,5 @@ cdef extern from "utils.h":
   hid_t  create_ieee_complex128(char *byteorder)
   herr_t set_order(hid_t type_id, char *byteorder)
   herr_t get_order(hid_t type_id, char *byteorder)
+  int    is_complex(hid_t type_id)
 

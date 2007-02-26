@@ -1,4 +1,3 @@
-#  Ei!, emacs, this is -*-Python-*- mode
 ########################################################################
 #
 #       License: BSD
@@ -27,7 +26,6 @@ import numpy
 from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError
 from tables.atom import Atom, EnumAtom
-from tables.description import Description, Col
 
 from tables.utils import checkFileAccess
 
@@ -40,7 +38,7 @@ from definitions cimport import_array, ndarray, \
      H5Fopen, H5Fclose, H5Fis_hdf5, H5Gopen, H5Gclose, \
      H5Dopen, H5Dclose, H5Dget_type, H5Tcreate, H5Tcopy, H5Tclose, \
      H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, \
-     H5Tget_native_type, H5Tget_member_value, H5Tget_size, \
+     H5Tget_member_value, H5Tget_size, H5Tget_native_type, \
      H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, \
      H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tarray_create, \
      H5Tget_array_ndims, H5Tget_array_dims, H5Tis_variable_str, \
@@ -70,7 +68,6 @@ cdef extern from "utils.h":
   object _getTablesVersion()
   #object getZLIBVersionInfo()
   object getHDF5VersionInfo()
-  int    is_complex(hid_t type_id)
   object get_filter_names( hid_t loc_id, char *dset_name)
 
   H5T_class_t getHDF5ClassID(hid_t loc_id, char *name, H5D_layout_t *layout,
@@ -324,7 +321,7 @@ def whichClass(hid_t loc_id, char *name):
 
 def getNestedField(recarray, fieldname):
   """
-  Get the maybe nested field named `fieldname` from the `array`.
+  Get the maybe nested field named `fieldname` from the `recarray`.
 
   The `fieldname` may be a simple field name or a nested field name
   with slah-separated components.
@@ -581,31 +578,6 @@ def AtomToHDF5Type(atom, char *byteorder):
   return tid
 
 
-def createNestedType(object desc, char *byteorder):
-  """Create a nested type based on a description and return an HDF5 type."""
-  cdef hid_t   tid, tid2
-  cdef herr_t  ret
-  cdef size_t  offset
-
-  tid = H5Tcreate (H5T_COMPOUND, desc._v_dtype.itemsize)
-  if tid < 0:
-    return -1;
-
-  offset = 0
-  for k in desc._v_names:
-    obj = desc._v_colObjects[k]
-    if isinstance(obj, Description):
-      tid2 = createNestedType(obj, byteorder)
-    else:
-      tid2 = AtomToHDF5Type(obj, byteorder)
-    ret = H5Tinsert(tid, k, offset, tid2)
-    offset = offset + desc._v_dtype[k].itemsize
-    # Release resources
-    H5Tclose(tid2)
-
-  return tid
-
-
 def loadEnum(hid_t type_id):
   """loadEnum() -> (Enum, npType)
   Load the enumerated HDF5 type associated with this type_id.
@@ -728,105 +700,6 @@ def AtomFromHDF5Type(hid_t type_id, issue_error = True):
     atom = Atom.from_kind(kind, tsize, shape=shape)
 
   return atom
-
-
-def _joinPath(object parent, object name):
-  if parent == "":
-    return name
-  else:
-    return parent + '/' + name
-
-
-# Module variable. This is needed in order to keep all the byteorders in
-# nested types (used in getNestedType()).
-cdef object field_byteorders
-field_byteorders = []
-
-def getNestedType(hid_t type_id, hid_t native_type_id,
-                  object table, object colpath=""):
-  """Open a nested type and return a nested dictionary as description."""
-  cdef hid_t   member_type_id, native_member_type_id
-  cdef hsize_t nfields, dims[1]
-  cdef size_t  itemsize, type_size
-  cdef int     i
-  cdef char    *colname
-  cdef H5T_class_t class_id
-  cdef char    byteorder2[11]  # "irrelevant" fits easily here
-  cdef char    *sys_byteorder
-  cdef herr_t  ret
-  cdef object  desc, colobj, colpath2, typeclassname, typeclass
-  cdef object  byteorder
-  global field_byteorders
-
-  offset = 0
-  desc = {}
-  # Get the number of members
-  nfields = H5Tget_nmembers(type_id)
-  type_size = H5Tget_size(type_id)
-  # Iterate thru the members
-  for i from 0 <= i < nfields:
-      # Get the member name
-      colname = H5Tget_member_name(type_id, i)
-      # Get the member type
-      member_type_id = H5Tget_member_type(type_id, i)
-      # Get the member size
-      itemsize = H5Tget_size(member_type_id)
-      # Get the HDF5 class
-      class_id = H5Tget_class(member_type_id)
-      if class_id == H5T_COMPOUND and not is_complex(member_type_id):
-        colpath2 = _joinPath(colpath, colname)
-        # Create the native data in-memory
-        native_member_type_id = H5Tcreate(H5T_COMPOUND, itemsize)
-        desc[colname], _ = getNestedType(member_type_id, native_member_type_id,
-                                         table, colpath2)
-        desc[colname]["_v_pos"] = i  # Remember the position
-      else:
-        # Get the member format and the corresponding Col object
-        try:
-          native_member_type_id = get_native_type(member_type_id)
-          atom = AtomFromHDF5Type(member_type_id)
-          colobj = Col.from_atom(atom, pos=i)
-        except TypeError, te:
-          # Re-raise TypeError again with more info
-          raise TypeError(
-            ("table ``%s``, column ``%s``: %%s" % (table.name, colname))
-            % te.args[0])
-        desc[colname] = colobj
-        # Fetch the byteorder for this column
-        ret = get_order(member_type_id, byteorder2)
-        if byteorder2 in ["little", "big"]:
-          field_byteorders.append(byteorder2)
-
-      # Insert the native member
-      H5Tinsert(native_type_id, colname, offset, native_member_type_id)
-      # Update the offset
-      offset = offset + itemsize
-      # Release resources
-      H5Tclose(native_member_type_id)
-      H5Tclose(member_type_id)
-      free(colname)
-
-  # set the byteorder (just in top level)
-  if colpath == "":
-    # Compute a decent byteorder for the entire table
-    if len(field_byteorders) > 0:
-      field_byteorders = numpy.array(field_byteorders)
-      # Pyrex doesn't interpret well the extended comparison operators so this:
-      # field_byteorders == "little"
-      # doesn't work as expected
-      if numpy.alltrue(field_byteorders.__eq__("little")):
-        byteorder = "little"
-      elif numpy.alltrue(field_byteorders.__eq__("big")):
-        byteorder = "big"
-      else:  # Yes! someone have done it!
-        byteorder = "mixed"
-    else:
-      byteorder = "irrelevant"
-    table.byteorder = byteorder
-    # Reset the module variable for the next type
-    field_byteorders = []
-  # return the Description object and the size of the compound type
-  return desc, offset
 
 
 

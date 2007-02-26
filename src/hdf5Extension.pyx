@@ -1,4 +1,3 @@
-#  Ei!, emacs, this is -*-Python-*- mode
 ########################################################################
 #
 #       License: BSD
@@ -159,8 +158,22 @@ import_array()
 
 # Helper functions
 
+# cdef'd functions make the c compilers to issue a warning on string docs
+#   "Returns a malloced hsize_t dims from a npy_intp *pdims."
+cdef hsize_t *npy_malloc_dims(int rank, npy_intp *pdims):
+  cdef int i
+  cdef hsize_t *dims
+
+  dims = NULL
+  if rank > 0:
+    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+    for i from 0 <= i < rank:
+      dims[i] = pdims[i]
+  return dims
+
+
 cdef object getshape(int rank, hsize_t *dims):
-  "Return a shape (tuple) from a dims C array of rank dimensions."
+#  "Return a shape (tuple) from a dims C array of rank dimensions."
   cdef int i
   cdef object shape
 
@@ -173,12 +186,12 @@ cdef object getshape(int rank, hsize_t *dims):
 
 # Helper function for quickly fetch an attribute string
 cdef object get_attribute_string_or_none(node_id, attr_name):
-  """
-  Returns a string attribute if it exists in node_id.
+#   """
+#   Returns a string attribute if it exists in node_id.
 
-  It returns ``None`` in case it don't exists (or there have been problems
-  reading it).
-  """
+#   It returns ``None`` in case it don't exists (or there have been problems
+#   reading it).
+#   """
 
   cdef char *attr_value
   cdef object retvalue
@@ -239,9 +252,9 @@ cdef class File:
 
     # These fields can be seen from Python.
     self._v_new = None  # this will be computed later
-    """Is this file going to be created from scratch?"""
+    # """Is this file going to be created from scratch?"""
     self._isPTFile = True  # assume a PyTables file by default
-    """Does this HDF5 file have a PyTables format?"""
+    # """Does this HDF5 file have a PyTables format?"""
 
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
@@ -534,9 +547,9 @@ cdef class Node:
 
   def _g_new(self, where, name, init):
     self.name = strdup(name)
-    """The name of this node in its parent group."""
+    # """The name of this node in its parent group."""
     self.parent_id = where._v_objectID
-    """The identifier of the parent group."""
+    # """The identifier of the parent group."""
 
 
   def _g_delete(self):

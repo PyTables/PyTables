@@ -9,8 +9,7 @@
 #
 ########################################################################
 
-"""Tables for type conversion between PyTables, NumPy & HDF5
-"""
+# """Tables for type conversion between PyTables, NumPy & HDF5"""
 
 import sys
 
@@ -118,62 +117,14 @@ HDF5ClassToString = {
   H5T_ARRAY     : 'H5T_ARRAY',
   }
 
-# The next conversion tables doesn't seem to be needed anymore.
-# I'll comment them out and will eventually be removed.
 
-# # Conversion table from NumPy extended codes to NumPy type classes
-# NPExtToType = {
-#   NPY_BOOL:      numpy.bool_,     NPY_STRING:     numpy.string_,
-#   NPY_INT8:      numpy.int8,      NPY_UINT8:      numpy.uint8,
-#   NPY_INT16:     numpy.int16,     NPY_UINT16:     numpy.uint16,
-#   NPY_INT32:     numpy.int32,     NPY_UINT32:     numpy.uint32,
-#   NPY_INT64:     numpy.int64,     NPY_UINT64:     numpy.uint64,
-#   NPY_FLOAT32:   numpy.float32,   NPY_FLOAT64:    numpy.float64,
-#   NPY_COMPLEX64: numpy.complex64, NPY_COMPLEX128: numpy.complex128,
-#   # Special cases:
-#   ord('t'): numpy.int32,          ord('T'):       numpy.float64,
-# ##  ord('e'):      'Enum',  # fake type (the actual type can be different)
-#   }
+# Helper routines. These are here so as to easy the including in .pyx files.
+# The next functions are not directly related with this file. If the list
+# below starts to grow, they should be moved to its own .pxi file.
 
-
-# # # Conversion table from NumPy type classes to NumPy type codes
-# NPTypeToCode = {
-#   numpy.bool_:     NPY_BOOL,      numpy.string_:    NPY_STRING,
-#   numpy.int8:      NPY_INT8,      numpy.uint8:      NPY_UINT8,
-#   numpy.int16:     NPY_INT16,     numpy.uint16:     NPY_UINT16,
-#   numpy.int32:     NPY_INT32,     numpy.uint32:     NPY_UINT32,
-#   numpy.int64:     NPY_INT64,     numpy.uint64:     NPY_UINT64,
-#   numpy.float32:   NPY_FLOAT32,   numpy.float64:    NPY_FLOAT64,
-#   numpy.complex64: NPY_COMPLEX64, numpy.complex128: NPY_COMPLEX128,
-#   }
-
-
-# # Conversion from NumPy extended codes to PyTables string types
-# NPExtToPTType = {
-#   NPY_BOOL:      'bool',      NPY_STRING:     'string',
-#   NPY_INT8:      'int8',      NPY_UINT8:      'uint8',
-#   NPY_INT16:     'int16',     NPY_UINT16:     'uint16',
-#   NPY_INT32:     'int32',     NPY_UINT32:     'uint32',
-#   NPY_INT64:     'int64',     NPY_UINT64:     'uint64',
-#   NPY_FLOAT32:   'float32',   NPY_FLOAT64:    'float64',
-#   NPY_COMPLEX64: 'complex64', NPY_COMPLEX128: 'complex128',
-#   # Extended codes:
-#   ord('t'):      'time32',    ord('T'):       'time64',
-#   ord('e'):      'enum',
-#   }
-
-
-# # Conversion from PyTables string types to NumPy extended codes
-# PTTypeToNPExt = {}
-# for key, value in NPExtToPTType.items():
-#   PTTypeToNPExt[value] = key
-
-
-# The next functions are not directly related with this file
-# If the list below starts to grow, they should be moved to its own
-# .pxi file.
+# cdef'd functions make the c compilers to issue a warning on string docs
+#  "Returns a malloced hsize_t dims from a python pdims."
 cdef hsize_t *malloc_dims(object pdims):
-  "Returns a malloced hsize_t dims from a python pdims."
   cdef int i, rank
   cdef hsize_t *dims
 
@@ -186,21 +137,8 @@ cdef hsize_t *malloc_dims(object pdims):
   return dims
 
 
-cdef hsize_t *npy_malloc_dims(int rank, npy_intp *pdims):
-  "Returns a malloced hsize_t dims from a npy_intp *pdims."
-  cdef int i
-  cdef hsize_t *dims
-
-  dims = NULL
-  if rank > 0:
-    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-    for i from 0 <= i < rank:
-      dims[i] = pdims[i]
-  return dims
-
-
+#  "Get the native type of a HDF5 type"
 cdef hid_t get_native_type(hid_t type_id):
-  "Get the native type of a HDF5 type"
   cdef H5T_class_t class_id
   cdef hid_t native_type_id, super_type_id
   cdef char *sys_byteorder
@@ -229,7 +167,6 @@ cdef hid_t get_native_type(hid_t type_id):
   return native_type_id
 
 
-# Helper routines. These are here so as to easy the including in .pyx files.
 ## Local Variables:
 ## mode: python
 ## py-indent-offset: 2

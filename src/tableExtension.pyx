@@ -1,4 +1,3 @@
-#  Ei!, emacs, this is -*-Python-*- mode
 ########################################################################
 #
 #       License: BSD
@@ -25,13 +24,14 @@ Misc variables:
     __version__
 """
 
+import sys
 import numpy
 
+from tables.description import Description, Col
 from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
-from tables.utilsExtension import createNestedType, \
-     getNestedType, convertTime64, getTypeEnum, enumFromHDF5, \
-     getNestedField
+from tables.utilsExtension import convertTime64, getNestedField, \
+     AtomFromHDF5Type, AtomToHDF5Type
 
 # numpy functions & objects
 from hdf5Extension cimport Leaf
@@ -41,18 +41,21 @@ from definitions cimport import_array, ndarray, \
      PyArray_GETITEM, PyArray_SETITEM, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
      H5F_SCOPE_LOCAL, H5F_SCOPE_GLOBAL, \
-     size_t, hid_t, herr_t, hsize_t, htri_t, H5D_layout_t, \
+     size_t, hid_t, herr_t, hsize_t, htri_t, H5D_layout_t, H5T_class_t, \
      H5Gunlink, H5Fflush, H5Dopen, H5Dclose, H5Dread, H5Dget_type,\
      H5Dget_space, H5Dget_create_plist, H5Pget_layout, H5Pget_chunk, \
      H5Pclose, H5Sget_simple_extent_ndims, H5Sget_simple_extent_dims, \
      H5Sclose, H5Tget_size, H5Tset_size, H5Tcreate, H5Tcopy, H5Tclose, \
-     H5Tget_sign, H5Tget_class, H5Tget_native_type, \
+     H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, \
+     H5Tget_native_type, H5Tget_member_value, H5Tinsert, \
+     H5Tget_class, H5Tget_super, H5Tget_offset, \
      H5ATTRset_attribute_string, H5ATTRset_attribute, \
-     get_len_of_range, get_order
+     get_len_of_range, get_order, set_order, is_complex
 
 
-# Include HDF5 types
+# Include conversion tables & type
 include "convtypetables.pxi"
+
 
 __version__ = "$Revision$"
 
@@ -103,15 +106,16 @@ import_array()
 
 #-------------------------------------------------------------
 
+
 # Private functions
 cdef getNestedFieldCache(recarray, fieldname, fieldcache):
-  """
-  Get the maybe nested field named `fieldname` from the `array`.
+#   """
+#   Get the maybe nested field named `fieldname` from the `recarray`.
 
-  The `fieldname` may be a simple field name or a nested field name
-  with slah-separated components. It can also be an integer specifying
-  the position of the field.
-  """
+#   The `fieldname` may be a simple field name or a nested field name
+#   with slah-separated components. It can also be an integer specifying
+#   the position of the field.
+#   """
   try:
     field = fieldcache[fieldname]
   except KeyError:
@@ -125,6 +129,12 @@ cdef getNestedFieldCache(recarray, fieldname, fieldcache):
   return field
 
 
+cdef joinPath(object parent, object name):
+  if parent == "":
+    return name
+  else:
+    return parent + '/' + name
+
 
 # Public classes
 
@@ -132,6 +142,31 @@ cdef class Table(Leaf):
   # instance variables
   cdef void     *wbuf
   cdef hsize_t  totalrecords
+
+
+  cdef createNestedType(self, object desc, char *byteorder):
+    #"""Create a nested type based on a description and return an HDF5 type."""
+    cdef hid_t   tid, tid2
+    cdef herr_t  ret
+    cdef size_t  offset
+
+    tid = H5Tcreate(H5T_COMPOUND, desc._v_dtype.itemsize)
+    if tid < 0:
+      return -1;
+
+    offset = 0
+    for k in desc._v_names:
+      obj = desc._v_colObjects[k]
+      if isinstance(obj, Description):
+        tid2 = self.createNestedType(obj, byteorder)
+      else:
+        tid2 = AtomToHDF5Type(obj, byteorder)
+      ret = H5Tinsert(tid, k, offset, tid2)
+      offset = offset + desc._v_dtype[k].itemsize
+      # Release resources
+      H5Tclose(tid2)
+
+    return tid
 
 
   def _createTable(self, char *title, char *complib, char *obversion):
@@ -146,12 +181,8 @@ cdef class Table(Leaf):
     cdef ndarray recarr
 
     # Compute the complete compound datatype based on the table description
-    self.disk_type_id = createNestedType(self.description, self.byteorder)
-    # The in-memory type should be native
-    #self.type_id = get_native_type(self.disk_type_id)
-    # H5Tget_native_type doesn't work yet for all the types supported by
-    # PyTables
-    self.type_id = createNestedType(self.description, sys.byteorder)
+    self.disk_type_id = self.createNestedType(self.description, self.byteorder)
+    self.type_id = self.createNestedType(self.description, sys.byteorder)
 
     # test if there is data to be saved initially
     if self._v_recarray is not None:
@@ -207,10 +238,99 @@ cdef class Table(Leaf):
                          (fieldname, self.name))
 
     # If created in PyTables, the table is always chunked
-    self._chunked = 1  # Accessible from python
+    self._chunked = True  # Accessible from python
 
     # Finally, return the object identifier.
     return self.dataset_id
+
+
+  cdef getNestedType(self, hid_t type_id, hid_t native_type_id,
+                     object colpath, object field_byteorders):
+    # """Open a nested type and return a nested dictionary as description."""
+    cdef hid_t   member_type_id, native_member_type_id
+    cdef hsize_t nfields, dims[1]
+    cdef size_t  itemsize
+    cdef int     i
+    cdef char    *colname
+    cdef H5T_class_t class_id
+    cdef char    byteorder2[11]  # "irrelevant" fits easily here
+    cdef char    *sys_byteorder
+    cdef herr_t  ret
+    cdef object  desc, colobj, colpath2, typeclassname, typeclass
+    cdef object  byteorder
+
+    offset = 0
+    desc = {}
+    # Get the number of members
+    nfields = H5Tget_nmembers(type_id)
+    # Iterate thru the members
+    for i from 0 <= i < nfields:
+      # Get the member name
+      colname = H5Tget_member_name(type_id, i)
+      # Get the member type
+      member_type_id = H5Tget_member_type(type_id, i)
+      # Get the member size
+      itemsize = H5Tget_size(member_type_id)
+      # Get the HDF5 class
+      class_id = H5Tget_class(member_type_id)
+      if class_id == H5T_COMPOUND and not is_complex(member_type_id):
+        colpath2 = joinPath(colpath, colname)
+        # Create the native data in-memory
+        native_member_type_id = H5Tcreate(H5T_COMPOUND, itemsize)
+        desc[colname] = self.getNestedType(
+          member_type_id, native_member_type_id, colpath2, field_byteorders)
+        desc[colname]["_v_pos"] = i  # Remember the position
+      else:
+        # Get the member format and the corresponding Col object
+        try:
+          native_member_type_id = get_native_type(member_type_id)
+          atom = AtomFromHDF5Type(member_type_id)
+          colobj = Col.from_atom(atom, pos=i)
+        except TypeError, te:
+          # Re-raise TypeError again with more info
+          raise TypeError(
+            ("table ``%s``, column ``%s``: %%s" % (self.name, colname))
+            % te.args[0])
+        desc[colname] = colobj
+        # Fetch the byteorder for this column
+        ret = get_order(member_type_id, byteorder2)
+        if byteorder2 in ["little", "big"]:
+          field_byteorders.append(byteorder2)
+
+      # Insert the native member
+      H5Tinsert(native_type_id, colname, offset, native_member_type_id)
+      # Update the offset
+      offset = offset + itemsize
+      # Release resources
+      H5Tclose(native_member_type_id)
+      H5Tclose(member_type_id)
+      free(colname)
+
+    # set the byteorder and other things (just in top level)
+    if colpath == "":
+      # Compute a decent byteorder for the entire table
+      if len(field_byteorders) > 0:
+        field_byteorders = numpy.array(field_byteorders)
+        # Pyrex doesn't interpret well the extended comparison
+        # operators so this: field_byteorders == "little" doesn't work
+        # as expected
+        if numpy.alltrue(field_byteorders.__eq__("little")):
+          byteorder = "little"
+        elif numpy.alltrue(field_byteorders.__eq__("big")):
+          byteorder = "big"
+        else:  # Yes! someone have done it!
+          byteorder = "mixed"
+      else:
+        byteorder = "irrelevant"
+      self.byteorder = byteorder
+      # Correct the type size in case the memory type size is less
+      # than the type in-disk (probably due to reading native HDF5
+      # files written with tools that do allow introducing padding)
+      # Solves bug #23
+      if H5Tget_size(native_type_id) > offset:
+        H5Tset_size(native_type_id, offset)
+
+    return desc
 
 
   def _getInfo(self):
@@ -250,16 +370,9 @@ cdef class Table(Leaf):
     # Create the native data in-memory
     self.type_id = H5Tcreate(H5T_COMPOUND, type_size)
     # Fill-up the (nested) native type and description
-    desc, size2 = getNestedType(self.disk_type_id, self.type_id, self)
+    desc = self.getNestedType(self.disk_type_id, self.type_id, "", [])
     if desc == {}:
       raise HDF5ExtError("Problems getting desciption for table %s", self.name)
-
-    # Correct the type size in case the memory type size is less that
-    # type in-disk (probably due to reading native HDF5 files written with
-    # tools that do allow introducing padding)
-    # Solves bug #23
-    if type_size > size2:
-      H5Tset_size(self.type_id, size2)
 
     # Return the object ID and the description
     return (self.dataset_id, desc, chunksize[0])
@@ -549,7 +662,7 @@ cdef class Row:
 
 
   cdef _newBuffer(self, write):
-    "Create the recarray for I/O buffering"
+#     "Create the recarray for I/O buffering"
 
     if write:
       # Get the write buffer in table (it is unique, remember!)
@@ -583,7 +696,7 @@ cdef class Row:
 
   cdef _initLoop(self, hsize_t start, hsize_t stop, hsize_t step,
                  object coords, int ncoords):
-    "Initialization for the __iter__ iterator"
+#     "Initialization for the __iter__ iterator"
 
     self._riterator = 1   # We are inside a read iterator
     self._newBuffer(False)   # Create a buffer for reading
@@ -621,7 +734,7 @@ cdef class Row:
 
 
   def __next__(self):
-    "next() method for __iter__() that is called on each iteration"
+#     "next() method for __iter__() that is called on each iteration"
     if self.indexed or self.coords is not None:
       return self.__next__indexed()
     elif self.whereCond:
@@ -631,7 +744,7 @@ cdef class Row:
 
 
   cdef __next__indexed(self):
-    """The version of next() for indexed columns or with user coordinates"""
+#     """The version of next() for indexed columns or with user coordinates"""
     cdef int recout
     cdef long long stop
     cdef long long nextelement
@@ -708,7 +821,7 @@ cdef class Row:
 
 
   cdef __next__inKernel(self):
-    """The version of next() in case of in-kernel conditions"""
+#     """The version of next() in case of in-kernel conditions"""
     cdef hsize_t recout, correct
     cdef object numexpr_locals, colvar, col
 
@@ -763,7 +876,7 @@ cdef class Row:
 
   # This is the most general __next__ version, simple, but effective
   cdef __next__general(self):
-    """The version of next() for the general cases"""
+#     """The version of next() for the general cases"""
     cdef int recout
 
     self.nextelement = self._nrow + self.step
@@ -796,7 +909,7 @@ cdef class Row:
 
 
   cdef finish_riterator(self):
-    """Clean-up things after iterator has been done"""
+#     """Clean-up things after iterator has been done"""
 
     self.rfieldscache = {}     # empty rfields cache
     self.wfieldscache = {}     # empty wfields cache
@@ -1050,7 +1163,10 @@ cdef class Row:
     return str(self)
 
 
-  def __dealloc__(self):
-    #print "Deleting Row object"
-    pass
 
+## Local Variables:
+## mode: python
+## py-indent-offset: 2
+## tab-width: 2
+## fill-column: 78
+## End:
