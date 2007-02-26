@@ -570,7 +570,6 @@ last_opcode(PyObject *program_object) {
 
 static int
 get_reduction_axis(PyObject* program) {
-    char last_opcode, sig;
     int end = PyString_Size(program);
     int axis = ((unsigned char *)PyString_AS_STRING(program))[end-1];
     if (axis != 255 && axis >= MAX_DIMS)
@@ -647,7 +646,7 @@ check_program(NumExprObject *self)
             }
             arg = program[argloc];
 
-            if (sig != 'n' && (arg >= n_buffers) || (arg < 0)) {
+            if (sig != 'n' && ((arg >= n_buffers) || (arg < 0))) {
                 PyErr_Format(PyExc_RuntimeError, "invalid program: buffer out of range (%i) at %i", arg, argloc);
                 return -1;
             }
