@@ -167,7 +167,9 @@ int convert_addr64(int nrows, int nelem,
   int len1 = 0;
 
   for (irow = 0; irow < nrows; irow++)
-    for (jrow = 0; jrow < rbufln[irow]; jrow++)
-      rbufA[len1++] = rbufR[len1] + irow * nelem;
+    for (jrow = 0; jrow < rbufln[irow]; jrow++) {
+      rbufA[len1] = rbufR[len1] + irow * nelem;
+      len1++;
+    }
   return 0;
 }
