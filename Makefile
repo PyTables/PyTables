@@ -15,7 +15,7 @@ dist:		$(GENERATED)
 	for srcdir in $(SRCDIRS) ; do (cd $$srcdir && make $@) ; done
 
 clean:
-	-rm -rf build dist
+	-rm -rf MANIFEST build dist
 	-rm $(GENERATED) tables/*.so tables/numexpr/*.so
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
 	for srcdir in $(SRCDIRS) ; do (cd $$srcdir && make $@) ; done

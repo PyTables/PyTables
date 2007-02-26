@@ -1877,7 +1877,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
     def close(self):
         """Close all the nodes in HDF5 file and close the file."""
-        global _open_files
 
         # If the file is already closed, return immediately
         if not self.isopen:
@@ -2049,14 +2048,14 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 # If a user hits ^C during a run, it is wise to gracefully close the opened files.
 def close_open_files():
-    global _open_files
     if len(_open_files):
         print >> sys.stderr, "Closing remaining opened files:",
     for fileh in _open_files.keys():
         print >> sys.stderr, "%s..." % (fileh.filename,),
         fileh.close()
         print >> sys.stderr, "done",
-    print >> sys.stderr
+    if len(_open_files):
+        print >> sys.stderr
 
 import atexit
 atexit.register(close_open_files)
