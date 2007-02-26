@@ -14,7 +14,6 @@ See Leaf class docstring for more info.
 
 Classes:
 
-    Filters
     Leaf
 
 Functions:
@@ -38,6 +37,7 @@ import tables.flavor
 from tables import hdf5Extension
 from tables import utilsExtension
 from tables.node import Node
+from tables.filters import Filters
 from tables.utils import idx2long, byteorders
 from tables.parameters import CHUNKTIMES, BUFFERTIMES
 from tables.exceptions import PerformanceWarning
@@ -87,84 +87,6 @@ def calc_chunksize(expectedsizeinMB):
         chunksize = 32 * basesize
 
     return chunksize
-
-
-
-class Filters(object):
-    """Container for filter properties
-
-    Instance variables:
-
-        complevel -- the compression level (0 means no compression)
-        complib -- the compression filter used (in case of compressed dataset)
-        shuffle -- whether the shuffle filter is active or not
-        fletcher32 -- whether the fletcher32 filter is active or not
-
-    """
-
-    def __init__(self, complevel=0, complib="zlib", shuffle=True,
-                 fletcher32=False):
-        """Create a new Filters instance
-
-        complevel -- Specifies a compress level for data. The allowed
-            range is 0-9. A value of 0 disables compression and this
-            is the default.
-
-        complib -- Specifies the compression library to be used. Right
-            now, 'zlib', 'lzo' and 'bzip2' values are supported.
-
-        shuffle -- Whether or not to use the shuffle filter in the HDF5
-            library. This is normally used to improve the compression
-            ratio. A value of False disables shuffling and True makes it
-            active. The default value depends on whether compression is
-            enabled or not; if compression is enabled, shuffling
-            defaults to be active, else shuffling is disabled.
-
-        fletcher32 -- Whether or not to use the fletcher32 filter in the
-            HDF5 library. This is used to add a checksum on each data
-            chunk. A value of False disables the checksum and it is the
-            default.
-        """
-
-        libnames = ('zlib', 'lzo', 'bzip2')
-
-        if complib not in libnames:
-            raise ValueError( "compression library ``%s`` is not supported; "
-                              "it must be one of: %s"
-                              % (complib, ", ".join(libnames)) )
-
-        # Override some inputs when compression is not enabled.
-        if complevel == 0:
-            complib = None  # make it clear there is no compression
-            shuffle = False  # shuffling and not compressing makes no sense
-        elif utilsExtension.whichLibVersion(complib) is None:
-            warnings.warn( "compression library ``%s`` is not available; "
-                           "using ``zlib`` instead" % complib)
-            complib = 'zlib'  # always available
-        self.complevel = complevel
-        self.complib = complib
-        self.shuffle = shuffle
-        self.fletcher32 = fletcher32
-
-    def __repr__(self):
-        args = []
-        args.append('complevel=%d' % self.complevel)
-        if self.complevel:
-            args.append('complib=%r' % self.complib)
-        args.append('shuffle=%s' % self.shuffle)
-        args.append('fletcher32=%s' % self.fletcher32)
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(args))
-
-    def __str__(self):
-        return repr(self)
-
-    def __eq__(self, other):
-        if not isinstance(other, Filters):
-            return False
-        for attr in ['complib', 'complevel', 'shuffle', 'fletcher32']:
-            if getattr(self, attr) != getattr(other, attr):
-                return False
-        return True
 
 
 
@@ -243,7 +165,7 @@ class Leaf(Node):
         mydict = self.__dict__
         if 'filters' in mydict:
             return mydict['filters']
-        mydict['filters'] = filters = self._g_getFilters()
+        mydict['filters'] = filters = Filters._from_leaf(self)
         return filters
 
     filters = property(_getfilters, None, None,
@@ -288,7 +210,7 @@ class Leaf(Node):
             self.__dict__['filters'] = filters  # bypass the property
             # Writing the `Filters` object to an attribute on disk is
             # not necessary for now, as retrieving the filters using
-            # `utilsExtension.getFilters()` is safer and faster.
+            # `Filters._from_leaf()` is safer and faster.
             # Also, cPickling the `filters` attribute is very slow (it
             # is as much as twice slower than the normal overhead for
             # creating a Table, for example).
@@ -353,31 +275,6 @@ class Leaf(Node):
                 self._flavor = self._v_attrs.FLAVOR
             except AttributeError:  # probably a plain HDF5 file
                 self._flavor = tables.flavor.internal_flavor
-
-
-    def _g_getFilters(self):
-        # Create a filters instance with default values
-        filters = Filters()
-        # Get a dictionary with all the filters
-        filtersDict = utilsExtension.getFilters(self._v_parent._v_objectID,
-                                                self._v_hdf5name)
-        if filtersDict:
-            for name in filtersDict:
-                if name.startswith("lzo"):
-                    filters.complib = "lzo"
-                    filters.complevel = filtersDict[name][0]
-                elif name.startswith("bzip2"):
-                    filters.complib = "bzip2"
-                    filters.complevel = filtersDict[name][0]
-                elif name.startswith("deflate"):
-                    filters.complib = "zlib"
-                    filters.complevel = filtersDict[name][0]
-                elif name.startswith("shuffle"):
-                    filters.shuffle = True
-                elif name.startswith("fletcher32"):
-                    filters.fletcher32 = True
-
-        return filters
 
 
     def _calc_chunkshape(self, expectedrows, rowsize, itemsize):

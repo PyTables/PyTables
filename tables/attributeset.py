@@ -39,6 +39,7 @@ from tables.registry import classNameDict
 from tables.exceptions import ClosedNodeError, PerformanceWarning
 from tables.path import checkNameValidity
 from tables.undoredo import attrToShadow
+from tables.filters import Filters
 
 
 
@@ -232,10 +233,12 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         if (isinstance(value, numpy.generic) and  # NumPy scalar?
             value.dtype.type == numpy.string_ and # string type?
             value.itemsize > 0 and value[-1] == "."):
-            if format_version[0] == '1' and name == "FILTERS":
+            if ( name == "FILTERS"
+                 and int(format_version.split('.')[0], 10) == 1 ):
                 # This is a big hack, but we don't have other way to recognize
                 # pickled filters of PyTables 1.x files.
-                value = value.replace('(ctables.Leaf\n', '(ctables.leaf\n', 1)
+                value = value.replace( '(ctables.Leaf\n',
+                                       '(ctables.filters\n', 1 )
             try:
                 retval = cPickle.loads(value)
             #except cPickle.UnpicklingError:
@@ -253,6 +256,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                 # The documentation contains a note on this issue,
                 # explaining how the user can tell where the problem was.
                 retval = value
+        elif ( name == 'FILTERS'
+               and int(format_version.split('.')[0], 10) >= 2 ):
+            retval = Filters._unpack(value)
         else:
             retval = value
 
@@ -274,15 +280,16 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Save this attribute to disk
         # (overwriting an existing one if needed)
+        stvalue = value
         if issysattrname(name):
             if name in ["EXTDIM", "AUTO_INDEX", "DIRTY", "NODE_TYPE_VERSION"]:
-                self._g_setAttr(name, numpy.array(value, dtype=numpy.int32))
+                stvalue = numpy.array(value, dtype=numpy.int32)
             elif name == "NROWS":
-                self._g_setAttr(name, numpy.array(value, dtype=numpy.int64))
-            else:
-                self._g_setAttr(name, value)
-        else:
-            self._g_setAttr(name, value)
+                stvalue = numpy.array(value, dtype=numpy.int64)
+            elif ( name == "FILTERS"
+                   and int(self._v__format_version.split('.')[0], 10) >= 2 ):
+                stvalue = value._pack()
+        self._g_setAttr(name, stvalue)
 
         # New attribute or value. Introduce it into the local
         # directory

@@ -40,13 +40,14 @@ from tables.utilsExtension import isHDF5File, isPyTablesFile, whichLibVersion
 from tables.misc.enum import Enum
 from tables.atom import *
 from tables.description import *
+from tables.filters import Filters
 
 # Import the user classes from the proper modules
 from tables.exceptions import *
 from tables.file import File, openFile, copyFile
 from tables.node import Node
 from tables.group import Group
-from tables.leaf import Leaf, Filters
+from tables.leaf import Leaf
 from tables.table import Table, Cols, Column
 from tables.array import Array
 from tables.carray import CArray

@@ -19,6 +19,9 @@ from tables import File, Group, Leaf, Table, Array
 from tables.tests.common import verbose, heavy, cleanup
 from tables.parameters import MAX_COLUMNS
 
+import tables
+from tables.tests import common as tests
+
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
@@ -422,9 +425,9 @@ class createAttrTestCase(unittest.TestCase):
         assert self.root.agroup._v_attrs._f_list("user") == \
                ["pq", "qr", "rs"]
         assert self.root.agroup._v_attrs._f_list("sys") == \
-               ['CLASS','FILTERS', 'TITLE', 'VERSION']
+               ['CLASS', 'TITLE', 'VERSION']
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS','FILTERS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
 
         assert self.root.atable.attrs._f_list() == ["a", "b", "c"]
         assert self.root.atable.attrs._f_list("sys") == \
@@ -482,7 +485,7 @@ class createAttrTestCase(unittest.TestCase):
                   self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "qr", "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "qr", "rs"]
 
         # delete an attribute (__delattr__ method)
         del self.root.agroup._v_attrs.qr
@@ -495,7 +498,7 @@ class createAttrTestCase(unittest.TestCase):
                   self.root.agroup._v_attrs._g_listAttr()
         # Check the disk attribute names
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "rs"]
 
     def test05b_removeAttributes(self):
         """Checking removing attributes (using File.delNodeAttr()) """
@@ -523,7 +526,7 @@ class createAttrTestCase(unittest.TestCase):
                   self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "qr", "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "qr", "rs"]
 
         # delete an attribute (File.delNodeAttr method)
         self.fileh.delNodeAttr(self.root, "qr", "agroup")
@@ -536,7 +539,7 @@ class createAttrTestCase(unittest.TestCase):
                   self.root.agroup._v_attrs._g_listAttr()
         # Check the disk attribute names
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "rs"]
 
     def test06_removeAttributes(self):
         """Checking removing system attributes """
@@ -580,7 +583,7 @@ class createAttrTestCase(unittest.TestCase):
             print "Attribute list in disk:", self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "op", "qr", "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "op", "qr", "rs"]
 
     def test08_renameAttributes(self):
         """Checking renaming system attributes """
@@ -771,7 +774,7 @@ class createAttrTestCase(unittest.TestCase):
                   self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
 
 
 class createAttrNotCloseTestCase(createAttrTestCase):
@@ -1235,6 +1238,9 @@ class CopyGroupTestCase(unittest.TestCase):
                 srcattrskeys = srcattrs._f_list("all")
                 dstattrs = dstnode.attrs
                 dstattrskeys = dstattrs._f_list("all")
+            # Filters may differ, do not take into account
+            if self.filters is not None:
+                dstattrskeys.remove('FILTERS')
             # These lists should already be ordered
             if verbose:
                 print "srcattrskeys for node %s: %s" %(srcnode._v_name,
@@ -1249,14 +1255,9 @@ class CopyGroupTestCase(unittest.TestCase):
             for srcattrname in srcattrskeys:
                 srcattrvalue = str(getattr(srcattrs, srcattrname))
                 dstattrvalue = str(getattr(dstattrs, srcattrname))
-                if srcattrname == "FILTERS":
-                    if self.filters == None:
-                        filters = Filters()
-                    else:
-                        filters = self.filters
-                    assert str(filters) == dstattrvalue
-                else:
-                    assert srcattrvalue == dstattrvalue
+                assert srcattrvalue == dstattrvalue
+            if self.filters is not None:
+                assert dstattrs.FILTERS == self.filters
 
             if verbose:
                 print "The attrs contents has been copied correctly"
@@ -1624,6 +1625,9 @@ class CopyFileTestCase(unittest.TestCase):
             srcattrskeys = srcattrs._f_list("sys")
             dstattrs = dstnode._v_attrs
             dstattrskeys = dstattrs._f_list("all")
+            # Filters may differ, do not take into account
+            if self.filters is not None:
+                dstattrskeys.remove('FILTERS')
             # These lists should already be ordered
             if verbose:
                 print "srcattrskeys for node %s: %s" %(srcnode._v_name,
@@ -1638,14 +1642,9 @@ class CopyFileTestCase(unittest.TestCase):
             for srcattrname in srcattrskeys:
                 srcattrvalue = str(getattr(srcattrs, srcattrname))
                 dstattrvalue = str(getattr(dstattrs, srcattrname))
-                if srcattrname == "FILTERS":
-                    if self.filters == None:
-                        filters = Filters()
-                    else:
-                        filters = self.filters
-                    assert str(filters) == dstattrvalue
-                else:
-                    assert srcattrvalue == dstattrvalue
+                assert srcattrvalue == dstattrvalue
+            if self.filters is not None:
+                assert dstattrs.FILTERS == self.filters
 
             if verbose:
                 print "The attrs contents has been copied correctly"
@@ -1688,6 +1687,9 @@ class CopyFileTestCase(unittest.TestCase):
                                                        srcattrskeys)
                 print "dstattrskeys for node %s: %s" %(dstnode._v_name,
                                                        dstattrskeys)
+            # Filters may differ, do not take into account
+            if self.filters is not None:
+                dstattrskeys.remove('FILTERS')
             assert srcattrskeys == dstattrskeys
             if verbose:
                 print "The attrs names has been copied correctly"
@@ -1696,14 +1698,9 @@ class CopyFileTestCase(unittest.TestCase):
             for srcattrname in srcattrskeys:
                 srcattrvalue = str(getattr(srcattrs, srcattrname))
                 dstattrvalue = str(getattr(dstattrs, srcattrname))
-                if srcattrname == "FILTERS":
-                    if self.filters == None:
-                        filters = Filters()
-                    else:
-                        filters = self.filters
-                    assert str(filters) == dstattrvalue
-                else:
-                    assert srcattrvalue == dstattrvalue
+                assert srcattrvalue == dstattrvalue
+            if self.filters is not None:
+                assert dstattrs.FILTERS == self.filters
 
             if verbose:
                 print "The attrs contents has been copied correctly"
@@ -1781,10 +1778,86 @@ class CopyFileCase10(unittest.TestCase):
         os.remove(file)
         os.remove(file2)
 
+class GroupFiltersTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
+    filters = tables.Filters(complevel=4)  # something non-default
+
+    def setUp(self):
+        super(GroupFiltersTestCase, self).setUp()
+
+        atom, shape = tables.IntAtom(), (1, 1)
+        createGroup = self.h5file.createGroup
+        createCArray = self.h5file.createCArray
+
+        createGroup('/', 'implicit_no')
+        createGroup('/implicit_no', 'implicit_no')
+        createCArray( '/implicit_no/implicit_no', 'implicit_no',
+                      atom=atom, shape=shape )
+        createCArray( '/implicit_no/implicit_no', 'explicit_no',
+                      atom=atom, shape=shape, filters=tables.Filters() )
+        createCArray( '/implicit_no/implicit_no', 'explicit_yes',
+                      atom=atom, shape=shape, filters=self.filters )
+
+        createGroup('/', 'explicit_yes', filters=self.filters)
+        createGroup('/explicit_yes', 'implicit_yes')
+        createCArray( '/explicit_yes/implicit_yes', 'implicit_yes',
+                      atom=atom, shape=shape )
+        createCArray( '/explicit_yes/implicit_yes', 'explicit_yes',
+                      atom=atom, shape=shape, filters=self.filters )
+        createCArray( '/explicit_yes/implicit_yes', 'explicit_no',
+                      atom=atom, shape=shape, filters=tables.Filters() )
+
+    def _check_filters(self, h5file, filters=None):
+        for node in h5file:
+            # Get node filters.
+            if hasattr(node, 'filters'):
+                node_filters = node.filters
+            else:
+                node_filters = node._v_filters
+            # Compare to given filters.
+            if filters is not None:
+                self.assertEqual(node_filters, filters)
+                return
+            # Guess filters to compare to by node name.
+            if node._v_name.endswith('_no'):
+                self.assertEqual(
+                    node_filters, tables.Filters(),
+                    "node ``%s`` should have no filters" % node._v_pathname )
+            elif node._v_name.endswith('_yes'):
+                self.assertEqual(
+                    node_filters, self.filters,
+                    "node ``%s`` should have filters" % node._v_pathname )
+
+    def test00_propagate(self):
+        """Filters propagating to children."""
+        self._check_filters(self.h5file)
+
+    def _test_copyFile(self, filters=None):
+        copyfname = tempfile.mktemp(suffix='.h5')
+        try:
+            self.h5file.copyFile(copyfname, filters=filters)
+            try:
+                copyf = tables.openFile(copyfname)
+                self._check_filters(copyf, filters=filters)
+            finally:
+                copyf.close()
+        finally:
+            os.remove(copyfname)
+
+    def test01_copyFile(self):
+        """Keeping filters when copying a file."""
+        self._test_copyFile()
+
+    def test02_copyFile_override(self):
+        """Overriding filters when copying a file."""
+        self._test_copyFile(self.filters)
+
 
 #----------------------------------------------------------------------
 
 def suite():
+    import doctest
+    import tables.atom
+
     theSuite = unittest.TestSuite()
     niter = 1
     #heavy = 1 # Uncomment this only for testing purposes!
@@ -1804,6 +1877,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
         theSuite.addTest(unittest.makeSuite(CopyFileCase1))
         theSuite.addTest(unittest.makeSuite(CopyFileCase2))
+        theSuite.addTest(unittest.makeSuite(GroupFiltersTestCase))
+        theSuite.addTest(doctest.DocTestSuite(tables.filters))
     if heavy:
         theSuite.addTest(unittest.makeSuite(createTestCase))
         theSuite.addTest(unittest.makeSuite(FiltersCase3))

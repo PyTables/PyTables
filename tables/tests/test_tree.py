@@ -960,7 +960,7 @@ class CreateParentsTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
         self.h5file.createGroup('/group/foo/bar', 'baz', createparents=True)
         self.assert_('/group/foo/bar/baz' in self.h5file)
         for group in self.h5file.walkGroups('/group'):
-            self.assertEqual(str(self.filters), str(group._v_filters))
+            self.assertEqual(self.filters, group._v_filters)
 
 
 

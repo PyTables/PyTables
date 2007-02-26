@@ -155,9 +155,9 @@ class CreateTestCase(unittest.TestCase):
         assert self.root.agroup._v_attrs._f_list("user") == \
                ["pq", "qr", "rs"]
         assert self.root.agroup._v_attrs._f_list("sys") == \
-               ['CLASS','FILTERS', 'TITLE', 'VERSION']
+               ['CLASS', 'TITLE', 'VERSION']
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS','FILTERS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
 
         assert self.root.atable.attrs._f_list() == ["a", "b", "c"]
         assert self.root.atable.attrs._f_list("sys") == \
@@ -213,7 +213,7 @@ class CreateTestCase(unittest.TestCase):
                   self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "qr", "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "qr", "rs"]
 
         # delete an attribute (__delattr__ method)
         del self.root.agroup._v_attrs.qr
@@ -226,7 +226,7 @@ class CreateTestCase(unittest.TestCase):
                   self.root.agroup._v_attrs._g_listAttr()
         # Check the disk attribute names
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "rs"]
 
     def test05b_removeAttributes(self):
         """Checking removing attributes (using File.delNodeAttr()) """
@@ -254,7 +254,7 @@ class CreateTestCase(unittest.TestCase):
                   self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "qr", "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "qr", "rs"]
 
         # delete an attribute (File.delNodeAttr method)
         self.fileh.delNodeAttr(self.root, "qr", "agroup")
@@ -267,7 +267,7 @@ class CreateTestCase(unittest.TestCase):
                   self.root.agroup._v_attrs._g_listAttr()
         # Check the disk attribute names
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "rs"]
 
     def test06_removeAttributes(self):
         """Checking removing system attributes """
@@ -311,7 +311,7 @@ class CreateTestCase(unittest.TestCase):
             print "Attribute list in disk:", self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "op", "qr", "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "op", "qr", "rs"]
 
     def test08_renameAttributes(self):
         """Checking renaming system attributes """
@@ -357,7 +357,7 @@ class CreateTestCase(unittest.TestCase):
                   self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
         assert self.root.agroup._v_attrs._f_list("all") == \
-               ['CLASS', 'FILTERS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
+               ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
 
     def test10a_copyAttributes(self):
         """Checking copying attributes """

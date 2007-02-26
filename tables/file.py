@@ -54,10 +54,11 @@ from tables.path import joinPath, splitPath, isVisiblePath
 from tables.utils import checkFileAccess
 from tables import undoredo
 from tables.description import IsDescription, UInt8Col, StringCol
+from tables.filters import Filters
 from tables.node import Node, NotLoggedMixin
 from tables.group import Group, RootGroup
 from tables.group import TransactionGroupG, TransactionG, MarkG
-from tables.leaf import Leaf, Filters
+from tables.leaf import Leaf
 from tables.array import Array
 from tables.carray import CArray
 from tables.earray import EArray
@@ -469,7 +470,11 @@ class File(hdf5Extension.File, object):
         TITLE attribute will be set on the root group if optional "title"
         parameter is passed."""
 
-        global _open_files
+        # Check filters and set PyTables format version for new files.
+        new = self._v_new
+        if new:
+            _checkfilters(filters)
+            self.format_version = format_version
 
         self.filename = filename
         self.mode = mode
@@ -490,13 +495,6 @@ class File(hdf5Extension.File, object):
         # For the moment Undo/Redo is not enabled.
         self._undoEnabled = False
 
-        new = self._v_new
-
-        # Filters
-        if new and filters is None:
-            # Set the defaults
-            filters = Filters()
-
         # Set the flag to indicate that the file has been opened.
         # It must be set before opening the root group
         # to allow some basic access to its attributes.
@@ -513,7 +511,6 @@ class File(hdf5Extension.File, object):
 
         # Save the PyTables format version for this file.
         if new:
-            self.format_version = format_version
             root._v_attrs._g__setattr(
                 'PYTABLES_FORMAT_VERSION', format_version)
 
@@ -631,6 +628,7 @@ class File(hdf5Extension.File, object):
             parent path to exist (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
+        _checkfilters(filters)
         return Group(parentNode, name,
                      title=title, new=True, filters=filters)
 
@@ -1150,7 +1148,13 @@ class File(hdf5Extension.File, object):
         self._checkOpen()
 
         # Compute default arguments.
-        filters = kwargs.get('filters', self.filters)
+        filters = kwargs.get('filters', None)
+        if filters is None:
+            # By checking the HDF5 attribute, we avoid setting filters
+            # in the destination file if not explicitly set in the
+            # source file.  Just by assigning ``self.filters`` we would
+            # not be able to tell.
+            filters = getattr(self.root._v_attrs, 'FILTERS', None)
         copyuserattrs = kwargs.get('copyuserattrs', False)
         # These are *not* passed on.
         title = kwargs.pop('title', self.title)

@@ -32,10 +32,11 @@ import types, warnings, sys
 import numpy
 
 from tables import hdf5Extension
+from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx
 from tables.atom import split_type
-from tables.leaf import Leaf, Filters
+from tables.leaf import Leaf
 
 
 __version__ = "$Revision$"

@@ -39,10 +39,11 @@ from tables.parameters import MAX_GROUP_WIDTH
 from tables.registry import classIdDict
 from tables.exceptions import \
      NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning
+from tables.filters import Filters
 from tables.registry import getClassByName
 from tables.path import checkNameValidity, joinPath, isVisibleName
 from tables.node import Node, NotLoggedMixin
-from tables.leaf import Leaf, Filters
+from tables.leaf import Leaf
 from tables.unimplemented import UnImplemented
 from tables.attributeset import AttributeSet
 
@@ -95,7 +96,8 @@ class Group(hdf5Extension.Group, Node):
         Dictionary with all hidden nodes hanging from this group.
     _v_filters
         Default filter properties for child nodes --see `Filters`.  A
-        shorthand for ``FILTERS`` attribute.
+        shorthand for the ``FILTERS`` attribute.  When there is no such
+        attribute, its value is the default `Filters` instance.
 
     Public methods (in addition to those in `Node`):
 
@@ -210,11 +212,11 @@ class Group(hdf5Extension.Group, Node):
             newFilters = self._v_new_filters
             if newFilters is None:
                 # If no filters have been passed in the constructor,
-                # inherit them from the parent group.
-                filters = self._v_parent._v_filters
-            else:
-                filters = newFilters
-            setAttr('FILTERS', filters)
+                # inherit them from the parent group, but only if they
+                # have been inherited or explicitly set.
+                newFilters = getattr(self._v_parent._v_attrs, 'FILTERS', None)
+            if newFilters is not None:
+                setAttr('FILTERS', newFilters)
         else:
             # If the file has PyTables format, get the VERSION attr
             if 'VERSION' in self._v_attrs._v_attrnamessys:
@@ -585,12 +587,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         # Compute default arguments.
         title = kwargs.get('title', self._v_title)
-        filters = kwargs.get('filters', self._v_filters)
+        filters = kwargs.get('filters', None)
         stats = kwargs.get('stats', None)
 
         # Fix arguments with explicit None values for backwards compatibility.
         if title is None:  title = self._v_title
-        if filters is None:  filters = self._v_filters
+        # If no filters have been passed to the call, copy them from the
+        # source group, but only if inherited or explicitly set.
+        if filters is None:
+            filters = getattr(self._v_attrs, 'FILTERS', None)
 
         # Create a copy of the object.
         newNode = Group(newParent, newName,

@@ -5954,8 +5954,10 @@ Object Tree:
               <glossdef>
                 <para>Default filter properties for child nodes —see <xref
                 linkend="FiltersClassDescr"
-                xrefstyle="select:       labelnumber" />. A shorthand for
-                <literal>FILTERS</literal> attribute.</para>
+                xrefstyle="select:labelnumber"/>. A shorthand for the
+                <literal>FILTERS</literal> attribute. When there is no such
+                attribute, its value is the default <literal>Filters</literal>
+                instance.</para>
               </glossdef>
             </glossentry>
           </glosslist>
@@ -9930,10 +9932,9 @@ enum myEnum {
           <title>The <literal>Filters</literal> class</title>
 
           <para>This class is meant to serve as a container that keeps
-          information about the filter properties associated with the
-          enlargeable leaves, that is <literal>Table</literal>,
-          <literal>CArray</literal>, <literal>EArray</literal> and
-          <literal>VLArray</literal>.</para>
+          information about the filter properties associated with the chunked
+          leaves, that is <literal>Table</literal>, <literal>CArray</literal>,
+          <literal>EArray</literal> and <literal>VLArray</literal>.</para>
 
           <para>The public variables of <literal>Filters</literal> are listed
           below:</para>
@@ -9946,7 +9947,7 @@ enum myEnum {
               role="bold">complevel</emphasis></glossterm>
 
               <glossdef>
-                <para>The compression level (0 means no compression).</para>
+                <para>The compression level (0 disables compression).</para>
               </glossdef>
             </glossentry>
 
@@ -9954,8 +9955,8 @@ enum myEnum {
               <glossterm><emphasis role="bold">complib</emphasis></glossterm>
 
               <glossdef>
-                <para>The compression filter used (in case of compressed
-                dataset).</para>
+                <para>The compression filter used (irrelevant when compression
+                is not enabled).</para>
               </glossdef>
             </glossentry>
 
@@ -9963,7 +9964,8 @@ enum myEnum {
               <glossterm><emphasis role="bold">shuffle</emphasis></glossterm>
 
               <glossdef>
-                <para>Whether the shuffle filter is active or not.</para>
+                <para>Whether the <emphasis>Shuffle</emphasis> filter is
+                active or not.</para>
               </glossdef>
             </glossentry>
 
@@ -9972,7 +9974,8 @@ enum myEnum {
               role="bold">fletcher32</emphasis></glossterm>
 
               <glossdef>
-                <para>Whether the fletcher32 filter is active or not.</para>
+                <para>Whether the <emphasis>Fletcher32</emphasis> filter is
+                active or not.</para>
               </glossdef>
             </glossentry>
           </glosslist>
@@ -9994,10 +9997,9 @@ enum myEnum {
                 role="bold">complevel</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Specifies a compress level for data. The allowed range
-                  is 0-9. A value of 0 disables compression. The default is
-                  that compression is disabled, that balances between
-                  compression effort and CPU consumption.</para>
+                  <para>Specifies a compression level for data.  The allowed
+                  range is 0-9.  A value of 0 (the default) disables
+                  compression.</para>
                 </glossdef>
               </glossentry>
 
@@ -10006,12 +10008,11 @@ enum myEnum {
                 role="bold">complib</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Specifies the compression library to be used. Right
-                  now, <literal>"zlib"</literal> (default),
-                  <literal>"lzo"</literal> and <literal>"bzip2"</literal>
-                  values are supported. See <xref linkend="compressionIssues"
-                  xrefstyle="select: label" /> for some advice on which
-                  library is better suited to your needs.</para>
+                  <para>Specifies the compression library to be used.  Right
+                  now, 'zlib' (the default), 'lzo' and 'bzip2' are supported.
+                  See <xref linkend="compressionIssues" xrefstyle="select:
+                  label" /> for some advice on which library is better suited
+                  to your needs.</para>
                 </glossdef>
               </glossentry>
 
@@ -10020,15 +10021,14 @@ enum myEnum {
                 role="bold">shuffle</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Whether or not to use the <emphasis>shuffle</emphasis>
-                  filter present in the HDF5 library. This is normally used to
-                  improve the compression ratio (at the cost of consuming a
-                  little bit more CPU time). A value of
-                  <emphasis>False</emphasis> disables shuffling and
-                  <emphasis>True</emphasis> makes it active. The default value
+                  <para>Whether or not to use the <emphasis>Shuffle</emphasis>
+                  filter in the HDF5 library.  This is normally used to
+                  improve the compression ratio.  A false value disables
+                  shuffling and a true one enables it.  The default value
                   depends on whether compression is enabled or not; if
-                  compression is enabled, shuffling defaults to be active,
-                  else shuffling is disabled.</para>
+                  compression is enabled, shuffling defaults to be enabled,
+                  else shuffling is disabled.  Shuffling can only be used when
+                  compression is enabled.</para>
                 </glossdef>
               </glossentry>
 
@@ -10038,10 +10038,9 @@ enum myEnum {
 
                 <glossdef>
                   <para>Whether or not to use the
-                  <emphasis>fletcher32</emphasis> filter in the HDF5 library.
-                  This is used to add a checksum on each data chunk. A value
-                  of <emphasis>False</emphasis> disables the checksum and it
-                  is the default.</para>
+                  <emphasis>Fletcher32</emphasis> filter in the HDF5 library.
+                  This is used to add a checksum on each data chunk.  A false
+                  value (the default) disables the checksum.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -14033,7 +14032,6 @@ Object Tree:
 / (RootGroup) ''
   /._v_attrs (AttributeSet), 5 attributes:
    [CLASS := 'GROUP',
-    FILTERS := Filters(complevel=0, complib='zlib', shuffle=False, fletcher32=False),
     PYTABLES_FORMAT_VERSION := '1.6',
     TITLE := '',
     VERSION := '1.0']
@@ -14465,6 +14463,56 @@ Object Tree:
             <glossdef>
               <para>Should contains the string
               <literal>'1.0'</literal>.</para>
+            </glossdef>
+          </glossentry>
+        </glosslist>
+      </section>
+
+      <section>
+        <title>Optional attributes for a <literal>Group</literal></title>
+
+        <para>The next attributes are optional for <emphasis>group</emphasis>
+        structures:</para>
+
+        <glosslist>
+          <glossentry>
+            <glossterm><emphasis role="bold">FILTERS</emphasis></glossterm>
+
+            <glossdef>
+              <para>When present, this attribute contains the filter
+              properties (a <literal>Filters</literal> instance, see section
+              <xref linkend="FiltersClassDescr" xrefstyle="select:
+              labelnumber"/>) that may be inherited by leaves or groups
+              created immediately under this group. This is a packed 64-bit
+              integer structure, where</para>
+
+              <itemizedlist>
+                <listitem>
+                  <para><emphasis role="bold">byte 0</emphasis> (the
+                  least-significant byte) is the compression level
+                  (<literal>complevel</literal>).</para>
+                </listitem>
+
+                <listitem>
+                  <para><emphasis role="bold">byte 1</emphasis> is the
+                  compression library used (<literal>complib</literal>): 0
+                  when irrelevant, 1 for Zlib, 2 for LZO and 3 for
+                  Bzip2.</para>
+                </listitem>
+
+                <listitem>
+                  <para><emphasis role="bold">byte 2</emphasis> indicates
+                  which parameterless filters are enabled
+                  (<literal>shuffle</literal> and
+                  <literal>fletcher32</literal>): bit 0 is for
+                  <emphasis>Shuffle</emphasis> while bit 1 is for
+                  <emphasis>Fletcher32</emphasis>.</para>
+                </listitem>
+
+                <listitem>
+                  <para>other bytes are reserved for future use.</para>
+                </listitem>
+              </itemizedlist>
             </glossdef>
           </glossentry>
         </glosslist>
