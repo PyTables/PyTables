@@ -1430,7 +1430,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         self.table.indexFilters = self.newIndexProps.filters
         icol = self.table.cols.icol
         icol.createIndex(testmode=True)
-        self.assertEqual(icol.index.filters, self.newIndexProps.filters)
+        self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
 
     def test_reindex(self):
         """Using changed index properties in recomputed indexes."""
