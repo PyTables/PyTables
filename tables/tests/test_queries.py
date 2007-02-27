@@ -655,10 +655,14 @@ def suite():
 
     testSuite = unittest.TestSuite()
 
+    cdatafuncs = [niclassdata]  # non-indexing data tests
+    if tables.is_pro:
+        cdatafuncs.append(iclassdata)  # indexing data tests
+
     niter = 1
     for i in range(niter):
         # Tests on query data.
-        for cdatafunc in [niclassdata, iclassdata]:
+        for cdatafunc in cdatafuncs:
             for cdata in cdatafunc():
                 cname = cdata[0]
                 testSuite.addTest(unittest.makeSuite(eval(cname)))
