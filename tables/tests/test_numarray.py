@@ -680,7 +680,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         if tables.is_pro:
-            table.cols.color.createIndex(warn=True, testmode=True)
+            table.cols.color.createIndex(testmode=True)
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -699,7 +699,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
 
         table = self.fileh.root.table
         if tables.is_pro:
-            table.cols.z.createIndex(warn=1, testmode=1)
+            table.cols.z.createIndex(testmode=True)
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")

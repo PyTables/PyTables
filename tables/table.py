@@ -2644,7 +2644,7 @@ column '%s' is not indexed, so it can't be optimized."""
             index._f_remove()
             self._updateIndexLocation(None)
             # Create a new Index without warnings
-            return self.createIndex(warn=0)
+            return self.createIndex()
         else:
             return 0  # The column is not intended for indexing
 
@@ -2659,7 +2659,7 @@ column '%s' is not indexed, so it can't be optimized."""
             # Delete the existing Index
             index._f_remove()
             # Create a new Index without warnings
-            return self.createIndex(warn=0)
+            return self.createIndex()
         else:
             # The column is not intended for indexing or is not dirty
             return 0
