@@ -229,7 +229,7 @@ def _table__getWhereList(self, splitted, condvars):
 
     return coords
 
-def _column__createIndex(self, optlevel, filters, warn, testmode, verbose):
+def _column__createIndex(self, optlevel, filters, testmode, verbose):
     name = self.name
     table = self.table
     tableName = table._v_name
@@ -260,8 +260,13 @@ def _column__createIndex(self, optlevel, filters, warn, testmode, verbose):
         itgroup = table._createIndexesTable()
 
     # If no filters are specified, try the table and then the default.
-    if filters is None:
-        filters = table.indexFilters
+    # ************* Note ****************
+    # table.indexFilters will be always set, so this will always set
+    # the filters of the index to be the same of the table, even if
+    # the table *doesn't* have any!
+    # F. Altet 2007-02-27
+#     if filters is None:
+#         filters = table.indexFilters
     if filters is None:
         filters = defaultIndexFilters
 

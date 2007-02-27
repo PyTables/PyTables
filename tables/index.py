@@ -548,13 +548,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.nelementsLR = 0
 
         # Set the filters for this object (they are *not* inherited)
-        filters = self._v_new_filters
-        if filters is None:
-            # If no filters have been passed to the constructor,
-            # set a sensible default using zlib compression and shuffling.
-            filters = Filters(complevel=1, complib="zlib",
-                              shuffle=True, fletcher32=False)
-        self.filters = filters
+        self.filters = filters = self._v_new_filters
 
         # Create the IndexArray for sorted values
         atom = Atom.from_dtype(self.dtype)

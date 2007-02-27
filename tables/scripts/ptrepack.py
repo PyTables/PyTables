@@ -18,11 +18,16 @@ import sys
 import os.path
 import time
 import getopt
+import warnings
 
 from tables.file import openFile
 from tables.group import Group
 from tables.leaf import Filters
+from tables.exceptions import OldIndexWarning
 
+# Global variables
+verbose = False
+regoldindexes = True
 
 
 def newdstGroup(dstfileh, dstgroup, title, filters):
@@ -41,6 +46,27 @@ def newdstGroup(dstfileh, dstgroup, title, filters):
             group2 = dstfileh._f_getChild(nodeName)
         group = group2
     return group
+
+
+def recreateIndexes(table, dstfileh, dsttable):
+    listoldindexes = table._listoldindexes
+    if listoldindexes != []:
+        if not regoldindexes:
+            if verbose:
+                print "[I]Not regenerating indexes for table: '%s:%s'" % \
+                      (dstfileh.filename, dsttable._v_pathname)
+            return
+        # Now, recreate the indexed columns
+        if verbose:
+            print "[I]Regenerating indexes for table: '%s:%s'" % \
+                  (dstfileh.filename, dsttable._v_pathname)
+        for colname in listoldindexes:
+            if verbose:
+                print "[I]Indexing column: '%s'. Please wait..." % colname
+            colobj = dsttable.cols._f_col(colname)
+            # We don't specify the filters for the indexes
+            colobj.createIndex(filters = None)
+
 
 def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
              filters, copyuserattrs, overwritefile, overwrtnodes, stats,
@@ -106,9 +132,14 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
         dstfileh.close()
         raise RuntimeError, "Please check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired."
 
+    # Recreate possible old indexes in destination node
+    if srcNode._c_classId == "TABLE":
+        recreateIndexes(srcNode, dstfileh, dstNode)
+
     # Close all the open files:
     srcfileh.close()
     dstfileh.close()
+
 
 def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                  recursive, filters, copyuserattrs, overwritefile,
@@ -163,13 +194,22 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
         dstfileh.close()
         raise RuntimeError, "Please check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired. In particular, pay attention that rootUEP is not fooling you."
 
+    # Do a second pass and convert the remaining tables with old
+    # indexes (if any)
+    for table in srcGroup._f_walkNodes("Table"):
+        dsttable = dstfileh.getNode(dstGroup, table._v_pathname)
+        recreateIndexes(table, dstfileh, dsttable)
+
     # Close all the open files:
     srcfileh.close()
     dstfileh.close()
 
 
 def main():
-    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] sourcefile:sourcegroup destfile:destgroup
+    global verbose
+    global regoldindexes
+
+    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--dont-regenerate-old-indexes] sourcefile:sourcegroup destfile:destgroup
      -h -- Print usage message.
      -v -- Show more information.
      -o -- Overwite destination file.
@@ -187,11 +227,13 @@ def main():
          lib can be set to "zlib", "lzo" or "bzip2". Defaults to "zlib".
      --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
          if complevel>0).
-     --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not
-         active by default).
+     --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter
+        (not active by default).
      --keep-source-filters -- Use the original filters in source files. The
          default is not doing that if any of --complevel, --complib, --shuffle
          or --fletcher32 option is specified.
+     --dont-regenerate-old-indexes -- Disable regenerating old indexes. The
+         default is to regenerate old indexes as they are found.
     \n""" % os.path.basename(sys.argv[0])
 
 
@@ -205,7 +247,8 @@ def main():
                                      'complib=',
                                      'shuffle=',
                                      'fletcher32=',
-                                     'keep-source-filters'
+                                     'keep-source-filters',
+                                     'dont-regenerate-old-indexes',
                                      ])
     except:
         (type, value, traceback) = sys.exc_info()
@@ -214,18 +257,17 @@ def main():
         sys.exit(0)
 
     # default options
-    verbose = 0
-    overwritefile = 0
-    keepfilters = 0
+    overwritefile = False
+    keepfilters = False
     complevel = None
     complib = None
     shuffle = None
     fletcher32 = None
     title = ""
-    copyuserattrs = 1
+    copyuserattrs = True
     rng = None
-    recursive = 1
-    overwrtnodes = 0
+    recursive = True
+    overwrtnodes = False
 
     # Get the options
     for option in opts:
@@ -233,9 +275,9 @@ def main():
             sys.stderr.write(usage)
             sys.exit(0)
         elif option[0] == '-v':
-            verbose = 1
+            verbose = True
         elif option[0] == '-o':
-            overwritefile = 1
+            overwritefile = True
         elif option[0] == '-R':
             try:
                 rng = eval("slice("+option[1]+")")
@@ -248,13 +290,15 @@ def main():
         elif option[0] == '--dest-title':
             title = option[1]
         elif option[0] == '--dont-copy-userattrs':
-            copyuserattrs = 0
+            copyuserattrs = False
         elif option[0] == '--non-recursive':
-            recursive = 0
+            recursive = False
         elif option[0] == '--overwrite-nodes':
-            overwrtnodes = 1
+            overwrtnodes = True
         elif option[0] == '--keep-source-filters':
-            keepfilters = 1
+            keepfilters = True
+        elif option[0] == '--dont-regenerate-old-indexes':
+            regoldindexes = False
         elif option[0] == '--complevel':
             complevel = int(option[1])
         elif option[0] == '--complib':
@@ -294,17 +338,21 @@ def main():
         # case where filename == "filename:" instead of "filename:/"
         dstnode = "/"
 
+    # Ignore the warnings for tables that contains oldindexes
+    # (these will be handled by the copying routines)
+    warnings.filterwarnings("ignore", category=OldIndexWarning)
+
     # Build the Filters instance
     if ((complevel, complib, shuffle, fletcher32) == (None,)*4 or keepfilters):
         filters = None
     else:
         if complevel is None: complevel = 0
         if complevel > 0 and shuffle is None:
-            shuffle = 1
+            shuffle = True
         else:
-            shuffle = 0
+            shuffle = False
         if complib is None: complib = "zlib"
-        if fletcher32 is None: fletcher32 = 0
+        if fletcher32 is None: fletcher32 = False
         filters = Filters(complevel=complevel, complib=complib,
                           shuffle=shuffle, fletcher32=fletcher32)
 

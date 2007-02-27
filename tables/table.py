@@ -315,6 +315,8 @@ class Table(tableExtension.Table, Leaf):
         """Number of rows indexed in disk."""
         self._unsaved_indexedrows = 0
         """Number of rows indexed in memory but still not in disk."""
+        self._listoldindexes = []
+        """The list of columns with old indexes."""
 
         self.colnames = []
         """
@@ -452,7 +454,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # Do the indexes group exist?
         indexesGroupPath = _indexPathnameOf(self)
         igroup = indexesGroupPath in self._v_file
-        oldindexes = False; listoldindexes = []
+        oldindexes = False
         for colobj in self.description._f_walk(type="Col"):
             colname = colobj._v_pathname
             # Is this column indexed?
@@ -470,7 +472,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                     if isinstance(indexobj, OldIndex):
                         indexed = False  # Not a vaild index
                         oldindexes = True
-                        listoldindexes.append(colname)
+                        self._listoldindexes.append(colname)
                     else:
                         # Tell the condition cache about dirty indexed columns.
                         if indexobj.dirty:
@@ -488,7 +490,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 "PyTables 2.x series. Note that you can use the "
                 "``ptrepack`` utility in order to recreate the indexes. "
                 "The 1.x indexed columns found are: %s" %
-                (self._v_pathname, listoldindexes),
+                (self._v_pathname, self._listoldindexes),
                 OldIndexWarning )
 
         # It does not matter to which column 'indexobj' belongs,
@@ -2600,7 +2602,7 @@ class Column(object):
 
 
     def createIndex( self, optlevel=5, filters=None,
-                     warn=True, testmode=False, verbose=False ):
+                     testmode=False, verbose=False ):
         """Create an index for this column.
 
         optlevel -- The default level of optimization for the index.
@@ -2610,7 +2612,7 @@ class Column(object):
         """
 
         _checkIndexingAvailable()
-        return _column__createIndex(self, optlevel, filters, warn,
+        return _column__createIndex(self, optlevel, filters,
                                     testmode, verbose)
 
 

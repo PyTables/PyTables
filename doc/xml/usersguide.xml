@@ -8073,10 +8073,10 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <para>You can use the <literal>filters</literal> argument to set
               the <literal>Filters</literal> (see <xref
               linkend="FiltersClassDescr" xrefstyle="select: label" />) used
-              to compress the index. If <literal>None</literal>, they will be
-              those in the <literal>indexFilters</literal> of the associated
-              table if any; otherwise, default index filters will be
-              used.</para>
+              to compress the index. If <literal>None</literal>, <!-- they
+              will be those in the <literal>indexFilters</literal> of the
+              associated table if any; otherwise, -->default index filters
+              will be used (currently, zlib level 1 with shuffling).</para>
             </section>
 
             <section id="optimizeIndexColumnDescr" xreflabel="description">
@@ -14118,10 +14118,11 @@ Object Tree:
 
           <para>For instructions on how to use it, just pass the
           <literal>-h</literal> flag to the command: <screen>$ ptrepack -h</screen>
-          to see the message usage: <screen>usage: ptrepack [-h] [-v] [-o] [-R start,stop,step] [--non-recursive]
+          to see the message usage: <screen>usage: ptrepack [-h] [-v] [-o] 
+  [-R start,stop,step] [--non-recursive]
   [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes]
   [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)]
-  [--fletcher32=(0|1)] [--keep-source-filters]
+  [--fletcher32=(0|1)] [--keep-source-filters] [--dont-regenerate-old-indexes]
   sourcefile:sourcegroup destfile:destgroup
      -h -- Print usage message.
      -v -- Show more information.
@@ -14144,7 +14145,10 @@ Object Tree:
          (not active by default).
      --keep-source-filters -- Use the original filters in source files. The
          default is not doing that if any of --complevel, --complib, --shuffle
-         or --fletcher32 option is specified.</screen></para>
+         or --fletcher32 option is specified.
+     --dont-regenerate-old-indexes -- Disable regenerating old indexes. The
+         default is to regenerate old indexes as they are found.
+          </screen></para>
         </section>
 
         <section>
