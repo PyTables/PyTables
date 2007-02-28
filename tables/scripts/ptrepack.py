@@ -23,7 +23,7 @@ import warnings
 from tables.file import openFile
 from tables.group import Group
 from tables.leaf import Filters
-from tables.exceptions import OldIndexWarning
+from tables.exceptions import OldIndexWarning, NoIndexingWarning
 
 # Global variables
 verbose = False
@@ -341,6 +341,9 @@ def main():
     # Ignore the warnings for tables that contains oldindexes
     # (these will be handled by the copying routines)
     warnings.filterwarnings("ignore", category=OldIndexWarning)
+    # Let the user be warned in case he is using ptrepack when copying
+    # files with indexes
+    #warnings.filterwarnings("ignore", category=NoIndexingWarning)
 
     # Build the Filters instance
     if ((complevel, complib, shuffle, fletcher32) == (None,)*4 or keepfilters):

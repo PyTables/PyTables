@@ -2050,8 +2050,8 @@ The 'names' parameter must be a list of strings.""")
             # There may be no filters; this is also a explicit change if
             # the default is having filters.  This is the reason for the
             # second part of the condition.
-            if ( _is_pro and 'FILTERS' in indexgroup._v_attrs
-                 or self.indexFilters != defaultIndexFilters ):
+            if ( _is_pro and ('FILTERS' in indexgroup._v_attrs
+                 or self.indexFilters != defaultIndexFilters) ):
                 newtable.indexFilters = self.indexFilters
         # Generate equivalent indexes in the new table, if any.
         if self.indexed:
