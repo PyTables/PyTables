@@ -8073,10 +8073,9 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <para>You can use the <literal>filters</literal> argument to set
               the <literal>Filters</literal> (see <xref
               linkend="FiltersClassDescr" xrefstyle="select: label" />) used
-              to compress the index. If <literal>None</literal>, <!-- they
-              will be those in the <literal>indexFilters</literal> of the
-              associated table if any; otherwise, -->default index filters
-              will be used (currently, zlib level 1 with shuffling).</para>
+              to compress the index. If <literal>None</literal>, default index
+              filters will be used (currently, zlib level 1 with
+              shuffling).</para>
             </section>
 
             <section id="optimizeIndexColumnDescr" xreflabel="description">

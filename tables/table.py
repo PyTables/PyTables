@@ -2606,9 +2606,9 @@ class Column(object):
         """Create an index for this column.
 
         optlevel -- The default level of optimization for the index.
-        filters -- The Filters used to compress the index. If None, they
-            will be those in the indexFilters of the associated table if
-            any; otherwise, default index filters will be used.
+        filters -- The Filters used to compress the index. If None,
+            default index filters will be used (currently, zlib level 1
+            with shuffling).
         """
 
         _checkIndexingAvailable()
