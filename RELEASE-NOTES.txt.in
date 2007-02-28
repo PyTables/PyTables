@@ -2,7 +2,6 @@
  What's new in PyTables @VERSION@
 =================================
 
-
 :Author: Francesc Altet i Abad
 :Contact: faltet@carabos.com
 :Author: Ivan Vilata i Balaguer
@@ -27,35 +26,33 @@ New type system
 In PyTables 2.0 all the data types for leaves are described through a couple
 of classes:
 
-- Atom: Has info about homogeneous types of the atomic components in \*Array
-  (Array, CArray, EArray and VLArray) objects.
+- ``Atom``: Describes homogeneous types of the atomic components in ``*Array``
+   objects (``Array``, ``CArray``, ``EArray`` and ``VLArray``).
 
-- Description: Has info about (possibly nested) heterogeneous types in Table
-  objects.
+- ``Description``: Describes (possibly nested) heterogeneous types in
+  ``Table`` objects.
 
-So, in order to upgrade to the new type system, you must do the next
+So, in order to upgrade to the new type system, you must perform the next
 replacements:
 
-- \*Array.stype --> \*Array.atom.type  (PyTables type)
-
-- \*Array.type --> \*Array.atom.dtype  (NumPy type)
-
-- \*Array.itemsize --> \*Array.atom.itemsize   (the size of the item)
+- ``*Array.stype`` --> ``*Array.atom.type`` (PyTables type)
+- ``*Array.type`` --> ``*Array.atom.dtype`` (NumPy type)
+- ``*Array.itemsize`` --> ``*Array.atom.itemsize`` (the size of the item)
 
 Furthermore, the PyTables types (previously called "string types") have
-changed to better adapt to the NumPy conventions. The next changes have been
+changed to better adapt to NumPy conventions.  The next changes have been
 applied:
 
-- PyTables types are now written in lower case, so "Type" becomes "type". For
+- PyTables types are now written in lower case, so 'Type' becomes 'type'.  For
   example, 'Int64' becomes now 'int64'.
 
-- "CharType" --> "string"
+- 'CharType' --> 'string'
 
-- "Complex32", "Complex64" --> "complex64", "complex128". Note that the
-  numeric part of a 'complex' type refers now to the size in bits of the type
-  and not to the precision, as before.
+- 'Complex32', 'Complex64' --> 'complex64', 'complex128'.  Note that the
+  numeric part of a 'complex' type refers now to the *size in bits* of the
+  type and not to the precision, as before.
 
-See the appendix I of the Users' Manual on supported data types for more
+See Appendix I of the Users' Manual on supported data types for more
 information on the new PyTables types.
 
 
@@ -81,18 +78,19 @@ Important changes in Atom specification
 New query system
 ----------------
 
-- In-kernel conditions, as they are based now in Numexpr, must be written as
-  strings. For example, a condition that in 1.x was stated as:
+- In-kernel conditions, since they are based now in Numexpr, must be written
+  *as strings*.  For example, a condition that in 1.x was stated as::
 
-  res = [ row['col2'] for row in table.where(table.cols.col1 == 1) ]
+      result = [row['col2'] for row in table.where(table.cols.col1 == 1)]
 
-  now should read:
+  now should read::
 
-  res = [ row['col2'] for row in table.where('col1 == 1') ]
+      result = [row['col2'] for row in table.where('col1 == 1')]
 
-  That means that complex selections are possible now:
+  That means that complex selections are possible now::
 
-  res = [ row['col2'] for row in table.where('(col1 == 1) & (col3**4 > 1)') ]
+      result = [ row['col2'] for row in
+                 table.where('(col1 == 1) & (col3**4 > 1)') ]
 
 - [Pro] For the same reason, conditions for indexed columns must be written as
   strings as well.
@@ -102,7 +100,7 @@ New query system
 -------------------------
 
 The indexing system has been totally rewritten from scratch for PyTables 2.0
-Pro Edition (http://www.carabos.com/products/pytables-pro.html). Due to this,
+Pro Edition (http://www.carabos.com/products/pytables-pro.html).  Due to this,
 your existing indexes created with PyTables 1.x will be useless, and although
 you will be able to continue using the actual data in files, you won't be able
 to take advantage of any improvement in speed.
@@ -112,41 +110,43 @@ automatically re-create the indexes in PyTables 1.x format to the new 2.0
 format by using the ``ptrepack`` utility.
 
 
-New meanings for Atom shape and \*Array shape argument
-------------------------------------------------------
+New meanings for atom shape and ``*Array`` shape argument
+---------------------------------------------------------
 
 With PyTables 1.x, the atom shape was used for different goals depending on
-the context it was used. For example, in createEArray, the shape of the Atom
-was used to specify the *dataset shape* of the object on disk, while in CArray
-the same Atom shape was used to specify the *chunk shape* of the dataset on
-disk.  Moreover, for VLArray objects, the very same Atom shape specified the
-*type shape* of the data type. As you see, all of these was quite a mess.
+the context it was used.  For example, in ``createEArray()``, the shape of the
+atom was used to specify the *dataset shape* of the object on disk, while in
+``CArray`` the same atom shape was used to specify the *chunk shape* of the
+dataset on disk.  Moreover, for ``VLArray`` objects, the very same atom shape
+specified the *type shape* of the data type.  As you see, all of these was
+quite a mess.
 
-Starting with PyTables 2.x, the Atom only specifies properties of the data
-type (à la VLArray in 1.x). This lets the door open for specifying
+Starting with PyTables 2.x, an ``Atom`` only specifies properties of the data
+type (à la ``VLArray`` in 1.x).  This lets the door open for specifying
 multidimensional data types (that can be part of another layer of
-multidimensional datasets) in a consistent way along all the \*Array objects
-in PyTables.
+multidimensional datasets) in a consistent way along all the ``*Array``
+objects in PyTables.
 
 As a consequence of this, ``File.createCArray()`` and ``File.createVLArray()``
-methods have received new parameters in order to be possible to specify the
-shapes of the datasets as well as chunksizes (in fact, it is possible now to
-specify the latter for all the chunked leaves, see below). Please have this in
-mind during the migration process.
+methods have received new parameters in order to make possible to specify the
+shapes of the datasets as well as chunk sizes (in fact, it is possible now to
+specify the latter for all the chunked leaves, see below).  Please have this
+in mind during the migration process.
 
-Another consequence is that, now that the meaning of the Atom shape is clearly
+Another consequence is that, now that the meaning of the atom shape is clearly
 defined, it has been chosen as the main object to describe homogeneous data
-types in PyTables. See the Users' Manual for more info on this.
+types in PyTables.  See the Users' Manual for more info on this.
 
 
 New argument ``chunkshape`` of chunked leaves
 ---------------------------------------------
 
 It is possible now to specify the chunk shape for all the chunked leaves in
-PyTables (all except Array). With PyTables 1.x this value was automatically
-calculated so as to achieve decent results in most of the situations. However,
-the user may be interested in specifying its own chunk shape based on her own
-needs (although this should be used only by advanced users).
+PyTables (all except ``Array``).  With PyTables 1.x this value was
+automatically calculated so as to achieve decent results in most of the
+situations.  However, the user may be interested in specifying its own chunk
+shape based on her own needs (although this should be done only by advanced
+users).
 
 Of course, if this parameter is not specified, a sensible default is
 calculated for the size of the leave (which is recommended).
@@ -167,13 +167,13 @@ Flavors can no longer be set through ``File.create*()`` methods, nor the
 Byteorder issues
 ----------------
 
-Now, all the data coming from reads and internal buffers are always converted
-on-the-fly, if needed, to the *native* byteorder. This represents a big
+Now, all the data coming from reads and internal buffers is always converted
+on-the-fly, if needed, to the *native* byteorder.  This represents a big
 advantage in terms of speed when operating with objects coming from files that
-have been created in machines with a byteordering different from the native.
+have been created in machines with a byte ordering different from native.
 
-Besides, all the leaf constructors have received a new ``byteorder`` parameter
-that allows specifying the byteorder of data on disk. In particular, a
+Besides, all leaf constructors have received a new ``byteorder`` parameter
+that allows specifying the byteorder of data on disk.  In particular, a
 ``_v_byteorder`` entry in a Table description is no longer honored and you
 should use the aforementioned ``byteorder`` parameter.
 
@@ -181,15 +181,11 @@ should use the aforementioned ``byteorder`` parameter.
 Other changes
 -------------
 
-- "non-relevant" --> "irrelevant" (applied to byteorders)
-
-- Table.colstypes --> Table.coltypes
-
-- Table.coltypes --> Table.coldtypes
-
-- Table.colshapes & Table.colitemsizes have disappeared
-
-- Description.itemsize have disappeared
+- 'non-relevant' --> 'irrelevant' (applied to byteorders)
+- ``Table.colstypes`` --> ``Table.coltypes``
+- ``Table.coltypes`` --> ``Table.coldtypes``
+- ``Table.colshapes`` and ``Table.colitemsizes`` have disappeared.
+- ``Description.itemsize`` has disappeared.
 
 
 API additions
@@ -213,7 +209,7 @@ API additions
   respectively.  This is similar to ``Table.cols._f_col()``, but faster.
 
 - ``Row`` has received a new ``Row.fetch_all_fields()`` method in order to
-  return all the fields in the current row. This returns a NumPy void scalar
+  return all the fields in the current row.  This returns a NumPy void scalar
   for each call.
 
 - New ``tables.test(verbose=False, heavy=False)`` high level function for
@@ -236,9 +232,9 @@ Backward-incompatible changes
   old structure by using ``Table.description._v_nestedNames``.  See also the
   new ``Table.colpathnames`` attribute.
 
-- The dictionaries File.objects, File.leaves and File.groups has been removed.
-  If you need this functionality, please use the File.getNode() and
-  File.walkNodes() instead.
+- The ``File.objects``, ``File.leaves`` and ``File.groups`` dictionaries have
+  been removed.  If you still need this functionality, please use the
+  ``File.getNode()`` and ``File.walkNodes()`` instead.
 
 - ``Table.removeIndex()`` is no longer available; to remove an index on a
   column, one must use the ``removeIndex()`` method of the associated
@@ -248,30 +244,33 @@ Backward-incompatible changes
   column index dirtiness, use ``Column.index.dirty``.
 
 - ``complib`` and ``complevel`` parameters have been removed from
-  ``File.createTable``, ``File.createEArray``, ``File.createCArray`` and
-  ``File.createVLArray``. They were already deprecated in PyTables 1.x.
+  ``File.createTable()``, ``File.createEArray()``, ``File.createCArray()`` and
+  ``File.createVLArray()``.  They were already deprecated in PyTables 1.x.
 
-- Parameters ``shape`` and ``atom`` has been swapped in
-  ``File.createCArray()``. This has been done to be consistent with Atom()
-  definitions (i.e. type comes before and shape after).
+- The ``shape`` and ``atom`` parameters have been swapped in
+  ``File.createCArray()``.  This has been done to be consistent with
+  ``Atom()`` definitions (i.e. type comes before and shape after).
 
 
 Deprecated features
 ===================
 
-- Node._v_rootgroup has been removed. Please use node._v_file.root instead.
+- ``Node._v_rootgroup`` has been removed.  Please use ``node._v_file.root``
+  instead.
 
-- Node._f_isOpen() and Leaf.isOpen() methods has been removed. Use
-  Node._v_isopen attribute instead (it is much faster).
+- The ``Node._f_isOpen()`` and ``Leaf.isOpen()`` methods have been removed.
+  Please use the ``Node._v_isopen`` attribute instead (it is much faster).
 
-- File.getAttrNode(), File.setAttrNode() and File.delAttrNode() have been
-  removed. Please use File.getNodeAttr(), File.setNodeAttr() and
-  File.delNodeAttr() instead.
+- The ``File.getAttrNode()``, ``File.setAttrNode()`` and
+  ``File.delAttrNode()`` methods have been removed.  Please use
+  ``File.getNodeAttr()``, ``File.setNodeAttr()`` and ``File.delNodeAttr()``
+  instead.
 
-- File.copyAttrs() has been removed. Use File.copyNodeAttrs() instead.
+- ``File.copyAttrs()`` has been removed.  Please use ``File.copyNodeAttrs()``
+  instead.
 
-- table[colname] idiom has been removed. You can use table.cols._f_col(column)
-  for doing the same.
+- The ``table[colname]`` idiom is no longer supported.  You can use
+  ``table.cols._f_col(column)`` for doing the same.
 
 
 API refinements
@@ -284,13 +283,10 @@ API refinements
 - All the leaf constructors have received a new ``chunkshape`` parameter that
   allows specifying the chunk sizes of datasets on disk.
 
-- All the ``File.create*()`` factories for Leaf creation has received a new
+- All ``File.create*()`` factories for ``Leaf`` nodes have received a new
   ``byteorder`` parameter that allows the user to specify the byteorder in
-  which the data will be written to disk.
-
-- All the leaf constructors have received a new ``byteorder`` parameter that
-  allows specifying the byteorder of data on disk (in memory the data is now
-  always in *native* order).
+  which data will be written to disk (data in memory is now always handled in
+  *native* order).
 
 
 ----
