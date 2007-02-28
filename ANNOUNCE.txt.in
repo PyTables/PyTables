@@ -9,10 +9,9 @@ http://www.pytables.org/
 
 or keep reading for more info about the new features and bugs fixed.
 
-Please keep reading for more info about the new features. You may also
-have an in-deep read of the RELEASE-NOTES.txt document where you will
-find an entire section devoted to how to migrate your existing PyTables
-1.x apps to the 2.0 version.
+You may also want to have an in-deep read of the ``RELEASE-NOTES.txt``
+file where you will find an entire section devoted to how to migrate
+your existing PyTables 1.x apps to the 2.0 version.
 
 
 Changes more in depth
@@ -20,72 +19,79 @@ Changes more in depth
 
 Improvements:
 
-- NumPy is finally at the core! That means that PyTables no longer needs
-  numarray in order to operate, although it continues to be supported
-  (as well as Numeric). This also means that you should be able to run
-  PyTables in scenarios combining Python2.5 and 64-bit platforms (these
-  are a source of problems with numarray/Numeric because they don't
-  support this combination yet).
+- NumPy is finally at the core!  That means that PyTables no longer
+  needs numarray in order to operate, although it continues to be
+  supported (as well as Numeric).  This also means that you should be
+  able to run PyTables in scenarios combining Python 2.5 and 64-bit
+  platforms (these are a source of problems with numarray/Numeric
+  because they don't support this combination yet).
 
 - Most of the operations in PyTables have experimented noticeable
   speed-ups (sometimes up to 2x, like in regular Python table
-  selections) as a consequence of using NumPy internally.
+  selections).  This is a consequence of both using NumPy internally and
+  a considerable effort in terms of refactorization and optimization of
+  the new code.
 
-- Numexpr has been integrated in all in-kernel selections. So, now it is
-  possible to perform complex selections like:
+- Numexpr has been integrated in all in-kernel selections.  So, now it
+  is possible to perform complex selections like::
 
-res = [ row['var3'] for row in table.where('(var2 < 20) | (var1 == "sas")') ]
+      result = [ row['var3'] for row in
+                 table.where('(var2 < 20) | (var1 == "sas")') ]
 
-  or:
+  or::
 
-cplx_cond = '((%s<=col5) & (col2<=%s)) | (sqrt(col1+3.1*col2+col3*col4)>3)'
-res = [ row['var3'] for row in table.where('cplx_cond' % (inf, sup)) ]
+      complex_cond = '((%s <= col5) & (col2 <= %s)) ' \
+                     '| (sqrt(col1 + 3.1*col2 + col3*col4) > 3)'
+      result = [ row['var3'] for row in
+                 table.where(complex_cond % (inf, sup)) ]
 
-  and run them at full C-speed (or even more, due to the cache-tuned
+  and run them at full C-speed (or perhaps more, due to the cache-tuned
   computing kernel of Numexpr).
 
-- Now, it is possible to get fields of the Row iterator by specifiying their
-  position, o even ranges of positions (extended slicing is supported
-  now). For example, you can do now:
+- Now, it is possible to get fields of the ``Row`` iterator by
+  specifiying their position, or even ranges of positions (extended
+  slicing is supported).  For example, you can do::
 
-  res = [ row[4] for row in table if row[1] < 20 ]   # fetch field #4
-  res = [ row[:] for row in table if row['var2'] < 20 ]  # fetch all fields
-  res = [ row[1::2] for row in table.iterrows(2, 3000, 3) ] # fetch odd fields
+      result = [ row[4] for row in table    # fetch field #4
+                 if row[1] < 20 ]
+      result = [ row[:] for row in table    # fetch all fields
+                 if row['var2'] < 20 ]
+      result = [ row[1::2] for row in       # fetch odd fields
+                 table.iterrows(2, 3000, 3) ]
 
-  in addition to the classical:
+  in addition to the classical::
 
-  res = [ row['var3'] for row in table.where('var2 < 20') ]
+      result = [row['var3'] for row in table.where('var2 < 20')]
 
-- Row has received a new method called ``fetch_all_fields`` in order to
-  easily retrieve all the fields of a row in situations like:
+- ``Row`` has received a new method called ``fetch_all_fields()`` in
+  order to easily retrieve all the fields of a row in situations like::
 
-  [row.fetch_all_fields() for row in table.where('column1 < 0.3')]
+      [row.fetch_all_fields() for row in table.where('column1 < 0.3')]
 
-  The difference between row[:] and row.fetch_all_fields() is that the former
-  will return all the fields as a tuple, while the latter will return the
-  fields in a NumPy void type and should be faster. Choose whatever fits
-  better to your needs.
+  The difference between ``row[:]`` and ``row.fetch_all_fields()`` is
+  that the former will return all the fields as a tuple, while the
+  latter will return the fields in a NumPy void type and should be
+  faster.  Choose whatever fits better to your needs.
 
-- Now, all the data that is read from disk is converted, if necessary,
-  to the native byteorder of the hosting machine (before, this only
-  happened with Table objects). This should help to accelerate apps that
-  have to do computations with data generated in platforms with a
+- Now, all data that is read from disk is converted, if necessary, to
+  the native byteorder of the hosting machine (before, this only
+  happened with ``Table`` objects).  This should help to accelerate apps
+  that have to do computations with data generated in platforms with a
   byteorder different than the user machine.
 
-- All the leaf constructors have received a new pararameter called
-  'byteorder' that lets the user specify the byteorder of his data *on
-  disk*. This effectively allows to create datasets in other byteorders
-  than the native platform.
+- All the leaf constructors have received a new parameter called
+  ``byteorder`` that lets the user specify the byteorder of their data
+  *on disk*.  This effectively allows to create datasets in other
+  byteorders than the native platform.
 
-- Native HDF5 datasets with H5T_ARRAY datatypes are fully supported for
-  reading now.
+- Native HDF5 datasets with ``H5T_ARRAY`` datatypes are fully supported
+  for reading now.
 
-- The test suites for the differents packages are installed now, so you
-  don't need a copy of the PyTables sources to run the tests. Besides,
-  you can run the test suite from the Python console by using:
+- The test suites for the different packages are installed now, so you
+  don't need a copy of the PyTables sources to run the tests.  Besides,
+  you can run the test suite from the Python console by using::
 
   >>> tables.tests()
-
 
 Bug fixes:
 
@@ -99,26 +105,26 @@ Bug fixes:
 
 Deprecated features:
 
-- Not many, really. Please see ``RELEASE-NOTES.txt`` file.
+- Not many, really.  Please see ``RELEASE-NOTES.txt`` file.
 
 Backward-incompatible changes:
 
-- Many. Please see ``RELEASE-NOTES.txt`` file.
+- Many.  Please see ``RELEASE-NOTES.txt`` file.
 
 
 Important note for Windows users
 ================================
 
 In order to keep PyTables happy, you will need to get the HDF5 library
-compiled for MSVC 7.1, aka .NET 2003.  It can be found at:
+compiled for MSVC 7.1, aka .NET 2003.  It can be found at
 ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current/bin/windows/5-165-win-net.ZIP
 
 Please remember that, from PyTables 2.0 on, Python 2.3 (and lesser) is
 not supported anymore.
 
 
-What it is
-==========
+What is PyTables?
+=================
 
 **PyTables** is a package for managing hierarchical datasets and
 designed to efficiently cope with extremely large amounts of data (with
@@ -127,8 +133,8 @@ object-oriented interface that, combined with C extensions for the
 performance-critical parts of the code, makes it a very easy-to-use tool
 for high performance data storage and retrieval.
 
-PyTables runs on top of the HDF5 library and NumPy (but numarray and
-Numeric are also supported) package for achieving maximum throughput and
+PyTables runs on top of the HDF5 library and NumPy package (but numarray
+and Numeric are also supported) for achieving maximum throughput and
 convenient use.
 
 Besides, PyTables I/O for table objects is buffered, implemented in C
