@@ -1,7 +1,7 @@
 "This creates an HDF5 file with a potentially large number of objects"
 
 import sys
-import numarray
+import numpy
 import tables
 
 filename = sys.argv[1]
@@ -15,13 +15,13 @@ fileh = tables.openFile(filename, mode = "w")
 # LR: Low ratio groups/datasets
 #nlevels, ngroups, ndatasets = (3, 1, 1000)
 # MR: Medium ratio groups/datasets
-#nlevels, ngroups, ndatasets = (3, 10, 100)
-nlevels, ngroups, ndatasets = (3, 5, 10)
+nlevels, ngroups, ndatasets = (3, 10, 100)
+#nlevels, ngroups, ndatasets = (3, 5, 10)
 # HR: High ratio groups/datasets
 #nlevels, ngroups, ndatasets = (30, 10, 10)
 
 # Create an Array to save on disk
-a = numarray.array([-1, 2, 4], numarray.Int16)
+a = numpy.array([-1, 2, 4], numpy.int16)
 
 group = fileh.root
 group2 = fileh.root
