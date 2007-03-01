@@ -1,6 +1,6 @@
 include MANIFEST.in
 include *.txt THANKS
-include ANNOUNCE.txt.in RELEASE-NOTES.txt.in
+include ANNOUNCE.txt RELEASE-NOTES.txt
 include setup.py setup.cfg VERSION Makefile
 
 recursive-include LICENSES *
@@ -14,7 +14,7 @@ recursive-include utils *
 recursive-include doc *.html *.pdf *.css *.gif *.jpg *.txt Makefile
 recursive-include doc/scripts *.py
 recursive-exclude doc/xml *
-recursive-include src *.pyx *.pxd *.pxi *.c *.h *.h.in Makefile
+recursive-include src *.pyx *.pxd *.pxi *.c *.h Makefile
 recursive-include examples *.py *.sh
 recursive-include bench *.sh *.py *.h5 *.txt *.gnuplot
 recursive-include contrib README *.py
