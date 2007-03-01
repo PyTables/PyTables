@@ -30,8 +30,8 @@ import numpy
 from tables.description import Description, Col
 from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
-from tables.utilsExtension import convertTime64, getNestedField, \
-     AtomFromHDF5Type, AtomToHDF5Type
+from tables.utilsExtension import \
+     getNestedField, AtomFromHDF5Type, AtomToHDF5Type
 
 # numpy functions & objects
 from hdf5Extension cimport Leaf
@@ -378,17 +378,17 @@ cdef class Table(Leaf):
     return (self.dataset_id, desc, chunksize[0])
 
 
-  def _convertTypes(self, object recarr, hsize_t nrecords, int sense):
-    """Converts columns in 'recarr' between NumPy and HDF5 formats.
+  cdef _convertTypes(self, ndarray recarr, hsize_t nrecords, int sense):
+#     """Converts columns in 'recarr' between NumPy and HDF5 formats.
 
-    NumPy to HDF5 conversion is performed when 'sense' is 0.
-    Otherwise, HDF5 to NumPy conversion is performed.  The conversion
-    is done in place, i.e. 'recarr' is modified.  """
+#     NumPy to HDF5 conversion is performed when 'sense' is 0.
+#     Otherwise, HDF5 to NumPy conversion is performed.  The conversion
+#     is done in place, i.e. 'recarr' is modified.  """
 
     # This should be generalised to support other type conversions.
     for t64cname in self._time64colnames:
       column = getNestedField(recarr, t64cname)
-      convertTime64(column, nrecords, sense)
+      self._convertTime64(column, nrecords, sense)
 
 
   def _open_append(self, ndarray recarr):

@@ -41,8 +41,7 @@ from tables.utils import checkFileAccess, byteorders, correct_byteorder
 from tables.atom import Atom
 
 from tables.utilsExtension import  \
-     enumToHDF5, enumFromHDF5, getTypeEnum, \
-     convertTime64, isHDF5File, isPyTablesFile, \
+     enumToHDF5, enumFromHDF5, getTypeEnum, isHDF5File, isPyTablesFile, \
      AtomToHDF5Type, AtomFromHDF5Type, loadEnum, HDF5ToNPExtType
 
 # Types, constants, functions, classes & other objects from everywhere
@@ -144,6 +143,15 @@ cdef extern from "H5VLARRAY.h":
                             hsize_t *nrecords, hsize_t *base_dims,
                             hid_t *base_type_id, char *base_byteorder)
 
+
+# Type conversion routines
+cdef extern from "typeconv.h":
+  void conv_float64_timeval32(void *base,
+                              unsigned long byteoffset,
+                              unsigned long bytestride,
+                              long long nrecords,
+                              unsigned long nelements,
+                              int sense)
 
 
 #----------------------------------------------------------------------------
@@ -676,18 +684,37 @@ cdef class Leaf(Node):
     super(Leaf, self)._g_new(where, name, init)
 
 
-  def _g_get_type_ids(self):
-    """_g_get_type_ids() -> (disk_type_id, native_type_id)
-    Get the disk and native HDF5 types associated with this leaf.
+  cdef _get_type_ids(self):
+#     """Get the disk and native HDF5 types associated with this leaf.
 
-    It is guaranteed that both disk and native types are not the same
-    descriptor (so that it is safe to close them separately).
-    """
+#     It is guaranteed that both disk and native types are not the same
+#     descriptor (so that it is safe to close them separately).
+#     """
     cdef hid_t disk_type_id, native_type_id
 
     disk_type_id = H5Dget_type(self.dataset_id)
     native_type_id = get_native_type(disk_type_id)
     return (disk_type_id, native_type_id)
+
+
+  cdef _convertTime64(self, ndarray nparr, hsize_t nrecords, int sense):
+#   """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
+
+#   NumPy to HDF5 conversion is performed when 'sense' is 0.
+#   Otherwise, HDF5 to NumPy conversion is performed.
+#   The conversion is done in place, i.e. 'nparr' is modified.
+#   """
+
+    cdef void *t64buf
+    cdef long byteoffset, bytestride, nelements
+
+    byteoffset = 0   # NumPy objects doesn't have an offset
+    bytestride = nparr.strides[0]  # supports multi-dimensional recarray
+    nelements = nparr.size / len(nparr)
+    t64buf = nparr.data
+
+    conv_float64_timeval32(
+      t64buf, byteoffset, bytestride, nrecords, nelements, sense)
 
 
   def _g_flush(self):
@@ -813,7 +840,7 @@ cdef class Array(Leaf):
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems opening dataset %s" % self.name)
     # Get the datatype handles
-    self.disk_type_id, self.type_id = self._g_get_type_ids()
+    self.disk_type_id, self.type_id = self._get_type_ids()
     # Get the atom for this type
     atom = AtomFromHDF5Type(self.disk_type_id)
 
@@ -855,19 +882,6 @@ cdef class Array(Leaf):
     return (self.dataset_id, atom, shape, chunkshapes)
 
 
-  def _convertTypes(self, object nparr, int sense):
-    """Converts time64 elements in 'nparr' between NumPy and HDF5 formats.
-
-    NumPy to HDF5 conversion is performed when 'sense' is 0.
-    Otherwise, HDF5 to NumPy conversion is performed.
-    The conversion is done in place, i.e. 'nparr' is modified.
-    """
-
-    # This should be generalised to support other type conversions.
-    if self.atom.type == 'time64':
-      convertTime64(nparr, len(nparr), sense)
-
-
   def _append(self, ndarray nparr):
     cdef int ret, extdim
     cdef hsize_t *dims_arr
@@ -879,7 +893,8 @@ cdef class Array(Leaf):
     # Get the pointer to the buffer data area
     rbuf = nparr.data
     # Convert some NumPy types to HDF5 before storing.
-    self._convertTypes(nparr, 0)
+    if self.atom.type == 'time64':
+      self._convertTime64(nparr, len(nparr), 0)
 
     # Append the records
     extdim = self.extdim
@@ -911,7 +926,8 @@ cdef class Array(Leaf):
     count = <hsize_t *>countl.data
 
     # Convert some NumPy types to HDF5 before storing.
-    self._convertTypes(nparr, 0)
+    if self.atom.type == 'time64':
+      self._convertTime64(nparr, len(nparr), 0)
 
     # Modify the elements:
     Py_BEGIN_ALLOW_THREADS
@@ -966,13 +982,14 @@ cdef class Array(Leaf):
       raise HDF5ExtError("Problems reading the array data.")
 
     # Convert some HDF5 types to NumPy after reading.
-    self._convertTypes(nparr, 1)
+    if self.atom.type == 'time64':
+      self._convertTime64(nparr, len(nparr), 1)
 
     return
 
 
   def _g_readSlice(self, ndarray startl, ndarray stopl, ndarray stepl,
-                   ndarray bufferl):
+                   ndarray nparr):
     cdef herr_t ret
     cdef hsize_t *start, *stop, *step
     cdef void *rbuf
@@ -982,7 +999,7 @@ cdef class Array(Leaf):
     stop = <hsize_t *>stopl.data
     step = <hsize_t *>stepl.data
     # Get the pointer to the buffer data area
-    rbuf = bufferl.data
+    rbuf = nparr.data
 
     # Do the physical read
     ret = H5ARRAYreadSlice(self.dataset_id, self.type_id,
@@ -991,7 +1008,8 @@ cdef class Array(Leaf):
       raise HDF5ExtError("Problems reading the array data.")
 
     # Convert some HDF5 types to NumPy after reading
-    self._convertTypes(bufferl, 1)
+    if self.atom.type == 'time64':
+      self._convertTime64(nparr, len(nparr), 1)
 
     return
 
@@ -1051,7 +1069,7 @@ cdef class VLArray(Leaf):
     self.nrecords = 0  # Initialize the number of records saved
 
     # Get the datatype handles
-    self.disk_type_id, self.type_id = self._g_get_type_ids()
+    self.disk_type_id, self.type_id = self._get_type_ids()
 
     return self.dataset_id
 
@@ -1070,7 +1088,7 @@ cdef class VLArray(Leaf):
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems opening dataset %s" % self.name)
     # Get the datatype handles
-    self.disk_type_id, self.type_id = self._g_get_type_ids()
+    self.disk_type_id, self.type_id = self._get_type_ids()
 
     # Get the rank for the atom in the array object
     ret = H5VLARRAYget_ndims(self.dataset_id, self.type_id, &rank)
@@ -1104,19 +1122,6 @@ cdef class VLArray(Leaf):
     return self.dataset_id, nrecords, (chunksize,), atom
 
 
-  def _convertTypes(self, object nparr, int sense):
-    """Converts Time64 elements in 'nparr' between NumPy and HDF5 formats.
-
-    NumPy to HDF5 conversion is performed when 'sense' is 0.
-    Otherwise, HDF5 to NumPy conversion is performed.
-    The conversion is done in place, i.e. 'nparr' is modified.
-    """
-
-    # This should be generalised to support other type conversions.
-    if self._atomictype == 'time64':
-      convertTime64(nparr, len(nparr), sense)
-
-
   def _append(self, ndarray nparr, int nobjects):
     cdef int ret
     cdef void *rbuf
@@ -1125,7 +1130,8 @@ cdef class VLArray(Leaf):
     if nobjects:
       rbuf = nparr.data
       # Convert some NumPy types to HDF5 before storing.
-      self._convertTypes(nparr, 0)
+      if self.atom.type == 'time64':
+        self._convertTime64(nparr, len(nparr), 0)
     else:
       rbuf = NULL
 
@@ -1148,7 +1154,8 @@ cdef class VLArray(Leaf):
     rbuf = nparr.data
     if nobjects:
       # Convert some NumPy types to HDF5 before storing.
-      self._convertTypes(nparr, 0)
+      if self.atom.type == 'time64':
+        self._convertTime64(nparr, len(nparr), 0)
 
     # Append the records:
     Py_BEGIN_ALLOW_THREADS
@@ -1216,7 +1223,8 @@ cdef class VLArray(Leaf):
       # Set the writeable flag for this ndarray object
       nparr.flags.writeable = True
       # Convert some HDF5 types to NumPy after reading.
-      self._convertTypes(nparr, 1)
+      if self.atom.type == 'time64':
+        self._convertTime64(nparr, len(nparr), 1)
       # Append this array to the output list
       datalist.append(nparr)
 

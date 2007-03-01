@@ -79,16 +79,6 @@ cdef extern from "utils.h":
                         hsize_t *slicelength)
 
 
-# Type conversion routines
-cdef extern from "typeconv.h":
-  void conv_float64_timeval32(void *base,
-                              unsigned long byteoffset,
-                              unsigned long bytestride,
-                              long long nrecords,
-                              unsigned long nelements,
-                              int sense)
-
-
 
 #----------------------------------------------------------------------
 # Initialization code
@@ -393,26 +383,6 @@ def getFilters(parent_id, name):
 
 
 # This is used by several <Leaf>._convertTypes() methods.
-def convertTime64(ndarray nparr, hsize_t nrecords, int sense):
-  """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
-
-  NumPy to HDF5 conversion is performed when 'sense' is 0.
-  Otherwise, HDF5 to NumPy conversion is performed.
-  The conversion is done in place, i.e. 'nparr' is modified.
-  """
-
-  cdef void *t64buf
-  cdef long byteoffset, bytestride, nelements
-
-  byteoffset = 0   # NumPy objects doesn't have an offset
-  bytestride = nparr.strides[0]  # supports multi-dimensional recarray
-  nelements = nparr.size / len(nparr)
-  t64buf = nparr.data
-
-  conv_float64_timeval32(
-    t64buf, byteoffset, bytestride, nrecords, nelements, sense)
-
-
 def getTypeEnum(hid_t h5type):
   """_getTypeEnum(h5type) -> hid_t
   Get the native HDF5 enumerated type of `h5type`.
