@@ -1,25 +1,19 @@
 include MANIFEST.in
 include *.txt THANKS
-include ANNOUNCE.txt RELEASE-NOTES.txt
 include setup.py setup.cfg VERSION Makefile
 
-recursive-include LICENSES *
 recursive-include tables *.py
-recursive-include tables/tests *.py *.h5 *.dat *.xbm
-recursive-include tables/nodes/tests *.py *.h5 *.dat *.xbm
-recursive-include tables/netcdf3/tests *.py *.h5 *.dat *.xbm
-recursive-include tables/nra/tests *.py *.h5 *.dat *.xbm
-recursive-include tables/numexpr *.py *.c *.inc README.txt
+recursive-include tables/tests *.h5
+recursive-include tables/nodes/tests *.h5 *.dat *.xbm
+recursive-include tables/numexpr *.c *.inc README.txt
+recursive-include src *.pyx *.pxd *.pxi *.c *.h Makefile
+
+recursive-include LICENSES *
 recursive-include utils *
-recursive-include doc *.html *.pdf *.css *.gif *.jpg *.txt Makefile
+recursive-include doc *.txt *.pdf *.html *.css *.png *.jpg Makefile
 recursive-include doc/scripts *.py
 recursive-exclude doc/xml *
-recursive-include src *.pyx *.pxd *.pxi *.c *.h Makefile
 recursive-include examples *.py *.sh
 recursive-include bench *.sh *.py *.h5 *.txt *.gnuplot
 recursive-include contrib README *.py
 recursive-include debian *
-
-prune old
-prune examples/*.h5
-
