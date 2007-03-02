@@ -22,6 +22,7 @@ Variables
 
 # Imports
 # =======
+import warnings
 import numpy
 from tables import utilsExtension
 
