@@ -81,6 +81,24 @@ def convertToNPAtom(arr, atom, copy=False):
     return nparr
 
 
+# The next is used in Array, EArray and VLArray, and it is a bit more
+# high level than convertToNPAtom
+def convertToNPAtom2(object, atom):
+    "Convert a generic object into a NumPy object compliant with atom."
+    # Check whether the object needs to be copied to make the operation
+    # safe to in-place conversion.
+    copy = atom.type in ['time64']
+    nparr = convertToNPAtom(object, atom, copy)
+    # Finally, check the byteorder and change it if needed
+    byteorder = byteorders[nparr.dtype.byteorder]
+    if ( byteorder in ['little', 'big'] and byteorder != sys.byteorder ):
+        # The byteorder needs to be fixed (a copy is made
+        # so that the original array is not modified)
+        nparr = nparr.byteswap()
+
+    return nparr
+
+
 def checkFileAccess(filename, mode='r'):
     """
     Check for file access in the specified `mode`.

@@ -35,7 +35,7 @@ import warnings
 import numpy
 
 from tables import hdf5Extension
-from tables.utils import convertToNPAtom, idx2long, byteorders, \
+from tables.utils import convertToNPAtom, convertToNPAtom2, idx2long, \
      correct_byteorder
 
 from tables.atom import ObjectAtom, VLStringAtom, EnumAtom, Atom, split_type
@@ -394,15 +394,8 @@ be zero."""
         if len(object) > 0:
             # The object needs to be copied to make the operation safe
             # to in-place conversion.
-            copy = self._atomictype in ['time64']
-            nparr = convertToNPAtom(object, statom, copy)
+            nparr = convertToNPAtom2(object, statom)
             nobjects = self._getnobjects(nparr)
-            # Finally, check the byteorder and change it if needed
-            if (self.byteorder in ['little', 'big'] and
-                byteorders[nparr.dtype.byteorder] != sys.byteorder):
-                    # The byteorder needs to be fixed (a copy is made
-                    # so that the original array is not modified)
-                    nparr = nparr.byteswap()
         else:
             nobjects = 0
             nparr = None

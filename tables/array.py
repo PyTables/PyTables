@@ -34,7 +34,7 @@ import numpy
 from tables import hdf5Extension
 from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import is_idx
+from tables.utils import is_idx, convertToNPAtom2
 from tables.atom import split_type
 from tables.leaf import Leaf
 
@@ -434,6 +434,23 @@ class Array(hdf5Extension.Array, Leaf):
         return internal_to_flavor(arr, self.flavor)
 
 
+    def _checkShape(self, nparr, slice_shape):
+        "Test that nparr shape is consistent with underlying object."
+        if nparr.shape != slice_shape:
+            # Create an array compliant with the specified shape
+            narr = numpy.empty(shape=slice_shape, dtype=self.atom.dtype)
+            # Assign the value to it
+            try:
+                narr[...] = nparr
+            except Exception, exc:  #XXX
+                raise ValueError, \
+"""value parameter '%s' cannot be converted into an array object
+compliant with %s: '%r' The error was: <%s>""" % \
+            (nparr, self.__class__.__name__, self, exc)
+            return narr
+        return nparr
+
+
     def __setitem__(self, keys, value):
         """Sets an Array element, row or extended slice.
 
@@ -451,25 +468,17 @@ class Array(hdf5Extension.Array, Leaf):
         ignored. If "value" is a multidimensional object, then its
         shape must be compatible with the slice specified in "key",
         otherwhise, a ValueError will be issued.
-
         """
 
         startl, stopl, stepl, shape = self._interpret_indexing(keys)
         countl = ((stopl - startl - 1) / stepl) + 1
         # Create an array compliant with the specified slice
-        narr = numpy.empty(shape=shape, dtype=self.atom.dtype)
+        nparr = convertToNPAtom2(value, self.atom)
+        # Check whether it has a consistent shape with underlying object
+        nparr = self._checkShape(nparr, tuple(shape))
 
-        # Assign the value to it
-        try:
-            narr[...] = value
-        except Exception, exc:  #XXX
-            raise ValueError, \
-"""value parameter '%s' cannot be converted into an array object compliant with %s:
-'%r'
-The error was: <%s>""" % (value, self.__class__.__name__, self, exc)
-
-        if narr.size:
-            self._modify(startl, stepl, countl, narr)
+        if nparr.size:
+            self._modify(startl, stepl, countl, nparr)
 
 
     # Accessor for the _readArray method in superclass

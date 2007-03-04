@@ -31,7 +31,7 @@ import sys
 import numpy
 
 from tables.parameters import EXPECTED_ROWS_EARRAY
-from tables.utils import convertToNPAtom, byteorders
+from tables.utils import convertToNPAtom, convertToNPAtom2
 from tables.atom import Atom, EnumAtom, split_type
 from tables.leaf import Leaf
 from tables.carray import CArray
@@ -139,7 +139,7 @@ class EArray(CArray):
         return self._g_create_common(self._v_expectedrows)
 
 
-    def _checkShape(self, nparr):
+    def _checkShapeAppend(self, nparr):
         "Test that nparr shape is consistent with underlying EArray."
 
         # The arrays conforms self expandibility?
@@ -161,19 +161,10 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
         self._v_file._checkWritable()
 
-        # The sequence needs to be copied to make the operation safe
-        # to in-place conversion.
-        copy = self.atom.type in ['time64']
         # Convert the sequence into a NumPy object
-        nparr = convertToNPAtom(sequence, self.atom, copy)
+        nparr = convertToNPAtom2(sequence, self.atom)
         # Check if it has a consistent shape with underlying EArray
-        self._checkShape(nparr)
-        # Finally, check the byteorder and change it if needed
-        if (self.byteorder in ['little', 'big'] and
-            byteorders[nparr.dtype.byteorder] != sys.byteorder):
-            # The byteorder needs to be fixed (a copy is made
-            # so that the original array is not modified)
-            nparr = nparr.byteswap()
+        self._checkShapeAppend(nparr)
         self._append(nparr)
 
 

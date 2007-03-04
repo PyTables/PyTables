@@ -79,6 +79,12 @@ Improvements:
   that have to do computations with data generated in platforms with a
   byteorder different than the user machine.
 
+- The modification of values in ``*Array`` objects (through __setitem__)
+  now doesn't make a copy of the value in the case that the shape of the
+  value passed is the same as the slice to ve overwritten. This results
+  in considerable memory savings when you are modifying disk objects
+  with big array values.
+
 - All the leaf constructors have received a new parameter called
   ``byteorder`` that lets the user specify the byteorder of their data
   *on disk*.  This effectively allows to create datasets in other

@@ -456,6 +456,7 @@ you may want to increase it."""
             self.byteorder = "irrelevant"
         return data
 
+
     # Public methods
     # ~~~~~~~~~~~~~~
     # Tree manipulation
