@@ -28,6 +28,8 @@ Misc variables:
 
 """
 
+import sys, os, subprocess
+
 import math
 import bisect
 from time import time, clock
@@ -64,6 +66,11 @@ __version__ = "$Revision: 1236 $"
 # default version for INDEX objects
 #obversion = "1.0"    # Version of indexes in PyTables 1.x series
 obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series
+
+# Guess the platform
+plat64 = False
+if numpy.int_().itemsize == 8:
+    plat64 = True
 
 # The default method for sorting
 defsort = "quicksort"
@@ -324,6 +331,31 @@ def nextafter(x, direction, dtype, itemsize):
 
     raise TypeError("data type ``%s`` is not supported" % dtype)
 
+
+def show_stats(explain, tref):
+    "Show the used memory"
+    # Build the command to obtain memory info (only for Linux 2.6.x)
+    cmd = "cat /proc/%s/status" % os.getpid()
+    sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
+    for line in sout:
+        if line.startswith("VmSize:"):
+            vmsize = int(line.split()[1])
+        elif line.startswith("VmRSS:"):
+            vmrss = int(line.split()[1])
+        elif line.startswith("VmData:"):
+            vmdata = int(line.split()[1])
+        elif line.startswith("VmStk:"):
+            vmstk = int(line.split()[1])
+        elif line.startswith("VmExe:"):
+            vmexe = int(line.split()[1])
+        elif line.startswith("VmLib:"):
+            vmlib = int(line.split()[1])
+    sout.close()
+    print "Memory usage: ******* %s *******" % explain
+    print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)
+    print "VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk)
+    print "VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib)
+    print "WallClock time:", time() - tref
 
 
 class Index(NotLoggedMixin, indexesExtension.Index, Group):
@@ -624,17 +656,20 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def append(self, arr):
         """Append the array to the index objects"""
 
-        # Objects that arrive here should be numpy objects already
-        # Save the sorted array
         sorted = self.sorted
-        s=arr.argsort(kind=defsort)
-        # Doing a sort in-place is 2x slower than a fancy selection
-        #arr.sort()
-        arr = arr[s]
-        # Indexes in PyTables Pro systems are 64-bit long.
+        tref = time()
+        # Objects that arrive here should be numpy objects already
+        s = arr.argsort(kind=defsort)
+        # Indexes in PyTables Pro systems are 64-bit long
+        if not plat64:
+            s = s.astype('int64')
         offset = sorted.nrows * self.slicesize
-        s = numpy.array(s, dtype="int64") + offset
+        s += offset
         self.indices.append(s)
+        del s  # delete reference to s as this is not needed anymore
+        # Doing a sort in-place takes less memory than a fancy-selection
+        arr.sort()
+        # Save the sorted array
         sorted.append(arr)
         cs = self.chunksize
         ncs = self.nchunkslice
@@ -664,15 +699,18 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         nelementsLR = tnrows - offset
         assert nelementsLR == len(arr), \
 "The number of elements to append is incorrect!. Report this to the authors."
-        # Sort the array
         s = arr.argsort(kind=defsort)
-        arr = arr[s]
+        # Indexes in PyTables Pro systems are 64-bit long
+        if not plat64:
+            s = s.astype('int64')
+        # Save the reverse index array
+        s += offset
+        indicesLR[:len(arr)] = s
+        del s
+        arr.sort()  # sort in-place
         # build the cache of bounds
         self.bebounds = numpy.concatenate((arr[::self.chunksize],
                                            [arr[-1]]))
-        # Save the reverse index array
-        s = numpy.array(s, dtype="int64") + offset
-        indicesLR[:len(arr)] = s
         # The number of elements is at the end of the array
         indicesLR[-1] = nelementsLR
         # Save the number of elements, bounds and sorted values
@@ -689,8 +727,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def optimize(self, level=None, verbose=False):
         "Optimize an index to allow faster searches."
 
-        self.verbose=verbose
+        self.verbose = verbose
         #self.verbose = True  # uncomment for debugging purposes only
+        self.profile = False
+        #self.profile = True  # uncomment for profiling purposes only
 
         # Initialize last_tover and last_nover
         self.last_tover = 0
@@ -862,9 +902,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         indices = self.indices
         tmp_sorted = self.tmp.sorted
         tmp_indices = self.tmp.indices
-        tsorted = numpy.empty(shape=self.slicesize, dtype=self.dtype)
-        tindices = numpy.empty(shape=self.slicesize, dtype='int64')
         cs = self.chunksize
+        ss = self.slicesize
         ncs = self.nchunkslice
         nsb = self.nslicesblock
         ncb = ncs * nsb
@@ -901,6 +940,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 continue
             # Swap sorted and indices following the new order
             offset = nblock*nsb
+            tsorted = numpy.empty(shape=ss, dtype=self.dtype)
+            tindices = numpy.empty(shape=ss, dtype='int64')
             for i in xrange(nslices):
                 ns = offset + i;
                 # Get sorted & indices slices in new order
@@ -913,6 +954,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     tindices[nc:nc+cs] = indices[ins,inc:inc+cs]
                 tmp_sorted[ns] = tsorted
                 tmp_indices[ns] = tindices
+            del tsorted, tindices
             # Reorder completely indices at slice level
             self.reorder_slices(mode, nblock)
 
@@ -920,6 +962,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def reorder_slices(self, mode, nblock):
         "Reorder completely a block at slice level."
 
+        tref = time()
+        if self.profile: show_stats("Entrant en reorder", tref)
         sorted = self.sorted
         indices = self.indices
         tmp_sorted = self.tmp.sorted
@@ -930,14 +974,16 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # First, reorder the complete slices
         for nslice in xrange(nblock*nsb, (nblock+1)*nsb):
             # Protection against processing non-existing slices
-            if nslice >= self.sorted.nrows:
+            if nslice >= sorted.nrows:
                 break
+            if self.profile: show_stats("Abans de llegir slice", tref)
             block = tmp_sorted[nslice]
+            if self.profile: show_stats("Abans d'ordenar (argsort)", tref)
             sblock_idx = block.argsort(kind=defsort)
-            block = block[sblock_idx]
+            if self.profile: show_stats("Abans d'ordenar (sort)", tref)
+            block.sort(kind=defsort)
+            if self.profile: show_stats("Abans d'escriure slice", tref)
             sorted[nslice] = block
-            block_idx = tmp_indices[nslice]
-            indices[nslice] = block_idx[sblock_idx]
             self.ranges[nslice] = block[[0,-1]]
             self.bounds[nslice] = block[cs::cs]
             # update start & stop bounds
@@ -947,6 +993,36 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             smedian = block[cs/2::cs]
             self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
             self.mranges[nslice] = smedian[ncs/2]
+            if self.profile: show_stats("Abans d'esborrar block", tref)
+            del smedian, block
+            # uint32 is enough to keep the indexes of the sorted block
+            # because len(block) is always less than 2**32
+            sblock_idx = sblock_idx.astype('uint32')
+            if self.profile: show_stats("Abans de llegir indexos", tref)
+            block_idx = tmp_indices[nslice]
+            # Check whether block_idx can be represented by using unit32
+            if self.profile: show_stats("Abans del calcul del min/max", tref)
+            minimum = block_idx.min(); maximum = block_idx.max()
+            extent = maximum - minimum
+            if extent <= infinityMap['uint32'][1]:
+                if self.profile: show_stats("Abans de restar el minim", tref)
+                block_idx -= minimum
+                if self.profile: show_stats("Abans d'abaixar a uint32", tref)
+                block_idx = block_idx.astype('uint32')
+            if self.profile: show_stats("Abans de reordenar indexos", tref)
+            sorted_idx = block_idx[sblock_idx]
+            if self.profile: show_stats("Abans d'esborrar indexos", tref)
+            del block_idx, sblock_idx
+            if extent <= infinityMap['uint32'][1]:
+                if self.profile: show_stats("Abans d'apujar a 'int64'", tref)
+                sorted_idx = sorted_idx.astype('int64')
+                if self.profile: show_stats("Abans de sumar el minim", tref)
+                sorted_idx += minimum
+            if self.profile: show_stats("Abans d'escriure indexos", tref)
+            indices[nslice] = sorted_idx
+            if self.profile: show_stats("Abans d'esborrar nous indexos", tref)
+            del sorted_idx
+            if self.profile: show_stats("Final", tref)
 
 
     def swap_slices(self, mode="median"):
