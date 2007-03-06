@@ -664,9 +664,13 @@ def fromnumpy(array):
         aligned=False)  # aligned RecArrays are not supported yet
 
     # A ``NestedRecArray`` is only needed if there are nested fields.
-    if '/' in ''.join(flatNames):
-        return NestedRecArray(rarray, descr)
-    return rarray
+    # This check has been disabled because a NestedRecArray does offer
+    # more features that the users of PyTables 1.x are used to, most
+    # specially, the __getitem__(fieldname) special method.
+#     if '/' in ''.join(flatNames):
+#         return NestedRecArray(rarray, descr)
+#     return rarray
+    return NestedRecArray(rarray, descr)
 
 
 def convertToAPDescr(descr, byteorder):

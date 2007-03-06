@@ -179,7 +179,7 @@ class BasicTestCase(unittest.TestCase):
                 print "Error in compress. Class:", self.__class__.__name__
                 print "self, earray:", self.compress, earray.filters.complevel
             assert earray.filters.complevel == self.compress
-            if self.compress > 0:
+            if self.compress > 0 and whichLibVersion(self.complib):
                 assert earray.filters.complib == self.complib
             if self.shuffle <> earray.filters.shuffle and verbose:
                 print "Error in shuffle. Class:", self.__class__.__name__

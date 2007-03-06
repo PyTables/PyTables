@@ -127,7 +127,7 @@ class BasicTestCase(unittest.TestCase):
             print "Error in compress. Class:", self.__class__.__name__
             print "self, vlarray:", self.compress, vlarray.filters.complevel
         assert vlarray.filters.complevel == self.compress
-        if self.compress > 0:
+        if self.compress > 0 and whichLibVersion(self.complib):
             assert vlarray.filters.complib == self.complib
         if self.shuffle <> vlarray.filters.shuffle and verbose:
             print "Error in shuffle. Class:", self.__class__.__name__

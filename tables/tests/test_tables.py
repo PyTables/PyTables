@@ -1117,7 +1117,7 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Error in compress. Class:", self.__class__.__name__
             print "self, table:", self.compress, table.filters.complevel
         assert table.filters.complevel == self.compress
-        if self.compress > 0:
+        if self.compress > 0 and whichLibVersion(self.complib):
             assert table.filters.complib == self.complib
         if self.shuffle <> table.filters.shuffle and verbose:
             print "Error in shuffle. Class:", self.__class__.__name__
