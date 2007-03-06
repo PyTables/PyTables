@@ -19,7 +19,7 @@
       <author><firstname>Daniel</firstname><othername role='mi'>B</othername>
       <surname>Michelson</surname></author>
     </authorgroup>
-    <title>A High Level Interface to the {HDF5} File Format</title>
+    <title>A High Level Interface to the HDF5 File Format</title>
     <bibliomisc>HL-HDF is a high level interface to the Hierarchical Data
     Format, version 5. HL-HDF also contains an interface to the Python
     programming language, called PyHL</bibliomisc>
@@ -30,7 +30,7 @@
 
   <biblioentry id="HDFIntr">
     <publisher><publishername>NCSA</publishername></publisher>
-    <title>Introduction to {HDF5}</title>
+    <title>Introduction to HDF5</title>
     <bibliomisc>Introduction to the HDF5 data model and programming
     model</bibliomisc>
     <bibliosource>
@@ -52,7 +52,7 @@
       <author><firstname>JeanLoup</firstname><surname>Gailly</surname></author>
       <author><firstname>Mark</firstname><surname>Adler</surname></author>
     </authorgroup>
-    <title>zlib. {A Massively Spiffy Yet Delicately Unobtrusive Compression  Library}</title>
+    <title>zlib. A Massively Spiffy Yet Delicately Unobtrusive Compression Library</title>
     <bibliomisc>A standard library for compression purposes</bibliomisc>
     <bibliosource>
       <ulink url="http://www.gzip.org/zlib/">http://www.gzip.org/zlib/</ulink>
@@ -61,7 +61,7 @@
 
   <biblioentry id="Objectify">
     <author><firstname>David</firstname><surname>Mertz</surname></author>
-    <title>Objectify. {On the 'Pythonic' treatment of XML documents as objects(II)}</title>
+    <title>Objectify. On the 'Pythonic' treatment of XML documents as objects(II)</title>
     <bibliomisc>Article describing XML Objectify, a Python module that allows
     working with XML documents as Python objects. Some of the ideas presented
     here are used in PyTables</bibliomisc>
@@ -72,7 +72,7 @@
 
   <biblioentry id="Pyrex">
     <author><firstname>Greg</firstname><surname>Ewing</surname></author>
-    <title>Pyrex. {A Language for Writing Python Extension Modules}</title>
+    <title>Pyrex. A Language for Writing Python Extension Modules</title>
     <bibliosource>
       <ulink url="http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex">http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex</ulink>
     </bibliosource>
@@ -86,7 +86,7 @@
       <author><firstname>John</firstname><surname>Caron</surname></author>
       <author><firstname>Harvey</firstname><surname>Davies</surname></author>
     </authorgroup>
-    <title>NetCDF. {Network Common Data Form}</title>
+    <title>NetCDF. Network Common Data Form</title>
     <bibliomisc>An interface for array-oriented data access and a
       library that provides an implementation of the interface</bibliomisc>
     <bibliosource>
@@ -100,7 +100,7 @@
       <author><firstname>Mike</firstname><surname>Folk</surname></author>
       <author><othername>et al</othername></author>
     </authorgroup>
-    <title>NetCDF-4. {Network Common Data Form version 4}</title>
+    <title>NetCDF-4. Network Common Data Form version 4</title>
     <bibliomisc>Merging the NetCDF and HDF5 Libraries</bibliomisc>
     <bibliosource>
       <ulink url="http://www.unidata.ucar.edu/software/netcdf/netcdf-4/">http://www.unidata.ucar.edu/software/netcdf/netcdf-4/</ulink>
@@ -112,7 +112,7 @@
       <author><firstname>Travis</firstname><surname>Oliphant</surname></author>
       <author><othername>et al</othername></author>
     </authorgroup>
-    <title>NumPy. {Scientific Computing with Numerical Python}</title>
+    <title>NumPy. Scientific Computing with Numerical Python</title>
     <bibliomisc >The latest and most powerful re-implementation of Numeric to
     date. It implements all the features that can be found in Numeric and
     numarray, plus a bunch of new others. In general, is more efficient as
@@ -207,7 +207,7 @@
     <author><firstname>Pearu</firstname><surname>Peterson</surname></author>
     <author><othername>et al</othername></author>
   </authorgroup>
-  <title>SciPy. {Scientific tools for Python}</title>
+  <title>SciPy. Scientific tools for Python</title>
   <bibliomisc>SciPy supplements the popular Numeric module, gathering a
           variety of high level science and engineering modules
           together as a single package</bibliomisc>
@@ -229,8 +229,8 @@
   </biblioentry>
 
   <biblioentry id="ViTablesRef">
-    <publisher><publishername>Coop. V. Cárabos</publishername></publisher>
-    <title>ViTables. {A GUI for PyTables/HDF5 files}</title>
+    <publisher><publishername>Cárabos Coop. V.</publishername></publisher>
+    <title>ViTables. A GUI for PyTables/HDF5 files</title>
     <bibliomisc>It is a graphical tool for browsing and editing files in both
           PyTables and HDF5, formats</bibliomisc>
     <bibliosource>
@@ -245,7 +245,7 @@
       <author><firstname>Kees</firstname><surname>Zeelenberg</surname></author>
       <author><firstname>Mathias</firstname><surname>Michaelis</surname></author>
     </authorgroup>
-    <title>GnuWin32. {GNU (and other) tools ported to Win32}</title>
+    <title>GnuWin32. GNU (and other) tools ported to Win32</title>
     <bibliomisc>GnuWin32 provides native Win32-versions of GNU tools, or tools
     with a similar open source licence</bibliomisc>
     <bibliosource>
