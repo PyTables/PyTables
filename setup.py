@@ -493,7 +493,7 @@ extensions = [
                sources=[ pyrex_extfiles['tableExtension'],
                          "src/utils.c",
                          "src/H5TB-opt.c",
-                         "src/H5ATTR.c"]
+                         "src/H5ATTR.c"],
                library_dirs=lib_dirs,
                libraries=tableExtension_libs,
                extra_link_args=LFLAGS,

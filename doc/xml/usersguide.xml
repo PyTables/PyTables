@@ -4074,8 +4074,10 @@ ValueError: malformed type: 'foo bar'</screen>
               role="bold">rootUEP</emphasis></glossterm>
 
               <glossdef>
-                <para>The UEP (user entry point) group in the file (see <xref
-                linkend="openFileDescr" />).</para>
+                <para>The UEP (user entry point) group name in the file (see
+                <xref linkend="openFileDescr" /> and <xref
+                linkend="rootUEPOptim" /> for a more in-depth
+                explanation).</para>
               </glossdef>
             </glossentry>
 
@@ -11471,13 +11473,8 @@ fileh.close()
         <literal>NODE_CACHE_SIZE</literal> parameter.</para>
       </section>
 
-      <section>
+      <section id="rootUEPOptim">
         <title>Selecting an User Entry Point (UEP) in your tree</title>
-
-        <para><emphasis>Note:</emphasis> After the introduction of the new
-        object tree cache in PyTables 1.2, this feature is not very useful
-        anymore and might become <emphasis>deprecated</emphasis> in future
-        versions.</para>
 
         <para>If you have a <emphasis>huge</emphasis> tree in your data file
         with many nodes on it, creating the object tree would take long time.
