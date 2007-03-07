@@ -1961,9 +1961,7 @@ The 'names' parameter must be a list of strings.""")
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed and colname in colnames:
                     col = self.cols._g_col(colname)
-                    # Property assignment in groups does not work. :(
-                    # col.index.dirty = True
-                    col.index._setdirty(True)
+                    col.index.dirty = True
             # Now, re-index the dirty ones
             if self.autoIndex:
                 self.reIndex()

@@ -1851,6 +1851,18 @@ class GroupFiltersTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
         """Overriding filters when copying a file."""
         self._test_copyFile(self.filters)
 
+    def test03_change(self):
+        """Changing the filters of a group."""
+        root = self.h5file.root
+        self.assertEqual(root._v_filters, tables.Filters())
+        # Change filters.
+        root._v_filters = self.filters
+        self.assertEqual(root._v_filters, self.filters)
+        # Get changed filters.
+        if self._reopen():
+            root = self.h5file.root
+        self.assertEqual(root._v_filters, self.filters)
+
 
 #----------------------------------------------------------------------
 

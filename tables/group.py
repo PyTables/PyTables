@@ -861,13 +861,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                 "to access the child node"
                 % (self._v_pathname, name), NaturalNameWarning)
 
-        myDict[name] = value
-        # The following line (instead of the one above) takes properties
-        # into account, so that assigning to a property works as
-        # expected.  However, it causes a segmentation fault for some
-        # reason.  -- Ivan (2007-01-25)
-        #
-        # super(Group, self).__setattr__(name, value)
+        super(Group, self).__setattr__(name, value)
 
 
     def _f_flush(self):
@@ -1072,8 +1066,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 # Special definition for group root
 class RootGroup(Group):
     def __init__(self, ptFile, h5name, title, new, filters):
+        myDict = self.__dict__
         # Set group attributes.
-        self.__dict__['__members__'] = []   # 1st one, bypass __setattr__
+        myDict['__members__'] = []   # 1st one, bypass __setattr__
 
         self._v_version = obversion
         self._v_new = new
@@ -1099,7 +1094,9 @@ class RootGroup(Group):
         self._v__deleting = False
         self._v_objectID = None  # later
 
-        self._v_parent = ptFile  # only the root node has the file as a parent
+        # Only the root node has the file as a parent.
+        # Bypass __setattr__ to avoid the ``Node._v_parent`` property.
+        myDict['_v_parent'] = ptFile
         ptFile._refNode(self, '/')
 
         # hdf5Extension operations (do before setting an AttributeSet):

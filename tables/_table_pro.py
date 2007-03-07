@@ -80,9 +80,7 @@ def _table__setautoIndex(self, auto):
         indexgroup = self._v_file._getNode(_indexPathnameOf(self))
     except NoSuchNodeError:
         indexgroup = self._createIndexesTable()
-    # Property assignment in groups does not work. :(
-    # indexgroup.auto = auto
-    indexgroup._setauto(auto)
+    indexgroup.auto = auto
 
 def _table__getautoIndex(self):
     try:
@@ -116,9 +114,7 @@ def _table__setindexFilters(self, filters):
         indexgroup = self._v_file._getNode(_indexPathnameOf(self))
     except NoSuchNodeError:
         indexgroup = self._createIndexesTable()
-    # Property assignment in groups does not work. :(
-    # indexgroup.filters = filters
-    indexgroup._setfilters(filters)
+    indexgroup.filters = filters
 
 def _table__getindexFilters(self):
     try:
@@ -315,9 +311,7 @@ def _column__createIndex(self, optlevel, filters, testmode, verbose):
     # Optimize indexes with computed parameters for optimising
     # (i.e. we should not pass the optlevel parameter here!)
     index.optimize(verbose=verbose)
-    # Property assignment in groups does not work. :(
-    # index.dirty = False
-    index._setdirty(False)
+    index.dirty = False
     table._indexedrows = indexedrows
     table._unsaved_indexedrows = table.nrows - indexedrows
     return indexedrows

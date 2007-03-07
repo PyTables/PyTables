@@ -411,9 +411,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             conditionCache.unnail()
 
     dirty = property(
-        # Property assignment in groups does not work. :(
-        # _getdirty, _setdirty, None,
-        _getdirty, None, None,
+        _getdirty, _setdirty, None,
         """
         Whether the index is dirty or not.
 
@@ -1439,9 +1437,7 @@ class IndexesTableG(NotLoggedMixin, Group):
         self._v_attrs.AUTO_INDEX = bool(auto)
     def _delauto(self):
         del self._v_attrs.AUTO_INDEX
-    # Property assignment in groups does not work. :(
-    # auto = property(_getauto, _setauto, _delauto)
-    auto = property(_getauto, None, _delauto)
+    auto = property(_getauto, _setauto, _delauto)
 
     def _getfilters(self):
         if 'FILTERS' not in self._v_attrs:
@@ -1449,9 +1445,7 @@ class IndexesTableG(NotLoggedMixin, Group):
         return self._v_attrs.FILTERS
     _setfilters = Group._g_setfilters
     _delfilters = Group._g_delfilters
-    # Property assignment in groups does not work. :(
-    # filters = property(_g_getfilters, _setfilters, _delfilters)
-    filters = property(_getfilters, None, _delfilters)
+    filters = property(_getfilters, _setfilters, _delfilters)
 
     def _g_postInitHook(self):
         super(IndexesTableG, self)._g_postInitHook()
