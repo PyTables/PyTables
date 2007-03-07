@@ -539,10 +539,9 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
         return """%s
   atom := %r
-  shape := %r
   maindim := %r
   flavor := %r
-  byteorder := %r""" % (self, self.atom, self.shape, self.maindim,
+  byteorder := %r""" % (self, self.atom, self.maindim,
                         self.flavor, self.byteorder)
 
 
