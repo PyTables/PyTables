@@ -1356,17 +1356,32 @@ class GroupFiltersTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
         """Overriding filters when copying a file."""
         self._test_copyFile(self.filters)
 
+    def _test_change(self, pathname, change_filters, new_filters):
+        group = self.h5file.getNode(pathname)
+        # Check expected current filters.
+        old_filters = tables.Filters()
+        if pathname.endswith('_yes'):
+            old_filters = self.filters
+        self.assertEqual(group._v_filters, old_filters)
+        # Change filters.
+        change_filters(group)
+        self.assertEqual(group._v_filters, new_filters)
+        # Get and check changed filters.
+        if self._reopen():
+            group = self.h5file.getNode(pathname)
+        self.assertEqual(group._v_filters, new_filters)
+
     def test03_change(self):
         """Changing the filters of a group."""
-        root = self.h5file.root
-        self.assertEqual(root._v_filters, tables.Filters())
-        # Change filters.
-        root._v_filters = self.filters
-        self.assertEqual(root._v_filters, self.filters)
-        # Get changed filters.
-        if self._reopen():
-            root = self.h5file.root
-        self.assertEqual(root._v_filters, self.filters)
+        def set_filters(group):
+            group._v_filters = self.filters
+        self._test_change('/', set_filters, self.filters)
+
+    def test04_delete(self):
+        """Deleting the filters of a group."""
+        def del_filters(group):
+            del group._v_filters
+        self._test_change('/explicit_yes', del_filters, tables.Filters())
 
 
 #----------------------------------------------------------------------
