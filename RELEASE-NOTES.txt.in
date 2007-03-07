@@ -165,13 +165,13 @@ Flavors can no longer be set through ``File.create*()`` methods, nor the
 
 
 System attributes can be deleted now
------------------------------------
+------------------------------------
 
-The protection against removing system attributes (like 'FILTERS', 'FLAVOR' or
-'CLASS', to name only a few) has been removed completely. It is now the
-responsability of the user to make a proper use of this freedom. With this,
-users can get rid of all of propietary PyTables attributes if they want to
-(for example, for making a file to look like more HDF5 native).
+The protection against removing system attributes (like ``FILTERS``,
+``FLAVOR`` or ``CLASS``, to name only a few) has been completely removed.  It
+is now the responsibility of the user to make a proper use of this freedom.
+With this, users can get rid of all proprietary PyTables attributes if they
+want to (for example, for making a file to look more like an HDF5 native one).
 
 
 Byteorder issues
