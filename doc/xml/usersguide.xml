@@ -6456,6 +6456,11 @@ for node in h5file.root.detector:
                 <literal>'python'</literal> (the set of supported flavors
                 depends on which packages you have installed on your
                 system).</para>
+                <para>You can (and are encouraged to) use this property to
+                get, set and delete the <literal>FLAVOR</literal> HDF5
+                attribute of the leaf.  When the leaf has no such attribute,
+                the default flavor is used.
+                </para>
               </glossdef>
             </glossentry>
           </glosslist>
@@ -14567,61 +14572,6 @@ Object Tree:
               </glossentry>
 
               <glossentry>
-                <glossterm><emphasis role="bold">FLAVOR</emphasis></glossterm>
-
-                <glossdef>
-                  <para>This is meant to provide the information about the
-                  kind of object kept in the <literal>Table</literal>, i.e.
-                  when the dataset is read, it will be converted to the
-                  indicated flavor. It can take one the next string
-                  values:</para>
-
-                  <glosslist>
-                    <glossentry>
-                      <glossterm><emphasis
-                      role="bold">"numpy"</emphasis></glossterm>
-
-                      <glossdef>
-                        <para>Read data (record arrays, arrays, records,
-                        scalars) will be returned as <literal>NumPy</literal>
-                        objects.</para>
-                      </glossdef>
-                    </glossentry>
-
-                    <glossentry>
-                      <glossterm><emphasis
-                      role="bold">"numarray"</emphasis></glossterm>
-
-                      <glossdef>
-                        <para>Read data will be returned as
-                        <literal>numarray</literal> objects.</para>
-                      </glossdef>
-                    </glossentry>
-
-                    <glossentry>
-                      <glossterm><emphasis
-                      role="bold">"numeric"</emphasis></glossterm>
-
-                      <glossdef>
-                        <para>Read data will be returned as
-                        <literal>Numeric</literal> objects.</para>
-                      </glossdef>
-                    </glossentry>
-
-                    <glossentry>
-                      <glossterm><emphasis
-                      role="bold">"python"</emphasis></glossterm>
-
-                      <glossdef>
-                        <para>Read data will be returned as Python lists,
-                        tuples or scalars.</para>
-                      </glossdef>
-                    </glossentry>
-                  </glosslist>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
                 <glossterm><emphasis
                 role="bold">FIELD_X_NAME</emphasis></glossterm>
 
@@ -14967,18 +14917,6 @@ Object Tree:
               </glossentry>
 
               <glossentry>
-                <glossterm><emphasis role="bold">FLAVOR</emphasis></glossterm>
-
-                <glossdef>
-                  <para>This is meant to provide the information about the
-                  kind of object kept in the <literal>Array</literal>, i.e.
-                  when the dataset is read, it will be converted to the
-                  indicated flavor. It can take the same values as
-                  <literal>Table</literal>.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
                 <glossterm><emphasis role="bold">TITLE</emphasis></glossterm>
 
                 <glossdef>
@@ -15050,18 +14988,6 @@ Object Tree:
 
                 <glossdef>
                   <para>Must be set to <literal>'CARRAY'</literal>.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">FLAVOR</emphasis></glossterm>
-
-                <glossdef>
-                  <para>This is meant to provide the information about the
-                  kind of objects kept in the <literal>CArray</literal>, i.e.
-                  when the dataset is read, it will be converted to the
-                  indicated flavor. It can take the same values as
-                  <literal>Table</literal>.</para>
                 </glossdef>
               </glossentry>
 
@@ -15149,18 +15075,6 @@ Object Tree:
               </glossentry>
 
               <glossentry>
-                <glossterm><emphasis role="bold">FLAVOR</emphasis></glossterm>
-
-                <glossdef>
-                  <para>This is meant to provide the information about the
-                  kind of objects kept in the <literal>EArray</literal>, i.e.
-                  when the dataset is read, it will be converted to the
-                  indicated flavor. It can take the same values as
-                  <literal>Table</literal>.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
                 <glossterm><emphasis role="bold">TITLE</emphasis></glossterm>
 
                 <glossdef>
@@ -15224,18 +15138,6 @@ Object Tree:
 
                 <glossdef>
                   <para>Must be set to <literal>'VLARRAY'</literal>.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">FLAVOR</emphasis></glossterm>
-
-                <glossdef>
-                  <para>This is meant to provide the information about the
-                  kind of objects kept in the <literal>VLArray</literal>, i.e.
-                  when the dataset is read, it will be converted to the
-                  indicated flavor. It can take the same values as
-                  <literal>Table</literal>.</para>
                 </glossdef>
               </glossentry>
 
@@ -15334,6 +15236,68 @@ Object Tree:
             <literal>vlstring</literal> pseudo-atoms.</para>
           </section>
         </section>
+      </section>
+
+      <section>
+        <title>Optional attributes for <literal>Leaves</literal></title>
+
+        <para>The next attributes are optional for
+        <emphasis>leaves</emphasis>:</para>
+
+        <glosslist>
+          <glossentry>
+            <glossterm><emphasis role="bold">FLAVOR</emphasis></glossterm>
+
+            <glossdef>
+              <para>This is meant to provide the information about the kind of
+              object kept in the <literal>Leaf</literal>, i.e. when the
+              dataset is read, it will be converted to the indicated flavor.
+              It can take one the next string values:</para>
+
+              <glosslist>
+                <glossentry>
+                  <glossterm><emphasis
+                  role="bold">"numpy"</emphasis></glossterm>
+                  <glossdef>
+                    <para>Read data (record arrays, arrays, records, scalars)
+                    will be returned as <literal>NumPy</literal>
+                    objects.</para>
+                  </glossdef>
+                </glossentry>
+
+                <glossentry>
+                  <glossterm><emphasis
+                  role="bold">"numarray"</emphasis></glossterm>
+
+                  <glossdef>
+                    <para>Read data will be returned as
+                    <literal>numarray</literal> objects.</para>
+                  </glossdef>
+                </glossentry>
+
+                <glossentry>
+                  <glossterm><emphasis
+                  role="bold">"numeric"</emphasis></glossterm>
+
+                  <glossdef>
+                    <para>Read data will be returned as
+                    <literal>Numeric</literal> objects.</para>
+                  </glossdef>
+                </glossentry>
+
+                <glossentry>
+                  <glossterm><emphasis
+                  role="bold">"python"</emphasis></glossterm>
+
+                  <glossdef>
+                    <para>Read data will be returned as Python lists,
+                    tuples or scalars.</para>
+                  </glossdef>
+                </glossentry>
+              </glosslist>
+            </glossdef>
+          </glossentry>
+        </glosslist>
       </section>
     </appendix>
   </part>

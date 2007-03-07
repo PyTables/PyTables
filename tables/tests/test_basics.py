@@ -6,6 +6,7 @@ import warnings
 
 import numpy
 
+import tables
 from tables import *
 from tables.flavor import all_flavors, array_of_flavor
 from tables.tests import common
@@ -1853,7 +1854,8 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Setting a flavor in a read-only file."""
         self._reopen(mode='r')
         self.assertRaises( FileModeError,
-                           setattr, self.array, 'flavor', 'numpy' )
+                           setattr, self.array, 'flavor',
+                           tables.flavor.internal_flavor )
 
     def test02_change(self):
         """Changing the flavor and reading data."""
@@ -1880,6 +1882,15 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         idata = array_of_flavor(self.array_data, flavor)
         odata = self.assertWarns(FlavorWarning, self.array.read)
         self.assert_(common.allequal(odata, idata, flavor))
+
+    def test05_delete(self):
+        """Deleting the flavor of a dataset."""
+        self.array.flavor = 'python'  # non-default
+        self.assertEqual(self.array.flavor, 'python')
+        self.assertEqual(self.array.attrs.FLAVOR, 'python')
+        del self.array.flavor
+        self.assertEqual(self.array.flavor, tables.flavor.internal_flavor)
+        self.assertRaises(AttributeError, getattr, self.array.attrs, 'FLAVOR')
 
 
 

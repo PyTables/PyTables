@@ -167,7 +167,7 @@ class CreateTestCase(unittest.TestCase):
                 'FIELD_2_FILL', 'FIELD_2_NAME',
                 'FIELD_3_FILL', 'FIELD_3_NAME',
                 'FIELD_4_FILL', 'FIELD_4_NAME',
-                'FLAVOR', 'NROWS',
+                'NROWS',
                 'TITLE', 'VERSION']
         assert self.root.atable.attrs._f_list("all") == \
                ['CLASS',
@@ -176,7 +176,7 @@ class CreateTestCase(unittest.TestCase):
                 'FIELD_2_FILL', 'FIELD_2_NAME',
                 'FIELD_3_FILL', 'FIELD_3_NAME',
                 'FIELD_4_FILL', 'FIELD_4_NAME',
-                'FLAVOR', 'NROWS',
+                'NROWS',
                 'TITLE', 'VERSION',
                 "a", "b", "c"]
 
@@ -387,7 +387,7 @@ class CreateTestCase(unittest.TestCase):
                 'FIELD_2_FILL', 'FIELD_2_NAME',
                 'FIELD_3_FILL', 'FIELD_3_NAME',
                 'FIELD_4_FILL', 'FIELD_4_NAME',
-                'FLAVOR', 'NROWS',
+                'NROWS',
                 'TITLE', 'VERSION',
                 "pq", "qr", "rs"]
 
@@ -422,7 +422,7 @@ class CreateTestCase(unittest.TestCase):
                 'FIELD_2_FILL', 'FIELD_2_NAME',
                 'FIELD_3_FILL', 'FIELD_3_NAME',
                 'FIELD_4_FILL', 'FIELD_4_NAME',
-                'FLAVOR', 'NROWS',
+                'NROWS',
                 'TITLE', 'VERSION',
                 "pq", "qr", "rs"]
 

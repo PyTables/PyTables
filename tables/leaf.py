@@ -121,6 +121,10 @@ class Leaf(Node):
         supported flavors depends on which packages you have installed
         on your system).
 
+        You can (and are encouraged to) use this property to get, set
+        and delete the ``FLAVOR`` HDF5 attribute of the leaf.  When the
+        leaf has no such attribute, the default flavor is used.
+
     Public methods (in addition to those in `Node`):
 
     flush()
@@ -129,7 +133,7 @@ class Leaf(Node):
     remove()
     rename(newname)
     move([newparent][, newname][, overwrite])
-    copy([newparent][, newname][, overwrite][, **kwags])
+    copy([newparent][, newname][, overwrite][, **kwargs])
     isVisible()
     getAttr(name)
     setAttr(name, value)
@@ -187,9 +191,19 @@ class Leaf(Node):
         tables.flavor.check_flavor(flavor)
         self._v_attrs.FLAVOR = self._flavor = flavor  # logs the change
 
+    def _delflavor(self):
+        del self._v_attrs.FLAVOR
+        self._flavor = tables.flavor.internal_flavor
+
     flavor = property(
-        lambda self: self._flavor, _setflavor, None,
-        "The representation of data read from this array." )
+        lambda self: self._flavor, _setflavor, _delflavor,
+        """
+        The representation of data read from this array.
+
+        You can (and are encouraged to) use this property to get, set
+        and delete the ``FLAVOR`` HDF5 attribute of the leaf.  When the
+        leaf has no such attribute, the default flavor is used.
+        """ )
 
 
     # Special methods
@@ -269,12 +283,12 @@ class Leaf(Node):
         if self._v_new:  # set flavor of new node
             if self._flavor is None:
                 self._flavor = tables.flavor.internal_flavor
-            self._v_attrs._g__setattr('FLAVOR', self._flavor)  # not logged
+            else:  # flavor set at creation time, do not log
+                self._v_attrs._g__setattr('FLAVOR', self._flavor)
         else:  # get flavor of existing node (if any)
-            try:
-                self._flavor = self._v_attrs.FLAVOR
-            except AttributeError:  # probably a plain HDF5 file
-                self._flavor = tables.flavor.internal_flavor
+            self._flavor = getattr( self._v_attrs, 'FLAVOR',
+                                    tables.flavor.internal_flavor )
+        assert self._flavor is not None
 
 
     def _calc_chunkshape(self, expectedrows, rowsize, itemsize):
@@ -420,9 +434,9 @@ you may want to increase it."""
         # Copy user attributes if requested (or the flavor at least).
         if kwargs.get('copyuserattrs', True):
             self._v_attrs._g_copy(newNode._v_attrs)
-        else:
+        elif 'FLAVOR' in self._v_attrs:
             newNode._v_attrs._g__setattr('FLAVOR', self._flavor)
-        newNode._flavor = self._flavor
+        newNode._flavor = self._flavor  # update cached value
 
         # Update statistics if needed.
         if stats is not None:
