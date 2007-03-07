@@ -47,8 +47,8 @@ __version__ = "$Revision$"
 
 # System attributes
 SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
-             "FLAVOR", "ENCODING", "PYTABLES_FORMAT_VERSION",
-             "FILTERS", "AUTO_INDEX",
+             "ENCODING", "PYTABLES_FORMAT_VERSION",
+             "FLAVOR", "FILTERS", "AUTO_INDEX",
              "DIRTY", "NODE_TYPE", "NODE_TYPE_VERSION",
              "PSEUDOATOM"]
 # Prefixes of other system attributes
@@ -73,9 +73,9 @@ def issysattrname(name):
         reduce(lambda x,y: x+y,
                [name.startswith(prefix)
                 for prefix in SYS_ATTRS_PREFIXES])):
-        return 1
+        return True
     else:
-        return 0
+        return False
 
 
 class AttributeSet(hdf5Extension.AttributeSet, object):
@@ -365,6 +365,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
     def _g_logAdd(self, node, name):
         node._v_file._log('ADDATTR', node._v_pathname, name)
 
+
     def _g_delAndLog(self, node, name):
         nodeFile = node._v_file
         nodePathname = node._v_pathname
@@ -417,10 +418,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 "Attribute ('%s') does not exist in node '%s'"
                 % (name, node._v_name))
 
-        # The system attributes are protected
-        if name in self._v_attrnamessys:
-            raise AttributeError, \
-                  "System attribute ('%s') cannot be deleted" % (name)
+#         # The system attributes are protected
+#         if name in RO_ATTRS:
+#             raise AttributeError, \
+#                   "Read-only attribute ('%s') cannot be deleted" % (name)
 
         nodeFile._checkWritable()
 

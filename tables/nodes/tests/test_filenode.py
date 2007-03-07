@@ -715,12 +715,13 @@ class AttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         ##      AttributeError,
         ##      setattr, self.fnode.attrs, 'NODE_TYPE_VERSION', 'foobar')
 
-        self.assertRaises(
-                AttributeError,
-                delattr, self.fnode.attrs, 'NODE_TYPE')
-        self.assertRaises(
-                AttributeError,
-                delattr, self.fnode.attrs, 'NODE_TYPE_VERSION')
+        # System attributes are now removables.  F. Altet (2007-03-06)
+#         self.assertRaises(
+#                 AttributeError,
+#                 delattr, self.fnode.attrs, 'NODE_TYPE')
+#         self.assertRaises(
+#                 AttributeError,
+#                 delattr, self.fnode.attrs, 'NODE_TYPE_VERSION')
 
 
     # System attributes are now writable.  ivb(2004-12-30)

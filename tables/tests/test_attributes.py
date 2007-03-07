@@ -273,18 +273,15 @@ class CreateTestCase(unittest.TestCase):
         """Checking removing system attributes """
 
         # remove a system attribute
-        try:
-            if verbose:
-                print "System attrs:", self.group._v_attrs._v_attrnamessys
-                print "local dict:", self.group._v_attrs.__dict__
-            del self.group._v_attrs.CLASS
-        except AttributeError:
-            if verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next AttributeError was catched!"
-                print value
-        else:
-            self.fail("expected a AttributeError")
+        if verbose:
+            print "Before removing CLASS attribute"
+            print "System attrs:", self.group._v_attrs._v_attrnamessys
+        del self.group._v_attrs.CLASS
+        assert self.group._v_attrs._f_list("sys") == \
+               ['TITLE', 'VERSION']
+        if verbose:
+            print "After removing CLASS attribute"
+            print "System attrs:", self.group._v_attrs._v_attrnamessys
 
     def test07_renameAttributes(self):
         """Checking renaming attributes """

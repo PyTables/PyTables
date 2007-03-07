@@ -70,7 +70,7 @@ def recreateIndexes(table, dstfileh, dsttable):
 
 def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
              filters, copyuserattrs, overwritefile, overwrtnodes, stats,
-             start, stop, step):
+             start, stop, step, upgradeflavors):
     # Open the source file
     srcfileh = openFile(srcfile, "r")
     # Get the source node (that should exist)
@@ -132,6 +132,11 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
         dstfileh.close()
         raise RuntimeError, "Please check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired."
 
+    # Upgrade flavors in dstNode, if required
+    if upgradeflavors and srcfileh.format_version.startswith("1"):
+        # Remove original flavor in case the source file has 1.x format
+        dstNode.delAttr('FLAVOR')
+
     # Recreate possible old indexes in destination node
     if srcNode._c_classId == "TABLE":
         recreateIndexes(srcNode, dstfileh, dstNode)
@@ -143,7 +148,8 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
 
 def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                  recursive, filters, copyuserattrs, overwritefile,
-                 overwrtnodes, stats, start, stop, step):
+                 overwrtnodes, stats, start, stop, step,
+                 upgradeflavors):
     "Copy the children from source group to destination group"
     # Open the source file with srcgroup as rootUEP
     srcfileh = openFile(srcfile, "r", rootUEP=srcgroup)
@@ -194,8 +200,16 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
         dstfileh.close()
         raise RuntimeError, "Please check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired. In particular, pay attention that rootUEP is not fooling you."
 
-    # Do a second pass and convert the remaining tables with old
-    # indexes (if any)
+    # Upgrade flavors in dstNode, if required
+    print "upgradeflavors-->", upgradeflavors
+    print "format_version-->", srcfileh.format_version
+    if upgradeflavors and srcfileh.format_version.startswith("1"):
+        print "fent upgrade!"
+        for dstNode in dstGroup._f_walkNodes("Leaf"):
+            # Remove original flavor in case the source file has 1.x format
+            dstNode.delAttr('FLAVOR')
+
+    # Convert the remaining tables with old indexes (if any)
     for table in srcGroup._f_walkNodes("Table"):
         dsttable = dstfileh.getNode(dstGroup, table._v_pathname)
         recreateIndexes(table, dstfileh, dsttable)
@@ -209,7 +223,7 @@ def main():
     global verbose
     global regoldindexes
 
-    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--dont-regenerate-old-indexes] sourcefile:sourcegroup destfile:destgroup
+    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--upgrade-flavors] [--dont-regenerate-old-indexes] sourcefile:sourcegroup destfile:destgroup
      -h -- Print usage message.
      -v -- Show more information.
      -o -- Overwite destination file.
@@ -232,6 +246,9 @@ def main():
      --keep-source-filters -- Use the original filters in source files. The
          default is not doing that if any of --complevel, --complib, --shuffle
          or --fletcher32 option is specified.
+     --upgrade-flavors -- When repacking PyTables 1.x files, the flavor of
+         leaves will be unset. With this, such a leaves will be serialized
+         as objects with the internal flavor ('numpy' for 2.x series).
      --dont-regenerate-old-indexes -- Disable regenerating old indexes. The
          default is to regenerate old indexes as they are found.
     \n""" % os.path.basename(sys.argv[0])
@@ -248,6 +265,7 @@ def main():
                                      'shuffle=',
                                      'fletcher32=',
                                      'keep-source-filters',
+                                     'upgrade-flavors',
                                      'dont-regenerate-old-indexes',
                                      ])
     except:
@@ -268,6 +286,7 @@ def main():
     rng = None
     recursive = True
     overwrtnodes = False
+    upgradeflavors = False
 
     # Get the options
     for option in opts:
@@ -297,6 +316,8 @@ def main():
             overwrtnodes = True
         elif option[0] == '--keep-source-filters':
             keepfilters = True
+        elif option[0] == '--upgrade-flavors':
+            upgradeflavors = True
         elif option[0] == '--dont-regenerate-old-indexes':
             regoldindexes = False
         elif option[0] == '--complevel':
@@ -390,14 +411,16 @@ def main():
             title = title, recursive = recursive, filters = filters,
             copyuserattrs = copyuserattrs, overwritefile = overwritefile,
             overwrtnodes = overwrtnodes, stats = stats,
-            start = start, stop = stop, step = step)
+            start = start, stop = stop, step = step,
+            upgradeflavors=upgradeflavors)
     else:
         # If not a Group, it should be a Leaf
         copyLeaf(
             srcfile, dstfile, srcnode, dstnode,
             title = title, filters = filters, copyuserattrs = copyuserattrs,
             overwritefile = overwritefile, overwrtnodes = overwrtnodes,
-            stats = stats, start = start, stop = stop, step = step)
+            stats = stats, start = start, stop = stop, step = step,
+            upgradeflavors=upgradeflavors)
 
     # Gather some statistics
     t2 = time.time()

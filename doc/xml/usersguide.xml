@@ -14118,7 +14118,8 @@ Object Tree:
   [-R start,stop,step] [--non-recursive]
   [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes]
   [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)]
-  [--fletcher32=(0|1)] [--keep-source-filters] [--dont-regenerate-old-indexes]
+  [--fletcher32=(0|1)] [--keep-source-filters] [--upgrade-flavors]
+  [--dont-regenerate-old-indexes]
   sourcefile:sourcegroup destfile:destgroup
      -h -- Print usage message.
      -v -- Show more information.
@@ -14142,6 +14143,9 @@ Object Tree:
      --keep-source-filters -- Use the original filters in source files. The
          default is not doing that if any of --complevel, --complib, --shuffle
          or --fletcher32 option is specified.
+     --upgrade-flavors -- When repacking PyTables 1.x files, the flavor of
+         leaves will be unset. With this, such a leaves will be serialized
+         as objects with the internal flavor ('numpy' for 2.x series).
      --dont-regenerate-old-indexes -- Disable regenerating old indexes. The
          default is to regenerate old indexes as they are found.
           </screen></para>
