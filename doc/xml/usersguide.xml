@@ -51,8 +51,8 @@
       </author>
     </authorgroup>
 
-    <pubdate>$LastChangedDate$
-    </pubdate>
+    <pubdate>$LastChangedDate: 2007-03-06 12:41:58 +0100 (dt, 06 mar 2007)
+    $</pubdate>
 
     <mediaobject>
       <imageobject>
@@ -230,7 +230,7 @@
       naming scheme as <emphasis>compound</emphasis> data types.</para>
 
       <para>For example, you can define arbitrary tables in Python simply by
-      declaring a class with named fields and type information, such as in the
+      declaring a class with name field and types information, such as in the
       following example:</para>
 
       <programlisting width="72">class Particle(IsDescription):
@@ -251,12 +251,12 @@
       application (in C, Fortran, Java or whatever language that provides a
       library to interface with HDF5).</para>
 
-      <para>Other important entities in PyTables are
-      <emphasis>array</emphasis> objects, which are analogous to tables with
-      the difference that all of their components are homogeneous. They come
-      in different flavors, like <emphasis>generic</emphasis> (they provide a
+      <para>Other important entities in PyTables are the
+      <emphasis>array</emphasis> objects that are analogous to tables with the
+      difference that all of their components are homogeneous. They come in
+      different flavors, like <emphasis>generic</emphasis> (they provide a
       quick and fast way to deal with for numerical arrays),
-      <emphasis>enlargeable</emphasis> (arrays can be extended along a single
+      <emphasis>enlargeable</emphasis> (arrays can be extended in any single
       dimension) and <emphasis>variable length</emphasis> (each row in the
       array can have a different number of elements).</para>
 
@@ -267,33 +267,32 @@
         <title>Main Features</title>
 
         <para>PyTables takes advantage of the object orientation and
-        introspection capabilities offered by Python, the powerful data
-        management features of HDF5, and NumPy's flexibility and
-        high-performance manipulation of large sets of objects organized in a
-        grid-like fashion to provide these features:</para>
+        introspection capabilities offered by Python, the HDF5 powerful data
+        management features and NumPy flexibility and high-performance
+        manipulation of large sets of objects organized in grid-like fashion
+        to provide these features:</para>
 
         <itemizedlist>
           <listitem>
             <para><emphasis>Support for table entities:</emphasis> You can
-            tailor your data adding or deleting records in your tables. Large
-            numbers of rows (up to 2**62, much more than will fit into memory)
-            are supported as well.</para>
+            tailor your data adding or deleting records in your tables. A
+            large number of rows (up to 2**62), i.e. much more than will fit
+            into memory is supported as well.</para>
           </listitem>
 
           <listitem>
             <para><emphasis>Multidimensional and nested table
-            cells:</emphasis> You can declare a column to consist of values
-            having any number of dimensions besides scalars, which is the only
-            dimensionality allowed by the majority of relational
-            databases. You can even declare columns that are made of other
-            columns (of different types).</para>
+            cells:</emphasis> You can declare a column to consist of general
+            array cells as well as scalars, which is the only dimensionality
+            allowed the majority of relational databases. You can even declare
+            columns that are made of other columns (of different types), which
+            is known as struct types.</para>
           </listitem>
 
           <listitem>
             <para><emphasis>Indexing support for columns of tables:</emphasis>
             Very useful if you have large tables and you want to quickly look
             up for values in columns satisfying some criteria.</para>
-            <!-- XXXPRO -->
           </listitem>
 
           <listitem>
@@ -308,22 +307,23 @@
           <listitem>
             <para><emphasis>Enlargeable arrays:</emphasis> You can add new
             elements to existing arrays on disk in any dimension you want (but
-            only one). Besides, you are able to access just a slice of your
+            only one). Besides, you can access to only a slice of your
             datasets by using the powerful extended slicing mechanism, without
-            need to load all your complete dataset in memory.</para>
+            need to load all your complete dataset in-memory.</para>
           </listitem>
 
           <listitem>
             <para><emphasis>Variable length arrays:</emphasis> The number of
-            elements in these arrays can vary from row to row. This provides a
-            lot of flexibility when dealing with complex data.</para>
+            elements in these arrays can be variable from row to row. This
+            provides a lot of flexibility when dealing with complex
+            data.</para>
           </listitem>
 
           <listitem>
             <para><emphasis>Supports a hierarchical data model:</emphasis>
-            Allows the user to clearly structure all data. PyTables builds up
-            an <emphasis>object tree</emphasis> in memory that replicates the
-            underlying file data structure. Access to objects in the file is
+            Allows the user to clearly structure all the data. PyTables builds
+            up an <emphasis>object tree</emphasis> in memory that replicates
+            the underlying file data structure. Access to the file objects is
             achieved by walking through and manipulating this object
             tree.</para>
           </listitem>
@@ -331,9 +331,9 @@
           <listitem>
             <para><emphasis>User defined metadata:</emphasis> Besides
             supporting system metadata (like the number of rows of a table,
-            shape, flavor, etc.) the user may specify arbitrary metadata (as
-            for example, room temperature, or protocol for IP traffic that was
-            collected) that complement the meaning of actual data.</para>
+            shape, flavor, etc.) the user may specify its own metadata (as for
+            example, room temperature, or protocol for IP traffic that was
+            collected) that complement the meaning of his actual data.</para>
           </listitem>
 
           <listitem>
@@ -344,11 +344,11 @@
             (that can be mapped to <literal>Array</literal> objects) or
             variable length record datasets (that can be mapped to
             <literal>VLArray</literal> objects). Besides, if a dataset is not
-            supported, it will be mapped to a special
+            supported, it will be mapped into a special
             <literal>UnImplemented</literal> class (see <xref
             linkend="UnImplementedClassDescr" xrefstyle="select: label" />),
             that will let the user see that the data is there, although it
-            will be unreachable (still, you will be able to access the
+            would be unreachable (still, you will be able to access the
             attributes and some metadata in the dataset). With that, PyTables
             probably can access and <emphasis>modify</emphasis> most of the
             HDF5 files out there.</para>
@@ -381,13 +381,13 @@
 
           <listitem>
             <para><emphasis>Architecture-independent:</emphasis> PyTables has
-            been carefully coded (as HDF5 itself) with
-            little-endian/big-endian byte ordering issues in mind. So, you can
-            write a file on a big-endian machine (like a Sparc or MIPS) and
-            read it on other little-endian machine (like an Intel or Alpha)
-            without problems. In addition, it has been tested successfully
-            with 64 bit platforms (Intel-64, AMD-64, PowerPC-G5, MIPS,
-            UltraSparc) using code generated with 64 bit aware
+            been carefully coded (as has HDF5 itself) with
+            little-endian/big-endian byte orderings issues in mind. So, you
+            can write a file on a big-endian machine (like a Sparc or MIPS)
+            and read it on other little-endian machine (like an Intel or
+            Alpha) without problems. In addition, it has been tested
+            successfully with 64 bit platforms (Intel-64, AMD-64, PowerPC-G5,
+            MIPS, UltraSparc) using code generated with 64 bit aware
             compilers.</para>
           </listitem>
         </itemizedlist>
@@ -408,7 +408,7 @@
         classes. There are several types of classes, but the most important
         ones are the <literal>Node</literal>, <literal>Group</literal> and
         <literal>Leaf</literal> classes. All nodes in a PyTables tree are
-        instances of the <literal>Node</literal> class. The
+        instances of the <literal>Node</literal> class.
         <literal>Group</literal> and <literal>Leaf</literal> classes are
         descendants of <literal>Node</literal>. <literal>Group</literal>
         instances (referred to as <emphasis>groups</emphasis> from now on) are
@@ -441,7 +441,7 @@
 
         <para>Support for <emphasis>natural naming</emphasis> is a key aspect
         of PyTables. It means that the names of instance variables of the node
-        objects are the same as the names of its children<footnote>
+        objects are the same as the names of the element's children<footnote>
             <para>I got this simple but powerful idea from the excellent
             <literal>Objectify</literal> module by David Mertz (see <biblioref
             linkend="Objectify" />)</para>
@@ -456,26 +456,26 @@
         loaded. The actual data is not read until you request it (by calling a
         method on a particular node). Using the object tree (the metadata) you
         can retrieve information about the objects on disk such as table
-        names, titles, column names, data types in columns, numbers of rows,
-        or, in the case of arrays, their shapes, typecodes, etc.  You can also
-        search through the tree for specific kinds of data then read it and
-        process it. In a certain sense, you can think of PyTables as a tool
-        that applies the same introspection capabilities of Python objects to
-        large amounts of data in persistent storage.</para>
+        names, titles, name columns, data types in columns, numbers of rows,
+        or, in the case of arrays, the shapes, typecodes, etc. of the array.
+        You can also search through the tree for specific kinds of data then
+        read it and process it. In a certain sense, you can think of PyTables
+        as a tool that applies the same introspection capabilities of Python
+        objects to large amounts of data in persistent storage.</para>
 
-        <para>It is worth noting that PyTables sports a <emphasis>node cache
+        <para>It is worth to note that PyTables sports a <emphasis>node cache
         system</emphasis> that loads nodes on demand, and unloads nodes that
-        have not been used for some time (following a <emphasis>Least Recently
-        Used</emphasis> schema). This feature allows opening files with large
-        hierarchies very quickly and with a low memory consumption, while
-        retaining all the powerful browsing capabilities of the previous
+        have not been used for some time (i.e. following a <emphasis>Least
+        Recent Used</emphasis> schema). This feature allows opening files with
+        large hierarchies very quickly and with a low memory consumption,
+        while retaining all the powerful browsing capabilities of the previous
         implementation of the object tree. See <biblioref
         linkend="NewObjectTreeCacheRef" /> for more facts about the advantages
         introduced by this new node cache system.</para>
 
         <para>To better understand the dynamic nature of this object tree
-        entity, let's start with a sample PyTables script (which you can find
-        in <literal>examples/objecttree.py</literal>) to create an HDF5
+        entity, let's start with a sample PyTables script (you can find it in
+        <literal>examples/objecttree.py</literal>) to create a HDF5
         file:</para>
 
         <screen>
@@ -520,7 +520,8 @@ for table in (table1, table2):
     table.flush()
 
 # Finally, close the file (this also will flush all the remaining buffers!)
-fileh.close()</screen>
+fileh.close()
+</screen>
 
         <para>This small program creates a simple HDF5 file called
         <literal>objecttree.h5</literal> with the structure that appears in
@@ -554,14 +555,13 @@ fileh.close()</screen>
         <para>In <xref linkend="objecttree" xrefstyle="select: label" /> you
         can see an example of the object tree created when the above
         <literal>objecttree.h5</literal> file is read (in fact, such an object
-        tree is always created when reading any supported generic HDF5 file).
-        It is worthwhile to take your time to understand it<footnote>
+        is always created when reading any supported generic HDF5 file). It's
+        worthwhile to take your time to understand it<footnote>
             <para>Bear in mind, however, that this diagram is
             <emphasis>not</emphasis> a standard UML class diagram; it is
             rather meant to show the connections between the PyTables objects
             and some of its most important attributes and methods.</para>
-          </footnote>. It will help you understand the relationships of
-        in-memory PyTables objects.</para>
+          </footnote>. It will help you to avoid programming mistakes.</para>
 
         <figure id="objecttree">
           <title>A PyTables object tree example.</title>
@@ -837,7 +837,6 @@ LIBS="hdf5-1.6.5 nsl"
                     </screen>
 
                     <para>Both commands do the same thing.</para>
-
                   </listitem>
                 </varlistentry>
 
@@ -858,7 +857,6 @@ LIBS="hdf5-1.6.5 nsl"
  set PYTHONPATH=.
  python -c "import tables; tables.test()"
                     </screen>
-
                   </listitem>
                 </varlistentry>
               </variablelist>
@@ -867,8 +865,8 @@ LIBS="hdf5-1.6.5 nsl"
               simply add the flag <literal>-v</literal> and/or the word
               <literal>verbose</literal> to the command line. You can also run
               only the tests in a particular test module. For example, to
-              execute just the <literal>test_types</literal> test
-              suite, you only have to specify it:</para>
+              execute just the <literal>test_types</literal> test suite, you
+              only have to specify it:</para>
 
               <screen>
  python tables/tests/test_types.py -v   # change to backslahes for win
@@ -886,8 +884,8 @@ LIBS="hdf5-1.6.5 nsl"
  python tables/tests/test_all.py --show-memory  # Only Linux 2.6.x
               </screen> the above prints out the evolution of the memory
               consumption after each test module completion. It's useful for
-              locating memory leaks in PyTables (or packages behind
-              it). Only valid for Linux 2.6.x kernels.</para>
+              locating memory leaks in PyTables (or packages behind it). Only
+              valid for Linux 2.6.x kernels.</para>
 
               <para>And last, but not least, in case a test fails, please run
               the failing test module again and enable the verbose output:
@@ -1036,21 +1034,18 @@ LIBS="hdf5-1.6.5 nsl"
           file and execute it.</para>
 
           <para>You can (<emphasis>you should</emphasis>) test your
-          installation by running the next commands:
-          <screen>
+          installation by running the next commands: <screen>
 &gt;&gt;&gt; import tables
 &gt;&gt;&gt; tables.test()
-          </screen>
-          on your favorite python shell. If all the tests pass (possibly with
-          a few warnings, related to the potential unavailability of LZO or
-          bzip2 libs) you already have a working, well-tested copy of PyTables
-          installed! If any test fails, please copy the output of the error
-          messages as well as the output of:
+          </screen> on your favorite python shell. If all the tests pass
+          (possibly with a few warnings, related to the potential
+          unavailability of LZO or bzip2 libs) you already have a working,
+          well-tested copy of PyTables installed! If any test fails, please
+          copy the output of the error messages as well as the output of:
           <screen>
 &gt;&gt;&gt; tables.print_versions()
-          </screen>
-          and mail them to the developers so that the problem can be fixed in
-          future releases.</para>
+          </screen> and mail them to the developers so that the problem can be
+          fixed in future releases.</para>
 
           <para>You can proceed now to the next chapter to see how to use
           PyTables.</para>
@@ -1165,17 +1160,17 @@ LIBS="hdf5-1.6.5 nsl"
           declare a new <literal>Particle</literal> class that will contain
           all this information:</para>
 
-          <screen>
+          <screen>&gt;&gt;&gt; from tables import *
 &gt;&gt;&gt; class Particle(IsDescription):
-...     name      = StringCol(16)   # 16-character String
-...     idnumber  = Int64Col()      # Signed 64-bit integer
-...     ADCcount  = UInt16Col()     # Unsigned short integer
-...     TDCcount  = UInt8Col()      # unsigned byte
-...     grid_i    = Int32Col()      # integer
-...     grid_j    = Int32Col()      # integer
-...     pressure  = Float32Col()    # float  (single-precision)
-...     energy    = Float64Col()    # double (double-precision)
-... 
+      name      = StringCol(16)   # 16-character String
+      idnumber  = Int64Col()      # Signed 64-bit integer
+      ADCcount  = UInt16Col()     # Unsigned short integer
+      TDCcount  = UInt8Col()      # unsigned byte
+      grid_i    = Int32Col()      # 32-bit integer
+      grid_j    = Int32Col()      # 32-bit integer
+      pressure  = Float32Col()    # float  (single-precision)
+      energy    = Float64Col()    # double (double-precision)
+ 
 &gt;&gt;&gt; </screen>
 
           <para>This definition class is self-explanatory. Basically, you
@@ -1201,8 +1196,7 @@ LIBS="hdf5-1.6.5 nsl"
           <para>Use the first-level <literal>openFile</literal> function (see
           <xref linkend="openFileDescr" />) to create a PyTables file:</para>
 
-          <screen>
-&gt;&gt;&gt; h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")</screen>
+          <screen>&gt;&gt;&gt; h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")</screen>
 
           <para><literal>openFile</literal> (see <xref
           linkend="openFileDescr" />) is one of the objects imported by the
@@ -1225,8 +1219,7 @@ LIBS="hdf5-1.6.5 nsl"
           called <emphasis>detector</emphasis> that branches from the root
           node. We will save our particle data table in this group.</para>
 
-          <screen>
-&gt;&gt;&gt; group = h5file.createGroup("/", 'detector', 'Detector information')</screen>
+          <screen>&gt;&gt;&gt; group = h5file.createGroup("/", 'detector', 'Detector information')</screen>
 
           <para>Here, we have taken the <literal>File</literal> instance
           <literal>h5file</literal> and invoked its
@@ -1252,8 +1245,7 @@ LIBS="hdf5-1.6.5 nsl"
           linkend="createTableDescr" />) method of the
           <literal>h5file</literal> object:</para>
 
-          <screen>
-&gt;&gt;&gt; table = h5file.createTable(group, 'readout', Particle, "Readout example")</screen>
+          <screen>&gt;&gt;&gt; table = h5file.createTable(group, 'readout', Particle, "Readout example")</screen>
 
           <para>We create the <literal>Table</literal> instance under
           <literal>group</literal>. We assign this table the node name
@@ -1269,11 +1261,10 @@ LIBS="hdf5-1.6.5 nsl"
           simply <literal>print</literal> the <literal>File</literal> instance
           variable <emphasis>h5file</emphasis>, and examine the output:</para>
 
-          <screen>
-&gt;&gt;&gt; print h5file
+          <screen>&gt;&gt;&gt; print h5file
 tutorial1.h5 (File) 'Test file'
-Last modif.: 'Mon Dec 11 09:30:34 2006'
-Object Tree: 
+Last modif.: 'Wed Mar  7 11:06:12 2007'
+Object Tree:
 / (RootGroup) 'Test file'
 /detector (Group) 'Detector information'
 /detector/readout (Table(0L,)) 'Readout example'</screen>
@@ -1284,8 +1275,8 @@ Object Tree:
           more information, just type the variable containing the
           <literal>File</literal> instance:</para>
 
-          <screen>
-File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/', filters=Filters(complevel=0, complib='zlib', shuffle=False, fletcher32=False))
+          <screen>&gt;&gt;&gt; h5file
+File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/', filters=Filters(complevel=0, shuffle=False, fletcher32=False))
 / (RootGroup) 'Test file'
 /detector (Group) 'Detector information'
 /detector/readout (Table(0L,)) 'Readout example'
@@ -1313,8 +1304,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
           linkend="RowClassDescr" xrefstyle="select: labelnumber" />) instance
           of this <literal>table</literal> instance:</para>
 
-          <screen>
-&gt;&gt;&gt; particle = table.row</screen>
+          <screen>&gt;&gt;&gt; particle = table.row</screen>
 
           <para>The <literal>row</literal> attribute of
           <literal>table</literal> points to the <literal>Row</literal>
@@ -1324,19 +1314,18 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
           actually an <emphasis>extension class</emphasis>), using the column
           names as keys.</para>
 
-          <para>Below is an example of how to write rows: <screen>
-&gt;&gt;&gt; for i in xrange(10):
-...     particle['name']  = 'Particle: %6d' % (i)
-...     particle['TDCcount'] = i % 256
-...     particle['ADCcount'] = (i * 256) % (1 &lt;&lt; 16)
-...     particle['grid_i'] = i
-...     particle['grid_j'] = 10 - i
-...     particle['pressure'] = float(i*i)
-...     particle['energy'] = float(particle['pressure'] ** 4)
-...     particle['idnumber'] = i * (2 ** 34)
-...     # Insert a new particle record
-...     particle.append()
-... 
+          <para>Below is an example of how to write rows: <screen>&gt;&gt;&gt; for i in xrange(10):
+      particle['name']  = 'Particle: %6d' % (i)
+      particle['TDCcount'] = i % 256
+      particle['ADCcount'] = (i * 256) % (1 &lt;&lt; 16)
+      particle['grid_i'] = i
+      particle['grid_j'] = 10 - i
+      particle['pressure'] = float(i*i)
+      particle['energy'] = float(particle['pressure'] ** 4)
+      particle['idnumber'] = i * (2 ** 34)
+      # Insert a new particle record
+      particle.append()
+
 &gt;&gt;&gt; </screen></para>
 
           <para>This code should be easy to understand. The lines inside the
@@ -1351,8 +1340,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
           achieve that by calling the <literal>table.flush()</literal>
           method.</para>
 
-          <screen>
-&gt;&gt;&gt; table.flush()</screen>
+          <screen>&gt;&gt;&gt; table.flush()</screen>
 
           <para>Remember, flushing a table is a <emphasis>very
           important</emphasis> step as it will not only help to maintain the
@@ -1368,10 +1356,9 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
           select from specific columns the values we are interested in. See
           the example below:</para>
 
-          <screen>
-&gt;&gt;&gt; table = h5file.root.detector.readout
+          <screen>&gt;&gt;&gt; table = h5file.root.detector.readout
 &gt;&gt;&gt; pressure = [ x['pressure'] for x in table.iterrows()
-...              if x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50 ]
+               if x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50 ]
 &gt;&gt;&gt; pressure
 [25.0, 36.0, 49.0]</screen>
 
@@ -1387,11 +1374,10 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
           as they are provided by the <literal>table.iterrows()</literal>
           iterator (see <xref linkend="Table.iterrows" />). The iterator
           returns values until all the data in table is exhausted. These rows
-          are filtered using the expression: <screen>
-x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50</screen> We select the
-          value of the <literal>pressure</literal> column from filtered
-          records to create the final list and assign it to
-          <literal>pressure</literal> variable.</para>
+          are filtered using the expression: <screen>x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50</screen>So,
+          we are selecting the values of the <literal>pressure</literal>
+          column from filtered records to create the final list and assign it
+          to <literal>pressure</literal> variable.</para>
 
           <para>We could have used a normal <literal>for</literal> loop to
           accomplish the same purpose, but I find comprehension syntax to be
@@ -1400,9 +1386,8 @@ x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50</screen> We select the
           <para>Let's select the <literal>name</literal> column for the same
           set of cuts:</para>
 
-          <screen>
-&gt;&gt;&gt; names = [ x['name'] for x in table
-...           if x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50 ]
+          <screen>&gt;&gt;&gt; names = [ x['name'] for x in table
+          if x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50 ]
 &gt;&gt;&gt; names
 ['Particle:      5', 'Particle:      6', 'Particle:      7']</screen>
 
@@ -1415,19 +1400,19 @@ x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50</screen> We select the
           in a table using this method is very convenient, especially when
           working with the data interactively.</para>
 
-          <para>PyTables offers another, more powerful way of performing
+          <para>PyTables do offer other, more powerful ways of performing
           selections which may be more suitable if you have very large tables
-          or if you need very high query speeds. It is called
-          <emphasis>in-kernel</emphasis>, and you can use it through
+          or if you need very high query speeds. They are called
+          <emphasis>in-kernel</emphasis> and <emphasis>indexed</emphasis>
+          queries, and you can use them through
           <literal>Table.where()</literal> (see <xref
-          linkend="Table.where" />) and other related methods. With it, you
-          may also take advantage of column indexing. See <xref
+          linkend="Table.where" />) and other related methods. See <xref
           linkend="conditionSyntax" xrefstyle="select: label" /> and <xref
           linkend="searchOptim" xrefstyle="select: label" /> for more
           information on in-kernel and indexed selections.</para>
 
-          <para>That's enough about selections. The next section will show you
-          how to save these selected results to a file.</para>
+          <para>That's enough about selections for now. The next section will
+          show you how to save these selected results to a file.</para>
         </section>
 
         <section>
@@ -1439,9 +1424,7 @@ x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50</screen> We select the
           create two arrays that will contain the selected data. First, we
           create the group:</para>
 
-          <screen>
-&gt;&gt;&gt; gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")
-          </screen>
+          <screen>&gt;&gt;&gt; gcolumns = h5file.createGroup(h5file.root, "columns", "Pressure and Name")</screen>
 
           <para>Note that this time we have specified the first parameter
           using <emphasis>natural naming</emphasis>
@@ -1451,14 +1434,13 @@ x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50</screen> We select the
           <para>Now, create the first of the two <literal>Array</literal>
           objects we've just mentioned:</para>
 
-          <screen>
-&gt;&gt;&gt; h5file.createArray(gcolumns, 'pressure', array(pressure),
-...                    "Pressure column selection")
+          <screen>&gt;&gt;&gt; h5file.createArray(gcolumns, 'pressure', array(pressure),
+                    "Pressure column selection")
 /columns/pressure (Array(3,)) 'Pressure column selection'
-  type := 'float64'
-  byteorder := 'little'
-  dtype := dtype('float64')
-  flavor := 'numpy'</screen>
+  atom := Float64Atom(shape=(), dflt=0.0)
+  maindim := 0
+  flavor := 'numpy'
+  byteorder := 'little'</screen>
 
           <para>We already know the first two parameters of the
           <literal>createArray</literal> (see <xref
@@ -1476,13 +1458,12 @@ x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50</screen> We select the
           strings we selected before: we save this object as-is, with no
           further conversion.</para>
 
-          <screen>
-&gt;&gt;&gt; h5file.createArray(gcolumns, 'name', names, "Name column selection")
+          <screen>&gt;&gt;&gt; h5file.createArray(gcolumns, 'name', names, "Name column selection")
 /columns/name (Array(3,)) 'Name column selection'
-  type := 'string'
-  byteorder := 'irrelevant'
-  dtype := dtype('|S16')
-  flavor := 'python'</screen>
+  atom := StringAtom(itemsize=16, shape=(), dflt='')
+  maindim := 0
+  flavor := 'python'
+  byteorder := 'irrelevant'</screen>
 
           <para>As you can see, <literal>createArray()</literal> accepts
           <emphasis>names</emphasis> (which is a regular Python list) as an
@@ -1503,17 +1484,17 @@ x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50</screen> We select the
           tree and saved to disk, as you can see if you print the complete
           object tree:</para>
 
-          <screen>
-&gt;&gt;&gt; print h5file
+          <screen>&gt;&gt;&gt; print h5file
 tutorial1.h5 (File) 'Test file'
-Last modif.: 'Mon Dec 11 09:44:20 2006'
-Object Tree: 
+Last modif.: 'Wed Mar  7 19:40:44 2007'
+Object Tree:
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'
 /detector (Group) 'Detector information'
-/detector/readout (Table(10L,)) 'Readout example'</screen>
+/detector/readout (Table(10L,)) 'Readout example'
+</screen>
         </section>
 
         <section>
@@ -1524,8 +1505,7 @@ Object Tree:
           <literal>File</literal> object to close the file before exiting
           Python:</para>
 
-          <screen>
-&gt;&gt;&gt; h5file.close()
+          <screen>&gt;&gt;&gt; h5file.close()
 &gt;&gt;&gt; ^D
 $ </screen>
 
@@ -1535,8 +1515,7 @@ $ </screen>
           the <literal>tutorial1.h5</literal> looks like when read with the
           <literal>h5ls</literal> program:</para>
 
-          <screen>
-$ h5ls -rd tutorial1.h5
+          <screen>$ h5ls -rd tutorial1.h5
 /columns                 Group
 /columns/name            Dataset {3}
     Data:
@@ -1561,14 +1540,14 @@ $ h5ls -rd tutorial1.h5
           <para>Here's the output as displayed by the "ptdump" PyTables
           utility (located in <literal>utils/</literal> directory):</para>
 
-          <screen>
-$ ptdump tutorial1.h5
-Last modif.: 'Mon Dec 11 10:08:45 2006'
-Object Tree: 
+          <screen>$ ptdump tutorial1.h5
+tutorial1.h5 (File) 'Test file'
+Last modif.: 'Wed Mar  7 19:50:57 2007'
+Object Tree:
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
-/columns/name (Array(3,)) 'Name column selection'
-/columns/pressure (Array(3,)) 'Pressure column selection'
+/columns/name (Array(3L,)) 'Name column selection'
+/columns/pressure (Array(3L,)) 'Pressure column selection'
 /detector (Group) 'Detector information'
 /detector/readout (Table(10L,)) 'Readout example'</screen>
 
@@ -3658,7 +3637,7 @@ $ ptdump -d nested-tut.h5
       <literal>print_versions</literal> that prints all the versions of the
       software that PyTables relies on. Finally, <literal>test</literal> lets
       you run the complete test suite from a Python console
-      interactively. </para>
+      interactively.</para>
 
       <para>Let's start discussing the first-level variables and functions
       available to the user, then the different classes defined in
@@ -3943,7 +3922,6 @@ ValueError: malformed type: 'foo bar'</screen>
 
             <para>Print all the versions on software that PyTables relies
             on.</para>
-
           </section>
 
           <section id="testDescr">
@@ -3958,7 +3936,6 @@ ValueError: malformed type: 'foo bar'</screen>
             run in <emphasis>heavy</emphasis> mode (you should be careful with
             this because it can take a lot of resources from your
             computer).</para>
-
           </section>
         </section>
       </section>
@@ -5955,11 +5932,10 @@ Object Tree:
 
               <glossdef>
                 <para>Default filter properties for child nodes —see <xref
-                linkend="FiltersClassDescr"
-                xrefstyle="select:labelnumber"/>. A shorthand for the
-                <literal>FILTERS</literal> attribute. When there is no such
-                attribute, its value is the default <literal>Filters</literal>
-                instance.</para>
+                linkend="FiltersClassDescr" xrefstyle="select:labelnumber" />.
+                A shorthand for the <literal>FILTERS</literal> attribute. When
+                there is no such attribute, its value is the default
+                <literal>Filters</literal> instance.</para>
                 <para>You can (and are encouraged to) use this property to
                 get, set and delete the <literal>FILTERS</literal> HDF5
                 attribute of the group.  When the group has no such attribute,
@@ -6528,9 +6504,9 @@ for node in h5file.root.detector:
 
             <para>This method has the behavior described in
             <literal>Node._f_copy()</literal> (see <xref
-            linkend="Node._f_copy" xrefstyle="select: labelnumber" />).
-            Please note that there is no <literal>recursive</literal> flag
-            since leaves do not have child nodes. In addition, this method
+            linkend="Node._f_copy" xrefstyle="select: labelnumber" />). Please
+            note that there is no <literal>recursive</literal> flag since
+            leaves do not have child nodes. In addition, this method
             recognizes the following keyword arguments:</para>
 
             <glosslist>
@@ -6843,11 +6819,12 @@ for node in h5file.root.detector:
                 <para>This value gets into effect whenever a column is
                 altered. For an immediate update use
                 <literal>self.flushRowsToIndex()</literal> (see <xref
-                linkend="Table.flushRowsToIndex" xrefstyle="select: label"
-                />); for immediate reindexing of invalidated indexes, use
+                linkend="Table.flushRowsToIndex"
+                xrefstyle="select: label" />); for immediate reindexing of
+                invalidated indexes, use
                 <literal>self.reIndexDirty()</literal> (see <xref
-                linkend="Table.reIndexDirty" xrefstyle="select: label"
-                />).</para>
+                linkend="Table.reIndexDirty"
+                xrefstyle="select: label" />).</para>
 
                 <para>This value is persistent.</para>
               </glossdef>
@@ -7825,11 +7802,9 @@ res = [ row[1::2] for row in table.iterrows(2, 3000, 3) ]
               counterpart, in this case <literal>key</literal> can only be a
               string (the name of the field). <literal>__setitem__()</literal>
               will not take effect on the table data on-disk until any of the
-              <literal><xref linkend="Row.append"
-              xrefstyle="select:             labelnumber" /></literal> or
-              <literal><xref linkend="Row.update"
-              xrefstyle="select:             labelnumber" /></literal> methods
-              would be called.</para>
+              <xref linkend="Row.append" xrefstyle="select: labelnumber" /> or
+              <xref linkend="Row.update" xrefstyle="select: labelnumber" />
+              methods would be called.</para>
 
               <para>Example of use: <screen>
 for row in table.iterrows(step=10):
@@ -8318,7 +8293,6 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
                 extendable ones.</para>
               </glossdef>
             </glossentry>
-
           </glosslist>
         </section>
 
@@ -8342,14 +8316,13 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
 
             <para>Returns an iterator yielding NumPy instances built from rows
             in array. The return rows are taken from the
-            <emphasis>main</emphasis> dimension. If a range is supplied
-            (i.e. some of the <emphasis>start</emphasis>,
-            <emphasis>stop</emphasis> or <emphasis>step</emphasis> parameters
-            are passed), only the appropriate rows are returned. Else, all the
-            rows are returned. See also the and <literal>__iter__()</literal>
-            special methods in <xref linkend="ArraySpecialMethods"
-            xrefstyle="select: label" /> for a shorter way to call this
-            iterator.</para>
+            <emphasis>main</emphasis> dimension. If a range is supplied (i.e.
+            some of the <emphasis>start</emphasis>, <emphasis>stop</emphasis>
+            or <emphasis>step</emphasis> parameters are passed), only the
+            appropriate rows are returned. Else, all the rows are returned.
+            See also the and <literal>__iter__()</literal> special methods in
+            <xref linkend="ArraySpecialMethods" xrefstyle="select: label" />
+            for a shorter way to call this iterator.</para>
 
             <para>The meaning of the <emphasis>start</emphasis>,
             <emphasis>stop</emphasis> and <emphasis>step</emphasis> parameters
@@ -8371,7 +8344,7 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
 
             <para>Read the array from disk and return it as a NumPy (default)
             object, or an object with the same original
-            <emphasis>flavor</emphasis> that it was saved.  It accepts
+            <emphasis>flavor</emphasis> that it was saved. It accepts
             <emphasis>start</emphasis>, <emphasis>stop</emphasis> and
             <emphasis>step</emphasis> parameters to select rows (in the
             <emphasis>main</emphasis> dimension) for reading.</para>
@@ -8607,7 +8580,7 @@ array_c.append(numpy.array(['a'*6, 'b'*8, 'c'*10], dtype='S8'))
 
 # Read the string EArray we have created on disk
 for s in array_c:
-    print "array_c[%s] => '%s'" % (array_c.nrow, s)
+    print "array_c[%s] =&gt; '%s'" % (array_c.nrow, s)
 # Close the file
 fileh.close()</screen>
 
@@ -8676,7 +8649,6 @@ array_c[4] =&gt; 'cccccccc'</screen>
                 row.</para>
               </glossdef>
             </glossentry>
-
           </glosslist>
         </section>
 
@@ -9294,9 +9266,9 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
           cells stored in a dataset. The meaning of
           <emphasis>atomic</emphasis> is that individual elements of a cell
           can not be extracted directly by indexing (i.e.
-          <literal>__getitem__()</literal>) the dataset; e.g. if a dataset
-          has shape (2, 2) and its atoms have shape (3,), to get the third
-          element of the cell at (1, 0) one should use
+          <literal>__getitem__()</literal>) the dataset; e.g. if a dataset has
+          shape (2, 2) and its atoms have shape (3,), to get the third element
+          of the cell at (1, 0) one should use
           <literal>dataset[1,0][2]</literal> instead of
           <literal>dataset[1,0,2]</literal>.</para>
 
@@ -9305,13 +9277,13 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
           known as <emphasis>atom</emphasis>) of <literal>CArray</literal>,
           <literal>EArray</literal> and <literal>VLArray</literal> objects,
           although they are used also so as to describe the base elements of
-          <literal>Array</literal> objects as well.  <literal>Atom</literal>
-          instances have the property that their length is always the
-          same. However, you can grow objects along the extensible dimension
-          in the case of <literal>EArray</literal> or put a variable number of
-          them on a <literal>VLArray</literal> row.  Moreover, the atoms are
-          not restricted to scalar values, and they can be fully
-          multidimensional objects.</para>
+          <literal>Array</literal> objects as well. <literal>Atom</literal>
+          instances have the property that their length is always the same.
+          However, you can grow objects along the extensible dimension in the
+          case of <literal>EArray</literal> or put a variable number of them
+          on a <literal>VLArray</literal> row. Moreover, the atoms are not
+          restricted to scalar values, and they can be fully multidimensional
+          objects.</para>
 
           <para>A series of descendant classes are offered in order to make
           the use of these element descriptions easier. You should use a
@@ -9814,26 +9786,29 @@ True</screen>
                 <title>Examples</title>
 
                 <para>The next C <literal>enum</literal> construction:</para>
+
                 <screen>
 enum myEnum {
   T0,
   T1,
   T2
 };</screen>
+
                 <para>would correspond to the following PyTables
                 declaration:</para>
+
                 <screen>
 &gt;&gt;&gt; myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')</screen>
 
                 <para>Please note the <literal>dflt</literal> argument with a
-                value of <literal>'T0'</literal>.  Since the concrete value
+                value of <literal>'T0'</literal>. Since the concrete value
                 matching <literal>T0</literal> is unknown right now (we have
                 not used explicit concrete values), using the name is the only
                 option left for defining a default value for the atom.</para>
 
                 <para>The chosen representation of values for this enumerated
                 atom uses unsigned 32-bit integers, which surely wastes quite
-                a lot of memory.  Another size could be selected by using the
+                a lot of memory. Another size could be selected by using the
                 <literal>base</literal> argument (this time with a full-blown
                 storage atom):</para>
 
@@ -9842,16 +9817,18 @@ enum myEnum {
 
                 <para>You can also define multidimensional arrays for data
                 elements:</para>
+
                 <screen>
 &gt;&gt;&gt; myEnumAtom = EnumAtom(
 ...    ['T0', 'T1', 'T2'], 'T0', base='uint32', shape=(3,2))</screen>
+
                 <para>for 3x2 arrays of <literal>uint32</literal>.</para>
               </section>
             </section>
 
             <!-- You can place paragraphs and other block elements before a section, but you cannot place anything after it. See docbook reference. -->
 
-            <section>
+            <section id="PseudoAtomsDescr">
               <title>Pseudo atoms</title>
 
               <para>Now, there come two special classes,
@@ -10008,8 +9985,8 @@ enum myEnum {
                 role="bold">complevel</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Specifies a compression level for data.  The allowed
-                  range is 0-9.  A value of 0 (the default) disables
+                  <para>Specifies a compression level for data. The allowed
+                  range is 0-9. A value of 0 (the default) disables
                   compression.</para>
                 </glossdef>
               </glossentry>
@@ -10019,11 +9996,12 @@ enum myEnum {
                 role="bold">complib</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Specifies the compression library to be used.  Right
+                  <para>Specifies the compression library to be used. Right
                   now, 'zlib' (the default), 'lzo' and 'bzip2' are supported.
-                  See <xref linkend="compressionIssues" xrefstyle="select:
-                  label" /> for some advice on which library is better suited
-                  to your needs.</para>
+                  See <xref linkend="compressionIssues"
+                  xrefstyle="select:                   label" /> for some
+                  advice on which library is better suited to your
+                  needs.</para>
                 </glossdef>
               </glossentry>
 
@@ -10033,13 +10011,13 @@ enum myEnum {
 
                 <glossdef>
                   <para>Whether or not to use the <emphasis>Shuffle</emphasis>
-                  filter in the HDF5 library.  This is normally used to
-                  improve the compression ratio.  A false value disables
-                  shuffling and a true one enables it.  The default value
-                  depends on whether compression is enabled or not; if
-                  compression is enabled, shuffling defaults to be enabled,
-                  else shuffling is disabled.  Shuffling can only be used when
-                  compression is enabled.</para>
+                  filter in the HDF5 library. This is normally used to improve
+                  the compression ratio. A false value disables shuffling and
+                  a true one enables it. The default value depends on whether
+                  compression is enabled or not; if compression is enabled,
+                  shuffling defaults to be enabled, else shuffling is
+                  disabled. Shuffling can only be used when compression is
+                  enabled.</para>
                 </glossdef>
               </glossentry>
 
@@ -10050,7 +10028,7 @@ enum myEnum {
                 <glossdef>
                   <para>Whether or not to use the
                   <emphasis>Fletcher32</emphasis> filter in the HDF5 library.
-                  This is used to add a checksum on each data chunk.  A false
+                  This is used to add a checksum on each data chunk. A false
                   value (the default) disables the checksum.</para>
                 </glossdef>
               </glossentry>
@@ -14038,7 +14016,7 @@ Object Tree:
 / (RootGroup) ''
   /._v_attrs (AttributeSet), 5 attributes:
    [CLASS := 'GROUP',
-    PYTABLES_FORMAT_VERSION := '1.6',
+    PYTABLES_FORMAT_VERSION := '2.0',
     TITLE := '',
     VERSION := '1.0']
 /vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
@@ -14370,13 +14348,12 @@ Object Tree:
       endow to your own-generated files in order to get a fully PyTables
       compatible file.</para>
 
-      <para>We are going to describe the <emphasis>1.6 version of PyTables
-      file format</emphasis> (introduced in PyTables version 1.3). At this
-      stage, this file format is considered stable enough to do not introduce
-      significant changes during a reasonable amount of time. As time goes by,
-      some changes will be introduced (and documented here) in order to cope
-      with new necessities. However, the changes will be carefully pondered so
-      as to ensure backward compatibility whenever is possible.</para>
+      <para>We are going to describe the <emphasis>2.0 version of PyTables
+      file format</emphasis> (introduced in PyTables version 2.0). As time
+      goes by, some changes might be introduced (and documented here) in order
+      to cope with new necessities. However, the changes will be carefully
+      pondered so as to ensure backward compatibility whenever is
+      possible.</para>
 
       <para>A PyTables file is composed with arbitrarily large amounts of HDF5
       groups (<literal>Groups</literal> in PyTables naming scheme) and
@@ -14417,12 +14394,12 @@ Object Tree:
           </glossentry>
 
           <glossentry>
-            <glossterm><emphasis role="bold">PYTABLES_FORMAT_
-            VERSION</emphasis></glossterm>
+            <glossterm><emphasis
+            role="bold">PYTABLES_FORMAT_VERSION</emphasis></glossterm>
 
             <glossdef>
               <para>It represents the internal format version, and currently
-              should be set to the <literal>'1.6'</literal> string.</para>
+              should be set to the <literal>'2.0'</literal> string.</para>
             </glossdef>
           </glossentry>
 
@@ -14495,10 +14472,10 @@ Object Tree:
             <glossdef>
               <para>When present, this attribute contains the filter
               properties (a <literal>Filters</literal> instance, see section
-              <xref linkend="FiltersClassDescr" xrefstyle="select:
-              labelnumber"/>) that may be inherited by leaves or groups
-              created immediately under this group. This is a packed 64-bit
-              integer structure, where</para>
+              <xref linkend="FiltersClassDescr"
+              xrefstyle="select:               labelnumber" />) that may be
+              inherited by leaves or groups created immediately under this
+              group. This is a packed 64-bit integer structure, where</para>
 
               <itemizedlist>
                 <listitem>
@@ -14820,7 +14797,7 @@ Object Tree:
                   <glosslist>
                     <glossentry>
                       <glossterm><emphasis
-                      role="bold">H5T_UNIX_D32BE</emphasis></glossterm>
+                      role="bold">H5T_UNIX_D32</emphasis></glossterm>
 
                       <glossdef>
                         <para>This represents a POSIX
@@ -14834,7 +14811,7 @@ Object Tree:
 
                     <glossentry>
                       <glossterm><emphasis
-                      role="bold">H5T_UNIX_D64BE</emphasis></glossterm>
+                      role="bold">H5T_UNIX_D64</emphasis></glossterm>
 
                       <glossdef>
                         <para>This represents a POSIX <emphasis>struct
@@ -15147,6 +15124,20 @@ Object Tree:
               </glossentry>
 
               <glossentry>
+                <glossterm><emphasis
+                role="bold">PSEUDOATOM</emphasis></glossterm>
+
+                <glossdef>
+                  <para>This is used so as to specify the kind of pseudo-atom
+                  (see <xref linkend="VLArrayFormatDescr"
+                  xrefstyle="select:                   label" />) for the
+                  <literal>VLArray</literal>. It can take the values
+                  <literal>'vlstring'</literal> or
+                  <literal>'object'</literal>.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
                 <glossterm><emphasis role="bold">TITLE</emphasis></glossterm>
 
                 <glossdef>
@@ -15161,7 +15152,7 @@ Object Tree:
 
                 <glossdef>
                   <para>Should contain the string
-                  <literal>'1.2'</literal>.</para>
+                  <literal>'1.3'</literal>.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
