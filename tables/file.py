@@ -2052,13 +2052,14 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 # If a user hits ^C during a run, it is wise to gracefully close the opened files.
 def close_open_files():
-    if len(_open_files):
-        print >> sys.stderr, "Closing remaining opened files:",
+    are_open_files = len(_open_files) > 0
+    if are_open_files:
+        print >> sys.stderr, "Closing remaining open files:",
     for fileh in _open_files.keys():
         print >> sys.stderr, "%s..." % (fileh.filename,),
         fileh.close()
         print >> sys.stderr, "done",
-    if len(_open_files):
+    if are_open_files:
         print >> sys.stderr
 
 import atexit
