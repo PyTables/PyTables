@@ -230,7 +230,7 @@
       naming scheme as <emphasis>compound</emphasis> data types.</para>
 
       <para>For example, you can define arbitrary tables in Python simply by
-      declaring a class with name field and types information, such as in the
+      declaring a class with named fields and type information, such as in the
       following example:</para>
 
       <programlisting width="72">class Particle(IsDescription):
@@ -251,12 +251,12 @@
       application (in C, Fortran, Java or whatever language that provides a
       library to interface with HDF5).</para>
 
-      <para>Other important entities in PyTables are the
-      <emphasis>array</emphasis> objects that are analogous to tables with the
-      difference that all of their components are homogeneous. They come in
-      different flavors, like <emphasis>generic</emphasis> (they provide a
+      <para>Other important entities in PyTables are
+      <emphasis>array</emphasis> objects, which are analogous to tables with
+      the difference that all of their components are homogeneous. They come
+      in different flavors, like <emphasis>generic</emphasis> (they provide a
       quick and fast way to deal with for numerical arrays),
-      <emphasis>enlargeable</emphasis> (arrays can be extended in any single
+      <emphasis>enlargeable</emphasis> (arrays can be extended along a single
       dimension) and <emphasis>variable length</emphasis> (each row in the
       array can have a different number of elements).</para>
 
@@ -267,32 +267,33 @@
         <title>Main Features</title>
 
         <para>PyTables takes advantage of the object orientation and
-        introspection capabilities offered by Python, the HDF5 powerful data
-        management features and NumPy flexibility and high-performance
-        manipulation of large sets of objects organized in grid-like fashion
-        to provide these features:</para>
+        introspection capabilities offered by Python, the powerful data
+        management features of HDF5, and NumPy's flexibility and
+        high-performance manipulation of large sets of objects organized in a
+        grid-like fashion to provide these features:</para>
 
         <itemizedlist>
           <listitem>
             <para><emphasis>Support for table entities:</emphasis> You can
-            tailor your data adding or deleting records in your tables. A
-            large number of rows (up to 2**62), i.e. much more than will fit
-            into memory is supported as well.</para>
+            tailor your data adding or deleting records in your tables. Large
+            numbers of rows (up to 2**62, much more than will fit into memory)
+            are supported as well.</para>
           </listitem>
 
           <listitem>
             <para><emphasis>Multidimensional and nested table
-            cells:</emphasis> You can declare a column to consist of general
-            array cells as well as scalars, which is the only dimensionality
-            allowed the majority of relational databases. You can even declare
-            columns that are made of other columns (of different types), which
-            is known as struct types.</para>
+            cells:</emphasis> You can declare a column to consist of values
+            having any number of dimensions besides scalars, which is the only
+            dimensionality allowed by the majority of relational
+            databases. You can even declare columns that are made of other
+            columns (of different types).</para>
           </listitem>
 
           <listitem>
             <para><emphasis>Indexing support for columns of tables:</emphasis>
             Very useful if you have large tables and you want to quickly look
             up for values in columns satisfying some criteria.</para>
+            <!-- XXXPRO -->
           </listitem>
 
           <listitem>
@@ -307,23 +308,22 @@
           <listitem>
             <para><emphasis>Enlargeable arrays:</emphasis> You can add new
             elements to existing arrays on disk in any dimension you want (but
-            only one). Besides, you can access to only a slice of your
+            only one). Besides, you are able to access just a slice of your
             datasets by using the powerful extended slicing mechanism, without
-            need to load all your complete dataset in-memory.</para>
+            need to load all your complete dataset in memory.</para>
           </listitem>
 
           <listitem>
             <para><emphasis>Variable length arrays:</emphasis> The number of
-            elements in these arrays can be variable from row to row. This
-            provides a lot of flexibility when dealing with complex
-            data.</para>
+            elements in these arrays can vary from row to row. This provides a
+            lot of flexibility when dealing with complex data.</para>
           </listitem>
 
           <listitem>
             <para><emphasis>Supports a hierarchical data model:</emphasis>
-            Allows the user to clearly structure all the data. PyTables builds
-            up an <emphasis>object tree</emphasis> in memory that replicates
-            the underlying file data structure. Access to the file objects is
+            Allows the user to clearly structure all data. PyTables builds up
+            an <emphasis>object tree</emphasis> in memory that replicates the
+            underlying file data structure. Access to objects in the file is
             achieved by walking through and manipulating this object
             tree.</para>
           </listitem>
@@ -331,9 +331,9 @@
           <listitem>
             <para><emphasis>User defined metadata:</emphasis> Besides
             supporting system metadata (like the number of rows of a table,
-            shape, flavor, etc.) the user may specify its own metadata (as for
-            example, room temperature, or protocol for IP traffic that was
-            collected) that complement the meaning of his actual data.</para>
+            shape, flavor, etc.) the user may specify arbitrary metadata (as
+            for example, room temperature, or protocol for IP traffic that was
+            collected) that complement the meaning of actual data.</para>
           </listitem>
 
           <listitem>
@@ -344,11 +344,11 @@
             (that can be mapped to <literal>Array</literal> objects) or
             variable length record datasets (that can be mapped to
             <literal>VLArray</literal> objects). Besides, if a dataset is not
-            supported, it will be mapped into a special
+            supported, it will be mapped to a special
             <literal>UnImplemented</literal> class (see <xref
             linkend="UnImplementedClassDescr" xrefstyle="select: label" />),
             that will let the user see that the data is there, although it
-            would be unreachable (still, you will be able to access the
+            will be unreachable (still, you will be able to access the
             attributes and some metadata in the dataset). With that, PyTables
             probably can access and <emphasis>modify</emphasis> most of the
             HDF5 files out there.</para>
@@ -381,13 +381,13 @@
 
           <listitem>
             <para><emphasis>Architecture-independent:</emphasis> PyTables has
-            been carefully coded (as has HDF5 itself) with
-            little-endian/big-endian byte orderings issues in mind. So, you
-            can write a file on a big-endian machine (like a Sparc or MIPS)
-            and read it on other little-endian machine (like an Intel or
-            Alpha) without problems. In addition, it has been tested
-            successfully with 64 bit platforms (Intel-64, AMD-64, PowerPC-G5,
-            MIPS, UltraSparc) using code generated with 64 bit aware
+            been carefully coded (as HDF5 itself) with
+            little-endian/big-endian byte ordering issues in mind. So, you can
+            write a file on a big-endian machine (like a Sparc or MIPS) and
+            read it on other little-endian machine (like an Intel or Alpha)
+            without problems. In addition, it has been tested successfully
+            with 64 bit platforms (Intel-64, AMD-64, PowerPC-G5, MIPS,
+            UltraSparc) using code generated with 64 bit aware
             compilers.</para>
           </listitem>
         </itemizedlist>
@@ -408,7 +408,7 @@
         classes. There are several types of classes, but the most important
         ones are the <literal>Node</literal>, <literal>Group</literal> and
         <literal>Leaf</literal> classes. All nodes in a PyTables tree are
-        instances of the <literal>Node</literal> class.
+        instances of the <literal>Node</literal> class. The
         <literal>Group</literal> and <literal>Leaf</literal> classes are
         descendants of <literal>Node</literal>. <literal>Group</literal>
         instances (referred to as <emphasis>groups</emphasis> from now on) are
@@ -441,7 +441,7 @@
 
         <para>Support for <emphasis>natural naming</emphasis> is a key aspect
         of PyTables. It means that the names of instance variables of the node
-        objects are the same as the names of the element's children<footnote>
+        objects are the same as the names of its children<footnote>
             <para>I got this simple but powerful idea from the excellent
             <literal>Objectify</literal> module by David Mertz (see <biblioref
             linkend="Objectify" />)</para>
@@ -456,26 +456,26 @@
         loaded. The actual data is not read until you request it (by calling a
         method on a particular node). Using the object tree (the metadata) you
         can retrieve information about the objects on disk such as table
-        names, titles, name columns, data types in columns, numbers of rows,
-        or, in the case of arrays, the shapes, typecodes, etc. of the array.
-        You can also search through the tree for specific kinds of data then
-        read it and process it. In a certain sense, you can think of PyTables
-        as a tool that applies the same introspection capabilities of Python
-        objects to large amounts of data in persistent storage.</para>
+        names, titles, column names, data types in columns, numbers of rows,
+        or, in the case of arrays, their shapes, typecodes, etc.  You can also
+        search through the tree for specific kinds of data then read it and
+        process it. In a certain sense, you can think of PyTables as a tool
+        that applies the same introspection capabilities of Python objects to
+        large amounts of data in persistent storage.</para>
 
-        <para>It is worth to note that PyTables sports a <emphasis>node cache
+        <para>It is worth noting that PyTables sports a <emphasis>node cache
         system</emphasis> that loads nodes on demand, and unloads nodes that
-        have not been used for some time (i.e. following a <emphasis>Least
-        Recent Used</emphasis> schema). This feature allows opening files with
-        large hierarchies very quickly and with a low memory consumption,
-        while retaining all the powerful browsing capabilities of the previous
+        have not been used for some time (following a <emphasis>Least Recently
+        Used</emphasis> schema). This feature allows opening files with large
+        hierarchies very quickly and with a low memory consumption, while
+        retaining all the powerful browsing capabilities of the previous
         implementation of the object tree. See <biblioref
         linkend="NewObjectTreeCacheRef" /> for more facts about the advantages
         introduced by this new node cache system.</para>
 
         <para>To better understand the dynamic nature of this object tree
-        entity, let's start with a sample PyTables script (you can find it in
-        <literal>examples/objecttree.py</literal>) to create a HDF5
+        entity, let's start with a sample PyTables script (which you can find
+        in <literal>examples/objecttree.py</literal>) to create an HDF5
         file:</para>
 
         <screen>
@@ -520,8 +520,7 @@ for table in (table1, table2):
     table.flush()
 
 # Finally, close the file (this also will flush all the remaining buffers!)
-fileh.close()
-</screen>
+fileh.close()</screen>
 
         <para>This small program creates a simple HDF5 file called
         <literal>objecttree.h5</literal> with the structure that appears in
@@ -555,13 +554,14 @@ fileh.close()
         <para>In <xref linkend="objecttree" xrefstyle="select: label" /> you
         can see an example of the object tree created when the above
         <literal>objecttree.h5</literal> file is read (in fact, such an object
-        is always created when reading any supported generic HDF5 file). It's
-        worthwhile to take your time to understand it<footnote>
+        tree is always created when reading any supported generic HDF5 file).
+        It is worthwhile to take your time to understand it<footnote>
             <para>Bear in mind, however, that this diagram is
             <emphasis>not</emphasis> a standard UML class diagram; it is
             rather meant to show the connections between the PyTables objects
             and some of its most important attributes and methods.</para>
-          </footnote>. It will help you to avoid programming mistakes.</para>
+          </footnote>. It will help you understand the relationships of
+        in-memory PyTables objects.</para>
 
         <figure id="objecttree">
           <title>A PyTables object tree example.</title>
