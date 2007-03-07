@@ -5960,6 +5960,11 @@ Object Tree:
                 <literal>FILTERS</literal> attribute. When there is no such
                 attribute, its value is the default <literal>Filters</literal>
                 instance.</para>
+                <para>You can (and are encouraged to) use this property to
+                get, set and delete the <literal>FILTERS</literal> HDF5
+                attribute of the group.  When the group has no such attribute,
+                the default filters are used.
+                </para>
               </glossdef>
             </glossentry>
           </glosslist>

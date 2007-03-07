@@ -99,6 +99,10 @@ class Group(hdf5Extension.Group, Node):
         shorthand for the ``FILTERS`` attribute.  When there is no such
         attribute, its value is the default `Filters` instance.
 
+        You can (and are encouraged to) use this property to get, set
+        and delete the ``FILTERS`` HDF5 attribute of the group.  When
+        the group has no such attribute, the default filters are used.
+
     Public methods (in addition to those in `Node`):
 
     * __setattr__(name, value)
@@ -146,8 +150,15 @@ class Group(hdf5Extension.Group, Node):
     def _g_delfilters(self):
         del self._v_attrs.FILTERS
 
-    _v_filters = property(_g_getfilters, _g_setfilters, _g_delfilters,
-                          "Default filter properties for child nodes.")
+    _v_filters = property(
+        _g_getfilters, _g_setfilters, _g_delfilters,
+        """
+        Default filter properties for child nodes.
+
+        You can (and are encouraged to) use this property to get, set
+        and delete the ``FILTERS`` HDF5 attribute of the group.  When
+        the group has no such attribute, the default filters are used.
+        """ )
 
     # </properties>
 
