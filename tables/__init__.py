@@ -32,8 +32,11 @@ Misc variables:
 from tables.utilsExtension import getPyTablesVersion, getHDF5Version
 
 __version__ = getPyTablesVersion()
+"""The PyTables version number."""
 hdf5Version = getHDF5Version()
+"""The underlying HDF5 library version number."""
 is_pro = __version__.endswith('pro')
+"""True for PyTables Professional edition, false otherwise."""
 
 from tables.utilsExtension import isHDF5File, isPyTablesFile, whichLibVersion
 
@@ -69,12 +72,12 @@ __all__ = [
     # Functions:
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
     'copyFile', 'openFile', 'print_versions', 'test',
+    'split_type',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
     # Types:
     'Enum',
     # Atom types:
-    'split_type',
     'Atom', 'StringAtom', 'BoolAtom',
     'IntAtom', 'UIntAtom', 'Int8Atom', 'UInt8Atom', 'Int16Atom', 'UInt16Atom',
     'Int32Atom', 'UInt32Atom', 'Int64Atom', 'UInt64Atom',

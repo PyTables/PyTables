@@ -174,48 +174,61 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
 
     Arguments:
 
-    filename -- The name of the file (supports environment variable
-            expansion).
+    `filename`
+        The name of the file (supports environment variable expansion).
+        It is suggested that file names have any of the ``.h5``,
+        ``.hdf`` or ``.hdf5`` extensions, although this is not
+        mandatory.
 
-    mode -- The mode to open the file. It can be one of the following:
+    `mode`
+        The mode in which to open the file.  It can be one of the
+        following:
 
-        "r" -- read-only; no data can be modified.
+        ``'r'``
+            Read-only; no data can be modified.
+        ``'w``'
+            Write; a new file is created (an existing file with the same
+            name would be deleted).
+        ``'a'``
+            Append; an existing file is opened for reading and writing,
+            and if the file does not exist it is created.
+        ``'r+'``
+            It is similar to ``'a'``, but the file must already exist.
 
-        "w" -- write; a new file is created (an existing file with the
-               same name is deleted).
+    `title`
+        If the file is to be created, a ``TITLE`` string attribute will
+        be set on the root group with the given value.  Otherwise, the
+        title will be read from disk, and this will not have any effect.
 
-        "a" -- append; an existing file is opened for reading and
-               writing, and if the file does not exist it is created.
+    `trMap`
+        A dictionary to map names in the object tree into different HDF5
+        names in file.  The keys are the Python names, while the values
+        are the HDF5 names.  This is useful when you need to name HDF5
+        nodes with invalid or reserved words in Python and you want to
+        continue using the natural naming facility on the nodes.
 
-        "r+" -- is similar to "a", but the file must already exist.
+    `rootUEP`
+        The root User Entry Point.  This is a group in the HDF5
+        hierarchy which will be taken as the starting point to create
+        the object tree.  It can be whatever existing group in the file,
+        named by its HDF5 path. If it does not exist, an `HDF5ExtError`
+        is issued.  Use this if you do not want to build the *entire*
+        object tree, but rather only a *subtree* of it.
 
-    title -- A TITLE string attribute will be set on the root group
-             with its value.
+    `filters`
+        An instance of the `Filters` class that provides information
+        about the desired I/O filters applicable to the leaves that hang
+        directly from the *root group*, unless other filter properties
+        are specified for these leaves.  Besides, if you do not specify
+        filter properties for child groups, they will inherit these
+        ones, which will in turn propagate to child nodes.
 
-    trMap -- A dictionary to map names in the object tree into different
-             HDF5 names in file. The keys are the Python names, while
-             the values are the HDF5 names. This is useful when you need
-             to name HDF5 nodes with invalid or reserved words in Python
-             and wants to continue using the natural naming facility.
-
-    rootUEP -- The root User Entry Point. It is a group in the file
-            hierarchy which is taken as the starting point to create the
-            object tree. The group can be whatever existing path in the
-            file. If it does not exist, an HDF5ExtError is issued.
-
-    filters -- An instance of the Filters class that provides
-            information about the desired I/O filters applicable to the
-            leaves that hangs directly from root (unless other filters
-            properties are specified for these leaves, of
-            course). Besides, if you do not specify filter properties
-            for its child groups, they will inherit these ones.
-
-    nodeCacheSize -- The number of *unreferenced* nodes to be kept in
-            memory.  Least recently used nodes are unloaded from memory
-            when this number of loaded nodes is reached.  To load a node
-            again, simply access it as usual.  Nodes referenced by user
-            variables are not taken into account nor unloaded.
-
+    `nodeCacheSize`
+        The number of *unreferenced* nodes to be kept in memory.  Least
+        recently used nodes are unloaded from memory when this number of
+        loaded nodes is reached.  To load a node again, simply access it
+        as usual.  Nodes referenced by user variables are not taken into
+        account nor unloaded.
     """
 
     # Expand the form '~user'

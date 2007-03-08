@@ -101,7 +101,7 @@ def suite():
 
 
 def print_versions():
-    """Print all the versions on software that PyTables relies on."""
+    """Print all the versions of software that PyTables relies on."""
     print '-=' * 38
     print "PyTables version:  %s" % tables.__version__
     print "HDF5 version:      %s" % tables.whichLibVersion("hdf5")[1]
@@ -126,15 +126,16 @@ def print_versions():
 
 
 def test(verbose=False, heavy=False):
-    """Runs all the tests in the test suite.
+    """
+    Run all the tests in the test suite.
 
-    If 'verbose' is set, the test suite will emit messages with full
+    If `verbose` is set, the test suite will emit messages with full
     verbosity (not recommended unless you are looking into a certain
     problem).
 
-    If 'heavy' is set, the test suite will be run in *heavy* mode (you
-    should be careful with this because it can take a lot of resources
-    from your computer).
+    If `heavy` is set, the test suite will be run in *heavy* mode (you
+    should be careful with this because it can take a lot of time and
+    resources from your computer).
     """
     print_versions()
     if verbose:

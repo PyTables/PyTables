@@ -3613,12 +3613,12 @@ $ ptdump -d nested-tut.h5
       <emphasis>PyTables</emphasis> or <emphasis>HDF5</emphasis> file. These
       are called <literal>isPyTablesFile()</literal> and
       <literal>isHDF5File()</literal>, respectively. There exists also a
-      function called <literal>whichLibVersion</literal> that informs about
-      the versions of the underlying C libraries (for example, the HDF5 or the
+      function called <literal>whichLibVersion()</literal> that informs about
+      the versions of the underlying C libraries (for example, HDF5 or
       <literal>Zlib</literal>) and another called
-      <literal>print_versions</literal> that prints all the versions of the
-      software that PyTables relies on. Finally, <literal>test</literal> lets
-      you run the complete test suite from a Python console
+      <literal>print_versions()</literal> that prints all the versions of the
+      software that PyTables relies on. Finally, <literal>test()</literal>
+      lets you run the complete test suite from a Python console
       interactively.</para>
 
       <para>Let's start discussing the first-level variables and functions
@@ -3711,10 +3711,12 @@ $ ptdump -d nested-tut.h5
 
           <section id="openFileDescr" xreflabel="description">
             <title>openFile(filename, mode='r', title='', trMap={},
-            rootUEP="/", filters=None)</title>
+            rootUEP="/", filters=None, nodeCacheSize=NODE_MAX_SLOTS)</title>
 
-            <para>Open a PyTables (or generic HDF5) file and returns a
+            <para>Open a PyTables (or generic HDF5) file and return a
             <literal>File</literal> object.</para>
+
+            <para>Arguments:</para>
 
             <glosslist>
               <glossentry>
@@ -3723,9 +3725,9 @@ $ ptdump -d nested-tut.h5
 
                 <glossdef>
                   <para>The name of the file (supports environment variable
-                  expansion). It is suggested that it should have any of
-                  <literal>".h5"</literal>, <literal>".hdf"</literal> or
-                  <literal>".hdf5"</literal> extensions, although this is not
+                  expansion). It is suggested that file names have any of the
+                  <literal>.h5</literal>, <literal>.hdf</literal> or
+                  <literal>.hdf5</literal> extensions, although this is not
                   mandatory.</para>
                 </glossdef>
               </glossentry>
@@ -3734,8 +3736,8 @@ $ ptdump -d nested-tut.h5
                 <glossterm><emphasis role="bold">mode</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The mode to open the file. It can be one of the
-                  following:</para>
+                  <para>The mode in whichto open the file. It can be one of
+                  the following:</para>
 
                   <glosslist>
                     <glossentry>
@@ -3743,7 +3745,7 @@ $ ptdump -d nested-tut.h5
                       role="bold">'r'</emphasis></glossterm>
 
                       <glossdef>
-                        <para>read-only; no data can be modified.</para>
+                        <para>Read-only; no data can be modified.</para>
                       </glossdef>
                     </glossentry>
 
@@ -3752,7 +3754,7 @@ $ ptdump -d nested-tut.h5
                       role="bold">'w'</emphasis></glossterm>
 
                       <glossdef>
-                        <para>write; a new file is created (an existing file
+                        <para>Write; a new file is created (an existing file
                         with the same name would be deleted).</para>
                       </glossdef>
                     </glossentry>
@@ -3762,7 +3764,7 @@ $ ptdump -d nested-tut.h5
                       role="bold">'a'</emphasis></glossterm>
 
                       <glossdef>
-                        <para>append; an existing file is opened for reading
+                        <para>Append; an existing file is opened for reading
                         and writing, and if the file does not exist it is
                         created.</para>
                       </glossdef>
@@ -3773,8 +3775,8 @@ $ ptdump -d nested-tut.h5
                       role="bold">'r+'</emphasis></glossterm>
 
                       <glossdef>
-                        <para>is similar to 'a', but the file must already
-                        exist.</para>
+                        <para>It is similar to <literal>'a'</literal>, but the
+                        file must already exist.</para>
                       </glossdef>
                     </glossentry>
                   </glosslist>
@@ -3785,8 +3787,9 @@ $ ptdump -d nested-tut.h5
                 <glossterm><emphasis role="bold">title</emphasis></glossterm>
 
                 <glossdef>
-                  <para>If filename is new, this will set a title for the root
-                  group in this file. If filename is not new, the title will
+                  <para>If the file is to be created, a
+                  <literal>TITLE</literal> string attribute will be set on the
+                  root group with the given value.  Otherwise, the title will
                   be read from disk, and this will not have any effect.</para>
                 </glossdef>
               </glossentry>
@@ -3795,11 +3798,12 @@ $ ptdump -d nested-tut.h5
                 <glossterm><emphasis role="bold">trMap</emphasis></glossterm>
 
                 <glossdef>
-                  <para>A dictionary to map names in the object tree Python
-                  namespace into different HDF5 names in file namespace. The
-                  keys are the Python names, while the values are the HDF5
-                  names. This is useful when you need to use HDF5 node names
-                  with invalid or reserved words in Python.</para>
+                  <para>A dictionary to map names in the object tree into
+                  different HDF5 names in file.  The keys are the Python
+                  names, while the values are the HDF5 names.  This is useful
+                  when you need to name HDF5 nodes with invalid or reserved
+                  words in Python and you want to continue using the natural
+                  naming facility on the nodes.</para>
                 </glossdef>
               </glossentry>
 
@@ -3808,14 +3812,14 @@ $ ptdump -d nested-tut.h5
                 role="bold">rootUEP</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The root User Entry Point. This is a group in the HDF5
-                  hierarchy which will be taken as the starting point to
-                  create the object tree. The group has to be named after its
-                  HDF5 name and can be a path. If it does not exist, an
-                  <literal>HDF5ExtError</literal> exception is issued. Use
-                  this if you do not want to build the
-                  <emphasis>entire</emphasis> object tree, but rather only a
-                  <emphasis>subtree</emphasis> of it.</para>
+                  <para>The root User Entry Point.  This is a group in the
+                  HDF5 hierarchy which will be taken as the starting point to
+                  create the object tree.  It can be whatever existing group
+                  in the file, named by its HDF5 path. If it does not exist,
+                  an <literal>HDF5ExtError</literal> is issued.  Use this if
+                  you do not want to build the <emphasis>entire</emphasis>
+                  object tree, but rather only a <emphasis>subtree</emphasis>
+                  of it.</para>
                 </glossdef>
               </glossentry>
 
@@ -3824,19 +3828,15 @@ $ ptdump -d nested-tut.h5
                 role="bold">filters</emphasis></glossterm>
 
                 <glossdef>
-                  <para>An instance of the <literal>Filters</literal> class
-                  (see <xref linkend="FiltersClassDescr"
-                  xrefstyle="select: label" />) that provides information
-                  about the desired I/O filters applicable to the leaves that
-                  hang directly from <emphasis>root</emphasis> (unless other
-                  filters properties are specified for these leaves). Besides,
-                  if you do not specify filter properties for its child
-                  groups, they will inherit these ones. So, if you open a new
-                  file with this parameter set, all the leaves that would be
-                  created in the file will recursively inherit this filtering
-                  properties (again, if you don't prevent that from happening
-                  by specifying other filters on the child groups or
-                  leaves).</para>
+                  <para>An instance of the <literal>Filters</literal> (see
+                  <xref linkend="FiltersClassDescr" xrefstyle="select: label"
+                  />) class that provides information about the desired I/O
+                  filters applicable to the leaves that hang directly from the
+                  <emphasis>root group</emphasis>, unless other filter
+                  properties are specified for these leaves.  Besides, if you
+                  do not specify filter properties for child groups, they will
+                  inherit these ones, which will in turn propagate to child
+                  nodes.</para>
                 </glossdef>
               </glossentry>
 
@@ -3846,26 +3846,33 @@ $ ptdump -d nested-tut.h5
 
                 <glossdef>
                   <para>The number of <emphasis>unreferenced</emphasis> nodes
-                  to be kept in memory. Least recently used nodes are unloaded
-                  from memory when this number of loaded nodes is reached. To
-                  load a node again, simply access it as usual. Nodes
-                  referenced by user variables are not taken into account nor
-                  unloaded.</para>
+                  to be kept in memory.  Least recently used nodes are
+                  unloaded from memory when this number of loaded nodes is
+                  reached.  To load a node again, simply access it as usual.
+                  Nodes referenced by user variables are not taken into
+                  account nor unloaded.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
           </section>
 
+          <section id="print_versions">
+            <title>print_versions()</title>
+
+            <para>Print all the versions of software that PyTables relies
+            on.</para>
+          </section>
+
           <section>
             <title>split_type(type)</title>
 
-            <para>Split a PyTables <emphasis>type</emphasis> into a PyTables
+            <para>Split a PyTables <literal>type</literal> into a PyTables
             kind and an item size.</para>
 
             <para>Returns a tuple of <literal>(kind, itemsize)</literal>. If
-            no item size is present in the <emphasis>type</emphasis> (in the
+            no item size is present in the <literal>type</literal> (in the
             form of a precision), the returned item size is
-            <emphasis>None</emphasis>.</para>
+            <literal>None</literal>.</para>
 
             <screen>
 &gt;&gt;&gt; split_type('int32')
@@ -3880,6 +3887,21 @@ ValueError: precision must be a multiple of 8: 20
 Traceback (most recent call last):
   ...
 ValueError: malformed type: 'foo bar'</screen>
+          </section>
+
+          <section id="testDescr">
+            <title>test(verbose=False, heavy=False)</title>
+
+            <para>Run all the tests in the test suite.</para>
+
+            <para>If <literal>verbose</literal> is set, the test suite will
+            emit messages with full verbosity (not recommended unless you are
+            looking into a certain problem).</para>
+
+            <para>If <literal>heavy</literal> is set, the test suite will be
+            run in <emphasis>heavy</emphasis> mode (you should be careful with
+            this because it can take a lot of time and resources from your
+            computer).</para>
           </section>
 
           <section id="whichLibVersionDescr">
@@ -3898,30 +3920,10 @@ ValueError: malformed type: 'foo bar'</screen>
             <literal>lzo</literal> and <literal>bzip2</literal>. If another
             name is given, a <literal>ValueError</literal> is raised.</para>
           </section>
-
-          <section id="print_versions">
-            <title>print_versions()</title>
-
-            <para>Print all the versions on software that PyTables relies
-            on.</para>
-          </section>
-
-          <section id="testDescr">
-            <title>test(verbose=False, heavy=False)</title>
-
-            <para>Runs all the tests in the test suite.</para>
-
-            <para>If <literal>verbose</literal> is set, the test suite will
-            emit messages with full verbosity.</para>
-
-            <para>If <literal>heavy</literal> is set, the test suite will be
-            run in <emphasis>heavy</emphasis> mode (you should be careful with
-            this because it can take a lot of resources from your
-            computer).</para>
-          </section>
         </section>
       </section>
 
+      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="FileClassDescr">
         <title>The <literal>File</literal> class</title>
 
