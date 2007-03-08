@@ -115,7 +115,7 @@
     <title>NumPy. Scientific Computing with Numerical Python</title>
     <bibliomisc >The latest and most powerful re-implementation of Numeric to
     date. It implements all the features that can be found in Numeric and
-    numarray, plus a bunch of new others. In general, is more efficient as
+    numarray, plus a bunch of new others. In general, it is more efficient as
     well</bibliomisc>
     <bibliosource>
       <ulink url="http://numeric.scipy.org/">http://numeric.scipy.org/</ulink>
@@ -146,7 +146,7 @@
       <othername role='mi'>L</othername></author>
       <author><firstname>J. C.</firstname><surname>Hsu</surname></author>
       <author><firstname>Paul</firstname><surname>Barrett</surname></author>
-      <author><firstname>Jochen</firstname><surname>K�pper</surname></author>
+      <author><firstname>Jochen</firstname><surname>Küpper</surname></author>
       <author><firstname>Peter</firstname><surname>Verveer</surname>
       <othername role='mi'>J</othername></author>
     </authorgroup>

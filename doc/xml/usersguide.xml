@@ -596,32 +596,36 @@ fileh.close()
 
       <para>The Python <literal>Distutils</literal> are used to build and
       install PyTables, so it is fairly simple to get the application up and
-      running. If you want to install the package from sources go to the next
-      section. But if you are running Windows and want to install precompiled
-      binaries jump to <xref linkend="binaryInstallationDescr"
-      xrefstyle="select: label" />). In addition, packages are available for
-      many different Linux distributions, for instance <ulink
-      url="http://www.t2-project.org">T2 Project</ulink>, <ulink
-      url="http://www.debian.org/"><literal>Debian</literal></ulink>, or
-      <ulink url="http://www.ubuntu.com/"><literal>Ubuntu</literal></ulink>,
-      among others. There are also packages for other Unices like <ulink
+      running. If you want to install the package from sources you can go on
+      reading to the next section.</para>
+
+      <para>However, if you are running Windows and want to install
+      precompiled binaries, you can jump straight to <xref
+      linkend="binaryInstallationDescr" xrefstyle="select: label"/>. In
+      addition, packages are available for many different Linux distributions,
+      for instance <ulink url="http://www.t2-project.org">T2 Project</ulink>,
+      <ulink url="http://www.debian.org/"><literal>Debian</literal></ulink>,
+      or <ulink
+      url="http://www.ubuntu.com/"><literal>Ubuntu</literal></ulink>, among
+      others. There are also packages for other Unices like <ulink
       url="http://www.freshports.org/"><literal>FreeBSD</literal></ulink> or
       <ulink
-      url="http://www.opendarwin.org/"><literal>MacOSX</literal></ulink></para>
+      url="http://www.opendarwin.org/"><literal>MacOSX</literal></ulink>
+      </para>
 
       <section id="sourceInstallationDescr">
         <title>Installation from source</title>
 
-        <para>These instructions are for both Unix/Linux and Windows systems.
-        If you are using Windows, it is assumed that you have a recent version
-        of <literal>MS Visual C++</literal> compiler installed. A
-        <literal>GCC</literal> compiler is assumed for Unix, but other
-        compilers should work as well.</para>
+        <para>These instructions are for both Unix/MacOS X and Windows
+        systems.  If you are using Windows, it is assumed that you have a
+        recent version of <literal>MS Visual C++</literal> compiler
+        installed. A <literal>GCC</literal> compiler is assumed for Unix, but
+        other compilers should work as well.</para>
 
         <para>Extensions in PyTables have been developed in Pyrex (see
-        <biblioref linkend="Pyrex" />) and C language. You can rebuild
+        <biblioref linkend="Pyrex" />) and the C language. You can rebuild
         everything from scratch if you have Pyrex installed, but this is not
-        necessary, as the Pyrex compiled source is included in the
+        necessary, as the Pyrex compiled source is included in the source
         distribution.</para>
 
         <para>To compile PyTables you will need a recent version of Python,
@@ -640,10 +644,10 @@ fileh.close()
         <section id="PrerequisitesSourceDescr">
           <title>Prerequisites</title>
 
-          <para>First, make sure that you have at least Python 2.4 or 2.5,
-          HDF5 1.6.5 and NumPy 1.0 or higher installed (I'm using HDF5 1.6.5
-          and NumPy 1.0 currently). If you don't, fetch and install them
-          before proceeding.</para>
+          <para>First, make sure that you have at least Python 2.4, HDF5 1.6.5
+          and NumPy 1.0.2 or higher installed (I'm using HDF5 1.6.5 and NumPy
+          1.0.2 currently). If you don't, fetch and install them before
+          proceeding.</para>
 
           <para>Compile and install these packages (but see <xref
           linkend="prerequisitesBinInst" xrefstyle="select: label" /> for
@@ -674,7 +678,7 @@ fileh.close()
                 <literal>libbz2</literal> that you may wish to use) or if you
                 have several versions of a library installed and want to use a
                 particular one, then you can set the path to the resource in
-                the environment, setting the values of the
+                the environment, by setting the values of the
                 <literal>HDF5_DIR</literal>, <literal>LZO_DIR</literal>, or
                 <literal>BZIP2_DIR</literal> environment variables to the path
                 to the particular resource. You may also specify the locations
@@ -682,10 +686,9 @@ fileh.close()
                 <literal>setup.py</literal> command line. For example:</para>
 
                 <screen>
- --hdf5=/stuff/hdf5-1.6.5
- --lzo=/stuff/lzo-1.08
- --bzip2=/stuff/bzip2-1.0.3
-            </screen>
+--hdf5=/stuff/hdf5-1.6.5
+--lzo=/stuff/lzo-1.08
+--bzip2=/stuff/bzip2-1.0.3</screen>
 
                 <para>If your HDF5 library was built as a shared library not
                 in the runtime load path, then you can specify the additional
@@ -693,8 +696,7 @@ fileh.close()
                 line as well. For example:</para>
 
                 <screen>
- --lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.5/lib"
-            </screen>
+--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.5/lib"</screen>
 
                 <para>You may also want to try setting the LD_LIBRARY_PATH
                 environment variable to point to the directory where the
@@ -708,19 +710,18 @@ fileh.close()
                 variable:</para>
 
                 <screen>
-LIBS="hdf5-1.6.5 nsl"
-            </screen>
+LIBS="hdf5-1.6.5 nsl"</screen>
 
-                <para>Finally, you can pass additional flags to your compiler
-                by passing them to the --cflags flag:</para>
+                <para>Finally, you can give additional flags to your compiler
+                by passing them to the <literal>--cflags</literal>
+                flag:</para>
 
                 <screen>
- --cflags="-w -O3"
-            </screen>
+--cflags="-w -O3"</screen>
 
-                <para>In the above case, a gcc compiler is used and you
-                instructed it to suppress all the warnings and set the level 3
-                of optimization.</para>
+                <para>In the above case, a <literal>gcc</literal> compiler is
+                used and you instructed it to suppress all the warnings and
+                set the level 3 of optimization.</para>
               </listitem>
             </varlistentry>
 
@@ -732,57 +733,28 @@ LIBS="hdf5-1.6.5 nsl"
                 <literal>setup.py</literal> needs to know where the necessary
                 library <emphasis>stub</emphasis> (<literal>.lib</literal>)
                 and <emphasis>header</emphasis> (<literal>.h</literal>) files
-                are installed. Set the following environment variables:</para>
-
-                <variablelist>
-                  <varlistentry>
-                    <term><emphasis role="bold">HDF5_DIR</emphasis></term>
-
-                    <listitem>
-                      <para>Points to the root HDF5 directory (where the
-                      include/ and dll/ directories can be found).
-                      <emphasis>Mandatory</emphasis>.</para>
-                    </listitem>
-                  </varlistentry>
-
-                  <varlistentry>
-                    <term><emphasis role="bold">LZO_DIR</emphasis></term>
-
-                    <listitem>
-                      <para>Points to the root LZO directory (where the
-                      include/ and lib/ directories can be found).
-                      <emphasis>Optional</emphasis>.</para>
-                    </listitem>
-                  </varlistentry>
-
-                  <varlistentry>
-                    <term><emphasis role="bold">BZIP2_DIR</emphasis></term>
-
-                    <listitem>
-                      <para>Points to the root bzip2 directory (where the
-                      include/ and lib/ directories can be found).
-                      <emphasis>Optional</emphasis>.</para>
-                    </listitem>
-                  </varlistentry>
-                </variablelist>
-
-                <para>For example:</para>
+                are installed. You can set the path to the
+                <literal>include</literal> and <literal>dll</literal>
+                directories for the HDF5 (mandatory) and LZO or BZIP2
+                (optional) libraries in the environment, by setting the values
+                of the <literal>HDF5_DIR</literal>,
+                <literal>LZO_DIR</literal>, or <literal>BZIP2_DIR</literal>
+                environment variables to the path to the particular
+                resource. For example:</para>
 
                 <screen>
- set HDF5_DIR=c:\stuff\5-165-win
- set LZO_DIR=c:\stuff\lzo-1-08
- set BZIP2_DIR=c:\stuff\bzip2-1-0-3
-            </screen>
+set HDF5_DIR=c:\stuff\5-165-win
+set LZO_DIR=c:\stuff\lzo-1-08
+set BZIP2_DIR=c:\stuff\bzip2-1-0-3</screen>
 
-                <para>Or, you can pass this information to
-                <literal>setup.py</literal> by setting the appropriate
-                arguments on the command line. For example:</para>
+                <para>You may also specify the locations of the resource root
+                directories on the <literal>setup.py</literal> command
+                line. For example:</para>
 
                 <screen>
- --hdf5=c:\stuff\5-165-win
- --lzo=c:\stuff\lzo-1-08
- --bzip2=c:\stuff\bzip2-1-0-3
-            </screen>
+--hdf5=c:\stuff\5-165-win
+--lzo=c:\stuff\lzo-1-08
+--bzip2=c:\stuff\bzip2-1-0-3</screen>
 
                 <para>You can get ready-to-use Windows binaries and other
                 development files for most of those libraries from the
@@ -806,8 +778,7 @@ LIBS="hdf5-1.6.5 nsl"
               discussed above:</para>
 
               <screen>
- python setup.py build_ext --inplace
-            </screen>
+python setup.py build_ext --inplace</screen>
 
               <para>Depending on the compiler flags used when compiling your
               Python executable, there may appear many warnings. Don't worry,
@@ -823,18 +794,16 @@ LIBS="hdf5-1.6.5 nsl"
                   <term><emphasis role="bold">Unix</emphasis></term>
 
                   <listitem>
-                    <para>In the shell <literal>sh</literal> and its
+                    <para>In the <literal>sh</literal> shell and its
                     variants:</para>
 
                     <screen>
- PYTHONPATH=.  python tables/tests/test_all.py
-                    </screen>
+PYTHONPATH=.:$PYTHONPATH  python tables/tests/test_all.py</screen>
 
                     <para>or, if you prefer:</para>
 
                     <screen>
- PYTHONPATH=.  python -c "import tables; tables.test()"
-                    </screen>
+PYTHONPATH=.:$PYTHONPATH  python -c "import tables; tables.test()"</screen>
 
                     <para>Both commands do the same thing.</para>
                   </listitem>
@@ -844,57 +813,66 @@ LIBS="hdf5-1.6.5 nsl"
                   <term><emphasis role="bold">Windows</emphasis></term>
 
                   <listitem>
-                    <para>Open a DOS terminal and type:</para>
+                    <para>Open the command prompt (<literal>cmd.exe</literal>
+                    or <literal>command.com</literal>) and type:</para>
 
                     <screen>
- set PYTHONPATH=.
- python tables\tests\test_all.py
-                    </screen>
+set PYTHONPATH=.;%PYTHONPATH%
+python tables\tests\test_all.py</screen>
 
                     <para>or:</para>
 
                     <screen>
- set PYTHONPATH=.
- python -c "import tables; tables.test()"
-                    </screen>
+set PYTHONPATH=.;%PYTHONPATH%
+python -c "import tables; tables.test()"</screen>
                   </listitem>
                 </varlistentry>
               </variablelist>
 
               <para>If you would like to see verbose output from the tests
-              simply add the flag <literal>-v</literal> and/or the word
+              simply add the <literal>-v</literal> flag or the word
               <literal>verbose</literal> to the command line. You can also run
               only the tests in a particular test module. For example, to
               execute just the <literal>test_types</literal> test suite, you
               only have to specify it:</para>
 
               <screen>
- python tables/tests/test_types.py -v   # change to backslahes for win
-              </screen>
+python tables/tests/test_types.py -v  # change to backslashes for win</screen>
 
               <para>You have other options to pass to the
-              <literal>test_all.py</literal> driver: <screen>
- python tables/tests/test_all.py --heavy  # change to backslahes for win
-              </screen> the above runs every test in the test unit. Beware, it
-              can take lots of CPU and memory resources to complete. <screen>
- python tables/tests/test_all.py --show-versions  # change to backslahes for win
-              </screen> the above shows the versions for all the packages that
+              <literal>test_all.py</literal> driver:
+
+              <screen>
+python tables/tests/test_all.py --heavy  # change to backslashes for win</screen>
+
+              The command above runs every test in the test unit. Beware, it
+              can take a lot of time, CPU and memory resources to complete.
+
+              <screen>
+python tables/tests/test_all.py --show-versions  # change to backslashes for win</screen>
+
+              The command above shows the versions for all the packages that
               PyTables relies on. Please be sure to include this when
-              reporting bugs. <screen>
- python tables/tests/test_all.py --show-memory  # Only Linux 2.6.x
-              </screen> the above prints out the evolution of the memory
+              reporting bugs.
+
+              <screen>
+python tables/tests/test_all.py --show-memory  # only under Linux 2.6.x</screen>
+
+              The command above prints out the evolution of the memory
               consumption after each test module completion. It's useful for
               locating memory leaks in PyTables (or packages behind it). Only
               valid for Linux 2.6.x kernels.</para>
 
               <para>And last, but not least, in case a test fails, please run
               the failing test module again and enable the verbose output:
+
               <screen>
- python tables/tests/test_&lt;module&gt;.py -v verbose
-              </screen> and, very important, obtain your PyTables version
-              information by using the <literal>--show-versions</literal> flag
-              (see above) and send back both outputs to developers so that we
-              may continue improving PyTables.</para>
+python tables/tests/test_&lt;module&gt;.py -v verbose</screen>
+
+              and, very important, obtain your PyTables version information by
+              using the <literal>--show-versions</literal> flag (see above)
+              and send back both outputs to developers so that we may continue
+              improving PyTables.</para>
 
               <para>If you run into problems because Python can not load the
               HDF5 library or other shared libraries:</para>
@@ -904,9 +882,9 @@ LIBS="hdf5-1.6.5 nsl"
                   <term><emphasis role="bold">Unix</emphasis></term>
 
                   <listitem>
-                    <para>Try setting the LD_LIBRARY_PATH environment variable
-                    to point to the directory where the missing libraries can
-                    be found.</para>
+                    <para>Try setting the LD_LIBRARY_PATH or equivalent
+                    environment variable to point to the directory where the
+                    missing libraries can be found.</para>
                   </listitem>
                 </varlistentry>
 
@@ -920,8 +898,8 @@ LIBS="hdf5-1.6.5 nsl"
                     <literal>bzip2.dll</literal>) in a directory listed in
                     your <literal>PATH</literal> environment variable or in
                     <literal>python_installation_path\Lib\site-packages\tables</literal>
-                    (the last directory may have not exist yet, so if you want
-                    to install the DLLs there, you should do so
+                    (the last directory may not exist yet, so if you want to
+                    install the DLLs there, you should do so
                     <emphasis>after</emphasis> installing the PyTables
                     package). The <literal>setup.py</literal> installation
                     program will print out a warning to that effect if the
@@ -938,8 +916,7 @@ LIBS="hdf5-1.6.5 nsl"
               directories where the PyTables files will be installed):</para>
 
               <screen>
- python setup.py install
-            </screen>
+python setup.py install</screen>
 
               <para>Of course, you will need super-user privileges if you want
               to install PyTables on a system-protected area. You can select,
@@ -947,8 +924,7 @@ LIBS="hdf5-1.6.5 nsl"
               <literal>--prefix</literal> flag:</para>
 
               <screen>
- python setup.py install --prefix="/home/myuser/mystuff"
-            </screen>
+python setup.py install --prefix="/home/myuser/mystuff"</screen>
 
               <para>Have in mind, however, that if you use the
               <literal>--prefix</literal> flag to install in a non-standard
@@ -958,9 +934,10 @@ LIBS="hdf5-1.6.5 nsl"
               installation.</para>
 
               <para>You have more installation options available in the
-              Distutils package. Issue a: <screen>
- python setup.py install --help
-            </screen> for more information on that subject.</para>
+              Distutils package. Issue a:
+              <screen>
+python setup.py install --help</screen>
+              for more information on that subject.</para>
             </listitem>
           </orderedlist>
 
@@ -980,9 +957,9 @@ LIBS="hdf5-1.6.5 nsl"
         <section id="prerequisitesBinInst">
           <title>Windows prerequisites</title>
 
-          <para>First, make sure that you have Python 2.4, 2.5 or higher, HDF5
-          1.6.5 or higher and NumPy 1.0 or higher installed (PyTables binaries
-          have been built using HDF5 1.6.5 and NumPy 1.0).</para>
+          <para>First, make sure that you have Python 2.4 or higher, HDF5
+          1.6.5 or higher and NumPy 1.0.2 or higher installed (PyTables
+          binaries have been built using HDF5 1.6.5 and NumPy 1.0.2).</para>
 
           <para>For the HDF5 library it should be enough to manually copy the
           <literal>hdf5dll.dll</literal>, <literal>zlib1.dll</literal>
@@ -990,9 +967,9 @@ LIBS="hdf5-1.6.5 nsl"
           directory in your <literal>PATH</literal> environment variable (for
           example <literal>C:\WINDOWS\SYSTEM32</literal>) or
           <literal>python_installation_path\Lib\site-packages\tables</literal>
-          (the last directory may have not exist yet, so if you want to
-          install the DLLs there, you should do so <emphasis>after</emphasis>
-          installing the PyTables package).</para>
+          (the last directory may not exist yet, so if you want to install the
+          DLLs there, you should do so <emphasis>after</emphasis> installing
+          the PyTables package).</para>
 
           <para><emphasis>Caveat:</emphasis> When downloading the binary
           distribution for HDF5 libraries, select the one compiled with a .NET
@@ -1002,7 +979,7 @@ LIBS="hdf5-1.6.5 nsl"
           <emphasis>must</emphasis> choose it if you want to run PyTables with
           Python 2.4.x or 2.5.x series. You have been warned!</para>
 
-          <para>To enable compression with optional LZO or bzip2 libraries
+          <para>To enable compression with the optional LZO or bzip2 libraries
           (see the <xref linkend="compressionIssues"
           xrefstyle="select: label" /> for hints about how they may be used to
           improve performance), fetch and install the <literal>LZO</literal>
@@ -1015,7 +992,7 @@ LIBS="hdf5-1.6.5 nsl"
           files in a directory in the <literal>PATH</literal> environment
           variable, or in
           <literal>python_installation_path\Lib\site-packages\tables</literal>
-          (the last directory may have not exist yet, so if you want to
+          (the last directory may not exist yet, so if you want to
           install the DLLs there, you should do so <emphasis>after</emphasis>
           installing the PyTables package), so that they can be found by the
           PyTables extensions.</para>
@@ -1033,19 +1010,24 @@ LIBS="hdf5-1.6.5 nsl"
           <literal>tables-&lt;version&gt;.win32-py&lt;version&gt;.exe</literal>
           file and execute it.</para>
 
-          <para>You can (<emphasis>you should</emphasis>) test your
-          installation by running the next commands: <screen>
+          <para>You can (and <emphasis>you should</emphasis>) test your
+          installation by running the next commands:
+
+          <screen>
 &gt;&gt;&gt; import tables
-&gt;&gt;&gt; tables.test()
-          </screen> on your favorite python shell. If all the tests pass
+&gt;&gt;&gt; tables.test()</screen>
+
+          on your favorite python shell. If all the tests pass
           (possibly with a few warnings, related to the potential
           unavailability of LZO or bzip2 libs) you already have a working,
           well-tested copy of PyTables installed! If any test fails, please
           copy the output of the error messages as well as the output of:
+
           <screen>
-&gt;&gt;&gt; tables.print_versions()
-          </screen> and mail them to the developers so that the problem can be
-          fixed in future releases.</para>
+&gt;&gt;&gt; tables.print_versions()</screen>
+
+          and mail them to the developers so that the problem can be fixed in
+          future releases.</para>
 
           <para>You can proceed now to the next chapter to see how to use
           PyTables.</para>
