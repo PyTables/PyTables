@@ -313,16 +313,18 @@ class CreateTestCase(unittest.TestCase):
     def test08_renameAttributes(self):
         """Checking renaming system attributes """
 
+        if verbose:
+            print "Before renaming CLASS attribute"
+            print "All attrs:", self.group._v_attrs._v_attrnames
         # rename a system attribute
-        try:
-            self.group._v_attrs._f_rename("CLASS", "op")
-        except AttributeError:
-            if verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next AttributeError was catched!"
-                print value
-        else:
-            self.fail("expected a AttributeError")
+        self.group._v_attrs._f_rename("CLASS", "op")
+        if verbose:
+            print "After renaming CLASS attribute"
+            print "All attrs:", self.group._v_attrs._v_attrnames
+            
+        # Check the disk attribute names (not sorted)
+        assert self.root.agroup._v_attrs._f_list("all") == \
+               ['TITLE', 'VERSION', "op"]
 
     def test09_overwriteAttributes(self):
         """Checking overwriting attributes """

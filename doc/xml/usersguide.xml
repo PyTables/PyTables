@@ -51,8 +51,10 @@
       </author>
     </authorgroup>
 
-    <pubdate>$LastChangedDate: 2007-03-06 12:41:58 +0100 (dt, 06 mar 2007)
-    $</pubdate>
+    <pubdate>
+       $LastChangedDate: 2007-03-06 12:41:58 +0100 (dt, 06 mar 2007)$ 
+
+    </pubdate>
 
     <mediaobject>
       <imageobject>
@@ -601,7 +603,7 @@ fileh.close()
 
       <para>However, if you are running Windows and want to install
       precompiled binaries, you can jump straight to <xref
-      linkend="binaryInstallationDescr" xrefstyle="select: label"/>. In
+      linkend="binaryInstallationDescr" xrefstyle="select: label" />. In
       addition, packages are available for many different Linux distributions,
       for instance <ulink url="http://www.t2-project.org">T2 Project</ulink>,
       <ulink url="http://www.debian.org/"><literal>Debian</literal></ulink>,
@@ -610,17 +612,16 @@ fileh.close()
       others. There are also packages for other Unices like <ulink
       url="http://www.freshports.org/"><literal>FreeBSD</literal></ulink> or
       <ulink
-      url="http://www.opendarwin.org/"><literal>MacOSX</literal></ulink>
-      </para>
+      url="http://www.opendarwin.org/"><literal>MacOSX</literal></ulink></para>
 
       <section id="sourceInstallationDescr">
         <title>Installation from source</title>
 
         <para>These instructions are for both Unix/MacOS X and Windows
-        systems.  If you are using Windows, it is assumed that you have a
-        recent version of <literal>MS Visual C++</literal> compiler
-        installed. A <literal>GCC</literal> compiler is assumed for Unix, but
-        other compilers should work as well.</para>
+        systems. If you are using Windows, it is assumed that you have a
+        recent version of <literal>MS Visual C++</literal> compiler installed.
+        A <literal>GCC</literal> compiler is assumed for Unix, but other
+        compilers should work as well.</para>
 
         <para>Extensions in PyTables have been developed in Pyrex (see
         <biblioref linkend="Pyrex" />) and the C language. You can rebuild
@@ -739,8 +740,8 @@ LIBS="hdf5-1.6.5 nsl"</screen>
                 (optional) libraries in the environment, by setting the values
                 of the <literal>HDF5_DIR</literal>,
                 <literal>LZO_DIR</literal>, or <literal>BZIP2_DIR</literal>
-                environment variables to the path to the particular
-                resource. For example:</para>
+                environment variables to the path to the particular resource.
+                For example:</para>
 
                 <screen>
 set HDF5_DIR=c:\stuff\5-165-win
@@ -748,8 +749,8 @@ set LZO_DIR=c:\stuff\lzo-1-08
 set BZIP2_DIR=c:\stuff\bzip2-1-0-3</screen>
 
                 <para>You may also specify the locations of the resource root
-                directories on the <literal>setup.py</literal> command
-                line. For example:</para>
+                directories on the <literal>setup.py</literal> command line.
+                For example:</para>
 
                 <screen>
 --hdf5=c:\stuff\5-165-win
@@ -840,24 +841,16 @@ python -c "import tables; tables.test()"</screen>
 python tables/tests/test_types.py -v  # change to backslashes for win</screen>
 
               <para>You have other options to pass to the
-              <literal>test_all.py</literal> driver:
-
-              <screen>
+              <literal>test_all.py</literal> driver: <screen>
 python tables/tests/test_all.py --heavy  # change to backslashes for win</screen>
-
               The command above runs every test in the test unit. Beware, it
               can take a lot of time, CPU and memory resources to complete.
-
               <screen>
 python tables/tests/test_all.py --show-versions  # change to backslashes for win</screen>
-
               The command above shows the versions for all the packages that
               PyTables relies on. Please be sure to include this when
-              reporting bugs.
-
-              <screen>
+              reporting bugs. <screen>
 python tables/tests/test_all.py --show-memory  # only under Linux 2.6.x</screen>
-
               The command above prints out the evolution of the memory
               consumption after each test module completion. It's useful for
               locating memory leaks in PyTables (or packages behind it). Only
@@ -865,13 +858,11 @@ python tables/tests/test_all.py --show-memory  # only under Linux 2.6.x</screen>
 
               <para>And last, but not least, in case a test fails, please run
               the failing test module again and enable the verbose output:
-
               <screen>
-python tables/tests/test_&lt;module&gt;.py -v verbose</screen>
-
-              and, very important, obtain your PyTables version information by
-              using the <literal>--show-versions</literal> flag (see above)
-              and send back both outputs to developers so that we may continue
+python tables/tests/test_&lt;module&gt;.py -v verbose</screen> and, very
+              important, obtain your PyTables version information by using the
+              <literal>--show-versions</literal> flag (see above) and send
+              back both outputs to developers so that we may continue
               improving PyTables.</para>
 
               <para>If you run into problems because Python can not load the
@@ -934,10 +925,9 @@ python setup.py install --prefix="/home/myuser/mystuff"</screen>
               installation.</para>
 
               <para>You have more installation options available in the
-              Distutils package. Issue a:
-              <screen>
-python setup.py install --help</screen>
-              for more information on that subject.</para>
+              Distutils package. Issue a: <screen>
+python setup.py install --help</screen> for more information on that
+              subject.</para>
             </listitem>
           </orderedlist>
 
@@ -992,10 +982,10 @@ python setup.py install --help</screen>
           files in a directory in the <literal>PATH</literal> environment
           variable, or in
           <literal>python_installation_path\Lib\site-packages\tables</literal>
-          (the last directory may not exist yet, so if you want to
-          install the DLLs there, you should do so <emphasis>after</emphasis>
-          installing the PyTables package), so that they can be found by the
-          PyTables extensions.</para>
+          (the last directory may not exist yet, so if you want to install the
+          DLLs there, you should do so <emphasis>after</emphasis> installing
+          the PyTables package), so that they can be found by the PyTables
+          extensions.</para>
 
           <para>Please note that PyTables has internal machinery for dealing
           with uninstalled optional compression libraries, so, you don't need
@@ -1011,23 +1001,16 @@ python setup.py install --help</screen>
           file and execute it.</para>
 
           <para>You can (and <emphasis>you should</emphasis>) test your
-          installation by running the next commands:
-
-          <screen>
+          installation by running the next commands: <screen>
 &gt;&gt;&gt; import tables
-&gt;&gt;&gt; tables.test()</screen>
-
-          on your favorite python shell. If all the tests pass
-          (possibly with a few warnings, related to the potential
+&gt;&gt;&gt; tables.test()</screen> on your favorite python shell. If all the
+          tests pass (possibly with a few warnings, related to the potential
           unavailability of LZO or bzip2 libs) you already have a working,
           well-tested copy of PyTables installed! If any test fails, please
           copy the output of the error messages as well as the output of:
-
           <screen>
-&gt;&gt;&gt; tables.print_versions()</screen>
-
-          and mail them to the developers so that the problem can be fixed in
-          future releases.</para>
+&gt;&gt;&gt; tables.print_versions()</screen> and mail them to the developers
+          so that the problem can be fixed in future releases.</para>
 
           <para>You can proceed now to the next chapter to see how to use
           PyTables.</para>
@@ -1562,7 +1545,7 @@ Object Tree:
         </section>
       </section>
 
-      <!-- XYX m'he quedat aci... -->
+      <!-- -->
 
       <section>
         <title>Browsing the <emphasis>object tree</emphasis></title>
@@ -1581,8 +1564,7 @@ Object Tree:
           <para>Let's start by opening the file we created in last tutorial
           section.</para>
 
-          <screen>
-&gt;&gt;&gt; h5file = openFile("tutorial1.h5", "a")</screen>
+          <screen>&gt;&gt;&gt; h5file = openFile("tutorial1.h5", "a")</screen>
 
           <para>This time, we have opened the file in "a"ppend mode. We use
           this mode to add more information to the file.</para>
@@ -1596,15 +1578,14 @@ Object Tree:
           object tree by simply printing the existing <literal>File</literal>
           instance:</para>
 
-          <screen>
-&gt;&gt;&gt; print h5file
+          <screen>&gt;&gt;&gt; print h5file
 tutorial1.h5 (File) 'Test file'
-Last modif.: 'Mon Dec 11 10:08:45 2006'
-Object Tree: 
+Last modif.: 'Wed Mar  7 19:50:57 2007'
+Object Tree:
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
-/columns/name (Array(3,)) 'Name column selection'
-/columns/pressure (Array(3,)) 'Pressure column selection'
+/columns/name (Array(3L,)) 'Name column selection'
+/columns/pressure (Array(3L,)) 'Pressure column selection'
 /detector (Group) 'Detector information'
 /detector/readout (Table(10L,)) 'Readout example'</screen>
 
@@ -1612,25 +1593,23 @@ Object Tree:
           of the <literal>File</literal> iterator to see how to list all the
           nodes in the object tree:</para>
 
-          <screen>
-&gt;&gt;&gt; for node in h5file:
-...     print node
-... 
+          <screen>&gt;&gt;&gt; for node in h5file:
+      print node
+
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
 /detector (Group) 'Detector information'
-/columns/name (Array(3,)) 'Name column selection'
-/columns/pressure (Array(3,)) 'Pressure column selection'
+/columns/name (Array(3L,)) 'Name column selection'
+/columns/pressure (Array(3L,)) 'Pressure column selection'
 /detector/readout (Table(10L,)) 'Readout example'</screen>
 
           <para>We can use the <literal>walkGroups</literal> method (see <xref
           linkend="walkGroupsDescr" />) of the <literal>File</literal> class
           to list only the <emphasis>groups</emphasis> on tree:</para>
 
-          <screen>
-&gt;&gt;&gt; for group in h5file.walkGroups():
-...     print group
-... 
+          <screen>&gt;&gt;&gt; for group in h5file.walkGroups():
+      print group
+
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
 /detector (Group) 'Detector information'</screen>
@@ -1641,11 +1620,10 @@ Object Tree:
           powerful combination. Let's see an example listing of all the arrays
           in the tree:</para>
 
-          <screen>
-&gt;&gt;&gt; for group in h5file.walkGroups("/"):
-...     for array in h5file.listNodes(group, classname='Array'):
-...         print array
-... 
+          <screen>&gt;&gt;&gt; for group in h5file.walkGroups("/"):
+      for array in h5file.listNodes(group, classname='Array'):
+          print array
+ 
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'</screen>
 
@@ -1665,10 +1643,9 @@ Object Tree:
           <literal>File</literal> object (see <xref
           linkend="File.walkNodes" />). For example:</para>
 
-          <screen>
-&gt;&gt;&gt; for array in h5file.walkNodes("/", "Array"):
-...     print array
-... 
+          <screen>&gt;&gt;&gt; for array in h5file.walkNodes("/", "Array"):
+      print array
+ 
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'</screen>
 
@@ -1682,10 +1659,9 @@ Object Tree:
           the <literal>Table</literal> class (i.e. <literal>readout</literal>)
           will be selected in this group (as should be the case):</para>
 
-          <screen>
-&gt;&gt;&gt; for leaf in h5file.root.detector._f_walkNodes('Leaf'):
-...     print leaf
-... 
+          <screen>&gt;&gt;&gt; for leaf in h5file.root.detector._f_walkNodes('Leaf'):
+      print leaf
+
 /detector/readout (Table(10L,)) 'Readout example'</screen>
 
           <para>We have used a call to the
@@ -1715,8 +1691,7 @@ Object Tree:
           table has been acquired, as well as the temperature during the
           gathering process:</para>
 
-          <screen>
-&gt;&gt;&gt; table = h5file.root.detector.readout
+          <screen>&gt;&gt;&gt; table = h5file.root.detector.readout
 &gt;&gt;&gt; table.attrs.gath_date = "Wed, 06/12/2003 18:33"
 &gt;&gt;&gt; table.attrs.temperature = 18.4
 &gt;&gt;&gt; table.attrs.temp_scale = "Celsius"</screen>
@@ -1724,8 +1699,7 @@ Object Tree:
           <para>Now, let's set a somewhat more complex attribute in the
           <literal>/detector</literal> group:</para>
 
-          <screen>
-&gt;&gt;&gt; detector = h5file.root.detector
+          <screen>&gt;&gt;&gt; detector = h5file.root.detector
 &gt;&gt;&gt; detector._v_attrs.stuff = [5, (2.3, 4.5), "Integer and tuple"]</screen>
 
           <para>Note how the AttributeSet instance is accessed with the
@@ -1738,8 +1712,7 @@ Object Tree:
 
           <para>Retrieving the attributes is equally simple:</para>
 
-          <screen>
-&gt;&gt;&gt; table.attrs.gath_date
+          <screen>&gt;&gt;&gt; table.attrs.gath_date
 'Wed, 06/12/2003 18:33'
 &gt;&gt;&gt; table.attrs.temperature
 18.399999999999999
@@ -1759,57 +1732,88 @@ Object Tree:
           Unix Python console with the <literal>rlcompleter</literal> module
           active):</para>
 
-          <screen>
-&gt;&gt;&gt; table.attrs
-/detector/readout (AttributeSet), 2 attributes:
-[temp_scale := 'Celsius',
-temperature := 18.399999999999999]</screen>
+          <screen>&gt;&gt;&gt; table.attrs
+/detector/readout._v_attrs (AttributeSet), 23 attributes:
+   [CLASS := 'TABLE',
+    FIELD_0_FILL := 0,
+    FIELD_0_NAME := 'ADCcount',
+    FIELD_1_FILL := 0,
+    FIELD_1_NAME := 'TDCcount',
+    FIELD_2_FILL := 0.0,
+    FIELD_2_NAME := 'energy',
+    FIELD_3_FILL := 0,
+    FIELD_3_NAME := 'grid_i',
+    FIELD_4_FILL := 0,
+    FIELD_4_NAME := 'grid_j',
+    FIELD_5_FILL := 0,
+    FIELD_5_NAME := 'idnumber',
+    FIELD_6_FILL := '',
+    FIELD_6_NAME := 'name',
+    FIELD_7_FILL := 0.0,
+    FIELD_7_NAME := 'pressure',
+    FLAVOR := 'numpy',
+    NROWS := 10,
+    TITLE := 'Readout example',
+    VERSION := '2.6',
+    temp_scale := 'Celsius',
+    temperature := 18.399999999999999]</screen>
 
-          <para>You can get a list of all attributes or only the user or
-          system attributes with the <literal>_f_list()</literal>
-          method.</para>
+          <para>We've got all the attributes (including the
+          <emphasis>system</emphasis> attributes). You can get a list of
+          <emphasis>all</emphasis> attributes or only the
+          <emphasis>user</emphasis> or <emphasis>system</emphasis> attributes
+          with the <literal>_f_list()</literal> method.</para>
 
-          <screen>
-&gt;&gt;&gt; print table.attrs._f_list("all")
-['AUTO_INDEX', 'CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL',
-'FIELD_1_NAME', 'FIELD_2_FILL', 'FIELD_2_NAME', 'FIELD_3_FILL', 'FIELD_3_NAME',
-'FIELD_4_FILL', 'FIELD_4_NAME', 'FIELD_5_FILL', 'FIELD_5_NAME', 'FIELD_6_FILL',
-'FIELD_6_NAME', 'FIELD_7_FILL', 'FIELD_7_NAME', 'FLAVOR', 'NROWS', 'TITLE',
-'VERSION', 'temp_scale', 'temperature']
+          <screen>&gt;&gt;&gt; print table.attrs._f_list("all")
+['CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL', 'FIELD_1_NAME',
+ 'FIELD_2_FILL', 'FIELD_2_NAME', 'FIELD_3_FILL', 'FIELD_3_NAME', 'FIELD_4_FILL',
+ 'FIELD_4_NAME', 'FIELD_5_FILL', 'FIELD_5_NAME', 'FIELD_6_FILL', 'FIELD_6_NAME',
+ 'FIELD_7_FILL', 'FIELD_7_NAME', 'FLAVOR', 'NROWS', 'TITLE', 'VERSION',
+ 'temp_scale', 'temperature']
 &gt;&gt;&gt; print table.attrs._f_list("user")
 ['temp_scale', 'temperature']
 &gt;&gt;&gt; print table.attrs._f_list("sys")
-['AUTO_INDEX', 'CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL',
-'FIELD_1_NAME', 'FIELD_2_FILL', 'FIELD_2_NAME', 'FIELD_3_FILL', 'FIELD_3_NAME',
-'FIELD_4_FILL', 'FIELD_4_NAME', 'FIELD_5_FILL', 'FIELD_5_NAME', 'FIELD_6_FILL',
-'FIELD_6_NAME', 'FIELD_7_FILL', 'FIELD_7_NAME', 'FLAVOR', 'NROWS', 'TITLE',
-'VERSION']</screen>
+['CLASS', 'FIELD_0_FILL', 'FIELD_0_NAME', 'FIELD_1_FILL', 'FIELD_1_NAME',
+ 'FIELD_2_FILL', 'FIELD_2_NAME', 'FIELD_3_FILL', 'FIELD_3_NAME', 'FIELD_4_FILL',
+ 'FIELD_4_NAME', 'FIELD_5_FILL', 'FIELD_5_NAME', 'FIELD_6_FILL', 'FIELD_6_NAME',
+ 'FIELD_7_FILL', 'FIELD_7_NAME', 'FLAVOR', 'NROWS', 'TITLE', 'VERSION']</screen>
 
           <para>You can also rename attributes:</para>
 
-          <screen>
-&gt;&gt;&gt; table.attrs._f_rename("temp_scale","tempScale")
+          <screen>&gt;&gt;&gt; table.attrs._f_rename("temp_scale","tempScale")
 &gt;&gt;&gt; print table.attrs._f_list()
- ['tempScale', 'temperature']</screen>
+['tempScale', 'temperature']</screen>
 
-          <para>However, you can not set, delete or rename system
-          attributes:</para>
+          <para>And, from PyTables 2.0 on, you are allowed also to set, delete
+          or rename system attributes:</para>
 
-          <screen>
-&gt;&gt;&gt; table.attrs._f_rename("VERSION", "version")
+          <screen>&gt;&gt;&gt; table.attrs._f_rename("VERSION", "version")
+&gt;&gt;&gt; table.attrs.VERSION
 Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in ?
-  File ".../tables/AttributeSet.py", line 454, in _f_rename
-    raise AttributeError, \
-AttributeError: System attribute ('VERSION') cannot be renamed</screen>
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "tables/attributeset.py", line 222, in __getattr__
+    (name, self._v__nodePath)
+AttributeError: Attribute 'VERSION' does not exist in node: '/detector/readout'
+&gt;&gt;&gt; table.attrs.version
+'2.6'</screen>
 
-          <para>If you would terminate your session now, you would be able to
-          use the <literal>h5ls</literal> command to read the
-          <literal>/detector/readout</literal> attributes from the file
+          <para><emphasis role="bold">Caveat emptor:</emphasis> you must be
+          careful when modifying system attributes because you may end fooling
+          PyTables and ultimately getting unwanted behaviour. Use this only if
+          you know what are you doing.</para>
+
+          <para>So, given the caveat above, we will proceed to restore the
+          original name of VERSION attribute:<screen>&gt;&gt;&gt; table.attrs._f_rename("version", "VERSION")
+&gt;&gt;&gt; table.attrs.VERSION
+'2.6'
+</screen></para>
+
+          <para>Ok. that's better. If you would terminate your session now,
+          you would be able to use the <literal>h5ls</literal> command to read
+          the <literal>/detector/readout</literal> attributes from the file
           written to disk:</para>
 
-          <screen>
-$ h5ls -vr tutorial1.h5/detector/readout
+          <screen>$ h5ls -vr tutorial1.h5/detector/readout
 Opened "tutorial1.h5" with sec2 driver.
 /detector/readout        Dataset {10/Inf}
     Attribute: CLASS     scalar
@@ -1885,8 +1889,7 @@ Opened "tutorial1.h5" with sec2 driver.
           <emphasis>meta-information</emphasis> is accessible through the node
           instance variables. Let's take a look at some examples:</para>
 
-          <screen>
-&gt;&gt;&gt; print "Object:", table
+          <screen>&gt;&gt;&gt; print "Object:", table
 Object: /detector/readout (Table(10L,)) 'Readout example'
 &gt;&gt;&gt; print "Table name:", table.name
 Table name: readout
@@ -1897,9 +1900,9 @@ Number of rows in table: 10
 &gt;&gt;&gt; print "Table variable names with their type and shape:"
 Table variable names with their type and shape:
 &gt;&gt;&gt; for name in table.colnames:
-...     print name, ':= %s, %s' % (table.coldtypes[name],
-...                                table.coldtypes[name].shape)
-... 
+      print name, ':= %s, %s' % (table.coldtypes[name],
+                                 table.coldtypes[name].shape)
+
 ADCcount := uint16, ()
 TDCcount := uint8, ()
 energy := float64, ()
@@ -1918,87 +1921,84 @@ pressure := float32, ()</screen>
           quite a bit of information about the table data.</para>
 
           <para>You can interactively retrieve general information about the
-          public objects in PyTables by printing their internal doc
-          strings:</para>
+          public objects in PyTables by asking for help:</para>
 
-          <screen>
-&gt;&gt;&gt; print table.__doc__
-Represent a table in the object tree.
+          <screen>&gt;&gt;&gt; help(table)
+Help on Table in module tables.table object:
 
-    It provides methods to create new tables or open existing ones, as
-    well as to write/read data to/from table objects over the
-    file. A method is also provided to iterate over the rows without
-    loading the entire table or column in memory.
+class Table(tableExtension.Table, tables.leaf.Leaf)
+ |  Represent a table in the object tree.
+ |
+ |  It provides methods to create new tables or open existing ones, as
+ |  well as to write/read data to/from table objects over the
+ |  file. A method is also provided to iterate over the rows without
+ |  loading the entire table or column in memory.
+ |
+ |  Data can be written or read both as Row instances and as homogeneous
+ |  or heterogeneous (record) arrays of the supported flavors (such as
+ |  NumPy and numarray, including NestedRecArray objects).
+ |
+ |  Methods:
+ |
+ |      __getitem__(key)
+ |      __iter__()
+ |      __setitem__(key, value)
+ |      append(rows)
+ |      col(name)
+ |      flushRowsToIndex()
+ |      iterrows(start, stop, step)
+ |      itersequence(sequence)
+ |      modifyRows(start, rows)
+ |      modifyColumn(columns, names, [start] [, stop] [, step])
+ |      modifyColumns(columns, names, [start] [, stop] [, step])
+ |      read([start] [, stop] [, step] [, field])
+ |      readCoordinates(coords [, field])
+ |      readWhere(condition [, condvars] [, field])
+ |      reIndex()
+ |      reIndexDirty()
+ |      removeRows(start [, stop])
+ |      where(condition [, condvars] [, start] [, stop] [, step])
+ |      whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
+ |      getWhereList(condition [, condvars] [, sort])
+ |
+ |  Instance variables:
+ |
+ |      description -- the metaobject describing this table
+ |      row -- a reference to the Row object associated with this table
+ |      nrows -- the number of rows in this table
+ |      rowsize -- the size, in bytes, of each row
+ |      cols -- accessor to the columns using a natural name schema
+ |      colnames -- the top-level field names for the table (list)
+ |      colpathnames -- the bottom-level field pathnames for the table (list)
+ |      colinstances -- the column instances for the table fields (dictionary)
+ |      coldtypes -- the dtype class for the table fields (dictionary)
+ |      coltypes -- the PyTables type for the table fields (dictionary)
+ |      coldflts -- the defaults for each column (dictionary)
+ |      colindexed -- whether the table fields are indexed (dictionary)
+ |      indexed -- whether or not some field in Table is indexed
+ |      autoIndex -- automatically keep column indexes up to date?
+ |      indexFilters -- filters used to compress indexes
+ |      indexedcolpathnames -- the pathnames of the indexed columns (list)
+[snip]          </screen>
 
-    Data can be written or read both as Row instances and as homogeneous
-    or heterogeneous (record) arrays of the supported flavors (such as
-    NumPy and numarray, including NestedRecArray objects).
+          <para>Try getting help with other object docs by yourself:</para>
 
-    Methods:
-
-        __getitem__(key)
-        __iter__()
-        __setitem__(key, value)
-        append(rows)
-        col(name)
-        flushRowsToIndex()
-        iterrows(start, stop, step)
-        itersequence(sequence)
-        modifyRows(start, rows)
-        modifyColumn(columns, names, [start] [, stop] [, step])
-        modifyColumns(columns, names, [start] [, stop] [, step])
-        read([start] [, stop] [, step] [, field])
-        readCoordinates(coords [, field])
-        readWhere(condition [, condvars] [, field])
-        reIndex()
-        reIndexDirty()
-        removeRows(start [, stop])
-        where(condition [, condvars] [, start] [, stop] [, step])
-        whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
-        getWhereList(condition [, condvars] [, sort])
-
-    Instance variables:
-
-        description -- the metaobject describing this table
-        row -- a reference to the Row object associated with this table
-        nrows -- the number of rows in this table
-        rowsize -- the size, in bytes, of each row
-        cols -- accessor to the columns using a natural name schema
-        colnames -- the top-level field names for the table (list)
-        colpathnames -- the bottom-level field pathnames for the table (list)
-        colinstances -- the column instances for the table fields (dictionary)
-        coldtypes -- the dtype class for the table fields (dictionary)
-        coltypes -- the PyTables type for the table fields (dictionary)
-        coldflts -- the defaults for each column (dictionary)
-        colindexed -- whether the table fields are indexed (dictionary)
-        indexed -- whether or not some field in Table is indexed
-        autoIndex -- automatically keep column indexes up to date?
-        indexFilters -- filters used to compress indexes
-        indexedcolpathnames -- the pathnames of the indexed columns (list)
-          </screen>
-
-          <para>The <literal>help</literal> function is also a handy way to
-          see PyTables reference documentation online. Try it yourself with
-          other object docs:</para>
-
-          <screen>
-&gt;&gt;&gt; help(table.__class__)
+          <screen>&gt;&gt;&gt; help(h5file)
 &gt;&gt;&gt; help(table.removeRows)</screen>
 
           <para>To examine metadata in the
           <emphasis>/columns/pressure</emphasis> <literal>Array</literal>
           object:</para>
 
-          <screen>
-&gt;&gt;&gt; pressureObject = h5file.getNode("/columns", "pressure")
+          <screen>&gt;&gt;&gt; pressureObject = h5file.getNode("/columns", "pressure")
 &gt;&gt;&gt; print "Info on the object:", repr(pressureObject)
-Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
-  type := 'float64'
-  byteorder := 'little'
-  dtype := dtype('float64')
+Info on the object: /columns/pressure (Array(3L,)) 'Pressure column selection'
+  atom := Float64Atom(shape=(), dflt=0.0)
+  maindim := 0
   flavor := 'numpy'
+  byteorder := 'little'
 &gt;&gt;&gt; print "  shape: ==&gt;", pressureObject.shape
-  shape: ==&gt; (3,)
+  shape: ==&gt; (3L,)
 &gt;&gt;&gt; print "  title: ==&gt;", pressureObject.title
   title: ==&gt; Pressure column selection
 &gt;&gt;&gt; print "  atom: ==&gt;", pressureObject.atom
@@ -2036,8 +2036,7 @@ Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
           the <literal>read()</literal> method of the <literal>Array</literal>
           object to retrieve its data:</para>
 
-          <screen>
-&gt;&gt;&gt; pressureArray = pressureObject.read()
+          <screen>&gt;&gt;&gt; pressureArray = pressureObject.read()
 &gt;&gt;&gt; pressureArray
 array([ 25.,  36.,  49.])
 &gt;&gt;&gt; print "pressureArray is an object of type:", type(pressureArray)
@@ -2049,8 +2048,8 @@ nameArray is an object of type: &lt;type 'list'&gt;
 &gt;&gt;&gt; print "Data on arrays nameArray and pressureArray:"
 Data on arrays nameArray and pressureArray:
 &gt;&gt;&gt; for i in range(pressureObject.shape[0]):
-...     print nameArray[i], "--&gt;", pressureArray[i]
-... 
+      print nameArray[i], "--&gt;", pressureArray[i]
+ 
 Particle:      5 --&gt; 25.0
 Particle:      6 --&gt; 36.0
 Particle:      7 --&gt; 49.0</screen>
@@ -2096,20 +2095,19 @@ Particle:      7 --&gt; 49.0</screen>
           <emphasis>readout</emphasis> <literal>Table</literal> object and
           append some new values to it:</para>
 
-          <screen>
-&gt;&gt;&gt; table = h5file.root.detector.readout
+          <screen>&gt;&gt;&gt; table = h5file.root.detector.readout
 &gt;&gt;&gt; particle = table.row
 &gt;&gt;&gt; for i in xrange(10, 15):
-...     particle['name']  = 'Particle: %6d' % (i)
-...     particle['TDCcount'] = i % 256
-...     particle['ADCcount'] = (i * 256) % (1 &lt;&lt; 16)
-...     particle['grid_i'] = i
-...     particle['grid_j'] = 10 - i
-...     particle['pressure'] = float(i*i)
-...     particle['energy'] = float(particle['pressure'] ** 4)
-...     particle['idnumber'] = i * (2 ** 34)
-...     particle.append()
-...
+      particle['name']  = 'Particle: %6d' % (i)
+      particle['TDCcount'] = i % 256
+      particle['ADCcount'] = (i * 256) % (1 &lt;&lt; 16)
+      particle['grid_i'] = i
+      particle['grid_j'] = 10 - i
+      particle['pressure'] = float(i*i)
+      particle['energy'] = float(particle['pressure'] ** 4)
+      particle['idnumber'] = i * (2 ** 34)
+      particle.append()
+
 &gt;&gt;&gt; table.flush()</screen>
 
           <para>It's the same method we used to fill a new table. PyTables
@@ -2135,13 +2133,11 @@ Particle:      7 --&gt; 49.0</screen>
           <para>Let's have a look at some rows in the modified table and
           verify that our new data has been appended:</para>
 
-          <screen>
-&gt;&gt;&gt; for r in table.iterrows():
-...     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
-...        (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
-...         r['TDCcount'])
-...
-...
+          <screen>&gt;&gt;&gt; for r in table.iterrows():
+     print "%-16s | %11.1f | %11.4g | %6d | %6d | %8d |" % \
+         (r['name'], r['pressure'], r['energy'], r['grid_i'], r['grid_j'],
+          r['TDCcount'])
+ 
 Particle:      0 |         0.0 |           0 |      0 |     10 |        0 |
 Particle:      1 |         1.0 |           1 |      1 |      9 |        1 |
 Particle:      2 |         4.0 |         256 |      2 |      8 |        2 |
@@ -2170,8 +2166,7 @@ Particle:     14 |       196.0 |   1.476e+09 |     14 |     -4 |       14 |</scr
           existing tables. We will start modifying single cells in the first
           row of the <literal>Particle</literal> table:</para>
 
-          <screen>
-&gt;&gt;&gt; print "Before modif--&gt;", table[0]
+          <screen>&gt;&gt;&gt; print "Before modif--&gt;", table[0]
 Before modif--&gt; (0, 0, 0.0, 0, 10, 0L, 'Particle:      0', 0.0)
 &gt;&gt;&gt; table.cols.TDCcount[0] = 1
 &gt;&gt;&gt; print "After modifying first row of ADCcount--&gt;", table[0]
@@ -2182,8 +2177,7 @@ After modifying first row of energy--&gt; (0, 1, 2.0, 0, 10, 0L, 'Particle:     
 
           <para>We can modify complete ranges of columns as well:</para>
 
-          <screen>
-&gt;&gt;&gt; table.cols.TDCcount[2:5] = [2,3,4]
+          <screen>&gt;&gt;&gt; table.cols.TDCcount[2:5] = [2,3,4]
 &gt;&gt;&gt; print "After modifying slice [2:5] of TDCcount--&gt;", table[0:5]
 After modifying slice [2:5] of TDCcount--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
  (256, 1, 1.0, 1, 9, 17179869184L, 'Particle:      1', 1.0)
@@ -2213,10 +2207,9 @@ After modifying slice [1:9:3] of energy--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle:
           same time. As a demonstration of these capability, see the next
           example:</para>
 
-          <screen>
-&gt;&gt;&gt; table.modifyRows(start=1, step=3,
-...                  rows=[(1, 2, 3.0, 4, 5, 6L, 'Particle:   None', 8.0),
-...                        (2, 4, 6.0, 8, 10, 12L, 'Particle: None*2', 16.0)])
+          <screen>&gt;&gt;&gt; table.modifyRows(start=1, step=3,
+                   rows=[(1, 2, 3.0, 4, 5, 6L, 'Particle:   None', 8.0),
+                         (2, 4, 6.0, 8, 10, 12L, 'Particle: None*2', 16.0)])
 2
 &gt;&gt;&gt; print "After modifying the complete third row--&gt;", table[0:5]
 After modifying the complete third row--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
@@ -2243,11 +2236,10 @@ After modifying the complete third row--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle: 
           is attached to every table, so it is meant to be used in table
           iterators. Look at the next example:</para>
 
-          <screen>
-&gt;&gt;&gt; for row in table.where('TDCcount &lt;= 2'):
-...     row['energy'] = row['TDCcount']*2
-...     row.update()
-... 
+          <screen>&gt;&gt;&gt; for row in table.where('TDCcount &lt;= 2'):
+      row['energy'] = row['TDCcount']*2
+      row.update()
+
 &gt;&gt;&gt; print "After modifying energy column (where TDCcount &lt;=2)--&gt;", table[0:4]
 After modifying energy column (where TDCcount &lt;=2)--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
  (1, 2, 4.0, 4, 5, 6L, 'Particle:   None', 8.0)
@@ -2269,8 +2261,7 @@ After modifying energy column (where TDCcount &lt;=2)--&gt; [(0, 1, 2.0, 0, 10, 
           linkend="Array.__setitem__" />). Let's see at how modify data on the
           <literal>pressureObject</literal> array:</para>
 
-          <screen>
-&gt;&gt;&gt; pressureObject = h5file.root.columns.pressure
+          <screen>&gt;&gt;&gt; pressureObject = h5file.root.columns.pressure
 &gt;&gt;&gt; print "Before modif--&gt;", pressureObject[:]
 Before modif--&gt; [ 25.  36.  49.]
 &gt;&gt;&gt; pressureObject[0] = 2
@@ -2294,8 +2285,7 @@ Third modif--&gt; [ 1.   2.1  2. ]</screen>
 
           <para>Similarly, with and array of strings:</para>
 
-          <screen>
-&gt;&gt;&gt; nameObject = h5file.root.columns.name
+          <screen>&gt;&gt;&gt; nameObject = h5file.root.columns.name
 &gt;&gt;&gt; print "Before modif--&gt;", nameObject[:]
 Before modif--&gt; ['Particle:      5', 'Particle:      6', 'Particle:      7']
 &gt;&gt;&gt; nameObject[0] = 'Particle:   None'
@@ -2305,7 +2295,8 @@ First modif--&gt; ['Particle:   None', 'Particle:      6', 'Particle:      7']
 &gt;&gt;&gt; print "Second modif--&gt;", nameObject[:]
 Second modif--&gt; ['Particle:   None', 'Particle:      0', 'Particle:      1']
 &gt;&gt;&gt; nameObject[::2] = ['Particle:     -3', 'Particle:     -5']
-&gt;&gt;&gt; print "Third modif--&gt;", nameObject[:]</screen>
+&gt;&gt;&gt; print "Third modif--&gt;", nameObject[:]
+Third modif--&gt; ['Particle:     -3', 'Particle:      0', 'Particle:     -5']</screen>
         </section>
 
         <section>
@@ -2315,8 +2306,7 @@ Second modif--&gt; ['Particle:   None', 'Particle:      0', 'Particle:      1']
           table we have. Suppose that we want to delete the the 5th to 9th
           rows (inclusive):</para>
 
-          <screen>
-&gt;&gt;&gt; table.removeRows(5,10)
+          <screen>&gt;&gt;&gt; table.removeRows(5,10)
 5L</screen>
 
           <para><literal>removeRows(start, stop)</literal> (see <xref
@@ -2326,8 +2316,7 @@ Second modif--&gt; ['Particle:   None', 'Particle:      0', 'Particle:      1']
           <para>We have reached the end of this first tutorial. Don't forget
           to close the file when you finish:</para>
 
-          <screen>
-&gt;&gt;&gt; h5file.close()
+          <screen>&gt;&gt;&gt; h5file.close()
 &gt;&gt;&gt; ^D
 $ </screen>
 
@@ -2377,13 +2366,13 @@ $ </screen>
         <title>Multidimensional table cells and automatic sanity
         checks</title>
 
-        <para>Now it's time for a more real-life example (i.e. with errors in
-        the code). We will create two groups that branch directly from the
-        <literal>root</literal> node, <literal>Particles</literal> and
-        <literal>Events</literal>. Then, we will put three tables in each
-        group. In <literal>Particles</literal> we will put tables based on the
-        <literal>Particle</literal> descriptor and in
-        <literal>Events</literal>, the tables based the
+        <para><!--XYX Ens hem quedat aci...-->Now it's time for a more
+        real-life example (i.e. with errors in the code). We will create two
+        groups that branch directly from the <literal>root</literal> node,
+        <literal>Particles</literal> and <literal>Events</literal>. Then, we
+        will put three tables in each group. In <literal>Particles</literal>
+        we will put tables based on the <literal>Particle</literal> descriptor
+        and in <literal>Events</literal>, the tables based the
         <literal>Event</literal> descriptor.</para>
 
         <para>Afterwards, we will provision the tables with a number of
@@ -3789,7 +3778,7 @@ $ ptdump -d nested-tut.h5
                 <glossdef>
                   <para>If the file is to be created, a
                   <literal>TITLE</literal> string attribute will be set on the
-                  root group with the given value.  Otherwise, the title will
+                  root group with the given value. Otherwise, the title will
                   be read from disk, and this will not have any effect.</para>
                 </glossdef>
               </glossentry>
@@ -3799,11 +3788,11 @@ $ ptdump -d nested-tut.h5
 
                 <glossdef>
                   <para>A dictionary to map names in the object tree into
-                  different HDF5 names in file.  The keys are the Python
-                  names, while the values are the HDF5 names.  This is useful
-                  when you need to name HDF5 nodes with invalid or reserved
-                  words in Python and you want to continue using the natural
-                  naming facility on the nodes.</para>
+                  different HDF5 names in file. The keys are the Python names,
+                  while the values are the HDF5 names. This is useful when you
+                  need to name HDF5 nodes with invalid or reserved words in
+                  Python and you want to continue using the natural naming
+                  facility on the nodes.</para>
                 </glossdef>
               </glossentry>
 
@@ -3812,14 +3801,14 @@ $ ptdump -d nested-tut.h5
                 role="bold">rootUEP</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The root User Entry Point.  This is a group in the
-                  HDF5 hierarchy which will be taken as the starting point to
-                  create the object tree.  It can be whatever existing group
-                  in the file, named by its HDF5 path. If it does not exist,
-                  an <literal>HDF5ExtError</literal> is issued.  Use this if
-                  you do not want to build the <emphasis>entire</emphasis>
-                  object tree, but rather only a <emphasis>subtree</emphasis>
-                  of it.</para>
+                  <para>The root User Entry Point. This is a group in the HDF5
+                  hierarchy which will be taken as the starting point to
+                  create the object tree. It can be whatever existing group in
+                  the file, named by its HDF5 path. If it does not exist, an
+                  <literal>HDF5ExtError</literal> is issued. Use this if you
+                  do not want to build the <emphasis>entire</emphasis> object
+                  tree, but rather only a <emphasis>subtree</emphasis> of
+                  it.</para>
                 </glossdef>
               </glossentry>
 
@@ -3829,14 +3818,14 @@ $ ptdump -d nested-tut.h5
 
                 <glossdef>
                   <para>An instance of the <literal>Filters</literal> (see
-                  <xref linkend="FiltersClassDescr" xrefstyle="select: label"
-                  />) class that provides information about the desired I/O
-                  filters applicable to the leaves that hang directly from the
-                  <emphasis>root group</emphasis>, unless other filter
-                  properties are specified for these leaves.  Besides, if you
-                  do not specify filter properties for child groups, they will
-                  inherit these ones, which will in turn propagate to child
-                  nodes.</para>
+                  <xref linkend="FiltersClassDescr"
+                  xrefstyle="select: label" />) class that provides
+                  information about the desired I/O filters applicable to the
+                  leaves that hang directly from the <emphasis>root
+                  group</emphasis>, unless other filter properties are
+                  specified for these leaves. Besides, if you do not specify
+                  filter properties for child groups, they will inherit these
+                  ones, which will in turn propagate to child nodes.</para>
                 </glossdef>
               </glossentry>
 
@@ -3846,11 +3835,11 @@ $ ptdump -d nested-tut.h5
 
                 <glossdef>
                   <para>The number of <emphasis>unreferenced</emphasis> nodes
-                  to be kept in memory.  Least recently used nodes are
-                  unloaded from memory when this number of loaded nodes is
-                  reached.  To load a node again, simply access it as usual.
-                  Nodes referenced by user variables are not taken into
-                  account nor unloaded.</para>
+                  to be kept in memory. Least recently used nodes are unloaded
+                  from memory when this number of loaded nodes is reached. To
+                  load a node again, simply access it as usual. Nodes
+                  referenced by user variables are not taken into account nor
+                  unloaded.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -3924,6 +3913,7 @@ ValueError: malformed type: 'foo bar'</screen>
       </section>
 
       <!-- XXX REVIEWED UP TO HERE - Ivan -->
+
       <section id="FileClassDescr">
         <title>The <literal>File</literal> class</title>
 
@@ -5920,11 +5910,11 @@ Object Tree:
                 A shorthand for the <literal>FILTERS</literal> attribute. When
                 there is no such attribute, its value is the default
                 <literal>Filters</literal> instance.</para>
+
                 <para>You can (and are encouraged to) use this property to
                 get, set and delete the <literal>FILTERS</literal> HDF5
-                attribute of the group.  When the group has no such attribute,
-                the default filters are used.
-                </para>
+                attribute of the group. When the group has no such attribute,
+                the default filters are used.</para>
               </glossdef>
             </glossentry>
           </glosslist>
@@ -6421,11 +6411,11 @@ for node in h5file.root.detector:
                 <literal>'python'</literal> (the set of supported flavors
                 depends on which packages you have installed on your
                 system).</para>
+
                 <para>You can (and are encouraged to) use this property to
                 get, set and delete the <literal>FLAVOR</literal> HDF5
-                attribute of the leaf.  When the leaf has no such attribute,
-                the default flavor is used.
-                </para>
+                attribute of the leaf. When the leaf has no such attribute,
+                the default flavor is used.</para>
               </glossdef>
             </glossentry>
           </glosslist>
@@ -15238,6 +15228,7 @@ Object Tree:
                 <glossentry>
                   <glossterm><emphasis
                   role="bold">"numpy"</emphasis></glossterm>
+
                   <glossdef>
                     <para>Read data (record arrays, arrays, records, scalars)
                     will be returned as <literal>NumPy</literal>
@@ -15270,8 +15261,8 @@ Object Tree:
                   role="bold">"python"</emphasis></glossterm>
 
                   <glossdef>
-                    <para>Read data will be returned as Python lists,
-                    tuples or scalars.</para>
+                    <para>Read data will be returned as Python lists, tuples
+                    or scalars.</para>
                   </glossdef>
                 </glossentry>
               </glosslist>

@@ -453,10 +453,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             return
 
         # if oldattrname or newattrname are system attributes, raise an error
-        for name in [oldattrname, newattrname]:
-            if name in self._v_attrnamessys:
-                raise AttributeError, \
-            "System attribute ('%s') cannot be renamed" % (name)
+        ##for name in [oldattrname, newattrname]:
+        ##    if name in self._v_attrnamessys:
+        ##        raise AttributeError, \
+        ##    "System attribute ('%s') cannot be renamed" % (name)
 
         # First, fetch the value of the oldattrname
         attrvalue = getattr(self, oldattrname)
