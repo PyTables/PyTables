@@ -4,7 +4,7 @@
 <book lang="en">
   <title><literal>PyTables</literal> User's Guide</title>
 
-  <subtitle>Hierarchical datasets in Python - Release 2.0alpha</subtitle>
+  <subtitle>Hierarchical datasets in Python - Release 2.0 beta</subtitle>
 
   <bookinfo>
     <authorgroup>
@@ -52,7 +52,7 @@
     </authorgroup>
 
     <pubdate>
-       $LastChangedDate: 2007-03-06 12:41:58 +0100 (dt, 06 mar 2007)$ 
+       $LastChangedDate$
 
     </pubdate>
 
@@ -15103,11 +15103,11 @@ Object Tree:
 
                 <glossdef>
                   <para>This is used so as to specify the kind of pseudo-atom
-                  (see <xref linkend="VLArrayFormatDescr"
-                  xrefstyle="select:                   label" />) for the
-                  <literal>VLArray</literal>. It can take the values
-                  <literal>'vlstring'</literal> or
-                  <literal>'object'</literal>.</para>
+                  (see <xref linkend="VLArrayFormatDescr" xrefstyle="select:
+                  label" />) for the <literal>VLArray</literal>. It can take
+                  the values <literal>'vlstring'</literal> or
+                  <literal>'object'</literal>. If your atom is not a
+                  pseudo-atom then you should not specify it.</para>
                 </glossdef>
               </glossentry>
 

@@ -13,10 +13,6 @@ minimum_numarray_version = "1.5.2"
 
 import numpy
 
-if numpy.__version__ < minimum_numpy_version:
-    print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
-                  (numpy.__version__, minimum_numpy_version)
-
 import tables
 from tables.tests import common
 
@@ -159,6 +155,10 @@ modern CPU and around 100 MB of main memory."""
 
 
 if __name__ == '__main__':
+
+    if numpy.__version__ < minimum_numpy_version:
+        print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
+              (numpy.__version__, minimum_numpy_version)
 
     # Handle some global flags (i.e. only useful for test_all.py)
     only_versions = 0

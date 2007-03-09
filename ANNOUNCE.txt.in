@@ -32,8 +32,8 @@ Improvements:
   a considerable effort in terms of refactorization and optimization of
   the new code.
 
-- Numexpr has been integrated in all in-kernel selections.  So, now it
-  is possible to perform complex selections like::
+- Combined conditions are finally supported for in-kernel selections.
+  So, now it is possible to perform complex selections like::
 
       result = [ row['var3'] for row in
                  table.where('(var2 < 20) | (var1 == "sas")') ]
@@ -46,10 +46,10 @@ Improvements:
                  table.where(complex_cond % (inf, sup)) ]
 
   and run them at full C-speed (or perhaps more, due to the cache-tuned
-  computing kernel of Numexpr).
+  computing kernel of Numexpr, which has been integrated into PyTables).
 
 - Now, it is possible to get fields of the ``Row`` iterator by
-  specifiying their position, or even ranges of positions (extended
+  specifying their position, or even ranges of positions (extended
   slicing is supported).  For example, you can do::
 
       result = [ row[4] for row in table    # fetch field #4
@@ -81,7 +81,7 @@ Improvements:
 
 - The modification of values in ``*Array`` objects (through __setitem__)
   now doesn't make a copy of the value in the case that the shape of the
-  value passed is the same as the slice to ve overwritten. This results
+  value passed is the same as the slice to be overwritten. This results
   in considerable memory savings when you are modifying disk objects
   with big array values.
 
@@ -123,7 +123,7 @@ Important note for Windows users
 
 In order to keep PyTables happy, you will need to get the HDF5 library
 compiled for MSVC 7.1, aka .NET 2003.  It can be found at
-ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/current/bin/windows/5-165-win-net.ZIP
+ftp://ftp.hdfgroup.org/HDF5/current/bin/windows/5-165-win-net.ZIP
 
 Please remember that, from PyTables 2.0 on, Python 2.3 (and lesser) is
 not supported anymore.

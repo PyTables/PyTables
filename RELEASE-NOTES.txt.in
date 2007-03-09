@@ -206,7 +206,7 @@ API additions
   of the index, while the second one allows the user to specify the filters
   for the index.
 
-- ``Table.indexprops`` has been splitted into ``Table.indexFilters`` and
+- ``Table.indexprops`` has been split into ``Table.indexFilters`` and
   ``Table.autoIndex``.  The later groups the functionality of the old ``auto``
   and ``reindex``.
 
