@@ -95,9 +95,9 @@ class Filters(object):
         Filters(complevel=0, shuffle=False, fletcher32=False)
         >>> Filters._unpack(0x101)
         Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
-        >>> Filters._unpack(0x30309)
-        Filters(complevel=9, complib='bzip2', shuffle=True, fletcher32=True)
-        >>> Filters._unpack(0x3030A)
+        >>> Filters._unpack(0x30109)
+        Filters(complevel=9, complib='zlib', shuffle=True, fletcher32=True)
+        >>> Filters._unpack(0x3010A)
         Traceback (most recent call last):
           ...
         ValueError: compression level must be between 0 and 9
@@ -133,8 +133,8 @@ class Filters(object):
         '0x0'
         >>> hex(Filters(1, shuffle=False)._pack())
         '0x101'
-        >>> hex(Filters(9, 'bzip2', shuffle=True, fletcher32=True)._pack())
-        '0x30309'
+        >>> hex(Filters(9, 'zlib', shuffle=True, fletcher32=True)._pack())
+        '0x30109'
         """
         packed = numpy.int64(0)
         # Byte 2: parameterless filters.
