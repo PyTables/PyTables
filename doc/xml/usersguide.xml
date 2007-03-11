@@ -9942,16 +9942,15 @@ enum myEnum {
             </glossentry>
           </glosslist>
 
-          <para>There are no <literal>Filters</literal> public methods with
-          the exception of the constructor itself that is described
-          next.</para>
+          <para>The arguments for the <literal>Filters</literal> constructor
+          are described next:</para>
 
           <section id="FiltersInitDescr">
             <title><literal>Filters(complevel=0, complib="zlib", shuffle=True,
             fletcher32=False)</literal></title>
 
-            <para>The parameters that can be passed to the
-            <literal>Filters</literal> class constructor are:</para>
+            <para>The constructor for the <literal>Filters</literal> class
+            and its only method are described next.</para>
 
             <glosslist>
               <glossentry>
@@ -9972,10 +9971,13 @@ enum myEnum {
                 <glossdef>
                   <para>Specifies the compression library to be used. Right
                   now, 'zlib' (the default), 'lzo' and 'bzip2' are supported.
-                  See <xref linkend="compressionIssues"
-                  xrefstyle="select:                   label" /> for some
-                  advice on which library is better suited to your
-                  needs.</para>
+                  Specifying a compression library which is not available in
+                  the system issues a <literal>FiltersWarning</literal> and
+                  sets the library to the default one.</para>
+
+                  <para>See <xref linkend="compressionIssues"
+                  xrefstyle="select: label" /> for some advice on which
+                  library is better suited to your needs.</para>
                 </glossdef>
               </glossentry>
 
@@ -10008,15 +10010,16 @@ enum myEnum {
               </glossentry>
             </glosslist>
 
-            <para>Of course, you can also create an instance and then assign
-            the ones you want to change. For example: <screen>
+            <para>This is a small example on using the
+            <literal>Filters</literal> class:
+
+            <screen>
 import numpy
 from tables import *
 
-fileh = openFile("test5.h5", mode = "w")
+fileh = openFile("test5.h5", mode="w")
 atom = Float32Atom()
-filters = Filters(complevel=1, complib = "lzo")
-filters.fletcher32 = 1
+filters = Filters(complevel=1, complib="lzo", fletcher32=True)
 arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2), "A growable array",
                          filters = filters)
 # Append several rows in only one call
@@ -10028,9 +10031,13 @@ arr.append(numpy.array([[1., 2.],
 print "Result Array:"
 print repr(arr)
 
-fileh.close()</screen> This enforces the use of the <literal>LZO</literal>
+fileh.close()</screen>
+
+            This enforces the use of the <literal>LZO</literal>
             library, a compression level of 1 and a fletcher32 checksum filter
-            as well. See the output of this example: <screen>Result Array:
+            as well. See the output of this example:
+
+            <screen>Result Array:
 /earray (EArray(3L, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
   type = float32
   shape = (3L, 2)
@@ -10038,7 +10045,44 @@ fileh.close()</screen> This enforces the use of the <literal>LZO</literal>
   nrows = 3
   extdim = 0
   flavor = 'numpy'
-  byteorder = 'little'</screen></para>
+  byteorder = 'little'</screen>
+
+            </para>
+          </section>
+
+          <section>
+            <title><literal>copy(override)</literal></title>
+
+            <para>Get a copy of the filters, possibly overriding some
+            arguments.</para>
+
+            <para>Constructor arguments to be overridden must be passed as
+            keyword arguments.</para>
+
+            <para>Using this method is recommended over replacing the
+            attributes of an instance, since instances of this class may
+            become immutable in the future.</para>
+
+            <screen>
+>>> filters1 = Filters()
+>>> filters2 = filters1.copy()
+>>> filters1 == filters2
+True
+>>> filters1 is filters2
+False
+>>> filters3 = filters1.copy(complevel=1)
+Traceback (most recent call last):
+  ...
+ValueError: compression library ``None`` is not supported...
+>>> filters3 = filters1.copy(complevel=1, complib='zlib')
+>>> print filters1
+Filters(complevel=0, shuffle=False, fletcher32=False)
+>>> print filters3
+Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
+>>> filters1.copy(foobar=42)
+Traceback (most recent call last):
+  ...
+TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
           </section>
         </section>
 

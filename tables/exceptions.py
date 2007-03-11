@@ -39,6 +39,8 @@ Classes:
     Unsupported or unavailable flavor or flavor conversion.
 `FlavorWarning`
     Unsupported or unavailable flavor conversion.
+`FiltersWarning`
+    Unavailable filters.
 `NoIndexingError`
     Indexing is not supported.
 `NoIndexingWarning`
@@ -205,6 +207,17 @@ class FlavorWarning(Warning):
     flavor in a read-only file).
 
     See the `FlavorError` class for more information.
+    """
+    pass
+
+
+class FiltersWarning(Warning):
+    """
+    Unavailable filters.
+
+    This warning is issued when a valid filter is specified but it is
+    not available in the system.  It may mean that an available default
+    filter is to be used instead.
     """
     pass
 

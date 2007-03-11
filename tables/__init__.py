@@ -69,6 +69,7 @@ __all__ = [
     'UndoRedoError', 'UndoRedoWarning',
     'PerformanceWarning',
     'FlavorError', 'FlavorWarning',
+    'FiltersWarning',
     # Functions:
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
     'copyFile', 'openFile', 'print_versions', 'test',

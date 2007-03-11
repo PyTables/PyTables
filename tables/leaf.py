@@ -217,17 +217,10 @@ class Leaf(Node):
         """Private storage for the `flavor` property."""
 
         if new:
+            # Get filter properties from parent group if not given.
             if filters is None:
-                # If no filter properties have been given,
-                # get the default onesfilter from the parent.
                 filters = parentNode._v_filters
             self.__dict__['filters'] = filters  # bypass the property
-            # Writing the `Filters` object to an attribute on disk is
-            # not necessary for now, as retrieving the filters using
-            # `Filters._from_leaf()` is safer and faster.
-            # Also, cPickling the `filters` attribute is very slow (it
-            # is as much as twice slower than the normal overhead for
-            # creating a Table, for example).
 
             if byteorder not in (None, 'little', 'big'):
                 raise ValueError(

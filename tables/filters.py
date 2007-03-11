@@ -24,7 +24,9 @@ Variables
 # =======
 import warnings
 import numpy
+
 from tables import utilsExtension
+from tables.exceptions import FiltersWarning
 
 
 # Public variables
@@ -75,7 +77,8 @@ class Filters(object):
         if filtersDict is None:
             filtersDict = {}  # not chunked
 
-        kwargs = dict(complevel=0, shuffle=False, fletcher32=False)  # all off
+        kwargs = dict( complevel=0, shuffle=False, fletcher32=False,  # all off
+                       _new=False )
         for (name, values) in filtersDict.items():
             if name == 'deflate':
                 name = 'zlib'
@@ -106,7 +109,7 @@ class Filters(object):
           ...
         ValueError: invalid compression library id: 0
         """
-        kwargs = {}
+        kwargs = {'_new': False}
         # Byte 0: compression level.
         kwargs['complevel'] = complevel = packed & 0xff
         packed >>= 8
@@ -152,7 +155,8 @@ class Filters(object):
         return packed
 
     def __init__( self, complevel=0, complib=default_complib,
-                  shuffle=True, fletcher32=False ):
+                  shuffle=True, fletcher32=False,
+                  _new=True ):
         """
         Create a new `Filters` instance.
 
@@ -163,6 +167,9 @@ class Filters(object):
         `complib`
             Specifies the compression library to be used.  Right now,
             'zlib' (the default), 'lzo' and 'bzip2' are supported.
+            Specifying a compression library which is not available in
+            the system issues a `FiltersWarning` and sets the library
+            to the default one.
 
         `shuffle`
             Whether or not to use the *Shuffle* filter in the HDF5
@@ -181,8 +188,8 @@ class Filters(object):
         """
 
         if not (0 <= complevel <= 9):
-            raise ValueError( "compression level must be between 0 and 9" )
-        if complib not in all_complibs:
+            raise ValueError("compression level must be between 0 and 9")
+        if complevel > 0 and complib not in all_complibs:
             raise ValueError( "compression library ``%s`` is not supported; "
                               "it must be one of: %s"
                               % (complib, ", ".join(all_complibs)) )
@@ -191,19 +198,28 @@ class Filters(object):
         shuffle = bool(shuffle)
         fletcher32 = bool(fletcher32)
 
-        # Override some inputs when compression is not enabled.
         if complevel == 0:
+            # Override some inputs when compression is not enabled.
             complib = None  # make it clear there is no compression
             shuffle = False  # shuffling and not compressing makes no sense
-        elif utilsExtension.whichLibVersion(complib) is None:
+        elif _new and utilsExtension.whichLibVersion(complib) is None:
+            # This is not issued when loading filters from disk.
             warnings.warn( "compression library ``%s`` is not available; "
                            "using ``%s`` instead"
-                           % (complib, default_complib) )
+                           % (complib, default_complib), FiltersWarning )
             complib = default_complib  # always available
+
         self.complevel = complevel
+        """The compression level (0 disables compression)."""
         self.complib = complib
+        """
+        The compression filter used (irrelevant when compression is
+        not enabled).
+        """
         self.shuffle = shuffle
+        """Whether the *Shuffle* filter is active or not."""
         self.fletcher32 = fletcher32
+        """Whether the *Fletcher32* filter is active or not."""
 
     def __repr__(self):
         args = []
@@ -218,12 +234,47 @@ class Filters(object):
         return repr(self)
 
     def __eq__(self, other):
-        if not isinstance(other, Filters):
+        if not isinstance(other, self.__class__):
             return False
-        for attr in ['complib', 'complevel', 'shuffle', 'fletcher32']:
+        for attr in self.__dict__.keys():
             if getattr(self, attr) != getattr(other, attr):
                 return False
         return True
+
+    def copy(self, **override):
+        """
+        Get a copy of the filters, possibly overriding some arguments.
+
+        Constructor arguments to be overridden must be passed as
+        keyword arguments.
+
+        Using this method is recommended over replacing the attributes
+        of an instance, since instances of this class may become
+        immutable in the future.
+
+        >>> filters1 = Filters()
+        >>> filters2 = filters1.copy()
+        >>> filters1 == filters2
+        True
+        >>> filters1 is filters2
+        False
+        >>> filters3 = filters1.copy(complevel=1)  #doctest: +ELLIPSIS
+        Traceback (most recent call last):
+          ...
+        ValueError: compression library ``None`` is not supported...
+        >>> filters3 = filters1.copy(complevel=1, complib='zlib')
+        >>> print filters1
+        Filters(complevel=0, shuffle=False, fletcher32=False)
+        >>> print filters3
+        Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
+        >>> filters1.copy(foobar=42)
+        Traceback (most recent call last):
+          ...
+        TypeError: __init__() got an unexpected keyword argument 'foobar'
+        """
+        newargs = self.__dict__.copy()
+        newargs.update(override)
+        return self.__class__(**newargs)
 
 
 # Main part
