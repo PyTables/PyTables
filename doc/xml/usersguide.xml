@@ -51,10 +51,8 @@
       </author>
     </authorgroup>
 
-    <pubdate>
-       $LastChangedDate$
-
-    </pubdate>
+    <pubdate>$LastChangedDate: 2007-03-13 10:51:14 +0100 (dt, 13 mar 2007)
+    $</pubdate>
 
     <mediaobject>
       <imageobject>
@@ -286,15 +284,16 @@
             <para><emphasis>Multidimensional and nested table
             cells:</emphasis> You can declare a column to consist of values
             having any number of dimensions besides scalars, which is the only
-            dimensionality allowed by the majority of relational
-            databases. You can even declare columns that are made of other
-            columns (of different types).</para>
+            dimensionality allowed by the majority of relational databases.
+            You can even declare columns that are made of other columns (of
+            different types).</para>
           </listitem>
 
           <listitem>
             <para><emphasis>Indexing support for columns of tables:</emphasis>
             Very useful if you have large tables and you want to quickly look
             up for values in columns satisfying some criteria.</para>
+
             <!-- XXXPRO -->
           </listitem>
 
@@ -459,7 +458,7 @@
         method on a particular node). Using the object tree (the metadata) you
         can retrieve information about the objects on disk such as table
         names, titles, column names, data types in columns, numbers of rows,
-        or, in the case of arrays, their shapes, typecodes, etc.  You can also
+        or, in the case of arrays, their shapes, typecodes, etc. You can also
         search through the tree for specific kinds of data then read it and
         process it. In a certain sense, you can think of PyTables as a tool
         that applies the same introspection capabilities of Python objects to
@@ -480,8 +479,7 @@
         in <literal>examples/objecttree.py</literal>) to create an HDF5
         file:</para>
 
-        <screen>
-from tables import *
+        <screen>from tables import *
 
 class Particle(IsDescription):
     identity = StringCol(itemsize=22, dflt=" ", pos=0)  # character String
@@ -686,8 +684,7 @@ fileh.close()</screen>
                 of the resource root directories on the
                 <literal>setup.py</literal> command line. For example:</para>
 
-                <screen>
---hdf5=/stuff/hdf5-1.6.5
+                <screen>--hdf5=/stuff/hdf5-1.6.5
 --lzo=/stuff/lzo-1.08
 --bzip2=/stuff/bzip2-1.0.3</screen>
 
@@ -696,8 +693,7 @@ fileh.close()</screen>
                 linker flags needed to find the shared library on the command
                 line as well. For example:</para>
 
-                <screen>
---lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.5/lib"</screen>
+                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.5/lib"</screen>
 
                 <para>You may also want to try setting the LD_LIBRARY_PATH
                 environment variable to point to the directory where the
@@ -710,15 +706,13 @@ fileh.close()</screen>
                 setting the <literal>LIBS</literal> environment
                 variable:</para>
 
-                <screen>
-LIBS="hdf5-1.6.5 nsl"</screen>
+                <screen>LIBS="hdf5-1.6.5 nsl"</screen>
 
                 <para>Finally, you can give additional flags to your compiler
                 by passing them to the <literal>--cflags</literal>
                 flag:</para>
 
-                <screen>
---cflags="-w -O3"</screen>
+                <screen>--cflags="-w -O3"</screen>
 
                 <para>In the above case, a <literal>gcc</literal> compiler is
                 used and you instructed it to suppress all the warnings and
@@ -743,8 +737,7 @@ LIBS="hdf5-1.6.5 nsl"</screen>
                 environment variables to the path to the particular resource.
                 For example:</para>
 
-                <screen>
-set HDF5_DIR=c:\stuff\5-165-win
+                <screen>set HDF5_DIR=c:\stuff\5-165-win
 set LZO_DIR=c:\stuff\lzo-1-08
 set BZIP2_DIR=c:\stuff\bzip2-1-0-3</screen>
 
@@ -752,8 +745,7 @@ set BZIP2_DIR=c:\stuff\bzip2-1-0-3</screen>
                 directories on the <literal>setup.py</literal> command line.
                 For example:</para>
 
-                <screen>
---hdf5=c:\stuff\5-165-win
+                <screen>--hdf5=c:\stuff\5-165-win
 --lzo=c:\stuff\lzo-1-08
 --bzip2=c:\stuff\bzip2-1-0-3</screen>
 
@@ -778,8 +770,7 @@ set BZIP2_DIR=c:\stuff\bzip2-1-0-3</screen>
               directory, including any extra command line arguments as
               discussed above:</para>
 
-              <screen>
-python setup.py build_ext --inplace</screen>
+              <screen>python setup.py build_ext --inplace</screen>
 
               <para>Depending on the compiler flags used when compiling your
               Python executable, there may appear many warnings. Don't worry,
@@ -798,13 +789,11 @@ python setup.py build_ext --inplace</screen>
                     <para>In the <literal>sh</literal> shell and its
                     variants:</para>
 
-                    <screen>
-PYTHONPATH=.:$PYTHONPATH  python tables/tests/test_all.py</screen>
+                    <screen>PYTHONPATH=.:$PYTHONPATH  python tables/tests/test_all.py</screen>
 
                     <para>or, if you prefer:</para>
 
-                    <screen>
-PYTHONPATH=.:$PYTHONPATH  python -c "import tables; tables.test()"</screen>
+                    <screen>PYTHONPATH=.:$PYTHONPATH  python -c "import tables; tables.test()"</screen>
 
                     <para>Both commands do the same thing.</para>
                   </listitem>
@@ -817,14 +806,12 @@ PYTHONPATH=.:$PYTHONPATH  python -c "import tables; tables.test()"</screen>
                     <para>Open the command prompt (<literal>cmd.exe</literal>
                     or <literal>command.com</literal>) and type:</para>
 
-                    <screen>
-set PYTHONPATH=.;%PYTHONPATH%
+                    <screen>set PYTHONPATH=.;%PYTHONPATH%
 python tables\tests\test_all.py</screen>
 
                     <para>or:</para>
 
-                    <screen>
-set PYTHONPATH=.;%PYTHONPATH%
+                    <screen>set PYTHONPATH=.;%PYTHONPATH%
 python -c "import tables; tables.test()"</screen>
                   </listitem>
                 </varlistentry>
@@ -837,20 +824,16 @@ python -c "import tables; tables.test()"</screen>
               execute just the <literal>test_types</literal> test suite, you
               only have to specify it:</para>
 
-              <screen>
-python tables/tests/test_types.py -v  # change to backslashes for win</screen>
+              <screen>python tables/tests/test_types.py -v  # change to backslashes for win</screen>
 
               <para>You have other options to pass to the
-              <literal>test_all.py</literal> driver: <screen>
-python tables/tests/test_all.py --heavy  # change to backslashes for win</screen>
+              <literal>test_all.py</literal> driver: <screen>python tables/tests/test_all.py --heavy  # change to backslashes for win</screen>
               The command above runs every test in the test unit. Beware, it
               can take a lot of time, CPU and memory resources to complete.
-              <screen>
-python tables/tests/test_all.py --show-versions  # change to backslashes for win</screen>
+              <screen>python tables/tests/test_all.py --show-versions  # change to backslashes for win</screen>
               The command above shows the versions for all the packages that
               PyTables relies on. Please be sure to include this when
-              reporting bugs. <screen>
-python tables/tests/test_all.py --show-memory  # only under Linux 2.6.x</screen>
+              reporting bugs. <screen>python tables/tests/test_all.py --show-memory  # only under Linux 2.6.x</screen>
               The command above prints out the evolution of the memory
               consumption after each test module completion. It's useful for
               locating memory leaks in PyTables (or packages behind it). Only
@@ -858,11 +841,10 @@ python tables/tests/test_all.py --show-memory  # only under Linux 2.6.x</screen>
 
               <para>And last, but not least, in case a test fails, please run
               the failing test module again and enable the verbose output:
-              <screen>
-python tables/tests/test_&lt;module&gt;.py -v verbose</screen> and, very
-              important, obtain your PyTables version information by using the
-              <literal>--show-versions</literal> flag (see above) and send
-              back both outputs to developers so that we may continue
+              <screen>python tables/tests/test_&lt;module&gt;.py -v verbose</screen>
+              and, very important, obtain your PyTables version information by
+              using the <literal>--show-versions</literal> flag (see above)
+              and send back both outputs to developers so that we may continue
               improving PyTables.</para>
 
               <para>If you run into problems because Python can not load the
@@ -906,16 +888,14 @@ python tables/tests/test_&lt;module&gt;.py -v verbose</screen> and, very
               (make sure you have sufficient permissions to write to the
               directories where the PyTables files will be installed):</para>
 
-              <screen>
-python setup.py install</screen>
+              <screen>python setup.py install</screen>
 
               <para>Of course, you will need super-user privileges if you want
               to install PyTables on a system-protected area. You can select,
               though, a different place to install the package using the
               <literal>--prefix</literal> flag:</para>
 
-              <screen>
-python setup.py install --prefix="/home/myuser/mystuff"</screen>
+              <screen>python setup.py install --prefix="/home/myuser/mystuff"</screen>
 
               <para>Have in mind, however, that if you use the
               <literal>--prefix</literal> flag to install in a non-standard
@@ -925,9 +905,8 @@ python setup.py install --prefix="/home/myuser/mystuff"</screen>
               installation.</para>
 
               <para>You have more installation options available in the
-              Distutils package. Issue a: <screen>
-python setup.py install --help</screen> for more information on that
-              subject.</para>
+              Distutils package. Issue a: <screen>python setup.py install --help</screen>
+              for more information on that subject.</para>
             </listitem>
           </orderedlist>
 
@@ -1001,16 +980,15 @@ python setup.py install --help</screen> for more information on that
           file and execute it.</para>
 
           <para>You can (and <emphasis>you should</emphasis>) test your
-          installation by running the next commands: <screen>
-&gt;&gt;&gt; import tables
+          installation by running the next commands: <screen>&gt;&gt;&gt; import tables
 &gt;&gt;&gt; tables.test()</screen> on your favorite python shell. If all the
           tests pass (possibly with a few warnings, related to the potential
           unavailability of LZO or bzip2 libs) you already have a working,
           well-tested copy of PyTables installed! If any test fails, please
           copy the output of the error messages as well as the output of:
-          <screen>
-&gt;&gt;&gt; tables.print_versions()</screen> and mail them to the developers
-          so that the problem can be fixed in future releases.</para>
+          <screen>&gt;&gt;&gt; tables.print_versions()</screen> and mail them
+          to the developers so that the problem can be fixed in future
+          releases.</para>
 
           <para>You can proceed now to the next chapter to see how to use
           PyTables.</para>
@@ -1072,24 +1050,21 @@ python setup.py install --help</screen> for more information on that
           <literal>tables</literal> package. You normally do that by
           executing:</para>
 
-          <screen>
-&gt;&gt;&gt; import tables</screen>
+          <screen>&gt;&gt;&gt; import tables</screen>
 
           <para>This is the recommended way to import
           <literal>tables</literal> if you don't want to pollute your
           namespace. However, PyTables has a contained set of first-level
           primitives, so you may consider using the alternative:</para>
 
-          <screen>
-&gt;&gt;&gt; from tables import *</screen>
+          <screen>&gt;&gt;&gt; from tables import *</screen>
 
           <para>If you are going to work with <literal>NumPy</literal> (or
           <literal>numarray</literal> or <literal>Numeric</literal>) arrays
           (and normally, you will) you will also need to import functions from
           them. So most PyTables programs begin with:</para>
 
-          <screen>
-&gt;&gt;&gt; import tables        # but in this tutorial we use "from tables import *"
+          <screen>&gt;&gt;&gt; import tables        # but in this tutorial we use "from tables import *"
 &gt;&gt;&gt; import numpy         # or "import numarray" or "import Numeric"</screen>
         </section>
 
@@ -1723,8 +1698,7 @@ Object Tree:
 
           <para>You can probably guess how to delete attributes:</para>
 
-          <screen>
-&gt;&gt;&gt; del table.attrs.gath_date</screen>
+          <screen>&gt;&gt;&gt; del table.attrs.gath_date</screen>
 
           <para>If you want to examine the current user attribute set of
           <literal>/detector/table</literal>, you can print its representation
@@ -1805,8 +1779,7 @@ AttributeError: Attribute 'VERSION' does not exist in node: '/detector/readout'
           <para>So, given the caveat above, we will proceed to restore the
           original name of VERSION attribute:<screen>&gt;&gt;&gt; table.attrs._f_rename("version", "VERSION")
 &gt;&gt;&gt; table.attrs.VERSION
-'2.6'
-</screen></para>
+'2.6'</screen></para>
 
           <para>Ok. that's better. If you would terminate your session now,
           you would be able to use the <literal>h5ls</literal> command to read
@@ -2179,14 +2152,16 @@ After modifying first row of energy--&gt; (0, 1, 2.0, 0, 10, 0L, 'Particle:     
 
           <screen>&gt;&gt;&gt; table.cols.TDCcount[2:5] = [2,3,4]
 &gt;&gt;&gt; print "After modifying slice [2:5] of TDCcount--&gt;", table[0:5]
-After modifying slice [2:5] of TDCcount--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
+After modifying slice [2:5] of TDCcount--&gt;
+[(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
  (256, 1, 1.0, 1, 9, 17179869184L, 'Particle:      1', 1.0)
  (512, 2, 256.0, 2, 8, 34359738368L, 'Particle:      2', 4.0)
  (768, 3, 6561.0, 3, 7, 51539607552L, 'Particle:      3', 9.0)
  (1024, 4, 65536.0, 4, 6, 68719476736L, 'Particle:      4', 16.0)]
 &gt;&gt;&gt; table.cols.energy[1:9:3] = [2,3,4]
 &gt;&gt;&gt; print "After modifying slice [1:9:3] of energy--&gt;", table[0:9]
-After modifying slice [1:9:3] of energy--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
+After modifying slice [1:9:3] of energy--&gt;
+[(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
  (256, 1, 2.0, 1, 9, 17179869184L, 'Particle:      1', 1.0)
  (512, 2, 256.0, 2, 8, 34359738368L, 'Particle:      2', 4.0)
  (768, 3, 6561.0, 3, 7, 51539607552L, 'Particle:      3', 9.0)
@@ -2212,7 +2187,8 @@ After modifying slice [1:9:3] of energy--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle:
                          (2, 4, 6.0, 8, 10, 12L, 'Particle: None*2', 16.0)])
 2
 &gt;&gt;&gt; print "After modifying the complete third row--&gt;", table[0:5]
-After modifying the complete third row--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
+After modifying the complete third row--&gt;
+[(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
  (1, 2, 3.0, 4, 5, 6L, 'Particle:   None', 8.0)
  (512, 2, 256.0, 2, 8, 34359738368L, 'Particle:      2', 4.0)
  (768, 3, 6561.0, 3, 7, 51539607552L, 'Particle:      3', 9.0)
@@ -2241,7 +2217,8 @@ After modifying the complete third row--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle: 
       row.update()
 
 &gt;&gt;&gt; print "After modifying energy column (where TDCcount &lt;=2)--&gt;", table[0:4]
-After modifying energy column (where TDCcount &lt;=2)--&gt; [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
+After modifying energy column (where TDCcount &lt;=2)--&gt; 
+[(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
  (1, 2, 4.0, 4, 5, 6L, 'Particle:   None', 8.0)
  (512, 2, 4.0, 2, 8, 34359738368L, 'Particle:      2', 4.0)
  (768, 3, 6561.0, 3, 7, 51539607552L, 'Particle:      3', 9.0)]</screen>
@@ -2366,13 +2343,13 @@ $ </screen>
         <title>Multidimensional table cells and automatic sanity
         checks</title>
 
-        <para><!--XYX Ens hem quedat aci...-->Now it's time for a more
-        real-life example (i.e. with errors in the code). We will create two
-        groups that branch directly from the <literal>root</literal> node,
-        <literal>Particles</literal> and <literal>Events</literal>. Then, we
-        will put three tables in each group. In <literal>Particles</literal>
-        we will put tables based on the <literal>Particle</literal> descriptor
-        and in <literal>Events</literal>, the tables based the
+        <para>Now it's time for a more real-life example (i.e. with errors in
+        the code). We will create two groups that branch directly from the
+        <literal>root</literal> node, <literal>Particles</literal> and
+        <literal>Events</literal>. Then, we will put three tables in each
+        group. In <literal>Particles</literal> we will put tables based on the
+        <literal>Particle</literal> descriptor and in
+        <literal>Events</literal>, the tables based the
         <literal>Event</literal> descriptor.</para>
 
         <para>Afterwards, we will provision the tables with a number of
@@ -2396,8 +2373,7 @@ $ </screen>
         the different kinds of descriptor objects that can be passed to the
         <literal>createTable()</literal> method.</para>
 
-        <screen>
-"""This program shows the different protections that PyTables offer to
+        <screen>"""This program shows the different protections that PyTables offer to
 the user in order to insure a correct data injection in tables.
 
 Example to be used in the second tutorial in the User's Guide.
@@ -2469,10 +2445,10 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
         event['name']  = 'Event: %6d' % (i)
         event['TDCcount'] = i % (1&lt;&lt;8)   # Correct range
         ########### Detectable errors start here. Play with them!
-        #event['xcoord'] = float(i**2)   # Correct spelling
         event['xcoor'] = float(i**2)     # Wrong spelling
-        event['ADCcount'] = i * 2        # Correct type
-        #event['ADCcount'] = "sss"          # Wrong type
+        #event['xcoord'] = float(i**2)   # Correct spelling
+        event['ADCcount'] = "sss"          # Wrong type
+        #event['ADCcount'] = i * 2        # Correct type
         ########### End of errors
         event['ycoord'] = float(i)**4
         # This injects the Record values
@@ -2496,8 +2472,7 @@ fileh.close()</screen>
           <para>If you look at the code carefully, you'll see that it won't
           work. You will get the following error:</para>
 
-          <screen>
-$ python tutorial2.py
+          <screen>$ python tutorial2.py
 Traceback (most recent call last):
   File "tutorial2.py", line 51, in ?
     particle['pressure'] = array(i*arange(2*3), shape=(2,4))  # Incorrect
@@ -2523,8 +2498,8 @@ ValueError: New shape is not consistent with the old shape
 
           <para>The value <literal>i**2</literal> is assigned to all the
           elements of the <literal>temperature</literal> table cell. This
-          capability is provided by the <literal>numarray</literal> package
-          and is known as <emphasis>broadcasting</emphasis>.</para>
+          capability is provided by the <literal>NumPy</literal> package and
+          is known as <emphasis>broadcasting</emphasis>.</para>
         </section>
 
         <section>
@@ -2533,12 +2508,13 @@ ValueError: New shape is not consistent with the old shape
           <para>After fixing the previous error and rerunning the program, we
           encounter another error:</para>
 
-          <screen>
-$ python tutorial2.py
+          <screen>$ python tutorial2.py
 Traceback (most recent call last):
-  File "tutorial2.py", line 74, in ?
+  File "tutorial2.py", line 73, in ?
     event['xcoor'] = float(i**2)     # Wrong spelling
-  File "tableExtension.pyx", line 1021, in tableExtension.Row.__setitem__
+  File "tableExtension.pyx", line 1094, in tableExtension.Row.__setitem__
+  File "tableExtension.pyx", line 127, in tableExtension.getNestedFieldCache
+  File "utilsExtension.pyx", line 331, in utilsExtension.getNestedField
 KeyError: 'no such column: xcoor'</screen>
 
           <para>This error indicates that we are attempting to assign a value
@@ -2557,26 +2533,20 @@ KeyError: 'no such column: xcoor'</screen>
         <section>
           <title>Data type checking</title>
 
-          <para>Finally, in order to test type checking, we will change the
-          next line:</para>
+          <para>Finally, the last issue which we will find here is a
+          <literal>TypeError</literal> exception:</para>
+
+          <para><screen>$ python tutorial2.py
+Traceback (most recent call last):
+  File "tutorial2.py", line 75, in ?
+    event['ADCcount'] = "sss"          # Wrong type
+  File "tableExtension.pyx", line 1111, in tableExtension.Row.__setitem__
+TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>And,
+          if we change the affected line to read:</para>
 
           <screen>event.ADCcount = i * 2        # Correct type</screen>
 
-          <para>to read:</para>
-
-          <screen>event.ADCcount = "sss"          # Wrong type</screen>
-
-          <para>This modification will cause the following
-          <literal>TypeError</literal> exception to be raised when the script
-          is executed:</para>
-
-          <screen>
-$ python tutorial2.py
-Traceback (most recent call last):
-  File "tutorial2.py", line 76, in ?
-    event['ADCcount'] = "sss"          # Wrong type
-  File "tableExtension.pyx", line 1037, in tableExtension.Row.__setitem__
-TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
+          <para>we will see that the script ends well.</para>
 
           <para>You can see the structure created with this (corrected) script
           in <xref linkend="tutorial2-tableview" xrefstyle="select: label" />.
@@ -2647,26 +2617,25 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
 
           <para>First, let's create a file:</para>
 
-          <screen> &gt;&gt;&gt; import tables
- &gt;&gt;&gt; fileh = tables.openFile("tutorial3-1.h5", "w", title="Undo/Redo demo 1")</screen>
+          <screen>&gt;&gt;&gt; import tables
+&gt;&gt;&gt; fileh = tables.openFile("tutorial3-1.h5", "w", title="Undo/Redo demo 1")</screen>
 
           <para>And now, activate the Undo/Redo feature with the method
           <literal>enableUndo</literal> (see <xref
           linkend="File.enableUndo" />) of <literal>File</literal>:</para>
 
-          <screen> &gt;&gt;&gt; fileh.enableUndo()</screen>
+          <screen>&gt;&gt;&gt; fileh.enableUndo()</screen>
 
           <para>From now on, all our actions will be logged internally by
           PyTables. Now, we are going to create a node (in this case an
           <literal>Array</literal> object):</para>
 
-          <screen> &gt;&gt;&gt; one = fileh.createArray('/', 'anarray', [3,4], "An array")</screen>
+          <screen>&gt;&gt;&gt; one = fileh.createArray('/', 'anarray', [3,4], "An array")</screen>
 
           <para>Now, mark this point:</para>
 
-          <screen> &gt;&gt;&gt; fileh.mark()
- 1
- &gt;&gt;&gt;</screen>
+          <screen>&gt;&gt;&gt; fileh.mark()
+1</screen>
 
           <para>We have marked the current point in the sequence of actions.
           In addition, the <literal>mark()</literal> method has returned the
@@ -2677,27 +2646,24 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
           linkend="File.mark" /> for more info on <literal>mark()</literal>).
           Now, we are going to create another array:</para>
 
-          <screen> &gt;&gt;&gt; another = fileh.createArray('/', 'anotherarray', [4,5], "Another array")</screen>
+          <screen>&gt;&gt;&gt; another = fileh.createArray('/', 'anotherarray', [4,5], "Another array")</screen>
 
           <para>Right. Now, we can start doing funny things. Let's say that we
           want to pop back to the previous mark (that whose value was 1, do
           you remember?). Let's introduce the <literal>undo()</literal> method
           (see <xref linkend="File.undo" />):</para>
 
-          <screen> &gt;&gt;&gt; fileh.undo()
- &gt;&gt;&gt;</screen>
+          <screen>&gt;&gt;&gt; fileh.undo()</screen>
 
           <para>Fine, what do you think it happened? Well, let's have a look
           at the object tree:</para>
 
-          <screen> &gt;&gt;&gt; print fileh
- do-undo1.h5 (File) 'Undo/Redo demo 1'
- Last modif.: 'Fri Mar  4 20:22:28 2005'
- Object Tree:
- / (RootGroup) 'Undo/Redo demo 1'
- /anarray (Array(2,)) 'An array'
-
- &gt;&gt;&gt;</screen>
+          <screen>&gt;&gt;&gt; print fileh
+tutorial3-1.h5 (File) 'Undo/Redo demo 1'
+Last modif.: 'Tue Mar 13 11:43:55 2007'
+Object Tree:
+/ (RootGroup) 'Undo/Redo demo 1'
+/anarray (Array(2,)) 'An array'</screen>
 
           <para>What happened with the <literal>/anotherarray</literal> node
           we've just created? You guess it, it has disappeared because it was
@@ -2709,14 +2675,12 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
 
           <para>Now, unwind once more, and look at the object tree:</para>
 
-          <screen> &gt;&gt;&gt; fileh.undo()
- &gt;&gt;&gt; print fileh
- do-undo1.h5 (File) 'Undo/Redo demo 1'
- Last modif.: 'Fri Mar  4 20:22:28 2005'
- Object Tree:
- / (RootGroup) 'Undo/Redo demo 1'
-
- &gt;&gt;&gt;</screen>
+          <screen>&gt;&gt;&gt; fileh.undo()
+&gt;&gt;&gt; print fileh
+tutorial3-1.h5 (File) 'Undo/Redo demo 1'
+Last modif.: 'Tue Mar 13 11:43:55 2007'
+Object Tree:
+/ (RootGroup) 'Undo/Redo demo 1'</screen>
 
           <para>Oops, <literal>/anarray</literal> has disappeared as well!.
           Don't worry, it will revisit us very shortly. So, you might be
@@ -2724,8 +2688,8 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
           <literal>getCurrentMark()</literal> method (see <xref
           linkend="File.getCurrentMark" />) in the file handler:</para>
 
-          <screen> &gt;&gt;&gt; print fileh.getCurrentMark()
- 0</screen>
+          <screen>&gt;&gt;&gt; print fileh.getCurrentMark()
+0</screen>
 
           <para>So we are at mark #0, remember? Mark #0 is an implicit mark
           that is created when you start the log of actions when calling
@@ -2734,59 +2698,54 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
           <literal>File.redo()</literal> (see <xref linkend="File.redo" />) to
           the rescue:</para>
 
-          <screen> &gt;&gt;&gt; fileh.redo()
- &gt;&gt;&gt; print fileh
- do-undo1.h5 (File) 'Undo/Redo demo 1'
- Last modif.: 'Fri Mar  4 20:22:28 2005'
- Object Tree:
- / (RootGroup) 'Undo/Redo demo 1'
- /anarray (Array(2,)) 'An array'
-
-&gt;&gt;&gt;</screen>
+          <screen>&gt;&gt;&gt; fileh.redo()
+&gt;&gt;&gt; print fileh
+tutorial3-1.h5 (File) 'Undo/Redo demo 1'
+Last modif.: 'Tue Mar 13 11:43:55 2007'
+Object Tree:
+/ (RootGroup) 'Undo/Redo demo 1'
+/anarray (Array(2,)) 'An array'</screen>
 
           <para>Great! The <literal>/anarray</literal> array has come into
           life again. Just check that it is alive and well:</para>
 
-          <screen> &gt;&gt;&gt; fileh.root.anarray.read()
- [3, 4]
- &gt;&gt;&gt; fileh.root.anarray.title
- 'An array'
- &gt;&gt;&gt;</screen>
+          <screen>&gt;&gt;&gt; fileh.root.anarray.read()
+[3, 4]
+&gt;&gt;&gt; fileh.root.anarray.title
+'An array'</screen>
 
           <para>Well, it looks pretty similar than in its previous life;
           what's more, it is exactly the same object!:</para>
 
-          <screen> &gt;&gt;&gt; fileh.root.anarray is one
- True</screen>
+          <screen>&gt;&gt;&gt; fileh.root.anarray is one
+True</screen>
 
           <para>It just was moved to the the hidden group and back again, but
           that's all! That's kind of fun, so we are going to do the same with
           <literal>/anotherarray</literal>:</para>
 
-          <screen> &gt;&gt;&gt; fileh.redo()
- &gt;&gt;&gt; print fileh
- do-undo1.h5 (File) 'Undo/Redo demo 1'
- Last modif.: 'Fri Mar  4 20:22:28 2005'
- Object Tree:
- / (RootGroup) 'Undo/Redo demo 1'
- /anarray (Array(2,)) 'An array'
- /anotherarray (Array(2,)) 'Another array'
-
- &gt;&gt;&gt;</screen>
+          <screen>&gt;&gt;&gt; fileh.redo()
+&gt;&gt;&gt; print fileh
+tutorial3-1.h5 (File) 'Undo/Redo demo 1'
+Last modif.: 'Tue Mar 13 11:43:55 2007'
+Object Tree:
+/ (RootGroup) 'Undo/Redo demo 1'
+/anarray (Array(2,)) 'An array'
+/anotherarray (Array(2,)) 'Another array'</screen>
 
           <para>Welcome back, <literal>/anotherarray</literal>! Just a couple
           of sanity checks:</para>
 
-          <screen> &gt;&gt;&gt; assert fileh.root.anotherarray.read() == [4,5]
- &gt;&gt;&gt; assert fileh.root.anotherarray.title == "Another array"
- &gt;&gt;&gt; fileh.root.anotherarray is another
- True</screen>
+          <screen>&gt;&gt;&gt; assert fileh.root.anotherarray.read() == [4,5]
+&gt;&gt;&gt; assert fileh.root.anotherarray.title == "Another array"
+&gt;&gt;&gt; fileh.root.anotherarray is another
+True</screen>
 
           <para>Nice, you managed to turn your data back into life.
           Congratulations! But wait, do not forget to close your action log
           when you don't need this feature anymore:</para>
 
-          <screen> &gt;&gt;&gt; fileh.disableUndo()</screen>
+          <screen>&gt;&gt;&gt; fileh.disableUndo()</screen>
 
           <para>That will allow you to continue working with your data without
           actually requiring PyTables to keep track of all your actions, and
@@ -2806,28 +2765,35 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
 
           <para>Let's introduce the first part of the code:</para>
 
-          <screen> import tables
+          <screen>"""A more complex example of do/undo capability with PyTables
 
- # Create an HDF5 file
- fileh = tables.openFile('tutorial3-2.h5', 'w', title='Undo/Redo demo 2')
+Here, names has been assigned to the marks, and jumps are done between
+marks.
 
-          #'-**-**-**-**-**-**- enable undo/redo log  -**-**-**-**-**-**-**-'
- fileh.enableUndo()
+"""
 
- # Start undoable operations
- fileh.createArray('/', 'otherarray1', [3,4], 'Another array 1')
- fileh.createGroup('/', 'agroup', 'Group 1')
- # Create a 'first' mark
- fileh.mark('first')
- fileh.createArray('/agroup', 'otherarray2', [4,5], 'Another array 2')
- fileh.createGroup('/agroup', 'agroup2', 'Group 2')
- # Create a 'second' mark
- fileh.mark('second')
- fileh.createArray('/agroup/agroup2', 'otherarray3', [5,6], 'Another array 3')
- # Create a 'third' mark
- fileh.mark('third')
- fileh.createArray('/', 'otherarray4', [6,7], 'Another array 4')
- fileh.createArray('/agroup', 'otherarray5', [7,8], 'Another array 5')</screen>
+import tables
+
+# Create an HDF5 file
+fileh = tables.openFile('tutorial3-2.h5', 'w', title='Undo/Redo demo 2')
+
+         #'-**-**-**-**-**-**- enable undo/redo log  -**-**-**-**-**-**-**-'
+fileh.enableUndo()
+
+# Start undoable operations
+fileh.createArray('/', 'otherarray1', [3,4], 'Another array 1')
+fileh.createGroup('/', 'agroup', 'Group 1')
+# Create a 'first' mark
+fileh.mark('first')
+fileh.createArray('/agroup', 'otherarray2', [4,5], 'Another array 2')
+fileh.createGroup('/agroup', 'agroup2', 'Group 2')
+# Create a 'second' mark
+fileh.mark('second')
+fileh.createArray('/agroup/agroup2', 'otherarray3', [5,6], 'Another array 3')
+# Create a 'third' mark
+fileh.mark('third')
+fileh.createArray('/', 'otherarray4', [6,7], 'Another array 4')
+fileh.createArray('/agroup', 'otherarray5', [7,8], 'Another array 5')</screen>
 
           <para>You can see how we have set several marks interspersed in the
           code flow, representing different states of the database. Also, note
@@ -2838,33 +2804,33 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
           <para>Now, start doing some jumps back and forth in the states of
           the database:</para>
 
-          <screen> # Now go to mark 'first'
- fileh.goto('first')
- assert '/otherarray1' in fileh
- assert '/agroup' in fileh
- assert '/agroup/agroup2' not in fileh
- assert '/agroup/otherarray2' not in fileh
- assert '/agroup/agroup2/otherarray3' not in fileh
- assert '/otherarray4' not in fileh
- assert '/agroup/otherarray5' not in fileh
- # Go to mark 'third'
- fileh.goto('third')
- assert '/otherarray1' in fileh
- assert '/agroup' in fileh
- assert '/agroup/agroup2' in fileh
- assert '/agroup/otherarray2' in fileh
- assert '/agroup/agroup2/otherarray3' in fileh
- assert '/otherarray4' not in fileh
- assert '/agroup/otherarray5' not in fileh
- # Now go to mark 'second'
- fileh.goto('second')
- assert '/otherarray1' in fileh
- assert '/agroup' in fileh
- assert '/agroup/agroup2' in fileh
- assert '/agroup/otherarray2' in fileh
- assert '/agroup/agroup2/otherarray3' not in fileh
- assert '/otherarray4' not in fileh
- assert '/agroup/otherarray5' not in fileh</screen>
+          <screen># Now go to mark 'first'
+fileh.goto('first')
+assert '/otherarray1' in fileh
+assert '/agroup' in fileh
+assert '/agroup/agroup2' not in fileh
+assert '/agroup/otherarray2' not in fileh
+assert '/agroup/agroup2/otherarray3' not in fileh
+assert '/otherarray4' not in fileh
+assert '/agroup/otherarray5' not in fileh
+# Go to mark 'third'
+fileh.goto('third')
+assert '/otherarray1' in fileh
+assert '/agroup' in fileh
+assert '/agroup/agroup2' in fileh
+assert '/agroup/otherarray2' in fileh
+assert '/agroup/agroup2/otherarray3' in fileh
+assert '/otherarray4' not in fileh
+assert '/agroup/otherarray5' not in fileh
+# Now go to mark 'second'
+fileh.goto('second')
+assert '/otherarray1' in fileh
+assert '/agroup' in fileh
+assert '/agroup/agroup2' in fileh
+assert '/agroup/otherarray2' in fileh
+assert '/agroup/agroup2/otherarray3' not in fileh
+assert '/otherarray4' not in fileh
+assert '/agroup/otherarray5' not in fileh</screen>
 
           <para>Well, the code above shows how easy is to jump to a certain
           mark in the database by using the <literal>goto()</literal> method
@@ -2880,21 +2846,21 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
           <para>Let's see what happens when going to the end of the action
           log:</para>
 
-          <screen> # Go to the end
- fileh.goto(-1)
- assert '/otherarray1' in fileh
- assert '/agroup' in fileh
- assert '/agroup/agroup2' in fileh
- assert '/agroup/otherarray2' in fileh
- assert '/agroup/agroup2/otherarray3' in fileh
- assert '/otherarray4' in fileh
- assert '/agroup/otherarray5' in fileh
- # Check that objects have come back to life in a sane state
- assert fileh.root.otherarray1.read() == [3,4]
- assert fileh.root.agroup.otherarray2.read() == [4,5]
- assert fileh.root.agroup.agroup2.otherarray3.read() == [5,6]
- assert fileh.root.otherarray4.read() == [6,7]
- assert fileh.root.agroup.otherarray5.read() == [7,8]</screen>
+          <screen># Go to the end
+fileh.goto(-1)
+assert '/otherarray1' in fileh
+assert '/agroup' in fileh
+assert '/agroup/agroup2' in fileh
+assert '/agroup/otherarray2' in fileh
+assert '/agroup/agroup2/otherarray3' in fileh
+assert '/otherarray4' in fileh
+assert '/agroup/otherarray5' in fileh
+# Check that objects have come back to life in a sane state
+assert fileh.root.otherarray1.read() == [3,4]
+assert fileh.root.agroup.otherarray2.read() == [4,5]
+assert fileh.root.agroup.agroup2.otherarray3.read() == [5,6]
+assert fileh.root.otherarray4.read() == [6,7]
+assert fileh.root.agroup.otherarray5.read() == [7,8]</screen>
 
           <para>Try yourself going to the beginning of the action log
           (remember, the mark #0) and check the contents of the object
@@ -2903,11 +2869,11 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
           <para>We have nearly finished this demonstration. As always, do not
           forget to close the action log as well as the database:</para>
 
-          <screen> #'-**-**-**-**-**-**- disable undo/redo log  -**-**-**-**-**-**-**-'
- fileh.disableUndo()
+          <screen>#'-**-**-**-**-**-**- disable undo/redo log  -**-**-**-**-**-**-**-'
+fileh.disableUndo()
 
- # Close the file
- fileh.close()</screen>
+# Close the file
+fileh.close()</screen>
 
           <para>You might want to check other examples on Undo/Redo feature
           that appear in <literal>examples/undo-redo.py</literal>.</para>
@@ -2917,12 +2883,12 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
       <section>
         <title>Using enumerated types</title>
 
-        <para>Beginning from version 1.1, PyTables supports the handling of
-        enumerated types. Those types are defined by providing an
-        <emphasis>exhaustive set or list</emphasis> of possible, named values
-        for a variable of that type. Enumerated variables of the same type are
-        usually compared between them for equality and sometimes for order,
-        but are not usually operated upon.</para>
+        <para>PyTables includes support for handling enumerated types. Those
+        types are defined by providing an exhaustive <emphasis>set</emphasis>
+        or <emphasis>list</emphasis> of possible, named values for a variable
+        of that type. Enumerated variables of the same type are usually
+        compared between them for equality and sometimes for order, but are
+        not usually operated upon.</para>
 
         <para>Enumerated values have an associated <emphasis>name</emphasis>
         and <emphasis>concrete value</emphasis>. Every name is unique and so
@@ -2943,21 +2909,17 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>
             <literal>examples/enum.py</literal>.</para>
           </footnote>:</para>
 
-        <screen>
-&gt;&gt;&gt; import tables
+        <screen>&gt;&gt;&gt; import tables
 &gt;&gt;&gt; colorList = ['red', 'green', 'blue', 'white', 'black']
-&gt;&gt;&gt; colors = tables.Enum(colorList)
-&gt;&gt;&gt; </screen>
+&gt;&gt;&gt; colors = tables.Enum(colorList)</screen>
 
         <para>Here we used a simple list giving the names of enumerated
         values, but we left the choice of concrete values up to the
         <literal>Enum</literal> class. Let us see the enumerated pairs to
         check those values:</para>
 
-        <screen>
-&gt;&gt;&gt; print "Colors:", [v for v in colors]
-Colors: [('blue', 2), ('black', 4), ('white', 3), ('green', 1), ('red', 0)]
-&gt;&gt;&gt; </screen>
+        <screen>&gt;&gt;&gt; print "Colors:", [v for v in colors]
+Colors: [('blue', 2), ('black', 4), ('white', 3), ('green', 1), ('red', 0)]</screen>
 
         <para>Names have been given automatic integer concrete values. We can
         iterate over the values in an enumeration, but we will usually be more
@@ -2966,14 +2928,13 @@ Colors: [('blue', 2), ('black', 4), ('white', 3), ('green', 1), ('red', 0)]
         (the later can be useful for names not resembling Python
         identifiers):</para>
 
-        <screen>
-&gt;&gt;&gt; print "Value of 'red' and 'white':", (colors.red, colors.white)
+        <screen>&gt;&gt;&gt; print "Value of 'red' and 'white':", (colors.red, colors.white)
 Value of 'red' and 'white': (0, 3)
 &gt;&gt;&gt; print "Value of 'yellow':", colors.yellow
 Value of 'yellow':
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
-  File ".../tables/enum.py", line 230, in __getattr__
+  File ".../tables/misc/enum.py", line 230, in __getattr__
     raise AttributeError(*ke.args)
 AttributeError: no enumerated value with that name: 'yellow'
 &gt;&gt;&gt; 
@@ -2983,10 +2944,9 @@ Value of 'red' and 'white': (0, 3)
 Value of 'yellow':
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
-  File ".../tables/enum.py", line 189, in __getitem__
+  File ".../tables/misc/enum.py", line 189, in __getitem__
     raise KeyError("no enumerated value with that name: %r" % (name,))
-KeyError: "no enumerated value with that name: 'yellow'"
-&gt;&gt;&gt; </screen>
+KeyError: "no enumerated value with that name: 'yellow'"</screen>
 
         <para>See how accessing a value that is not in the enumeration raises
         the appropriate exception. We can also do the opposite action and get
@@ -2994,17 +2954,15 @@ KeyError: "no enumerated value with that name: 'yellow'"
         <literal>__call__()</literal> method of
         <literal>Enum</literal>:</para>
 
-        <screen>
-&gt;&gt;&gt; print "Name of value %s:" % colors.red, colors(colors.red)
+        <screen>&gt;&gt;&gt; print "Name of value %s:" % colors.red, colors(colors.red)
 Name of value 0: red
 &gt;&gt;&gt; print "Name of value 1234:", colors(1234)
 Name of value 1234:
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
-  File ".../tables/enum.py", line 319, in __call__
+  File ".../tables/misc/enum.py", line 320, in __call__
     raise ValueError(
-ValueError: no enumerated value with that concrete value: 1234
-&gt;&gt;&gt; </screen>
+ValueError: no enumerated value with that concrete value: 1234</screen>
 
         <para>You can see what we made as using the enumerated type to
         <emphasis>convert</emphasis> a concrete value into a name in the
@@ -3022,15 +2980,13 @@ ValueError: no enumerated value with that concrete value: 1234
           bag full of colored balls; we take a ball out and annotate the time
           of extraction and the color of the ball.</para>
 
-          <screen>
-&gt;&gt;&gt; h5f = tables.openFile('enum.h5', 'w')
-&gt;&gt;&gt; 
+          <screen>&gt;&gt;&gt; h5f = tables.openFile('enum.h5', 'w')
 &gt;&gt;&gt; class BallExt(tables.IsDescription):
-...     ballTime = tables.Time32Col()
-...     ballColor = tables.EnumCol(colors, 'black', base='uint8')
-... 
+      ballTime = tables.Time32Col()
+      ballColor = tables.EnumCol(colors, 'black', base='uint8')
+ 
 &gt;&gt;&gt; tbl = h5f.createTable(
-...     '/', 'extractions', BallExt, title="Random ball extractions")
+      '/', 'extractions', BallExt, title="Random ball extractions")
 &gt;&gt;&gt; </screen>
 
           <para>We declared the <literal>ballColor</literal> column to be of
@@ -3043,16 +2999,15 @@ ValueError: no enumerated value with that concrete value: 1234
 
           <para>Let us use some random values to fill the table:</para>
 
-          <screen>
-&gt;&gt;&gt; import time
+          <screen>&gt;&gt;&gt; import time
 &gt;&gt;&gt; import random
 &gt;&gt;&gt; now = time.time()
 &gt;&gt;&gt; row = tbl.row
 &gt;&gt;&gt; for i in range(10):
-...     row['ballTime'] = now + i
-...     row['ballColor'] = colors[random.choice(colorList)]  # notice this
-...     row.append()
-... 
+      row['ballTime'] = now + i
+      row['ballColor'] = colors[random.choice(colorList)]  # notice this
+      row.append()
+
 &gt;&gt;&gt; </screen>
 
           <para>Notice how we used the <literal>__getitem__()</literal> call
@@ -3061,16 +3016,14 @@ ValueError: no enumerated value with that concrete value: 1234
           appending values to a table does automatically check for the
           validity on enumerated values. For instance:</para>
 
-          <screen>
-&gt;&gt;&gt; row['ballTime'] = now + 42
+          <screen>&gt;&gt;&gt; row['ballTime'] = now + 42
 &gt;&gt;&gt; row['ballColor'] = 1234
 Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in ?
-  File "tableExtension.pyx", line 1008, in tableExtension.Row.__setitem__
-  File ".../tables/enum.py", line 319, in __call__
-    raise ValueError(
-ValueError: no enumerated value with that concrete value: 1234
-&gt;&gt;&gt; </screen>
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "tableExtension.pyx", line 1086, in tableExtension.Row.__setitem__
+  File ".../tables/misc/enum.py", line 320, in __call__
+    "no enumerated value with that concrete value: %r" % (value,))
+ValueError: no enumerated value with that concrete value: 1234</screen>
 
           <para>But take care that this check is <emphasis>only</emphasis>
           performed here and not in other methods such as
@@ -3078,25 +3031,22 @@ ValueError: no enumerated value with that concrete value: 1234
           <literal>tbl.modifyRows()</literal>. Now, after flushing the table
           we can see the results of the insertions:</para>
 
-          <screen>
-&gt;&gt;&gt; tbl.flush()
-&gt;&gt;&gt; 
+          <screen>&gt;&gt;&gt; tbl.flush()
 &gt;&gt;&gt; for r in tbl:
-...     ballTime = r['ballTime']
-...     ballColor = colors(r['ballColor'])  # notice this
-...     print "Ball extracted on %d is of color %s." % (ballTime, ballColor)
-... 
-Ball extracted on 1165860485 is of color green.
-Ball extracted on 1165860486 is of color red.
-Ball extracted on 1165860487 is of color red.
-Ball extracted on 1165860488 is of color white.
-Ball extracted on 1165860489 is of color red.
-Ball extracted on 1165860490 is of color black.
-Ball extracted on 1165860491 is of color blue.
-Ball extracted on 1165860492 is of color red.
-Ball extracted on 1165860493 is of color red.
-Ball extracted on 1165860494 is of color white.
-&gt;&gt;&gt; </screen>
+      ballTime = r['ballTime']
+      ballColor = colors(r['ballColor'])  # notice this
+      print "Ball extracted on %d is of color %s." % (ballTime, ballColor)
+
+Ball extracted on 1173785568 is of color green.
+Ball extracted on 1173785569 is of color black.
+Ball extracted on 1173785570 is of color white.
+Ball extracted on 1173785571 is of color black.
+Ball extracted on 1173785572 is of color black.
+Ball extracted on 1173785573 is of color red.
+Ball extracted on 1173785574 is of color green.
+Ball extracted on 1173785575 is of color red.
+Ball extracted on 1173785576 is of color white.
+Ball extracted on 1173785577 is of color white.</screen>
 
           <para>As a last note, you may be wondering how to have access to the
           enumeration associated with <literal>ballColor</literal> once the
@@ -3120,12 +3070,10 @@ Ball extracted on 1165860494 is of color white.
           <para>Let us create a sample <literal>EArray</literal> containing
           ranges of working days as bidimensional values:</para>
 
-          <screen>
-&gt;&gt;&gt; workingDays = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5}
+          <screen>&gt;&gt;&gt; workingDays = {'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5}
 &gt;&gt;&gt; dayRange = tables.EnumAtom(workingDays, 'Mon', base='uint16')
 &gt;&gt;&gt; earr = h5f.createEArray('/', 'days', dayRange, (0, 2), title="Working day ranges")
-&gt;&gt;&gt; earr.flavor = 'python'
-&gt;&gt;&gt; </screen>
+&gt;&gt;&gt; earr.flavor = 'python'</screen>
 
           <para>Nothing surprising, except for a pair of details. In the first
           place, we use a <emphasis>dictionary</emphasis> instead of a list to
@@ -3138,11 +3086,9 @@ Ball extracted on 1165860494 is of color white.
 
           <para>Now let us feed some data to the array:</para>
 
-          <screen>
-&gt;&gt;&gt; wdays = earr.getEnum()
+          <screen>&gt;&gt;&gt; wdays = earr.getEnum()
 &gt;&gt;&gt; earr.append([(wdays.Mon, wdays.Fri), (wdays.Wed, wdays.Fri)])
-&gt;&gt;&gt; earr.append([(wdays.Mon, 1234)])
-&gt;&gt;&gt; </screen>
+&gt;&gt;&gt; earr.append([(wdays.Mon, 1234)])</screen>
 
           <para>Please note that, since we had no explicit
           <literal>Enum</literal> instance, we were forced to use
@@ -3154,30 +3100,25 @@ Ball extracted on 1165860494 is of color white.
 
           <para>Finally, we will print the contents of the array:</para>
 
-          <screen>
-&gt;&gt;&gt; for (d1, d2) in earr:
-...     print "From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2-d1+1)
-... 
+          <screen>&gt;&gt;&gt; for (d1, d2) in earr:
+      print "From %s to %s (%d days)." % (wdays(d1), wdays(d2), d2-d1+1)
+
 From Mon to Fri (5 days).
 From Wed to Fri (3 days).
 Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 2, in ?
-  File ".../tables/enum.py", line 319, in __call__
-    raise ValueError(
+  File "&lt;stdin&gt;", line 2, in &lt;module&gt;
+  File ".../tables/misc/enum.py", line 320, in __call__
+    "no enumerated value with that concrete value: %r" % (value,))
 ValueError: no enumerated value with that concrete value: 1234</screen>
 
           <para>That was an example of operating on concrete values. It also
           showed how the value-to-name conversion failed because of the value
           not belonging to the enumeration.</para>
 
-          <para>Now we will close and remove the file, and this little
-          tutorial on enumerated types is done:</para>
+          <para>Now we will close the file, and this little tutorial on
+          enumerated types is done:</para>
 
-          <screen>
-&gt;&gt;&gt; import os
-&gt;&gt;&gt; h5f.close()
-&gt;&gt;&gt; os.remove('enum.h5')
-&gt;&gt;&gt; </screen>
+          <screen>&gt;&gt;&gt; h5f.close()</screen>
         </section>
       </section>
 
@@ -3199,8 +3140,7 @@ ValueError: no enumerated value with that concrete value: 1234</screen>
         (okay, it's a bit silly, but will serve for demonstration
         purposes):</para>
 
-        <screen>
-from tables import *
+        <screen>from tables import *
 
 class Info(IsDescription):
     """A sub-structure of Test"""
@@ -3240,30 +3180,26 @@ class NestedDescr(IsDescription):
           <emphasis>nested</emphasis> table, that is a table with columns that
           contain other subcolumns.</para>
 
-          <screen>
-&gt;&gt;&gt; fileh = openFile("nested-tut.h5", "w")
-&gt;&gt;&gt; table = fileh.createTable(fileh.root, 'table', NestedDescr)
-&gt;&gt;&gt; </screen>
+          <screen>&gt;&gt;&gt; fileh = openFile("nested-tut.h5", "w")
+&gt;&gt;&gt; table = fileh.createTable(fileh.root, 'table', NestedDescr)</screen>
 
           <para>Done! Now, we have to feed the table with some values. The
           problem is how we are going to reference to the nested fields.
           That's easy, just use a <literal>'/'</literal> character to separate
           names in different nested levels. Look at this:</para>
 
-          <screen>
+          <screen>&gt;&gt;&gt; row = table.row
+&gt;&gt;&gt; for i in range(10):
+       row['color'] = colors[['red', 'green', 'blue'][i%3]]
+       row['info1/name'] = "name1-%s" % i
+       row['info2/name'] = "name2-%s" % i
+       row['info2/info3/y'] =  i
+       # All the rest will be filled with defaults
+       row.append()
 
- &gt;&gt;&gt; for i in range(10):
- ...     row['color'] = colors[['red', 'green', 'blue'][i%3]]
- ...     row['info1/name'] = "name1-%s" % i
- ...     row['info2/name'] = "name2-%s" % i
- ...     row['info2/info3/y'] =  i
- ...     # All the rest will be filled with defaults
- ...     row.append()
- ...
- &gt;&gt;&gt; table.flush()
- &gt;&gt;&gt; table.nrows
- 10L
- &gt;&gt;&gt; </screen>
+&gt;&gt;&gt; table.flush()
+&gt;&gt;&gt; table.nrows
+10L</screen>
 
           <para>You see? In order to fill the fields located in the
           substructures, we just need to specify its full path in the table
@@ -3276,8 +3212,7 @@ class NestedDescr(IsDescription):
           <para>Now, what happens if we want to read the table? What kind of
           data container will we get? Well, it's worth trying it:</para>
 
-          <screen>
-&gt;&gt;&gt; nra = table[::4]
+          <screen>&gt;&gt;&gt; nra = table[::4]
 &gt;&gt;&gt; nra
 array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
        (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L),
@@ -3285,8 +3220,7 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
       dtype=[('info2', [('info3', [('x', '&gt;f8'), ('y', '|u1')]),
              ('name', '|S10'), ('value', '&gt;f8')]),
 	     ('info1', [('name', '|S10'), ('value', '&gt;f8')]),
-	     ('color', '&gt;u4')])
-&gt;&gt;&gt; </screen>
+	     ('color', '&gt;u4')])</screen>
 
           <para>What we got is a NumPy array with a <emphasis>compound, nested
           datatype</emphasis> (its <literal>dtype</literal> is a list of
@@ -3309,16 +3243,13 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
           For example, you can use it to append new data to the existing table
           object:</para>
 
-          <screen>
-&gt;&gt;&gt; table.append(nra)
+          <screen>&gt;&gt;&gt; table.append(nra)
 &gt;&gt;&gt; table.nrows
-13L
-&gt;&gt;&gt; </screen>
+13L</screen>
 
           <para>Or, to create new tables:</para>
 
-          <screen>
-&gt;&gt;&gt; table2 = fileh.createTable(fileh.root, 'table2', nra)
+          <screen>&gt;&gt;&gt; table2 = fileh.createTable(fileh.root, 'table2', nra)
 &gt;&gt;&gt; table2[:]
 array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
        (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L),
@@ -3326,17 +3257,14 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
       dtype=[('info2', [('info3', [('x', '&lt;f8'), ('y', '|u1')]),
              ('name', '|S10'), ('value', '&lt;f8')]),
 	     ('info1', [('name', '|S10'), ('value', '&lt;f8')]),
-	     ('color', '&lt;u4')])
-&gt;&gt;&gt; </screen>
+	     ('color', '&lt;u4')])</screen>
 
           <para>Finally, we can select nested values that fulfill some
           condition:</para>
 
-          <screen>
-&gt;&gt;&gt; names = [ x['info2/name'] for x in table if x['color'] == colors.red ]
+          <screen>&gt;&gt;&gt; names = [ x['info2/name'] for x in table if x['color'] == colors.red ]
 &gt;&gt;&gt; names
-['name2-0', 'name2-3', 'name2-6', 'name2-9', 'name2-0']
-&gt;&gt;&gt; </screen>
+['name2-0', 'name2-3', 'name2-6', 'name2-9', 'name2-0']</screen>
 
           <para>Note that the row accessor does not provide the natural naming
           feature, so you have to completely specify the path of your desired
@@ -3351,12 +3279,11 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
           of the table so as to quickly access the info located in the
           interesting substructures:</para>
 
-          <screen>
-&gt;&gt;&gt; table.cols.info2[1:5]
+          <screen>&gt;&gt;&gt; table.cols.info2[1:5]
 array([((1.0, 1), 'name2-1', 0.0), ((1.0, 2), 'name2-2', 0.0),
        ((1.0, 3), 'name2-3', 0.0), ((1.0, 4), 'name2-4', 0.0)], 
-      dtype=[('info3', [('x', '&lt;f8'), ('y', '|u1')]), ('name', '|S10'), ('value', '&lt;f8')])
-&gt;&gt;&gt; </screen>
+      dtype=[('info3', [('x', '&lt;f8'), ('y', '|u1')]), ('name', '|S10'),
+             ('value', '&lt;f8')])</screen>
 
           <para>Here, we have made use of the cols accessor to access to the
           <emphasis>info2</emphasis> substructure and an slice operation to
@@ -3364,17 +3291,14 @@ array([((1.0, 1), 'name2-1', 0.0), ((1.0, 2), 'name2-2', 0.0),
           have recognized the natural naming approach here. We can continue
           and ask for data in <emphasis>info3</emphasis> substructure:</para>
 
-          <screen>
-&gt;&gt;&gt; table.cols.info2.info3[1:5]
+          <screen>&gt;&gt;&gt; table.cols.info2.info3[1:5]
 array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)], 
-      dtype=[('x', '&lt;f8'), ('y', '|u1')])
-&gt;&gt;&gt; </screen>
+      dtype=[('x', '&lt;f8'), ('y', '|u1')])</screen>
 
           <para>You can also use the <literal>_f_col</literal> method to get a
           handler for a column:</para>
 
-          <screen>
-&gt;&gt;&gt; table.cols._f_col('info2')
+          <screen>&gt;&gt;&gt; table.cols._f_col('info2')
 /table.cols.info2 (Cols), 3 columns
   info3 (Cols(), Description)
   name (Column(), |S10)
@@ -3385,14 +3309,12 @@ array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)],
           you select a non-nested column, you will get a regular
           <literal>Column</literal> instance:</para>
 
-          <screen>
-&gt;&gt;&gt; table.cols._f_col('info2/info3/y')
-/table.cols.info2.info3.y (Column(), uint8, idx=None)
-&gt;&gt;&gt; </screen>
+          <screen>&gt;&gt;&gt; table.cols._f_col('info2/info3/y')
+/table.cols.info2.info3.y (Column(), uint8, idx=None)</screen>
 
           <para>To sum up, the <literal>cols</literal> accessor is a very
-          handy and powerful way to access data in your nested tables. Be sure
-          of using it, specially when doing interactive work.</para>
+          handy and powerful way to access data in your nested tables. Don't
+          be afraid of using it, specially when doing interactive work.</para>
         </section>
 
         <section>
@@ -3406,8 +3328,7 @@ array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)],
 
           <para>Let's see how it looks like:</para>
 
-          <screen>
-&gt;&gt;&gt; table.description
+          <screen>&gt;&gt;&gt; table.description
 {
   "info2": {
     "info3": {
@@ -3418,8 +3339,9 @@ array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)],
   "info1": {
     "name": StringCol(itemsize=10, shape=(), dflt='', pos=0),
     "value": Float64Col(shape=(), dflt=0.0, pos=1)},
-  "color": EnumCol(enum=Enum({'blue': 2, 'green': 1, 'red': 0}), dflt='red', base=UInt32Atom(shape=(), dflt=0), shape=(), pos=2)}
-&gt;&gt;&gt; </screen>
+  "color": EnumCol(enum=Enum({'blue': 2, 'green': 1, 'red': 0}), dflt='red',
+                   base=UInt32Atom(shape=(), dflt=0), shape=(), pos=2)}
+</screen>
 
           <para>As you can see, it provides very useful information on both
           the formats and the structure of the columns in your table.</para>
@@ -3427,26 +3349,23 @@ array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)],
           <para>This object also provides a natural naming approach to access
           to subcolumns metadata:</para>
 
-          <screen>
-&gt;&gt;&gt; table.description.info1
+          <screen>&gt;&gt;&gt; table.description.info1
 {
     "name": StringCol(itemsize=10, shape=(), dflt='', pos=0),
     "value": Float64Col(shape=(), dflt=0.0, pos=1)}
 &gt;&gt;&gt; table.description.info2.info3
 {
       "x": Float64Col(shape=(), dflt=1.0, pos=0),
-      "y": UInt8Col(shape=(), dflt=1, pos=1)}
-&gt;&gt;&gt; </screen>
+      "y": UInt8Col(shape=(), dflt=1, pos=1)}</screen>
 
           <para>There are other variables that can be interesting for
           you:</para>
 
-          <screen>
-&gt;&gt;&gt; table.description._v_nestedNames
-[('info2', [('info3', ['x', 'y']), 'name', 'value']), ('info1', ['name', 'value']), 'color']
+          <screen>&gt;&gt;&gt; table.description._v_nestedNames
+[('info2', [('info3', ['x', 'y']), 'name', 'value']),
+ ('info1', ['name', 'value']), 'color']
 &gt;&gt;&gt; table.description.info1._v_nestedNames
-['name', 'value']
-&gt;&gt;&gt; </screen>
+['name', 'value']</screen>
 
           <para><literal>_v_nestedNames</literal> provides the names of the
           columns as well as its structure. You can see that there are the
@@ -3460,20 +3379,20 @@ array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)],
           nested record arrays that imitate the structure of the table (or a
           subtable thereof):</para>
 
-          <screen>
+          <screen>&gt;&gt;&gt; import numpy
 &gt;&gt;&gt; table.description._v_nestedDescr
 [('info2', [('info3', [('x', '()f8'), ('y', '()u1')]), ('name', '()S10'),
  ('value', '()f8')]), ('info1', [('name', '()S10'), ('value', '()f8')]),
  ('color', '()u4')]
 &gt;&gt;&gt; numpy.rec.array(None, shape=0,
-...                 dtype=table.description._v_nestedDescr)
+                    dtype=table.description._v_nestedDescr)
 recarray([], 
       dtype=[('info2', [('info3', [('x', '&gt;f8'), ('y', '|u1')]),
              ('name', '|S10'), ('value', '&gt;f8')]),
 	     ('info1', [('name', '|S10'), ('value', '&gt;f8')]),
 	     ('color', '&gt;u4')])
 &gt;&gt;&gt; numpy.rec.array(None, shape=0,
-...                 dtype=table.description.info2._v_nestedDescr)
+                    dtype=table.description.info2._v_nestedDescr)
 recarray([], 
       dtype=[('info3', [('x', '&gt;f8'), ('y', '|u1')]), ('name', '|S10'),
              ('value', '&gt;f8')])
@@ -3484,8 +3403,7 @@ array(
 descr=[('info2', [('info3', [('x', '()f8'), ('y', '()u1')]),
        ('name', '()S10'), ('value', '()f8')]), ('info1', [('name', '()S10'),
        ('value', '()f8')]), ('color', '()u4')],
-shape=0)
-&gt;&gt;&gt; </screen>
+shape=0)</screen>
 
           <para>You can see we have created two equivalent arrays: one with
           NumPy (the first) and one with the <literal>nra</literal> package
@@ -3499,13 +3417,17 @@ shape=0)
           <literal>_f_walk</literal> that is able to return you the different
           columns of the table:</para>
 
-          <screen>
-&gt;&gt;&gt; for coldescr in table.description._f_walk():
-...     print "column--&gt;",coldescr
-... 
-column--&gt; Description([('info2', [('info3', [('x', '()f8'), ('y', '()u1')]), ('name', '()S10'), ('value', '()f8')]), ('info1', [('name', '()S10'), ('value', '()f8')]), ('color', '()u4')])
-column--&gt; EnumCol(enum=Enum({'blue': 2, 'green': 1, 'red': 0}), dflt='red', base=UInt32Atom(shape=(), dflt=0), shape=(), pos=2)
-column--&gt; Description([('info3', [('x', '()f8'), ('y', '()u1')]), ('name', '()S10'), ('value', '()f8')])
+          <screen>&gt;&gt;&gt; for coldescr in table.description._f_walk():
+      print "column--&gt;",coldescr
+
+column--&gt; Description([('info2', [('info3', [('x', '()f8'), ('y', '()u1')]),
+                       ('name', '()S10'), ('value', '()f8')]),
+                       ('info1', [('name', '()S10'), ('value', '()f8')]),
+                       ('color', '()u4')])
+column--&gt; EnumCol(enum=Enum({'blue': 2, 'green': 1, 'red': 0}), dflt='red',
+                            base=UInt32Atom(shape=(), dflt=0), shape=(), pos=2)
+column--&gt; Description([('info3', [('x', '()f8'), ('y', '()u1')]), ('name', '()S10'),
+                       ('value', '()f8')])
 column--&gt; StringCol(itemsize=10, shape=(), dflt='', pos=1)
 column--&gt; Float64Col(shape=(), dflt=0.0, pos=2)
 column--&gt; Description([('name', '()S10'), ('value', '()f8')])
@@ -3513,8 +3435,7 @@ column--&gt; StringCol(itemsize=10, shape=(), dflt='', pos=0)
 column--&gt; Float64Col(shape=(), dflt=0.0, pos=1)
 column--&gt; Description([('x', '()f8'), ('y', '()u1')])
 column--&gt; Float64Col(shape=(), dflt=1.0, pos=0)
-column--&gt; UInt8Col(shape=(), dflt=1, pos=1)
-&gt;&gt;&gt; </screen>
+column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
 
           <para>See the <xref linkend="DescriptionClassDescr"
           xrefstyle="select: label" /> for the complete listing of attributes
@@ -3523,15 +3444,12 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)
           <para>Well, this is the end of this tutorial. As always, do not
           forget to close your files:</para>
 
-          <screen>
-&gt;&gt;&gt; fileh.close()
-&gt;&gt;&gt; </screen>
+          <screen>&gt;&gt;&gt; fileh.close() </screen>
 
           <para>Finally, you may want to have a look at your resulting data
           file:</para>
 
-          <screen>
-$ ptdump -d nested-tut.h5
+          <screen>$ ptdump -d nested-tut.h5
 / (RootGroup) ''
 /table (Table(13L,)) ''
   Data dump:
@@ -9949,8 +9867,8 @@ enum myEnum {
             <title><literal>Filters(complevel=0, complib="zlib", shuffle=True,
             fletcher32=False)</literal></title>
 
-            <para>The constructor for the <literal>Filters</literal> class
-            and its only method are described next.</para>
+            <para>The constructor for the <literal>Filters</literal> class and
+            its only method are described next.</para>
 
             <glosslist>
               <glossentry>
@@ -10011,9 +9929,7 @@ enum myEnum {
             </glosslist>
 
             <para>This is a small example on using the
-            <literal>Filters</literal> class:
-
-            <screen>
+            <literal>Filters</literal> class: <screen>
 import numpy
 from tables import *
 
@@ -10031,13 +9947,9 @@ arr.append(numpy.array([[1., 2.],
 print "Result Array:"
 print repr(arr)
 
-fileh.close()</screen>
-
-            This enforces the use of the <literal>LZO</literal>
+fileh.close()</screen> This enforces the use of the <literal>LZO</literal>
             library, a compression level of 1 and a fletcher32 checksum filter
-            as well. See the output of this example:
-
-            <screen>Result Array:
+            as well. See the output of this example: <screen>Result Array:
 /earray (EArray(3L, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
   type = float32
   shape = (3L, 2)
@@ -10045,9 +9957,7 @@ fileh.close()</screen>
   nrows = 3
   extdim = 0
   flavor = 'numpy'
-  byteorder = 'little'</screen>
-
-            </para>
+  byteorder = 'little'</screen></para>
           </section>
 
           <section>
@@ -10064,22 +9974,22 @@ fileh.close()</screen>
             become immutable in the future.</para>
 
             <screen>
->>> filters1 = Filters()
->>> filters2 = filters1.copy()
->>> filters1 == filters2
+&gt;&gt;&gt; filters1 = Filters()
+&gt;&gt;&gt; filters2 = filters1.copy()
+&gt;&gt;&gt; filters1 == filters2
 True
->>> filters1 is filters2
+&gt;&gt;&gt; filters1 is filters2
 False
->>> filters3 = filters1.copy(complevel=1)
+&gt;&gt;&gt; filters3 = filters1.copy(complevel=1)
 Traceback (most recent call last):
   ...
 ValueError: compression library ``None`` is not supported...
->>> filters3 = filters1.copy(complevel=1, complib='zlib')
->>> print filters1
+&gt;&gt;&gt; filters3 = filters1.copy(complevel=1, complib='zlib')
+&gt;&gt;&gt; print filters1
 Filters(complevel=0, shuffle=False, fletcher32=False)
->>> print filters3
+&gt;&gt;&gt; print filters3
 Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
->>> filters1.copy(foobar=42)
+&gt;&gt;&gt; filters1.copy(foobar=42)
 Traceback (most recent call last):
   ...
 TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
@@ -15147,9 +15057,10 @@ Object Tree:
 
                 <glossdef>
                   <para>This is used so as to specify the kind of pseudo-atom
-                  (see <xref linkend="VLArrayFormatDescr" xrefstyle="select:
-                  label" />) for the <literal>VLArray</literal>. It can take
-                  the values <literal>'vlstring'</literal> or
+                  (see <xref linkend="VLArrayFormatDescr"
+                  xrefstyle="select:                   label" />) for the
+                  <literal>VLArray</literal>. It can take the values
+                  <literal>'vlstring'</literal> or
                   <literal>'object'</literal>. If your atom is not a
                   pseudo-atom then you should not specify it.</para>
                 </glossdef>

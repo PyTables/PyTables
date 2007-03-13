@@ -70,10 +70,10 @@ for tablename in ("TEvent1", "TEvent2", "TEvent3"):
         event['name']  = 'Event: %6d' % (i)
         event['TDCcount'] = i % (1<<8)   # Correct range
         ########### Detectable errors start here. Play with them!
-        #event['xcoord'] = float(i**2)   # Correct spelling
         event['xcoor'] = float(i**2)     # Wrong spelling
-        event['ADCcount'] = i * 2        # Correct type
-        #event['ADCcount'] = "sss"          # Wrong type
+        #event['xcoord'] = float(i**2)   # Correct spelling
+        event['ADCcount'] = "sss"          # Wrong type
+        #event['ADCcount'] = i * 2        # Correct type
         ########### End of errors
         event['ycoord'] = float(i)**4
         # This injects the Record values
