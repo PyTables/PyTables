@@ -1,7 +1,9 @@
+"""
+Beware! you need PyTables Pro Edition to run this script!
+"""
+
 from time import time  # use clock for Win
 import numpy
-import numarray
-from numpy import random
 from tables import *
 
 #NEVENTS = 10000
@@ -20,20 +22,19 @@ class Particle(IsDescription):
 
 # # Create a new table for events
 t1 = time()
-print "Creating table with %s entries aprox.. Wait please..." % \
+print "Creating a table with %s entries aprox.. Wait please..." % \
       (int(NEVENTS*(MAX_PARTICLES_PER_EVENT/2.)))
 fileh = openFile("particles-pro.h5", mode = "w")
 group = fileh.createGroup(fileh.root, "events")
 table = fileh.createTable(group, 'table', Particle, "A table", Filters(0))
 # Choose this line if you want data compression
 #table = fileh.createTable(group, 'table', Particle, "A table", Filters(1))
-table.flavor = "numpy"
 
 # Fill the table with events
-random.seed(1)  # In order to have reproducible results
+numpy.random.seed(1)  # In order to have reproducible results
 particle = table.row
 for i in xrange(NEVENTS):
-    for j in xrange(random.randint(0, MAX_PARTICLES_PER_EVENT)):
+    for j in xrange(numpy.random.randint(0, MAX_PARTICLES_PER_EVENT)):
         particle['event_id']  = i
         particle['particle_id'] = j
         particle['parent_id'] = j - 10     # 10 root particles (max)

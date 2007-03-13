@@ -2373,15 +2373,7 @@ $ </screen>
         the different kinds of descriptor objects that can be passed to the
         <literal>createTable()</literal> method.</para>
 
-        <screen>"""This program shows the different protections that PyTables offer to
-the user in order to insure a correct data injection in tables.
-
-Example to be used in the second tutorial in the User's Guide.
-
-"""
-
-from numarray import *
-from tables import *
+        <screen>from tables import *
 
 # Describe a particle record
 class Particle(IsDescription):
@@ -2765,14 +2757,7 @@ True</screen>
 
           <para>Let's introduce the first part of the code:</para>
 
-          <screen>"""A more complex example of do/undo capability with PyTables
-
-Here, names has been assigned to the marks, and jumps are done between
-marks.
-
-"""
-
-import tables
+          <screen>import tables
 
 # Create an HDF5 file
 fileh = tables.openFile('tutorial3-2.h5', 'w', title='Undo/Redo demo 2')
@@ -6170,8 +6155,7 @@ for node in h5file.root.detector:
 
             <screen>&gt;&gt;&gt; f=tables.openFile("data/test.h5")
 &gt;&gt;&gt; print f.root.group0
-/group0 (Group) 'First Group'
-&gt;&gt;&gt;</screen>
+/group0 (Group) 'First Group'</screen>
           </section>
 
           <section id="Group.__repr__">
@@ -6185,8 +6169,7 @@ for node in h5file.root.detector:
             <screen>&gt;&gt;&gt; f=tables.openFile("data/test.h5")
 &gt;&gt;&gt; f.root.group0
 /group0 (Group) 'First Group'
-  children := ['tuple1' (Table), 'group1' (Group)]
-&gt;&gt;&gt;</screen>
+  children := ['tuple1' (Table), 'group1' (Group)]</screen>
           </section>
         </section>
       </section>
@@ -7209,8 +7192,7 @@ if row['var1'] &lt;= 20 ]</screen>
 
             <para>Example of use:</para>
 
-            <screen>
-&gt;&gt;&gt; passvalues = [ row['col3'] for row in
+            <screen>&gt;&gt;&gt; passvalues = [ row['col3'] for row in
 ...                table.where('(col1 &gt; 0) &amp; (col2 &lt;= 20)', step=5)
 ...                if your_function(row['col2']) ]
 &gt;&gt;&gt; print "Values that pass the cuts:", passvalues</screen>
@@ -7218,8 +7200,7 @@ if row['var1'] &lt;= 20 ]</screen>
             <para>Note that, from PyTables 1.1 on, you can nest several
             iterators over the same table. For example:</para>
 
-            <screen>
-for p in rout.where('pressure &lt; 16'):
+            <screen>for p in rout.where('pressure &lt; 16'):
     for q in rout.where('pressure &lt; 9'):
         for n in rout.where('energy &lt; 10'):
             print "pressure, energy:", p['pressure'], n['energy']</screen>
@@ -7590,15 +7571,13 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
               row, calling this method actually append these new data to the
               disk (actually data are written to the output buffer).</para>
 
-              <para>Example of use: <screen>
-row = table.row
+              <para>Example of use: <screen>row = table.row
 for i in xrange(nrows):
     row['col1'] = i-1
     row['col2'] = 'a'
     row['col3'] = -1.0
     row.append()
-table.flush() 
-            </screen> <emphasis>Warning:</emphasis> after completion of the
+table.flush()</screen> <emphasis>Warning:</emphasis> after completion of the
               loop in which <literal>Row.append()</literal> has been called,
               it is always convenient to make a call to
               <literal>Table.flush()</literal> in order to avoid losing the
@@ -7619,20 +7598,17 @@ table.flush()
               buffer, so the same warning noted in
               <literal>Row.append()</literal> applies).</para>
 
-              <para>Example of use: <screen>
-for row in table.iterrows(step=10):
+              <para>Example of use: <screen>for row in table.iterrows(step=10):
     row['col1'] = row.nrow
     row['col2'] = 'b'
     row['col3'] = 0.0
     row.update()</screen> which modifies every tenth row in table. Or:
-              <screen>
-for row in table.where('col1 &gt; 3'):
+              <screen>for row in table.where('col1 &gt; 3'):
     row['col1'] = row.nrow
     row['col2'] = 'b'
     row['col3'] = 0.0
-    row.update()
-            </screen> which just updates the rows with values in first column
-              bigger than 3.</para>
+    row.update()</screen> which just updates the rows with values in first
+              column bigger than 3.</para>
             </section>
 
             <section id="Row.fetch_all_fields" xreflabel="description">
@@ -7644,9 +7620,8 @@ for row in table.where('col1 &gt; 3'):
               linkend="RowSpecialMethods" xrefstyle="select: labelnumber" />),
               this returns the data as NumPy void scalars.</para>
 
-              <para>Example of use: <screen>
-[ row.fetch_all_fields() for row in table.where('col1 &lt; 3') ]
-            </screen> which select all the rows that fullfills a certain
+              <para>Example of use: <screen>[ row.fetch_all_fields() for row in table.where('col1 &lt; 3') ]</screen>
+              which select all the rows that fullfills a certain
               condition.</para>
             </section>
           </section>
@@ -7666,22 +7641,17 @@ for row in table.where('col1 &gt; 3'):
               slice, the returned value is a <emphasis>tuple</emphasis>
               containing the values of the specified fields.</para>
 
-              <para>Examples of use: <screen>
-res = [ row['var3'] for row in table.where('var2 &lt; 20') ]
-            </screen> which selects the <literal>var3</literal> field for all
-              the rows that fullfill the condition. Or: <screen>
-res = [ row[4] for row in table if row[1] &lt; 20 ]
-            </screen> which selects the field in <literal>4th</literal>
-              position for all the rows that fullfill the condition. Or:
-              <screen>
-res = [ row[:] for row in table if row['var2'] &lt; 20 ]
-            </screen> which selects the all the fields (in the form of a
+              <para>Examples of use: <screen>res = [ row['var3'] for row in table.where('var2 &lt; 20') ]</screen>
+              which selects the <literal>var3</literal> field for all the rows
+              that fullfill the condition. Or: <screen>res = [ row[4] for row in table if row[1] &lt; 20 ]</screen>
+              which selects the field in <literal>4th</literal> position for
+              all the rows that fullfill the condition. Or: <screen>res = [ row[:] for row in table if row['var2'] &lt; 20 ]</screen>
+              which selects the all the fields (in the form of a
               <emphasis>tuple</emphasis>) for all the rows that fullfill the
-              condition. Or: <screen>
-res = [ row[1::2] for row in table.iterrows(2, 3000, 3) ]
-            </screen> which selects the all the fields in even positions (in
-              the form of a <emphasis>tuple</emphasis>) for all the rows in
-              the slice <literal>[2:3000:3]</literal>.</para>
+              condition. Or: <screen>res = [ row[1::2] for row in table.iterrows(2, 3000, 3) ]</screen>
+              which selects the all the fields in even positions (in the form
+              of a <emphasis>tuple</emphasis>) for all the rows in the slice
+              <literal>[2:3000:3]</literal>.</para>
             </section>
 
             <section>
@@ -7698,8 +7668,7 @@ res = [ row[1::2] for row in table.iterrows(2, 3000, 3) ]
               <xref linkend="Row.update" xrefstyle="select: labelnumber" />
               methods would be called.</para>
 
-              <para>Example of use: <screen>
-for row in table.iterrows(step=10):
+              <para>Example of use: <screen>for row in table.iterrows(step=10):
     row['col1'] = row.nrow
     row['col2'] = 'b'
     row['col3'] = 0.0
@@ -8388,8 +8357,7 @@ a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))</screen>
           The code is available in
           <literal>examples/carray1.py</literal>.</para>
 
-          <screen>
-import numpy
+          <screen>import numpy
 import tables
 
 fileName = 'carray1.h5'
@@ -8459,8 +8427,7 @@ Object Tree:
             <para>Example of use (code available in
             <literal>examples/earray1.py</literal>):</para>
 
-            <screen>
-import tables
+            <screen>import tables
 import numpy
 
 fileh = tables.openFile("earray1.h5", mode = "w")
@@ -8575,9 +8542,8 @@ array_c[4] =&gt; 'cccccccc'</screen>
             <para>Example of use (code available in
             <literal>examples/vlarray1.py</literal>):</para>
 
-            <screen>
-import tables
-from Numeric import *   # or, from numarray import *
+            <screen>import tables
+from numpy import *
 
 # Create a VLArray:
 fileh = tables.openFile("vlarray1.h5", mode = "w")
@@ -8585,7 +8551,6 @@ vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
                               tables.Int32Atom(shape=1),
                               "ragged array of ints",
                               filters = tables.Filters(1))
-vlarray.flavor = "numeric"
 # Append some (variable length) rows:
 vlarray.append(array([5, 6]))
 vlarray.append(array([5, 6, 7]))
@@ -8601,7 +8566,7 @@ vlarray2 = fileh.createVLArray(fileh.root, 'vlarray2',
                               tables.StringAtom(itemsize=2),
                               "ragged array of strings",
                               filters = tables.Filters(1))
-vlarray.flavor = "python"
+vlarray2.flavor = "python"
 # Append some (variable length) rows:
 print "--&gt;", vlarray2.title
 vlarray2.append(["5", "66"])
@@ -8618,9 +8583,14 @@ fileh.close()</screen>
 
             <para>The output of the previous program looks like this:</para>
 
-            <screen>vlarray1[0]--&gt; [5 6]
+            <screen>--&gt; ragged array of ints
+vlarray1[0]--&gt; [5 6]
 vlarray1[1]--&gt; [5 6 7]
-vlarray1[2]--&gt; [5 6 9 8]</screen>
+vlarray1[2]--&gt; [5 6 9 8]
+--&gt; ragged array of strings
+vlarray2[0]--&gt; ['5', '66']
+vlarray2[1]--&gt; ['5', '6', '77']
+vlarray2[2]--&gt; ['5', '6', '9', '88']</screen>
 
             <para>The <literal>objects</literal> argument is only retained for
             backwards compatibility; please do <emphasis>not</emphasis> use
@@ -8849,7 +8819,7 @@ vlarray[99,-99:-89:2] = vlarray[5]*2+3</screen>
 ...   foo = 'bar'
 ...
 &gt;&gt;&gt; # An object of my custom class.
-... myObject = MyClass()
+&gt;&gt;&gt; myObject = MyClass()
 &gt;&gt;&gt;
 &gt;&gt;&gt; h5f = tables.openFile('test.h5', 'w')
 &gt;&gt;&gt; h5f.root._v_attrs.obj = myObject  # store the object
@@ -8858,7 +8828,7 @@ bar
 &gt;&gt;&gt; h5f.close()
 &gt;&gt;&gt;
 &gt;&gt;&gt; # Delete class of stored object and reopen the file.
-... del MyClass, myObject
+&gt;&gt;&gt; del MyClass, myObject
 &gt;&gt;&gt;
 &gt;&gt;&gt; h5f = tables.openFile('test.h5', 'r')
 &gt;&gt;&gt; print h5f.root._v_attrs.obj.foo
@@ -8866,17 +8836,17 @@ Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
 AttributeError: 'str' object has no attribute 'foo'
 &gt;&gt;&gt; # Let us inspect the object to see what is happening.
-... print repr(h5f.root._v_attrs.obj)
+&gt;&gt;&gt; print repr(h5f.root._v_attrs.obj)
 'ccopy_reg\n_reconstructor\np1\n(c__main__\nMyClass\np2\nc__builtin__\nobject\np3\nNtRp4\n.'
 &gt;&gt;&gt; # Maybe unpickling the string will yield more information:
-... import cPickle
+&gt;&gt;&gt; import cPickle
 &gt;&gt;&gt; cPickle.loads(h5f.root._v_attrs.obj)
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
 AttributeError: 'module' object has no attribute 'MyClass'
 &gt;&gt;&gt; # So the problem was not in the stored object,
-... # but in the *environment* where it was restored.
-... h5f.close()</screen>
+&gt;&gt;&gt; # but in the *environment* where it was restored.
+&gt;&gt;&gt; h5f.close()</screen>
 
         <section id="AttributeSetClassInstanceVariables">
           <title><literal>AttributeSet</literal> instance variables</title>
@@ -9287,8 +9257,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
             strict (in)equality without having to compare individual
             attributes:</para>
 
-            <screen>
-&gt;&gt;&gt; atom1 = StringAtom(itemsize=10)  # same as ``atom2``
+            <screen>&gt;&gt;&gt; atom1 = StringAtom(itemsize=10)  # same as ``atom2``
 &gt;&gt;&gt; atom2 = Atom.from_kind('string', 10)  # same as ``atom1``
 &gt;&gt;&gt; atom3 = IntAtom()
 &gt;&gt;&gt; atom1 == 'foo'
@@ -9315,8 +9284,7 @@ True</screen>
               <para>Constructor arguments to be overridden must be passed as
               keyword arguments.</para>
 
-              <screen>
-&gt;&gt;&gt; atom1 = StringAtom(itemsize=12)
+              <screen>&gt;&gt;&gt; atom1 = StringAtom(itemsize=12)
 &gt;&gt;&gt; atom2 = atom1.copy()
 &gt;&gt;&gt; print atom1
 StringAtom(itemsize=12, shape=(), dflt='')
@@ -9348,8 +9316,7 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
               <emphasis>dtype</emphasis> not represented in an
               <literal>Atom</literal> is ignored.</para>
 
-              <screen>
-&gt;&gt;&gt; import numpy
+              <screen>&gt;&gt;&gt; import numpy
 &gt;&gt;&gt; Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
 Int16Atom(shape=(2, 2), dflt=0)
 &gt;&gt;&gt; Atom.from_dtype(numpy.dtype('S5'), dflt='hello')
@@ -9371,8 +9338,7 @@ Float64Atom(shape=(), dflt=0.0)</screen>
               arguments, respectively. Bear in mind that not all atoms support
               a default item size.</para>
 
-              <screen>
-&gt;&gt;&gt; Atom.from_kind('int', itemsize=2, shape=(2, 2))
+              <screen>&gt;&gt;&gt; Atom.from_kind('int', itemsize=2, shape=(2, 2))
 Int16Atom(shape=(2, 2), dflt=0)
 &gt;&gt;&gt; Atom.from_kind('int', shape=(2, 2))
 Int32Atom(shape=(2, 2), dflt=0)
@@ -9391,12 +9357,10 @@ ValueError: unknown kind: 'Float'</screen>
               are not supported; you need to use the proper
               constructor:</para>
 
-              <screen>
-&gt;&gt;&gt; Atom.from_kind('enum')
+              <screen>&gt;&gt;&gt; Atom.from_kind('enum')
 Traceback (most recent call last):
   ...
-ValueError: the ``enum`` kind is not supported...
-              </screen>
+ValueError: the ``enum`` kind is not supported...</screen>
             </section>
 
             <section>
@@ -9411,8 +9375,7 @@ ValueError: the ``enum`` kind is not supported...
               <emphasis>sctype</emphasis> not represented in an
               <literal>Atom</literal> is ignored.</para>
 
-              <screen>
-&gt;&gt;&gt; import numpy
+              <screen>&gt;&gt;&gt; import numpy
 &gt;&gt;&gt; Atom.from_sctype(numpy.int16, shape=(2, 2))
 Int16Atom(shape=(2, 2), dflt=0)
 &gt;&gt;&gt; Atom.from_sctype('S5', dflt='hello')
@@ -9655,8 +9618,7 @@ ValueError: unknown type: 'Float64'</screen>
               <para>Enumerated atoms also support comparisons with other
               objects:</para>
 
-              <screen>
-&gt;&gt;&gt; enum = ['T0', 'T1', 'T2']
+              <screen>&gt;&gt;&gt; enum = ['T0', 'T1', 'T2']
 &gt;&gt;&gt; atom1 = EnumAtom(enum, 'T0', 'int8')  # same as ``atom2``
 &gt;&gt;&gt; atom2 = EnumAtom(enum, 'T0', Int8Atom())  # same as ``atom1``
 &gt;&gt;&gt; atom3 = EnumAtom(enum, 'T0', 'int16')
@@ -9679,8 +9641,7 @@ True</screen>
 
                 <para>The next C <literal>enum</literal> construction:</para>
 
-                <screen>
-enum myEnum {
+                <screen>enum myEnum {
   T0,
   T1,
   T2
@@ -9689,8 +9650,7 @@ enum myEnum {
                 <para>would correspond to the following PyTables
                 declaration:</para>
 
-                <screen>
-&gt;&gt;&gt; myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')</screen>
+                <screen>&gt;&gt;&gt; myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')</screen>
 
                 <para>Please note the <literal>dflt</literal> argument with a
                 value of <literal>'T0'</literal>. Since the concrete value
@@ -9704,14 +9664,12 @@ enum myEnum {
                 <literal>base</literal> argument (this time with a full-blown
                 storage atom):</para>
 
-                <screen>
-&gt;&gt;&gt; myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', UInt8Atom())</screen>
+                <screen>&gt;&gt;&gt; myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', UInt8Atom())</screen>
 
                 <para>You can also define multidimensional arrays for data
                 elements:</para>
 
-                <screen>
-&gt;&gt;&gt; myEnumAtom = EnumAtom(
+                <screen>&gt;&gt;&gt; myEnumAtom = EnumAtom(
 ...    ['T0', 'T1', 'T2'], 'T0', base='uint32', shape=(3,2))</screen>
 
                 <para>for 3x2 arrays of <literal>uint32</literal>.</para>
@@ -9929,8 +9887,7 @@ enum myEnum {
             </glosslist>
 
             <para>This is a small example on using the
-            <literal>Filters</literal> class: <screen>
-import numpy
+            <literal>Filters</literal> class: <screen>import numpy
 from tables import *
 
 fileh = openFile("test5.h5", mode="w")
@@ -9947,7 +9904,7 @@ arr.append(numpy.array([[1., 2.],
 print "Result Array:"
 print repr(arr)
 
-fileh.close()</screen> This enforces the use of the <literal>LZO</literal>
+fileh.close()</screen>This enforces the use of the <literal>LZO</literal>
             library, a compression level of 1 and a fletcher32 checksum filter
             as well. See the output of this example: <screen>Result Array:
 /earray (EArray(3L, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
@@ -9973,8 +9930,7 @@ fileh.close()</screen> This enforces the use of the <literal>LZO</literal>
             attributes of an instance, since instances of this class may
             become immutable in the future.</para>
 
-            <screen>
-&gt;&gt;&gt; filters1 = Filters()
+            <screen>&gt;&gt;&gt; filters1 = Filters()
 &gt;&gt;&gt; filters2 = filters1.copy()
 &gt;&gt;&gt; filters1 == filters2
 True

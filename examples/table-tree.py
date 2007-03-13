@@ -1,6 +1,5 @@
 import sys
 
-import Numeric
 import numpy
 from tables import *
 
@@ -23,7 +22,7 @@ Particle2 = {
     "grid_j"      : Col.from_type("int32"),    # integer
     "idnumber"    : Col.from_type("int64"),    # signed long long
     "name"        : Col.from_kind("string", 16),  # 16-character String
-    "pressure"    : Col.from_type("float32"),  # float  (single-precision)
+    "pressure"    : Col.from_type("float32", (2,)), # float  (single-precision)
     "temperature" : Col.from_type("float64"),  # double (double-precision)
 }
 
@@ -75,12 +74,12 @@ print
 # Create a new group to hold new arrays
 gcolumns = h5file.createGroup("/", "columns")
 print "columns ==>", gcolumns, pressure
-# Create a Numeric array with this info under '/columns'
-h5file.createArray(gcolumns, 'pressure', Numeric.array(pressure),
+# Create an array with this info under '/columns' having a 'list' flavor
+h5file.createArray(gcolumns, 'pressure', pressure,
                    "Pressure column")
-print "gcolumns.pressure type ==> ", gcolumns.pressure.dtype
+print "gcolumns.pressure type ==> ", gcolumns.pressure.atom.dtype
 
-# Do the same with TDCcount, but with a numarray object
+# Do the same with TDCcount, but with a numpy object
 TDC = [ p['TDCcount'] for p in table.iterrows() ]
 print "TDC ==>", TDC
 print "TDC shape ==>", numpy.array(TDC).shape
@@ -92,7 +91,7 @@ print "names ==>", names
 h5file.createArray('/columns', 'name', names, "Name column")
 # This works even with homogeneous tuples or lists (!)
 print "gcolumns.name shape ==>", gcolumns.name.shape
-print "gcolumns.name type ==> ", gcolumns.name.dtype
+print "gcolumns.name type ==> ", gcolumns.name.atom.dtype
 
 print "Table dump:"
 for p in table.iterrows():
@@ -187,7 +186,7 @@ pressureObject = h5file.getNode("/columns", "pressure")
 print "Info on the object:", pressureObject
 print "  shape ==>", pressureObject.shape
 print "  title ==>", pressureObject.title
-print "  type ==> ", pressureObject.dtype
+print "  type ==> ", pressureObject.atom.dtype
 print "  byteorder ==> ", pressureObject.byteorder
 
 # Read the pressure actual data
@@ -203,7 +202,7 @@ nameObject = h5file.root.columns.name
 print "Info on the object:", nameObject
 print "  shape ==>", nameObject.shape
 print "  title ==>", nameObject.title
-print "  type ==> " % nameObject.dtype
+print "  type ==> " % nameObject.atom.dtype
 
 
 # Read the 'name' actual data
@@ -245,9 +244,10 @@ for p in table:
     print p['name'], '-->', p['pressure']
 print
 
+# Put several flavors
 oldflavor = table.flavor
 print table.read(field="ADCcount")
-table.flavor = "numeric"
+table.flavor = "numpy"
 print table.read(field="ADCcount")
 table.flavor = oldflavor
 print table.read(0, 0, 1, "name")

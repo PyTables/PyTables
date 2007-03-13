@@ -1,7 +1,5 @@
 import sys
-import Numeric
-from numarray import *
-from numarray import strings
+from numpy import *
 from tables import *
 
 # Open a new empty HDF5 file
@@ -10,27 +8,19 @@ fileh = openFile("array1.h5", mode = "w")
 root = fileh.root
 
 # Create an Array
-a = array([-1, 2, 4], Int16)
+a = array([-1, 2, 4], int16)
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'array_1', a, "Signed short array")
 
 # Create a scalar Array
-a = array(4, Int16)
+a = array(4, int16)
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'array_s', a, "Scalar signed short array")
 
 # Create a 3-d array of floats
-#a = arange(64, type=Float64, shape=(2,4,8))
-a = arange(120, type=Float64, shape=(20,3,2))
+a = arange(120, dtype=float64).reshape(20,3,2)
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'array_f', a, "3-D float array")
-# Crea a Numeric array
-a = Numeric.arange(120, typecode="d")
-#Numeric.reshape(a,(20,3,2))
-a.shape=(20,3,2)
-print "a.shape-->", a.shape
-# Save it on the HDF5 file
-hdfarray = fileh.createArray(root, 'array_f_Numeric', a, "3-D float array, Numeric")
 
 # Close the file
 fileh.close()

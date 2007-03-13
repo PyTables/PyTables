@@ -2,12 +2,6 @@ import random
 import tables
 print 'tables.__version__',tables.__version__
 
-from numarray import random_array
-# Initialize the random generator always with the same integer
-# in order to have reproductible results
-random.seed(19)
-random_array.seed(19, 20)
-
 nrows=10000-1
 
 class Distance(tables.IsDescription):

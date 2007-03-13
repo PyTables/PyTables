@@ -1,4 +1,4 @@
-from numarray import *
+from numpy import *
 from tables import *
 
 # Open a new empty HDF5 file
@@ -7,10 +7,10 @@ fileh = openFile("array2.h5", mode = "w")
 root = fileh.root
 
 # Create an array
-a = array([1, 2.7182818284590451, 3.141592], Float)
+a = array([1, 2.7182818284590451, 3.141592], float)
 print "About to write array:", a
 print "  with shape: ==>", a.shape
-print "  and typecode ==> %c" % a.typecode()
+print "  and dtype ==>", a.dtype
 
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'carray', a, "Float array")
@@ -36,7 +36,7 @@ b = root.carray.read()
 print
 print "Array read from file:", b
 print "  with shape: ==>", b.shape
-print "  and typecode ==>", b.typecode()
+print "  and dtype ==>", b.dtype
 
 # Close the file
 fileh.close()

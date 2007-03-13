@@ -1,5 +1,5 @@
 import tables
-from Numeric import *   # or, from numpy import *
+from numpy import *
 
 # Create a VLArray:
 fileh = tables.openFile("vlarray1.h5", mode = "w")
@@ -7,7 +7,6 @@ vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
                               tables.Int32Atom(shape=1),
                               "ragged array of ints",
                               filters = tables.Filters(1))
-vlarray.flavor = "numeric"
 # Append some (variable length) rows:
 vlarray.append(array([5, 6]))
 vlarray.append(array([5, 6, 7]))

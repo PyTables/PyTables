@@ -1,5 +1,4 @@
-from numarray import *
-from numarray import strings
+from numpy import *
 from tables import *
 
 # Open a new empty HDF5 file
@@ -9,10 +8,10 @@ root = fileh.root
 
 # Create a large array
 #a = reshape(array(range(2**16), "s"), (2,) * 16)
-a = ones((2,) * 8, Int8)
+a = ones((2,) * 8, int8)
 print "About to write array a"
 print "  with shape: ==>", a.shape
-print "  and type: ==> %s" % a.type()
+print "  and dtype: ==>", a.dtype
 
 # Save it on the HDF5 file
 hdfarray = fileh.createArray(root, 'carray', a, "Large array")
@@ -40,7 +39,7 @@ b = root.carray.read()
 print
 print "Array b read from file"
 print "  with shape: ==>", b.shape
-print "  with typecode: ==>", b.typecode()
+print "  with dtype: ==>", b.dtype
 #print "  contents:", b
 
 # Close the file

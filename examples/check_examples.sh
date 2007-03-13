@@ -8,7 +8,6 @@ $PYTHON array4.py
 $PYTHON attributes1.py
 $PYTHON earray1.py
 $PYTHON earray2.py
-$PYTHON gl-test.py
 $PYTHON objecttree.py
 $PYTHON table1.py
 $PYTHON table2.py

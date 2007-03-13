@@ -21,12 +21,12 @@ print "str(Cols)-->", table.cols
 print "repr(Cols)-->", repr(table.cols)
 print "Column handlers:"
 for name in table.colnames:
-    print table.cols[name]
+    print table.cols._f_col(name)
 
 print "Select table.cols.name[1]-->", table.cols.name[1]
 print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
 print "Select table.cols.name[:]-->", table.cols.name[:]
-print "Select table.cols['name'][:]-->", table.cols['name'][:]
+print "Select table.cols['name'][:]-->", table.cols._f_col('name')[:]
 print "Select table.cols.lati[1]-->", table.cols.lati[1]
 print "Select table.cols.lati[1:2]-->", table.cols.lati[1:2]
 print "Select table.cols.vector[:]-->", table.cols.vector[:]

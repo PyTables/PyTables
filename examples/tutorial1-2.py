@@ -137,12 +137,12 @@ print   '-**-**-**-**-**- reading actual data from arrays -**-**-**-**-**-**-'
 # Read the 'pressure' actual data
 pressureArray = pressureObject.read()
 print repr(pressureArray)
-# Check the kind of object we have created (it should be a numarray array)
+# Check the kind of object we have created (it should be a numpy array)
 print "pressureArray is an object of type:", type(pressureArray)
 
 # Read the 'name' Array actual data
 nameArray = h5file.root.columns.name.read()
-# Check the kind of object we have created (it should be a numarray array)
+# Check the kind of object we have created (it should be a numpy array)
 print "nameArray is an object of type:", type(nameArray)
 
 print

@@ -5,7 +5,6 @@ Example to be used in the second tutorial in the User's Guide.
 
 """
 
-from numarray import *
 from tables import *
 
 # Describe a particle record

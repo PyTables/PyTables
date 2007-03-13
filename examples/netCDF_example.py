@@ -33,9 +33,9 @@ print '**global attributes**'
 for name in file.ncattrs():
     print 'Global attr', name, '=', getattr(file,name)
 
-import numarray
-levels[:] = numarray.arange(12)+1
-latitudes[:] = numarray.arange(-89,90,2)
+import numpy
+levels[:] = numpy.arange(12)+1
+latitudes[:] = numpy.arange(-89,90,2)
 for lev in levels[:]:
     pressure[:,:] = 1000.-100.*lev
 print 'levels = ',levels[:]
@@ -46,9 +46,8 @@ print 'times = ',times[:]
 print 'temp.shape before sync = ',temp.shape
 file.sync()
 print 'temp.shape after sync = ',temp.shape
-from numarray import random_array
 for n in range(10):
-    temp[n] = 10.*random_array.random(pressure.shape)
+    temp[n] = 10.*numpy.random.random_sample(pressure.shape)
     print 'time, min/max temp, temp[n,0,0] = ',times[n],min(temp[n].flat),max(temp[n].flat),temp[n,0,0]
 # print a summary of the file contents
 print file

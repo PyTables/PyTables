@@ -4,9 +4,7 @@
 """ Small example that shows how to work with variable length arrays of
 different types, UNICODE strings and general Python objects included. """
 
-from numarray import *
-from numarray import strings
-from numarray import records
+from numpy import *
 from tables import *
 import cPickle
 
@@ -25,15 +23,15 @@ vlarray.append([5, 6, 9, 8])
 # Test with lists of bidimensional vectors
 vlarray = fileh.createVLArray(root, 'vlarray2', Int64Atom(shape=(2,)),
                               "Ragged array of vectors")
-a = array([[1,2],[1, 2]], type=Int64)
+a = array([[1,2],[1, 2]], dtype=int64)
 vlarray.append(a)
-vlarray.append(array([[1,2],[3, 4]], type=Int64))
-vlarray.append(zeros(type=Int64, shape=(0,2)))
-vlarray.append(array([[5, 6]], type=Int64))
+vlarray.append(array([[1,2],[3, 4]], dtype=int64))
+vlarray.append(zeros(dtype=int64, shape=(0,2)))
+vlarray.append(array([[5, 6]], dtype=int64))
 # This makes an error (shape)
-#vlarray.append(array([[5], [6]], type=Int64))
+#vlarray.append(array([[5], [6]], dtype=int64))
 # This makes an error (type)
-#vlarray.append(array([[5, 6]], type=UInt64))
+#vlarray.append(array([[5, 6]], dtype=uint64))
 
 # Test with strings
 vlarray = fileh.createVLArray(root, 'vlarray3', StringAtom(itemsize=3),
@@ -53,14 +51,14 @@ vlarray.append(["456", "3"])
 # Binary strings
 vlarray = fileh.createVLArray(root, 'vlarray4', UInt8Atom(),
                               "pickled bytes")
-vlarray.append(array(cPickle.dumps((["123", "456"], "3")),type=UInt8))
+data = cPickle.dumps((["123", "456"], "3"))
+vlarray.append(ndarray(buffer=data, dtype=uint8, shape=len(data)))
 
-# In next example, the length of the array should be the same than before,
-# but it is not: it is sligthly greater!. This should be investigated?
-# However, both approachs seems to work well
+# The next is a way of doing the same than before
 vlarray = fileh.createVLArray(root, 'vlarray5', ObjectAtom(),
                               "pickled object")
 vlarray.append([["123", "456"], "3"])
+
 # Boolean arrays are supported as well
 vlarray = fileh.createVLArray(root, 'vlarray6', BoolAtom(),
                                "Boolean atoms")

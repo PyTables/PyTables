@@ -4,8 +4,7 @@
 different types, strings included. """
 
 import sys
-from numarray import *
-from numarray import strings
+from numpy import *
 from tables import *
 
 # Open a new empty HDF5 file
@@ -18,12 +17,12 @@ root = fileh.root
 a = StringAtom(itemsize=1)
 # Use it as a type for the enlargeable array
 hdfarray = fileh.createEArray(root, 'array_c', a, (0,), "Character array")
-hdfarray.append(strings.array(['a', 'b', 'c']))
+hdfarray.append(array(['a', 'b', 'c']))
 # The next is legal:
-hdfarray.append(strings.array(['c', 'b', 'c', 'd']))
+hdfarray.append(array(['c', 'b', 'c', 'd']))
 # but these are not:
-#hdfarray.append(strings.array([['c', 'b'], ['c', 'd']]))
-#hdfarray.append(array([[1,2,3],[3,2,1]], type=UInt8, shape=(2,1,3)))
+#hdfarray.append(array([['c', 'b'], ['c', 'd']]))
+#hdfarray.append(array([[1,2,3],[3,2,1]], dtype=uint8).reshape(2,1,3))
 
 # Create an atom
 a = UInt16Atom()
@@ -36,11 +35,11 @@ hdfarray = fileh.createEArray(root, 'array_b', a, (2,0,3),
                               "Unsigned byte array", Filters(complevel = 1))
 
 # Append an array to this table
-hdfarray.append(array([[1,2,3],[3,2,1]], type=UInt8, shape=(2,1,3)))
+hdfarray.append(array([[1,2,3],[3,2,1]], dtype=uint8).reshape(2,1,3))
 hdfarray.append(array([[1,2,3],[3,2,1],[2,4,6],[6,4,2]],
-                      type=UInt8, shape=(2,2,3))*2)
+                      dtype=uint8).reshape(2,2,3)*2)
 # The next should give a type error:
-#hdfarray.append(array([[1,0,1],[0,0,1]], type=Bool, shape=(2,1,3)))
+#hdfarray.append(array([[1,0,1],[0,0,1]], dtype=Bool).reshape(2,1,3))
 
 # Close the file
 fileh.close()
