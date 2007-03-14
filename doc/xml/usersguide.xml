@@ -293,7 +293,6 @@
             <para><emphasis>Indexing support for columns of tables:</emphasis>
             Very useful if you have large tables and you want to quickly look
             up for values in columns satisfying some criteria.</para>
-
             <!-- XXXPRO -->
           </listitem>
 
@@ -3601,7 +3600,7 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
             file, an <literal>HDF5ExtError</literal> is raised.</para>
           </section>
 
-          <section id="openFileDescr" xreflabel="description">
+          <section id="openFileDescr" xreflabel="function description">
             <title>openFile(filename, mode='r', title='', trMap={},
             rootUEP="/", filters=None, nodeCacheSize=NODE_MAX_SLOTS)</title>
 
@@ -3815,36 +3814,39 @@ ValueError: malformed type: 'foo bar'</screen>
         </section>
       </section>
 
-      <!-- XXX REVIEWED UP TO HERE - Ivan -->
-
       <section id="FileClassDescr">
         <title>The <literal>File</literal> class</title>
 
+        <para>In-memory representation of a PyTables file.</para>
+
         <para>An instance of this class is returned when a PyTables file is
-        opened with the <literal>openFile()</literal> function. It offers
-        methods to manipulate (create, rename, delete...) nodes and handle
-        their attributes, as well as methods to traverse the object tree. The
-        <emphasis>user entry point</emphasis> to the object tree attached to
-        the HDF5 file is represented in the <literal>rootUEP</literal>
-        attribute. Other attributes are available.</para>
+        opened with the <literal>openFile()</literal> (see <xref
+        linkend="openFileDescr"/>) function. It offers methods to manipulate
+        (create, rename, delete...) nodes and handle their attributes, as well
+        as methods to traverse the object tree. The <emphasis>user entry
+        point</emphasis> to the object tree attached to the HDF5 file is
+        represented in the <literal>rootUEP</literal> attribute. Other
+        attributes are available.</para>
 
         <para><literal>File</literal> objects support an <emphasis>Undo/Redo
         mechanism</emphasis> which can be enabled with the
-        <literal>enableUndo()</literal> method. Once the Undo/Redo mechanism
-        is enabled, explicit <emphasis>marks</emphasis> (with an optional
-        unique name) can be set on the state of the database using the
-        <literal>mark()</literal> method. There are two implicit marks which
-        are always available: the initial mark (0) and the final mark (-1).
-        Both the identifier of a mark and its name can be used in
-        <emphasis>undo</emphasis> and <emphasis>redo</emphasis>
-        operations.</para>
+        <literal>enableUndo()</literal> (see <xref
+        linkend="File.enableUndo"/>) method. Once the Undo/Redo mechanism is
+        enabled, explicit <emphasis>marks</emphasis> (with an optional unique
+        name) can be set on the state of the database using the
+        <literal>mark()</literal> (see <xref linkend="File.mark"/>)
+        method. There are two implicit marks which are always available: the
+        initial mark (0) and the final mark (-1).  Both the identifier of a
+        mark and its name can be used in <emphasis>undo</emphasis> and
+        <emphasis>redo</emphasis> operations.</para>
 
         <para>Hierarchy manipulation operations (node creation, movement and
         removal) and attribute handling operations (setting and deleting) made
-        after a mark can be undone by using the <literal>undo()</literal>
-        method, which returns the database to the state of a past mark. If
-        <literal>undo()</literal> is not followed by operations that modify
-        the hierarchy or attributes, the <literal>redo()</literal> method can
+        after a mark can be undone by using the <literal>undo()</literal> (see
+        <xref linkend="File.undo"/>) method, which returns the database to the
+        state of a past mark. If <literal>undo()</literal> is not followed by
+        operations that modify the hierarchy or attributes, the
+        <literal>redo()</literal> (see <xref linkend="File.redo"/>) method can
         be used to return the database to the state of a future mark. Else,
         future states of the database are forgotten.</para>
 
@@ -3855,8 +3857,8 @@ ValueError: malformed type: 'foo bar'</screen>
         changing the database.</para>
 
         <para>The Undo/Redo mechanism is persistent between sessions and can
-        only be disabled by calling the <literal>disableUndo()</literal>
-        method.</para>
+        only be disabled by calling the <literal>disableUndo()</literal> (see
+        <xref linkend="File.disableUndo"/>) method.</para>
 
         <section>
           <title><literal>File</literal> instance variables</title>
@@ -3918,7 +3920,8 @@ ValueError: malformed type: 'foo bar'</screen>
                 <para>A dictionary that maps node names between PyTables and
                 HDF5 domain names. Its initial values are set from the
                 <literal>trMap</literal> parameter passed to the
-                <literal>openFile</literal> function. You cannot change its
+                <literal>openFile()</literal> (see <xref
+                linkend="openFileDescr"/>) function. You cannot change its
                 contents <emphasis>after</emphasis> a file is opened.</para>
               </glossdef>
             </glossentry>
@@ -3929,9 +3932,14 @@ ValueError: malformed type: 'foo bar'</screen>
 
               <glossdef>
                 <para>The UEP (user entry point) group name in the file (see
-                <xref linkend="openFileDescr" /> and <xref
-                linkend="rootUEPOptim" /> for a more in-depth
-                explanation).</para>
+                the <literal>openFile()</literal> function —<xref
+                linkend="openFileDescr" xrefstyle="select: labelnumber"
+                />).</para>
+
+                <!-- manual-only -->
+                <para>You can also have a look at <xref
+                linkend="rootUEPOptim"/> for a more in-depth
+                explanation.</para>
               </glossdef>
             </glossentry>
 
@@ -3958,45 +3966,364 @@ ValueError: malformed type: 'foo bar'</screen>
           </glosslist>
         </section>
 
-        <section id="FileMethodsDescr">
-          <title><literal>File</literal> methods</title>
+        <section id="FileMethods_file_handling">
+          <title><literal>File</literal> methods — file handling</title>
+
+          <section>
+            <title>close()</title>
+
+            <para>Flush all the alive leaves in object tree and close the
+            file.</para>
+          </section>
+
+          <section id="File.copyFile" xreflabel="description">
+            <title>copyFile(dstfilename, overwrite=False, **kwargs)</title>
+
+            <para>Copy the contents of this file to
+            <literal>dstfilename</literal>.</para>
+
+            <para><literal>dstfilename</literal> must be a path string
+            indicating the name of the destination file. If it already exists,
+            the copy will fail with an <literal>IOError</literal>, unless the
+            <literal>overwrite</literal> argument is true, in which case the
+            destination file will be overwritten in place. In this last case,
+            the destination file should be closed or ugly errors will
+            happen.</para>
+
+            <para>Additional keyword arguments may be passed to customize the
+            copying process. For instance, title and filters may be changed,
+            user attributes may be or may not be copied, data may be
+            sub-sampled, stats may be collected, etc. Arguments unknown to
+            nodes are simply ignored. Check the documentation for copying
+            operations of nodes to see which options they support.</para>
+
+            <para>Copying a file usually has the beneficial side effect of
+            creating a more compact and cleaner version of the original
+            file.</para>
+          </section>
+
+          <section>
+            <title>flush()</title>
+
+            <para>Flush all the alive leaves in the object tree.</para>
+          </section>
+
+          <section id="File.__str__">
+            <title>__str__()</title>
+
+            <para>Return a short string representation of the object
+            tree.</para>
+
+            <para>Example of use:</para>
+
+            <screen>
+>>> f = tables.openFile('data/test.h5')
+>>> print f
+data/test.h5 (File) 'Table Benchmark'
+Last modif.: 'Mon Sep 20 12:40:47 2004'
+Object Tree:
+/ (Group) 'Table Benchmark'
+/tuple0 (Table(100L,)) 'This is the table title'
+/group0 (Group) ''
+/group0/tuple1 (Table(100L,)) 'This is the table title'
+/group0/group1 (Group) ''
+/group0/group1/tuple2 (Table(100L,)) 'This is the table title'
+/group0/group1/group2 (Group) ''</screen>
+          </section>
+
+          <section id="File.__repr__">
+            <title>__repr__()</title>
+
+            <para>Return a detailed string representation of the object
+            tree.</para>
+          </section>
+        </section>
+
+        <section id="FileMethods_hierarchy_manipulation">
+          <title><literal>File</literal> methods — hierarchy manipulation</title>
+
+          <section id="File.copyChildren">
+            <title>copyChildren(srcgroup, dstgroup, overwrite=False,
+            recursive=False, createparents=False, **kwargs)</title>
+
+            <para>Copy the children of a group into another group.</para>
+
+            <para>This method copies the nodes hanging from the source group
+            <literal>srcgroup</literal> into the destination group
+            <literal>dstgroup</literal>. Existing destination nodes can be
+            replaced by asserting the <literal>overwrite</literal> argument.
+            If the <literal>recursive</literal> argument is true, all
+            descendant nodes of <literal>srcnode</literal> are recursively
+            copied. If <literal>createparents</literal> is true, the needed
+            groups for the given destination parent group path to exist will
+            be created.</para>
+
+            <para><literal>kwargs</literal> takes keyword arguments used to
+            customize the copying process. See the documentation of
+            <literal>Group._f_copyChildren()</literal> (see <xref
+            linkend="Group._f_copyChildren" />) for a description of those
+            arguments.</para>
+          </section>
+
+          <section id="File.copyNode">
+            <title>copyNode(where, newparent=None, newname=None, name=None,
+            overwrite=False, recursive=False, createparents=False,
+            **kwargs)</title>
+
+            <para>Copy the node specified by <literal>where</literal> and
+            <literal>name</literal> to
+            <literal>newparent/newname</literal>.</para>
+
+            <glosslist>
+              <glossentry>
+                <glossterm><emphasis role="bold">where,
+                name</emphasis></glossterm>
+
+                <glossdef>
+                  <para>These arguments work as in
+                  <literal>File.getNode()</literal> (see <xref
+                  linkend="File.getNode" />), referencing the node to be acted
+                  upon.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">newparent</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The destination group that the node will be copied
+                  into (a path name or a <literal>Group</literal>
+                  instance). If not specified or <literal>None</literal>, the
+                  current parent group is chosen as the new parent.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">newname</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The name to be assigned to the new copy in its
+                  destination (a string).  If it is not specified or
+                  <literal>None</literal>, the current name is chosen as the
+                  new name.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+
+            <para>Additional keyword arguments may be passed to customize the
+            copying process. The supported arguments depend on the kind of
+            node being copied. See <literal>Group._f_copy()</literal> (<xref
+            linkend="Group._f_copy"/>) and <literal>Leaf.copy()</literal>
+            (<xref linkend="Leaf.copy"/>) for more information on their
+            allowed keyword arguments.</para>
+
+            <para>This method returns the newly created copy of the source
+            node (i.e. the destination node).  See
+            <literal>Node._f_copy()</literal> (<xref linkend="Node._f_copy"/>)
+            for further details on the semantics of copying nodes.</para>
+          </section>
+
+          <section id="createArrayDescr" xreflabel="description">
+            <title>createArray(where, name, object, title='', byteorder=None,
+            createparents=False)</title>
+
+            <para>Create a new array with the given <literal>name</literal> in
+            <literal>where</literal> location.  See the
+            <literal>Array</literal> class (in <xref linkend="ArrayClassDescr"
+            xrefstyle="select: label" />) for more information on
+            arrays.</para>
+
+            <glosslist>
+              <glossentry>
+                <glossterm><emphasis role="bold">object</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The array or scalar to be saved.  Accepted types are
+                  NumPy arrays and scalars, <literal>numarray</literal> arrays
+                  and string arrays, Numeric arrays and scalars, as well as
+                  native Python sequences and scalars, provided that values
+                  are regular (i.e. they are not like
+                  <literal>[[1,2],2]</literal>) and homogeneous (i.e. all the
+                  elements are of the same type).</para>
+
+                  <para>Also, objects that have some of their dimensions equal
+                  to 0 are not supported (use an <literal>EArray</literal>
+                  node (see <xref linkend="EArrayClassDescr"
+                  xrefstyle="select: label" />) if you want to store an array
+                  with one of its dimensions equal to 0).</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">byteorder</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The byteorder of the data <emphasis>on
+                  disk</emphasis>, specified as <literal>'little'</literal> or
+                  <literal>'big'</literal>.  If this is not specified, the
+                  byteorder is that of the given
+                  <literal>object</literal>.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+
+            <para>See <literal>File.createTable()</literal> (<xref
+            linkend="createTableDescr" xrefstyle="select: label" />) for more
+            information on the rest of parameters.</para>
+          </section>
+
+          <section id="createCArrayDescr">
+            <title>createCArray(where, name, atom, shape, title='',
+            filters=None, chunkshape=None, byteorder=None,
+            createparents=False)</title>
+
+            <para>Create a new chunked array with the given
+            <literal>name</literal> in <literal>where</literal> location.  See
+            the <literal>CArray</literal> class (in <xref
+            linkend="CArrayClassDescr" xrefstyle="select: label" />) for more
+            information on chunked arrays.</para>
+
+            <glosslist>
+              <glossentry>
+                <glossterm><emphasis role="bold">atom</emphasis></glossterm>
+
+                <glossdef>
+                  <para>An <literal>Atom</literal> (see <xref
+                  linkend="AtomClassDescr" xrefstyle="select: label" />)
+                  instance representing the <emphasis>type</emphasis> and
+                  <emphasis>shape</emphasis> of the atomic objects to be
+                  saved.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">shape</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The shape of the new array.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">chunkshape</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The shape of the data chunk to be read or written in a
+                  single HDF5 I/O operation.  Filters are applied to those
+                  chunks of data.  The dimensionality of
+                  <literal>chunkshape</literal> must be the same as that of
+                  <literal>shape</literal>.  If <literal>None</literal>, a
+                  sensible value is calculated (which is recommended).</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+
+            <para>See <literal>File.createTable()</literal> (<xref
+            linkend="createTableDescr" xrefstyle="select: label" />) for more
+            information on the rest of parameters.</para>
+          </section>
+
+          <section id="createEArrayDescr">
+            <title>createEArray(where, name, atom, shape, title='',
+            filters=None, expectedrows=1000, chunkshape=None, byteorder=None,
+            createparents=False)</title>
+
+            <para>Create a new enlargeable array with the given
+            <literal>name</literal> in <literal>where</literal> location.  See
+            the <literal>EArray</literal> (in <xref linkend="EArrayClassDescr"
+            xrefstyle="select: label" />) class for more information on
+            enlargeable arrays.</para>
+
+            <glosslist>
+              <glossentry>
+                <glossterm><emphasis role="bold">atom</emphasis></glossterm>
+
+                <glossdef>
+                  <para>An <literal>Atom</literal> (see <xref
+                  linkend="AtomClassDescr" xrefstyle="select: label" />)
+                  instance representing the <emphasis>type</emphasis> and
+                  <emphasis>shape</emphasis> of the atomic objects to be
+                  saved.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">shape</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The shape of the new array.  One (and only one) of the
+                  shape dimensions <emphasis>must</emphasis> be 0.  The
+                  dimension being 0 means that the resulting
+                  <literal>EArray</literal> object can be extended along it.
+                  Multiple enlargeable dimensions are not supported right
+                  now.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">expectedrows</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A user estimate about the number of row elements that
+                  will be added to the growable dimension in the
+                  <literal>EArray</literal> node.  If not provided, the
+                  default value is 1000 rows.  If you plan to create either a
+                  much smaller or a much bigger array try providing a guess;
+                  this will optimize the HDF5 B-Tree creation and management
+                  process time and the amount of memory used.  If you want to
+                  specify your own chunk size for I/O purposes, see also the
+                  <literal>chunkshape</literal> parameter below.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">chunkshape</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The shape of the data chunk to be read or written in a
+                  single HDF5 I/O operation.  Filters are applied to those
+                  chunks of data.  The dimensionality of
+                  <literal>chunkshape</literal> must be the same as that of
+                  <literal>shape</literal> (beware: no dimension should be 0
+                  this time!).  If <literal>None</literal>, a sensible value
+                  is calculated (which is recommended).</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">byteorder</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The byteorder of the data <emphasis>on
+                  disk</emphasis>, specified as <literal>'little'</literal> or
+                  <literal>'big'</literal>. If this is not specified, the
+                  byteorder is that of the platform.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+
+            <para>See <literal>File.createTable()</literal> (<xref
+            linkend="createTableDescr" xrefstyle="select: label" />) for more
+            information on the rest of parameters.</para>
+          </section>
 
           <section id="createGroupDescr" xreflabel="description">
             <title>createGroup(where, name, title='', filters=None,
             createparents=False)</title>
 
-            <para>Create a new Group instance with name
-            <emphasis>name</emphasis> in <emphasis>where</emphasis>
-            location.</para>
+            <para>Create a new group with the given <literal>name</literal> in
+            <literal>where</literal> location.  See the
+            <literal>Group</literal> class (in <xref linkend="GroupClassDescr"
+            xrefstyle="select: label" />) for more information on
+            groups.</para>
 
             <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">where</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The parent group where the new group will hang from.
-                  <emphasis>where</emphasis> parameter can be a path string
-                  (for example <literal>"/level1/group5"</literal>), or
-                  another Group instance.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">name</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The name of the new group.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">title</emphasis></glossterm>
-
-                <glossdef>
-                  <para>A description for this group.</para>
-                </glossdef>
-              </glossentry>
-
               <glossentry>
                 <glossterm><emphasis
                 role="bold">filters</emphasis></glossterm>
@@ -4006,23 +4333,17 @@ ValueError: malformed type: 'foo bar'</screen>
                   (see <xref linkend="FiltersClassDescr"
                   xrefstyle="select: label" />) that provides information
                   about the desired I/O filters applicable to the leaves that
-                  hangs directly from this new group (unless other filters
+                  hang directly from this new group (unless other filter
                   properties are specified for these leaves). Besides, if you
                   do not specify filter properties for its child groups, they
                   will inherit these ones.</para>
                 </glossdef>
               </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">createparents</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Whether to create the needed groups for the parent
-                  path to exist (not done by default).</para>
-                </glossdef>
-              </glossentry>
             </glosslist>
+
+            <para>See <literal>File.createTable()</literal> (<xref
+            linkend="createTableDescr" xrefstyle="select: label" />) for more
+            information on the rest of parameters.</para>
           </section>
 
           <section id="createTableDescr" xreflabel="description">
@@ -4030,11 +4351,11 @@ ValueError: malformed type: 'foo bar'</screen>
             filters=None, expectedrows=10000, chunkshape=None, byteorder=None,
             createparents=False)</title>
 
-            <para>Create a new <literal>Table</literal> instance with name
-            <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
-            See the <xref linkend="TableClassDescr"
-            xrefstyle="select: label" /> for a description of the
-            <literal>Table</literal> class.</para>
+            <para>Create a new table with the given <literal>name</literal> in
+            <literal>where</literal> location.  See the
+            <literal>Table</literal> (in <xref linkend="TableClassDescr"
+            xrefstyle="select: label" />) class for more information on
+            tables.</para>
 
             <glosslist>
               <glossentry>
@@ -4042,9 +4363,11 @@ ValueError: malformed type: 'foo bar'</screen>
 
                 <glossdef>
                   <para>The parent group where the new table will hang from.
-                  <emphasis>where</emphasis> parameter can be a path string
-                  (for example <literal>"/level1/leaf5"</literal>), or Group
-                  instance.</para>
+                  It can be a path string (for example
+                  <literal>'/level1/leaf5'</literal>), or a
+                  <literal>Group</literal> instance (see <xref
+                  linkend="GroupClassDescr" xrefstyle="select: label"
+                  />).</para>
                 </glossdef>
               </glossentry>
 
@@ -4063,17 +4386,9 @@ ValueError: malformed type: 'foo bar'</screen>
                 <glossdef>
                   <para></para>
 
-                  <para>This is an object that describes the table, that is,
-                  how many columns has it, and properties for each column: the
-                  type, the shape, etc. as well as other table
-                  properties.</para>
-
-                  <para></para>
-
-                  <para><emphasis>description</emphasis> can be any of the
-                  next several objects:</para>
-
-                  <para></para>
+                  <para>This is an object that describes the table, i.e. how
+                  many columns it has, their names, types, shapes, etc.  It
+                  can be any of the following:</para>
 
                   <glosslist>
                     <glossentry>
@@ -4083,9 +4398,8 @@ ValueError: malformed type: 'foo bar'</screen>
                       <glossdef>
                         <para>This should inherit from the
                         <literal>IsDescription</literal> class (see <xref
-                        linkend="IsDescriptionClassDescr"
-                        xrefstyle="select: labelnumber" />) where table fields
-                        are specified.</para>
+                        linkend="IsDescriptionClassDescr" xrefstyle="select:
+                        label" />) where table fields are specified.</para>
                       </glossdef>
                     </glossentry>
 
@@ -4095,9 +4409,12 @@ ValueError: malformed type: 'foo bar'</screen>
 
                       <glossdef>
                         <para>For example, when you do not know beforehand
-                        which structure your table will have). See <xref
-                        linkend="secondExample" xrefstyle="select: label" />
-                        for an example of use.</para>
+                        which structure your table will have).</para>
+
+                        <!-- manual-only -->
+                        <para>See <xref linkend="secondExample"
+                        xrefstyle="select: label" /> for an example of using a
+                        dictionary to describe a table.</para>
                       </glossdef>
                     </glossentry>
 
@@ -4150,10 +4467,15 @@ ValueError: malformed type: 'foo bar'</screen>
                       <glossdef>
                         <para>Finally, if you want to have nested columns in
                         your table and you are using
-                        <literal>numarray</literal>, you can use this object
-                        (see <xref linkend="NestedRecArrayClassDescr"
-                        xrefstyle="select: label" />). Array data is injected
-                        into the new table.</para>
+                        <literal>numarray</literal>, you can use this
+                        object. Array data is injected into the new
+                        table.</para>
+
+                        <!-- manual-only -->
+                        <para>See <xref linkend="NestedRecArrayClassDescr"
+                        xrefstyle="select: label" /> for a description of the
+                        <literal>NestedRecArray</literal> class.
+                        </para>
                       </glossdef>
                     </glossentry>
                   </glosslist>
@@ -4164,7 +4486,8 @@ ValueError: malformed type: 'foo bar'</screen>
                 <glossterm><emphasis role="bold">title</emphasis></glossterm>
 
                 <glossdef>
-                  <para>A description for this object.</para>
+                  <para>A description for this node (it sets the
+                  <literal>TITLE</literal> HDF5 attribute on disk).</para>
                 </glossdef>
               </glossentry>
 
@@ -4186,246 +4509,19 @@ ValueError: malformed type: 'foo bar'</screen>
                 role="bold">expectedrows</emphasis></glossterm>
 
                 <glossdef>
-                  <para>An user estimate of the number of records that will be
-                  on table. If not provided, the default value is appropriate
-                  for tables until 10 MB in size (more or less). If you plan
-                  to save bigger tables you should provide a guess; this will
-                  optimize the HDF5 B-Tree creation and management process
-                  time and memory used. See <xref linkend="expectedRowsOptim"
-                  xrefstyle="select: label" /> for a discussion on that issue.
-                  If you want to specify your own chunk size for I/O purposes,
-                  see also the <literal>chunkshape</literal> parameter
-                  below.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">chunkshape</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The shape of the data chunk to be read or written as a
-                  single HDF5 I/O operation. The filters are applied to those
-                  chunks of data. Its rank for tables has to be 1. If None, a
-                  sensible value is calculated (which is recommended).</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">byteorder</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The byteorder of the data
-                  <emphasis>on-disk</emphasis>, specified as
-                  <literal>'little'</literal> or <literal>'big'</literal>. If
-                  this is not specified, the byteorder is that of the
-                  platform, unless you passed a recarray as the
-                  <literal>description</literal>, in which case the recarray
-                  byteorder will be chosen.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">createparents</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Whether to create the needed groups for the parent
-                  path to exist (not done by default).</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section id="createArrayDescr" xreflabel="description">
-            <title>createArray(where, name, object, title='', byteorder=None,
-            createparents=False)</title>
-
-            <para>Create a new <literal>Array</literal> instance with name
-            <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
-            See the <xref linkend="ArrayClassDescr"
-            xrefstyle="select: label" /> for a description of the
-            <literal>Array</literal> class.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">object</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The regular array to be saved. Currently accepted
-                  values are: <literal>NumPy</literal>,
-                  <literal>Numeric</literal>, <literal>numarray</literal>
-                  arrays (including <literal>CharArray</literal> string
-                  numarrays) or other native Python types, provided that they
-                  are regular (i.e. they are not like
-                  <literal>[[1,2],2]</literal>) and homogeneous (i.e. all the
-                  elements are of the same type). Also, objects that have some
-                  of their dimensions equal to zero are not supported (use an
-                  <literal>EArray</literal> object if you want to create an
-                  array with one of its dimensions equal to 0).</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">byteorder</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The byteorder of the data
-                  <emphasis>on-disk</emphasis>, specified as
-                  <literal>'little'</literal> or <literal>'big'</literal>. If
-                  this is not specified, the byteorder is that of the object
-                  specified in <literal>object</literal>.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">createparents</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Whether to create the needed groups for the parent
-                  path to exist (not done by default).</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-
-            <para>See <literal>createTable</literal> <xref
-            linkend="createTableDescr" /> for more information on the
-            <emphasis>where</emphasis>, <emphasis>name</emphasis> and
-            <emphasis>title</emphasis>, parameters.</para>
-          </section>
-
-          <section id="createCArrayDescr">
-            <title>createCArray(where, name, atom, shape, title='',
-            filters=None, chunkshape=None, byteorder=None,
-            createparents=False)</title>
-
-            <para>Create a new <literal>CArray</literal> instance with name
-            <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
-            See the <xref linkend="CArrayClassDescr"
-            xrefstyle="select: label" /> for a description of the
-            <literal>CArray</literal> class.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">atom</emphasis></glossterm>
-
-                <glossdef>
-                  <para>An <literal>Atom</literal> instance representing the
-                  <emphasis>type</emphasis> and <emphasis>shape</emphasis> of
-                  the chunk of the objects to be saved. Multdimensional atoms
-                  (i.e. those with shape different from 1) are not supported
-                  yet.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">shape</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The <emphasis>shape</emphasis> of the objects to be
-                  saved.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">chunkshape</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The shape of the data chunk to be read or written in a
-                  single HDF5 I/O operation. Filters are applied to those
-                  chunks of data. The dimensionality of
-                  <literal>chunkshape</literal> must be the same as that of
-                  <literal>shape</literal>. If <literal>None</literal>, a
-                  sensible value is calculated (which is recommended).</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">byteorder</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The byteorder of the data
-                  <emphasis>on-disk</emphasis>, specified as
-                  <literal>'little'</literal> or <literal>'big'</literal>. If
-                  this is not specified, the byteorder is that of the
-                  platform.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">createparents</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Whether to create the needed groups for the parent
-                  path to exist (not done by default).</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-
-            <para>See <literal>createTable</literal> <xref
-            linkend="createTableDescr" /> for more information on the
-            <emphasis>where</emphasis>, <emphasis>name</emphasis> and
-            <emphasis>title</emphasis>, parameters.</para>
-          </section>
-
-          <section id="createEArrayDescr">
-            <title>createEArray(where, name, atom, shape, title='',
-            filters=None, expectedrows=1000, chunkshape=None, byteorder=None,
-            createparents=False)</title>
-
-            <para>Create a new <literal>EArray</literal> instance with name
-            <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
-            See the <xref linkend="EArrayClassDescr"
-            xrefstyle="select: label" /> for a description of the
-            <literal>EArray</literal> class.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">atom</emphasis></glossterm>
-
-                <glossdef>
-                  <para>An <literal>Atom</literal> instance representing the
-                  <emphasis>type</emphasis> and <emphasis>shape</emphasis> of
-                  the atomic objects to be saved.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">shape</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The shape of the array. One (and only one) of the
-                  shape dimensions <emphasis>must</emphasis> be 0. The
-                  dimension being 0 means that the resulting
-                  <literal>EArray</literal> object can be extended along it.
-                  Multiple enlargeable dimensions are not supported right now.
-                  See <xref linkend="AtomClassDescr"
-                  xrefstyle="select: label" /> for the supported set of
-                  <literal>Atom</literal> class descendants.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">expectedrows</emphasis></glossterm>
-
-                <glossdef>
-                  <para>In the case of enlargeable arrays this represents an
-                  user estimate about the number of row elements that will be
-                  added to the growable dimension in the
-                  <literal>EArray</literal> object. If not provided, the
-                  default value is 1000 rows. If you plan to create both much
-                  smaller or much bigger earrays try providing a guess; this
-                  will optimize the HDF5 B-Tree creation and management
-                  process time and the amount of memory used. If you want to
+                  <para>A user estimate of the number of records that will be
+                  in the table. If not provided, the default value is
+                  appropriate for tables up to 10 MB in size (more or
+                  less). If you plan to create a bigger table try providing a
+                  guess; this will optimize the HDF5 B-Tree creation and
+                  management process time and memory used. If you want to
                   specify your own chunk size for I/O purposes, see also the
                   <literal>chunkshape</literal> parameter below.</para>
+
+                  <!-- manual-only -->
+                  <para>See <xref linkend="expectedRowsOptim"
+                  xrefstyle="select: label" /> for a discussion on the issue
+                  of providing a number of expected rows.</para>
                 </glossdef>
               </glossentry>
 
@@ -4436,11 +4532,10 @@ ValueError: malformed type: 'foo bar'</screen>
                 <glossdef>
                   <para>The shape of the data chunk to be read or written in a
                   single HDF5 I/O operation. Filters are applied to those
-                  chunks of data. The dimensionality of
-                  <literal>chunkshape</literal> must be the same as that of
-                  <literal>shape</literal> (beware: no dimension should be
-                  zero this time!). If <literal>None</literal>, a sensible
-                  value is calculated (which is recommended).</para>
+                  chunks of data. The rank of the
+                  <literal>chunkshape</literal> for tables must be 1. If
+                  <literal>None</literal>, a sensible value is calculated
+                  (which is recommended).</para>
                 </glossdef>
               </glossentry>
 
@@ -4449,11 +4544,12 @@ ValueError: malformed type: 'foo bar'</screen>
                 role="bold">byteorder</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The byteorder of the data
-                  <emphasis>on-disk</emphasis>, specified as
-                  <literal>'little'</literal> or <literal>'big'</literal>. If
-                  this is not specified, the byteorder is that of the
-                  platform.</para>
+                  <para>The byteorder of data <emphasis>on disk</emphasis>,
+                  specified as <literal>'little'</literal> or
+                  <literal>'big'</literal>. If this is not specified, the
+                  byteorder is that of the platform, unless you passed an
+                  array as the <literal>description</literal>, in which case
+                  its byteorder will be used.</para>
                 </glossdef>
               </glossentry>
 
@@ -4467,35 +4563,29 @@ ValueError: malformed type: 'foo bar'</screen>
                 </glossdef>
               </glossentry>
             </glosslist>
-
-            <para>See <literal>createTable</literal> <xref
-            linkend="createTableDescr" /> for more information on the
-            <emphasis>where</emphasis>, <emphasis>name</emphasis>,
-            <emphasis>title</emphasis>, and <emphasis>filters</emphasis>
-            parameters.</para>
           </section>
 
           <section id="createVLArrayDescr">
             <title>createVLArray(where, name, atom, title='', filters=None,
-            expectedsizeinMB=1.0, chunkshape=chunkshape, byteorder=None,
+            expectedsizeinMB=1.0, chunkshape=None, byteorder=None,
             createparents=False)</title>
 
-            <para>Create a new <literal>VLArray</literal> instance with name
-            <emphasis>name</emphasis> in <emphasis>where</emphasis> location.
-            See the <xref linkend="VLArrayClassDescr"
-            xrefstyle="select: label" /> for a description of the
-            <literal>VLArray</literal> class.</para>
+            <para>Create a new variable-length array with the given
+            <literal>name</literal> in <literal>where</literal> location.  See
+            the <literal>VLArray</literal> (in <xref
+            linkend="VLArrayClassDescr" xrefstyle="select: label" />) class
+            for more information on variable-length arrays.</para>
 
             <glosslist>
               <glossentry>
                 <glossterm><emphasis role="bold">atom</emphasis></glossterm>
 
                 <glossdef>
-                  <para>An <literal>Atom</literal> instance representing the
-                  shape and type of the atomic object to be saved. See <xref
-                  linkend="AtomClassDescr" xrefstyle="select: label" /> for
-                  the supported set of <literal>Atom</literal> class
-                  descendants.</para>
+                  <para>An <literal>Atom</literal> (see <xref
+                  linkend="AtomClassDescr" xrefstyle="select: label" />)
+                  instance representing the <emphasis>type</emphasis> and
+                  <emphasis>shape</emphasis> of the atomic objects to be
+                  saved.</para>
                 </glossdef>
               </glossentry>
 
@@ -4505,9 +4595,9 @@ ValueError: malformed type: 'foo bar'</screen>
 
                 <glossdef>
                   <para>An user estimate about the size (in MB) in the final
-                  <literal>VLArray</literal> object. If not provided, the
-                  default value is 1 MB. If you plan to create both much
-                  smaller or much bigger VLA's try providing a guess; this
+                  <literal>VLArray</literal> node. If not provided, the
+                  default value is 1 MB. If you plan to create either a much
+                  smaller or a much bigger array try providing a guess; this
                   will optimize the HDF5 B-Tree creation and management
                   process time and the amount of memory used. If you want to
                   specify your own chunk size for I/O purposes, see also the
@@ -4528,82 +4618,20 @@ ValueError: malformed type: 'foo bar'</screen>
                   (which is recommended).</para>
                 </glossdef>
               </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">byteorder</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The byteorder of the data
-                  <emphasis>on-disk</emphasis>, specified as
-                  <literal>'little'</literal> or <literal>'big'</literal>. If
-                  this is not specified, the byteorder is that of the
-                  platform.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">createparents</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Whether to create the needed groups for the parent
-                  path to exist (not done by default).</para>
-                </glossdef>
-              </glossentry>
             </glosslist>
 
-            <para>See <literal>createTable</literal> <xref
-            linkend="createTableDescr" /> for more information on the
-            <emphasis>where</emphasis>, <emphasis>name</emphasis>,
-            <emphasis>title</emphasis>, and <emphasis>filters</emphasis>
-            parameters.</para>
+            <para>See <literal>File.createTable()</literal> (<xref
+            linkend="createTableDescr" xrefstyle="select: label" />) for more
+            information on the rest of parameters.</para>
           </section>
 
-          <section id="File.getNode" xreflabel="description">
-            <title>getNode(where, name=None, classname=None)</title>
+          <section id="File.moveNode">
+            <title>moveNode(where, newparent=None, newname=None, name=None,
+            overwrite=False, createparents=False)</title>
 
-            <para>Get the node under <emphasis>where</emphasis> with the given
-            <emphasis>name</emphasis>.</para>
-
-            <para><emphasis>where</emphasis> can be a <literal>Node</literal>
-            instance or a path string leading to a node. If no
-            <emphasis>name</emphasis> is specified, that node is
-            returned.</para>
-
-            <para>If a <emphasis>name</emphasis> is specified, this must be a
-            string with the name of a node under <emphasis>where</emphasis>.
-            In this case the <emphasis>where</emphasis> argument can only lead
-            to a <literal>Group</literal> instance (else a
-            <literal>TypeError</literal> is raised). The node called
-            <emphasis>name</emphasis> under the group
-            <emphasis>where</emphasis> is returned.</para>
-
-            <para>In both cases, if the node to be returned does not exist, a
-            <literal>NoSuchNodeError</literal> is raised. Please note that
-            hidden nodes are also considered.</para>
-
-            <para>If the <emphasis>classname</emphasis> argument is specified,
-            it must be the name of a class derived from
-            <literal>Node</literal>. If the node is found but it is not an
-            instance of that class, a <literal>NoSuchNodeError</literal> is
-            also raised.</para>
-          </section>
-
-          <section id="File.isVisibleNode">
-            <title>isVisibleNode(path)</title>
-
-            <para>Is the node under <literal>path</literal> visible?</para>
-
-            <para>If the node does not exist, a
-            <literal>NoSuchNodeError</literal> is raised.</para>
-          </section>
-
-          <section id="File.getNodeAttr" xreflabel="description">
-            <title>getNodeAttr(where, attrname, name=None)</title>
-
-            <para>Returns the attribute <emphasis>attrname</emphasis> under
-            <emphasis>where.name</emphasis> location.</para>
+            <para>Move the node specified by <literal>where</literal> and
+            <literal>name</literal> to
+            <literal>newparent/newname</literal>.</para>
 
             <glosslist>
               <glossentry>
@@ -4612,249 +4640,7 @@ ValueError: malformed type: 'foo bar'</screen>
 
                 <glossdef>
                   <para>These arguments work as in
-                  <literal>getNode()</literal> (see <xref
-                  linkend="File.getNode" />), referencing the node to be acted
-                  upon.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">attrname</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The name of the attribute to get.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section id="File.setNodeAttr" xreflabel="description">
-            <title>setNodeAttr(where, attrname, attrvalue, name=None)</title>
-
-            <para>Sets the attribute <emphasis>attrname</emphasis> with value
-            <emphasis>attrvalue</emphasis> under
-            <emphasis>where.name</emphasis> location. If the node already has
-            a large number of attributes, a
-            <literal>PerformanceWarning</literal> will be issued.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">where,
-                name</emphasis></glossterm>
-
-                <glossdef>
-                  <para>These arguments work as in
-                  <literal>getNode()</literal> (see <xref
-                  linkend="File.getNode" />), referencing the node to be acted
-                  upon.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">attrname</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The name of the attribute to set on disk.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">attrvalue</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The value of the attribute to set. Any kind of python
-                  object (like string, ints, floats, lists, tuples, dicts,
-                  small NumPy/Numeric/numarray objects...) can be stored as an
-                  attribute. However, if necessary,
-                  <literal>(c)Pickle</literal> is automatically used so as to
-                  serialize objects that you might want to save (see <xref
-                  linkend="AttributeSetClassDescr"
-                  xrefstyle="select: labelnumber" /> for details).</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section id="File.delNodeAttr" xreflabel="description">
-            <title>delNodeAttr(where, attrname, name=None)</title>
-
-            <para>Delete the attribute <emphasis>attrname</emphasis> in
-            <emphasis>where.name</emphasis> location.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">where,
-                name</emphasis></glossterm>
-
-                <glossdef>
-                  <para>These arguments work as in
-                  <literal>getNode()</literal> (see <xref
-                  linkend="File.getNode" />), referencing the node to be acted
-                  upon.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">attrname</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The name of the attribute to delete on disk.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section id="File.copyNodeAttrs">
-            <title>copyNodeAttrs(where, dstnode, name=None)</title>
-
-            <para>Copy the attributes from node
-            <emphasis>where.name</emphasis> to
-            <emphasis>dstnode</emphasis>.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">where,
-                name</emphasis></glossterm>
-
-                <glossdef>
-                  <para>These arguments work as in
-                  <literal>getNode()</literal> (see <xref
-                  linkend="File.getNode" />), referencing the node to be acted
-                  upon.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">dstnode</emphasis></glossterm>
-
-                <glossdef>
-                  <para>This is the destination node where the attributes will
-                  be copied. It can be either a path string or a
-                  <literal>Node</literal> object.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section id="File.iterNodes" xreflabel="description">
-            <title>iterNodes(where, classname=None)</title>
-
-            <para>Returns an <emphasis>iterator</emphasis> yielding children
-            nodes hanging from <emphasis>where</emphasis>. These nodes are
-            alpha-numerically sorted by its node name.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">where</emphasis></glossterm>
-
-                <glossdef>
-                  <para>This argument works as in <literal>getNode()</literal>
-                  (see <xref linkend="File.getNode" />), referencing the node
-                  to be acted upon.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">classname</emphasis></glossterm>
-
-                <glossdef>
-                  <para>If the name of a class derived from
-                  <literal>Node</literal> is supplied in the
-                  <emphasis>classname</emphasis> parameter, only instances of
-                  that class (or subclasses of it) will be returned.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section id="File.listNodes" xreflabel="description">
-            <title>listNodes(where, classname=None)</title>
-
-            <para>Returns a <emphasis>list</emphasis> with children nodes
-            hanging from <emphasis>where</emphasis>. The list is
-            alpha-numerically sorted by node name.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">where</emphasis></glossterm>
-
-                <glossdef>
-                  <para>This argument works as in <literal>getNode()</literal>
-                  (see <xref linkend="File.getNode" />), referencing the node
-                  to be acted upon.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">classname</emphasis></glossterm>
-
-                <glossdef>
-                  <para>If the name of a class derived from
-                  <literal>Node</literal> is supplied in the
-                  <emphasis>classname</emphasis> parameter, only instances of
-                  that class (or subclasses of it) will be returned.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section id="File.removeNode" xreflabel="description">
-            <title>removeNode(where, name=None, recursive=False)</title>
-
-            <para>Removes the object node <emphasis>name</emphasis> under
-            <emphasis>where</emphasis> location.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">where,
-                name</emphasis></glossterm>
-
-                <glossdef>
-                  <para>These arguments work as in
-                  <literal>getNode()</literal> (see <xref
-                  linkend="File.getNode" />), referencing the node to be acted
-                  upon.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">recursive</emphasis></glossterm>
-
-                <glossdef>
-                  <para>If not supplied, the object will be removed only if it
-                  has no children; if it does, a <literal>NodeError</literal>
-                  will be raised. If supplied with a true value, the object
-                  and all its descendants will be completely removed.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section id="File.copyNode">
-            <title>copyNode(where, newparent=None, newname=None, name=None,
-            overwrite=False, recursive=False, createparents=False,
-            **kwargs)</title>
-
-            <para>Copy the node specified by <emphasis>where</emphasis> and
-            <emphasis>name</emphasis> to
-            <emphasis>newparent/newname</emphasis>.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">where,
-                name</emphasis></glossterm>
-
-                <glossdef>
-                  <para>These arguments work as in
-                  <literal>getNode()</literal> (see <xref
+                  <literal>File.getNode()</literal> (see <xref
                   linkend="File.getNode" />), referencing the node to be acted
                   upon.</para>
                 </glossdef>
@@ -4865,11 +4651,10 @@ ValueError: malformed type: 'foo bar'</screen>
                 role="bold">newparent</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The destination group that the node will be copied to
-                  (a path name or a <literal>Group</literal> instance). If
-                  <emphasis>newparent</emphasis> is <literal>None</literal>,
-                  the parent of the source node is selected as the new
-                  parent.</para>
+                  <para>The destination group the node will be moved into (a
+                  path name or a <literal>Group</literal> instance). If it is
+                  not specified or <literal>None</literal>, the current parent
+                  group is chosen as the new parent.</para>
                 </glossdef>
               </glossentry>
 
@@ -4878,23 +4663,35 @@ ValueError: malformed type: 'foo bar'</screen>
                 role="bold">newname</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The name to be assigned to the new copy in its
-                  destination (a string). If <emphasis>newname</emphasis> is
-                  <literal>None</literal> or not specified, the name of the
-                  source node is used.</para>
+                  <para>The new name to be assigned to the node in its
+                  destination (a string). If it is not specified or
+                  <literal>None</literal>, the current name is chosen as the
+                  new name.</para>
                 </glossdef>
               </glossentry>
+            </glosslist>
 
+            <para>The other arguments work as in
+            <literal>Node._f_move()</literal> (see <xref
+            linkend="Node._f_move" />).</para>
+          </section>
+
+          <section id="File.removeNode" xreflabel="description">
+            <title>removeNode(where, name=None, recursive=False)</title>
+
+            <para>Remove the object node <emphasis>name</emphasis> under
+            <emphasis>where</emphasis> location.</para>
+
+            <glosslist>
               <glossentry>
-                <glossterm><emphasis
-                role="bold">overwrite</emphasis></glossterm>
+                <glossterm><emphasis role="bold">where,
+                name</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Whether the possibly existing node
-                  <emphasis>newparent/newname</emphasis> should be overwritten
-                  or not. Note that trying to copy over an existing node
-                  without overwriting it will issue a
-                  <literal>NodeError</literal>.</para>
+                  <para>These arguments work as in
+                  <literal>File.getNode()</literal> (see <xref
+                  linkend="File.getNode" />), referencing the node to be acted
+                  upon.</para>
                 </glossdef>
               </glossentry>
 
@@ -4903,90 +4700,11 @@ ValueError: malformed type: 'foo bar'</screen>
                 role="bold">recursive</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Specifies whether the copy should recurse into
-                  children of the copied node. This argument is ignored for
-                  leaf nodes. The default is not recurse.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">createparents</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Whether to create the needed groups for the new parent
-                  path to exist (not done by default).</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">kwargs</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Additional keyword arguments may be passed to
-                  customize the copying process. The supported arguments
-                  depend on the kind of node being copied. The following are
-                  some of them:</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">title</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The new title for the destination. If
-                  <literal>None</literal>, the original title is used. This
-                  only applies to the topmost node for recursive
-                  copies.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">filters</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Specifying this parameter overrides the original
-                  filter properties in the source node. If specified, it must
-                  be an instance of the <literal>Filters</literal> class (see
-                  <xref linkend="FiltersClassDescr"
-                  xrefstyle="select: label" />). The default is to copy the
-                  filter attribute from the source node.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">copyuserattrs</emphasis></glossterm>
-
-                <glossdef>
-                  <para>You can prevent the user attributes from being copied
-                  by setting this parameter to <literal>False</literal>. The
-                  default is to copy them.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">start, stop,
-                step</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Specify the range of rows in child leaves to be
-                  copied; the default is to copy all the rows.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">stats</emphasis></glossterm>
-
-                <glossdef>
-                  <para>This argument may be used to collect statistics on the
-                  copy process. When used, it should be a dictionary with keys
-                  <literal>groups</literal>, <literal>leaves</literal> and
-                  <literal>bytes</literal> having a numeric value. Their
-                  values will be incremented to reflect the number of groups,
-                  leaves and bytes, respectively, that have been copied in the
-                  operation.</para>
+                  <para>If not supplied or false, the node will be removed
+                  only if it has no children; if it does, a
+                  <literal>NodeError</literal> will be raised. If supplied
+                  with a true value, the node and all its descendants will be
+                  completely removed.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -4996,8 +4714,8 @@ ValueError: malformed type: 'foo bar'</screen>
             <title>renameNode(where, newname, name=None)</title>
 
             <para>Change the name of the node specified by
-            <emphasis>where</emphasis> and <emphasis>name</emphasis> to
-            <emphasis>newname</emphasis>.</para>
+            <literal>where</literal> and <literal>name</literal> to
+            <literal>newname</literal>.</para>
 
             <glosslist>
               <glossentry>
@@ -5006,7 +4724,7 @@ ValueError: malformed type: 'foo bar'</screen>
 
                 <glossdef>
                   <para>These arguments work as in
-                  <literal>getNode()</literal> (see <xref
+                  <literal>File.getNode()</literal> (see <xref
                   linkend="File.getNode" />), referencing the node to be acted
                   upon.</para>
                 </glossdef>
@@ -5023,95 +4741,69 @@ ValueError: malformed type: 'foo bar'</screen>
               </glossentry>
             </glosslist>
           </section>
+        </section>
 
-          <section id="File.moveNode">
-            <title>moveNode(where, newparent=None, newname=None, name=None,
-            overwrite=False, createparents=False)</title>
+        <section id="FileMethods_tree_traversal">
+          <title><literal>File</literal> methods — tree traversal</title>
 
-            <para>Move the node specified by <emphasis>where</emphasis> and
-            <emphasis>name</emphasis> to
-            <emphasis>newparent/newname</emphasis>.</para>
+          <section id="File.getNode" xreflabel="description">
+            <title>getNode(where, name=None, classname=None)</title>
+
+            <para>Get the node under <literal>where</literal> with the given
+            <literal>name</literal>.</para>
+
+            <para><literal>where</literal> can be a <literal>Node</literal>
+            instance (see <xref linkend="NodeClassDescr" xrefstyle="select:
+            label" />) or a path string leading to a node. If no
+            <literal>name</literal> is specified, that node is
+            returned.</para>
+
+            <para>If a <literal>name</literal> is specified, this must be a
+            string with the name of a node under <literal>where</literal>.  In
+            this case the <literal>where</literal> argument can only lead to a
+            <literal>Group</literal> (see <xref linkend="GroupClassDescr"
+            xrefstyle="select: label" />) instance (else a
+            <literal>TypeError</literal> is raised). The node called
+            <literal>name</literal> under the group <literal>where</literal>
+            is returned.</para>
+
+            <para>In both cases, if the node to be returned does not exist, a
+            <literal>NoSuchNodeError</literal> is raised. Please note that
+            hidden nodes are also considered.</para>
+
+            <para>If the <literal>classname</literal> argument is specified,
+            it must be the name of a class derived from
+            <literal>Node</literal>. If the node is found but it is not an
+            instance of that class, a <literal>NoSuchNodeError</literal> is
+            also raised.</para>
+          </section>
+
+          <section id="File.isVisibleNode">
+            <title>isVisibleNode(path)</title>
+
+            <para>Is the node under <literal>path</literal> visible?</para>
+
+            <para>If the node does not exist, a
+            <literal>NoSuchNodeError</literal> is raised.</para>
+          </section>
+
+
+
+          <section id="File.iterNodes" xreflabel="description">
+            <title>iterNodes(where, classname=None)</title>
+
+            <para>Iterate over children nodes hanging from
+            <literal>where</literal>.</para>
 
             <glosslist>
               <glossentry>
-                <glossterm><emphasis role="bold">where,
-                name</emphasis></glossterm>
+                <glossterm><emphasis role="bold">where</emphasis></glossterm>
 
                 <glossdef>
-                  <para>These arguments work as in
-                  <literal>getNode()</literal> (see <xref
+                  <para>This argument works as in
+                  <literal>File.getNode()</literal> (see <xref
                   linkend="File.getNode" />), referencing the node to be acted
                   upon.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">newparent</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The destination group the node will be moved to (a
-                  path name or a <literal>Group</literal> instance). If
-                  <emphasis>newparent</emphasis> is <literal>None</literal>,
-                  the original node parent is selected as the new
-                  parent.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">newname</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The new name to be assigned to the node in its
-                  destination (a string). If <emphasis>newname</emphasis> is
-                  <literal>None</literal> or not specified, the original node
-                  name is used.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-
-            <para>The other arguments work as in
-            <computeroutput>Node._f_move()</computeroutput> (see <xref
-            linkend="Node._f_move" />).</para>
-          </section>
-
-          <section id="walkGroupsDescr" xreflabel="description">
-            <title>walkGroups(where='/')</title>
-
-            <para><emphasis>Iterator</emphasis> that returns the list of
-            Groups (not Leaves) hanging from (and including)
-            <emphasis>where</emphasis>. The <emphasis>where</emphasis> Group
-            is listed first (pre-order), then each of its child Groups
-            (following an alpha-numerical order) is also traversed, following
-            the same procedure. If <emphasis>where</emphasis> is not supplied,
-            the root object is used.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">where</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The origin group. Can be a path string or
-                  <literal>Group</literal> instance.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section id="File.walkNodes" xreflabel="description">
-            <title>walkNodes(where="/", classname="")</title>
-
-            <para>Recursively iterate over the nodes in the
-            <literal>File</literal> instance. It takes two parameters:</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">where</emphasis></glossterm>
-
-                <glossdef>
-                  <para>If supplied, the iteration starts from (and includes)
-                  this group.</para>
                 </glossdef>
               </glossentry>
 
@@ -5120,103 +4812,150 @@ ValueError: malformed type: 'foo bar'</screen>
                 role="bold">classname</emphasis></glossterm>
 
                 <glossdef>
-                  <para><emphasis>(String)</emphasis> If supplied, only
-                  instances of this class are returned.</para>
+                  <para>If the name of a class derived from
+                  <literal>Node</literal> (see <xref linkend="NodeClassDescr"
+                  xrefstyle="select: label" />) is supplied, only instances of
+                  that class (or subclasses of it) will be returned.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+
+            <para>The returned nodes are alphanumerically sorted by their
+            name.  This is an iterator version of
+            <literal>File.listNodes()</literal> (see <xref
+            linkend="File.listNodes"/>).</para>
+          </section>
+
+          <section id="File.listNodes" xreflabel="description">
+            <title>listNodes(where, classname=None)</title>
+
+            <para>Returns a <emphasis>list</emphasis> with children nodes
+            hanging from <literal>where</literal>.</para>
+
+            <para>This is a list-returning version of
+            <literal>File.iterNodes()</literal> (see <xref
+            linkend="File.iterNodes"/>).</para>
+          </section>
+
+          <section id="walkGroupsDescr" xreflabel="description">
+            <title>walkGroups(where='/')</title>
+
+            <para>Recursively iterate over groups (not leaves) hanging from
+            <literal>where</literal>.</para>
+
+            <para>The <literal>where</literal> group itself is listed first
+            (pre-order), then each of its child groups (following an
+            alphanumerical order) is also traversed, following the same
+            procedure.  If <literal>where</literal> is not supplied, the root
+            group is used.</para>
+
+            <para>The <literal>where</literal> argument can be a path string
+            or a `Group` instance (see <xref linkend="GroupClassDescr"
+            xrefstyle="select: label" />).</para>
+          </section>
+
+          <section id="File.walkNodes" xreflabel="description">
+            <title>walkNodes(where="/", classname="")</title>
+
+            <para>Recursively iterate over nodes hanging from
+            <literal>where</literal>.</para>
+
+            <glosslist>
+              <glossentry>
+                <glossterm><emphasis role="bold">where</emphasis></glossterm>
+
+                <glossdef>
+                  <para>If supplied, the iteration starts from (and includes)
+                  this group. It can be a path string or a
+                  <literal>Group</literal> instance (see <xref
+                  linkend="GroupClassDescr" xrefstyle="select: label"
+                  />).</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">classname</emphasis></glossterm>
+
+                <glossdef>
+                  <para>If the name of a class derived from
+                  <literal>Node</literal> (see <xref linkend="GroupClassDescr"
+                  xrefstyle="select: label" />) is supplied, only instances of
+                  that class (or subclasses of it) will be returned.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
 
             <para>Example of use:</para>
 
-            <screen># Recursively print all the nodes hanging from '/detector'
+            <screen>
+# Recursively print all the nodes hanging from '/detector'.
 print "Nodes hanging from group '/detector':"
-for node in h5file.walkNodes("/detector"):
+for node in h5file.walkNodes('/detector', classname='EArray'):
     print node</screen>
           </section>
 
-          <section id="File.copyChildren">
-            <title>copyChildren(srcgroup, dstgroup, overwrite=False,
-            recursive=False, createparents=False, **kwargs)</title>
+          <section id="File.__contains__">
+            <title>__contains__(path)</title>
 
-            <para>Copy the children of a group into another group.</para>
+            <para>Is there a node with that <literal>path</literal>?</para>
 
-            <para>This method copies the nodes hanging from the source group
-            <literal>srcgroup</literal> into the destination group
-            <literal>dstgroup</literal>. Existing destination nodes can be
-            replaced by asserting the <literal>overwrite</literal> argument.
-            If the <literal>recursive</literal> argument is true, all
-            descendant nodes of <literal>srcnode</literal> are recursively
-            copied. If <computeroutput>createparents</computeroutput> is true,
-            the needed groups for the given destination parent group path to
-            exist will be created.</para>
-
-            <para><literal>kwargs</literal> takes keyword arguments used to
-            customize the copying process. See the documentation of
-            <literal>Group._f_copyChildren()</literal> (see <xref
-            linkend="Group._f_copyChildren" />) for a description of those
-            arguments.</para>
+            <para>Returns <literal>True</literal> if the file has a node with
+            the given <literal>path</literal> (a string),
+            <literal>False</literal> otherwise.</para>
           </section>
 
-          <section id="File.copyFile" xreflabel="description">
-            <title>copyFile(dstfilename, overwrite=False, **kwargs)</title>
+          <section id="File.__iter__">
+            <title>__iter__()</title>
 
-            <para role="l3">Copy the contents of this file to
-            <literal>dstfilename</literal>.</para>
+            <para>Recursively iterate over the nodes in the tree.</para>
 
-            <para><literal>dstfilename</literal> must be a path string
-            indicating the name of the destination file. If it already exists,
-            the copy will fail with an <literal>IOError</literal>, unless the
-            <literal>overwrite</literal> argument is true, in which case the
-            destination file will be overwritten in place. In this last case,
-            the destination file should be closed or ugly errors will
-            happen.</para>
+            <para>This is equivalent to calling
+            <literal>File.walkNodes()</literal> (see <xref
+            linkend="File.walkNodes" />) with no arguments.</para>
 
-            <para>Additional keyword arguments may be passed to customize the
-            copying process. For instance, title and filters may be changed,
-            user attributes may be or may not be copied, data may be
-            sub-sampled, stats may be collected, etc. Arguments unknown to
-            nodes are simply ignored. Check the documentation for copying
-            operations of nodes to see which options they support.</para>
+            <para>Example of use:</para>
 
-            <para>Copying a file usually has the beneficial side effect of
-            creating a more compact and cleaner version of the original
-            file.</para>
+            <screen>
+# Recursively list all the nodes in the object tree.
+h5file = tables.openFile('vlarray1.h5')
+print "All nodes in the object tree:"
+for node in h5file:
+    print node</screen>
+          </section>
+        </section>
+
+        <section id="FileMethods_undo_redo_support">
+          <title><literal>File</literal> methods — Undo/Redo support</title>
+
+          <section id="File.disableUndo" xreflabel="description">
+            <title>disableUndo()</title>
+
+            <para>Disable the Undo/Redo mechanism.</para>
+
+            <para>Disabling the Undo/Redo mechanism leaves the database in the
+            current state and forgets past and future database states. This
+            makes <literal>File.mark()</literal> (see <xref
+            linkend="File.mark" />), <literal>File.undo()</literal> (see <xref
+            linkend="File.undo" />), <literal>File.redo()</literal> (see <xref
+            linkend="File.redo" />) and other methods fail with an
+            <literal>UndoRedoError</literal>.</para>
+
+            <para>Calling this method when the Undo/Redo mechanism is already
+            disabled raises an <literal>UndoRedoError</literal>.</para>
           </section>
 
-          <section>
-            <title>flush()</title>
-
-            <para>Flush all the alive leaves in the object tree.</para>
-          </section>
-
-          <section>
-            <title>close()</title>
-
-            <para>Flush all the alive leaves in object tree and close the
-            file.</para>
-          </section>
-
-          <section id="File.isUndoEnabled" xreflabel="method description">
-            <title>isUndoEnabled()</title>
-
-            <para>Is the Undo/Redo mechanism enabled?</para>
-
-            <para>Returns <literal>True</literal> if the Undo/Redo mechanism
-            has been enabled for this file, <literal>False</literal>
-            otherwise. Please note that this mechanism is persistent, so a
-            newly opened PyTables file may already have Undo/Redo
-            support.</para>
-          </section>
-
-          <section id="File.enableUndo" xreflabel="method description">
+          <section id="File.enableUndo" xreflabel="description">
             <title>enableUndo(filters=Filters( complevel=1))</title>
 
             <para>Enable the Undo/Redo mechanism.</para>
 
             <para>This operation prepares the database for undoing and redoing
             modifications in the node hierarchy. This allows
-            <literal>mark()</literal>, <literal>undo()</literal>,
-            <literal>redo()</literal> and other methods to be called.</para>
+            <literal>File.mark()</literal> (see <xref linkend="File.mark" />),
+            <literal>File.undo()</literal> (see <xref linkend="File.undo" />),
+            <literal>File.redo()</literal> (see <xref linkend="File.redo" />)
+            and other methods to be called.</para>
 
             <para>The <literal>filters</literal> argument, when specified,
             must be an instance of class <literal>Filters</literal> (see <xref
@@ -5226,28 +4965,53 @@ for node in h5file.walkNodes("/detector"):
             space can be considerable. You may want to disable compression if
             you want maximum speed for Undo/Redo operations.</para>
 
-            <para>Calling <literal>enableUndo()</literal> when the Undo/Redo
-            mechanism is already enabled raises an
-            <literal>UndoRedoError</literal>.</para>
+            <para>Calling this method when the Undo/Redo mechanism is already
+            enabled raises an <literal>UndoRedoError</literal>.</para>
           </section>
 
-          <section>
-            <title>disableUndo()</title>
+          <section id="File.getCurrentMark" xreflabel="description">
+            <title>getCurrentMark()</title>
 
-            <para>Disable the Undo/Redo mechanism.</para>
+            <para>Get the identifier of the current mark.</para>
 
-            <para>Disabling the Undo/Redo mechanism leaves the database in the
-            current state and forgets past and future database states. This
-            makes <literal>mark()</literal>, <literal>undo()</literal>,
-            <literal>redo()</literal> and other methods fail with an
-            <literal>UndoRedoError</literal>.</para>
+            <para>Returns the identifier of the current mark. This can be used
+            to know the state of a database after an application crash, or to
+            get the identifier of the initial implicit mark after a call to
+            <literal>File.enableUndo()</literal> (see <xref
+            linkend="File.enableUndo" />).</para>
 
-            <para>Calling <literal>disableUndo()</literal> when the Undo/Redo
-            mechanism is already disabled raises an
-            <literal>UndoRedoError</literal>.</para>
+            <para>This method can only be called when the Undo/Redo mechanism
+            has been enabled. Otherwise, an <literal>UndoRedoError</literal>
+            is raised.</para>
           </section>
 
-          <section id="File.mark" xreflabel="method description">
+          <section id="File.goto" xreflabel="description">
+            <title>goto(mark)</title>
+
+            <para>Go to a specific mark of the database.</para>
+
+            <para>Returns the database to the state associated with the
+            specified <literal>mark</literal>. Both the identifier of a mark
+            and its name can be used.</para>
+
+            <para>This method can only be called when the Undo/Redo mechanism
+            has been enabled. Otherwise, an <literal>UndoRedoError</literal>
+            is raised.</para>
+          </section>
+
+          <section id="File.isUndoEnabled" xreflabel="description">
+            <title>isUndoEnabled()</title>
+
+            <para>Is the Undo/Redo mechanism enabled?</para>
+
+            <para>Returns <literal>True</literal> if the Undo/Redo mechanism
+            has been enabled for this file, <literal>False</literal>
+            otherwise. Please note that this mechanism is persistent, so a
+            newly opened PyTables file may already have Undo/Redo
+            support enabled.</para>
+          </section>
+
+          <section id="File.mark" xreflabel="description">
             <title>mark(name=None)</title>
 
             <para>Mark the state of the database.</para>
@@ -5256,9 +5020,10 @@ for node in h5file.walkNodes("/detector"):
             unique (and immutable) identifier for the mark is returned. An
             optional <literal>name</literal> (a string) can be assigned to the
             mark. Both the identifier of a mark and its name can be used in
-            <literal>undo()</literal> and <literal>redo()</literal>
-            operations. When the <literal>name</literal> has already been used
-            for another mark, an <literal>UndoRedoError</literal> is
+            <literal>File.undo()</literal> (see <xref linkend="File.undo" />)
+            and <literal>File.redo()</literal> (see <xref linkend="File.redo"
+            />) operations. When the <literal>name</literal> has already been
+            used for another mark, an <literal>UndoRedoError</literal> is
             raised.</para>
 
             <para>This method can only be called when the Undo/Redo mechanism
@@ -5266,40 +5031,7 @@ for node in h5file.walkNodes("/detector"):
             is raised.</para>
           </section>
 
-          <section id="File.getCurrentMark" xreflabel="method description">
-            <title>getCurrentMark()</title>
-
-            <para>Get the identifier of the current mark.</para>
-
-            <para>Returns the identifier of the current mark. This can be used
-            to know the state of a database after an application crash, or to
-            get the identifier of the initial implicit mark after a call to
-            <literal>enableUndo()</literal>.</para>
-
-            <para>This method can only be called when the Undo/Redo mechanism
-            has been enabled. Otherwise, an <literal>UndoRedoError</literal>
-            is raised.</para>
-          </section>
-
-          <section id="File.undo" xreflabel="method description">
-            <title>undo(mark=None)</title>
-
-            <para>Go to a past state of the database.</para>
-
-            <para>Returns the database to the state associated with the
-            specified <literal>mark</literal>. Both the identifier of a mark
-            and its name can be used. If the <literal>mark</literal> is
-            omitted, the last created mark is used. If there are no past
-            marks, or the specified <literal>mark</literal> is not older than
-            the current one, an <literal>UndoRedoError</literal> is
-            raised.</para>
-
-            <para>This method can only be called when the Undo/Redo mechanism
-            has been enabled. Otherwise, an <literal>UndoRedoError</literal>
-            is raised.</para>
-          </section>
-
-          <section id="File.redo" xreflabel="method description">
+          <section id="File.redo" xreflabel="description">
             <title>redo(mark=None)</title>
 
             <para>Go to a future state of the database.</para>
@@ -5317,14 +5049,18 @@ for node in h5file.walkNodes("/detector"):
             is raised.</para>
           </section>
 
-          <section id="File.goto" xreflabel="method description">
-            <title>goto(mark)</title>
+          <section id="File.undo" xreflabel="description">
+            <title>undo(mark=None)</title>
 
-            <para>Go to a specific mark of the database.</para>
+            <para>Go to a past state of the database.</para>
 
             <para>Returns the database to the state associated with the
             specified <literal>mark</literal>. Both the identifier of a mark
-            and its name can be used.</para>
+            and its name can be used. If the <literal>mark</literal> is
+            omitted, the last created mark is used. If there are no past
+            marks, or the specified <literal>mark</literal> is not older than
+            the current one, an <literal>UndoRedoError</literal> is
+            raised.</para>
 
             <para>This method can only be called when the Undo/Redo mechanism
             has been enabled. Otherwise, an <literal>UndoRedoError</literal>
@@ -5332,70 +5068,155 @@ for node in h5file.walkNodes("/detector"):
           </section>
         </section>
 
-        <section>
-          <title><literal>File</literal> special methods</title>
+        <section id="FileMethods_attribute_handling">
+          <title><literal>File</literal> methods — atttribute handling</title>
 
-          <para>Following are described the methods that automatically trigger
-          actions when a <literal>File</literal> instance is accessed in a
-          special way.</para>
+          <section id="File.copyNodeAttrs">
+            <title>copyNodeAttrs(where, dstnode, name=None)</title>
 
-          <section id="File.__contains__">
-            <title>__contains__(path)</title>
+            <para>Copy PyTables attributes from one node to another.</para>
 
-            <para>Is there a node with that <emphasis>path</emphasis>?</para>
+            <glosslist>
+              <glossentry>
+                <glossterm><emphasis role="bold">where,
+                name</emphasis></glossterm>
 
-            <para>Returns <literal>True</literal> if the file has a node with
-            the given <emphasis>path</emphasis> (a string),
-            <literal>False</literal> otherwise.</para>
+                <glossdef>
+                  <para>These arguments work as in
+                  <literal>File.getNode()</literal> (see <xref
+                  linkend="File.getNode" />), referencing the node to be acted
+                  upon.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">dstnode</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The destination node where the attributes will be
+                  copied to. It can be a path string or a
+                  <literal>Node</literal> instance (see <xref
+                  linkend="NodeClassDescr" xrefstyle="select: label"
+                  />).</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
           </section>
 
-          <section id="File.__iter__">
-            <title>__iter__()</title>
+          <section id="File.delNodeAttr" xreflabel="description">
+            <title>delNodeAttr(where, attrname, name=None)</title>
 
-            <para>Iterate over the children on the <literal>File</literal>
-            instance. However, this does not accept parameters. This iterator
-            <emphasis>is recursive</emphasis>.</para>
+            <para>Delete a PyTables attribute from the given node.</para>
 
-            <para>Example of use:</para>
+            <glosslist>
+              <glossentry>
+                <glossterm><emphasis role="bold">where,
+                name</emphasis></glossterm>
 
-            <screen># Recursively list all the nodes in the object tree
-h5file = tables.openFile("vlarray1.h5")
-print "All nodes in the object tree:"
-for node in h5file:
-    print node</screen>
+                <glossdef>
+                  <para>These arguments work as in
+                  <literal>File.getNode()</literal> (see <xref
+                  linkend="File.getNode" />), referencing the node to be acted
+                  upon.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">attrname</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The name of the attribute to delete.  If the named
+                  attribute does not exist, an
+                  <literal>AttributeError</literal> is raised.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
           </section>
 
-          <section id="File.__str__">
-            <title>__str__()</title>
+          <section id="File.getNodeAttr" xreflabel="description">
+            <title>getNodeAttr(where, attrname, name=None)</title>
 
-            <para>Prints a short description of the <literal>File</literal>
-            object.</para>
+            <para>Get a PyTables attribute from the given node.</para>
 
-            <para>Example of use:</para>
+            <glosslist>
+              <glossentry>
+                <glossterm><emphasis role="bold">where,
+                name</emphasis></glossterm>
 
-            <screen>&gt;&gt;&gt; f=tables.openFile("data/test.h5")
-&gt;&gt;&gt; print f
-data/test.h5 (File) 'Table Benchmark'
-Last modif.: 'Mon Sep 20 12:40:47 2004'
-Object Tree:
-/ (Group) 'Table Benchmark'
-/tuple0 (Table(100L,)) 'This is the table title'
-/group0 (Group) ''
-/group0/tuple1 (Table(100L,)) 'This is the table title'
-/group0/group1 (Group) ''
-/group0/group1/tuple2 (Table(100L,)) 'This is the table title'
-/group0/group1/group2 (Group) ''</screen>
+                <glossdef>
+                  <para>These arguments work as in
+                  <literal>File.getNode()</literal> (see <xref
+                  linkend="File.getNode" />), referencing the node to be acted
+                  upon.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">attrname</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The name of the attribute to retrieve.  If the named
+                  attribute does not exist, an
+                  <literal>AttributeError</literal> is raised.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
           </section>
 
-          <section id="File.__repr__">
-            <title>__repr__()</title>
+          <section id="File.setNodeAttr" xreflabel="description">
+            <title>setNodeAttr(where, attrname, attrvalue, name=None)</title>
 
-            <para>Prints a detailed description of the <literal>File</literal>
-            object.</para>
+            <para>Set a PyTables attribute for the given node.</para>
+
+            <glosslist>
+              <glossentry>
+                <glossterm><emphasis role="bold">where,
+                name</emphasis></glossterm>
+
+                <glossdef>
+                  <para>These arguments work as in
+                  <literal>File.getNode()</literal> (see <xref
+                  linkend="File.getNode" />), referencing the node to be acted
+                  upon.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">attrname</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The name of the attribute to set.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">attrvalue</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The value of the attribute to set. Any kind of Python
+                  object (like strings, ints, floats, lists, tuples, dicts,
+                  small NumPy/Numeric/numarray objects...) can be stored as an
+                  attribute. However, if necessary, <literal>cPickle</literal>
+                  is automatically used so as to serialize objects that you
+                  might want to save. See the <literal>AttributeSet</literal>
+                  class (in <xref linkend="AttributeSetClassDescr"
+                  xrefstyle="select: label" />) for details.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+
+            <para>If the node already has a large number of attributes, a
+            <literal>PerformanceWarning</literal> is issued.</para>
           </section>
         </section>
       </section>
 
+      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="NodeClassDescr">
         <title>The <literal>Node</literal> class</title>
 
@@ -5614,10 +5435,9 @@ Object Tree:
               parent group is chosen as the new parent.
               <literal>newname</literal> must be a string with a new name. If
               it is not specified or <literal>None</literal>, the current name
-              is chosen as the new name. If
-              <computeroutput>createparents</computeroutput> is true, the
-              needed groups for the given new parent group path to exist will
-              be created.</para>
+              is chosen as the new name. If <literal>createparents</literal>
+              is true, the needed groups for the given new parent group path
+              to exist will be created.</para>
 
               <para>Moving a node across databases is not allowed, nor it is
               moving a node <emphasis>into</emphasis> itself. These result in
@@ -5649,9 +5469,8 @@ Object Tree:
               it is not specified or <literal>None</literal>, the current name
               is chosen as the new name. If <literal>recursive</literal> copy
               is stated, all descendants are copied as well. If
-              <computeroutput>ucreateparents</computeroutput> is true, the
-              needed groups for the given new parent group path to exist will
-              be created.</para>
+              <literal>createparents</literal> is true, the needed groups for
+              the given new parent group path to exist will be created.</para>
 
               <para>Copying a node across databases is supported but can not
               be undone. Copying a node over itself is not allowed, nor it is
@@ -5868,7 +5687,7 @@ table = group.table          # get the table child instance again</screen></para
             Else, a <literal>NoSuchNodeError</literal> is raised.</para>
           </section>
 
-          <section id="Group._f_copy">
+          <section id="Group._f_copy" xreflabel="description">
             <title>_f_copy(newparent, newname, overwrite=False,
             recursive=False, createparents=False, **kwargs)</title>
 
@@ -5936,7 +5755,7 @@ table = group.table          # get the table child instance again</screen></para
 
             <para>Returns an <emphasis>iterator</emphasis> yielding all the
             object nodes hanging from this instance. The nodes are
-            alpha-numerically sorted by its node name. If a
+            alphanumerically sorted by its node name. If a
             <emphasis>classname</emphasis> parameter is supplied, it will only
             return instances of this class (or subclasses of it).</para>
           </section>
@@ -5945,7 +5764,7 @@ table = group.table          # get the table child instance again</screen></para
             <title>_f_listNodes(classname=None)</title>
 
             <para>Returns a <emphasis>list</emphasis> with all the object
-            nodes hanging from this instance. The list is alpha-numerically
+            nodes hanging from this instance. The list is alphanumerically
             sorted by node name. If a <emphasis>classname</emphasis> parameter
             is supplied, it will only return instances of this class (or
             subclasses of it).</para>
@@ -5957,7 +5776,7 @@ table = group.table          # get the table child instance again</screen></para
             <para>Iterate over the list of Groups (not Leaves) hanging from
             (and including) <emphasis>self</emphasis>. This Group is listed
             first (pre-order), then each of its child Groups (following an
-            alpha-numerical order) is also traversed, following the same
+            alphanumerical order) is also traversed, following the same
             procedure.</para>
           </section>
 
@@ -6023,9 +5842,9 @@ for array in h5file.root._f_walkNodes("Array", recursive=True):
             <literal>dstgroup</literal>, which can be a
             <literal>Group</literal> (see <xref linkend="GroupClassDescr"
             xrefstyle="select: labelnumber" />) object or its pathname in
-            string form. If <computeroutput>createparents</computeroutput> is
-            true, the needed groups for the given destination group path to
-            exist will be created.</para>
+            string form. If <literal>createparents</literal> is true, the
+            needed groups for the given destination group path to exist will
+            be created.</para>
 
             <para>The operation will fail with a <literal>NodeError</literal>
             if there is a child node in the destination group with the same
@@ -6371,7 +6190,7 @@ for node in h5file.root.detector:
             nodes.</para>
           </section>
 
-          <section id="Leaf.copy">
+          <section id="Leaf.copy" xreflabel="description">
             <title>copy(newparent, newname, overwrite=False,
             createparents=False, **kwargs)</title>
 

@@ -73,39 +73,49 @@ class EArray(CArray):
         """
         Create an `EArray` instance.
 
-        Keyword arguments:
-
         `atom`
-            An `Atom` instance representing the shape and type of the
-            atomic objects to be saved.
+            An `Atom` instance representing the *type* and *shape* of
+            the atomic objects to be saved.
+
         `shape`
-            The shape of the array. One of the dimensions of the
-            shape must be 0, meaning that the array can be extended
-            along it.
+            The shape of the new array.  One (and only one) of the
+            shape dimensions *must* be 0.  The dimension being 0 means
+            that the resulting `EArray` object can be extended along
+            it.  Multiple enlargeable dimensions are not supported
+            right now.
+
         `title`
-            Sets a ``TITLE`` attribute on the array entity.
+            A description for this node (it sets the ``TITLE`` HDF5
+            attribute on disk).
+
         `filters`
             An instance of the `Filters` class that provides
             information about the desired I/O filters to be applied
             during the life of this object.
+
         `expectedrows`
-            In the case of enlargeable arrays this represents an user
-            estimate about the number of row elements that will be
-            added to the growable dimension in the `EArray` object.
-            If you plan to create either a much smaller or a much
-            bigger `EArray` try providing a guess; this will optimize
-            the HDF5 B-Tree creation and management process time and
-            the amount of memory used.
+            A user estimate about the number of row elements that will
+            be added to the growable dimension in the `EArray` node.
+            If not provided, the default value is 1000 rows.  If you
+            plan to create either a much smaller or a much bigger
+            `EArray` try providing a guess; this will optimize the
+            HDF5 B-Tree creation and management process time and the
+            amount of memory used.  If you want to specify your own
+            chunk size for I/O purposes, see also the `chunkshape`
+            parameter below.
+
         `chunkshape`
             The shape of the data chunk to be read or written in a
             single HDF5 I/O operation.  Filters are applied to those
             chunks of data.  The dimensionality of `chunkshape` must
             be the same as that of `shape` (beware: no dimension
-            should be zero this time!).  If ``None``, a sensible value
-            is calculated (which is recommended).
-        `byteorder` -- The byteorder of the data *on-disk*, specified
-            as 'little' or 'big'. If this is not specified, the
-            byteorder is that of the platform.
+            should be 0 this time!).  If ``None``, a sensible value is
+            calculated (which is recommended).
+
+        `byteorder`
+            The byteorder of the data *on disk*, specified as 'little'
+            or 'big'. If this is not specified, the byteorder is that
+            of the platform.
         """
         # Specific of EArray
         self._v_expectedrows = expectedrows

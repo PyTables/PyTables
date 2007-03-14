@@ -81,29 +81,33 @@ class CArray(Array):
         """
         Create a `CArray` instance.
 
-        Keyword arguments:
-
         `atom`
-            An `Atom` instance representing the shape and type of the
-            atomic objects to be saved.  The shape of the atom will be
-            used as the chunksize of the underlying HDF5 dataset.
+            An `Atom` instance representing the *type* and *shape* of
+            the atomic objects to be saved.
+
         `shape`
-            The shape of the chunked array to be saved.
+            The shape of the new array.
+
         `title`
-            Sets a ``TITLE`` attribute on the array entity.
+            A description for this node (it sets the ``TITLE`` HDF5
+            attribute on disk).
+
         `filters`
             An instance of the `Filters` class that provides
             information about the desired I/O filters to be applied
             during the life of this object.
+
         `chunkshape`
             The shape of the data chunk to be read or written in a
             single HDF5 I/O operation.  Filters are applied to those
             chunks of data.  The dimensionality of `chunkshape` must
             be the same as that of `shape`.  If ``None``, a sensible
             value is calculated (which is recommended).
-        `byteorder` -- The byteorder of the data *on-disk*, specified
-            as 'little' or 'big'. If this is not specified, the
-            byteorder is that of the platform.
+
+        `byteorder`
+            The byteorder of the data *on disk*, specified as 'little'
+            or 'big'.  If this is not specified, the byteorder is that
+            of the platform.
         """
 
         self.atom = atom

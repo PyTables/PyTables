@@ -95,35 +95,41 @@ class VLArray(hdf5Extension.VLArray, Leaf):
                   filters=None, expectedsizeinMB=1.0,
                   chunkshape=None, byteorder=None,
                   _log=True ):
-        """Create the instance Array.
-
-        Keyword arguments:
+        """
+        Create a `VLArray` instance.
 
         `atom`
-            An `Atom` instance representing the shape and type of the
-            atomic objects to be saved.
+            An `Atom` instance representing the *type* and *shape* of
+            the atomic objects to be saved.
+
         `title`
-            Sets a ``TITLE`` attribute on the array entity.
+            A description for this node (it sets the ``TITLE`` HDF5
+            attribute on disk).
+
         `filters`
             An instance of the `Filters` class that provides
             information about the desired I/O filters to be applied
             during the life of this object.
+
         `expectedsizeinMB`
             An user estimate about the size (in MB) in the final
             `VLArray` object.  If not provided, the default value is 1
-            MB.  If you plan to create a much smaller or a much
+            MB.  If you plan to create either a much smaller or a much
             bigger `VLArray` try providing a guess; this will optimize
             the HDF5 B-Tree creation and management process time and
             the amount of memory used.
+
         `chunkshape`
             The shape of the data chunk to be read or written in a
-            single HDF5 I/O operation. Filters are applied to those
-            chunks of data. The dimensionality of `chunkshape` must be
-            1. If ``None``, a sensible value is calculated (which is
-            recommended).
-        `byteorder` -- The byteorder of the data *on-disk*, specified
-            as 'little' or 'big'. If this is not specified, the
-            byteorder is that of the platform.
+            single HDF5 I/O operation.  Filters are applied to those
+            chunks of data.  The dimensionality of `chunkshape` must
+            be 1.  If ``None``, a sensible value is calculated (which
+            is recommended).
+
+        `byteorder`
+            The byteorder of the data *on disk*, specified as 'little'
+            or 'big'.  If this is not specified, the byteorder is that
+            of the platform.
         """
 
         self._v_version = None

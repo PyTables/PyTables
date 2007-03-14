@@ -346,7 +346,8 @@ class File(hdf5Extension.File, object):
     The Undo/Redo mechanism is persistent between sessions and can only
     be disabled by calling the `disableUndo()` method.
 
-    Instance variables:
+    `File` instance variables
+    -------------------------
 
     filename
         The name of the opened file.
@@ -368,73 +369,74 @@ class File(hdf5Extension.File, object):
         `openFile()` function).
     filters
         Default filter properties for the root group (see the `Filters`
-            class).
+        class).
     root
         The *root* of the object tree hierarchy (a `Group` instance).
 
 
-    Public methods (file handling):
+    Public methods -- file handling
+    -------------------------------
 
+    * close()
     * copyFile(dstfilename[, overwrite][, **kwargs])
     * flush()
-    * close()
+    * __str__()
+    * __repr__()
 
-    Public methods (hierarchy manipulation):
+    Public methods -- hierarchy manipulation
+    ----------------------------------------
 
-    * createGroup(where, name[, title][, filters][, createparents])
-    * createTable(where, name, description[, title][, filters]
-                  [, expectedrows][, chunkshape][, byteorder][, createparents])
+    * copyChildren(srcgroup, dstgroup[, overwrite][, recursive]
+                   [, **kwargs])
+    * copyNode(where, newparent, newname[, name][, overwrite]
+               [, recursive][, **kwargs])
     * createArray(where, name, array[, title][, byteorder][, createparents])
     * createCArray(where, name, atom, shape [, title][, filters]
                    [, chunkshape][, byteorder][, createparents])
     * createEArray(where, name, atom, shape [, title][, filters]
                    [, expectedrows][, chunkshape][, byteorder]
                    [, createparents])
+    * createGroup(where, name[, title][, filters][, createparents])
+    * createTable(where, name, description[, title][, filters]
+                  [, expectedrows][, chunkshape][, byteorder][, createparents])
     * createVLArray(where, name, atom[, title][, filters]
                     [, expectedsizeinMB][, chunkshape][, byteorder]
                     [, createparents])
+    * moveNode(where, newparent, newname[, name][, overwrite])
     * removeNode(where[, name][, recursive])
     * renameNode(where, newname[, name])
-    * moveNode(where, newparent, newname[, name][, overwrite])
-    * copyNode(where, newparent, newname[, name][, overwrite]
-               [, recursive][, **kwargs])
-    * copyChildren(srcgroup, dstgroup[, overwrite][, recursive]
-                   [, **kwargs])
 
-    Public methods (tree traversal):
+    Public methods -- tree traversal
+    --------------------------------
 
     * getNode(where[, name][,classname])
     * isVisibleNode(path)
+    * iterNodes(where[, classname])
     * listNodes(where[, classname])
     * walkGroups([where])
     * walkNodes([where][, classname])
     * __contains__(path)
+    * __iter__()
 
-    Public methods (Undo/Redo support):
+    Public methods -- Undo/Redo support
+    -----------------------------------
 
-    isUndoEnabled()
-        Is the Undo/Redo mechanism enabled?
-    enableUndo([filters])
-        Enable the Undo/Redo mechanism.
-    disableUndo()
-        Disable the Undo/Redo mechanism.
-    mark([name])
-        Mark the state of the database.
-    getCurrentMark()
-        Get the identifier of the current mark.
-    undo([mark])
-        Go to a past state of the database.
-    redo([mark])
-        Go to a future state of the database.
-    goto(mark)
-        Go to a specific mark of the database.
+    * disableUndo()
+    * enableUndo([filters])
+    * getCurrentMark()
+    * goto(mark)
+    * isUndoEnabled()
+    * mark([name])
+    * redo([mark])
+    * undo([mark])
 
-    Public methods (attribute handling):
+    Public methods -- attribute handling
+    ------------------------------------
 
+    * copyNodeAttrs(where, dstnode[, name])
+    * delNodeAttr(where, attrname[, name])
     * getNodeAttr(where, attrname[, name])
     * setNodeAttr(where, attrname, attrvalue[, name])
-    * delNodeAttr(where, attrname[, name])
-    * copyNodeAttrs(where, dstnode[, name])
     """
 
     ## <properties>
@@ -617,28 +619,20 @@ class File(hdf5Extension.File, object):
 
     def createGroup(self, where, name, title="", filters=None,
                     createparents=False):
-        """Create a new Group instance with name "name" in "where" location.
+        """
+        Create a new group with the given `name` in `where` location.
+        See the `Group` class for more information on groups.
 
-        Keyword arguments:
+        `filters`
+            An instance of the `Filters` class that provides information
+            about the desired I/O filters applicable to the leaves that
+            hang directly from this new group (unless other filter
+            properties are specified for these leaves).  Besides, if you
+            do not specify filter properties for its child groups, they
+            will inherit these ones.
 
-        where -- The parent group where the new group will hang
-            from. "where" parameter can be a path string (for example
-            "/level1/level2"), or Group instance.
-
-        name -- The name of the new group.
-
-        title -- Sets a TITLE attribute on the table entity.
-
-        filters -- An instance of the Filters class that provides
-            information about the desired I/O filters applicable to
-            the leaves that hang directly from this new group (unless
-            other filters properties are specified for these leaves,
-            of course). Besides, if you do not specify filter
-            properties for its child groups, they will inherit these
-            ones.
-
-        createparents -- Whether to create the needed groups for the
-            parent path to exist (not done by default).
+        See `File.createTable()` for more information on the rest of
+        parameters.
         """
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
@@ -650,46 +644,89 @@ class File(hdf5Extension.File, object):
                     filters=None, expectedrows=10000,
                     chunkshape=None, byteorder=None,
                     createparents=False):
-        """Create a new Table instance with name "name" in "where" location.
+        """
+        Create a new table with the given `name` in `where` location.
+        See the `Table` class for more information on tables.
 
-        Keyword arguments:
+        `where`
+            The parent group where the new table will hang from.  It can
+            be a path string (for example '/level1/leaf5'), or a `Group`
+            instance.
 
-        where -- The parent group where the new table will hang
-            from. "where" parameter can be a path string (for example
-            "/level1/leaf5"), or Group instance.
+        `name`
+            The name of the new table.
 
-        name -- The name of the new table.
+        `description`
+            This is an object that describes the table, i.e. how many
+            columns it has, their names, types, shapes, etc.  It can be
+            any of the following:
 
-        description -- An IsDescription subclass or a dictionary where
-            the keys are the field names, and the values the type
-            definitions. And it can be also a RecArray object (from
-            numarray.records module).
+            A user-defined class
+                This should inherit from the `IsDescription` class where
+                table fields are specified.
 
-        title -- Sets a TITLE attribute on the table entity.
+            A dictionary
+                For example, when you do not know beforehand which
+                structure your table will have).
 
-        filters -- An instance of the Filters class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
+            A `Description` instance
+                You can use the ``description`` attribute of another
+                table to create a new one with the same structure.
 
-        expectedrows -- An user estimate about the number of rows that
-            will be on table. If not provided, the default value is
-            10000. If you plan to save bigger tables try providing a
-            guess; this will optimize the HDF5 B-Tree creation and
-            management process time and the amount of memory used.
+            A NumPy (record) array
+                You can use a NumPy array, whether nested or not, and
+                its field structure will be reflected in the new `Table`
+                object.  Moreover, if the array has actual data it will
+                be injected into the newly created table.  If you are
+                using ``numarray`` instead of NumPy, you may use one of
+                the objects below for the same purpose.
 
-        chunkshape -- The shape of the data chunk to be read or written
-            as a single HDF5 I/O operation. The filters are applied to
-            those chunks of data. Its rank for tables has to be 1. If
-            None, a sensible value is calculated (which is recommended).
+            A ``RecArray`` instance
+                This object from the ``numarray`` package is also
+                accepted, but it does not give you the possibility to
+                create a nested table.  Array data is injected into the
+                new table.
 
-        byteorder -- The byteorder of the data *on-disk*, specified as
-            'little' or 'big'. If this is not specified, the byteorder
-            is that of the platform, unless you passed a recarray as the
-            `description`, in which case the recarray byteorder will be
-            chosen.
+            A ``NestedRecArray`` instance
+                Finally, if you want to have nested columns in your
+                table and you are using ``numarray``, you can use this
+                object.  Array data is injected into the new table.
 
-        createparents -- Whether to create the needed groups for the
-            parent path to exist (not done by default).
+        `title`
+            A description for this node (it sets the ``TITLE`` HDF5
+            attribute on disk).
+
+        `filters`
+            An instance of the `Filters` class that provides information
+            about the desired I/O filters to be applied during the life
+            of this object.
+
+        `expectedrows`
+            A user estimate about the number of rows that will be in the
+            table.  If not provided, the default value is appropriate
+            for tables up to 10 MB in size (more or less).  If you plan
+            to create a bigger table try providing a guess; this will
+            optimize the HDF5 B-Tree creation and management process
+            time and the amount of memory used.  If you want to specify
+            your own chunk size for I/O purposes, see also the
+            `chunkshape` parameter below.
+
+        `chunkshape`
+            The shape of the data chunk to be read or written in a
+            single HDF5 I/O operation.  Filters are applied to those
+            chunks of data.  The rank of the `chunkshape` for tables
+            must be 1.  If ``None``, a sensible value is calculated
+            (which is recommended).
+
+        `byteorder`
+            The byteorder of data *on disk*, specified as 'little' or
+            'big'.  If this is not specified, the byteorder is that of
+            the platform, unless you passed an array as the
+            `description`, in which case its byteorder will be used.
+
+        `createparents`
+            Whether to create the needed groups for the parent path to
+            exist (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
@@ -701,31 +738,29 @@ class File(hdf5Extension.File, object):
 
     def createArray(self, where, name, object, title="",
                     byteorder=None, createparents=False):
-        """Create a new instance Array with name "name" in "where" location.
+        """
+        Create a new array with the given `name` in `where` location.
+        See the `Array` class for more information on arrays.
 
-        Keyword arguments:
+        `object`
+            The array or scalar to be saved.  Accepted types are NumPy
+            arrays and scalars, ``numarray`` arrays and string arrays,
+            Numeric arrays and scalars, as well as native Python
+            sequences and scalars, provided that values are regular
+            (i.e. they are not like ``[[1,2],2]``) and homogeneous
+            (i.e. all the elements are of the same type).
 
-        where -- The parent group where the new table will hang
-            from. "where" parameter can be a path string (for example
-            "/level1/leaf5"), or Group instance.
+            Also, objects that have some of their dimensions equal to 0
+            are not supported (use an `EArray` node if you want to store
+            an array with one of its dimensions equal to 0).
 
-        name -- The name of the new array.
+        `byteorder`
+            The byteorder of the data *on disk*, specified as 'little'
+            or 'big'.  If this is not specified, the byteorder is that
+            of the given `object`.
 
-        object -- The (regular) object to be saved. It can be any of
-            NumPy, NumArray, CharArray, Numeric or other native Python
-            types, provided that they are regular (i.e. they are not
-            like [[1,2],2]) and homogeneous (i.e. all the elements are
-            of the same type).
-
-        title -- Sets a TITLE attribute on the array entity.
-
-        byteorder -- The byteorder of the data *on-disk*, specified as
-            'little' or 'big'. If this is not specified, the byteorder
-            is that of the object specified in `object`.
-
-        createparents -- Whether to create the needed groups for the
-            parent path to exist (not done by default).
-
+        See `File.createTable()` for more information on the rest of
+        parameters.
         """
         parentNode = self._getOrCreatePath(where, createparents)
         return Array(parentNode, name,
@@ -735,39 +770,27 @@ class File(hdf5Extension.File, object):
     def createCArray(self, where, name, atom, shape, title="",
                      filters=None, chunkshape=None,
                      byteorder=None, createparents=False):
-        """Create a new instance CArray with name "name" in "where" location.
+        """
+        Create a new chunked array with the given `name` in `where`
+        location.  See the `CArray` class for more information on
+        chunked arrays.
 
-        Keyword arguments:
+        `atom`
+            An `Atom` instance representing the *type* and *shape* of
+            the atomic objects to be saved.
 
-        where -- The parent group where the new table will hang
-            from. "where" parameter can be a path string (for example
-            "/level1/leaf5"), or Group instance.
+        `shape`
+            The shape of the new array.
 
-        name -- The name of the new array.
+        `chunkshape`
+            The shape of the data chunk to be read or written in a
+            single HDF5 I/O operation.  Filters are applied to those
+            chunks of data.  The dimensionality of `chunkshape` must be
+            the same as that of `shape`.  If ``None``, a sensible value
+            is calculated (which is recommended).
 
-        atom -- An Atom instance representing the shape and type of the
-            chunks to be saved.
-
-        shape -- The shape of the new array.
-
-        title -- Sets a TITLE attribute on the array entity.
-
-        filters -- An instance of the Filters class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        chunkshape -- The shape of the data chunk to be read or written
-            in a single HDF5 I/O operation. Filters are applied to those
-            chunks of data. The dimensionality of chunkshape must be the
-            same as that of shape. If None, a sensible value is
-            calculated (which is recommended).
-
-        byteorder -- The byteorder of the data *on-disk*, specified as
-            'little' or 'big'. If this is not specified, the byteorder
-            is that of the platform.
-
-        createparents -- Whether to create the needed groups for the
-            parent path to exist (not done by default).
+        See `File.createTable()` for more information on the rest of
+        parameters.
         """
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
@@ -780,50 +803,46 @@ class File(hdf5Extension.File, object):
                      filters=None, expectedrows=1000,
                      chunkshape=None, byteorder=None,
                      createparents=False):
-        """Create a new instance EArray with name "name" in "where" location.
+        """
+        Create a new enlargeable array with the given `name` in `where`
+        location.  See the `EArray` class for more information on
+        enlargeable arrays.
 
-        Keyword arguments:
+        `atom`
+            An `Atom` instance representing the *type* and *shape* of
+            the atomic objects to be saved.
 
-        where -- The parent group where the new table will hang
-            from. "where" parameter can be a path string (for example
-            "/level1/leaf5"), or Group instance.
+        `shape`
+            The shape of the new array.  One (and only one) of the shape
+            dimensions *must* be 0.  The dimension being 0 means that
+            the resulting `EArray` object can be extended along it.
+            Multiple enlargeable dimensions are not supported right now.
 
-        name -- The name of the new array.
+        `expectedrows`
+            A user estimate about the number of row elements that will
+            be added to the growable dimension in the `EArray` node.  If
+            not provided, the default value is 1000 rows.  If you plan
+            to create either a much smaller or a much bigger array try
+            providing a guess; this will optimize the HDF5 B-Tree
+            creation and management process time and the amount of
+            memory used.  If you want to specify your own chunk size for
+            I/O purposes, see also the `chunkshape` parameter below.
 
-        atom -- An Atom instance representing the shape and type of the
-            atomic objects to be saved.
+        `chunkshape`
+            The shape of the data chunk to be read or written in a
+            single HDF5 I/O operation.  Filters are applied to those
+            chunks of data.  The dimensionality of `chunkshape` must be
+            the same as that of `shape` (beware: no dimension should be
+            0 this time!).  If ``None``, a sensible value is calculated
+            (which is recommended).
 
-        shape -- The shape of the array. One of the shape dimensions
-            must be 0. The dimension being 0 means that the resulting
-            EArray object can be extended along it.
+        `byteorder`
+            The byteorder of the data *on disk*, specified as 'little'
+            or 'big'. If this is not specified, the byteorder is that
+            of the platform.
 
-        title -- Sets a TITLE attribute on the array entity.
-
-        filters -- An instance of the Filters class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        expectedrows -- Represents an user estimate about the number
-            of row elements that will be added to the growable
-            dimension in the EArray object. If not provided, the
-            default value is 1000 rows. If you plan to create both
-            much smaller or much bigger EArrays try providing a guess;
-            this will optimize the HDF5 B-Tree creation and management
-            process time and the amount of memory used.
-
-        chunkshape -- The shape of the data chunk to be read or written
-            in a single HDF5 I/O operation. Filters are applied to those
-            chunks of data. The dimensionality of chunkshape must be the
-            same as that of shape (beware: no dimension should be zero
-            this time!).  If None, a sensible value is calculated (which
-            is recommended).
-
-        byteorder -- The byteorder of the data *on-disk*, specified as
-            'little' or 'big'. If this is not specified, the byteorder
-            is that of the platform.
-
-        createparents -- Whether to create the needed groups for the
-            parent path to exist (not done by default).
+        See `File.createTable()` for more information on the rest of
+        parameters.
         """
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
@@ -837,44 +856,33 @@ class File(hdf5Extension.File, object):
                       filters=None, expectedsizeinMB=1.0,
                       chunkshape=None, byteorder=None,
                       createparents=False):
-        """Create a new instance VLArray with name "name" in "where" location.
+        """
+        Create a new variable-length array with the given `name` in
+        `where` location.  See the `VLArray` class for more information
+        on variable-length arrays.
 
-        Keyword arguments:
+        `atom`
+            An `Atom` instance representing the *type* and *shape* of
+            the atomic objects to be saved.
 
-        where -- The parent group where the new table will hang
-            from. "where" parameter can be a path string (for example
-            "/level1/leaf5"), or Group instance.
+        `expectedsizeinMB`
+            An user estimate about the size (in MB) of the final
+            `VLArray` node.  If not provided, the default value is 1 MB.
+            If you plan to create either a much smaller or a much bigger
+            array try providing a guess; this will optimize the HDF5
+            B-Tree creation and management process time and the amount
+            of memory used.  If you want to specify your own chunk size
+            for I/O purposes, see also the `chunkshape` parameter below.
 
-        name -- The name of the new array.
-
-        title -- Sets a TITLE attribute on the array entity.
-
-        atom -- A Atom object representing the shape and type of the
-            atomic objects to be saved.
-
-        filters -- An instance of the Filters class that provides
-            information about the desired I/O filters to be applied
-            during the life of this object.
-
-        expectedsizeinMB -- An user estimate about the size (in MB) in
-            the final VLArray object. If not provided, the default
-            value is 1 MB.  If you plan to create both much smaller or
-            much bigger Arrays try providing a guess; this will
-            optimize the HDF5 B-Tree creation and management process
-            time and the amount of memory used.
-
-        chunkshape -- The shape of the data chunk to be read or written
-            in a single HDF5 I/O operation. Filters are applied to those
-            chunks of data. The dimensionality of chunkshape must be
-            1. If None, a sensible value is calculated (which is
+        `chunkshape`
+            The shape of the data chunk to be read or written in a
+            single HDF5 I/O operation.  Filters are applied to those
+            chunks of data.  The dimensionality of `chunkshape` must be
+            1.  If ``None``, a sensible value is calculated (which is
             recommended).
 
-        byteorder -- The byteorder of the data *on-disk*, specified as
-            'little' or 'big'. If this is not specified, the byteorder
-            is that of the platform.
-
-        createparents -- Whether to create the needed groups for the
-            parent path to exist (not done by default).
+        See `File.createTable()` for more information on the rest of
+        parameters.
         """
         parentNode = self._getOrCreatePath(where, createparents)
         _checkfilters(filters)
@@ -946,7 +954,7 @@ class File(hdf5Extension.File, object):
         The node called `name` under the group `where` is returned.
 
         In both cases, if the node to be returned does not exist, a
-        `NoSuchNodeError` is raised.  Please note thet hidden nodes are
+        `NoSuchNodeError` is raised.  Please note that hidden nodes are
         also considered.
 
         If the `classname` argument is specified, it must be the name of
@@ -1013,11 +1021,15 @@ class File(hdf5Extension.File, object):
 
     def renameNode(self, where, newname, name=None):
         """
-        Rename the given node in place.
+        Change the name of the node specified by `where` and `name` to
+        `newname`.
 
-        The `where` and `name` arguments work as in `getNode()`,
-        referencing the node to be acted upon.  The other arguments work
-        as in `Node._f_rename()`.
+        `where`, `name`
+            These arguments work as in `File.getNode()`, referencing the
+            node to be acted upon.
+
+        `newname`
+            The new name to be assigned to the node (a string).
         """
         obj = self.getNode(where, name=name)
         obj._f_rename(newname)
@@ -1025,11 +1037,26 @@ class File(hdf5Extension.File, object):
     def moveNode(self, where, newparent=None, newname=None, name=None,
                  overwrite=False, createparents=False):
         """
-        Move or rename the given node.
+        Move the node specified by `where` and `name` to
+        ``newparent/newname``.
 
-        The `where` and `name` arguments work as in `getNode()`,
-        referencing the node to be acted upon.  The other arguments work
-        as in `Node._f_move()`.
+        `where`, `name`
+            These arguments work as in `File.getNode()`, referencing the
+            node to be acted upon.
+
+        `newparent`
+            The destination group that the node will be moved into (a
+            path name or a `Group` instance).  If it is not specified or
+            ``None``, the current parent group is chosen as the new
+            parent.
+
+        `newname`
+            The name to be assigned to the node in its destination (a
+            string).  If it is not specified or ``None``, the current
+            name is chosen as the new name.
+
+        See `Node._f_move()` for further details on the semantics of
+        moving nodes.
         """
         obj = self.getNode(where, name=name)
         obj._f_move(newparent, newname, overwrite, createparents)
@@ -1038,11 +1065,32 @@ class File(hdf5Extension.File, object):
                  overwrite=False, recursive=False, createparents=False,
                  **kwargs):
         """
-        Copy the given node and return the new one.
+        Copy the node specified by `where` and `name` to
+        ``newparent/newname``.
 
-        The `where` and `name` arguments work as in `getNode()`,
-        referencing the node to be acted upon.  The other arguments work
-        as in `Node._f_copy()`.
+        `where`, `name`
+            These arguments work as in `File.getNode()`, referencing the
+            node to be acted upon.
+
+        `newparent`
+            The destination group that the node will be copied into (a
+            path name or a `Group` instance).  If not specified or
+            ``None``, the current parent group is chosen as the new
+            parent.
+
+        `newname`
+            The name to be assigned to the new copy in its destination
+            (a string).  If it is not specified or ``None``, the current
+            name is chosen as the new name.
+
+        Additional keyword arguments may be passed to customize the
+        copying process.  The supported arguments depend on the kind of
+        node being copied.  See `Group._f_copy()` and `Leaf.copy()` for
+        more information on their allowed keyword arguments.
+
+        This method returns the newly created copy of the source node
+        (i.e. the destination node).  See `Node._f_copy()` for further
+        details on the semantics of copying nodes.
         """
         obj = self.getNode(where, name=name)
         return obj._f_copy( newparent, newname,
@@ -1050,12 +1098,17 @@ class File(hdf5Extension.File, object):
 
     def removeNode(self, where, name=None, recursive=False):
         """
-        Remove the given node from the hierarchy.
+        Remove the object node `name` under `where` location.
 
+        `where`, `name`
+            These arguments work as in `File.getNode()`, referencing the
+            node to be acted upon.
 
-        The `where` and `name` arguments work as in `getNode()`,
-        referencing the node to be acted upon.  The other arguments work
-        as in `Node._f_remove()`.
+        `recursive`
+            If not supplied or false, the node will be removed only if
+            it has no children; if it does, a `NodeError` will be
+            raised.  If supplied with a true value, the node and all its
+            descendants will be completely removed.
         """
         obj = self.getNode(where, name=name)
         obj._f_remove(recursive)
@@ -1065,9 +1118,13 @@ class File(hdf5Extension.File, object):
         """
         Get a PyTables attribute from the given node.
 
-        The `where` and `name` arguments work as in `getNode()`,
-        referencing the node to be acted upon.  The other arguments work
-        as in `Node._f_getAttr()`.
+        `where`, `name`
+            These arguments work as in `File.getNode()`, referencing the
+            node to be acted upon.
+
+        `attrname`
+            The name of the attribute to retrieve.  If the named
+            attribute does not exist, an `AttributeError` is raised.
         """
         obj = self.getNode(where, name=name)
         return obj._f_getAttr(attrname)
@@ -1076,6 +1133,24 @@ class File(hdf5Extension.File, object):
     def setNodeAttr(self, where, attrname, attrvalue, name=None):
         """
         Set a PyTables attribute for the given node.
+
+        `where`, `name`
+            These arguments work as in `File.getNode()`, referencing the
+            node to be acted upon.
+
+        `attrname`
+            The name of the attribute to set.
+
+        `attrvalue`
+            The value of the attribute to set.  Any kind of Python
+            object (like strings, ints, floats, lists, tuples, dicts,
+            small NumPy/Numeric/numarray objects...) can be stored as an
+            attribute.  However, if necessary, ``cPickle`` is
+            automatically used so as to serialize objects that you might
+            want to save.  See the `AttributeSet` class for details.
+
+        If the node already has a large number of attributes, a
+        `PerformanceWarning` is issued.
 
         The `where` and `name` arguments work as in `getNode()`,
         referencing the node to be acted upon.  The other arguments work
@@ -1089,9 +1164,13 @@ class File(hdf5Extension.File, object):
         """
         Delete a PyTables attribute from the given node.
 
-        The `where` and `name` arguments work as in `getNode()`,
-        referencing the node to be acted upon.  The other arguments work
-        as in `Node._f_delAttr()`.
+        `where`, `name`
+            These arguments work as in `File.getNode()`, referencing the
+            node to be acted upon.
+
+        `attrname`
+            The name of the attribute to delete.  If the named attribute
+            does not exist, an `AttributeError` is raised.
         """
         obj = self.getNode(where, name=name)
         obj._f_delAttr(attrname)
@@ -1099,12 +1178,15 @@ class File(hdf5Extension.File, object):
 
     def copyNodeAttrs(self, where, dstnode, name=None):
         """
-        Copy attributes from one node to another.
+        Copy PyTables attributes from one node to another.
 
-        The `where` and `name` arguments work as in `getNode()`,
-        referencing the node to be acted upon.  `dstnode` is the
-        destination and can be either a path string or a `Node`
-        instance.
+        `where`, `name`
+            These arguments work as in `File.getNode()`, referencing the
+            node to be acted upon.
+
+        `dstnode`
+            The destination node where the attributes will be copied to.
+            It can be a path string or a `Node` instance.
         """
         srcObject = self.getNode(where, name=name)
         dstObject = self.getNode(dstnode)
@@ -1145,6 +1227,8 @@ class File(hdf5Extension.File, object):
         destination file.  If it already exists, the copy will fail with
         an ``IOError``, unless the `overwrite` argument is true, in
         which case the destination file will be overwritten in place.
+        In this last case, the destination file should be closed or ugly
+        errors will happen.
 
         Additional keyword arguments may be passed to customize the
         copying process.  For instance, title and filters may be
@@ -1194,11 +1278,9 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
 
     def listNodes(self, where, classname=None):
         """
-        Return a list with children nodes hanging from `where`.
+        Return a *list* with children nodes hanging from `where`.
 
-        The `where` argument works as in `getNode()`, referencing the
-        node to be acted upon.  The other arguments work as in
-        `Group._f_listNodes()`.
+        This is a list-returning version of `File.iterNodes()`.
         """
 
         group = self.getNode(where)  # Does the parent exist?
@@ -1209,13 +1291,19 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
 
     def iterNodes(self, where, classname=None):
         """
-        Return an iterator yielding children nodes hanging from `where`.
+        Iterate over children nodes hanging from `where`.
 
-        The `where` argument works as in `getNode()`, referencing the
-        node to be acted upon.  The other arguments work as in
-        `Group._f_listNodes()`.
+        `where`
+            This argument works as in `File.getNode()`, referencing the
+            group to be acted upon.
 
-        This is an iterator version of File.listNodes()
+        `classname`
+            If the name of a class derived from `Node` is supplied, only
+            instances of that class (or subclasses of it) will be
+            returned.
+
+        The returned nodes are alphanumerically sorted by their name.
+        This is an iterator version of `File.listNodes()`.
         """
 
         group = self.getNode(where)  # Does the parent exist?
@@ -1241,13 +1329,46 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
 
 
     def __iter__(self):
-        """Iterate over the nodes in the object tree."""
+        """
+        Recursively iterate over the nodes in the tree.
+
+        This is equivalent to calling `File.walkNodes()` with no
+        arguments.
+
+        Example of use::
+
+            # Recursively list all the nodes in the object tree.
+            h5file = tables.openFile('vlarray1.h5')
+            print \"All nodes in the object tree:\"
+            for node in h5file:
+                print node
+        """
 
         return self.walkNodes('/')
 
 
     def walkNodes(self, where="/", classname=None):
-        """Iterate over the nodes in the object tree.
+        """
+        Recursively iterate over nodes hanging from `where`.
+
+        `where`
+            If supplied, the iteration starts from (and includes) this
+            group.  It can be a path string or a `Group` instance.
+
+        `classname`
+            If the name of a class derived from `Node` is supplied, only
+            instances of that class (or subclasses of it) will be
+            returned.
+
+        Example of use::
+
+            # Recursively print all the nodes hanging from '/detector'.
+            print \"Nodes hanging from group '/detector':\"
+            for node in h5file.walkNodes('/detector', classname='EArray'):
+                print node
+
+
+        Iterate over the nodes in the object tree.
         If "where" supplied, the iteration starts from this group.
         If "classname" is supplied, only instances of this class are
         returned.
@@ -1274,13 +1395,16 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
 
 
     def walkGroups(self, where = "/"):
-        """Returns the list of Groups (not Leaves) hanging from "where".
+        """
+        Recursively iterate over groups (not leaves) hanging from
+        `where`.
 
-        If "where" is not supplied, the root object is taken as
-        origin. The groups are returned from top to bottom, and
-        alphanumerically sorted when in the same level. The list of
-        groups returned includes "where" (or the root object) as well.
+        The `where` group itself is listed first (pre-order), then each
+        of its child groups (following an alphanumerical order) is also
+        traversed, following the same procedure.  If `where` is not
+        supplied, the root group is used.
 
+        The `where` argument can be a path string or a `Group` instance.
         """
 
         group = self.getNode(where)  # Does the parent exist?
@@ -1327,7 +1451,7 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         Returns ``True`` if the Undo/Redo mechanism has been enabled for
         this file, ``False`` otherwise.  Please note that this mechanism
         is persistent, so a newly opened PyTables file may already have
-        Undo/Redo support.
+        Undo/Redo support enabled.
         """
 
         self._checkOpen()
@@ -1365,8 +1489,8 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         Enable the Undo/Redo mechanism.
 
         This operation prepares the database for undoing and redoing
-        modifications in the node hierarchy.  This allows `mark()`,
-        `undo()`, `redo()` and other methods to be called.
+        modifications in the node hierarchy.  This allows `File.mark()`,
+        `File.undo()`, `File.redo()` and other methods to be called.
 
         The `filters` argument, when specified, must be an instance of
         class `Filters` and is meant for setting the compression values
@@ -1375,7 +1499,7 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         want to disable compression if you want maximum speed for
         Undo/Redo operations.
 
-        Calling `enableUndo()` when the Undo/Redo mechanism is already
+        Calling this method when the Undo/Redo mechanism is already
         enabled raises an `UndoRedoError`.
         """
 
@@ -1463,10 +1587,10 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
 
         Disabling the Undo/Redo mechanism leaves the database in the
         current state and forgets past and future database states.  This
-        makes `mark()`, `undo()`, `redo()` and other methods fail with
-        an `UndoRedoError`.
+        makes `File.mark()`, `File.undo()`, `File.redo()` and other
+        methods fail with an `UndoRedoError`.
 
-        Calling `disableUndo()` when the Undo/Redo mechanism is already
+        Calling this method when the Undo/Redo mechanism is already
         disabled raises an `UndoRedoError`.
         """
 
@@ -1500,9 +1624,10 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         Creates a mark for the current state of the database.  A unique
         (and immutable) identifier for the mark is returned.  An
         optional `name` (a string) can be assigned to the mark.  Both
-        the identifier of a mark and its name can be used in `undo()`
-        and `redo()` operations.  When the `name` has already been used
-        for another mark, an `UndoRedoError` is raised.
+        the identifier of a mark and its name can be used in
+        `File.undo()` and `File.redo()` operations.  When the `name` has
+        already been used for another mark, an `UndoRedoError` is
+        raised.
 
         This method can only be called when the Undo/Redo mechanism has
         been enabled.  Otherwise, an `UndoRedoError` is raised.
@@ -1807,7 +1932,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         Returns the identifier of the current mark.  This can be used to
         know the state of a database after an application crash, or to
         get the identifier of the initial implicit mark after a call to
-        `enableUndo()`.
+        `File.enableUndo()`.
 
         This method can only be called when the Undo/Redo mechanism has
         been enabled.  Otherwise, an `UndoRedoError` is raised.
@@ -1837,7 +1962,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 
     def flush(self):
-        """Flush all the alive nodes and HDF5 buffers."""
+        """Flush all the alive leaves in the object tree."""
 
         self._checkOpen()
 
@@ -1893,7 +2018,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
 
     def close(self):
-        """Close all the nodes in HDF5 file and close the file."""
+        """Flush all the alive leaves in object tree and close the file."""
 
         # If the file is already closed, return immediately
         if not self.isopen:
@@ -1958,7 +2083,22 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         del _open_files[self]
 
     def __str__(self):
-        """Returns a string representation of the object tree"""
+        """
+        Return a short string representation of the object tree.
+
+        >>> f = tables.openFile('data/test.h5')
+        >>> print f
+        data/test.h5 (File) 'Table Benchmark'
+        Last modif.: 'Mon Sep 20 12:40:47 2004'
+        Object Tree:
+        / (Group) 'Table Benchmark'
+        /tuple0 (Table(100L,)) 'This is the table title'
+        /group0 (Group) ''
+        /group0/tuple1 (Table(100L,)) 'This is the table title'
+        /group0/group1 (Group) ''
+        /group0/group1/tuple2 (Table(100L,)) 'This is the table title'
+        /group0/group1/group2 (Group) ''
+        """
         # Print all the nodes (Group and Leaf objects) on object tree
         date = time.asctime(time.localtime(os.stat(self.filename)[8]))
         astring =  self.filename + ' (File) ' + repr(self.title) + '\n'
@@ -1975,7 +2115,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         return astring
 
     def __repr__(self):
-        """Returns a more complete representation of the object tree"""
+        """Return a detailed string representation of the object tree."""
 
         if not self.isopen:
             return "<closed File>"
