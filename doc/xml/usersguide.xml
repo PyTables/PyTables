@@ -13453,7 +13453,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           </listitem>
 
           <listitem>
-            <para>Comparison operators: &lt;, ≤ ==, !=, ≥, &gt;.</para>
+            <para>Comparison operators: &lt;, &lt;=, ==, !=, &gt;=, &gt;.</para>
           </listitem>
 
           <listitem>
