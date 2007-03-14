@@ -30,34 +30,32 @@ def _print_admonition(kind, head, body):
     for line in tw.wrap(body):
         print line
 
-def print_error(head, body=''):
+def exit_with_error(head, body=''):
     _print_admonition('error', head, body)
+    sys.exit(1)
 
 def print_warning(head, body=''):
     _print_admonition('warning', head, body)
 
 # Check for Python
 if not (sys.version_info[0] >= 2 and sys.version_info[1] >= 4):
-    print_error("You need Python 2.4 or greater to install PyTables!")
-    sys.exit(1)
+    exit_with_error("You need Python 2.4 or greater to install PyTables!")
 
 # Check for required Python packages
 def check_import(pkgname, pkgver):
     try:
         mod = __import__(pkgname)
     except ImportError:
-        print_error(
+        exit_with_error(
             "Can't find a local %s Python installation." % pkgname,
             "Please read carefully the ``README`` file "
             "and remember that PyTables needs the %s package "
             "to compile and run." % pkgname )
-        sys.exit(1)
     else:
         if mod.__version__ < pkgver:
-            print_error(
+            exit_with_error(
                 "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
                 % {'pkgname': pkgname, 'pkgver': pkgver} )
-            sys.exit(1)
 
     print ( "* Found %(pkgname)s %(pkgver)s package installed."
             % {'pkgname': pkgname, 'pkgver': mod.__version__} )
@@ -303,14 +301,13 @@ for (package, location) in [
     if not (hdrdir and libdir):
         if package.tag in ['HDF5']:  # these are compulsory!
             pname, ptag = package.name, package.tag
-            print_error(
+            exit_with_error(
                 "Could not find a local %s installation." % pname,
                 "You may need to explicitly state "
                 "where your local %(name)s headers and library can be found "
                 "by setting the ``%(tag)s_DIR`` environment variable "
                 "or by using the ``--%(ltag)s`` command-line option."
                 % dict(name=pname, tag=ptag, ltag=ptag.lower()) )
-            sys.exit(1)
         print ( "* Could not find %s headers and library; "
                 "disabling support for it."  % package.name)
         continue  # look for the next library
@@ -367,19 +364,19 @@ def get_pyrex_extfiles(extnames):
         extpfile = '%s.pyx' % extfile
         extcfile = '%s.c' % extfile
         if not pyrex and newer(extpfile, extcfile):
-            print_error(
-                "Need Pyrex (at least %s) to generate extensions. ",
+            exit_with_error(
+                "Need Pyrex (at least %s) to generate extensions. " 
+                % min_pyrex_version,
                 "The ``%s`` file does not exist or is out of date "
                 "and Pyrex is not available. Please install Pyrex "
                 "in order to properly generate the extension."
-                % (min_pyrex_version, extcfile) )
+                % extcfile )
         if pyrex and newer(extpfile, extcfile):
             from Pyrex.Compiler.Main import Version
             if Version.version < min_pyrex_version:
-                print_error(
+                exit_with_error(
                     "At least Pyrex %s is needed so as to generate extensions!"
                     % (min_pyrex_version) )
-                sys.exit()
         if pyrex:
             extfiles[extname] = extpfile
         else:
