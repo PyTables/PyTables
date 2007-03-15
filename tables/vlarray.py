@@ -280,6 +280,12 @@ be zero."""
             else:
                 raise ValueError(
                     "pseudo-atom name ``%s`` not known." % kind)
+        elif self._v_file.format_version[:1] == "1":
+            flavor1x = self.attrs.FLAVOR
+            if flavor1x == "VLString":
+                atom = VLStringAtom()
+            elif flavor1x == "Object":
+                atom = ObjectAtom()
 
         self.atom = atom
         return self._v_objectID
