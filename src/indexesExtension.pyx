@@ -80,6 +80,7 @@ cdef extern from "H5ARRAY-opt.h":
                              hsize_t stop, void *data)
 
 ctypedef long long llong
+ctypedef short int sint
 ctypedef unsigned long long ullong
 ctypedef unsigned int uint
 ctypedef unsigned short int usint
@@ -107,8 +108,8 @@ cdef extern from "idx-opt.h":
   int keysort_llll(llong *start1, llong *start2, long num)
   int keysort_ii(int *start1, uint *start2, long num)
   int keysort_ill(int *start1, llong *start2, long num)
-  int keysort_si(short int *start1, uint *start2, long num)
-  int keysort_sll(short int *start1, llong *start2, long num)
+  int keysort_si(sint *start1, uint *start2, long num)
+  int keysort_sll(sint *start1, llong *start2, long num)
   int keysort_bi(char *start1, uint *start2, long num)
   int keysort_bll(char *start1, llong *start2, long num)
   int keysort_ulli(ullong *start1, uint *start2, long num)
@@ -172,9 +173,9 @@ def keysort(ndarray array1, ndarray array2):
       return keysort_uill(<uint *>array1.data, <llong *>array2.data, size)
   elif array1.dtype == "int16":
     if array2.dtype == "uint32":
-      return keysort_si(<short int *>array1.data, <uint *>array2.data, size)
+      return keysort_si(<sint *>array1.data, <uint *>array2.data, size)
     else:
-      return keysort_sll(<short int *>array1.data, <llong *>array2.data, size)
+      return keysort_sll(<sint *>array1.data, <llong *>array2.data, size)
   elif array1.dtype == "uint16":
     if array2.dtype == "uint32":
       return keysort_usi(<usint *>array1.data, <uint *>array2.data, size)
@@ -190,6 +191,11 @@ def keysort(ndarray array1, ndarray array2):
       return keysort_ubi(<uchar *>array1.data, <uint *>array2.data, size)
     else:
       return keysort_ubll(<uchar *>array1.data, <llong *>array2.data, size)
+  elif array1.dtype == "bool":
+    if array2.dtype == "uint32":
+      return keysort_bi(<char *>array1.data, <uint *>array2.data, size)
+    else:
+      return keysort_bll(<char *>array1.data, <llong *>array2.data, size)
   else:
     raise ValueError, "This shouldn't happen!"
 
