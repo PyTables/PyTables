@@ -5216,9 +5216,10 @@ for node in h5file:
         </section>
       </section>
 
-      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="NodeClassDescr">
         <title>The <literal>Node</literal> class</title>
+
+        <para>Abstract base class for all PyTables nodes.</para>
 
         <para>This is the base class for <emphasis>all</emphasis> nodes in a
         PyTables hierarchy. It is an abstract class, i.e. it may not be
@@ -5230,9 +5231,10 @@ for node in h5file:
         at a certain <emphasis>depth</emphasis> in the node hierarchy. A node
         knows its own <emphasis>name</emphasis> in the parent group and its
         own <emphasis>path name</emphasis> in the file. When using a
-        translation map (see <xref linkend="FileClassDescr"
-        xrefstyle="select: labelnumber" />), its <emphasis>HDF5
-        name</emphasis> might differ from its PyTables name.</para>
+        translation map (see the <literal>File</literal> class in <xref
+        linkend="FileClassDescr" xrefstyle="select: label" />), its
+        <emphasis>HDF5 name</emphasis> might differ from its PyTables
+        name.</para>
 
         <para>All the previous information is location-dependent, i.e. it may
         change when moving or renaming a node in the hierarchy. A node also
@@ -5244,294 +5246,292 @@ for node in h5file:
         location-dependent and independent) which are common to all PyTables
         nodes, whatever their type is. Nonetheless, due to natural naming
         restrictions, the names of all of these members start with a reserved
-        prefix (see <xref linkend="GroupClassDescr"
-        xrefstyle="select: labelnumber" />).</para>
+        prefix (see the <literal>Group</literal> class in <xref
+        linkend="GroupClassDescr" xrefstyle="select: label" />).</para>
 
-        <para>Sub-classes with no children (i.e. leaf nodes) may define new
-        methods, attributes and properties to avoid natural naming
-        restrictions. For instance, <literal>_v_attrs</literal> may be
-        shortened to <literal>attrs</literal> and <literal>_f_rename</literal>
-        to <literal>rename</literal>. However, the original methods and
+        <para>Sub-classes with no children (i.e. <emphasis>leaf
+        nodes</emphasis>) may define new methods, attributes and properties to
+        avoid natural naming restrictions. For instance,
+        <literal>_v_attrs</literal> may be shortened to
+        <literal>attrs</literal> and <literal>_f_rename</literal> to
+        <literal>rename</literal>. However, the original methods and
         attributes should still be available.</para>
 
         <section>
-          <title><literal>Node</literal> instance variables</title>
+          <title><literal>Node</literal> instance variables — location
+          dependent</title>
 
-          <section>
-            <title>Location dependent</title>
+          <glosslist>
+            <?dbfo glosslist-presentation="list" ?>
 
-            <glosslist>
-              <?dbfo glosslist-presentation="list" ?>
+            <glossentry>
+              <glossterm id="Node._v_depth"><emphasis role="bold">
+              _v_depth</emphasis></glossterm>
 
-              <glossentry>
-                <glossterm id="Node._v_file"><emphasis
-                role="bold">_v_file</emphasis></glossterm>
+              <glossdef>
+                <para>The depth of this node in the tree (an non-negative
+                integer value).</para>
+              </glossdef>
+            </glossentry>
 
-                <glossdef>
-                  <para>The hosting <literal>File</literal> instance (see
-                  <xref linkend="FileClassDescr"
-                  xrefstyle="select: labelnumber" />).</para>
-                </glossdef>
-              </glossentry>
+            <glossentry>
+              <glossterm id="Node._v_file"><emphasis
+              role="bold">_v_file</emphasis></glossterm>
 
-              <glossentry>
-                <glossterm id="Node._v_parent"><emphasis role="bold">
-                _v_parent</emphasis></glossterm>
+              <glossdef>
+                <para>The hosting <literal>File</literal> instance (see <xref
+                linkend="FileClassDescr" xrefstyle="select: label" />).</para>
+              </glossdef>
+            </glossentry>
 
-                <glossdef>
-                  <para>The parent <literal>Group</literal> instance (see
-                  <xref linkend="GroupClassDescr"
-                  xrefstyle="select: labelnumber" />).</para>
-                </glossdef>
-              </glossentry>
+            <glossentry>
+              <glossterm id="Node._v_hdf5name"><emphasis role="bold">
+              _v_hdf5name</emphasis></glossterm>
 
-              <glossentry>
-                <glossterm id="Node._v_depth"><emphasis role="bold">
-                _v_depth</emphasis></glossterm>
+              <glossdef>
+                <para>The name of this node in the hosting HDF5 file (a
+                string).</para>
+              </glossdef>
+            </glossentry>
 
-                <glossdef>
-                  <para>The depth of this node in the tree (an non-negative
-                  integer value).</para>
-                </glossdef>
-              </glossentry>
+            <glossentry>
+              <glossterm id="Node._v_isopen"><emphasis role="bold">
+              _v_isopen</emphasis></glossterm>
 
-              <glossentry>
-                <glossterm id="Node._v_name"><emphasis role="bold">
-                _v_name</emphasis></glossterm>
+              <glossdef>
+                <para>Whether this node is open or not.</para>
+              </glossdef>
+            </glossentry>
 
-                <glossdef>
-                  <para>The name of this node in its parent group (a
-                  string).</para>
-                </glossdef>
-              </glossentry>
+            <glossentry>
+              <glossterm id="Node._v_name"><emphasis role="bold">
+              _v_name</emphasis></glossterm>
 
-              <glossentry>
-                <glossterm id="Node._v_hdf5name"><emphasis role="bold">
-                _v_hdf5name</emphasis></glossterm>
+              <glossdef>
+                <para>The name of this node in its parent group (a
+                string).</para>
+              </glossdef>
+            </glossentry>
 
-                <glossdef>
-                  <para>The name of this node in the hosting HDF5 file (a
-                  string).</para>
-                </glossdef>
-              </glossentry>
+            <glossentry>
+              <glossterm id="Node._v_parent"><emphasis role="bold">
+              _v_parent</emphasis></glossterm>
 
-              <glossentry>
-                <glossterm id="Node._v_pathname"><emphasis role="bold">
-                _v_pathname</emphasis></glossterm>
+              <glossdef>
+                <para>The parent <literal>Group</literal> instance (see <xref
+                linkend="GroupClassDescr" xrefstyle="select: label"
+                />).</para>
+              </glossdef>
+            </glossentry>
 
-                <glossdef>
-                  <para>The path of this node in the tree (a string).</para>
-                </glossdef>
-              </glossentry>
+            <glossentry>
+              <glossterm id="Node._v_pathname"><emphasis role="bold">
+              _v_pathname</emphasis></glossterm>
 
-              <glossentry>
-                <glossterm id="Node._v_isopen"><emphasis role="bold">
-                _v_isopen</emphasis></glossterm>
+              <glossdef>
+                <para>The path of this node in the tree (a string).</para>
+              </glossdef>
+            </glossentry>
+          </glosslist>
+        </section>
 
-                <glossdef>
-                  <para>Whether this node is open or not.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
+        <section>
+          <title><literal>Node</literal> instance variables — location
+          independent</title>
+
+          <glosslist>
+            <?dbfo glosslist-presentation="list" ?>
+
+            <glossentry xreflabel="description">
+              <glossterm id="Node._v_attrs"><emphasis
+              role="bold">_v_attrs</emphasis></glossterm>
+
+              <glossdef>
+                <para>The associated <literal>AttributeSet</literal> instance
+                (see <xref linkend="AttributeSetClassDescr" xrefstyle="select:
+                label" /> ).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm id="Node._v_objectID"><emphasis
+              role="bold">_v_objectID</emphasis></glossterm>
+
+              <glossdef>
+                <para>The identifier of this node in the hosting HDF5
+                file.</para>
+              </glossdef>
+            </glossentry>
+          </glosslist>
+        </section>
+
+        <section>
+          <title><literal>Node</literal> instance variables — attribute
+          shorthands</title>
+
+          <glosslist>
+            <?dbfo glosslist-presentation="list" ?>
+
+            <glossentry>
+              <glossterm id="Node._v_title"><emphasis
+              role="bold">_v_title</emphasis></glossterm>
+
+              <glossdef>
+                <para>A description of this node. A shorthand for
+                <literal>TITLE</literal> attribute.</para>
+              </glossdef>
+            </glossentry>
+          </glosslist>
+        </section>
+
+        <section>
+          <title><literal>Node</literal> methods — hierarchy manipulation</title>
+
+          <section id="Node._f_close" xreflabel="description">
+            <title>_f_close()</title>
+
+            <para>Close this node in the tree.</para>
+
+            <para>This releases all resources held by the node, so it should
+            not be used again. On nodes with data, it may be flushed to
+            disk.</para>
+
+            <para>The closing operation is <emphasis>not</emphasis> recursive,
+            i.e. closing a group does not close its children.</para>
           </section>
 
-          <section>
-            <title>Location independent</title>
+          <section id="Node._f_copy" xreflabel="description">
+            <title>_f_copy(newparent=None, newname=None, overwrite=False,
+            recursive=False, createparents=False, **kwargs)</title>
 
-            <glosslist>
-              <?dbfo glosslist-presentation="list" ?>
+            <para>Copy this node and return the new node.</para>
 
-              <glossentry>
-                <glossterm id="Node._v_objectID"><emphasis
-                role="bold">_v_objectID</emphasis></glossterm>
+            <para>Creates and returns a copy of the node, maybe in a different
+            place in the hierarchy. <literal>newparent</literal> can be a
+            <literal>Group</literal> object (see <xref
+            linkend="GroupClassDescr" xrefstyle="select: label" />) or a
+            pathname in string form. If it is not specified or
+            <literal>None</literal>, the current parent group is chosen as the
+            new parent.  <literal>newname</literal> must be a string with a
+            new name. If it is not specified or <literal>None</literal>, the
+            current name is chosen as the new name. If
+            <literal>recursive</literal> copy is stated, all descendants are
+            copied as well. If <literal>createparents</literal> is true, the
+            needed groups for the given new parent group path to exist will be
+            created.</para>
 
-                <glossdef>
-                  <para>The identifier of this node in the hosting HDF5
-                  file.</para>
-                </glossdef>
-              </glossentry>
+            <para>Copying a node across databases is supported but can not be
+            undone. Copying a node over itself is not allowed, nor it is
+            recursively copying a node into itself. These result in a
+            <literal>NodeError</literal>. Copying over another existing node
+            is similarly not allowed, unless the optional
+            <literal>overwrite</literal> argument is true, in which case that
+            node is recursively removed before copying.</para>
 
-              <glossentry id="gt_Node._v_attrs" xreflabel="description">
-                <glossterm id="Node._v_attrs"><emphasis
-                role="bold">_v_attrs</emphasis></glossterm>
+            <para>Additional keyword arguments may be passed to customize the
+            copying process. For instance, title and filters may be changed,
+            user attributes may be or may not be copied, data may be
+            sub-sampled, stats may be collected, etc. See the documentation
+            for the particular node type.</para>
 
-                <glossdef>
-                  <para>The associated <literal>AttributeSet</literal>
-                  instance (see <xref linkend="AttributeSetClassDescr"
-                  xrefstyle="select: labelnumber" /> ).</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
+            <para>Using only the first argument is equivalent to copying the
+            node to a new location without changing its name. Using only the
+            second argument is equivalent to making a copy of the node in the
+            same group.</para>
           </section>
 
-          <section>
-            <title>Attribute shorthands</title>
+          <section id="Node._f_isVisible" xreflabel="description">
+            <title>_f_isVisible()</title>
 
-            <glosslist>
-              <?dbfo glosslist-presentation="list" ?>
+            <para>Is this node visible?</para>
+          </section>
 
-              <glossentry>
-                <glossterm id="Node._v_title"><emphasis
-                role="bold">_v_title</emphasis></glossterm>
+          <section id="Node._f_move" xreflabel="description">
+            <title>_f_move(newparent=None, newname=None, overwrite=False,
+            createparents=False)</title>
 
-                <glossdef>
-                  <para>A description of this node. A shorthand for
-                  <literal>TITLE</literal> attribute.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
+            <para>Move or rename this node.</para>
+
+            <para>Moves a node into a new parent group, or changes the name of
+            the node. <literal>newparent</literal> can be a
+            <literal>Group</literal> object (see <xref
+            linkend="GroupClassDescr" xrefstyle="select: label" />) or a
+            pathname in string form. If it is not specified or
+            <literal>None</literal>, the current parent group is chosen as the
+            new parent.  <literal>newname</literal> must be a string with a
+            new name. If it is not specified or <literal>None</literal>, the
+            current name is chosen as the new name. If
+            <literal>createparents</literal> is true, the needed groups for
+            the given new parent group path to exist will be created.</para>
+
+            <para>Moving a node across databases is not allowed, nor it is
+            moving a node <emphasis>into</emphasis> itself. These result in a
+            <literal>NodeError</literal>. However, moving a node
+            <emphasis>over</emphasis> itself is allowed and simply does
+            nothing. Moving over another existing node is similarly not
+            allowed, unless the optional <literal>overwrite</literal> argument
+            is true, in which case that node is recursively removed before
+            moving.</para>
+
+            <para>Usually, only the first argument will be used, effectively
+            moving the node to a new location without changing its name.
+            Using only the second argument is equivalent to renaming the node
+            in place.</para>
+          </section>
+
+          <section id="Node._f_remove" xreflabel="description">
+            <title>_f_remove(recursive=False)</title>
+
+            <para>Remove this node from the hierarchy.</para>
+
+            <para>If the node has children, recursive removal must be stated
+            by giving <literal>recursive</literal> a true value; otherwise, a
+            <literal>NodeError</literal> will be raised.</para>
+          </section>
+
+          <section id="Node._f_rename" xreflabel="description">
+            <title>_f_rename(newname)</title>
+
+            <para>Rename this node in place.</para>
+
+            <para>Changes the name of a node to <emphasis>newname</emphasis>
+            (a string).</para>
           </section>
         </section>
 
         <section>
-          <title><literal>Node</literal> methods</title>
+          <title><literal>Node</literal> methods — attribute handling</title>
 
-          <section>
-            <title>Hierarchy manipulation</title>
+          <section id="Node._f_delAttr" xreflabel="description">
+            <title>_f_delAttr(name)</title>
 
-            <section id="Node._f_close" xreflabel="description">
-              <title>_f_close()</title>
+            <para>Delete a PyTables attribute from this node.</para>
 
-              <para>Close this node in the tree.</para>
-
-              <para>This releases all resources held by the node, so it should
-              not be used again. On nodes with data, it may be flushed to
-              disk.</para>
-
-              <para>The closing operation is <emphasis>not</emphasis>
-              recursive, i.e. closing a group does not close its
-              children.</para>
-            </section>
-
-            <section id="Node._f_remove" xreflabel="description">
-              <title>_f_remove(recursive=False)</title>
-
-              <para>Remove this node from the hierarchy.</para>
-
-              <para>If the node has children, recursive removal must be stated
-              by giving <literal>recursive</literal> a true value; otherwise,
-              a <literal>NodeError</literal> will be raised.</para>
-            </section>
-
-            <section id="Node._f_rename" xreflabel="description">
-              <title>_f_rename(newname)</title>
-
-              <para>Rename this node in place.</para>
-
-              <para>Changes the name of a node to <emphasis>newname</emphasis>
-              (a string).</para>
-            </section>
-
-            <section id="Node._f_move" xreflabel="description">
-              <title>_f_move(newparent=None, newname=None, overwrite=False,
-              createparents=False)</title>
-
-              <para>Move or rename this node.</para>
-
-              <para>Moves a node into a new parent group, or changes the name
-              of the node. <literal>newparent</literal> can be a
-              <literal>Group</literal> object or a pathname in string form. If
-              it is not specified or <literal>None</literal>, the current
-              parent group is chosen as the new parent.
-              <literal>newname</literal> must be a string with a new name. If
-              it is not specified or <literal>None</literal>, the current name
-              is chosen as the new name. If <literal>createparents</literal>
-              is true, the needed groups for the given new parent group path
-              to exist will be created.</para>
-
-              <para>Moving a node across databases is not allowed, nor it is
-              moving a node <emphasis>into</emphasis> itself. These result in
-              a <literal>NodeError</literal>. However, moving a node
-              <emphasis>over</emphasis> itself is allowed and simply does
-              nothing. Moving over another existing node is similarly not
-              allowed, unless the optional <literal>overwrite</literal>
-              argument is true, in which case that node is recursively removed
-              before moving.</para>
-
-              <para>Usually, only the first argument will be used, effectively
-              moving the node to a new location without changing its name.
-              Using only the second argument is equivalent to renaming the
-              node in place.</para>
-            </section>
-
-            <section id="Node._f_copy" xreflabel="description">
-              <title>_f_copy(newparent=None, newname=None, overwrite=False,
-              recursive=False, createparents=False, **kwargs)</title>
-
-              <para>Copy this node and return the new node.</para>
-
-              <para>Creates and returns a copy of the node, maybe in a
-              different place in the hierarchy. <literal>newparent</literal>
-              can be a <literal>Group</literal> object or a pathname in string
-              form. If it is not specified or <literal>None</literal>, the
-              current parent group is chosen as the new parent.
-              <literal>newname</literal> must be a string with a new name. If
-              it is not specified or <literal>None</literal>, the current name
-              is chosen as the new name. If <literal>recursive</literal> copy
-              is stated, all descendants are copied as well. If
-              <literal>createparents</literal> is true, the needed groups for
-              the given new parent group path to exist will be created.</para>
-
-              <para>Copying a node across databases is supported but can not
-              be undone. Copying a node over itself is not allowed, nor it is
-              recursively copying a node into itself. These result in a
-              <literal>NodeError</literal>. Copying over another existing node
-              is similarly not allowed, unless the optional
-              <literal>overwrite</literal> argument is true, in which case
-              that node is recursively removed before copying.</para>
-
-              <para>Additional keyword arguments may be passed to customize
-              the copying process. For instance, title and filters may be
-              changed, user attributes may be or may not be copied, data may
-              be sub-sampled, stats may be collected, etc. See the
-              documentation for the particular node type.</para>
-
-              <para>Using only the first argument is equivalent to copying the
-              node to a new location without changing its name. Using only the
-              second argument is equivalent to making a copy of the node in
-              the same group.</para>
-            </section>
-
-            <section id="Node._f_isVisible" xreflabel="description">
-              <title>_f_isVisible()</title>
-
-              <para>Is this node visible?</para>
-            </section>
+            <para>If the named attribute does not exist, an
+            <literal>AttributeError</literal> is raised.</para>
           </section>
 
-          <section>
-            <title>Attribute handling</title>
+          <section id="Node._f_getAttr" xreflabel="description">
+            <title>_f_getAttr(name)</title>
 
-            <section id="Node._f_getAttr" xreflabel="description">
-              <title>_f_getAttr(name)</title>
+            <para>Get a PyTables attribute from this node.</para>
 
-              <para>Get a PyTables attribute from this node.</para>
+            <para>If the named attribute does not exist, an
+            <literal>AttributeError</literal> is raised.</para>
+          </section>
 
-              <para>If the named attribute does not exist, an
-              <literal>AttributeError</literal> is raised.</para>
-            </section>
+          <section id="Node._f_setAttr" xreflabel="description">
+            <title>_f_setAttr(name, value)</title>
 
-            <section id="Node._f_setAttr" xreflabel="description">
-              <title>_f_setAttr(name, value)</title>
+            <para>Set a PyTables attribute for this node.</para>
 
-              <para>Set a PyTables attribute for this node.</para>
-
-              <para>If the node already has a large number of attributes, a
-              <literal>PerformanceWarning</literal> is issued.</para>
-            </section>
-
-            <section id="Node._f_delAttr" xreflabel="description">
-              <title>_f_delAttr(name)</title>
-
-              <para>Delete a PyTables attribute from this node.</para>
-
-              <para>If the named attribute does not exist, an
-              <literal>AttributeError</literal> is raised.</para>
-            </section>
+            <para>If the node already has a large number of attributes, a
+            <literal>PerformanceWarning</literal> is issued.</para>
           </section>
         </section>
       </section>
 
+      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="GroupClassDescr">
         <title>The <literal>Group</literal> class</title>
 

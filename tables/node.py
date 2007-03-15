@@ -99,66 +99,71 @@ class Node(object):
     restrictions, the names of all of these members start with a
     reserved prefix (see the `Group` class).
 
-    Sub-classes with no children (i.e. leaf nodes) may define new
+    Sub-classes with no children (i.e. *leaf nodes*) may define new
     methods, attributes and properties to avoid natural naming
     restrictions.  For instance, ``_v_attrs`` may be shortened to
     ``attrs`` and ``_f_rename`` to ``rename``.  However, the original
     methods and attributes should still be available.
 
-    Instance variables (location dependent):
+    Public instance variables -- location dependent
+    -----------------------------------------------
 
-    _v_file
-        The hosting `File` instance.
-    _v_parent
-        The parent `Group` instance.
     _v_depth
         The depth of this node in the tree (an non-negative integer
         value).
-    _v_name
-        The name of this node in its parent group (a string).
+    _v_file
+        The hosting `File` instance.
     _v_hdf5name
         The name of this node in the hosting HDF5 file (a string).
-    _v_pathname
-        The path of this node in the tree (a string).
     _v_isopen
         Whether this node is open or not.
+    _v_name
+        The name of this node in its parent group (a string).
+    _v_parent
+        The parent `Group` instance.
+    _v_pathname
+        The path of this node in the tree (a string).
 
-    Instance variables (location independent):
+    Public instance variables -- location independent
+    -------------------------------------------------
 
-    _v_objectID
-        The identifier of this node in the hosting HDF5 file.
     _v_attrs
         The associated `AttributeSet` instance.
+    _v_objectID
+        The identifier of this node in the hosting HDF5 file.
 
-    Instance variables (attribute shorthands):
+    Public instance variables -- attribute shorthands
+    -------------------------------------------------
 
     _v_title
         A description of this node.  A shorthand for the ``TITLE``
         attribute.
 
-    Public methods (hierarchy manipulation):
+    Public methods -- hierarchy manipulation
+    ----------------------------------------
 
     _f_close()
         Close this node in the tree.
-    _f_remove([recursive])
-        Remove this node from the hierarchy.
-    _f_rename(newname)
-        Rename this node in place.
-    _f_move([newparent][, newname][, overwrite])
-        Move or rename this node.
     _f_copy([newparent][, newname][, overwrite][, recursive][, **kwargs])
         Copy this node and return the new one.
     _f_isVisible()
         Is this node visible?
+    _f_move([newparent][, newname][, overwrite])
+        Move or rename this node.
+    _f_remove([recursive])
+        Remove this node from the hierarchy.
+    _f_rename(newname)
+        Rename this node in place.
 
-    Public methods (attribute handling):
+    Public methods -- attribute handling
+    ------------------------------------
 
+    _f_delAttr(name)
+        Delete a PyTables attribute from this node.
     _f_getAttr(name)
         Get a PyTables attribute from this node.
     _f_setAttr(name, value)
         Set a PyTables attribute for this node.
-    _f_delAttr(name)
-        Delete a PyTables attribute from this node.
     """
 
     # This makes this class and all derived subclasses be handled by MetaNode.
@@ -611,7 +616,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         Moves a node into a new parent group, or changes the name of the
         node.  `newparent` can be a `Group` object or a pathname in
-        string form.  If it is not specified or ``None` , the current
+        string form.  If it is not specified or ``None`` , the current
         parent group is chosen as the new parent.  `newname` must be a
         string with a new name.  If it is not specified or ``None``, the
         current name is chosen as the new name.  If `createparents` is
