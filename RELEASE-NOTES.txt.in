@@ -188,6 +188,26 @@ that allows specifying the byteorder of data on disk.  In particular, a
 should use the aforementioned ``byteorder`` parameter.
 
 
+Changes to module names
+-----------------------
+
+If your application is directly accessing modules under the ``tables``
+package, you need to know that *the names of all modules are now all in
+lowercase*.  This allows one to tell apart the ``tables.Array`` *class* from
+the ``tables.array`` *module* (which was also called ``tables.Array`` before).
+This includes subpackages like ``tables.nodes.FileNode``.
+
+On top of that, more-or-less independent modules have also been renamed and
+some of them grouped into subpackages.  The most important are:
+
+- The ``tables.netcdf3`` subpackage replaces the old ``tables.NetCDF`` module.
+- The ``tables.nra`` subpackage replaces the old ``nestedrecords.py`` with the
+  implementation of the ``NestedRecArray`` class.
+
+Also, the ``tables.misc`` package includes utility modules which do not depend
+on PyTables.
+
+
 Other changes
 -------------
 
