@@ -346,7 +346,7 @@ class File(hdf5Extension.File, object):
     The Undo/Redo mechanism is persistent between sessions and can only
     be disabled by calling the `disableUndo()` method.
 
-    `File` instance variables
+    Public instance variables
     -------------------------
 
     filename
