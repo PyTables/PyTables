@@ -242,6 +242,11 @@ API additions
   return all the fields in the current row.  This returns a NumPy void scalar
   for each call.
 
+- The new ``tables.restrict_flavors()`` function allows to restrict available
+  flavors to a given set.  This can be useful e.g. if you want to force
+  PyTables to get NumPy data out of an old, ``numarray``-flavored PyTables
+  file even if the ``numarray`` package is installed.
+
 - New ``tables.test(verbose=False, heavy=False)`` high level function for
   interactively running the complete test suite from the Python console.
 

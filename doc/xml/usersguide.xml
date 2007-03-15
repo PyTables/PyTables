@@ -3754,6 +3754,22 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
             on.</para>
           </section>
 
+          <section id="print_versions">
+            <title>restrict_flavors(keep=['python']</title>
+
+            <para>Disable all flavors except those in
+            <literal>keep</literal>.</para>
+
+            <para>Providing an empty <literal>keep</literal> sequence implies
+            disabling all flavors (but the internal one).  If the sequence is
+            not specified, only optional flavors are disabled.</para>
+
+            <important>
+              <para>Once you disable a flavor, it can not be enabled
+              again.</para>
+            </important>
+          </section>
+
           <section>
             <title>split_type(type)</title>
 

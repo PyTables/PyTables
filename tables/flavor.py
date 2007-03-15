@@ -190,6 +190,22 @@ def array_of_flavor(array, dst_flavor):
     """
     return array_of_flavor2(array, flavor_of(array), dst_flavor)
 
+def restrict_flavors(keep=['python']):
+    """
+    Disable all flavors except those in `keep`.
+
+    Providing an empty `keep` sequence implies disabling all flavors
+    (but the internal one).  If the sequence is not specified, only
+    optional flavors are disabled.
+
+    .. Important::
+       Once you disable a flavor, it can not be enabled again.
+    """
+    keep = set(keep).union([internal_flavor])
+    remove = set(all_flavors).difference(keep)
+    for flavor in remove:
+        _disable_flavor(flavor)
+
 
 # Flavor registration
 # ===================
@@ -247,6 +263,33 @@ def _register_converters():
                     convfunc = identity
             if convfunc:
                 converter_map[(src_flavor, dst_flavor)] = convfunc
+
+def _register_all():
+    """Register all *available* flavors."""
+    _register_descriptions()
+    _register_identifiers()
+    _register_converters()
+
+def _deregister_description(flavor):
+    """Deregister description of a given `flavor` (no checks)."""
+    del description_map[flavor]
+
+def _deregister_identifier(flavor):
+    """Deregister identifier function of a given `flavor` (no checks)."""
+    del identifier_map[flavor]
+
+def _deregister_converters(flavor):
+    """Deregister converter functions of a given `flavor` (no checks)."""
+    for flavor_pair in converter_map.keys():
+        if flavor in flavor_pair:
+            del converter_map[flavor_pair]
+
+def _disable_flavor(flavor):
+    """Completely disable the given `flavor` (no checks)."""
+    _deregister_description(flavor)
+    _deregister_identifier(flavor)
+    _deregister_converters(flavor)
+    all_flavors.remove(flavor)
 
 
 # Implementation of flavors
@@ -396,9 +439,7 @@ def _conv_numpy_to_python(array):
     return array
 
 # Now register everything related with *available* flavors.
-_register_descriptions()
-_register_identifiers()
-_register_converters()
+_register_all()
 
 
 # Main part

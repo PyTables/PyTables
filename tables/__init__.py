@@ -42,6 +42,7 @@ from tables.utilsExtension import isHDF5File, isPyTablesFile, whichLibVersion
 
 from tables.misc.enum import Enum
 from tables.atom import *
+from tables.flavor import restrict_flavors
 from tables.description import *
 from tables.filters import Filters
 
@@ -73,7 +74,7 @@ __all__ = [
     # Functions:
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
     'copyFile', 'openFile', 'print_versions', 'test',
-    'split_type',
+    'split_type', 'restrict_flavors',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
     # Types:
