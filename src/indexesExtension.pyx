@@ -79,20 +79,46 @@ cdef extern from "H5ARRAY-opt.h":
   herr_t H5ARRAYOreadSliceLR(hid_t dataset_id, hsize_t start,
                              hsize_t stop, void *data)
 
+ctypedef long long llong
+ctypedef unsigned long long ullong
+ctypedef unsigned int uint
+ctypedef unsigned short int usint
+ctypedef unsigned char uchar
+
 # Functions for optimized operations for dealing with indexes
 cdef extern from "idx-opt.h":
   int bisect_left_i(int *a, int x, int hi, int offset)
   int bisect_right_i(int *a, int x, int hi, int offset)
-  int bisect_left_ll(long long *a, long long x, int hi, int offset)
-  int bisect_right_ll(long long *a, long long x, int hi, int offset)
+  int bisect_left_ll(llong *a, llong x, int hi, int offset)
+  int bisect_right_ll(llong *a, llong x, int hi, int offset)
   int bisect_left_f(float *a, float x, int hi, int offset)
   int bisect_right_f(float *a, float x, int hi, int offset)
   int bisect_left_d(double *a, double x, int hi, int offset)
   int bisect_right_d(double *a, double x, int hi, int offset)
-  int get_sorted_indices(int nrows, long long *rbufC,
+  int get_sorted_indices(int nrows, llong *rbufC,
                          int *rbufst, int *rbufln, int ssize)
-  int convert_addr64(int nrows, int nelem, long long *rbufA,
+  int convert_addr64(int nrows, int nelem, llong *rbufA,
                      int *rbufR, int *rbufln)
+  int keysort_di(double *start1, uint *start2, long num)
+  int keysort_dll(double *start1, llong *start2, long num)
+  int keysort_fi(float *start1, uint *start2, long num)
+  int keysort_fll(float *start1, llong *start2, long num)
+  int keysort_lli(llong *start1, uint *start2, long num)
+  int keysort_llll(llong *start1, llong *start2, long num)
+  int keysort_ii(int *start1, uint *start2, long num)
+  int keysort_ill(int *start1, llong *start2, long num)
+  int keysort_si(short int *start1, uint *start2, long num)
+  int keysort_sll(short int *start1, llong *start2, long num)
+  int keysort_bi(char *start1, uint *start2, long num)
+  int keysort_bll(char *start1, llong *start2, long num)
+  int keysort_ulli(ullong *start1, uint *start2, long num)
+  int keysort_ullll(ullong *start1, long long *start2, long num)
+  int keysort_uii(uint *start1, uint *start2, long num)
+  int keysort_uill(uint *start1, long long *start2, long num)
+  int keysort_usi(usint *start1, uint *start2, long num)
+  int keysort_usll(usint *start1, long long *start2, long num)
+  int keysort_ubi(uchar *start1, uint *start2, long num)
+  int keysort_ubll(uchar *start1, long long *start2, long num)
 
 
 
@@ -107,6 +133,65 @@ import_array()
 #---------------------------------------------------------------------------
 
 # Functions
+
+# Sorting functions
+def keysort(ndarray array1, ndarray array2):
+  "Sort array1 in-place. array2 is also sorted following the array1 order."
+  cdef long size
+
+  size = array1.size
+  if array1.dtype == "float64":
+    if array2.dtype == "uint32":
+      return keysort_di(<double *>array1.data, <uint *>array2.data, size)
+    else:
+      return keysort_dll(<double *>array1.data, <llong *>array2.data, size)
+  elif array1.dtype == "float32":
+    if array2.dtype == "uint32":
+      return keysort_fi(<float *>array1.data, <uint *>array2.data, size)
+    else:
+      return keysort_fll(<float *>array1.data, <llong *>array2.data, size)
+  elif array1.dtype == "int64":
+    if array2.dtype == "uint32":
+      return keysort_lli(<llong *>array1.data, <uint *>array2.data, size)
+    else:
+      return keysort_llll(<llong *>array1.data, <llong *>array2.data, size)
+  elif array1.dtype == "uint64":
+    if array2.dtype == "uint32":
+      return keysort_ulli(<ullong *>array1.data, <uint *>array2.data, size)
+    else:
+      return keysort_ullll(<ullong *>array1.data, <llong *>array2.data, size)
+  elif array1.dtype == "int32":
+    if array2.dtype == "uint32":
+      return keysort_ii(<int *>array1.data, <uint *>array2.data, size)
+    else:
+      return keysort_ill(<int *>array1.data, <llong *>array2.data, size)
+  elif array1.dtype == "uint32":
+    if array2.dtype == "uint32":
+      return keysort_uii(<uint *>array1.data, <uint *>array2.data, size)
+    else:
+      return keysort_uill(<uint *>array1.data, <llong *>array2.data, size)
+  elif array1.dtype == "int16":
+    if array2.dtype == "uint32":
+      return keysort_si(<short int *>array1.data, <uint *>array2.data, size)
+    else:
+      return keysort_sll(<short int *>array1.data, <llong *>array2.data, size)
+  elif array1.dtype == "uint16":
+    if array2.dtype == "uint32":
+      return keysort_usi(<usint *>array1.data, <uint *>array2.data, size)
+    else:
+      return keysort_usll(<usint *>array1.data, <llong *>array2.data, size)
+  elif array1.dtype == "int8":
+    if array2.dtype == "uint32":
+      return keysort_bi(<char *>array1.data, <uint *>array2.data, size)
+    else:
+      return keysort_bll(<char *>array1.data, <llong *>array2.data, size)
+  elif array1.dtype == "uint8":
+    if array2.dtype == "uint32":
+      return keysort_ubi(<uchar *>array1.data, <uint *>array2.data, size)
+    else:
+      return keysort_ubll(<uchar *>array1.data, <llong *>array2.data, size)
+  else:
+    raise ValueError, "This shouldn't happen!"
 
 
 # Classes
@@ -198,10 +283,10 @@ cdef class IndexArray(Array):
   cdef _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
                   int offsetl):
     cdef herr_t ret
-    cdef long long *rbufA
+    cdef llong *rbufA
 
     # Correct the start of the buffer with offsetl
-    rbufA = <long long *>self.rbufA + offsetl
+    rbufA = <llong *>self.rbufA + offsetl
     # Do the physical read
     ##Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
@@ -217,12 +302,12 @@ cdef class IndexArray(Array):
   cdef _readIndex_single(self, hsize_t coord, int relcoord):
     cdef herr_t ret
     cdef hsize_t irow, icol
-    cdef long long *rbufA
+    cdef llong *rbufA
 
     irow = coord / self.l_slicesize
     icol = coord - irow * self.l_slicesize
     # Do the physical read
-    rbufA = <long long *>self.rbufA + relcoord
+    rbufA = <llong *>self.rbufA + relcoord
     if irow < self.nrows:
       # Py_BEGIN_ALLOW_THREADS
       ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id,
@@ -408,7 +493,7 @@ cdef class IndexArray(Array):
   # Get the sorted row from the cache or read it.
   cdef void *getLRUsorted(self, int nrow, int ncs, int nchunk, int cs):
     cdef void *vpointer
-    cdef long long nckey
+    cdef llong nckey
     cdef long nslot
 
     # Compute the number of chunk read and use it as the key for the cache.
@@ -471,29 +556,29 @@ cdef class IndexArray(Array):
     return tlength
 
 
-  # Optimized version for long long
-  def _searchBinNA_ll(self, long long item1, long long item2):
+  # Optimized version for llong
+  def _searchBinNA_ll(self, llong item1, llong item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef long long *rbufrv, *rbufbc, *rbuflb
+    cdef llong *rbufrv, *rbufbc, *rbuflb
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <long long *>self.rbufrv; tlength = 0
+    rbufrv = <llong *>self.rbufrv; tlength = 0
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2;  bread = 0;  nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <long long *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <llong *>self.getLRUbounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_ll(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <long long *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <llong *>self.getLRUsorted(nrow, ncs, nchunk, cs)
           start = bisect_left_ll(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -504,11 +589,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <long long *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <llong *>self.getLRUbounds(nrow, nbounds)
           nchunk2 = bisect_right_ll(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <long long *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <llong *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_ll(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -622,7 +707,7 @@ cdef class IndexArray(Array):
     cdef int relcoord, bcoords
     cdef int startl, stopl, incr, stop
     cdef int *rbufst, *rbufln
-    cdef long long coord
+    cdef llong coord
     cdef long nslot
 
     len1 = 0; len2 = 0; bcoords = 0
@@ -673,8 +758,8 @@ cdef class IndexArray(Array):
   def _getCoords_sparse(self, index, int ncoords):
     cdef int nrow, nrows, startl, stopl, lenl, relcoord
     cdef int *rbufst, *rbufln
-    cdef long long *rbufC, *rbufA
-    cdef long long coord
+    cdef llong *rbufC, *rbufA
+    cdef llong coord
     cdef object nckey
     cdef long nslot
 
@@ -682,8 +767,8 @@ cdef class IndexArray(Array):
     # Initialize the index dataset
     self._initIndexSlice(index, ncoords)
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufC = <long long *>self.rbufC
-    rbufA = <long long *>self.rbufA
+    rbufC = <llong *>self.rbufC
+    rbufA = <llong *>self.rbufA
 
     # Get the sorted indices
     get_sorted_indices(nrows, rbufC, rbufst, rbufln, self.l_slicesize)
@@ -721,9 +806,9 @@ cdef class LastRowArray(Array):
   def _readIndexSlice(self, IndexArray indices, hsize_t start, hsize_t stop,
                       int offsetl):
     "Read the reverse index part of an LR index."
-    cdef long long *rbufA
+    cdef llong *rbufA
 
-    rbufA = <long long *>indices.rbufA + offsetl
+    rbufA = <llong *>indices.rbufA + offsetl
     Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbufA)
     Py_END_ALLOW_THREADS
