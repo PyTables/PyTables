@@ -408,8 +408,7 @@ if has_setuptools:
         }
 
     # Detect packages automatically.
-    setuptools_kwargs['packages'] = find_packages(
-        exclude=['*.tests', '*.bench'] )
+    setuptools_kwargs['packages'] = find_packages(exclude=['*.bench'])
     # Entry points for automatic creation of scripts.
     setuptools_kwargs['entry_points'] = {
         'console_scripts': [
