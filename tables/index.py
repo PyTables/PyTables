@@ -1404,9 +1404,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
   dirty := %s
   sorted := %s
   indices := %s""" % (self._v_pathname, cpathname,
-                     self.sorted.type, self.nelements, self.shape,
-                     self.sorted.chunksize, self.sorted.byteorder,
-                     self.filters, self.dirty, self.sorted, self.indices)
+                      self.sorted.atom.type, self.nelements, self.shape,
+                      self.sorted.chunksize, self.sorted.byteorder,
+                      self.filters, self.dirty, self.sorted, self.indices)
         retstr += "\n  ranges := %s" % self.ranges
         retstr += "\n  bounds := %s" % self.bounds
         retstr += "\n  sortedLR := %s" % self.sortedLR
