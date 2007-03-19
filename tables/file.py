@@ -373,7 +373,6 @@ class File(hdf5Extension.File, object):
     root
         The *root* of the object tree hierarchy (a `Group` instance).
 
-
     Public methods -- file handling
     -------------------------------
 
@@ -1399,7 +1398,7 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         Recursively iterate over groups (not leaves) hanging from
         `where`.
 
-        The `where` group itself is listed first (pre-order), then each
+        The `where` group itself is listed first (preorder), then each
         of its child groups (following an alphanumerical order) is also
         traversed, following the same procedure.  If `where` is not
         supplied, the root group is used.

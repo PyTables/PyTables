@@ -571,7 +571,7 @@ class Description(object):
 
         If `type` is ``'All'`` (the default), all column description
         objects (`Col` and `Description` instances) are returned in
-        top-to-bottom order (pre-order).
+        top-to-bottom order (preorder).
 
         If `type` is ``'Col'`` or ``'Description'``, only column
         or descriptions of the specified type are returned.

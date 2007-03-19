@@ -62,59 +62,128 @@ class _ChildrenDict(tables.misc.proxydict.ProxyDict):
 
 
 class Group(hdf5Extension.Group, Node):
-    """This is the python counterpart of a group in the HDF5 structure.
+    """
+    Basic PyTables grouping structure.
 
-    It provides methods to set properties based on information
-    extracted from the HDF5 files and to walk throughout the
-    tree. Every group has parents and children, which are all Group
-    instances, except for the root group whose parent is a File
-    instance.
+    Instances of this class are grouping structures containing *child*
+    instances of zero or more groups or leaves, together with supporting
+    metadata.  Each group has exactly one *parent* group.
 
-    In Group instances, a special feature called "natural naming" is
-    used, i.e. the instance attributes that represent HDF5 groups are
-    the same as the names of the children. This offers the user a very
-    convenient way to access nodes in tree by simply naming all the
-    path from the root group.
+    Working with groups and leaves is similar in many ways to working
+    with directories and files, respectively, in a Unix filesystem.  As
+    with Unix directories and files, objects in the object tree are
+    often described by giving their full (or absolute) path names.  This
+    full path can be specified either as a string (like in
+    '/group1/group2') or as a complete object path written in *natural
+    naming* schema (like in ``file.root.group1.group2``).
 
-    For this reason and in order to not pollute the children
-    namespace, it is explicitely forbidden to assign "normal"
-    attributes to Group instances, and the only ones allowed must
-    start by "_c_" (for class variables), "_f_" (for methods), "_g_"
-    (for private methods) or "_v_" (for instance variables) prefixes.
+    A collateral effect of the *natural naming* schema is that the names
+    of members in the ``Group`` class and its instances must be
+    carefully chosen to avoid colliding with existing children node
+    names.  For this reason and to avoid polluting the children
+    namespace all members in a ``Group`` start with some reserved
+    prefix, like ``_f_`` (for public methods), ``_g_`` (for private
+    ones), ``_v_`` (for instance variables) or ``_c_`` (for class
+    variables). Any attempt to create a new child node whose name starts
+    with one of these prefixes will raise a ``ValueError`` exception.
 
-    Instance variables (in addition to those in `Node`):
+    Another effect of natural naming is that children named after Python
+    keywords or having names not valid as Python identifiers (e.g.
+    ``class``, ``$a`` or ``44``) can not be accessed using the
+    ``node.child`` syntax.  You will be forced to use
+    ``node._f_getChild(child)`` to access them (which is recommended for
+    programmatic accesses).  You can also make use of the ``trMap``
+    (translation map dictionary) parameter in the `openFile()` function
+    in order to translate HDF5 names not suited for natural naming into
+    more convenient ones, so that you can go on using
+    ``file.root.group1.group2`` syntax or ``getattr()``.
 
-    _v_nchildren
-        The number of children hanging from this group.
+    You will also need to use ``_f_getChild()`` to access an existing
+    child node if you set a Python attribute in the ``Group`` with the
+    same name as that node (you will get a `NaturalNameWarning` when
+    doing this).
+
+    Public instance variables
+    -------------------------
+
+    The following instance variables are provided in addition to those
+    in `Node`:
+
     _v_children
         Dictionary with all nodes hanging from this group.
-    _v_groups
-        Dictionary with all groups hanging from this group.
-    _v_leaves
-        Dictionary with all leaves hanging from this group.
-    _v_hidden
-        Dictionary with all hidden nodes hanging from this group.
     _v_filters
-        Default filter properties for child nodes --see `Filters`.  A
-        shorthand for the ``FILTERS`` attribute.  When there is no such
-        attribute, its value is the default `Filters` instance.
+        Default filter properties for child nodes.
 
         You can (and are encouraged to) use this property to get, set
-        and delete the ``FILTERS`` HDF5 attribute of the group.  When
-        the group has no such attribute, the default filters are used.
+        and delete the ``FILTERS`` HDF5 attribute of the group, which
+        stores a `Filters` instance.  When the group has no such
+        attribute, a default `Filters` instance is used.
 
-    Public methods (in addition to those in `Node`):
+    _v_groups
+        Dictionary with all groups hanging from this group.
+    _v_hidden
+        Dictionary with all hidden nodes hanging from this group.
+    _v_leaves
+        Dictionary with all leaves hanging from this group.
+    _v_nchildren
+        The number of children hanging from this group.
 
-    * __setattr__(name, value)
-    * __getattr__(name)
-    * __delattr__(name)
-    * __iter__()
-    * __contains__(name)
+    Public methods
+    --------------
+
+    .. admonition:: Caveat
+
+       The following methods are documented for completeness, and they
+       can be used without any problem.  However, you should use the
+       high-level counterpart methods in the `File` class, because they
+       are most used in documentation and examples, and are a bit more
+       powerful than those exposed here.
+
+    The following methods are provided in addition to those in `Node`:
+
+    * _f_close()
+    * _f_copy([newparent][, newname][, overwrite][, recursive][, createparents][, **kwargs])
+    * _f_copyChildren(dstgroup[, overwrite][, recursive][, createparents][, **kwargs])
     * _f_getChild(childname)
-    * _f_listNodes(classname)
+    * _f_iterNodes([classname])
+    * _f_listNodes([classname])
     * _f_walkGroups()
-    * _f_walkNodes(classname, recursive)
-    * _f_copyChildren(dstgroup[, overwrite][, recursive][, **kwargs])
+    * _f_walkNodes([classname][, recursive])
+
+    Special methods
+    ---------------
+
+    Following are described the methods that automatically trigger
+    actions when a ``Group`` instance is accessed in a special way.
+
+    This class defines the ``__setattr__``, ``__getattr__`` and
+    ``__delattr__`` methods, and they set, get and delete *ordinary
+    Python attributes* as normally intended.  In addition to that,
+    ``__getattr__`` allows getting *child nodes* by their name for the
+    sake of easy interaction on the command line, as long as there is no
+    Python attribute with the same name.  Groups also allow the
+    interactive completion (when using ``readline``) of the names of
+    child nodes. For instance::
+
+        nchild = group._v_nchildren  # get a Python attribute
+
+        # Add a Table child called 'table' under 'group'.
+        h5file.createTable(group, 'table', myDescription)
+
+        table = group.table          # get the table child instance
+        group.table = 'foo'          # set a Python attribute
+        # (PyTables warns you here about using the name of a child node.)
+        foo = group.table            # get a Python attribute
+        del group.table              # delete a Python attribute
+        table = group.table          # get the table child instance again
+
+    * __contains__(name)
+    * __delattr__(name)
+    * __getattr__(name)
+    * __iter__()
+    * __repr__()
+    * __setattr__(name, value)
+    * __str__()
     """
 
     # Class identifier.
@@ -156,8 +225,9 @@ class Group(hdf5Extension.Group, Node):
         Default filter properties for child nodes.
 
         You can (and are encouraged to) use this property to get, set
-        and delete the ``FILTERS`` HDF5 attribute of the group.  When
-        the group has no such attribute, the default filters are used.
+        and delete the ``FILTERS`` HDF5 attribute of the group, which
+        stores a `Filters` instance.  When the group has no such
+        attribute, a default `Filters` instance is used.
         """ )
 
     # </properties>
@@ -414,8 +484,17 @@ class Group(hdf5Extension.Group, Node):
                 return UnImplemented(self, childName)
 
 
-    def __iter__(self, classname=None, recursive=0):
-        """Iterate over the children on self"""
+    def __iter__(self, classname=None, recursive=False):
+        """
+        Iterate over child nodes hanging directly from the group.
+
+        This iterator is *not* recursive.  Example of use::
+
+            # Non-recursively list all the nodes hanging from '/detector'
+            print \"Nodes in '/detector' group:\"
+            for node in h5file.root.detector:
+                print node
+        """
         return self._f_walkNodes(classname, recursive)
 
 
@@ -423,21 +502,34 @@ class Group(hdf5Extension.Group, Node):
         """
         Is there a child with that `name`?
 
-        Returns ``True`` if the group has a child node (visible or
-        hidden) with the given `name` (a string), ``False`` otherwise.
+        Returns a true value if the group has a child node (visible or
+        hidden) with the given `name` (a string), false otherwise.
         """
         self._g_checkOpen()
         return name in self._v_children or name in self._v_hidden
 
 
     def _f_walkNodes(self, classname=None, recursive=True):
-        """Iterate over the nodes of self
+        """
+        Iterate over descendent nodes.
 
-        If "classname" is supplied, only instances of this class
-        are returned. If "recursive" is false, only children
-        hanging immediately after the group are returned. If
-        true, a recursion over all the groups hanging from it is
-        performed. """
+        This method recursively walks *self* top to bottom (preorder),
+        iterating over child groups in alphanumerical order, and
+        yielding nodes.  If `classname` is supplied, only instances of
+        the named class are yielded.
+
+        If `recursive` is false, it behaves like `Group._f_iterNodes()`,
+        yielding only children hanging immediately under the group.  If
+        `classname` is 'Group' and `recursive` is true, it behaves like
+        `Group._f_walkGroups()`, yielding only groups.
+
+        Example of use::
+
+            # Recursively print all the arrays hanging from '/'
+            print \"Arrays in the object tree '/':\"
+            for array in h5file.root._f_walkNodes('Array', recursive=True):
+                print array
+        """
 
         self._g_checkOpen()
 
@@ -659,6 +751,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         If the child exists (be it visible or not), it is returned.
         Else, a `NoSuchNodeError` is raised.
+
+        Using this method is recommended over ``getattr()`` when doing
+        programmatic accesses to children if the `childname` is unknown
+        beforehand or when its name is not a valid Python identifier.
         """
 
         self._g_checkOpen()
@@ -672,13 +768,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     def _f_listNodes(self, classname=None):
         """
-        Return a list with children nodes.
+        Return a *list* with children nodes.
 
-        The list is alphanumerically sorted by node name.  If the name
-        of a class derived from `Node` is supplied in the `classname`
-        parameter, only instances of that class (or subclasses of it)
-        will be returned.  `IndexArray` objects are not allowed to be
-        listed.
+        This is a list-returning version of `Group._f_iterNodes()`.
         """
 
         self._g_checkOpen()
@@ -719,15 +811,14 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
     def _f_iterNodes(self, classname=None):
         """
-        Return an iterator yielding children nodes.
+        Iterate over children nodes.
 
-        The list is alphanumerically sorted by node name.  If the name
-        of a class derived from `Node` is supplied in the `classname`
-        parameter, only instances of that class (or subclasses of it)
-        will be returned.  `IndexArray` objects are not allowed to be
-        listed.
+        Child nodes are yielded alphanumerically sorted by node name.
+        If the name of a class derived from `Node` is supplied in the
+        `classname` parameter, only instances of that class (or
+        subclasses of it) will be returned.
 
-        This is an iterator version of Group._f_listNodes()
+        This is an iterator version of `Group._f_listNodes()`.
         """
 
         self._g_checkOpen()
@@ -767,11 +858,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 
     def _f_walkGroups(self):
-        """Iterate over the Groups (not Leaves) hanging from self.
+        """
+        Recursively iterate over descendent groups (not leaves).
 
-        The groups are returned ordered from top to bottom, and
-        alphanumerically sorted when in the same level.
-
+        This method starts by yielding *self*, and then it goes on to
+        recursively iterate over all child groups in alphanumerical
+        order, top to bottom (preorder), following the same procedure.
         """
 
         self._g_checkOpen()
@@ -796,13 +888,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         This method deletes an *ordinary Python attribute* from the
         object.  It does *not* remove children nodes from this group;
-        for that, use `File.removeNode()` or `Group._f_remove()`.  It
+        for that, use `File.removeNode()` or `Node._f_remove()`.  It
         does *neither* delete a PyTables node attribute; for that, use
         `File.delNodeAttr()`, `Node._f_delAttr()` or `Node._v_attrs`.
 
-        If there were an attribute and a child node with the same
-        `name`, the child node will be made accessible again via natural
-        naming.
+        If there is an attribute and a child node with the same `name`,
+        the child node will be made accessible again via natural naming.
         """
         try:
             super(Group, self).__delattr__(name)  # nothing particular
@@ -815,9 +906,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         """
         Get a Python attribute or child node called `name`.
 
-        If the object has a Python attribute called `name`, itis value
+        If the object has a Python attribute called `name`, its value is
         returned.  Else, if the node has a child node called `name`, it
-        is returned.  Else, an `AttributeError` is raised.
+        is returned.  Else, an ``AttributeError`` is raised.
         """
         # That is true since a `NoSuchNodeError` is an `AttributeError`.
 
@@ -839,9 +930,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         If there is already a child node with the same `name`, a
         `NaturalNameWarning` will be issued and the child node will not
-        be accessible via natural naming nor `getattr()`.  It will still
-        be available via `File.getNode()`, `Group._f_getChild()` and
-        children dictionaries in the group (if visible).
+        be accessible via natural naming nor ``getattr()``.  It will
+        still be available via `File.getNode()`, `Group._f_getChild()`
+        and children dictionaries in the group (if visible).
         """
 
         # Show a warning if there is an child node with that name.
@@ -1042,7 +1133,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 
     def __str__(self):
-        """The string representation for this object."""
+        """
+        Return a short string representation of the group.
+
+        Example of use::
+
+            >>> f=tables.openFile('data/test.h5')
+            >>> print f.root.group0
+            /group0 (Group) 'First Group'</screen>
+        """
 
         if not self._v_isopen:
             return repr(self)
@@ -1059,7 +1158,16 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 
     def __repr__(self):
-        """A detailed string representation for this object."""
+        """
+        Return a detailed string representation of the group.
+
+        Example of use::
+
+            >>> f = tables.openFile('data/test.h5')
+            >>> f.root.group0
+            /group0 (Group) 'First Group'
+              children := ['tuple1' (Table), 'group1' (Group)]
+        """
 
         if not self._v_isopen:
             return "<closed Group>"

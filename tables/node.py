@@ -144,7 +144,7 @@ class Node(object):
 
     _f_close()
         Close this node in the tree.
-    _f_copy([newparent][, newname][, overwrite][, recursive][, **kwargs])
+    _f_copy([newparent][, newname][, overwrite][, recursive][, createparents][, **kwargs])
         Copy this node and return the new one.
     _f_isVisible()
         Is this node visible?
