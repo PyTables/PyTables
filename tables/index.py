@@ -655,18 +655,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """Append the array to the index objects"""
 
         sorted = self.sorted
-        tref = time()
-        # Objects that arrive here should be numpy objects already
-        s = arr.argsort(kind=defsort)
-        # Indexes in PyTables Pro systems are 64-bit long
-        if not plat64:
-            s = s.astype('int64')
         offset = sorted.nrows * self.slicesize
-        s += offset
-        self.indices.append(s)
-        del s  # delete reference to s as this is not needed anymore
-        # Doing a sort in-place takes less memory than a fancy-selection
-        arr.sort()
+        # As len(arr) < 2**32, we can choose unit32 for representing idx
+        idx = numpy.arange(0, len(arr), dtype='uint32')
+        # In-place sorting
+        indexesExtension.keysort(arr, idx)
         # Save the sorted array
         sorted.append(arr)
         cs = self.chunksize
@@ -679,6 +672,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         smedian = arr[cs/2::cs]
         self.mbounds.append(smedian)
         self.mranges.append([smedian[ncs/2]])
+        del arr, smedian   # delete references to arr
+        # Append the indices
+        idx = idx.astype('int64')
+        idx += offset
+        self.indices.append(idx)
+        del idx
         # Update nrows after a successful append
         self.nrows = sorted.nrows
         self.nelements = self.nrows * self.slicesize
@@ -697,24 +696,25 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         nelementsLR = tnrows - offset
         assert nelementsLR == len(arr), \
 "The number of elements to append is incorrect!. Report this to the authors."
-        s = arr.argsort(kind=defsort)
-        # Indexes in PyTables Pro systems are 64-bit long
-        if not plat64:
-            s = s.astype('int64')
-        # Save the reverse index array
-        s += offset
-        indicesLR[:len(arr)] = s
-        del s
-        arr.sort()  # sort in-place
-        # build the cache of bounds
+        # As len(arr) < 2**32, we can choose unit32 for representing idx
+        idx = numpy.arange(0, len(arr), dtype='uint32')
+        # In-place sorting
+        indexesExtension.keysort(arr, idx)
+        # Build the cache of bounds
         self.bebounds = numpy.concatenate((arr[::self.chunksize],
                                            [arr[-1]]))
         # The number of elements is at the end of the array
         indicesLR[-1] = nelementsLR
         # Save the number of elements, bounds and sorted values
-        offset = len(self.bebounds)
-        sortedLR[:offset] = self.bebounds
-        sortedLR[offset:offset+len(arr)] = arr
+        offset2 = len(self.bebounds)
+        sortedLR[:offset2] = self.bebounds
+        sortedLR[offset2:offset2+len(arr)] = arr
+        del arr
+        # Save the reverse index array
+        idx = idx.astype('int64')
+        idx += offset
+        indicesLR[:len(idx)] = idx
+        del idx
         # Update nelements after a successful append
         self.nrows = sorted.nrows + 1
         self.nelements = sorted.nrows * self.slicesize + nelementsLR
@@ -728,7 +728,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.verbose = verbose
         #self.verbose = True  # uncomment for debugging purposes only
         self.profile = False
-        #self.profile = True  # uncomment for profiling purposes only
+        self.profile = True  # uncomment for profiling purposes only
 
         # Initialize last_tover and last_nover
         self.last_tover = 0
@@ -969,18 +969,37 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         cs = self.chunksize
         ncs = self.nchunkslice
         nsb = self.nslicesblock
+        max32 = 2**32
         # First, reorder the complete slices
         for nslice in xrange(nblock*nsb, (nblock+1)*nsb):
             # Protection against processing non-existing slices
             if nslice >= sorted.nrows:
                 break
-            if self.profile: show_stats("Abans de llegir slice", tref)
+            if self.profile: show_stats("Abans de llegir indexos", tref)
+            block_idx = tmp_indices[nslice]
+            # Check whether block_idx can be represented by a unit32 type
+            if self.profile: show_stats("Abans del calcul del max", tref)
+            maximum = block_idx.max()
+            offset = 0
+            if maximum < max32:
+                # The info fits perfectly in a uint32 type
+                block_idx = block_idx.astype('uint32')
+            else:
+                if self.profile: show_stats("Abans del calcul del min", tref)
+                minimum = block_idx.min()
+                extent = maximum - minimum
+                if extent < max32:
+                    # We still can fit info using uint32
+                    offset = minimum
+                    if self.profile: show_stats("Abans de restar offset", tref)
+                    block_idx -= offset
+                    if self.profile: show_stats("Abans d'abaixar uint32", tref)
+                    block_idx = block_idx.astype('uint32')
+            if self.profile: show_stats("Abans de llegir sorted", tref)
             block = tmp_sorted[nslice]
-            if self.profile: show_stats("Abans d'ordenar (argsort)", tref)
-            sblock_idx = block.argsort(kind=defsort)
-            if self.profile: show_stats("Abans d'ordenar (sort)", tref)
-            block.sort(kind=defsort)
-            if self.profile: show_stats("Abans d'escriure slice", tref)
+            if self.profile: show_stats("Abans d'ordenar (keysort)", tref)
+            indexesExtension.keysort(block, block_idx)
+            if self.profile: show_stats("Abans d'escriure sorted", tref)
             sorted[nslice] = block
             self.ranges[nslice] = block[[0,-1]]
             self.bounds[nslice] = block[cs::cs]
@@ -993,33 +1012,17 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.mranges[nslice] = smedian[ncs/2]
             if self.profile: show_stats("Abans d'esborrar block", tref)
             del smedian, block
-            # uint32 is enough to keep the indexes of the sorted block
-            # because len(block) is always less than 2**32
-            sblock_idx = sblock_idx.astype('uint32')
-            if self.profile: show_stats("Abans de llegir indexos", tref)
-            block_idx = tmp_indices[nslice]
-            # Check whether block_idx can be represented by using unit32
-            if self.profile: show_stats("Abans del calcul del min/max", tref)
-            minimum = block_idx.min(); maximum = block_idx.max()
-            extent = maximum - minimum
-            if extent <= infinityMap['uint32'][1]:
-                if self.profile: show_stats("Abans de restar el minim", tref)
-                block_idx -= minimum
-                if self.profile: show_stats("Abans d'abaixar a uint32", tref)
-                block_idx = block_idx.astype('uint32')
-            if self.profile: show_stats("Abans de reordenar indexos", tref)
-            sorted_idx = block_idx[sblock_idx]
-            if self.profile: show_stats("Abans d'esborrar indexos", tref)
-            del block_idx, sblock_idx
-            if extent <= infinityMap['uint32'][1]:
+            # Write indices
+            if block_idx.dtype == 'uint32':
                 if self.profile: show_stats("Abans d'apujar a 'int64'", tref)
-                sorted_idx = sorted_idx.astype('int64')
-                if self.profile: show_stats("Abans de sumar el minim", tref)
-                sorted_idx += minimum
+                block_idx = block_idx.astype('int64')
+                if offset > 0:
+                    if self.profile: show_stats("Abans de sumar minim", tref)
+                    block_idx += offset
             if self.profile: show_stats("Abans d'escriure indexos", tref)
-            indices[nslice] = sorted_idx
+            indices[nslice] = block_idx
             if self.profile: show_stats("Abans d'esborrar nous indexos", tref)
-            del sorted_idx
+            del block_idx
             if self.profile: show_stats("Final", tref)
 
 
