@@ -196,6 +196,13 @@ def keysort(ndarray array1, ndarray array2):
       return keysort_bi(<char *>array1.data, <uint *>array2.data, size)
     else:
       return keysort_bll(<char *>array1.data, <llong *>array2.data, size)
+  elif array1.dtype.char == "S":
+    # The case of strings has been not optimized (it is difficult, although it
+    # should be possible)
+    sidx = array1.argsort()
+    array1[:] = array1[sidx]
+    array2[:] = array2[sidx]
+    return 0
   else:
     raise ValueError, "This shouldn't happen!"
 
