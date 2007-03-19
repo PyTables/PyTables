@@ -537,6 +537,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         super(Index, self).__init__(
             parentNode, name, title, new, filters)
 
+        self.profile = False
+        #self.profile = True  # uncomment for profiling purposes only
+
 
     def _g_postInitHook(self):
         if self._v_new:
@@ -651,14 +654,18 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.column._updateIndexLocation(self)
 
 
-    def append(self, arr):
+    def append(self, xarr):
         """Append the array to the index objects"""
 
+        if self.profile: tref = time()
+        if self.profile: show_stats("Entrant en append", tref)
+        arr = xarr.pop()
         sorted = self.sorted
         offset = sorted.nrows * self.slicesize
         # As len(arr) < 2**32, we can choose unit32 for representing idx
         idx = numpy.arange(0, len(arr), dtype='uint32')
         # In-place sorting
+        if self.profile: show_stats("Abans de keysort", tref)
         indexesExtension.keysort(arr, idx)
         # Save the sorted array
         sorted.append(arr)
@@ -672,22 +679,31 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         smedian = arr[cs/2::cs]
         self.mbounds.append(smedian)
         self.mranges.append([smedian[ncs/2]])
+        if self.profile: show_stats("Abans d'esborrar arr i smedian", tref)
         del arr, smedian   # delete references to arr
         # Append the indices
+        if self.profile: show_stats("Abans d'apujar a 64 bits", tref)
         idx = idx.astype('int64')
+        if self.profile: show_stats("Abans de sumar offset", tref)
         idx += offset
+        if self.profile: show_stats("Abans de guardar indexos", tref)
         self.indices.append(idx)
+        if self.profile: show_stats("Abans d'esborrar indexos", tref)
         del idx
         # Update nrows after a successful append
         self.nrows = sorted.nrows
         self.nelements = self.nrows * self.slicesize
         self.nelementsLR = 0  # reset the counter of the last row index to 0
         self.dirtycache = True   # the cache is dirty now
+        if self.profile: show_stats("Eixint d'append", tref)
 
 
-    def appendLastRow(self, arr, tnrows):
+    def appendLastRow(self, xarr, tnrows):
         """Append the array to the last row index objects"""
 
+        if self.profile: tref = time()
+        if self.profile: show_stats("Entrant a appendLR", tref)
+        arr = xarr.pop()
         # compute the elements in the last row sorted & bounds array
         sorted = self.sorted
         indicesLR = self.indicesLR
@@ -699,6 +715,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # As len(arr) < 2**32, we can choose unit32 for representing idx
         idx = numpy.arange(0, len(arr), dtype='uint32')
         # In-place sorting
+        if self.profile: show_stats("Abans de keysort", tref)
         indexesExtension.keysort(arr, idx)
         # Build the cache of bounds
         self.bebounds = numpy.concatenate((arr[::self.chunksize],
@@ -708,27 +725,32 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Save the number of elements, bounds and sorted values
         offset2 = len(self.bebounds)
         sortedLR[:offset2] = self.bebounds
+        if self.profile: show_stats("Abans de guadar sorted", tref)
         sortedLR[offset2:offset2+len(arr)] = arr
+        if self.profile: show_stats("Abans d'esborrar sorted", tref)
         del arr
         # Save the reverse index array
+        if self.profile: show_stats("Abans d'apujar indexos", tref)
         idx = idx.astype('int64')
+        if self.profile: show_stats("Abans de sumar offset", tref)
         idx += offset
+        if self.profile: show_stats("Abans de guardar indexos", tref)
         indicesLR[:len(idx)] = idx
+        if self.profile: show_stats("Abans d'esborrar indexos", tref)
         del idx
         # Update nelements after a successful append
         self.nrows = sorted.nrows + 1
         self.nelements = sorted.nrows * self.slicesize + nelementsLR
         self.nelementsLR = nelementsLR
         self.dirtycache = True   # the cache is dirty now
+        if self.profile: show_stats("Eixint de appendLR", tref)
 
 
     def optimize(self, level=None, verbose=False):
         "Optimize an index to allow faster searches."
 
-        self.verbose = verbose
+        self.verbose = False
         #self.verbose = True  # uncomment for debugging purposes only
-        self.profile = False
-        self.profile = True  # uncomment for profiling purposes only
 
         # Initialize last_tover and last_nover
         self.last_tover = 0
@@ -938,29 +960,36 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 continue
             # Swap sorted and indices following the new order
             offset = nblock*nsb
-            tsorted = numpy.empty(shape=ss, dtype=self.dtype)
-            tindices = numpy.empty(shape=ss, dtype='int64')
-            for i in xrange(nslices):
-                ns = offset + i;
-                # Get sorted & indices slices in new order
-                for j in xrange(ncs):
-                    idx = sbounds_idx[i*ncs+j]
-                    ins = idx / ncs;  inc = (idx - ins*ncs)*cs
-                    ins += offset
-                    nc = j * cs
-                    tsorted[nc:nc+cs] = sorted[ins,inc:inc+cs]
-                    tindices[nc:nc+cs] = indices[ins,inc:inc+cs]
-                tmp_sorted[ns] = tsorted
-                tmp_indices[ns] = tindices
-            del tsorted, tindices
+            self.get_neworder(sbounds_idx, sorted, tmp_sorted,
+                              nslices, offset, self.dtype)
+            self.get_neworder(sbounds_idx, indices, tmp_indices,
+                              nslices, offset, 'int64')
             # Reorder completely indices at slice level
             self.reorder_slices(mode, nblock)
+
+
+    def get_neworder(self, neworder, src_disk, tmp_disk,
+                     nslices, offset, dtype):
+        """Get sorted & indices values in new order."""
+        cs = self.chunksize
+        ncs = self.nchunkslice
+        tmp = numpy.empty(shape=self.slicesize, dtype=dtype)
+        for i in xrange(nslices):
+            ns = offset + i;
+            # Get slices in new order
+            for j in xrange(ncs):
+                idx = neworder[i*ncs+j]
+                ins = idx / ncs;  inc = (idx - ins*ncs)*cs
+                ins += offset
+                nc = j * cs
+                tmp[nc:nc+cs] = src_disk[ins,inc:inc+cs]
+            tmp_disk[ns] = tmp
 
 
     def reorder_slices(self, mode, nblock):
         "Reorder completely a block at slice level."
 
-        tref = time()
+        if self.profile: tref = time()
         if self.profile: show_stats("Entrant en reorder", tref)
         sorted = self.sorted
         indices = self.indices

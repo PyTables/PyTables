@@ -1858,15 +1858,16 @@ The 'names' parameter must be a list of strings.""")
         i = start
         stop = start+nrows-slicesize+1
         while i < stop:
-            index.append(self._read(i, i+slicesize, 1, colname))
+            index.append([self._read(i, i+slicesize, 1, colname)])
             indexedrows += slicesize
             i += slicesize
         # index the remaining rows in last row
         nremain = nrows - indexedrows
         if lastrow and nremain > 0:
             startLR = (index.sorted.nrows)*slicesize
-            remainvalues = self._read(startLR, self.nrows, 1, colname)
-            index.appendLastRow(remainvalues, self.nrows)
+            index.appendLastRow(
+                [self._read(startLR, self.nrows, 1, colname)],
+                self.nrows)
             indexedrows += nremain
         return indexedrows
 
