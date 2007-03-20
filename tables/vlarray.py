@@ -142,11 +142,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         """New filter properties for this array."""
         self._v_expectedsizeinMB = expectedsizeinMB
         """The expected size of the array in MiB."""
-
-        self._v_nrowsinbuf = 100       # maybe enough for most applications
-        """The maximum number of rows that are read on each chunk iterator."""
-        self._v_chunkshape = None
-        """The HDF5 chunk shape for ``VLArray`` objects."""
+        self._v_chunkshape = chunkshape
+        """Private storage for the `chunkshape` property of Leaf."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
@@ -195,6 +192,9 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
         super(VLArray, self).__init__(parentNode, name, new, filters,
                                       byteorder, _log)
+
+        self.nrowsinbuf = 100       # maybe enough for most applications
+        """The maximum number of rows that are read on each chunk iterator."""
 
 
     # This is too specific for moving it into Leaf
@@ -457,8 +457,8 @@ be zero."""
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
-            if self._row+1 >= self._v_nrowsinbuf or self._row < 0:
-                self._stopb = self._startb+self._step*self._v_nrowsinbuf
+            if self._row+1 >= self.nrowsinbuf or self._row < 0:
+                self._stopb = self._startb+self._step*self.nrowsinbuf
                 self.listarr = self.read(self._startb, self._stopb, self._step)
                 self._row = -1
                 self._startb = self._stopb

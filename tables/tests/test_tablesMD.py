@@ -253,7 +253,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/table0")
 
         # Choose a small value for buffer size
-        table._v_nrowsinbuf = 3
+        table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var2'][0][0] for rec in table.iterrows()
                    if rec['var2'][0][0] < 20 ]
@@ -295,7 +295,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/table0")
 
         # Choose a small value for buffer size
-        table._v_nrowsinbuf = 3
+        table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var5'] for rec in table.iterrows()
                    if rec['var2'][0][0] < 20 ]
@@ -580,7 +580,7 @@ class BasicRangeTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, "r")
         table = self.fileh.getNode("/table0")
 
-        table._v_nrowsinbuf = self.nrowsinbuf
+        table.nrowsinbuf = self.nrowsinbuf
         r = slice(self.start, self.stop, self.step)
         resrange = r.indices(table.nrows)
         reslength = len(range(*resrange))
@@ -1038,7 +1038,7 @@ class DefaultValues(unittest.TestCase):
         table = fileh.createTable(fileh.root, 'table', Record)
 
         # Take a number of records a bit large
-        #nrows = int(table._v_nrowsinbuf * 1.1)
+        #nrows = int(table.nrowsinbuf * 1.1)
         nrows = 5  # for test
         # Fill the table with nrows records
         for i in xrange(nrows):
@@ -1072,7 +1072,7 @@ class DefaultValues(unittest.TestCase):
         r2 = table.read()
 
         # This generates too much output. Activate only when
-        # self._v_nrowsinbuf is very small (<10)
+        # self.nrowsinbuf is very small (<10)
         if verbose and 1:
             print "Table values:"
             print r2

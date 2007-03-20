@@ -58,8 +58,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # Select small value for table buffers
         if self.buffersize:
             # Change the buffersize by default
-            table1._v_nrowsinbuf = self.buffersize
-        #table2._v_nrowsinbuf = self.buffersize  # This is not necessary
+            table1.nrowsinbuf = self.buffersize
+        #table2.nrowsinbuf = self.buffersize  # This is not necessary
         count = 0
         for i in xrange(0, self.nrows, self.nrep):
             for j in range(self.nrep):

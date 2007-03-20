@@ -499,7 +499,7 @@ class NetCDFFile:
             if hasunlimdim:
                 # write data to enlargeable array one chunk of records at a
                 # time (so the whole array doesn't have to be kept in memory).
-                nrowsinbuf = var._NetCDF_varobj._v_nrowsinbuf
+                nrowsinbuf = var._NetCDF_varobj.nrowsinbuf
                 # The slices parameter for var.__getitem__()
                 slices = [slice(0, dim, 1) for dim in ncvar.shape]
                 # range to copy

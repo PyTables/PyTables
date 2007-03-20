@@ -93,7 +93,7 @@ class BasicTestCase(unittest.TestCase):
         vlarray = self.fileh.getNode("/vlarray1")
 
         # Choose a small value for buffer size
-        vlarray._v_nrowsinbuf = 3
+        vlarray.nrowsinbuf = 3
         # Read some rows
         row = vlarray[0]
         row2 = vlarray[2]
@@ -153,7 +153,7 @@ class BasicTestCase(unittest.TestCase):
         vlarray.append([7, 8, 9, 10])
 
         # Choose a small value for buffer size
-        vlarray._v_nrowsinbuf = 3
+        vlarray.nrowsinbuf = 3
         # Read some rows:
         row1 = vlarray[0]
         row2 = vlarray[2]
@@ -3813,8 +3813,8 @@ class ChunkshapeTestCase(unittest.TestCase):
 
         vla = self.fileh.root.vlarray
         if verbose:
-            print "chunkshape-->", vla._v_chunkshape
-        assert vla._v_chunkshape == (13,)
+            print "chunkshape-->", vla.chunkshape
+        assert vla.chunkshape == (13,)
 
     def test01(self):
         """Test setting the chunkshape in a table (reopen)."""
@@ -3823,8 +3823,8 @@ class ChunkshapeTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, 'r')
         vla = self.fileh.root.vlarray
         if verbose:
-            print "chunkshape-->", vla._v_chunkshape
-        assert vla._v_chunkshape == (13,)
+            print "chunkshape-->", vla.chunkshape
+        assert vla.chunkshape == (13,)
 
 #----------------------------------------------------------------------
 

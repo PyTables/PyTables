@@ -147,13 +147,6 @@ class Array(hdf5Extension.Array, Leaf):
         integer of floating point types, provided that they are
         regular (i.e. they are not like ``[[1, 2], 2]``).
         """
-        self._v_nrowsinbuf = None
-        """The maximum number of rows that are read on each chunk iterator."""
-        self._v_chunkshape = None
-        """
-        The HDF5 chunk size for ``CArray``, ``EArray`` and ``VLArray``
-        objects.
-        """
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
 
@@ -233,7 +226,7 @@ class Array(hdf5Extension.Array, Leaf):
         # Compute the optimal buffer size
         chunkshape = self._calc_chunkshape(
             self.nrows, self.rowsize, self.atom.itemsize)
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(
+        self.nrowsinbuf = self._calc_nrowsinbuf(
             chunkshape, self.rowsize, self.atom.itemsize)
 
         return self._v_objectID
@@ -251,7 +244,7 @@ class Array(hdf5Extension.Array, Leaf):
                 self.nrows, self.rowsize, self.atom.itemsize)
         else:
             chunkshape = self._v_chunkshape
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(
+        self.nrowsinbuf = self._calc_nrowsinbuf(
             chunkshape, self.rowsize, self.atom.itemsize)
 
         return oid
@@ -318,8 +311,8 @@ class Array(hdf5Extension.Array, Leaf):
             raise StopIteration        # end of iteration
         else:
             # Read a chunk of rows
-            if self._row+1 >= self._v_nrowsinbuf or self._row < 0:
-                self._stopb = self._startb+self._step*self._v_nrowsinbuf
+            if self._row+1 >= self.nrowsinbuf or self._row < 0:
+                self._stopb = self._startb+self._step*self.nrowsinbuf
                 # Protection for reading more elements than needed
                 if self._stopb > self._stop:
                     self._stopb = self._stop

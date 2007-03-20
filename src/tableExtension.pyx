@@ -196,7 +196,7 @@ cdef class Table(Leaf):
     class_ = PyString_AsString(self._c_classId)
     self.dataset_id = H5TBOmake_table(title, self.parent_id, self.name,
                                       obversion, class_, self.disk_type_id,
-                                      self.nrows, self._v_chunkshape[0],
+                                      self.nrows, self.chunkshape[0],
                                       self.filters.complevel, complib,
                                       self.filters.shuffle,
                                       self.filters.fletcher32,
@@ -572,7 +572,7 @@ cdef class Table(Leaf):
     # Using self.disk_type_id should be faster (i.e. less conversions)
     if (H5TBOdelete_records(self.dataset_id, self.disk_type_id,
                             self.totalrecords, rowsize, nrow, nrecords,
-                            self._v_nrowsinbuf) < 0):
+                            self.nrowsinbuf) < 0):
       raise HDF5ExtError("Problems deleting records.")
       #print "Problems deleting records."
       # Return no removed records
@@ -642,7 +642,7 @@ cdef class Row:
     self.chunked = table._chunked
     self.colenums = table._colenums
     self.exist_enum_cols = len(self.colenums)
-    self.nrowsinbuf = table._v_nrowsinbuf
+    self.nrowsinbuf = table.nrowsinbuf
     self.dtype = table._v_dtype
     self.rfieldscache = {}
     self.wfieldscache = {}

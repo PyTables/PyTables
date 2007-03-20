@@ -143,7 +143,7 @@ NODE_MAX_SLOTS = 256
 #NODE_MAX_SLOTS = 2046  # Takes lots of time! > 200 s
 #NODE_MAX_SLOTS = MAX_GROUP_WIDTH  # that would be ideal, but takes ages!
 
-# The maximum recommened number of columns in a table.
+# The maximum recommended number of columns in a table.
 # However, this limit is somewhat arbitrary and can be increased.
 MAX_COLUMNS = 512
 """Maximum number of columns in ``Table`` objects before a

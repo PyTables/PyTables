@@ -199,7 +199,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
             group, name, atom=self.atom, shape=shape, title=title,
             filters=filters, expectedrows=self.nrows, _log=_log)
         # Now, fill the new earray with values from source
-        nrowsinbuf = self._v_nrowsinbuf
+        nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__
         slices = [slice(0, dim, 1) for dim in self.shape]
         # This is a hack to prevent doing unnecessary conversions

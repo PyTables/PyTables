@@ -276,7 +276,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/table0")
 
         # Choose a small value for buffer size
-        table._v_nrowsinbuf = 3
+        table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var2'] for rec in table.iterrows()
                    if rec['var2'] < 20 ]
@@ -310,7 +310,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/table0")
 
         # Choose a small value for buffer size
-        table._v_nrowsinbuf = 3
+        table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
         result = [ rec.fetch_all_fields() for rec in table.iterrows()
                    if rec['var2'] < 20 ]
@@ -347,7 +347,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/table0")
 
         # Choose a small value for buffer size
-        table._v_nrowsinbuf = 3
+        table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
         result = [ rec[1] for rec in table.iterrows()
                    if rec['var2'] < 20 ]
@@ -370,7 +370,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/table0")
 
         # Choose a small value for buffer size
-        table._v_nrowsinbuf = 3
+        table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
         result = [ rec[::2] for rec in table.iterrows()
                    if rec['var2'] < 20 ]
@@ -458,7 +458,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/table0")
 
         # Choose a small value for buffer size
-        table._v_nrowsinbuf = 3
+        table.nrowsinbuf = 3
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var5'] for rec in table.iterrows()
                    if rec['var2'] < 20 ]
@@ -765,12 +765,12 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Record Format ==>", table.description._v_nestedFormats
             print "Record Size ==>", table.rowsize
         # Set a small number of buffer to make this test faster
-        table._v_nrowsinbuf=3
+        table.nrowsinbuf=3
         # Get their row object
         row = table.row
-        # Append some rows (3*table._v_nrowsinbuf is enough for
+        # Append some rows (3*table.nrowsinbuf is enough for
         # checking purposes)
-        for i in xrange(3*table._v_nrowsinbuf):
+        for i in xrange(3*table.nrowsinbuf):
             row['var1'] = '%04d' % (self.appendrows - i)
             row['var7'] = row['var1'][-1]
             #row['var7'] = table.cols['var1'][i][-1]
@@ -816,7 +816,7 @@ class BasicTestCase(common.PyTablesTestCase):
         if verbose:
             print "Result length ==>", len(result)
             print "Result contents ==>", result
-        assert len(result) == 20+3*table._v_nrowsinbuf
+        assert len(result) == 20+3*table.nrowsinbuf
         assert result == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
                           10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
                           0, 1, 2, 3, 4, 5, 6, 7, 8]
@@ -855,7 +855,7 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Record Format ==>", table.description._v_nestedFormats
             print "Record Size ==>", table.rowsize
         # Set a small number of buffer to make this test faster
-        table._v_nrowsinbuf=3
+        table.nrowsinbuf=3
         # Get their row object
         self.row = table.row
         # delete the table reference
@@ -938,7 +938,7 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Total selected records in table ==>", len(result)
 
         nrows = table.nrows
-        table._v_nrowsinbuf = 3  # small value of the buffer
+        table.nrowsinbuf = 3  # small value of the buffer
         # Delete the twenty-th row
         table.removeRows(19)
 
@@ -976,7 +976,7 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Total selected records in table ==>", len(result)
 
         nrows = table.nrows
-        table._v_nrowsinbuf = 4  # small value of the buffer
+        table.nrowsinbuf = 4  # small value of the buffer
         # Delete the last ten rows
         table.removeRows(10, 20)
 
@@ -1009,7 +1009,7 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
         nrows = table.nrows
-        table._v_nrowsinbuf = 5  # small value of the buffer
+        table.nrowsinbuf = 5  # small value of the buffer
         # Delete a too large range of rows
         table.removeRows(10, nrows + 100)
 
@@ -1042,13 +1042,13 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [ r['var2'] for r in table if r['var2'] < 20]
 
         nrows = table.nrows
-        nrowsinbuf = table._v_nrowsinbuf
-        table._v_nrowsinbuf = 6  # small value of the buffer
+        nrowsinbuf = table.nrowsinbuf
+        table.nrowsinbuf = 6  # small value of the buffer
         # Delete some rows
         table.removeRows(10, 15)
         # It's necessary to restore the value of buffer to use the row object
         # afterwards...
-        table._v_nrowsinbuf = nrowsinbuf
+        table.nrowsinbuf = nrowsinbuf
 
         # Append some rows
         row = table.row
@@ -1310,7 +1310,7 @@ class BasicRangeTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, "r")
         table = self.fileh.getNode("/table0")
 
-        table._v_nrowsinbuf = self.nrowsinbuf
+        table.nrowsinbuf = self.nrowsinbuf
         r = slice(self.start, self.stop, self.step)
         resrange = r.indices(table.nrows)
         reslength = len(range(*resrange))
@@ -1960,7 +1960,7 @@ class setItem(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -1979,7 +1979,7 @@ class setItem(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -1995,7 +1995,7 @@ class setItem(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2014,7 +2014,7 @@ class setItem(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2030,7 +2030,7 @@ class setItem(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2051,7 +2051,7 @@ class setItem(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2067,7 +2067,7 @@ class setItem(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2089,7 +2089,7 @@ class setItem(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2105,7 +2105,7 @@ class setItem(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2127,7 +2127,7 @@ class setItem(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2143,7 +2143,7 @@ class setItem(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2162,7 +2162,7 @@ class setItem(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2178,7 +2178,7 @@ class setItem(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2197,7 +2197,7 @@ class setItem(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2213,7 +2213,7 @@ class setItem(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2244,7 +2244,7 @@ class setItem(common.PyTablesTestCase):
 #             self.fileh.close()
 #             self.fileh = openFile(self.file, "r")
 #             table = self.fileh.root.recarray
-#             table._v_nrowsinbuf = self.buffersize  # set buffer value
+#             table.nrowsinbuf = self.buffersize  # set buffer value
 #         r2 = table.read()
 #         if verbose:
 #             print "Original table-->", repr(r2)
@@ -2260,7 +2260,7 @@ class setItem(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[1,'ded',1.3]], formats="i4,a3,f8")
@@ -2278,7 +2278,7 @@ class setItem(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2294,7 +2294,7 @@ class setItem(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2313,7 +2313,7 @@ class setItem(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2329,7 +2329,7 @@ class setItem(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2351,7 +2351,7 @@ class setItem(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2391,7 +2391,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2412,7 +2412,7 @@ class updateRow(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2429,7 +2429,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2453,7 +2453,7 @@ class updateRow(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2469,7 +2469,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2493,7 +2493,7 @@ class updateRow(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2509,7 +2509,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2533,7 +2533,7 @@ class updateRow(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2549,7 +2549,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2570,7 +2570,7 @@ class updateRow(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2586,7 +2586,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
@@ -2607,7 +2607,7 @@ class updateRow(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2623,7 +2623,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         # append new rows
         r=records.array([[456,'dbe',1.2],[1,'ded',1.3]], formats="i4,a3,f8")
@@ -2644,7 +2644,7 @@ class updateRow(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2660,7 +2660,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         nrows = 100
         # append new rows
@@ -2692,7 +2692,7 @@ class updateRow(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2708,7 +2708,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         nrows = 100
         # append new rows
@@ -2740,7 +2740,7 @@ class updateRow(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2756,7 +2756,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         nrows = 100
         # append new rows
@@ -2793,7 +2793,7 @@ class updateRow(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -2809,7 +2809,7 @@ class updateRow(common.PyTablesTestCase):
 
         # Create a new table:
         table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
-        table._v_nrowsinbuf = self.buffersize  # set buffer value
+        table.nrowsinbuf = self.buffersize  # set buffer value
 
         nrows = 100
         # append new rows
@@ -2847,7 +2847,7 @@ class updateRow(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "r")
             table = self.fileh.root.recarray
-            table._v_nrowsinbuf = self.buffersize  # set buffer value
+            table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
         if verbose:
             print "Original table-->", repr(r2)
@@ -3789,7 +3789,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Create a recarray exceeding buffers capability
         # This works, but takes too much CPU for a test
-        # It is better to reduce the buffer size (table1._v_nrowsinbuf)
+        # It is better to reduce the buffer size (table1.nrowsinbuf)
 #         r=records.array('aaaabbbbccccddddeeeeffffgggg'*20000,
 #                         formats='2i2,i4, (2,3)u2, (1,)f4, f8',shape=700)
         r=records.array('aaaabbbbccccddddeeeeffffgggg'*200,
@@ -3806,7 +3806,7 @@ class CopyTestCase(unittest.TestCase):
 
         # Copy to another table in another group and other title
         group1 = fileh.createGroup("/", "group1")
-        table1._v_nrowsinbuf = 2  # small value of buffer
+        table1.nrowsinbuf = 2  # small value of buffer
         table2 = table1.copy(group1, 'table2', title="title table2")
         if self.close:
             if verbose:
@@ -4101,7 +4101,7 @@ class CopyIndexTestCase(unittest.TestCase):
             table1 = fileh.root.table1
 
         # Copy to another table
-        table1._v_nrowsinbuf = self.nrowsinbuf
+        table1.nrowsinbuf = self.nrowsinbuf
         table2 = table1.copy("/", 'table2',
                              start=self.start,
                              stop=self.stop,
@@ -4154,7 +4154,7 @@ class CopyIndexTestCase(unittest.TestCase):
             table1 = fileh.root.table1
 
         # Copy to another table
-        table1._v_nrowsinbuf = self.nrowsinbuf
+        table1.nrowsinbuf = self.nrowsinbuf
         table2 = table1.copy("/", 'table2',
                              start=self.start,
                              stop=self.stop,
@@ -4334,9 +4334,9 @@ class DefaultValues(unittest.TestCase):
         # Create a table
         table = fileh.createTable(fileh.root, 'table', self.record)
 
-        table._v_nrowsinbuf=46   # minimum amount that reproduces a problem
+        table.nrowsinbuf=46   # minimum amount that reproduces a problem
         # Take a number of records a bit greater
-        nrows = int(table._v_nrowsinbuf * 1.1)
+        nrows = int(table.nrowsinbuf * 1.1)
         # Fill the table with nrows records
         for i in xrange(nrows):
             if i == 3 or i == 4:
@@ -4361,7 +4361,7 @@ class DefaultValues(unittest.TestCase):
         r2 = table[::]  # Equivalent to table.read()
 
         # This generates too much output. Activate only when
-        # self._v_nrowsinbuf is very small (<10)
+        # self.nrowsinbuf is very small (<10)
         if verbose:
             print "First 10 table values:"
             for row in table.iterrows(0, 10):
@@ -4668,8 +4668,8 @@ class ChunkshapeTestCase(unittest.TestCase):
 
         tbl = self.fileh.root.table
         if verbose:
-            print "chunkshape-->", tbl._v_chunkshape
-        assert tbl._v_chunkshape == (13,)
+            print "chunkshape-->", tbl.chunkshape
+        assert tbl.chunkshape == (13,)
 
     def test01(self):
         """Test setting the chunkshape in a table (reopen)."""
@@ -4678,8 +4678,8 @@ class ChunkshapeTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, 'r')
         tbl = self.fileh.root.table
         if verbose:
-            print "chunkshape-->", tbl._v_chunkshape
-        assert tbl._v_chunkshape == (13,)
+            print "chunkshape-->", tbl.chunkshape
+        assert tbl.chunkshape == (13,)
 
 
 

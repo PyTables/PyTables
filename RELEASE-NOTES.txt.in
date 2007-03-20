@@ -151,6 +151,10 @@ users).
 Of course, if this parameter is not specified, a sensible default is
 calculated for the size of the leave (which is recommended).
 
+A new attribute called ``chunkshape`` has been added to all the leaves. It is
+read-only (you can't change the size of the chunks once you have created a
+leaf), but it can be useful for inspection of advanced users.
+
 
 New flavor specification
 ------------------------
@@ -186,6 +190,17 @@ Besides, all leaf constructors have received a new ``byteorder`` parameter
 that allows specifying the byteorder of data on disk.  In particular, a
 ``_v_byteorder`` entry in a Table description is no longer honored and you
 should use the aforementioned ``byteorder`` parameter.
+
+
+Tunable internal buffer sizes
+-----------------------------
+
+You can change the size of the internal buffers for I/O purposes of PyTables
+by changing the value of the new public attribute ``nrowsinbuf`` that is
+present in all the leaves. By default, this contains a sensible value so as to
+achieve a good balance between speed and memory consumption. Be careful when
+changing it, if you don't want to get unwanted results (very slow I/O, huge
+memory consumption...).
 
 
 Changes to module names

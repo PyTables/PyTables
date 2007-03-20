@@ -794,8 +794,8 @@ cdef class Array(Leaf):
 
     self.rank = len(self.shape)
     self.dims = malloc_dims(self.shape)
-    if self._v_chunkshape:
-      self.dims_chunk = malloc_dims(self._v_chunkshape)
+    if self.chunkshape:
+      self.dims_chunk = malloc_dims(self.chunkshape)
 
     rbuf = NULL   # The data pointer. We don't have data to save initially
     # Manually convert some string values that can't be done automatically
@@ -1057,7 +1057,7 @@ cdef class VLArray(Leaf):
     # Create the vlarray
     self.dataset_id = H5VLARRAYmake(self.parent_id, self.name, class_, title,
                                     version, rank, dims, self.base_type_id,
-                                    self._v_chunkshape[0], rbuf,
+                                    self.chunkshape[0], rbuf,
                                     self.filters.complevel, complib,
                                     self.filters.shuffle,
                                     self.filters.fletcher32,

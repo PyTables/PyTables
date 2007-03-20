@@ -127,7 +127,7 @@ class BasicTestCase(unittest.TestCase):
         earray = self.fileh.getNode("/earray1")
 
         # Choose a small value for buffer size
-        earray._v_nrowsinbuf = 3
+        earray.nrowsinbuf = 3
         if verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
@@ -204,7 +204,7 @@ class BasicTestCase(unittest.TestCase):
         earray = self.fileh.getNode("/earray1")
 
         # Choose a small value for buffer size
-        earray._v_nrowsinbuf = 3
+        earray.nrowsinbuf = 3
         if verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
@@ -274,7 +274,7 @@ class BasicTestCase(unittest.TestCase):
         earray = self.fileh.getNode("/earray1")
 
         # Choose a small value for buffer size
-        earray._v_nrowsinbuf = 3
+        earray.nrowsinbuf = 3
         if verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
@@ -404,7 +404,7 @@ class BasicTestCase(unittest.TestCase):
         earray = self.fileh.getNode("/earray1")
 
         # Choose a small value for buffer size
-        #earray._v_nrowsinbuf = 3   # this does not really changes the chunksize
+        #earray.nrowsinbuf = 3   # this does not really changes the chunksize
         if verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
@@ -517,7 +517,7 @@ class BasicTestCase(unittest.TestCase):
         earray = self.fileh.getNode("/earray1")
 
         # Choose a small value for buffer size
-        #earray._v_nrowsinbuf = 3   # this does not really changes the chunksize
+        #earray.nrowsinbuf = 3   # this does not really changes the chunksize
         if verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
@@ -2044,7 +2044,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1.append(r)
 
         # Select a different buffer size:
-        array1._v_nrowsinbuf = self.nrowsinbuf
+        array1.nrowsinbuf = self.nrowsinbuf
 
         # Copy to another array
         array2 = array1.copy("/", 'array2',
@@ -2091,7 +2091,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1.append(r)
 
         # Select a different buffer size:
-        array1._v_nrowsinbuf = self.nrowsinbuf
+        array1.nrowsinbuf = self.nrowsinbuf
 
         # Copy to another array
         array2 = array1.copy("/", 'array2',

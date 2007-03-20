@@ -116,7 +116,7 @@ class BasicTestCase(unittest.TestCase):
         carray = self.fileh.getNode("/carray1")
 
         # Choose a small value for buffer size
-        carray._v_nrowsinbuf = 3
+        carray.nrowsinbuf = 3
         if verbose:
             print "CArray descr:", repr(carray)
             print "shape of read array ==>", carray.shape
@@ -187,7 +187,7 @@ class BasicTestCase(unittest.TestCase):
         else:
             # Scalar case
             assert len(self.shape) == 1
-        assert carray._v_chunkshape == self.chunkshape
+        assert carray.chunkshape == self.chunkshape
         assert allequal(data, object, self.flavor)
 
     def test02_getitemCArray(self):
@@ -256,7 +256,7 @@ class BasicTestCase(unittest.TestCase):
         if not hasattr(data, "shape"):
             # Scalar case
             assert len(self.shape) == 1
-        assert carray._v_chunkshape == self.chunkshape
+        assert carray.chunkshape == self.chunkshape
         assert allequal(data, object, self.flavor)
 
     def test03_setitemCArray(self):
@@ -346,7 +346,7 @@ class BasicTestCase(unittest.TestCase):
         if not hasattr(data, "shape"):
             # Scalar case
             assert len(self.shape) == 1
-        assert carray._v_chunkshape == self.chunkshape
+        assert carray.chunkshape == self.chunkshape
         assert allequal(data, object, self.flavor)
 
 
@@ -1189,7 +1189,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Altet 2006-11-27
-        #assert array1._v_chunkshape == array2._v_chunkshape
+        #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
         fileh.close()
@@ -1253,7 +1253,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Altet 2006-11-27
-        #assert array1._v_chunkshape == array2._v_chunkshape
+        #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
         fileh.close()
@@ -1317,7 +1317,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Altet 2006-11-27
-        #assert array1._v_chunkshape == array2._v_chunkshape
+        #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
         fileh.close()
@@ -1382,7 +1382,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Altet 2006-11-27
-        #assert array1._v_chunkshape == array2._v_chunkshape
+        #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
         fileh.close()
@@ -1445,7 +1445,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Altet 2006-11-27
-        #assert array1._v_chunkshape == array2._v_chunkshape
+        #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
         fileh.close()
@@ -1505,7 +1505,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Altet 2006-11-27
-        #assert array1._v_chunkshape == array2._v_chunkshape
+        #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
         fileh.close()
@@ -1568,7 +1568,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Altet 2006-11-27
-        #assert array1._v_chunkshape == array2._v_chunkshape
+        #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
         fileh.close()
@@ -1627,7 +1627,7 @@ class CopyTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Altet 2006-11-27
-        #assert array1._v_chunkshape == array2._v_chunkshape
+        #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
         fileh.close()
@@ -1814,7 +1814,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1[...] = r
 
         # Select a different buffer size:
-        array1._v_nrowsinbuf = self.nrowsinbuf
+        array1.nrowsinbuf = self.nrowsinbuf
 
         # Copy to another array
         array2 = array1.copy("/", 'array2',
@@ -1839,7 +1839,7 @@ class CopyIndexTestCase(unittest.TestCase):
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
         # F. Altet 2006-11-27
-        #assert array1._v_chunkshape == array2._v_chunkshape
+        #assert array1.chunkshape == array2.chunkshape
         assert r2.shape[0] == array2.nrows
 
         # Close the file
@@ -1867,7 +1867,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1[...] = r
 
         # Select a different buffer size:
-        array1._v_nrowsinbuf = self.nrowsinbuf
+        array1.nrowsinbuf = self.nrowsinbuf
 
         # Copy to another array
         array2 = array1.copy("/", 'array2',
@@ -1888,7 +1888,7 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # Check that all the elements are equal
         r2 = r[self.start:self.stop:self.step]
-        assert array1._v_chunkshape == array2._v_chunkshape
+        assert array1.chunkshape == array2.chunkshape
         assert allequal(r2, array2.read())
 
         # Assert the number of rows in array

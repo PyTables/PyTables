@@ -561,15 +561,10 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
                 # Decode the reord_opts attribute (see especification
                 # for codification above)
                 value = self.attrs.reord_opts
-                # XXX eliminar aquest if quan acabem els benchmarks!
-                # F. Altet 2007-02-01
-                if type(value) == tuple:
-                    reord_opts = value
-                else:
-                    # Decode the first 3 values
-                    reord_opts = [((value>>i) & 0x01) is 1 for i in range(3)]
-                    # Add the forth
-                    reord_opts.append(value>>3)
+                # Decode the first 3 values
+                reord_opts = [((value>>i) & 0x01) is 1 for i in range(3)]
+                # Add the forth
+                reord_opts.append(value>>3)
                 self.reord_opts = tuple(reord_opts)
         super(IndexArray, self)._g_postInitHook()
 

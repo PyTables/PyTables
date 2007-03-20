@@ -105,6 +105,9 @@ class Leaf(Node):
     shape -- The shape of data in the leaf.
     maindim -- The dimension along which iterators work.
     nrows -- The length of the main dimension of the leaf data.
+    nrowsinbuf -- The number of rows that fits in internal input
+        buffers.  You can change this to fine tune the speed or memory
+        requirements of your application.
     byteorder -- The byte ordering of the leaf data *on disk*.
     filters -- Filter properties for this leaf --see `Filters`.
     name -- The name of this node in its parent group (a string).  An
@@ -120,10 +123,13 @@ class Leaf(Node):
         be any of 'numpy', 'numarray', 'numeric' or 'python' (the set of
         supported flavors depends on which packages you have installed
         on your system).
-
         You can (and are encouraged to) use this property to get, set
         and delete the ``FLAVOR`` HDF5 attribute of the leaf.  When the
         leaf has no such attribute, the default flavor is used.
+    chunkshape - The HDF5 chunk size for chunked leaves (a tuple). This
+        is read-only because you cannot change the chunk size of a leaf
+        once it has been created.
+
 
     Public methods (in addition to those in `Node`):
 
@@ -158,6 +164,10 @@ class Leaf(Node):
     hdf5name = property(
         lambda self: self._v_hdf5name, None, None,
         "The name of this node in its parent group (a string)." )
+
+    chunkshape = property(
+        lambda self: self._v_chunkshape, None, None,
+        "The HDF5 chunk size for chunked leaves (a tuple)." )
 
     objectID = property(
         lambda self: self._v_objectID, None, None,
@@ -213,6 +223,8 @@ class Leaf(Node):
                  byteorder=None, _log=True):
         self._v_new = new
         """Is this the first time the node has been created?"""
+        self.nrowsinbuf = None
+        """The number of rows that fits in internal input buffers."""
         self._flavor = None
         """Private storage for the `flavor` property."""
 

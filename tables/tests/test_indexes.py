@@ -95,7 +95,7 @@ class BasicTestCase(PyTablesTestCase):
         table.flush()  # redo the indexes
         idxcol = table.cols.var1.index
         if verbose:
-            print "Max rows in buf:", table._v_nrowsinbuf
+            print "Max rows in buf:", table.nrowsinbuf
             print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
             print "Elements in last row:", idxcol.indicesLR[-1]
@@ -116,7 +116,7 @@ class BasicTestCase(PyTablesTestCase):
         table = self.fileh.root.table
         idxcol = table.cols.var1.index
         if verbose:
-            print "Max rows in buf:", table._v_nrowsinbuf
+            print "Max rows in buf:", table.nrowsinbuf
             print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
@@ -137,7 +137,7 @@ class BasicTestCase(PyTablesTestCase):
         idxcol = table.cols.var2.index
         if verbose:
             print "Rows in table:", table.nrows
-            print "Max rows in buf:", table._v_nrowsinbuf
+            print "Max rows in buf:", table.nrowsinbuf
             print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
@@ -159,7 +159,7 @@ class BasicTestCase(PyTablesTestCase):
         table = self.fileh.root.table
         idxcol = table.cols.var3.index
         if verbose:
-            print "Max rows in buf:", table._v_nrowsinbuf
+            print "Max rows in buf:", table.nrowsinbuf
             print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
@@ -181,7 +181,7 @@ class BasicTestCase(PyTablesTestCase):
         table = self.fileh.root.table
         idxcol = table.cols.var4.index
         if verbose:
-            print "Max rows in buf:", table._v_nrowsinbuf
+            print "Max rows in buf:", table.nrowsinbuf
             print "Number of rows in table:", table.nrows
             print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
@@ -205,7 +205,7 @@ class BasicTestCase(PyTablesTestCase):
         table = self.fileh.root.table
         idxcol = table.cols.var4.index
         if verbose:
-            print "Max rows in buf:", table._v_nrowsinbuf
+            print "Max rows in buf:", table.nrowsinbuf
             print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
@@ -231,7 +231,7 @@ class BasicTestCase(PyTablesTestCase):
         table = self.fileh.root.table
         idxcol = table.cols.var2.index
         if verbose:
-            print "Max rows in buf:", table._v_nrowsinbuf
+            print "Max rows in buf:", table.nrowsinbuf
             print "Rows in tables:", table.nrows
             print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
@@ -260,7 +260,7 @@ class BasicTestCase(PyTablesTestCase):
         table = self.fileh.root.table
         idxcol = table.cols.var4.index
         if verbose:
-            print "Max rows in buf:", table._v_nrowsinbuf
+            print "Max rows in buf:", table.nrowsinbuf
             print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 
@@ -286,7 +286,7 @@ class BasicTestCase(PyTablesTestCase):
         table = self.fileh.root.table
         idxcol = table.cols.var4.index
         if verbose:
-            print "Max rows in buf:", table._v_nrowsinbuf
+            print "Max rows in buf:", table.nrowsinbuf
             print "Number of elements per slice:", idxcol.slicesize
             print "Chunk size:", idxcol.sorted.chunksize
 

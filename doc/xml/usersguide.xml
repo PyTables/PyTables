@@ -6086,6 +6086,20 @@ for node in h5file.root.detector:
 
             <glossentry>
               <glossterm><emphasis
+              role="bold">nrowsinbuf</emphasis></glossterm>
+
+              <glossdef>
+                <para>The number of rows that fits in internal input
+                buffers.</para>
+
+                <para>You can change this to fine tune the speed or memory
+                requirements of your application.</para>
+
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis
               role="bold">byteorder</emphasis></glossterm>
 
               <glossdef>
@@ -6169,6 +6183,18 @@ for node in h5file.root.detector:
                 the default flavor is used.</para>
               </glossdef>
             </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis
+              role="bold">chunkshape</emphasis></glossterm>
+
+              <glossdef>
+                <para>The HDF5 chunk size for chunked leaves (a tuple). This
+                is read-only because you cannot change the chunk size of a
+                leaf once it has been created.</para>
+              </glossdef>
+            </glossentry>
+
           </glosslist>
         </section>
 

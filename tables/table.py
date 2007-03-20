@@ -304,10 +304,8 @@ class Table(tableExtension.Table, Leaf):
         """The names of ``String`` columns."""
         self._colenums = {}
         """Maps the name of an enumerated column to its ``Enum`` instance."""
-        self._v_nrowsinbuf = None
-        """The number of rows that fit in the table buffer."""
-        self._v_chunkshape = None
-        """The HDF5 chunk shape."""
+        self._v_chunkshape = chunkshape
+        """Private storage for the `chunkshape` property of Leaf."""
 
         self.indexed = False
         """Does this table have any indexed columns?"""
@@ -426,6 +424,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                                     byteorder, _log)
 
 
+
     def _g_postInitHook(self):
         # We are putting here the index-related issues
         # as well as filling general info for table
@@ -528,7 +527,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
     def _newBuffer(self, init=1):
         """Create a new recarray buffer for I/O purposes"""
 
-        recarr = self._get_container(self._v_nrowsinbuf)
+        recarr = self._get_container(self.nrowsinbuf)
         # Initialize the recarray with the defaults in description
         if init:
             for objcol in self.description._f_walk("Col"):
@@ -639,7 +638,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         self._rabyteorder = None # not useful anymore
 
         # 2. Compute or get chunk shape and buffer size parameters.
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(
+        self.nrowsinbuf = self._calc_nrowsinbuf(
             self._v_chunkshape, self.rowsize, self.rowsize)
 
         # 3. Get field fill attributes from the table description and
@@ -679,7 +678,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 self._v_expectedrows, self.rowsize, self.rowsize)
         else:
             self._v_chunkshape = (chunksize,)
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(
+        self.nrowsinbuf = self._calc_nrowsinbuf(
             self._v_chunkshape, self.rowsize, self.rowsize)
 
         # 4. If there are field fill attributes, get them from disk and
@@ -1351,7 +1350,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         # Create a read buffer only if needed
         if field is None or ncoords > 0:
             # Doing a copy is faster when ncoords is small (<1000)
-            if ncoords < min(1000, self._v_nrowsinbuf):
+            if ncoords < min(1000, self.nrowsinbuf):
                 result = self._v_rbuffer[:ncoords].copy()
             else:
                 result = self._get_container(ncoords)
@@ -1996,7 +1995,7 @@ The 'names' parameter must be a list of strings.""")
     def _g_copyRows(self, object, start, stop, step):
         "Copy rows from self to object"
         (start, stop, step) = self._processRangeRead(start, stop, step)
-        nrowsinbuf = self._v_nrowsinbuf
+        nrowsinbuf = self.nrowsinbuf
         object._open_append(self._v_wbuffer)
         nrowsdest = object.nrows
         for start2 in xrange(start, stop, step*nrowsinbuf):

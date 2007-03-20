@@ -77,13 +77,13 @@ class WideTreeTestCase(unittest.TestCase):
                 print "Group ==>", group
             for table in fileh.listNodes(group, 'Table'):
                 rowsize = table.rowsize
-                buffersize=table.rowsize * table._v_nrowsinbuf
+                buffersize=table.rowsize * table.nrowsinbuf
                 if verbose > 1:
                     print "Table ==>", table
-                    print "Max rows in buf:", table._v_nrowsinbuf
+                    print "Max rows in buf:", table.nrowsinbuf
                     print "Rows in", table._v_pathname, ":", table.nrows
-                    print "Buffersize:", table.rowsize * table._v_nrowsinbuf
-                    print "MaxTuples:", table._v_nrowsinbuf
+                    print "Buffersize:", table.rowsize * table.nrowsinbuf
+                    print "MaxTuples:", table.nrowsinbuf
 
                 nrow = 0
                 for row in table:

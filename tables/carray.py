@@ -127,12 +127,10 @@ class CArray(Array):
         """Is this the first time the node has been created?"""
         self._v_new_title = title
         """New title for this node."""
-        self._v_nrowsinbuf = None
-        """The maximum number of rows that are read on each chunk iterator."""
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
-        self._v_chunkshape = None
-        """The HDF5 chunk size for ``CArray/EArray`` objects."""
+        self._v_chunkshape = chunkshape
+        """Private storage for the `chunkshape` property of Leaf."""
 
         # Miscellaneous iteration rubbish.
         self._start = None
@@ -212,7 +210,7 @@ chunkshape parameter cannot have zero-dimensions."""
             self._v_chunkshape = self._calc_chunkshape(
                 expectedrows, self.rowsize, self.atom.itemsize)
         # Compute the optimal nrowsinbuf
-        self._v_nrowsinbuf = self._calc_nrowsinbuf(
+        self.nrowsinbuf = self._calc_nrowsinbuf(
             self._v_chunkshape, self.rowsize, self.atom.itemsize)
         # Correct the byteorder if needed
         if self.byteorder is None:
@@ -237,7 +235,7 @@ chunkshape parameter cannot have zero-dimensions."""
         shape = list(self.shape)
         shape[maindim] = len(xrange(start, stop, step))
         # Now, fill the new carray with values from source
-        nrowsinbuf = self._v_nrowsinbuf
+        nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__
         slices = [slice(0, dim, 1) for dim in self.shape]
         # This is a hack to prevent doing innecessary conversions
