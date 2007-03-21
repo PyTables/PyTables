@@ -33,7 +33,8 @@ import warnings
 import numpy
 
 import tables
-import tables.flavor
+from tables.flavor import ( check_flavor, internal_flavor,
+                            alias_map as flavor_alias_map )
 from tables import hdf5Extension
 from tables import utilsExtension
 from tables.node import Node
@@ -201,12 +202,12 @@ class Leaf(Node):
 
     def _setflavor(self, flavor):
         self._v_file._checkWritable()
-        tables.flavor.check_flavor(flavor)
+        check_flavor(flavor)
         self._v_attrs.FLAVOR = self._flavor = flavor  # logs the change
 
     def _delflavor(self):
         del self._v_attrs.FLAVOR
-        self._flavor = tables.flavor.internal_flavor
+        self._flavor = internal_flavor
 
     flavor = property(
         lambda self: self._flavor, _setflavor, _delflavor,
@@ -290,12 +291,12 @@ class Leaf(Node):
         super(Leaf, self)._g_postInitHook()
         if self._v_new:  # set flavor of new node
             if self._flavor is None:
-                self._flavor = tables.flavor.internal_flavor
+                self._flavor = internal_flavor
             else:  # flavor set at creation time, do not log
                 self._v_attrs._g__setattr('FLAVOR', self._flavor)
         else:  # get flavor of existing node (if any)
-            self._flavor = getattr( self._v_attrs, 'FLAVOR',
-                                    tables.flavor.internal_flavor )
+            flavor = getattr(self._v_attrs, 'FLAVOR', internal_flavor)
+            self._flavor = flavor_alias_map.get(flavor, flavor)
         assert self._flavor is not None
 
 

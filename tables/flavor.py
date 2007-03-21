@@ -18,6 +18,8 @@ Variables
     The flavor used internally by PyTables.
 `all_flavors`
     List of all flavors available to PyTables.
+`alias_map`
+    Maps old flavor names to the most similar current flavor.
 `description_map`
     Maps flavors to short descriptions of their supported objects.
 `identifier_map`
@@ -64,6 +66,9 @@ internal_flavor = 'numpy'
 # order, beginning with the most common one.
 all_flavors = []  # filled as flavors are registered
 """List of all flavors available to PyTables."""
+
+alias_map = {}  # filled as flavors are registered
+"""Maps old flavor names to the most similar current flavor."""
 
 description_map = {}  # filled as flavors are registered
 """Maps flavors to short descriptions of their supported objects."""
@@ -235,6 +240,13 @@ except ImportError:
 else:
     all_flavors.append('numeric')
 
+def _register_aliases():
+    """Register aliases of *available* flavors."""
+    for flavor in all_flavors:
+        aliases = eval('_%s_aliases' % flavor)
+        for alias in aliases:
+            alias_map[alias] = flavor
+
 def _register_descriptions():
     """Register descriptions of *available* flavors."""
     for flavor in all_flavors:
@@ -266,9 +278,16 @@ def _register_converters():
 
 def _register_all():
     """Register all *available* flavors."""
+    _register_aliases()
     _register_descriptions()
     _register_identifiers()
     _register_converters()
+
+def _deregister_aliases(flavor):
+    """Deregister aliases of a given `flavor` (no checks)."""
+    for (an_alias, a_flavor) in alias_map.items():
+        if a_flavor == flavor:
+            del alias_map[an_alias]
 
 def _deregister_description(flavor):
     """Deregister description of a given `flavor` (no checks)."""
@@ -286,6 +305,7 @@ def _deregister_converters(flavor):
 
 def _disable_flavor(flavor):
     """Completely disable the given `flavor` (no checks)."""
+    _deregister_aliases(flavor)
     _deregister_description(flavor)
     _deregister_identifier(flavor)
     _deregister_converters(flavor)
@@ -294,6 +314,10 @@ def _disable_flavor(flavor):
 
 # Implementation of flavors
 # =========================
+_python_aliases = [
+    'List', 'Tuple',
+    'Int', 'Float', 'String',
+    'VLString', 'Object' ]
 _python_desc = ( "homogeneous list or tuple, "
                  "integer, float, complex or string" )
 def _is_python(array):
@@ -302,15 +326,18 @@ def _is_python(array):
         return True  # NumPy scalars will be treated as Python objects
     return isinstance(array, (tuple, list, int, float, complex, str))
 
+_numpy_aliases = []
 _numpy_desc = "NumPy array or record"
 def _is_numpy(array):
     return isinstance(array, (numpy.ndarray, numpy.void))
 
+_numarray_aliases = ['NumArray', 'CharArray']
 _numarray_desc = "numarray array or record"
 def _is_numarray(array):
     na_array_or_record = (numarray.generic.NDArray, numarray.records.Record)
     return isinstance(array, na_array_or_record)
 
+_numeric_aliases = ['Numeric']
 _numeric_desc = "Numeric array"
 def _is_numeric(array):
     return isinstance(array, Numeric.ArrayType)

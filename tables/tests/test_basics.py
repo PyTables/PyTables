@@ -1893,6 +1893,46 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(AttributeError, getattr, self.array.attrs, 'FLAVOR')
 
 
+class OldFlavorTestCase(common.PyTablesTestCase):
+    h5fname = 'old-flavors.h5'
+    old_flavors = {  # old_flavor -> (new_flavor, data)
+        'Int': ('python', 1),
+        'Float': ('python', 1.0),
+        'String': ('python', ['foo']),  # slightly different
+        'List': ('python', [1]),
+        'Tuple': ('python', [1]),  # slightly different
+        'VLString': ('python', ['foo']),
+        'Object': ('python', [{}]) }
+    if 'numeric' in tables.flavor.all_flavors:
+        import Numeric
+        old_flavors['Numeric'] = ('numeric', Numeric.array([1]))
+        del Numeric
+    if 'numarray' in tables.flavor.all_flavors:
+        import numarray
+        import numarray.strings
+        old_flavors['NumArray'] = ('numarray', numarray.array([1]))
+        old_flavors['CharArray'] = ( 'numarray',
+                                     numarray.strings.array(['foo']) )
+        del numarray
+
+    def test(self):
+        """Opening a file with old flavors."""
+
+        h5fname = self._testFilename(self.h5fname)
+        h5file = tables.openFile(h5fname, 'r')
+        try:
+            for (old_flavor, (new_flavor, data)) in self.old_flavors.items():
+                common.verbosePrint(
+                    "* Checking old flavor ``%s``." % old_flavor )
+                node = h5file.getNode('/%s' % old_flavor)
+                self.assertEqual(node.flavor, new_flavor)
+                node_data = node.read()
+                self.assertEqual(type(node_data), type(data))
+                self.assert_(common.allequal(node_data, data, new_flavor))
+        finally:
+            h5file.close()
+
+
 
 #----------------------------------------------------------------------
 
