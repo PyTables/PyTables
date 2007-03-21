@@ -229,8 +229,14 @@ Other changes
 - 'non-relevant' --> 'irrelevant' (applied to byteorders)
 - ``Table.colstypes`` --> ``Table.coltypes``
 - ``Table.coltypes`` --> ``Table.coldtypes``
-- ``Table.colshapes`` and ``Table.colitemsizes`` have disappeared.
-- ``Description.itemsize`` has disappeared.
+- Added ``Table.coldescr``, dictionary of the ``Col`` descriptions.
+- ``Table.colshapes`` --> has disappeared. You get it that way:
+    colshape =  dict((k, v.shape) for (k, v) in t.coldescr.iteritems())
+- ``Table.colitemsizes`` --> has disappeared. You get it as:
+    colitemsizes =  dict((k, v.itemsize) for (k, v) in t.coldescr.iteritems())
+- ``Description._v_totalsize`` --> ``Description._v_itemsize``
+- ``Description._v_itemsizes`` and ``Description._v_totalsizes`` have
+  disappeared.
 
 
 API additions

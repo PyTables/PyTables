@@ -167,6 +167,7 @@ class Table(tableExtension.Table, Leaf):
         colnames -- the top-level field names for the table (list)
         colpathnames -- the bottom-level field pathnames for the table (list)
         colinstances -- the column instances for the table fields (dictionary)
+        coldefs
         coldtypes -- the dtype class for the table fields (dictionary)
         coltypes -- the PyTables type for the table fields (dictionary)
         coldflts -- the defaults for each column (dictionary)
@@ -330,10 +331,12 @@ class Table(tableExtension.Table, Leaf):
         """
         self.colinstances = {}
         """Maps the name of a column to its `Column` or `Cols` instance."""
-        self.coldtypes = {}
-        """Maps the name of a column to its NumPy data type."""
+        self.coldescrs = {}
+        """Maps the name of a column to its `Col` description."""
         self.coltypes = {}
         """Maps the name of a column to its PyTables data type."""
+        self.coldtypes = {}
+        """Maps the name of a column to its NumPy data type."""
         self.coldflts = {}
         """Maps the name of a column to its default value."""
         self.colindexed = {}
@@ -711,9 +714,10 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
         * `self.colnames`
         * `self.colpathnames`
+        * `self.coldescrs`
         * `self.coltypes`
-        * `self.coldflts`
         * `self.coldtypes`
+        * `self.coldflts`
         * `self._v_dtype`
         * `self._time64colnames`
         * `self._strcolnames`
@@ -736,8 +740,9 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         for colobj in self.description._f_walk(type="Col"):
             colname = colobj._v_pathname
             # Get the column types, types and defaults
-            self.coldtypes[colname] = colobj.dtype
+            self.coldescrs[colname] = colobj
             self.coltypes[colname] = colobj.type
+            self.coldtypes[colname] = colobj.dtype
             self.coldflts[colname] = colobj.dflt
 
         # Assign _v_dtype for this table

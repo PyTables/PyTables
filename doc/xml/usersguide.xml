@@ -6493,39 +6493,31 @@ for node in h5file.root.detector:
             </glossentry>
 
             <glossentry>
+              <glossterm><emphasis
+              role="bold">coldescrs</emphasis></glossterm>
+
+              <glossdef>
+                <para>Maps the name of a column to its Col<literal></literal>
+                description see <xref linkend="ColClassDescr"
+                xrefstyle="select: labelnumber" />).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
               <glossterm><emphasis role="bold">coltypes</emphasis></glossterm>
 
               <glossdef>
-                <para>Maps the name of a column to its datatype.</para>
+                <para>Maps the name of a column to the PyTables
+                datatype.</para>
               </glossdef>
             </glossentry>
 
             <glossentry>
               <glossterm><emphasis
-              role="bold">colstypes</emphasis></glossterm>
+              role="bold">coldtypes</emphasis></glossterm>
 
               <glossdef>
-                <para>Maps the name of a column to its data string
-                type.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">colshapes</emphasis></glossterm>
-
-              <glossdef>
-                <para>Maps the name of a column to it shape.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">colitemsizes</emphasis></glossterm>
-
-              <glossdef>
-                <para>Maps the name of a column to the size of its base
-                items.</para>
+                <para>Maps the name of a column to the NumPy datatype.</para>
               </glossdef>
             </glossentry>
 
@@ -7361,6 +7353,17 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
                   or <literal>Description</literal> —see <xref
                   linkend="DescriptionClassDescr"
                   xrefstyle="select: labelnumber" /> — instances).</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_itemsize</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The item size (in bytes) of the Description —see <xref
+                  linkend="DescriptionClassDescr" xrefstyle="select:
+                  labelnumber" /> instance.</para>
                 </glossdef>
               </glossentry>
 

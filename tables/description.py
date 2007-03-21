@@ -294,6 +294,9 @@ class Description(object):
         from the associated table or nested column to their respective
         descriptions (`Col` or `Description` instances).
 
+    _v_itemsize
+        The item size (in bytes) of the ``Description`` instance.
+
     _v_nestedlvl
         The level of the associated table or nested column in the nested
         datatype.
@@ -425,6 +428,8 @@ class Description(object):
         # Assign the format list to _v_nestedFormats
         newdict['_v_nestedFormats'] = nestedFormats
         newdict['_v_dtype'] = numpy.dtype(nestedDType)
+        # _v_itemsize is derived from the _v_dtype that already computes this
+        newdict['_v_itemsize'] = newdict['_v_dtype'].itemsize
         if self._v_nestedlvl == 0:
             # Get recursively nested _v_nestedNames and _v_nestedDescr attrs
             self._g_setNestedNamesDescr()
