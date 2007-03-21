@@ -6170,17 +6170,23 @@ for node in h5file.root.detector:
               <glossterm><emphasis role="bold">flavor</emphasis></glossterm>
 
               <glossdef>
-                <para>The representation of data read from this array. It can
-                be any of <literal>'numpy'</literal>,
+                <para>The type of data object read from this array. It can be
+                any of <literal>'numpy'</literal>,
                 <literal>'numarray'</literal>, <literal>'numeric'</literal> or
                 <literal>'python'</literal> (the set of supported flavors
                 depends on which packages you have installed on your
                 system).</para>
 
+                <para>Note that, during the reads of
+                <literal>VLArray</literal> objects, <literal>flavor</literal>
+                only applies to the <emphasis>components</emphasis> of the
+                returned python list, not to the list itself.</para>
+
                 <para>You can (and are encouraged to) use this property to
                 get, set and delete the <literal>FLAVOR</literal> HDF5
                 attribute of the leaf. When the leaf has no such attribute,
                 the default flavor is used.</para>
+
               </glossdef>
             </glossentry>
 

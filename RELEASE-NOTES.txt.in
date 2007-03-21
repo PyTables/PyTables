@@ -230,9 +230,9 @@ Other changes
 - ``Table.colstypes`` --> ``Table.coltypes``
 - ``Table.coltypes`` --> ``Table.coldtypes``
 - Added ``Table.coldescr``, dictionary of the ``Col`` descriptions.
-- ``Table.colshapes`` --> has disappeared. You get it that way:
-    colshape =  dict((k, v.shape) for (k, v) in t.coldescr.iteritems())
-- ``Table.colitemsizes`` --> has disappeared. You get it as:
+- ``Table.colshapes`` --> has disappeared. You can get it this way:
+    colshapes =  dict((k, v.shape) for (k, v) in t.coldescr.iteritems())
+- ``Table.colitemsizes`` --> has disappeared. You can get it this way:
     colitemsizes =  dict((k, v.itemsize) for (k, v) in t.coldescr.iteritems())
 - ``Description._v_totalsize`` --> ``Description._v_itemsize``
 - ``Description._v_itemsizes`` and ``Description._v_totalsizes`` have
