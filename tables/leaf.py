@@ -92,60 +92,92 @@ def calc_chunksize(expectedsizeinMB):
 
 
 class Leaf(Node):
-    """A class to place common functionality of all Leaf objects.
+    """
+    Abstract base class for all PyTables leaves.
 
-    A Leaf object is all the nodes that can hang directly from a
-    Group, but that are not groups nor attributes. Right now this set
-    is composed by Table and Array objects.
+    A leaf is a node (see the `Node` class) which hangs from a group
+    (see the `Group` class) but, unlike a group, it can not have any
+    further children below it (i.e. it is an end node).
 
-    Leaf objects (like Table or Array) will inherit the next methods
-    and variables using the mix-in technique.
+    This definition includes all nodes which contain actual data
+    (datasets handled by the `Table`, `Array`, `CArray`, `EArray` and
+    `VLArray` classes) and unsupported nodes (the `UnImplemented` class)
+    --these classes do in fact inherit from `Leaf`.
 
-    Instance variables (in addition to those in `Node`):
+    Public instance variables
+    -------------------------
 
-    shape -- The shape of data in the leaf.
-    maindim -- The dimension along which iterators work.
-    nrows -- The length of the main dimension of the leaf data.
-    nrowsinbuf -- The number of rows that fits in internal input
-        buffers.
-        You can change this to fine-tune the speed or memory
-        requirements of your application.
-    byteorder -- The byte ordering of the leaf data *on disk*.
-    filters -- Filter properties for this leaf --see `Filters`.
-    name -- The name of this node in its parent group (a string).  An
-        alias for `Node._v_name`.
-    hdf5name -- The name of this node in the hosting HDF5 file (a string).
-        An alias for `Node._v_hdf5name`.
-    objectID -- The identifier of this node in the hosting HDF5 file.  An
-        alias for `Node._v_objectID`.
-    attrs -- The associated `AttributeSet` instance.  An alias for
-        `Node._v_attrs`.
-    title -- A description for this node.  An alias for `Node._v_title`.
-    flavor -- The type of the data object read from this leaf.
-        It can be any of 'numpy', 'numarray', 'numeric' or 'python' (the
-        set of supported flavors depends on which packages you have
-        installed on your system).
-        You can (and are encouraged to) use this property to get, set
-        and delete the ``FLAVOR`` HDF5 attribute of the leaf.  When the
-        leaf has no such attribute, the default flavor is used.
-    chunkshape -- The HDF5 chunk size for chunked leaves (a tuple).
+    The following instance variables are provided in addition to those
+    in `Node`:
+
+    byteorder
+        The byte ordering of the leaf data *on disk*.
+    chunkshape
+        The HDF5 chunk size for chunked leaves (a tuple).
+
         This is read-only because you cannot change the chunk size of a
         leaf once it has been created.
 
+    filters
+        Filter properties for this leaf --see `Filters`.
+    flavor
+        The type of the data object read from this leaf.
 
-    Public methods (in addition to those in `Node`):
+        It can be any of 'numpy', 'numarray', 'numeric' or 'python' (the
+        set of supported flavors depends on which packages you have
+        installed on your system).
 
-    flush()
-    _f_close([flush])
-    close([flush])
-    remove()
-    rename(newname)
-    move([newparent][, newname][, overwrite])
-    copy([newparent][, newname][, overwrite][, **kwargs])
-    isVisible()
-    getAttr(name)
-    setAttr(name, value)
-    delAttr(name)
+        You can (and are encouraged to) use this property to get, set
+        and delete the ``FLAVOR`` HDF5 attribute of the leaf.  When the
+        leaf has no such attribute, the default flavor is used.
+
+    maindim
+        The dimension along which iterators work.
+    nrows
+        The length of the main dimension of the leaf data.
+    nrowsinbuf
+        The number of rows that fit in internal input buffers.
+
+        You can change this to fine-tune the speed or memory
+        requirements of your application.
+
+    shape
+        The shape of data in the leaf.
+
+    Public instance variables -- aliases
+    ------------------------------------
+
+    The following instance variables are just easier-to-write aliases to
+    their `Node` counterparts (indicated between parentheses):
+
+    attrs
+        The associated `AttributeSet` instance (`Node._v_attrs`).
+    hdf5name
+        The name of this node in the hosting HDF5 file
+        (`Node._v_hdf5name`).
+    name
+        The name of this node in its parent group (`Node._v_name`).
+    objectID
+        The identifier of this node in the hosting HDF5 file
+        (`Node._v_objectID`).
+    title
+        A description for this node (`Node._v_title`).
+
+    Public methods
+    --------------
+
+    * close([flush])
+    * copy([newparent][, newname][, overwrite][, createparents][, **kwargs])
+    * delAttr(name)
+    * flush()
+    * getAttr(name)
+    * isVisible()
+    * move([newparent][, newname][, overwrite])
+    * remove()
+    * rename(newname)
+    * setAttr(name, value)
+    * _f_close([flush])
+    * __len__()
     """
 
     # Properties
@@ -264,7 +296,7 @@ class Leaf(Node):
 
 
     def __len__(self):
-        "Useful for dealing with Leaf objects as sequences"
+        """Return the length of the main dimension of the leaf data."""
         return self.nrows
 
 
@@ -549,8 +581,8 @@ you may want to increase it."""
             setting this parameter to ``False``.  The default is to
             copy them.
         `start`, `stop`, `step`
-            Specify the range of rows in child leaves to be copied;
-            the default is to copy all the rows.
+            Specify the range of rows to be copied; the default is to
+            copy all the rows.
         `stats`
             This argument may be used to collect statistics on the
             copy process.  When used, it should be a dictionary whith
@@ -607,7 +639,10 @@ you may want to increase it."""
         """
         Flush pending data to disk.
 
-        Saves whatever remaining buffered data to disk.
+        Saves whatever remaining buffered data to disk.  It also
+        releases I/O buffers, so if you are filling many datasets in the
+        same PyTables session, please call ``flush()`` extensively so as
+        to help PyTables to keep memory requirements low.
         """
         self._g_flush()
 
@@ -640,7 +675,7 @@ you may want to increase it."""
         """
         Close this node in the tree.
 
-        This method is completely equivalent to ``_f_close()``.
+        This method is completely equivalent to `Leaf._f_close()`.
         """
         self._f_close(flush)
 

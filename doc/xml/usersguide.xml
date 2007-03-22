@@ -6034,37 +6034,91 @@ for node in h5file.root.detector:
         </section>
       </section>
 
-      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="LeafClassDescr">
         <title>The <literal>Leaf</literal> class</title>
 
-        <para>The goal of this class is to provide a place to put common
-        functionality of all its descendants as well as provide a way to help
-        classifying objects on the tree. A <literal>Leaf</literal> object is
-        an end-node, that is, a node that can hang directly from a group
-        object, but that is not a group itself and, thus, it can not have
-        descendants. Right now, the set of end-nodes is composed by
-        <literal>Table</literal>, <literal>Array</literal>,
-        <literal>CArray</literal>, <literal>EArray</literal>,
-        <literal>VLArray</literal> and <literal>UnImplemented</literal> class
-        instances. In fact, all the previous classes inherit from the
-        <literal>Leaf</literal> class.</para>
+        <para>Abstract base class for all PyTables leaves.</para>
+
+        <para>A leaf is a node (see the <literal>Node</literal> class in <xref
+        linkend="NodeClassDescr" xrefstyle="select: label" />) which hangs
+        from a group (see the <literal>Group</literal> class in <xref
+        linkend="GroupClassDescr" xrefstyle="select: label" />) but, unlike a
+        group, it can not have any further children below it (i.e. it is an
+        end node).</para>
+
+        <para>This definition includes all nodes which contain actual data
+        (datasets handled by the <literal>Table</literal> —see <xref
+        linkend="TableClassDescr" xrefstyle="select: label" />—,
+        <literal>Array</literal> —see <xref linkend="ArrayClassDescr"
+        xrefstyle="select: label" />—, <literal>CArray</literal> —see <xref
+        linkend="CArrayClassDescr" xrefstyle="select: label" />—,
+        <literal>EArray</literal> —see <xref linkend="EArrayClassDescr"
+        xrefstyle="select: label" />— and <literal>VLArray</literal> —see
+        <xref linkend="VLArrayClassDescr" xrefstyle="select: label" />—
+        classes) and unsupported nodes (the <literal>UnImplemented</literal>
+        class —<xref linkend="UnImplementedClassDescr" xrefstyle="select:
+        label" />) —these classes do in fact inherit from
+        <literal>Leaf</literal>.</para>
 
         <section>
           <title><literal>Leaf</literal> instance variables</title>
 
           <para>These instance variables are provided in addition to those in
           <literal>Node</literal> (see <xref linkend="NodeClassDescr"
-          xrefstyle="select: labelnumber" />).</para>
+          xrefstyle="select: label" />):</para>
 
           <glosslist>
             <?dbfo glosslist-presentation="list" ?>
 
             <glossentry>
-              <glossterm><emphasis role="bold">shape</emphasis></glossterm>
+              <glossterm><emphasis
+              role="bold">byteorder</emphasis></glossterm>
 
               <glossdef>
-                <para>The shape of data in the leaf.</para>
+                <para>The byte ordering of the leaf data <emphasis>on
+                disk</emphasis>.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis
+              role="bold">chunkshape</emphasis></glossterm>
+
+              <glossdef>
+                <para>The HDF5 chunk size for chunked leaves (a tuple).</para>
+
+                <para>This is read-only because you cannot change the chunk
+                size of a leaf once it has been created.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">filters</emphasis></glossterm>
+
+              <glossdef>
+                <para>Filter properties for this leaf —see
+                <literal>Filters</literal> in <xref
+                linkend="FiltersClassDescr" xrefstyle="select: label"
+                />.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">flavor</emphasis></glossterm>
+
+              <glossdef>
+                <para>The type of data object read from this leaf.</para>
+
+                <para>It can be any of <literal>'numpy'</literal>,
+                <literal>'numarray'</literal>, <literal>'numeric'</literal> or
+                <literal>'python'</literal> (the set of supported flavors
+                depends on which packages you have installed on your
+                system).</para>
+
+                <para>You can (and are encouraged to) use this property to
+                get, set and delete the <literal>FLAVOR</literal> HDF5
+                attribute of the leaf. When the leaf has no such attribute,
+                the default flavor is used.</para>
               </glossdef>
             </glossentry>
 
@@ -6090,41 +6144,42 @@ for node in h5file.root.detector:
               role="bold">nrowsinbuf</emphasis></glossterm>
 
               <glossdef>
-                <para>The number of rows that fits in internal input
+                <para>The number of rows that fit in internal input
                 buffers.</para>
 
                 <para>You can change this to fine-tune the speed or memory
                 requirements of your application.</para>
-
               </glossdef>
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis
-              role="bold">byteorder</emphasis></glossterm>
+              <glossterm><emphasis role="bold">shape</emphasis></glossterm>
 
               <glossdef>
-                <para>The byte ordering of the leaf data <emphasis>on
-                disk</emphasis>.</para>
+                <para>The shape of data in the leaf.</para>
               </glossdef>
             </glossentry>
+          </glosslist>
+        </section>
+
+        <section>
+          <title><literal>Leaf</literal> instance variables — aliases</title>
+
+          <para>The following are just easier-to-write aliases to their
+          <literal>Node</literal> (see <xref linkend="NodeClassDescr"
+          xrefstyle="select: label" />) counterparts (indicated between
+          parentheses):</para>
+
+          <glosslist>
+            <?dbfo glosslist-presentation="list" ?>
 
             <glossentry>
-              <glossterm><emphasis role="bold">filters</emphasis></glossterm>
+              <glossterm><emphasis role="bold">attrs</emphasis></glossterm>
 
               <glossdef>
-                <para>Filter properties for this leaf —see <xref
-                linkend="FiltersClassDescr"
-                xrefstyle="select: labelnumber" />.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">name</emphasis></glossterm>
-
-              <glossdef>
-                <para>The name of this node in its parent group (a string). An
-                alias for <literal>Node._v_name</literal>.</para>
+                <para>The associated <literal>AttributeSet</literal> instance
+                —see <xref linkend="AttributeSetClassDescr" xrefstyle="select:
+                label" />— (<literal>Node._v_attrs</literal>).</para>
               </glossdef>
             </glossentry>
 
@@ -6132,9 +6187,17 @@ for node in h5file.root.detector:
               <glossterm><emphasis role="bold">hdf5name</emphasis></glossterm>
 
               <glossdef>
-                <para>The name of this node in the hosting HDF5 file (a
-                string). An alias for
-                <literal>Node._v_hdf5name</literal>.</para>
+                <para>The name of this node in the hosting HDF5 file
+                (<literal>Node._v_hdf5name</literal>).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">name</emphasis></glossterm>
+
+              <glossdef>
+                <para>The name of this node in its parent group
+                (<literal>Node._v_name</literal>).</para>
               </glossdef>
             </glossentry>
 
@@ -6142,19 +6205,8 @@ for node in h5file.root.detector:
               <glossterm><emphasis role="bold">objectID</emphasis></glossterm>
 
               <glossdef>
-                <para>The identifier of this node in the hosting HDF5 file. An
-                alias for <literal>Node._v_objectID</literal>.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">attrs</emphasis></glossterm>
-
-              <glossdef>
-                <para>The associated <literal>AttributeSet</literal> instance
-                (see <xref linkend="AttributeSetClassDescr"
-                xrefstyle="select: labelnumber" />). An alias for
-                <literal>Node._v_attrs</literal>.</para>
+                <para>The identifier of this node in the hosting HDF5 file
+                (<literal>Node._v_objectID</literal>).</para>
               </glossdef>
             </glossentry>
 
@@ -6162,72 +6214,15 @@ for node in h5file.root.detector:
               <glossterm><emphasis role="bold">title</emphasis></glossterm>
 
               <glossdef>
-                <para>A description for this node. An alias for
-                <literal>Node._v_title</literal>.</para>
+                <para>A description for this node
+                (<literal>Node._v_title</literal>).</para>
               </glossdef>
             </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">flavor</emphasis></glossterm>
-
-              <glossdef>
-                <para>The type of data object read from this leaf.</para>
-
-                <para>It can be any of <literal>'numpy'</literal>,
-                <literal>'numarray'</literal>, <literal>'numeric'</literal> or
-                <literal>'python'</literal> (the set of supported flavors
-                depends on which packages you have installed on your
-                system).</para>
-
-                <para>You can (and are encouraged to) use this property to
-                get, set and delete the <literal>FLAVOR</literal> HDF5
-                attribute of the leaf. When the leaf has no such attribute,
-                the default flavor is used.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">chunkshape</emphasis></glossterm>
-
-              <glossdef>
-                <para>The HDF5 chunk size for chunked leaves (a tuple).</para>
-
-                <para>This is read-only because you cannot change the chunk
-                size of a leaf once it has been created.</para>
-              </glossdef>
-            </glossentry>
-
           </glosslist>
         </section>
 
         <section>
           <title><literal>Leaf</literal> methods</title>
-
-          <section id="Leaf.flush">
-            <title>flush()</title>
-
-            <para>Flush pending data to disk.</para>
-
-            <para>Saves whatever remaining buffered data to disk. It also
-            releases I/O buffers, so, if you are filling many objects (i.e.
-            tables) in the same PyTables session, please call
-            <literal>flush()</literal> extensively so as to help PyTables to
-            keep memory requirements low.</para>
-          </section>
-
-          <section id="Leaf._f_close">
-            <title>_f_close(flush=True)</title>
-
-            <para>Close this node in the tree.</para>
-
-            <para>This method has the behavior described in
-            <literal>Node._f_close()</literal> (see <xref
-            linkend="Node._f_close" xrefstyle="select: labelnumber" />).
-            Besides that, the optional argument <literal>flush</literal> tells
-            whether to flush pending data to disk or not before
-            closing.</para>
-          </section>
 
           <section id="Leaf.close">
             <title>close(flush=True)</title>
@@ -6235,19 +6230,8 @@ for node in h5file.root.detector:
             <para>Close this node in the tree.</para>
 
             <para>This method is completely equivalent to
-            <literal>_f_close()</literal>.</para>
-          </section>
-
-          <section id="Leaf.remove">
-            <title>remove()</title>
-
-            <para>Remove this node from the hierarchy.</para>
-
-            <para>This method has the behavior described in
-            <literal>Node._f_remove()</literal> (see <xref
-            linkend="Node._f_remove" />). Please note that there is no
-            <literal>recursive</literal> flag since leaves do not have child
-            nodes.</para>
+            <literal>Leaf._f_close()</literal> (see <xref
+            linkend="Leaf._f_close" />).</para>
           </section>
 
           <section id="Leaf.copy" xreflabel="description">
@@ -6258,10 +6242,10 @@ for node in h5file.root.detector:
 
             <para>This method has the behavior described in
             <literal>Node._f_copy()</literal> (see <xref
-            linkend="Node._f_copy" xrefstyle="select: labelnumber" />). Please
-            note that there is no <literal>recursive</literal> flag since
-            leaves do not have child nodes. In addition, this method
-            recognizes the following keyword arguments:</para>
+            linkend="Node._f_copy" />). Please note that there is no
+            <literal>recursive</literal> flag since leaves do not have child
+            nodes. In addition, this method recognizes the following keyword
+            arguments:</para>
 
             <glosslist>
               <glossentry>
@@ -6303,8 +6287,8 @@ for node in h5file.root.detector:
                 step</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Specify the range of rows in child leaves to be
-                  copied; the default is to copy all the rows.</para>
+                  <para>Specify the range of rows to be copied; the default is
+                  to copy all the rows.</para>
                 </glossdef>
               </glossentry>
 
@@ -6324,14 +6308,46 @@ for node in h5file.root.detector:
             </glosslist>
           </section>
 
-          <section id="Leaf.rename">
-            <title>rename(newname)</title>
+          <section id="Leaf.delAttr">
+            <title>delAttr(name)</title>
 
-            <para>Rename this node in place.</para>
+            <para>Delete a PyTables attribute from this node.</para>
 
             <para>This method has the behavior described in
-            <literal>Node._f_rename()</literal> (see <xref
-            linkend="Node._f_rename" />).</para>
+            <literal>Node._f_delAttr()</literal> (see <xref
+            linkend="Node._f_delAttr" />).</para>
+          </section>
+
+          <section id="Leaf.flush">
+            <title>flush()</title>
+
+            <para>Flush pending data to disk.</para>
+
+            <para>Saves whatever remaining buffered data to disk. It also
+            releases I/O buffers, so if you are filling many datasets in the
+            same PyTables session, please call <literal>flush()</literal>
+            extensively so as to help PyTables to keep memory requirements
+            low.</para>
+          </section>
+
+          <section id="Leaf.getAttr">
+            <title>getAttr(name)</title>
+
+            <para>Get a PyTables attribute from this node.</para>
+
+            <para>This method has the behavior described in
+            <literal>Node._f_getAttr()</literal> (see <xref
+            linkend="Node._f_getAttr" />).</para>
+          </section>
+
+          <section id="Leaf.isVisible">
+            <title>isVisible()</title>
+
+            <para>Is this node visible?</para>
+
+            <para>This method has the behavior described in
+            <literal>Node._f_isVisible()</literal> (see <xref
+            linkend="Node._f_isVisible" />).</para>
           </section>
 
           <section id="Leaf.move">
@@ -6345,24 +6361,26 @@ for node in h5file.root.detector:
             linkend="Node._f_move" />).</para>
           </section>
 
-          <section id="Leaf.isVisible">
-            <title>_f_isVisible()</title>
+          <section id="Leaf.rename">
+            <title>rename(newname)</title>
 
-            <para>Is this node visible?</para>
+            <para>Rename this node in place.</para>
 
             <para>This method has the behavior described in
-            <literal>Node._f_isVisible()</literal> (see <xref
-            linkend="Node._f_isVisible" />).</para>
+            <literal>Node._f_rename()</literal> (see <xref
+            linkend="Node._f_rename" />).</para>
           </section>
 
-          <section id="Leaf.getAttr">
-            <title>getAttr(name)</title>
+          <section id="Leaf.remove">
+            <title>remove()</title>
 
-            <para>Get a PyTables attribute from this node.</para>
+            <para>Remove this node from the hierarchy.</para>
 
             <para>This method has the behavior described in
-            <literal>Node._f_getAttr()</literal> (see <xref
-            linkend="Node._f_getAttr" />).</para>
+            <literal>Node._f_remove()</literal> (see <xref
+            linkend="Node._f_remove" />). Please note that there is no
+            <literal>recursive</literal> flag since leaves do not have child
+            nodes.</para>
           </section>
 
           <section id="Leaf.setAttr">
@@ -6375,18 +6393,27 @@ for node in h5file.root.detector:
             linkend="Node._f_setAttr" />).</para>
           </section>
 
-          <section id="Leaf.delAttr">
-            <title>delAttr(name)</title>
+          <section id="Leaf.__len__">
+            <title>__len__()</title>
+            <para>Return the length of the main dimension of the leaf
+            data.</para>
+          </section>
 
-            <para>Delete a PyTables attribute from this node.</para>
+          <section id="Leaf._f_close" xreflabel="description">
+            <title>_f_close(flush=True)</title>
+
+            <para>Close this node in the tree.</para>
 
             <para>This method has the behavior described in
-            <literal>Node._f_delAttr()</literal> (see <xref
-            linkend="Node._f_delAttr" />).</para>
+            <literal>Node._f_close()</literal> (see <xref
+            linkend="Node._f_close" />).  Besides that, the optional argument
+            <literal>flush</literal> tells whether to flush pending data to
+            disk or not before closing.</para>
           </section>
         </section>
       </section>
 
+      <!-- REVIEWD UP TO HERE - Ivan -->
       <section id="TableClassDescr">
         <title>The <literal>Table</literal> class</title>
 
