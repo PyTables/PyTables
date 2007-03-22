@@ -121,13 +121,10 @@ class Leaf(Node):
     attrs -- The associated `AttributeSet` instance.  An alias for
         `Node._v_attrs`.
     title -- A description for this node.  An alias for `Node._v_title`.
-    flavor -- The type of the data object read from this array.  It can
-        be any of 'numpy', 'numarray', 'numeric' or 'python' (the set of
-        supported flavors depends on which packages you have installed
-        on your system).
-        Note that, during the reads of ``VLArray`` objects, `flavor`
-        only applies to the *components* of the returned python list,
-        not to the list itself.
+    flavor -- The type of the data object read from this leaf.
+        It can be any of 'numpy', 'numarray', 'numeric' or 'python' (the
+        set of supported flavors depends on which packages you have
+        installed on your system).
         You can (and are encouraged to) use this property to get, set
         and delete the ``FLAVOR`` HDF5 attribute of the leaf.  When the
         leaf has no such attribute, the default flavor is used.
@@ -218,7 +215,11 @@ class Leaf(Node):
     flavor = property(
         lambda self: self._flavor, _setflavor, _delflavor,
         """
-        The representation of data read from this array.
+        The representation of data read from this leaf.
+
+        It can be any of 'numpy', 'numarray', 'numeric' or 'python' (the
+        set of supported flavors depends on which packages you have
+        installed on your system).
 
         You can (and are encouraged to) use this property to get, set
         and delete the ``FLAVOR`` HDF5 attribute of the leaf.  When the

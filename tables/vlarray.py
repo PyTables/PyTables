@@ -73,6 +73,13 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     `atom`
         An `Atom` instance representing the shape and type of the
         atomic objects to be saved.
+    `flavor`
+        The type of data object read from this leaf.
+
+        Please note that when reading rows of ``VLArray`` data,
+        ``flavor`` only applies to the *components* of the returned
+        Python list, not to the list itself.
+
     `nrow`
         On iterators, this is the index of the current row.
     """
