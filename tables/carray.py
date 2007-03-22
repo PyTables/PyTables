@@ -130,7 +130,7 @@ class CArray(Array):
         self._v_convert = True
         """Whether the ``Array`` object must be converted or not."""
         self._v_chunkshape = chunkshape
-        """Private storage for the `chunkshape` property of Leaf."""
+        """Private storage for the `chunkshape` property of the leaf."""
 
         # Miscellaneous iteration rubbish.
         self._start = None

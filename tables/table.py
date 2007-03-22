@@ -306,7 +306,7 @@ class Table(tableExtension.Table, Leaf):
         self._colenums = {}
         """Maps the name of an enumerated column to its ``Enum`` instance."""
         self._v_chunkshape = chunkshape
-        """Private storage for the `chunkshape` property of Leaf."""
+        """Private storage for the `chunkshape` property of the leaf."""
 
         self.indexed = False
         """Does this table have any indexed columns?"""

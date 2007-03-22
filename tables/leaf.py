@@ -107,7 +107,8 @@ class Leaf(Node):
     maindim -- The dimension along which iterators work.
     nrows -- The length of the main dimension of the leaf data.
     nrowsinbuf -- The number of rows that fits in internal input
-        buffers.  You can change this to fine tune the speed or memory
+        buffers.
+        You can change this to fine-tune the speed or memory
         requirements of your application.
     byteorder -- The byte ordering of the leaf data *on disk*.
     filters -- Filter properties for this leaf --see `Filters`.
@@ -130,9 +131,9 @@ class Leaf(Node):
         You can (and are encouraged to) use this property to get, set
         and delete the ``FLAVOR`` HDF5 attribute of the leaf.  When the
         leaf has no such attribute, the default flavor is used.
-    chunkshape - The HDF5 chunk size for chunked leaves (a tuple). This
-        is read-only because you cannot change the chunk size of a leaf
-        once it has been created.
+    chunkshape -- The HDF5 chunk size for chunked leaves (a tuple).
+        This is read-only because you cannot change the chunk size of a
+        leaf once it has been created.
 
 
     Public methods (in addition to those in `Node`):
@@ -171,7 +172,12 @@ class Leaf(Node):
 
     chunkshape = property(
         lambda self: self._v_chunkshape, None, None,
-        "The HDF5 chunk size for chunked leaves (a tuple)." )
+        """
+        The HDF5 chunk size for chunked leaves (a tuple).
+
+        This is read-only because you cannot change the chunk size of a
+        leaf once it has been created.
+        """ )
 
     objectID = property(
         lambda self: self._v_objectID, None, None,
@@ -228,7 +234,12 @@ class Leaf(Node):
         self._v_new = new
         """Is this the first time the node has been created?"""
         self.nrowsinbuf = None
-        """The number of rows that fits in internal input buffers."""
+        """
+        The number of rows that fits in internal input buffers.
+
+        You can change this to fine-tune the speed or memory
+        requirements of your application.
+        """
         self._flavor = None
         """Private storage for the `flavor` property."""
 

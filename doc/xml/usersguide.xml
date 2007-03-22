@@ -6092,7 +6092,7 @@ for node in h5file.root.detector:
                 <para>The number of rows that fits in internal input
                 buffers.</para>
 
-                <para>You can change this to fine tune the speed or memory
+                <para>You can change this to fine-tune the speed or memory
                 requirements of your application.</para>
 
               </glossdef>
@@ -6195,9 +6195,10 @@ for node in h5file.root.detector:
               role="bold">chunkshape</emphasis></glossterm>
 
               <glossdef>
-                <para>The HDF5 chunk size for chunked leaves (a tuple). This
-                is read-only because you cannot change the chunk size of a
-                leaf once it has been created.</para>
+                <para>The HDF5 chunk size for chunked leaves (a tuple).</para>
+
+                <para>This is read-only because you cannot change the chunk
+                size of a leaf once it has been created.</para>
               </glossdef>
             </glossentry>
 
