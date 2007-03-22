@@ -1943,6 +1943,7 @@ class Table(tableExtension.Table, tables.leaf.Leaf)
  |      colnames -- the top-level field names for the table (list)
  |      colpathnames -- the bottom-level field pathnames for the table (list)
  |      colinstances -- the column instances for the table fields (dictionary)
+ |      coldescrs -- Maps the name of a column to its `Col` description.
  |      coldtypes -- the dtype class for the table fields (dictionary)
  |      coltypes -- the PyTables type for the table fields (dictionary)
  |      coldflts -- the defaults for each column (dictionary)
@@ -6504,8 +6505,8 @@ for node in h5file.root.detector:
               role="bold">coldescrs</emphasis></glossterm>
 
               <glossdef>
-                <para>Maps the name of a column to its Col<literal></literal>
-                description see <xref linkend="ColClassDescr"
+                <para>Maps the name of a column to its <literal>Col</literal>
+                description (see <xref linkend="ColClassDescr"
                 xrefstyle="select: labelnumber" />).</para>
               </glossdef>
             </glossentry>
@@ -6514,8 +6515,8 @@ for node in h5file.root.detector:
               <glossterm><emphasis role="bold">coltypes</emphasis></glossterm>
 
               <glossdef>
-                <para>Maps the name of a column to the PyTables
-                datatype.</para>
+                <para>Maps the name of a column to its PyTables
+                data type.</para>
               </glossdef>
             </glossentry>
 
@@ -6524,7 +6525,7 @@ for node in h5file.root.detector:
               role="bold">coldtypes</emphasis></glossterm>
 
               <glossdef>
-                <para>Maps the name of a column to the NumPy datatype.</para>
+                <para>Maps the name of a column to its NumPy data type.</para>
               </glossdef>
             </glossentry>
 
@@ -7368,9 +7369,8 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
                 role="bold">_v_itemsize</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The item size (in bytes) of the Description —see <xref
-                  linkend="DescriptionClassDescr" xrefstyle="select:
-                  labelnumber" /> instance.</para>
+                  <para>The size in bytes of an item with this
+                  structure.</para>
                 </glossdef>
               </glossentry>
 

@@ -295,7 +295,7 @@ class Description(object):
         descriptions (`Col` or `Description` instances).
 
     _v_itemsize
-        The item size (in bytes) of the ``Description`` instance.
+        The size in bytes of an item with this structure.
 
     _v_nestedlvl
         The level of the associated table or nested column in the nested

@@ -167,7 +167,7 @@ class Table(tableExtension.Table, Leaf):
         colnames -- the top-level field names for the table (list)
         colpathnames -- the bottom-level field pathnames for the table (list)
         colinstances -- the column instances for the table fields (dictionary)
-        coldefs
+        coldescrs -- Maps the name of a column to its `Col` description.
         coldtypes -- the dtype class for the table fields (dictionary)
         coltypes -- the PyTables type for the table fields (dictionary)
         coldflts -- the defaults for each column (dictionary)
