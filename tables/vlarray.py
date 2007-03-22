@@ -193,8 +193,9 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         super(VLArray, self).__init__(parentNode, name, new, filters,
                                       byteorder, _log)
 
-        self.nrowsinbuf = 100       # maybe enough for most applications
-        """The maximum number of rows that are read on each chunk iterator."""
+    def _g_postInitHook(self):
+        super(VLArray, self)._g_postInitHook()
+        self.nrowsinbuf = 100  # maybe enough for most applications
 
 
     # This is too specific for moving it into Leaf
