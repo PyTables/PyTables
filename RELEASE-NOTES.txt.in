@@ -56,8 +56,8 @@ See Appendix I of the Users' Manual on supported data types for more
 information on the new PyTables types.
 
 
-Important changes in Atom specification
----------------------------------------
+Important changes in ``Atom`` specification
+-------------------------------------------
 
 - The ``dtype`` argument of ``EnumAtom`` and ``EnumCol`` constructors
   has been replaced by the ``base`` argument, which can take a
@@ -151,9 +151,9 @@ users).
 Of course, if this parameter is not specified, a sensible default is
 calculated for the size of the leave (which is recommended).
 
-A new attribute called ``chunkshape`` has been added to all the leaves. It is
-read-only (you can't change the size of the chunks once you have created a
-leaf), but it can be useful for inspection of advanced users.
+A new attribute called ``chunkshape`` has been added to all leaves.  It is
+read-only (you can't change the size of chunks once you have created a leaf),
+but it can be useful for inspection by advanced users.
 
 
 New flavor specification
@@ -197,8 +197,8 @@ Tunable internal buffer sizes
 
 You can change the size of the internal buffers for I/O purposes of PyTables
 by changing the value of the new public attribute ``nrowsinbuf`` that is
-present in all the leaves. By default, this contains a sensible value so as to
-achieve a good balance between speed and memory consumption. Be careful when
+present in all leaves.  By default, this contains a sensible value so as to
+achieve a good balance between speed and memory consumption.  Be careful when
 changing it, if you don't want to get unwanted results (very slow I/O, huge
 memory consumption...).
 
@@ -226,14 +226,22 @@ on PyTables.
 Other changes
 -------------
 
+- ``Filters.complib`` is ``None`` for filter properties created with
+  ``complevel=0`` (i.e. disabled compression, which is the default).
 - 'non-relevant' --> 'irrelevant' (applied to byteorders)
 - ``Table.colstypes`` --> ``Table.coltypes``
 - ``Table.coltypes`` --> ``Table.coldtypes``
 - Added ``Table.coldescr``, dictionary of the ``Col`` descriptions.
-- ``Table.colshapes`` --> has disappeared. You can get it this way:
-    colshapes =  dict((k, v.shape) for (k, v) in t.coldescr.iteritems())
-- ``Table.colitemsizes`` --> has disappeared. You can get it this way:
-    colitemsizes =  dict((k, v.itemsize) for (k, v) in t.coldescr.iteritems())
+- ``Table.colshapes`` has disappeared.  You can get it this way::
+
+       colshapes = dict( (name, col.shape)
+                         for (name, col) in table.coldescr.iteritems() )
+
+- ``Table.colitemsizes`` has disappeared.  You can get it this way::
+
+       colitemsizes = dict( (name, col.itemsize)
+                            for (name, col) in table.coldescr.iteritems() )
+
 - ``Description._v_totalsize`` --> ``Description._v_itemsize``
 - ``Description._v_itemsizes`` and ``Description._v_totalsizes`` have
   disappeared.
