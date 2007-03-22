@@ -18,6 +18,8 @@ from distutils.core     import Extension
 from distutils.dep_util import newer
 from distutils.util     import convert_path
 
+# The minimum version of NumPy required
+min_numpy_version = '1.0.1'
 # The minimum version of Pyrex required for compiling the extensions
 min_pyrex_version = '0.9.5.1a'
 
@@ -61,7 +63,7 @@ def check_import(pkgname, pkgver):
             % {'pkgname': pkgname, 'pkgver': mod.__version__} )
     globals()[pkgname] = mod
 
-check_import('numpy', '1.0')
+check_import('numpy', min_numpy_version)
 
 # Check if Pyrex is installed or not
 try:
@@ -398,9 +400,9 @@ if has_setuptools:
     setuptools_kwargs['zip_safe'] = True
 
     # ``NumPy`` headers are needed for building the extensions.
-    setuptools_kwargs['install_requires'] = ['numpy>1.0.1']
+    setuptools_kwargs['install_requires'] = ['numpy>%s' % min_numpy_version]
     # ``NumPy`` is absolutely required for running PyTables.
-    setuptools_kwargs['setup_requires'] = ['numpy>1.0.1']
+    setuptools_kwargs['setup_requires'] = ['numpy>%s' % min_numpy_version]
     setuptools_kwargs['extras_require'] = {
         'Numeric': ['Numeric>=24.2'],  # for ``Numeric`` support
         'netCDF': ['ScientificPython'],  # for netCDF interchange

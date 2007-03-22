@@ -643,8 +643,8 @@ fileh.close()</screen>
           <title>Prerequisites</title>
 
           <para>First, make sure that you have at least Python 2.4, HDF5 1.6.5
-          and NumPy 1.0.2 or higher installed (I'm using HDF5 1.6.5 and NumPy
-          1.0.2 currently). If you don't, fetch and install them before
+          and NumPy 1.0.1 or higher installed (I'm using HDF5 1.6.5 and NumPy
+          1.0.1 currently). If you don't, fetch and install them before
           proceeding.</para>
 
           <para>Compile and install these packages (but see <xref
@@ -926,8 +926,8 @@ python -c "import tables; tables.test()"</screen>
           <title>Windows prerequisites</title>
 
           <para>First, make sure that you have Python 2.4 or higher, HDF5
-          1.6.5 or higher and NumPy 1.0.2 or higher installed (PyTables
-          binaries have been built using HDF5 1.6.5 and NumPy 1.0.2).</para>
+          1.6.5 or higher and NumPy 1.0.1 or higher installed (PyTables
+          binaries have been built using HDF5 1.6.5 and NumPy 1.0.1).</para>
 
           <para>For the HDF5 library it should be enough to manually copy the
           <literal>hdf5dll.dll</literal>, <literal>zlib1.dll</literal>
