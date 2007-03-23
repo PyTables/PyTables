@@ -1137,7 +1137,7 @@ python -c "import tables; tables.test()"</screen>
 
           <screen>&gt;&gt;&gt; h5file = openFile("tutorial1.h5", mode = "w", title = "Test file")</screen>
 
-          <para><literal>openFile</literal> (see <xref
+          <para><literal>openFile()</literal> (see <xref
           linkend="openFileDescr" />) is one of the objects imported by the
           "<literal>from tables import *</literal>" statement. Here, we are
           saying that we want to create a new file in the current working
@@ -1145,9 +1145,9 @@ python -c "import tables; tables.test()"</screen>
           "<literal>w</literal>"rite mode and with an descriptive title string
           ("<literal>Test file</literal>"). This function attempts to open the
           file, and if successful, returns the <literal>File</literal> (see
-          <xref linkend="FileClassDescr" xrefstyle="select: labelnumber" />)
-          object instance <literal>h5file</literal>. The root of the object
-          tree is specified in the instance's <literal>root</literal>
+          <xref linkend="FileClassDescr" xrefstyle="select: label" />) object
+          instance <literal>h5file</literal>. The root of the object tree is
+          specified in the instance's <literal>root</literal>
           attribute.</para>
         </section>
 
@@ -1162,27 +1162,25 @@ python -c "import tables; tables.test()"</screen>
 
           <para>Here, we have taken the <literal>File</literal> instance
           <literal>h5file</literal> and invoked its
-          <literal>createGroup</literal> method (see <xref
-          linkend="createGroupDescr"
-          xrefstyle="select:           labelnumber" />) to create a new group
-          called <emphasis>detector</emphasis> branching from
+          <literal>createGroup()</literal> method (see <xref
+          linkend="createGroupDescr" xrefstyle="select: label" />) to create a
+          new group called <emphasis>detector</emphasis> branching from
           "<emphasis>/</emphasis>" (another way to refer to the
           <literal>h5file.root</literal> object we mentioned above). This will
           create a new <literal>Group</literal> (see <xref
-          linkend="GroupClassDescr"
-          xrefstyle="select:           labelnumber" />) object instance that
-          will be assigned to the variable <literal>group</literal>.</para>
+          linkend="GroupClassDescr" xrefstyle="select: label" />) object
+          instance that will be assigned to the variable
+          <literal>group</literal>.</para>
         </section>
 
         <section>
           <title>Creating a new table</title>
 
           <para>Let's now create a <literal>Table</literal> (see <xref
-          linkend="TableClassDescr" xrefstyle="select: labelnumber" />) object
-          as a branch off the newly-created group. We do that by calling the
-          <literal>createTable</literal> (see <xref
-          linkend="createTableDescr" />) method of the
-          <literal>h5file</literal> object:</para>
+          linkend="TableClassDescr" xrefstyle="select: label" />) object as a
+          branch off the newly-created group. We do that by calling the
+          <literal>createTable</literal> (see <xref linkend="createTableDescr"
+          />) method of the <literal>h5file</literal> object:</para>
 
           <screen>&gt;&gt;&gt; table = h5file.createTable(group, 'readout', Particle, "Readout example")</screen>
 
@@ -1240,8 +1238,8 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
 
           <para>The time has come to fill this table with some values. First
           we will get a pointer to the <literal>Row</literal> (see <xref
-          linkend="RowClassDescr" xrefstyle="select: labelnumber" />) instance
-          of this <literal>table</literal> instance:</para>
+          linkend="RowClassDescr" xrefstyle="select: label" />) instance of
+          this <literal>table</literal> instance:</para>
 
           <screen>&gt;&gt;&gt; particle = table.row</screen>
 
@@ -1270,7 +1268,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
           <para>This code should be easy to understand. The lines inside the
           loop just assign values to the different columns in the Row instance
           <literal>particle</literal> (see <xref linkend="RowClassDescr"
-          xrefstyle="select:           labelnumber" />). A call to its
+          xrefstyle="select: label" />). A call to its
           <literal>append()</literal> method writes this information to the
           <literal>table</literal> I/O buffer.</para>
 
@@ -1627,7 +1625,7 @@ Object Tree:
 
           <para>Finally, we will list all the <literal>Leaf</literal>, i.e.
           <literal>Table</literal> and <literal>Array</literal> instances (see
-          <xref linkend="LeafClassDescr" xrefstyle="select: labelnumber" />
+          <xref linkend="LeafClassDescr" xrefstyle="select: label" />
           for detailed information on <literal>Leaf</literal> class), in the
           <literal>/detector</literal> group. Note that only one instance of
           the <literal>Table</literal> class (i.e. <literal>readout</literal>)
@@ -1654,11 +1652,11 @@ Object Tree:
           <para>PyTables provides an easy and concise way to complement the
           meaning of your node objects on the tree by using the
           <literal>AttributeSet</literal> class (see <xref
-          linkend="AttributeSetClassDescr"
-          xrefstyle="select: labelnumber" />). You can access this object
-          through the standard attribute <literal>attrs</literal> in
-          <literal>Leaf</literal> nodes and <literal>_v_attrs</literal> in
-          <literal>Group</literal> nodes.</para>
+          linkend="AttributeSetClassDescr" xrefstyle="select: label" />). You
+          can access this object through the standard attribute
+          <literal>attrs</literal> in <literal>Leaf</literal> nodes and
+          <literal>_v_attrs</literal> in <literal>Group</literal>
+          nodes.</para>
 
           <para>For example, let's imagine that we want to save the date
           indicating when the data in <literal>/detector/readout</literal>
@@ -1887,10 +1885,10 @@ pressure := float32, ()</screen>
           <para>Here, the <literal>name</literal>, <literal>title</literal>,
           <literal>nrows</literal>, <literal>colnames</literal> and
           <literal>coldtypes</literal> attributes (see <xref
-          linkend="TableInstanceVariablesDescr"
-          xrefstyle="select:           labelnumber" /> for a complete
-          attribute list) of the <literal>Table</literal> object gives us
-          quite a bit of information about the table data.</para>
+          linkend="TableInstanceVariablesDescr" xrefstyle="select: label" />
+          for a complete attribute list) of the <literal>Table</literal>
+          object gives us quite a bit of information about the table
+          data.</para>
 
           <para>You can interactively retrieve general information about the
           public objects in PyTables by asking for help:</para>
@@ -1997,9 +1995,9 @@ Info on the object: /columns/pressure (Array(3L,)) 'Pressure column selection'
           a "<emphasis>float64</emphasis>" array. By looking at its
           <literal>shape</literal> attribute, you can deduce that the array on
           disk is unidimensional and has 3 elements. See <xref
-          linkend="ArrayClassInstanceVariables"
-          xrefstyle="select: labelnumber" /> or the internal doc strings for
-          the complete <literal>Array</literal> attribute list.</para>
+          linkend="ArrayClassInstanceVariables" xrefstyle="select: label" />
+          or the internal doc strings for the complete
+          <literal>Array</literal> attribute list.</para>
         </section>
 
         <section>
@@ -2028,8 +2026,8 @@ Particle:      6 --&gt; 36.0
 Particle:      7 --&gt; 49.0</screen>
 
           <para>You can see that the <literal>read()</literal> method (see
-          <xref linkend="readArrayDescr" xrefstyle="select: labelnumber" />)
-          returns an authentic <literal>NumPy</literal> object for the
+          <xref linkend="readArrayDescr" xrefstyle="select: label" />) returns
+          an authentic <literal>NumPy</literal> object for the
           <literal>pressureObject</literal> instance by looking at the output
           of the <literal>type()</literal> call. A <literal>read()</literal>
           of the <literal>nameArray</literal> object instance returns a native
@@ -2056,8 +2054,8 @@ Particle:      7 --&gt; 49.0</screen>
         modify already created tables and arrays<footnote>
             <para>Appending data to arrays is also supported, but you need to
             create special objects called <literal>EArray</literal> (see <xref
-            linkend="EArrayClassDescr"
-            xrefstyle="select:         labelnumber" /> for more info).</para>
+            linkend="EArrayClassDescr" xrefstyle="select: label" /> for more
+            info).</para>
           </footnote>.</para>
 
         <section>
@@ -2256,7 +2254,7 @@ Third modif--&gt; [ 1.   2.1  2. ]</screen>
               <para>With the sole exception that you cannot use negative
               values for <literal>step</literal>.</para>
             </footnote> to refer to indexes that you want to modify. See <xref
-          linkend="Array.__getitem__" xrefstyle="select: labelnumber" /> for
+          linkend="Array.__getitem__" xrefstyle="select: label" /> for
           more examples on how to use extended slicing in PyTables
           objects.</para>
 
@@ -2885,7 +2883,7 @@ fileh.close()</screen>
         constants are more adequate.</para>
 
         <para>PyTables provides the <literal>Enum</literal> (see <xref
-        linkend="EnumClassDescr" xrefstyle="select: labelnumber" />) class to
+        linkend="EnumClassDescr" xrefstyle="select: label" />) class to
         provide support for enumerated types. Each instance of
         <literal>Enum</literal> is an enumerated type (or
         <emphasis>enumeration</emphasis>). For example, let us create an
@@ -2959,11 +2957,11 @@ ValueError: no enumerated value with that concrete value: 1234</screen>
 
           <para>Columns of an enumerated type can be declared by using the
           <literal>EnumCol</literal> (see <xref linkend="ColClassDescr"
-          xrefstyle="select: labelnumber" />) class. To see how this works,
-          let us open a new PyTables file and create a table to collect the
-          simulated results of a probabilistic experiment. In it, we have a
-          bag full of colored balls; we take a ball out and annotate the time
-          of extraction and the color of the ball.</para>
+          xrefstyle="select: label" />) class. To see how this works, let us
+          open a new PyTables file and create a table to collect the simulated
+          results of a probabilistic experiment. In it, we have a bag full of
+          colored balls; we take a ball out and annotate the time of
+          extraction and the color of the ball.</para>
 
           <screen>&gt;&gt;&gt; h5f = tables.openFile('enum.h5', 'w')
 &gt;&gt;&gt; class BallExt(tables.IsDescription):
@@ -3037,8 +3035,8 @@ Ball extracted on 1173785577 is of color white.</screen>
           enumeration associated with <literal>ballColor</literal> once the
           file is closed and reopened. You can call
           <literal>tbl.getEnum('ballColor')</literal> (see <xref
-          linkend="Table_methods" xrefstyle="select: labelnumber" />) to get
-          the enumeration back.</para>
+          linkend="Table_methods" xrefstyle="select: label" />) to get the
+          enumeration back.</para>
         </section>
 
         <section>
@@ -3047,8 +3045,8 @@ Ball extracted on 1173785577 is of color white.</screen>
           <para><literal>EArray</literal> and <literal>VLArray</literal>
           leaves can also be declared to store enumerated values by means of
           the <literal>EnumAtom</literal> (see <xref linkend="AtomClassDescr"
-          xrefstyle="select:           labelnumber" />) class, which works
-          very much like <literal>EnumCol</literal> for tables. Also,
+          xrefstyle="select: label" />) class, which works very much like
+          <literal>EnumCol</literal> for tables. Also,
           <literal>Array</literal> leaves can be used to open native HDF
           enumerated arrays.</para>
 
@@ -3078,10 +3076,10 @@ Ball extracted on 1173785577 is of color white.</screen>
           <para>Please note that, since we had no explicit
           <literal>Enum</literal> instance, we were forced to use
           <literal>getEnum()</literal> (see <xref linkend="EArrayMethodsDescr"
-          xrefstyle="select:           labelnumber" />) to get it from the
-          array (we could also have used <literal>dayRange.enum</literal>).
-          Also note that we were able to append an invalid value (1234). Array
-          methods do not check the validity of enumerated values.</para>
+          xrefstyle="select: label" />) to get it from the array (we could
+          also have used <literal>dayRange.enum</literal>).  Also note that we
+          were able to append an invalid value (1234). Array methods do not
+          check the validity of enumerated values.</para>
 
           <para>Finally, we will print the contents of the array:</para>
 
@@ -3260,9 +3258,9 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
           <title>Using Cols accessor</title>
 
           <para>We can use the <literal>cols</literal> attribute object (see
-          <xref linkend="ColsClassDescr" xrefstyle="select: labelnumber" />)
-          of the table so as to quickly access the info located in the
-          interesting substructures:</para>
+          <xref linkend="ColsClassDescr" xrefstyle="select: label" />) of the
+          table so as to quickly access the info located in the interesting
+          substructures:</para>
 
           <screen>&gt;&gt;&gt; table.cols.info2[1:5]
 array([((1.0, 1), 'name2-1', 0.0), ((1.0, 2), 'name2-2', 0.0),
@@ -3307,9 +3305,9 @@ array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)],
 
           <para>Tables have an attribute called <literal>description</literal>
           which points to an instance of the <literal>Description</literal>
-          class (see <xref linkend="DescriptionClassDescr"
-          xrefstyle="select: labelnumber" />) and is useful to discover
-          different meta-information about table data.</para>
+          class (see <xref linkend="DescriptionClassDescr" xrefstyle="select:
+          label" />) and is useful to discover different meta-information
+          about table data.</para>
 
           <para>Let's see how it looks like:</para>
 
@@ -3945,9 +3943,8 @@ ValueError: malformed type: 'foo bar'</screen>
 
               <glossdef>
                 <para>The UEP (user entry point) group name in the file (see
-                the <literal>openFile()</literal> function —<xref
-                linkend="openFileDescr" xrefstyle="select: labelnumber"
-                />).</para>
+                the <literal>openFile()</literal> function in <xref
+                linkend="openFileDescr" xrefstyle="select: label" />).</para>
 
                 <!-- manual-only -->
                 <para>You can also have a look at <xref
@@ -3961,8 +3958,8 @@ ValueError: malformed type: 'foo bar'</screen>
 
               <glossdef>
                 <para>Default filter properties for the root group (see <xref
-                linkend="FiltersClassDescr"
-                xrefstyle="select: labelnumber" />).</para>
+                linkend="FiltersClassDescr" xrefstyle="select: label"
+                />).</para>
               </glossdef>
             </glossentry>
 
@@ -6424,7 +6421,7 @@ for node in h5file.root.detector:
         <para>Data can be read from or written to tables by accessing to an
         special object that hangs from <literal>Table</literal>. This object
         is an instance of the <literal>Row</literal> class (see <xref
-        linkend="RowClassDescr" xrefstyle="select: labelnumber" />). See the
+        linkend="RowClassDescr" xrefstyle="select: label" />). See the
         tutorial sections <xref linkend="usage" xrefstyle="select: label" />
         on how to use the <literal>Row</literal> interface. The columns of the
         tables can also be easily accessed (and more specifically, they can be
@@ -6449,9 +6446,8 @@ for node in h5file.root.detector:
 
               <glossdef>
                 <para>A <literal>Description</literal> (see <xref
-                linkend="DescriptionClassDescr"
-                xrefstyle="select: labelnumber" />) instance describing the
-                structure of this table.</para>
+                linkend="DescriptionClassDescr" xrefstyle="select: label" />)
+                instance describing the structure of this table.</para>
               </glossdef>
             </glossentry>
 
@@ -6460,8 +6456,8 @@ for node in h5file.root.detector:
 
               <glossdef>
                 <para>The associated <literal>Row</literal> instance (see
-                <xref linkend="RowClassDescr"
-                xrefstyle="select: labelnumber" />).</para>
+                <xref linkend="RowClassDescr" xrefstyle="select: label"
+                />).</para>
               </glossdef>
             </glossentry>
 
@@ -6516,9 +6512,9 @@ for node in h5file.root.detector:
               <glossdef>
                 <para>Maps the name of a column to its
                 <literal>Column</literal> (see <xref
-                linkend="ColumnClassDescr" xrefstyle="select: labelnumber" />)
-                or <literal>Cols</literal> (see <xref linkend="ColsClassDescr"
-                xrefstyle="select: labelnumber" />) instance.</para>
+                linkend="ColumnClassDescr" xrefstyle="select: label" />) or
+                <literal>Cols</literal> (see <xref linkend="ColsClassDescr"
+                xrefstyle="select: label" />) instance.</para>
               </glossdef>
             </glossentry>
 
@@ -6529,7 +6525,7 @@ for node in h5file.root.detector:
               <glossdef>
                 <para>Maps the name of a column to its <literal>Col</literal>
                 description (see <xref linkend="ColClassDescr"
-                xrefstyle="select: labelnumber" />).</para>
+                xrefstyle="select: label" />).</para>
               </glossdef>
             </glossentry>
 
@@ -6651,7 +6647,7 @@ for node in h5file.root.detector:
             <para>If the column named <literal>colname</literal> (a string)
             exists and is of an enumerated type, the corresponding
             <literal>Enum</literal> instance (see <xref
-            linkend="EnumClassDescr" xrefstyle="select: labelnumber" />) is
+            linkend="EnumClassDescr" xrefstyle="select: label" />) is
             returned. If it is not of an enumerated type, a
             <literal>TypeError</literal> is raised. If the column does not
             exist, a <literal>KeyError</literal> is raised.</para>
@@ -7038,11 +7034,11 @@ if row['var1'] &lt;= 20 ]</screen>
 
             <para>This method returns an iterator yielding
             <literal>Row</literal> (see <xref linkend="RowClassDescr"
-            xrefstyle="select: labelnumber" />) instances built from rows in
-            the table that satisfy the given <emphasis>condition</emphasis>
-            (an expression-like string). For more information on condition
-            syntax, see <xref linkend="conditionSyntax"
-            xrefstyle="select: label" />.</para>
+            xrefstyle="select: label" />) instances built from rows in the
+            table that satisfy the given <emphasis>condition</emphasis> (an
+            expression-like string). For more information on condition syntax,
+            see <xref linkend="conditionSyntax" xrefstyle="select: label"
+            />.</para>
 
             <para>The <emphasis>condvars</emphasis> mapping may be used to
             define the variable names appearing in the
@@ -7238,11 +7234,11 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
 
           <para>An instance of this class is automatically bound to
           <literal>Table</literal> (see <xref linkend="TableClassDescr"
-          xrefstyle="select: labelnumber" />) objects when they are created.
-          It provides a browseable representation of the structure of the
-          table, made of non-nested (<literal>Col</literal> —see <xref
-          linkend="ColClassDescr" xrefstyle="select: labelnumber" />) and
-          nested (<literal>Description</literal>) columns. It also contains
+          xrefstyle="select: label" />) objects when they are created.  It
+          provides a browseable representation of the structure of the table,
+          made of non-nested (<literal>Col</literal> —see <xref
+          linkend="ColClassDescr" xrefstyle="select: label" />) and nested
+          (<literal>Description</literal>) columns. It also contains
           information that will allow you to build
           <literal>NestedRecArray</literal> (see <xref
           linkend="NestedRecArrayClassDescr" xrefstyle="select: label" />)
@@ -7250,7 +7246,7 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
           or not).</para>
 
           <para>Column definitions (see <literal>Col</literal> class in <xref
-          linkend="ColClassDescr" xrefstyle="select: labelnumber" />) under a
+          linkend="ColClassDescr" xrefstyle="select: label" />) under a
           description can be accessed as attributes of it. For instance, if
           <literal>table.description</literal> is a
           <literal>Description</literal> instance with a column named
@@ -7379,10 +7375,10 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
                   <para>A dictionary mapping the names of the columns hanging
                   directly from the associated table or nested column to their
                   respective descriptions (<literal>Col</literal> —see <xref
-                  linkend="ColClassDescr" xrefstyle="select: labelnumber" />—
-                  or <literal>Description</literal> —see <xref
-                  linkend="DescriptionClassDescr"
-                  xrefstyle="select: labelnumber" /> — instances).</para>
+                  linkend="ColClassDescr" xrefstyle="select: label" />— or
+                  <literal>Description</literal> —see <xref
+                  linkend="DescriptionClassDescr" xrefstyle="select: label"
+                  />— instances).</para>
                 </glossdef>
               </glossentry>
 
@@ -7499,7 +7495,7 @@ table.flush()</screen> <emphasis>Warning:</emphasis> after completion of the
               <para>This allows you to modify values of your tables when you
               are in the middle of table iterators, like
               <literal>Table.iterrows()</literal> (see <xref
-              linkend="Table.iterrows" xrefstyle="select: labelnumber" />) or
+              linkend="Table.iterrows" xrefstyle="select: label" />) or
               <literal>Table.where()</literal> (see <xref
               linkend="Table.where" />). Once you have filled the proper
               fields for the current row, calling this method actually commits
@@ -7526,8 +7522,8 @@ table.flush()</screen> <emphasis>Warning:</emphasis> after completion of the
               <para>Retrieve all the fields in the current row.</para>
 
               <para>Contrarily to <literal>row[:]</literal> (see <xref
-              linkend="RowSpecialMethods" xrefstyle="select: labelnumber" />),
-              this returns the data as NumPy void scalars.</para>
+              linkend="RowSpecialMethods" xrefstyle="select: label" />), this
+              returns the data as NumPy void scalars.</para>
 
               <para>Example of use: <screen>[ row.fetch_all_fields() for row in table.where('col1 &lt; 3') ]</screen>
               which select all the rows that fullfills a certain
@@ -7573,8 +7569,8 @@ table.flush()</screen> <emphasis>Warning:</emphasis> after completion of the
               counterpart, in this case <literal>key</literal> can only be a
               string (the name of the field). <literal>__setitem__()</literal>
               will not take effect on the table data on-disk until any of the
-              <xref linkend="Row.append" xrefstyle="select: labelnumber" /> or
-              <xref linkend="Row.update" xrefstyle="select: labelnumber" />
+              <xref linkend="Row.append" xrefstyle="select: label" /> or
+              <xref linkend="Row.update" xrefstyle="select: label" />
               methods would be called.</para>
 
               <para>Example of use: <screen>for row in table.iterrows(step=10):
@@ -7802,9 +7798,9 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
 
                 <glossdef>
                   <para>The associated <literal>Index</literal> object (see
-                  <xref linkend="IndexClassDescr"
-                  xrefstyle="select: labelnumber" />) to this column
-                  (<literal>None</literal> if it does not exist).</para>
+                  <xref linkend="IndexClassDescr" xrefstyle="select: label"
+                  />) to this column (<literal>None</literal> if it does not
+                  exist).</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -7818,14 +7814,14 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               filters=None)</literal></title>
 
               <para>Create an <literal>Index</literal> (see <xref
-              linkend="IndexClassDescr" xrefstyle="select: labelnumber" />)
-              object for this column. You can select the level of the
-              optimization of the index by setting <literal>optlevel</literal>
-              from 0 to 9. A value of 0 means that the index will be created,
-              but not optimized (fastest time for index creation and very low
-              memory consumption, but slowest lookup times) and a value of 9
-              means maximum optimization (slowest time for index creation and
-              more memory used, but fastest lookup times).</para>
+              linkend="IndexClassDescr" xrefstyle="select: label" />) object
+              for this column. You can select the level of the optimization of
+              the index by setting <literal>optlevel</literal> from 0 to 9. A
+              value of 0 means that the index will be created, but not
+              optimized (fastest time for index creation and very low memory
+              consumption, but slowest lookup times) and a value of 9 means
+              maximum optimization (slowest time for index creation and more
+              memory used, but fastest lookup times).</para>
 
               <para>You can use the <literal>filters</literal> argument to set
               the <literal>Filters</literal> (see <xref
@@ -8004,11 +8000,10 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
         array objects in the file. This class does not allow you neither to
         enlarge nor compress the datasets on disk; use the
         <literal>EArray</literal> (see <xref linkend="EArrayClassDescr"
-        xrefstyle="select: labelnumber" />) class if you want enlargeable
-        dataset support or compression features, or <literal>CArray</literal>
-        (see <xref linkend="CArrayClassDescr"
-        xrefstyle="select: labelnumber" />) if you just want
-        compression.</para>
+        xrefstyle="select: label" />) class if you want enlargeable dataset
+        support or compression features, or <literal>CArray</literal> (see
+        <xref linkend="CArrayClassDescr" xrefstyle="select: label" />) if you
+        just want compression.</para>
 
         <para>An interesting property of the <literal>Array</literal> class is
         that it remembers the <emphasis>flavor</emphasis> of the object that
@@ -8019,7 +8014,7 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
 
         <para>Note that this class inherits all the public attributes and
         methods that <literal>Leaf</literal> (see <xref
-        linkend="LeafClassDescr" xrefstyle="select: labelnumber" />) already
+        linkend="LeafClassDescr" xrefstyle="select: label" />) already
         provides. However, as <literal>Array</literal> instances have no
         internal I/O buffers, it is not necessary to use the
         <literal>flush()</literal> method they inherit from
@@ -8039,8 +8034,8 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
               <glossdef>
                 <para>An <literal>Atom</literal> instance representing the
                 shape and type of the atomic objects. See <xref
-                linkend="AtomClassDescr" xrefstyle="select: labelnumber" />
-                for a better explanation.</para>
+                linkend="AtomClassDescr" xrefstyle="select: label" /> for a
+                better explanation.</para>
               </glossdef>
             </glossentry>
 
@@ -8076,7 +8071,7 @@ table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
 
             <para>If this array is of an enumerated type, the corresponding
             <literal>Enum</literal> instance (see <xref
-            linkend="EnumClassDescr" xrefstyle="select:   labelnumber" />) is
+            linkend="EnumClassDescr" xrefstyle="select: label" />) is
             returned. If it is not of an enumerated type, a
             <literal>TypeError</literal> is raised.</para>
           </section>
@@ -8231,10 +8226,10 @@ a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))</screen>
         file.</para>
 
         <para>The difference between a normal <literal>Array</literal> (see
-        <xref linkend="ArrayClassDescr" xrefstyle="select: labelnumber" />)
-        and a <literal>CArray</literal> is that a <literal>CArray</literal>
-        has a chunked layout and, as a consequence, it supports compression.
-        You can use datasets of this class to easily save or load arrays to or
+        <xref linkend="ArrayClassDescr" xrefstyle="select: label" />) and a
+        <literal>CArray</literal> is that a <literal>CArray</literal> has a
+        chunked layout and, as a consequence, it supports compression.  You
+        can use datasets of this class to easily save or load arrays to or
         from disk, with compression support included.</para>
 
         <section id="CArrayClassInstanceVariables">
@@ -8310,10 +8305,10 @@ Object Tree:
 
         <para>The main difference between an <literal>EArray</literal> and a
         <literal>CArray</literal> (see <xref linkend="CArrayClassDescr"
-        xrefstyle="select:      labelnumber" />) is that the former can be
-        enlarged along one of its dimensions (the <emphasis>enlargeable
-        dimension</emphasis>) using the <literal>append()</literal> method
-        (multiple enlargeable dimensions might be supported in the future). An
+        xrefstyle="select: label" />) is that the former can be enlarged along
+        one of its dimensions (the <emphasis>enlargeable dimension</emphasis>)
+        using the <literal>append()</literal> method (multiple enlargeable
+        dimensions might be supported in the future). An
         <literal>EArray</literal> dataset can also be shrunken along its
         enlargeable dimension using the <literal>truncate()</literal>
         method.</para>
@@ -8373,16 +8368,16 @@ array_c[4] =&gt; 'cccccccc'</screen>
         tree with the property that their rows can have a
         <emphasis>variable</emphasis> number of homogeneous elements, called
         <emphasis>atoms</emphasis>. Like <literal>Table</literal> (see <xref
-        linkend="TableClassDescr" xrefstyle="select: labelnumber" />)
-        datasets, variable length arrays can have only one dimension, and the
-        elements (atoms) of their rows can be fully multidimensional.
+        linkend="TableClassDescr" xrefstyle="select: label" />) datasets,
+        variable length arrays can have only one dimension, and the elements
+        (atoms) of their rows can be fully multidimensional.
         <literal>VLArray</literal> objects do also support compression.</para>
 
         <para>This class provides methods to write or read data to or from
         variable length array objects in the file. Note that it also inherits
         all the public attributes and methods that <literal>Leaf</literal>
-        (see <xref linkend="LeafClassDescr"
-        xrefstyle="select: labelnumber" />) already provides.</para>
+        (see <xref linkend="LeafClassDescr" xrefstyle="select: label" />)
+        already provides.</para>
 
         <section>
           <title><literal>VLArray</literal> instance variables</title>
@@ -8396,8 +8391,8 @@ array_c[4] =&gt; 'cccccccc'</screen>
               <glossdef>
                 <para>An <literal>Atom</literal> instance representing the
                 shape and type of the atomic objects. See <xref
-                linkend="AtomClassDescr" xrefstyle="select: labelnumber" />
-                for a better explanation.</para>
+                linkend="AtomClassDescr" xrefstyle="select: label" /> for a
+                better explanation.</para>
               </glossdef>
             </glossentry>
 
@@ -8443,7 +8438,7 @@ array_c[4] =&gt; 'cccccccc'</screen>
 
             <para>If this array is of an enumerated type, the corresponding
             <literal>Enum</literal> instance (see <xref
-            linkend="EnumClassDescr" xrefstyle="select:   labelnumber" />) is
+            linkend="EnumClassDescr" xrefstyle="select: label" />) is
             returned. If it is not of an enumerated type, a
             <literal>TypeError</literal> is raised.</para>
           </section>
@@ -8690,7 +8685,7 @@ vlarray[99,-99:-89:2] = vlarray[5]*2+3</screen>
 
         <para>This class does not have any public instance variables, except
         those inherited from the <literal>Leaf</literal> class (see <xref
-        linkend="LeafClassDescr" xrefstyle="select: labelnumber" />).</para>
+        linkend="LeafClassDescr" xrefstyle="select: label" />).</para>
       </section>
 
       <section id="AttributeSetClassDescr">
@@ -8928,7 +8923,7 @@ del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
           declare the different properties of a non-nested column in a table.
           <literal>Col</literal> classes are descendants of their equivalent
           <literal>Atom</literal> classes (see <xref linkend="AtomClassDescr"
-          xrefstyle="select: labelnumber" />), but their instances have an
+          xrefstyle="select: label" />), but their instances have an
           additional <literal>_v_pos</literal> attribute that can be set with
           the optional constructor parameter <literal>pos</literal>, which
           defaults to <literal>None</literal> and may take an integer.</para>
@@ -9507,8 +9502,8 @@ ValueError: unknown type: 'Float64'</screen>
               type, defined by the first argument (<literal>enum</literal>) in
               the constructor of the atom, which accepts the same kinds of
               arguments as the <literal>Enum</literal> class (see <xref
-              linkend="EnumClassDescr" xrefstyle="select: labelnumber" />).
-              The enumerated type is stored in the <literal>enum</literal>
+              linkend="EnumClassDescr" xrefstyle="select: label" />).  The
+              enumerated type is stored in the <literal>enum</literal>
               attribute of the atom.</para>
 
               <para>A default value must be specified as the second argument
@@ -9881,8 +9876,8 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
           indexing process of a <literal>Table</literal> column. To use it,
           create an instance, and assign it to the special attribute
           <literal>_v_indexprops</literal> in a table description class (see
-          <xref linkend="IsDescriptionClassDescr"
-          xrefstyle="select: labelnumber" />) or dictionary.</para>
+          <xref linkend="IsDescriptionClassDescr" xrefstyle="select: label"
+          />) or dictionary.</para>
 
           <para>The public variables of <literal>IndexProps</literal> are
           listed below:</para>
@@ -10758,14 +10753,13 @@ class Bench(IsDescription):
         <para>You can select the compression library and level by setting the
         <literal>complib</literal> and <literal>complevel</literal> keywords
         in the <literal>Filters</literal> class (see <xref
-        linkend="FiltersClassDescr"
-        xrefstyle="select:         labelnumber" />). A compression level of 0
-        will completely disable compression (the default), 1 is the less CPU
-        time demanding level, while 9 is the maximum level and most CPU
-        intensive. Finally, have in mind that LZO is not accepting a
-        compression level right now, so, when using LZO, 0 means that
-        compression is not active, and any other value means that LZO is
-        active.</para>
+        linkend="FiltersClassDescr" xrefstyle="select: label" />). A
+        compression level of 0 will completely disable compression (the
+        default), 1 is the less CPU time demanding level, while 9 is the
+        maximum level and most CPU intensive. Finally, have in mind that LZO
+        is not accepting a compression level right now, so, when using LZO, 0
+        means that compression is not active, and any other value means that
+        LZO is active.</para>
 
         <para>So, in conclusion, if your ultimate goal is writing and reading
         as fast as possible, choose LZO. If you want to reduce as much as
@@ -11279,8 +11273,8 @@ fileh.close()
 
         <para>This is where the <literal>rootUEP</literal> parameter of
         <literal>openFile</literal> function (see <xref
-        linkend="openFileDescr" xrefstyle="select:         labelnumber" />)
-        can be helpful. Imagine that you have a file called
+        linkend="openFileDescr" xrefstyle="select: label" />) can be
+        helpful. Imagine that you have a file called
         <literal>"test.h5"</literal> with the associated tree that you can see
         in <xref linkend="rootUEPfig1" xrefstyle="select: label" />, and you
         are interested only in the section marked in red. You can avoid the
@@ -11746,7 +11740,7 @@ owner := 'ivan']
 
           <!--           want arbitrary names you will have to use a translation map (see -->
 
-          <!--           <xref xrefstyle="select: labelnumber" linkend="openFileDescr"/>) or -->
+          <!--           <xref xrefstyle="select: label" linkend="openFileDescr"/>) or -->
 
           <!--           the node title. The same restriction applies to attribute -->
 
@@ -12374,7 +12368,7 @@ variables:
           compressed on disk by default. The parameters for the default
           compression are determined from a <literal>Filters</literal> class
           instance (see section <xref linkend="FiltersClassDescr"
-          xrefstyle="select: labelnumber" />) with <literal>complevel=6,
+          xrefstyle="select: label" />) with <literal>complevel=6,
           complib='zlib' and shuffle=True</literal>. To change the default
           compression, simply pass a <literal>Filters</literal> instance to
           <literal>createVariable</literal> with the
@@ -12426,8 +12420,8 @@ variables:
           expect that your data with have an order of magnitude more or less
           than 10000 entries along the <emphasis>unlimited</emphasis>
           dimension, you may consider setting this keyword to improve
-          efficiency (see section <xref linkend="expectedRowsOptim"
-          xrefstyle="select: labelnumber" /> for details).</para>
+          efficiency (see <xref linkend="expectedRowsOptim" xrefstyle="select:
+          label" /> for details).</para>
         </section>
       </section>
 
@@ -12556,8 +12550,8 @@ variables:
               expect that your data with have an order of magnitude more or
               less than 10000 entries along the <emphasis>unlimited</emphasis>
               dimension, you may consider setting this keyword to improve
-              efficiency (see section <xref linkend="expectedRowsOptim"
-              xrefstyle="select: labelnumber" /> for details). The
+              efficiency (see <xref linkend="expectedRowsOptim"
+              xrefstyle="select: label" /> for details). The
               <literal>filters</literal> keyword is a PyTables
               <literal>Filters</literal> instance that describes how to store
               the data on disk. The default corresponds to
@@ -12959,10 +12953,10 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       Numeric (see <biblioref linkend="Numeric" />) packages in Python. The
       data types for table fields can be set via instances of the
       <literal>Col</literal> class and its descendants (see <xref
-      linkend="ColClassDescr" xrefstyle="select: labelnumber" />), while the
-      data type of array elements can be set through the use of the
+      linkend="ColClassDescr" xrefstyle="select: label" />), while the data
+      type of array elements can be set through the use of the
       <literal>Atom</literal> class and its descendants (see <xref
-      linkend="AtomClassDescr" xrefstyle="select: labelnumber" />).</para>
+      linkend="AtomClassDescr" xrefstyle="select: label" />).</para>
 
       <para>PyTables uses ordinary strings to represent its
       <emphasis>types</emphasis>, with most of them matching the names of
@@ -13035,8 +13029,8 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       <emphasis>enumerations</emphasis> (restricted sets of unique name and
       unique value pairs). The NumPy representation of an enumerated value (an
       <literal>Enum</literal>, see <xref linkend="EnumClassDescr"
-      xrefstyle="select: labelnumber" />) depends on the concrete
-      <emphasis>base type</emphasis> used to store the enumeration in the HDF5
+      xrefstyle="select: label" />) depends on the concrete <emphasis>base
+      type</emphasis> used to store the enumeration in the HDF5
       file. Currently, only scalar integer values (both signed and unsigned)
       are supported in enumerations. This restriction may be lifted when HDF5
       supports other kinds on enumerated values.</para>
@@ -14137,7 +14131,7 @@ Object Tree:
      for further explanation of what this attribute means.</screen> If you
           have followed the small tutorial on the <literal>ptrepack</literal>
           utility (see <xref linkend="ptrepackDescr"
-          xrefstyle="select: labelnumber" />), you should easily realize what
+          xrefstyle="select: label" />), you should easily realize what
           most of the different flags would mean.</para>
         </section>
       </section>
@@ -14278,10 +14272,10 @@ Object Tree:
             <glossdef>
               <para>When present, this attribute contains the filter
               properties (a <literal>Filters</literal> instance, see section
-              <xref linkend="FiltersClassDescr"
-              xrefstyle="select:               labelnumber" />) that may be
-              inherited by leaves or groups created immediately under this
-              group. This is a packed 64-bit integer structure, where</para>
+              <xref linkend="FiltersClassDescr" xrefstyle="select: label" />)
+              that may be inherited by leaves or groups created immediately
+              under this group. This is a packed 64-bit integer structure,
+              where</para>
 
               <itemizedlist>
                 <listitem>
@@ -14982,8 +14976,8 @@ Object Tree:
             and the base datatype specified for the VL datatype can be of any
             <emphasis>atomic</emphasis> HDF5 datatype that is listed in the
             <literal>Table</literal> format description <xref
-            linkend="TableFormatDescr" xrefstyle="select: labelnumber" />.
-            That includes the classes:</para>
+            linkend="TableFormatDescr" xrefstyle="select: label" />.  That
+            includes the classes:</para>
 
             <itemizedlist>
               <listitem>
