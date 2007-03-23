@@ -123,16 +123,71 @@ _nxTypeFromNPType = {
 
 
 class Table(tableExtension.Table, Leaf):
-    """Represent a table in the object tree.
+    """
+    This class represents heterogeneous datasets in an HDF5 file.
 
-    It provides methods to create new tables or open existing ones, as
-    well as to write/read data to/from table objects over the
-    file. A method is also provided to iterate over the rows without
-    loading the entire table or column in memory.
+    Tables are leaves (see the `Leaf` class) whose data consists of a
+    unidimensional sequence of *rows*, where each row contains one or
+    more *fields*.  Fields have an associated unique *name* and
+    *position*, with the first field having position 0.  All rows have
+    the same fields, which are arranged in *columns*.
 
-    Data can be written or read both as Row instances and as homogeneous
-    or heterogeneous (record) arrays of the supported flavors (such as
-    NumPy and numarray, including NestedRecArray objects).
+    Fields can have any type supported by the `Col` class and its
+    descendants, which support multidimensional data.  Moreover, a field
+    can be *nested* (to an arbitrary depth), meaning that it includes
+    further fields inside.  A field named ``x`` inside a nested field
+    ``a`` in a table can be accessed as the field ``a/x`` (its *path
+    name*) from the table.
+
+    The structure of a table is declared by its description, which is
+    made available in the `Table.description` attribute.
+
+    This class provides new methods to read, write and search table data
+    efficiently.  It also provides special Python methods to allow
+    accessing the table as a normal sequence or array (with extended
+    slicing supported).
+
+    PyTables supports *in-kernel* searches working simultaneously on
+    several columns using complex conditions.  These are faster than
+    selections using Python expressions.  See the `Tables.where()`
+    method for more information on in-kernel searches.
+
+    Non-nested columns can be *indexed*.  Searching an indexed column
+    can be several times faster than searching a non-nested one.  Search
+    methods automatically take advantage of indexing where available.
+
+    .. Note:: Column indexing is only available in PyTables Pro.
+
+    When iterating a table, an object from the `Row` class is used.
+    This object allows to read and write data one row at a time, as well
+    as to perform queries which are not supported by in-kernel syntax
+    (at a much lower speed, of course).  You can get new row iterators
+    whenever you want by accessing the `Table.row` property.
+
+    Objects of this class support access to individual columns via
+    *natural naming* through the `Table.cols` accessor.  Nested columns
+    are mapped to `Cols` instances, and non-nested ones to `Column`
+    instances.  See the `Column` class for examples of this feature.
+
+    Instance variables:
+
+        description -- the metaobject describing this table
+        row -- a reference to the Row object associated with this table
+        nrows -- the number of rows in this table
+        rowsize -- the size, in bytes, of each row
+        cols -- accessor to the columns using a natural name schema
+        colnames -- the top-level field names for the table (list)
+        colpathnames -- the bottom-level field pathnames for the table (list)
+        colinstances -- the column instances for the table fields (dictionary)
+        coldescrs -- Maps the name of a column to its `Col` description.
+        coldtypes -- the dtype class for the table fields (dictionary)
+        coltypes -- the PyTables type for the table fields (dictionary)
+        coldflts -- the defaults for each column (dictionary)
+        colindexed -- whether the table fields are indexed (dictionary)
+        indexed -- whether or not some field in Table is indexed
+        autoIndex -- automatically keep column indexes up to date?
+        indexFilters -- filters used to compress indexes
+        indexedcolpathnames -- the pathnames of the indexed columns (list)
 
     Methods:
 
@@ -156,27 +211,6 @@ class Table(tableExtension.Table, Leaf):
         where(condition [, condvars] [, start] [, stop] [, step])
         whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
         getWhereList(condition [, condvars] [, sort])
-
-    Instance variables:
-
-        description -- the metaobject describing this table
-        row -- a reference to the Row object associated with this table
-        nrows -- the number of rows in this table
-        rowsize -- the size, in bytes, of each row
-        cols -- accessor to the columns using a natural name schema
-        colnames -- the top-level field names for the table (list)
-        colpathnames -- the bottom-level field pathnames for the table (list)
-        colinstances -- the column instances for the table fields (dictionary)
-        coldescrs -- Maps the name of a column to its `Col` description.
-        coldtypes -- the dtype class for the table fields (dictionary)
-        coltypes -- the PyTables type for the table fields (dictionary)
-        coldflts -- the defaults for each column (dictionary)
-        colindexed -- whether the table fields are indexed (dictionary)
-        indexed -- whether or not some field in Table is indexed
-        autoIndex -- automatically keep column indexes up to date?
-        indexFilters -- filters used to compress indexes
-        indexedcolpathnames -- the pathnames of the indexed columns (list)
-
     """
 
     # Class identifier.

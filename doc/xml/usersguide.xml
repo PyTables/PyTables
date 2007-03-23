@@ -6410,30 +6410,84 @@ for node in h5file.root.detector:
         </section>
       </section>
 
-      <!-- REVIEWD UP TO HERE - Ivan -->
       <section id="TableClassDescr">
         <title>The <literal>Table</literal> class</title>
 
-        <para>Instances of this class represents table objects in the object
-        tree. It provides methods to read/write data and from/to table objects
-        in the file.</para>
+        <para>This class represents heterogeneous datasets in an HDF5
+        file.</para>
 
-        <para>Data can be read from or written to tables by accessing to an
-        special object that hangs from <literal>Table</literal>. This object
-        is an instance of the <literal>Row</literal> class (see <xref
-        linkend="RowClassDescr" xrefstyle="select: label" />). See the
-        tutorial sections <xref linkend="usage" xrefstyle="select: label" />
-        on how to use the <literal>Row</literal> interface. The columns of the
-        tables can also be easily accessed (and more specifically, they can be
-        read but not written) by making use of the <literal>Column</literal>
-        class, through the use of an <emphasis>extension</emphasis> of the
-        natural naming schema applied inside the tables. See the <xref
-        linkend="ColumnClassDescr" xrefstyle="select: label" /> for some
-        examples of use of this capability.</para>
+        <para>Tables are leaves (see the <literal>Leaf</literal> class in
+        <xref linkend="LeafClassDescr" xrefstyle="select: label" />) whose
+        data consists of a unidimensional sequence of
+        <emphasis>rows</emphasis>, where each row contains one or more
+        <emphasis>fields</emphasis>.  Fields have an associated unique
+        <emphasis>name</emphasis> and <emphasis>position</emphasis>, with the
+        first field having position 0.  All rows have the same fields, which
+        are arranged in <emphasis>columns</emphasis>.</para>
 
-        <para>Note that this object inherits all the public attributes and
-        methods that <literal>Leaf</literal> already has.</para>
+        <para>Fields can have any type supported by the <literal>Col</literal>
+        class (see <xref linkend="ColClassDescr" xrefstyle="select: label" />)
+        and its descendants, which support multidimensional data.  Moreover, a
+        field can be <emphasis>nested</emphasis> (to an arbitrary depth),
+        meaning that it includes further fields inside.  A field named
+        <literal>x</literal> inside a nested field <literal>a</literal> in a
+        table can be accessed as the field <literal>a/x</literal> (its
+        <emphasis>path name</emphasis>) from the table.</para>
 
+        <para>The structure of a table is declared by its description, which
+        is made available in the <literal>Table.description</literal>
+        attribute (see <xref linkend="TableInstanceVariablesDescr"
+        xrefstyle="select: label" />).</para>
+
+        <para>This class provides new methods to read, write and search table
+        data efficiently.  It also provides special Python methods to allow
+        accessing the table as a normal sequence or array (with extended
+        slicing supported).</para>
+
+        <para>PyTables supports <emphasis>in-kernel</emphasis> searches
+        working simultaneously on several columns using complex conditions.
+        These are faster than selections using Python expressions.  See the
+        <literal>Tables.where()</literal> method —<xref linkend="Table.where"
+        />— for more information on in-kernel searches.
+        <!-- manual-only -->
+        See also <xref linkend="inkernelSearch" xrefstyle="select: label" />
+        for a detailed review of the advantages and shortcomings of in-kernel
+        searches.
+        </para>
+
+        <para>Non-nested columns can be <emphasis>indexed</emphasis>.
+        Searching an indexed column can be several times faster than searching
+        a non-nested one.  Search methods automatically take advantage of
+        indexing where available.</para>
+
+        <note>
+          <!-- XXXPRO -->
+          <para>Column indexing is only available in PyTables Pro.</para>
+        </note>
+
+        <para>When iterating a table, an object from the
+        <literal>Row</literal> (see <xref linkend="RowClassDescr"
+        xrefstyle="select: label" />) class is used.  This object allows to
+        read and write data one row at a time, as well as to perform queries
+        which are not supported by in-kernel syntax (at a much lower speed, of
+        course).  You can get new row iterators whenever you want by accessing
+        the <literal>Table.row</literal> property (see <xref
+        linkend="TableInstanceVariablesDescr" xrefstyle="select: label"
+        />).
+        <!-- manual-only -->
+        See the tutorial sections in <xref linkend="usage" xrefstyle="select:
+        label" /> on how to use the <literal>Row</literal> interface.</para>
+
+        <para>Objects of this class support access to individual columns via
+        <emphasis>natural naming</emphasis> through the
+        <literal>Table.cols</literal> accessor (see <xref
+        linkend="TableInstanceVariablesDescr" xrefstyle="select: label" />).
+        Nested columns are mapped to <literal>Cols</literal> instances, and
+        non-nested ones to <literal>Column</literal> instances.  See the
+        <literal>Column</literal> class in <xref linkend="ColumnClassDescr"
+        xrefstyle="select: label" /> for examples of this feature.</para>
+
+        <!-- XXX REVIEWED UP TO HERE - Ivan -->
         <section id="TableInstanceVariablesDescr">
           <title><literal>Table</literal> instance variables</title>
 
