@@ -118,6 +118,8 @@ class Leaf(Node):
         This is read-only because you cannot change the chunk size of a
         leaf once it has been created.
 
+    extdim
+        The index of the enlargeable dimension (-1 if none).
     filters
         Filter properties for this leaf --see `Filters`.
     flavor

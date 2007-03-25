@@ -227,7 +227,7 @@ class Table(tableExtension.Table, Leaf):
     description
         A `Description` instance reflecting the structure of the table.
     extdim
-        The index of the enlargeable dimension (always 0 for tables)
+        The index of the enlargeable dimension (always 0 for tables).
     indexed
         Does this table have any indexed columns?
 

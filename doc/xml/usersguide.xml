@@ -6093,6 +6093,15 @@ for node in h5file.root.detector:
             </glossentry>
 
             <glossentry>
+              <glossterm><emphasis role="bold">extdim</emphasis></glossterm>
+
+              <glossdef>
+                <para>The index of the enlargeable dimension (-1 if
+                none).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
               <glossterm><emphasis role="bold">filters</emphasis></glossterm>
 
               <glossdef>
@@ -6655,7 +6664,7 @@ for node in h5file.root.detector:
 
               <glossdef>
                 <para>The index of the enlargeable dimension (always 0 for
-                tables)</para>
+                tables).</para>
               </glossdef>
             </glossentry>
 
