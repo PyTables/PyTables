@@ -101,10 +101,12 @@ _table__autoIndex = property(
     modification of rows).  The default is true.
 
     This value gets into effect whenever a column is altered.  For an
-    immediate update use `self.flushRowsToIndex()`; for an immediate
-    reindexing of invalidated indexes, use `self.reIndexDirty()`.
+    immediate update use `Table.flushRowsToIndex()`; for an immediate
+    reindexing of invalidated indexes, use `Table.reIndexDirty()`.
 
     This value is persistent.
+
+    .. Note:: Column indexing is only available in PyTables Pro.
     """ )
 
 def _table__setindexFilters(self, filters):
@@ -135,9 +137,11 @@ _table__indexFilters = property(
     zlib compression level 1 with shuffling.
 
     This value is used when creating new indexes or recomputing old
-    ones.  To apply it to existing indexes, use `self.reIndex()`.
+    ones.  To apply it to existing indexes, use `Table.reIndex()`.
 
     This value is persistent.
+
+    .. Note:: Column indexing is only available in PyTables Pro.
     """ )
 
 def _table__restorecache(self):

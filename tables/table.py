@@ -169,27 +169,99 @@ class Table(tableExtension.Table, Leaf):
     are mapped to `Cols` instances, and non-nested ones to `Column`
     instances.  See the `Column` class for examples of this feature.
 
-    Instance variables:
+    Instance variables
+    ------------------
 
-        description -- the metaobject describing this table
-        row -- a reference to the Row object associated with this table
-        nrows -- the number of rows in this table
-        rowsize -- the size, in bytes, of each row
-        cols -- accessor to the columns using a natural name schema
-        colnames -- the top-level field names for the table (list)
-        colpathnames -- the bottom-level field pathnames for the table (list)
-        colinstances -- the column instances for the table fields (dictionary)
-        coldescrs -- Maps the name of a column to its `Col` description.
-        coldtypes -- the dtype class for the table fields (dictionary)
-        coltypes -- the PyTables type for the table fields (dictionary)
-        coldflts -- the defaults for each column (dictionary)
-        colindexed -- whether the table fields are indexed (dictionary)
-        indexed -- whether or not some field in Table is indexed
-        autoIndex -- automatically keep column indexes up to date?
-        indexFilters -- filters used to compress indexes
-        indexedcolpathnames -- the pathnames of the indexed columns (list)
+    The following instance variables are provided in addition to those
+    in `Leaf`.  Please note that there are several ``col*`` dictionaries
+    to ease retrieving information about a column directly by its path
+    name, avoiding the need to walk through `Table.description` or
+    `Table.cols`.
 
-    Methods:
+    autoIndex
+        Automatically keep column indexes up to date?
+
+        Setting this value states whether existing indexes should be
+        automatically updated after an append operation or recomputed
+        after an index-invalidating operation (i.e. removal and
+        modification of rows).  The default is true.
+
+        This value gets into effect whenever a column is altered.  For
+        an immediate update use `Table.flushRowsToIndex()`; for an
+        immediate reindexing of invalidated indexes, use
+        `Table.reIndexDirty()`.
+
+        This value is persistent.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+
+    coldescrs
+        Maps the name of a column to its `Col` description.
+    coldflts
+        Maps the name of a column to its default value.
+    coldtypes
+        Maps the name of a column to its NumPy data type.
+    colindexed
+        Is the column which name is used as a key indexed?
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+
+    colinstances
+        Maps the name of a column to its `Column` or `Cols` instance.
+    colnames
+        A list containing the names of *top-level* columns in the table.
+    colpathnames
+        A list containing the pathnames of *bottom-level* columns in the
+        table.
+
+        These are the leaf columns obtained when walking the table
+        description left-to-right, bottom-first.  Columns inside a
+        nested column have slashes (``/``) separating name components in
+        their pathname.
+
+    cols
+        A `Cols` instance that provides *natural naming* access to
+        non-nested (`Column`) and nested (`Cols`) columns.
+    coltypes
+        Maps the name of a column to its PyTables data type.
+    description
+        A `Description` instance reflecting the structure of the table.
+    extdim
+        The index of the enlargeable dimension (always 0 for tables)
+    indexed
+        Does this table have any indexed columns?
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+
+    indexedcolpathnames
+        List of the pathnames of indexed columns in the table.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+
+    indexFilters
+        Filters used to compress indexes.
+
+        Setting this value to a `Filters` instance determines the
+        compression to be used for indexes.  Setting it to ``None``
+        means that no filters will be used for indexes.  The default is
+        zlib compression level 1 with shuffling.
+
+        This value is used when creating new indexes or recomputing old
+        ones.  To apply it to existing indexes, use `Table.reIndex()`.
+
+        This value is persistent.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+
+    nrows
+        Current number of rows in the table.
+    row
+        A new `Row` instance for iterating over the table.
+    rowsize
+        The size in bytes of each row in the table.
+
+    Public methods
+    --------------
 
         __getitem__(key)
         __iter__()
@@ -221,7 +293,7 @@ class Table(tableExtension.Table, Leaf):
     # ~~~~~~~~~~
     row = property(
         lambda self: tableExtension.Row(self), None, None,
-        "The associated `Row` instance.")
+        """A new `Row` instance for iterating over the table.""")
 
     # Read-only shorthands
     # ````````````````````
@@ -268,7 +340,11 @@ class Table(tableExtension.Table, Leaf):
         lambda self: [ _colpname for _colpname in self.colpathnames
                        if self.colindexed[_colpname] ],
         None, None,
-        """The pathnames of the indexed columns of this table.""" )
+        """
+        The pathnames of the indexed columns of this table.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+        """ )
 
     # Other methods
     # ~~~~~~~~~~~~~
@@ -320,7 +396,7 @@ class Table(tableExtension.Table, Leaf):
         self._v_new_filters = filters
         """New filter properties for this node."""
         self.extdim = 0   # Tables only have one dimension currently
-        """The index of the enlargeable dimension."""
+        """The index of the enlargeable dimension (always 0 for tables)."""
         self._v_recarray = None
         """A record array to be stored in the table."""
         self._rabyteorder = None
@@ -328,11 +404,11 @@ class Table(tableExtension.Table, Leaf):
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the table."""
         self.nrows = 0L
-        """Current number of rows in the table."""
+        """The current number of rows in the table."""
         self._unsaved_nrows = 0
         """Number of rows in buffers but still not in disk."""
         self.description = None
-        """A `Description` instance describing the structure of the table."""
+        """A `Description` instance reflecting the structure of the table."""
         self._time64colnames = []
         """The names of ``Time64`` columns."""
         self._strcolnames = []
@@ -343,7 +419,11 @@ class Table(tableExtension.Table, Leaf):
         """Private storage for the `chunkshape` property of the leaf."""
 
         self.indexed = False
-        """Does this table have any indexed columns?"""
+        """
+        Does this table have any indexed columns?
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+        """
         self._indexedrows = 0
         """Number of rows indexed in disk."""
         self._unsaved_indexedrows = 0
@@ -374,7 +454,11 @@ class Table(tableExtension.Table, Leaf):
         self.coldflts = {}
         """Maps the name of a column to its default value."""
         self.colindexed = {}
-        """Is the column which name is used as a key indexed? (dictionary)"""
+        """
+        Is the column which name is used as a key indexed?
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+        """
 
         self._whereCondition = None
         """Condition function and argument list for selection of values."""
@@ -393,7 +477,8 @@ class Table(tableExtension.Table, Leaf):
         """The NumPy datatype fopr this table."""
         self.cols = None
         """
-        A `Cols` instance that serves as an accessor to `Column` objects.
+        A `Cols` instance that provides *natural naming* access to
+        non-nested (`Column`) and nested (`Cols`) columns.
         """
         self._dirtycache = True
         """Whether the data caches are dirty or not. Initially set to yes."""

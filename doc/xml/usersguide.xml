@@ -293,7 +293,10 @@
             <para><emphasis>Indexing support for columns of tables:</emphasis>
             Very useful if you have large tables and you want to quickly look
             up for values in columns satisfying some criteria.</para>
-            <!-- XXXPRO -->
+            <note>
+              <!-- XXXPRO -->
+              <para>Column indexing is only available in PyTables Pro.</para>
+            </note>
           </listitem>
 
           <listitem>
@@ -6487,52 +6490,105 @@ for node in h5file.root.detector:
         <literal>Column</literal> class in <xref linkend="ColumnClassDescr"
         xrefstyle="select: label" /> for examples of this feature.</para>
 
-        <!-- XXX REVIEWED UP TO HERE - Ivan -->
         <section id="TableInstanceVariablesDescr">
           <title><literal>Table</literal> instance variables</title>
+
+          <para>The following instance variables are provided in addition to
+          those in <literal>Leaf</literal> (see <xref linkend="LeafClassDescr"
+          xrefstyle="select: label" />).  Please note that there are several
+          <literal>col*</literal> dictionaries to ease retrieving information
+          about a column directly by its path name, avoiding the need to walk
+          through <literal>Table.description</literal> or
+          <literal>Table.cols</literal>.</para>
 
           <glosslist>
             <?dbfo glosslist-presentation="list" ?>
 
             <glossentry>
               <glossterm><emphasis
-              role="bold">description</emphasis></glossterm>
+              role="bold">autoIndex</emphasis></glossterm>
 
               <glossdef>
-                <para>A <literal>Description</literal> (see <xref
-                linkend="DescriptionClassDescr" xrefstyle="select: label" />)
-                instance describing the structure of this table.</para>
+                <para>Automatically keep column indexes up to date?</para>
+
+                <para>Setting this value states whether existing indexes
+                should be automatically updated after an append operation or
+                recomputed after an index-invalidating operation (i.e. removal
+                and modification of rows). The default is true.</para>
+
+                <para>This value gets into effect whenever a column is
+                altered. For an immediate update use
+                <literal>Table.flushRowsToIndex()</literal> (see <xref
+                linkend="Table.flushRowsToIndex"
+                xrefstyle="select: label" />); for immediate reindexing of
+                invalidated indexes, use
+                <literal>Table.reIndexDirty()</literal> (see <xref
+                linkend="Table.reIndexDirty"
+                xrefstyle="select: label" />).</para>
+
+                <para>This value is persistent.
+                <note>
+                  <!-- XXXPRO -->
+                  <para>Column indexing is only available in PyTables
+                  Pro.</para>
+                </note>
+                </para>
               </glossdef>
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis role="bold">row</emphasis></glossterm>
+              <glossterm><emphasis
+              role="bold">coldescrs</emphasis></glossterm>
 
               <glossdef>
-                <para>The associated <literal>Row</literal> instance (see
-                <xref linkend="RowClassDescr" xrefstyle="select: label"
-                />).</para>
+                <para>Maps the name of a column to its <literal>Col</literal>
+                description (see <xref linkend="ColClassDescr"
+                xrefstyle="select: label" />).</para>
               </glossdef>
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis role="bold">rowsize</emphasis></glossterm>
+              <glossterm><emphasis role="bold">coldflts</emphasis></glossterm>
 
               <glossdef>
-                <para>The size in bytes of each row in the table.</para>
+                <para>Maps the name of a column to its default value.</para>
               </glossdef>
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis role="bold">cols</emphasis></glossterm>
+              <glossterm><emphasis
+              role="bold">coldtypes</emphasis></glossterm>
 
               <glossdef>
-                <para>A <literal>Cols</literal> (see <xref
-                linkend="ColsClassDescr" xrefstyle="select: label" />)
-                instance that serves as an accessor to
+                <para>Maps the name of a column to its NumPy data type.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis
+              role="bold">colindexed</emphasis></glossterm>
+
+              <glossdef>
+                <para>Is the column which name is used as a key indexed?
+                <note>
+                  <!-- XXXPRO -->
+                  <para>Column indexing is only available in PyTables
+                  Pro.</para>
+                </note>
+                </para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis
+              role="bold">colinstances</emphasis></glossterm>
+
+              <glossdef>
+                <para>Maps the name of a column to its
                 <literal>Column</literal> (see <xref
-                linkend="ColumnClassDescr" xrefstyle="select: label" />)
-                objects.</para>
+                linkend="ColumnClassDescr" xrefstyle="select: label" />) or
+                <literal>Cols</literal> (see <xref linkend="ColsClassDescr"
+                xrefstyle="select: label" />) instance.</para>
               </glossdef>
             </glossentry>
 
@@ -6551,35 +6607,26 @@ for node in h5file.root.detector:
 
               <glossdef>
                 <para>A list containing the pathnames of
-                <emphasis>bottom-level</emphasis> columns in the table. These
-                are the leaf columns obtained when walking the table
-                description left-to-right, bottom-first. Columns inside a
-                nested column have slashes (<literal>/</literal>) separating
+                <emphasis>bottom-level</emphasis> columns in the table.</para>
+
+                <para>These are the leaf columns obtained when walking the
+                table description left-to-right, bottom-first. Columns inside
+                a nested column have slashes (<literal>/</literal>) separating
                 name components in their pathname.</para>
               </glossdef>
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis
-              role="bold">colinstances</emphasis></glossterm>
+              <glossterm><emphasis role="bold">cols</emphasis></glossterm>
 
               <glossdef>
-                <para>Maps the name of a column to its
-                <literal>Column</literal> (see <xref
-                linkend="ColumnClassDescr" xrefstyle="select: label" />) or
-                <literal>Cols</literal> (see <xref linkend="ColsClassDescr"
-                xrefstyle="select: label" />) instance.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">coldescrs</emphasis></glossterm>
-
-              <glossdef>
-                <para>Maps the name of a column to its <literal>Col</literal>
-                description (see <xref linkend="ColClassDescr"
-                xrefstyle="select: label" />).</para>
+                <para>A <literal>Cols</literal> instance that provides
+                <emphasis>natural naming</emphasis> access to non-nested
+                (<literal>Column</literal>, see <xref
+                linkend="ColumnClassDescr" xrefstyle="select: label" />) and
+                nested (<literal>Cols</literal>, see <xref
+                linkend="ColsClassDescr" xrefstyle="select: label" />)
+                columns.</para>
               </glossdef>
             </glossentry>
 
@@ -6594,28 +6641,21 @@ for node in h5file.root.detector:
 
             <glossentry>
               <glossterm><emphasis
-              role="bold">coldtypes</emphasis></glossterm>
+              role="bold">description</emphasis></glossterm>
 
               <glossdef>
-                <para>Maps the name of a column to its NumPy data type.</para>
+                <para>A <literal>Description</literal> instance (see <xref
+                linkend="DescriptionClassDescr" xrefstyle="select: label" />)
+                reflecting the structure of the table.</para>
               </glossdef>
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis role="bold">coldflts</emphasis></glossterm>
+              <glossterm><emphasis role="bold">extdim</emphasis></glossterm>
 
               <glossdef>
-                <para>Maps the name of a column to its default.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">colindexed</emphasis></glossterm>
-
-              <glossdef>
-                <para>Is the column which name is used as a key indexed?
-                (dictionary)</para>
+                <para>The index of the enlargeable dimension (always 0 for
+                tables)</para>
               </glossdef>
             </glossentry>
 
@@ -6623,33 +6663,29 @@ for node in h5file.root.detector:
               <glossterm><emphasis role="bold">indexed</emphasis></glossterm>
 
               <glossdef>
-                <para>Does this table have any indexed columns?</para>
+                <para>Does this table have any indexed columns?
+                <note>
+                  <!-- XXXPRO -->
+                  <para>Column indexing is only available in PyTables
+                  Pro.</para>
+                </note>
+                </para>
               </glossdef>
             </glossentry>
 
             <glossentry>
               <glossterm><emphasis
-              role="bold">autoIndex</emphasis></glossterm>
+              role="bold">indexedcolpathnames</emphasis></glossterm>
 
               <glossdef>
-                <para>Automatically keep column indexes up to date?</para>
-
-                <para>Setting this value states whether existing indexes
-                should be automatically updated after an append operation or
-                recomputed after an index-invalidating operation (i.e. removal
-                and modification of rows). The default is true.</para>
-
-                <para>This value gets into effect whenever a column is
-                altered. For an immediate update use
-                <literal>self.flushRowsToIndex()</literal> (see <xref
-                linkend="Table.flushRowsToIndex"
-                xrefstyle="select: label" />); for immediate reindexing of
-                invalidated indexes, use
-                <literal>self.reIndexDirty()</literal> (see <xref
-                linkend="Table.reIndexDirty"
-                xrefstyle="select: label" />).</para>
-
-                <para>This value is persistent.</para>
+                <para>List of the pathnames of indexed columns in the
+                table.
+                <note>
+                  <!-- XXXPRO -->
+                  <para>Column indexing is only available in PyTables
+                  Pro.</para>
+                </note>
+                </para>
               </glossdef>
             </glossentry>
 
@@ -6670,25 +6706,48 @@ for node in h5file.root.detector:
 
                 <para>This value is used when creating new indexes or
                 recomputing old ones. To apply it to existing indexes, use
-                <literal>self.reIndex()</literal> (see <xref
+                <literal>Table.reIndex()</literal> (see <xref
                 linkend="Table.reIndex" xrefstyle="select: label" />).</para>
 
-                <para>This value is persistent.</para>
+                <para>This value is persistent.
+                <note>
+                  <!-- XXXPRO -->
+                  <para>Column indexing is only available in PyTables
+                  Pro.</para>
+                </note>
+                </para>
               </glossdef>
             </glossentry>
 
             <glossentry>
-              <glossterm><emphasis
-              role="bold">indexedcolpathnames</emphasis></glossterm>
+              <glossterm><emphasis role="bold">nrows</emphasis></glossterm>
 
               <glossdef>
-                <para>List of the pathnames of the indexed columns for this
-                table.</para>
+                <para>The current number of rows in the table.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">row</emphasis></glossterm>
+
+              <glossdef>
+                <para>A new <literal>Row</literal> instance (see <xref
+                linkend="RowClassDescr" xrefstyle="select: label" />) for
+                iterating over the table.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">rowsize</emphasis></glossterm>
+
+              <glossdef>
+                <para>The size in bytes of each row in the table.</para>
               </glossdef>
             </glossentry>
           </glosslist>
         </section>
 
+        <!-- XXX REVIEWED UP TO HERE - Ivan -->
         <section id="Table_methods">
           <title><literal>Table</literal> methods</title>
 
