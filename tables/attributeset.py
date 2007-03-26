@@ -29,6 +29,7 @@ Misc variables:
 
 """
 
+import re
 import warnings
 import cPickle
 import numpy
@@ -65,6 +66,8 @@ SYS_ATTRS_PREFIXES = ["FIELD_"]
 # The next attributes are not meant to be copied during a Node copy process
 SYS_ATTRS_NOTTOBECOPIED = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
                            "PYTABLES_FORMAT_VERSION", "FILTERS", "ENCODING"]
+# Regular expression for column default values.
+_field_fill_re = re.compile('^FIELD_[0-9]+_FILL$')
 
 def issysattrname(name):
     "Check if a name is a system attribute or not"
@@ -236,14 +239,27 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
-        if (isinstance(value, numpy.generic) and  # NumPy scalar?
+        maybe_pickled = (
+            isinstance(value, numpy.generic) and  # NumPy scalar?
             value.dtype.type == numpy.string_ and # string type?
-            value.itemsize > 0 and value[-1] == "."):
-            if name == "FILTERS" and format_version < (2, 0):
-                # This is a big hack, but we don't have other way to recognize
-                # pickled filters of PyTables 1.x files.
-                value = value.replace( '(ctables.Leaf\n',
-                                       '(ctables.filters\n', 1 )
+            value.itemsize > 0 and value[-1] == '.' )
+
+        if ( maybe_pickled and _field_fill_re.match(name)
+             and format_version == (1, 5) ):
+            # This format was used during the first 1.2 releases, just
+            # for string defaults.
+            try:
+                retval = cPickle.loads(value)
+                retval = numpy.array(retval)
+            except ImportError:
+                retval = None  # signal error avoiding exception
+        elif maybe_pickled and name == 'FILTERS' and format_version < (2, 0):
+            # This is a big hack, but we don't have other way to recognize
+            # pickled filters of PyTables 1.x files.
+            value = value.replace( '(ctables.Leaf\n',
+                                   '(ctables.filters\n', 1 )
+            retval = cPickle.loads(value)  # pass unpickling errors through
+        elif maybe_pickled:
             try:
                 retval = cPickle.loads(value)
             #except cPickle.UnpicklingError:

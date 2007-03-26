@@ -813,7 +813,14 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 # Get the default values for each column
                 fieldname = "FIELD_%s_FILL" % i
                 defval = getAttr(fieldname)
-                objcol.dflt = defval
+                if defval is not None:
+                    objcol.dflt = defval
+                else:
+                    warnings.warn( "could not load default value "
+                                   "for the ``%s`` column of table ``%s``; "
+                                   "using ``%r`` instead"
+                                   % (colname, self._v_pathname, objcol.dflt) )
+                    defval = objcol.dflt
                 # Set also the correct value in the desc._v_dflts dictionary
                 self.description._v_dflts[colname] = defval
                 i += 1
