@@ -625,7 +625,10 @@ be zero."""
         # Optimized version (no conversions, no type and shape checks, etc...)
         nrowscopied = 0
         nbytes = 0
-        atomsize = self.atom.size
+        if not hasattr(self.atom, 'size'):  # it is a pseudo-atom
+            atomsize = self.atom.base.size
+        else:
+            atomsize = self.atom.size
         for start2 in xrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf

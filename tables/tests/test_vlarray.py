@@ -3213,13 +3213,14 @@ class SetRangeTestCase(unittest.TestCase):
             self.fail("expected a ValueError and got:\n%s" % value)
 
 class CopyTestCase(unittest.TestCase):
+    close = True
 
-    def test01_copy(self):
+    def test01a_copy(self):
         """Checking VLArray.copy() method """
 
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test01_copy..." % self.__class__.__name__
+            print "Running %s.test01a_copy..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
         file = tempfile.mktemp(".h5")
@@ -3267,7 +3268,68 @@ class CopyTestCase(unittest.TestCase):
         assert array1.shape == array2.shape
         assert array1.flavor == array2.flavor
         assert array1.atom.dtype == array2.atom.dtype
-        assert repr(array1.atom) == repr(array1.atom)
+        assert repr(array1.atom) == repr(array2.atom)
+
+        assert array1.title == array2.title
+
+        # Close the file
+        fileh.close()
+        os.remove(file)
+
+    def test01b_copy(self):
+        """Checking VLArray.copy() method. Pseudo-atom case."""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01b_copy..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create an Vlarray
+        arr = VLStringAtom()
+        array1 = fileh.createVLArray(fileh.root, 'array1', arr, "title array1")
+        array1.flavor = "python"
+        array1.append("a string")
+        array1.append("")  # an empty row
+        array1.append("another string")
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "a")
+            array1 = fileh.root.array1
+
+        # Copy it to another location
+        array2 = array1.copy('/', 'array2')
+
+        if self.close:
+            if verbose:
+                print "(closing file version)"
+            fileh.close()
+            fileh = openFile(file, mode = "r")
+            array1 = fileh.root.array1
+            array2 = fileh.root.array2
+
+        if verbose:
+            print "array1-->", repr(array1)
+            print "array2-->", repr(array2)
+            print "array1[:]-->", repr(array1.read())
+            print "array2[:]-->", repr(array2.read())
+            print "attrs array1-->", repr(array1.attrs)
+            print "attrs array2-->", repr(array2.attrs)
+
+        # Check that all the elements are equal
+        assert array1.read() == array2.read()
+
+        # Assert other properties in array
+        assert array1.nrows == array2.nrows
+        assert array1.shape == array2.shape
+        assert array1.flavor == array2.flavor
+        assert array1.atom.type == array2.atom.type
+        assert repr(array1.atom) == repr(array2.atom)
 
         assert array1.title == array2.title
 
