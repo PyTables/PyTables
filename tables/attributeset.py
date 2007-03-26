@@ -142,11 +142,17 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         mydict["_v__nodePath"] = node._v_pathname
         mydict["_v_attrnames"] = self._g_listAttr()
         # Get the file version format. This is an optimization
-        # in order to avoid accessing too much to it.
-        if hasattr(node._v_file, "format_version"):
-            mydict["_v__format_version"] = node._v_file.format_version
+        # in order to avoid accessing it too much.
+        try:
+            format_version = node._v_file.format_version
+        except AttributeError:
+            parsed_version = None
         else:
-            mydict["_v__format_version"] = None
+            if format_version == 'unknown':
+                parsed_version = None
+            else:
+                parsed_version = tuple(map(int, format_version.split('.')))
+        mydict["_v__format_version"] = parsed_version
         # Split the attribute list in system and user lists
         mydict["_v_attrnamessys"] = []
         mydict["_v_attrnamesuser"] = []
@@ -233,8 +239,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         if (isinstance(value, numpy.generic) and  # NumPy scalar?
             value.dtype.type == numpy.string_ and # string type?
             value.itemsize > 0 and value[-1] == "."):
-            if ( name == "FILTERS"
-                 and int(format_version.split('.')[0], 10) == 1 ):
+            if name == "FILTERS" and format_version < (2, 0):
                 # This is a big hack, but we don't have other way to recognize
                 # pickled filters of PyTables 1.x files.
                 value = value.replace( '(ctables.Leaf\n',
@@ -256,8 +261,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                 # The documentation contains a note on this issue,
                 # explaining how the user can tell where the problem was.
                 retval = value
-        elif ( name == 'FILTERS'
-               and int(format_version.split('.')[0], 10) >= 2 ):
+        elif name == 'FILTERS' and format_version >= (2, 0):
             retval = Filters._unpack(value)
         else:
             retval = value
@@ -286,8 +290,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                 stvalue = numpy.array(value, dtype=numpy.int32)
             elif name == "NROWS":
                 stvalue = numpy.array(value, dtype=numpy.int64)
-            elif ( name == "FILTERS"
-                   and int(self._v__format_version.split('.')[0], 10) >= 2 ):
+            elif name == "FILTERS" and self._v__format_version >= (2, 0):
                 stvalue = value._pack()
         self._g_setAttr(name, stvalue)
 
