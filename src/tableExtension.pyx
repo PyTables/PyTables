@@ -426,6 +426,8 @@ cdef class Table(Leaf):
     # Set the caches to dirty (in fact, and for the append case,
     # it should be only the caches based on limits, but anyway)
     self._dirtycache = True
+    # Delete the reference to recarray as we doesn't need it anymore
+    self._v_recarray = None
 
 
   def _update_records(self, hsize_t start, hsize_t stop,
