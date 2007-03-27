@@ -68,6 +68,10 @@ SYS_ATTRS_NOTTOBECOPIED = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
                            "PYTABLES_FORMAT_VERSION", "FILTERS", "ENCODING"]
 # Regular expression for column default values.
 _field_fill_re = re.compile('^FIELD_[0-9]+_FILL$')
+# Regular expression for fixing old pickled filters.
+_old_filters_re = re.compile(r'\(([ic])tables\.Leaf\n')
+# Fixed version of the previous string.
+_new_filters_sub = r'(\1tables.filters\n'
 
 def issysattrname(name):
     "Check if a name is a system attribute or not"
@@ -256,8 +260,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         elif maybe_pickled and name == 'FILTERS' and format_version < (2, 0):
             # This is a big hack, but we don't have other way to recognize
             # pickled filters of PyTables 1.x files.
-            value = value.replace( '(ctables.Leaf\n',
-                                   '(ctables.filters\n', 1 )
+            value = _old_filters_re.sub(_new_filters_sub, value, 1)
             retval = cPickle.loads(value)  # pass unpickling errors through
         elif maybe_pickled:
             try:
