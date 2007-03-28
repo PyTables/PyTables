@@ -29,7 +29,9 @@ Misc variables:
 
 __version__ = "$Revision$"
 # default version for IndexARRAY objects
-obversion = "1.0"    # initial version
+#obversion = "1.0"    # Initial version for PyTables 1.x series.
+obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series.
+                     # Added new attributes for keeping optimization params.
 
 import types
 import warnings
