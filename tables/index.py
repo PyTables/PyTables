@@ -557,8 +557,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.blocksize = sorted.blocksize
             self.slicesize = sorted.slicesize
             self.chunksize = sorted.chunksize
+            self.optlevel = sorted.optlevel
             self.filters = sorted.filters
-            self.reord_opts = sorted.reord_opts
             # The number of elements is at the end of the indices array
             nelementsLR = self.indicesLR[-1]
             self.nrows = sorted.nrows
@@ -594,7 +594,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.blocksize = sorted.blocksize
         self.slicesize = sorted.slicesize
         self.chunksize = sorted.chunksize
-        self.reord_opts = sorted.reord_opts
 
         # Create the IndexArray for index values
         IndexArray(self, 'indices', Int64Atom(), "Reverse Indices",
@@ -746,6 +745,67 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.profile: show_stats("Eixint de appendLR", tref)
 
 
+    def calcoptlevels(shufflelevel):
+        optmedian, optstarts, optstops, optfull = (False,)*4
+        if self.testmode:
+            if 1 <= shufflelevel < 3:
+                optmedian = True
+            if 3 <= shufflelevel < 6:
+                optstarts = True
+            elif 6 <= shufflelevel < 9:
+                optstarts, optstops = (True, True)
+            elif shufflelevel == 9:
+                optfull = 1
+            return optmedian, optstarts, optstops, optfull
+        # Regular case
+        cs = self.chunksize
+        ss = self.slicesize
+        bs = self.blocksize
+        ss = self.superblocksize
+        nss = self.superblocksize / self.slicesize
+        if nss < 5:
+            if 6 <= shufflelevel < 9:
+                optmedian = True
+            elif shufflelevel == 9:
+                optstarts, optstops = (True, True)
+        elif 5 <= nss <= 25:
+            if 3 <= shufflelevel < 6:
+                optmedian = True
+            elif 6 <= shufflelevel < 9:
+                optstarts, optstops = (True, True)
+            elif shufflelevel == 9:
+                optfull = 1
+        elif 25 <= nss <= 125:
+            if 0 < shufflelevel < 3:
+                optmedian = True
+            elif 3 <= shufflelevel < 6:
+                optstarts, optstops = (True, True)
+            elif 6 <= shufflelevel < 9:
+                optfull = 1
+            elif shufflelevel == 9:
+                optfull = 2
+        elif 125 <= nss <= 625:
+            if 0 < shufflelevel < 3:
+                optstarts, optstops = (True, True)
+            elif 3 <= shufflelevel < 6:
+                optfull = 1
+            elif 6 <= shufflelevel < 9:
+                optfull = 2
+            elif shufflelevel == 9:
+                optfull = 3
+        else:  # superblocks with more than 625 slices. Are there some?
+            if 0 < shufflelevel < 3:
+                optfull = 1
+            elif 3 <= shufflelevel < 6:
+                optfull = 2
+            elif 6 <= shufflelevel < 9:
+                optfull = 3
+            elif shufflelevel == 9:
+                optfull = 4
+
+        return optmedian, optstarts, optstops, optfull
+
+
     def optimize(self, level=None, verbose=False):
         "Optimize an index to allow faster searches."
 
@@ -765,17 +825,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.verbose:
             (nover, mult, tover) = self.compute_overlaps("init", self.verbose)
 
-        if level is not None:
-            optmedian, optstarts, optstops, optfull = (False,)*4
-            if 3 <= level < 6:
-                optstarts = True
-            elif 6 <= level < 9:
-                optstarts = True
-                optstops = True
-            elif level == 9:
-                optfull = True
-        else:
-            optmedian, optstarts, optstops, optfull = self.reord_opts
+        # Decode optimization levels
+        if level is None:
+            level = self.optlevel
+        memlevel = level // 10 + 1
+        shufflelevel = level - (memlevel-1) * 10
+        # Compute the correct shuffle optims. for shufflelevel
+        optmedian, optstarts, optstops, optfull = \
+                   self.calcoptlevels(shufflelevel)
 
         # Start the optimization process
         if optmedian or optstarts or optstops or optfull:
@@ -790,13 +847,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     swap_done = False  # No swap has been done!
                     break
             if optfull:
-                if self.swap('chunks', 'median'): break
-                if self.nblocks > 1:
-                    # Swap slices only in the case that we have several blocks
-                    if self.swap('slices', 'median'): break
-                    if self.swap('chunks','median'): break
-                if self.swap('chunks', 'start'): break
-                if self.swap('chunks', 'stop'): break
+                for niter in range(optfull):
+                    if self.swap('chunks', 'median'): break
+                    if self.nblocks > 1:
+                        # Swap slices only in the case that we have
+                        # several blocks
+                        if self.swap('slices', 'median'): break
+                        if self.swap('chunks','median'): break
+                    if self.swap('chunks', 'start'): break
+                    if self.swap('chunks', 'stop'): break
             else:
                 if optmedian:
                     if self.swap('chunks', 'median'): break

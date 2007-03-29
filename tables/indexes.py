@@ -38,6 +38,7 @@ import warnings
 import sys
 from bisect import bisect_left, bisect_right
 from time import time
+import math
 
 import numpy
 
@@ -45,6 +46,56 @@ from tables.node import NotLoggedMixin
 from tables.array import Array
 from tables.earray import EArray
 from tables import indexesExtension
+
+# Hints for chunk/slice/block/superblock computations:
+# - The slicesize should not exceed 500 MB.  That would make the
+#   sorting algorithms to consume up to 1 GB of memory.
+# - In general, one should favor a small chunksize ( < 128 KB) if
+#   one wants to reduce the latency for indexed queries. However,
+#   keep in mind that a very low value of chunksize for big
+#   datasets may hurt the performance by requering the HDF5 to use
+#   a lot of memory and CPU for its internal B-Tree.
+
+def csformula(nrows):
+    """Return the fitted chunksize (a float value) for nrows."""
+    # This formula has been computed using two points:
+    # 2**12 = m * 2**(n + log10(10**6))
+    # 2**15 = m * 2**(n + log10(10**9))
+    # where 2**12 and 2**15 are reasonable values for chunksizes for indexes
+    # with 10**6 and 10**9 elements respectively.
+    # Yes, return a floating point number!
+    return 64 * 2**math.log10(nrows)
+
+
+def computechunksize(expectedrows):
+    """Get the optimum chunksize based on expectedrows."""
+
+    # Only four zones for varying chunksizes here:
+    # 1. rows < 10**7
+    # 2. 10**7 <= rows < 10**8
+    # 3. 10**8 <= rows < 10**9
+    # 2. rows > 10**9
+    zone = int(math.log10(expectedrows))
+    if zone < 6:
+        zone = 6
+    elif zone > 9:
+        zone = 9
+    nrows = 10**zone
+    return int(csformula(nrows))
+
+
+def computeslicesize(expectedrows, memlevel):
+    """Get the optimum slicesize based on expectedrows and memorylevel."""
+
+    # Protection against creating too small slices (there will be no
+    # protection for creating too large ones!).
+    if expectedrows < 10**6:
+        expectedrows = 10**6
+    # First, the optimum chunksize
+    cs = csformula(expectedrows)
+    # Now the slicesize
+    ss = cs * memlevel**2 * 16  #XXX replace by MEMORY_FACTOR
+    return ss
 
 
 def computeblocksize(expectedrows, compoundsize):
@@ -84,13 +135,17 @@ def calcChunksize(expectedrows, optlevel, testmode):
 
     debug = False
     #debug = True  # Uncomment this for debugging purposes
-    superblocksize, blocksize, slicesize, chunksize = (None, None, None, None)
-    optmedian, optstarts, optstops, optfull = (False, False, False, False)
+
+    # Decode memlevel & optlevel
+    memlevel = optlevel // 10 + 1
+    shufflelevel = optlevel - (memlevel-1) * 10
+    if debug:
+        print "memlevel, shufflelevel-->", memlevel, shufflelevel
 
     if testmode:
-        if 0 <= optlevel < 9:
-            boost = (optlevel % 3) * 2 + 1   # 1, 3, 5
-        elif optlevel == 9:
+        if 0 <= shufflelevel < 9:
+            boost = (shufflelevel % 3) * 2 + 1   # 1, 3, 5
+        elif shufflelevel == 9:
             boost = 4
         chunksize = 3 * boost # a very small number here is useful
                               # for testing the optimitzation levels
@@ -98,309 +153,26 @@ def calcChunksize(expectedrows, optlevel, testmode):
                               # tests to work!)
         # slicesize should be at least twice as bigger than chunksize
         slicesize = chunksize * boost * 2
-        if 3 <= optlevel < 6:
-            optstarts = True
-        elif 6 <= optlevel < 9:
-            optstarts, optstops = (True, True)
-        elif optlevel == 9:
-            optfull = True
-        if blocksize == None:
-            blocksize = 4*slicesize
-        if superblocksize == None:
-            superblocksize = 4*blocksize
+        blocksize = 4*slicesize
+        superblocksize = 4*blocksize
+        sizes = (superblocksize, blocksize, slicesize, chunksize)
         if debug:
             print "superblocksize, blocksize, slicesize, chunksize:", \
-                  (superblocksize, blocksize, slicesize, chunksize)
-        sizes = (superblocksize, blocksize, slicesize, chunksize)
-        opts = (optmedian, optstarts, optstops, optfull)
-        return (sizes, opts)
+                  sizes
+        return sizes
 
     expMrows = expectedrows / 1000000.  # Multiples of one million
 
-    # Hint: the slicesize should not exceed 500 or 1000 thousand.
-    # That would make NumPy to consume lots of memory for sorting
-    # this slice.
-    # In general, one should favor a small chunksize (100 ~ 1000) if one
-    # wants to reduce the latency for indexed queries. However, keep in
-    # mind that a very low value of chunksize for big datasets may
-    # hurt the performance by requering the HDF5 to use a lot of memory
-    # and CPU for its internal B-Tree.
-    if expMrows < 0.1: # expected rows < 100 thousand
-        chunksize = 250
-        slicesize = 100*chunksize
-    elif expMrows < 1: # expected rows < 1 milion
-        if optlevel <= 3:
-            chunksize = 500
-            slicesize = 50*chunksize
-        if 3 <= optlevel < 6:
-            chunksize = 500
-            slicesize = 100*chunksize
-        if optlevel >= 6:
-            chunksize = 500
-            slicesize = 200*chunksize
-    elif expMrows < 10:  # expected rows < 10 milion
-        if optlevel == 0:
-            chunksize = 1000
-            slicesize = 100*chunksize
-        elif optlevel == 1:
-            chunksize = 1000
-            slicesize = 200*chunksize
-        elif optlevel == 2:
-            chunksize = 1000
-            slicesize = 300*chunksize
-        elif optlevel == 3:
-            chunksize = 1000
-            slicesize = 400*chunksize
-        elif optlevel == 4:
-            chunksize = 1000
-            slicesize = 500*chunksize
-        elif optlevel == 5:
-            chunksize = 1000
-            slicesize = 600*chunksize
-        elif optlevel == 6:
-            chunksize = 1000
-            slicesize = 600*chunksize
-            optmedian = True
-        elif optlevel == 7:
-            chunksize = 1000
-            slicesize = 700*chunksize
-            optmedian = True
-        elif optlevel == 8:
-            chunksize = 1000
-            slicesize = 800*chunksize
-            optmedian = True
-        elif optlevel >= 9:   # best effort
-            chunksize = 1000
-            slicesize = 1000*chunksize
-            optfull = True
-        blocksize = computeblocksize(expectedrows, slicesize)
-        if debug:
-            nblocks = expectedrows/blocksize
-            print "cs, ss, nblocks-->", chunksize, slicesize, nblocks
-    elif expMrows < 100: # expected rows < 100 milions
-        if optlevel == 0:
-            chunksize = 2000
-            slicesize = 100*chunksize
-        elif optlevel == 1:
-            chunksize = 2000
-            slicesize = 200*chunksize
-        elif optlevel == 2:
-            chunksize = 2000
-            slicesize = 500*chunksize
-        elif optlevel == 3:
-            chunksize = 10000
-            slicesize = 50*chunksize
-            optmedian = True
-        elif optlevel == 4:
-            chunksize = 7500
-            slicesize = 100*chunksize
-            optmedian = True
-        elif optlevel == 5:
-            chunksize = 5000
-            slicesize = 200*chunksize
-            optmedian = True
-        elif optlevel == 6:
-            chunksize = 7500
-            slicesize = 150*chunksize
-            optmedian = True
-        elif optlevel == 7:
-            chunksize = 7500
-            slicesize = 200*chunksize
-            optmedian = True
-        elif optlevel == 8:
-            chunksize = 5000
-            slicesize = 300*chunksize
-            optmedian = True
-        elif optlevel >= 9:   # best effort
-            chunksize = 5000
-            slicesize = 300*chunksize
-            optfull = True
-        blocksize = computeblocksize(expectedrows, slicesize)
-        if debug:
-            nblocks = expectedrows/blocksize
-            print "cs, ss, nblocks-->", chunksize, slicesize, nblocks
-    elif expMrows < 1000: # expected rows < 1000 millions
-        if optlevel == 0:
-            chunksize = 5000
-            slicesize = 200*chunksize
-        elif optlevel == 1:
-            chunksize = 5000
-            slicesize = 300*chunksize
-        elif optlevel == 2:
-            chunksize = 5000
-            slicesize = 500*chunksize
-        elif optlevel == 3:
-            chunksize = 10000
-            slicesize = 100*chunksize
-            optmedian = True
-        elif optlevel == 4:
-            chunksize = 8000
-            slicesize = 125*chunksize
-            optmedian = True
-        elif optlevel == 5:
-            chunksize = 5000
-            slicesize = 200*chunksize
-            optmedian = True
-        elif optlevel == 6:
-            chunksize = 20000
-            slicesize = 50*chunksize
-            optfull = True
-        elif optlevel == 7:
-            chunksize = 10000
-            slicesize = 125*chunksize
-            optfull = True
-        elif optlevel == 8:
-            chunksize = 7500
-            slicesize = 250*chunksize
-            optfull = True
-        elif optlevel >= 9:   # best effort
-            chunksize = 5000
-            slicesize = 400*chunksize
-            optfull = True
-        blocksize = computeblocksize(expectedrows, slicesize)
-        if debug:
-            nblocks = expectedrows/blocksize
-            print "cs, ss, nblocks-->", chunksize, slicesize, nblocks
-    elif expMrows < 10*1000: # expected rows < 10 (american) billions
-        if optlevel == 0:
-            chunksize = 10000
-            slicesize = 100*chunksize
-        elif optlevel == 1:
-            chunksize = 10000
-            slicesize = 150*chunksize
-        elif optlevel == 2:
-            chunksize = 10000
-            slicesize = 200*chunksize
-        elif optlevel == 3:
-            chunksize = 50000
-            slicesize = 40*chunksize
-            optmedian = True
-        elif optlevel == 4:
-            chunksize = 30000
-            slicesize = 80*chunksize
-            optmedian = True
-        elif optlevel == 5:
-            chunksize = 20000
-            slicesize = 125*chunksize
-            optmedian = True
-        elif optlevel == 6:
-            chunksize = 50000
-            slicesize = 40*chunksize
-            optfull = True
-        elif optlevel == 7:
-            chunksize = 30000
-            slicesize = 80*chunksize
-            optfull = True
-        elif optlevel == 8:
-            chunksize = 20000
-            slicesize = 150*chunksize
-            optfull = True
-        elif optlevel >= 9:   # best effort
-            chunksize = 20000
-            slicesize = 200*chunksize
-            optfull = True
-        blocksize = computeblocksize(expectedrows, slicesize)
-        if debug:
-            nblocks = expectedrows/blocksize
-            print "cs, ss, nblocks-->", chunksize, slicesize, nblocks
-    elif expMrows < 100*1000: # expected rows < 100 (american) billions
-	# The next will need more than 100 MB of available memory
-        if optlevel == 0:
-            chunksize = 20000
-            slicesize = 100*chunksize
-        elif optlevel == 1:
-            chunksize = 20000
-            slicesize = 150*chunksize
-        elif optlevel == 2:
-            chunksize = 20000
-            slicesize = 200*chunksize
-        elif optlevel == 3:
-            chunksize = 100000
-            slicesize = 40*chunksize
-            optmedian = True
-        elif optlevel == 4:
-            chunksize = 50000
-            slicesize = 80*chunksize
-            optmedian = True
-        elif optlevel == 5:
-            chunksize = 40000
-            slicesize = 100*chunksize
-            optmedian = True
-        elif optlevel == 6:
-            chunksize = 100000
-            slicesize = 40*chunksize
-            optfull = True
-        elif optlevel == 7:
-            chunksize = 50000
-            slicesize = 80*chunksize
-            optfull = True
-        elif optlevel == 8:
-            chunksize = 40000
-            slicesize = 100*chunksize
-            optfull = True
-        elif optlevel >= 9:   # best effort
-            chunksize = 30000
-            slicesize = 150*chunksize
-            optfull = True
-        blocksize = computeblocksize(expectedrows, slicesize)
-        superblocksize = computeblocksize(expectedrows, blocksize)
-    else:  # expected rows >= 1 (american) trillion (perhaps by year 2010
-           # this will be useful, who knows...)
-	# The next will need more than 250 MB of available memory
-        if optlevel == 0:
-            chunksize = 40000
-            slicesize = 100*chunksize
-        elif optlevel == 1:
-            chunksize = 40000
-            slicesize = 150*chunksize
-        elif optlevel == 2:
-            chunksize = 40000
-            slicesize = 200*chunksize
-        elif optlevel == 3:
-            chunksize = 200000
-            slicesize = 40*chunksize
-            optfull = True
-        elif optlevel == 4:
-            chunksize = 100000
-            slicesize = 80*chunksize
-            optfull = True
-        elif optlevel == 5:
-            chunksize = 80000
-            slicesize = 100*chunksize
-            optfull = True
-        elif optlevel == 6:
-            chunksize = 200000
-            slicesize = 50*chunksize
-            optfull = True
-        elif optlevel == 7:
-            chunksize = 150000
-            slicesize = 70*chunksize
-            optfull = True
-        elif optlevel == 8:
-            chunksize = 150000
-            slicesize = 100*chunksize
-            optfull = True
-        elif optlevel >= 9:   # best effort
-            chunksize = 100000
-            slicesize = 150*chunksize
-            optfull = True
-        blocksize = computeblocksize(expectedrows, slicesize)
-        superblocksize = computeblocksize(expectedrows, blocksize)
-
-    # The defaults for blocksize & superblocksize
-    if blocksize == None:
-        blocksize = 10*slicesize
-    if superblocksize == None:
-        superblocksize = 10*blocksize
+    chunksize = computechunksize(expectedrows)
+    slicesize = computeslicesize(expectedrows, memlevel)
+    blocksize = computeblocksize(expectedrows, slicesize)
+    superblocksize = computeblocksize(expectedrows, blocksize)
 
     # The size for different blocks information
     sizes = (superblocksize, blocksize, slicesize, chunksize)
-    # The reordering optimization flags
-    opts = (optmedian, optstarts, optstops, optfull)
     if debug:
         print "superblocksize, blocksize, slicesize, chunksize:", sizes
-        print "optmedian, optstarts, optstops, optfull", opts
-    return (sizes, opts)
+    return sizes
 
 
 # Declarations for inheriting
@@ -499,13 +271,12 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         """The maximum number of elements that can be optimized."""
         self.blocksize = None
         """The maximum number of elements in a block."""
-        self.reord_opts = None
-        """The reordering optimizations."""
+        self.optlevel = optlevel
+        """The optlevel passed to the optimize index function."""
         if atom is not None:
-            sizes, reord_opts = calcChunksize(expectedrows, optlevel, testmode)
+            sizes = calcChunksize(expectedrows, optlevel, testmode)
             (self.superblocksize, self.blocksize,
              self.slicesize, self.chunksize) = sizes
-            self.reord_opts = reord_opts
             # The shape and chunkshape needs to be fixed here
             shape = (0, self.slicesize)
             chunkshape = (1, self.chunksize)
@@ -525,25 +296,12 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         assert self.shape == (0, self.slicesize), "invalid shape"
         assert self._v_chunkshape == (1, self.chunksize), "invalid chunkshape"
 
-        # The superblocksize & blocksize will be saved as (pickled) attributes
+        # The superblocksize & blocksize will be saved as attributes
         # (only necessary for sorted index)
         if self.name == "sorted":
             self.attrs.superblocksize = numpy.int64(self.superblocksize)
             self.attrs.blocksize = numpy.int64(self.blocksize)
-            # The same goes for reordenation opts
-            # In order to not use pickles and save attributes,
-            # codify the reord opts values following the next convention:
-            # bit 0 --> first value (median opt)
-            # bit 1 --> second value (start opt)
-            # bit 2 --> third value (stop opt)
-            # bit 3-7 --> unused (reserved for future use)
-            # bit 8-15 --> forth value (full opt, can be numeric in the future)
-            # bit 16-63  --> unused (reserved for future use)
-            # Encode the first 3 values
-            value = sum((1<<i[0])*i[1] for i in enumerate(self.reord_opts[:3]))
-            # Now, the fourth one
-            value += self.reord_opts[3]<<3
-            self.attrs.reord_opts = numpy.int64(value)
+            self.attrs.optlevel = numpy.int32(self.optlevel)
         return objectId
 
 
@@ -560,14 +318,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
                 self.chunksize = self._v_chunkshape[1]
                 self.superblocksize = self.attrs.superblocksize
                 self.blocksize = self.attrs.blocksize
-                # Decode the reord_opts attribute (see especification
-                # for codification above)
-                value = self.attrs.reord_opts
-                # Decode the first 3 values
-                reord_opts = [((value>>i) & 0x01) is 1 for i in range(3)]
-                # Add the forth
-                reord_opts.append(value>>3)
-                self.reord_opts = tuple(reord_opts)
+                self.optlevel = self.attrs.optlevel
         super(IndexArray, self)._g_postInitHook()
 
 

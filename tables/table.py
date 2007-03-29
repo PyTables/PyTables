@@ -2730,7 +2730,7 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex( self, optlevel=5, filters=None,
+    def createIndex( self, optlevel=33, filters=None,
                      testmode=False, verbose=False ):
         """Create an index for this column.
 
@@ -2745,21 +2745,33 @@ class Column(object):
                                     testmode, verbose)
 
 
-    def optimizeIndex(self, level=9, verbose=0):
-        """Optimize the index for this column.
+    def optimizeIndex(self, optlevel=66, verbose=0):
+        """Optimize an already created index for this column.
 
-        `level` is the level optimization (from 0 to 9).
+        `optlevel` is the level optimization (from 00 to 99).
+
+        The first digit is an indication of the amount of memory to be
+        used during the index optimization process.  Higher levels
+        (i.e. higher values for digit) means better chances for
+        optimization, at the price of more memory consumption.
+
+        The second digit is an indication of the amount of ``shuffling``
+        that should be done during the index optimization process.
+        Higher levels of shuffling (i.e. higher values for digit) means
+        better chances for optimization and the price of more CPU and
+        I/O resources usage.
+
         """
 
-        if type(level) not in (int, long) or level < 0 or level > 9:
-            raise ValueError, "Optimization level should be in the range 0-9."
+        if type(optlevel) not in (int, long) or optlevel < 0 or optlevel > 99:
+            raise ValueError, "Optimization level should be in the range 0-99."
         if not self.index:
             warnings.warn("""\
 column '%s' is not indexed, so it can't be optimized."""
                           % (self.pathname), UserWarning)
             return
-        if level > 0:
-            self.index.optimize(level, verbose)
+        if optlevel > 0:
+            self.index.optimize(optlevel, verbose)
 
 
     def reIndex(self):

@@ -586,7 +586,7 @@ class BasicReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)
     nrows = ss
 
 class ZlibReadTestCase(BasicTestCase):
@@ -594,7 +594,7 @@ class ZlibReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)
     nrows = ss
 
 class LZOReadTestCase(BasicTestCase):
@@ -602,7 +602,7 @@ class LZOReadTestCase(BasicTestCase):
     complib = "lzo"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)
     nrows = ss
 
 class BZIP2ReadTestCase(BasicTestCase):
@@ -610,7 +610,7 @@ class BZIP2ReadTestCase(BasicTestCase):
     complib = "bzip2"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)
     nrows = ss
 
 class ShuffleReadTestCase(BasicTestCase):
@@ -618,7 +618,7 @@ class ShuffleReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 1
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)
     nrows = ss
 
 class Fletcher32ReadTestCase(BasicTestCase):
@@ -626,7 +626,7 @@ class Fletcher32ReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 1
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)
     nrows = ss
 
 class ShuffleFletcher32ReadTestCase(BasicTestCase):
@@ -634,19 +634,19 @@ class ShuffleFletcher32ReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 1
     fletcher32 = 1
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)
     nrows = ss
 
 class OneHalfTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)
     nrows = ss+ss//2
 
 class UpperBoundTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)
     nrows = ss+1
 
 class LowerBoundTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)
     nrows = ss*2-1
 
 
@@ -1298,21 +1298,21 @@ class AI4bTestCase(AutomaticIndexingTestCase):
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI5TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)
     nrows = ss*11-1
     reopen = 0
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI6TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)
     nrows = ss*21+1
     reopen = 1
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI7TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)
     nrows = ss*12-1
     #nrows = ss*1-1  # faster test
     reopen = 0
@@ -1320,7 +1320,7 @@ class AI7TestCase(AutomaticIndexingTestCase):
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI8TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=0)
     nrows = ss*15+100
     #nrows = ss*1+100  # faster test
     reopen = 1
@@ -1328,7 +1328,7 @@ class AI8TestCase(AutomaticIndexingTestCase):
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI9TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)[0]
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, optlevel=0, testmode=1)
     nrows = ss
     reopen = 0
     iprops = DefaultProps

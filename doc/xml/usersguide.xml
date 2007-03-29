@@ -7932,18 +7932,17 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             <title><literal>Column</literal> methods</title>
 
             <section id="createIndexColumnDescr" xreflabel="description">
-              <title><literal>createIndex(optlevel=5,
+              <title><literal>createIndex(optlevel=33,
               filters=None)</literal></title>
 
               <para>Create an <literal>Index</literal> (see <xref
               linkend="IndexClassDescr" xrefstyle="select: label" />) object
-              for this column. You can select the level of the optimization of
-              the index by setting <literal>optlevel</literal> from 0 to 9. A
-              value of 0 means that the index will be created, but not
-              optimized (fastest time for index creation and very low memory
-              consumption, but slowest lookup times) and a value of 9 means
-              maximum optimization (slowest time for index creation and more
-              memory used, but fastest lookup times).</para>
+              for this column.</para>
+
+              <para>You can select the level of the optimization of the index
+              by setting <literal>optlevel</literal> from 00 to 99. See <xref
+              linkend="optimizeIndexColumnDescr" xrefstyle="select: label" />)
+              for a more in-depth description of this parameter.</para>
 
               <para>You can use the <literal>filters</literal> argument to set
               the <literal>Filters</literal> (see <xref
@@ -7954,14 +7953,24 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             </section>
 
             <section id="optimizeIndexColumnDescr" xreflabel="description">
-              <title><literal>optimizeIndex(optlevel=9)</literal></title>
+              <title><literal>optimizeIndex(optlevel=66)</literal></title>
 
               <para>Optimize an already created index for this column. You can
               select the level of the optimization of the index by setting
-              <literal>optlevel</literal> from 0 to 9. A value of 0 means no
-              optimization at all (i.e. it does nothing in this case), and a
-              value of 9 means maximum optimization (slowest time for index
-              creation and more memory used, but fastest lookup times).</para>
+              <literal>optlevel</literal> from 00 to 99.</para>
+
+              <para>The first digit is an indication of the amount of memory
+              to be used during the index optimization process.  Higher levels
+              (i.e. higher values for digit) means better chances for
+              optimization, at the price of more memory consumption.</para>
+
+              <para>The second digit is an indication of the amount of
+              <emphasis>shuffling</emphasis> that should be done during the
+              index optimization process.  Higher levels of shuffling
+              (i.e. higher values for digit) means better chances for
+              optimization and the price of more CPU and I/O resources
+              usage.</para>
+
             </section>
 
             <section id="reIndexColumnDescr">
