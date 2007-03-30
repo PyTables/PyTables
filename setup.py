@@ -533,7 +533,9 @@ extensions = [
                include_dirs=inc_dirs,
                sources=["tables/numexpr/interpreter.c"],
                depends=[ "tables/numexpr/interp_body.c",
-                         "tables/numexpr/complex_functions.inc" ] ),
+                         "tables/numexpr/complex_functions.inc" ],
+               extra_link_args=LFLAGS,
+               extra_compile_args=CFLAGS ),
     ]
 
 if 'lrucacheExtension' in pyrex_extnames:
