@@ -57,7 +57,7 @@
     <mediaobject>
       <imageobject>
         <imagedata align="center" fileref="logo3-ombra.png" format="PNG"
-                   scale="100" />
+                   scale="80" />
       </imageobject>
     </mediaobject>
 
@@ -526,15 +526,17 @@ fileh.close()</screen>
 
         <para>This small program creates a simple HDF5 file called
         <literal>objecttree.h5</literal> with the structure that appears in
-        <xref linkend="objecttree-h5" xrefstyle="select: label" /><footnote>
+        <xref linkend="objecttree-h5" xrefstyle="select: label" />
+        <footnote>
             <para>We have used ViTables (see <biblioref
             linkend="ViTablesRef" />) in order to create this snapshot.</para>
-          </footnote>. When the file is created, the metadata in the object
+        </footnote>
+        . When the file is created, the metadata in the object
         tree is updated in memory while the actual data is saved to disk. When
         you close the file the object tree is no longer available. However,
         when you reopen this file the object tree will be reconstructed in
         memory from the metadata on disk, allowing you to work with it in
-        exactly the same way as when you originally created it.</para>
+        exactly the same way as when you originally created it.
 
         <figure id="objecttree-h5">
           <title>An HDF5 example with 2 subgroups, 2 tables and 1
@@ -553,17 +555,19 @@ fileh.close()</screen>
           </mediaobject>
         </figure>
 
-        <para>In <xref linkend="objecttree" xrefstyle="select: label" /> you
+        In <xref linkend="objecttree" xrefstyle="select: label" /> you
         can see an example of the object tree created when the above
         <literal>objecttree.h5</literal> file is read (in fact, such an object
         tree is always created when reading any supported generic HDF5 file).
-        It is worthwhile to take your time to understand it<footnote>
+        It is worthwhile to take your time to understand it
+        <footnote>
             <para>Bear in mind, however, that this diagram is
             <emphasis>not</emphasis> a standard UML class diagram; it is
             rather meant to show the connections between the PyTables objects
             and some of its most important attributes and methods.</para>
-          </footnote>. It will help you understand the relationships of
-        in-memory PyTables objects.</para>
+        </footnote>
+        . It will help you understand the relationships of in-memory PyTables
+        objects.
 
         <figure id="objecttree">
           <title>A PyTables object tree example.</title>
@@ -571,7 +575,7 @@ fileh.close()</screen>
           <mediaobject>
             <imageobject role="fo">
               <imagedata align="center" fileref="objecttree.svg" format="SVG"
-                         scale="40" />
+                        scale="40"/>
             </imageobject>
 
             <imageobject role="html">
@@ -580,6 +584,7 @@ fileh.close()</screen>
             </imageobject>
           </mediaobject>
         </figure>
+        </para>
       </section>
     </chapter>
 
