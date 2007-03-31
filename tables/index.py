@@ -697,20 +697,18 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.profile: show_stats("Eixint d'append", tref)
 
 
-    def appendLastRow(self, xarr, tnrows):
+    def appendLastRow(self, xarr):
         """Append the array to the last row index objects"""
 
         if self.profile: tref = time()
         if self.profile: show_stats("Entrant a appendLR", tref)
         arr = xarr.pop()
+        nelementsLR = len(arr)
         # compute the elements in the last row sorted & bounds array
         sorted = self.sorted
         indicesLR = self.indicesLR
         sortedLR = self.sortedLR
         offset = sorted.nrows * self.slicesize
-        nelementsLR = tnrows - offset
-        assert nelementsLR == len(arr), \
-"The number of elements to append is incorrect!. Report this to the authors."
         # As len(arr) < 2**32, we can choose unit32 for representing idx
         idx = numpy.arange(0, len(arr), dtype='uint32')
         # In-place sorting
@@ -745,7 +743,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.profile: show_stats("Eixint de appendLR", tref)
 
 
-    def calcoptlevels(shufflelevel):
+    def calcoptlevels(self, shufflelevel):
         optmedian, optstarts, optstops, optfull = (False,)*4
         if self.testmode:
             if 1 <= shufflelevel < 3:

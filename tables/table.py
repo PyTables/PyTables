@@ -1975,7 +1975,7 @@ The 'names' parameter must be a list of strings.""")
     def _addRowsToIndex(self, colname, start, nrows, lastrow):
         """Add more elements to the existing index """
 
-        # This method really belongs in Column, but since it makes extensive
+        # This method really belongs to Column, but since it makes extensive
         # use of the table, it gets dangerous when closing the file, since the
         # column may be accessing a table which is being destroyed.
         index = self.cols._g_col(colname).index
@@ -1984,21 +1984,17 @@ The 'names' parameter must be a list of strings.""")
         # deal with long ints (i.e. more than 32-bit integers)
         # This allows to index columns with more than 2**31 rows
         # F. Altet 2005-05-09
-        indexedrows = 0
-        i = start
+        startLR = (index.sorted.nrows)*slicesize
+        indexedrows = startLR - start
         stop = start+nrows-slicesize+1
-        while i < stop:
-            index.append([self._read(i, i+slicesize, 1, colname)])
+        while startLR < stop:
+            index.append([self._read(startLR, startLR+slicesize, 1, colname)])
             indexedrows += slicesize
-            i += slicesize
+            startLR += slicesize
         # index the remaining rows in last row
-        nremain = nrows - indexedrows
-        if lastrow and nremain > 0:
-            startLR = (index.sorted.nrows)*slicesize
-            index.appendLastRow(
-                [self._read(startLR, self.nrows, 1, colname)],
-                self.nrows)
-            indexedrows += nremain
+        if lastrow and startLR < self.nrows:
+            index.appendLastRow([self._read(startLR, self.nrows, 1, colname)])
+            indexedrows += self.nrows - startLR
         return indexedrows
 
 

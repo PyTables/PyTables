@@ -95,7 +95,7 @@ def computeslicesize(expectedrows, memlevel):
     cs = csformula(expectedrows)
     # Now the slicesize
     ss = cs * memlevel**2 * 16  #XXX replace by MEMORY_FACTOR
-    return ss
+    return int(ss)
 
 
 def computeblocksize(expectedrows, compoundsize):
