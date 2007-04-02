@@ -38,7 +38,8 @@ import sys
 
 import numpy
 
-from idxutils import calcChunksize, nextafter, infType
+from idxutils import calcChunksize, calcoptlevels, \
+     nextafter, infType, show_stats
 
 from tables import indexesExtension
 from tables import utilsExtension
