@@ -875,22 +875,20 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         self._v_dtype = self.description._v_dtype
 
 
-    def _checkColumn(self, colname):
+    def _getColumnInstance(self, colpathname):
         """
-        Check that the column named `colname` exists in the table.
+        Get the instance of the column with the given `colpathname`.
 
-        If it does not exist, a ``KeyError`` is raised.
+        If the column does not exist in the table, a ``KeyError`` is
+        raised.
         """
+        try:
+            return reduce(getattr, colpathname.split('/'), self.description)
+        except AttributeError:
+            raise KeyError( "table ``%s`` does not have a column named ``%s``"
+                            % (self._v_pathname, colpathname) )
 
-        for colobj in self.description._f_walk(type="All"):
-            cname = colobj._v_pathname
-            if colname == cname:
-                break
-        if colname <> cname:
-            raise KeyError(
-                "table ``%s`` does not have a column named ``%s``"
-                % (self._v_pathname, colname))
-        return colobj
+    _checkColumn = _getColumnInstance
 
 
     def _disableIndexingInQueries(self):
@@ -1799,7 +1797,7 @@ table format '%s'. The error was: <%s>
         if step < 1:
             raise ValueError("'step' must have a value greater or equal than 1.")
         # Get the column format to be modified:
-        objcol = self._checkColumn(colname)
+        objcol = self._getColumnInstance(colname)
         descr = [objcol._v_parent._v_nestedDescr[objcol._v_pos]]
         # Try to convert the column object into a recarray
         try:
@@ -1881,7 +1879,7 @@ The 'names' parameter must be a list of strings.""")
             raise ValueError("'step' must have a value greater or equal than 1.")        # Get the column formats to be modified:
         descr = []
         for colname in names:
-            objcol = self._checkColumn(colname)
+            objcol = self._getColumnInstance(colname)
             descr.append(objcol._v_parent._v_nestedDescr[objcol._v_pos])
             #descr.append(objcol._v_parent._v_dtype[objcol._v_pos])
         # Try to convert the columns object into a recarray
