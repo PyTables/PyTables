@@ -260,29 +260,43 @@ class Table(tableExtension.Table, Leaf):
     rowsize
         The size in bytes of each row in the table.
 
-    Public methods
-    --------------
+    Public methods -- reading
+    -------------------------
 
-        __getitem__(key)
-        __iter__()
-        __setitem__(key, value)
-        append(rows)
-        col(name)
-        flushRowsToIndex()
-        iterrows(start, stop, step)
-        itersequence(sequence)
-        modifyRows(start, rows)
-        modifyColumn(columns, names, [start] [, stop] [, step])
-        modifyColumns(columns, names, [start] [, stop] [, step])
-        read([start] [, stop] [, step] [, field])
-        readCoordinates(coords [, field])
-        readWhere(condition [, condvars] [, field])
-        reIndex()
-        reIndexDirty()
-        removeRows(start [, stop])
-        where(condition [, condvars] [, start] [, stop] [, step])
-        whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
-        getWhereList(condition [, condvars] [, sort])
+    * col(name)
+    * iterrows([start][, stop][, step])
+    * itersequence(sequence[, sort])
+    * read([start][, stop][, step][, field][, coords])
+    * readCoordinates(coords[, field])
+    * __getitem__(key)
+    * __iter__()
+
+    Public methods -- writing
+    -------------------------
+
+    * append(rows)
+    * modifyColumn([start][, stop][, step][, column][, colname])
+    * modifyColumns([start][, stop][, step][, columns][, names])
+    * modifyRows([start][, stop][, step][, rows])
+    * removeRows(start[, stop])
+    * __setitem__(key, value)
+
+    Public methods -- querying
+    --------------------------
+
+    * getWhereList(condition[, condvars][, sort])
+    * readWhere(condition[, condvars][, field])
+    * where(condition[, condvars][, start][, stop][, step])
+    * whereAppend(dstTable, condition[, condvars][, start][, stop][, step])
+    * willQueryUseIndexing(condition[, condvars])
+
+    Public methods -- other
+    -----------------------
+
+    * flushRowsToIndex([lastrow])
+    * getEnum(colname)
+    * reIndex()
+    * reIndexDirty()
     """
 
     # Class identifier.
@@ -1318,13 +1332,16 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
 
     def itersequence(self, sequence, sort=False):
-        """Iterate over a list of row coordinates.
+        """
+        Iterate over a `sequence` of row coordinates.
 
-        `sort` means that sequence will be sorted so that I/O *might* perform
-        better. If your sequence is already sorted or you don't want to sort
-        it, put this parameter to 0. The default is to do not sort the
-        sequence.
+        A true value for `sort` means that the `sequence` will be sorted
+        so that I/O *might* perform better.  If your sequence is already
+        sorted or you don't want to sort it, leave this parameter as
+        false.  The default is not to sort the `sequence`.
 
+        .. Note:: This iterator can be nested (see `Table.where()` for
+           an example).
         """
 
         if not hasattr(sequence, '__getitem__'):
@@ -1341,10 +1358,23 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def iterrows(self, start=None, stop=None, step=None):
-        """Iterate over all the rows or a range.
+        """
+        Iterate over the table using a `Row` instance.
 
-        Specifying a negative value of step is not supported yet.
+        If a range is not supplied, *all the rows* in the table are
+        iterated upon --you can also use the `Table.__iter__()` special
+        method for that purpose.  If you only want to iterate over a
+        given *range of rows* in the table, you may use the `start`,
+        `stop` and `step` parameters, which have the same meaning as in
+        `Table.read()`.
 
+        Example of use::
+
+            result = [ row['var2'] for row in table.iterrows(step=5)
+                       if row['var1'] <= 20 ]
+
+        .. Note:: This iterator can be nested (see `Table.where()` for
+           an example).
         """
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:
@@ -1418,16 +1448,26 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def read(self, start=None, stop=None, step=None, field=None):
-        """Read a range of rows and return an in-memory object.
+        """
+        Get data in the table as a (record) array.
 
-        If `start`, `stop`, or `step` parameters are supplied, a row
-        range is selected. If `field` is specified, only this `field` is
-        returned as an array of the current flavor. If `field` is not
-        supplied all the fields are selected and a record array of the
-        current flavor is returned.
+        The `start`, `stop` and `step` parameters can be used to select
+        only a *range of rows* in the table.  Their meanings are the
+        same as in the built-in `range()` Python function, except that
+        negative values of `step` are not allowed yet.  Moreover, if
+        only `start` is specified, then `stop` will be set to
+        ``start+1``.  If you do not specify neither `start` nor `stop`,
+        then *all the rows* in the table are selected.
 
-        Nested fields can be specified in the `field` parameter by
-        using a '/' as a separator between fields (e.g. 'Info/value').
+        If `field` is supplied only the named column will be selected.
+        If the column is not nested, an *array* of the current flavor
+        will be returned; if it is, a *record array* will be used
+        instead.  I no `field` is specified, all the columns will be
+        returned in a record array of the current flavor.
+
+        Columns under a nested column can be specified in the `field`
+        parameter by using a slash character (``/``) as a separator
+        (e.g. ``'position/x'``).
         """
 
         if field:
@@ -1512,7 +1552,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         If a column called `name` exists in the table, it is read and
         returned as a NumPy object or as a ``numarray`` object
-        (depending on the flavor of the Table).  If it does not exist, a
+        (depending on the flavor of the table).  If it does not exist, a
         ``KeyError`` is raised.
 
         Example of use::
@@ -1524,10 +1564,9 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             narray = table.read(field='var2')
 
         Here you can see how this method can be used as a shorthand for
-        the `read()` method.
+        the `Table.read()` method.
         """
         return self.read(field=name)
-
 
     def __getitem__(self, key):
         """

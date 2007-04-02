@@ -1902,63 +1902,55 @@ pressure := float32, ()</screen>
           public objects in PyTables by asking for help:</para>
 
           <screen>&gt;&gt;&gt; help(table)
-Help on Table in module tables.table object:
+Help on Table in module tables.table:
 
 class Table(tableExtension.Table, tables.leaf.Leaf)
- |  Represent a table in the object tree.
- |
- |  It provides methods to create new tables or open existing ones, as
- |  well as to write/read data to/from table objects over the
- |  file. A method is also provided to iterate over the rows without
- |  loading the entire table or column in memory.
- |
- |  Data can be written or read both as Row instances and as homogeneous
- |  or heterogeneous (record) arrays of the supported flavors (such as
- |  NumPy and numarray, including NestedRecArray objects).
- |
- |  Methods:
- |
- |      __getitem__(key)
- |      __iter__()
- |      __setitem__(key, value)
- |      append(rows)
- |      col(name)
- |      flushRowsToIndex()
- |      iterrows(start, stop, step)
- |      itersequence(sequence)
- |      modifyRows(start, rows)
- |      modifyColumn(columns, names, [start] [, stop] [, step])
- |      modifyColumns(columns, names, [start] [, stop] [, step])
- |      read([start] [, stop] [, step] [, field])
- |      readCoordinates(coords [, field])
- |      readWhere(condition [, condvars] [, field])
- |      reIndex()
- |      reIndexDirty()
- |      removeRows(start [, stop])
- |      where(condition [, condvars] [, start] [, stop] [, step])
- |      whereAppend(dstTable, condition [, condvars] [, start] [, stop] [, step])
- |      getWhereList(condition [, condvars] [, sort])
- |
- |  Instance variables:
- |
- |      description -- the metaobject describing this table
- |      row -- a reference to the Row object associated with this table
- |      nrows -- the number of rows in this table
- |      rowsize -- the size, in bytes, of each row
- |      cols -- accessor to the columns using a natural name schema
- |      colnames -- the top-level field names for the table (list)
- |      colpathnames -- the bottom-level field pathnames for the table (list)
- |      colinstances -- the column instances for the table fields (dictionary)
- |      coldescrs -- Maps the name of a column to its `Col` description.
- |      coldtypes -- the dtype class for the table fields (dictionary)
- |      coltypes -- the PyTables type for the table fields (dictionary)
- |      coldflts -- the defaults for each column (dictionary)
- |      colindexed -- whether the table fields are indexed (dictionary)
- |      indexed -- whether or not some field in Table is indexed
- |      autoIndex -- automatically keep column indexes up to date?
- |      indexFilters -- filters used to compress indexes
- |      indexedcolpathnames -- the pathnames of the indexed columns (list)
-[snip]          </screen>
+ |  This class represents heterogeneous datasets in an HDF5 file.
+ |  
+ |  Tables are leaves (see the `Leaf` class) whose data consists of a
+ |  unidimensional sequence of *rows*, where each row contains one or
+ |  more *fields*.  Fields have an associated unique *name* and
+ |  *position*, with the first field having position 0.  All rows have
+ |  the same fields, which are arranged in *columns*.
+[snip]
+ |  
+ |  Instance variables
+ |  ------------------
+ |  
+ |  The following instance variables are provided in addition to those
+ |  in `Leaf`.  Please note that there are several ``col*`` dictionaries
+ |  to ease retrieving information about a column directly by its path
+ |  name, avoiding the need to walk through `Table.description` or
+ |  `Table.cols`.
+ |  
+ |  autoIndex
+ |      Automatically keep column indexes up to date?
+ |  
+ |      Setting this value states whether existing indexes should be
+ |      automatically updated after an append operation or recomputed
+ |      after an index-invalidating operation (i.e. removal and
+ |      modification of rows).  The default is true.
+[snip]
+ |  rowsize
+ |      The size in bytes of each row in the table.
+ |  
+ |  Public methods -- reading
+ |  -------------------------
+ |  
+ |  * col(name)
+ |  * iterrows([start][, stop][, step])
+ |  * itersequence(sequence[, sort])
+ |  * read([start][, stop][, step][, field][, coords])
+ |  * readCoordinates(coords[, field])
+ |  * __getitem__(key)
+ |  * __iter__()
+ |  
+ |  Public methods -- writing
+ |  -------------------------
+ |  
+ |  * append(rows)
+ |  * modifyColumn([start][, stop][, step][, column][, colname])
+[snip]</screen>
 
           <para>Try getting help with other object docs by yourself:</para>
 
@@ -3043,8 +3035,7 @@ Ball extracted on 1173785577 is of color white.</screen>
           enumeration associated with <literal>ballColor</literal> once the
           file is closed and reopened. You can call
           <literal>tbl.getEnum('ballColor')</literal> (see <xref
-          linkend="Table_methods" xrefstyle="select: label" />) to get the
-          enumeration back.</para>
+          linkend="Table.getEnum"/>) to get the enumeration back.</para>
         </section>
 
         <section>
@@ -6761,24 +6752,184 @@ for node in h5file.root.detector:
           </glosslist>
         </section>
 
-        <!-- XXX REVIEWED UP TO HERE - Ivan -->
-        <section id="Table_methods">
-          <title><literal>Table</literal> methods</title>
+        <section id="TableMethods_reading">
+          <title><literal>Table</literal> methods — reading</title>
 
-          <section id="Table.getEnum">
-            <title>getEnum(colname)</title>
+          <section id="Table.col" xreflabel="description">
+            <title>col(name)</title>
 
-            <para>Get the enumerated type associated with the named
-            column.</para>
+            <para>Get a column from the table.</para>
 
-            <para>If the column named <literal>colname</literal> (a string)
-            exists and is of an enumerated type, the corresponding
-            <literal>Enum</literal> instance (see <xref
-            linkend="EnumClassDescr" xrefstyle="select: label" />) is
-            returned. If it is not of an enumerated type, a
-            <literal>TypeError</literal> is raised. If the column does not
-            exist, a <literal>KeyError</literal> is raised.</para>
+            <para>If a column called <literal>name</literal> exists in the
+            table, it is read and returned as a NumPy object, or as a
+            <literal>numarray</literal> object (depending on the flavor of the
+            table). If it does not exist, a <literal>KeyError</literal> is
+            raised.</para>
+
+            <para>Example of use:</para>
+
+            <screen>narray = table.col('var2')</screen>
+
+            <para>That statement is equivalent to:</para>
+
+            <screen>narray = table.read(field='var2')</screen>
+
+            <para>Here you can see how this method can be used as a shorthand
+            for the <literal>Table.read()</literal> method (see <xref
+            linkend="Table.read" />).</para>
           </section>
+
+          <section id="Table.iterrows" xreflabel="description">
+            <title>iterrows(start=None, stop=None, step=None)</title>
+
+            <para>Iterate over the table using a <literal>Row</literal>
+            instance (see <xref linkend="RowClassDescr" xrefstyle="select:
+            label" />).</para>
+
+            <para>If a range is not supplied, <emphasis>all the
+            rows</emphasis> in the table are iterated upon —you can also use
+            the <literal>Table.__iter__()</literal> special method (see <xref
+            linkend="Table.__iter__"/>) for that purpose. If you want to
+            iterate over a given <emphasis>range of rows</emphasis> in the
+            table, you may use the <literal>start</literal>,
+            <literal>stop</literal> and <literal>step</literal> parameters,
+            which have the same meaning as in <literal>Table.read()</literal>
+            (see <xref linkend="Table.read" />).</para>
+
+            <para>Example of use:</para>
+
+            <screen>
+result = [ row['var2'] for row in table.iterrows(step=5)
+           if row['var1'] &lt;= 20 ]</screen>
+
+            <note>
+              <para>This iterator can be nested (see
+              <literal>Table.where()</literal> —<xref linkend="Table.where"
+              />— for an example).</para>
+            </note>
+          </section>
+
+          <section id="Table.itersequence">
+            <title>itersequence(sequence, sort=True)</title>
+
+            <para>Iterate over a <literal>sequence</literal> of row
+            coordinates.</para>
+
+            <para>A true value for <literal>sort</literal> means that the
+            <literal>sequence</literal>d` will be sorted so that I/O
+            <emphasis>might</emphasis> perform better.  If your sequence is
+            already sorted or you don't want to sort it, leave this parameter
+            as false.  The default is not to sort the `sequence`.</para>
+
+            <note>
+              <para>This iterator can be nested (see
+              <literal>Table.where()</literal> —<xref linkend="Table.where"
+              />— for an example).</para>
+            </note>
+          </section>
+
+          <section id="Table.read" xreflabel="description">
+            <title>read(start=None, stop=None, step=None, field=None)</title>
+
+            <para>Get data in the table as a (record) array.</para>
+
+            <para>The <literal>start</literal>, <literal>stop</literal> and
+            <literal>step</literal> parameters can be used to select only a
+            <emphasis>range of rows</emphasis> in the table. Their meanings
+            are the same as in the built-in <literal>range()</literal> Python
+            function, except that negative values of <literal>step</literal>
+            are not allowed yet. Moreover, if only <literal>start</literal> is
+            specified, then <literal>stop</literal> will be set to
+            <literal>start+1</literal>. If you do not specify neither
+            <literal>start</literal> nor <literal>stop</literal>, then
+            <emphasis>all the rows</emphasis> in the table are
+            selected.</para>
+
+            <para>If <literal>field</literal> is supplied only the named
+            column will be selected.  If the column is not nested, an
+            <emphasis>array</emphasis> of the current flavor will be returned;
+            if it is, a <emphasis>record array</emphasis> will be used
+            instead.  I no <literal>field</literal> is specified, all the
+            columns will be returned in a record array of the current flavor.
+            <!-- manual-only -->
+            More specifically, when the flavor is
+            <literal>'numarray'</literal> and a record array is needed, a
+            <literal>NestedRecArray</literal> (see <xref
+            linkend="NestedRecArrayClassDescr" xrefstyle="select: label" />)
+            will be returned.
+            </para>
+
+            <para>Columns under a nested column can be specified in the
+            <literal>field</literal> parameter by using a slash character
+            (<literal>/</literal>) as a separator
+            (e.g. <literal>'position/x'</literal>).</para>
+          </section>
+
+          <!-- XXX REVIEWED UP TO HERE - Ivan -->
+          <section id="Table.readCoordinates">
+            <title>readCoordinates(coords, field=None)</title>
+
+            <para>Read a set of rows given their indexes into an in-memory
+            object.</para>
+
+            <para>This method works much like the <literal>read()</literal>
+            method (see <xref linkend="Table.read" />), but it uses a sequence
+            (<literal>coords</literal>) of row indexes to select the wanted
+            columns, instead of a column range.</para>
+
+            <para>It returns the selected rows in a record array of the
+            current flavor.</para>
+          </section>
+
+          <section id="Table.__getitem__">
+            <title>__getitem__(key)</title>
+
+            <para>Get a row or a range of rows from the table.</para>
+
+            <para>If the <literal>key</literal> argument is an integer, the
+            corresponding table row is returned as a record of the current
+            flavor. If <literal>key</literal> is a slice, the range of rows
+            determined by it is returned as a record array of the current
+            flavor.</para>
+
+            <para>Example of use:</para>
+
+            <screen>record = table[4]
+recarray = table[4:1000:2]</screen>
+
+            <para>Those statements are equivalent to:</para>
+
+            <screen>record = table.read(start=4)[0]
+recarray = table.read(start=4, stop=1000, step=2)</screen>
+
+            <para>Here you can see how indexing and slicing can be used as
+            shorthands for the <literal>read()</literal> (see <xref
+            linkend="Table.read" />) method.</para>
+          </section>
+
+          <section id="Table.__iter__" xreflabel="description">
+            <title>__iter__()</title>
+
+            <para>It returns the same iterator than
+            <literal>Table.iterrows(0,0,1)</literal>. However, this does not
+            accept parameters.</para>
+
+            <para>Example of use:</para>
+
+            <screen>result = [ row['var2'] for row in table if row['var1'] &lt;= 20 ]</screen>
+
+            <para>Which is equivalent to:</para>
+
+            <screen>result = [ row['var2'] for row in table.iterrows()
+                       if row['var1'] &lt;= 20 ]</screen>
+
+            <para><emphasis>Note:</emphasis> This iterator can be nested (see
+            example in <xref linkend="Table.where" />).</para>
+          </section>
+        </section>
+
+        <section id="TableMethods_writing">
+          <title><literal>Table</literal> methods — writing</title>
 
           <section id="Table.append">
             <title>append(rows)</title>
@@ -6812,198 +6963,6 @@ table.append([("Particle:     10", 10, 0, 10*10, 10**2),
               ("Particle:     11", 11, -1, 11*11, 11**2),
               ("Particle:     12", 12, -2, 12*12, 12**2)])
 fileh.close()</screen></para>
-          </section>
-
-          <section id="Table.col" xreflabel="description">
-            <title>col(name)</title>
-
-            <para>Get a column from the table.</para>
-
-            <para>If a column called <literal>name</literal> exists in the
-            table, it is read and returned as a NumPy object, or as a
-            <literal>numarray</literal> object (whatever is more appropriate
-            depending on the flavor of the table). If it does not exist, a
-            <literal>KeyError</literal> is raised.</para>
-
-            <para>Example of use:</para>
-
-            <screen>narray = table.col('var2')</screen>
-
-            <para>That statement is equivalent to:</para>
-
-            <screen>narray = table.read(field='var2')</screen>
-
-            <para>Here you can see how this method can be used as a shorthand
-            for <literal>the read()</literal> (see <xref
-            linkend="Table.read" />) method.</para>
-          </section>
-
-          <section id="Table.iterrows" xreflabel="description">
-            <title>iterrows(start=None, stop=None, step=1)</title>
-
-            <para>Returns an iterator yielding <literal>Row</literal> (see
-            <xref linkend="RowClassDescr" xrefstyle="select: label" />)
-            instances built from rows in table. If a range is supplied (i.e.
-            some of the <emphasis>start</emphasis>, <emphasis>stop</emphasis>
-            or <emphasis>step</emphasis> parameters are passed), only the
-            appropriate rows are returned. Else, all the rows are returned.
-            See also the <literal>__iter__()</literal> special method in <xref
-            linkend="TableSpecialMethods" xrefstyle="select: label" /> for a
-            shorter way to call this iterator.</para>
-
-            <para>The meaning of the <emphasis>start</emphasis>,
-            <emphasis>stop</emphasis> and <emphasis>step</emphasis> parameters
-            is the same as in the <literal>range()</literal> python function,
-            except that negative values of <literal>step</literal> are not
-            allowed. Moreover, if only <literal>start</literal> is specified,
-            then <literal>stop</literal> will be set to
-            <literal>start+1</literal>. If you do not specify neither
-            <emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then
-            <emphasis>all the rows</emphasis> in the object are
-            selected.</para>
-
-            <para>Example of use:</para>
-
-            <screen>result = [ row['var2'] for row in table.iterrows(step=5)
-if row['var1'] &lt;= 20 ]</screen>
-
-            <para><emphasis>Note:</emphasis> This iterator can be nested (see
-            example in <xref linkend="Table.where" />).</para>
-          </section>
-
-          <section id="itersequenceDescr">
-            <title>itersequence(sequence, sort=True)</title>
-
-            <para>Iterate over a <emphasis>sequence</emphasis> of row
-            coordinates.</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">sequence</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Can be any object that supports the
-                  <literal>__getitem__</literal> special method, like lists,
-                  tuples, NumPy/Numeric/numarray objects, etc.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">sort</emphasis></glossterm>
-
-                <glossdef>
-                  <para>If true, means that <emphasis>sequence</emphasis> will
-                  be sorted out so that the I/O process would get better
-                  performance. If your sequence is already sorted or you don't
-                  want to sort it, put this parameter to 0. The default is to
-                  sort the <emphasis>sequence</emphasis>.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-
-            <para><emphasis>Note:</emphasis> This iterator can be nested (see
-            example in <xref linkend="Table.where" />).</para>
-          </section>
-
-          <section id="Table.read" xreflabel="description">
-            <title>read(start=None, stop=None, step=1, field=None)</title>
-
-            <para>Returns the actual data in <literal>Table</literal>. If
-            <emphasis>field</emphasis> is not supplied, it returns the data as
-            a NumPy record array.</para>
-
-            <para>The meaning of the <emphasis>start</emphasis>,
-            <emphasis>stop</emphasis> and <emphasis>step</emphasis> parameters
-            is the same as in the <literal>range()</literal> python function,
-            except that negative values of <emphasis>step</emphasis> are not
-            allowed. Moreover, if only <emphasis>start</emphasis> is
-            specified, then <emphasis>stop</emphasis> will be set to
-            <emphasis>start+1</emphasis>. If you do not specify neither
-            <emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then all
-            the rows in the object are selected.</para>
-
-            <para>The rest of the parameters are described next:</para>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold">field</emphasis></glossterm>
-
-                <glossdef>
-                  <para>If specified, only the column
-                  <emphasis>field</emphasis> is returned as an homogeneous
-                  NumPy/<literal>numarray</literal>/<literal>Numeric</literal>
-                  or Python object, depending on the current
-                  <emphasis>flavor</emphasis>. If this is not supplied, all
-                  the fields are selected and a
-                  <literal>NestedRecArray</literal> (see <xref
-                  linkend="NestedRecArrayClassDescr"
-                  xrefstyle="select: label" />) or <literal>NumPy</literal>
-                  object is returned. Nested fields can be specified in the
-                  <emphasis>field</emphasis> parameter by using a
-                  <literal>'/'</literal> character as a separator between
-                  fields (e.g. <literal>Info/value</literal>).</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section id="Table.readWhere" xreflabel="description">
-            <title>readWhere(condition, condvars=None, field=None)</title>
-
-            <para>Read table data fulfilling the given
-            <emphasis>condition</emphasis>.</para>
-
-            <para>This method is similar to <literal>read()</literal> (see
-            <xref linkend="Table.read" />), having their common arguments and
-            return values the same meanings. However, only the rows fulfilling
-            the <emphasis>condition</emphasis> are included in the
-            result.</para>
-
-            <para>The meaning of the <emphasis>condition</emphasis> and
-            <emphasis>condvars</emphasis> arguments is the same as in the
-            <literal>where()</literal> (see <xref linkend="Table.where" />)
-            method.</para>
-          </section>
-
-          <section id="Table.readCoordinates">
-            <title>readCoordinates(coords, field=None)</title>
-
-            <para>Read a set of rows given their indexes into an in-memory
-            object.</para>
-
-            <para>This method works much like the <literal>read()</literal>
-            method (see <xref linkend="Table.read" />), but it uses a sequence
-            (<literal>coords</literal>) of row indexes to select the wanted
-            columns, instead of a column range.</para>
-
-            <para>It returns the selected rows in a record array of the
-            current flavor.</para>
-          </section>
-
-          <section id="Table.modifyRows" xreflabel="description">
-            <title>modifyRows(start=None, stop=None, step=1,
-            rows=None)</title>
-
-            <para>Modify a series of rows in the
-            <literal>[start:stop:step]</literal> <emphasis>extended
-            slice</emphasis> range. If you pass <literal>None</literal> to
-            <emphasis>stop</emphasis>, all the rows existing in
-            <emphasis>rows</emphasis> will be used.</para>
-
-            <para><emphasis>rows</emphasis> can be either a
-            <emphasis>recarray</emphasis> or a structure that is able to be
-            converted to any of them and compliant with the table
-            format.</para>
-
-            <para>Returns the number of modified rows.</para>
-
-            <para>It raises an <literal>TypeError</literal> in case the rows
-            parameter could not be converted to an object compliant with table
-            description.</para>
-
-            <para>It raises an <literal>IndexError</literal> in case the
-            modification will exceed the length of the table.</para>
           </section>
 
           <section id="Table.modifyColumn" xreflabel="description">
@@ -7063,6 +7022,31 @@ if row['var1'] &lt;= 20 ]</screen>
             modification will exceed the length of the table.</para>
           </section>
 
+          <section id="Table.modifyRows" xreflabel="description">
+            <title>modifyRows(start=None, stop=None, step=1,
+            rows=None)</title>
+
+            <para>Modify a series of rows in the
+            <literal>[start:stop:step]</literal> <emphasis>extended
+            slice</emphasis> range. If you pass <literal>None</literal> to
+            <emphasis>stop</emphasis>, all the rows existing in
+            <emphasis>rows</emphasis> will be used.</para>
+
+            <para><emphasis>rows</emphasis> can be either a
+            <emphasis>recarray</emphasis> or a structure that is able to be
+            converted to any of them and compliant with the table
+            format.</para>
+
+            <para>Returns the number of modified rows.</para>
+
+            <para>It raises an <literal>TypeError</literal> in case the rows
+            parameter could not be converted to an object compliant with table
+            description.</para>
+
+            <para>It raises an <literal>IndexError</literal> in case the
+            modification will exceed the length of the table.</para>
+          </section>
+
           <section id="removeRowsDescr" xreflabel="description">
             <title>removeRows(start, stop=None)</title>
 
@@ -7101,55 +7085,71 @@ if row['var1'] &lt;= 20 ]</screen>
             </glosslist>
           </section>
 
-          <section id="Table.flushRowsToIndex">
-            <title>flushRowsToIndex()</title>
+          <section id="Table.__setitem__">
+            <title>__setitem__(key, value)</title>
 
-            <para>Add remaining rows in buffers to non-dirty indexes. This can
-            be useful when you have chosen non-automatic indexing for the
-            table (see the <literal>Table.autoIndex</literal> property in
-            <xref linkend="TableInstanceVariablesDescr" xrefstyle="select:
-            label" />) and want to update the indexes on it.</para>
+            <para>Sets a table row or table slice.</para>
+
+            <para>It takes different actions depending on the type of the
+            <literal>key</literal> parameter: if it is an integer, the
+            corresponding table row is set to <literal>value</literal> (a
+            record, list or tuple capable of being converted to the table
+            field format). If the <literal>key</literal> is a slice, the row
+            slice determined by it is set to <literal>value</literal> (a NumPy
+            record array, <literal>NestedRecArray</literal> (see <xref
+            linkend="NestedRecArrayClassDescr" xrefstyle="select: label" />)
+            or list of rows).</para>
+
+            <para>Example of use:</para>
+
+            <screen># Modify just one existing row
+table[2] = [456,'db2',1.2]
+# Modify two existing rows
+rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
+                       formats="i4,a3,f8")
+table[1:3:2] = rows</screen>
+
+            <para>Which is equivalent to:</para>
+
+            <screen>table.modifyRows(start=2, rows=[456,'db2',1.2])
+rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
+                       formats="i4,a3,f8")
+table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
+          </section>
+        </section>
+
+        <section id="TableMethods_querying">
+          <title><literal>Table</literal> methods — querying</title>
+
+          <section id="getWhereListTableDescr">
+            <title>getWhereList(condition, condvars=None, sort=False)</title>
+
+            <para>Get the row coordinates fulfilling the given
+            <emphasis>condition</emphasis>.</para>
+
+            <para>The coordinates are returned as a list of the current
+            flavor.</para>
+
+            <para><emphasis>sort</emphasis> means that you want to retrieve
+            the coordinates ordered. The default is to not sort them.</para>
           </section>
 
-          <section id="Table.reIndex">
-            <title>reIndex()</title>
+          <section id="Table.readWhere" xreflabel="description">
+            <title>readWhere(condition, condvars=None, field=None)</title>
 
-            <para>Recompute all the existing indexes in table. This can be
-            useful when you suspect that, for any reason, the index
-            information for columns is no longer valid and want to rebuild the
-            indexes on it.</para>
-          </section>
+            <para>Read table data fulfilling the given
+            <emphasis>condition</emphasis>.</para>
 
-          <section id="Table.reIndexDirty">
-            <title>reIndexDirty()</title>
-
-            <para>Recompute the existing indexes in table, but
-            <emphasis>only</emphasis> if they are dirty. This can be useful
-            when you have set <literal>Table.autoIndex</literal> (see <xref
-            linkend="TableInstanceVariablesDescr" xrefstyle="select: label"
-            />) to false for the table and want to update the indexes after a
-            invalidating index operation (<literal>Table.removeRows</literal>,
-            for example).</para>
-          </section>
-
-          <section id="Table.willQueryUseIndexing" xreflabel="description">
-            <title>willQueryUseIndexing(condition, condvars=None)</title>
-
-            <para>Will a query for the <emphasis>condition</emphasis> use
-            indexing?</para>
+            <para>This method is similar to <literal>read()</literal> (see
+            <xref linkend="Table.read" />), having their common arguments and
+            return values the same meanings. However, only the rows fulfilling
+            the <emphasis>condition</emphasis> are included in the
+            result.</para>
 
             <para>The meaning of the <emphasis>condition</emphasis> and
             <emphasis>condvars</emphasis> arguments is the same as in the
-            <literal>where()&gt;</literal> method (see <xref
-            linkend="Table.where" />). If the <emphasis>condition</emphasis>
-            can use indexing, this method returns the path name of the column
-            whose index is usable. Otherwise, it returns
-            <literal>None</literal>.</para>
-
-            <para>This method is mainly intended for testing. Keep in mind
-            that changing the set of indexed columns or their dirtyness may
-            make this method return different values for the same arguments at
-            different times.</para>
+            <literal>where()</literal> (see <xref linkend="Table.where" />)
+            method.</para>
           </section>
 
           <section id="Table.where" xreflabel="description">
@@ -7251,105 +7251,74 @@ if row['var1'] &lt;= 20 ]</screen>
             is returned as a result.</para>
           </section>
 
-          <section id="getWhereListTableDescr">
-            <title>getWhereList(condition, condvars=None, sort=False)</title>
+          <section id="Table.willQueryUseIndexing" xreflabel="description">
+            <title>willQueryUseIndexing(condition, condvars=None)</title>
 
-            <para>Get the row coordinates fulfilling the given
-            <emphasis>condition</emphasis>.</para>
+            <para>Will a query for the <emphasis>condition</emphasis> use
+            indexing?</para>
 
-            <para>The coordinates are returned as a list of the current
-            flavor.</para>
+            <para>The meaning of the <emphasis>condition</emphasis> and
+            <emphasis>condvars</emphasis> arguments is the same as in the
+            <literal>where()&gt;</literal> method (see <xref
+            linkend="Table.where" />). If the <emphasis>condition</emphasis>
+            can use indexing, this method returns the path name of the column
+            whose index is usable. Otherwise, it returns
+            <literal>None</literal>.</para>
 
-            <para><emphasis>sort</emphasis> means that you want to retrieve
-            the coordinates ordered. The default is to not sort them.</para>
+            <para>This method is mainly intended for testing. Keep in mind
+            that changing the set of indexed columns or their dirtyness may
+            make this method return different values for the same arguments at
+            different times.</para>
           </section>
         </section>
 
-        <section id="TableSpecialMethods">
-          <title><literal>Table</literal> special methods</title>
+        <section id="TableMethods_other">
+          <title><literal>Table</literal> methods — other</title>
 
-          <para>Following are described the methods that automatically trigger
-          actions when a <literal>Table</literal> instance is accessed in a
-          special way (e.g., <literal>table["var2"]</literal> will be
-          equivalent to a call to
-          <literal>table.__getitem__("var2")</literal>).</para>
+          <section id="Table.flushRowsToIndex">
+            <title>flushRowsToIndex()</title>
 
-          <section id="Table.__iter__">
-            <title>__iter__()</title>
-
-            <para>It returns the same iterator than
-            <literal>Table.iterrows(0,0,1)</literal>. However, this does not
-            accept parameters.</para>
-
-            <para>Example of use:</para>
-
-            <screen>result = [ row['var2'] for row in table if row['var1'] &lt;= 20 ]</screen>
-
-            <para>Which is equivalent to:</para>
-
-            <screen>result = [ row['var2'] for row in table.iterrows()
-                       if row['var1'] &lt;= 20 ]</screen>
-
-            <para><emphasis>Note:</emphasis> This iterator can be nested (see
-            example in <xref linkend="Table.where" />).</para>
+            <para>Add remaining rows in buffers to non-dirty indexes. This can
+            be useful when you have chosen non-automatic indexing for the
+            table (see the <literal>Table.autoIndex</literal> property in
+            <xref linkend="TableInstanceVariablesDescr" xrefstyle="select:
+            label" />) and want to update the indexes on it.</para>
           </section>
 
-          <section id="Table.__getitem__">
-            <title>__getitem__(key)</title>
+          <section id="Table.getEnum">
+            <title>getEnum(colname)</title>
 
-            <para>Get a row or a range of rows from the table.</para>
+            <para>Get the enumerated type associated with the named
+            column.</para>
 
-            <para>If the <literal>key</literal> argument is an integer, the
-            corresponding table row is returned as a record of the current
-            flavor. If <literal>key</literal> is a slice, the range of rows
-            determined by it is returned as a record array of the current
-            flavor.</para>
-
-            <para>Example of use:</para>
-
-            <screen>record = table[4]
-recarray = table[4:1000:2]</screen>
-
-            <para>Those statements are equivalent to:</para>
-
-            <screen>record = table.read(start=4)[0]
-recarray = table.read(start=4, stop=1000, step=2)</screen>
-
-            <para>Here you can see how indexing and slicing can be used as
-            shorthands for the <literal>read()</literal> (see <xref
-            linkend="Table.read" />) method.</para>
+            <para>If the column named <literal>colname</literal> (a string)
+            exists and is of an enumerated type, the corresponding
+            <literal>Enum</literal> instance (see <xref
+            linkend="EnumClassDescr" xrefstyle="select: label" />) is
+            returned. If it is not of an enumerated type, a
+            <literal>TypeError</literal> is raised. If the column does not
+            exist, a <literal>KeyError</literal> is raised.</para>
           </section>
 
-          <section id="Table.__setitem__">
-            <title>__setitem__(key, value)</title>
+          <section id="Table.reIndex">
+            <title>reIndex()</title>
 
-            <para>Sets a table row or table slice.</para>
+            <para>Recompute all the existing indexes in table. This can be
+            useful when you suspect that, for any reason, the index
+            information for columns is no longer valid and want to rebuild the
+            indexes on it.</para>
+          </section>
 
-            <para>It takes different actions depending on the type of the
-            <literal>key</literal> parameter: if it is an integer, the
-            corresponding table row is set to <literal>value</literal> (a
-            record, list or tuple capable of being converted to the table
-            field format). If the <literal>key</literal> is a slice, the row
-            slice determined by it is set to <literal>value</literal> (a NumPy
-            record array, <literal>NestedRecArray</literal> (see <xref
-            linkend="NestedRecArrayClassDescr" xrefstyle="select: label" />)
-            or list of rows).</para>
+          <section id="Table.reIndexDirty">
+            <title>reIndexDirty()</title>
 
-            <para>Example of use:</para>
-
-            <screen># Modify just one existing row
-table[2] = [456,'db2',1.2]
-# Modify two existing rows
-rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
-                       formats="i4,a3,f8")
-table[1:3:2] = rows</screen>
-
-            <para>Which is equivalent to:</para>
-
-            <screen>table.modifyRows(start=2, rows=[456,'db2',1.2])
-rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
-                       formats="i4,a3,f8")
-table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
+            <para>Recompute the existing indexes in table, but
+            <emphasis>only</emphasis> if they are dirty. This can be useful
+            when you have set <literal>Table.autoIndex</literal> (see <xref
+            linkend="TableInstanceVariablesDescr" xrefstyle="select: label"
+            />) to false for the table and want to update the indexes after a
+            invalidating index operation (<literal>Table.removeRows</literal>,
+            for example).</para>
           </section>
         </section>
 
