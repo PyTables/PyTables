@@ -484,7 +484,7 @@ class Group(hdf5Extension.Group, Node):
                 return UnImplemented(self, childName)
 
 
-    def __iter__(self, classname=None, recursive=False):
+    def __iter__(self):
         """
         Iterate over child nodes hanging directly from the group.
 
@@ -495,7 +495,7 @@ class Group(hdf5Extension.Group, Node):
             for node in h5file.root.detector:
                 print node
         """
-        return self._f_walkNodes(classname, recursive)
+        return self._f_iterNodes()
 
 
     def __contains__(self, name):
