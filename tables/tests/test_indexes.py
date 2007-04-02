@@ -6,8 +6,8 @@ import sys
 import copy
 
 from tables import *
-from tables.index import Index, defaultAutoIndex, defaultIndexFilters, \
-     calcChunksize
+from tables.index import Index, defaultAutoIndex, defaultIndexFilters
+from tables.idxutils import calcChunksize
 from tables.tests.common import verbose, allequal, heavy, cleanup, \
      PyTablesTestCase, TempFileMixin
 from tables.exceptions import OldIndexWarning

@@ -2732,7 +2732,7 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex( self, optlevel=35, filters=None,
+    def createIndex( self, optlevel=34, filters=None,
                      testmode=False, verbose=False ):
         """Create an index for this column.
 

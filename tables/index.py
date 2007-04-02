@@ -981,7 +981,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # The item is not in cache. Do the real lookup.
         sorted = self.sorted
         if sorted.nrows > 0:
-            if self.type in self.opt_search_types:
+            if 0 and self.type in self.opt_search_types:
                 # The next are optimizations. However, they hide the
                 # CPU functions consumptions from python profiles.
                 # You may want to de-activate them during profiling.
@@ -1043,7 +1043,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         item1done = 0; item2done = 0
 
         #t1=time()
-        hi = hi2 = self.nelementsLR               # maximum number of elements
+        hi = self.nelementsLR               # maximum number of elements
         bebounds = self.bebounds
         assert hi == self.nelements - self.sorted.nrows * self.slicesize
         begin = bebounds[0]
@@ -1077,28 +1077,24 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if not item1done:
             # Search the appropriate chunk in bounds cache
             nchunk = bisect.bisect_left(bounds, item1)
+            begin = self.chunksize*nchunk
             end = self.chunksize*(nchunk+1)
             if end > hi:
                 end = hi
-            chunk = readSliceLR(self.sorted, nbounds+self.chunksize*nchunk,
-                                nbounds+end)
-            if len(chunk) < hi:
-                hi2 = len(chunk)
-            result1 = bisect.bisect_left(chunk, item1, 0, hi2)
+            chunk = readSliceLR(self.sorted, nbounds+begin, nbounds+end)
+            result1 = bisect.bisect_left(chunk, item1)
             result1 += self.chunksize*nchunk
         # Lookup in the middle of the slice for item2
         if not item2done:
             # Search the appropriate chunk in bounds cache
             nchunk2 = bisect.bisect_right(bounds, item2)
             if nchunk2 <> nchunk:
+                begin = self.chunksize*nchunk2
                 end = self.chunksize*(nchunk2+1)
                 if end > hi:
                     end = hi
-                chunk = readSliceLR(self.sorted, nbounds+self.chunksize*nchunk2,
-                                    nbounds+end)
-                if len(chunk) < hi:
-                    hi2 = len(chunk)
-            result2 = bisect.bisect_right(chunk, item2, 0, hi2)
+                chunk = readSliceLR(self.sorted, nbounds+begin, nbounds+end)
+            result2 = bisect.bisect_right(chunk, item2)
             result2 += self.chunksize*nchunk2
         #t = time()-t1
         #print "time searching indices (last row):", round(t*1000, 3), "ms"

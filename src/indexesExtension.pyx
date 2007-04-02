@@ -843,7 +843,7 @@ cdef class LastRowArray(Array):
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data.")
 
-    return sorted.bufferlb
+    return sorted.bufferlb[:stop-start]
 
 
 

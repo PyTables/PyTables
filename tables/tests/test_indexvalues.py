@@ -7,7 +7,7 @@ import random
 import numpy
 
 from tables import *
-from tables.indexes import calcChunksize
+from tables.idxutils import calcChunksize
 from tables.tests.common import verbose, allequal, heavy, cleanup
 
 # To delete the internal attributes automagically

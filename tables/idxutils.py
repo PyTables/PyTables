@@ -159,7 +159,6 @@ def calcoptlevels(nss, shufflelevel, testmode):
         elif shufflelevel == 9:
             optfull = 1
         return optmedian, optstarts, optstops, optfull
-        #return False, False, False, False
         
     # Regular case
     if nss < 5:
