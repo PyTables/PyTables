@@ -2732,7 +2732,7 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex( self, optlevel=33, filters=None,
+    def createIndex( self, optlevel=35, filters=None,
                      testmode=False, verbose=False ):
         """Create an index for this column.
 
@@ -2747,7 +2747,7 @@ class Column(object):
                                     testmode, verbose)
 
 
-    def optimizeIndex(self, optlevel=66, verbose=0):
+    def optimizeIndex(self, optlevel=77, verbose=0):
         """Optimize an already created index for this column.
 
         `optlevel` is the level optimization (from 00 to 99).

@@ -30,7 +30,6 @@ Misc variables:
 
 import sys, os, subprocess
 
-import math
 import bisect
 from time import time, clock
 import os, os.path
@@ -38,6 +37,8 @@ import tempfile
 import sys
 
 import numpy
+
+from idxutils import calcChunksize, nextafter, infType
 
 from tables import indexesExtension
 from tables import utilsExtension
@@ -67,10 +68,10 @@ __version__ = "$Revision: 1236 $"
 #obversion = "1.0"    # Version of indexes in PyTables 1.x series
 obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series
 
-# Guess the platform
-plat64 = False
-if numpy.int_().itemsize == 8:
-    plat64 = True
+debug = False
+#debug = True  # Uncomment this for debugging purposes only
+profile = False
+#profile = True  # uncomment for profiling purposes only
 
 # The default method for sorting
 defsort = "quicksort"
@@ -90,272 +91,6 @@ defaultIndexFilters = Filters( complevel=1, complib='zlib',
 # The list of types for which an optimised search in Pyrex and C has
 # been implemented. Always add here the name of a new optimised type.
 opt_search_types = ("int32", "int64", "float32", "float64")
-
-# Python implementations of NextAfter and NextAfterF
-#
-# These implementations exist because the standard function
-# nextafterf is not available on Microsoft platforms.
-#
-# These implementations are based on the IEEE representation of
-# floats and doubles.
-# Author:  Shack Toms - shack@livedata.com
-#
-# Thanks to Shack Toms shack@livedata.com for NextAfter and NextAfterF
-# implementations in Python. 2004-10-01
-
-epsilon  = math.ldexp(1.0, -53) # smallest double such that 0.5+epsilon != 0.5
-epsilonF = math.ldexp(1.0, -24) # smallest float such that 0.5+epsilonF != 0.5
-
-maxFloat = float(2**1024 - 2**971)  # From the IEEE 754 standard
-maxFloatF = float(2**128 - 2**104)  # From the IEEE 754 standard
-
-minFloat  = math.ldexp(1.0, -1022) # min positive normalized double
-minFloatF = math.ldexp(1.0, -126)  # min positive normalized float
-
-smallEpsilon  = math.ldexp(1.0, -1074) # smallest increment for doubles < minFloat
-smallEpsilonF = math.ldexp(1.0, -149)  # smallest increment for floats < minFloatF
-
-infinity = math.ldexp(1.0, 1023) * 2
-infinityF = math.ldexp(1.0, 128)
-#Finf = float("inf")  # Infinite in the IEEE 754 standard (not avail in Win)
-
-# A portable representation of NaN
-# if sys.byteorder == "little":
-#     testNaN = struct.unpack("d", '\x01\x00\x00\x00\x00\x00\xf0\x7f')[0]
-# elif sys.byteorder == "big":
-#     testNaN = struct.unpack("d", '\x7f\xf0\x00\x00\x00\x00\x00\x01')[0]
-# else:
-#     raise ValueError, "Byteorder '%s' not supported!" % sys.byteorder
-# This one seems better
-testNaN = infinity - infinity
-
-# "infinity" for several types
-infinityMap = {
-    'bool':    [0,          1],
-    'int8':    [-2**7,      2**7-1],
-    'uint8':   [0,          2**8-1],
-    'int16':   [-2**15,     2**15-1],
-    'uint16':  [0,          2**16-1],
-    'int32':   [-2**31,     2**31-1],
-    'uint32':  [0,          2**32-1],
-    'int64':   [-2**63,     2**63-1],
-    'uint64':  [0,          2**64-1],
-    'float32': [-infinityF, infinityF],
-    'float64': [-infinity,  infinity], }
-
-
-# Utility functions
-def infType(dtype, itemsize, sign=+1):
-    """Return a superior limit for maximum representable data type"""
-    assert sign in [-1, +1]
-
-    if dtype.kind == "S":
-        if sign < 0:
-            return "\x00"*itemsize
-        else:
-            return "\xff"*itemsize
-    try:
-        return infinityMap[dtype.name][sign >= 0]
-    except KeyError:
-        raise TypeError, "Type %s is not supported" % dtype.name
-
-
-# This check does not work for Python 2.2.x or 2.3.x (!)
-def IsNaN(x):
-    """a simple check for x is NaN, assumes x is float"""
-    return x != x
-
-
-def PyNextAfter(x, y):
-    """returns the next float after x in the direction of y if possible, else returns x"""
-    # if x or y is Nan, we don't do much
-    if IsNaN(x) or IsNaN(y):
-        return x
-
-    # we can't progress if x == y
-    if x == y:
-        return x
-
-    # similarly if x is infinity
-    if x >= infinity or x <= -infinity:
-        return x
-
-    # return small numbers for x very close to 0.0
-    if -minFloat < x < minFloat:
-        if y > x:
-            return x + smallEpsilon
-        else:
-            return x - smallEpsilon  # we know x != y
-
-    # it looks like we have a normalized number
-    # break x down into a mantissa and exponent
-    m, e = math.frexp(x)
-
-    # all the special cases have been handled
-    if y > x:
-        m += epsilon
-    else:
-        m -= epsilon
-
-    return math.ldexp(m, e)
-
-
-def PyNextAfterF(x, y):
-    """returns the next IEEE single after x in the direction of y if possible, else returns x"""
-
-    # if x or y is Nan, we don't do much
-    if IsNaN(x) or IsNaN(y):
-        return x
-
-    # we can't progress if x == y
-    if x == y:
-        return x
-
-    # similarly if x is infinity
-    if x >= infinityF:
-        return infinityF
-    elif x <= -infinityF:
-        return -infinityF
-
-    # return small numbers for x very close to 0.0
-    if -minFloatF < x < minFloatF:
-        # since Python uses double internally, we
-        # may have some extra precision to toss
-        if x > 0.0:
-            extra = x % smallEpsilonF
-        elif x < 0.0:
-            extra = x % -smallEpsilonF
-        else:
-            extra = 0.0
-        if y > x:
-            return x - extra + smallEpsilonF
-        else:
-            return x - extra - smallEpsilonF  # we know x != y
-
-    # it looks like we have a normalized number
-    # break x down into a mantissa and exponent
-    m, e = math.frexp(x)
-
-    # since Python uses double internally, we
-    # may have some extra precision to toss
-    if m > 0.0:
-        extra = m % epsilonF
-    else:  # we have already handled m == 0.0 case
-        extra = m % -epsilonF
-
-    # all the special cases have been handled
-    if y > x:
-        m += epsilonF - extra
-    else:
-        m -= epsilonF - extra
-
-    return math.ldexp(m, e)
-
-
-def StringNextAfter(x, direction, itemsize):
-    "Return the next representable neighbor of x in the appropriate direction."
-    assert direction in [-1, +1]
-
-    # Pad the string with \x00 chars until itemsize completion
-    padsize = itemsize - len(x)
-    if padsize > 0:
-        x += "\x00"*padsize
-    xlist = list(x); xlist.reverse()
-    i = 0
-    if direction > 0:
-        if xlist == "\xff"*itemsize:
-            # Maximum value, return this
-            return "".join(xlist)
-        for xchar in xlist:
-            if ord(xchar) < 0xff:
-                xlist[i] = chr(ord(xchar)+1)
-                break
-            else:
-                xlist[i] = "\x00"
-            i += 1
-    else:
-        if xlist == "\x00"*itemsize:
-            # Minimum value, return this
-            return "".join(xlist)
-        for xchar in xlist:
-            if ord(xchar) > 0x00:
-                xlist[i] = chr(ord(xchar)-1)
-                break
-            else:
-                xlist[i] = "\xff"
-            i += 1
-    xlist.reverse()
-    return "".join(xlist)
-
-
-def IntTypeNextAfter(x, direction, itemsize):
-    "Return the next representable neighbor of x in the appropriate direction."
-    assert direction in [-1, +1]
-
-    # x is guaranteed to be either an int or a float
-    if direction < 0:
-        if type(x) is int:
-            return x-1
-        else:
-            return int(PyNextAfter(x,x-1))
-    else:
-        if type(x) is int:
-            return x+1
-        else:
-            return int(PyNextAfter(x,x+1))+1
-
-
-def nextafter(x, direction, dtype, itemsize):
-    "Return the next representable neighbor of x in the appropriate direction."
-    assert direction in [-1, 0, +1]
-    assert dtype.kind == "S" or type(x) in (int, long, float)
-
-    if direction == 0:
-        return x
-
-    if dtype.kind == "S":
-        return StringNextAfter(x, direction, itemsize)
-
-    if dtype.kind in ['i', 'u']:
-        return IntTypeNextAfter(x, direction, itemsize)
-    elif dtype.name == "float32":
-        if direction < 0:
-            return PyNextAfterF(x,x-1)
-        else:
-            return PyNextAfterF(x,x+1)
-    elif dtype.name == "float64":
-        if direction < 0:
-            return PyNextAfter(x,x-1)
-        else:
-            return PyNextAfter(x,x+1)
-
-    raise TypeError("data type ``%s`` is not supported" % dtype)
-
-
-def show_stats(explain, tref):
-    "Show the used memory"
-    # Build the command to obtain memory info (only for Linux 2.6.x)
-    cmd = "cat /proc/%s/status" % os.getpid()
-    sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
-    for line in sout:
-        if line.startswith("VmSize:"):
-            vmsize = int(line.split()[1])
-        elif line.startswith("VmRSS:"):
-            vmrss = int(line.split()[1])
-        elif line.startswith("VmData:"):
-            vmdata = int(line.split()[1])
-        elif line.startswith("VmStk:"):
-            vmstk = int(line.split()[1])
-        elif line.startswith("VmExe:"):
-            vmexe = int(line.split()[1])
-        elif line.startswith("VmLib:"):
-            vmlib = int(line.split()[1])
-    sout.close()
-    print "Memory usage: ******* %s *******" % explain
-    print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)
-    print "VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk)
-    print "VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib)
-    print "WallClock time:", time() - tref
 
 
 class Index(NotLoggedMixin, indexesExtension.Index, Group):
@@ -500,7 +235,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self._v_version = None
         """The object version of this index."""
 
-        self._v_expectedrows = expectedrows
+        self.expectedrows = expectedrows
         """The expected number of items of index arrays."""
         if byteorder in ["little", "big"]:
             self.byteorder = byteorder
@@ -530,15 +265,20 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """The level of optimization for this index."""
         self.dirtycache = True
         """Dirty cache (for ranges, bounds & sorted) flag."""
+        self.superblocksize = None
+        """Size of the superblock for this index."""
+        self.blocksize = None
+        """Size of the block for this index."""
+        self.slicesize = None
+        """Size of the slice for this index."""
+        self.chunksize = None
+        """Size of the chunk for this index."""
         self.tmpfilename = None
         """Filename for temporary bounds."""
         self.opt_search_types = opt_search_types
         """The types for which and optimized search has been implemented."""
         super(Index, self).__init__(
             parentNode, name, title, new, filters)
-
-        self.profile = False
-        #self.profile = True  # uncomment for profiling purposes only
 
 
     def _g_postInitHook(self):
@@ -550,15 +290,18 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Index arrays must only be created for new indexes
         if not self._v_new:
             # Set-up some variables from info on disk and return
+            attrs = self._v_attrs
+            self.superblocksize = attrs.superblocksize
+            self.blocksize = attrs.blocksize
+            self.slicesize = attrs.slicesize
+            self.chunksize = attrs.chunksize
+            self.optlevel = attrs.optlevel
             sorted = self.sorted
             self.dtype = sorted.atom.dtype
             self.type = sorted.atom.type
-            self.superblocksize = sorted.superblocksize
-            self.blocksize = sorted.blocksize
-            self.slicesize = sorted.slicesize
-            self.chunksize = sorted.chunksize
-            self.optlevel = sorted.optlevel
             self.filters = sorted.filters
+            assert self.slicesize == sorted.shape[1], "Wrong slicesize"
+            assert self.chunksize == sorted._v_chunkshape[1], "Wrong chunksize"
             # The number of elements is at the end of the indices array
             nelementsLR = self.indicesLR[-1]
             self.nrows = sorted.nrows
@@ -583,26 +326,30 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Set the filters for this object (they are *not* inherited)
         self.filters = filters = self._v_new_filters
 
+        # Compute the superblocksize, blocksize, slicesize and chunksize values
+        sizes = calcChunksize(self.expectedrows, self.optlevel, self.testmode)
+        (self.superblocksize, self.blocksize,
+         self.slicesize, self.chunksize) = sizes
+
+        # Save them on disk as attributes
+        self._v_attrs.superblocksize = numpy.int64(self.superblocksize)
+        self._v_attrs.blocksize = numpy.int64(self.blocksize)
+        self._v_attrs.slicesize = numpy.uint32(self.slicesize)
+        self._v_attrs.chunksize = numpy.uint32(self.chunksize)
+        self._v_attrs.optlevel = numpy.int32(self.optlevel)
+
         # Create the IndexArray for sorted values
         atom = Atom.from_dtype(self.dtype)
         sorted = IndexArray(self, 'sorted', atom, "Sorted Values",
-                            filters, self.optlevel, self.testmode,
-                            self._v_expectedrows, self.byteorder)
-
-        # After "sorted" is created, we can assign some attributes
-        self.superblocksize = sorted.superblocksize
-        self.blocksize = sorted.blocksize
-        self.slicesize = sorted.slicesize
-        self.chunksize = sorted.chunksize
+                            filters, self.byteorder)
 
         # Create the IndexArray for index values
         IndexArray(self, 'indices', Int64Atom(), "Reverse Indices",
-                   filters, self.optlevel, self.testmode,
-                   self._v_expectedrows, self.byteorder)
+                   filters, self.byteorder)
 
         # Create the cache for range values  (1st order cache)
         CacheArray(self, 'ranges', atom, (0,2), "Range Values", filters,
-                   self._v_expectedrows//self.slicesize,
+                   self.expectedrows//self.slicesize,
                    byteorder=self.byteorder)
         # median ranges
         EArray(self, 'mranges', atom, (0,), "Median ranges", filters,
@@ -612,7 +359,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         nbounds_inslice = (self.slicesize - 1 ) // self.chunksize
         CacheArray(self, 'bounds', atom, (0, nbounds_inslice),
                    "Boundary Values", filters,
-                   self._v_expectedrows//self.chunksize,
+                   self.expectedrows//self.chunksize,
                    (1, nbounds_inslice), byteorder=self.byteorder)
 
         # begin, end & median bounds (only for numerical types)
@@ -656,15 +403,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def append(self, xarr):
         """Append the array to the index objects"""
 
-        if self.profile: tref = time()
-        if self.profile: show_stats("Entrant en append", tref)
+        if profile: tref = time()
+        if profile: show_stats("Entrant en append", tref)
         arr = xarr.pop()
         sorted = self.sorted
         offset = sorted.nrows * self.slicesize
         # As len(arr) < 2**32, we can choose unit32 for representing idx
         idx = numpy.arange(0, len(arr), dtype='uint32')
         # In-place sorting
-        if self.profile: show_stats("Abans de keysort", tref)
+        if profile: show_stats("Abans de keysort", tref)
         indexesExtension.keysort(arr, idx)
         # Save the sorted array
         sorted.append(arr)
@@ -678,30 +425,30 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         smedian = arr[cs/2::cs]
         self.mbounds.append(smedian)
         self.mranges.append([smedian[ncs/2]])
-        if self.profile: show_stats("Abans d'esborrar arr i smedian", tref)
+        if profile: show_stats("Abans d'esborrar arr i smedian", tref)
         del arr, smedian   # delete references to arr
         # Append the indices
-        if self.profile: show_stats("Abans d'apujar a 64 bits", tref)
+        if profile: show_stats("Abans d'apujar a 64 bits", tref)
         idx = idx.astype('int64')
-        if self.profile: show_stats("Abans de sumar offset", tref)
+        if profile: show_stats("Abans de sumar offset", tref)
         idx += offset
-        if self.profile: show_stats("Abans de guardar indexos", tref)
+        if profile: show_stats("Abans de guardar indexos", tref)
         self.indices.append(idx)
-        if self.profile: show_stats("Abans d'esborrar indexos", tref)
+        if profile: show_stats("Abans d'esborrar indexos", tref)
         del idx
         # Update nrows after a successful append
         self.nrows = sorted.nrows
         self.nelements = self.nrows * self.slicesize
         self.nelementsLR = 0  # reset the counter of the last row index to 0
         self.dirtycache = True   # the cache is dirty now
-        if self.profile: show_stats("Eixint d'append", tref)
+        if profile: show_stats("Eixint d'append", tref)
 
 
     def appendLastRow(self, xarr):
         """Append the array to the last row index objects"""
 
-        if self.profile: tref = time()
-        if self.profile: show_stats("Entrant a appendLR", tref)
+        if profile: tref = time()
+        if profile: show_stats("Entrant a appendLR", tref)
         arr = xarr.pop()
         nelementsLR = len(arr)
         # compute the elements in the last row sorted & bounds array
@@ -712,7 +459,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # As len(arr) < 2**32, we can choose unit32 for representing idx
         idx = numpy.arange(0, len(arr), dtype='uint32')
         # In-place sorting
-        if self.profile: show_stats("Abans de keysort", tref)
+        if profile: show_stats("Abans de keysort", tref)
         indexesExtension.keysort(arr, idx)
         # Build the cache of bounds
         self.bebounds = numpy.concatenate((arr[::self.chunksize],
@@ -722,93 +469,34 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Save the number of elements, bounds and sorted values
         offset2 = len(self.bebounds)
         sortedLR[:offset2] = self.bebounds
-        if self.profile: show_stats("Abans de guadar sorted", tref)
+        if profile: show_stats("Abans de guadar sorted", tref)
         sortedLR[offset2:offset2+len(arr)] = arr
-        if self.profile: show_stats("Abans d'esborrar sorted", tref)
+        if profile: show_stats("Abans d'esborrar sorted", tref)
         del arr
         # Save the reverse index array
-        if self.profile: show_stats("Abans d'apujar indexos", tref)
+        if profile: show_stats("Abans d'apujar indexos", tref)
         idx = idx.astype('int64')
-        if self.profile: show_stats("Abans de sumar offset", tref)
+        if profile: show_stats("Abans de sumar offset", tref)
         idx += offset
-        if self.profile: show_stats("Abans de guardar indexos", tref)
+        if profile: show_stats("Abans de guardar indexos", tref)
         indicesLR[:len(idx)] = idx
-        if self.profile: show_stats("Abans d'esborrar indexos", tref)
+        if profile: show_stats("Abans d'esborrar indexos", tref)
         del idx
         # Update nelements after a successful append
         self.nrows = sorted.nrows + 1
         self.nelements = sorted.nrows * self.slicesize + nelementsLR
         self.nelementsLR = nelementsLR
         self.dirtycache = True   # the cache is dirty now
-        if self.profile: show_stats("Eixint de appendLR", tref)
-
-
-    def calcoptlevels(self, shufflelevel):
-        optmedian, optstarts, optstops, optfull = (False,)*4
-        if self.testmode:
-            if 1 <= shufflelevel < 3:
-                optmedian = True
-            if 3 <= shufflelevel < 6:
-                optstarts = True
-            elif 6 <= shufflelevel < 9:
-                optstarts, optstops = (True, True)
-            elif shufflelevel == 9:
-                optfull = 1
-            return optmedian, optstarts, optstops, optfull
-        # Regular case
-        cs = self.chunksize
-        ss = self.slicesize
-        bs = self.blocksize
-        ss = self.superblocksize
-        nss = self.superblocksize / self.slicesize
-        if nss < 5:
-            if 6 <= shufflelevel < 9:
-                optmedian = True
-            elif shufflelevel == 9:
-                optstarts, optstops = (True, True)
-        elif 5 <= nss <= 25:
-            if 3 <= shufflelevel < 6:
-                optmedian = True
-            elif 6 <= shufflelevel < 9:
-                optstarts, optstops = (True, True)
-            elif shufflelevel == 9:
-                optfull = 1
-        elif 25 <= nss <= 125:
-            if 0 < shufflelevel < 3:
-                optmedian = True
-            elif 3 <= shufflelevel < 6:
-                optstarts, optstops = (True, True)
-            elif 6 <= shufflelevel < 9:
-                optfull = 1
-            elif shufflelevel == 9:
-                optfull = 2
-        elif 125 <= nss <= 625:
-            if 0 < shufflelevel < 3:
-                optstarts, optstops = (True, True)
-            elif 3 <= shufflelevel < 6:
-                optfull = 1
-            elif 6 <= shufflelevel < 9:
-                optfull = 2
-            elif shufflelevel == 9:
-                optfull = 3
-        else:  # superblocks with more than 625 slices. Are there some?
-            if 0 < shufflelevel < 3:
-                optfull = 1
-            elif 3 <= shufflelevel < 6:
-                optfull = 2
-            elif 6 <= shufflelevel < 9:
-                optfull = 3
-            elif shufflelevel == 9:
-                optfull = 4
-
-        return optmedian, optstarts, optstops, optfull
+        if profile: show_stats("Eixint de appendLR", tref)
 
 
     def optimize(self, level=None, verbose=False):
         "Optimize an index to allow faster searches."
 
-        self.verbose = False
-        #self.verbose = True  # uncomment for debugging purposes only
+        if verbose == True:
+            self.verbose = True
+        else:
+            self.verbose = debug
 
         # Initialize last_tover and last_nover
         self.last_tover = 0
@@ -828,9 +516,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             level = self.optlevel
         memlevel = level // 10 + 1
         shufflelevel = level - (memlevel-1) * 10
-        # Compute the correct shuffle optims. for shufflelevel
+        # Compute the correct shuffle optimizations for shufflelevel
+        nss = self.superblocksize / self.slicesize
         optmedian, optstarts, optstops, optfull = \
-                   self.calcoptlevels(shufflelevel)
+                   calcoptlevels(nss, shufflelevel, self.testmode)
 
         # Start the optimization process
         if optmedian or optstarts or optstops or optfull:
@@ -1046,8 +735,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def reorder_slices(self, mode, nblock):
         "Reorder completely a block at slice level."
 
-        if self.profile: tref = time()
-        if self.profile: show_stats("Entrant en reorder", tref)
+        if profile: tref = time()
+        if profile: show_stats("Entrant en reorder", tref)
         sorted = self.sorted
         indices = self.indices
         tmp_sorted = self.tmp.sorted
@@ -1061,31 +750,31 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # Protection against processing non-existing slices
             if nslice >= sorted.nrows:
                 break
-            if self.profile: show_stats("Abans de llegir indexos", tref)
+            if profile: show_stats("Abans de llegir indexos", tref)
             block_idx = tmp_indices[nslice]
             # Check whether block_idx can be represented by a unit32 type
-            if self.profile: show_stats("Abans del calcul del max", tref)
+            if profile: show_stats("Abans del calcul del max", tref)
             maximum = block_idx.max()
             offset = 0
             if maximum < max32:
                 # The info fits perfectly in a uint32 type
                 block_idx = block_idx.astype('uint32')
             else:
-                if self.profile: show_stats("Abans del calcul del min", tref)
+                if profile: show_stats("Abans del calcul del min", tref)
                 minimum = block_idx.min()
                 extent = maximum - minimum
                 if extent < max32:
                     # We still can fit info using uint32
                     offset = minimum
-                    if self.profile: show_stats("Abans de restar offset", tref)
+                    if profile: show_stats("Abans de restar offset", tref)
                     block_idx -= offset
-                    if self.profile: show_stats("Abans d'abaixar uint32", tref)
+                    if profile: show_stats("Abans d'abaixar uint32", tref)
                     block_idx = block_idx.astype('uint32')
-            if self.profile: show_stats("Abans de llegir sorted", tref)
+            if profile: show_stats("Abans de llegir sorted", tref)
             block = tmp_sorted[nslice]
-            if self.profile: show_stats("Abans d'ordenar (keysort)", tref)
+            if profile: show_stats("Abans d'ordenar (keysort)", tref)
             indexesExtension.keysort(block, block_idx)
-            if self.profile: show_stats("Abans d'escriure sorted", tref)
+            if profile: show_stats("Abans d'escriure sorted", tref)
             sorted[nslice] = block
             self.ranges[nslice] = block[[0,-1]]
             self.bounds[nslice] = block[cs::cs]
@@ -1096,20 +785,20 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             smedian = block[cs/2::cs]
             self.mbounds[nslice*ncs:(nslice+1)*ncs] = smedian
             self.mranges[nslice] = smedian[ncs/2]
-            if self.profile: show_stats("Abans d'esborrar block", tref)
+            if profile: show_stats("Abans d'esborrar block", tref)
             del smedian, block
             # Write indices
             if block_idx.dtype == 'uint32':
-                if self.profile: show_stats("Abans d'apujar a 'int64'", tref)
+                if profile: show_stats("Abans d'apujar a 'int64'", tref)
                 block_idx = block_idx.astype('int64')
                 if offset > 0:
-                    if self.profile: show_stats("Abans de sumar minim", tref)
+                    if profile: show_stats("Abans de sumar minim", tref)
                     block_idx += offset
-            if self.profile: show_stats("Abans d'escriure indexos", tref)
+            if profile: show_stats("Abans d'escriure indexos", tref)
             indices[nslice] = block_idx
-            if self.profile: show_stats("Abans d'esborrar nous indexos", tref)
+            if profile: show_stats("Abans d'esborrar nous indexos", tref)
             del block_idx
-            if self.profile: show_stats("Final", tref)
+            if profile: show_stats("Final", tref)
 
 
     def swap_slices(self, mode="median"):
@@ -1280,7 +969,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         nslot = self.limboundscache.getslot(item)
         if nslot >= 0:
             startlengths = self.limboundscache.getitem(nslot)
-            # Reset the lengths array (the starts is not necessary)
+            # Reset the lengths array (not necessary for starts)
             self.lengths[:] = 0
             # Now, set the interesting rows
             for nrow in xrange(len(startlengths)):
@@ -1486,16 +1175,20 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         retstr = """%s (Index for column %s)
   type := %r
   nelements := %s
-  shape := %s
   chunksize := %s
-  byteorder := %r
+  slicesize := %s
+  blocksize := %s
+  superblocksize := %s
   filters := %s
   dirty := %s
-  sorted := %s
-  indices := %s""" % (self._v_pathname, cpathname,
-                      self.sorted.atom.type, self.nelements, self.shape,
-                      self.sorted.chunksize, self.sorted.byteorder,
-                      self.filters, self.dirty, self.sorted, self.indices)
+  byteorder := %r""" % (self._v_pathname, cpathname,
+                        self.type, self.nelements,
+                        self.chunksize, self.slicesize,
+                        self.blocksize, self.superblocksize,
+                        self.filters, self.dirty,
+                        self.byteorder)
+        retstr += "\n  sorted := %s" % self.sorted
+        retstr += "\n  indices := %s" % self.indices
         retstr += "\n  ranges := %s" % self.ranges
         retstr += "\n  bounds := %s" % self.bounds
         retstr += "\n  sortedLR := %s" % self.sortedLR
