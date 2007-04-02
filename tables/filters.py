@@ -132,12 +132,13 @@ class Filters(object):
 
         >>> type(Filters()._pack())
         <type 'numpy.int64'>
-        >>> hex(Filters()._pack())
-        '0x0'
-        >>> hex(Filters(1, shuffle=False)._pack())
-        '0x101'
-        >>> hex(Filters(9, 'zlib', shuffle=True, fletcher32=True)._pack())
-        '0x30109'
+        >>> hexl = lambda n: hex(long(n))
+        >>> hexl(Filters()._pack())
+        '0x0L'
+        >>> hexl(Filters(1, shuffle=False)._pack())
+        '0x101L'
+        >>> hexl(Filters(9, 'zlib', shuffle=True, fletcher32=True)._pack())
+        '0x30109L'
         """
         packed = numpy.int64(0)
         # Byte 2: parameterless filters.
