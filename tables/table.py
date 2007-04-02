@@ -1362,7 +1362,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         return self.iterrows()
 
 
-    def _read(self, start, stop, step, field=None, coords=None):
+    def _read(self, start, stop, step, field=None):
         """Read a range of rows and return an in-memory object.
         """
 
@@ -1388,28 +1388,15 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 return nra
             return numpy.empty(shape=0, dtype=dtypeField)
 
-        if coords is None:
-            nrows = len(xrange(start, stop, step))
-        else:
-            # We should test for stop and start values as well
-            nrows = coords.size
+        nrows = len(xrange(start, stop, step))
 
         # Compute the shape of the resulting column object
-        if field and coords is None:  # coords handling expects a RecArray
+        if field:
             # Create a container for the results
             result = numpy.empty(shape=nrows, dtype=dtypeField)
         else:
             # Recarray case
             result = self._get_container(nrows)
-
-        # Handle coordinates separately.
-        if coords is not None:
-            if coords.size > 0:
-                self._read_elements(result, coords)
-            if field:
-                # result is always a RecArray
-                return result[field]
-            return result
 
         # Call the routine to fill-up the resulting array
         if step == 1 and not field:
@@ -1432,8 +1419,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             return result
 
 
-    def read(self, start=None, stop=None, step=None,
-             field=None, coords = None):
+    def read(self, start=None, stop=None, step=None, field=None):
         """Read a range of rows and return an in-memory object.
 
         If `start`, `stop`, or `step` parameters are supplied, a row
@@ -1444,12 +1430,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         Nested fields can be specified in the `field` parameter by
         using a '/' as a separator between fields (e.g. 'Info/value').
-
-        If `coords` is specified, only the indices in `coords` that
-        are in the range of (`start`, `stop`) are returned. Also, if
-        `coords` is specified, step only can be assigned to be 1,
-        otherwise an error is issued.
-
         """
 
         if field:
@@ -1459,18 +1439,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         (start, stop, step) = self._processRangeRead(start, stop, step)
 
-        if coords is not None:
-            # Check step value.
-            if coords.size and step != 1:
-                raise NotImplementedError("""\
-``step`` must be 1 when the ``coords`` parameter is specified""")
-            # Turn coords into an array of 64-bit indexes,
-            # as expected by _read().
-            if not (type(coords) == numpy.ndarray and
-                    coords.dtype.type == numpy.int64):
-                coords = numpy.asarray(coords, dtype=numpy.int64)
-
-        arr = self._read(start, stop, step, field, coords)
+        arr = self._read(start, stop, step, field)
         return internal_to_flavor(arr, self.flavor)
 
 
