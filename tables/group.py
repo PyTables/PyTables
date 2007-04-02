@@ -539,7 +539,7 @@ class Group(hdf5Extension.Group, Node):
 
         if not recursive:
             # Non-recursive algorithm
-            for leaf in self._f_listNodes(classname):
+            for leaf in self._f_iterNodes(classname):
                 yield leaf
         else:
             if classname == "Group":
@@ -548,7 +548,7 @@ class Group(hdf5Extension.Group, Node):
                     yield group
             else:
                 for group in self._f_walkGroups():
-                    for leaf in group._f_listNodes(classname):
+                    for leaf in group._f_iterNodes(classname):
                         yield leaf
 
 
@@ -772,41 +772,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         This is a list-returning version of `Group._f_iterNodes()`.
         """
-
-        self._g_checkOpen()
-
-        if not classname:
-            # Returns all the children alphanumerically sorted
-            names = self._v_children.keys()
-            names.sort()
-            return [ self._v_children[name] for name in names ]
-        elif classname == 'Group':
-            # Returns all the groups alphanumerically sorted
-            names = self._v_groups.keys()
-            names.sort()
-            return [ self._v_groups[name] for name in names ]
-        elif classname == 'Leaf':
-            # Returns all the leaves alphanumerically sorted
-            names = self._v_leaves.keys()
-            names.sort()
-            return [ self._v_leaves[name] for name in names ]
-        elif classname == 'IndexArray':
-            raise TypeError(
-                "listing ``IndexArray`` nodes is not allowed")
-        else:
-            class_ = getClassByName(classname)
-
-            children = self._v_children
-            childNames = children.keys()
-            childNames.sort()
-
-            nodelist = []
-            for childName in childNames:
-                childNode = children[childName]
-                if isinstance(childNode, class_):
-                    nodelist.append(childNode)
-
-            return nodelist
+        return list(self._f_iterNodes(classname))
 
 
     def _f_iterNodes(self, classname=None):
