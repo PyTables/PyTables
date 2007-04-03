@@ -114,7 +114,7 @@ specified the *type shape* of the data type.  As you see, all of these was
 quite a mess.
 
 Starting with PyTables 2.x, an ``Atom`` only specifies properties of the data
-type (à la ``VLArray`` in 1.x).  This lets the door open for specifying
+type (Ã  la ``VLArray`` in 1.x).  This lets the door open for specifying
 multidimensional data types (that can be part of another layer of
 multidimensional datasets) in a consistent way along all the ``*Array``
 objects in PyTables.
