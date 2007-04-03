@@ -6864,20 +6864,19 @@ result = [ row['var2'] for row in table.iterrows(step=5)
             (e.g. <literal>'position/x'</literal>).</para>
           </section>
 
-          <!-- XXX REVIEWED UP TO HERE - Ivan -->
           <section id="Table.readCoordinates">
             <title>readCoordinates(coords, field=None)</title>
 
-            <para>Read a set of rows given their indexes into an in-memory
-            object.</para>
+            <para>Get a set of rows given their indexes as a (record)
+            array.</para>
 
             <para>This method works much like the <literal>read()</literal>
             method (see <xref linkend="Table.read" />), but it uses a sequence
             (<literal>coords</literal>) of row indexes to select the wanted
             columns, instead of a column range.</para>
 
-            <para>It returns the selected rows in a record array of the
-            current flavor.</para>
+            <para>The selected rows are returned in an array or record array
+            of the current flavor.</para>
           </section>
 
           <section id="Table.__getitem__">
@@ -6909,45 +6908,57 @@ recarray = table.read(start=4, stop=1000, step=2)</screen>
           <section id="Table.__iter__" xreflabel="description">
             <title>__iter__()</title>
 
-            <para>It returns the same iterator than
-            <literal>Table.iterrows(0,0,1)</literal>. However, this does not
-            accept parameters.</para>
+            <para>Iterate over the table using a <literal>Row</literal>
+            instance (see <xref linkend="RowClassDescr" xrefstyle="select:
+            label" />).</para>
+
+            <para>This is equivalent to calling
+            <literal>Table.iterrows()</literal> (see <xref
+            linkend="Table.iterrows" />) with default arguments, i.e. it
+            iterates over <emphasis>all the rows</emphasis> in the
+            table.</para>
 
             <para>Example of use:</para>
 
-            <screen>result = [ row['var2'] for row in table if row['var1'] &lt;= 20 ]</screen>
+            <screen>
+result = [ row['var2'] for row in table
+           if row['var1'] &lt;= 20 ]</screen>
 
             <para>Which is equivalent to:</para>
 
-            <screen>result = [ row['var2'] for row in table.iterrows()
-                       if row['var1'] &lt;= 20 ]</screen>
+            <screen>
+result = [ row['var2'] for row in table.iterrows()
+           if row['var1'] &lt;= 20 ]</screen>
 
-            <para><emphasis>Note:</emphasis> This iterator can be nested (see
-            example in <xref linkend="Table.where" />).</para>
+            <note>
+              <para>This iterator can be nested (see
+              <literal>Table.where()</literal> —<xref linkend="Table.where"
+              />— for an example).</para>
+            </note>
           </section>
         </section>
 
         <section id="TableMethods_writing">
           <title><literal>Table</literal> methods — writing</title>
 
-          <section id="Table.append">
+          <section id="Table.append" xreflabel="description">
             <title>append(rows)</title>
 
-            <para>Append a series of rows to this <literal>Table</literal>
-            instance. <emphasis>rows</emphasis> is an object that can keep the
-            rows to be append in several formats, like a
-            <literal>NestedRecArray</literal> (see <xref
-            linkend="NestedRecArrayClassDescr" xrefstyle="select: label" />),
-            a <literal>RecArray</literal>, a <literal>NumPy</literal> object,
-            a list of tuples, list of
-            NumPy/<literal>Numeric</literal>/<literal>numarray</literal>
-            objects, string, Python buffer or <literal>None</literal> (no
-            append will result). Of course, this <emphasis>rows</emphasis>
-            object has to be compliant with the underlying format of the
-            <literal>Table</literal> instance or a
-            <literal>TypeError</literal> will be issued.</para>
+            <para>Append a sequence of <literal>rows</literal> to the end of
+            the table.</para>
 
-            <para>Example of use: <screen>from tables import *
+            <para>The <literal>rows</literal> argument may be any object which
+            can be converted to a record array compliant with the table
+            structure (otherwise, a <literal>ValueError</literal> is raised).
+            This includes NumPy record arrays, <literal>RecArray</literal> or
+            <literal>NestedRecArray</literal> objects if
+            <literal>numarray</literal> is available, lists of tuples or array
+            records, and a string or Python buffer.</para>
+
+            <para>Example of use:</para>
+
+            <screen>
+from tables import *
 class Particle(IsDescription):
     name        = StringCol(16, pos=1) # 16-character String
     lati        = IntCol(pos=2)        # integer
@@ -6955,13 +6966,19 @@ class Particle(IsDescription):
     pressure    = Float32Col(pos=4)    # float  (single-precision)
     temperature = FloatCol(pos=5)      # double (double-precision)
 
-fileh = openFile("test4.h5", mode = "w")
+fileh = openFile('test4.h5', mode='w')
 table = fileh.createTable(fileh.root, 'table', Particle, "A table")
 # Append several rows in only one call
 table.append([("Particle:     10", 10, 0, 10*10, 10**2),
               ("Particle:     11", 11, -1, 11*11, 11**2),
               ("Particle:     12", 12, -2, 12*12, 12**2)])
-fileh.close()</screen></para>
+fileh.close()</screen>
+
+            <!-- manual-only -->
+            <para>See <xref linkend="NestedRecArrayClassDescr"
+            xrefstyle="select: label" /> if you are using
+            <literal>numarray</literal> and you want to append data to nested
+            columns.</para>
           </section>
 
           <section id="Table.modifyColumn" xreflabel="description">
@@ -6971,26 +6988,28 @@ fileh.close()</screen></para>
             <para>Modify one single column in the row slice
             <literal>[start:stop:step]</literal>.</para>
 
-            <para><emphasis>column</emphasis> can be either a NumPy record
-            array, <literal>NestedRecArray</literal> (see <xref
-            linkend="NestedRecArrayClassDescr" xrefstyle="select: label" />),
-            <literal>RecArray</literal>, NumPy array,
-            <literal>NumArray</literal>, list or tuple that is able to be
-            converted into a record array compliant with the specified
-            <emphasis>colname</emphasis> column of the table.</para>
+            <para>The <literal>colname</literal> argument specifies the name
+            of the column in the table to be modified with the data given in
+            <literal>column</literal>.  This method returns the number of rows
+            modified.  Should the modification exceed the length of the table,
+            an <literal>IndexError</literal> is raised before changing
+            data.</para>
 
-            <para><emphasis>colname</emphasis> specifies the column name of
-            the table to be modified.</para>
+            <para>The <literal>column</literal> argument may be any object
+            which can be converted to a (record) array compliant with the
+            structure of the column to be modified (otherwise, a
+            <literal>ValueError</literal> is raised).  This includes NumPy
+            (record) arrays, <literal>NumArray</literal>,
+            <literal>RecArray</literal> or <literal>NestedRecArray</literal>
+            objects if <literal>numarray</literal> is available, Numeric
+            arrays if available, lists of scalars, tuples or array records,
+            and a string or Python buffer.</para>
 
-            <para>Returns the number of modified rows.</para>
-
-            <para>It raises an <literal>ValueError</literal> in case the
-            <emphasis>column</emphasis> parameter could not be converted into
-            an object compliant with <literal>column</literal>
-            description.</para>
-
-            <para>It raises an <literal>IndexError</literal> in case the
-            modification will exceed the length of the table.</para>
+            <!-- manual-only -->
+            <para>See <xref linkend="NestedRecArrayClassDescr"
+            xrefstyle="select: label" /> if you are using
+            <literal>numarray</literal> and you want to modify data in a
+            nested column.</para>
           </section>
 
           <section id="Table.modifyColumns">
@@ -7000,62 +7019,64 @@ fileh.close()</screen></para>
             <para>Modify a series of columns in the row slice
             <literal>[start:stop:step]</literal>.</para>
 
-            <para><emphasis>columns</emphasis> can be either a Numpy record
-            array, <literal>NestedRecArray</literal> (see <xref
-            linkend="NestedRecArrayClassDescr" xrefstyle="select: label" />),
-            <literal>RecArray</literal>, list of arrays or list or tuples (the
-            columns) that are able to be converted into a record array
-            compliant with the format of the specified column
-            <emphasis>names</emphasis> in the table.</para>
+            <para>The <literal>names</literal> argument specifies the names of
+            the columns in the table to be modified with the data given in
+            <literal>columns</literal>.  This method returns the number of
+            rows modified.  Should the modification exceed the length of the
+            table, an <literal>IndexError</literal> is raised before changing
+            data.</para>
 
-            <para><emphasis>names</emphasis> specifies the column names of the
-            table to be modified.</para>
+            <para>The <literal>columns</literal> argument may be any object
+            which can be converted to a record array compliant with the
+            structure of the columns to be modified (otherwise, a
+            <literal>ValueError</literal> is raised).  This includes NumPy
+            record arrays, <literal>RecArray</literal> or
+            <literal>NestedRecArray</literal> objects if
+            <literal>numarray</literal> is available, lists of tuples or array
+            records, and a string or Python buffer.</para>
 
-            <para>Returns the number of modified rows.</para>
-
-            <para>It raises an <literal>TypeError</literal> in case the
-            <emphasis>columns</emphasis> parameter could not be converted to
-            an object compliant with table description.</para>
-
-            <para>It raises an <literal>IndexError</literal> in case the
-            modification will exceed the length of the table.</para>
+            <!-- manual-only -->
+            <para>See <xref linkend="NestedRecArrayClassDescr"
+            xrefstyle="select: label" /> if you are using
+            <literal>numarray</literal> and you want to modify data in nested
+            columns.</para>
           </section>
 
           <section id="Table.modifyRows" xreflabel="description">
             <title>modifyRows(start=None, stop=None, step=1,
             rows=None)</title>
 
-            <para>Modify a series of rows in the
-            <literal>[start:stop:step]</literal> <emphasis>extended
-            slice</emphasis> range. If you pass <literal>None</literal> to
-            <emphasis>stop</emphasis>, all the rows existing in
-            <emphasis>rows</emphasis> will be used.</para>
+            <para>Modify a series of rows in the slice
+            <literal>[start:stop:step]</literal>.</para>
 
-            <para><emphasis>rows</emphasis> can be either a
-            <emphasis>recarray</emphasis> or a structure that is able to be
-            converted to any of them and compliant with the table
-            format.</para>
+            <para>The values in the selected rows will be modified with the
+            data given in <literal>rows</literal>.  This method returns the
+            number of rows modified.  Should the modification exceed the
+            length of the table, an <literal>IndexError</literal> is raised
+            before changing data.</para>
 
-            <para>Returns the number of modified rows.</para>
+            <para>The possible values for the <literal>rows</literal> argument
+            are the same as in <literal>Table.append()</literal> (see <xref
+            linkend="Table.append" />).</para>
 
-            <para>It raises an <literal>TypeError</literal> in case the rows
-            parameter could not be converted to an object compliant with table
-            description.</para>
-
-            <para>It raises an <literal>IndexError</literal> in case the
-            modification will exceed the length of the table.</para>
+            <!-- manual-only -->
+            <para>See <xref linkend="NestedRecArrayClassDescr"
+            xrefstyle="select: label" /> if you are using
+            <literal>numarray</literal> and you want to modify data in nested
+            columns.</para>
           </section>
 
           <section id="removeRowsDescr" xreflabel="description">
             <title>removeRows(start, stop=None)</title>
 
-            <para>Removes a range of rows in the table. If only
-            <emphasis>start</emphasis> is supplied, this row is to be deleted.
-            If a range is supplied, i.e. both the <emphasis>start</emphasis>
-            and <emphasis>stop</emphasis> parameters are passed, all the rows
-            in the range are removed. A <emphasis>step</emphasis> parameter is
-            not supported, and it is not foreseen to implement it anytime
-            soon.</para>
+            <para>Remove a range of rows in the table.</para>
+
+            <para>If only <literal>start</literal> is supplied, only this row
+            is to be deleted.  If a range is supplied, i.e. both the
+            <literal>start</literal> and <literal>stop</literal> parameters
+            are passed, all the rows in the range are removed. A
+            <literal>step</literal> parameter is not supported, and it is not
+            foreseen to be implemented anytime soon.</para>
 
             <glosslist>
               <glossentry>
@@ -7073,12 +7094,11 @@ fileh.close()</screen></para>
 
                 <glossdef>
                   <para>Sets the last row to be removed to
-                  <emphasis>stop</emphasis> - 1, i.e. the end point is omitted
-                  (in the Python <literal>range</literal> tradition). It
-                  accepts, likewise <emphasis>start</emphasis>, negative
-                  values. A special value of <literal>None</literal> (the
-                  default) means removing just the row supplied in
-                  start.</para>
+                  <literal>stop-1</literal>, i.e. the end point is omitted (in
+                  the Python <literal>range()</literal> tradition). Negative
+                  values are also accepted. A special value of
+                  <literal>None</literal> (the default) means removing just
+                  the row supplied in <literal>start</literal>.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -7087,36 +7107,44 @@ fileh.close()</screen></para>
           <section id="Table.__setitem__">
             <title>__setitem__(key, value)</title>
 
-            <para>Sets a table row or table slice.</para>
+            <para>Set a row or a range of rows in the table.</para>
 
             <para>It takes different actions depending on the type of the
             <literal>key</literal> parameter: if it is an integer, the
             corresponding table row is set to <literal>value</literal> (a
-            record, list or tuple capable of being converted to the table
-            field format). If the <literal>key</literal> is a slice, the row
-            slice determined by it is set to <literal>value</literal> (a NumPy
-            record array, <literal>NestedRecArray</literal> (see <xref
-            linkend="NestedRecArrayClassDescr" xrefstyle="select: label" />)
-            or list of rows).</para>
+            record or sequence capable of being converted to the table
+            structure). If the <literal>key</literal> is a slice, the row
+            slice determined by it is set to <literal>value</literal> (a
+            record array or sequence capable of being converted to the table
+            structure).</para>
 
             <para>Example of use:</para>
 
-            <screen># Modify just one existing row
+            <screen>
+# Modify just one existing row
 table[2] = [456,'db2',1.2]
 # Modify two existing rows
 rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
-                       formats="i4,a3,f8")
+                       formats='i4,a3,f8')
 table[1:3:2] = rows</screen>
 
             <para>Which is equivalent to:</para>
 
-            <screen>table.modifyRows(start=2, rows=[456,'db2',1.2])
+            <screen>
+table.modifyRows(start=2, rows=[456,'db2',1.2])
 rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
-                       formats="i4,a3,f8")
+                       formats='i4,a3,f8')
 table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
+
+            <!-- manual-only -->
+            <para>See <xref linkend="NestedRecArrayClassDescr"
+            xrefstyle="select: label" /> if you are using
+            <literal>numarray</literal> and you want to modify data in nested
+            columns.</para>
           </section>
         </section>
 
+        <!-- XXX REVIEWED UP TO HERE - Ivan -->
         <section id="TableMethods_querying">
           <title><literal>Table</literal> methods — querying</title>
 

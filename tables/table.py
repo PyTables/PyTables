@@ -1385,8 +1385,25 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def __iter__(self):
-        """Iterate over all the rows."""
+        """
+        Iterate over the table using a `Row` instance.
 
+        This is equivalent to calling `Table.iterrows()` with default
+        arguments, i.e. it iterates over *all the rows* in the table.
+
+        Example of use::
+
+            result = [ row['var2'] for row in table
+                       if row['var1'] <= 20 ]
+
+        Which is equivalent to::
+
+            result = [ row['var2'] for row in table.iterrows()
+                       if row['var1'] <= 20 ]
+
+        .. Note:: This iterator can be nested (see `Table.where()` for
+           an example).
+        """
         return self.iterrows()
 
 
@@ -1512,14 +1529,14 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
     def readCoordinates(self, coords, field=None):
         """
-        Read a set of rows given their indexes into an in-memory object.
+        Get a set of rows given their indexes as a (record) array.
 
         This method works much like the `read()` method, but it uses a
         sequence (`coords`) of row indexes to select the wanted columns,
         instead of a column range.
 
-        It returns the selected rows in a record array of the current
-        flavor.
+        The selected rows are returned in an array or record array of
+        the current flavor.
         """
         self._checkFieldIfNumeric(field)
         result = self._readCoordinates(coords, field)
@@ -1614,7 +1631,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def __setitem__(self, key, value):
-        """Sets a table row or table slice.
+        """
+        Set a row or a range of rows in the table.
 
         It takes different actions depending on the type of the `key`
         parameter: if it is an integer, the corresponding table row is
@@ -1629,16 +1647,15 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             table[2] = [456,'db2',1.2]
             # Modify two existing rows
             rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
-                                   formats="i4,a3,f8")
+                                   formats='i4,a3,f8')
             table[1:3:2] = rows
 
         Which is equivalent to::
 
             table.modifyRows(start=2, rows=[456,'db2',1.2])
             rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
-                                   formats="i4,a3,f8")
+                                   formats='i4,a3,f8')
             table.modifyRows(start=1, stop=3, step=2, rows=rows)
-
         """
 
         self._v_file._checkWritable()
@@ -1660,15 +1677,33 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
 
     def append(self, rows):
-        """Append a series of rows to the end of the table
+        """
+        Append a sequence of `rows` to the end of the table.
 
-        rows can be either a recarray (both numpy and numarray flavors
-        are supported) or a structure that is able to be converted to a
-        recarray compliant with the table format.
+        The `rows` argument may be any object which can be converted to
+        a record array compliant with the table structure (otherwise, a
+        ``ValueError`` is raised).  This includes NumPy record arrays,
+        ``RecArray`` or ``NestedRecArray`` objects if ``numarray`` is
+        available, lists of tuples or array records, and a string or
+        Python buffer.
 
-        It raises an 'ValueError' in case the rows parameter could not
-        be converted to an object compliant with table description.
+        Example of use::
 
+            from tables import *
+            class Particle(IsDescription):
+                name        = StringCol(16, pos=1) # 16-character String
+                lati        = IntCol(pos=2)        # integer
+                longi       = IntCol(pos=3)        # integer
+                pressure    = Float32Col(pos=4)    # float  (single-precision)
+                temperature = FloatCol(pos=5)      # double (double-precision)
+
+            fileh = openFile('test4.h5', mode='w')
+            table = fileh.createTable(fileh.root, 'table', Particle, \"A table\")
+            # Append several rows in only one call
+            table.append([(\"Particle:     10\", 10, 0, 10*10, 10**2),
+                          (\"Particle:     11\", 11, -1, 11*11, 11**2),
+                          (\"Particle:     12\", 12, -2, 12*12, 12**2)])
+            fileh.close()
         """
 
         self._v_file._checkWritable()
@@ -1732,19 +1767,16 @@ You cannot append rows to a non-chunked table.""")
 
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
-        """Modify a series of rows in the slice [start:stop:step]
+        """
+        Modify a series of rows in the slice ``[start:stop:step]``.
 
-        `rows` can be either a recarray or a structure that is able to
-        be converted to a recarray compliant with the table format.
+        The values in the selected rows will be modified with the data
+        given in `rows`.  This method returns the number of rows
+        modified.  Should the modification exceed the length of the
+        table, an ``IndexError`` is raised before changing data.
 
-        Returns the number of modified rows.
-
-        It raises an 'ValueError' in case the rows parameter could not
-        be converted to an object compliant with table description.
-
-        It raises an 'IndexError' in case the modification will exceed
-        the length of the table.
-
+        The possible values for the `rows` argument are the same as in
+        `Table.append()`.
         """
 
         if rows is None:      # Nothing to be done
@@ -1802,24 +1834,22 @@ table format '%s'. The error was: <%s>
 
     def modifyColumn(self, start=None, stop=None, step=1,
                      column=None, colname=None):
-        """Modify one single column in the row slice [start:stop:step].
+        """
+        Modify one single column in the row slice ``[start:stop:step]``.
 
-        `column` can be either a NumPy record array, ``NestedRecArray``,
-        ``RecArray``, NumPy array, ``NumArray``, list or tuple that is
-        able to be converted into a record array compliant with the
-        specified `colname` column of the table.
+        The `colname` argument specifies the name of the column in the
+        table to be modified with the data given in `column`.  This
+        method returns the number of rows modified.  Should the
+        modification exceed the length of the table, an ``IndexError``
+        is raised before changing data.
 
-        `colname` specifies the column name of the table to be modified.
-
-        Returns the number of modified rows.
-
-        It raises a ``ValueError`` in case the columns parameter could
-        not be converted into an object compliant with the column
-        description.
-
-        It raises an ``IndexError`` in case the modification will exceed
-        the length of the table.
-
+        The `column` argument may be any object which can be converted
+        to a (record) array compliant with the structure of the column
+        to be modified (otherwise, a ``ValueError`` is raised).  This
+        includes NumPy (record) arrays, ``NumArray``, ``RecArray`` or
+        ``NestedRecArray`` objects if ``numarray`` is available, Numeric
+        arrays if available, lists of scalars, tuples or array records,
+        and a string or Python buffer.
         """
 
         if not isinstance(colname, str):
@@ -1878,30 +1908,21 @@ table format '%s'. The error was: <%s>
 
     def modifyColumns(self, start=None, stop=None, step=1,
                       columns=None, names=None):
-        """Modify a series of columns in the row slice [start:stop:step].
+        """
+        Modify a series of columns in the row slice ``[start:stop:step]``.
 
-        `column` can be either a NumPy record array, ``NestedRecArray``,
-        ``RecArray``, NumPy array, ``NumArray``, list or tuple that is
-        able to be converted into a record array compliant with the
-        specified `colname` column of the table.
+        The `names` argument specifies the names of the columns in the
+        table to be modified with the data given in `columns`.  This
+        method returns the number of rows modified.  Should the
+        modification exceed the length of the table, an ``IndexError``
+        is raised before changing data.
 
-        `columns` can be either a NumPy record array,
-        ``NestedRecArray``, ``RecArray``, list of arrays or list of
-        tuples (the columns) that is able to be converted into a record
-        array compliant with the format of the specified column `names`
-        in the table.
-
-        `names` specifies the column names of the table to be modified.
-
-        Returns the number of modified rows.
-
-        It raises an ``ValueError`` in case the columns parameter could
-        not be converted into an object compliant with table
-        description.
-
-        It raises an ``IndexError`` in case the modification will exceed
-        the length of the table.
-
+        The `columns` argument may be any object which can be converted
+        to a record array compliant with the structure of the columns to
+        be modified (otherwise, a ``ValueError`` is raised).  This
+        includes NumPy record arrays, ``RecArray`` or ``NestedRecArray``
+        objects if ``numarray`` is available, lists of tuples or array
+        records, and a string or Python buffer.
         """
 
         if type(names) not in (list, tuple):
@@ -2005,12 +2026,26 @@ The 'names' parameter must be a list of strings.""")
 
 
     def removeRows(self, start, stop=None):
-        """Remove a range of rows.
+        """
+        Remove a range of rows in the table.
 
-        If only "start" is supplied, this row is to be deleted.
-        If "start" and "stop" parameters are supplied, a row
-        range is selected to be removed.
+        If only `start` is supplied, only this row is to be deleted.  If
+        a range is supplied, i.e. both the `start` and `stop` parameters
+        are passed, all the rows in the range are removed.  A ``step``
+        parameter is not supported, and it is not foreseen to be
+        implemented anytime soon.
 
+        `start`
+            Sets the starting row to be removed.  It accepts negative
+            values meaning that the count starts from the end.  A value
+            of 0 means the first row.
+
+        `stop`
+            Sets the last row to be removed to ``stop-1``, i.e. the end
+            point is omitted (in the Python ``range()`` tradition).
+            Negative values are also accepted.  A special value of
+            ``None`` (the default) means removing just the row supplied
+            in `start`.
         """
 
         (start, stop, step) = self._processRangeRead(start, stop, 1)
