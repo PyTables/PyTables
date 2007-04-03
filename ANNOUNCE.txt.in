@@ -2,29 +2,49 @@
  Announcing PyTables @VERSION@
 ===========================
 
-This is a new major release of PyTables. Blurb, blurb, blurb...
+PyTables is a library for managing hierarchical datasets and designed to
+efficiently cope with extremely large amounts of data with support for
+full 64-bit file addressing.  PyTables runs on top of the HDF5 library
+and NumPy package for achieving maximum throughput and convenient use.
 
-Go to the PyTables web site for downloading the beast:
-http://www.pytables.org/
+The PyTables development team is happy to announce the public
+availability of the second *beta* version of PyTables 2.0. This will
+hopefully be the last beta version of 2.0 series, so we need your
+feedback if you want your issues to be solved before 2.0 final would be
+out.
 
-or keep reading for more info about the new features and bugs fixed.
+You can download a source package of the version @VERSION@ with
+generated PDF and HTML docs and binaries for Windows from
+http://www.pytables.org/download/preliminary/
 
-You may also want to have an in-deep read of the ``RELEASE-NOTES.txt``
-file where you will find an entire section devoted to how to migrate
-your existing PyTables 1.x apps to the 2.0 version.
+Please have in mind that some sections in the manual can be obsolete
+(specially the "Optimization tips" chapter).  Other chapters should be
+fairly up-to-date though (although still a bit in state of flux).
+
+In case you want to know more in detail what has changed in this
+version, have a look at ``RELEASE_NOTES.txt``.  Find the HTML version
+for this document at:
+http://www.pytables.org/moin/ReleaseNotes/Release_2.0b2
+
+If you are a user of PyTables 1.x, probably it is worth for you to look
+at ``MIGRATING_TO_2.x.txt`` file where you will find directions on how
+to migrate your existing PyTables 1.x apps to the 2.0 version.  You can
+find an HTML version of this document at
+http://www.pytables.org/moin/ReleaseNotes/Migrating_To_2.x
+
+Keep reading for an overview of the most prominent improvements in
+PyTables 2.0 series.
 
 
-Changes more in depth
-=====================
-
-Improvements:
+New features of PyTables 2.0
+============================
 
 - NumPy is finally at the core!  That means that PyTables no longer
   needs numarray in order to operate, although it continues to be
   supported (as well as Numeric).  This also means that you should be
   able to run PyTables in scenarios combining Python 2.5 and 64-bit
   platforms (these are a source of problems with numarray/Numeric
-  because they don't support this combination yet).
+  because they don't support this combination as of this writing).
 
 - Most of the operations in PyTables have experimented noticeable
   speed-ups (sometimes up to 2x, like in regular Python table
@@ -75,9 +95,9 @@ Improvements:
 
 - Now, all data that is read from disk is converted, if necessary, to
   the native byteorder of the hosting machine (before, this only
-  happened with ``Table`` objects).  This should help to accelerate apps
-  that have to do computations with data generated in platforms with a
-  byteorder different than the user machine.
+  happened with ``Table`` objects).  This should help to accelerate
+  applications that have to do computations with data generated in
+  platforms with a byteorder different than the user machine.
 
 - The modification of values in ``*Array`` objects (through __setitem__)
   now doesn't make a copy of the value in the case that the shape of the
@@ -98,67 +118,6 @@ Improvements:
   you can run the test suite from the Python console by using::
 
   >>> tables.tests()
-
-Bug fixes:
-
-- As mentioned above, the fact that NumPy is at the core makes that
-  certain bizarre interactions between numarray and NumPy scalars don't
-  affect the behaviour of table selections anymore.  Fixes
-  http://www.pytables.org/trac/ticket/29.
-
-- Did I mention that PyTables 2.0 can be safely used in 64-bit platforms
-  in combination with Python 2.5? ;)
-
-Deprecated features:
-
-- Not many, really.  Please see ``RELEASE-NOTES.txt`` file.
-
-Backward-incompatible changes:
-
-- Many.  Please see ``RELEASE-NOTES.txt`` file.
-
-
-Important note for Windows users
-================================
-
-In order to keep PyTables happy, you will need to get the HDF5 library
-compiled for MSVC 7.1, aka .NET 2003.  It can be found at
-ftp://ftp.hdfgroup.org/HDF5/current/bin/windows/5-165-win-net.ZIP
-
-Please remember that, from PyTables 2.0 on, Python 2.3 (and lesser) is
-not supported anymore.
-
-
-What is PyTables?
-=================
-
-**PyTables** is a package for managing hierarchical datasets and
-designed to efficiently cope with extremely large amounts of data (with
-support for full 64-bit file addressing).  It features an
-object-oriented interface that, combined with C extensions for the
-performance-critical parts of the code, makes it a very easy-to-use tool
-for high performance data storage and retrieval.
-
-PyTables runs on top of the HDF5 library and NumPy package (but numarray
-and Numeric are also supported) for achieving maximum throughput and
-convenient use.
-
-Besides, PyTables I/O for table objects is buffered, implemented in C
-and carefully tuned so that you can reach much better performance with
-PyTables than with your own home-grown wrappings to the HDF5 library.
-PyTables Pro sports indexing capabilities as well, allowing selections
-in tables exceeding one billion of rows in just seconds.
-
-
-Platforms
-=========
-
-This version has been extensively checked on quite a few platforms, like
-Linux on Intel32 (Pentium), Win on Intel32 (Pentium), Linux on Intel64
-(Itanium2), FreeBSD on AMD64 (Opteron), Linux on PowerPC (and PowerPC64)
-and MacOSX on PowerPC.  For other platforms, chances are that the code
-can be easily compiled and run without further issues.  Please contact
-us in case you are experiencing problems.
 
 
 Resources
@@ -184,11 +143,12 @@ http://www.carabos.com/
 Acknowledgments
 ===============
 
-Thanks to various users who provided feature improvements, patches, bug
+Thanks to many users who provided feature improvements, patches, bug
 reports, support and suggestions.  See the ``THANKS`` file in the
 distribution package for a (incomplete) list of contributors.  Many
 thanks also to SourceForge who have helped to make and distribute this
-package!
+package!  And last, but not least thanks a lot to the HDF5 and NumPy
+(and numarray!) makers. Without them PyTables simply would exists.
 
 
 Share your experience

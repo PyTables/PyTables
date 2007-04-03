@@ -5,7 +5,7 @@
 VERSION = $(shell cat VERSION)
 SRCDIRS = src doc
 
-GENERATED = ANNOUNCE.txt RELEASE-NOTES.txt
+GENERATED = ANNOUNCE.txt
 
 
 .PHONY:		dist clean

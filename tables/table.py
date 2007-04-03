@@ -186,8 +186,9 @@ class Table(tableExtension.Table, Leaf):
         after an index-invalidating operation (i.e. removal and
         modification of rows).  The default is true.
 
-        This value gets into effect whenever a column is altered.  For
-        an immediate update use `Table.flushRowsToIndex()`; for an
+        This value gets into effect whenever a column is altered.  If
+        you don't have the automatic indexing activated and you want to
+        do an an immediate update use `Table.flushRowsToIndex()`; for an
         immediate reindexing of invalidated indexes, use
         `Table.reIndexDirty()`.
 
@@ -293,7 +294,7 @@ class Table(tableExtension.Table, Leaf):
     Public methods -- other
     -----------------------
 
-    * flushRowsToIndex([lastrow])
+    * flushRowsToIndex()
     * getEnum(colname)
     * reIndex()
     * reIndexDirty()
@@ -1738,7 +1739,7 @@ You cannot append rows to a non-chunked table.""")
             # Update the number of unsaved indexed rows
             self._unsaved_indexedrows += lenrows
             if self.autoIndex:
-                self.flushRowsToIndex(lastrow=False)
+                self.flushRowsToIndex(_lastrow=False)
 
 
     def _saveBufferedRows(self, flush=0):
@@ -1755,7 +1756,7 @@ You cannot append rows to a non-chunked table.""")
             self._unsaved_indexedrows += self._unsaved_nrows
             if self.autoIndex:
                 # Flush the unindexed rows (this needs to read the table)
-                self.flushRowsToIndex(lastrow=False)
+                self.flushRowsToIndex(_lastrow=False)
         # Reset the number of unsaved rows
         self._unsaved_nrows = 0
         # Get a fresh copy of the default values
@@ -1985,7 +1986,7 @@ The 'names' parameter must be a list of strings.""")
         return nrows
 
 
-    def flushRowsToIndex(self, lastrow=True):
+    def flushRowsToIndex(self, _lastrow=True):
         """
         Add remaining rows in buffers to non-dirty indexes.
 
@@ -2277,7 +2278,7 @@ The 'names' parameter must be a list of strings.""")
             self._saveBufferedRows(flush=1)
         if self.indexed and self.autoIndex:
             # Flush any unindexed row
-            rowsadded = self.flushRowsToIndex(lastrow=True)
+            rowsadded = self.flushRowsToIndex(_lastrow=True)
             assert rowsadded <= 0 or self._indexedrows == self.nrows, \
                    ( "internal error: the number of indexed rows (%d) "
                      "and rows in the table (%d) is not equal; "

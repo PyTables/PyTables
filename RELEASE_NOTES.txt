@@ -1,6 +1,6 @@
-=============================
- What's new in PyTables 2.0b2
-=============================
+=======================================
+ Release notes for PyTables 2.0 series
+=======================================
 
 :Author: Francesc Altet i Abad
 :Contact: faltet@carabos.com
@@ -8,13 +8,52 @@
 :Contact: ivilata@carabos.com
 
 
-This document details the modifications since PyTables version 1.4.x.  Its
-main purpose is help you ensure that your programs will be runnable when you
-switch from PyTables 1.x to PyTables 2.x.
+Changes from 2.0b1 to 2.0b2
+===========================
 
+- A very exhaustive overhauling of the User's Manual is in process.  The
+  chapters 1 (Introduction), 2 (Installation), 3 (Tutorials) have been
+  completed (and hopefully, the lines of code are easier to copy&paste now),
+  while chapter 4 (API Reference) has been done up to (and including) the
+  Table class.  During this tedious (but critical in a library) overhauling
+  work, we have tried hard to synchronize the text in the User's Guide with
+  that which appears on the docstrings.
+
+- Removed the ``recursive`` argument in ``Group._f_walkNodes()``.  Using it
+  with a false value was redundant with ``Group._f_iterNodes()``.  Fixes
+  ticket #42.
+
+- Removed the ``coords`` argument from ``Table.read()``.  It was undocumented
+  and redundant with ``Table.readCoordinates()``.  Fixes ticket #41.
+
+- Fixed the signature of ``Group.__iter__()`` (by removing its parameters).
+
+- Added new ``Table.coldescrs`` and ``Table.description._v_itemsize``
+  attributes.
+
+- Added a couple of new attributes for leaves:
+
+  * ``nrowsinbuf``: the number of rows that fit in the internal buffers.
+  * ``chunkshape``: the chunk size for chunked datasets.
+
+- Fixed setuptools so that making an egg out of the PyTables 2 package is
+  possible now.
+
+- Added a new ``tables.restrict_flavors()`` function allowing to restrict
+  available flavors to a given set.  This can be useful e.g. if you want to
+  force PyTables to get NumPy data out of an old, ``numarray``-flavored
+  PyTables file even if the ``numarray`` package is installed.
+
+- Fixed a bug which caused filters of unavailable compression libraries to be
+  loaded as using the default Zlib library, after issuing a warning.  Added a
+  new ``FiltersWarning`` and a ``Filters.copy()``.
+
+
+Changes from 1.4.x to 2.0b1
+===========================
 
 API additions
-=============
+-------------
 
 - ``Column.createIndex()`` has received a couple of new parameters:
   ``optlevel`` and ``filters``.  The first one sets the desired quality level
@@ -37,20 +76,14 @@ API additions
   return all the fields in the current row.  This returns a NumPy void scalar
   for each call.
 
-- The new ``tables.restrict_flavors()`` function allows to restrict available
-  flavors to a given set.  This can be useful e.g. if you want to force
-  PyTables to get NumPy data out of an old, ``numarray``-flavored PyTables
-  file even if the ``numarray`` package is installed.
-
 - New ``tables.test(verbose=False, heavy=False)`` high level function for
   interactively running the complete test suite from the Python console.
 
 - Added a ``tables.print_versions()`` for easily getting the versions for all
   the software on which PyTables relies on.
 
-
 Backward-incompatible changes
-=============================
+-----------------------------
 
 - You can no longer mark a column for indexing in a ``Col`` declaration.  The
   only way of creating an index for a column is to invoke the
@@ -81,9 +114,8 @@ Backward-incompatible changes
   ``File.createCArray()``.  This has been done to be consistent with
   ``Atom()`` definitions (i.e. type comes before and shape after).
 
-
 Deprecated features
-===================
+-------------------
 
 - ``Node._v_rootgroup`` has been removed.  Please use ``node._v_file.root``
   instead.
@@ -102,9 +134,8 @@ Deprecated features
 - The ``table[colname]`` idiom is no longer supported.  You can use
   ``table.cols._f_col(column)`` for doing the same.
 
-
 API refinements
-===============
+---------------
 
 - ``File.createEArray()`` received a new ``shape`` parameter.  This allows to
   not have to use the shape of the atom so as to set the shape of the
