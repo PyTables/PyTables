@@ -7144,21 +7144,23 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
           </section>
         </section>
 
-        <!-- XXX REVIEWED UP TO HERE - Ivan -->
         <section id="TableMethods_querying">
           <title><literal>Table</literal> methods — querying</title>
 
-          <section id="getWhereListTableDescr">
+          <section id="Table.getWhereList">
             <title>getWhereList(condition, condvars=None, sort=False)</title>
 
             <para>Get the row coordinates fulfilling the given
-            <emphasis>condition</emphasis>.</para>
+            <literal>condition</literal>.</para>
 
             <para>The coordinates are returned as a list of the current
-            flavor.</para>
-
-            <para><emphasis>sort</emphasis> means that you want to retrieve
+            flavor.  <literal>sort</literal> means that you want to retrieve
             the coordinates ordered. The default is to not sort them.</para>
+
+            <para>The meaning of the <emphasis>condition</emphasis> and
+            <emphasis>condvars</emphasis> arguments is the same as in the
+            <literal>Table.where()</literal> method (see <xref
+            linkend="Table.where" />).</para>
           </section>
 
           <section id="Table.readWhere" xreflabel="description">
@@ -7167,16 +7169,16 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             <para>Read table data fulfilling the given
             <emphasis>condition</emphasis>.</para>
 
-            <para>This method is similar to <literal>read()</literal> (see
-            <xref linkend="Table.read" />), having their common arguments and
-            return values the same meanings. However, only the rows fulfilling
-            the <emphasis>condition</emphasis> are included in the
+            <para>This method is similar to <literal>Table.read()</literal>
+            (see <xref linkend="Table.read" />), having their common arguments
+            and return values the same meanings. However, only the rows
+            fulfilling the <emphasis>condition</emphasis> are included in the
             result.</para>
 
             <para>The meaning of the <emphasis>condition</emphasis> and
             <emphasis>condvars</emphasis> arguments is the same as in the
-            <literal>where()</literal> (see <xref linkend="Table.where" />)
-            method.</para>
+            <literal>Table.where()</literal> method (see <xref
+            linkend="Table.where" />).</para>
           </section>
 
           <section id="Table.where" xreflabel="description">
@@ -7184,111 +7186,122 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             step=None)</title>
 
             <para>Iterate over values fulfilling a
-            <emphasis>condition</emphasis>.</para>
+            <literal>condition</literal>.</para>
 
-            <para>This method returns an iterator yielding
-            <literal>Row</literal> (see <xref linkend="RowClassDescr"
-            xrefstyle="select: label" />) instances built from rows in the
-            table that satisfy the given <emphasis>condition</emphasis> (an
-            expression-like string). For more information on condition syntax,
-            see <xref linkend="conditionSyntax" xrefstyle="select: label"
-            />.</para>
+            <para>This method returns a <literal>Row</literal> iterator (see
+            <xref linkend="RowClassDescr" xrefstyle="select: label" />) which
+            only selects rows in the table that satisfy the given
+            <literal>condition</literal> (an expression-like string).
+            <!-- manual-only -->
+            For more information on condition syntax, see <xref
+            linkend="conditionSyntax" xrefstyle="select: label" />.</para>
 
-            <para>The <emphasis>condvars</emphasis> mapping may be used to
+            <para>The <literal>condvars</literal> mapping may be used to
             define the variable names appearing in the
-            <emphasis>condition</emphasis>. <emphasis>condvars</emphasis>
-            should consist of identifier-like strings pointing to
-            <literal>Column</literal> instances <emphasis>of this
+            <literal>condition</literal>. <literal>condvars</literal> should
+            consist of identifier-like strings pointing to
+            <literal>Column</literal> (see <xref linkend="ColumnClassDescr"
+            xrefstyle="select: label" />) instances <emphasis>of this
             table</emphasis>, or to other values (which will be converted to
             arrays). A default set of condition variables is provided where
             each top-level, non-nested column with an identifier-like name
-            appears. Variables in <emphasis>condvars</emphasis> override the
+            appears. Variables in <literal>condvars</literal> override the
             default ones.</para>
 
-            <para>When <emphasis>condvars</emphasis> is not provided or
+            <para>When <literal>condvars</literal> is not provided or
             <literal>None</literal>, the current local and global namespace is
-            sought instead of <emphasis>condvars</emphasis>. The previous
+            sought instead of <literal>condvars</literal>. The previous
             mechanism is mostly intended for interactive usage. To disable it,
             just specify a (maybe empty) mapping as
-            <emphasis>condvars</emphasis>.</para>
+            <literal>condvars</literal>.</para>
 
             <para>If a range is supplied (by setting some of the
-            <emphasis>start</emphasis>, <emphasis>stop</emphasis> or
-            <emphasis>step</emphasis> parameters), only the rows in that range
-            <emphasis>and</emphasis> fulfilling the
-            <emphasis>condition</emphasis> are used. The meaning of the
-            <emphasis>start</emphasis>, <emphasis>stop</emphasis> and
-            <emphasis>step</emphasis> parameters is the same as in the
-            <literal>range()</literal> Python function, except that negative
-            values of <emphasis>step</emphasis> are <emphasis>not</emphasis>
-            allowed. Moreover, if only <emphasis>start</emphasis> is
-            specified, then <emphasis>stop</emphasis> will be set to
+            <literal>start</literal>, <literal>stop</literal> or
+            <literal>step</literal> parameters), only the rows in that range
+            <literal>and</literal> fulfilling the <literal>condition</literal>
+            are used. The meaning of the <literal>start</literal>,
+            <literal>stop</literal> and <literal>step</literal> parameters is
+            the same as in the <literal>range()</literal> Python function,
+            except that negative values of <literal>step</literal> are
+            <literal>not</literal> allowed. Moreover, if only
+            <literal>start</literal> is specified, then
+            <literal>stop</literal> will be set to
             <literal>start+1</literal>.</para>
 
             <para>When possible, indexed columns participating in the
             condition will be used to speed up the search. It is recommended
             that you place the indexed columns as left and out in the
             condition as possible. Anyway, this method has always better
-            performance than standard Python selections on the table. Please
-            check the <xref linkend="searchOptim" xrefstyle="select: label" />
-            for more information about the performance of the different
-            searching modes.</para>
+            performance than standard Python selections on the table.
+            <!-- manual-only -->
+            Please check the <xref linkend="searchOptim" xrefstyle="select:
+            label" /> for more information about the performance of the
+            different searching modes.</para>
+
+            <note>
+              <!-- XXXPRO -->
+              <para>Column indexing is only available in PyTables Pro.</para>
+            </note>
 
             <para>You can mix this method with standard Python selections in
-            order to have complex queries. It is strongly recommended that you
-            pass the most restrictive condition as the parameter to this
-            method if you want to achieve maximum performance.</para>
+            order to support even more complex queries. It is strongly
+            recommended that you pass the most restrictive condition as the
+            parameter to this method if you want to achieve maximum
+            performance.</para>
 
             <para>Example of use:</para>
 
-            <screen>&gt;&gt;&gt; passvalues = [ row['col3'] for row in
-...                table.where('(col1 &gt; 0) &amp; (col2 &lt;= 20)', step=5)
+            <screen>
+>>> passvalues = [ row['col3'] for row in
+...                table.where('(col1 > 0) &amp; (col2 &lt;= 20)', step=5)
 ...                if your_function(row['col2']) ]
-&gt;&gt;&gt; print "Values that pass the cuts:", passvalues</screen>
+>>> print "Values that pass the cuts:", passvalues</screen>
 
             <para>Note that, from PyTables 1.1 on, you can nest several
             iterators over the same table. For example:</para>
 
-            <screen>for p in rout.where('pressure &lt; 16'):
+            <screen>
+for p in rout.where('pressure &lt; 16'):
     for q in rout.where('pressure &lt; 9'):
         for n in rout.where('energy &lt; 10'):
             print "pressure, energy:", p['pressure'], n['energy']</screen>
 
             <para>In this example, iterators returned by
-            <literal>where()</literal> have been used, but you may as well use
-            any of the other reading iterators that <literal>Table</literal>
-            objects offer. See <literal>examples/nested-iter.py</literal> for
-            the full code.</para>
+            <literal>Table.where()</literal> have been used, but you may as
+            well use any of the other reading iterators that
+            <literal>Table</literal> objects offer. See the file
+            <literal>examples/nested-iter.py</literal> for the full
+            code.</para>
           </section>
 
           <section id="Table.whereAppend">
             <title>whereAppend(dstTable, condition, condvars=None, start=None,
             stop=None, step=None)</title>
 
-            <para>Append rows fulfilling the <emphasis>condition</emphasis> to
-            the <emphasis>dstTable</emphasis> table.</para>
+            <para>Append rows fulfilling the <literal>condition</literal> to
+            the <literal>dstTable</literal> table.</para>
 
-            <para><emphasis>dstTable</emphasis> must be capable of taking the
+            <para><literal>dstTable</literal> must be capable of taking the
             rows resulting from the query, i.e. it must have columns with the
             expected names and compatible types. The meaning of the other
-            arguments is the same as in the <literal>where()</literal> method
-            (see <xref linkend="Table.where" />).</para>
+            arguments is the same as in the <literal>Table.where()</literal>
+            method (see <xref linkend="Table.where" />).</para>
 
-            <para>The number of rows appended to <emphasis>dstTable</emphasis>
+            <para>The number of rows appended to <literal>dstTable</literal>
             is returned as a result.</para>
           </section>
 
           <section id="Table.willQueryUseIndexing" xreflabel="description">
             <title>willQueryUseIndexing(condition, condvars=None)</title>
 
-            <para>Will a query for the <emphasis>condition</emphasis> use
+            <para>Will a query for the <literal>condition</literal> use
             indexing?</para>
 
-            <para>The meaning of the <emphasis>condition</emphasis> and
+            <para>The meaning of the <literal>condition</literal> and
             <emphasis>condvars</emphasis> arguments is the same as in the
-            <literal>where()&gt;</literal> method (see <xref
-            linkend="Table.where" />). If the <emphasis>condition</emphasis>
-            can use indexing, this method returns the path name of the column
+            <literal>Table.where()</literal> method (see <xref
+            linkend="Table.where" />). If the <literal>condition</literal> can
+            use indexing, this method returns the path name of the column
             whose index is usable. Otherwise, it returns
             <literal>None</literal>.</para>
 
@@ -7296,6 +7309,11 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             that changing the set of indexed columns or their dirtyness may
             make this method return different values for the same arguments at
             different times.</para>
+
+            <note>
+              <!-- XXXPRO -->
+              <para>Column indexing is only available in PyTables Pro.</para>
+            </note>
           </section>
         </section>
 
@@ -7305,11 +7323,18 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
           <section id="Table.flushRowsToIndex">
             <title>flushRowsToIndex()</title>
 
-            <para>Add remaining rows in buffers to non-dirty indexes. This can
-            be useful when you have chosen non-automatic indexing for the
-            table (see the <literal>Table.autoIndex</literal> property in
-            <xref linkend="TableInstanceVariablesDescr" xrefstyle="select:
-            label" />) and want to update the indexes on it.</para>
+            <para>Add remaining rows in buffers to non-dirty indexes.</para>
+
+            <para>This can be useful when you have chosen non-automatic
+            indexing for the table (see the <literal>Table.autoIndex</literal>
+            property in <xref linkend="TableInstanceVariablesDescr"
+            xrefstyle="select: label" />) and you want to update the indexes
+            on it.</para>
+
+            <note>
+              <!-- XXXPRO -->
+              <para>Column indexing is only available in PyTables Pro.</para>
+            </note>
           </section>
 
           <section id="Table.getEnum">
@@ -7330,25 +7355,39 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
           <section id="Table.reIndex">
             <title>reIndex()</title>
 
-            <para>Recompute all the existing indexes in table. This can be
-            useful when you suspect that, for any reason, the index
-            information for columns is no longer valid and want to rebuild the
-            indexes on it.</para>
+            <para>Recompute all the existing indexes in the table.</para>
+
+            <para>This can be useful when you suspect that, for any reason,
+            the index information for columns is no longer valid and want to
+            rebuild the indexes on it.</para>
+
+            <note>
+              <!-- XXXPRO -->
+              <para>Column indexing is only available in PyTables Pro.</para>
+            </note>
           </section>
 
           <section id="Table.reIndexDirty">
             <title>reIndexDirty()</title>
 
-            <para>Recompute the existing indexes in table, but
-            <emphasis>only</emphasis> if they are dirty. This can be useful
-            when you have set <literal>Table.autoIndex</literal> (see <xref
+            <para>Recompute the existing indexes in table,
+            <emphasis>if</emphasis> they are dirty.</para>
+
+            <para>This can be useful when you have set
+            <literal>Table.autoIndex</literal> (see <xref
             linkend="TableInstanceVariablesDescr" xrefstyle="select: label"
-            />) to false for the table and want to update the indexes after a
-            invalidating index operation (<literal>Table.removeRows</literal>,
-            for example).</para>
+            />) to false for the table and you want to update the indexes
+            after a invalidating index operation
+            (<literal>Table.removeRows()</literal>, for example).</para>
+
+            <note>
+              <!-- XXXPRO -->
+              <para>Column indexing is only available in PyTables Pro.</para>
+            </note>
           </section>
         </section>
 
+        <!-- XXX REVIEWED UP TO HERE - Ivb -->
         <section id="DescriptionClassDescr">
           <title>The <literal>Description</literal> class</title>
 

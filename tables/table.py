@@ -1098,7 +1098,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         Will a query for the `condition` use indexing?
 
         The meaning of the `condition` and `condvars` arguments is the
-        same as in the `self.where()` method.  If the `condition` can
+        same as in the `Table.where()` method.  If the `condition` can
         use indexing, this method returns the path name of the column
         whose index is usable.  Otherwise, it returns `None`.
 
@@ -1106,6 +1106,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         changing the set of indexed columns or their dirtyness may make
         this method return different values for the same arguments at
         different times.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
         """
         # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)
@@ -1120,9 +1122,9 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         """
         Iterate over values fulfilling a `condition`.
 
-        This method returns an iterator yielding `Row` instances built
-        from rows in the table that satisfy the given `condition` (an
-        expression-like string).
+        This method returns a `Row` iterator which only selects rows in
+        the table that satisfy the given `condition` (an expression-like
+        string).
 
         The `condvars` mapping may be used to define the variable names
         appearing in the `condition`.  `condvars` should consist of
@@ -1152,10 +1154,13 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         possible.  Anyway, this method has always better performance
         than standard Python selections on the table.
 
+        .. Note:: Column indexing is only available in PyTables Pro.
+
         You can mix this method with standard Python selections in order
-        to have complex queries.  It is strongly recommended that you
-        pass the most restrictive condition as the parameter to this
-        method if you want to achieve maximum performance.
+        to support even more complex queries.  It is strongly
+        recommended that you pass the most restrictive condition as the
+        parameter to this method if you want to achieve maximum
+        performance.
 
         Example of use:
 
@@ -1172,10 +1177,10 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         ...     for n in rout.where('energy < 10'):
         ...       print \"pressure, energy:\", p['pressure'], n['energy']
 
-        In this example, iterators returned by ``where()`` have been
-        used, but you may as well use any of the other reading iterators
-        that ``Table`` objects offer.  See ``examples/nested-iter.py``
-        for the full code.
+        In this example, iterators returned by ``Table.where()`` have
+        been used, but you may as well use any of the other reading
+        iterators that ``Table`` objects offer.  See the file
+        ``examples/nested-iter.py`` for the full code.
         """
         # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)
@@ -1242,12 +1247,12 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         """
         Read table data fulfilling the given `condition`.
 
-        This method is similar to `self.read()`, having their common
+        This method is similar to `Table.read()`, having their common
         arguments and return values the same meanings.  However, only
         the rows fulfilling the `condition` are included in the result.
 
         The meaning of the `condition` and `condvars` arguments is the
-        same as in the `self.where()` method.
+        same as in the `Table.where()` method.
         """
         self._checkFieldIfNumeric(field)
 
@@ -1273,7 +1278,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         `dstTable` must be capable of taking the rows resulting from the
         query, i.e. it must have columns with the expected names and
         compatible types.  The meaning of the other arguments is the
-        same as in the `where()` method.
+        same as in the `Table.where()` method.
 
         The number of rows appended to `dstTable` is returned as a
         result.
@@ -1305,12 +1310,11 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         Get the row coordinates fulfilling the given `condition`.
 
         The coordinates are returned as a list of the current flavor.
-
-        The meaning of the `condition` and `condvars` arguments is the
-        same as in the `self.where()` method.
-
         `sort` means that you want to retrieve the coordinates ordered.
         The default is to not sort them.
+
+        The meaning of the `condition` and `condvars` arguments is the
+        same as in the `Table.where()` method.
         """
 
         # Split the condition into indexable and residual parts.
@@ -1982,7 +1986,16 @@ The 'names' parameter must be a list of strings.""")
 
 
     def flushRowsToIndex(self, lastrow=True):
-        "Add remaining rows in buffers to non-dirty indexes"
+        """
+        Add remaining rows in buffers to non-dirty indexes.
+
+        This can be useful when you have chosen non-automatic indexing
+        for the table (see the `Table.autoIndex` property) and you want
+        to update the indexes on it.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+        """
+
         rowsadded = 0
         if self.indexed:
             # Update the number of unsaved indexed rows
@@ -2136,7 +2149,15 @@ The 'names' parameter must be a list of strings.""")
 
 
     def reIndex(self):
-        """Recompute the existing indexes in table"""
+        """
+        Recompute all the existing indexes in the table.
+
+        This can be useful when you suspect that, for any reason, the
+        index information for columns is no longer valid and want to
+        rebuild the indexes on it.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+        """
         indexedrows = 0
         for (colname, colindexed) in self.colindexed.iteritems():
             if colindexed:
@@ -2149,7 +2170,16 @@ The 'names' parameter must be a list of strings.""")
 
 
     def reIndexDirty(self):
-        """Recompute the existing indexes in table if they are dirty"""
+        """
+        Recompute the existing indexes in table, *if* they are dirty.
+
+        This can be useful when you have set `Table.autoIndex` to false
+        for the table and you want to update the indexes after a
+        invalidating index operation (`Table.removeRows()`, for
+        example).
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+        """
         for (colname, colindexed) in self.colindexed.iteritems():
             if colindexed:
                 indexcol = self.cols._g_col(colname)
