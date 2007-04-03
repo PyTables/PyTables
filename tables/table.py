@@ -2007,7 +2007,7 @@ The 'names' parameter must be a list of strings.""")
                     col = self.cols._g_col(colname)
                     if nrows > 0 and not col.index.dirty:
                         rowsadded = self._addRowsToIndex(
-                            colname, start, nrows, lastrow )
+                            colname, start, nrows, _lastrow )
             self._unsaved_indexedrows -= rowsadded
             self._indexedrows += rowsadded
         return rowsadded
