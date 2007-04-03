@@ -1645,9 +1645,9 @@ Object Tree:
 /detector/readout (Table(10L,)) 'Readout example'</screen>
 
           <para>We have used a call to the
-          <literal>Group._f_walkNodes(classname, recursive)</literal> method
-          (see <xref linkend="Group._f_walkNodes" />), using the
-          <emphasis>natural naming</emphasis> path specification.</para>
+          <literal>Group._f_walkNodes(classname)</literal> method (see <xref
+          linkend="Group._f_walkNodes" />), using the <emphasis>natural
+          naming</emphasis> path specification.</para>
 
           <para>Of course you can do more sophisticated node selections using
           these powerful methods. But first, let's take a look at some
@@ -5847,7 +5847,7 @@ for node in h5file:
           </section>
 
           <section id="Group._f_walkNodes" xreflabel="description">
-            <title>_f_walkNodes(classname=None, recursive=True)</title>
+            <title>_f_walkNodes(classname=None)</title>
 
             <para>Iterate over descendent nodes.</para>
 
@@ -5857,14 +5857,13 @@ for node in h5file:
             <literal>classname</literal> is supplied, only instances of the
             named class are yielded.</para>
 
-            <para>If <literal>recursive</literal> is false, it behaves like
-            <literal>Group._f_iterNodes()</literal> (see <xref
-            linkend="Group._f_iterNodes" />), yielding only children hanging
-            immediately under the group.  If <literal>classname</literal> is
-            <literal>'Group'</literal> and <literal>recursive</literal> is
-            true, it behaves like <literal>Group._f_walkGroups()</literal>
-            (see <xref linkend="Group._f_iterNodes" />), yielding only
-            groups.</para>
+            <para>If <emphasis>classname</emphasis> is
+            <literal>Group</literal>, it behaves like
+            <emphasis>Group._f_walkGroups()</emphasis> (see <xref
+            linkend="Group._f_walkGroups" />), yielding only groups.  If you
+            don't want a recursive behavior, use
+            <emphasis>Group._f_iterNodes()</emphasis> (see <xref
+            linkend="Group._f_iterNodes" />) instead.</para>
 
             <para>Example of use:</para>
 

@@ -449,10 +449,10 @@ class TreeTestCase(unittest.TestCase):
         arrays = []
         for group in self.h5file.walkNodes(classname="Group"):
             groups.append(group._v_pathname)
-            for table in group._f_walkNodes(classname='Table', recursive=0):
+            for table in group._f_iterNodes(classname='Table'):
                 tables.append(table._v_pathname)
         # Test the recursivity
-        for table in self.h5file.root._f_walkNodes('Table', recursive=1):
+        for table in self.h5file.root._f_walkNodes('Table'):
             tables2.append(table._v_pathname)
 
         for arr in self.h5file.walkNodes(classname='Array'):

@@ -509,7 +509,7 @@ class Group(hdf5Extension.Group, Node):
         return name in self._v_children or name in self._v_hidden
 
 
-    def _f_walkNodes(self, classname=None, recursive=True):
+    def _f_walkNodes(self, classname=None):
         """
         Iterate over descendent nodes.
 
@@ -518,16 +518,15 @@ class Group(hdf5Extension.Group, Node):
         yielding nodes.  If `classname` is supplied, only instances of
         the named class are yielded.
 
-        If `recursive` is false, it behaves like `Group._f_iterNodes()`,
-        yielding only children hanging immediately under the group.  If
-        `classname` is 'Group' and `recursive` is true, it behaves like
-        `Group._f_walkGroups()`, yielding only groups.
+        If `classname` is 'Group', it behaves like
+        `Group._f_walkGroups()`, yielding only groups.  If you don't
+        want a recursive behavior, use `Group._f_iterNodes()` instead.
 
         Example of use::
 
             # Recursively print all the arrays hanging from '/'
             print \"Arrays in the object tree '/':\"
-            for array in h5file.root._f_walkNodes('Array', recursive=True):
+            for array in h5file.root._f_walkNodes('Array'):
                 print array
         """
 
@@ -537,19 +536,14 @@ class Group(hdf5Extension.Group, Node):
         if classname == '':
             classname = None
 
-        if not recursive:
-            # Non-recursive algorithm
-            for leaf in self._f_iterNodes(classname):
-                yield leaf
+        if classname == "Group":
+            # Recursive algorithm
+            for group in self._f_walkGroups():
+                yield group
         else:
-            if classname == "Group":
-                # Recursive algorithm
-                for group in self._f_walkGroups():
-                    yield group
-            else:
-                for group in self._f_walkGroups():
-                    for leaf in group._f_iterNodes(classname):
-                        yield leaf
+            for group in self._f_walkGroups():
+                for leaf in group._f_iterNodes(classname):
+                    yield leaf
 
 
     def _g_join(self, name):

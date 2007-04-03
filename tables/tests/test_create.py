@@ -784,12 +784,9 @@ class CopyGroupTestCase(unittest.TestCase):
 
         # Copy a group non-recursively
         srcgroup = self.h5file.getNode(self.srcnode)
-#         srcgroup._f_copyChildren(dstgroup,
-#                                recursive=True,
-#                                filters=self.filters)
         self.h5file.copyChildren(srcgroup, dstgroup,
-                               recursive=True,
-                               filters=self.filters)
+                                 recursive=True,
+                                 filters=self.filters)
         lenSrcGroup = len(srcgroup._v_pathname)
         if lenSrcGroup == 1:
             lenSrcGroup = 0  # Case where srcgroup == "/"
@@ -806,7 +803,7 @@ class CopyGroupTestCase(unittest.TestCase):
             lenDstGroup = 0  # Case where dstgroup == "/"
         first = 1
         nodelist1 = []
-        for node in srcgroup._f_walkNodes(recursive=True):
+        for node in srcgroup._f_walkNodes():
             if first:
                 # skip the first group
                 first = 0
@@ -815,7 +812,7 @@ class CopyGroupTestCase(unittest.TestCase):
 
         first = 1
         nodelist2 = []
-        for node in dstgroup._f_walkNodes(recursive=True):
+        for node in dstgroup._f_walkNodes():
             if first:
                 # skip the first group
                 first = 0
@@ -844,8 +841,8 @@ class CopyGroupTestCase(unittest.TestCase):
         # Copy a group non-recursively
         srcgroup = self.h5file.getNode(self.srcnode)
         srcgroup._f_copyChildren(dstgroup,
-                               recursive=True,
-                               filters=self.filters)
+                                 recursive=True,
+                                 filters=self.filters)
         lenSrcGroup = len(srcgroup._v_pathname)
         if lenSrcGroup == 1:
             lenSrcGroup = 0  # Case where srcgroup == "/"
@@ -862,7 +859,7 @@ class CopyGroupTestCase(unittest.TestCase):
             lenDstGroup = 0  # Case where dstgroup == "/"
         first = 1
         nodelist1 = {}
-        for node in srcgroup._f_walkNodes(recursive=True):
+        for node in srcgroup._f_walkNodes():
             if first:
                 # skip the first group
                 first = 0
@@ -870,7 +867,7 @@ class CopyGroupTestCase(unittest.TestCase):
             nodelist1[node._v_name] = node._v_pathname[lenSrcGroup:]
 
         first = 1
-        for node in dstgroup._f_walkNodes(recursive=True):
+        for node in dstgroup._f_walkNodes():
             if first:
                 # skip the first group
                 first = 0
