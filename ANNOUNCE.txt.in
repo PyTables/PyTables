@@ -105,6 +105,10 @@ New features of PyTables 2.0
   in considerable memory savings when you are modifying disk objects
   with big array values.
 
+- All the leaf constructors (except Array) have received a new
+  ``chunkshape`` argument that lets the user to explicitly select the
+  chunksizes for the underlying HDF5 datasets (only for advanced users).
+
 - All the leaf constructors have received a new parameter called
   ``byteorder`` that lets the user specify the byteorder of their data
   *on disk*.  This effectively allows to create datasets in other
