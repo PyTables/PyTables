@@ -2223,7 +2223,7 @@ The 'names' parameter must be a list of strings.""")
                 optlevel = oldcolindex.optlevel
                 testmode = oldcolindex.testmode
                 newcol = newcols[colname]
-                newcol.createIndex(optlevel=optlevel, testmode=testmode)
+                newcol.createIndex(optlevel=optlevel, _testmode=testmode)
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
@@ -2798,48 +2798,58 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex( self, optlevel=34, filters=None,
-                     testmode=False, verbose=False ):
+    def createIndex( self, memlevel=4, optlevel=0, filters=None,
+                     _testmode=False, _verbose=False ):
         """Create an index for this column.
 
-        optlevel -- The default level of optimization for the index.
-        filters -- The Filters used to compress the index. If None,
-            default index filters will be used (currently, zlib level 1
-            with shuffling).
+        The `memlevel` argument lets you to choose the memory usage for
+        creating an index. It is a number between 1 and 1024.  Higher
+        levels means better chances for optimization at the price of
+        more memory consumption. Be careful, as the memory consumption
+        grows quadratically (and not linearly) with the memlevel.
+
+        You can select the level of the optimization of the index by
+        setting `optlevel` from 0 (no optimization) to 9 (maximum
+        optimization).  Higher levels of optimization means better
+        chances for reducing the entropy of the index at the price of
+        using more CPU and I/O resources usage for creating the index.
+
+        The `filters` argument can be used to set the ``Filters`` used
+        to compress the index.  If ``None``, default index filters will
+        be used (currently, zlib level 1 with shuffling).
         """
 
         _checkIndexingAvailable()
-        return _column__createIndex(self, optlevel, filters,
-                                    testmode, verbose)
+        if type(memlevel) not in (int, long) or memlevel < 1 or optlevel > 1000:
+            raise ValueError, "Memory level should be in the range 1-1000."
+        if type(optlevel) not in (int, long) or optlevel < 0 or optlevel > 9:
+            raise ValueError, "Optimization level should be in the range 0-9."
+        idxrows = _column__createIndex(self, memlevel, optlevel, filters,
+                                       _testmode, _verbose)
+        if optlevel > 0:
+            self.index.optimize(optlevel, _verbose)
+        return idxrows
 
 
-    def optimizeIndex(self, optlevel=77, verbose=0):
+    def optimizeIndex(self, optlevel=6, _verbose=0):
         """Optimize an already created index for this column.
 
-        `optlevel` is the level optimization (from 00 to 99).
-
-        The first digit is an indication of the amount of memory to be
-        used during the index optimization process.  Higher levels
-        (i.e. higher values for digit) means better chances for
-        optimization, at the price of more memory consumption.
-
-        The second digit is an indication of the amount of ``shuffling``
-        that should be done during the index optimization process.
-        Higher levels of shuffling (i.e. higher values for digit) means
-        better chances for optimization and the price of more CPU and
-        I/O resources usage.
-
+        You can select the level of the optimization of the index by
+        setting `optlevel` from 0 (no optimization) to 9 (maximum
+        optimization).  Higher levels of optimization means better
+        chances for reducing the entropy of the index at the price of
+        using more CPU and I/O resources usage for creating the index.
         """
 
-        if type(optlevel) not in (int, long) or optlevel < 0 or optlevel > 99:
-            raise ValueError, "Optimization level should be in the range 0-99."
+        if type(optlevel) not in (int, long) or optlevel < 0 or optlevel > 9:
+            raise ValueError, "Optimization level should be in the range 0-9."
         if not self.index:
             warnings.warn("""\
 column '%s' is not indexed, so it can't be optimized."""
                           % (self.pathname), UserWarning)
             return
         if optlevel > 0:
-            self.index.optimize(optlevel, verbose)
+            self.index.optimize(optlevel, _verbose)
 
 
     def reIndex(self):

@@ -229,7 +229,7 @@ def _table__getWhereList(self, splitted, condvars):
 
     return coords
 
-def _column__createIndex(self, optlevel, filters, testmode, verbose):
+def _column__createIndex(self, memlevel, optlevel, filters, testmode, verbose):
     name = self.name
     table = self.table
     tableName = table._v_name
@@ -296,6 +296,7 @@ def _column__createIndex(self, optlevel, filters, testmode, verbose):
         idgroup, name, atom=atom, column=self,
         title="Index for %s column" % name,
         filters=filters,
+        memlevel=memlevel,
         optlevel=optlevel,
         testmode=testmode,
         expectedrows=table._v_expectedrows,
@@ -312,9 +313,6 @@ def _column__createIndex(self, optlevel, filters, testmode, verbose):
             self.pathname, 0, table.nrows, lastrow=True )
     else:
         indexedrows = 0
-    # Optimize indexes with computed parameters for optimising
-    # (i.e. we should not pass the optlevel parameter here!)
-    index.optimize(verbose=verbose)
     index.dirty = False
     table._indexedrows = indexedrows
     table._unsaved_indexedrows = table.nrows - indexedrows

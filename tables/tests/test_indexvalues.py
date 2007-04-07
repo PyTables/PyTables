@@ -81,10 +81,10 @@ class SelectValuesTestCase(unittest.TestCase):
         table1.flush()
         table2.flush()
         # Index all entries:
-        indexrows = table1.cols.var1.createIndex(testmode=1)
-        indexrows = table1.cols.var2.createIndex(testmode=1)
-        indexrows = table1.cols.var3.createIndex(testmode=1)
-        indexrows = table1.cols.var4.createIndex(testmode=1)
+        indexrows = table1.cols.var1.createIndex(_testmode=True)
+        indexrows = table1.cols.var2.createIndex(_testmode=True)
+        indexrows = table1.cols.var3.createIndex(_testmode=True)
+        indexrows = table1.cols.var4.createIndex(_testmode=True)
         if verbose:
             print "Number of written rows:", table1.nrows
             print "Number of indexed rows:", indexrows
@@ -2203,7 +2203,8 @@ class SelectValuesTestCase(unittest.TestCase):
 class SV1aTestCase(SelectValuesTestCase):
     minRowIndex = 10
     buffersize = 1
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss
     reopen = 0
     nrep = ss
@@ -2217,7 +2218,8 @@ class SV1bTestCase(SV1aTestCase):
 class SV2aTestCase(SelectValuesTestCase):
     minRowIndex = 10
     buffersize = 2
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss
     reopen = 1
     nrep = 1
@@ -2231,7 +2233,8 @@ class SV2bTestCase(SV2aTestCase):
 class SV3aTestCase(SelectValuesTestCase):
     minRowIndex = 10
     buffersize = 3
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss*2-1
     reopen = 1
     nrep = 3
@@ -2245,7 +2248,8 @@ class SV3bTestCase(SV3aTestCase):
 class SV4aTestCase(SelectValuesTestCase):
     minRowIndex = 10
     buffersize = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss*3
     reopen = 0
     nrep = 1
@@ -2259,7 +2263,8 @@ class SV4bTestCase(SV4aTestCase):
 
 class SV5aTestCase(SelectValuesTestCase):
     minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss*5
     reopen = 0
     nrep = 1
@@ -2271,7 +2276,8 @@ class SV5bTestCase(SV5aTestCase):
 
 class SV6aTestCase(SelectValuesTestCase):
     minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss*5-1
     reopen = 0
     nrep = cs+1
@@ -2284,7 +2290,8 @@ class SV6bTestCase(SV6aTestCase):
 class SV7aTestCase(SelectValuesTestCase):
     random = 1
     minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss*5+1
     reopen = 0
     nrep = cs-1
@@ -2297,7 +2304,8 @@ class SV7bTestCase(SV7aTestCase):
 class SV8aTestCase(SelectValuesTestCase):
     random = 0
     minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss*5+1
     reopen = 0
     nrep = cs-1
@@ -2317,7 +2325,8 @@ class SV9aTestCase(SelectValuesTestCase):
     # I've been unable to reproduce it in a consistent manner.
     random = 1
     minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss*5+1
     reopen = 0
     nrep = cs-1
@@ -2331,7 +2340,8 @@ class SV10aTestCase(SelectValuesTestCase):
     random = 1
     minRowIndex = 10
     buffersize = 1
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss
     reopen = 0
     nrep = ss
@@ -2348,7 +2358,8 @@ class SV11aTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     minRowIndex = len(values)
     buffersize = 1
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss
     reopen = 0
     nrep = ss
@@ -2362,7 +2373,8 @@ class SV11bTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     minRowIndex = len(values)
     buffersize = 2
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss
     reopen = 0
     nrep = ss
@@ -2377,7 +2389,8 @@ class SV12aTestCase(SelectValuesTestCase):
     values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
     minRowIndex = len(values)
     buffersize = 1
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss
     reopen = 0
     nrep = ss
@@ -2392,7 +2405,8 @@ class SV12bTestCase(SelectValuesTestCase):
     values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
     minRowIndex = len(values)
     buffersize = 2
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss
     reopen = 1
     nrep = ss
@@ -2403,7 +2417,8 @@ class SV13aTestCase(SelectValuesTestCase):
     values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     minRowIndex = len(values)
     buffersize = 5
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss
     reopen = 0
     nrep = ss
@@ -2414,7 +2429,8 @@ class SV13bTestCase(SelectValuesTestCase):
     values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     minRowIndex = len(values)
     buffersize = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss
     reopen = 1
     nrep = ss
@@ -2425,7 +2441,8 @@ class SV14aTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     minRowIndex = len(values)
     buffersize = 5
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss
     reopen = 0
     nrep = cs
@@ -2436,7 +2453,8 @@ class SV14bTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     minRowIndex = len(values)
     buffersize = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss
     reopen = 1
     nrep = 9
@@ -2452,7 +2470,8 @@ class SV15aTestCase(SelectValuesTestCase):
     #seed = 1885
     seed = 183
     minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss*5+1
     reopen = 0
     nrep = cs-1
@@ -2468,7 +2487,8 @@ class SV15bTestCase(SelectValuesTestCase):
     seed = 1885
     #seed = 183
     minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, optlevel=0, testmode=1)
+    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
+                                      optlevel=0, testmode=1)
     nrows = ss*5+1
     reopen = 1
     nrep = cs-1

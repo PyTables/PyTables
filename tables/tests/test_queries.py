@@ -226,7 +226,7 @@ class BaseTableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
             vprint("* Indexing ``%s`` columns." % colname)
             for acolname in [colname, ncolname]:
                 acolumn = self.table.colinstances[acolname]
-                acolumn.createIndex(optlevel=self.optlevel, testmode=True)
+                acolumn.createIndex(optlevel=self.optlevel, _testmode=True)
         except TypeError, te:
             if self.colNotIndexable_re.search(str(te)):
                 raise tests.SkipTest(
@@ -633,8 +633,8 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
     def setUp(self):
         super(IndexedTableUsageTestCase, self).setUp()
-        self.table.cols.c_bool.createIndex(testmode=True)
-        self.table.cols.c_int32.createIndex(testmode=True)
+        self.table.cols.c_bool.createIndex(_testmode=True)
+        self.table.cols.c_int32.createIndex(_testmode=True)
 
     def test(self):
         """Using indexing in some queries."""

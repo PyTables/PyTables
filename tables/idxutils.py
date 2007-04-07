@@ -18,13 +18,14 @@ debug = False
 
 
 # Hints for chunk/slice/block/superblock computations:
-# - The slicesize should not exceed 500 MB.  That would make the
-#   sorting algorithms to consume up to 1 GB of memory.
-# - In general, one should favor a small chunksize ( < 128 KB) if
-#   one wants to reduce the latency for indexed queries. However,
-#   keep in mind that a very low value of chunksize for big
-#   datasets may hurt the performance by requering the HDF5 to use
-#   a lot of memory and CPU for its internal B-Tree.
+# - The slicesize should not exceed 2**32 elements (because of
+# implementation reasons).  Such an extreme case would make the
+# sorting algorithms to consume up to 64 GB of memory.
+# - In general, one should favor a small chunksize ( < 128 KB) if one
+# wants to reduce the latency for indexed queries. However, keep in
+# mind that a very low value of chunksize for big datasets may hurt
+# the performance by requering the HDF5 to use a lot of memory and CPU
+# for its internal B-Tree.
 
 def csformula(nrows):
     """Return the fitted chunksize (a float value) for nrows."""
@@ -65,6 +66,9 @@ def computeslicesize(expectedrows, memlevel):
     cs = csformula(expectedrows)
     # Now the slicesize
     ss = cs * memlevel**2 * 16  #XXX replace by MEMORY_FACTOR
+    # ss cannot be bigger than 2**32 - 1 elements because of implementation reasons
+    if ss >= 2**32:
+        ss = 2**32 - 1
     return int(ss)
 
 
@@ -89,7 +93,7 @@ def computeblocksize(expectedrows, compoundsize):
     return compoundsize * nblocks
 
 
-def calcChunksize(expectedrows, optlevel, testmode):
+def calcChunksize(expectedrows, memlevel, optlevel, testmode):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -97,23 +101,15 @@ def calcChunksize(expectedrows, optlevel, testmode):
     using big chunks optimizes the I/O speed, but if they are too
     large, the uncompressor takes too much time. This might (should)
     be further optimized by doing more experiments.
-
-    An additional refinement for the output parameters is introduced
-    by specifying an optimization ``optlevel``.
-
     """
 
-    # Decode memlevel & optlevel
-    memlevel = optlevel // 10 + 1
-    shufflelevel = optlevel - (memlevel-1) * 10
     if debug:
-        print "optlevel -->", optlevel
-        print "memlevel, shufflelevel-->", memlevel, shufflelevel
+        print "memlevel, optlevel-->", memlevel, optlevel
 
     if testmode:
-        if 0 <= shufflelevel < 9:
-            boost = (shufflelevel % 3) * 2 + 1   # 1, 3, 5
-        elif shufflelevel == 9:
+        if 0 <= optlevel < 9:
+            boost = (optlevel % 3) * 2 + 1   # 1, 3, 5
+        elif optlevel == 9:
             boost = 4
         chunksize = 3 * boost # a very small number here is useful
                               # for testing the optimitzation levels
@@ -121,8 +117,8 @@ def calcChunksize(expectedrows, optlevel, testmode):
                               # tests to work!)
         # slicesize should be at least twice as bigger than chunksize
         slicesize = chunksize * boost * 2
-        blocksize = 4*slicesize
-        superblocksize = 4*blocksize
+        blocksize = 4 * slicesize
+        superblocksize = 4 * blocksize
         sizes = (superblocksize, blocksize, slicesize, chunksize)
         if debug:
             print "superblocksize, blocksize, slicesize, chunksize:", \
@@ -143,62 +139,62 @@ def calcChunksize(expectedrows, optlevel, testmode):
     return sizes
 
 
-def calcoptlevels(nss, shufflelevel, testmode):
+def calcoptlevels(nss, optlevel, testmode):
     """Compute the optimizations to be done.
 
     The calculation is based on the number of slices per
-    superblock and the shufflelevel.
+    superblock and the optlevel.
     """
 
     optmedian, optstarts, optstops, optfull = (False,)*4
     if testmode:
-        if 5 <= shufflelevel < 7:
+        if 5 <= optlevel < 7:
             optmedian = True
-        elif 7 <= shufflelevel < 9:
+        elif 7 <= optlevel < 9:
             optstarts, optstops = (True, True)
-        elif shufflelevel == 9:
+        elif optlevel == 9:
             optfull = 1
         return optmedian, optstarts, optstops, optfull
-        
+
     # Regular case
     if nss < 5:
-        if 6 <= shufflelevel < 9:
+        if 6 <= optlevel < 9:
             optmedian = True
-        elif shufflelevel == 9:
+        elif optlevel == 9:
             optstarts, optstops = (True, True)
     elif 5 <= nss <= 25:
-        if 3 <= shufflelevel < 6:
+        if 3 <= optlevel < 6:
             optmedian = True
-        elif 6 <= shufflelevel < 9:
+        elif 6 <= optlevel < 9:
             optstarts, optstops = (True, True)
-        elif shufflelevel == 9:
+        elif optlevel == 9:
             optfull = 1
     elif 25 <= nss <= 125:
-        if 0 < shufflelevel < 3:
+        if 0 < optlevel < 3:
             optmedian = True
-        elif 3 <= shufflelevel < 6:
+        elif 3 <= optlevel < 6:
             optstarts, optstops = (True, True)
-        elif 6 <= shufflelevel < 9:
+        elif 6 <= optlevel < 9:
             optfull = 1
-        elif shufflelevel == 9:
+        elif optlevel == 9:
             optfull = 2
     elif 125 <= nss <= 625:
-        if 0 < shufflelevel < 3:
+        if 0 < optlevel < 3:
             optstarts, optstops = (True, True)
-        elif 3 <= shufflelevel < 6:
+        elif 3 <= optlevel < 6:
             optfull = 1
-        elif 6 <= shufflelevel < 9:
+        elif 6 <= optlevel < 9:
             optfull = 2
-        elif shufflelevel == 9:
+        elif optlevel == 9:
             optfull = 3
     else:  # superblocks with more than 625 slices. Are there some?
-        if 0 < shufflelevel < 3:
+        if 0 < optlevel < 3:
             optfull = 1
-        elif 3 <= shufflelevel < 6:
+        elif 3 <= optlevel < 6:
             optfull = 2
-        elif 6 <= shufflelevel < 9:
+        elif 6 <= optlevel < 9:
             optfull = 3
-        elif shufflelevel == 9:
+        elif optlevel == 9:
             optfull = 4
 
     return optmedian, optstarts, optstops, optfull

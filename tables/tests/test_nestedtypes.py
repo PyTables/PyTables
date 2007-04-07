@@ -595,7 +595,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl.append(self._testAData)
         tbl.flush()
         coltoindex = tbl.cols._f_col(self._testCondCol)
-        indexrows = coltoindex.createIndex(testmode=1)
+        indexrows = coltoindex.createIndex(_testmode=True)
 
         if self.reopen:
             self._reopen()
@@ -1255,8 +1255,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         cols = {'i1':tbl.cols.nested.i1,
                 'i2':tbl.cols.nested.i2,}
-        cols['i1'].createIndex(testmode=True)
-        cols['i2'].createIndex(testmode=True)
+        cols['i1'].createIndex(_testmode=True)
+        cols['i2'].createIndex(_testmode=True)
 
         if self.reopen:
             self._reopen()
@@ -1305,8 +1305,8 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         cols = {'i1':tbl.cols.nested1.nested2.nested3.i1,
                 'i2':tbl.cols.nested1.nested2.nested3.i2,}
-        cols['i1'].createIndex(testmode=True)
-        cols['i2'].createIndex(testmode=True)
+        cols['i1'].createIndex(_testmode=True)
+        cols['i2'].createIndex(_testmode=True)
 
         if self.reopen:
             self._reopen()

@@ -201,6 +201,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def __init__(self, parentNode, name,
                  atom=None, column=None,
                  title="", filters=None,
+                 memlevel=4,
                  optlevel=0,
                  expectedrows=0,
                  byteorder=None,
@@ -222,6 +223,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             during the life of this object. If not specified, the ZLIB
             & shuffle will be activated by default (i.e., they are not
             inherited from the parent, that is, the Table).
+
+        memlevel -- The level of memory usage for sorting the indexes.
 
         optlevel -- The level of optimization for the reordenation indexes.
 
@@ -262,6 +265,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """The total number of slices in the index."""
         self.nelements = None
         """The number of indexed elements in this index."""
+        self.memlevel = memlevel
+        """The level of memory usage for sorting the indexes."""
         self.optlevel = optlevel
         """The level of optimization for this index."""
         self.dirtycache = True
@@ -296,11 +301,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.blocksize = attrs.blocksize
             self.slicesize = attrs.slicesize
             self.chunksize = attrs.chunksize
-            self.optlevel = attrs.optlevel
             sorted = self.sorted
             self.dtype = sorted.atom.dtype
             self.type = sorted.atom.type
             self.filters = sorted.filters
+            # Some sanity checks for slicesize and chunksize
             assert self.slicesize == sorted.shape[1], "Wrong slicesize"
             assert self.chunksize == sorted._v_chunkshape[1], "Wrong chunksize"
             # The number of elements is at the end of the indices array
@@ -328,7 +333,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.filters = filters = self._v_new_filters
 
         # Compute the superblocksize, blocksize, slicesize and chunksize values
-        sizes = calcChunksize(self.expectedrows, self.optlevel, self.testmode)
+        sizes = calcChunksize(self.expectedrows, self.memlevel,
+                              self.optlevel, self.testmode)
         (self.superblocksize, self.blocksize,
          self.slicesize, self.chunksize) = sizes
 
@@ -337,7 +343,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self._v_attrs.blocksize = numpy.int64(self.blocksize)
         self._v_attrs.slicesize = numpy.uint32(self.slicesize)
         self._v_attrs.chunksize = numpy.uint32(self.chunksize)
-        self._v_attrs.optlevel = numpy.int32(self.optlevel)
 
         # Create the IndexArray for sorted values
         atom = Atom.from_dtype(self.dtype)
@@ -491,8 +496,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if profile: show_stats("Eixint de appendLR", tref)
 
 
-    def optimize(self, level=None, verbose=False):
-        "Optimize an index to allow faster searches."
+    def optimize(self, optlevel, verbose=False):
+        """Optimize an index so as to allow faster searches."""
 
         if verbose == True:
             self.verbose = True
@@ -512,15 +517,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.verbose:
             (nover, mult, tover) = self.compute_overlaps("init", self.verbose)
 
-        # Decode optimization levels
-        if level is None:
-            level = self.optlevel
-        memlevel = level // 10 + 1
-        shufflelevel = level - (memlevel-1) * 10
-        # Compute the correct shuffle optimizations for shufflelevel
+        # Compute the correct shuffle optimizations for optlevel
         nss = self.superblocksize / self.slicesize
         optmedian, optstarts, optstops, optfull = \
-                   calcoptlevels(nss, shufflelevel, self.testmode)
+                   calcoptlevels(nss, optlevel, self.testmode)
 
         # Start the optimization process
         if optmedian or optstarts or optstops or optfull:
