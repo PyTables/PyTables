@@ -13,8 +13,16 @@ from tables.tests.common import verbose, allequal, heavy, cleanup
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
 
+
 # To make the tests values reproductibles
 random.seed(19)
+
+# Sensible parameters for indexing with small blocksizes
+#small_blocksizes = (16, 8, 4, 2)
+small_blocksizes = (180, 60, 10, 5)   # both parametrizations should work
+# The size for medium indexes
+minRowIndex = 1000
+
 
 class Small(IsDescription):
     var1 = StringCol(itemsize=4, dflt="")
@@ -64,27 +72,30 @@ class SelectValuesTestCase(unittest.TestCase):
         for i in xrange(0, self.nrows, self.nrep):
             for j in range(self.nrep):
                 if self.random:
-                    i = random.randrange(self.nrows)
+                    k = random.randrange(self.nrows)
                 elif self.values is not None:
-                    i = self.values[i]
-                table1.row['var1'] = str(i)
-                table2.row['var1'] = str(i)
-                table1.row['var2'] = i % 2
-                table2.row['var2'] = i % 2
-                table1.row['var3'] = i
-                table2.row['var3'] = i
-                table1.row['var4'] = float(self.nrows - i - 1)
-                table2.row['var4'] = float(self.nrows - i - 1)
+                    lenvalues = len(self.values)
+                    if i >= lenvalues:
+                        i %= lenvalues
+                    k = self.values[i]
+                else:
+                    k = i
+                table1.row['var1'] = str(k)
+                table2.row['var1'] = str(k)
+                table1.row['var2'] = k % 2
+                table2.row['var2'] = k % 2
+                table1.row['var3'] = k
+                table2.row['var3'] = k
+                table1.row['var4'] = float(self.nrows - k - 1)
+                table2.row['var4'] = float(self.nrows - k - 1)
                 table1.row.append()
                 table2.row.append()
                 count += 1
         table1.flush()
         table2.flush()
         # Index all entries:
-        indexrows = table1.cols.var1.createIndex(_testmode=True)
-        indexrows = table1.cols.var2.createIndex(_testmode=True)
-        indexrows = table1.cols.var3.createIndex(_testmode=True)
-        indexrows = table1.cols.var4.createIndex(_testmode=True)
+        for col in table1.colinstances.itervalues():
+            indexrows = col.createIndex(blocksizes=self.blocksizes)
         if verbose:
             print "Number of written rows:", table1.nrows
             print "Number of indexed rows:", indexrows
@@ -2201,56 +2212,48 @@ class SelectValuesTestCase(unittest.TestCase):
 
 
 class SV1aTestCase(SelectValuesTestCase):
-    minRowIndex = 10
+    blocksizes = small_blocksizes
     buffersize = 1
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss
+    ss = blocksizes[2]; nrows = ss
     reopen = 0
     nrep = ss
     il = 0
     sl = ss
 
 class SV1bTestCase(SV1aTestCase):
-    minRowIndex = 1000
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
     buffersize = 10
 
 class SV2aTestCase(SelectValuesTestCase):
-    minRowIndex = 10
+    blocksizes = small_blocksizes
     buffersize = 2
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss
+    ss = blocksizes[2]; nrows = ss
     reopen = 1
     nrep = 1
     il = 0
     sl = 2
 
 class SV2bTestCase(SV2aTestCase):
-    minRowIndex = 1000
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
     buffersize = 20
 
 class SV3aTestCase(SelectValuesTestCase):
-    minRowIndex = 10
+    blocksizes = small_blocksizes
     buffersize = 3
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss*2-1
+    ss = blocksizes[2]; nrows = ss*2-1
     reopen = 1
     nrep = 3
     il = 0
     sl = 3
 
 class SV3bTestCase(SV3aTestCase):
-    minRowIndex = 1000
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
     buffersize = 33
 
 class SV4aTestCase(SelectValuesTestCase):
-    minRowIndex = 10
+    blocksizes = small_blocksizes
     buffersize = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss*3
+    ss = blocksizes[2]; nrows = ss*3
     reopen = 0
     nrep = 1
     #il = nrows-cs
@@ -2258,109 +2261,93 @@ class SV4aTestCase(SelectValuesTestCase):
     sl = nrows
 
 class SV4bTestCase(SV4aTestCase):
-    minRowIndex = 1000
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
     buffersize = 1000
 
 class SV5aTestCase(SelectValuesTestCase):
-    minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss*5
+    blocksizes = small_blocksizes
+    ss = blocksizes[2]; nrows = ss*5
     reopen = 0
     nrep = 1
     il = 0
     sl = nrows
 
 class SV5bTestCase(SV5aTestCase):
-    minRowIndex = 1000
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
 
 class SV6aTestCase(SelectValuesTestCase):
-    minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss*5-1
+    blocksizes = small_blocksizes
+    ss = blocksizes[2]; nrows = ss*5-1
     reopen = 0
+    cs = blocksizes[3]
     nrep = cs+1
     il = -1
     sl = nrows
 
 class SV6bTestCase(SV6aTestCase):
-    minRowIndex = 1000
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
 
 class SV7aTestCase(SelectValuesTestCase):
     random = 1
-    minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss*5+1
+    blocksizes = small_blocksizes
+    ss = blocksizes[2]; nrows = ss*5+1
     reopen = 0
+    cs = blocksizes[3]
     nrep = cs-1
     il = -10
     sl = nrows
 
 class SV7bTestCase(SV7aTestCase):
-    minRowIndex = 1000
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
 
 class SV8aTestCase(SelectValuesTestCase):
     random = 0
-    minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss*5+1
+    blocksizes = small_blocksizes
+    ss = blocksizes[2]; nrows = ss*5+1
     reopen = 0
+    cs = blocksizes[3]
     nrep = cs-1
     il = 10
     sl = nrows-10
 
 class SV8bTestCase(SV8aTestCase):
     random = 0
-    minRowIndex = 1000
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
 
 class SV9aTestCase(SelectValuesTestCase):
-    # This test issues a warning like:
-    # """
-    # Warning: Encountered invalid numeric result(s)  in less_equal
-    # """
-    # from time to time in test08a. However this appears seldomly and
-    # I've been unable to reproduce it in a consistent manner.
     random = 1
-    minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss*5+1
+    blocksizes = small_blocksizes
+    ss = blocksizes[2]; nrows = ss*5+1
     reopen = 0
+    cs = blocksizes[3]
     nrep = cs-1
     il = 10
     sl = nrows-10
 
 class SV9bTestCase(SV9aTestCase):
-    minRowIndex = 1000
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
 
 class SV10aTestCase(SelectValuesTestCase):
     random = 1
-    minRowIndex = 10
+    blocksizes = small_blocksizes
     buffersize = 1
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss
+    ss = blocksizes[2]; nrows = ss
     reopen = 0
     nrep = ss
     il = 0
     sl = ss
 
 class SV10bTestCase(SV10aTestCase):
-    minRowIndex = 1000
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
 
 class SV11aTestCase(SelectValuesTestCase):
     # This checks a special case that failed. It was discovered in a
     # random test above (SV10a). It is explicitely put here as a way
     # to always check that specific case.
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
-    minRowIndex = len(values)
+    blocksizes = small_blocksizes
     buffersize = 1
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss
+    ss = blocksizes[2]; nrows = ss
     reopen = 0
     nrep = ss
     il = 0
@@ -2371,11 +2358,9 @@ class SV11bTestCase(SelectValuesTestCase):
     # random test above (SV10a). It is explicitely put here as a way
     # to always check that specific case.
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
-    minRowIndex = len(values)
     buffersize = 2
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
+    ss = blocksizes[2]; nrows = ss
     reopen = 0
     nrep = ss
     il = 0
@@ -2387,11 +2372,9 @@ class SV12aTestCase(SelectValuesTestCase):
     # to always check that specific case.
     #values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
-    minRowIndex = len(values)
+    blocksizes = small_blocksizes
     buffersize = 1
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss
+    ss = blocksizes[2]; nrows = ss
     reopen = 0
     nrep = ss
     il = 0
@@ -2403,11 +2386,9 @@ class SV12bTestCase(SelectValuesTestCase):
     # to always check that specific case.
     #values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
-    minRowIndex = len(values)
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
     buffersize = 2
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss
+    ss = blocksizes[2]; nrows = ss
     reopen = 1
     nrep = ss
     il = 0
@@ -2415,11 +2396,9 @@ class SV12bTestCase(SelectValuesTestCase):
 
 class SV13aTestCase(SelectValuesTestCase):
     values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
-    minRowIndex = len(values)
+    blocksizes = small_blocksizes
     buffersize = 5
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss
+    ss = blocksizes[2]; nrows = ss
     reopen = 0
     nrep = ss
     il = 0
@@ -2427,11 +2406,9 @@ class SV13aTestCase(SelectValuesTestCase):
 
 class SV13bTestCase(SelectValuesTestCase):
     values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
-    minRowIndex = len(values)
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
     buffersize = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss
+    ss = blocksizes[2]; nrows = ss
     reopen = 1
     nrep = ss
     il = 0
@@ -2439,26 +2416,24 @@ class SV13bTestCase(SelectValuesTestCase):
 
 class SV14aTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
-    minRowIndex = len(values)
+    blocksizes = small_blocksizes
     buffersize = 5
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss
+    ss = blocksizes[2]; nrows = ss
     reopen = 0
+    cs = blocksizes[3]
     nrep = cs
     il = -5
     sl = 500
 
 class SV14bTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
-    minRowIndex = len(values)
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
     buffersize = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss
+    ss = blocksizes[2]; nrows = ss
     reopen = 1
     nrep = 9
     il = 0
+    cs = blocksizes[3]
     sl = ss-cs+1
 
 class SV15aTestCase(SelectValuesTestCase):
@@ -2469,11 +2444,10 @@ class SV15aTestCase(SelectValuesTestCase):
     # Both values of seed below triggers a fail in indexing code
     #seed = 1885
     seed = 183
-    minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss*5+1
+    blocksizes = small_blocksizes
+    ss = blocksizes[2]; nrows = ss*5+1
     reopen = 0
+    cs = blocksizes[3]
     nrep = cs-1
     il = -10
     sl = nrows
@@ -2486,11 +2460,10 @@ class SV15bTestCase(SelectValuesTestCase):
     # Both values of seed below triggers a fail in indexing code
     seed = 1885
     #seed = 183
-    minRowIndex = 10
-    (sbs, bs, ss, cs) = calcChunksize(minRowIndex, memlevel=1,
-                                      optlevel=0, testmode=1)
-    nrows = ss*5+1
+    blocksizes = calcChunksize(minRowIndex, memlevel=1)
+    ss = blocksizes[2]; nrows = ss*5+1
     reopen = 1
+    cs = blocksizes[3]
     nrep = cs-1
     il = -10
     sl = nrows
@@ -2517,9 +2490,9 @@ def suite():
         theSuite.addTest(unittest.makeSuite(SV8aTestCase))
         theSuite.addTest(unittest.makeSuite(SV10aTestCase))
         theSuite.addTest(unittest.makeSuite(SV11aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV11bTestCase))
         theSuite.addTest(unittest.makeSuite(SV12aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV12bTestCase))
+        theSuite.addTest(unittest.makeSuite(SV13aTestCase))
+        theSuite.addTest(unittest.makeSuite(SV14aTestCase))
         theSuite.addTest(unittest.makeSuite(SV15aTestCase))
     if heavy:
         theSuite.addTest(unittest.makeSuite(SV1bTestCase))
@@ -2532,23 +2505,15 @@ def suite():
         theSuite.addTest(unittest.makeSuite(SV8bTestCase))
         theSuite.addTest(unittest.makeSuite(SV9bTestCase))
         theSuite.addTest(unittest.makeSuite(SV10bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV13aTestCase))
+        theSuite.addTest(unittest.makeSuite(SV11bTestCase))
+        theSuite.addTest(unittest.makeSuite(SV12bTestCase))
         theSuite.addTest(unittest.makeSuite(SV13bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV14aTestCase))
         theSuite.addTest(unittest.makeSuite(SV14bTestCase))
         theSuite.addTest(unittest.makeSuite(SV15bTestCase))
         # The next are too hard to be above
         theSuite.addTest(unittest.makeSuite(SV5aTestCase))
         theSuite.addTest(unittest.makeSuite(SV6aTestCase))
-        # These are moved away from light because they use random
-        # tests that seldomly issues a strange:
-        # """Warning: Encountered invalid numeric result(s)  in less_equal"""
-        # series of messages and I don't want to worry normal users
-        # about this (I don't think this is grave anyway)
-        # F. Altet 2004-08-12
-        theSuite.addTest(unittest.makeSuite(SV7aTestCase))
         theSuite.addTest(unittest.makeSuite(SV9aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV10aTestCase))
 
     return theSuite
 

@@ -41,16 +41,21 @@ def csformula(nrows):
 def computechunksize(expectedrows):
     """Get the optimum chunksize based on expectedrows."""
 
-    # Only four zones for varying chunksizes here:
-    # 1. rows < 10**7
-    # 2. 10**7 <= rows < 10**8
-    # 3. 10**8 <= rows < 10**9
-    # 2. rows > 10**9
+    # Nine zones for varying chunksizes here:
+    # 1. rows < 10**3
+    # 2. 10**3 <= rows < 10**4
+    # 3. 10**4 <= rows < 10**5
+    # 4. 10**5 <= rows < 10**6
+    # 5. 10**6 <= rows < 10**7
+    # 6. 10**7 <= rows < 10**8
+    # 7. 10**8 <= rows < 10**9
+    # 8. 10**9 <= rows < 10**10
+    # 9. rows >= 10**10
     zone = int(math.log10(expectedrows))
-    if zone < 6:
-        zone = 6
-    elif zone > 9:
-        zone = 9
+    if zone < 3:
+        zone = 3
+    elif zone > 10:
+        zone = 10
     nrows = 10**zone
     return int(csformula(nrows))
 
@@ -60,12 +65,13 @@ def computeslicesize(expectedrows, memlevel):
 
     # Protection against creating too small slices (there will be no
     # protection for creating too large ones!).
-    if expectedrows < 10**6:
-        expectedrows = 10**6
+    if expectedrows < 10**3:
+        expectedrows = 10**3
     # First, the optimum chunksize
     cs = csformula(expectedrows)
     # Now the slicesize
-    ss = cs * memlevel**2 * 16  #XXX replace by MEMORY_FACTOR
+    #ss = cs * memlevel**2 * 16
+    ss = 4 * cs * memlevel**2   # slicesize should be at least twice of chunksize
     # ss cannot be bigger than 2**32 - 1 elements because of implementation reasons
     if ss >= 2**32:
         ss = 2**32 - 1
@@ -86,14 +92,14 @@ def computeblocksize(expectedrows, compoundsize):
         nblocks = expectedrows/compoundsize
         # Check again
         if nblocks == 0:
-            nblocks = 1
+            nblocks = 25
     elif nblocks > 1000:
         # Protection against too large number of expected rows
         nblocks = 1000
     return compoundsize * nblocks
 
 
-def calcChunksize(expectedrows, memlevel, optlevel, testmode):
+def calcChunksize(expectedrows, memlevel):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -104,26 +110,7 @@ def calcChunksize(expectedrows, memlevel, optlevel, testmode):
     """
 
     if debug:
-        print "memlevel, optlevel-->", memlevel, optlevel
-
-    if testmode:
-        if 0 <= optlevel < 9:
-            boost = (optlevel % 3) * 2 + 1   # 1, 3, 5
-        elif optlevel == 9:
-            boost = 4
-        chunksize = 3 * boost # a very small number here is useful
-                              # for testing the optimitzation levels
-                              # more exhaustively (2 is the bare minimum for
-                              # tests to work!)
-        # slicesize should be at least twice as bigger than chunksize
-        slicesize = chunksize * boost * 2
-        blocksize = 4 * slicesize
-        superblocksize = 4 * blocksize
-        sizes = (superblocksize, blocksize, slicesize, chunksize)
-        if debug:
-            print "superblocksize, blocksize, slicesize, chunksize:", \
-                  sizes
-        return sizes
+        print "memlevel", memlevel
 
     expMrows = expectedrows / 1000000.  # Multiples of one million
 

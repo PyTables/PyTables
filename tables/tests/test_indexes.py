@@ -17,19 +17,25 @@ unittest.TestCase.tearDown = cleanup
 
 import numpy
 
+
+# Sensible parameters for indexing with small blocksizes
+minRowIndex = 10
+small_blocksizes = (96, 24, 6, 3)
+small_ss = small_blocksizes[2]
+
 class TDescr(IsDescription):
     var1 = StringCol(itemsize=4, dflt="", pos=1)
     var2 = BoolCol(dflt=0, pos=2)
     var3 = IntCol(dflt=0, pos=3)
     var4 = FloatCol(dflt=0, pos=4)
 
-minRowIndex = 10
 class BasicTestCase(PyTablesTestCase):
     compress = 0
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
     nrows = minRowIndex
+    ss = small_blocksizes[2]
 
     def setUp(self):
         # Create an instance of an HDF5 Table
@@ -60,10 +66,8 @@ class BasicTestCase(PyTablesTestCase):
             table.row.append()
         table.flush()
         # Index all entries:
-        indexrows = table.cols.var1.createIndex(_testmode=True)
-        indexrows = table.cols.var2.createIndex(_testmode=True)
-        indexrows = table.cols.var3.createIndex(_testmode=True)
-        indexrows = table.cols.var4.createIndex(_testmode=True)
+        for col in table.colinstances.itervalues():
+            indexrows = col.createIndex(blocksizes=small_blocksizes)
         if verbose:
             print "Number of written rows:", self.nrows
             print "Number of indexed rows:", indexrows
@@ -326,7 +330,7 @@ class BasicTestCase(PyTablesTestCase):
         assert table.colindexed["var1"] == 0
 
         # re-create the index again
-        indexrows = table.cols.var1.createIndex(_testmode=True)
+        indexrows = table.cols.var1.createIndex(blocksizes=small_blocksizes)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -366,7 +370,7 @@ class BasicTestCase(PyTablesTestCase):
         assert table.colindexed["var1"] == 0
 
         # re-create the index again
-        indexrows = table.cols.var1.createIndex(_testmode=True)
+        indexrows = table.cols.var1.createIndex(blocksizes=small_blocksizes)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -491,10 +495,8 @@ class BasicTestCase(PyTablesTestCase):
             table.row.append()
         table.flush()
         # Index all entries:
-        indexrows = table.cols.var1.createIndex(_testmode=True)
-        indexrows = table.cols.var2.createIndex(_testmode=True)
-        indexrows = table.cols.var3.createIndex(_testmode=True)
-        indexrows = table.cols.var4.createIndex(_testmode=True)
+        for col in table.colinstances.itervalues():
+            indexrows = col.createIndex(blocksizes=small_blocksizes)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -539,10 +541,8 @@ class BasicTestCase(PyTablesTestCase):
             table.row.append()
         table.flush()
         # Index all entries:
-        indexrows = table.cols.var1.createIndex(_testmode=True)
-        indexrows = table.cols.var2.createIndex(_testmode=True)
-        indexrows = table.cols.var3.createIndex(_testmode=True)
-        indexrows = table.cols.var4.createIndex(_testmode=True)
+        for col in table.colinstances.itervalues():
+            indexrows = col.createIndex(blocksizes=small_blocksizes)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -568,7 +568,7 @@ class BasicTestCase(PyTablesTestCase):
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, mode='w')
         table = self.fileh.createTable(self.fileh.root, 'distance_table', Distance)
-        table.cols.frame.createIndex(_testmode=True)
+        table.cols.frame.createIndex(blocksizes=small_blocksizes)
         r = table.row
         for i in range(10):
             r['frame']=i
@@ -586,78 +586,58 @@ class BasicReadTestCase(BasicTestCase):
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=True)
-    nrows = ss
+    nrows = small_ss
 
 class ZlibReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=True)
-    nrows = ss
+    nrows = small_ss
 
 class LZOReadTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=True)
-    nrows = ss
+    nrows = small_ss
 
 class BZIP2ReadTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"
     shuffle = 0
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=True)
-    nrows = ss
+    nrows = small_ss
 
 class ShuffleReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 1
     fletcher32 = 0
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=True)
-    nrows = ss
+    nrows = small_ss
 
 class Fletcher32ReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 0
     fletcher32 = 1
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=True)
-    nrows = ss
+    nrows = small_ss
 
 class ShuffleFletcher32ReadTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
     shuffle = 1
     fletcher32 = 1
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=True)
-    nrows = ss
+    nrows = small_ss
 
 class OneHalfTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=True)
-    nrows = ss+ss//2
+    nrows = small_ss+small_ss//2
 
 class UpperBoundTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=True)
-    nrows = ss+1
+    nrows = small_ss+1
 
 class LowerBoundTestCase(BasicTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=True)
-    nrows = ss*2-1
+    nrows = small_ss*2-1
 
 
 class DeepTableIndexTestCase(unittest.TestCase):
@@ -679,7 +659,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
             table.row.append()
         table.flush()
         # Index some column
-        indexrows = table.cols.var1.createIndex(_testmode=True)
+        indexrows = table.cols.var1.createIndex(memlevel=1)
         idxcol = table.cols.var1.index
         # Some sanity checks
         assert table.colindexed["var1"] == 1
@@ -705,7 +685,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
             table.row.append()
         table.flush()
         # Index some column
-        indexrows = table.cols.var1.createIndex(_testmode=True)
+        indexrows = table.cols.var1.createIndex(memlevel=1)
         idxcol = table.cols.var1.index
         # Close and re-open this file
         self.fileh.close()
@@ -738,7 +718,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
             table.row.append()
         table.flush()
         # Index some column
-        indexrows = table.cols.var1.createIndex(_testmode=True)
+        indexrows = table.cols.var1.createIndex(memlevel=1)
         idxcol = table.cols.var1.index
         # Some sanity checks
         assert table.colindexed["var1"] == 1
@@ -766,7 +746,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
             table.row.append()
         table.flush()
         # Index some column
-        indexrows = table.cols.var1.createIndex(_testmode=True)
+        indexrows = table.cols.var1.createIndex(memlevel=1)
         idxcol = table.cols.var1.index
         # Close and re-open this file
         self.fileh.close()
@@ -799,7 +779,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
             table.row.append()
         table.flush()
         # Index some column
-        indexrows = table.cols.var1.createIndex(_testmode=True)
+        indexrows = table.cols.var1.createIndex(memlevel=1)
         idxcol = table.cols.var1.index
         # Some sanity checks
         assert table.colindexed["var1"] == 1
@@ -819,7 +799,7 @@ DefaultProps = IndexProps()
 NoAutoProps = IndexProps(auto=False)
 ChangeFiltersProps = IndexProps(
     filters=Filters( complevel=6, complib="zlib",
-                     shuffle=False, fletcher32=True ) )
+                     shuffle=False, fletcher32=False ) )
 
 class AutomaticIndexingTestCase(unittest.TestCase):
     reopen = 1
@@ -839,7 +819,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         self.table.autoIndex = self.iprops.auto
         self.table.indexFilters = self.iprops.filters
         for colname in self.colsToIndex:
-            self.table.colinstances[colname].createIndex(_testmode=True)
+            self.table.colinstances[colname].createIndex(memlevel=1)
         for i in range(self.nrows):
             # Fill rows with defaults
             self.table.row.append()
@@ -908,7 +888,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         elif self.iprops is ChangeFiltersProps:
             assert table.autoIndex
             filters = Filters(complevel=6, complib="zlib",
-                              shuffle=False, fletcher32=True)
+                              shuffle=False, fletcher32=False)
             assert table.indexFilters == filters
 
         # Check Index() objects exists and are properly placed
@@ -982,7 +962,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         elif self.iprops is ChangeFiltersProps:
             assert table.autoIndex
             filters = Filters(complevel=6, complib="zlib",
-                              shuffle=False, fletcher32=True)
+                              shuffle=False, fletcher32=False)
             assert table.indexFilters == filters
 
 
@@ -1030,7 +1010,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         elif self.iprops is ChangeFiltersProps:
             assert table.autoIndex
             filters = Filters(complevel=6, complib="zlib",
-                              shuffle=False, fletcher32=True)
+                              shuffle=False, fletcher32=False)
             assert table.indexFilters == filters
 
 
@@ -1308,24 +1288,21 @@ class AI4bTestCase(AutomaticIndexingTestCase):
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI5TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=False)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1)
     nrows = ss*11-1
     reopen = 0
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI6TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=False)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1)
     nrows = ss*21+1
     reopen = 1
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI7TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=False)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1)
     nrows = ss*12-1
     #nrows = ss*1-1  # faster test
     reopen = 0
@@ -1333,8 +1310,7 @@ class AI7TestCase(AutomaticIndexingTestCase):
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI8TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=False)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1)
     nrows = ss*15+100
     #nrows = ss*1+100  # faster test
     reopen = 1
@@ -1342,8 +1318,7 @@ class AI8TestCase(AutomaticIndexingTestCase):
     colsToIndex = ['var1', 'var2', 'var3']
 
 class AI9TestCase(AutomaticIndexingTestCase):
-    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1,
-                                    optlevel=0, testmode=True)
+    sbs, bs, ss, cs = calcChunksize(minRowIndex, memlevel=1)
     nrows = ss
     reopen = 0
     iprops = DefaultProps
@@ -1391,9 +1366,9 @@ class ManyNodesTestCase(PyTablesTestCase):
                 name = 'chr' + str(sn)
                 path = "/at/%s/at" % (qchr)
                 table = h5.createTable(path, name, IdxRecord, createparents=1)
-                table.cols.f0.createIndex()
-                table.cols.f1.createIndex()
-                table.cols.f2.createIndex()
+                table.cols.f0.createIndex(memlevel=1)
+                table.cols.f1.createIndex(memlevel=1)
+                table.cols.f2.createIndex(memlevel=1)
                 table.row.append()
                 table.flush()
 
@@ -1444,13 +1419,13 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         """Using changed index properties in new indexes."""
         self.table.indexFilters = self.newIndexProps.filters
         icol = self.table.cols.icol
-        icol.createIndex(_testmode=True)
+        icol.createIndex(memlevel=1)
         self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
 
     def test_reindex(self):
         """Using changed index properties in recomputed indexes."""
         icol = self.table.cols.icol
-        icol.createIndex(_testmode=True)
+        icol.createIndex(memlevel=1)
         self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
         self.table.indexFilters = self.newIndexProps.filters
         icol.reIndex()
@@ -1484,25 +1459,25 @@ class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
         icol = self.table.cols.icol
 
         # Filters not set in table nor in argument.
-        icol.createIndex(_testmode=True)
+        icol.createIndex(memlevel=1)
         self.assertEqual(icol.index.filters, defaultIndexFilters)
         icol.removeIndex()
 
         # Filters not set in table, set in argument.
-        icol.createIndex(filters=argfilters, _testmode=True)
+        icol.createIndex(memlevel=1, filters=argfilters)
         self.assertEqual(icol.index.filters, argfilters)
         icol.removeIndex()
 
         # Filters set in table, not in argument.
         self.table.indexFilters = idxfilters
-        icol.createIndex(_testmode=True)
+        icol.createIndex(memlevel=1)
         # self.assertEqual(icol.index.filters, idxfilters)
         self.assertEqual(icol.index.filters, defaultIndexFilters)
         icol.removeIndex()
 
         # Filters set in table and in argument.
         self.table.indexFilters = idxfilters
-        icol.createIndex(filters=argfilters, _testmode=True)
+        icol.createIndex(memlevel=1, filters=argfilters)
         self.assertEqual(icol.index.filters, argfilters)
         icol.removeIndex()
 

@@ -7973,7 +7973,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
 
             <section id="createIndexColumnDescr" xreflabel="description">
               <title><literal>createIndex(memlevel=4, optlevel=0,
-              filters=None)</literal></title>
+              filters=None, blocksizes=None)</literal></title>
 
               <para>Create an <literal>Index</literal> (see <xref
               linkend="IndexClassDescr" xrefstyle="select: label" />) object
@@ -7999,6 +7999,20 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               to compress the index.  If <literal>None</literal>, default
               index filters will be used (currently, zlib level 1 with
               shuffling).</para>
+
+              <para>If you are an advanced user, you can set the four main
+              sizes of the compound blocks in index datasets by passing them
+              as a tuple with the format <literal>(superblocksize, blocksize,
+              slicesize, chunksize)</literal> to the
+              <literal>blocksizes</literal> argument.  If this argument is
+              specified, then the <literal>memlevel</literal> argument is
+              ignored.  Once more, this is meant for expert users, so before
+              doing this, be sure that you fully understand their role by
+              reading the <emphasis>The indexing system of PyTables
+              Pro</emphasis> white paper.  Failing to understanding it, you
+              will probably end with a parametrization that is sub-optimal in
+              the best of cases.</para>
+
             </section>
 
             <section id="optimizeIndexColumnDescr" xreflabel="description">

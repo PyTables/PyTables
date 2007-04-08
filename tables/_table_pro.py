@@ -147,8 +147,6 @@ _table__indexFilters = property(
 def _table__restorecache(self):
     # Define a cache for sparse table reads
     maxslots = TABLE_MAX_SIZE / self.rowsize
-    self._sparsecache = NumCache( shape=(maxslots, 1), itemsize=self.rowsize,
-                                  name="sparse rows" )
     self._limdatacache = ObjectCache( LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE,
                                       "data limits" )
     """A cache for data based on search limits and table colum."""
@@ -229,7 +227,8 @@ def _table__getWhereList(self, splitted, condvars):
 
     return coords
 
-def _column__createIndex(self, memlevel, optlevel, filters, testmode, verbose):
+def _column__createIndex(self, memlevel, optlevel, filters,
+                         blocksizes, testmode, verbose):
     name = self.name
     table = self.table
     tableName = table._v_name
@@ -298,9 +297,10 @@ def _column__createIndex(self, memlevel, optlevel, filters, testmode, verbose):
         filters=filters,
         memlevel=memlevel,
         optlevel=optlevel,
-        testmode=testmode,
         expectedrows=table._v_expectedrows,
-        byteorder=table.byteorder)
+        byteorder=table.byteorder,
+        blocksizes=blocksizes,
+        testmode=testmode)
     self._updateIndexLocation(index)
 
     table._setColumnIndexing(self.pathname, True)

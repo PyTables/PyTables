@@ -70,7 +70,7 @@ __version__ = "$Revision: 1236 $"
 obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series
 
 debug = False
-#debug = True  # Uncomment this for debugging purposes only
+debug = True  # Uncomment this for debugging purposes only
 profile = False
 #profile = True  # uncomment for profiling purposes only
 
@@ -205,6 +205,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                  optlevel=0,
                  expectedrows=0,
                  byteorder=None,
+                 blocksizes=None,
                  testmode=False, new=True):
         """Create an Index instance.
 
@@ -233,6 +234,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             in the IndexArray object.
 
         byteorder -- The byteorder of the index datasets *on-disk*.
+
+        blocksizes -- The four main sizes of the compound blocks in
+            index datasets.
 
         """
 
@@ -269,6 +273,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """The level of memory usage for sorting the indexes."""
         self.optlevel = optlevel
         """The level of optimization for this index."""
+        self.blocksizes = blocksizes
+        """The four main sizes of the compound blocks (if specified)."""
         self.dirtycache = True
         """Dirty cache (for ranges, bounds & sorted) flag."""
         self.superblocksize = None
@@ -333,10 +339,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.filters = filters = self._v_new_filters
 
         # Compute the superblocksize, blocksize, slicesize and chunksize values
-        sizes = calcChunksize(self.expectedrows, self.memlevel,
-                              self.optlevel, self.testmode)
+        # (in case these parameters haven't been passed to the constructor)
+        if self.blocksizes is None:
+            self.blocksizes = calcChunksize(self.expectedrows, self.memlevel)
         (self.superblocksize, self.blocksize,
-         self.slicesize, self.chunksize) = sizes
+         self.slicesize, self.chunksize) = self.blocksizes
 
         # Save them on disk as attributes
         self._v_attrs.superblocksize = numpy.int64(self.superblocksize)
@@ -1161,8 +1168,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def __str__(self):
         """This provides a more compact representation than __repr__"""
-        return "Index(%s, shape=%s, chunksize=%s)" % \
-               (self.nelements, self.shape, self.sorted.chunksize)
+        return "Index(%s, type=%s, shape=%s, chunksize=%s)" % \
+               (self.nelements, self.type, self.shape, self.sorted.chunksize)
 
 
     def __repr__(self):
@@ -1170,7 +1177,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         cpathname = self.column.table._v_pathname + ".cols." + self.column.name
         retstr = """%s (Index for column %s)
-  type := %r
   nelements := %s
   chunksize := %s
   slicesize := %s
@@ -1179,7 +1185,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
   filters := %s
   dirty := %s
   byteorder := %r""" % (self._v_pathname, cpathname,
-                        self.type, self.nelements,
+                        self.nelements,
                         self.chunksize, self.slicesize,
                         self.blocksize, self.superblocksize,
                         self.filters, self.dirty,

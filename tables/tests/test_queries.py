@@ -33,6 +33,9 @@ _strlen = int(numpy.log10(_maxnvalue-1)) + 1
 str_format = '%%0%dd' % _strlen
 """Format of string values."""
 
+# Sensible parameters for indexing with small blocksizes
+small_blocksizes = (16, 8, 4, 2)
+
 
 # Type information
 # ----------------
@@ -226,7 +229,8 @@ class BaseTableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
             vprint("* Indexing ``%s`` columns." % colname)
             for acolname in [colname, ncolname]:
                 acolumn = self.table.colinstances[acolname]
-                acolumn.createIndex(optlevel=self.optlevel, _testmode=True)
+                acolumn.createIndex(memlevel=1, optlevel=self.optlevel,
+                                    _testmode=True)
         except TypeError, te:
             if self.colNotIndexable_re.search(str(te)):
                 raise tests.SkipTest(
@@ -633,8 +637,8 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
 
     def setUp(self):
         super(IndexedTableUsageTestCase, self).setUp()
-        self.table.cols.c_bool.createIndex(_testmode=True)
-        self.table.cols.c_int32.createIndex(_testmode=True)
+        self.table.cols.c_bool.createIndex(blocksizes=small_blocksizes)
+        self.table.cols.c_int32.createIndex(blocksizes=small_blocksizes)
 
     def test(self):
         """Using indexing in some queries."""

@@ -515,47 +515,23 @@ cdef class Table(Leaf):
 
 
   cdef _read_elements_(self, ndarray recarr, ndarray elements):
-    cdef long buflen, rowsize, nrecord, nrecords
+    cdef long nrecords
     cdef void *rbuf, *rbuf2
-    cdef hsize_t *coords, coord
     cdef int ret
-    cdef long nslot
-    cdef object sparsecache
-
 
     # Get the chunk of the coords that correspond to a buffer
     nrecords = elements.size
-    # The size of the one single row
-    rowsize = self.rowsize
     # Get the pointer to the buffer data area
     rbuf = recarr.data
     # Get the pointer to the buffer coords area
     rbuf2 = elements.data
-    coords = <hsize_t *>rbuf2
 
-    # Clean-up the cache if needed
-    if self._dirtycache:
-      self._restorecache()
-
-    sparsecache = self._sparsecache
-    for nrecord from 0 <= nrecord < nrecords:
-      coord = coords[nrecord]
-      # Look at the cache for this coord
-      if sparsecache is not None:
-        nslot = sparsecache.getslot(coord)
-      else:
-        nslot = -1
-      if nslot >= 0:
-        sparsecache.getitem2(nslot, recarr, nrecord)
-      else:
-        rbuf2 = <void *>(<char *>rbuf + nrecord*rowsize)
-        # The coord is not in cache. Read it and put it in the LRU cache.
-        ret = H5TBOread_records(self.dataset_id, self.type_id,
-                                coord, 1, rbuf2)
-        if ret < 0:
-          raise HDF5ExtError("Problems reading record: %s" % (coord))
-        if sparsecache is not None:
-          sparsecache.setitem(coord, recarr, nrecord)
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5TBOread_elements(self.dataset_id, self.type_id,
+                             nrecords, rbuf2, rbuf)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
+      raise HDF5ExtError("Problems reading records.")
 
     # Convert some HDF5 types to NumPy after reading.
     self._convertTypes(recarr, nrecords, 1)

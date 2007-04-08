@@ -1219,11 +1219,11 @@ def populateTable(where, name):
 
     if tables.is_pro:
         # Index all entries:
-        indexrows = table.cols.var1.createIndex(_testmode=True)
-        indexrows = table.cols.var2.createIndex(_testmode=True)
-        indexrows = table.cols.var3.createIndex(_testmode=True)
+        indexrows = table.cols.var1.createIndex()
+        indexrows = table.cols.var2.createIndex()
+        indexrows = table.cols.var3.createIndex()
         # Do not index the var4 column
-        #indexrows = table.cols.var4.createIndex(_testmode=True)
+        #indexrows = table.cols.var4.createIndex()
     if verbose:
         print "Number of written rows:", nrows
         if tables.is_pro:

@@ -638,8 +638,6 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
 
     def _restorecache(self):
-        self._sparsecache = None
-        """A cache for row data based on row number."""
         _table__restorecache(self)  # restore caches used by indexes
         self._dirtycache = False
 
@@ -2798,8 +2796,8 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex( self, memlevel=4, optlevel=0, filters=None,
-                     _testmode=False, _verbose=False ):
+    def createIndex( self, memlevel=8, optlevel=0, filters=None,
+                     blocksizes=None, _testmode=False, _verbose=False ):
         """Create an index for this column.
 
         The `memlevel` argument lets you to choose the memory usage for
@@ -2817,15 +2815,28 @@ class Column(object):
         The `filters` argument can be used to set the ``Filters`` used
         to compress the index.  If ``None``, default index filters will
         be used (currently, zlib level 1 with shuffling).
-        """
+
+        If you are an advanced user, you can set the four main sizes of
+        the compound blocks in index datasets by passing them as a tuple
+        with the format ``(superblocksize, blocksize, slicesize,
+        chunksize)`` to the `blocksizes` argument.  If this argument is
+        specified, then the `memlevel` argument is ignored.  Once more,
+        this is meant for expert users, so before doing this, be sure
+        that you fully understand their role by reading the ``The
+        indexing system of PyTables Pro`` white paper.  Failing to
+        understanding it, you will probably end with a parametrization
+        that is sub-optimal in the best of cases.  """
 
         _checkIndexingAvailable()
         if type(memlevel) not in (int, long) or memlevel < 1 or optlevel > 1000:
             raise ValueError, "Memory level should be in the range 1-1000."
         if type(optlevel) not in (int, long) or optlevel < 0 or optlevel > 9:
             raise ValueError, "Optimization level should be in the range 0-9."
+        if (blocksizes is not None and
+            (type(blocksizes) is not tuple or len(blocksizes) != 4)):
+            raise ValueError, "blocksizes must be a tuple with exactly 4 elements."
         idxrows = _column__createIndex(self, memlevel, optlevel, filters,
-                                       _testmode, _verbose)
+                                       blocksizes, _testmode, _verbose)
         if optlevel > 0:
             self.index.optimize(optlevel, _verbose)
         return idxrows
