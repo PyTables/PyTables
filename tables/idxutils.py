@@ -12,6 +12,8 @@
 
 import math
 from time import time, clock
+import numpy
+
 
 debug = False
 #debug = True  # Uncomment this for printing sizes purposes
@@ -185,6 +187,22 @@ def calcoptlevels(nss, optlevel, testmode):
             optfull = 4
 
     return optmedian, optstarts, optstops, optfull
+
+
+# Function to pack and unpack optimizations for index
+def opts_pack(opts):
+    packed = numpy.int32(0)
+    for opt in opts[::-1]:  # pack in reverse order
+        packed |= opt
+        packed <<= 8
+    return packed
+
+def opts_unpack(packed):
+    opts = []
+    for i in range(4):
+        opts.append(int(packed & 0xff))
+        packed >>= 8
+    return tuple(opts)
 
 
 # Python implementations of NextAfter and NextAfterF

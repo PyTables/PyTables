@@ -228,8 +228,7 @@ def _table__getWhereList(self, splitted, condvars):
 
     return coords
 
-def _column__createIndex(self, memlevel, optlevel, filters,
-                         blocksizes, testmode, verbose):
+def _column__createIndex(self, memlevel, filters, blocksizes, verbose):
     name = self.name
     table = self.table
     tableName = table._v_name
@@ -297,11 +296,9 @@ def _column__createIndex(self, memlevel, optlevel, filters,
         title="Index for %s column" % name,
         filters=filters,
         memlevel=memlevel,
-        optlevel=optlevel,
         expectedrows=table._v_expectedrows,
         byteorder=table.byteorder,
-        blocksizes=blocksizes,
-        testmode=testmode)
+        blocksizes=blocksizes)
     self._updateIndexLocation(index)
 
     table._setColumnIndexing(self.pathname, True)

@@ -8042,8 +8042,8 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             <title><literal>Column</literal> methods</title>
 
             <section id="createIndexColumnDescr" xreflabel="description">
-              <title><literal>createIndex(memlevel=4, optlevel=0,
-              filters=None, blocksizes=None)</literal></title>
+              <title><literal>createIndex(memlevel=8, optlevel=0,
+              filters=None, blocksizes=None, opts=None)</literal></title>
 
               <para>Create an <literal>Index</literal> (see <xref
               linkend="IndexClassDescr" xrefstyle="select: label" />) object
@@ -8083,10 +8083,21 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               will probably end with a parametrization that is sub-optimal in
               the best of cases.</para>
 
+              <para>The <literal>opts</literal> argument is also meant for
+              advanced users. This is a low level way to specify the different
+              optimizations so as to reduce the entropy level of the index.
+              The format of this parameter is a tuple with four elements:
+              <literal>(optmedian, optstarts, optstops, optfull)</literal>.
+              If you specify this, then <literal>optlevel</literal> argument
+              is ignored.  Beware: if you don't fully understand the meaning
+              of the <literal>opts</literal> argument, using the high level
+              <literal>optlevel</literal> is preferred.</para>
+
             </section>
 
             <section id="optimizeIndexColumnDescr" xreflabel="description">
-              <title><literal>optimizeIndex(optlevel=6)</literal></title>
+              <title><literal>optimizeIndex(optlevel=6,
+              opts=None)</literal></title>
 
               <para>Optimize an already created index for this column.</para>
 
@@ -8096,6 +8107,12 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               means better chances for reducing the entropy of the index at
               the price of using more CPU and I/O resources usage for creating
               the index.</para>
+
+              <para>See the explanation for the <literal>opts</literal> low
+              level argument in the above
+              <literal>Column.createIndex()</literal> method (<xref
+              linkend="createIndexColumnDescr" xrefstyle="select: label" />).
+              </para>
 
             </section>
 

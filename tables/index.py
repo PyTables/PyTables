@@ -38,7 +38,7 @@ import sys
 
 import numpy
 
-from idxutils import calcChunksize, calcoptlevels, \
+from idxutils import calcChunksize, calcoptlevels, opts_pack, opts_unpack, \
      nextafter, infType, show_stats
 
 from tables import indexesExtension
@@ -202,11 +202,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                  atom=None, column=None,
                  title="", filters=None,
                  memlevel=4,
-                 optlevel=0,
                  expectedrows=0,
                  byteorder=None,
                  blocksizes=None,
-                 testmode=False, new=True):
+                 new=True):
         """Create an Index instance.
 
         Keyword arguments:
@@ -227,8 +226,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         memlevel -- The level of memory usage for sorting the indexes.
 
-        optlevel -- The level of optimization for the reordenation indexes.
-
         expectedrows -- Represents an user estimate about the number
             of row slices that will be added to the growable dimension
             in the IndexArray object.
@@ -236,7 +233,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         byteorder -- The byteorder of the index datasets *on-disk*.
 
         blocksizes -- The four main sizes of the compound blocks in
-            index datasets.
+            index datasets (a low level parameter).
 
         """
 
@@ -250,8 +247,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         else:
             self.byteorder = sys.byteorder
         """The byteorder of the index datasets."""
-        self.testmode = testmode
-        """Enables test mode for index chunk size calculation."""
         if atom is not None:
             self.dtype = atom.dtype.base
             self.type = atom.type
@@ -271,10 +266,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """The number of indexed elements in this index."""
         self.memlevel = memlevel
         """The level of memory usage for sorting the indexes."""
-        self.optlevel = optlevel
-        """The level of optimization for this index."""
         self.blocksizes = blocksizes
         """The four main sizes of the compound blocks (if specified)."""
+        self.opts = (False,)*4
+        """The four optimization procedures applied."""
         self.dirtycache = True
         """Dirty cache (for ranges, bounds & sorted) flag."""
         self.superblocksize = None
@@ -307,6 +302,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.blocksize = attrs.blocksize
             self.slicesize = attrs.slicesize
             self.chunksize = attrs.chunksize
+            self.blocksizes = (self.superblocksize, self.blocksize,
+                               self.slicesize, self.chunksize)
+            self.opts = opts_unpack(attrs.opts)
             sorted = self.sorted
             self.dtype = sorted.atom.dtype
             self.type = sorted.atom.type
@@ -350,6 +348,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self._v_attrs.blocksize = numpy.int64(self.blocksize)
         self._v_attrs.slicesize = numpy.uint32(self.slicesize)
         self._v_attrs.chunksize = numpy.uint32(self.chunksize)
+
+        # Save the optimization procedures (this attribute will be
+        # overwritten in case an optimization is made later on)
+        self._v_attrs.opts = opts_pack(self.opts)
 
         # Create the IndexArray for sorted values
         atom = Atom.from_dtype(self.dtype)
@@ -503,8 +505,24 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if profile: show_stats("Eixint de appendLR", tref)
 
 
-    def optimize(self, optlevel, verbose=False):
-        """Optimize an index so as to allow faster searches."""
+    def optimize(self, optlevel, opts=None, testmode=False, verbose=False):
+        """Optimize an index so as to allow faster searches.
+
+        optlevel -- The level of optimization for the index.
+
+        opts -- A low level specification of the optimizations for the
+            index. It is a tuple with the format ``(optmedian,
+            optstarts, optstops, optfull)``.
+
+        testmode -- If True, a optimization specific to be used in
+            tests is used (basically, it does not depend on anything
+            but the `optlevel` argument). This is not considered if
+            `opts` is specified.
+
+        verbose -- If True, messages about the progress of the
+            optimization process are printed out.
+
+        """
 
         if verbose == True:
             self.verbose = True
@@ -524,10 +542,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.verbose:
             (nover, mult, tover) = self.compute_overlaps("init", self.verbose)
 
-        # Compute the correct shuffle optimizations for optlevel
-        nss = self.superblocksize / self.slicesize
-        optmedian, optstarts, optstops, optfull = \
-                   calcoptlevels(nss, optlevel, self.testmode)
+        # Compute the correct optimizations for optlevel (if needed)
+        if opts is None:
+            nss = self.superblocksize / self.slicesize
+            opts = calcoptlevels(nss, optlevel, testmode)
+        optmedian, optstarts, optstops, optfull = opts
+        # Overwrite the new optimizations in opts (a packed attribute)
+        self._v_attrs.opts = opts_pack(opts)
 
         # Start the optimization process
         if optmedian or optstarts or optstops or optfull:

@@ -2218,10 +2218,11 @@ The 'names' parameter must be a list of strings.""")
         for colname in newcols:
             oldcolindex = oldcols[colname].index
             if oldcolindex:
-                optlevel = oldcolindex.optlevel
-                testmode = oldcolindex.testmode
+                blocksizes = oldcolindex.blocksizes
+                opts = oldcolindex.opts
                 newcol = newcols[colname]
-                newcol.createIndex(optlevel=optlevel, _testmode=testmode)
+                # Recreate index with original blocksizes and opts parameters
+                newcol.createIndex(blocksizes=blocksizes, opts=opts)
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
@@ -2797,7 +2798,8 @@ class Column(object):
 
 
     def createIndex( self, memlevel=8, optlevel=0, filters=None,
-                     blocksizes=None, _testmode=False, _verbose=False ):
+                     blocksizes=None, opts=None,
+                     _testmode=False, _verbose=False ):
         """Create an index for this column.
 
         The `memlevel` argument lets you to choose the memory usage for
@@ -2825,7 +2827,18 @@ class Column(object):
         that you fully understand their role by reading the ``The
         indexing system of PyTables Pro`` white paper.  Failing to
         understanding it, you will probably end with a parametrization
-        that is sub-optimal in the best of cases.  """
+        that is sub-optimal in the best of cases.
+
+        The `opts` argument is also meant for advanced users. This is a
+        low level way to specify the different optimizations so as to
+        reduce the entropy level of the index.  The format of this
+        parameter is a tuple with four elements: ``(optmedian,
+        optstarts, optstops, optfull)``.  If you specify this, then
+        `optlevel` argument is ignored.  Beware: if you don't fully
+        understand the meaning of the `opts` argument, using the high
+        level `optlevel` is preferred.
+
+        """
 
         _checkIndexingAvailable()
         if type(memlevel) not in (int, long) or memlevel < 1 or optlevel > 1000:
@@ -2835,14 +2848,18 @@ class Column(object):
         if (blocksizes is not None and
             (type(blocksizes) is not tuple or len(blocksizes) != 4)):
             raise ValueError, "blocksizes must be a tuple with exactly 4 elements."
-        idxrows = _column__createIndex(self, memlevel, optlevel, filters,
-                                       blocksizes, _testmode, _verbose)
-        if optlevel > 0:
-            self.index.optimize(optlevel, _verbose)
+        if (opts is not None and
+            (type(opts) is not tuple or len(opts) != 4)):
+            raise ValueError, "opts must be a tuple with exactly 4 elements."
+        idxrows = _column__createIndex(self, memlevel, filters,
+                                       blocksizes,  _verbose)
+        if optlevel > 0 or opts != None:
+            self.index.optimize(optlevel, opts, _testmode, _verbose)
         return idxrows
 
 
-    def optimizeIndex(self, optlevel=6, _verbose=0):
+    def optimizeIndex(self, optlevel=6, opts=None,
+                      _testmode=False, _verbose=False):
         """Optimize an already created index for this column.
 
         You can select the level of the optimization of the index by
@@ -2850,17 +2867,24 @@ class Column(object):
         optimization).  Higher levels of optimization means better
         chances for reducing the entropy of the index at the price of
         using more CPU and I/O resources usage for creating the index.
+
+        See the explanation for the `opts` low level argument in the
+        ``Column.createIndex()`` description.
+
         """
 
         if type(optlevel) not in (int, long) or optlevel < 0 or optlevel > 9:
             raise ValueError, "Optimization level should be in the range 0-9."
+        if (opts is not None and
+            (type(opts) is not tuple or len(opts) != 4)):
+            raise ValueError, "opts must be a tuple with exactly 4 elements."
         if not self.index:
             warnings.warn("""\
 column '%s' is not indexed, so it can't be optimized."""
                           % (self.pathname), UserWarning)
             return
-        if optlevel > 0:
-            self.index.optimize(optlevel, _verbose)
+        if optlevel > 0 or opts != None:
+            self.index.optimize(optlevel, opts, _testmode, _verbose)
 
 
     def reIndex(self):
