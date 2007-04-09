@@ -7387,7 +7387,6 @@ for p in rout.where('pressure &lt; 16'):
           </section>
         </section>
 
-        <!-- XXX REVIEWED UP TO HERE - Ivb -->
         <section id="DescriptionClassDescr">
           <title>The <literal>Description</literal> class</title>
 
@@ -7407,9 +7406,8 @@ for p in rout.where('pressure &lt; 16'):
           objects suited for the different columns in a table (be they nested
           or not).</para>
 
-          <para>Column definitions (see <literal>Col</literal> class in <xref
-          linkend="ColClassDescr" xrefstyle="select: label" />) under a
-          description can be accessed as attributes of it. For instance, if
+          <para>Column definitions under a description can be accessed as
+          attributes of it. For instance, if
           <literal>table.description</literal> is a
           <literal>Description</literal> instance with a column named
           <literal>col1</literal> under it, the later can be accessed as
@@ -7423,6 +7421,75 @@ for p in rout.where('pressure &lt; 16'):
 
             <glosslist>
               <?dbfo glosslist-presentation="list" ?>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_colObjects</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A dictionary mapping the names of the columns hanging
+                  directly from the associated table or nested column to their
+                  respective descriptions (<literal>Col</literal> —see <xref
+                  linkend="ColClassDescr" xrefstyle="select: label" />— or
+                  <literal>Description</literal> —see <xref
+                  linkend="DescriptionClassDescr" xrefstyle="select: label"
+                  />— instances).</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_dflts</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A dictionary mapping the pathnames of all bottom-level
+                  columns under this table or nested column to their
+                  respective default values.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_dtype</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The NumPy type which reflects the structure of this
+                  table or nested column.  You can use this as the
+                  <literal>dtype</literal> argument of NumPy array
+                  factories.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_dtypes</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A dictionary mapping the names of non-nested columns
+                  hanging directly from the associated table or nested column
+                  to their respective NumPy types.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_is_nested</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Whether the associated table or nested column contains
+                  further nested columns or not.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_itemsize</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The size in bytes of an item in this table or nested
+                  column.</para>
+                </glossdef>
+              </glossentry>
 
               <glossentry>
                 <glossterm><emphasis
@@ -7448,25 +7515,17 @@ for p in rout.where('pressure &lt; 16'):
 
               <glossentry>
                 <glossterm><emphasis
-                role="bold">_v_pathnames</emphasis></glossterm>
+                role="bold">_v_nestedDescr</emphasis></glossterm>
 
                 <glossdef>
-                  <para>A list of the pathnames of the columns hanging
-                  directly from the associated table or nested column. If the
-                  table does not contain nested columns, this is exactly the
-                  same as the <literal>_v_names</literal> attribute.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">_v_nestedNames</emphasis></glossterm>
-
-                <glossdef>
-                  <para>A nested list of the names of all the columns under
-                  this table or nested column. You can use this for the
-                  <literal>names</literal> argument of
-                  <literal>NestedRecArray</literal> factory functions.</para>
+                  <para>A nested list of pairs of <literal>(name,
+                  format)</literal> tuples for all the columns under this
+                  table or nested column. You can use this as the
+                  <literal>dtype</literal> and <literal>descr</literal>
+                  arguments of NumPy array and
+                  <literal>NestedRecArray</literal> (see <xref
+                  linkend="NestedRecArrayClassDescr" xrefstyle="select: label"
+                  />) factories, respectively.</para>
                 </glossdef>
               </glossentry>
 
@@ -7477,80 +7536,10 @@ for p in rout.where('pressure &lt; 16'):
                 <glossdef>
                   <para>A nested list of the NumPy string formats (and shapes)
                   of all the columns under this table or nested column. You
-                  can use this for the <literal>formats</literal> argument of
-                  <literal>NestedRecArray</literal> factory functions.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">_v_nestedDescr</emphasis></glossterm>
-
-                <glossdef>
-                  <para>A nested list of pairs of <literal>(name,
-                  format)</literal> tuples for all the columns under this
-                  table or nested column. You can use this as the
-                  <literal>dtype</literal> argument of NumPy array factories,
-                  as well as the <literal>descr</literal> argument of
-                  <literal>NestedRecArray</literal> factories.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">_v_types</emphasis></glossterm>
-
-                <glossdef>
-                  <para>A dictionary mapping the names of non-nested columns
-                  hanging directly from the associated table or nested column
-                  to their respective PyTables types.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">_v_dtypes</emphasis></glossterm>
-
-                <glossdef>
-                  <para>A dictionary mapping the names of non-nested columns
-                  hanging directly from the associated table or nested column
-                  to their respective NumPy types.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">_v_dflts</emphasis></glossterm>
-
-                <glossdef>
-                  <para>A dictionary mapping the names of non-nested columns
-                  hanging directly from the associated table or nested column
-                  to their respective default values.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">_v_colObjects</emphasis></glossterm>
-
-                <glossdef>
-                  <para>A dictionary mapping the names of the columns hanging
-                  directly from the associated table or nested column to their
-                  respective descriptions (<literal>Col</literal> —see <xref
-                  linkend="ColClassDescr" xrefstyle="select: label" />— or
-                  <literal>Description</literal> —see <xref
-                  linkend="DescriptionClassDescr" xrefstyle="select: label"
-                  />— instances).</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">_v_itemsize</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The size in bytes of an item with this
-                  structure.</para>
+                  can use this as the <literal>formats</literal> argument of
+                  NumPy array and <literal>NestedRecArray</literal> (see <xref
+                  linkend="NestedRecArrayClassDescr" xrefstyle="select: label"
+                  />) factories.</para>
                 </glossdef>
               </glossentry>
 
@@ -7566,11 +7555,38 @@ for p in rout.where('pressure &lt; 16'):
 
               <glossentry>
                 <glossterm><emphasis
-                role="bold">_v_is_nested</emphasis></glossterm>
+                role="bold">_v_nestedNames</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Whether the associated table has nested columns or not
-                  (boolean).</para>
+                  <para>A nested list of the names of all the columns under
+                  this table or nested column. You can use this as the
+                  <literal>names</literal> argument of NumPy array and
+                  <literal>NestedRecArray</literal> (see <xref
+                  linkend="NestedRecArrayClassDescr" xrefstyle="select: label"
+                  />) factories.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_pathnames</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A list of the pathnames of all the columns under this
+                  table or nested column (in preorder).  If the table does not
+                  contain nested columns, this is exactly the same as the
+                  <literal>Description._v_names</literal> attribute.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_types</emphasis></glossterm>
+
+                <glossdef>
+                  <para>A dictionary mapping the names of non-nested columns
+                  hanging directly from the associated table or nested column
+                  to their respective PyTables types.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -7587,12 +7603,11 @@ for p in rout.where('pressure &lt; 16'):
               <para>If <literal>type</literal> is <literal>'All'</literal>
               (the default), all column description objects
               (<literal>Col</literal> and <literal>Description</literal>
-              instances) are returned in top-to-bottom order
-              (preorder).</para>
+              instances) are yielded in top-to-bottom order (preorder).</para>
 
               <para>If <literal>type</literal> is <literal>'Col'</literal> or
               <literal>'Description'</literal>, only column descriptions of
-              that type are returned.</para>
+              that type are yielded.</para>
             </section>
           </section>
         </section>
@@ -7600,29 +7615,32 @@ for p in rout.where('pressure &lt; 16'):
         <section id="RowClassDescr">
           <title>The <literal>Row</literal> class</title>
 
-          <para>This class is used to fetch and set values on the table
-          fields. It works very much like a dictionary, where the keys are the
-          field names or positions (extended slicing is supported) of the
-          fields in the associated table in a specific row.</para>
+          <para>Table row iterator and field accessor.</para>
 
-          <para>This object turns out to actually be an extension type, so you
-          won't be able to access its documentation interactively. However,
-          you will be able to access some of its internal attributes through
-          the use of Python properties. In addition, there are some important
-          methods that are useful for acessing, adding and modifying values in
-          tables.</para>
+          <para>Instances of this class are used to fetch and set the values
+          of individual table fields.  It works very much like a dictionary,
+          where keys are the pathnames or positions (extended slicing is
+          supported) of the fields in the associated table in a specific
+          row.</para>
+
+          <para>This class provides an <emphasis>iterator interface</emphasis>
+          so that you can use the same <literal>Row</literal> instance to
+          access successive table rows one after the other.  There are also
+          some important methods that are useful for acessing, adding and
+          modifying values in tables.</para>
 
           <section>
-            <title><literal>Row</literal> attributes</title>
+            <title><literal>Row</literal> instance variables</title>
 
             <glosslist>
               <glossentry>
                 <glossterm><emphasis role="bold">nrow</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Property that returns the current row number in the
-                  table. It is useful to know which row is being dealt with in
-                  the middle of a loop or iterator.</para>
+                  <para>The current row number.</para>
+
+                  <para>This poperty is useful for knowing which row is being
+                  dealt with in the middle of a loop or iterator.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -7634,48 +7652,32 @@ for p in rout.where('pressure &lt; 16'):
             <section id="Row.append" xreflabel="description">
               <title>append()</title>
 
-              <para>Once you have filled the proper fields for the current
-              row, calling this method actually append these new data to the
-              disk (actually data are written to the output buffer).</para>
+              <para>Add a new row of data to the end of the dataset.</para>
 
-              <para>Example of use: <screen>row = table.row
+              <para>Once you have filled the proper fields for the current
+              row, calling this method actually appends the new data to the
+              <emphasis>output buffer</emphasis> (which will eventually be
+              dumped to disk).  If you have not set the value of a field, the
+              default value of the column will be used.</para>
+
+              <para>Example of use:</para>
+
+              <screen>
+row = table.row
 for i in xrange(nrows):
     row['col1'] = i-1
     row['col2'] = 'a'
     row['col3'] = -1.0
     row.append()
-table.flush()</screen> <emphasis>Warning:</emphasis> after completion of the
-              loop in which <literal>Row.append()</literal> has been called,
-              it is always convenient to make a call to
-              <literal>Table.flush()</literal> in order to avoid losing the
-              last rows that can be in internal buffers.</para>
-            </section>
+table.flush()</screen>
 
-            <section id="Row.update" xreflabel="description">
-              <title>update()</title>
-
-              <para>This allows you to modify values of your tables when you
-              are in the middle of table iterators, like
-              <literal>Table.iterrows()</literal> (see <xref
-              linkend="Table.iterrows" xrefstyle="select: label" />) or
-              <literal>Table.where()</literal> (see <xref
-              linkend="Table.where" />). Once you have filled the proper
-              fields for the current row, calling this method actually commits
-              these data to the disk (actually data is written to the output
-              buffer, so the same warning noted in
-              <literal>Row.append()</literal> applies).</para>
-
-              <para>Example of use: <screen>for row in table.iterrows(step=10):
-    row['col1'] = row.nrow
-    row['col2'] = 'b'
-    row['col3'] = 0.0
-    row.update()</screen> which modifies every tenth row in table. Or:
-              <screen>for row in table.where('col1 &gt; 3'):
-    row['col1'] = row.nrow
-    row['col2'] = 'b'
-    row['col3'] = 0.0
-    row.update()</screen> which just updates the rows with values in first
-              column bigger than 3.</para>
+              <warning>
+                <para>After completion of the loop in which
+                <literal>Row.append()</literal> has been called, it is always
+                convenient to make a call to <literal>Table.flush()</literal>
+                in order to avoid losing the last rows that may still remain
+                in internal buffers.</para>
+              </warning>
             </section>
 
             <section id="Row.fetch_all_fields" xreflabel="description">
@@ -7685,11 +7687,62 @@ table.flush()</screen> <emphasis>Warning:</emphasis> after completion of the
 
               <para>Contrarily to <literal>row[:]</literal> (see <xref
               linkend="RowSpecialMethods" xrefstyle="select: label" />), this
-              returns the data as NumPy void scalars.</para>
+              returns row data as a NumPy void scalar.  For instance:</para>
 
-              <para>Example of use: <screen>[ row.fetch_all_fields() for row in table.where('col1 &lt; 3') ]</screen>
-              which select all the rows that fullfills a certain
-              condition.</para>
+              <screen>
+[row.fetch_all_fields() for row in table.where('col1 &lt; 3')]</screen>
+
+              <para>will select all the rows that fullfill the given condition
+              as a list of NumPy records.</para>
+            </section>
+
+            <section id="Row.update" xreflabel="description">
+              <title>update()</title>
+
+              <para>Change the data of the current row in the dataset.</para>
+
+              <para>This method allows you to modify values in a table when
+              you are in the middle of a table iterator like
+              <literal>Table.iterrows()</literal> (see <xref
+              linkend="Table.iterrows" />) or <literal>Table.where()</literal>
+              (see <xref linkend="Table.where" />).</para>
+
+              <para>Once you have filled the proper fields for the current
+              row, calling this method actually changes data in the
+              <emphasis>output buffer</emphasis> (which will eventually be
+              dumped to disk).  If you have not set the value of a field, its
+              original value will be used.</para>
+
+              <para>Examples of use:</para>
+
+              <screen>
+for row in table.iterrows(step=10):
+    row['col1'] = row.nrow
+    row['col2'] = 'b'
+    row['col3'] = 0.0
+    row.update()
+table.flush()</screen>
+
+              <para>which modifies every tenth row in table.  Or:</para>
+
+              <screen>
+for row in table.where('col1 &gt; 3'):
+    row['col1'] = row.nrow
+    row['col2'] = 'b'
+    row['col3'] = 0.0
+    row.update()
+table.flush()</screen>
+
+              <para>which just updates the rows with values bigger than 3 in
+              the first column.</para>
+
+              <warning>
+                <para>After completion of the loop in which
+                <literal>Row.update()</literal> has been called, it is always
+                convenient to make a call to <literal>Table.flush()</literal>
+                in order to avoid losing changed rows that may still remain in
+                internal buffers.</para>
+              </warning>
             </section>
           </section>
 
@@ -7699,26 +7752,35 @@ table.flush()</screen> <emphasis>Warning:</emphasis> after completion of the
             <section>
               <title>__getitem__(key)</title>
 
-              <para>Returns the row field specified in
+              <para>Get the row field specified by the
               <literal>key</literal>.</para>
 
-              <para><literal>key</literal> can be a string (the name of the
-              field), an integer (the position of the field) or a slice (the
-              range of field positions). When <literal>key</literal> is a
+              <para>The <literal>key</literal> can be a string (the name of
+              the field), an integer (the position of the field) or a slice
+              (the range of field positions). When <literal>key</literal> is a
               slice, the returned value is a <emphasis>tuple</emphasis>
               containing the values of the specified fields.</para>
 
-              <para>Examples of use: <screen>res = [ row['var3'] for row in table.where('var2 &lt; 20') ]</screen>
-              which selects the <literal>var3</literal> field for all the rows
-              that fullfill the condition. Or: <screen>res = [ row[4] for row in table if row[1] &lt; 20 ]</screen>
-              which selects the field in <literal>4th</literal> position for
-              all the rows that fullfill the condition. Or: <screen>res = [ row[:] for row in table if row['var2'] &lt; 20 ]</screen>
-              which selects the all the fields (in the form of a
+              <para>Examples of use:</para>
+              <screen>
+res = [row['var3'] for row in table.where('var2 &lt; 20')]</screen>
+              <para>which selects the <literal>var3</literal> field for all
+              the rows that fullfill the condition. Or:</para>
+              <screen>
+res = [row[4] for row in table if row[1] &lt; 20]</screen>
+              <para>which selects the field in the <emphasis>4th</emphasis>
+              position for all the rows that fullfill the
+              condition. Or:</para>
+              <screen>
+res = [row[:] for row in table if row['var2'] &lt; 20]</screen>
+              <para>which selects the all the fields (in the form of a
               <emphasis>tuple</emphasis>) for all the rows that fullfill the
-              condition. Or: <screen>res = [ row[1::2] for row in table.iterrows(2, 3000, 3) ]</screen>
-              which selects the all the fields in even positions (in the form
-              of a <emphasis>tuple</emphasis>) for all the rows in the slice
-              <literal>[2:3000:3]</literal>.</para>
+              condition. Or:</para>
+              <screen>
+res = [row[1::2] for row in table.iterrows(2, 3000, 3)]</screen>
+              <para>which selects all the fields in even positions (in the
+              form of a <emphasis>tuple</emphasis>) for all the rows in the
+              slice <literal>[2:3000:3]</literal>.</para>
             </section>
 
             <section>
@@ -7729,21 +7791,29 @@ table.flush()</screen> <emphasis>Warning:</emphasis> after completion of the
 
               <para>Differently from its <literal>__getitem__()</literal>
               counterpart, in this case <literal>key</literal> can only be a
-              string (the name of the field). <literal>__setitem__()</literal>
-              will not take effect on the table data on-disk until any of the
-              <xref linkend="Row.append" xrefstyle="select: label" /> or
-              <xref linkend="Row.update" xrefstyle="select: label" />
-              methods would be called.</para>
+              string (the name of the field). The changes done via
+              <literal>__setitem__()</literal> will not take effect on the
+              data on disk until any of the <literal>Row.append()</literal>
+              (see <xref linkend="Row.append" />) or
+              <literal>Row.update()</literal> (see <xref linkend="Row.update"
+              />) methods are called.</para>
 
-              <para>Example of use: <screen>for row in table.iterrows(step=10):
+              <para>Example of use:</para>
+
+              <screen>
+for row in table.iterrows(step=10):
     row['col1'] = row.nrow
     row['col2'] = 'b'
     row['col3'] = 0.0
-    row.update()</screen> which modifies every tenth row in table.</para>
+    row.update()
+table.flush()</screen>
+
+              <para>which modifies every tenth row in the table.</para>
             </section>
           </section>
         </section>
 
+        <!-- XXX REVIEWED UP TO HERE - Ivan -->
         <section id="ColsClassDescr">
           <title>The <literal>Cols</literal> class</title>
 

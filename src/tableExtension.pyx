@@ -567,12 +567,45 @@ cdef class Table(Leaf):
 
 
 cdef class Row:
-  """Row Class
+  """
+  Table row iterator and field accessor.
 
-  This class hosts accessors to a recarray row. The fields on a
-  recarray can be accessed both as items (__getitem__/__setitem__),
-  i.e. following the "map" protocol.
+  Instances of this class are used to fetch and set the values of individual
+  table fields.  It works very much like a dictionary, where keys are the
+  pathnames or positions (extended slicing is supported) of the fields in the
+  associated table in a specific row.
 
+  This class provides an *iterator interface* so that you can use the same
+  ``Row`` instance to access successive table rows one after the other.  There
+  are also some important methods that are useful for acessing, adding and
+  modifying values in tables.
+
+  Public instance variables
+  -------------------------
+
+  nrow
+      The current row number.
+
+      This poperty is useful for knowing which row is being dealt with in the
+      middle of a loop or iterator.
+
+  Public methods
+  --------------
+
+  append()
+      Add a new row of data to the end of the dataset.
+  fetch_all_fields()
+      Retrieve all the fields in the current row.
+  update()
+      Change the data of the current row in the dataset.
+
+  Special methods
+  ---------------
+
+  __getitem__(key)
+      Get the row field specified by the ``key``.
+  __setitem__(key, value)
+      Set the ``key`` row field to the specified ``value``.
   """
 
   cdef hsize_t _row, _unsaved_nrows, _mod_nrows
@@ -788,7 +821,7 @@ cdef class Row:
       # All the elements have been read for this mode
       nextelement = self.nrows
       if nextelement >= self.nrows:
-        self.finish_riterator()
+        self._finish_riterator()
       else:
         # Continue the iteration with the __next__inKernel() method
         self.start = nextelement
@@ -849,7 +882,7 @@ cdef class Row:
       if self.indexValid[self.indexChunk]:
         return self
     else:
-      self.finish_riterator()
+      self._finish_riterator()
 
 
   # This is the most general __next__ version, simple, but effective
@@ -883,10 +916,10 @@ cdef class Row:
       # Return this value
       return self
     else:
-      self.finish_riterator()
+      self._finish_riterator()
 
 
-  cdef finish_riterator(self):
+  cdef _finish_riterator(self):
 #     """Clean-up things after iterator has been done"""
 
     self.rfieldscache = {}     # empty rfields cache
@@ -940,13 +973,40 @@ cdef class Row:
 
   # The nrow() method has been converted into a property, which is handier
   property nrow:
-    "Makes current row visible from Python space."
+    """
+    The current row number.
+
+    This poperty is useful for knowing which row is being dealt with in the
+    middle of a loop or iterator.
+    """
     def __get__(self):
       return self._nrow
 
 
   def append(self):
-    """Append self object to the output buffer."""
+    """append(self) -> None
+    Add a new row of data to the end of the dataset.
+
+    Once you have filled the proper fields for the current row, calling this
+    method actually appends the new data to the *output buffer* (which will
+    eventually be dumped to disk).  If you have not set the value of a field,
+    the default value of the column will be used.
+
+    Example of use::
+
+        row = table.row
+        for i in xrange(nrows):
+            row['col1'] = i-1
+            row['col2'] = 'a'
+            row['col3'] = -1.0
+            row.append()
+        table.flush()
+
+    .. Warning:: After completion of the loop in which `Row.append()` has been
+       called, it is always convenient to make a call to `Table.flush()` in
+       order to avoid losing the last rows that may still remain in internal
+       buffers.
+    """
 
     if self.ro_filemode:
       raise IOError("Attempt to write over a file opened in read-only mode")
@@ -971,7 +1031,42 @@ cdef class Row:
 
 
   def update(self):
-    """Update current row copying it from the input buffer."""
+    """update(self) -> None
+    Change the data of the current row in the dataset.
+
+    This method allows you to modify values in a table when you are in the
+    middle of a table iterator like `Table.iterrows()` or `Table.where()`.
+
+    Once you have filled the proper fields for the current row, calling this
+    method actually changes data in the *output buffer* (which will eventually
+    be dumped to disk).  If you have not set the value of a field, its
+    original value will be used.
+
+    Examples of use::
+
+        for row in table.iterrows(step=10):
+            row['col1'] = row.nrow
+            row['col2'] = 'b'
+            row['col3'] = 0.0
+            row.update()
+        table.flush()
+
+    which modifies every tenth row in table.  Or::
+
+        for row in table.where('col1 &gt; 3'):
+            row['col1'] = row.nrow
+            row['col2'] = 'b'
+            row['col3'] = 0.0
+            row.update()
+        table.flush()
+
+    which just updates the rows with values bigger than 3 in the first column.
+
+    .. Warning:: After completion of the loop in which `Row.update()` has been
+       called, it is always convenient to make a call to `Table.flush()` in
+       order to avoid losing changed rows that may still remain in internal
+       buffers.
+    """
 
     if self.ro_filemode:
       raise IOError("Attempt to write over a file opened in read-only mode")
@@ -1010,6 +1105,36 @@ cdef class Row:
   # This method is twice as faster than __getattr__ because there is
   # not a lookup in the local dictionary
   def __getitem__(self, key):
+    """__getitem__(self, key) -> fields
+    Get the row field specified by the `key`.
+
+    The `key` can be a string (the name of the field), an integer (the
+    position of the field) or a slice (the range of field positions).  When
+    `key` is a slice, the returned value is a *tuple* containing the values of
+    the specified fields.
+
+    Examples of use::
+
+        res = [row['var3'] for row in table.where('var2 < 20')]
+
+    which selects the ``var3`` field for all the rows that fullfill the
+    condition.  Or::
+
+        res = [row[4] for row in table if row[1] < 20]
+
+    which selects the field in the *4th* position for all the rows that
+    fullfill the condition. Or:
+
+        res = [row[:] for row in table if row['var2'] < 20]
+
+    which selects the all the fields (in the form of a *tuple*) for all the
+    rows that fullfill the condition.  Or::
+
+        res = [row[1::2] for row in table.iterrows(2, 3000, 3)]
+
+    which selects all the fields in even positions (in the form of a *tuple*)
+    for all the rows in the slice ``[2:3000:3]``.
+    """
     cdef long offset
     cdef ndarray field
     cdef object row
@@ -1045,6 +1170,25 @@ cdef class Row:
 
   # This is slightly faster (around 3%) than __setattr__
   def __setitem__(self, fieldName, object value):
+    """__setitem__(self, key, value) -> None
+    Set the `key` row field to the specified `value`.
+
+    Differently from its ``__getitem__()`` counterpart, in this case `key` can
+    only be a string (the name of the field).  The changes done via
+    ``__setitem__()`` will not take effect on the data on disk until any of
+    the `Row.append()` or `Row.update()` methods are called.
+
+    Example of use:
+
+        for row in table.iterrows(step=10):
+            row['col1'] = row.nrow
+            row['col2'] = 'b'
+            row['col3'] = 0.0
+            row.update()
+        table.flush()
+
+    which modifies every tenth row in the table.
+    """
     cdef ndarray field
     cdef long offset
     cdef int ret
@@ -1099,7 +1243,17 @@ cdef class Row:
 
 
   def fetch_all_fields(self):
-    """Retrieve all the fields in the current row."""
+    """fetch_all_fields(self) -> record
+    Retrieve all the fields in the current row.
+
+    Contrarily to ``row[:]``, this returns row data as a NumPy void scalar.
+    For instance::
+
+        [row.fetch_all_fields() for row in table.where('col1 < 3')]
+
+    will select all the rows that fullfill the given condition as a list of
+    NumPy records.
+    """
 
     # We need to do a cast for recognizing negative row numbers!
     if <signed long long>self._nrow < 0:

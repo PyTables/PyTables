@@ -240,11 +240,39 @@ class Description(object):
     contains a ``col2`` column, this can be accessed as
     ``table.description.col1.col2``.
 
-    Instance variables:
+    Public instance variables
+    -------------------------
+
+    _v_colObjects
+        A dictionary mapping the names of the columns hanging directly
+        from the associated table or nested column to their respective
+        descriptions (`Col` or `Description` instances).
+
+    _v_dflts
+        A dictionary mapping the pathnames of all bottom-level columns
+        under this table or nested column to their respective default
+        values.
+
+    _v_dtype
+        The NumPy type which reflects the structure of this table or
+        nested column.  You can use this as the ``dtype`` argument of
+        NumPy array factories.
+
+    _v_dtypes
+        A dictionary mapping the names of non-nested columns hanging
+        directly from the associated table or nested column to their
+        respective NumPy types.
+
+    _v_is_nested
+        Whether the associated table or nested column contains further
+        nested columns or not.
+
+    _v_itemsize
+        The size in bytes of an item in this table or nested column.
 
     _v_name
-        The name of this description group. The name of the root group
-        is '/'.
+        The name of this description group.  The name of the root group
+        is ``'/'``.
 
     _v_names
         A list of the names of the columns hanging directly from the
@@ -252,64 +280,43 @@ class Description(object):
         matches the order of their respective columns in the containing
         table.
 
-    _v_pathnames
-        A list of the pathnames of the columns hanging directly from the
-        associated table or nested column. If the table does not contain
-        nested columns, this is exactly the same as the ``_v_names``
-        attribute.
-
-    _v_nestedNames
-        A nested list of the names of all the columns under this table
-        or nested column.  You can use this for the ``names`` argument
-        of ``NestedRecArray`` factory functions.
+    _v_nestedDescr
+        A nested list of pairs of ``(name, format)`` tuples for all the
+        columns under this table or nested column.  You can use this as
+        the ``dtype`` and ``descr`` arguments of NumPy array and
+        `NestedRecArray` factories, respectively.
 
     _v_nestedFormats
         A nested list of the NumPy string formats (and shapes) of all
         the columns under this table or nested column.  You can use this
-        for the ``formats`` argument of ``NestedRecArray`` factory
-        functions.
+        as the ``formats`` argument of NumPy array and `NestedRecArray`
+        factories.
 
-    _v_nestedDescr
-        A nested list of pairs of ``(name, format)`` tuples for all the
-        columns under this table or nested column.  You can use this for
-        the ``descr`` argument of ``NestedRecArray`` factory functions.
+    _v_nestedlvl
+        The level of the associated table or nested column in the nested
+        datatype.
+
+    _v_nestedNames
+        A nested list of the names of all the columns under this table
+        or nested column.  You can use this for the ``names`` argument
+        of `NestedRecArray` factory functions.
+
+    _v_pathnames
+        A list of the pathnames of all the columns under this table or
+        nested column (in preorder).  If the table does not contain
+        nested columns, this is exactly the same as the
+        `Description._v_names` attribute.
 
     _v_types
         A dictionary mapping the names of non-nested columns hanging
         directly from the associated table or nested column to their
         respective PyTables types.
 
-    _v_dtypes
-        A dictionary mapping the names of non-nested columns hanging
-        directly from the associated table or nested column to their
-        respective NumPy types.
-
-    _v_dflts
-        A dictionary mapping the names of non-nested columns hanging
-        directly from the associated table or nested column to their
-        respective default values.
-
-    _v_colObjects
-        A dictionary mapping the names of the columns hanging directly
-        from the associated table or nested column to their respective
-        descriptions (`Col` or `Description` instances).
-
-    _v_itemsize
-        The size in bytes of an item with this structure.
-
-    _v_nestedlvl
-        The level of the associated table or nested column in the nested
-        datatype.
-
-    _v_is_nested
-        Whether the associated table has nested columns or not (boolean).
-
-
-    Public methods:
+    Public methods
+    --------------
 
     _f_walk([type])
         Iterate over nested columns.
-
     """
 
     def __init__(self, classdict, nestedlvl=-1, validate=True):
@@ -570,16 +577,16 @@ class Description(object):
                 # (Nothing is pushed, we are done with this description.)
 
 
-    def _f_walk(self, type="All"):
+    def _f_walk(self, type='All'):
         """
         Iterate over nested columns.
 
         If `type` is ``'All'`` (the default), all column description
-        objects (`Col` and `Description` instances) are returned in
+        objects (`Col` and `Description` instances) are yielded in
         top-to-bottom order (preorder).
 
-        If `type` is ``'Col'`` or ``'Description'``, only column
-        or descriptions of the specified type are returned.
+        If `type` is ``'Col'`` or ``'Description'``, only column or
+        descriptions of the specified type are yielded.
         """
 
         if type not in ["All", "Col", "Description"]:
