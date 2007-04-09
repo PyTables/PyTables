@@ -8,10 +8,9 @@ full 64-bit file addressing.  PyTables runs on top of the HDF5 library
 and NumPy package for achieving maximum throughput and convenient use.
 
 The PyTables development team is happy to announce the public
-availability of the second *beta* version of PyTables 2.0. This will
+availability of the second *beta* version of PyTables 2.0.  This will
 hopefully be the last beta version of 2.0 series, so we need your
-feedback if you want your issues to be solved before 2.0 final would be
-out.
+feedback if you want your issues to be solved before 2.0 final is out.
 
 You can download a source package of the version @VERSION@ with
 generated PDF and HTML docs and binaries for Windows from
@@ -105,11 +104,11 @@ New features of PyTables 2.0
   in considerable memory savings when you are modifying disk objects
   with big array values.
 
-- All the leaf constructors (except Array) have received a new
-  ``chunkshape`` argument that lets the user to explicitly select the
+- All leaf constructors (except for ``Array``) have received a new
+  ``chunkshape`` argument that lets the user explicitly select the
   chunksizes for the underlying HDF5 datasets (only for advanced users).
 
-- All the leaf constructors have received a new parameter called
+- All leaf constructors have received a new parameter called
   ``byteorder`` that lets the user specify the byteorder of their data
   *on disk*.  This effectively allows to create datasets in other
   byteorders than the native platform.
