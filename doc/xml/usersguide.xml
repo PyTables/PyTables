@@ -6521,8 +6521,8 @@ for node in h5file.root.detector:
                 and modification of rows). The default is true.</para>
 
                 <para>This value gets into effect whenever a column is
-                altered. If you don't have the automatic indexing activated
-                and you want to do an immediate update use
+                altered. If you don't have automatic indexing activated and
+                you want to do an immediate update use
                 <literal>Table.flushRowsToIndex()</literal> (see <xref
                 linkend="Table.flushRowsToIndex" xrefstyle="select: label"
                 />); for immediate reindexing of invalidated indexes, use

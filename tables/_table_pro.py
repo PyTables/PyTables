@@ -100,7 +100,8 @@ _table__autoIndex = property(
     after an index-invalidating operation (i.e. removal and
     modification of rows).  The default is true.
 
-    This value gets into effect whenever a column is altered.  For an
+    This value gets into effect whenever a column is altered.  If you
+    don't have automatic indexing activated and you want to do an an
     immediate update use `Table.flushRowsToIndex()`; for an immediate
     reindexing of invalidated indexes, use `Table.reIndexDirty()`.
 

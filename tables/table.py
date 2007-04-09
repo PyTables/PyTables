@@ -187,8 +187,8 @@ class Table(tableExtension.Table, Leaf):
         modification of rows).  The default is true.
 
         This value gets into effect whenever a column is altered.  If
-        you don't have the automatic indexing activated and you want to
-        do an an immediate update use `Table.flushRowsToIndex()`; for an
+        you don't have automatic indexing activated and you want to do
+        an an immediate update use `Table.flushRowsToIndex()`; for an
         immediate reindexing of invalidated indexes, use
         `Table.reIndexDirty()`.
 
