@@ -21,7 +21,6 @@ import numpy
 # Sensible parameters for indexing with small blocksizes
 minRowIndex = 10
 small_blocksizes = (96, 24, 6, 3)
-small_ss = small_blocksizes[2]
 
 class TDescr(IsDescription):
     var1 = StringCol(itemsize=4, dflt="", pos=1)
@@ -581,6 +580,7 @@ class BasicTestCase(PyTablesTestCase):
         self.fileh.removeNode(self.fileh.root.distance_table)
 
 
+small_ss = small_blocksizes[2]
 class BasicReadTestCase(BasicTestCase):
     compress = 0
     complib = "zlib"

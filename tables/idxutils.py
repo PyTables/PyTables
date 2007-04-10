@@ -128,6 +128,19 @@ def calcChunksize(expectedrows, memlevel):
     return sizes
 
 
+# Dictionary of optimization values for the test mode
+opts_testmode_dict = {0: (0,0,0,0),
+                      1: (1,0,0,0),
+                      2: (0,1,0,0),
+                      3: (0,0,1,0),
+                      4: (0,1,1,0),
+                      5: (1,1,1,0),
+                      6: (1,1,1,1),
+                      7: (0,0,0,1),
+                      8: (0,0,0,2),
+                      9: (0,0,0,3),
+                      }
+
 def calcoptlevels(nss, optlevel, testmode):
     """Compute the optimizations to be done.
 
@@ -137,12 +150,9 @@ def calcoptlevels(nss, optlevel, testmode):
 
     optmedian, optstarts, optstops, optfull = (False,)*4
     if testmode:
-        if 5 <= optlevel < 7:
-            optmedian = True
-        elif 7 <= optlevel < 9:
-            optstarts, optstops = (True, True)
-        elif optlevel == 9:
-            optfull = 1
+        optmedian, optstarts, optstops, optfull = opts_testmode_dict[optlevel]
+        if debug:
+            print "optvalues:", optmedian, optstarts, optstops, optfull
         return optmedian, optstarts, optstops, optfull
 
     # Regular case
@@ -186,6 +196,8 @@ def calcoptlevels(nss, optlevel, testmode):
         elif optlevel == 9:
             optfull = 4
 
+    if debug:
+        print "optvalues:", optmedian, optstarts, optstops, optfull
     return optmedian, optstarts, optstops, optfull
 
 

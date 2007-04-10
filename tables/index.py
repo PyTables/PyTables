@@ -70,7 +70,7 @@ __version__ = "$Revision: 1236 $"
 obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series
 
 debug = False
-debug = True  # Uncomment this for debugging purposes only
+#debug = True  # Uncomment this for debugging purposes only
 profile = False
 #profile = True  # uncomment for profiling purposes only
 

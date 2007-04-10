@@ -33,8 +33,8 @@ _strlen = int(numpy.log10(_maxnvalue-1)) + 1
 str_format = '%%0%dd' % _strlen
 """Format of string values."""
 
-# Sensible parameters for indexing with small blocksizes
-small_blocksizes = (16, 8, 4, 2)
+small_blocksizes = (300, 60, 20, 5)
+"""Sensible parameters for indexing with small blocksizes."""
 
 
 # Type information
@@ -229,7 +229,8 @@ class BaseTableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
             vprint("* Indexing ``%s`` columns." % colname)
             for acolname in [colname, ncolname]:
                 acolumn = self.table.colinstances[acolname]
-                acolumn.createIndex(memlevel=1, optlevel=self.optlevel,
+                acolumn.createIndex(blocksizes=small_blocksizes,
+                                    optlevel=self.optlevel,
                                     _testmode=True)
         except TypeError, te:
             if self.colNotIndexable_re.search(str(te)):
@@ -439,12 +440,12 @@ class BigITableMixin:
 
 # Parameters for indexed queries.
 itable_sizes = ['Small']
-itable_optvalues = [0, 2, 3]
+itable_optvalues = [0, 1, 3]
 if tests.heavy:
     itable_sizes += ['Medium', 'Big']
-    itable_optvalues += [7, 9]
+    itable_optvalues += [6, 9]
 
-# Indexed queries: ``[SMB]I[02379]TDTestCase``, where:
+# Indexed queries: ``[SMB]I[01369]TDTestCase``, where:
 #
 # 1. S is for small, M for medium and B for big size table.
 #    Sizes are listed in `itable_sizes`.
