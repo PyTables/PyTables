@@ -2379,28 +2379,53 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
 
 
 class Cols(object):
-    """This is a container for columns in a table
+    """
+    Container for columns in a table or nested column.
 
-    It provides methods to get Column objects that gives access to the
-    data in the column.
+    This class is used as an *accessor* to the columns in a table or
+    nested column.  It supports the *natural naming* convention, so that
+    you can access the different columns as attributes which lead to
+    `Column` instances (for non-nested columns) or other `Cols`
+    instances (for nested columns).
 
-    Like with Group instances and AttributeSet instances, the natural
-    naming is used, i.e. you can access the columns on a table like if
-    they were normal Cols attributes.
+    For instance, if ``table.cols`` is a `Cols` instance with a column
+    named ``col1`` under it, the later can be accessed as
+    ``table.cols.col1``.  If ``col1`` is nested and contains a ``col2``
+    column, this can be accessed as ``table.cols.col1.col2`` and so on.
 
-    Instance variables:
+    Like the `Column` class, `Cols` supports item access to read and
+    write ranges of values in the table or nested column.
 
-        _v_colnames -- List with all column names hanging from cols
-        _v_colpathnames -- List with all column names hanging from cols
-        _v_table -- The parent table instance
-        _v_desc -- The associated Description instance
+    Public instance variables
+    -------------------------
 
-    Methods:
+    _v_colnames
+        A list of the names of the columns hanging directly from the
+        associated table or nested column.  The order of the names
+        matches the order of their respective columns in the containing
+        table.
 
-        _f_col(colname)
-        __getitem__(slice)
-        __len__()
+    _v_colpathnames
+        A list of the pathnames of all the columns under the associated
+        table or nested column (in preorder).  If it does not contain
+        nested columns, this is exactly the same as the
+        `Cols._v_colnames` attribute.
 
+    _v_desc
+        The associated `Description` instance.
+
+    _v_table
+        The parent `Table` instance.
+
+    Public Methods
+    --------------
+
+    _f_col(colname)
+        Get an accessor to the column ``colname``.
+    __getitem__(key)
+        Get a row or a range of rows from a table or nested column.
+    __setitem__(key, value)
+        Set a row or a range of rows in a table or nested column.
     """
 
     def _g_gettable(self):
@@ -2450,7 +2475,18 @@ class Cols(object):
 
 
     def _f_col(self, colname):
-        """Return the column named "colname"."""
+        """
+        Get an accessor to the column `colname`.
+
+        This method returns a `Column` instance if the requested column
+        is not nested, and a `Cols` instance if it is.  You may use full
+        column pathnames in `colname`.
+
+        Calling ``cols._f_col('col1/col2')`` is equivalent to using
+        ``cols.col1.col2``.  However, the first syntax is more intended
+        for programmatic use.  It is also better if you want to access
+        columns with names that are not valid Python identifiers.
+        """
 
         if not isinstance(colname, str):
             raise TypeError, \
@@ -2476,7 +2512,7 @@ class Cols(object):
 
     def __getitem__(self, key):
         """
-        Get a row or a range of rows from a (nested) column.
+        Get a row or a range of rows from a table or nested column.
 
         If the `key` argument is an integer, the corresponding nested
         type row is returned as a record of the current flavor.  If
@@ -2495,7 +2531,6 @@ class Cols(object):
 
         Here you can see how a mix of natural naming, indexing and
         slicing can be used as shorthands for the `Table.read()` method.
-
         """
 
         table = self._v_table
@@ -2532,7 +2567,7 @@ class Cols(object):
 
     def __setitem__(self, key, value):
         """
-        Set a row or a range of rows to a (nested) column.
+        Set a row or a range of rows in a table or nested column.
 
         If the `key` argument is an integer, the corresponding row is
         set to `value`.  If `key` is a slice, the range of rows
@@ -2549,9 +2584,8 @@ class Cols(object):
             table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)
 
         Here you can see how a mix of natural naming, indexing and
-        slicing can be used as shorthands for the `Table.modifyRows` and
-        `Table.modifyColumn` methods.
-
+        slicing can be used as shorthands for the `Table.modifyRows()`
+        and `Table.modifyColumn()` methods.
         """
 
         table = self._v_table

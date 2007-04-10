@@ -7573,7 +7573,7 @@ for p in rout.where('pressure &lt; 16'):
 
                 <glossdef>
                   <para>A list of the pathnames of all the columns under this
-                  table or nested column (in preorder).  If the table does not
+                  table or nested column (in preorder).  If it does not
                   contain nested columns, this is exactly the same as the
                   <literal>Description._v_names</literal> attribute.</para>
                 </glossdef>
@@ -7813,26 +7813,30 @@ table.flush()</screen>
           </section>
         </section>
 
-        <!-- XXX REVIEWED UP TO HERE - Ivan -->
         <section id="ColsClassDescr">
           <title>The <literal>Cols</literal> class</title>
 
-          <para>This class is used as an <emphasis>accessor</emphasis> to the
-          table columns following the natural name convention, so that you can
-          access the different columns because there exists one attribute with
-          the name of the columns for each associated column, which can be a
-          <literal>Column</literal> instance (non-nested column) or another
-          <literal>Cols</literal> instance (nested column).</para>
+          <para>Container for columns in a table or nested column.</para>
 
-          <para>Columns under a <literal>Cols</literal> accessor can be
-          accessed as attributes of it. For instance, if
-          <literal>table.cols</literal> is a <literal>Cols</literal> instance
-          with a column named <literal>col1</literal> under it, the later can
-          be accessed as <literal>table.cols.col1</literal>. If
-          <literal>col1</literal> is nested and contains a
-          <literal>col2</literal> column, this can be accessed as
-          <literal>table.cols.col1.col2</literal> and so on and so
-          forth.</para>
+          <para>This class is used as an <emphasis>accessor</emphasis> to the
+          columns in a table or nested column.  It supports the
+          <emphasis>natural naming</emphasis> convention, so that you can
+          access the different columns as attributes which lead to
+          <literal>Column</literal> instances (for non-nested columns) or
+          other <literal>Cols</literal> instances (for nested columns).</para>
+
+          <para>For instance, if <literal>table.cols</literal> is a
+          <literal>Cols</literal> instance with a column named
+          <literal>col1</literal> under it, the later can be accessed as
+          <literal>table.cols.col1</literal>. If <literal>col1</literal> is
+          nested and contains a <literal>col2</literal> column, this can be
+          accessed as <literal>table.cols.col1.col2</literal> and so
+          on.</para>
+
+          <para>Like the <literal>Column</literal> class (see <xref
+          linkend="ColumnClassDescr" xrefstyle="select: label" />),
+          <literal>Cols</literal> supports item access to read and write
+          ranges of values in the table or nested column.</para>
 
           <section>
             <title><literal>Cols</literal> instance variables</title>
@@ -7845,10 +7849,10 @@ table.flush()</screen>
                 role="bold">_v_colnames</emphasis></glossterm>
 
                 <glossdef>
-                  <para>A list of the names of the columns (or nested columns)
-                  hanging directly from this <literal>Cols</literal> instance.
-                  The order of the names matches the order of their respective
-                  columns in the containing table.</para>
+                  <para>A list of the names of the columns hanging directly
+                  from the associated table or nested column.  The order of
+                  the names matches the order of their respective columns in
+                  the containing table.</para>
                 </glossdef>
               </glossentry>
 
@@ -7857,20 +7861,10 @@ table.flush()</screen>
                 role="bold">_v_colpathnames</emphasis></glossterm>
 
                 <glossdef>
-                  <para>A list of the complete pathnames of the columns
-                  hanging directly from this <literal>Cols</literal> instance.
-                  If the table does not contain nested columns, this is
-                  exactly the same as <literal>_v_colnames</literal>
-                  attribute.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">_v_table</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The parent <literal>Table</literal> instance.</para>
+                  <para>A list of the pathnames of all the columns under the
+                  associated table or nested column (in preorder).  If it does
+                  not contain nested columns, this is exactly the same as the
+                  <literal>Cols._v_colnames</literal> attribute.</para>
                 </glossdef>
               </glossentry>
 
@@ -7879,9 +7873,20 @@ table.flush()</screen>
                 role="bold">_v_desc</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The associated Description (see <xref
-                  linkend="ColumnClassDescr" xrefstyle="select: label" />)
-                  instance.</para>
+                  <para>The associated <literal>Description</literal> instance
+                  (see <xref linkend="DescriptionClassDescr"
+                  xrefstyle="select: label" />).</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">_v_table</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The parent <literal>Table</literal> instance (see
+                  <xref linkend="TableClassDescr" xrefstyle="select: label"
+                  />).</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -7893,17 +7898,28 @@ table.flush()</screen>
             <section id="Cols._f_col">
               <title>_f_col(colname)</title>
 
-              <para>Return a handler to the <emphasis>colname</emphasis>
-              column. If <emphasis>colname</emphasis> is a nested column, a
-              <literal>Cols</literal> instance is returned. If
-              <emphasis>colname</emphasis> is a non-nested column a
-              <literal>Column</literal> object is returned instead.</para>
+              <para>Get an accessor to the column
+              <literal>colname</literal>.</para>
+
+              <para>This method returns a <literal>Column</literal> instance
+              (see <xref linkend="ColumnClassDescr" xrefstyle="select: label"
+              />) if the requested column is not nested, and a
+              <literal>Cols</literal> instance (see <xref
+              linkend="ColsClassDescr" xrefstyle="select: label" />) if it is.
+              You may use full column pathnames in
+              <literal>colname</literal>.</para>
+
+              <para>Calling <literal>cols._f_col('col1/col2')</literal> is
+              equivalent to using <literal>cols.col1.col2</literal>.  However,
+              the first syntax is more intended for programmatic use.  It is
+              also better if you want to access columns with names that are
+              not valid Python identifiers.</para>
             </section>
 
             <section id="Cols.__getitem__">
               <title>__getitem__(key)</title>
 
-              <para>Get a row or a range of rows from a (nested)
+              <para>Get a row or a range of rows from a table or nested
               column.</para>
 
               <para>If the <literal>key</literal> argument is an integer, the
@@ -7914,52 +7930,56 @@ table.flush()</screen>
 
               <para>Example of use:</para>
 
-              <screen>record = table.cols[4]  # equivalent to table[4]
+              <screen>
+record = table.cols[4]  # equivalent to table[4]
 recarray = table.cols.Info[4:1000:2]</screen>
 
               <para>Those statements are equivalent to:</para>
 
-              <screen>nrecord = table.read(start=4)[0]
+              <screen>
+nrecord = table.read(start=4)[0]
 nrecarray = table.read(start=4, stop=1000, step=2).field('Info')</screen>
 
               <para>Here you can see how a mix of natural naming, indexing and
               slicing can be used as shorthands for the
-              <literal>read()</literal> (see <xref linkend="Table.read" />)
-              method.</para>
+              <literal>Table.read()</literal> (see <xref linkend="Table.read"
+              />) method.</para>
             </section>
 
             <section>
               <title>__setitem__(key)</title>
 
-              <para>Set a row or a range of rows to the
-              <literal>Cols</literal> accessor.</para>
+              <para>Set a row or a range of rows in a table or nested
+              column.</para>
 
               <para>If the <literal>key</literal> argument is an integer, the
-              corresponding <literal>Cols</literal> row is set to the
-              <literal>value</literal> object. If <literal>key</literal> is a
-              slice, the range of rows determined by it is set to the
-              <literal>value</literal> object.</para>
+              corresponding row is set to <literal>value</literal>. If
+              <literal>key</literal> is a slice, the range of rows determined
+              by it is set to <literal>value</literal>.</para>
 
               <para>Example of use:</para>
 
-              <screen>table.cols[4] = record
+              <screen>
+table.cols[4] = record
 table.cols.Info[4:1000:2] = recarray</screen>
 
               <para>Those statements are equivalent to:</para>
 
-              <screen>table.modifyRows(4, rows=record)
+              <screen>
+table.modifyRows(4, rows=record)
 table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
 
               <para>Here you can see how a mix of natural naming, indexing and
               slicing can be used as shorthands for the
-              <literal>modifyRows()</literal> and
-              <literal>modifyColumn()</literal> (see <xref
-              linkend="Table.modifyRows" /> and <xref
+              <literal>Table.modifyRows()</literal> (see <xref
+              linkend="Table.modifyRows" />) and
+              <literal>Table.modifyColumn()</literal> (see <xref
               linkend="Table.modifyColumn" />) methods.</para>
             </section>
           </section>
         </section>
 
+        <!-- XXX REVIEWED UP TO HERE - Ivan -->
         <section id="ColumnClassDescr">
           <title>The <literal>Column</literal> class</title>
 

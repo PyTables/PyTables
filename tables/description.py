@@ -303,9 +303,9 @@ class Description(object):
 
     _v_pathnames
         A list of the pathnames of all the columns under this table or
-        nested column (in preorder).  If the table does not contain
-        nested columns, this is exactly the same as the
-        `Description._v_names` attribute.
+        nested column (in preorder).  If it does not contain nested
+        columns, this is exactly the same as the `Description._v_names`
+        attribute.
 
     _v_types
         A dictionary mapping the names of non-nested columns hanging
