@@ -2663,28 +2663,68 @@ class Cols(object):
 
 
 class Column(object):
-    """This is an accessor for the actual data in a table column
+    """
+    Accessor for a non-nested column in a table.
 
-    Instance variables:
+    Each instance of this class is associated with one *non-nested*
+    column of a table.  These instances are mainly used to read and
+    write data from the table columns using item access (like the `Cols`
+    class), but there are a few other associated methods to deal with
+    indexes.
 
-        table -- the parent table instance
-        name -- the name of the associated column
-        pathname -- the complete pathname of the column (the same as `name`
-                    if column is non-nested)
-        descr -- the parent description object
-        type -- the PyTables type of the column
-        dtype -- the NumPy data type of the column
-        shape -- the shape of the column
-        index -- the Index object (None if doesn't exists)
-        dirty -- whether the index is dirty or not (property)
+    .. Note:: Column indexing is only available in PyTables Pro.
 
-    Methods:
-        __getitem__(key)
-        __setitem__(key, value)
-        createIndex()
-        reIndex()
-        reIndexDirty()
-        removeIndex()
+    Public instance variables
+    -------------------------
+
+    descr
+        The `Description` instance of the parent table or nested column.
+    dtype
+        The NumPy ``dtype`` that most closely matches this column.
+    index
+        The `Index` instance associated with this column (``None`` if
+        the column is not indexed).
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+
+    is_indexed
+        True if the column is indexed, false otherwise.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+
+    name
+        The name of the associated column.
+    pathname
+        The complete pathname of the associated column (the same as
+        `Column.name` if the column is not inside a nested column).
+    table
+        The parent `Table` instance.
+    type
+        The PyTables type of the column (a string).
+
+    Public methods
+    --------------
+
+    createIndex([memlevel][, optlevel][, filters][, blocksizes][, opts])
+        Create an index for this column.
+    optimizeIndex([optlevel][, opts])
+        Optimize an already created index for this column.
+    reIndex()
+        Recompute the index associated with this column.
+    reIndexDirty()
+        Recompute the associated index only if it is dirty.
+    removeIndex()
+        Remove the index associated with this column.
+
+    Special methods
+    ---------------
+
+    __getitem__(key)
+        Get an element or a range of elements from a column.
+    __len__()
+        Get the number of elements in the column.
+    __setitem__(key, value)
+        Set an element or a range of elements in a column.
     """
 
     def _gettable(self):
@@ -2762,20 +2802,52 @@ class Column(object):
 
 
     def __len__(self):
+        """
+        Get the number of elements in the column.
+
+        This matches the length in rows of the parent table.
+        """
         return self.table.nrows
 
 
     def __getitem__(self, key):
-        """Returns a column element or slice
+        """
+        Get a row or a range of rows from a column.
 
-        It takes different actions depending on the type of the 'key'
-        parameter:
+        If the `key` argument is an integer, the corresponding element
+        in the column is returned as an object of the current flavor.
+        If `key` is a slice, the range of elements determined by it is
+        returned as an array of the current flavor.
 
-        If 'key' is an integer, the corresponding element in the column is
-        returned as a NumPy or scalar object, depending on its shape. If 'key'
-        is a slice, the row slice determined by this slice is returned as a
-        NumPy object.
+        Example of use::
 
+            print \"Column handlers:\"
+            for name in table.colnames:
+                print table.cols._f_col(name)
+
+            print \"Select table.cols.name[1]-->\", table.cols.name[1]
+            print \"Select table.cols.name[1:2]-->\", table.cols.name[1:2]
+            print \"Select table.cols.name[:]-->\", table.cols.name[:]
+            print \"Select table.cols._f_col('name')[:]-->\", table.cols._f_col('name')[:]
+
+        The output of this for a certain arbitrary table is::
+
+            Column handlers:
+            /table.cols.name (Column(), string, idx=None)
+            /table.cols.lati (Column(), int32, idx=None)
+            /table.cols.longi (Column(), int32, idx=None)
+            /table.cols.vector (Column(2,), int32, idx=None)
+            /table.cols.matrix2D (Column(2, 2), float64, idx=None)
+            Select table.cols.name[1]--> Particle:     11
+            Select table.cols.name[1:2]--> ['Particle:     11']
+            Select table.cols.name[:]--> ['Particle:     10'
+             'Particle:     11' 'Particle:     12'
+             'Particle:     13' 'Particle:     14']
+            Select table.cols._f_col('name')[:]--> ['Particle:     10'
+             'Particle:     11' 'Particle:     12'
+             'Particle:     13' 'Particle:     14']</screen>
+
+        See the ``examples/table2.py`` file for a more complete example.
         """
 
         table = self.table
@@ -2798,16 +2870,27 @@ class Column(object):
 
 
     def __setitem__(self, key, value):
-        """Sets a column element or slice.
+        """
+        Set a row or a range of rows in a column.
 
-        It takes different actions depending on the type of the 'key'
-        parameter:
+        If the `key` argument is an integer, the corresponding element
+        is set to `value`.  If `key` is a slice, the range of elements
+        determined by it is set to `value`.
 
-        If 'key' is an integer, the corresponding element in the column is set
-        to 'value' (scalar or NumPy, depending on column's shape). If 'key' is
-        a slice, the row slice determined by 'key' is set to 'value' (a NumPy
-        or list of elements).
+        Example of use::
 
+            # Modify row 1
+            table.cols.col1[1] = -1
+            # Modify rows 1 and 3
+            table.cols.col1[1::2] = [2,3]
+
+        Which is equivalent to::
+
+            # Modify row 1
+            table.modifyColumns(start=1, columns=[[-1]], names=['col1'])
+            # Modify rows 1 and 3
+            columns = numpy.rec.fromarrays([[2,3]], formats='i4')
+            table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])
         """
 
         table = self.table
@@ -2834,23 +2917,24 @@ class Column(object):
     def createIndex( self, memlevel=8, optlevel=0, filters=None,
                      blocksizes=None, opts=None,
                      _testmode=False, _verbose=False ):
-        """Create an index for this column.
+        """
+        Create an index for this column.
 
-        The `memlevel` argument lets you to choose the memory usage for
-        creating an index. It is a number between 1 and 1024.  Higher
-        levels means better chances for optimization at the price of
-        more memory consumption. Be careful, as the memory consumption
-        grows quadratically (and not linearly) with the memlevel.
+        The `memlevel` argument lets you choose the memory usage for
+        creating an index.  It is a number between 1 and 1024.  Higher
+        levels mean better chances for optimization at the price of more
+        memory consumption.  Be careful, as the memory consumption grows
+        quadratically (and not linearly) with the `memlevel`.
 
-        You can select the level of the optimization of the index by
-        setting `optlevel` from 0 (no optimization) to 9 (maximum
-        optimization).  Higher levels of optimization means better
-        chances for reducing the entropy of the index at the price of
-        using more CPU and I/O resources usage for creating the index.
+        You can select the optimization level of the index by setting
+        `optlevel` from 0 (no optimization) to 9 (maximum optimization).
+        Higher levels of optimization mean better chances for reducing
+        the entropy of the index at the price of using more CPU and I/O
+        resources for creating the index.
 
-        The `filters` argument can be used to set the ``Filters`` used
-        to compress the index.  If ``None``, default index filters will
-        be used (currently, zlib level 1 with shuffling).
+        The `filters` argument can be used to set the `Filters` used to
+        compress the index.  If ``None``, default index filters will be
+        used (currently, zlib level 1 with shuffling).
 
         If you are an advanced user, you can set the four main sizes of
         the compound blocks in index datasets by passing them as a tuple
@@ -2860,8 +2944,8 @@ class Column(object):
         this is meant for expert users, so before doing this, be sure
         that you fully understand their role by reading the *The
         indexing system of PyTables Pro* white paper.  Failing to
-        understanding it, you will probably end with a parametrization
-        that is sub-optimal in the best of cases.
+        understanding it, you will probably end up with a
+        parametrization that is sub-optimal in the best of cases.
 
         The `opts` argument is also meant for advanced users.  This is a
         low level way to specify the different optimizations so as to
@@ -2871,6 +2955,8 @@ class Column(object):
         `optlevel` argument is ignored.  Beware: if you don't fully
         understand the meaning of the `opts` argument, using the high
         level `optlevel` is preferred.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         _checkIndexingAvailable()
@@ -2893,16 +2979,19 @@ class Column(object):
 
     def optimizeIndex(self, optlevel=6, opts=None,
                       _testmode=False, _verbose=False):
-        """Optimize an already created index for this column.
+        """
+        Optimize an already created index for this column.
 
-        You can select the level of the optimization of the index by
-        setting `optlevel` from 0 (no optimization) to 9 (maximum
-        optimization).  Higher levels of optimization means better
-        chances for reducing the entropy of the index at the price of
-        using more CPU and I/O resources usage for creating the index.
+        You can select the optimization level of the index by setting
+        `optlevel` from 0 (no optimization) to 9 (maximum optimization).
+        Higher levels of optimization mean better chances for reducing
+        the entropy of the index at the price of using more CPU and I/O
+        resources for creating the index.
 
         See the `Column.createIndex()` method for an explanation of the
         `opts` low level argument.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         if type(optlevel) not in (int, long) or optlevel < 0 or optlevel > 9:
@@ -2920,7 +3009,16 @@ column '%s' is not indexed, so it can't be optimized."""
 
 
     def reIndex(self):
-        """Recompute the existing index"""
+        """
+        Recompute the index associated with this column.
+
+        This can be useful when you suspect that, for any reason, the
+        index information is no longer valid and you want to rebuild it.
+
+        This method does nothing if the column is not indexed.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+        """
 
         self._tableFile._checkWritable()
 
@@ -2936,7 +3034,17 @@ column '%s' is not indexed, so it can't be optimized."""
 
 
     def reIndexDirty(self):
-        """Recompute the existing index only if it is dirty"""
+        """
+        Recompute the associated index only if it is dirty.
+
+        This can be useful when you have set `Table.autoIndex` to false
+        for the table and tou want to update the column's index after an
+        invalidating index operation (like `Table.removeRows()`).
+
+        This method does nothing if the column is not indexed.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+        """
 
         self._tableFile._checkWritable()
 
@@ -2955,8 +3063,11 @@ column '%s' is not indexed, so it can't be optimized."""
         """
         Remove the index associated with this column.
 
-        If the column is not indexed, nothing happens.  The index can be
-        created again by calling the `self.createIndex()` method.
+        This method does nothing if the column is not indexed.  The
+        removed index can be created again by calling the
+        `Column.createIndex()` method.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         _checkIndexingAvailable()

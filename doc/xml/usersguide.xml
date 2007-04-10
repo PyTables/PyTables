@@ -7979,14 +7979,22 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
           </section>
         </section>
 
-        <!-- XXX REVIEWED UP TO HERE - Ivan -->
         <section id="ColumnClassDescr">
           <title>The <literal>Column</literal> class</title>
 
-          <para>Each instance of this class is associated with one column of
-          every table. These instances are mainly used to fetch and set actual
-          data from the table columns, but there are a few other associated
-          methods to deal with indexes.</para>
+          <para>Accessor for a non-nested column in a table.</para>
+
+          <para>Each instance of this class is associated with one
+          <emphasis>non-nested</emphasis> column of a table. These instances
+          are mainly used to read and write data from the table columns using
+          item access (like the <literal>Cols</literal> class —see <xref
+          linkend="ColsClassDescr" xrefstyle="select: label" />), but there
+          are a few other associated methods to deal with indexes.</para>
+
+          <note>
+            <!-- XXXPRO -->
+            <para>Column indexing is only available in PyTables Pro.</para>
+          </note>
 
           <section>
             <title><literal>Column</literal> instance variables</title>
@@ -7995,10 +8003,55 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <?dbfo glosslist-presentation="list" ?>
 
               <glossentry>
-                <glossterm><emphasis role="bold">table</emphasis></glossterm>
+                <glossterm><emphasis role="bold">descr</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The parent <literal>Table</literal> instance.</para>
+                  <para>The <literal>Description</literal> (see <xref
+                  linkend="DescriptionClassDescr" xrefstyle="select: label"
+                  />) instance of the parent table or nested column.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">dtype</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The NumPy <literal>dtype</literal> that most closely
+                  matches this column.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">index</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The <literal>Index</literal> instance (see <xref
+                  linkend="IndexClassDescr" xrefstyle="select: label" />)
+                  associated with this column (<literal>None</literal> if the
+                  column is not indexed).
+
+                  <note>
+                    <!-- XXXPRO -->
+                    <para>Column indexing is only available in PyTables
+                    Pro.</para>
+                  </note>
+                  </para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">is_indexed</emphasis></glossterm>
+
+                <glossdef>
+                  <para>True if the column is indexed, false otherwise.
+
+                  <note>
+                    <!-- XXXPRO -->
+                    <para>Column indexing is only available in PyTables
+                    Pro.</para>
+                  </note>
+                  </para>
                 </glossdef>
               </glossentry>
 
@@ -8015,9 +8068,19 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
                 role="bold">pathname</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The complete pathname of the associated column. This
-                  is mainly useful in nested columns; for non-nested ones this
-                  value is the same a <literal>name</literal>.</para>
+                  <para>The complete pathname of the associated column (the
+                  same as <literal>Column.name</literal> if the column is not
+                  inside a nested column).</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">table</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The parent <literal>Table</literal> instance (see
+                  <xref linkend="TableClassDescr" xrefstyle="select: label"
+                  />).</para>
                 </glossdef>
               </glossentry>
 
@@ -8025,34 +8088,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
                 <glossterm><emphasis role="bold">type</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The data type of the column.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">stype</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The data type, in string format, of the column.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">shape</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The shape of the column.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">index</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The associated <literal>Index</literal> object (see
-                  <xref linkend="IndexClassDescr" xrefstyle="select: label"
-                  />) to this column (<literal>None</literal> if it does not
-                  exist).</para>
+                  <para>The PyTables type of the column (a string).</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -8065,23 +8101,21 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <title><literal>createIndex(memlevel=8, optlevel=0,
               filters=None, blocksizes=None, opts=None)</literal></title>
 
-              <para>Create an <literal>Index</literal> (see <xref
-              linkend="IndexClassDescr" xrefstyle="select: label" />) object
-              for this column.</para>
+              <para>Create an index for this column.</para>
 
-              <para>The <literal>memlevel</literal> argument lets you to
-              choose the memory usage for creating an index.  It is a number
-              between 1 and 1024.  Higher levels means better chances for
-              optimization at the price of more memory consumption.  Be
-              careful, as the memory consumption grows quadratically (and not
-              linearly) with the memlevel.</para>
+              <para>The <literal>memlevel</literal> argument lets you choose
+              the memory usage for creating an index.  It is a number between
+              1 and 1024.  Higher levels mean better chances for optimization
+              at the price of more memory consumption.  Be careful, as the
+              memory consumption grows quadratically (and not linearly) with
+              the <literal>memlevel</literal>.</para>
 
-              <para>You can select the level of the optimization of the index
-              by setting <literal>optlevel</literal> from 0 (no optimization)
-              to 9 (maximum optimization).  Higher levels of optimization
-              means better chances for reducing the entropy of the index at
-              the price of using more CPU and I/O resources usage for creating
-              the index.</para>
+              <para>You can select the optimization level of the index by
+              setting <literal>optlevel</literal> from 0 (no optimization) to
+              9 (maximum optimization).  Higher levels of optimization mean
+              better chances for reducing the entropy of the index at the
+              price of using more CPU and I/O resources for creating the
+              index.</para>
 
               <para>The <literal>filters</literal> argument can be used to set
               the <literal>Filters</literal> (see <xref
@@ -8100,8 +8134,8 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               doing this, be sure that you fully understand their role by
               reading the <emphasis>The indexing system of PyTables
               Pro</emphasis> white paper.  Failing to understanding it, you
-              will probably end with a parametrization that is sub-optimal in
-              the best of cases.</para>
+              will probably end up with a parametrization that is sub-optimal
+              in the best of cases.</para>
 
               <para>The <literal>opts</literal> argument is also meant for
               advanced users. This is a low level way to specify the different
@@ -8113,56 +8147,95 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               of the <literal>opts</literal> argument, using the high level
               <literal>optlevel</literal> is preferred.</para>
 
+              <note>
+                <!-- XXXPRO -->
+                <para>Column indexing is only available in PyTables
+                Pro.</para>
+              </note>
             </section>
 
-            <section id="optimizeIndexColumnDescr" xreflabel="description">
+            <section id="Column.optimizeIndex" xreflabel="description">
               <title><literal>optimizeIndex(optlevel=6,
               opts=None)</literal></title>
 
               <para>Optimize an already created index for this column.</para>
 
-              <para>You can select the level of the optimization of the index
-              by setting <literal>optlevel</literal> from 0 (no optimization)
-              to 9 (maximum optimization).  Higher levels of optimization
-              means better chances for reducing the entropy of the index at
-              the price of using more CPU and I/O resources usage for creating
-              the index.</para>
+              <para>You can select the optimization level of the index by
+              setting <literal>optlevel</literal> from 0 (no optimization) to
+              9 (maximum optimization).  Higher levels of optimization mean
+              better chances for reducing the entropy of the index at the
+              price of using more CPU and I/O resources for creating the
+              index.</para>
 
               <para>See the <literal>Column.createIndex()</literal> method
               (<xref linkend="Column.createIndex" />) for an explanation of
               the <literal>opts</literal> low level argument.
               </para>
 
+              <note>
+                <!-- XXXPRO -->
+                <para>Column indexing is only available in PyTables
+                Pro.</para>
+              </note>
             </section>
 
-            <section id="reIndexColumnDescr">
+            <section id="Colum.reIndex">
               <title><literal>reIndex()</literal></title>
 
-              <para>Recompute the index associated with this column. This can
-              be useful when you suspect that, for any reason, the index
-              information is no longer valid and want to rebuild it.</para>
+              <para>Recompute the index associated with this column.</para>
+
+              <para>This can be useful when you suspect that, for any reason,
+              the index information is no longer valid and you want to rebuild
+              it.</para>
+
+              <para>This method does nothing if the column is not
+              indexed.</para>
+
+              <note>
+                <!-- XXXPRO -->
+                <para>Column indexing is only available in PyTables
+                Pro.</para>
+              </note>
             </section>
 
-            <section id="reIndexDirtyColumnDescr">
+            <section id="Column.reIndexDirty">
               <title><literal>reIndexDirty()</literal></title>
 
-              <para>Recompute the existing index only if it is dirty. This can
-              be useful when you have set <literal>Table.autoIndex</literal>
-              (see <xref linkend="TableInstanceVariablesDescr"
-              xrefstyle="select: label" />) to false for the table and want to
-              update the column's index after a invalidating index operation
-              (<literal>Table.removeRows</literal>, for example).</para>
+              <para>Recompute the associated index only if it is dirty.</para>
+
+              <para>This can be useful when you have set
+              <literal>Table.autoIndex</literal> (see <xref
+              linkend="TableInstanceVariablesDescr" xrefstyle="select: label"
+              />) to false for the table and you want to update the column's
+              index after an invalidating index operation
+              (like. <literal>Table.removeRows()</literal> —see <xref
+              linkend="Table.removeRows" />).</para>
+
+              <para>This method does nothing if the column is not
+              indexed.</para>
+
+              <note>
+                <!-- XXXPRO -->
+                <para>Column indexing is only available in PyTables
+                Pro.</para>
+              </note>
             </section>
 
-            <section id="removeIndexColumnDescr">
+            <section id="Column.removeIndex">
               <title><literal>removeIndex()</literal></title>
 
               <para>Remove the index associated with this column.</para>
 
-              <para>If the column is not indexed, nothing happens. The index
-              can be created again by calling the
-              <literal>createIndex()</literal> method (see <xref
+              <para>This method does nothing if the column is not indexed. The
+              removed index can be created again by calling the
+              <literal>Column.createIndex()</literal> method (see <xref
               linkend="Column.createIndex" />).</para>
+
+              <note>
+                <!-- XXXPRO -->
+                <para>Column indexing is only available in PyTables
+                Pro.</para>
+              </note>
             </section>
           </section>
 
@@ -8172,117 +8245,90 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             <section id="Column.__getitem__">
               <title><literal>__getitem__(key)</literal></title>
 
-              <para>Returns a column element or slice. It takes different
-              actions depending on the type of the <emphasis>key</emphasis>
-              parameter:</para>
+              <para>Get a row or a range of rows from a column.</para>
 
-              <glosslist>
-                <glossentry>
-                  <glossterm><emphasis
-                  role="bold"><literal>key</literal></emphasis> is an
-                  <literal>Integer</literal></glossterm>
+              <para>If the <literal>key</literal> argument is an integer, the
+              corresponding element in the column is returned as an object of
+              the current flavor.  If <literal>key</literal> is a slice, the
+              range of elements determined by it is returned as an array of
+              the current flavor.</para>
 
-                  <glossdef>
-                    <para>The corresponding element in the column is returned
-                    as a scalar object or as a NumPy object, depending on its
-                    shape.</para>
-                  </glossdef>
-                </glossentry>
+              <para>Example of use:</para>
 
-                <glossentry>
-                  <glossterm><emphasis
-                  role="bold"><literal>key</literal></emphasis> is a
-                  <literal>Slice</literal></glossterm>
-
-                  <glossdef>
-                    <para>The row range determined by this slice is returned
-                    as a NumPy object.</para>
-                  </glossdef>
-                </glossentry>
-              </glosslist>
-
-              <para>Example of use: <screen>print "Column handlers:"
+              <screen>
+print "Column handlers:"
 for name in table.colnames:
-    print table.cols[name]
-print
-print "Some selections:"
-print "Select table.cols.name[1]--&gt;", table.cols.name[1]
-print "Select table.cols.name[1:2]--&gt;", table.cols.name[1:2]
-print "Select table.cols.lati[1:3]--&gt;", table.cols.lati[1:3]
-print "Select table.cols.pressure[:]--&gt;", table.cols.pressure[:]
-print "Select table.cols['temperature'][:]--&gt;", table.cols['temperature'][:]</screen>
-              and the output of this for a certain arbitrary table is:
-              <screen>Column handlers:
-/table.cols.name (Column(1,), CharType)
-/table.cols.lati (Column(2,), Int32)
-/table.cols.longi (Column(1,), Int32)
-/table.cols.pressure (Column(1,), Float32)
-/table.cols.temperature (Column(1,), Float64)
+    print table.cols._f_col(name)
 
-Some selections:
-Select table.cols.name[1]--&gt; Particle:     11
-Select table.cols.name[1:2]--&gt; ['Particle:     11']
-Select table.cols.lati[1:3]--&gt; [[11 12]
- [12 13]]
-Select table.cols.pressure[:]--&gt; [  90.  110.  132.]
-Select table.cols['temperature'][:]--&gt; [ 100.  121.  144.]</screen> See the
-              <literal>examples/table2.py</literal> for a more complete
-              example.</para>
+print "Select table.cols.name[1]-->", table.cols.name[1]
+print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
+print "Select table.cols.name[:]-->", table.cols.name[:]
+print "Select table.cols._f_col('name')[:]-->", table.cols._f_col('name')[:]</screen>
+
+              <para>The output of this for a certain arbitrary table
+              is:</para>
+
+              <screen>
+Column handlers:
+/table.cols.name (Column(), string, idx=None)
+/table.cols.lati (Column(), int32, idx=None)
+/table.cols.longi (Column(), int32, idx=None)
+/table.cols.vector (Column(2,), int32, idx=None)
+/table.cols.matrix2D (Column(2, 2), float64, idx=None)
+Select table.cols.name[1]--> Particle:     11
+Select table.cols.name[1:2]--> ['Particle:     11']
+Select table.cols.name[:]--> ['Particle:     10'
+ 'Particle:     11' 'Particle:     12'
+ 'Particle:     13' 'Particle:     14']
+Select table.cols._f_col('name')[:]--> ['Particle:     10'
+ 'Particle:     11' 'Particle:     12'
+ 'Particle:     13' 'Particle:     14']</screen>
+
+              <para>See the <literal>examples/table2.py</literal> file for a
+              more complete example.</para>
+            </section>
+
+            <section id="Column.__len__">
+              <title>__len__()</title>
+
+              <para>Get the number of elements in the column.</para>
+
+              <para>This matches the length in rows of the parent
+              table.</para>
             </section>
 
             <section id="Column.__setitem__">
               <title>__setitem__(key, value)</title>
 
-              <para>It takes different actions depending on the type of the
-              <literal>key</literal> parameter:</para>
+              <para>Set a row or a range of rows in a column.</para>
 
-              <glosslist>
-                <glossentry>
-                  <glossterm><emphasis
-                  role="bold"><literal>key</literal></emphasis> is an
-                  <literal>Integer</literal></glossterm>
-
-                  <glossdef>
-                    <para>The corresponding element in the column is set to
-                    <emphasis>value</emphasis>. <emphasis>value</emphasis>
-                    must be a scalar or NumPy/<literal>numarray</literal>
-                    object, depending on column's shape.</para>
-                  </glossdef>
-                </glossentry>
-
-                <glossentry>
-                  <glossterm><emphasis
-                  role="bold"><literal>key</literal></emphasis> is a
-                  <literal>Slice</literal></glossterm>
-
-                  <glossdef>
-                    <para>The row slice determined by <emphasis>key</emphasis>
-                    is set to <emphasis>value</emphasis>.
-                    <emphasis>value</emphasis> must be a list of elements or a
-                    NumPy/<literal>numarray</literal>.</para>
-                  </glossdef>
-                </glossentry>
-              </glosslist>
+              <para>If the <literal>key</literal> argument is an integer, the
+              corresponding element is set to <literal>value</literal>.  If
+              <literal>key</literal> is a slice, the range of elements
+              determined by it is set to <literal>value</literal>.</para>
 
               <para>Example of use:</para>
 
-              <screen># Modify row 1
+              <screen>
+# Modify row 1
 table.cols.col1[1] = -1
 # Modify rows 1 and 3
 table.cols.col1[1::2] = [2,3]</screen>
 
               <para>Which is equivalent to:</para>
 
-              <screen># Modify row 1
-table.modifyColumns(start=1, columns=[[-1]], names=["col1"])
+              <screen>
+# Modify row 1
+table.modifyColumns(start=1, columns=[[-1]], names=['col1'])
 # Modify rows 1 and 3
-columns = numpy.rec.fromarrays([[2,3]], formats="i4")
-table.modifyColumns(start=1, step=2, columns=columns, names=["col1"])</screen>
+columns = numpy.rec.fromarrays([[2,3]], formats='i4')
+table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])</screen>
             </section>
           </section>
         </section>
       </section>
 
+      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="ArrayClassDescr">
         <title>The <literal>Array</literal> class</title>
 

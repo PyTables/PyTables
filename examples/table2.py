@@ -26,7 +26,7 @@ for name in table.colnames:
 print "Select table.cols.name[1]-->", table.cols.name[1]
 print "Select table.cols.name[1:2]-->", table.cols.name[1:2]
 print "Select table.cols.name[:]-->", table.cols.name[:]
-print "Select table.cols['name'][:]-->", table.cols._f_col('name')[:]
+print "Select table.cols._f_col('name')[:]-->", table.cols._f_col('name')[:]
 print "Select table.cols.lati[1]-->", table.cols.lati[1]
 print "Select table.cols.lati[1:2]-->", table.cols.lati[1:2]
 print "Select table.cols.vector[:]-->", table.cols.vector[:]
