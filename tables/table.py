@@ -2824,20 +2824,19 @@ class Column(object):
         chunksize)`` to the `blocksizes` argument.  If this argument is
         specified, then the `memlevel` argument is ignored.  Once more,
         this is meant for expert users, so before doing this, be sure
-        that you fully understand their role by reading the ``The
-        indexing system of PyTables Pro`` white paper.  Failing to
+        that you fully understand their role by reading the *The
+        indexing system of PyTables Pro* white paper.  Failing to
         understanding it, you will probably end with a parametrization
         that is sub-optimal in the best of cases.
 
-        The `opts` argument is also meant for advanced users. This is a
+        The `opts` argument is also meant for advanced users.  This is a
         low level way to specify the different optimizations so as to
         reduce the entropy level of the index.  The format of this
         parameter is a tuple with four elements: ``(optmedian,
-        optstarts, optstops, optfull)``.  If you specify this, then
+        optstarts, optstops, optfull)``.  If you specify this, then the
         `optlevel` argument is ignored.  Beware: if you don't fully
         understand the meaning of the `opts` argument, using the high
         level `optlevel` is preferred.
-
         """
 
         _checkIndexingAvailable()
@@ -2868,9 +2867,8 @@ class Column(object):
         chances for reducing the entropy of the index at the price of
         using more CPU and I/O resources usage for creating the index.
 
-        See the explanation for the `opts` low level argument in the
-        ``Column.createIndex()`` description.
-
+        See the `Column.createIndex()` method for an explanation of the
+        `opts` low level argument.
         """
 
         if type(optlevel) not in (int, long) or optlevel < 0 or optlevel > 9:

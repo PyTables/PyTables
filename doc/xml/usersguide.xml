@@ -8041,7 +8041,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
           <section>
             <title><literal>Column</literal> methods</title>
 
-            <section id="createIndexColumnDescr" xreflabel="description">
+            <section id="Column.createIndex" xreflabel="description">
               <title><literal>createIndex(memlevel=8, optlevel=0,
               filters=None, blocksizes=None, opts=None)</literal></title>
 
@@ -8108,10 +8108,9 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               the price of using more CPU and I/O resources usage for creating
               the index.</para>
 
-              <para>See the explanation for the <literal>opts</literal> low
-              level argument in the above
-              <literal>Column.createIndex()</literal> method (<xref
-              linkend="createIndexColumnDescr" xrefstyle="select: label" />).
+              <para>See the <literal>Column.createIndex()</literal> method
+              (<xref linkend="Column.createIndex" />) for an explanation of
+              the <literal>opts</literal> low level argument.
               </para>
 
             </section>
@@ -8143,7 +8142,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <para>If the column is not indexed, nothing happens. The index
               can be created again by calling the
               <literal>createIndex()</literal> method (see <xref
-              linkend="createIndexColumnDescr" />).</para>
+              linkend="Column.createIndex" />).</para>
             </section>
           </section>
 
@@ -10630,7 +10629,7 @@ result = [ row['var2']
 
           <para>You can index the columns you choose by calling the
           <literal>Column.createIndex()</literal> method (see <xref
-          linkend="createIndexColumnDescr" />) on an already created table.
+          linkend="Column.createIndex" />) on an already created table.
           For example: <screen>
 indexrows = table.cols.var1.createIndex()
 indexrows = table.cols.var2.createIndex()
