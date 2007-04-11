@@ -73,13 +73,42 @@ class Array(hdf5Extension.Array, Leaf):
     their internal state to disk.  When a writing method call returns,
     all the data is already on disk.
 
-    Instance variables (specific of `Array`):
+    Public instance variables
+    -------------------------
 
-    `atom`
-        An Atom instance representing the shape and type of the atomic
-        objects.
-    `nrow`
+    atom
+        An `Atom` instance representing the *type* and *shape* of the
+        atomic objects to be saved.
+    nrow
         On iterators, this is the index of the current row.
+
+    Public methods
+    --------------
+
+    getEnum()
+        Get the enumerated type associated with this array.
+    iterrows([start][, stop][, step])
+        Iterate over the rows of the array.
+    next()
+        Get the next element of the array during an iteration.
+    read([start][, stop][, step])
+        Get data in the array as an object of the current flavor.
+
+    Special methods
+    ---------------
+
+    The following methods automatically trigger actions when an
+    `Array` instance is accessed in a special way
+    (e.g. ``array[2:3,...,::2]`` will be equivalent to a call to
+    ``array.__getitem__((slice(2, 3, None), Ellipsis, slice(None,
+    None, 2)))``).
+
+    __getitem__(key)
+        Get a row, a range of rows or a slice from the array.
+    __iter__()
+        Iterate over the rows of the array.
+    __setitem__(key, value)
+        Set a row, a range of rows or a slice in the array.
     """
 
     # Class identifier.
@@ -171,6 +200,11 @@ class Array(hdf5Extension.Array, Leaf):
         """Current buffer in iterators."""
 
         # Documented (*public*) attributes.
+        self.atom = None
+        """
+        An `Atom` instance representing the *type* and *shape* of the
+        atomic objects to be saved.
+        """
         self.shape = None
         """The shape of the stored array."""
         self.nrow = None
@@ -267,8 +301,23 @@ class Array(hdf5Extension.Array, Leaf):
 
 
     def iterrows(self, start=None, stop=None, step=None):
-        """Iterate over all the rows or a range.
+        """
+        Iterate over the rows of the array.
 
+        This method returns an iterator yielding an object of the
+        current flavor for each selected row in the array.  The
+        returned rows are taken from the *main dimension*.
+
+        If a range is not supplied, *all the rows* in the array are
+        iterated upon --you can also use the `Array.__iter__()`
+        special method for that purpose.  If you only want to iterate
+        over a given *range of rows* in the array, you may use the
+        `start`, `stop` and `step` parameters, which have the same
+        meaning as in `Array.read()`.
+
+        Example of use::
+
+            result = [row for row in arrayInstance.iterrows(step=4)]
         """
 
         try:
@@ -282,7 +331,20 @@ class Array(hdf5Extension.Array, Leaf):
 
 
     def __iter__(self):
-        """Iterate over all the rows."""
+        """
+        Iterate over the rows of the array.
+
+        This is equivalent to calling `Array.iterrows()` with default
+        arguments, i.e. it iterates over *all the rows* in the array.
+
+        Example of use::
+
+            result = [row[2] for row in array]
+
+        Which is equivalent to::
+
+            result = [row[2] for row in array.iterrows()]
+        """
 
         if not self._init:
             # If the iterator is called directly, assign default variables
@@ -305,7 +367,11 @@ class Array(hdf5Extension.Array, Leaf):
 
 
     def next(self):
-        "next() method for __iter__() that is called on each iteration"
+        """
+        Get the next element of the array during an iteration.
+
+        The element is returned as an object of the current flavor.
+        """
         if self._nrowsread >= self._stop:
             self._init = False
             raise StopIteration        # end of iteration
@@ -412,17 +478,24 @@ class Array(hdf5Extension.Array, Leaf):
         return startl, stopl, stepl, shape
 
 
-    def __getitem__(self, keys):
-        """Returns an Array element, row or extended slice.
-
-        It takes different actions depending on the type of the "keys"
-        parameter:
-
-        If "keys" is an integer, the corresponding row is returned. If
-        "keys" is a slice, the row slice determined by key is returned.
-
+    def __getitem__(self, key):
         """
-        startl, stopl, stepl, shape = self._interpret_indexing(keys)
+        Get a row, a range of rows or a slice from the array.
+
+        The set of tokens allowed for the `key` is the same as that
+        for extended slicing in Python (including the ``Ellipsis`` or
+        ``...`` token).  The result is an object of the current
+        flavor; its shape depends on the kind of slice used as `key`
+        and the shape of the array itself.
+
+        Example of use::
+
+            array1 = array[4]  # array1.shape == array.shape[1:]
+            array2 = array[4:1000:2]  # len(array2.shape) == len(array.shape)
+            array3 = array[::2, 1:4, :]
+            array4 = array[1, ..., ::2, 1:4, 4:]  # general slice selection
+        """
+        startl, stopl, stepl, shape = self._interpret_indexing(key)
         arr = self._readSlice(startl, stopl, stepl, shape)
         if not self._v_convert:
             return arr
@@ -446,26 +519,33 @@ compliant with %s: '%r' The error was: <%s>""" % \
         return nparr
 
 
-    def __setitem__(self, keys, value):
-        """Sets an Array element, row or extended slice.
+    def __setitem__(self, key, value):
+        """
+        Set a row, a range of rows or a slice in the array.
 
-        It takes different actions depending on the type of the "key"
-        parameter:
+        It takes different actions depending on the type of the `key`
+        parameter: if it is an integer, the corresponding array row is
+        set to `value` (the value is broadcast when needed).  If the
+        `key` is a slice, the row slice determined by it is set to
+        `value` (as usual, if the slice to be updated exceeds the
+        actual shape of the array, only the values in the existing
+        range are updated).
 
-        If "key" is an integer, the corresponding row is assigned to
-        value.
+        If the `value` is a multidimensional object, then its shape
+        must be compatible with the shape determined by the `key`,
+        otherwise, a ``ValueError`` will be raised.
 
-        If "key" is a slice, the row slice determined by it is
-        assigned to "value". If needed, this "value" is broadcasted to
-        fit in the desired range. If the slice to be updated exceeds
-        the actual shape of the array, only the values in the existing
-        range are updated, i.e. the index error will be silently
-        ignored. If "value" is a multidimensional object, then its
-        shape must be compatible with the slice specified in "key",
-        otherwhise, a ValueError will be issued.
+        Example of use::
+
+            a1[0] = 333        # assign an integer to a Integer Array row
+            a2[0] = 'b'        # assign a string to a string Array row
+            a3[1:4] = 5        # broadcast 5 to slice 1:4
+            a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2
+            # General slice update (a5.shape = (4,3,2,8,5,10).
+            a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))
         """
 
-        startl, stopl, stepl, shape = self._interpret_indexing(keys)
+        startl, stopl, stepl, shape = self._interpret_indexing(key)
         countl = ((stopl - startl - 1) / stepl) + 1
         # Create an array compliant with the specified slice
         nparr = convertToNPAtom2(value, self.atom)
@@ -505,7 +585,17 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
 
     def read(self, start=None, stop=None, step=None):
-        """Read the array from disk and return it as a self.flavor object."""
+        """
+        Get data in the array as an object of the current flavor.
+
+        The `start`, `stop` and `step` parameters can be used to
+        select only a *range of rows* in the array.  Their meanings
+        are the same as in the built-in ``range()`` Python function,
+        except that negative values of `step` are not allowed yet.
+        Moreover, if only `start` is specified, then `stop` will be
+        set to ``start+1``.  If you do not specify neither `start` nor
+        `stop`, then *all the rows* in the array are selected.
+        """
         (start, stop, step) = self._processRangeRead(start, stop, step)
         arr = self._read(start, stop, step)
         return internal_to_flavor(arr, self.flavor)

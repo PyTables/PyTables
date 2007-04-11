@@ -135,6 +135,11 @@ class Leaf(Node):
 
     maindim
         The dimension along which iterators work.
+
+        Its value is 0 (i.e. the first dimension) when the dataset is
+        not extendable, and `Leaf.extdim` (where available) for
+        extendable ones.
+
     nrows
         The length of the main dimension of the leaf data.
     nrowsinbuf
@@ -235,7 +240,13 @@ class Leaf(Node):
 
     maindim = property(
         _getmaindim, None, None,
-        "The main (enlargeable or first) dimension of the array." )
+        """
+        The dimension along which iterators work.
+
+        Its value is 0 (i.e. the first dimension) when the dataset is
+        not extendable, and `Leaf.extdim` (where available) for
+        extendable ones.
+        """ )
 
     def _setflavor(self, flavor):
         self._v_file._checkWritable()

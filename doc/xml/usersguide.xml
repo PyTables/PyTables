@@ -2026,7 +2026,7 @@ Particle:      6 --&gt; 36.0
 Particle:      7 --&gt; 49.0</screen>
 
           <para>You can see that the <literal>read()</literal> method (see
-          <xref linkend="readArrayDescr" xrefstyle="select: label" />) returns
+          <xref linkend="Array.read" xrefstyle="select: label" />) returns
           an authentic <literal>NumPy</literal> object for the
           <literal>pressureObject</literal> instance by looking at the output
           of the <literal>type()</literal> call. A <literal>read()</literal>
@@ -6131,6 +6131,9 @@ for node in h5file.root.detector:
 
               <glossdef>
                 <para>The dimension along which iterators work.</para>
+                <para>Its value is 0 (i.e. the first dimension) when the
+                dataset is not extendable, and <literal>self.extdim</literal>
+                (where available) for extendable ones.</para>
               </glossdef>
             </glossentry>
 
@@ -8338,11 +8341,11 @@ table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])</screen>
         <para>This class provides methods to write or read data to or from
         array objects in the file. This class does not allow you neither to
         enlarge nor compress the datasets on disk; use the
-        <literal>EArray</literal> (see <xref linkend="EArrayClassDescr"
-        xrefstyle="select: label" />) class if you want enlargeable dataset
-        support or compression features, or <literal>CArray</literal> (see
-        <xref linkend="CArrayClassDescr" xrefstyle="select: label" />) if you
-        just want compression.</para>
+        <literal>EArray</literal> class (see <xref linkend="EArrayClassDescr"
+        xrefstyle="select: label" />) if you want enlargeable dataset support
+        or compression features, or <literal>CArray</literal> (see <xref
+        linkend="CArrayClassDescr" xrefstyle="select: label" />) if you just
+        want compression.</para>
 
         <para>An interesting property of the <literal>Array</literal> class is
         that it remembers the <emphasis>flavor</emphasis> of the object that
@@ -8371,10 +8374,11 @@ table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])</screen>
               <glossterm><emphasis role="bold">atom</emphasis></glossterm>
 
               <glossdef>
-                <para>An <literal>Atom</literal> instance representing the
-                shape and type of the atomic objects. See <xref
-                linkend="AtomClassDescr" xrefstyle="select: label" /> for a
-                better explanation.</para>
+                <para>An <literal>Atom</literal> (see <xref
+                linkend="AtomClassDescr" xrefstyle="select: label" />)
+                instance representing the <emphasis>type</emphasis> and
+                <emphasis>shape</emphasis> of the atomic objects to be
+                saved.</para>
               </glossdef>
             </glossentry>
 
@@ -8386,24 +8390,13 @@ table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])</screen>
                 row.</para>
               </glossdef>
             </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">maindim</emphasis></glossterm>
-
-              <glossdef>
-                <para>The dimension along which iterators work. Its value is 0
-                (i.e. the first dimension) when the dataset is not extendable,
-                and <literal>self.extdim</literal> (where available) for
-                extendable ones.</para>
-              </glossdef>
-            </glossentry>
           </glosslist>
         </section>
 
         <section>
           <title><literal>Array</literal> methods</title>
 
-          <section id="Array.getEnum">
+          <section id="Array.getEnum" xreflabel="description">
             <title>getEnum()</title>
 
             <para>Get the enumerated type associated with this array.</para>
@@ -8415,149 +8408,147 @@ table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])</screen>
             <literal>TypeError</literal> is raised.</para>
           </section>
 
-          <section id="iterrowsArrayDescr">
-            <title>iterrows(start=None, stop=None, step=1)</title>
+          <section id="Array.iterrows" xreflabel="description">
+            <title>iterrows(start=None, stop=None, step=None)</title>
 
-            <para>Returns an iterator yielding NumPy instances built from rows
-            in array. The return rows are taken from the
-            <emphasis>main</emphasis> dimension. If a range is supplied (i.e.
-            some of the <emphasis>start</emphasis>, <emphasis>stop</emphasis>
-            or <emphasis>step</emphasis> parameters are passed), only the
-            appropriate rows are returned. Else, all the rows are returned.
-            See also the and <literal>__iter__()</literal> special methods in
-            <xref linkend="ArraySpecialMethods" xrefstyle="select: label" />
-            for a shorter way to call this iterator.</para>
+            <para>Iterate over the rows of the array.</para>
 
-            <para>The meaning of the <emphasis>start</emphasis>,
-            <emphasis>stop</emphasis> and <emphasis>step</emphasis> parameters
-            is the same as in the <literal>range()</literal> python function,
-            except that negative values of <literal>step</literal> are not
-            allowed. Moreover, if only <literal>start</literal> is specified,
-            then <literal>stop</literal> will be set to
-            <literal>start+1</literal>. If you do not specify neither
-            <emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then all
-            the rows in the object are selected.</para>
+            <para>This method returns an iterator yielding an object of the
+            current flavor for each selected row in the array.  The returned
+            rows are taken from the <emphasis>main
+            dimension</emphasis>.</para>
+
+            <para>If a range is not supplied, <emphasis>all the
+            rows</emphasis> in the array are iterated upon —you can also use
+            the <literal>Array.__iter__()</literal> special method (see <xref
+            linkend="Array.__iter__" />) for that purpose.  If you only want
+            to iterate over a given <emphasis>range of rows</emphasis> in the
+            array, you may use the <literal>start</literal>,
+            <literal>stop</literal> and <literal>step</literal> parameters,
+            which have the same meaning as in <literal>Array.read()</literal>
+            (see <xref linkend="Array.read" />).</para>
 
             <para>Example of use:</para>
 
-            <screen>result = [ row for row in arrayInstance.iterrows(step=4) ]</screen>
+            <screen>
+result = [row for row in arrayInstance.iterrows(step=4)]</screen>
           </section>
 
-          <section id="readArrayDescr">
-            <title>read(start=None, stop=None, step=1)</title>
+          <section id="Array.next" xreflabel="description">
+            <title>next()</title>
 
-            <para>Read the array from disk and return it as a NumPy (default)
-            object, or an object with the same original
-            <emphasis>flavor</emphasis> that it was saved. It accepts
-            <emphasis>start</emphasis>, <emphasis>stop</emphasis> and
-            <emphasis>step</emphasis> parameters to select rows (in the
-            <emphasis>main</emphasis> dimension) for reading.</para>
+            <para>Get the next element of the array during an
+            iteration.</para>
 
-            <para>The meaning of the <emphasis>start</emphasis>,
-            <emphasis>stop</emphasis> and <emphasis>step</emphasis> parameters
-            is the same as in the <literal>range()</literal> python function,
-            except that negative values of <literal>step</literal> are not
-            allowed. Moreover, if only <literal>start</literal> is specified,
-            then <literal>stop</literal> will be set to
+            <para>The element is returned as an object of the current
+            flavor.</para>
+          </section>
+
+          <section id="Array.read" xreflabel="description">
+            <title>read(start=None, stop=None, step=None)</title>
+
+            <para>Get data in the array as an object of the current
+            flavor.</para>
+
+            <para>The <literal>start</literal>, <literal>stop</literal> and
+            <literal>step</literal> parameters can be used to select only a
+            <emphasis>range of rows</emphasis> in the array.  Their meanings
+            are the same as in the built-in <literal>range()</literal> Python
+            function, except that negative values of <literal>step</literal>
+            are not allowed yet. Moreover, if only <literal>start</literal> is
+            specified, then <literal>stop</literal> will be set to
             <literal>start+1</literal>. If you do not specify neither
-            <emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then all
-            the rows in the object are selected.</para>
+            <literal>start</literal> nor <literal>stop</literal>, then
+            <emphasis>all the rows</emphasis> in the array are
+            selected.</para>
           </section>
         </section>
 
         <section id="ArraySpecialMethods">
           <title><literal>Array</literal> special methods</title>
 
-          <para>Following are described the methods that automatically trigger
-          actions when an <literal>Array</literal> instance is accessed in a
-          special way (e.g., <literal>array[2:3,...,::2]</literal> will be
-          equivalent to a call to <literal>array.__getitem__(slice(2,3, None),
-          Ellipsis, slice(None, None, 2))</literal>).</para>
+          <para>The following methods automatically trigger actions when an
+          <literal>Array</literal> instance is accessed in a special way
+          (e.g. <literal>array[2:3,...,::2]</literal> will be equivalent to a
+          call to <literal>array.__getitem__((slice(2, 3, None), Ellipsis,
+          slice(None, None, 2)))</literal>).</para>
 
-          <section id="Array.__iter__">
-            <title>__iter__()</title>
+          <section id="Array.__getitem__" xreflabel="description">
+            <title>__getitem__(key)</title>
 
-            <para>It returns the same iterator than
-            <literal>Array.iterrows(0,0,1)</literal>. However, this does not
-            accept parameters.</para>
+            <para>Get a row, a range of rows or a slice from the array.</para>
+
+            <para>The set of tokens allowed for the <literal>key</literal> is
+            the same as that for extended slicing in Python (including the
+            <literal>Ellipsis</literal> or <literal>...</literal> token).  The
+            result is an object of the current flavor; its shape depends on
+            the kind of slice used as <literal>key</literal> and the shape of
+            the array itself.</para>
 
             <para>Example of use:</para>
 
-            <screen>result = [ row[2] for row in array ]</screen>
+            <screen>
+array1 = array[4]  # array1.shape == array.shape[1:]
+array2 = array[4:1000:2]  # len(array2.shape) == len(array.shape)
+array3 = array[::2, 1:4, :]
+array4 = array[1, ..., ::2, 1:4, 4:]  # general slice selection</screen>
+          </section>
+
+          <section id="Array.__iter__" xreflabel="description">
+            <title>__iter__()</title>
+
+            <para>Iterate over the rows of the array.</para>
+
+            <para>This is equivalent to calling
+            <literal>Array.iterrows()</literal> (see <xref
+            linkend="Array.iterrows" />) with default arguments, i.e. it
+            iterates over <emphasis>all the rows</emphasis> in the
+            array.</para>
+
+            <para>Example of use:</para>
+
+            <screen>
+result = [row[2] for row in array]</screen>
 
             <para>Which is equivalent to:</para>
 
-            <screen>result = [ row[2] for row in array.iterrows(0, 0, 1) ]</screen>
-          </section>
-
-          <section id="Array.__getitem__">
-            <title>__getitem__(key)</title>
-
-            <para>It returns a NumPy (default) object (or an object with the
-            same original <emphasis>flavor</emphasis> that it was saved)
-            containing the slice of rows stated in the <literal>key</literal>
-            parameter. The set of allowed tokens in <literal>key</literal> is
-            the same as extended slicing in python (the
-            <literal>Ellipsis</literal> token included).</para>
-
-            <para>Example of use:</para>
-
-            <screen>array1 = array[4]   # array1.shape == array.shape[1:]
-array2 = array[4:1000:2]  # len(array2.shape) == len(array.shape)
-array3 = array[::2, 1:4, :]
-array4 = array[1, ..., ::2, 1:4, 4:] # General slice selection</screen>
+            <screen>
+result = [row[2] for row in array.iterrows()]</screen>
           </section>
 
           <section id="Array.__setitem__" xreflabel="description">
             <title>__setitem__(key, value)</title>
 
-            <para>Sets an Array element, row or extended slice. It takes
-            different actions depending on the type of the
-            <literal>key</literal> parameter:</para>
+            <para>Set a row, a range of rows or a slice in the array.</para>
 
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold"><literal>key</literal> is an
-                integer:</emphasis></glossterm>
+            <para>It takes different actions depending on the type of the
+            <literal>key</literal> parameter: if it is an integer, the
+            corresponding array row is set to <literal>value</literal> (the
+            value is broadcast when needed).  If the <literal>key</literal> is
+            a slice, the row slice determined by it is set to
+            <literal>value</literal> (as usual, if the slice to be updated
+            exceeds the actual shape of the array, only the values in the
+            existing range are updated).</para>
 
-                <glossdef>
-                  <para>The corresponding row is assigned to value. If needed,
-                  this <literal>value</literal> is broadcasted to fit the
-                  specified row.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold"><literal>key</literal> is a
-                slice:</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The row slice determined by it is assigned to
-                  <literal>value</literal>. If needed, this
-                  <literal>value</literal> is broadcasted to fit in the
-                  desired range. If the slice to be updated exceeds the actual
-                  shape of the array, only the values in the existing range
-                  are updated, i.e. the index error will be silently ignored.
-                  If <literal>value</literal> is a multidimensional object,
-                  then its shape must be compatible with the slice specified
-                  in <literal>key</literal>, otherwise, a
-                  <literal>ValueError</literal> will be issued.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
+            <para>If the <literal>value</literal> is a multidimensional
+            object, then its shape must be compatible with the shape
+            determined by the <literal>key</literal>, otherwise, a
+            <literal>ValueError</literal> will be raised.</para>
 
             <para>Example of use:</para>
 
-            <screen>a1[0] = 333       # Assign an integer to a Integer Array row
-a2[0] = "b"       # Assign a string to a string Array row
-a3[1:4] = 5       # Broadcast 5 to slice 1:4
-a4[1:4:2] = "xXx" # Broadcast "xXx" to slice 1:4:2
-# General slice update (a5.shape = (4,3,2,8,5,10)
+            <screen>
+a1[0] = 333        # assign an integer to a Integer Array row
+a2[0] = 'b'        # assign a string to a string Array row
+a3[1:4] = 5        # broadcast 5 to slice 1:4
+a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2
+# General slice update (a5.shape = (4,3,2,8,5,10).
 a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))</screen>
           </section>
         </section>
       </section>
 
+      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="CArrayClassDescr">
         <title>The <literal>CArray</literal> class</title>
 
