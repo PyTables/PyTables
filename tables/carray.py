@@ -49,19 +49,50 @@ class CArray(Array):
     """
     This class represents homogeneous datasets in an HDF5 file.
 
-    The difference between a normal `Array` and a `CArray` is that a
-    `CArray` has a chunked layout and, as a consequence, it supports
-    compression.  You can use datasets of this class to easily save or
-    load arrays to or from disk, with compression support included.
+    The difference between a `CArray` and a normal `Array`, from which
+    it inherits, is that a `CArray` has a chunked layout and, as a
+    consequence, it supports compression.  You can use datasets of
+    this class to easily save or load arrays to or from disk, with
+    compression support included.
 
-    Instance variables (specific of `CArray`):
+    Example of use
+    --------------
 
-    `atom`
-        An `Atom` instance representing the shape and type of the
-        atomic objects to be saved.
-    `extdim`
-        The *enlargeable dimension*, i.e. the dimension this array can
-        be extended or shrunken along (-1 if it is not extendable).
+    See below a small example of the use of the `CArray` class.  The
+    code is available in ``examples/carray1.py``::
+
+        import numpy
+        import tables
+
+        fileName = 'carray1.h5'
+        shape = (200, 300)
+        atom = tables.UInt8Atom()
+        filters = tables.Filters(complevel=5, complib='zlib')
+
+        h5f = tables.openFile(fileName, 'w')
+        ca = h5f.createCArray(h5f.root, 'carray', atom, shape, filters=filters)
+        # Fill a hyperslab in ``ca``.
+        ca[10:60, 20:70] = numpy.ones((50, 50))
+        h5f.close()
+
+        # Re-open a read another hyperslab
+        h5f = tables.openFile(fileName)
+        print h5f
+        print h5f.root.carray[8:12, 18:22]
+        h5f.close()
+
+    The output for the previous script is something like::
+
+        carray1.h5 (File) ''
+        Last modif.: 'Thu Apr 12 10:15:38 2007'
+        Object Tree: 
+        / (RootGroup) ''
+        /carray (CArray(200L, 300L), shuffle, zlib(5)) ''
+
+        [[0 0 0 0]
+         [0 0 0 0]
+         [0 0 1 1]
+         [0 0 1 1]]
     """
 
     # Class identifier.

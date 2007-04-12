@@ -6055,7 +6055,7 @@ for node in h5file.root.detector:
         label" />) —these classes do in fact inherit from
         <literal>Leaf</literal>.</para>
 
-        <section>
+        <section id="LeafInstanceVariables">
           <title><literal>Leaf</literal> instance variables</title>
 
           <para>These instance variables are provided in addition to those in
@@ -8331,7 +8331,6 @@ table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])</screen>
         </section>
       </section>
 
-      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="ArrayClassDescr">
         <title>The <literal>Array</literal> class</title>
 
@@ -8548,62 +8547,40 @@ a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))</screen>
         </section>
       </section>
 
-      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="CArrayClassDescr">
         <title>The <literal>CArray</literal> class</title>
 
         <para>This class represents homogeneous datasets in an HDF5
         file.</para>
 
-        <para>The difference between a normal <literal>Array</literal> (see
-        <xref linkend="ArrayClassDescr" xrefstyle="select: label" />) and a
-        <literal>CArray</literal> is that a <literal>CArray</literal> has a
-        chunked layout and, as a consequence, it supports compression.  You
-        can use datasets of this class to easily save or load arrays to or
-        from disk, with compression support included.</para>
-
-        <section id="CArrayClassInstanceVariables">
-          <title><literal>CArray</literal> instance variables</title>
-
-          <para>In addition to the attributes that <literal>CArray</literal>
-          inherits from <literal>Array</literal>, it supports some more that
-          provide information about the filters used.</para>
-
-          <glosslist>
-            <?dbfo glosslist-presentation="list" ?>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">extdim</emphasis></glossterm>
-
-              <glossdef>
-                <para>The <emphasis>enlargeable dimension</emphasis>, i.e. the
-                dimension this array can be extended or shrunken along (-1 if
-                it is not extendable).</para>
-              </glossdef>
-            </glossentry>
-          </glosslist>
-        </section>
+        <para>The difference between a <literal>CArray</literal> and a normal
+        <literal>Array</literal> (see <xref linkend="ArrayClassDescr"
+        xrefstyle="select: label" />), from which it inherits, is that a
+        <literal>CArray</literal> has a chunked layout and, as a consequence,
+        it supports compression.  You can use datasets of this class to easily
+        save or load arrays to or from disk, with compression support
+        included.</para>
 
         <section>
           <title>Example of use</title>
 
-          <para>See below a small example of <literal>CArray</literal> class.
-          The code is available in
-          <literal>examples/carray1.py</literal>.</para>
+          <para>See below a small example of the use of the
+          <literal>CArray</literal> class.  The code is available in
+          <literal>examples/carray1.py</literal>:</para>
 
-          <screen>import numpy
+          <screen>
+import numpy
 import tables
 
 fileName = 'carray1.h5'
-shape = (200,300)
+shape = (200, 300)
 atom = tables.UInt8Atom()
 filters = tables.Filters(complevel=5, complib='zlib')
 
-h5f = tables.openFile(fileName,'w')
-ca = h5f.createCArray(h5f.root, 'carray', atom, shape,
-                      filters=filters, chunkshape=(128,128))
-# Fill a hyperslab in ca
-ca[10:60,20:70] = numpy.ones((50,50))  # Will be converted to UInt8 elements
+h5f = tables.openFile(fileName, 'w')
+ca = h5f.createCArray(h5f.root, 'carray', atom, shape, filters=filters)
+# Fill a hyperslab in ``ca``.
+ca[10:60, 20:70] = numpy.ones((50, 50))
 h5f.close()
 
 # Re-open a read another hyperslab
@@ -8614,11 +8591,12 @@ h5f.close()</screen>
 
           <para>The output for the previous script is something like:</para>
 
-          <screen>carray1.h5 (File) ''
-Last modif.: 'Thu Jun 16 10:47:18 2005'
-Object Tree:
+          <screen>
+carray1.h5 (File) ''
+Last modif.: 'Thu Apr 12 10:15:38 2007'
+Object Tree: 
 / (RootGroup) ''
-/carray (CArray(200L, 300L)) ''
+/carray (CArray(200L, 300L), shuffle, zlib(5)) ''
 
 [[0 0 0 0]
  [0 0 0 0]
@@ -8635,59 +8613,87 @@ Object Tree:
 
         <para>The main difference between an <literal>EArray</literal> and a
         <literal>CArray</literal> (see <xref linkend="CArrayClassDescr"
-        xrefstyle="select: label" />) is that the former can be enlarged along
-        one of its dimensions (the <emphasis>enlargeable dimension</emphasis>)
-        using the <literal>append()</literal> method (multiple enlargeable
-        dimensions might be supported in the future). An
-        <literal>EArray</literal> dataset can also be shrunken along its
-        enlargeable dimension using the <literal>truncate()</literal>
-        method.</para>
+        xrefstyle="select: label" />), from which it inherits, is that the
+        former can be enlarged along one of its dimensions, the
+        <emphasis>enlargeable dimension</emphasis>.  That means that the
+        <literal>Leaf.extdim</literal> attribute (see <xref
+        linkend="LeafInstanceVariables" xrefstyle="select: label" />) of any
+        <literal>EArray</literal> instance will always be non-negative.
+        Multiple enlargeable dimensions might be supported in the
+        future.</para>
+
+        <para>New rows can be added to the end of an enlargeable array by
+        using the <literal>EArray.append()</literal> method (see <xref
+        linkend="EArray.append" />). The array can also be shrunken along its
+        enlargeable dimension using the <literal>EArray.truncate()</literal>
+        method (see <xref linkend="EArray.truncate" />).</para>
 
         <section id="EArrayMethodsDescr">
           <title><literal>EArray</literal> methods</title>
 
-          <section id="EArrayAppendDescr">
+          <section id="EArray.append">
             <title>append(sequence)</title>
 
-            <para>Appends a <literal>sequence</literal> to the underlying
-            dataset. Obviously, this sequence must have the same type as the
-            <literal>EArray</literal> instance; otherwise a
-            <literal>TypeError</literal> is issued. In the same way, the
-            dimensions of the <literal>sequence</literal> have to conform to
-            those of <literal>EArray</literal>, that is, all the dimensions
-            have to be the same except, of course, that of the enlargeable
-            dimension which can be of any length (even 0!).</para>
+            <para>Add a <literal>sequence</literal> of data to the end of the
+            dataset.</para>
 
-            <para>Example of use (code available in
-            <literal>examples/earray1.py</literal>):</para>
+            <para>The sequence must have the same type as the array; otherwise
+            a <literal>TypeError</literal> is raised. In the same way, the
+            dimensions of the <literal>sequence</literal> must conform to the
+            shape of the array, that is, all dimensions must match, with the
+            exception of the enlargeable dimension, which can be of any length
+            (even 0!).  If the shape of the <literal>sequence</literal> is
+            invalid, a <literal>ValueError</literal> is raised.</para>
+          </section>
 
-            <screen>import tables
+          <section id="EArray.truncate">
+            <title>truncate(size)</title>
+
+            <para>Truncate the extendable dimension to at most
+            <literal>size</literal> rows.</para>
+
+            <para>Due to limitations of the underlying HDF5 implementation,
+            <literal>size</literal> must be greater than 0 (i.e. the dataset
+            can not be completely emptied).</para>
+          </section>
+        </section>
+
+        <section>
+          <title>Example of use</title>
+
+          <para>See below a small example of the use of the
+          <literal>EArray</literal> class.  The code is available in
+          <literal>examples/earray1.py</literal>:</para>
+
+          <screen>
+import tables
 import numpy
 
-fileh = tables.openFile("earray1.h5", mode = "w")
+fileh = tables.openFile('earray1.h5', mode='w')
 a = tables.StringAtom(itemsize=8)
-# Use 'a' as the object type for the enlargeable array
+# Use ``a`` as the object type for the enlargeable array.
 array_c = fileh.createEArray(fileh.root, 'array_c', a, (0,), "Chars")
 array_c.append(numpy.array(['a'*2, 'b'*4], dtype='S8'))
 array_c.append(numpy.array(['a'*6, 'b'*8, 'c'*10], dtype='S8'))
 
-# Read the string EArray we have created on disk
+# Read the string ``EArray`` we have created on disk.
 for s in array_c:
-    print "array_c[%s] =&gt; '%s'" % (array_c.nrow, s)
-# Close the file
+    print 'array_c[%s] => %r' % (array_c.nrow, s)
+# Close the file.
 fileh.close()</screen>
 
-            <para>and the output is:</para>
+          <para>The output for the previous script is something like:</para>
 
-            <screen>array_c[0] =&gt; 'aa'
-array_c[1] =&gt; 'bbbb'
-array_c[2] =&gt; 'aaaaaa'
-array_c[3] =&gt; 'bbbbbbbb'
-array_c[4] =&gt; 'cccccccc'</screen>
-          </section>
+          <screen>
+array_c[0] => 'aa'
+array_c[1] => 'bbbb'
+array_c[2] => 'aaaaaa'
+array_c[3] => 'bbbbbbbb'
+array_c[4] => 'cccccccc'</screen>
         </section>
       </section>
 
+      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="VLArrayClassDescr">
         <title>The <literal>VLArray</literal> class</title>
 

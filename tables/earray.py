@@ -53,10 +53,53 @@ class EArray(CArray):
 
     The main difference between an `EArray` and a `CArray`, from which
     it inherits, is that the former can be enlarged along one of its
-    dimensions (the *enlargeable dimension*) using the `self.append()`
-    method (multiple enlargeable dimensions might be supported in the
-    future).  An `EArray` dataset can also be shrunken along its
-    enlargeable dimension using the `self.truncate()` method.
+    dimensions, the *enlargeable dimension*.  That means that the
+    `Leaf.extdim` attribute of any `EArray` instance will always be
+    non-negative.  Multiple enlargeable dimensions might be supported
+    in the future.
+
+    New rows can be added to the end of an enlargeable array by using
+    the `EArray.append()` method.  The array can also be shrunken
+    along its enlargeable dimension using the `EArray.truncate()`
+    method.
+
+    Public methods
+    --------------
+
+    append(sequence)
+        Add a ``sequence`` of data to the end of the dataset.
+    truncate(size)
+        Truncate the extendable dimension to at most ``size`` rows.
+
+    Example of use
+    --------------
+
+    See below a small example of the use of the `EArray` class.  The
+    code is available in ``examples/earray1.py``::
+
+        import tables
+        import numpy
+
+        fileh = tables.openFile('earray1.h5', mode='w')
+        a = tables.StringAtom(itemsize=8)
+        # Use ``a`` as the object type for the enlargeable array.
+        array_c = fileh.createEArray(fileh.root, 'array_c', a, (0,), \"Chars\")
+        array_c.append(numpy.array(['a'*2, 'b'*4], dtype='S8'))
+        array_c.append(numpy.array(['a'*6, 'b'*8, 'c'*10], dtype='S8'))
+
+        # Read the string ``EArray`` we have created on disk.
+        for s in array_c:
+            print 'array_c[%s] => %r' % (array_c.nrow, s)
+        # Close the file.
+        fileh.close()
+
+    The output for the previous script is something like::
+
+        array_c[0] => 'aa'
+        array_c[1] => 'bbbb'
+        array_c[2] => 'aaaaaa'
+        array_c[3] => 'bbbbbbbb'
+        array_c[4] => 'cccccccc'
     """
 
     # Class identifier.
@@ -167,7 +210,17 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
 
     def append(self, sequence):
-        """Append the sequence to this (enlargeable) object."""
+        """
+        Add a `sequence` of data to the end of the dataset.
+
+        The sequence must have the same type as the array; otherwise a
+        ``TypeError`` is raised.  In the same way, the dimensions of
+        the `sequence` must conform to the shape of the array, that
+        is, all dimensions must match, with the exception of the
+        enlargeable dimension, which can be of any length (even 0!).
+        If the shape of the `sequence` is invalid, a ``ValueError`` is
+        raised.
+        """
 
         self._v_file._checkWritable()
 
@@ -179,7 +232,13 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
 
     def truncate(self, size):
-        "Truncate the extendable dimension to at most size rows."
+        """
+        Truncate the extendable dimension to at most `size` rows.
+
+        Due to limitations of the underlying HDF5 implementation,
+        `size` must be greater than 0 (i.e. the dataset can not be
+        completely emptied).
+        """
 
         if size <= 0:
             raise ValueError("`size` must be greater than 0")
