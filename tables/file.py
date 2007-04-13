@@ -51,7 +51,6 @@ from tables.exceptions import \
      UndoRedoWarning, PerformanceWarning
 from tables.registry import getClassByName
 from tables.path import joinPath, splitPath, isVisiblePath
-from tables.utils import checkFileAccess
 from tables import undoredo
 from tables.description import IsDescription, UInt8Col, StringCol
 from tables.filters import Filters

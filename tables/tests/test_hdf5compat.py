@@ -247,7 +247,11 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
         self.assert_('/test_var/structure variable' in self.h5file)
         self.h5file.close()
         # Reopen in 'a'ppend mode
-        self.h5file = tables.openFile(self.h5fname, 'a')
+        try:
+            self.h5file = tables.openFile(self.h5fname, 'a')
+        except IOError:
+            # Problems for opening (probably not permisions to write the file)
+            return
         tbl = self.h5file.getNode('/test_var/structure variable')
         # Try to add rows to a non-chunked table (this should raise an error)
         self.assertRaises(tables.HDF5ExtError, tbl.append,
