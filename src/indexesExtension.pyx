@@ -831,8 +831,7 @@ cdef class LastRowArray(Array):
     return
 
 
-  def _readSortedSlice(self, IndexArray sorted,
-                              hsize_t start, hsize_t stop):
+  def _readSortedSlice(self, IndexArray sorted, hsize_t start, hsize_t stop):
     "Read the sorted part of an LR index."
     cdef void  *rbuflb
 

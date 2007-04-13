@@ -19,6 +19,9 @@ class PyTables_DB(DB):
         if docompress:
             self.filename += '-' + complib + str(docompress)
         self.filename = datadir + '/' + self.filename + '.h5'
+        # The chosen filters
+        self.filters = tables.Filters(complevel=self.docompress,
+                                      complib=self.complib)
         print "Processing database:", self.filename
 
     def open_db(self, remove=0):
@@ -34,10 +37,6 @@ class PyTables_DB(DB):
         con.close()
 
     def create_table(self, con):
-        # The filters chosen
-        filters = tables.Filters(complevel=self.docompress,
-                                 complib=self.complib,
-                                 shuffle=1)
         class Record(tables.IsDescription):
             col1 = tables.Int32Col()
             col2 = tables.Int32Col()
@@ -45,8 +44,7 @@ class PyTables_DB(DB):
             col4 = tables.Float64Col()
 
         table = con.createTable(con.root, 'table', Record,
-                                filters=filters, expectedrows=self.nrows)
-        table.indexFilters = filters
+                                filters=self.filters, expectedrows=self.nrows)
 
     def fill_table(self, con):
         "Fills the table"
@@ -65,7 +63,14 @@ class PyTables_DB(DB):
 
     def index_col(self, con, column, optlevel, verbose):
         col = getattr(con.root.table.cols, column)
-        col.createIndex(optlevel=optlevel, verbose=verbose)
+        #col.createIndex(optlevel=optlevel, verbose=verbose)
+        col.createIndex(optlevel=optlevel, _verbose=verbose,
+                        filters=self.filters,
+                        blocksizes=None)
+#                        blocksizes=(2**27, 2**22, 2**15, 2**7))
+#                        blocksizes=(2**27, 2**22, 2**14, 2**6))
+#                        blocksizes=(2**27, 2**20, 2**13, 2**5),
+#                        _testmode=True)
 
 #     def optimizeIndex(self, con, column, level, verbose):
 #         col = getattr(con.root.table.cols, column)
@@ -73,17 +78,17 @@ class PyTables_DB(DB):
 
     def do_query(self, con, column, base):
         if True:
-            if not hasattr(self, "table_cache"): 
-                self.table_cache = table = con.root.table 
-                self.colobj = getattr(table.cols, column) 
-                self.condvars = {"col": self.colobj, 
-                                 "col1": table.cols.col1, 
-                                 "col2": table.cols.col2, 
-                                 "col3": table.cols.col3, 
-                                 "col4": table.cols.col4, 
-                                 } 
-            table = self.table_cache 
-            colobj = self.colobj 
+            if not hasattr(self, "table_cache"):
+                self.table_cache = table = con.root.table
+                self.colobj = getattr(table.cols, column)
+                self.condvars = {"col": self.colobj,
+                                 "col1": table.cols.col1,
+                                 "col2": table.cols.col2,
+                                 "col3": table.cols.col3,
+                                 "col4": table.cols.col4,
+                                 }
+            table = self.table_cache
+            colobj = self.colobj
         else:
             table = con.root.table
             colobj = getattr(table.cols, column)

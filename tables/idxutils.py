@@ -10,13 +10,9 @@
 
 """Utilities to be used mainly by the Index class."""
 
-import math
+import math, os, subprocess
 from time import time, clock
 import numpy
-
-
-debug = False
-#debug = True  # Uncomment this for printing sizes purposes
 
 
 # Hints for chunk/slice/block/superblock computations:
@@ -65,19 +61,25 @@ def computechunksize(expectedrows):
 def computeslicesize(expectedrows, memlevel):
     """Get the optimum slicesize based on expectedrows and memorylevel."""
 
-    # Protection against creating too small slices (there will be no
-    # protection for creating too large ones!).
+    # Protection against creating too small slices (there will be not
+    # such a protection for creating large ones!)
     if expectedrows < 10**3:
         expectedrows = 10**3
     # First, the optimum chunksize
     cs = csformula(expectedrows)
-    # Now the slicesize
-    #ss = cs * memlevel**2 * 16
-    ss = 4 * cs * memlevel**2   # slicesize should be at least twice of chunksize
-    # ss cannot be bigger than 2**32 - 1 elements because of implementation reasons
+    # The actual chunksize
+    chunksize = computechunksize(expectedrows)
+    # The optimal slicesize
+    ss = int(cs * memlevel**2)
+    # We *need* slicesize to be a exact multiple of the actual chunksize
+    ss = (ss // chunksize) * chunksize
+    ss *= 2    # slicesize should be at least divisible by 2
+    # ss cannot be bigger than 2**32 - 1 elements because of
+    # implementation reasons (this limitation can be overridden when
+    # keysort would be implemented for the string type)
     if ss >= 2**32:
-        ss = 2**32 - 1
-    return int(ss)
+        ss = 2**32 - 2
+    return ss
 
 
 def computeblocksize(expectedrows, compoundsize):
@@ -111,20 +113,13 @@ def calcChunksize(expectedrows, memlevel):
     be further optimized by doing more experiments.
     """
 
-    if debug:
-        print "memlevel", memlevel
-
     expMrows = expectedrows / 1000000.  # Multiples of one million
-
     chunksize = computechunksize(expectedrows)
     slicesize = computeslicesize(expectedrows, memlevel)
     blocksize = computeblocksize(expectedrows, slicesize)
     superblocksize = computeblocksize(expectedrows, blocksize)
-
     # The size for different blocks information
     sizes = (superblocksize, blocksize, slicesize, chunksize)
-    if debug:
-        print "superblocksize, blocksize, slicesize, chunksize:", sizes
     return sizes
 
 
@@ -151,8 +146,6 @@ def calcoptlevels(nss, optlevel, testmode):
     optmedian, optstarts, optstops, optfull = (False,)*4
     if testmode:
         optmedian, optstarts, optstops, optfull = opts_testmode_dict[optlevel]
-        if debug:
-            print "optvalues:", optmedian, optstarts, optstops, optfull
         return optmedian, optstarts, optstops, optfull
 
     # Regular case
@@ -196,8 +189,6 @@ def calcoptlevels(nss, optlevel, testmode):
         elif optlevel == 9:
             optfull = 4
 
-    if debug:
-        print "optvalues:", optmedian, optstarts, optstops, optfull
     return optmedian, optstarts, optstops, optfull
 
 
@@ -208,6 +199,7 @@ def opts_pack(opts):
         packed |= opt
         packed <<= 8
     return packed
+
 
 def opts_unpack(packed):
     opts = []
@@ -481,6 +473,15 @@ def show_stats(explain, tref):
     print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)
     print "VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk)
     print "VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib)
-    print "WallClock time:", time() - tref
+    tnow = time()
+    print "WallClock time:", round(tnow - tref, 3)
+    return tnow
 
 
+
+## Local Variables:
+## mode: python
+## py-indent-offset: 4
+## tab-width: 4
+## fill-column: 72
+## End:

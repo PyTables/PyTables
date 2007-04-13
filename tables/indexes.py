@@ -43,7 +43,7 @@ import math
 import numpy
 
 from tables.node import NotLoggedMixin
-from tables.array import Array
+from tables.carray import CArray
 from tables.earray import EArray
 from tables import indexesExtension
 
@@ -55,7 +55,7 @@ class CacheArray(NotLoggedMixin, EArray, indexesExtension.CacheArray):
     _c_classId = 'CACHEARRAY'
 
 
-class LastRowArray(NotLoggedMixin, Array, indexesExtension.LastRowArray):
+class LastRowArray(NotLoggedMixin, CArray, indexesExtension.LastRowArray):
     """Container for keeping sorted and indices values of last rows of an index."""
 
     # Class identifier.
@@ -206,11 +206,19 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         """A verbose representation of this class"""
 
         return """%s
-  type = %r
+  atom = %r
   shape = %s
-  itemsize = %s
   nrows = %s
   chunksize = %s
   slicesize = %s
-  byteorder = %r""" % (self, self.type, self.shape, self.itemsize, self.nrows,
+  byteorder = %r""" % (self, self.atom, self.shape, self.nrows,
                        self.chunksize, self.slicesize, self.byteorder)
+
+
+
+## Local Variables:
+## mode: python
+## py-indent-offset: 4
+## tab-width: 4
+## fill-column: 72
+## End:

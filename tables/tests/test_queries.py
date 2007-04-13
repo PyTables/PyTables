@@ -34,6 +34,7 @@ str_format = '%%0%dd' % _strlen
 """Format of string values."""
 
 small_blocksizes = (300, 60, 20, 5)
+#small_blocksizes = (512, 128, 32, 4)   # for manual testing only
 """Sensible parameters for indexing with small blocksizes."""
 
 
@@ -443,9 +444,9 @@ itable_sizes = ['Small']
 itable_optvalues = [0, 1, 3]
 if tests.heavy:
     itable_sizes += ['Medium', 'Big']
-    itable_optvalues += [6, 9]
+    itable_optvalues += [7, 9]
 
-# Indexed queries: ``[SMB]I[01369]TDTestCase``, where:
+# Indexed queries: ``[SMB]I[01379]TDTestCase``, where:
 #
 # 1. S is for small, M for medium and B for big size table.
 #    Sizes are listed in `itable_sizes`.
