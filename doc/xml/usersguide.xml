@@ -8693,7 +8693,6 @@ array_c[4] => 'cccccccc'</screen>
         </section>
       </section>
 
-      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="VLArrayClassDescr">
         <title>The <literal>VLArray</literal> class</title>
 
@@ -8703,11 +8702,16 @@ array_c[4] => 'cccccccc'</screen>
         <para>Instances of this class represent array objects in the object
         tree with the property that their rows can have a
         <emphasis>variable</emphasis> number of homogeneous elements, called
-        <emphasis>atoms</emphasis>. Like <literal>Table</literal> (see <xref
-        linkend="TableClassDescr" xrefstyle="select: label" />) datasets,
+        <emphasis>atoms</emphasis>. Like <literal>Table</literal> datasets
+        (see <xref linkend="TableClassDescr" xrefstyle="select: label" />),
         variable length arrays can have only one dimension, and the elements
         (atoms) of their rows can be fully multidimensional.
         <literal>VLArray</literal> objects do also support compression.</para>
+
+        <para>When reading a range of rows from a <literal>VLArray</literal>,
+        you will <emphasis>always</emphasis> get a Python list of objects of
+        the current flavor (each of them for a row), which may have different
+        lengths.</para>
 
         <para>This class provides methods to write or read data to or from
         variable length array objects in the file. Note that it also inherits
@@ -8725,10 +8729,13 @@ array_c[4] => 'cccccccc'</screen>
               <glossterm><emphasis role="bold">atom</emphasis></glossterm>
 
               <glossdef>
-                <para>An <literal>Atom</literal> instance representing the
-                shape and type of the atomic objects. See <xref
-                linkend="AtomClassDescr" xrefstyle="select: label" /> for a
-                better explanation.</para>
+                <para>An <literal>Atom</literal> (see <xref
+                linkend="AtomClassDescr" xrefstyle="select: label" />)
+                instance representing the <emphasis>type</emphasis> and
+                <emphasis>shape</emphasis> of the atomic objects to be
+                saved. You may use a <emphasis>pseudo-atom</emphasis> for
+                storing a serialized object or variable length string per
+                row.</para>
               </glossdef>
             </glossentry>
 
@@ -8738,18 +8745,10 @@ array_c[4] => 'cccccccc'</screen>
               <glossdef>
                 <para>The type of data object read from this leaf.</para>
 
-                <para>Please note that when reading rows of
-                <literal>VLArray</literal> data, <literal>flavor</literal>
-                only applies to the <emphasis>components</emphasis> of the
-                returned Python list, not to the list itself.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">nrows</emphasis></glossterm>
-
-              <glossdef>
-                <para>The total number of rows of the array.</para>
+                <para>Please note that when reading several rows of
+                <literal>VLArray</literal> data, the flavor only applies to
+                the <emphasis>components</emphasis> of the returned Python
+                list, not to the list itself.</para>
               </glossdef>
             </glossentry>
 
@@ -8767,6 +8766,20 @@ array_c[4] => 'cccccccc'</screen>
         <section>
           <title><literal>VLArray</literal> methods</title>
 
+          <section id="VLArray.append">
+            <title>append(sequence)</title>
+
+            <para>Add a <literal>sequence</literal> of data to the end of the
+            dataset.</para>
+
+            <para>This method appends the objects in the
+            <literal>sequence</literal> to a <emphasis>single row</emphasis>
+            in this array. The type and shape of individual objects must be
+            compliant with the atoms in the array. In the case of serialized
+            objects and variable length strings, the object or string to
+            append is itself the <literal>sequence</literal>.</para>
+          </section>
+
           <section id="VLArray.getEnum">
             <title>getEnum()</title>
 
@@ -8779,223 +8792,220 @@ array_c[4] => 'cccccccc'</screen>
             <literal>TypeError</literal> is raised.</para>
           </section>
 
-          <section id="VLArray.append">
-            <title>append(sequence, *objects)</title>
-
-            <para>Append objects in the <literal>sequence</literal> to the
-            array.</para>
-
-            <para>This method appends the objects in the
-            <literal>sequence</literal> to a <emphasis>single row</emphasis>
-            in this array. The type of individual objects must be compliant
-            with the type of atoms in the array. In the case of variable
-            length strings, the very string to append is the
-            <literal>sequence</literal>.</para>
-
-            <para>Example of use (code available in
-            <literal>examples/vlarray1.py</literal>):</para>
-
-            <screen>import tables
-from numpy import *
-
-# Create a VLArray:
-fileh = tables.openFile("vlarray1.h5", mode = "w")
-vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
-                              tables.Int32Atom(shape=1),
-                              "ragged array of ints",
-                              filters = tables.Filters(1))
-# Append some (variable length) rows:
-vlarray.append(array([5, 6]))
-vlarray.append(array([5, 6, 7]))
-vlarray.append([5, 6, 9, 8])
-
-# Now, read it through an iterator:
-print "--&gt;", vlarray.title
-for x in vlarray:
-    print vlarray.name+"["+str(vlarray.nrow)+"]--&gt;", x
-
-# Now, do the same with native python strings
-vlarray2 = fileh.createVLArray(fileh.root, 'vlarray2',
-                              tables.StringAtom(itemsize=2),
-                              "ragged array of strings",
-                              filters = tables.Filters(1))
-vlarray2.flavor = "python"
-# Append some (variable length) rows:
-print "--&gt;", vlarray2.title
-vlarray2.append(["5", "66"])
-vlarray2.append(["5", "6", "77"])
-vlarray2.append(["5", "6", "9", "88"])
-
-# Now, read it through an iterator:
-for x in vlarray2:
-    print vlarray2.name+"["+str(vlarray2.nrow)+"]--&gt;", x
-
-
-# Close the file
-fileh.close()</screen>
-
-            <para>The output of the previous program looks like this:</para>
-
-            <screen>--&gt; ragged array of ints
-vlarray1[0]--&gt; [5 6]
-vlarray1[1]--&gt; [5 6 7]
-vlarray1[2]--&gt; [5 6 9 8]
---&gt; ragged array of strings
-vlarray2[0]--&gt; ['5', '66']
-vlarray2[1]--&gt; ['5', '6', '77']
-vlarray2[2]--&gt; ['5', '6', '9', '88']</screen>
-
-            <para>The <literal>objects</literal> argument is only retained for
-            backwards compatibility; please do <emphasis>not</emphasis> use
-            it.</para>
-          </section>
-
           <section id="iterrowsVLArrayDescr">
-            <title>iterrows(start=None, stop=None, step=1)</title>
+            <title>iterrows(start=None, stop=None, step=None)</title>
 
-            <para>Returns an iterator yielding one row per iteration. If a
-            range is supplied (i.e. some of the <emphasis>start</emphasis>,
-            <emphasis>stop</emphasis> or <emphasis>step</emphasis> parameters
-            are passed), only the appropriate rows are returned. Else, all the
-            rows are returned. See also the <literal>__iter__()</literal>
-            special methods in <xref linkend="VLArraySpecialMethods"
-            xrefstyle="select: label" /> for a shorter way to call this
-            iterator.</para>
+            <para>Iterate over the rows of the array.</para>
 
-            <para>The meaning of the <emphasis>start</emphasis>,
-            <emphasis>stop</emphasis> and <emphasis>step</emphasis> parameters
-            is the same as in the <literal>range()</literal> python function,
-            except that negative values of <literal>step</literal> are not
-            allowed. Moreover, if only <literal>start</literal> is specified,
-            then <literal>stop</literal> will be set to
-            <literal>start+1</literal>. If you do not specify neither
-            <emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then all
-            the rows in the object are selected.</para>
+            <para>This method returns an iterator yielding an object of the
+            current flavor for each selected row in the array.</para>
+
+            <para>If a range is not supplied, <emphasis>all the
+            rows</emphasis> in the array are iterated upon —you can also use
+            the <literal>VLArray.__iter__()</literal> (see <xref
+            linkend="VLArray.__iter__" />) special method for that purpose.
+            If you only want to iterate over a given <emphasis>range of
+            rows</emphasis> in the array, you may use the
+            <literal>start</literal>, <literal>stop</literal> and
+            <literal>step</literal> parameters, which have the same meaning as
+            in <literal>VLArray.read()</literal> (see <xref
+            linkend="VLArray.read" />).</para>
 
             <para>Example of use:</para>
 
-            <screen>for row in vlarray.iterrows(step=4):
-    print vlarray.name+"["+str(vlarray.nrow)+"]--&gt;", row</screen>
+            <screen>
+for row in vlarray.iterrows(step=4):
+    print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, row)</screen>
           </section>
 
-          <section id="readVLArrayDescr">
+          <section id="VLArray.next" xreflabel="description">
+            <title>next()</title>
+
+            <para>Get the next element of the array during an
+            iteration.</para>
+
+            <para>The element is returned as a list of objects of the current
+            flavor.</para>
+          </section>
+
+          <section id="VLArray.read" xreflabel="description">
             <title>read(start=None, stop=None, step=1)</title>
 
-            <para>Returns the actual data in <literal>VLArray</literal>. As
-            the lengths of the different rows are variable, the returned value
-            is a python list, with as many entries as specified rows in the
-            range parameters.</para>
+            <para>Get data in the array as a list of objects of the current
+            flavor.</para>
 
-            <para>The meaning of the <emphasis>start</emphasis>,
-            <emphasis>stop</emphasis> and <emphasis>step</emphasis> parameters
-            is the same as in the <literal>range()</literal> python function,
-            except that negative values of <literal>step</literal> are not
-            allowed. Moreover, if only <literal>start</literal> is specified,
-            then <literal>stop</literal> will be set to
+            <para>Please note that, as the lengths of the different rows are
+            variable, the returned value is a <emphasis>Python list</emphasis>
+            (not an array of the current flavor), with as many entries as
+            specified rows in the range parameters.</para>
+
+            <para>The <literal>start</literal>, <literal>stop</literal> and
+            <literal>step</literal> parameters can be used to select only a
+            <emphasis>range of rows</emphasis> in the array.  Their meanings
+            are the same as in the built-in <literal>range()</literal> Python
+            function, except that negative values of <literal>step</literal>
+            are not allowed yet. Moreover, if only <literal>start</literal> is
+            specified, then <literal>stop</literal> will be set to
             <literal>start+1</literal>. If you do not specify neither
-            <emphasis>start</emphasis> nor <emphasis>stop</emphasis>, then all
-            the rows in the object are selected.</para>
+            <literal>start</literal> nor <literal>stop</literal>, then
+            <emphasis>all the rows</emphasis> in the array are
+            selected.</para>
           </section>
         </section>
 
         <section id="VLArraySpecialMethods">
           <title><literal>VLArray</literal> special methods</title>
 
-          <para>Following are described the methods that automatically trigger
-          actions when a <literal>VLArray</literal> instance is accessed in a
-          special way (e.g., <literal>vlarray[2:5]</literal> will be
-          equivalent to a call to
-          <literal>vlarray.__getitem__(slice(2,5,None)</literal>).</para>
-
-          <section id="VLArray.__iter__">
-            <title>__iter__()</title>
-
-            <para>It returns the same iterator than
-            <literal>VLArray.iterrows(0,0,1)</literal>. However, this does not
-            accept parameters.</para>
-
-            <para>Example of use:</para>
-
-            <screen>result = [ row for row in vlarray ]</screen>
-
-            <para>Which is equivalent to:</para>
-
-            <screen>result = [ row for row in vlarray.iterrows() ]</screen>
-          </section>
+          <para>The following methods automatically trigger actions when a
+          <literal>VLArray</literal> instance is accessed in a special way
+          (e.g., <literal>vlarray[2:5]</literal> will be equivalent to a call
+          to <literal>vlarray.__getitem__(slice(2, 5, None)</literal>).</para>
 
           <section id="VLArray.__getitem__">
             <title>__getitem__(key)</title>
 
-            <para>It returns the slice of rows determined by
-            <literal>key</literal>, which can be an integer index or an
-            extended slice. The returned value is a list of objects of type
-            <literal>array.atom.type</literal>.</para>
+            <para>Get a row or a range of rows from the array.</para>
+
+            <para>If the <literal>key</literal> argument is an integer, the
+            corresponding array row is returned as an object of the current
+            flavor.  If <literal>key</literal> is a slice, the range of rows
+            determined by it is returned as a list of objects of the current
+            flavor.</para>
 
             <para>Example of use:</para>
 
-            <screen>list1 = vlarray[4]
-list2 = vlarray[4:1000:2]</screen>
+            <screen>
+a_row = vlarray[4]
+a_list = vlarray[4:1000:2]</screen>
           </section>
 
-          <section id="VLArray.__setitem__">
+          <section id="VLArray.__iter__" xreflabel="description">
+            <title>__iter__()</title>
+
+            <para>Iterate over the rows of the array.</para>
+
+            <para>This is equivalent to calling
+            <literal>VLArray.iterrows()</literal> (see <xref
+            linkend="VLArray.iterrows" />) with default arguments, i.e. it
+            iterates over <emphasis>all the rows</emphasis> in the
+            array.</para>
+            <para>Example of use:</para>
+
+            <screen>
+result = [row for row in vlarray]</screen>
+
+            <para>Which is equivalent to:</para>
+
+            <screen>
+result = [row for row in vlarray.iterrows()]</screen>
+          </section>
+
+          <section id="VLArray.__setitem__" xreflabel="description">
             <title>__setitem__(keys, value)</title>
 
-            <para>Updates a vlarray row described by <literal>keys</literal>
-            by setting it to <literal>value</literal>. Depending on the value
-            of <literal>keys</literal>, the action taken is different:</para>
+            <para>Set a row in the array.</para>
 
-            <glosslist>
-              <glossentry>
-                <glossterm><emphasis role="bold"><literal>keys</literal> is an
-                integer:</emphasis></glossterm>
+            <para>It takes different actions depending on the type of the
+            <literal>key</literal> parameter: if it is an integer, the
+            corresponding array row is set to <literal>value</literal>.  If
+            the <literal>key</literal> is a tuple, the first element refers to
+            the row to be modified, and the second element to the range within
+            the row to be updated with the <literal>value</literal> (so it can
+            be an integer or a slice).</para>
 
-                <glossdef>
-                  <para>It refers to the number of row to be modified. The
-                  <literal>value</literal> object must be type and shape
-                  compatible with the object that exists in the vlarray
-                  row.</para>
-                </glossdef>
-              </glossentry>
+            <para>The type and shape of the <literal>value</literal> must be
+            compatible with the type and shape determined by the
+            <literal>key</literal>, otherwise, a <literal>TypeError</literal>
+            or a <literal>ValueError</literal> will be raised.</para>
 
-              <glossentry>
-                <glossterm><emphasis role="bold"><literal>keys</literal> is a
-                tuple:</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The first element refers to the row to be modified,
-                  and the second element to the range (so, it can be an
-                  integer or an slice) of the row that will be updated. As
-                  above, the <literal>value</literal> object must be type and
-                  shape compatible with the object specified in the vlarray
-                  row <emphasis>and</emphasis> range.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-
-            <para><emphasis>Note:</emphasis> When updating
-            <literal>vlstring</literal> (codification UTF-8) or
-            <literal>object</literal> pseudo-atoms, there is a problem: one
-            can only update values with <emphasis>exactly</emphasis> the same
-            bytes than in the original row. With UTF-8 encoding this is
-            problematic because, for instance, '<literal>c</literal>' takes 1
-            byte, but '<literal> </literal>' takes two. The same applies when
-            using <literal>Objects</literal> atoms, because when cPickle
-            applies to a class instance (for example), it does not guarantee
-            to return the same number of bytes than over other instance, even
-            of the same class than the former. These facts effectively limit
-            the number of objects than can be updated in
-            <literal>VLArray</literal>s.</para>
+            <note>
+              <para>When updating the rows of a <literal>VLArray</literal>
+              object which uses a <literal>vlstring</literal> or
+              <literal>object</literal> pseudo-atom, there is a problem: you
+              can only update values with <emphasis>exactly</emphasis> the
+              same size in bytes than the original row.  This is problematic
+              for <literal>vlstring</literal> pseudo-atoms, since they use the
+              UTF-8 encoding, in which characters do not always take the same
+              number of bytes.  Something similar happens with
+              <literal>object</literal> pseudo-atoms, because
+              <literal>cPickle</literal> applied on a Python object does not
+              guarantee to return the same number of bytes than over another
+              object, even if they are of the same class.  This effectively
+              limits the kinds of objects than can be updated in
+              variable-length arrays.</para>
+            </note>
 
             <para>Example of use:</para>
 
-            <screen>vlarray[0] = vlarray[0]*2+3
-vlarray[99,3:] = arange(96)*2+3
-# Negative values for start and stop (but not step) are supported
-vlarray[99,-99:-89:2] = vlarray[5]*2+3</screen>
+            <screen>
+vlarray[0] = vlarray[0] * 2 + 3
+vlarray[99, 3:] = arange(96) * 2 + 3
+# Negative values for start and stop (but not step) are supported.
+vlarray[99, -99:-89:2] = vlarray[5] * 2 + 3</screen>
           </section>
+        </section>
+
+        <section>
+          <title>Example of use</title>
+
+          <para>See below a small example of the use of the
+          <literal>VLArray</literal> class.  The code is available in
+          <literal>examples/vlarray1.py</literal>:</para>
+
+          <screen>
+import tables
+from numpy import *
+
+# Create a VLArray:
+fileh = tables.openFile('vlarray1.h5', mode='w')
+vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
+                              tables.Int32Atom(shape=1),
+                              "ragged array of ints",
+                              filters=tables.Filters(1))
+# Append some (variable length) rows:
+vlarray.append(array([5, 6]))
+vlarray.append(array([5, 6, 7]))
+vlarray.append([5, 6, 9, 8])
+
+# Now, read it through an iterator:
+print '-->', vlarray.title
+for x in vlarray:
+    print '%s[%d]--> %s' % (vlarray.name, vlarray.nrow, x)
+
+# Now, do the same with native Python strings.
+vlarray2 = fileh.createVLArray(fileh.root, 'vlarray2',
+                              tables.StringAtom(itemsize=2),
+                              "ragged array of strings",
+                              filters=tables.Filters(1))
+vlarray2.flavor = 'python'
+# Append some (variable length) rows:
+print '-->', vlarray2.title
+vlarray2.append(['5', '66'])
+vlarray2.append(['5', '6', '77'])
+vlarray2.append(['5', '6', '9', '88'])
+
+# Now, read it through an iterator:
+for x in vlarray2:
+    print '%s[%d]--> %s' % (vlarray2.name, vlarray2.nrow, x)
+
+# Close the file.
+fileh.close()</screen>
+
+          <para>The output for the previous script is something like:</para>
+
+          <screen>
+--> ragged array of ints
+vlarray1[0]--> [5 6]
+vlarray1[1]--> [5 6 7]
+vlarray1[2]--> [5 6 9 8]
+--> ragged array of strings
+vlarray2[0]--> ['5', '66']
+vlarray2[1]--> ['5', '6', '77']
+vlarray2[2]--> ['5', '6', '9', '88']</screen>
         </section>
       </section>
 
+      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="UnImplementedClassDescr">
         <title>The <literal>UnImplemented</literal> class</title>
 
