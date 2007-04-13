@@ -592,6 +592,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Close and delete the temporal optimization index file
         if create_tmp:
             self.cleanup_temps()
+            # This should be called only if the overlaps are not zero
+            # and in full optimization mode!
+            # Commented out until more tests will say if this is necessary
+            # F. Altet  2007-04-14
+#             (nover, mult, tover) = self.compute_overlaps("", False)
+#             if nover > 0 and optlevel == 9:
+#                 # Do a last pass by reordering the slices alone
+#                 self.swap('reorder_slices')
             if swap_done:
                 # the memory data cache is dirty now
                 self.dirtycache = True
@@ -614,6 +622,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.swap_chunks(mode)
         elif what == "slices":
             self.swap_slices(mode)
+        elif what == "reorder_slices":
+            # Reorder completely the index at slice level
+            self.reorder_slices(tmp=False)
         if mode:
             message = "swap_%s(%s)" % (what, mode)
         else:
@@ -768,7 +779,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.get_neworder(sbounds_idx, indices, tmp_indices,
                               nslices, offset, 'int64')
         # Reorder completely the index at slice level
-        self.reorder_slices()
+        self.reorder_slices(tmp=True)
 
 
     def read_slice(self, where, nslice, buffer):
@@ -804,17 +815,17 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         where._modify(startl, stepl, countl, buffer)
 
 
-    def reorder_slice(self, nslice):
+    def reorder_slice(self, nslice, sorted, indices, tmp_sorted, tmp_indices):
         """Copy & reorder the slice in source to final destination."""
         ss = self.slicesize
         ssorted = self.slice_sorted; sindices = self.slice_indices
         # Load the second part in buffers
-        self.read_slice(self.tmp.sorted, nslice, ssorted[ss:])
-        self.read_slice(self.tmp.indices, nslice, sindices[ss:])
+        self.read_slice(tmp_sorted, nslice, ssorted[ss:])
+        self.read_slice(tmp_indices, nslice, sindices[ss:])
         indexesExtension.keysort(ssorted, sindices)
         # Write the first part of the buffers to the regular indices
-        self.write_slice(self.sorted, nslice-1, ssorted[:ss])
-        self.write_slice(self.indices, nslice-1, sindices[:ss])
+        self.write_slice(sorted, nslice-1, ssorted[:ss])
+        self.write_slice(indices, nslice-1, sindices[:ss])
         # Update caches
         self.update_caches(nslice-1, ssorted[:ss])
         # Shift the slice in the end to the beginning
@@ -837,7 +848,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.mranges[nslice] = smedian[ncs/2]
 
 
-    def reorder_slices(self):
+    def reorder_slices(self, tmp):
         """Reorder completely the index at slice level (optim version).
 
         This version of reorder_slices is optimized in that *two*
@@ -858,6 +869,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         smaller.
         """
 
+        sorted = self.sorted; indices = self.indices
+        if tmp:
+            tmp_sorted = self.tmp.sorted; tmp_indices = self.tmp.indices
+        else:
+            tmp_sorted = self.sorted; tmp_indices = self.indices
         cs = self.chunksize
         ss = self.slicesize
         nss = self.superblocksize / self.slicesize
@@ -873,12 +889,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Bootstrap the process for reordering
         # Read the first slice in buffers
-        self.read_slice(self.tmp.sorted, 0, ssorted[:ss])
-        self.read_slice(self.tmp.indices, 0, sindices[:ss])
+        self.read_slice(tmp_sorted, 0, ssorted[:ss])
+        self.read_slice(tmp_indices, 0, sindices[:ss])
 
         # Loop over the rest of slices in block
-        for nslice in xrange(1, self.sorted.nrows):
-            self.reorder_slice(nslice)
+        for nslice in xrange(1, sorted.nrows):
+            self.reorder_slice(
+                nslice, sorted, indices, tmp_sorted, tmp_indices)
 
         # End the process (enrolling the lastrow if necessary)
         if nelementsLR > 0:
@@ -891,17 +908,17 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.read_sliceLR(indicesLR, indiceslr)
             indexesExtension.keysort(ssorted2, sindices2)
             # Write the second part of the buffers to the lastrow indices
-            self.write_sliceLR(sortedLR, indiceslr)
+            self.write_sliceLR(sortedLR, sortedlr)
             self.write_sliceLR(indicesLR, indiceslr)
             # Update the caches for last row
             bebounds = numpy.concatenate((sortedlr[::cs], [sortedlr[-1]]))
             sortedLR[nelementsLR:nelementsLR+len(bebounds)] = bebounds
             self.bebounds = bebounds
         # Write the first part of the buffers to the regular indices
-        self.write_slice(self.sorted, nslice-1, ssorted[:ss])
-        self.write_slice(self.indices, nslice-1, sindices[:ss])
+        self.write_slice(sorted, nslice, ssorted[:ss])
+        self.write_slice(indices, nslice, sindices[:ss])
         # Update caches for this slice
-        self.update_caches(nslice-1, ssorted[:ss])
+        self.update_caches(nslice, ssorted[:ss])
 
 
     def swap_slices(self, mode="median"):
