@@ -234,11 +234,13 @@ class Description(object):
     different columns in a table (be they nested or not).
 
     Column definitions under a description can be accessed as attributes
-    of it.  For instance, if ``table.description`` is a ``Description``
-    instance with a colum named ``col1`` under it, the later can be
-    accessed as ``table.description.col1``.  If ``col1`` is nested and
-    contains a ``col2`` column, this can be accessed as
-    ``table.description.col1.col2``.
+    of it (*natural naming*).  For instance, if ``table.description`` is
+    a ``Description`` instance with a colum named ``col1`` under it, the
+    later can be accessed as ``table.description.col1``.  If ``col1`` is
+    nested and contains a ``col2`` column, this can be accessed as
+    ``table.description.col1.col2``.  Because of natural naming, the
+    names of members start with special prefixes, like in the `Group`
+    class.
 
     Public instance variables
     -------------------------

@@ -7410,14 +7410,17 @@ for p in rout.where('pressure &lt; 16'):
           or not).</para>
 
           <para>Column definitions under a description can be accessed as
-          attributes of it. For instance, if
-          <literal>table.description</literal> is a
+          attributes of it (<emphasis>natural naming</emphasis>). For
+          instance, if <literal>table.description</literal> is a
           <literal>Description</literal> instance with a column named
           <literal>col1</literal> under it, the later can be accessed as
           <literal>table.description.col1</literal>. If
           <literal>col1</literal> is nested and contains a
           <literal>col2</literal> column, this can be accessed as
-          <literal>table.description.col1.col2</literal>.</para>
+          <literal>table.description.col1.col2</literal>. Because of natural
+          naming, the names of members start with special prefixes, like in
+          the <literal>Group</literal> class (see <xref
+          linkend="GroupClassDescr" xrefstyle="select: label" />).</para>
 
           <section>
             <title><literal>Description</literal> instance variables</title>
@@ -7834,7 +7837,10 @@ table.flush()</screen>
           <literal>table.cols.col1</literal>. If <literal>col1</literal> is
           nested and contains a <literal>col2</literal> column, this can be
           accessed as <literal>table.cols.col1.col2</literal> and so
-          on.</para>
+          on. Because of natural naming, the names of members start with
+          special prefixes, like in the <literal>Group</literal> class (see
+          <xref linkend="GroupClassDescr" xrefstyle="select: label"
+          />).</para>
 
           <para>Like the <literal>Column</literal> class (see <xref
           linkend="ColumnClassDescr" xrefstyle="select: label" />),
@@ -9005,111 +9011,128 @@ vlarray2[2]--> ['5', '6', '9', '88']</screen>
         </section>
       </section>
 
-      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="UnImplementedClassDescr">
         <title>The <literal>UnImplemented</literal> class</title>
 
-        <para>Instances of this class represents an unimplemented dataset in a
-        generic HDF5 file. When reading such a file (i.e. one that has not
-        been created with PyTables, but with some other HDF5 library based
-        tool), chances are that the specific combination of
-        <emphasis>datatypes</emphasis> and/or <emphasis>dataspaces</emphasis>
+        <para>This class represents datasets not supported by PyTables in an
+        HDF5 file.</para>
+
+        <para>When reading a generic HDF5 file (i.e. one that has not been
+        created with PyTables, but with some other HDF5 library based tool),
+        chances are that the specific combination of datatypes or dataspaces
         in some dataset might not be supported by PyTables yet. In such a
-        case, this dataset will be mapped into the
-        <literal>UnImplemented</literal> class and hence, the user will still
-        be able to build the complete object tree of this generic HDF5 file,
-        as well as enabling the access (both read and
-        <emphasis>write</emphasis>) of the attributes of this dataset and some
-        metadata. Of course, the user won't be able to read the actual data on
-        it.</para>
+        case, this dataset will be mapped into an
+        <literal>UnImplemented</literal> instance and the user will still be
+        able to access the complete object tree of the generic HDF5 file. The
+        user will also be able to <emphasis>read and write the
+        attributes</emphasis> of the dataset, <emphasis>access some of its
+        metadata</emphasis>, and perform <emphasis>certain hierarchy
+        manipulation operations</emphasis> like deleting or moving (but not
+        copying) the node. Of course, the user will not be able to read the
+        actual data on it.</para>
 
         <para>This is an elegant way to allow users to work with generic HDF5
-        files despite the fact that some of its datasets would not be
-        supported by PyTables. However, if you are really interested in having
-        access to an unimplemented dataset, please get in contact with the
-        developer team.</para>
+        files despite the fact that some of its datasets are not supported by
+        PyTables. However, if you are really interested in having full access
+        to an unimplemented dataset, please get in contact with the developer
+        team.</para>
 
-        <para>This class does not have any public instance variables, except
-        those inherited from the <literal>Leaf</literal> class (see <xref
-        linkend="LeafClassDescr" xrefstyle="select: label" />).</para>
+        <para>This class does not have any public instance variables or
+        methods, except those inherited from the <literal>Leaf</literal> class
+        (see <xref linkend="LeafClassDescr" xrefstyle="select: label"
+        />).</para>
       </section>
 
       <section id="AttributeSetClassDescr">
         <title>The <literal>AttributeSet</literal> class</title>
 
-        <para>Represents the set of attributes of a node (Leaf or Group). It
-        provides methods to create new attributes, open, rename or delete
-        existing ones.</para>
+        <para>Container for the HDF5 attributes of a <literal>Node</literal>
+        (see <xref linkend="NodeClassDescr" xrefstyle="select: label"
+        />).</para>
 
-        <para>Like in <literal>Group</literal> instances,
+        <para>This class provides methods to create new HDF5 node attributes,
+        and to get, rename or delete existing ones.</para>
+
+        <para>Like in <literal>Group</literal> instances (see <xref
+        linkend="GroupClassDescr" xrefstyle="select: label" />),
         <literal>AttributeSet</literal> instances make use of the
         <emphasis>natural naming</emphasis> convention, i.e. you can access
-        the attributes on disk like if they were <emphasis>normal</emphasis>
-        <literal>AttributeSet</literal> attributes. This offers the user a
-        very convenient way to access (but also to set and delete) node
-        attributes by simply specifying them like a
-        <emphasis>normal</emphasis> attribute class.</para>
+        the attributes on disk as if they were normal Python attributes of the
+        <literal>AttributeSet</literal> instance.</para>
 
-        <para><emphasis>Caveat emptor:</emphasis> All Python data types are
-        supported. In particular, multidimensional NumPy objects are saved
-        natively as multidimensional objects in the HDF5 file. Python strings
-        are also saved natively as HDF5 strings, and loaded back as Python
-        strings. However, the rest of the data types including the Python
-        scalar ones (i.e. Int, Long and Float) and more general objects (like
-        <literal>NumPy</literal> or <literal>Numeric</literal>) are serialized
-        using <literal>cPickle</literal>, so you will be able to correctly
-        retrieve them only from a Python-aware HDF5 library. So, if you want
-        to save Python scalar values and be able to read them with generic
-        HDF5 tools, you should make use of scalar NumPy objects (for example
-        <literal>numpy.array(1, dtype='int64')</literal>). In the same way,
-        attributes in HDF5 native files will be always mapped into NumPy
-        objects. Specifically, a multidimensional attribute will be mapped
-        into a multidimensional <literal>ndarray</literal> and an scalar will
-        be mapped into a scalar NumPy object (for example, an attribute of
-        type <literal>H5T_NATIVE_LLONG</literal> will be read and returned as
-        a <literal>numpy.array(X, dtype='int64')</literal> scalar).</para>
+        <para>This offers the user a very convenient way to access HDF5 node
+        attributes. However, for this reason and in order not to pollute the
+        object namespace, one can not assign <emphasis>normal</emphasis>
+        attributes to <literal>AttributeSet</literal> instances, and their
+        members use names which start by special prefixes as happens with
+        <literal>Group</literal> objects.</para>
 
-        <para>One more warning: because of the various potential difficulties
-        in restoring a Python object stored in an attribute, you may end up
-        getting a <literal>cPickle</literal> string where a Python object is
-        expected. If this is the case, you may wish to run
-        <literal>cPickle.loads()</literal> on that string to get an idea of
-        where things went wrong, as shown in this example:</para>
+        <section>
+          <title>Notes on native and pickled attributes</title>
 
-        <screen>&gt;&gt;&gt; import tables
-&gt;&gt;&gt;
-&gt;&gt;&gt; class MyClass(object):
+          <para>The values of most basic types are saved as HDF5 native data
+          in the HDF5 file.  This includes Python <literal>bool</literal>,
+          <literal>int</literal>, <literal>float</literal>,
+          <literal>complex</literal> and <literal>str</literal> (but not
+          <literal>long</literal> nor <literal>unicode</literal>) values, as
+          well as their NumPy scalar versions and
+          <emphasis>homogeneous</emphasis> NumPy arrays of them.  When read,
+          these values are always loaded as NumPy scalar or array objects, as
+          needed.</para>
+
+          <para>For that reason, attributes in native HDF5 files will be
+          always mapped into NumPy objects.  Specifically, a multidimensional
+          attribute will be mapped into a multidimensional
+          <literal>ndarray</literal> and a scalar will be mapped into a NumPy
+          scalar object (for example, a scalar
+          <literal>H5T_NATIVE_LLONG</literal> will be read and returned as a
+          <literal>numpy.int64</literal> scalar).</para>
+
+          <para>However, other kinds of values are serialized using
+          <literal>cPickle</literal>, so you only will be able to correctly
+          retrieve them using a Python-aware HDF5 library.  Thus, if you want
+          to save Python scalar values and make sure you are able to read them
+          with generic HDF5 tools, you should make use of <emphasis>scalar or
+          homogeneous array NumPy objects</emphasis> (for example,
+          <literal>numpy.int64(1)</literal> or <literal>numpy.array([1, 2, 3],
+          dtype='int16')</literal>).</para>
+
+          <para>One more piece of advice: because of the various potential
+          difficulties in restoring a Python object stored in an attribute,
+          you may end up getting a <literal>cPickle</literal> string where a
+          Python object is expected. If this is the case, you may wish to run
+          <literal>cPickle.loads()</literal> on that string to get an idea of
+          where things went wrong, as shown in this example:</para>
+
+          <screen>
+>>> import os, tempfile
+>>> import tables
+>>>
+>>> class MyClass(object):
 ...   foo = 'bar'
 ...
-&gt;&gt;&gt; # An object of my custom class.
-&gt;&gt;&gt; myObject = MyClass()
-&gt;&gt;&gt;
-&gt;&gt;&gt; h5f = tables.openFile('test.h5', 'w')
-&gt;&gt;&gt; h5f.root._v_attrs.obj = myObject  # store the object
-&gt;&gt;&gt; print h5f.root._v_attrs.obj.foo  # retrieve it
+>>> myObject = MyClass()  # save object of custom class in HDF5 attr
+>>> h5fname = tempfile.mktemp(suffix='.h5')
+>>> h5f = tables.openFile(h5fname, 'w')
+>>> h5f.root._v_attrs.obj = myObject  # store the object
+>>> print h5f.root._v_attrs.obj.foo  # retrieve it
 bar
-&gt;&gt;&gt; h5f.close()
-&gt;&gt;&gt;
-&gt;&gt;&gt; # Delete class of stored object and reopen the file.
-&gt;&gt;&gt; del MyClass, myObject
-&gt;&gt;&gt;
-&gt;&gt;&gt; h5f = tables.openFile('test.h5', 'r')
-&gt;&gt;&gt; print h5f.root._v_attrs.obj.foo
+>>> h5f.close()
+>>>
+>>> del MyClass, myObject  # delete class of object and reopen file
+>>> h5f = tables.openFile(h5fname, 'r')
+>>> print repr(h5f.root._v_attrs.obj)
+'ccopy_reg\n_reconstructor...
+>>> import cPickle  # let's unpickle that to see what went wrong
+>>> cPickle.loads(h5f.root._v_attrs.obj)
 Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in ?
-AttributeError: 'str' object has no attribute 'foo'
-&gt;&gt;&gt; # Let us inspect the object to see what is happening.
-&gt;&gt;&gt; print repr(h5f.root._v_attrs.obj)
-'ccopy_reg\n_reconstructor\np1\n(c__main__\nMyClass\np2\nc__builtin__\nobject\np3\nNtRp4\n.'
-&gt;&gt;&gt; # Maybe unpickling the string will yield more information:
-&gt;&gt;&gt; import cPickle
-&gt;&gt;&gt; cPickle.loads(h5f.root._v_attrs.obj)
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in ?
+  ...
 AttributeError: 'module' object has no attribute 'MyClass'
-&gt;&gt;&gt; # So the problem was not in the stored object,
-&gt;&gt;&gt; # but in the *environment* where it was restored.
-&gt;&gt;&gt; h5f.close()</screen>
+>>> # So the problem was not in the stored object,
+... # but in the *environment* where it was restored.
+... h5f.close()
+>>> os.remove(h5fname)</screen>
+        </section>
 
         <section id="AttributeSetClassInstanceVariables">
           <title><literal>AttributeSet</literal> instance variables</title>
@@ -9118,19 +9141,11 @@ AttributeError: 'module' object has no attribute 'MyClass'
             <?dbfo glosslist-presentation="list" ?>
 
             <glossentry>
-              <glossterm><emphasis role="bold">_v_node</emphasis></glossterm>
-
-              <glossdef>
-                <para>The parent node instance.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
               <glossterm><emphasis
               role="bold">_v_attrnames</emphasis></glossterm>
 
               <glossdef>
-                <para>List with all attribute names.</para>
+                <para>A list with all attribute names.</para>
               </glossdef>
             </glossentry>
 
@@ -9139,7 +9154,7 @@ AttributeError: 'module' object has no attribute 'MyClass'
               role="bold">_v_attrnamessys</emphasis></glossterm>
 
               <glossdef>
-                <para>List with system attribute names.</para>
+                <para>A list with system attribute names.</para>
               </glossdef>
             </glossentry>
 
@@ -9148,7 +9163,17 @@ AttributeError: 'module' object has no attribute 'MyClass'
               role="bold">_v_attrnamesuser</emphasis></glossterm>
 
               <glossdef>
-                <para>List with user attribute names.</para>
+                <para>A list with user attribute names.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">_v_node</emphasis></glossterm>
+
+              <glossdef>
+                <para>The <literal>Node</literal> instance (see <xref
+                linkend="NodeClassDescr" xrefstyle="select: label" />) this
+                attribute set is associated with.</para>
               </glossdef>
             </glossentry>
           </glosslist>
@@ -9157,53 +9182,67 @@ AttributeError: 'module' object has no attribute 'MyClass'
         <section>
           <title><literal>AttributeSet</literal> methods</title>
 
-          <para>Note that this class defines the
-          <literal>__setattr__</literal>, <literal>__getattr__</literal> and
-          <literal>__delattr__</literal> and they work as normally intended.
-          Any scalar (string, ints or floats) attribute is supported natively
-          as an attribute. However, <literal>(c)Pickle</literal> is
-          automatically used so as to serialize other kind of objects (like
-          lists, tuples, dicts, small NumPy/Numeric/numarray objects, ...)
-          that you might want to save. If an attribute is set on a target node
-          that already has a large number of attributes, a
-          <literal>PerformanceWarning</literal> will be issued.</para>
+          <para>Note that this class overrides the
+          <literal>__setattr__()</literal>, <literal>__getattr__()</literal>
+          and <literal>__delattr__()</literal> special methods.  This allows
+          you to read, assign or delete attributes on disk by just using the
+          next constructs:</para>
 
-          <para>With these special methods, you can access, assign or delete
-          attributes on disk by just using the next constructs: <screen>leaf.attrs.myattr = "str attr"  # Set a string (native support)
-leaf.attrs.myattr2 = 3          # Set an integer (native support)
-leaf.attrs.myattr3 = [3,(1,2)]  # A generic object (Pickled)
-attrib = leaf.attrs.myattr      # Get the attribute myattr
-del leaf.attrs.myattr           # Delete the attribute myattr</screen></para>
+          <screen>
+leaf.attrs.myattr = 'str attr'    # set a string (native support)
+leaf.attrs.myattr2 = 3            # set an integer (native support)
+leaf.attrs.myattr3 = [3, (1, 2)]  # a generic object (Pickled)
+attrib = leaf.attrs.myattr        # get the attribute ``myattr``
+del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
+
+          <para>If an attribute is set on a target node that already has a
+          large number of attributes, a <literal>PerformanceWarning</literal>
+          will be issued.</para>
 
           <section>
             <title>_f_copy(where)</title>
 
-            <para>Copy the user attributes (as well as
-            <emphasis>certain</emphasis> system attributes) to
-            <emphasis>where</emphasis> object. <emphasis>where</emphasis> has
-            to be a <literal>Group</literal> or <literal>Leaf</literal>
-            instance.</para>
+            <para>Copy attributes to the <literal>where</literal> node.</para>
+
+            <para>Copies all user and certain system attributes to the given
+            <literal>where</literal> node (a <literal>Node</literal> instance
+            —see <xref linkend="NodeClassDescr" xrefstyle="select: label" />),
+            replacing the existing ones.</para>
           </section>
 
           <section>
-            <title>_f_list(attrset="user")</title>
+            <title>_f_list(attrset='user')</title>
 
-            <para>Return a list of attribute names of the parent node.
-            <emphasis>attrset</emphasis> selects the attribute set to be used.
-            A <literal>user</literal> value returns only the user attributes
-            and this is the default. <literal>sys</literal> returns only the
-            system attributes. <literal>all</literal> returns both the system
-            and user attributes.</para>
+            <para>Get a list of attribute names.</para>
+
+            <para>The <literal>attrset</literal> string selects the attribute
+            set to be used.  A <literal>'user'</literal> value returns only
+            user attributes (this is the default).  A <literal>'sys'</literal>
+            value returns only system attributes.  Finally,
+            <literal>'all'</literal> returns both system and user
+            attributes.</para>
           </section>
 
           <section>
             <title>_f_rename(oldattrname, newattrname)</title>
 
-            <para>Rename an attribute.</para>
+            <para>Rename an attribute from <literal>oldattrname</literal> to
+            <literal>newattrname</literal>.</para>
+          </section>
+
+          <section>
+            <title>__contains__(name)</title>
+
+            <para>Is there an attribute with that
+            <literal>name</literal>?</para>
+
+            <para>A true value is returned if the attribute set has an
+            attribute with the given name, false otherwise.</para>
           </section>
         </section>
       </section>
 
+      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="declarativeClasses">
         <title>Declarative classes</title>
 

@@ -2392,6 +2392,8 @@ class Cols(object):
     named ``col1`` under it, the later can be accessed as
     ``table.cols.col1``.  If ``col1`` is nested and contains a ``col2``
     column, this can be accessed as ``table.cols.col1.col2`` and so on.
+    Because of natural naming, the names of members start with special
+    prefixes, like in the `Group` class.
 
     Like the `Column` class, `Cols` supports item access to read and
     write ranges of values in the table or nested column.
