@@ -2355,7 +2355,7 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
         # ``test_create.createTestCase.test05_maxFieldsExceeded()``.
         cols = self.cols
         if cols is not None:
-            cols._f_close()
+            cols._g_close()
 
         # Close myself as a leaf.
         super(Table, self)._f_close(False)
@@ -2617,7 +2617,7 @@ class Cols(object):
             table.modifyColumn(start, stop, step, colname=colgroup, column=value)
 
 
-    def _f_close(self):
+    def _g_close(self):
         # First, close the columns (ie possible indices open)
         for col in self._v_colnames:
             colobj = self._g_col(col)
