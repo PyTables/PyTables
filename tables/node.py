@@ -504,7 +504,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         # Close the associated `AttributeSet`
         # only if it has already been placed in the object's dictionary.
         if '_v_attrs' in myDict:
-            self._v_attrs._f_close()
+            self._v_attrs._g_close()
 
         # Detach the node from the tree if necessary.
         self._g_delLocation()

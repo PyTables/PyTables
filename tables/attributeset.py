@@ -610,7 +610,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._g_copy(where._v_attrs, where._v_attrs.__setattr__)
 
 
-    def _f_close(self):
+    def _g_close(self):
         self.__dict__.clear()
 
 
