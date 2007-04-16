@@ -70,23 +70,18 @@ def commonKind(nodes):
 max_int32 = 2147483647
 min_int32 = -max_int32 - 1
 def bestConstantType(x):
-    if isinstance(x, str):
+    if isinstance(x, str):  # ``numpy.string_`` is a subclass of ``str``
         return str
     # ``long`` objects are kept as is to allow the user to force
     # promotion of results by using long constants, e.g. by operating
     # a 32-bit array with a long (64-bit) constant.
-    if isinstance(x, long):
-        return long
-    # Moreover, constants needing more than 32 bits are always
-    # considered ``long``, *regardless of the platform*, so we can
-    # clearly tell 32- and 64-bit constants apart.
-    if isinstance(x, int) and not (min_int32 <= x <= max_int32):
+    if isinstance(x, (long, numpy.int64)):
         return long
     # Numeric conversion to boolean values is not tried because
     # ``bool(1) == True`` (same for 0 and False), so 0 and 1 would be
     # interpreted as booleans when ``False`` and ``True`` are already
     # supported.
-    if isinstance(x, bool):
+    if isinstance(x, (bool, numpy.bool_)):
         return bool
     # ``long`` is not explicitly needed since ``int`` automatically
     # returns longs when needed (since Python 2.3).
@@ -96,6 +91,11 @@ def bestConstantType(x):
         except StandardError, err:
             continue
         if x == y:
+            # Constants needing more than 32 bits are always
+            # considered ``long``, *regardless of the platform*, so we
+            # can clearly tell 32- and 64-bit constants apart.
+            if converter is int and not (min_int32 <= x <= max_int32):
+                return long
             return converter
 
 def getKind(x):
