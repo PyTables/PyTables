@@ -834,9 +834,15 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                                    "using ``%r`` instead"
                                    % (colname, self._v_pathname, objcol.dflt) )
                     defval = objcol.dflt
-                # Set also the correct value in the desc._v_dflts dictionary
-                self.description._v_dflts[colname] = defval
                 i += 1
+
+            # Set also the correct value in the desc._v_dflts dictionary
+            for descr in self.description._f_walk(type="Description"):
+                names = descr._v_names
+                for i in range(len(names)):
+                    objcol = descr._v_colObjects[names[i]]
+                    if isinstance(objcol, Col):
+                        descr._v_dflts[objcol._v_name] = objcol.dflt
 
         # 5. Cache some data which is already in the description.
         self._cacheDescriptionData()
