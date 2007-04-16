@@ -2626,7 +2626,7 @@ class Cols(object):
                 # Delete the reference to column
                 del self.__dict__[col]
             else:
-                colobj._f_close()
+                colobj._g_close()
 
         self.__dict__.clear()
 
