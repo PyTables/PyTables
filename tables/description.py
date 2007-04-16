@@ -325,9 +325,9 @@ class Description(object):
 
         # Do a shallow copy of classdict just in case this is going to
         # be shared by other instances
-        #self.classdict = classdict.copy()
+        #self._classdict = classdict.copy()
         # I think this is not necessary
-        self.classdict = classdict
+        self._classdict = classdict
         keys = classdict.keys()
         newdict = self.__dict__
         newdict["_v_name"] = "/"   # The name for root descriptor
@@ -467,8 +467,8 @@ class Description(object):
             return 1
         elif (key2.startswith('__') or key2.startswith('_v_')):
             return -1
-        pos1 = getattr(self.classdict[key1], "_v_pos", None)
-        pos2 = getattr(self.classdict[key2], "_v_pos", None)
+        pos1 = getattr(self._classdict[key1], "_v_pos", None)
+        pos2 = getattr(self._classdict[key2], "_v_pos", None)
 #         print "key1 -->", key1, pos1
 #         print "key2 -->", key2, pos2
         # pos = None is always greater than a number
