@@ -1236,8 +1236,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             return iter([])
 
         # Iterate according to the index and residual conditions.
-        row = tableExtension.Row(self)
-        return row(start, stop, step, coords=None, ncoords=ncoords)
+        return self.row._iter(start, stop, step, coords=None, ncoords=ncoords)
 
 
     def _checkFieldIfNumeric(self, field):
@@ -1362,8 +1361,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         # although this is not totally clear.
         if sort:
             coords.sort()
-        row = tableExtension.Row(self)
-        return row(coords=coords, ncoords=-1)
+        return self.row._iter(coords=coords, ncoords=-1)
 
 
     def iterrows(self, start=None, stop=None, step=None):
@@ -1387,8 +1385,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:
-            row = tableExtension.Row(self)
-            return row(start, stop, step, coords=None, ncoords=-1)
+            return self.row._iter(start, stop, step, coords=None, ncoords=-1)
         # Fall-back action is to return an empty iterator
         return iter([])
 

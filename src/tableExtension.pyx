@@ -659,8 +659,8 @@ cdef class Row:
     self.wfieldscache = {}
 
 
-  def __call__(self, start=0, stop=0, step=1, coords=None, ncoords=0):
-    """ return the row for this record object and update counters"""
+  def _iter(self, start=0, stop=0, step=1, coords=None, ncoords=0):
+    """Return an iterator for traversiong the data in table."""
 
     self._initLoop(start, stop, step, coords, ncoords)
     return iter(self)
