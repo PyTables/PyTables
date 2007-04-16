@@ -7448,9 +7448,9 @@ for p in rout.where('pressure &lt; 16'):
                 role="bold">_v_dflts</emphasis></glossterm>
 
                 <glossdef>
-                  <para>A dictionary mapping the pathnames of all bottom-level
-                  columns under this table or nested column to their
-                  respective default values.</para>
+                  <para>A dictionary mapping the names of non-nested columns
+                  hanging directly from the associated table or nested column
+                  to their respective default values.</para>
                 </glossdef>
               </glossentry>
 

@@ -251,9 +251,9 @@ class Description(object):
         descriptions (`Col` or `Description` instances).
 
     _v_dflts
-        A dictionary mapping the pathnames of all bottom-level columns
-        under this table or nested column to their respective default
-        values.
+        A dictionary mapping the names of non-nested columns hanging
+        directly from the associated table or nested column to their
+        respective default values.
 
     _v_dtype
         The NumPy type which reflects the structure of this table or
