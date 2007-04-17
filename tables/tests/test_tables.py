@@ -4682,6 +4682,34 @@ class ChunkshapeTestCase(unittest.TestCase):
         assert tbl.chunkshape == (13,)
 
 
+# Test for appending zero-sized recarrays
+class ZeroSizedTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "a")
+        # Create a Table
+        t = self.fileh.createTable('/', 'table',
+                                   {'c1': Int32Col(), 'c2': Float64Col()})
+        # Append a single row
+        t.append([(1,2.2)])
+
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
+    def test01_canAppend(self):
+        "Appending zero length recarray."
+
+        t = self.fileh.root.table
+        np = empty(shape=(0,), dtype='i4,f8')
+        t.append(np)
+        self.assert_(t.nrows == 1, "The number of rows should be 1.")
+
+
 
 #----------------------------------------------------------------------
 
@@ -4740,6 +4768,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(WhereAppendTestCase))
         theSuite.addTest(unittest.makeSuite(DerivedTableTestCase))
         theSuite.addTest(unittest.makeSuite(ChunkshapeTestCase))
+        theSuite.addTest(unittest.makeSuite(ZeroSizedTestCase))
 
     if heavy:
         theSuite.addTest(unittest.makeSuite(CompressBZIP2TablesTestCase))

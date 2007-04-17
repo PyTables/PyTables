@@ -1730,6 +1730,9 @@ You cannot append rows to a non-chunked table.""")
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), exc)
         lenrows = recarray.shape[0]
+        # If the number of rows to append is zero, don't do anything else
+        if lenrows == 0:
+            return
         self._open_append(recarray)
         self._append_records(lenrows)
         self._close_append()
