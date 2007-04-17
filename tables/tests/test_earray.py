@@ -2458,6 +2458,43 @@ class Rows64bitsTestCase1(Rows64bitsTestCase):
 class Rows64bitsTestCase2(Rows64bitsTestCase):
     close = 1
 
+
+# Test for appending zero-sized arrays
+class ZeroSizedTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "a")
+        # Create an EArray
+        ea = self.fileh.createEArray('/', 'test', Int32Atom(), (3,0))
+        # Append a single row
+        ea.append([[1], [2], [3]])
+
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        cleanup(self)
+
+
+    def test01_canAppend(self):
+        "Appending zero length array."
+
+        fileh = self.fileh
+        ea = fileh.root.test
+        np = numpy.empty(shape=(3,0), dtype='int32')
+        ea.append(np)
+        self.assert_(ea.nrows == 1, "The number of rows should be 1.")
+
+    def test02_appendWithWrongShape(self):
+        "Appending zero length array with wrong dimension."
+
+        fileh = self.fileh
+        ea = fileh.root.test
+        np = numpy.empty(shape=(3,0,3), dtype='int32')
+        self.assertRaises(ValueError, ea.append, np)
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -2515,6 +2552,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
         theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
+        theSuite.addTest(unittest.makeSuite(ZeroSizedTestCase))
     if heavy:
         theSuite.addTest(unittest.makeSuite(Slices3EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4EArrayTestCase))

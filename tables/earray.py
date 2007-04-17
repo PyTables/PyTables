@@ -228,7 +228,9 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         nparr = convertToNPAtom2(sequence, self.atom)
         # Check if it has a consistent shape with underlying EArray
         self._checkShapeAppend(nparr)
-        self._append(nparr)
+        # If the size of the nparr is zero, don't do anything else
+        if nparr.size > 0:
+            self._append(nparr)
 
 
     def truncate(self, size):
