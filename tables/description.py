@@ -325,10 +325,6 @@ class Description(object):
 
         # Do a shallow copy of classdict just in case this is going to
         # be shared by other instances
-        #self._v_classdict = classdict.copy()
-        # I think this is not necessary
-        self._v_classdict = classdict
-        keys = classdict.keys()
         newdict = self.__dict__
         newdict["_v_name"] = "/"   # The name for root descriptor
         newdict["_v_names"] = []
@@ -343,62 +339,58 @@ class Description(object):
         if not hasattr(newdict, "_v_nestedlvl"):
             newdict["_v_nestedlvl"] = nestedlvl + 1
 
-        # Check for special variables
-        for k in keys[:]:
-            object = classdict[k]
-            if (k.startswith('__') or k.startswith('_v_')):
-                if k in newdict:
+        cols_with_pos = []  # colum (position, name) pairs
+        cols_no_pos = []  # just column names
+
+        # Check for special variables and convert column descriptions
+        for (name, descr) in classdict.items():
+            if (name.startswith('__') or name.startswith('_v_')):
+                if name in newdict:
                     #print "Warning!"
                     # special methods &c: copy to newdict, warn about conflicts
                     warnings.warn("Can't set attr %r in description class %r" \
-                                  % (k, self))
+                                  % (name, self))
                 else:
-                    #print "Special variable!-->", k, classdict[k]
-                    newdict[k] = classdict[k]
-                    keys.remove(k)  # This variable is not needed anymore
+                    #print "Special variable!-->", name, classdict[name]
+                    newdict[name] = descr
+                continue  # This variable is not needed anymore
 
-            elif (type(object) == type(IsDescription) and
-                issubclass(object, IsDescription)):
-                #print "Nested object (type I)-->", k
-                descr = object()
-                # Doing a deepcopy is very important when one has nested
-                # records in the form:
-                #
-                # class Nested(IsDescription):
-                #     uid = IntCol()
-                #
-                # class B_Candidate(IsDescription):
-                #     nested1 = Nested
-                #     nested2 = Nested
-                #
-                # This makes that nested1 and nested2 point to the same
-                # 'columns' dictionary, so that successive accesses to
-                # the different columns are actually accessing to the
-                # very same object.
-                # F. Altet 2006-08-22
-                columns = copy.deepcopy(object().columns)
-                classdict[k] = Description(columns, self._v_nestedlvl)
-            elif (type(object.__class__) == type(IsDescription) and
-                issubclass(object.__class__, IsDescription)):
-                #print "Nested object (type II)-->", k
-                # Regarding the need of a deepcopy, see note above
-                columns = copy.deepcopy(object.columns)
-                classdict[k] = Description(columns, self._v_nestedlvl)
-            elif isinstance(object, dict):
-                #print "Nested object (type III)-->", k
-                # Regarding the need of a deepcopy, see note above
-                columns = copy.deepcopy(object)
-                classdict[k] = Description(columns, self._v_nestedlvl)
+            columns = None
+            if (type(descr) == type(IsDescription) and
+                issubclass(descr, IsDescription)):
+                #print "Nested object (type I)-->", name
+                columns = descr().columns
+            elif (type(descr.__class__) == type(IsDescription) and
+                issubclass(descr.__class__, IsDescription)):
+                #print "Nested object (type II)-->", name
+                columns = descr.columns
+            elif isinstance(descr, dict):
+                #print "Nested object (type III)-->", name
+                columns = descr
+            else:
+                #print "Nested object (type IV)-->", name
+                descr = copy.deepcopy(descr)
+            # The copies above and below ensure that the structures
+            # provided by the user will remain unchanged even if we
+            # tamper with the values of ``_v_pos`` here.
+            if columns is not None:
+                descr = Description(copy.deepcopy(columns), self._v_nestedlvl)
+            classdict[name] = descr
 
-        # Check if we have any ._v_pos position attribute
-        for column in classdict.values():
-            if hasattr(column, "_v_pos") and column._v_pos:
-                keys.sort(self._g_cmpkeys)
-                break
-        else:
-            # No ._v_pos was set
-            # fall back to alphanumerical order
-            keys.sort()
+            pos = getattr(descr, '_v_pos', None)
+            if pos is None:
+                cols_no_pos.append(name)
+            else:
+                cols_with_pos.append((pos, name))
+
+        # Sort field names:
+        #
+        # 1. Fields with explicit positions, according to their
+        #    positions (and their names if coincident).
+        # 2. Fields with no position, in alfabetical order.
+        cols_with_pos.sort()
+        cols_no_pos.sort()
+        keys = [name for (pos, name) in cols_with_pos] + cols_no_pos
 
         pos = 0
         # Get properties for compound types
@@ -449,39 +441,6 @@ class Description(object):
                 raise ValueError(
                     "Using a ``_v_byteorder`` in the description is obsolete. "
                     "Use the byteorder parameter in the constructor instead.")
-
-        # finally delegate the rest of the work to type.__new__
-        return
-
-
-    def _g_cmpkeys(self, key1, key2):
-        """Helps .sort() to respect pos field in type definition"""
-        # Do not try to order variables that starts with special
-        # prefixes
-        if ((key1.startswith('__') or key1.startswith('_v_')) and
-            (key2.startswith('__') or key2.startswith('_v_'))):
-            return 0
-        # A variable that starts with a special prefix
-        # is always greater than a normal variable
-        elif (key1.startswith('__') or key1.startswith('_v_')):
-            return 1
-        elif (key2.startswith('__') or key2.startswith('_v_')):
-            return -1
-        pos1 = getattr(self._v_classdict[key1], "_v_pos", None)
-        pos2 = getattr(self._v_classdict[key2], "_v_pos", None)
-#         print "key1 -->", key1, pos1
-#         print "key2 -->", key2, pos2
-        # pos = None is always greater than a number
-        if pos1 is None:
-            return 1
-        if pos2 is None:
-            return -1
-        if pos1 < pos2:
-            return -1
-        if pos1 == pos2:
-            return 0
-        if pos1 > pos2:
-            return 1
 
 
     def _g_setNestedNamesDescr(self):
