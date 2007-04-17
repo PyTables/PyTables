@@ -1349,10 +1349,16 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
              * is a copy, the size of returned strings
              * can be directly gotten from the first (and only)
              * input/constant/temporary. */
-            PyObject *a = PyTuple_GET_ITEM(a_inputs, 1);
+            PyArray_Descr *descr;
+            if (n_inputs > 0) {  /* input, like in 'a' where a -> 'foo' */
+                descr = PyArray_DESCR(PyTuple_GET_ITEM(a_inputs, 1));
+		Py_INCREF(descr);
+            } else {  /* constant, like in '"foo"' */
+                descr = PyArray_DescrFromType(PyArray_STRING);
+                descr->elsize = self->memsizes[1];
+            }  /* no string temporaries, so no third case  */
             self->memsteps[0] = self->memsizes[0] = self->memsizes[1];
-            Py_INCREF(PyArray_DESCR(a));
-            output = PyArray_SimpleNewFromDescr(n_dimensions, shape, PyArray_DESCR(a));
+            output = PyArray_SimpleNewFromDescr(n_dimensions, shape, descr);
         }
         if (!output) goto cleanup_and_exit;
     }
