@@ -590,7 +590,9 @@ be zero."""
                 key += self.nrows
             return self.read(key)[0]
         elif isinstance(key, slice):
-            return self.read(key.start, key.stop, key.step)
+            start, stop, step = self._processRange(
+                key.start, key.stop, key.step)
+            return self.read(start, stop, step)
         else:
             raise IndexError, "Non-valid index or slice: %s" % \
                   key

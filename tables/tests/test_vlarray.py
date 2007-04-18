@@ -80,13 +80,13 @@ class BasicTestCase(unittest.TestCase):
 
     #----------------------------------------
 
-    def test01_readVLArray(self):
+    def test01_read(self):
         """Checking vlarray read"""
 
         rootgroup = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test01_readVLArray..." % self.__class__.__name__
+            print "Running %s.test01_read..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
@@ -95,8 +95,8 @@ class BasicTestCase(unittest.TestCase):
         # Choose a small value for buffer size
         vlarray.nrowsinbuf = 3
         # Read some rows
-        row = vlarray[0]
-        row2 = vlarray[2]
+        row = vlarray.read(0)[0]
+        row2 = vlarray.read(2)[0]
         if verbose:
             print "Flavor:", vlarray.flavor
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -138,13 +138,64 @@ class BasicTestCase(unittest.TestCase):
             print "self, vlarray:", self.fletcher32, vlarray.filters.fletcher32
         assert self.fletcher32 == vlarray.filters.fletcher32
 
-    def test02_appendVLArray(self):
+
+    def test02_getitem(self):
+        """Checking vlarray __getitem__"""
+
+        rootgroup = self.rootgroup
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02_getitem..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.getNode("/vlarray1")
+
+        rows = [[1, 2], [3,4,5], [], [6, 7, 8, 9], [10, 11, 12, 13, 14]]
+
+        slices = [
+            slice(None, None, None), slice(1,1,1), slice(30, None, None),
+            slice(0, None, None), slice(3, None, 1), slice(3, None, 2),
+            slice(None, 1, None), slice(None, 2, 1), slice(None, 30, 2),
+            slice(None, None, 1), slice(None, None, 2), slice(None, None, 3),
+                  ]
+        for slc in slices:
+            # Read the rows in slc
+            rows2 = vlarray[slc]
+            rows1 = rows[slc]
+            rows1f = []
+            if verbose:
+                print "Flavor:", vlarray.flavor
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "Original rows ==>", rows1
+                print "Rows read in vlarray ==>", rows2
+
+            if self.flavor == "numarray":
+                for val in rows1:
+                    rows1f.append(numarray.array(val, type='Int32'))
+                for i in range(len(rows1f)):
+                    assert allequal(rows2[i], rows1f[i], self.flavor)
+            elif self.flavor == "numpy":
+                for val in rows1:
+                    rows1f.append(numpy.array(val, dtype='int32'))
+                for i in range(len(rows1f)):
+                    assert allequal(rows2[i], rows1f[i], self.flavor)
+            elif self.flavor == "numeric":
+                for val in rows1:
+                    rows1f.append(Numeric.array(val, typecode='i'))
+                for i in range(len(rows1f)):
+                    assert allequal(rows2[i], rows1f[i], self.flavor)
+            elif self.flavor == "python":
+                    assert rows2 == rows1
+
+
+    def test03_append(self):
         """Checking vlarray append"""
 
         rootgroup = self.rootgroup
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test02_appendVLArray..." % self.__class__.__name__
+            print "Running %s.test03_append..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "a")
@@ -2865,6 +2916,7 @@ class GetItemRangeTestCase(unittest.TestCase):
         else:
             (type, value, traceback) = sys.exc_info()
             self.fail("expected a IndexError and got:\n%s" % value)
+
 
 class SetRangeTestCase(unittest.TestCase):
     nrows = 100
