@@ -914,19 +914,16 @@ class VLStringAtom(_BufferedAtom):
     Defines an atom of type ``vlstring``
 
     This supports storing variable length strings as components of a
-    ``VLArray``.  Unicode strings are stored with UTF-8 encoding.
+    ``VLArray``.
     """
     kind = 'vlstring'
     type = 'vlstring'
 
     def _tobuffer(self, object_):
-        if not hasattr(object_, 'encode'):
-            raise TypeError( "object does not look like a string: %r"
-                             % object_ )
-        return object_.encode('utf-8')
+        return str(object_)
 
     def fromarray(self, array):
-        return array.tostring().decode('utf-8')
+        return array.tostring()
 
 class ObjectAtom(_BufferedAtom):
     """

@@ -56,6 +56,12 @@ Important changes in ``Atom`` specification
   full-blown atom, although it accepts bare PyTables types as well.
   This is a *mandatory* argument now.
 
+- ``vlstring`` pseudo-atoms used in ``VLArray`` nodes do no longer support the
+  UTF-8 encoding, they only store and load raw strings of bytes.  Thus, if you
+  want to save encoded strings, you'll have to encode and decode them yourself
+  with whichever encoding you want.  Similarly, reading old files may yield
+  raw UTF-8 encoded strings instead of proper Unicode strings.
+
 - Finally, ``Atom`` and ``Col`` are now abstract classes, so you can't use
   them to create atoms or column definitions of an arbitrary type.  If you
   know the particular type you need, use the proper subclass; otherwise, use

@@ -8926,14 +8926,10 @@ result = [row for row in vlarray.iterrows()]</screen>
 
             <note>
               <para>When updating the rows of a <literal>VLArray</literal>
-              object which uses a <literal>vlstring</literal> or
-              <literal>object</literal> pseudo-atom, there is a problem: you
-              can only update values with <emphasis>exactly</emphasis> the
-              same size in bytes than the original row.  This is problematic
-              for <literal>vlstring</literal> pseudo-atoms, since they use the
-              UTF-8 encoding, in which characters do not always take the same
-              number of bytes.  Something similar happens with
-              <literal>object</literal> pseudo-atoms, because
+              object which uses a pseudo-atom, there is a problem: you can
+              only update values with <emphasis>exactly</emphasis> the same
+              size in bytes than the original row.  This is very difficult to
+              meet with <literal>object</literal> pseudo-atoms, because
               <literal>cPickle</literal> applied on a Python object does not
               guarantee to return the same number of bytes than over another
               object, even if they are of the same class.  This effectively

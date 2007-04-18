@@ -614,15 +614,12 @@ be zero."""
         ``TypeError`` or a ``ValueError`` will be raised.
 
         .. Note:: When updating the rows of a `VLArray` object which
-           uses a ``vlstring`` or ``object`` pseudo-atom, there is a
-           problem: you can only update values with *exactly* the same
-           size in bytes than the original row.  This is problematic
-           for ``vlstring`` pseudo-atoms, since they use the UTF-8
-           encoding, in which characters do not always take the same
-           number of bytes.  Something similar happens with ``object``
-           pseudo-atoms, because ``cPickle`` applied on a Python
-           object does not guarantee to return the same number of
-           bytes than over another object, even if they are of the
+           uses a pseudo-atom, there is a problem: you can only update
+           values with *exactly* the same size in bytes than the
+           original row.  This is very difficult to meet with
+           ``object`` pseudo-atoms, because ``cPickle`` applied on a
+           Python object does not guarantee to return the same number
+           of bytes than over another object, even if they are of the
            same class.  This effectively limits the kinds of objects
            than can be updated in variable-length arrays.
 

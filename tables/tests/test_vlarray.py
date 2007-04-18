@@ -1207,8 +1207,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test05_VLStringAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.createVLArray('/', "VLStringAtom", VLStringAtom())
-        vlarray.append(u"asd")
-        vlarray.append(u"aaañá")
+        vlarray.append("asd")
+        vlarray.append(u"aaana")
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1224,8 +1224,8 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         assert vlarray.nrows == 2
-        assert row[0] == u"asd"
-        assert row[1] == u"aaañá"
+        assert row[0] == "asd"
+        assert row[1] == "aaana"
         assert len(row[0]) == 3
         assert len(row[1]) == 5
 
@@ -1237,8 +1237,8 @@ class TypesTestCase(unittest.TestCase):
             print "Running %s.test05b_VLStringAtom..." % self.__class__.__name__
 
         vlarray = self.fileh.createVLArray('/', "VLStringAtom", VLStringAtom())
-        vlarray.append(u"asd")
-        vlarray.append(u"aaañá")
+        vlarray.append("asd")
+        vlarray.append(u"aaana")
 
         # Modify values
         # We have the problem here that we can only update values with
@@ -1246,8 +1246,8 @@ class TypesTestCase(unittest.TestCase):
         # UTF-8 encoding this is problematic because 'c' takes 1 byte,
         # but 'ç' takes at least two (!). Perhaps another codification
         # does not have this problem, I don't know.
-        vlarray[0] = u"as4"
-        vlarray[1] = u"aaañç"
+        vlarray[0] = "as4"
+        vlarray[1] = "aaanc"
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1264,8 +1264,8 @@ class TypesTestCase(unittest.TestCase):
             print "Second row in vlarray ==>", `row[1]`
 
         assert vlarray.nrows == 2
-        assert row[0] == u"as4"
-        assert row[1] == u"aaañç"
+        assert row[0] == "as4"
+        assert row[1] == "aaanc"
         assert len(row[0]) == 3
         assert len(row[1]) == 5
 

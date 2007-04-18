@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: latin-1 -*-
 
 """ Small example that shows how to work with variable length arrays of
 different types, UNICODE strings and general Python objects included. """
@@ -72,12 +71,12 @@ vlarray.append([1,0,3,0])  # This will be converted to a boolean
 vlarray = fileh.createVLArray(root, 'vlarray7', VLStringAtom(),
                               "Variable Length String")
 vlarray.append(u"asd")
-vlarray.append(u"aaañá")
+vlarray.append(u"aaana")
 
 # Unicode variable length strings (utf-8 encoding)
 vlarray = fileh.createVLArray(root, 'vlarray8', VLStringAtom(),
                                "Variable Length String")
-vlarray.append(u"aaañá")
+vlarray.append(u"aaana")
 vlarray.append(u"")   # The empty string
 vlarray.append(u"asd")
 
