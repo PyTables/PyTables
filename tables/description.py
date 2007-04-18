@@ -369,12 +369,12 @@ class Description(object):
                 columns = descr
             else:
                 #print "Nested object (type IV)-->", name
-                descr = copy.deepcopy(descr)
+                descr = copy.copy(descr)
             # The copies above and below ensure that the structures
             # provided by the user will remain unchanged even if we
             # tamper with the values of ``_v_pos`` here.
             if columns is not None:
-                descr = Description(copy.deepcopy(columns), self._v_nestedlvl)
+                descr = Description(copy.copy(columns), self._v_nestedlvl)
             classdict[name] = descr
 
             pos = getattr(descr, '_v_pos', None)
