@@ -403,9 +403,8 @@ cdef class AttributeSet:
     cdef ndarray ndv
     cdef object byteorder, baseatom
 
-    # Convert a Python or NumPy scalar into a NumPy 0-dim ndarray
-    if (type(value) in (bool, str, int, float, complex) or
-        isinstance(value, numpy.generic)):
+    # Convert a NumPy scalar into a NumPy 0-dim ndarray
+    if isinstance(value, numpy.generic):
       value = numpy.array(value)
 
     # Check if value is a NumPy ndarray and of a supported type

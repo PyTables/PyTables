@@ -383,10 +383,21 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         if issysattrname(name):
             if name in ["EXTDIM", "AUTO_INDEX", "DIRTY", "NODE_TYPE_VERSION"]:
                 stvalue = numpy.array(value, dtype=numpy.int32)
+                value = stvalue[()]
             elif name == "NROWS":
                 stvalue = numpy.array(value, dtype=numpy.int64)
+                value = stvalue[()]
             elif name == "FILTERS" and self._v__format_version >= (2, 0):
                 stvalue = value._pack()
+                # value will remain as a Filters instance here
+        # Convert value from a Python scalar into a NumPy scalar
+        # (only in case it has not been converted yet)
+        # Fixes ticket #59
+        if (stvalue is value and
+            type(value) in (bool, str, int, float, complex)):
+            stvalue = numpy.array(value)
+            value = stvalue[()]
+
         self._g_setAttr(name, stvalue)
 
         # New attribute or value. Introduce it into the local

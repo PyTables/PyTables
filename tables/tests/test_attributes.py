@@ -503,6 +503,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
+        assert isinstance(self.root.anarray.attrs.pq, numpy.bool_)
+        assert isinstance(self.root.anarray.attrs.qr, numpy.bool_)
+        assert isinstance(self.root.anarray.attrs.rs, numpy.bool_)
         assert self.root.anarray.attrs.pq == True
         assert self.root.anarray.attrs.qr == False
         assert self.root.anarray.attrs.rs == True
@@ -579,6 +582,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
+        assert isinstance(self.root.anarray.attrs.pq, numpy.int_)
+        assert isinstance(self.root.anarray.attrs.qr, numpy.int_)
+        assert isinstance(self.root.anarray.attrs.rs, numpy.int_)
         assert self.root.anarray.attrs.pq == 1
         assert self.root.anarray.attrs.qr == 2
         assert self.root.anarray.attrs.rs == 3
@@ -684,6 +690,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
+        assert isinstance(self.root.anarray.attrs.pq, numpy.float_)
+        assert isinstance(self.root.anarray.attrs.qr, numpy.float_)
+        assert isinstance(self.root.anarray.attrs.rs, numpy.float_)
         assert self.root.anarray.attrs.pq == 1.0
         assert self.root.anarray.attrs.qr == 2.0
         assert self.root.anarray.attrs.rs == 3.0
@@ -814,6 +823,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
+        assert isinstance(self.root.anarray.attrs.pq, numpy.string_)
+        assert isinstance(self.root.anarray.attrs.qr, numpy.string_)
+        assert isinstance(self.root.anarray.attrs.rs, numpy.string_)
         assert self.root.anarray.attrs.pq == 'foo'
         assert self.root.anarray.attrs.qr == 'bar'
         assert self.root.anarray.attrs.rs == 'baz'
@@ -946,6 +958,9 @@ class TypesTestCase(unittest.TestCase):
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
 
+        assert isinstance(self.root.anarray.attrs.pq, numpy.complex_)
+        assert isinstance(self.root.anarray.attrs.qr, numpy.complex_)
+        assert isinstance(self.root.anarray.attrs.rs, numpy.complex_)
         assert self.root.anarray.attrs.pq == 1.0+2j
         assert self.root.anarray.attrs.qr == 2.0+3j
         assert self.root.anarray.attrs.rs == 3.0+4j
