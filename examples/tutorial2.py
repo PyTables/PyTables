@@ -6,6 +6,7 @@ Example to be used in the second tutorial in the User's Guide.
 """
 
 from tables import *
+from numpy import *
 
 # Describe a particle record
 class Particle(IsDescription):
@@ -47,8 +48,8 @@ for tablename in ("TParticle1", "TParticle2", "TParticle3"):
         particle['lati'] = i
         particle['longi'] = 10 - i
         ########### Detectable errors start here. Play with them!
-        particle['pressure'] = array(i*arange(2*3), shape=(2,4))  # Incorrect
-        #particle['pressure'] = array(i*arange(2*3), shape=(2,3))  # Correct
+        particle['pressure'] = array(i*arange(2*3)).reshape((2,4))  # Incorrect
+        #particle['pressure'] = array(i*arange(2*3)).reshape((2,3))  # Correct
         ########### End of errors
         particle['temperature'] = (i**2)     # Broadcasting
         # This injects the Record values
