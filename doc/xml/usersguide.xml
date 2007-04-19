@@ -13838,11 +13838,6 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
             <para><literal>complex(float, float): complex</literal> — complex
             from real and imaginary parts.</para>
           </listitem>
-
-          <listitem>
-            <para><literal>pow(complex, complex): complex</literal> — complex
-            exponentiation.</para>
-          </listitem>
         </itemizedlist></para>
     </appendix>
 

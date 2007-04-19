@@ -116,7 +116,7 @@ def binop(opname, reversed=False, kind=None):
             return OpNode(opname, (self, other), kind=kind)
     return operation
 
-def func(func, minkind=None):
+def func(func, minkind=None, maxkind=None):
     @ophelper
     def function(*args):
         if allConstantNodes(args):
@@ -124,6 +124,8 @@ def func(func, minkind=None):
         kind = commonKind(args)
         if minkind and kind_rank.index(minkind) > kind_rank.index(kind):
             kind = minkind
+        if maxkind and kind_rank.index(maxkind) < kind_rank.index(kind):
+            kind = maxkind
         return FuncNode(func.__name__, args, kind)
     return function
 
@@ -226,6 +228,9 @@ functions = {
     'sin' : func(numpy.sin, 'float'),
     'cos' : func(numpy.cos, 'float'),
     'tan' : func(numpy.tan, 'float'),
+    'arcsin' : func(numpy.arcsin, 'float'),
+    'arccos' : func(numpy.arccos, 'float'),
+    'arctan' : func(numpy.arctan, 'float'),
     'sqrt' : func(numpy.sqrt, 'float'),
 
     'sinh' : func(numpy.sinh, 'float'),
@@ -237,6 +242,8 @@ functions = {
 
     'where' : where_func,
 
+    'real': func(numpy.real, 'float', 'float'),
+    'imag': func(numpy.imag, 'float', 'float'),
     'complex' : func(complex, 'complex'),
 
     'sum' : sum_func,
