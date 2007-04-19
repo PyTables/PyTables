@@ -606,8 +606,54 @@ class metaIsDescription(type):
 
 
 class IsDescription(object):
-    """ For convenience: inheriting from IsDescription can be used to get
-        the new metaclass (same as defining __metaclass__ yourself).
+    """
+    Description of the structure of a table or nested column.
+
+    This class is designed to be used as an easy, yet meaningful way to
+    describe the structure of new `Table` datasets or nested columns
+    through the definition of *derived classes*.  In order to define
+    such a class, you must declare it as descendant of `IsDescription`,
+    with as many attributes as columns you want in your table.  The name
+    of each attribute will become the name of a column, and its value
+    will hold a description of it.
+
+    Ordinary columns can be described using instances of the `Col`
+    class.  Nested columns can be described by using classes derived
+    from `IsDescription`, instances of it, or name-description
+    dictionaries.  Derived classes can be declared in place (in which
+    case the column takes the name of the class) or referenced by name.
+
+    Nested columns can have a ``_v_pos`` special attribute which sets
+    the *relative* position of the column among sibling columns *also
+    having explicit positions*.  The ``pos`` constructor argument of
+    `Col` intances is used for the same purpose.  Columns with no
+    explicit position will be placed afterwards in alphabetic order.
+
+    Once you have created a description object, you can pass it to the
+    `Table` constructor, where all the information it contains will be
+    used to define the table structure.
+
+    Special attributes
+    ------------------
+
+    These are the special attributes that the user can specify *when
+    declaring* an `IsDescription` subclass to complement its *metadata*.
+
+    _v_pos
+        Sets the position of a possible nested column description among
+        its sibling columns.
+
+    Class variables
+    ---------------
+
+    The following attributes are *automatically created* when an
+    `IsDescription` subclass is declared.  Please note that declared
+    columns can no longer be accessed as normal class variables after
+    its creation.
+
+    columns
+        Maps the name of each column in the description to its own
+        descriptive object.
     """
     __metaclass__ = metaIsDescription
 

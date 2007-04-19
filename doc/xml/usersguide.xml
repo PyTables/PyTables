@@ -9239,49 +9239,61 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
         </section>
       </section>
 
-      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="declarativeClasses">
         <title>Declarative classes</title>
 
         <para>In this section a series of classes that are meant to
         <emphasis>declare</emphasis> datatypes that are required for primary
-        PyTables (like <literal>Table</literal> or <literal>VLArray</literal>)
-        objects are described.</para>
+        PyTables datasets (like <literal>Table</literal> or
+        <literal>VLArray</literal>) are described.</para>
 
         <section id="IsDescriptionClassDescr">
           <title>The <literal>IsDescription</literal> class</title>
 
+          <para>Description of the structure of a table or nested
+          column.</para>
+
           <para>This class is designed to be used as an easy, yet meaningful
-          way to describe the properties of <literal>Table</literal> objects
-          through the definition of <emphasis>derived classes</emphasis> that
-          inherit properties from it. In order to define such a class, you
-          must declare it as descendant of <emphasis>IsDescription</emphasis>,
-          with as many attributes as columns you want in your table. The name
-          of each attribute will become the name of a column, and its value
-          will hold a description of it.</para>
+          way to describe the structure of new <literal>Table</literal> (see
+          <xref linkend="TableClassDescr" xrefstyle="select: label" />)
+          datasets or nested columns through the definition of
+          <emphasis>derived classes</emphasis>. In order to define such a
+          class, you must declare it as descendant of
+          <literal>IsDescription</literal>, with as many attributes as columns
+          you want in your table. The name of each attribute will become the
+          name of a column, and its value will hold a description of
+          it.</para>
 
           <para>Ordinary columns can be described using instances of the
-          <literal>Col</literal> (see <xref linkend="ColClassDescr"
-          xrefstyle="select: label" />) class. Nested columns can be described
-          by using classes derived from <literal>IsDescription</literal> or
-          instances of it. Derived classes can be declared in place (in which
-          case the column takes the name of the class) or referenced by name,
-          and they can have a <literal>_v_pos</literal> special attribute
-          which sets the position of the nested column among its sibling
-          columns.</para>
+          <literal>Col</literal> class (see <xref linkend="ColClassDescr"
+          xrefstyle="select: label" />). Nested columns can be described by
+          using classes derived from <literal>IsDescription</literal>,
+          instances of it, or name-description dictionaries. Derived classes
+          can be declared in place (in which case the column takes the name of
+          the class) or referenced by name.</para>
+
+          <para>Nested columns can have a <literal>_v_pos</literal> special
+          attribute which sets the <emphasis>relative</emphasis> position of
+          the column among sibling columns <emphasis>also having explicit
+          positions</emphasis>.  The <literal>pos</literal> constructor
+          argument of <literal>Col</literal> intances is used for the same
+          purpose.  Columns with no explicit position will be placed
+          afterwards in alphabetic order.</para>
 
           <para>Once you have created a description object, you can pass it to
           the <literal>Table</literal> constructor, where all the information
-          it contains will be used to define the table structure. See the
-          <xref linkend="secondExample" xrefstyle="select: label" /> for an
-          example on how that works.</para>
+          it contains will be used to define the table structure.
+          <!-- manual-only -->
+          See the <xref linkend="secondExample" xrefstyle="select: label" />
+          for an example on how that works.</para>
 
-          <para>See below for a complete list of the special attributes that
-          can be specified to complement the <emphasis>metadata</emphasis> of
-          an <literal>IsDescription</literal> class.</para>
-
-          <section id="IsDescription.specialAttrs">
+          <section>
             <title><literal>IsDescription</literal> special attributes</title>
+
+            <para>These are the special attributes that the user can specify
+            <emphasis>when declaring</emphasis> an
+            <literal>IsDescription</literal> subclass to complement its
+            <emphasis>metadata</emphasis>.</para>
 
             <glosslist>
               <?dbfo glosslist-presentation="list" ?>
@@ -9296,8 +9308,32 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
               </glossentry>
             </glosslist>
           </section>
+
+          <section>
+            <title><literal>IsDescription</literal> class variables</title>
+
+            <para>The following attributes are <emphasis>automatically
+            created</emphasis> when an <literal>IsDescription</literal>
+            subclass is declared.  Please note that declared columns can no
+            longer be accessed as normal class variables after its
+            creation.</para>
+
+            <glosslist>
+              <?dbfo glosslist-presentation="list" ?>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">columns</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Maps the name of each column in the description to its
+                  own descriptive object.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+          </section>
         </section>
 
+        <!-- XXX REVIEWED UP TO HERE - Ivan -->
         <section id="ColClassDescr">
           <title>The <literal>Col</literal> class and its descendants</title>
 
