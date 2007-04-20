@@ -365,3 +365,30 @@ nc_tanh(cdouble *x, cdouble *r)
 	r->imag = (is*rc-rs*ic)/d;
 	return;
 }
+
+
+/* The next nowarn1 and nowarn2 are defined in order to avoid compiler
+   warnings about unused functions. */
+
+void nowarn2(cdouble *x, cdouble *r, cdouble *b);
+
+void
+nowarn1(cdouble *x, cdouble *r, cdouble *b)
+{
+	nc_floor_quot(x, b, r);
+	nc_log1p(x, r);
+	nc_expm1(x, r);
+	nc_log10(x, r);
+        nowarn2(x, r, b);
+        return;
+}
+
+void
+nowarn2(cdouble *x, cdouble *r, cdouble *b)
+{
+	nc_asinh(x, r);
+	nc_acosh(x, r);
+	nc_atanh(x, r);
+        nowarn1(x, r, b);
+        return;
+}
