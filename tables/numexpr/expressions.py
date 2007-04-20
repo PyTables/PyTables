@@ -225,13 +225,13 @@ def pow_op(a, b):
 functions = {
     'copy' : func(numpy.copy),
     'ones_like' : func(numpy.ones_like),
+    'sqrt' : func(numpy.sqrt, 'float'),
     'sin' : func(numpy.sin, 'float'),
     'cos' : func(numpy.cos, 'float'),
     'tan' : func(numpy.tan, 'float'),
     'arcsin' : func(numpy.arcsin, 'float'),
     'arccos' : func(numpy.arccos, 'float'),
     'arctan' : func(numpy.arctan, 'float'),
-    'sqrt' : func(numpy.sqrt, 'float'),
 
     'sinh' : func(numpy.sinh, 'float'),
     'cosh' : func(numpy.cosh, 'float'),
