@@ -445,6 +445,8 @@ class Table(tableExtension.Table, Leaf):
         """Number of rows indexed in memory but still not in disk."""
         self._listoldindexes = []
         """The list of columns with old indexes."""
+        self._autoIndex = None
+        """Private variable that caches the value for autoIndex."""
 
         self.colnames = []
         """
@@ -635,6 +637,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         if self.indexed:
             self._indexedrows = indexobj.nelements
             self._unsaved_indexedrows = self.nrows - self._indexedrows
+            # Put the autoIndex value in a cache variable
+            self._autoIndex = self.autoIndex
 
 
     def _restorecache(self):

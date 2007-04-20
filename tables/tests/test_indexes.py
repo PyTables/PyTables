@@ -1364,7 +1364,7 @@ class ManyNodesTestCase(PyTablesTestCase):
             for sn in range(5):
                 qchr = 'chr' + str(qn)
                 name = 'chr' + str(sn)
-                path = "/at/%s/at" % (qchr)
+                path = "/at/%s/pt" % (qchr)
                 table = h5.createTable(path, name, IdxRecord, createparents=1)
                 table.cols.f0.createIndex(memlevel=1)
                 table.cols.f1.createIndex(memlevel=1)
