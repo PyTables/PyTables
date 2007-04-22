@@ -58,9 +58,51 @@ class Col(atom.Atom):
     """
     Defines a non-nested column.
 
-    A column is defined as an atom with additional position information.
-    This information is used to order columns in a table or nested
-    column.  The stated position is kept in the `_v_pos` attribute.
+    `Col` instances are used as a means to declare the different
+    properties of a non-nested column in a table or nested column.
+    `Col` classes are descendants of their equivalent `Atom` classes,
+    but their instances have an additional ``_v_pos`` attribute that is
+    used to decide the position of the column inside its parent table or
+    nested column (see the `IsDescription` class for more information on
+    column positions).
+
+    In the same fashion as `Atom`, you should use a particular `Col`
+    descendant class whenever you know the exact type you will need when
+    writing your code.  Otherwise, you may use one of the
+    ``Col.from_*()`` factory methods.
+
+    Public instance variables
+    -------------------------
+
+    In addition to the variables that they inherit from the `Atom`
+    class, `Col` instances have the following attributes:
+
+    _v_pos
+        The *relative* position of this column with regard to its column
+        siblings.
+
+    Factory methods
+    ---------------
+
+    from_atom(atom[, pos])
+        Create a `Col` definition from a PyTables ``atom``.
+    from_dtype(dtype[, dflt][, pos])
+        Create a `Col` definition from a NumPy ``dtype``.
+    from_kind(kind[, itemsize][, shape][, dflt][, pos])
+        Create a `Col` definition from a PyTables ``kind``.
+    from_sctype(sctype[, shape][, dflt][, pos])
+        Create a `Col` definition from a NumPy scalar type ``sctype``.
+    from_type(type[, shape][, dflt][, pos])
+        Create a `Col` definition from a PyTables ``type``.
+
+    Constructors
+    ------------
+
+    For each ``TYPEAtom`` class there is a matching ``TYPECol`` class
+    with the same constructor signature, plus an additional ``pos``
+    parameter, which defaults to ``None`` and may take an integer.  This
+    argument is used to set the ``_v_pos`` attribute.
+
     """
 
     # Avoid mangling atom class data.
@@ -627,7 +669,7 @@ class IsDescription(object):
     the *relative* position of the column among sibling columns *also
     having explicit positions*.  The ``pos`` constructor argument of
     `Col` intances is used for the same purpose.  Columns with no
-    explicit position will be placed afterwards in alphabetic order.
+    explicit position will be placed afterwards in alphanumeric order.
 
     Once you have created a description object, you can pass it to the
     `Table` constructor, where all the information it contains will be

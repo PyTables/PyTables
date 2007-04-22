@@ -2285,7 +2285,7 @@ Third modif--&gt; ['Particle:     -3', 'Particle:      0', 'Particle:     -5']</
 5L</screen>
 
           <para><literal>removeRows(start, stop)</literal> (see <xref
-          linkend="removeRowsDescr" />) deletes therows in the range (start,
+          linkend="Table.removeRows" />) deletes therows in the range (start,
           stop). It returns the number of rows effectively removed.</para>
 
           <para>We have reached the end of this first tutorial. Don't forget
@@ -7070,7 +7070,7 @@ fileh.close()</screen>
             columns.</para>
           </section>
 
-          <section id="removeRowsDescr" xreflabel="description">
+          <section id="Table.removeRows" xreflabel="description">
             <title>removeRows(start, stop=None)</title>
 
             <para>Remove a range of rows in the table.</para>
@@ -8773,7 +8773,7 @@ array_c[4] => 'cccccccc'</screen>
         <section>
           <title><literal>VLArray</literal> methods</title>
 
-          <section id="VLArray.append">
+          <section id="VLArray.append" xreflabel="description">
             <title>append(sequence)</title>
 
             <para>Add a <literal>sequence</literal> of data to the end of the
@@ -8799,7 +8799,7 @@ array_c[4] => 'cccccccc'</screen>
             <literal>TypeError</literal> is raised.</para>
           </section>
 
-          <section id="iterrowsVLArrayDescr">
+          <section id="VLArray.iterrows" xreflabel="description">
             <title>iterrows(start=None, stop=None, step=None)</title>
 
             <para>Iterate over the rows of the array.</para>
@@ -9278,7 +9278,7 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
           positions</emphasis>.  The <literal>pos</literal> constructor
           argument of <literal>Col</literal> intances is used for the same
           purpose.  Columns with no explicit position will be placed
-          afterwards in alphabetic order.</para>
+          afterwards in alphanumeric order.</para>
 
           <para>Once you have created a description object, you can pass it to
           the <literal>Table</literal> constructor, where all the information
@@ -9333,18 +9333,21 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
           </section>
         </section>
 
-        <!-- XXX REVIEWED UP TO HERE - Ivan -->
         <section id="ColClassDescr">
           <title>The <literal>Col</literal> class and its descendants</title>
 
+          <para>Defines a non-nested column.</para>
+
           <para><literal>Col</literal> instances are used as a means to
-          declare the different properties of a non-nested column in a table.
-          <literal>Col</literal> classes are descendants of their equivalent
-          <literal>Atom</literal> classes (see <xref linkend="AtomClassDescr"
-          xrefstyle="select: label" />), but their instances have an
-          additional <literal>_v_pos</literal> attribute that can be set with
-          the optional constructor parameter <literal>pos</literal>, which
-          defaults to <literal>None</literal> and may take an integer.</para>
+          declare the different properties of a non-nested column in a table
+          or nested column.  <literal>Col</literal> classes are descendants of
+          their equivalent <literal>Atom</literal> classes (see <xref
+          linkend="AtomClassDescr" xrefstyle="select: label" />), but their
+          instances have an additional <literal>_v_pos</literal> attribute
+          that is used to decide the position of the column inside its parent
+          table or nested column (see the <literal>IsDescription</literal>
+          class in <xref linkend="IsDescriptionClassDescr" xrefstyle="select:
+          label" /> for more information on column positions).</para>
 
           <para>In the same fashion as <literal>Atom</literal>, you should use
           a particular <literal>Col</literal> descendant class whenever you
@@ -9353,7 +9356,7 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
           methods.</para>
 
           <section>
-            <title><literal>Col</literal> instance attributes</title>
+            <title><literal>Col</literal> instance variables</title>
 
             <para>In addition to the variables that they inherit from the
             <literal>Atom</literal> class, <literal>Col</literal> instances
@@ -9366,8 +9369,8 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
                 <glossterm><emphasis role="bold">_v_pos</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The position of this column with regard to its column
-                  siblings.</para>
+                  <para>The <emphasis>relative</emphasis> position of this
+                  column with regard to its column siblings.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -9380,22 +9383,22 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
               <title>from_atom(atom, pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a PyTables
-              <emphasis>atom</emphasis>.</para>
+              <literal>atom</literal>.</para>
 
               <para>An optional position may be specified as the
-              <emphasis>pos</emphasis> argument.</para>
+              <literal>pos</literal> argument.</para>
             </section>
 
             <section>
               <title>from_dtype(dtype, dflt=None, pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a NumPy
-              <emphasis>dtype</emphasis>.</para>
+              <literal>dtype</literal>.</para>
 
               <para>Optional default value and position may be specified as
-              the <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
+              the <literal>dflt</literal> and <literal>pos</literal>
               arguments, respectively. Information in the
-              <emphasis>dtype</emphasis> not represented in a
+              <literal>dtype</literal> not represented in a
               <literal>Col</literal> is ignored.</para>
             </section>
 
@@ -9404,12 +9407,12 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
               pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a PyTables
-              <emphasis>kind</emphasis>.</para>
+              <literal>kind</literal>.</para>
 
               <para>Optional item size, shape, default value and position may
-              be specified as the <emphasis>itemsize</emphasis>,
-              <emphasis>shape</emphasis>, <emphasis>dflt</emphasis> and
-              <emphasis>pos</emphasis> arguments, respectively. Bear in mind
+              be specified as the <literal>itemsize</literal>,
+              <literal>shape</literal>, <literal>dflt</literal> and
+              <literal>pos</literal> arguments, respectively. Bear in mind
               that not all columns support a default item size.</para>
             </section>
 
@@ -9417,26 +9420,25 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
               <title>from_sctype(sctype, shape=1, dflt=None, pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a NumPy
-              scalar type <emphasis>sctype</emphasis>.</para>
+              scalar type <literal>sctype</literal>.</para>
 
               <para>Optional shape, default value and position may be
-              specified as the <emphasis>shape</emphasis>,
-              <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
-              arguments, respectively. Information in the
-              <emphasis>sctype</emphasis> not represented in a
-              <literal>Col</literal> is ignored.</para>
+              specified as the <literal>shape</literal>,
+              <literal>dflt</literal> and <literal>pos</literal> arguments,
+              respectively. Information in the <literal>sctype</literal> not
+              represented in a <literal>Col</literal> is ignored.</para>
             </section>
 
             <section>
               <title>from_type(type, shape=1, dflt=None, pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a PyTables
-              <emphasis>type</emphasis>.</para>
+              <literal>type</literal>.</para>
 
               <para>Optional shape, default value and position may be
-              specified as the <emphasis>shape</emphasis>,
-              <emphasis>dflt</emphasis> and <emphasis>pos</emphasis>
-              arguments, respectively.</para>
+              specified as the <literal>shape</literal>,
+              <literal>dflt</literal> and <literal>pos</literal> arguments,
+              respectively.</para>
             </section>
           </section>
 
@@ -9447,11 +9449,9 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
             class there is a matching
             <literal><varname>TYPE</varname>Col</literal> class with the same
             constructor signature, plus an additional <literal>pos</literal>
-            parameter, which defaults to <literal>None</literal>. By default,
-            columns are arranged in memory following an alphanumeric order on
-            column names. However, it is convenient to let the user impose a
-            defined ordering. The <literal>pos</literal> parameter allows the
-            user to force the desired ordering.</para>
+            parameter, which defaults to <literal>None</literal> and may take
+            an integer.  This argument is used to set the
+            <literal>_v_pos</literal> attribute.</para>
           </section>
         </section>
 
@@ -9459,10 +9459,10 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
           <title>The <literal>Atom</literal> class and its
           descendants.</title>
 
-          <para><literal>Atom</literal> instances define the type of atomic
-          cells stored in a dataset. The meaning of
-          <emphasis>atomic</emphasis> is that individual elements of a cell
-          can not be extracted directly by indexing (i.e.
+          <para>Defines the type of atomic cells stored in a dataset.</para>
+
+          <para>The meaning of <emphasis>atomic</emphasis> is that individual
+          elements of a cell can not be extracted directly by indexing (i.e.
           <literal>__getitem__()</literal>) the dataset; e.g. if a dataset has
           shape (2, 2) and its atoms have shape (3,), to get the third element
           of the cell at (1, 0) one should use
@@ -9472,15 +9472,15 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
           <para>The <literal>Atom</literal> class is meant to declare the
           different properties of the <emphasis>base element</emphasis> (also
           known as <emphasis>atom</emphasis>) of <literal>CArray</literal>,
-          <literal>EArray</literal> and <literal>VLArray</literal> objects,
-          although they are used also so as to describe the base elements of
-          <literal>Array</literal> objects as well. <literal>Atom</literal>
-          instances have the property that their length is always the same.
-          However, you can grow objects along the extensible dimension in the
-          case of <literal>EArray</literal> or put a variable number of them
-          on a <literal>VLArray</literal> row. Moreover, the atoms are not
-          restricted to scalar values, and they can be fully multidimensional
-          objects.</para>
+          <literal>EArray</literal> and <literal>VLArray</literal> datasets,
+          although they are also used to describe the base elements of
+          <literal>Array</literal> datasets. Atoms have the property that
+          their length is always the same.  However, you can grow datasets
+          along the extensible dimension in the case of
+          <literal>EArray</literal> or put a variable number of them on a
+          <literal>VLArray</literal> row. Moreover, the are not
+          restricted to scalar values, and they can be <emphasis>fully
+          multidimensional objects</emphasis>.</para>
 
           <para>A series of descendant classes are offered in order to make
           the use of these element descriptions easier. You should use a
@@ -9496,75 +9496,20 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
               <?dbfo glosslist-presentation="list" ?>
 
               <glossentry>
-                <glossterm><emphasis role="bold">kind</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The PyTables kind of the atom (a string). For a
-                  relation of the data kinds supported by PyTables and more
-                  information about them, see the <xref
-                  linkend="datatypesSupported"
-                  xrefstyle="select: label" />.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">type</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The PyTables type of the atom (a string). For a
-                  relation of the data types supported by PyTables and more
-                  information about them, see the <xref
-                  linkend="datatypesSupported"
-                  xrefstyle="select: label" />.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">shape</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The shape of the atom (a tuple, <literal>()</literal>
-                  for scalar atoms). In a <literal>EArray</literal> context,
-                  it is a <emphasis>tuple</emphasis> specifying the shape of
-                  the object, and one (and only one) of its dimensions
-                  <emphasis>must</emphasis> be 0, meaning that the
-                  <literal>EArray</literal> object will be enlarged along this
-                  axis.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
                 <glossterm><emphasis role="bold">dflt</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The default value of the atom. If the user does not
-                  supply a value for an element while filling a dataset, this
-                  default value will be written to disk. If the user supplies
-                  a scalar value for a multidimensional atom, this value is
-                  automatically <emphasis>broadcast</emphasis> to all the
-                  items in the atom cell. If <emphasis>dflt</emphasis> is not
-                  supplied, an appropriate zero value (or
-                  <emphasis>null</emphasis> string) will be chosen by default.
-                  Please note that default values are kept internally as NumPy
-                  objects.</para>
-                </glossdef>
-              </glossentry>
+                  <para>The default value of the atom.</para>
 
-              <glossentry>
-                <glossterm><emphasis role="bold">size</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Total size in bytes of the atom.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">itemsize</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Size in bytes of a sigle item in the atom. Specially
-                  useful for <literal>string</literal> objects.</para>
+                  <para>If the user does not supply a value for an element
+                  while filling a dataset, this default value will be written
+                  to disk. If the user supplies a scalar value for a
+                  multidimensional atom, this value is automatically
+                  <emphasis>broadcast</emphasis> to all the items in the atom
+                  cell. If <literal>dflt</literal> is not supplied, an
+                  appropriate zero value (or <emphasis>null</emphasis> string)
+                  will be chosen by default.  Please note that default values
+                  are kept internally as NumPy objects.</para>
                 </glossdef>
               </glossentry>
 
@@ -9579,11 +9524,66 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
 
               <glossentry>
                 <glossterm><emphasis
+                role="bold">itemsize</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Size in bytes of a sigle item in the atom.</para>
+
+                  <para>Specially useful for atoms of the
+                  <literal>string</literal> kind.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">kind</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The PyTables kind of the atom (a string).
+                  <!-- manual-only -->
+                  For a relation of the data kinds supported by PyTables and
+                  more information about them, see <xref
+                  linkend="datatypesSupported" xrefstyle="select: label"
+                  />.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
                 role="bold">recarrtype</emphasis></glossterm>
 
                 <glossdef>
                   <para>String type to be used in
                   <literal>numpy.rec.array()</literal>.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">shape</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The shape of the atom (a tuple, <literal>()</literal>
+                  for scalar atoms).</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">size</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Total size in bytes of the atom.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">type</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The PyTables type of the atom (a string).
+                  <!-- manual-only -->
+                  For a relation of the data types supported by PyTables and
+                  more information about them, see <xref
+                  linkend="datatypesSupported" xrefstyle="select: label"
+                  />.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -9592,18 +9592,19 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
             strict (in)equality without having to compare individual
             attributes:</para>
 
-            <screen>&gt;&gt;&gt; atom1 = StringAtom(itemsize=10)  # same as ``atom2``
-&gt;&gt;&gt; atom2 = Atom.from_kind('string', 10)  # same as ``atom1``
-&gt;&gt;&gt; atom3 = IntAtom()
-&gt;&gt;&gt; atom1 == 'foo'
+            <screen>
+>>> atom1 = StringAtom(itemsize=10)  # same as ``atom2``
+>>> atom2 = Atom.from_kind('string', 10)  # same as ``atom1``
+>>> atom3 = IntAtom()
+>>> atom1 == 'foo'
 False
-&gt;&gt;&gt; atom1 == atom2
+>>> atom1 == atom2
 True
-&gt;&gt;&gt; atom2 != atom1
+>>> atom2 != atom1
 False
-&gt;&gt;&gt; atom1 == atom3
+>>> atom1 == atom3
 False
-&gt;&gt;&gt; atom3 != atom2
+>>> atom3 != atom2
 True</screen>
           </section>
 
@@ -9619,18 +9620,19 @@ True</screen>
               <para>Constructor arguments to be overridden must be passed as
               keyword arguments.</para>
 
-              <screen>&gt;&gt;&gt; atom1 = StringAtom(itemsize=12)
-&gt;&gt;&gt; atom2 = atom1.copy()
-&gt;&gt;&gt; print atom1
+              <screen>
+>>> atom1 = StringAtom(itemsize=12)
+>>> atom2 = atom1.copy()
+>>> print atom1
 StringAtom(itemsize=12, shape=(), dflt='')
-&gt;&gt;&gt; print atom2
+>>> print atom2
 StringAtom(itemsize=12, shape=(), dflt='')
-&gt;&gt;&gt; atom1 is atom2
+>>> atom1 is atom2
 False
-&gt;&gt;&gt; atom3 = atom1.copy(itemsize=100, shape=(2, 2))
-&gt;&gt;&gt; print atom3
+>>> atom3 = atom1.copy(itemsize=100, shape=(2, 2))
+>>> print atom3
 StringAtom(itemsize=100, shape=(2, 2), dflt='')
-&gt;&gt;&gt; atom1.copy(foobar=42)
+>>> atom1.copy(foobar=42)
 Traceback (most recent call last):
   ...
 TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
@@ -9644,19 +9646,20 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
               <title>from_dtype(dtype, dflt=None)</title>
 
               <para>Create an <literal>Atom</literal> from a NumPy
-              <emphasis>dtype</emphasis>.</para>
+              <literal>dtype</literal>.</para>
 
               <para>An optional default value may be specified as the
-              <emphasis>dflt</emphasis> argument. Information in the
-              <emphasis>dtype</emphasis> not represented in an
+              <literal>dflt</literal> argument. Information in the
+              <literal>dtype</literal> not represented in an
               <literal>Atom</literal> is ignored.</para>
 
-              <screen>&gt;&gt;&gt; import numpy
-&gt;&gt;&gt; Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
+              <screen>
+>>> import numpy
+>>> Atom.from_dtype(numpy.dtype((numpy.int16, (2, 2))))
 Int16Atom(shape=(2, 2), dflt=0)
-&gt;&gt;&gt; Atom.from_dtype(numpy.dtype('S5'), dflt='hello')
+>>> Atom.from_dtype(numpy.dtype('S5'), dflt='hello')
 StringAtom(itemsize=5, shape=(), dflt='hello')
-&gt;&gt;&gt; Atom.from_dtype(numpy.dtype('Float64'))
+>>> Atom.from_dtype(numpy.dtype('Float64'))
 Float64Atom(shape=(), dflt=0.0)</screen>
             </section>
 
@@ -9665,25 +9668,26 @@ Float64Atom(shape=(), dflt=0.0)</screen>
               dflt=None)</title>
 
               <para>Create an <literal>Atom</literal> from a PyTables
-              <emphasis>kind</emphasis>.</para>
+              <literal>kind</literal>.</para>
 
               <para>Optional item size, shape and default value may be
-              specified as the <emphasis>itemsize</emphasis>,
-              <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
+              specified as the <literal>itemsize</literal>,
+              <literal>shape</literal> and <literal>dflt</literal>
               arguments, respectively. Bear in mind that not all atoms support
               a default item size.</para>
 
-              <screen>&gt;&gt;&gt; Atom.from_kind('int', itemsize=2, shape=(2, 2))
+              <screen>
+>>> Atom.from_kind('int', itemsize=2, shape=(2, 2))
 Int16Atom(shape=(2, 2), dflt=0)
-&gt;&gt;&gt; Atom.from_kind('int', shape=(2, 2))
+>>> Atom.from_kind('int', shape=(2, 2))
 Int32Atom(shape=(2, 2), dflt=0)
-&gt;&gt;&gt; Atom.from_kind('string', itemsize=5, dflt='hello')
+>>> Atom.from_kind('string', itemsize=5, dflt='hello')
 StringAtom(itemsize=5, shape=(), dflt='hello')
-&gt;&gt;&gt; Atom.from_kind('string', dflt='hello')
+>>> Atom.from_kind('string', dflt='hello')
 Traceback (most recent call last):
   ...
 ValueError: no default item size for kind ``string``
-&gt;&gt;&gt; Atom.from_kind('Float')
+>>> Atom.from_kind('Float')
 Traceback (most recent call last):
   ...
 ValueError: unknown kind: 'Float'</screen>
@@ -9692,7 +9696,8 @@ ValueError: unknown kind: 'Float'</screen>
               are not supported; you need to use the proper
               constructor:</para>
 
-              <screen>&gt;&gt;&gt; Atom.from_kind('enum')
+              <screen>
+>>> Atom.from_kind('enum')
 Traceback (most recent call last):
   ...
 ValueError: the ``enum`` kind is not supported...</screen>
@@ -9702,22 +9707,23 @@ ValueError: the ``enum`` kind is not supported...</screen>
               <title>from_sctype(sctype, shape=1, dflt=None)</title>
 
               <para>Create an <literal>Atom</literal> from a NumPy scalar type
-              <emphasis>sctype</emphasis>.</para>
+              <literal>sctype</literal>.</para>
 
               <para>Optional shape and default value may be specified as the
-              <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
+              <literal>shape</literal> and <literal>dflt</literal>
               arguments, respectively. Information in the
-              <emphasis>sctype</emphasis> not represented in an
+              <literal>sctype</literal> not represented in an
               <literal>Atom</literal> is ignored.</para>
 
-              <screen>&gt;&gt;&gt; import numpy
-&gt;&gt;&gt; Atom.from_sctype(numpy.int16, shape=(2, 2))
+              <screen>
+>>> import numpy
+>>> Atom.from_sctype(numpy.int16, shape=(2, 2))
 Int16Atom(shape=(2, 2), dflt=0)
-&gt;&gt;&gt; Atom.from_sctype('S5', dflt='hello')
+>>> Atom.from_sctype('S5', dflt='hello')
 Traceback (most recent call last):
   ...
 ValueError: unknown NumPy scalar type: 'S5'
-&gt;&gt;&gt; Atom.from_sctype('Float64')
+>>> Atom.from_sctype('Float64')
 Float64Atom(shape=(), dflt=0.0)</screen>
             </section>
 
@@ -9725,22 +9731,22 @@ Float64Atom(shape=(), dflt=0.0)</screen>
               <title>from_type(type, shape=1, dflt=None)</title>
 
               <para>Create an <literal>Atom</literal> from a PyTables
-              <emphasis>type</emphasis>.</para>
+              <literal>type</literal>.</para>
 
               <para>Optional shape and default value may be specified as the
-              <emphasis>shape</emphasis> and <emphasis>dflt</emphasis>
+              <literal>shape</literal> and <literal>dflt</literal>
               arguments, respectively.</para>
 
               <screen>
-&gt;&gt;&gt; Atom.from_type('bool')
+>>> Atom.from_type('bool')
 BoolAtom(shape=(), dflt=False)
-&gt;&gt;&gt; Atom.from_type('int16', shape=(2, 2))
+>>> Atom.from_type('int16', shape=(2, 2))
 Int16Atom(shape=(2, 2), dflt=0)
-&gt;&gt;&gt; Atom.from_type('string40', dflt='hello')
+>>> Atom.from_type('string40', dflt='hello')
 Traceback (most recent call last):
   ...
 ValueError: unknown type: 'string40'
-&gt;&gt;&gt; Atom.from_type('Float64')
+>>> Atom.from_type('Float64')
 Traceback (most recent call last):
   ...
 ValueError: unknown type: 'Float64'</screen>
@@ -9783,6 +9789,7 @@ ValueError: unknown type: 'Float64'</screen>
               </glossentry>
             </glosslist>
 
+            <!-- manual-only -->
             <para>A relation of the different constructors with their
             parameters follows.</para>
 
@@ -9878,8 +9885,9 @@ ValueError: unknown type: 'Float64'</screen>
             <section>
               <title>ComplexAtom(itemsize, shape=1, dflt=0j)</title>
 
-              <para>Defines an atom of kind <literal>complex</literal>.
-              Allowed item sizes are 8 (single precision) and 16 (double
+              <para>Defines an atom of kind <literal>complex</literal>.</para>
+
+              <para>Allowed item sizes are 8 (single precision) and 16 (double
               precision). This class must be used instead of more concrete
               ones to avoid confusions with <literal>numarray</literal>-like
               precision specifications used in PyTables 1.X.</para>
@@ -9953,22 +9961,23 @@ ValueError: unknown type: 'Float64'</screen>
               <para>Enumerated atoms also support comparisons with other
               objects:</para>
 
-              <screen>&gt;&gt;&gt; enum = ['T0', 'T1', 'T2']
-&gt;&gt;&gt; atom1 = EnumAtom(enum, 'T0', 'int8')  # same as ``atom2``
-&gt;&gt;&gt; atom2 = EnumAtom(enum, 'T0', Int8Atom())  # same as ``atom1``
-&gt;&gt;&gt; atom3 = EnumAtom(enum, 'T0', 'int16')
-&gt;&gt;&gt; atom4 = Int8Atom()
-&gt;&gt;&gt; atom1 == enum
+              <screen>
+>>> enum = ['T0', 'T1', 'T2']
+>>> atom1 = EnumAtom(enum, 'T0', 'int8')  # same as ``atom2``
+>>> atom2 = EnumAtom(enum, 'T0', Int8Atom())  # same as ``atom1``
+>>> atom3 = EnumAtom(enum, 'T0', 'int16')
+>>> atom4 = Int8Atom()
+>>> atom1 == enum
 False
-&gt;&gt;&gt; atom1 == atom2
+>>> atom1 == atom2
 True
-&gt;&gt;&gt; atom2 != atom1
+>>> atom2 != atom1
 False
-&gt;&gt;&gt; atom1 == atom3
+>>> atom1 == atom3
 False
-&gt;&gt;&gt; atom1 == atom4
+>>> atom1 == atom4
 False
-&gt;&gt;&gt; atom4 != atom1
+>>> atom4 != atom1
 True</screen>
 
               <section>
@@ -9976,7 +9985,8 @@ True</screen>
 
                 <para>The next C <literal>enum</literal> construction:</para>
 
-                <screen>enum myEnum {
+                <screen>
+enum myEnum {
   T0,
   T1,
   T2
@@ -9985,7 +9995,8 @@ True</screen>
                 <para>would correspond to the following PyTables
                 declaration:</para>
 
-                <screen>&gt;&gt;&gt; myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')</screen>
+                <screen>
+>>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', 'int32')</screen>
 
                 <para>Please note the <literal>dflt</literal> argument with a
                 value of <literal>'T0'</literal>. Since the concrete value
@@ -9999,102 +10010,95 @@ True</screen>
                 <literal>base</literal> argument (this time with a full-blown
                 storage atom):</para>
 
-                <screen>&gt;&gt;&gt; myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', UInt8Atom())</screen>
+                <screen>
+>>> myEnumAtom = EnumAtom(['T0', 'T1', 'T2'], 'T0', UInt8Atom())</screen>
 
                 <para>You can also define multidimensional arrays for data
                 elements:</para>
 
-                <screen>&gt;&gt;&gt; myEnumAtom = EnumAtom(
+                <screen>
+>>> myEnumAtom = EnumAtom(
 ...    ['T0', 'T1', 'T2'], 'T0', base='uint32', shape=(3,2))</screen>
 
                 <para>for 3x2 arrays of <literal>uint32</literal>.</para>
               </section>
             </section>
+          </section>
 
-            <!-- You can place paragraphs and other block elements before a section, but you cannot place anything after it. See docbook reference. -->
+          <section id="PseudoAtomsDescr">
+            <title>Pseudo atoms</title>
 
-            <section id="PseudoAtomsDescr">
-              <title>Pseudo atoms</title>
+            <para>Now, there come two special classes,
+            <literal>ObjectAtom</literal> and <literal>VLStringAtom</literal>,
+            that actually do not descend from <literal>Atom</literal>, but
+            which goal is so similar that they should be described
+            here. Pseudo-atoms can only be used with
+            <literal>VLArray</literal> datasets (see <xref
+            linkend="VLArrayClassDescr" xrefstyle="select: label" />), and
+            they do not support multidimensional values, nor multiple values
+            per row.</para>
 
-              <para>Now, there come two special classes,
-              <literal>ObjectAtom</literal> and
-              <literal>VLStringAtom</literal>, that actually do not descend
-              from <literal>Atom</literal>, but which goal is so similar that
-              they should be described here. Pseudo atom instances do not
-              allow multidimensional atoms, nor multiple values per
-              row.</para>
+            <para>They can be recognised because they also have
+            <literal>kind</literal>, <literal>type</literal> and
+            <literal>shape</literal> attributes, but no
+            <literal>size</literal>, <literal>itemsize</literal> or
+            <literal>dflt</literal> ones. Instead, they have a
+            <literal>base</literal> atom which defines the elements used for
+            storage.</para>
 
-              <para>They can be recognised because they also have
-              <literal>kind</literal>, <literal>type</literal> and
-              <literal>shape</literal> attributes, but no
-              <literal>size</literal>, <literal>itemsize</literal> or
-              <literal>dflt</literal> ones. Instead, they have a
-              <literal>base</literal> atom which defines the elements used for
-              storage.</para>
-
-              <para><emphasis>Caveat emptor:</emphasis> You are only allowed
-              to use these classes to create <literal>VLArray</literal>
-              objects, not <literal>CArray</literal> and
-              <literal>EArray</literal> objects.</para>
-
-              <section>
-                <title>ObjectAtom()</title>
-
-                <para>This class is meant to fit <emphasis>any</emphasis> kind
-                of object in a row of an <literal>VLArray</literal> instance
-                by using <literal>cPickle</literal> behind the scenes. Due to
-                the fact that you can not foresee how long will be the output
-                of the <literal>cPickle</literal> serialization (i.e. the atom
-                already has a <emphasis>variable</emphasis> length), you can
-                only fit a representant of it per row. However, you can still
-                pass several parameters to the
-                <literal>VLArray.append()</literal> method as they will be
-                regarded as a <emphasis>tuple</emphasis> of compound objects
-                (the parameters), so that we still have only one object to be
-                saved in a single row. It does not accept parameters and it
-                causes the reads of rows to always return Python objects. You
-                can regard <literal>ObjectAtom</literal> types as an easy way
-                to save an arbitrary number of generic python objects in a
-                <literal>VLArray</literal> object.</para>
-              </section>
-
-              <section>
-                <title>VLStringAtom()</title>
-
-                <para>This class describes a <emphasis>row</emphasis> of the
-                <literal>VLArray</literal> class, rather than an
-                <emphasis>atom</emphasis>. It differs from the
-                <literal>StringAtom</literal> class in that you can only add
-                one instance of it to one specific row, i.e. the
-                <literal>VLArray.append()</literal> method only accepts one
-                object when the base atom is of this type. Besides, it
-                supports Unicode strings (contrarily to
-                <literal>StringAtom</literal>) because it uses the UTF-8
-                codification (this is why its <literal>atomsize()</literal>
-                method returns always 1) when serializing to disk. It does not
-                accept any parameter and it causes the reads of rows to always
-                return Python strings. See the <xref
-                linkend="VLArrayFormatDescr" xrefstyle="select: label" /> if
-                you are curious on how this is implemented at the low-level.
-                You can regard <literal>VLStringAtom</literal> types as an
-                easy way to save generic variable length strings.</para>
-              </section>
-            </section>
-
-            <!-- You can place paragraphs and other block elements before a section, but you cannot place anything after it. See docbook reference. -->
+            <para>See <literal>examples/vlarray1.py</literal> and
+            <literal>examples/vlarray2.py</literal> for further examples on
+            <literal>VLArray</literal> datasets, including object
+            serialization and string management.</para>
 
             <section>
-              <title></title>
+              <title>ObjectAtom()</title>
 
-              <para>See <literal>examples/vlarray1.py</literal> and
-              <literal>examples/vlarray2.py</literal> for further examples on
-              <literal>VLArray</literal>s, including object serialization and
-              Unicode string management.</para>
+              <para>Defines an atom of type <literal>object</literal>.</para>
+
+              <para>This class is meant to fit <emphasis>any</emphasis> kind
+              of Python object in a row of a <literal>VLArray</literal>
+              dataset by using <literal>cPickle</literal> behind the
+              scenes. Due to the fact that you can not foresee how long will
+              be the output of the <literal>cPickle</literal> serialization
+              (i.e. the atom already has a <emphasis>variable</emphasis>
+              length), you can only fit <emphasis>one object per
+              row</emphasis>. However, you can still group several objects in
+              a single tuple or list and pass it to the
+              <literal>VLArray.append()</literal> method (see <xref
+              linkend="VLArray.append"/>).</para>
+
+              <para>Object atoms do not accept parameters and they cause the
+              reads of rows to always return Python objects. You can regard
+              <literal>object</literal> atoms as an easy way to save an
+              arbitrary number of generic Python objects in a
+              <literal>VLArray</literal> dataset.</para>
+            </section>
+
+            <section>
+              <title>VLStringAtom()</title>
+
+              <para>Defines an atom of type
+              <literal>vlstring</literal>.</para>
+
+              <para>This class describes a <emphasis>row</emphasis> of the
+              <literal>VLArray</literal> class, rather than an atom. It
+              differs from the <literal>StringAtom</literal> class in that you
+              can only add <emphasis>one instance of it to one specific
+              row</emphasis>, i.e. the <literal>VLArray.append()</literal>
+              method (see <xref linkend="VLArray.append"/>) only accepts one
+              object when the base atom is of this type.</para>
+
+              <para>Variable-length string atoms do not accept parameters and
+              they cause the reads of rows to always return Python strings.
+              You can regard <literal>vlstring</literal> atoms as an easy way
+              to save generic variable length strings.</para>
             </section>
           </section>
         </section>
       </section>
 
+      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="helperClasses">
         <title>Helper classes</title>
 
@@ -15431,19 +15435,6 @@ Object Tree:
             H5T_NATIVE_UCHAR. That means that the complete row entry in the
             dataset has to be used in order to fully serialize the object or
             the variable length string.</para>
-
-            <para>In addition, if you plan to use a
-            <literal>vlstring</literal> pseudo-atom for your text data and you
-            are using ascii-7 (7 bits ASCII) codification for your strings,
-            but you don't know (or just don't want) to convert it to the
-            required UTF-8 codification, you should not worry too much about
-            that because the ASCII characters with values in the range [0x00,
-            0x7f] are directly mapped to Unicode characters in the range
-            [U+0000, U+007F] and the UTF-8 encoding has the useful property
-            that an UTF-8 encoded ascii-7 string is indistinguishable from a
-            traditional ascii-7 string. So, you will not need any further
-            conversion in order to save your ascii-7 strings and have an
-            <literal>vlstring</literal> pseudo-atoms.</para>
           </section>
         </section>
       </section>

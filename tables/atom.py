@@ -242,24 +242,54 @@ class Atom(object):
     shape (3,), to get the third element of the cell at (1, 0) one
     should use ``dataset[1,0][2]`` instead of ``dataset[1,0,2]``.
 
-    Atoms have the following common attributes:
+    The `Atom` class is meant to declare the different properties of
+    the *base element* (also known as *atom*) of `CArray`, `EArray`
+    and `VLArray` datasets, although they are also used to describe
+    the base elements of `Array` datasets.  Atoms have the property
+    that their length is always the same.  However, you can grow
+    datasets along the extensible dimension in the case of `EArray` or
+    put a variable number of them on a `VLArray` row.  Moreover, atoms
+    are not restricted to scalar values, and they can be *fully
+    multidimensional objects*.
 
-    `kind`
-        The PyTables kind of the atom (a string).
-    `type`
-        The PyTables type of the atom (a string).
-    `shape`
-        The shape of the atom (a tuple, ``()`` for scalar atoms).
-    `dflt`
+    A series of descendant classes are offered in order to make the
+    use of these element descriptions easier.  You should use a
+    particular `Atom` descendant class whenever you know the exact
+    type you will need when writing your code.  Otherwise, you may use
+    one of the ``Atom.from_*()`` factory methods.
+
+    Public instance variables
+    -------------------------
+
+    dflt
         The default value of the atom.
-    `size`
-        Total size in bytes of the atom.
-    `itemsize`
-        Size in bytes of a sigle item in the atom.
-    `dtype`
+
+        If the user does not supply a value for an element while
+        filling a dataset, this default value will be written to
+        disk. If the user supplies a scalar value for a
+        multidimensional atom, this value is automatically *broadcast*
+        to all the items in the atom cell.  If ``dflt`` is not
+        supplied, an appropriate zero value (or *null* string) will be
+        chosen by default.  Please note that default values are kept
+        internally as NumPy objects.
+
+    dtype
         The NumPy ``dtype`` that most closely matches this atom.
-    `recarrtype`
+    itemsize
+        Size in bytes of a sigle item in the atom.
+
+        Specially useful for atoms of the ``string`` kind.
+
+    kind
+        The PyTables kind of the atom (a string).
+    recarrtype
         String type to be used in ``numpy.rec.array()``.
+    shape
+        The shape of the atom (a tuple, ``()`` for scalar atoms).
+    size
+        Total size in bytes of the atom.
+    type
+        The PyTables type of the atom (a string).
 
     Atoms can be compared with atoms and other objects for strict
     (in)equality without having to compare individual attributes:
@@ -277,6 +307,42 @@ class Atom(object):
     False
     >>> atom3 != atom2
     True
+
+    Public methods
+    --------------
+
+    copy(**override)
+        Get a copy of the atom, possibly overriding some arguments.
+
+    Factory methods
+    ---------------
+
+    from_dtype(dtype[, dflt])
+        Create an `Atom` from a NumPy ``dtype``.
+    from_kind(kind[, itemsize][, shape][, dflt])
+        Create a `Atom` from a PyTables ``kind``.
+    from_sctype(sctype[, shape][, dflt])
+        Create a `Atom` from a NumPy scalar type ``sctype``.
+    from_type(type[, shape][, dflt])
+        Create a `Atom` from a PyTables ``type``.
+
+    Constructors
+    ------------
+
+    There are some common arguments for most `Atom` -derived
+    constructors:
+
+    itemsize
+        For types with a non-fixed size, this sets the size in bytes
+        of individual items in the atom.
+
+    shape
+        Sets the shape of the atom.  An integer shape like ``2`` is
+        equivalent to the tuple ``(2,)``.
+
+    dflt
+        Sets the default value for the atom.
+
     """
 
     # Register data for all subclasses.
@@ -610,7 +676,14 @@ del _classgen, _newclass
 
 
 class ComplexAtom(Atom):
-    """Defines an atom of a complex type."""
+    """
+    Defines an atom of a complex type.
+
+    Allowed item sizes are 8 (single precision) and 16 (double
+    precision).  This class must be used instead of more concrete ones
+    to avoid confusions with ``numarray`` -like precision
+    specifications used in PyTables 1.X.
+    """
 
     # This definition is a little more complex (no pun intended)
     # because, although the complex kind is a normal numerical one,
@@ -874,6 +947,23 @@ class EnumAtom(Atom):
 
 # Pseudo-atom classes
 # ===================
+#
+# Now, there come two special classes, `ObjectAtom` and
+# `VLStringAtom`, that actually do not descend from `Atom`, but which
+# goal is so similar that they should be described here.  Pseudo-atoms
+# can only be used with `VLArray` datasets, and they do not support
+# multidimensional values, nor multiple values per row.
+#
+# They can be recognised because they also have ``kind``, ``type`` and
+# ``shape`` attributes, but no ``size``, ``itemsize`` or ``dflt``
+# ones.  Instead, they have a ``base`` atom which defines the elements
+# used for storage.
+#
+# See ``examples/vlarray1.py`` and ``examples/vlarray2.py`` for
+# further examples on `VLArray` datasets, including object
+# serialization and string management.
+
+
 class PseudoAtom(object):
     """
     Pseudo-atoms can only be used in ``VLArray`` nodes.
@@ -911,10 +1001,18 @@ class _BufferedAtom(PseudoAtom):
 
 class VLStringAtom(_BufferedAtom):
     """
-    Defines an atom of type ``vlstring``
+    Defines an atom of type ``vlstring``.
 
-    This supports storing variable length strings as components of a
-    ``VLArray``.
+    This class describes a *row* of the `VLArray` class, rather than
+    an atom.  It differs from the `StringAtom` class in that you can
+    only add *one instance of it to one specific row*, i.e. the
+    `VLArray.append()` method only accepts one object when the base
+    atom is of this type.
+
+    Variable-length string atoms do not accept parameters and they
+    cause the reads of rows to always return Python strings.  You can
+    regard ``vlstring`` atoms as an easy way to save generic variable
+    length strings.
     """
     kind = 'vlstring'
     type = 'vlstring'
@@ -927,10 +1025,20 @@ class VLStringAtom(_BufferedAtom):
 
 class ObjectAtom(_BufferedAtom):
     """
-    Defines an atom of type ``object``
+    Defines an atom of type ``object``.
 
-    This supports storing arbitrary pickled objects as components of a
-    ``VLArray``.
+    This class is meant to fit *any* kind of Python object in a row of
+    a `VLArray` dataset by using ``cPickle`` behind the scenes.  Due
+    to the fact that you can not foresee how long will be the output
+    of the ``cPickle`` serialization (i.e. the atom already has a
+    *variable* length), you can only fit *one object per row*.
+    However, you can still group several objects in a single tuple or
+    list and pass it to the `VLArray.append()` method.
+
+    Object atoms do not accept parameters and they cause the reads of
+    rows to always return Python objects.  You can regard ``object``
+    atoms as an easy way to save an arbitrary number of generic Python
+    objects in a `VLArray` dataset.
     """
     kind = 'object'
     type = 'object'
