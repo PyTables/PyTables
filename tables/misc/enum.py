@@ -106,6 +106,26 @@ class Enum(object):
 
     (If you ask, the `__getitem__()` method is not used for this purpose
     to avoid ambiguity in the case of using strings as concrete values.)
+
+    Special methods
+    ---------------
+
+    __call__(value, *default)
+        Get the name of the enumerated value with that concrete ``value``.
+    __contains__(name)
+        Is there an enumerated value with that ``name`` in the type?
+    __eq__(other)
+        Is the ``other`` enumerated type equivalent to this one?
+    __getattr__(name)
+        Get the concrete value of the enumerated value with that ``name``.
+    __getitem__(name)
+        Get the concrete value of the enumerated value with that ``name``.
+    __iter__()
+        Iterate over the enumerated values.
+    __len__()
+        Return the number of enumerated values in the enumerated type.
+    __repr__()
+        Return the canonical string representation of the enumeration.
     """
 
 
@@ -249,8 +269,8 @@ sequences, mappings and other enumerations""")
         `name` must be a string.
 
         This mehod does *not* check for concrete values matching a value
-        in an enumerated type.  For that, please use the `__call__()`
-        method.
+        in an enumerated type.  For that, please use the
+        `Enum.__call__()` method.
 
         Example
         -------

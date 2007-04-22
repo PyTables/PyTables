@@ -101,32 +101,32 @@ max32 = 2**32
 
 class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
-    """Represent the index (sorted and reverse index) dataset in HDF5 file.
+    """
+    Represents the index of a column in a table.
 
-    It enables to create indexes of Columns of Table objects.
+    This class is used to keep the indexing information for columns in a
+    `Table` dataset.  It is actually a descendant of the `Group` class,
+    with some added functionality.  An `Index` is always associated with
+    one and only one column in the table.
 
-    All NumPy datatypes are supported except for complex datatypes.
+    This class is mainly intended for internal use, but some of its
+    attributes may be interesting for the programmer.
 
-    Methods:
+    Public instance variables
+    -------------------------
 
-        search(start, stop, step, where)
-        getCoords(startCoords, maxCoords)
-        append(object)
+    column
+        The `Column` instance for the indexed column.
+    dirty
+        Whether the index is dirty or not.
 
-    Instance variables:
+        Dirty indexes are out of sync with column data, so they exist
+        but they are not usable.
 
-        column -- The column object this index belongs to
-        dirty -- Whether the index is dirty or not. Dirty indexes are
-            out of sync with column data, so they exist but they are
-            not usable.
-        nrows -- The number of slices in the index.
-        slicesize -- The number of elements per slice.
-        nelements -- The number of indexed rows.
-        shape -- The shape of this index (in slices and elements).
-        filters -- The properties used to filter the stored items.
-        sorted -- The IndexArray object with the sorted values information.
-        indices -- The IndexArray object with the sorted indices information.
-
+    filters
+        Filter properties for this index --see `Filters`.
+    nelements
+        The number of currently indexed rows for this column.
     """
 
     _c_classId = 'INDEX'
@@ -268,7 +268,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.nrows = None
         """The total number of slices in the index."""
         self.nelements = None
-        """The number of indexed elements in this index."""
+        """The number of currently indexed row for this column."""
         self.memlevel = memlevel
         """The level of memory usage for sorting the indexes."""
         self.blocksizes = blocksizes

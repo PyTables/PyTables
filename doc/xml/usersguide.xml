@@ -10098,74 +10098,119 @@ enum myEnum {
         </section>
       </section>
 
-      <!-- XXX REVIEWED UP TO HERE - Ivan -->
       <section id="helperClasses">
         <title>Helper classes</title>
 
-        <para>In this section are listed classes that does not fit in any
-        other section and that mainly serve for ancillary purposes.</para>
+        <para>This section describes some classes that do not fit in any other
+        section and that mainly serve for ancillary purposes.</para>
 
         <section id="FiltersClassDescr">
           <title>The <literal>Filters</literal> class</title>
+
+          <para>Container for filter properties.</para>
 
           <para>This class is meant to serve as a container that keeps
           information about the filter properties associated with the chunked
           leaves, that is <literal>Table</literal>, <literal>CArray</literal>,
           <literal>EArray</literal> and <literal>VLArray</literal>.</para>
 
-          <para>The public variables of <literal>Filters</literal> are listed
-          below:</para>
+          <para>Instances of this class can be directly compared for
+          equality.</para>
 
-          <glosslist>
-            <?dbfo glosslist-presentation="list" ?>
+          <section>
+            <title><literal>Filters</literal> instance variables</title>
 
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">complevel</emphasis></glossterm>
+            <glosslist>
+              <?dbfo glosslist-presentation="list" ?>
 
-              <glossdef>
-                <para>The compression level (0 disables compression).</para>
-              </glossdef>
-            </glossentry>
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">fletcher32</emphasis></glossterm>
 
-            <glossentry>
-              <glossterm><emphasis role="bold">complib</emphasis></glossterm>
+                <glossdef>
+                  <para>Whether the <emphasis>Fletcher32</emphasis> filter is
+                  active or not.</para>
+                </glossdef>
+              </glossentry>
 
-              <glossdef>
-                <para>The compression filter used (irrelevant when compression
-                is not enabled).</para>
-              </glossdef>
-            </glossentry>
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">complevel</emphasis></glossterm>
 
-            <glossentry>
-              <glossterm><emphasis role="bold">shuffle</emphasis></glossterm>
+                <glossdef>
+                  <para>The compression level (0 disables compression).</para>
+                </glossdef>
+              </glossentry>
 
-              <glossdef>
-                <para>Whether the <emphasis>Shuffle</emphasis> filter is
-                active or not.</para>
-              </glossdef>
-            </glossentry>
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">complib</emphasis></glossterm>
 
-            <glossentry>
-              <glossterm><emphasis
-              role="bold">fletcher32</emphasis></glossterm>
+                <glossdef>
+                  <para>The compression filter used (irrelevant when
+                  compression is not enabled).</para>
+                </glossdef>
+              </glossentry>
 
-              <glossdef>
-                <para>Whether the <emphasis>Fletcher32</emphasis> filter is
-                active or not.</para>
-              </glossdef>
-            </glossentry>
-          </glosslist>
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">shuffle</emphasis></glossterm>
 
-          <para>The arguments for the <literal>Filters</literal> constructor
-          are described next:</para>
+                <glossdef>
+                  <para>Whether the <emphasis>Shuffle</emphasis> filter is
+                  active or not.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+          </section>
+
+          <section>
+            <title>Example of use</title>
+
+            <para>This is a small example on using the
+            <literal>Filters</literal> class:</para>
+
+            <screen>
+import numpy
+from tables import *
+
+fileh = openFile('test5.h5', mode='w')
+atom = Float32Atom()
+filters = Filters(complevel=1, complib='lzo', fletcher32=True)
+arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2),
+                         "A growable array", filters=filters)
+# Append several rows in only one call
+arr.append(numpy.array([[1., 2.],
+                       [2., 3.],
+                       [3., 4.]], dtype=numpy.float32))
+
+# Print information on that enlargeable array
+print "Result Array:"
+print repr(arr)
+
+fileh.close()</screen>
+
+            <para>This enforces the use of the LZO library, a compression
+            level of 1 and a Fletcher32 checksum filter as well. See the
+            output of this example:</para>
+
+            <screen>
+Result Array:
+/earray (EArray(3L, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
+  type = float32
+  shape = (3L, 2)
+  itemsize = 4
+  nrows = 3
+  extdim = 0
+  flavor = 'numpy'
+  byteorder = 'little'</screen>
+          </section>
 
           <section id="FiltersInitDescr">
-            <title><literal>Filters(complevel=0, complib="zlib", shuffle=True,
+            <title><literal>Filters(complevel=0, complib='zlib', shuffle=True,
             fletcher32=False)</literal></title>
 
-            <para>The constructor for the <literal>Filters</literal> class and
-            its only method are described next.</para>
+            <para>Create a new <literal>Filters</literal> instance.</para>
 
             <glosslist>
               <glossentry>
@@ -10190,6 +10235,7 @@ enum myEnum {
                   the system issues a <literal>FiltersWarning</literal> and
                   sets the library to the default one.</para>
 
+                  <!-- manual-only -->
                   <para>See <xref linkend="compressionIssues"
                   xrefstyle="select: label" /> for some advice on which
                   library is better suited to your needs.</para>
@@ -10224,36 +10270,6 @@ enum myEnum {
                 </glossdef>
               </glossentry>
             </glosslist>
-
-            <para>This is a small example on using the
-            <literal>Filters</literal> class: <screen>import numpy
-from tables import *
-
-fileh = openFile("test5.h5", mode="w")
-atom = Float32Atom()
-filters = Filters(complevel=1, complib="lzo", fletcher32=True)
-arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2), "A growable array",
-                         filters = filters)
-# Append several rows in only one call
-arr.append(numpy.array([[1., 2.],
-                       [2., 3.],
-                       [3., 4.]], dtype=numpy.float32))
-
-# Print information on that enlargeable array
-print "Result Array:"
-print repr(arr)
-
-fileh.close()</screen>This enforces the use of the <literal>LZO</literal>
-            library, a compression level of 1 and a fletcher32 checksum filter
-            as well. See the output of this example: <screen>Result Array:
-/earray (EArray(3L, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
-  type = float32
-  shape = (3L, 2)
-  itemsize = 4
-  nrows = 3
-  extdim = 0
-  flavor = 'numpy'
-  byteorder = 'little'</screen></para>
           </section>
 
           <section>
@@ -10269,78 +10285,44 @@ fileh.close()</screen>This enforces the use of the <literal>LZO</literal>
             attributes of an instance, since instances of this class may
             become immutable in the future.</para>
 
-            <screen>&gt;&gt;&gt; filters1 = Filters()
-&gt;&gt;&gt; filters2 = filters1.copy()
-&gt;&gt;&gt; filters1 == filters2
+            <screen>
+>>> filters1 = Filters()
+>>> filters2 = filters1.copy()
+>>> filters1 == filters2
 True
-&gt;&gt;&gt; filters1 is filters2
+>>> filters1 is filters2
 False
-&gt;&gt;&gt; filters3 = filters1.copy(complevel=1)
+>>> filters3 = filters1.copy(complevel=1)
 Traceback (most recent call last):
   ...
 ValueError: compression library ``None`` is not supported...
-&gt;&gt;&gt; filters3 = filters1.copy(complevel=1, complib='zlib')
-&gt;&gt;&gt; print filters1
+>>> filters3 = filters1.copy(complevel=1, complib='zlib')
+>>> print filters1
 Filters(complevel=0, shuffle=False, fletcher32=False)
-&gt;&gt;&gt; print filters3
+>>> print filters3
 Filters(complevel=1, complib='zlib', shuffle=False, fletcher32=False)
-&gt;&gt;&gt; filters1.copy(foobar=42)
+>>> filters1.copy(foobar=42)
 Traceback (most recent call last):
   ...
 TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
           </section>
         </section>
 
-        <section id="IndexPropsClassDescr">
-          <title>The <literal>IndexProps</literal> class</title>
-
-          <para>You can use this class to set/unset the properties in the
-          indexing process of a <literal>Table</literal> column. To use it,
-          create an instance, and assign it to the special attribute
-          <literal>_v_indexprops</literal> in a table description class (see
-          <xref linkend="IsDescriptionClassDescr" xrefstyle="select: label"
-          />) or dictionary.</para>
-
-          <para>The public variables of <literal>IndexProps</literal> are
-          listed below:</para>
-
-          <glosslist>
-            <?dbfo glosslist-presentation="list" ?>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">auto</emphasis></glossterm>
-
-              <glossdef>
-                <para>Whether an existing index should be automatically
-                updated after a table append operation or reindexed after an
-                index-invalidating operation.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">filters</emphasis></glossterm>
-
-              <glossdef>
-                <para>The filter settings for the different
-                <literal>Table</literal> indexes.</para>
-              </glossdef>
-            </glossentry>
-          </glosslist>
-
-          <para>There are no <literal>IndexProps</literal> public methods with
-          the exception of the constructor itself that is described
-          next.</para>
-        </section>
-
         <section id="IndexClassDescr">
           <title>The <literal>Index</literal> class</title>
 
-          <para>This class is used to keep the indexing information for table
-          columns. It is actually a descendant of the <literal>Group</literal>
-          class, with some added functionality.</para>
+          <para>Represents the index of a column in a table.</para>
 
-          <para>It has no methods intended for programmer's use, but it has
-          some attributes that may be interesting for him.</para>
+          <para>This class is used to keep the indexing information for
+          columns in a <literal>Table</literal> dataset (see <xref
+          linkend="TableClassDescr" xrefstyle="select: label" />). It is
+          actually a descendant of the <literal>Group</literal> class (see
+          <xref linkend="GroupClassDescr" xrefstyle="select: label" />), with
+          some added functionality. An <literal>Index</literal> is always
+          associated with one and only one column in the table.</para>
+
+          <para>This class is mainly intended for internal use, but some of
+          its attributes may be interesting for the programmer.</para>
 
           <section id="IndexClassInstanceVariables">
             <title><literal>Index</literal> instance variables</title>
@@ -10352,34 +10334,9 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
                 <glossterm><emphasis role="bold">column</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The column object this index belongs to.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">type</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The type class for the index.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">itemsize</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The size of the atomic items. Specially useful for
-                  columns of <literal>CharType</literal> type.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">nelements</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The total number of elements in index.</para>
+                  <para>The <literal>Column</literal> (see <xref
+                  linkend="ColumnClassDescr" xrefstyle="select: label" />)
+                  instance for the indexed column.</para>
                 </glossdef>
               </glossentry>
 
@@ -10387,9 +10344,9 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
                 <glossterm><emphasis role="bold">dirty</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Whether the index is dirty or not. Dirty indexes are
-                  out of sync with column data, so they exist but they are not
-                  usable.</para>
+                  <para>Whether the index is dirty or not.</para>
+                  <para>Dirty indexes are out of sync with column data, so
+                  they exist but they are not usable.</para>
                 </glossdef>
               </glossentry>
 
@@ -10398,9 +10355,20 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
                 role="bold">filters</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The <literal>Filters</literal> (see <xref
-                  linkend="FiltersClassDescr" xrefstyle="select: label" />)
-                  instance for this index.</para>
+                  <para>Filter properties for this index —see
+                  <literal>Filters</literal> in <xref
+                  linkend="FiltersClassDescr" xrefstyle="select: label"
+                  />.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">nelements</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The number of currently indexed row for this
+                  column.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -10409,6 +10377,8 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
 
         <section id="EnumClassDescr">
           <title>The <literal>Enum</literal> class</title>
+
+          <para>Enumerated type.</para>
 
           <para>Each instance of this class represents an enumerated type. The
           values of the type must be declared
@@ -10428,7 +10398,8 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
               its position in the sequence; the concrete value is assigned
               automatically:</para>
 
-              <screen>&gt;&gt;&gt; boolEnum = Enum(['True', 'False'])</screen>
+              <screen>
+>>> boolEnum = Enum(['True', 'False'])</screen>
             </listitem>
 
             <listitem>
@@ -10437,8 +10408,9 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
               All of the concrete values must be different, or a
               <literal>ValueError</literal> will be raised.</para>
 
-              <screen>&gt;&gt;&gt; priority = Enum({'red': 20, 'orange': 10, 'green': 0})
-&gt;&gt;&gt; colors = Enum({'red': 1, 'blue': 1})
+              <screen>
+>>> priority = Enum({'red': 20, 'orange': 10, 'green': 0})
+>>> colors = Enum({'red': 1, 'blue': 1})
 Traceback (most recent call last):
   ...
 ValueError: enumerated values contain duplicate concrete values: 1</screen>
@@ -10449,8 +10421,9 @@ ValueError: enumerated values contain duplicate concrete values: 1</screen>
               of the original enumerated type is created. Both enumerated
               types are considered equal.</para>
 
-              <screen>&gt;&gt;&gt; prio2 = Enum(priority)
-&gt;&gt;&gt; priority == prio2
+              <screen>
+>>> prio2 = Enum(priority)
+>>> priority == prio2
 True</screen>
             </listitem>
           </itemizedlist>
@@ -10458,7 +10431,8 @@ True</screen>
           <para>Please note that names starting with <literal>_</literal> are
           not allowed, since they are reserved for internal usage:</para>
 
-          <screen>&gt;&gt;&gt; prio2 = Enum(['_xx'])
+          <screen>
+>>> prio2 = Enum(['_xx'])
 Traceback (most recent call last):
   ...
 ValueError: name of enumerated value can not start with ``_``: '_xx'</screen>
@@ -10470,12 +10444,13 @@ ValueError: name of enumerated value can not start with ``_``: '_xx'</screen>
           enumerated values and assigning them to ordinary Python
           variables:</para>
 
-          <screen>&gt;&gt;&gt; redv = priority.red
-&gt;&gt;&gt; redv == priority['red']
+          <screen>
+>>> redv = priority.red
+>>> redv == priority['red']
 True
-&gt;&gt;&gt; redv &gt; priority.green
+>>> redv &gt; priority.green
 True
-&gt;&gt;&gt; priority.red == priority.orange
+>>> priority.red == priority.orange
 False</screen>
 
           <para>The name of the enumerated value corresponding to a concrete
@@ -10484,9 +10459,10 @@ False</screen>
           way you get the symbolic name to use it later with
           <literal>__getitem__()</literal>:</para>
 
-          <screen>&gt;&gt;&gt; priority(redv)
+          <screen>
+>>> priority(redv)
 'red'
-&gt;&gt;&gt; priority.red == priority[priority(priority.red)]
+>>> priority.red == priority[priority(priority.red)]
 True</screen>
 
           <para>(If you ask, the <literal>__getitem__()</literal> method is
@@ -10494,50 +10470,9 @@ True</screen>
           strings as concrete values.)</para>
 
           <section>
-            <title>Special methods</title>
+            <title><literal>Enum</literal> special methods</title>
 
-            <section>
-              <title>__getitem__(name)</title>
-
-              <para>Get the concrete value of the enumerated value with that
-              <literal>name</literal>.</para>
-
-              <para>The <literal>name</literal> of the enumerated value must
-              be a string. If there is no value with that
-              <literal>name</literal> in the enumeration, a
-              <literal>KeyError</literal> is raised.</para>
-            </section>
-
-            <section>
-              <title>__getattr__(name)</title>
-
-              <para>Get the concrete value of the enumerated value with that
-              <literal>name</literal>.</para>
-
-              <para>The <literal>name</literal> of the enumerated value must
-              be a string. If there is no value with that
-              <literal>name</literal> in the enumeration, an
-              <literal>AttributeError</literal> is raised.</para>
-            </section>
-
-            <section>
-              <title>__contains__(name)</title>
-
-              <para>Is there an enumerated value with that
-              <literal>name</literal> in the type?</para>
-
-              <para>If the enumerated type has an enumerated value with that
-              <literal>name</literal>, <literal>True</literal> is returned.
-              Otherwise, <literal>False</literal> is returned. The
-              <literal>name</literal> must be a string.</para>
-
-              <para>This method does <emphasis>not</emphasis> check for
-              concrete values matching a value in an enumerated type. For
-              that, please use the <literal>__call__()</literal>
-              method.</para>
-            </section>
-
-            <section>
+            <section id="Enum.__call__" xreflabel="description">
               <title>__call__(value, *default)</title>
 
               <para>Get the name of the enumerated value with that concrete
@@ -10554,10 +10489,55 @@ True</screen>
             </section>
 
             <section>
-              <title>__len__()</title>
+              <title>__contains__(name)</title>
 
-              <para>Return the number of enumerated values in the enumerated
-              type.</para>
+              <para>Is there an enumerated value with that
+              <literal>name</literal> in the type?</para>
+
+              <para>If the enumerated type has an enumerated value with that
+              <literal>name</literal>, <literal>True</literal> is returned.
+              Otherwise, <literal>False</literal> is returned. The
+              <literal>name</literal> must be a string.</para>
+
+              <para>This method does <emphasis>not</emphasis> check for
+              concrete values matching a value in an enumerated type. For
+              that, please use the <literal>Enum.__call__()</literal>
+              method (see <xref linkend="Enum.__call__" />).</para>
+            </section>
+
+            <section>
+              <title>__eq__(other)</title>
+
+              <para>Is the <literal>other</literal> enumerated type equivalent
+              to this one?</para>
+
+              <para>Two enumerated types are equivalent if they have exactly
+              the same enumerated values (i.e. with the same names and
+              concrete values).</para>
+            </section>
+
+            <section>
+              <title>__getattr__(name)</title>
+
+              <para>Get the concrete value of the enumerated value with that
+              <literal>name</literal>.</para>
+
+              <para>The <literal>name</literal> of the enumerated value must
+              be a string. If there is no value with that
+              <literal>name</literal> in the enumeration, an
+              <literal>AttributeError</literal> is raised.</para>
+            </section>
+
+            <section>
+              <title>__getitem__(name)</title>
+
+              <para>Get the concrete value of the enumerated value with that
+              <literal>name</literal>.</para>
+
+              <para>The <literal>name</literal> of the enumerated value must
+              be a string. If there is no value with that
+              <literal>name</literal> in the enumeration, a
+              <literal>KeyError</literal> is raised.</para>
             </section>
 
             <section>
@@ -10571,14 +10551,10 @@ True</screen>
             </section>
 
             <section>
-              <title>__eq__(other)</title>
+              <title>__len__()</title>
 
-              <para>Is the <literal>other</literal> enumerated type equivalent
-              to this one?</para>
-
-              <para>Two enumerated types are equivalent if they have exactly
-              the same enumerated values (i.e. with the same names and
-              concrete values).</para>
+              <para>Return the number of enumerated values in the enumerated
+              type.</para>
             </section>
 
             <section>

@@ -56,17 +56,62 @@ class Filters(object):
     """
     Container for filter properties.
 
-    Instance variables:
+    This class is meant to serve as a container that keeps information
+    about the filter properties associated with the chunked leaves,
+    that is `Table`, `CArray`, `EArray` and `VLArray`.
 
-    `complevel`
+    Instances of this class can be directly compared for equality.
+
+    Public instance variables
+    -------------------------
+
+    fletcher32
+        Whether the *Fletcher32* filter is active or not.
+    complevel
         The compression level (0 disables compression).
-    `complib`
+    complib
         The compression filter used (irrelevant when compression is
         not enabled).
-    `shuffle`
+    shuffle
         Whether the *Shuffle* filter is active or not.
-    `fletcher32`
-        Whether the *Fletcher32* filter is active or not.
+
+    Example of use
+    --------------
+
+    This is a small example on using the `Filters` class::
+
+        import numpy
+        from tables import *
+
+        fileh = openFile('test5.h5', mode='w')
+        atom = Float32Atom()
+        filters = Filters(complevel=1, complib='lzo', fletcher32=True)
+        arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2),
+                                 \"A growable array\", filters=filters)
+        # Append several rows in only one call
+        arr.append(numpy.array([[1., 2.],
+                               [2., 3.],
+                               [3., 4.]], dtype=numpy.float32))
+
+        # Print information on that enlargeable array
+        print \"Result Array:\"
+        print repr(arr)
+
+        fileh.close()
+
+    This enforces the use of the LZO library, a compression level of 1
+    and a Fletcher32 checksum filter as well.  See the output of this
+    example::
+
+        Result Array:
+        /earray (EArray(3L, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
+          type = float32
+          shape = (3L, 2)
+          itemsize = 4
+          nrows = 3
+          extdim = 0
+          flavor = 'numpy'
+          byteorder = 'little'
     """
 
     @classmethod
