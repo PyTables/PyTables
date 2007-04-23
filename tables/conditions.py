@@ -150,5 +150,11 @@ def call_on_recarr(func, params, recarr, param2arg=None):
             arg = param
         if hasattr(arg, 'pathname'):  # looks like a column
             arg = getNestedField(recarr, arg.pathname)
+        # This is needed because the extension doesn't check for
+        # unaligned arrays anymore. The reason for doing this is that,
+        # for unaligned arrays, a pure copy() in Python is faster than
+        # the equivalent in C. I'm not completely sure why.
+        if not arg.flags.aligned:
+            arg = arg.copy()
         args.append(arg)
     return func(*args)
