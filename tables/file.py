@@ -62,6 +62,7 @@ from tables.array import Array
 from tables.carray import CArray
 from tables.earray import EArray
 from tables.vlarray import VLArray
+from tables.table import Table
 
 try:
     from tables import lrucacheExtension
@@ -238,11 +239,6 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
     # Finally, create the File instance, and return it
     return File(path, mode, title, trMap, rootUEP, filters,
                 METADATA_CACHE_SIZE, nodeCacheSize)
-
-
-# It is necessary to import Table after openFile, because it solves a circular
-# import reference.
-from tables.table import Table
 
 
 class _AliveNodes(dict):
