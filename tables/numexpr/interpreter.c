@@ -1249,11 +1249,12 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
                 goto cleanup_and_exit;
             }
         } else {
-            int inner_size = -1;
-            /* Check array is contiguous */
-            for (j = PyArray_NDIM(a)-1; j >= 0; j--) {
-                if ((inner_size == -1 && PyArray_STRIDE(a, j) % PyArray_ITEMSIZE(a)) ||
-                    (inner_size != -1 && PyArray_STRIDE(a, j) != inner_size)) {
+            /* Check array is contiguous (the unaligned case has been
+	       already dealed with in compiler.py) */
+	    int inner_size;
+            for (j = PyArray_NDIM(a)-2; j >= 0; j--) {
+	        inner_size = PyArray_STRIDE(a, j) * PyArray_DIM(a, j);
+                if (PyArray_STRIDE(a, j+1) != inner_size) {
                     intp dims[1] = {BLOCK_SIZE1};
                     inddata[i+1].count = PyArray_NDIM(a);
                     inddata[i+1].findex = -1;
@@ -1269,7 +1270,6 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
                     PyTuple_SET_ITEM(a_inputs, i+2*n_inputs, a);  /* steals reference */
                     break;
                 }
-                inner_size = PyArray_STRIDE(a, j) * PyArray_DIM(a, j);
             }
 
             self->memsteps[i+1] = PyArray_STRIDE(a, PyArray_NDIM(a)-1);

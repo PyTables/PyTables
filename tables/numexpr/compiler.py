@@ -614,7 +614,14 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
         except KeyError:
             a = global_dict[name]
         # byteswapped arrays are taken care of in the extension.
-        arguments.append(numpy.asarray(a)) # don't make a data copy, if possible
+        b = numpy.asarray(a)
+        # Making a copy of the unaligned case here is between a 30%
+        # faster (opteron machine) and 70% faster (duron machine)
+        # (The reason why this is faster is unknown to me...)
+        # F. Altet 2007-04-23
+        if not b.flags.aligned:
+            b = b.copy()
+        arguments.append(b)
     # Create a signature
     signature = [(name, getType(arg)) for (name, arg) in zip(names, arguments)]
     # Look up numexpr if possible
