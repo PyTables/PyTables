@@ -367,8 +367,13 @@ nc_tanh(cdouble *x, cdouble *r)
 }
 
 
-/* The next nowarn1 and nowarn2 are defined in order to avoid compiler
-   warnings about unused functions. */
+/* The next nowarn1() and nowarn2() are defined in order to avoid
+   compiler warnings about unused functions.  Just add to nowarn1() a
+   call to each function the compiler complains about to make it look
+   like it gets used somewhere.
+
+   Of course, you shouldn't directly invoke neither of these two
+   functions, since they cause a stack overflow. */
 
 void nowarn2(cdouble *x, cdouble *r, cdouble *b);
 
@@ -379,16 +384,15 @@ nowarn1(cdouble *x, cdouble *r, cdouble *b)
 	nc_log1p(x, r);
 	nc_expm1(x, r);
 	nc_log10(x, r);
-        nowarn2(x, r, b);
-        return;
+	nc_asinh(x, r);
+	nc_acosh(x, r);
+	nc_atanh(x, r);
+	/* Append more calls here. */
+	nowarn2(x, r, b);
 }
 
 void
 nowarn2(cdouble *x, cdouble *r, cdouble *b)
 {
-	nc_asinh(x, r);
-	nc_acosh(x, r);
-	nc_atanh(x, r);
-        nowarn1(x, r, b);
-        return;
+	nowarn1(x, r, b);
 }
