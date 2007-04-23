@@ -454,25 +454,22 @@ be zero."""
 
         self._v_file._checkWritable()
 
-        try:  # fastest check in most cases
-            len(sequence)
-        except TypeError:
-            raise TypeError("argument is not a sequence")
-        else:
-            object = sequence
-
-        # Prepare the object to convert it into a NumPy object
+        # Prepare the sequence to convert it into a NumPy object
         atom = self.atom
         if not hasattr(atom, 'size'):  # it is a pseudo-atom
-            object = atom.toarray(object)
+            sequence = atom.toarray(sequence)
             statom = atom.base
         else:
+            try:  # fastest check in most cases
+                len(sequence)
+            except TypeError:
+                raise TypeError("argument is not a sequence")
             statom = atom
 
-        if len(object) > 0:
-            # The object needs to be copied to make the operation safe
+        if len(sequence) > 0:
+            # The sequence needs to be copied to make the operation safe
             # to in-place conversion.
-            nparr = convertToNPAtom2(object, statom)
+            nparr = convertToNPAtom2(sequence, statom)
             nobjects = self._getnobjects(nparr)
         else:
             nobjects = 0

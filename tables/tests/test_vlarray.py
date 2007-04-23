@@ -1286,6 +1286,7 @@ class TypesTestCase(unittest.TestCase):
         vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
         vlarray.append([[1,2,3], "aaa", u"aaaççç"])
         vlarray.append([3,4, C()])
+        vlarray.append(42)
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1300,14 +1301,16 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
+        assert vlarray.nrows == 3
         assert row[0] == [[1,2,3], "aaa", u"aaaççç"]
         list1 = list(row[1])
         obj = list1.pop()
         assert list1 == [3,4]
         assert obj.c == C().c
+        assert row[2] == 42
         assert len(row[0]) == 3
         assert len(row[1]) == 3
+        self.assertRaises(TypeError, len, row[2])
 
 
     def test06b_Object(self):
