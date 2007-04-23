@@ -1208,7 +1208,12 @@ class TypesTestCase(unittest.TestCase):
 
         vlarray = self.fileh.createVLArray('/', "VLStringAtom", VLStringAtom())
         vlarray.append("asd")
+        vlarray.append("asd\xe4")
         vlarray.append(u"aaana")
+        # Check for ticket #62.
+        self.assertRaises(TypeError, vlarray.append, ["foo", "bar"])
+        # `VLStringAtom` makes no encoding assumptions.  See ticket #51.
+        self.assertRaises(UnicodeEncodeError, vlarray.append, u"asd\xe4")
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1223,11 +1228,13 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 2
+        assert vlarray.nrows == 3
         assert row[0] == "asd"
-        assert row[1] == "aaana"
+        assert row[1] == "asd\xe4"
+        assert row[2] == "aaana"
         assert len(row[0]) == 3
-        assert len(row[1]) == 5
+        assert len(row[1]) == 4
+        assert len(row[2]) == 5
 
     def test05b_VLStringAtom(self):
         """Checking updating vlarray with variable length strings"""

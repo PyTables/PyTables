@@ -10089,6 +10089,13 @@ enum myEnum {
               method (see <xref linkend="VLArray.append"/>) only accepts one
               object when the base atom is of this type.</para>
 
+              <para>Like <literal>StringAtom</literal>, this class does not
+              make assumptions on the encoding of the string, and raw bytes
+              are stored as is.  Unicode strings are supported as long as no
+              character is out of the ASCII set.  Otherwise, you will need to
+              <emphasis>explicitly</emphasis> convert them to strings before
+              you can save them.</para>
+
               <para>Variable-length string atoms do not accept parameters and
               they cause the reads of rows to always return Python strings.
               You can regard <literal>vlstring</literal> atoms as an easy way

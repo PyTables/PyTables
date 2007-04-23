@@ -1009,6 +1009,12 @@ class VLStringAtom(_BufferedAtom):
     `VLArray.append()` method only accepts one object when the base
     atom is of this type.
 
+    Like `StringAtom`, this class does not make assumptions on the
+    encoding of the string, and raw bytes are stored as is.  Unicode
+    strings are supported as long as no character is out of the ASCII
+    set.  Otherwise, you will need to *explicitly* convert them to
+    strings before you can save them.
+
     Variable-length string atoms do not accept parameters and they
     cause the reads of rows to always return Python strings.  You can
     regard ``vlstring`` atoms as an easy way to save generic variable
@@ -1018,6 +1024,8 @@ class VLStringAtom(_BufferedAtom):
     type = 'vlstring'
 
     def _tobuffer(self, object_):
+        if not isinstance(object_, basestring):
+            raise TypeError("object is not a string: %r" % (object_,))
         return str(object_)
 
     def fromarray(self, array):
