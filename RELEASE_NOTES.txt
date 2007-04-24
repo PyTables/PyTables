@@ -8,6 +8,89 @@
 :Contact: ivilata@carabos.com
 
 
+Changes from 2.0b2 to 2.0rc1
+============================
+
+- The ``lastrow`` argument of ``Table.flushRowsToIndex()`` is no longer
+  public.  It was not documented, anyway.  Fixes ticket #43.
+
+- Added a ``memlevel`` argument to ``Cols.createIndex()`` which allows the
+  user to control the amount of memory required for creating an index.
+
+- Added ``blocksizes`` and ``opts`` arguments to ``Cols.createIndex()``, which
+  allow the user to control the sizes of index datasets, and to specify
+  different optimization levels for each index dataset, respectively.  These
+  are very low-level options meant only for experienced users.  Normal users
+  should stick to the higher-level ``memlevel`` and ``optlevel``.
+
+- Query tests have been tuned to exhaustively check the new parametrization of
+  indexes.
+
+- A new algorithm has been implemented that better reduces the entropy of
+  indexes.
+
+- The API Reference section of the User's Manual (and the matching docstrings)
+  has been completely reviewed, expanded and corrected.  This process has
+  unveiled some errors and inconsistencies which have also been fixed.
+
+- Fixed ``VLArray.__getitem__()`` to behave as expected in Python when using
+  slices, instead of following the semantics of PyTables' ``read()`` methods
+  (e.g. reading just one element when no stop is provided).  Fixes ticket #50.
+
+- Removed implicit UTF-8 encoding from ``VLArray`` data using ``vlstring``
+  atoms.  Now a variable-length string is stored as is, which lets users use
+  any encoding of their choice, or none of them.  A ``vlunicode`` atom will
+  probably be added to the next release so as to fix ticket #51.
+
+- Allow non-sequence objects to be passed to ``VLArray.append()`` when using
+  an ``object`` atom.  This was already possible in 1.x but stopped working
+  when the old append syntax was dropped in 2.0.  Fixes ticket #63.
+
+- Changed ``Cols.__len__()`` to return the number of rows of the table or
+  nested column (instead of the number of fields), like its counterparts in
+  ``Table`` and ``Column``.
+
+- Python scalars cached in ``AttributeSet`` instances are now kept as NumPy
+  objects instead of Python ones, because they do become NumPy objects when
+  retrieved from disk.  Fixes ticket #59.
+
+- Avoid HDF5 error when appending an empty array to a ``Table`` (ticket #57)
+  or ``EArray`` (ticket #49) dataset.
+
+- Fix wrong implementation of the top-level ``table.description._v_dflts``
+  map, which was also including the pathnames of columns inside nested
+  columns.  Fixes ticket #45.
+
+- Optimized the access to unaligned arrays in Numexpr between a 30% and a 70%.
+
+- Fixed a die-hard bug that caused the loading of groups while closing a file.
+  This only showed with certain usage patterns of the LRU cache (e.g. the one
+  caused by ``ManyNodesTestCase`` in ``test_indexes.py`` under Pro).
+
+- Avoid copious warnings about unused functions and variables when compiling
+  Numexpr.
+
+- Several fixes to Numexpr expressions with all constant values.  Fixed
+  tickets #53, #54, #55, #58.  Reported bugs to mainstream developers.
+
+- Solved an issue when trying to open one of the included test files in append
+  mode on a system-wide installation by a normal user with no write privileges
+  on it.  The file isn't being modified anyway, so the test is skipped then.
+
+- Added a new benchmark to compare the I/O speed of ``Array`` and ``EArray``
+  objects with that of ``cPickle``.
+
+- The old ``Row.__call__()`` is no longer available as a public method.  It
+  was not documented, anyway.  Fixes ticket #46.
+
+- ``Cols._f_close()`` is no longer public.  Fixes ticket #47.
+
+- ``Attributes._f_close()`` is no longer public.  Fixes ticket #52.
+
+- The undocumented ``Description.classdict`` attribute has been completely
+  removed.  Fixes ticket #44.
+
+
 Changes from 2.0b1 to 2.0b2
 ===========================
 
