@@ -617,7 +617,7 @@ fileh.close()</screen>
       others. There are also packages for other Unices like <ulink
       url="http://www.freshports.org/"><literal>FreeBSD</literal></ulink> or
       <ulink
-      url="http://www.opendarwin.org/"><literal>MacOSX</literal></ulink></para>
+      url="http://py-tables.darwinports.com/"><literal>MacOSX</literal></ulink></para>
 
       <section id="sourceInstallationDescr">
         <title>Installation from source</title>
