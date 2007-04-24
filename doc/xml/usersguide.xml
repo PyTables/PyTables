@@ -7925,6 +7925,15 @@ nrecarray = table.read(start=4, stop=1000, step=2).field('Info')</screen>
             </section>
 
             <section>
+              <title>__len__()</title>
+
+              <para>Get the number of elements in the column.</para>
+
+              <para>This matches the length in rows of the parent
+              table.</para>
+            </section>
+
+            <section>
               <title>__setitem__(key)</title>
 
               <para>Set a row or a range of rows in a table or nested

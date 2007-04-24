@@ -2436,6 +2436,8 @@ class Cols(object):
         Get an accessor to the column ``colname``.
     __getitem__(key)
         Get a row or a range of rows from a table or nested column.
+    __len__()
+        Get the number of elements in the column.
     __setitem__(key, value)
         Set a row or a range of rows in a table or nested column.
     """
@@ -2483,6 +2485,11 @@ class Cols(object):
 
 
     def __len__(self):
+        """
+        Get the number of elements in the column.
+
+        This matches the length in rows of the parent table.
+        """
         return self._v_table.nrows
 
 
