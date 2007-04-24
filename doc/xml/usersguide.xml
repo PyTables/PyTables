@@ -616,8 +616,9 @@ fileh.close()</screen>
       url="http://www.ubuntu.com/"><literal>Ubuntu</literal></ulink>, among
       others. There are also packages for other Unices like <ulink
       url="http://www.freshports.org/"><literal>FreeBSD</literal></ulink> or
-      <ulink
-      url="http://py-tables.darwinports.com/"><literal>MacOSX</literal></ulink></para>
+      <literal>MacOSX</literal> (see <ulink
+      url="http://darwinports.com/">Darwinports</ulink> or <ulink
+      url="http://pdb.finkproject.org">Fink</ulink> repositories).</para>
 
       <section id="sourceInstallationDescr">
         <title>Installation from source</title>
@@ -652,7 +653,7 @@ fileh.close()</screen>
 
           <para>First, make sure that you have at least Python 2.4, HDF5 1.6.5
           and NumPy 1.0.1 or higher installed (I'm using HDF5 1.6.5 and NumPy
-          1.0.1 currently). If you don't, fetch and install them before
+          1.0.2 currently). If you don't, fetch and install them before
           proceeding.</para>
 
           <para>Compile and install these packages (but see <xref
@@ -935,7 +936,7 @@ python -c "import tables; tables.test()"</screen>
 
           <para>First, make sure that you have Python 2.4 or higher, HDF5
           1.6.5 or higher and NumPy 1.0.1 or higher installed (PyTables
-          binaries have been built using HDF5 1.6.5 and NumPy 1.0.1).</para>
+          binaries have been built using HDF5 1.6.5 and NumPy 1.0.2).</para>
 
           <para>For the HDF5 library it should be enough to manually copy the
           <literal>hdf5dll.dll</literal>, <literal>zlib1.dll</literal>
