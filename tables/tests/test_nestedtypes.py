@@ -882,7 +882,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         length = len(tbl.cols)
         if verbose:
             print "Column group length:", length
-        self.assert_(length == 6,
+        self.assert_(length == tbl.nrows,
                      "Column group length doesn't match.")
 
     def test02b__len__(self):
@@ -898,7 +898,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         length = len(tbl.cols.Info)
         if verbose:
             print "Column group length:", length
-        self.assert_(length == 5,
+        self.assert_(length == tbl.nrows,
                      "Column group length doesn't match.")
 
     def test03a__getitem__(self):

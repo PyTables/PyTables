@@ -2483,7 +2483,7 @@ class Cols(object):
 
 
     def __len__(self):
-        return len(self._v_colnames)
+        return self._v_table.nrows
 
 
     def _f_col(self, colname):
