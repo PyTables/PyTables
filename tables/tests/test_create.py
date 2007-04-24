@@ -188,7 +188,7 @@ class createTestCase(unittest.TestCase):
         # Write 10 records
         for j in range(10):
             rowlist = []
-            for i in range(len(table.cols)):
+            for i in range(len(table.colnames)):
                 row[varnames[i]] = i*j
                 rowlist.append(i*j)
 
