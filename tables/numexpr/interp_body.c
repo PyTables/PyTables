@@ -64,12 +64,12 @@
         intp si2 = sb2 / sizeof(int);           \
         intp sl2 = sb2 / sizeof(long long);     \
         intp sf2 = sb2 / sizeof(double);        \
-        nowarns += sb2+si2+sl2+sf2+*x2;         \
         char *x3 = params.mem[arg3];            \
         intp sb3 = params.memsteps[arg3];       \
         intp si3 = sb3 / sizeof(int);           \
         intp sl3 = sb3 / sizeof(long long);     \
         intp sf3 = sb3 / sizeof(double);        \
+        nowarns += sb2+si2+sl2+sf2+*x2;         \
         nowarns += sb3+si3+sl3+sf3+*x3;         \
         VEC_LOOP(expr);                         \
     } break
