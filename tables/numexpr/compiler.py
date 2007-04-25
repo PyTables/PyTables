@@ -447,7 +447,7 @@ def getContext(map):
     return context
 
 
-def precompile(ex, signature=(), **kwargs):
+def precompile(ex, signature=(), copy_args=(), **kwargs):
     """Compile the expression to an intermediate form.
     """
     types = dict(signature)
@@ -461,6 +461,12 @@ def precompile(ex, signature=(), **kwargs):
     # any odd interpretations
 
     ast = expressionToAST(ex)
+
+    # Add a copy for strided or unaligned unidimensional arrays
+    for a in ast.postorderWalk():
+        if a.astType == "variable" and a.value in copy_args:
+            newVar = ASTNode(*a.key())
+            a.astType, a.value, a.children = ('op', 'copy', (newVar,))
 
     if ex.astType not in ('op'):
         ast = ASTNode('op', value='copy', astKind=ex.astKind, children=(ast,))
@@ -504,7 +510,7 @@ def precompile(ex, signature=(), **kwargs):
     return threeAddrProgram, signature, tempsig, constants, input_names
 
 
-def numexpr(ex, signature=(), **kwargs):
+def numexpr(ex, signature=(), copy_args=(), **kwargs):
     """Compile an expression built using E.<variable> variables to a function.
 
     ex can also be specified as a string "2*a+3*b".
@@ -514,7 +520,7 @@ def numexpr(ex, signature=(), **kwargs):
 
     """
     threeAddrProgram, inputsig, tempsig, constants, input_names = \
-                      precompile(ex, signature, **kwargs)
+                      precompile(ex, signature, copy_args, **kwargs)
     program = compileThreeAddrForm(threeAddrProgram)
     return interpreter.NumExpr(inputsig, tempsig, program, constants,
                                input_names)
@@ -608,27 +614,36 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
     if global_dict is None:
         global_dict = call_frame.f_globals
     arguments = []
+    copy_args = []
     for name in names:
         try:
             a = local_dict[name]
         except KeyError:
             a = global_dict[name]
-        # byteswapped arrays are taken care of in the extension.
         b = numpy.asarray(a)
-        # Making a copy of the unaligned case here is between a 30%
-        # faster (opteron machine) and 70% faster (duron machine)
-        # (The reason why this is faster is unknown to me...)
-        # F. Altet 2007-04-23
-        if not b.flags.aligned:
-            b = b.copy()
+        # Byteswapped arrays are dealt with in the extension
+        if b.ndim == 1 and not b.flags.aligned:
+            # All the opcodes can deal with strided arrays directly as
+            # long as they are undimensional (strides in other
+            # dimensions are dealt within the extension), so we don't
+            # need a copy for the strided case.
+            #
+            # For the unaligned case, we need to use the copy opcode
+            # because they can deal with unaligned arrays as long as
+            # they are unidimensionals (very common case for
+            # recarrays).  This can be up to 2x faster than doing a
+            # copy using NumPy.
+            #
+            copy_args.append(name)
         arguments.append(b)
     # Create a signature
     signature = [(name, getType(arg)) for (name, arg) in zip(names, arguments)]
-    # Look up numexpr if possible
-    numexpr_key = expr_key + (tuple(signature),)
+    # Look up numexpr if possible. copy_args *must* be added to the key,
+    # just in case a non-copy expression is already in cache.
+    numexpr_key = expr_key + (tuple(signature),) + tuple(copy_args)
     try:
         compiled_ex = _numexpr_cache[numexpr_key]
     except KeyError:
         compiled_ex = _numexpr_cache[numexpr_key] = \
-                      numexpr(ex, signature, **kwargs)
+                      numexpr(ex, signature, copy_args, **kwargs)
     return compiled_ex(*arguments)
