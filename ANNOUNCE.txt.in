@@ -7,10 +7,7 @@ efficiently cope with extremely large amounts of data with support for
 full 64-bit file addressing.  PyTables runs on top of the HDF5 library
 and NumPy package for achieving maximum throughput and convenient use.
 
-The PyTables development team is happy to announce the public
-availability of the second *beta* version of PyTables 2.0.  This will
-hopefully be the last beta version of 2.0 series, so we need your
-feedback if you want your issues to be solved before 2.0 final is out.
+.. XXX Write a paragraph briefly describing this major or pre release.
 
 You can download a source package of the version @VERSION@ with
 generated PDF and HTML docs and binaries for Windows from
@@ -23,7 +20,7 @@ fairly up-to-date though (although still a bit in state of flux).
 In case you want to know more in detail what has changed in this
 version, have a look at ``RELEASE_NOTES.txt``.  Find the HTML version
 for this document at:
-http://www.pytables.org/moin/ReleaseNotes/Release_2.0b2
+http://www.pytables.org/moin/ReleaseNotes/Release_@VERSION@
 
 If you are a user of PyTables 1.x, probably it is worth for you to look
 at ``MIGRATING_TO_2.x.txt`` file where you will find directions on how
