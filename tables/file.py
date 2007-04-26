@@ -1013,7 +1013,7 @@ class File(hdf5Extension.File, object):
         return self.getNode(path)._f_isVisible()
 
 
-    def renameNode(self, where, newname, name=None):
+    def renameNode(self, where, newname, name=None, overwrite=False):
         """
         Change the name of the node specified by `where` and `name` to
         `newname`.
@@ -1024,9 +1024,13 @@ class File(hdf5Extension.File, object):
 
         `newname`
             The new name to be assigned to the node (a string).
+
+        `overwrite`
+            Whether to recursively remove a node with the same `newname`
+            if it already exists (not done by default).
         """
         obj = self.getNode(where, name=name)
-        obj._f_rename(newname)
+        obj._f_rename(newname, overwrite)
 
     def moveNode(self, where, newparent=None, newname=None, name=None,
                  overwrite=False, createparents=False):

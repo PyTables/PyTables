@@ -559,6 +559,11 @@ class OpenFileTestCase(common.PyTablesTestCase):
                 print value
         else:
             self.fail("expected an NodeError")
+        # Now overwrite the destination node.
+        anarray = fileh.root.anarray
+        fileh.renameNode(anarray, 'array', overwrite=True)
+        self.assert_('/anarray' not in fileh)
+        self.assert_(fileh.root.array is anarray)
         fileh.close()
 
     def test08b_renameToNotValidNaturalName(self):

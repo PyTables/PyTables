@@ -600,13 +600,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._g_updateDependent()
 
 
-    def _f_rename(self, newname):
+    def _f_rename(self, newname, overwrite=False):
         """
         Rename this node in place.
 
-        Changes the name of a node to `newname` (a string).
+        Changes the name of a node to `newname` (a string).  If a node
+        with the same `newname` already exists and `overwrite` is true,
+        recursively remove it before renaming.
         """
-        self._f_move(newname = newname)
+        self._f_move(newname=newname, overwrite=overwrite)
 
 
     def _f_move( self, newparent=None, newname=None,

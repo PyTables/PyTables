@@ -4714,7 +4714,8 @@ Object Tree:
           </section>
 
           <section id="File.renameNode">
-            <title>renameNode(where, newname, name=None)</title>
+            <title>renameNode(where, newname, name=None,
+            overwrite=False)</title>
 
             <para>Change the name of the node specified by
             <literal>where</literal> and <literal>name</literal> to
@@ -4740,6 +4741,17 @@ Object Tree:
                 <glossdef>
                   <para>The new name to be assigned to the node (a
                   string).</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">overwrite</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Whether to recursively remove a node with the same
+                  <literal>newname</literal> if it already exists (not done by
+                  default).</para>
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -5488,12 +5500,14 @@ for node in h5file:
           </section>
 
           <section id="Node._f_rename" xreflabel="description">
-            <title>_f_rename(newname)</title>
+            <title>_f_rename(newname, overwrite=False)</title>
 
             <para>Rename this node in place.</para>
 
             <para>Changes the name of a node to <emphasis>newname</emphasis>
-            (a string).</para>
+            (a string).  If a node with the same <literal>newname</literal>
+            already exists and <literal>overwrite</literal> is true,
+            recursively remove it before renaming.</para>
           </section>
         </section>
 
