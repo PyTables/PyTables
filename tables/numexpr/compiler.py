@@ -622,19 +622,26 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
             a = global_dict[name]
         b = numpy.asarray(a)
         # Byteswapped arrays are dealt with in the extension
-        if b.ndim == 1 and not b.flags.aligned:
-            # All the opcodes can deal with strided arrays directly as
-            # long as they are undimensional (strides in other
-            # dimensions are dealt within the extension), so we don't
-            # need a copy for the strided case.
-            #
-            # For the unaligned case, we need to use the copy opcode
-            # because they can deal with unaligned arrays as long as
-            # they are unidimensionals (very common case for
-            # recarrays).  This can be up to 2x faster than doing a
-            # copy using NumPy.
-            #
-            copy_args.append(name)
+        # All the opcodes can deal with strided arrays directly as
+        # long as they are undimensional (strides in other
+        # dimensions are dealt within the extension), so we don't
+        # need a copy for the strided case.
+        if not b.flags.aligned:
+            # For the unaligned case, we have two cases:
+            if b.ndim == 1:
+                # For unidimensional arrays we can use the copy opcode
+                # because they can deal with unaligned arrays as long
+                # as they are unidimensionals with a possible stride
+                # (very common case for recarrays).  This can be up to
+                # 2x faster than doing a copy using NumPy.
+                copy_args.append(name)
+            else:
+                # For multimensional unaligned arrays do a plain copy.
+                # We could refine more this and do a plain copy only
+                # in the case that strides doesn't exist in dimensions
+                # other than the last one (whose case is supported by
+                # the copy opcode).
+                b = b.copy()
         arguments.append(b)
     # Create a signature
     signature = [(name, getType(arg)) for (name, arg) in zip(names, arguments)]
