@@ -41,7 +41,7 @@ def suite():
         # Sub-packages
         'tables.nodes.tests.test_filenode',
         'tables.netcdf3.tests.test_netcdf3',
-        ###'tables.numexpr.tests.test_numexpr',
+        'tables.numexpr.tests.test_numexpr',
         ]
 
     # Run indexing tests only under Pro

@@ -1,31 +1,30 @@
+import unittest
 import new
 from numpy import *
 from numpy.testing import *
 
-set_package_path()
-from numexpr import E, numexpr, evaluate, disassemble
-restore_path()
+from tables.numexpr import E, numexpr, evaluate, disassemble
 
 class test_numexpr(NumpyTestCase):
-    def check_simple(self):
+    def test_simple(self):
         ex = 2.0 * E.a + 3.0 * E.b * E.c
         func = numexpr(ex, signature=[('a', float), ('b', float), ('c', float)])
         x = func(array([1., 2, 3]), array([4., 5, 6]), array([7., 8, 9]))
         assert_array_equal(x, array([  86.,  124.,  168.]))
 
-    def check_simple_expr_small_array(self):
+    def test_simple_expr_small_array(self):
         func = numexpr(E.a)
         x = arange(100.0)
         y = func(x)
         assert_array_equal(x, y)
 
-    def check_simple_expr(self):
+    def test_simple_expr(self):
         func = numexpr(E.a)
         x = arange(1e5)
         y = func(x)
         assert_array_equal(x, y)
 
-    def check_rational_expr(self):
+    def test_rational_expr(self):
         func = numexpr((E.a + 2.0*E.b) / (1 + E.a + 4*E.b*E.b))
         a = arange(1e5)
         b = arange(1e5) * 0.1
@@ -33,7 +32,7 @@ class test_numexpr(NumpyTestCase):
         y = func(a, b)
         assert_array_equal(x, y)
 
-    def check_reductions(self):
+    def test_reductions(self):
         # Check that they compile OK.
         assert_equal(disassemble(numexpr("sum(x**2+2, axis=None)", [('x', float)])),
                     [('mul_fff', 't3', 'r1[x]', 'r1[x]'),
@@ -72,7 +71,7 @@ class test_numexpr(NumpyTestCase):
         assert_equal(evaluate("sum(x**2+2,axis=0)"), sum(x**2+2,axis=0))
         assert_equal(evaluate("prod(x**2+2,axis=0)"), prod(x**2+2,axis=0))
 
-    def check_axis(self):
+    def test_axis(self):
         y = arange(9.0).reshape(3,3)
         try:
             evaluate("sum(y, axis=2)")
@@ -90,37 +89,37 @@ class test_numexpr(NumpyTestCase):
 
 
 
-    def check_r0_reuse(self):
+    def test_r0_reuse(self):
         assert_equal(disassemble(numexpr("x**2+2", [('x', float)])),
                     [('mul_fff', 'r0', 'r1[x]', 'r1[x]'),
                      ('add_fff', 'r0', 'r0', 'c2[2.0]')])
 
 class test_evaluate(NumpyTestCase):
-    def check_simple(self):
+    def test_simple(self):
         a = array([1., 2., 3.])
         b = array([4., 5., 6.])
         c = array([7., 8., 9.])
         x = evaluate("2*a + 3*b*c")
         assert_array_equal(x, array([  86.,  124.,  168.]))
 
-    def check_simple_expr_small_array(self):
+    def test_simple_expr_small_array(self):
         x = arange(100.0)
         y = evaluate("x")
         assert_array_equal(x, y)
 
-    def check_simple_expr(self):
+    def test_simple_expr(self):
         x = arange(1e5)
         y = evaluate("x")
         assert_array_equal(x, y)
 
-    def check_rational_expr(self):
+    def test_rational_expr(self):
         a = arange(1e5)
         b = arange(1e5) * 0.1
         x = (a + 2*b) / (1 + a + 4*b*b)
         y = evaluate("(a + 2*b) / (1 + a + 4*b*b)")
         assert_array_equal(x, y)
 
-    def check_complex_expr(self):
+    def test_complex_expr(self):
         def complex(a, b):
             c = zeros(a.shape, dtype=complex_)
             c.real = a
@@ -135,7 +134,7 @@ class test_evaluate(NumpyTestCase):
         assert_array_almost_equal(x, y)
 
 
-    def check_complex_strides(self):
+    def test_complex_strides(self):
         a = arange(100).reshape(10,10)[::2]
         b = arange(50).reshape(5,10)
         assert_array_equal(evaluate("a+b"), a+b)
@@ -148,7 +147,7 @@ class test_evaluate(NumpyTestCase):
         assert_array_equal(evaluate("a0+c1"), a0+c1)
 
 
-    def check_broadcasting(self):
+    def test_broadcasting(self):
         a = arange(100).reshape(10,10)[::2]
         c = arange(10)
         d = arange(5).reshape(5,1)
@@ -157,20 +156,20 @@ class test_evaluate(NumpyTestCase):
         expr = numexpr("2.0*a+3.0*c",[('a',float),('c', float)])
         assert_array_equal(expr(a,c), 2.0*a+3.0*c)
 
-    def check_all_scalar(self):
+    def test_all_scalar(self):
         a = 3.
         b = 4.
         assert_equal(evaluate("a+b"), a+b)
         expr = numexpr("2*a+3*b",[('a',float),('b', float)])
         assert_equal(expr(a,b), 2*a+3*b)
 
-    def check_run(self):
+    def test_run(self):
         a = arange(100).reshape(10,10)[::2]
         b = arange(10)
         expr = numexpr("2*a+3*b",[('a',float),('b', float)])
         assert_array_equal(expr(a,b), expr.run(a,b))
 
-    def check_illegal_value(self):
+    def test_illegal_value(self):
         a = arange(3)
         try:
             evaluate("a < [0, 0, 0]")
@@ -242,9 +241,9 @@ class Skip(Exception): pass
 class test_expressions(NumpyTestCase):
     pass
 
-def generate_check_expressions():
+def generate_test_expressions():
     test_no = [0]
-    def make_check_method(a, a2, b, c, d, e, x, expr,
+    def make_test_method(a, a2, b, c, d, e, x, expr,
                           test_scalar, dtype, optimization, exact):
         this_locals = locals()
         def method(self):
@@ -269,7 +268,7 @@ def generate_check_expressions():
                 self.warn('numexpr error for expression %r' % (expr,))
                 raise
         test_no[0] += 1
-        name = 'check_%04d' % (test_no[0],)
+        name = 'test_%04d' % (test_no[0],)
         setattr(test_expressions, name,
                 new.instancemethod(method, None, test_expressions))
     x = None
@@ -300,27 +299,27 @@ def generate_check_expressions():
                             continue # skip complex comparisons
                         if dtype in (int, long) and test_scalar and expr == '(a+1) ** -1':
                             continue
-                        make_check_method(a, a2, b, c, d, e, x,
+                        make_test_method(a, a2, b, c, d, e, x,
                                           expr, test_scalar, dtype,
                                           optimization, exact)
 
-generate_check_expressions()
+generate_test_expressions()
 
 class test_int32_int64(NumpyTestCase):
-    def check_small_long(self):
+    def test_small_long(self):
         # Small longs should not be downgraded to ints.
         res = evaluate('42L')
         assert_array_equal(res, 42)
         self.assertEqual(res.dtype.name, 'int64')
 
-    def check_big_int(self):
+    def test_big_int(self):
         # Big ints should be promoted to longs.
         # This test may only fail under 64-bit platforms.
         res = evaluate('2**40')
         assert_array_equal(res, 2**40)
         self.assertEqual(res.dtype.name, 'int64')
 
-    def check_long_constant_promotion(self):
+    def test_long_constant_promotion(self):
         int32array = arange(100, dtype='int32')
         res = int32array * 2
         res32 = evaluate('int32array * 2')
@@ -330,7 +329,7 @@ class test_int32_int64(NumpyTestCase):
         self.assertEqual(res32.dtype.name, 'int32')
         self.assertEqual(res64.dtype.name, 'int64')
 
-    def check_int64_array_promotion(self):
+    def test_int64_array_promotion(self):
         int32array = arange(100, dtype='int32')
         int64array = arange(100, dtype='int64')
         respy = int32array * int64array
@@ -348,14 +347,14 @@ class test_strings(NumpyTestCase):
     str_array2 = array(str_list2 * str_nloops)
     str_constant = 'doodoo'
 
-    def check_compare_copy(self):
+    def test_compare_copy(self):
         sarr = self.str_array1
         expr = 'sarr'
         res1 = eval(expr)
         res2 = evaluate(expr)
         assert_array_equal(res1, res2)
 
-    def check_compare_array(self):
+    def test_compare_array(self):
         sarr1 = self.str_array1
         sarr2 = self.str_array2
         expr = 'sarr1 >= sarr2'
@@ -363,7 +362,7 @@ class test_strings(NumpyTestCase):
         res2 = evaluate(expr)
         assert_array_equal(res1, res2)
 
-    def check_compare_variable(self):
+    def test_compare_variable(self):
         sarr = self.str_array1
         svar = self.str_constant
         expr = 'sarr >= svar'
@@ -371,20 +370,20 @@ class test_strings(NumpyTestCase):
         res2 = evaluate(expr)
         assert_array_equal(res1, res2)
 
-    def check_compare_constant(self):
+    def test_compare_constant(self):
         sarr = self.str_array1
         expr = 'sarr >= %r' % self.str_constant
         res1 = eval(expr)
         res2 = evaluate(expr)
         assert_array_equal(res1, res2)
 
-    def check_add_string_array(self):
+    def test_add_string_array(self):
         sarr1 = self.str_array1
         sarr2 = self.str_array2
         expr = 'sarr1 + sarr2'
         self.assert_missing_op('add_sss', expr, locals())
 
-    def check_add_numeric_array(self):
+    def test_add_numeric_array(self):
         sarr = self.str_array1
         narr = arange(len(sarr), dtype='int32')
         expr = 'sarr >= narr'
@@ -400,5 +399,19 @@ class test_strings(NumpyTestCase):
         else:
             self.fail(msg)
 
+def suite():
+    theSuite = unittest.TestSuite()
+    niter = 1
+    #heavy = 1  # uncomment this only for testing purposes
+
+    for n in range(niter):
+        theSuite.addTest(unittest.makeSuite(test_numexpr))
+        theSuite.addTest(unittest.makeSuite(test_evaluate))
+        theSuite.addTest(unittest.makeSuite(test_expressions))
+        theSuite.addTest(unittest.makeSuite(test_int32_int64))
+        theSuite.addTest(unittest.makeSuite(test_strings))
+
+    return theSuite
+
 if __name__ == '__main__':
-    NumpyTest().run()
+    unittest.main( defaultTest='suite' )
