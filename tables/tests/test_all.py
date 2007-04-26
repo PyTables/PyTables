@@ -151,7 +151,10 @@ The whole suite will take more than 50 minutes to complete on a relatively
 modern CPU and around 100 MB of main memory."""
         print '-=' * 38
 
-    unittest.main(defaultTest='tables.tests.suite')
+    # unittest.main(defaultTest='tables.tests.suite')
+    # The next is more appropriate for running inside the interpreters
+    # (it doesn't exit at the end)
+    unittest.TextTestRunner().run(suite())
 
 
 if __name__ == '__main__':
