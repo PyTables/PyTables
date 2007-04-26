@@ -643,6 +643,7 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
                 # the copy opcode).
                 b = b.copy()
         arguments.append(b)
+
     # Create a signature
     signature = [(name, getType(arg)) for (name, arg) in zip(names, arguments)]
     # Look up numexpr if possible. copy_args *must* be added to the key,

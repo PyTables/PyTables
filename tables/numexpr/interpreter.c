@@ -1149,11 +1149,10 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
             n_dimensions = PyArray_NDIM(a);
     }
 
-    /* Broadcast all of the inputs to determine the output shape (this
-       will require some modifications if we later allow a final
-       reduction operation). If an array has too few dimensions it's
-       shape is padded with ones from the left. All array dimensions
-       must match, or be one. */
+    /* Broadcast all of the inputs to determine the output shape (this will
+       require some modifications if we later allow a final reduction
+       operation). If an array has too few dimensions it's shape is padded
+       with ones fromthe left. All array dimensions must match, or be one. */
 
     for (i = 0; i < n_dimensions; i++)
         shape[i] = 1;
@@ -1250,38 +1249,38 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
                 goto cleanup_and_exit;
             }
         } else {
-	  /* Check that discontiguous strides appear only on the last
-	     dimension. If not, the arrays should be copied.
-	     Furthermore, such arrays can appear when doing
-	     broadcasting above, so this check really needs to be
-	     here, and not in Python space. */
-	    intp inner_size;
-	    for (j = PyArray_NDIM(a)-2; j >= 0; j--) {
-	        inner_size = PyArray_STRIDE(a, j) * PyArray_DIM(a, j);
-	        if (PyArray_STRIDE(a, j+1) != inner_size) {
-		    intp dims[1] = {BLOCK_SIZE1};
-		    inddata[i+1].count = PyArray_NDIM(a);
-		    inddata[i+1].findex = -1;
-		    inddata[i+1].size = PyArray_ITEMSIZE(a);
-		    inddata[i+1].shape = PyArray_DIMS(a);
-		    inddata[i+1].strides = PyArray_STRIDES(a);
-		    inddata[i+1].buffer = PyArray_BYTES(a);
-		    inddata[i+1].index = PyMem_New(int, inddata[i+1].count);
-		    for (j = 0; j < inddata[i+1].count; j++)
-		      inddata[i+1].index[j] = 0;
-		    Py_INCREF(PyArray_DESCR(a));
-		    a = PyArray_SimpleNewFromDescr(1, dims, PyArray_DESCR(a));
-		    /* steals reference below */
-		    PyTuple_SET_ITEM(a_inputs, i+2*n_inputs, a);
-		    break;
-		}
-	    }
-	  self->memsteps[i+1] = PyArray_STRIDE(a, PyArray_NDIM(a)-1);
-	  self->memsizes[i+1] = PyArray_ITEMSIZE(a);
-	  inputs[i] = PyArray_DATA(a);
+            /* Check that discontiguous strides appear only on the last
+               dimension. If not, the arrays should be copied.
+               Furthermore, such arrays can appear when doing
+               broadcasting above, so this check really needs to be
+               here, and not in Python space. */
+            intp inner_size;
+            for (j = PyArray_NDIM(a)-2; j >= 0; j--) {
+                inner_size = PyArray_STRIDE(a, j) * PyArray_DIM(a, j);
+                if (PyArray_STRIDE(a, j+1) != inner_size) {
+                    intp dims[1] = {BLOCK_SIZE1};
+                    inddata[i+1].count = PyArray_NDIM(a);
+                    inddata[i+1].findex = -1;
+                    inddata[i+1].size = PyArray_ITEMSIZE(a);
+                    inddata[i+1].shape = PyArray_DIMS(a);
+                    inddata[i+1].strides = PyArray_STRIDES(a);
+                    inddata[i+1].buffer = PyArray_BYTES(a);
+                    inddata[i+1].index = PyMem_New(int, inddata[i+1].count);
+                    for (j = 0; j < inddata[i+1].count; j++)
+                        inddata[i+1].index[j] = 0;
+                    Py_INCREF(PyArray_DESCR(a));
+                    a = PyArray_SimpleNewFromDescr(1, dims, PyArray_DESCR(a));
+                    /* steals reference below */
+                    PyTuple_SET_ITEM(a_inputs, i+2*n_inputs, a);
+                    break;
+                }
+            }
+
+            self->memsteps[i+1] = PyArray_STRIDE(a, PyArray_NDIM(a)-1);
+            self->memsizes[i+1] = PyArray_ITEMSIZE(a);
+            inputs[i] = PyArray_DATA(a);
         }
     }
-
 
     if (last_opcode(self->program) > OP_REDUCTION) {
         /* A reduction can not result in a string,
@@ -1310,7 +1309,7 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
                 }
             }
             output = PyArray_SimpleNew(n_dimensions-1, dims,
-				       typecode_from_char(retsig));
+                                       typecode_from_char(retsig));
             if (!output) goto cleanup_and_exit;
             for (i = j = 0; i < n_dimensions; i++) {
                 if (i != axis) {
@@ -1323,9 +1322,8 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
 
 
         }
-        /* TODO optimize strides -- in this and other inddata cases,
-           strides and shape can be tweaked to minimize the amount of
-           looping */
+        /* TODO optimize strides -- in this and other inddata cases, strides and
+           shape can be tweaked to minimize the amount of looping */
         inddata[0].count = n_dimensions;
         inddata[0].findex = -1;
         inddata[0].size = PyArray_ITEMSIZE(output);
@@ -1361,7 +1359,7 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
             PyArray_Descr *descr;
             if (n_inputs > 0) {  /* input, like in 'a' where a -> 'foo' */
                 descr = PyArray_DESCR(PyTuple_GET_ITEM(a_inputs, 1));
-		Py_INCREF(descr);
+            Py_INCREF(descr);
             } else {  /* constant, like in '"foo"' */
                 descr = PyArray_DescrFromType(PyArray_STRING);
                 descr->elsize = self->memsizes[1];

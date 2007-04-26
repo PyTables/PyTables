@@ -148,7 +148,7 @@
         double fa, fb;
         cdouble ca, cb;
         char *ptr;
-	intp str1 = params.memsteps[arg1];
+        intp str1 = params.memsteps[arg1];
 
         switch (op) {
 
@@ -156,18 +156,17 @@
 
         case OP_COPY_BB: VEC_ARG1(b_dest = b1);
         case OP_COPY_SS: VEC_ARG1(memcpy(s_dest, s1, params.memsizes[arg1]));
-	  /* The next versions of copy opcodes can cope with unaligned
-	     data even on platforms that crash while accessing to
-	     it (like the Sparc architecture under Solaris). */
+        /* The next versions of copy opcodes can cope with unaligned
+           data even on platforms that crash while accessing it
+           (like the Sparc architecture under Solaris). */
         case OP_COPY_II: VEC_ARG1(memcpy(dest, x1, sizeof(int));
-				  dest += sizeof(int); x1 += str1);
+                                  dest += sizeof(int); x1 += str1);
         case OP_COPY_LL: VEC_ARG1(memcpy(dest, x1, sizeof(long long));
-				  dest += sizeof(long long); x1 += str1);
+                                  dest += sizeof(long long); x1 += str1);
         case OP_COPY_FF: VEC_ARG1(memcpy(dest, x1, sizeof(double));
-				  dest += sizeof(double); x1 += str1);
+                                  dest += sizeof(double); x1 += str1);
         case OP_COPY_CC: VEC_ARG1(memcpy(dest, x1, sizeof(double)*2);
-				  dest += sizeof(double)*2; x1 += str1);
-
+                                  dest += sizeof(double)*2; x1 += str1);
 
         case OP_INVERT_BB: VEC_ARG1(b_dest = !b1);
         case OP_AND_BBB: VEC_ARG2(b_dest = (b1 && b2));
