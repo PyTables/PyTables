@@ -152,7 +152,7 @@ class Node(object):
         Move or rename this node.
     _f_remove([recursive])
         Remove this node from the hierarchy.
-    _f_rename(newname)
+    _f_rename(newname[, overwrite])
         Rename this node in place.
 
     Public methods -- attribute handling

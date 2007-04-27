@@ -398,7 +398,7 @@ class File(hdf5Extension.File, object):
                     [, createparents])
     * moveNode(where, newparent, newname[, name][, overwrite])
     * removeNode(where[, name][, recursive])
-    * renameNode(where, newname[, name])
+    * renameNode(where, newname[, name][, overwrite])
 
     Public methods -- tree traversal
     --------------------------------
