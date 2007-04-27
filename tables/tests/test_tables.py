@@ -745,9 +745,6 @@ class BasicTestCase(common.PyTablesTestCase):
             add = 20
         assert len(result) == 20 + add  # because we appended new rows
 
-    # This is meant to check bug report #1186892, but I did not
-    # work...
-    # It seems to work now. 2005-06-16
     def test02b_AppendRows(self):
         """Checking whether appending *and* reading rows works or not"""
 
@@ -889,8 +886,49 @@ class BasicTestCase(common.PyTablesTestCase):
             print "Result length ==>", len(result)
             print "Result contents ==>", result
         assert len(result) == 22
-        assert [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
-                111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121]
+        assert result == [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
+                          111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121]
+
+    def test02d_AppendRows(self):
+        """Checking appending using the same Row object after flushing."""
+
+        # This test is kind of magic, but it is a good sanity check anyway.
+
+        # Now, open it, but in "append" mode
+        self.fileh = openFile(self.file, mode = "a")
+        self.rootgroup = self.fileh.root
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02d_AppendRows..." % self.__class__.__name__
+
+        # Get a table
+        table = self.fileh.getNode("/group0/table1")
+        if verbose:
+            print "Nrows in old", table._v_pathname, ":", table.nrows
+            print "Record Format ==>", table.description._v_nestedFormats
+            print "Record Size ==>", table.rowsize
+        # Set a small number of buffer to make this test faster
+        table.nrowsinbuf=3
+        # Get their row object
+        row = table.row
+        # Append some rows
+        for i in xrange(10):
+            row['var2'] = 100+i
+            row.append()
+        # Force a flush
+        table.flush()
+        # Add new rows
+        for i in xrange(9):
+            row['var2'] = 110+i
+            row.append()
+        result = [ row['var2'] for row in table.iterrows()
+                   if 100 <= row['var2'] < 120 ]
+        if verbose:
+            print "Result length ==>", len(result)
+            print "Result contents ==>", result
+        assert len(result) == 19
+        assert result == [100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+                          110, 111, 112, 113, 114, 115, 116, 117, 118]
 
     # CAVEAT: The next test only works for tables with rows < 2**15
     def test03_endianess(self):

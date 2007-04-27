@@ -1750,7 +1750,7 @@ You cannot append rows to a non-chunked table.""")
                 self.flushRowsToIndex(_lastrow=False)
 
 
-    def _saveBufferedRows(self, flush=0):
+    def _saveBufferedRows(self):
         """Save buffered table rows"""
         # Save the records on disk
         # Data is copied to the buffer,
@@ -1768,15 +1768,7 @@ You cannot append rows to a non-chunked table.""")
         # Reset the number of unsaved rows
         self._unsaved_nrows = 0
         # Get a fresh copy of the default values
-        # Note: It is important to do a copy only in the case that we are
-        # not doing a flush. Doing the copy in the flush state, causes a fatal
-        # error of the form:
-        # *** glibc detected *** corrupted double-linked list: 0x08662d18 ***
-        # I don't know the cause, but some tests seems to point out that this
-        # *could* be related with the python garbage collector.
-        # F. Altet 2006-04-28
-        if not flush:
-            self._v_wbuffer[:] = self._v_wbuffercpy[:]
+        self._v_wbuffer[:] = self._v_wbuffercpy[:]
 
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
@@ -2270,21 +2262,12 @@ The 'names' parameter must be a list of strings.""")
         return (newtable, nbytes)
 
 
-    def _g_cleanIOBuf(self):
-        """Clean the I/O buffers."""
-
-        mydict = self.__dict__
-        if "_v_wbuffer" in mydict:
-            del mydict['_v_wbuffer']     # Decrement the pointer to write buffer
-            del mydict['_v_wbuffercpy']  # Decrement the pointer to write buffer copy
-
-
     def flush(self):
         """Flush the table buffers."""
 
         # Flush rows that remains to be appended
         if self._unsaved_nrows > 0:
-            self._saveBufferedRows(flush=1)
+            self._saveBufferedRows()
         if self.indexed and self.autoIndex:
             # Flush any unindexed row
             rowsadded = self.flushRowsToIndex(_lastrow=True)
@@ -2306,7 +2289,6 @@ The 'names' parameter must be a list of strings.""")
 #                         col.index.optimize()
 # #***************************** end test ************************************
 
-        self._g_cleanIOBuf()
         super(Table, self).flush()
 
 

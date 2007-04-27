@@ -552,7 +552,6 @@ cdef class Table(Leaf):
                             self.totalrecords, rowsize, nrow, nrecords,
                             self.nrowsinbuf) < 0):
       raise HDF5ExtError("Problems deleting records.")
-      #print "Problems deleting records."
       # Return no removed records
       return 0
     self.totalrecords = self.totalrecords - nrecords
@@ -1017,6 +1016,9 @@ cdef class Row:
     if self._riterator:
       raise NotImplementedError("You cannot append rows when in middle of a table iterator. If what you want is updating records, use Row.update() instead.")
 
+    # Update _unsaved_nrows in case the buffer has been flushed
+    if self.table._unsaved_nrows == 0:
+      self._unsaved_nrows = 0
     self._unsaved_nrows = self._unsaved_nrows + 1
     self.table._unsaved_nrows = self._unsaved_nrows
     # When the buffer is full, flush it
@@ -1195,6 +1197,10 @@ cdef class Row:
 
     if self.ro_filemode:
       raise IOError("attempt to write over a file opened in read-only mode")
+
+    # Update _unsaved_nrows in case the buffer has been flushed
+    if self.table._unsaved_nrows == 0:
+      self._unsaved_nrows = 0
 
     if self.wbufRA is None:
       # Get the array pointers for write buffers
