@@ -43,7 +43,6 @@ from idxutils import calcChunksize, calcoptlevels, opts_pack, opts_unpack, \
 
 from tables import indexesExtension
 from tables import utilsExtension
-from tables.file import openFile
 from tables.attributeset import AttributeSet
 from tables.node import NotLoggedMixin
 from tables.atom import Int64Atom, Atom
@@ -289,6 +288,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """Filename for temporary bounds."""
         self.opt_search_types = opt_search_types
         """The types for which and optimized search has been implemented."""
+
+        from tables.file import openFile
+        self._openFile = openFile
+        """The `openFile()` function, to avoid a circular import."""
+
         super(Index, self).__init__(
             parentNode, name, title, new, filters)
 
@@ -667,7 +671,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Close the file descriptor so as to avoid leaks
         os.close(fd)
         # Create the proper PyTables file
-        self.tmpfile = openFile(self.tmpfilename, "w")
+        self.tmpfile = self._openFile(self.tmpfilename, "w")
         self.tmp = self.tmpfile.root
         cs = self.chunksize
         ss = self.slicesize
