@@ -95,7 +95,7 @@ http://www.pytables.org/moin/HowToUse).
 
 1. First, make sure that you have HDF5, NumPy installed (you will need
    at least HDF5 1.6.5 and NumPy 1.0.1). If don't, get them from
-   http://hdf.ncsa.uiuc.edu/HDF5 and
+   http://hdfgroup.org/HDF5/ and
    http://numpy.scipy.org/. Compile/install them.
 
    Optionally, consider to install the excellent LZO compression

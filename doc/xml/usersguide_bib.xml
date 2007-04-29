@@ -9,7 +9,7 @@
     <bibliomisc>Concise description about HDF5 capabilities and its differences
     from earlier versions (HDF4)</bibliomisc>
     <bibliosource>
-      <ulink url="http://hdf.ncsa.uiuc.edu/whatishdf5.html">http://hdf.ncsa.uiuc.edu/whatishdf5.html</ulink>
+      <ulink url="http://hdfgroup.org/whatishdf5.html">http://hdfgroup.org/whatishdf5.html</ulink>
     </bibliosource>
   </biblioentry>
 
@@ -24,7 +24,7 @@
     Format, version 5. HL-HDF also contains an interface to the Python
     programming language, called PyHL</bibliomisc>
     <bibliosource>
-      <ulink url="ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/contrib/hl-hdf5/README.html">ftp://ftp.ncsa.uiuc.edu/HDF/HDF5/contrib/hl-hdf5/README.html</ulink>
+      <ulink url="ftp://ftp.hdfgroup.org/HDF5/contrib/hl-hdf5/README.html">ftp://ftp.hdfgroup.org/HDF5/contrib/hl-hdf5/README.html</ulink>
     </bibliosource>
   </biblioentry>
 
@@ -34,7 +34,7 @@
     <bibliomisc>Introduction to the HDF5 data model and programming
     model</bibliomisc>
     <bibliosource>
-      <ulink url="http://hdf.ncsa.uiuc.edu/HDF5/doc/H5.intro.html">http://hdf.ncsa.uiuc.edu/HDF5/doc/H5.intro.html</ulink>
+      <ulink url="http://hdfgroup.org/HDF5/doc/H5.intro.html">http://hdfgroup.org/HDF5/doc/H5.intro.html</ulink>
     </bibliosource>
   </biblioentry>
 
@@ -43,7 +43,7 @@
     <title>The HDF5 table programming model</title>
     <bibliomisc>Examples on using HDF5 tables with the C API</bibliomisc>
     <bibliosource>
-      <ulink url="http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html">http://hdf.ncsa.uiuc.edu/HDF5/hdf5_hl/doc/RM_hdf5tb_ex.html</ulink>
+      <ulink url="http://hdfgroup.org/HDF5/Tutor/h5table.html">http://hdfgroup.org/HDF5/Tutor/h5table.html</ulink>
     </bibliosource>
     </biblioentry>
 

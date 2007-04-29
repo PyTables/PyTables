@@ -85,7 +85,7 @@ def checkNameValidity(name):
         raise TypeError("object name is not a string: %r" % (name,))
 
     # Check whether `name` is a valid HDF5 name.
-    # http://hdf.ncsa.uiuc.edu/HDF5/doc/UG/03_Model.html#Structure
+    # http://hdfgroup.org/HDF5/doc/UG/03_Model.html#Structure
     if name == '':
         raise ValueError("the empty string is not allowed as an object name")
     if name == '.':

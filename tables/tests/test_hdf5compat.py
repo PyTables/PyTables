@@ -51,7 +51,7 @@ class EnumTestCase(HDF5CompatibilityTestCase):
     """
     Test for enumerated datatype.
 
-    See ftp://ftp.ncsa.uiuc.edu/HDF/files/hdf5/samples/enum.c.
+    See ftp://ftp.hdfgroup.org/HDF5/current/src/unpacked/test/enum.c.
     """
 
     h5fname = 'smpl_enum.h5'
@@ -80,7 +80,8 @@ class NumericTestCase(HDF5CompatibilityTestCase):
     """
     Test for several numeric datatypes.
 
-    See ftp://ftp.ncsa.uiuc.edu/HDF/files/hdf5/samples/[fiu]l?{8,16,32,64}{be,le}.c.
+    See ftp://ftp.ncsa.uiuc.edu/HDF/files/hdf5/samples/[fiu]l?{8,16,32,64}{be,le}.c
+    (they seem to be no longer available).
     """
 
     def _test(self):
