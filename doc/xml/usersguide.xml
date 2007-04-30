@@ -636,17 +636,18 @@ fileh.close()</screen>
         distribution.</para>
 
         <para>To compile PyTables you will need a recent version of Python,
-        the HDF5 (C flavor) library, and the <literal>NumPy</literal> (see
-        <biblioref linkend="NumPy" />) package. Although you won't need
-        <literal>numarray</literal> (see <biblioref linkend="Numarray" />) or
-        <literal>Numeric</literal> (see <biblioref linkend="Numeric" />) in
-        order to compile PyTables, they are supported; you only need a
-        reasonably recent version of them (&gt;= 1.5.2 for numarray and &gt;=
-        24.2 for Numeric) if you plan on using them in your applications. If
-        you already have <literal>numarray</literal> and/or
-        <literal>Numeric</literal> installed, the test driver module will
-        detect them and will run the tests for <literal>numarray</literal>
-        and/or <literal>Numeric</literal> automatically.</para>
+        the HDF5 (C flavor) library from <ulink url="http://hdfgroup.org/"/>,
+        and the <literal>NumPy</literal> (see <biblioref linkend="NumPy" />)
+        package. Although you won't need <literal>numarray</literal> (see
+        <biblioref linkend="Numarray" />) or <literal>Numeric</literal> (see
+        <biblioref linkend="Numeric" />) in order to compile PyTables, they
+        are supported; you only need a reasonably recent version of them
+        (&gt;= 1.5.2 for numarray and &gt;= 24.2 for Numeric) if you plan on
+        using them in your applications. If you already have
+        <literal>numarray</literal> and/or <literal>Numeric</literal>
+        installed, the test driver module will detect them and will run the
+        tests for <literal>numarray</literal> and/or
+        <literal>Numeric</literal> automatically.</para>
 
         <section id="PrerequisitesSourceDescr">
           <title>Prerequisites</title>
@@ -732,6 +733,11 @@ fileh.close()</screen>
               <term><emphasis role="bold">Windows</emphasis></term>
 
               <listitem>
+                <para>You can get ready-to-use Windows binaries and other
+                development files for most of the following libraries from the
+                GnuWin32 project (see <biblioref linkend="GnuWin32"
+                />).</para>
+
                 <para>Once you have installed the prerequisites,
                 <literal>setup.py</literal> needs to know where the necessary
                 library <emphasis>stub</emphasis> (<literal>.lib</literal>)
@@ -756,11 +762,6 @@ set BZIP2_DIR=c:\stuff\bzip2-1-0-3</screen>
                 <screen>--hdf5=c:\stuff\5-165-win
 --lzo=c:\stuff\lzo-1-08
 --bzip2=c:\stuff\bzip2-1-0-3</screen>
-
-                <para>You can get ready-to-use Windows binaries and other
-                development files for most of those libraries from the
-                GnuWin32 project (see <biblioref
-                linkend="GnuWin32" />).</para>
               </listitem>
             </varlistentry>
           </variablelist>
@@ -877,14 +878,10 @@ python -c "import tables; tables.test()"</screen>
                     (<literal>hdf5dll.dll</literal> and, optionally,
                     <literal>lzo1.dll</literal> and
                     <literal>bzip2.dll</literal>) in a directory listed in
-                    your <literal>PATH</literal> environment variable or in
-                    <literal>python_installation_path\Lib\site-packages\tables</literal>
-                    (the last directory may not exist yet, so if you want to
-                    install the DLLs there, you should do so
-                    <emphasis>after</emphasis> installing the PyTables
-                    package). The <literal>setup.py</literal> installation
-                    program will print out a warning to that effect if the
-                    libraries can not be found.</para>
+                    your <literal>PATH</literal> environment variable. The
+                    <literal>setup.py</literal> installation program will
+                    print out a warning to that effect if the libraries can
+                    not be found.</para>
                   </listitem>
                 </varlistentry>
               </variablelist>
@@ -942,11 +939,7 @@ python -c "import tables; tables.test()"</screen>
           <literal>hdf5dll.dll</literal>, <literal>zlib1.dll</literal>
           <emphasis>and</emphasis> <literal>szipdll.dll</literal> files to a
           directory in your <literal>PATH</literal> environment variable (for
-          example <literal>C:\WINDOWS\SYSTEM32</literal>) or
-          <literal>python_installation_path\Lib\site-packages\tables</literal>
-          (the last directory may not exist yet, so if you want to install the
-          DLLs there, you should do so <emphasis>after</emphasis> installing
-          the PyTables package).</para>
+          example <literal>C:\WINDOWS\SYSTEM32</literal>).</para>
 
           <para><emphasis>Caveat:</emphasis> When downloading the binary
           distribution for HDF5 libraries, select the one compiled with a .NET
@@ -967,11 +960,7 @@ python -c "import tables; tables.test()"</screen>
           <literal>&lt;package&gt;-&lt;version&gt;-bin.zip</literal> file and
           copy the <literal>lzo1.dll</literal> or <literal>bzip2.dll</literal>
           files in a directory in the <literal>PATH</literal> environment
-          variable, or in
-          <literal>python_installation_path\Lib\site-packages\tables</literal>
-          (the last directory may not exist yet, so if you want to install the
-          DLLs there, you should do so <emphasis>after</emphasis> installing
-          the PyTables package), so that they can be found by the PyTables
+          variable, so that they can be found by the PyTables
           extensions.</para>
 
           <para>Please note that PyTables has internal machinery for dealing
