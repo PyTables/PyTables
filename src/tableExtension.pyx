@@ -510,11 +510,7 @@ cdef class Table(Leaf):
     return nrecords
 
 
-  def _read_elements(self, recarr, elements):
-    return self._read_elements_(recarr, elements)
-
-
-  cdef _read_elements_(self, ndarray recarr, ndarray elements):
+  def _read_elements(self, ndarray recarr, ndarray elements):
     cdef long nrecords
     cdef void *rbuf, *rbuf2
     cdef int ret
@@ -619,7 +615,7 @@ cdef class Row:
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done
   cdef object  dtype
-  cdef object  rbufRA, wbufRA
+  cdef object  IObuf, IObufcpy
   cdef object  wrec, wreccpy
   cdef object  wfields, rfields
   cdef object  indexValid, coords, bufcoords, index, indices
@@ -666,7 +662,8 @@ cdef class Row:
     self.exist_enum_cols = len(self.colenums)
     self.nrowsinbuf = table.nrowsinbuf
     self.dtype = table._v_dtype
-    self._newBuffer()
+    self._newBuffer(table)
+    self.mod_elements = None
     self.rfieldscache = {}
     self.wfieldscache = {}
 
@@ -684,27 +681,18 @@ cdef class Row:
     return self
 
 
-  cdef _newBuffer(self):
+  cdef _newBuffer(self, table):
 #     "Create the recarrays for I/O buffering"
 
-    table = self.table
-
-    # Get the write buffer in table (it is shared, remember!)
-    buff = self.wbufRA = table._v_wbuffer
-    self.wrec = table._v_wbuffercpy.copy()  # The private record
+    self.wrec = table._v_wdflts.copy()  # The private record
     self.wreccpy = self.wrec.copy()  # A copy of the defaults
     # Build the wfields dictionary for faster access to columns
     self.wfields = {}
     for name in self.dtype.names:
       self.wfields[name] = self.wrec[name]
-    # Initialize an array for keeping the modified elements
-    # (just in case Row.update() would be used)
-    self.mod_elements = numpy.empty(shape=self.nrowsinbuf,
-                                    dtype=numpy.int64)
 
     # Get the read buffer for this instance (it is private, remember!)
-    buff = self.rbufRA = numpy.empty(shape=self.nrowsinbuf,
-                                     dtype=self.dtype)
+    buff = self.IObuf = table._get_container(self.nrowsinbuf)
     # Build the rfields dictionary for faster access to columns
     # This is quite fast, as it only takes around 5 us per column
     # in my laptop (Pentium 4 @ 2 GHz).
@@ -718,7 +706,7 @@ cdef class Row:
     self._stride = buff.strides[0]
     # The rowsize
     self._rowsize = self.dtype.itemsize
-    self.nrows = self.table.nrows  # This value may change
+    self.nrows = table.nrows  # This value may change
 
 
   cdef _initLoop(self, hsize_t start, hsize_t stop, hsize_t step,
@@ -806,7 +794,7 @@ cdef class Row:
           self.bufcoords = tmp
         self._row = -1
         if self.bufcoords.size > 0:
-          recout = self.table._read_elements(self.rbufRA, self.bufcoords)
+          recout = self.table._read_elements(self.IObuf, self.bufcoords)
           if self.whereCond:
             # Evaluate the condition on this table fragment.
             self.indexValid = call_on_recarr(
@@ -864,7 +852,7 @@ cdef class Row:
         self._row = self.startb - self.step
         # Read a chunk
         recout = self.table._read_records(self.nextelement, self.nrowsinbuf,
-                                          self.rbufRA)
+                                          self.IObuf)
         self.nrowsread = self.nrowsread + recout
         self.indexChunk = -self.step
 
@@ -918,7 +906,7 @@ cdef class Row:
         self._row = self.startb - self.step
         # Read a chunk
         recout = self.table._read_records(self.nrowsread, self.nrowsinbuf,
-                                          self.rbufRA)
+                                          self.IObuf)
         self.nrowsread = self.nrowsread + recout
 
       self._row = self._row + self.step
@@ -941,7 +929,7 @@ cdef class Row:
     self.wfieldscache = {}     # empty wfields cache
     # Make a copy of the last read row in the private record
     # (this is useful for accessing the last row after an iterator loop)
-    self.wrec[:] = self.rbufRA[self._row]
+    self.wrec[:] = self.IObuf[self._row]
     self._riterator = 0        # out of iterator
     if self._mod_nrows > 0:    # Check if there is some modified row
       self._flushModRows()       # Flush any possible modified row
@@ -972,9 +960,9 @@ cdef class Row:
       stopr = startr + ((istopb - istartb - 1) / istep) + 1
       # Read a chunk
       inrowsread = inrowsread + self.table._read_records(i, inrowsinbuf,
-                                                         self.rbufRA)
+                                                         self.IObuf)
       # Assign the correct part to result
-      fields = self.rbufRA
+      fields = self.IObuf
       if field:
         fields = getNestedField(fields, field)
       result[startr:stopr] = fields[istartb:istopb:istep]
@@ -1013,7 +1001,7 @@ cdef class Row:
        order to avoid losing the last rows that may still remain in internal
        buffers.
     """
-    cdef ndarray wbufRA, wrec, wreccpy
+    cdef ndarray IObuf, wrec, wreccpy
 
     if self.ro_filemode:
       raise IOError("Attempt to write over a file opened in read-only mode")
@@ -1022,13 +1010,13 @@ cdef class Row:
       raise HDF5ExtError("You cannot append rows to a non-chunked table.")
 
     if self._riterator:
-      raise NotImplementedError("You cannot append rows when in middle of a table iterator. If what you want is updating records, use Row.update() instead.")
+      raise NotImplementedError("You cannot append rows when in middle of a table iterator. If what you want is to update records, use Row.update() instead.")
 
     # Commit the private record into the write buffer
-    # self.wbufRA[self._unsaved_nrows] = self.wrec
+    # self.IObuf[self._unsaved_nrows] = self.wrec
     # The next is faster
-    wbufRA = <ndarray>self.wbufRA; wrec = <ndarray>self.wrec
-    memcpy(wbufRA.data + self._unsaved_nrows * self._stride,
+    IObuf = <ndarray>self.IObuf; wrec = <ndarray>self.wrec
+    memcpy(IObuf.data + self._unsaved_nrows * self._stride,
            wrec.data, self._rowsize)
     # Restore the defaults for the private record
     # self.wrec[:] = self.wreccpy
@@ -1043,7 +1031,7 @@ cdef class Row:
 
   def _flushBufferedRows(self):
     if self._unsaved_nrows > 0:
-      self.table._saveBufferedRows(self.wbufRA, self._unsaved_nrows)
+      self.table._saveBufferedRows(self.IObuf, self._unsaved_nrows)
       # Reset the buffer unsaved counter
       self._unsaved_nrows = 0
 
@@ -1089,7 +1077,7 @@ cdef class Row:
        order to avoid losing changed rows that may still remain in internal
        buffers.
     """
-    cdef ndarray wbufRA, rbufRA
+    cdef ndarray IObufcpy, IObuf
 
     if self.ro_filemode:
       raise IOError("Attempt to write over a file opened in read-only mode")
@@ -1097,14 +1085,22 @@ cdef class Row:
     if not self._riterator:
       raise NotImplementedError("You are only allowed to update rows through the Row.update() method if you are in the middle of a table iterator.")
 
+    if self.mod_elements is None:
+      # Initialize an array for keeping the modified elements
+      # (just in case Row.update() would be used)
+      self.mod_elements = numpy.empty(shape=self.nrowsinbuf,
+                                      dtype=numpy.int64)
+      # We need a different copy for self.IObuf here
+      self.IObufcpy = self.IObuf.copy()
+
     # Add this row to the list of elements to be modified
     self.mod_elements[self._mod_nrows] = self._nrow
     # Copy the current buffer row in input to the output buffer
-    # self.wbufRA[self._mod_nrows] = self.rbufRA[self._row]
+    # self.IObufcpy[self._mod_nrows] = self.IObuf[self._row]
     # The next is faster
-    wbufRA = <ndarray>self.wbufRA; rbufRA = <ndarray>self.rbufRA
-    memcpy(wbufRA.data + self._mod_nrows * self._stride,
-           rbufRA.data + self._row * self._stride, self._rowsize)
+    IObufcpy = <ndarray>self.IObufcpy; IObuf = <ndarray>self.IObuf
+    memcpy(IObufcpy.data + self._mod_nrows * self._stride,
+           IObuf.data + self._row * self._stride, self._rowsize)
     # Increase the modified buffer count by one
     self._mod_nrows = self._mod_nrows + 1
     # When the buffer is full, flush it
@@ -1117,7 +1113,7 @@ cdef class Row:
 
     table = self.table
     # Save the records on disk
-    table._update_elements(self._mod_nrows, self.mod_elements, self.wbufRA)
+    table._update_elements(self._mod_nrows, self.mod_elements, self.IObufcpy)
     # Reset the counter of modified rows to 0
     self._mod_nrows = 0
     # Redo the indexes if needed. This could be optimized if we would
@@ -1162,9 +1158,9 @@ cdef class Row:
     cdef ndarray field
     cdef object row, fields, fieldscache
 
-    if self._riterator or self.wbufRA is None:
-      # If in the middle of an iterator loop, or *after*, the user
-      # probably wants to access the read buffer
+    if self._riterator:
+      # If in the middle of an iterator loop, the user probably wants to
+      # access the read buffer
       fieldscache = self.rfieldscache; fields = self.rfields
       offset = <long>self._row
     else:
@@ -1183,8 +1179,8 @@ cdef class Row:
       except TypeError:
         # No luck yet. Still, the key can be a slice.
         # Fetch the complete row and convert it into a tuple
-        if self._riterator or self.wbufRA is None:
-          row = self.rbufRA[self._row].copy().item()
+        if self._riterator:
+          row = self.IObuf[self._row].copy().item()
         else:
           row = self.wrec[0].copy().item()
         # Try with __getitem__()
@@ -1285,8 +1281,8 @@ cdef class Row:
     "You will normally want to use this method in iterator contexts.")
 
     # Always return a copy of the row so that new data that is written
-    # in self.rbufRA doesn't overwrite the original returned data.
-    return self.rbufRA[self._row].copy()
+    # in self.IObuf doesn't overwrite the original returned data.
+    return self.IObuf[self._row].copy()
 
 
   def __str__(self):
@@ -1300,14 +1296,11 @@ cdef class Row:
 
     outlist = []
     # Special case where Row has not been initialized yet
-    if self.rbufRA is None and self.wbufRA is None:
+    if self.IObuf is None:
       return "Warning: Row iterator has not been initialized for table:\n  %s\n %s" % \
              (self.table, \
 "You will normally want to use to use this object in iterator or writing contexts.")
-    if self.rbufRA is not None:
-      buf = self.rbufRA;  fields = self.rfields
-    else:
-      buf = self.wbufRA;  fields = self.wfields
+    buf = self.IObuf;  fields = self.rfields
     for name in buf.dtype.names:
       outlist.append(`fields[name][self._row]`)
     return "(" + ", ".join(outlist) + ")"

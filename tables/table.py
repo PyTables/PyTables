@@ -334,28 +334,30 @@ class Table(tableExtension.Table, Leaf):
 
     # Lazy attributes
     # ```````````````
-    def _g_getrbuffer(self):
+    def _g_getiobuf(self):
         mydict = self.__dict__
-        if '_v_rbuffer' in mydict:
-            return mydict['_v_rbuffer']
+        if '_v_iobuf' in mydict:
+            return mydict['_v_iobuf']
         else:
-            mydict['_v_rbuffer'] = rbuffer = self._newBuffer(init=0)
-            return rbuffer
+            mydict['_v_iobuf'] = iobuf = self._get_container(self.nrowsinbuf)
+            return iobuf
 
-    _v_rbuffer = property(_g_getrbuffer, None, None,
-                          "A buffer for reading.")
+    _v_iobuf = property(_g_getiobuf, None, None,
+                          "A buffer for doing IO.")
 
-    def _g_getwbuffer(self):
+    def _g_getwdflts(self):
         mydict = self.__dict__
-        if '_v_wbuffer' in mydict:
-            return mydict['_v_wbuffer']
+        if '_v_wdflts' in mydict:
+            return mydict['_v_wdflts']
         else:
-            mydict['_v_wbuffer'] = wbuffer = self._newBuffer(init=1)
-            mydict['_v_wbuffercpy'] = wbuffer[0:1].copy()
-            return wbuffer
+            mydict['_v_wdflts'] = wdflts = self._get_container(1)
+            for colname, coldflt in self.coldflts.iteritems():
+               ra = getNestedField(wdflts, colname)
+               ra[:] = coldflt
+            return wdflts
 
-    _v_wbuffer = property(_g_getwbuffer, None, None,
-                          "*The* buffer for writing.")
+    _v_wdflts = property(_g_getwdflts, None, None,
+                         "The defaults for writing in recarray format.")
 
     # Index-related properties
     # ````````````````````````
@@ -670,19 +672,6 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
         # This is *much* faster than the numpy.rec.array counterpart
         return numpy.empty(shape=shape, dtype=self._v_dtype)
-
-
-    def _newBuffer(self, init=1):
-        """Create a new recarray buffer for I/O purposes"""
-
-        recarr = self._get_container(self.nrowsinbuf)
-        # Initialize the recarray with the defaults in description
-        if init:
-            for objcol in self.description._f_walk("Col"):
-                colname = objcol._v_pathname
-                ra = getNestedField(recarr, colname)
-                ra[:] = objcol.dflt
-        return recarr
 
 
     def _descrFromRA(self, recarr):
@@ -1528,7 +1517,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         if field is None or ncoords > 0:
             # Doing a copy is faster when ncoords is small (<1000)
             if ncoords < min(1000, self.nrowsinbuf):
-                result = self._v_rbuffer[:ncoords].copy()
+                result = self._v_iobuf[:ncoords].copy()
             else:
                 result = self._get_container(ncoords)
 
@@ -2189,7 +2178,7 @@ The 'names' parameter must be a list of strings.""")
         "Copy rows from self to object"
         (start, stop, step) = self._processRangeRead(start, stop, step)
         nrowsinbuf = self.nrowsinbuf
-        object._open_append(self._v_wbuffer)
+        object._open_append(self._v_iobuf)
         nrowsdest = object.nrows
         for start2 in xrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
@@ -2198,7 +2187,7 @@ The 'names' parameter must be a list of strings.""")
                 stop2 = stop
             # Optimized version (it saves some conversions)
             nrows = ((stop2 - start2 - 1) // step) + 1
-            self.row._fillCol(self._v_wbuffer, start2, stop2, step, None)
+            self.row._fillCol(self._v_iobuf, start2, stop2, step, None)
             # The output buffer is created anew,
             # so the operation is safe to in-place conversion.
             object._append_records(nrows)
@@ -2304,10 +2293,12 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
                           PerformanceWarning)
         # Get rid of the IO buffers (if they have been created at all)
         mydict = self.__dict__
-        if '_v_rbuffer' in mydict:
-            del mydict['_v_rbuffer']
-        if '_v_rbuffer' in mydict:
-            del mydict['_v_wbuffer']
+        if '_v_iobuf' in mydict:
+            del mydict['_v_iobuf']
+        if '_v_wdflts' in mydict:
+            del mydict['_v_wdflts']
+        if '_v_row' in mydict:
+            del mydict['_v_row']
         return
 
 
