@@ -360,8 +360,11 @@ def create_test_method(type_, op, extracond):
             ptvars['c_extra'] = table.colinstances['c_extra']
             try:
                 isidxq = table.willQueryUseIndexing(cond, ptvars)
-                ptrownos = table.getWhereList(cond, condvars, sort=True)
-                ptfvalues = table.readWhere(cond, condvars, field=acolname)
+                # Query twice to trigger possible query result caching.
+                ptrownos = [ table.getWhereList(cond, condvars, sort=True)
+                             for _ in range(2) ]
+                ptfvalues = [ table.readWhere(cond, condvars, field=acolname)
+                              for _ in range(2) ]
             except TypeError, te:
                 if self.condNotBoolean_re.search(str(te)):
                     raise tests.SkipTest("The condition is not boolean.")
@@ -369,12 +372,16 @@ def create_test_method(type_, op, extracond):
             except NotImplementedError:
                 raise tests.SkipTest(
                     "The PyTables type does not support the operation." )
-            ptfvalues.sort()  # row numbers already sorted
+            for ptfvals in ptfvalues:  # row numbers already sorted
+                ptfvals.sort()
             vprint( "* %d rows selected by PyTables from ``%s``"
-                    % (len(ptrownos), acolname), nonl=True )
+                    % (len(ptrownos[0]), acolname), nonl=True )
             vprint("(indexing: %s)." % ["no", "yes"][bool(isidxq)])
-            self.assert_(numpy.all(ptrownos == rownos))
-            self.assert_(numpy.all(ptfvalues == fvalues))
+            self.assert_(numpy.all(ptrownos[0] == rownos))
+            self.assert_(numpy.all(ptfvalues[0] == fvalues))
+            # The following test possible caching of query results.
+            self.assert_(numpy.all(ptrownos[0] == ptrownos[1]))
+            self.assert_(numpy.all(ptfvalues[0] == ptfvalues[1]))
 
     test_method.__doc__ = "Testing ``%s``." % cond
     return test_method
