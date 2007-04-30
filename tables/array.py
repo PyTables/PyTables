@@ -564,6 +564,9 @@ compliant with %s: '%r' The error was: <%s>""" % \
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._g_readSlice(startl, stopl, stepl, arr)
+        # For zero-shaped arrays, return the scalar
+        if arr.shape == ():
+            arr = arr[()]
         return arr
 
 

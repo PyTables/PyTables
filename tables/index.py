@@ -322,7 +322,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             assert self.slicesize == sorted.shape[1], "Wrong slicesize"
             assert self.chunksize == sorted._v_chunkshape[1], "Wrong chunksize"
             # The number of elements is at the end of the indices array
-            nelementsLR = self.indicesLR[-1][()]
+            nelementsLR = self.indicesLR[-1]
             self.nrows = sorted.nrows
             self.nelements = self.nrows * self.slicesize + nelementsLR
             self.nelementsLR = nelementsLR
