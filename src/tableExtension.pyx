@@ -603,7 +603,7 @@ cdef class Row:
       Set the ``key`` row field to the specified ``value``.
   """
 
-  cdef hsize_t _row, _unsaved_nrows, _mod_nrows
+  cdef long _row, _unsaved_nrows, _mod_nrows
   cdef hsize_t start, stop, step, nextelement, _nrow
   cdef hsize_t nrowsinbuf, nrows, nrowsread, stopindex
   cdef hsize_t startb, stopb
@@ -722,6 +722,7 @@ cdef class Row:
     self.startb = 0
     self.nrowsread = start
     self._nrow = start - self.step
+    self._row = -1  # a sentinel
     self.whereCond = 0
     self.indexed = 0
 
@@ -929,7 +930,8 @@ cdef class Row:
     self.wfieldscache = {}     # empty wfields cache
     # Make a copy of the last read row in the private record
     # (this is useful for accessing the last row after an iterator loop)
-    self.wrec[:] = self.IObuf[self._row]
+    if self._row >= 0:
+        self.wrec[:] = self.IObuf[self._row]
     self._riterator = 0        # out of iterator
     if self._mod_nrows > 0:    # Check if there is some modified row
       self._flushModRows()       # Flush any possible modified row
