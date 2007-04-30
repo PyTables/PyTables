@@ -806,7 +806,7 @@ cdef class Row:
           self.bufcoords = tmp
         self._row = -1
         if self.bufcoords.size > 0:
-          recout = self.table._read_elements_(self.rbufRA, self.bufcoords)
+          recout = self.table._read_elements(self.rbufRA, self.bufcoords)
           if self.whereCond:
             # Evaluate the condition on this table fragment.
             self.indexValid = call_on_recarr(
