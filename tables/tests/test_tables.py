@@ -4364,7 +4364,60 @@ class DefaultValues(unittest.TestCase):
     record = Record
 
     def test00(self):
-        "Checking saving a Table with default values"
+        "Checking saving a Table with default values (using the same Row)"
+        file = tempfile.mktemp(".h5")
+        #file = "/tmp/test.h5"
+        fileh = openFile(file, "w")
+
+        # Create a table
+        table = fileh.createTable(fileh.root, 'table', self.record)
+
+        table.nrowsinbuf=46   # minimum amount that reproduces a problem
+        # Take a number of records a bit greater
+        nrows = int(table.nrowsinbuf * 1.1)
+        row = table.row
+        # Fill the table with nrows records
+        for i in xrange(nrows):
+            if i == 3:
+                row['var2'] = 2
+            if i == 4:
+                row['var3'] = 3
+            # This injects the row values.
+            row.append()
+
+        # We need to flush the buffers in table in order to get an
+        # accurate number of records on it.
+        table.flush()
+
+        # Create a recarray with the same default values
+        r=records.array([["abcd", 1, 2, 3.1, 4.2, 5, "e", 1, 1j, 1+0j]]*nrows,
+                          formats='a4,i4,i2,f8,f4,i2,a1,b1,c8,c16')
+
+        # Assign the value exceptions
+        r["f1"][3] = 2
+        r["f2"][4] = 3
+
+        # Read the table in another recarray
+        #r2 = table.read()
+        r2 = table[::]  # Equivalent to table.read()
+
+        # This generates too much output. Activate only when
+        # self.nrowsinbuf is very small (<10)
+        if verbose:
+            print "First 10 table values:"
+            for row in table.iterrows(0, 10):
+                print row
+            print "The first 5 read recarray values:"
+            print r2[:5]
+            print "Records should look like:"
+            print r[:5]
+
+        assert r.tostring() == r2.tostring()
+        fileh.close()
+        os.remove(file)
+
+    def test01(self):
+        "Checking saving a Table with default values (using different Row)"
         file = tempfile.mktemp(".h5")
         #file = "/tmp/test.h5"
         fileh = openFile(file, "w")
@@ -4377,8 +4430,10 @@ class DefaultValues(unittest.TestCase):
         nrows = int(table.nrowsinbuf * 1.1)
         # Fill the table with nrows records
         for i in xrange(nrows):
-            if i == 3 or i == 4:
+            if i == 3:
                 table.row['var2'] = 2
+            if i == 4:
+                table.row['var3'] = 3
             # This injects the row values.
             table.row.append()
 
@@ -4392,7 +4447,7 @@ class DefaultValues(unittest.TestCase):
 
         # Assign the value exceptions
         r["f1"][3] = 2
-        r["f1"][4] = 2
+        r["f2"][4] = 3
 
         # Read the table in another recarray
         #r2 = table.read()
@@ -4404,12 +4459,10 @@ class DefaultValues(unittest.TestCase):
             print "First 10 table values:"
             for row in table.iterrows(0, 10):
                 print row
-            print "The last 5 read recarray values:"
-            #print r2[:5]
-            print r2[-5:]
+            print "The first 5 read recarray values:"
+            print r2[:5]
             print "Records should look like:"
-            #print r[:5]
-            print r[-5:]
+            print r[:5]
 
         assert r.tostring() == r2.tostring()
         fileh.close()
@@ -4424,6 +4477,7 @@ class Record2(IsDescription):
     var2 = IntCol(dflt=1)                       # integer
     var3 = Int16Col(dflt=2)                     # short integer
     var4 = Float64Col(dflt=3.1)                 # double (double-precision)
+
 
 class LengthTestCase(unittest.TestCase):
     record = Record

@@ -306,9 +306,20 @@ class Table(tableExtension.Table, Leaf):
 
     # Properties
     # ~~~~~~~~~~
+    def _g_getrow(self):
+        mydict = self.__dict__
+        if '_v_row' in mydict:
+            # Return the existing Row class
+            return mydict['_v_row']
+        else:
+            # Create a new class and return it
+            mydict['_v_row'] = row = tableExtension.Row(self)
+            return row
+
     row = property(
-        lambda self: tableExtension.Row(self), None, None,
-        """A new `Row` instance for iterating over the table.""")
+        _g_getrow, None, None,
+        #lambda self: tableExtension.Row(self), None, None,
+        """Return a new `Row` instance or reuse an existing one.""")
 
     # Read-only shorthands
     # ````````````````````
@@ -340,7 +351,7 @@ class Table(tableExtension.Table, Leaf):
             return mydict['_v_wbuffer']
         else:
             mydict['_v_wbuffer'] = wbuffer = self._newBuffer(init=1)
-            mydict['_v_wbuffercpy'] = wbuffer.copy()
+            mydict['_v_wbuffercpy'] = wbuffer[0:1].copy()
             return wbuffer
 
     _v_wbuffer = property(_g_getwbuffer, None, None,
@@ -420,8 +431,6 @@ class Table(tableExtension.Table, Leaf):
         """The expected number of rows to be stored in the table."""
         self.nrows = 0L
         """The current number of rows in the table."""
-        self._unsaved_nrows = 0
-        """Number of rows in buffers but still not in disk."""
         self.description = None
         """A `Description` instance reflecting the structure of the table."""
         self._time64colnames = []
@@ -1240,7 +1249,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             return iter([])
 
         # Iterate according to the index and residual conditions.
-        return self.row._iter(start, stop, step, coords=None, ncoords=ncoords)
+        row = tableExtension.Row(self)
+        return row._iter(start, stop, step, coords=None, ncoords=ncoords)
 
 
     def _checkFieldIfNumeric(self, field):
@@ -1365,7 +1375,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         # although this is not totally clear.
         if sort:
             coords.sort()
-        return self.row._iter(coords=coords, ncoords=-1)
+        row = tableExtension.Row(self)
+        return row._iter(coords=coords, ncoords=-1)
 
 
     def iterrows(self, start=None, stop=None, step=None):
@@ -1389,7 +1400,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:
-            return self.row._iter(start, stop, step, coords=None, ncoords=-1)
+            row = tableExtension.Row(self)
+            return row._iter(start, stop, step, coords=None, ncoords=-1)
         # Fall-back action is to return an empty iterator
         return iter([])
 
@@ -1729,46 +1741,28 @@ You cannot append rows to a non-chunked table.""")
                 rows = array_as_internal(rows, iflavor)
             # Works for Python structures and always copies the original,
             # so the resulting object is safe for in-place conversion.
-            recarray = numpy.rec.array(rows, dtype=self._v_dtype)
+            wbufRA = numpy.rec.array(rows, dtype=self._v_dtype)
         except Exception, exc:  #XXX
             raise ValueError, \
 "rows parameter cannot be converted into a recarray object compliant with table '%s'. The error was: <%s>" % (str(self), exc)
-        lenrows = recarray.shape[0]
+        lenrows = wbufRA.shape[0]
         # If the number of rows to append is zero, don't do anything else
-        if lenrows == 0:
-            return
-        self._open_append(recarray)
+        if lenrows > 0:
+            # Update indexes in table (if needed)
+            self._saveBufferedRows(wbufRA, lenrows)
+
+
+    def _saveBufferedRows(self, wbufRA, lenrows):
+        """Update the indexes after a flushing of rows"""
+        self._open_append(wbufRA)
         self._append_records(lenrows)
         self._close_append()
-        # Update the number of saved rows
         self.nrows += lenrows
-        # Save indexedrows
         if self.indexed:
-            # Update the number of unsaved indexed rows
             self._unsaved_indexedrows += lenrows
-            if self.autoIndex:
-                self.flushRowsToIndex(_lastrow=False)
-
-
-    def _saveBufferedRows(self):
-        """Save buffered table rows"""
-        # Save the records on disk
-        # Data is copied to the buffer,
-        # so it's safe to do an in-place conversion.
-        self._open_append(self._v_wbuffer)
-        self._append_records(self._unsaved_nrows)
-        self._close_append()
-        # Update the number of saved rows in this buffer
-        self.nrows += self._unsaved_nrows
-        if self.indexed:
-            self._unsaved_indexedrows += self._unsaved_nrows
             if self.autoIndex:
                 # Flush the unindexed rows (this needs to read the table)
                 self.flushRowsToIndex(_lastrow=False)
-        # Reset the number of unsaved rows
-        self._unsaved_nrows = 0
-        # Get a fresh copy of the default values
-        self._v_wbuffer[:] = self._v_wbuffercpy[:]
 
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
@@ -2266,8 +2260,8 @@ The 'names' parameter must be a list of strings.""")
         """Flush the table buffers."""
 
         # Flush rows that remains to be appended
-        if self._unsaved_nrows > 0:
-            self._saveBufferedRows()
+        if '_v_row' in self.__dict__:
+            self._v_row._flushBufferedRows()
         if self.indexed and self.autoIndex:
             # Flush any unindexed row
             rowsadded = self.flushRowsToIndex(_lastrow=True)
@@ -2276,18 +2270,6 @@ The 'names' parameter must be a list of strings.""")
                      "and rows in the table (%d) is not equal; "
                      "please report this to the authors."
                      % (self._indexedrows, self.nrows) )
-
-# #****************************** a test *************************************
-#         # XXX For pro
-#         if self.indexed:
-#             # Optimize the indexed rows
-#             for (colname, colindexed) in self.colindexed.iteritems():
-#                 if colindexed:
-#                     col = self.cols._g_col(colname)
-#                     if nrows > 0 and not col.index.dirty:
-#                         print "*optimizing col-->", colname
-#                         col.index.optimize()
-# #***************************** end test ************************************
 
         super(Table, self).flush()
 
@@ -2310,15 +2292,22 @@ The 'names' parameter must be a list of strings.""")
         # NOTE: The user should make a call to Table.flush() whenever he has
         #       finished working with his table.
         # I've added a Performance warning in order to compel the user to
-        # call self.flush() in case the tables is being preempted before doing it.
+        # call self.flush() before the table is being preempted.
         # F. Altet 2006-08-03
-        if (self._unsaved_nrows > 0 or (self.indexed and
-                                        self.autoIndex and
-                                        self._unsaved_indexedrows > 0)):
+        if ('_v_row' in self.__dict__ and
+            self._v_row._getUnsavedNrows() > 0 or
+            (self.indexed and self.autoIndex and
+             self._unsaved_indexedrows > 0)):
             warnings.warn("""\
 table ``%s`` is being preempted from alive nodes without its buffers being flushed. This may lead to very ineficient use of resources and even to fatal errors in certain situations. Please do a call to the .flush() method on this table before start using other nodes."""
                           % (self._v_pathname),
                           PerformanceWarning)
+        # Get rid of the IO buffers (if they have been created at all)
+        mydict = self.__dict__
+        if '_v_rbuffer' in mydict:
+            del mydict['_v_rbuffer']
+        if '_v_rbuffer' in mydict:
+            del mydict['_v_wbuffer']
         return
 
 
