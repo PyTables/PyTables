@@ -325,13 +325,14 @@ def create_test_method(type_, op, extracond):
         table = self.table
         self.createIndexes(colname, ncolname)
 
+        table_slice = dict(start=1, stop=table.nrows - 5, step=3)
         rownos, fvalues = None, None
         # Test that both simple and nested columns work as expected.
         # Knowing how the table is filled, results must be the same.
         for acolname in [colname, ncolname]:
             # First the reference Python version.
             pyrownos, pyfvalues, pyvars = [], [], condvars.copy()
-            for row in table:
+            for row in table.iterrows(**table_slice):
                 pyvars[colname] = row[acolname]
                 pyvars['c_extra'] = row['c_extra']
                 try:
@@ -361,9 +362,11 @@ def create_test_method(type_, op, extracond):
             try:
                 isidxq = table.willQueryUseIndexing(cond, ptvars)
                 # Query twice to trigger possible query result caching.
-                ptrownos = [ table.getWhereList(cond, condvars, sort=True)
+                ptrownos = [ table.getWhereList( cond, condvars, sort=True,
+                                                 **table_slice )
                              for _ in range(2) ]
-                ptfvalues = [ table.readWhere(cond, condvars, field=acolname)
+                ptfvalues = [ table.readWhere( cond, condvars, field=acolname,
+                                               **table_slice )
                               for _ in range(2) ]
             except TypeError, te:
                 if self.condNotBoolean_re.search(str(te)):

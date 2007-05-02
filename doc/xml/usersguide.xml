@@ -7134,7 +7134,8 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
           <title><literal>Table</literal> methods — querying</title>
 
           <section id="Table.getWhereList">
-            <title>getWhereList(condition, condvars=None, sort=False)</title>
+            <title>getWhereList(condition, condvars=None, sort=False,
+            start=None, stop=None, step=None)</title>
 
             <para>Get the row coordinates fulfilling the given
             <literal>condition</literal>.</para>
@@ -7143,14 +7144,14 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             flavor.  <literal>sort</literal> means that you want to retrieve
             the coordinates ordered. The default is to not sort them.</para>
 
-            <para>The meaning of the <emphasis>condition</emphasis> and
-            <emphasis>condvars</emphasis> arguments is the same as in the
+            <para>The meaning of the other arguments is the same as in the
             <literal>Table.where()</literal> method (see <xref
             linkend="Table.where" />).</para>
           </section>
 
           <section id="Table.readWhere" xreflabel="description">
-            <title>readWhere(condition, condvars=None, field=None)</title>
+            <title>readWhere(condition, condvars=None, field=None, start=None,
+            stop=None, step=None)</title>
 
             <para>Read table data fulfilling the given
             <emphasis>condition</emphasis>.</para>
@@ -7161,8 +7162,7 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             fulfilling the <emphasis>condition</emphasis> are included in the
             result.</para>
 
-            <para>The meaning of the <emphasis>condition</emphasis> and
-            <emphasis>condvars</emphasis> arguments is the same as in the
+            <para>The meaning of the other arguments is the same as in the
             <literal>Table.where()</literal> method (see <xref
             linkend="Table.where" />).</para>
           </section>

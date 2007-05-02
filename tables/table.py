@@ -284,8 +284,8 @@ class Table(tableExtension.Table, Leaf):
     Public methods -- querying
     --------------------------
 
-    * getWhereList(condition[, condvars][, sort])
-    * readWhere(condition[, condvars][, field])
+    * getWhereList(condition[, condvars][, sort][, start][, stop][, step])
+    * readWhere(condition[, condvars][, field][, start][, stop][, step])
     * where(condition[, condvars][, start][, stop][, step])
     * whereAppend(dstTable, condition[, condvars][, start][, stop][, step])
     * willQueryUseIndexing(condition[, condvars])
@@ -1249,7 +1249,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 "you must specify a field when using the ``numeric`` flavor" )
 
 
-    def readWhere(self, condition, condvars=None, field=None):
+    def readWhere( self, condition, condvars=None, field=None,
+                   start=None, stop=None, step=None ):
         """
         Read table data fulfilling the given `condition`.
 
@@ -1257,8 +1258,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         arguments and return values the same meanings.  However, only
         the rows fulfilling the `condition` are included in the result.
 
-        The meaning of the `condition` and `condvars` arguments is the
-        same as in the `Table.where()` method.
+        The meaning of the other arguments is the same as in the
+        `Table.where()` method.
         """
         self._checkFieldIfNumeric(field)
 
@@ -1268,12 +1269,14 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
         idxvar = splitted.index_variable
         if not idxvar:
-            coords = [p.nrow for p in self._where(splitted, condvars)]
+            coords = [ p.nrow for p in
+                       self._where(splitted, condvars, start, stop, step) ]
             self._whereCondition = None  # reset the conditions
             return self.readCoordinates(coords, field)
 
         # Retrieve the array of rows fulfilling the index condition.
-        return _table__readWhere(self, splitted, condvars, field)
+        return _table__readWhere( self, splitted, condvars, field,
+                                  start, stop, step )
 
 
     def whereAppend( self, dstTable, condition, condvars=None,
@@ -1311,7 +1314,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         return nrows
 
 
-    def getWhereList(self, condition, condvars=None, sort=False):
+    def getWhereList( self, condition, condvars=None, sort=False,
+                      start=None, stop=None, step=None ):
         """
         Get the row coordinates fulfilling the given `condition`.
 
@@ -1319,8 +1323,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         `sort` means that you want to retrieve the coordinates ordered.
         The default is to not sort them.
 
-        The meaning of the `condition` and `condvars` arguments is the
-        same as in the `Table.where()` method.
+        The meaning of the other arguments is the same as in the
+        `Table.where()` method.
         """
 
         # Split the condition into indexable and residual parts.
@@ -1330,12 +1334,14 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # Take advantage of indexing, if present
         idxvar = splitted.index_variable
         if idxvar is None:
-            coords = [p.nrow for p in self._where(splitted, condvars)]
+            coords = [ p.nrow for p in
+                       self._where(splitted, condvars, start, stop, step) ]
             coords = numpy.array(coords, dtype=numpy.int64)
             # Reset the conditions
             self._whereCondition = None
         else:
-            coords = _table__getWhereList(self, splitted, condvars)
+            coords = _table__getWhereList( self, splitted, condvars,
+                                           start, stop, step )
         if sort:
             coords = numpy.sort(coords)
         return internal_to_flavor(coords, self.flavor)

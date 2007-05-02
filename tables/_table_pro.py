@@ -22,6 +22,7 @@ from tables.index import defaultAutoIndex, defaultIndexFilters, Index
 from tables.leaf import Filters
 from tables.lrucacheExtension import ObjectCache, NumCache
 from tables.utilsExtension import getNestedField
+from tables.numexpr import numexpr
 
 from tables._table_common import _indexPathnameOf
 
@@ -168,9 +169,10 @@ def _table__restorecache(self):
     maxslots = TABLE_MAX_SIZE / self.rowsize
     self._limdatacache = ObjectCache( LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE,
                                       "data limits" )
-    """A cache for data based on search limits and table colum."""
+    """A cache for data based on table column, search limits and slice."""
 
-def _table__readWhere(self, splitted, condvars, field):
+def _table__readWhere( self, splitted, condvars, field,
+                       start=None, stop=None, step=None ):
     idxvar = splitted.index_variable
     column = condvars[idxvar]
     index = column.index
@@ -185,8 +187,14 @@ def _table__readWhere(self, splitted, condvars, field):
     range_ = index.getLookupRange(
         splitted.index_operators, splitted.index_limits, self )
 
+    # Consider all coordinates or just those in the slice?
+    allcoords = start is stop is step is None  # Rose is a rose is a rose...
+
     # Check whether the array is in the limdata cache or not.
-    key = (column.name, range_)
+    if allcoords:
+        key = (column.name, range_)
+    else:
+        key = (column.name, range_, start, stop, step)
     limdatacache = self._limdatacache
     nslot = limdatacache.getslot(key)
     if nslot >= 0:
@@ -197,10 +205,17 @@ def _table__readWhere(self, splitted, condvars, field):
         # No luck with cached data. Proceed with the regular search.
         nrecords = index.search(range_)
         # Create a buffer and read the values in.
-        recarr = self._get_container(nrecords)
         if nrecords > 0:
             coords = index.indices._getCoords(index, 0, nrecords)
+            # Remove indexes not in the given range (if specified).
+            if not allcoords:
+                start, stop, step = self._processRangeRead(start, stop, step)
+                coords = sliceCoords(coords, start, stop, step)
+                nrecords = len(coords)
+            recarr = self._get_container(nrecords)
             recout = self._read_elements(recarr, coords)
+        else:
+            recarr = self._get_container(0)
         # Put this recarray in limdata cache.
         size = len(recarr) * self.rowsize + 1  # approx. size of array
         limdatacache.setitem(key, recarr, size)
@@ -217,7 +232,8 @@ def _table__readWhere(self, splitted, condvars, field):
         recarr = getNestedField(recarr, field)
     return internal_to_flavor(recarr, self.flavor)
 
-def _table__getWhereList(self, splitted, condvars):
+def _table__getWhereList( self, splitted, condvars,
+                          start=None, stop=None, step=None ):
     idxvar = splitted.index_variable
     index = condvars[idxvar].index
     assert index is not None, "the chosen column is not indexed"
@@ -235,6 +251,12 @@ def _table__getWhereList(self, splitted, condvars):
         #coords = numpy.empty(type=numpy.int64, shape=0)
         coords = self._getemptyarray("int64")
 
+    # Remove indexes not in the given range (if specified).
+    if not (start is stop is step is None):  # Rose is a rose is a rose...
+        start, stop, step = self._processRangeRead(start, stop, step)
+        coords = sliceCoords(coords, start, stop, step)
+        ncoords = len(coords)
+
     # Filter out rows not fulfilling the residual condition.
     rescond = splitted.residual_function
     if rescond and ncoords > 0:
@@ -245,6 +267,18 @@ def _table__getWhereList(self, splitted, condvars):
         coords = coords[indexValid]
 
     return coords
+
+_sliceCoordsFunc = numexpr(
+    '(i >= start) & (i < stop) & ((i - start) % step == 0)',
+    [(x, long) for x in ['i', 'start', 'stop', 'step']] )
+def sliceCoords(coords, start, stop, step):
+    """
+    Filter the array of indices `coords` according to a slice.
+
+    `coords` must be a contiguous, aligned array of type ``int64``.
+    """
+    valid = _sliceCoordsFunc(coords, start, stop, step)
+    return coords[valid]
 
 def _column__createIndex(self, memlevel, filters, blocksizes, verbose):
     name = self.name
