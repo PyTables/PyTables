@@ -6472,10 +6472,7 @@ for node in h5file.root.detector:
         xrefstyle="select: label" />) class is used.  This object allows to
         read and write data one row at a time, as well as to perform queries
         which are not supported by in-kernel syntax (at a much lower speed, of
-        course).  You can get new row iterators whenever you want by accessing
-        the <literal>Table.row</literal> property (see <xref
-        linkend="TableInstanceVariablesDescr" xrefstyle="select: label"
-        />).
+        course).
         <!-- manual-only -->
         See the tutorial sections in <xref linkend="usage" xrefstyle="select:
         label" /> on how to use the <literal>Row</literal> interface.</para>
@@ -6730,9 +6727,9 @@ for node in h5file.root.detector:
               <glossterm><emphasis role="bold">row</emphasis></glossterm>
 
               <glossdef>
-                <para>A new <literal>Row</literal> instance (see <xref
-                linkend="RowClassDescr" xrefstyle="select: label" />) for
-                iterating over the table.</para>
+                <para>The associated <literal>Row</literal> instance (see
+                <xref linkend="RowClassDescr" xrefstyle="select: label"
+                />).</para>
               </glossdef>
             </glossentry>
 

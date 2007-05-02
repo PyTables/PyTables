@@ -161,8 +161,7 @@ class Table(tableExtension.Table, Leaf):
     When iterating a table, an object from the `Row` class is used.
     This object allows to read and write data one row at a time, as well
     as to perform queries which are not supported by in-kernel syntax
-    (at a much lower speed, of course).  You can get new row iterators
-    whenever you want by accessing the `Table.row` property.
+    (at a much lower speed, of course).
 
     Objects of this class support access to individual columns via
     *natural naming* through the `Table.cols` accessor.  Nested columns
@@ -257,7 +256,7 @@ class Table(tableExtension.Table, Leaf):
     nrows
         Current number of rows in the table.
     row
-        A new `Row` instance for iterating over the table.
+        The associated `Row` instance.
     rowsize
         The size in bytes of each row in the table.
 
@@ -319,7 +318,7 @@ class Table(tableExtension.Table, Leaf):
     row = property(
         _g_getrow, None, None,
         #lambda self: tableExtension.Row(self), None, None,
-        """Return a new `Row` instance or reuse an existing one.""")
+        """The associated `Row` instance.""")
 
     # Read-only shorthands
     # ````````````````````
