@@ -89,17 +89,10 @@ def computeblocksize(expectedrows, compoundsize):
     superblocks (using the PyTables terminology for blocks in indexes).
     """
 
-    # Start the split when more than 3 compound blocks fits in expected rows
-    nblocks = expectedrows/(compoundsize*3)
-    if nblocks == 0:
-        # Protection against large compoundsize blocks
-        nblocks = expectedrows/compoundsize
-        # Check again
-        if nblocks == 0:
-            nblocks = 25
-    elif nblocks > 1000:
+    nblocks = (expectedrows // compoundsize) + 1
+    if nblocks > 500:
         # Protection against too large number of expected rows
-        nblocks = 1000
+        nblocks = 500
     return compoundsize * nblocks
 
 
