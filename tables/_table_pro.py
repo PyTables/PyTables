@@ -342,12 +342,18 @@ def _column__createIndex(self, filters, blocksizes, verbose):
     assert dtype.shape == ()
     atom = Atom.from_dtype(numpy.dtype((dtype, (0,))))
 
+    # Protection on tables larger than the expected rows (perhaps the
+    # user forgot to pass this parameter to the Table constructor?)
+    expectedrows = table._v_expectedrows
+    if table.nrows > expectedrows:
+        expectedrows = table.nrows
+
     # Create the index itself
     index = Index(
         idgroup, name, atom=atom, column=self,
         title="Index for %s column" % name,
         filters=filters,
-        expectedrows=table._v_expectedrows,
+        expectedrows=expectedrows,
         byteorder=table.byteorder,
         blocksizes=blocksizes)
     self._updateIndexLocation(index)

@@ -70,7 +70,7 @@ obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series
 
 
 debug = False
-debug = True  # Uncomment this for printing sizes purposes
+#debug = True  # Uncomment this for printing sizes purposes
 profile = False
 #profile = True  # uncomment for profiling purposes only
 
