@@ -66,7 +66,7 @@ class BasicTestCase(PyTablesTestCase):
         table.flush()
         # Index all entries:
         for col in table.colinstances.itervalues():
-            indexrows = col.createIndex(blocksizes=small_blocksizes)
+            indexrows = col.createIndex(_blocksizes=small_blocksizes)
         if verbose:
             print "Number of written rows:", self.nrows
             print "Number of indexed rows:", indexrows
@@ -329,7 +329,7 @@ class BasicTestCase(PyTablesTestCase):
         assert table.colindexed["var1"] == 0
 
         # re-create the index again
-        indexrows = table.cols.var1.createIndex(blocksizes=small_blocksizes)
+        indexrows = table.cols.var1.createIndex(_blocksizes=small_blocksizes)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -369,7 +369,7 @@ class BasicTestCase(PyTablesTestCase):
         assert table.colindexed["var1"] == 0
 
         # re-create the index again
-        indexrows = table.cols.var1.createIndex(blocksizes=small_blocksizes)
+        indexrows = table.cols.var1.createIndex(_blocksizes=small_blocksizes)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -495,7 +495,7 @@ class BasicTestCase(PyTablesTestCase):
         table.flush()
         # Index all entries:
         for col in table.colinstances.itervalues():
-            indexrows = col.createIndex(blocksizes=small_blocksizes)
+            indexrows = col.createIndex(_blocksizes=small_blocksizes)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -541,7 +541,7 @@ class BasicTestCase(PyTablesTestCase):
         table.flush()
         # Index all entries:
         for col in table.colinstances.itervalues():
-            indexrows = col.createIndex(blocksizes=small_blocksizes)
+            indexrows = col.createIndex(_blocksizes=small_blocksizes)
         idxcol = table.cols.var1.index
         if verbose:
             print "After re-creation"
@@ -567,7 +567,7 @@ class BasicTestCase(PyTablesTestCase):
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, mode='w')
         table = self.fileh.createTable(self.fileh.root, 'distance_table', Distance)
-        table.cols.frame.createIndex(blocksizes=small_blocksizes)
+        table.cols.frame.createIndex(_blocksizes=small_blocksizes)
         r = table.row
         for i in range(10):
             r['frame']=i
@@ -659,7 +659,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
             table.row.append()
         table.flush()
         # Index some column
-        indexrows = table.cols.var1.createIndex(memlevel=1)
+        indexrows = table.cols.var1.createIndex()
         idxcol = table.cols.var1.index
         # Some sanity checks
         assert table.colindexed["var1"] == 1
@@ -685,7 +685,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
             table.row.append()
         table.flush()
         # Index some column
-        indexrows = table.cols.var1.createIndex(memlevel=1)
+        indexrows = table.cols.var1.createIndex()
         idxcol = table.cols.var1.index
         # Close and re-open this file
         self.fileh.close()
@@ -718,7 +718,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
             table.row.append()
         table.flush()
         # Index some column
-        indexrows = table.cols.var1.createIndex(memlevel=1)
+        indexrows = table.cols.var1.createIndex()
         idxcol = table.cols.var1.index
         # Some sanity checks
         assert table.colindexed["var1"] == 1
@@ -746,7 +746,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
             table.row.append()
         table.flush()
         # Index some column
-        indexrows = table.cols.var1.createIndex(memlevel=1)
+        indexrows = table.cols.var1.createIndex()
         idxcol = table.cols.var1.index
         # Close and re-open this file
         self.fileh.close()
@@ -779,7 +779,7 @@ class DeepTableIndexTestCase(unittest.TestCase):
             table.row.append()
         table.flush()
         # Index some column
-        indexrows = table.cols.var1.createIndex(memlevel=1)
+        indexrows = table.cols.var1.createIndex()
         idxcol = table.cols.var1.index
         # Some sanity checks
         assert table.colindexed["var1"] == 1
@@ -819,7 +819,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         self.table.autoIndex = self.iprops.auto
         self.table.indexFilters = self.iprops.filters
         for colname in self.colsToIndex:
-            self.table.colinstances[colname].createIndex(memlevel=1)
+            self.table.colinstances[colname].createIndex()
         for i in range(self.nrows):
             # Fill rows with defaults
             self.table.row.append()
@@ -1366,9 +1366,9 @@ class ManyNodesTestCase(PyTablesTestCase):
                 name = 'chr' + str(sn)
                 path = "/at/%s/pt" % (qchr)
                 table = h5.createTable(path, name, IdxRecord, createparents=1)
-                table.cols.f0.createIndex(memlevel=1)
-                table.cols.f1.createIndex(memlevel=1)
-                table.cols.f2.createIndex(memlevel=1)
+                table.cols.f0.createIndex()
+                table.cols.f1.createIndex()
+                table.cols.f2.createIndex()
                 table.row.append()
                 table.flush()
 
@@ -1419,13 +1419,13 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         """Using changed index properties in new indexes."""
         self.table.indexFilters = self.newIndexProps.filters
         icol = self.table.cols.icol
-        icol.createIndex(memlevel=1)
+        icol.createIndex()
         self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
 
     def test_reindex(self):
         """Using changed index properties in recomputed indexes."""
         icol = self.table.cols.icol
-        icol.createIndex(memlevel=1)
+        icol.createIndex()
         self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
         self.table.indexFilters = self.newIndexProps.filters
         icol.reIndex()
@@ -1459,25 +1459,25 @@ class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
         icol = self.table.cols.icol
 
         # Filters not set in table nor in argument.
-        icol.createIndex(memlevel=1)
+        icol.createIndex()
         self.assertEqual(icol.index.filters, defaultIndexFilters)
         icol.removeIndex()
 
         # Filters not set in table, set in argument.
-        icol.createIndex(memlevel=1, filters=argfilters)
+        icol.createIndex(filters=argfilters)
         self.assertEqual(icol.index.filters, argfilters)
         icol.removeIndex()
 
         # Filters set in table, not in argument.
         self.table.indexFilters = idxfilters
-        icol.createIndex(memlevel=1)
+        icol.createIndex()
         # self.assertEqual(icol.index.filters, idxfilters)
         self.assertEqual(icol.index.filters, defaultIndexFilters)
         icol.removeIndex()
 
         # Filters set in table and in argument.
         self.table.indexFilters = idxfilters
-        icol.createIndex(memlevel=1, filters=argfilters)
+        icol.createIndex(filters=argfilters)
         self.assertEqual(icol.index.filters, argfilters)
         icol.removeIndex()
 

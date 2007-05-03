@@ -205,7 +205,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def __init__(self, parentNode, name,
                  atom=None, column=None,
                  title="", filters=None,
-                 memlevel=4,
                  expectedrows=0,
                  byteorder=None,
                  blocksizes=None,
@@ -227,8 +226,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             during the life of this object. If not specified, the ZLIB
             & shuffle will be activated by default (i.e., they are not
             inherited from the parent, that is, the Table).
-
-        memlevel -- The level of memory usage for sorting the indexes.
 
         expectedrows -- Represents an user estimate about the number
             of row slices that will be added to the growable dimension
@@ -268,8 +265,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """The total number of slices in the index."""
         self.nelements = None
         """The number of currently indexed row for this column."""
-        self.memlevel = memlevel
-        """The level of memory usage for sorting the indexes."""
         self.blocksizes = blocksizes
         """The four main sizes of the compound blocks (if specified)."""
         self.opts = (False,)*4
@@ -348,7 +343,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Compute the superblocksize, blocksize, slicesize and chunksize values
         # (in case these parameters haven't been passed to the constructor)
         if self.blocksizes is None:
-            self.blocksizes = calcChunksize(self.expectedrows, self.memlevel)
+            self.blocksizes = calcChunksize(self.expectedrows)
         (self.superblocksize, self.blocksize,
          self.slicesize, self.chunksize) = self.blocksizes
         if debug:
@@ -516,10 +511,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if profile: show_stats("Eixint de appendLR", tref)
 
 
-    def optimize(self, optlevel, opts=None, testmode=False, verbose=False):
+    def optimize(self, level, opts=None, testmode=False, verbose=False):
         """Optimize an index so as to allow faster searches.
 
-        optlevel -- The level of optimization for the index.
+        level -- The desired level of optimization for the index.
 
         opts -- A low level specification of the optimizations for the
             index. It is a tuple with the format ``(optmedian,
@@ -527,7 +522,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         testmode -- If True, a optimization specific to be used in
             tests is used (basically, it does not depend on anything
-            but the `optlevel` argument). This is not considered if
+            but the `level` argument). This is not considered if
             `opts` is specified.
 
         verbose -- If True, messages about the progress of the
@@ -553,10 +548,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.verbose:
             (nover, mult, tover) = self.compute_overlaps("init", self.verbose)
 
-        # Compute the correct optimizations for optlevel (if needed)
+        # Compute the correct optimizations for optim level (if needed)
         if opts is None:
             nss = self.superblocksize / self.slicesize
-            opts = calcoptlevels(nss, optlevel, testmode)
+            opts = calcoptlevels(nss, level, testmode)
         optmedian, optstarts, optstops, optfull = opts
         if debug:
             print "optvalues:", opts
@@ -601,7 +596,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # Commented out until more tests will say if this is necessary
             # F. Altet  2007-04-14
 #             (nover, mult, tover) = self.compute_overlaps("", False)
-#             if nover > 0 and optlevel == 9:
+#             if nover > 0 and level == 9:
 #                 # Do a last pass by reordering the slices alone
 #                 self.swap('reorder_slices')
             if swap_done:

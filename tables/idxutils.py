@@ -67,11 +67,11 @@ def computeslicesize(expectedrows, memlevel):
         expectedrows = 10**3
     # First, the optimum chunksize
     cs = csformula(expectedrows)
-    # The actual chunksize
+    # Now, the actual chunksize
     chunksize = computechunksize(expectedrows)
     # The optimal slicesize
     ss = int(cs * memlevel**2)
-    # We *need* slicesize to be a exact multiple of the actual chunksize
+    # We *need* slicesize to be an exact multiple of the actual chunksize
     ss = (ss // chunksize) * chunksize
     ss *= 2    # slicesize should be at least divisible by 2
     # ss cannot be bigger than 2**32 - 1 elements because of
@@ -103,7 +103,7 @@ def computeblocksize(expectedrows, compoundsize):
     return compoundsize * nblocks
 
 
-def calcChunksize(expectedrows, memlevel):
+def calcChunksize(expectedrows, memlevel=8):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with

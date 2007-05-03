@@ -95,7 +95,7 @@ class SelectValuesTestCase(unittest.TestCase):
         table2.flush()
         # Index all entries:
         for col in table1.colinstances.itervalues():
-            indexrows = col.createIndex(blocksizes=self.blocksizes)
+            indexrows = col.createIndex(_blocksizes=self.blocksizes)
         if verbose:
             print "Number of written rows:", table1.nrows
             print "Number of indexed rows:", indexrows

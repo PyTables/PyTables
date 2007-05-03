@@ -63,14 +63,13 @@ class PyTables_DB(DB):
 
     def index_col(self, con, column, optlevel, verbose):
         col = getattr(con.root.table.cols, column)
-        #col.createIndex(optlevel=optlevel, verbose=verbose)
-        col.createIndex(optlevel=optlevel, _verbose=verbose,
-                        filters=self.filters,
-                        blocksizes=None)
-#                        blocksizes=(2**27, 2**22, 2**15, 2**7))
-#                        blocksizes=(2**27, 2**22, 2**14, 2**6))
-#                        blocksizes=(2**27, 2**20, 2**13, 2**5),
+        col.createIndex(filters=self.filters, _verbose=verbose,
+                        _blocksizes=None)
+#                       _blocksizes=(2**27, 2**22, 2**15, 2**7))
+#                       _blocksizes=(2**27, 2**22, 2**14, 2**6))
+#                       _blocksizes=(2**27, 2**20, 2**13, 2**5),
 #                        _testmode=True)
+        col.optimizeIndex(level=optlevel, _verbose=verbose)
 
 #     def optimizeIndex(self, con, column, level, verbose):
 #         col = getattr(con.root.table.cols, column)

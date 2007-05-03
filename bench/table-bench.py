@@ -198,8 +198,8 @@ def readFile(filename, recsize, verbose):
 #                e = [ p['var3'] for p in table
 #                      if p['var1'] == "10"]
                 # e = [ p['var3'] for p in table.where('var2 <= 20')]
-                # e = [ p[0] for p in table.where('var2 <= 20')]
-                e = [ p['var3'] for p in table if p['var2'] <= 20 ]
+                e = [ p[0] for p in table.where('var2 <= 20')]
+                # e = [ p['var3'] for p in table if p['var2'] <= 20 ]
                 # e = [ p[:] for p in table if p[1] <= 20 ]
 #                  e = [ p['var3'] for p in table._whereInRange(table.cols.var2 <=20)]
                 #e = [ p['var3'] for p in table.iterrows(0,21) ]
