@@ -407,7 +407,7 @@ cdef extern from "hdf5.h":
   herr_t H5Pset_fapl_log(hid_t fapl_id, char *logfile,
                          unsigned int flags, size_t buf_size)
   H5D_layout_t H5Pget_layout(hid_t plist)
-  int H5Pget_chunk(hid_t plist, int max_ndims, hsize_t *dims) 
+  int H5Pget_chunk(hid_t plist, int max_ndims, hsize_t *dims)
 
 
 # Specific HDF5 functions for PyTables
@@ -421,7 +421,7 @@ cdef extern from "H5ATTR.h":
                              char *attr_data )
   herr_t H5ATTRset_attribute_string(hid_t loc_id, char *attr_name,
                                     char *attr_data)
-  herr_t H5ATTRfind_attribute(hid_t loc_id, char *attr_name) 
+  herr_t H5ATTRfind_attribute(hid_t loc_id, char *attr_name)
   herr_t H5ATTRget_type_ndims(hid_t loc_id, char *attr_name,
                               hid_t *type_id, H5T_class_t *class_id,
                               size_t *type_size, int *rank)
@@ -448,4 +448,13 @@ cdef extern from "utils.h":
   herr_t set_order(hid_t type_id, char *byteorder)
   herr_t get_order(hid_t type_id, char *byteorder)
   int    is_complex(hid_t type_id)
+
+# Type conversion routines
+cdef extern from "typeconv.h":
+  void conv_float64_timeval32(void *base,
+                              unsigned long byteoffset,
+                              unsigned long bytestride,
+                              long long nrecords,
+                              unsigned long nelements,
+                              int sense)
 

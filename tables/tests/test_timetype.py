@@ -399,19 +399,19 @@ class CompareTestCase(unittest.TestCase):
     def test03_Compare64EArray(self):
         "Comparing written 64-bit time data with read data in an EArray."
 
-        wtime = numpy.array((1234567890.123456,) * 2)
+        wtime = 1234567890.123456
 
         # Create test EArray with data.
         h5file = tables.openFile(
                 self.h5fname, 'w', title = "Test for comparing Time64 EArrays")
         ea = h5file.createEArray(
-                '/', 'test', tables.Time64Atom(), shape=(0, 2))
+                '/', 'test', tables.Time64Atom(), shape=(0,))
         ea.append((wtime,))
         h5file.close()
 
         # Check the written data.
         h5file = tables.openFile(self.h5fname)
-        rtime = h5file.root.test.read()[0]
+        rtime = h5file.root.test[0]
         h5file.close()
         self.assert_(
                 allequal(rtime, wtime),

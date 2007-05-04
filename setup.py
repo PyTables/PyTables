@@ -490,6 +490,7 @@ extensions = [
                define_macros=def_macros,
                sources=[ pyrex_extfiles['tableExtension'],
                          "src/utils.c",
+                         "src/typeconv.c",
                          "src/H5TB-opt.c",
                          "src/H5ATTR.c"],
                library_dirs=lib_dirs,

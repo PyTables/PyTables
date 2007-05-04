@@ -50,7 +50,8 @@ from definitions cimport import_array, ndarray, \
      H5Tget_native_type, H5Tget_member_value, H5Tinsert, \
      H5Tget_class, H5Tget_super, H5Tget_offset, \
      H5ATTRset_attribute_string, H5ATTRset_attribute, \
-     get_len_of_range, get_order, set_order, is_complex
+     get_len_of_range, get_order, set_order, is_complex, \
+     conv_float64_timeval32
 
 
 # Include conversion tables & type
@@ -378,6 +379,27 @@ cdef class Table(Leaf):
     return (self.dataset_id, desc, chunksize[0])
 
 
+  cdef _convertTime64_(self, ndarray nparr, hsize_t nrecords, int sense):
+#   """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
+
+#   NumPy to HDF5 conversion is performed when 'sense' is 0.
+#   Otherwise, HDF5 to NumPy conversion is performed.
+#   The conversion is done in place, i.e. 'nparr' is modified.
+#   """
+
+    cdef void *t64buf
+    cdef long byteoffset, bytestride, nelements
+
+    byteoffset = 0   # NumPy objects doesn't have an offset
+    bytestride = nparr.strides[0]  # supports multi-dimensional recarray
+    # Compute the number of elements in the multidimensional cell
+    nelements = nparr.size / len(nparr)
+    t64buf = nparr.data
+
+    conv_float64_timeval32(
+      t64buf, byteoffset, bytestride, nrecords, nelements, sense)
+
+
   cdef _convertTypes(self, ndarray recarr, hsize_t nrecords, int sense):
 #     """Converts columns in 'recarr' between NumPy and HDF5 formats.
 
@@ -388,7 +410,7 @@ cdef class Table(Leaf):
     # This should be generalised to support other type conversions.
     for t64cname in self._time64colnames:
       column = getNestedField(recarr, t64cname)
-      self._convertTime64(column, nrecords, sense)
+      self._convertTime64_(column, nrecords, sense)
 
 
   def _open_append(self, ndarray recarr):

@@ -12,7 +12,7 @@ cdef class Leaf(Node):
   cdef hid_t   base_type_id
   cdef hid_t   disk_type_id
   cdef _get_type_ids(self)
-  cdef _convertTime64(self, ndarray nparr, hsize_t nrecords, int sense)
+  cdef _convertTime64(self, ndarray nparr, int sense)
 
 cdef class Array(Leaf):
   cdef int      rank

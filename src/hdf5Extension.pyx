@@ -71,7 +71,8 @@ from definitions cimport  \
      H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims, \
      H5ARRAYget_ndims, H5ARRAYget_info, \
      set_cache_size, Giterate, Aiterate, H5UIget_info, get_len_of_range, \
-     get_order, set_order
+     get_order, set_order, \
+     conv_float64_timeval32
 
 
 
@@ -143,15 +144,6 @@ cdef extern from "H5VLARRAY.h":
                             hsize_t *nrecords, hsize_t *base_dims,
                             hid_t *base_type_id, char *base_byteorder)
 
-
-# Type conversion routines
-cdef extern from "typeconv.h":
-  void conv_float64_timeval32(void *base,
-                              unsigned long byteoffset,
-                              unsigned long bytestride,
-                              long long nrecords,
-                              unsigned long nelements,
-                              int sense)
 
 
 #----------------------------------------------------------------------------
@@ -696,7 +688,7 @@ cdef class Leaf(Node):
     return (disk_type_id, native_type_id)
 
 
-  cdef _convertTime64(self, ndarray nparr, hsize_t nrecords, int sense):
+  cdef _convertTime64(self, ndarray nparr, int sense):
 #   """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
 
 #   NumPy to HDF5 conversion is performed when 'sense' is 0.
@@ -706,10 +698,17 @@ cdef class Leaf(Node):
 
     cdef void *t64buf
     cdef long byteoffset, bytestride, nelements
+    cdef hsize_t nrecords
 
     byteoffset = 0   # NumPy objects doesn't have an offset
-    bytestride = nparr.strides[0]  # supports multi-dimensional recarray
-    nelements = nparr.size / len(nparr)
+    if nparr.shape == ():
+      # 0-dim array does contain *one* element
+      nrecords = 1
+      bytestride = 8
+    else:
+      nrecords = len(nparr)
+      bytestride = nparr.strides[0]  # supports multi-dimensional recarray
+    nelements = nparr.size / nrecords
     t64buf = nparr.data
 
     conv_float64_timeval32(
@@ -893,7 +892,7 @@ cdef class Array(Leaf):
     rbuf = nparr.data
     # Convert some NumPy types to HDF5 before storing.
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, len(nparr), 0)
+      self._convertTime64(nparr, 0)
 
     # Append the records
     extdim = self.extdim
@@ -926,7 +925,7 @@ cdef class Array(Leaf):
 
     # Convert some NumPy types to HDF5 before storing.
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, len(nparr), 0)
+      self._convertTime64(nparr, 0)
 
     # Modify the elements:
     Py_BEGIN_ALLOW_THREADS
@@ -982,7 +981,7 @@ cdef class Array(Leaf):
 
     # Convert some HDF5 types to NumPy after reading.
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, len(nparr), 1)
+      self._convertTime64(nparr, 1)
 
     return
 
@@ -1008,7 +1007,7 @@ cdef class Array(Leaf):
 
     # Convert some HDF5 types to NumPy after reading
     if self.atom.type == 'time64':
-      self._convertTime64(nparr, len(nparr), 1)
+      self._convertTime64(nparr, 1)
 
     return
 
@@ -1130,7 +1129,7 @@ cdef class VLArray(Leaf):
       rbuf = nparr.data
       # Convert some NumPy types to HDF5 before storing.
       if self.atom.type == 'time64':
-        self._convertTime64(nparr, len(nparr), 0)
+        self._convertTime64(nparr, 0)
     else:
       rbuf = NULL
 
@@ -1154,7 +1153,7 @@ cdef class VLArray(Leaf):
     if nobjects:
       # Convert some NumPy types to HDF5 before storing.
       if self.atom.type == 'time64':
-        self._convertTime64(nparr, len(nparr), 0)
+        self._convertTime64(nparr, 0)
 
     # Append the records:
     Py_BEGIN_ALLOW_THREADS
@@ -1223,7 +1222,7 @@ cdef class VLArray(Leaf):
       nparr.flags.writeable = True
       # Convert some HDF5 types to NumPy after reading.
       if self.atom.type == 'time64':
-        self._convertTime64(nparr, len(nparr), 1)
+        self._convertTime64(nparr, 1)
       # Append this array to the output list
       datalist.append(nparr)
 
