@@ -301,7 +301,7 @@ cdef class Table(Leaf):
             field_byteorders.append("little")
           else:
             field_byteorders.append("big")
-        elif colobj.kind in ['int', 'uint', 'float', 'complex']:
+        elif colobj.kind in ['int', 'uint', 'float', 'complex', 'enum']:
           # Keep track of the byteorder for this column
           ret = get_order(member_type_id, byteorder2)
           if byteorder2 in ["little", "big"]:
