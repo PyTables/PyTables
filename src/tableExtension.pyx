@@ -293,10 +293,19 @@ cdef class Table(Leaf):
             ("table ``%s``, column ``%s``: %%s" % (self.name, colname))
             % te.args[0])
         desc[colname] = colobj
-        # Fetch the byteorder for this column
-        ret = get_order(member_type_id, byteorder2)
-        if byteorder2 in ["little", "big"]:
-          field_byteorders.append(byteorder2)
+        # For time kinds, save the byteorder of the column
+        # (useful for conversion of time datatypes later on)
+        if colobj.kind == "time":
+          colobj._byteorder = H5Tget_order(member_type_id)
+          if colobj._byteorder == H5T_ORDER_LE:
+            field_byteorders.append("little")
+          else:
+            field_byteorders.append("big")
+        elif colobj.kind in ['int', 'uint', 'float', 'complex']:
+          # Keep track of the byteorder for this column
+          ret = get_order(member_type_id, byteorder2)
+          if byteorder2 in ["little", "big"]:
+            field_byteorders.append(byteorder2)
 
       # Insert the native member
       H5Tinsert(native_type_id, colname, offset, native_member_type_id)
@@ -406,6 +415,18 @@ cdef class Table(Leaf):
 #     NumPy to HDF5 conversion is performed when 'sense' is 0.
 #     Otherwise, HDF5 to NumPy conversion is performed.  The conversion
 #     is done in place, i.e. 'recarr' is modified.  """
+
+    # For reading, first swap the byteorder by hand
+    # (this is not currently supported by HDF5)
+    if sense == 1:
+      for colpathname in self.colpathnames:
+        if self.coltypes[colpathname] in ["time32", "time64"]:
+          colobj = self.coldescrs[colpathname]
+          if (hasattr(colobj, "_byteorder") and
+              colobj._byteorder != platform_byteorder):
+            column = getNestedField(recarr, colpathname)
+            # Do an *inplace* byteswapping
+            column.byteswap(True)
 
     # This should be generalised to support other type conversions.
     for t64cname in self._time64colnames:

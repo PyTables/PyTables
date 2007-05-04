@@ -523,7 +523,8 @@ def AtomToHDF5Type(atom, char *byteorder):
   if atom.type in PTTypeToHDF5:
     tid = H5Tcopy(PTTypeToHDF5[atom.type])
     # Fix the byteorder
-    set_order(tid, byteorder)
+    if atom.kind != 'time':
+      set_order(tid, byteorder)
   elif atom.kind in PTSpecialKinds:
     # Special cases (the byteorder doesn't need to be fixed afterwards)
     if atom.type == 'complex64':
@@ -533,6 +534,8 @@ def AtomToHDF5Type(atom, char *byteorder):
     elif atom.kind == 'string':
       tid = H5Tcopy(H5T_C_S1);
       H5Tset_size(tid, atom.itemsize)
+    elif atom.kind == 'bool':
+      tid = H5Tcopy(H5T_STD_B8);
     elif atom.kind == 'enum':
       tid = enumToHDF5(atom, byteorder)
   else:

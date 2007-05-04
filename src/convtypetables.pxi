@@ -19,21 +19,24 @@ from definitions cimport \
      NPY_INT8, NPY_INT16, NPY_INT32, NPY_INT64, \
      NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64, \
      NPY_FLOAT32, NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128, \
-     H5T_C_S1, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
+     H5T_C_S1, \
      H5T_NO_CLASS, H5T_INTEGER, H5T_FLOAT, H5T_TIME, H5T_STRING, \
      H5T_BITFIELD, H5T_OPAQUE, H5T_COMPOUND, H5T_REFERENCE, \
      H5T_ENUM, H5T_VLEN, H5T_ARRAY, H5T_class_t, \
+     H5T_ORDER_LE, H5T_ORDER_BE, H5Tget_order, \
      npy_intp
 
 # Platform-dependent types
 if sys.byteorder == "little":
 
   from definitions cimport \
-       H5T_STD_B8LE, \
+       H5T_ORDER_BE, \
+       H5T_STD_B8LE, H5T_UNIX_D32LE, H5T_UNIX_D64LE, \
        H5T_STD_I8LE, H5T_STD_I16LE, H5T_STD_I32LE, H5T_STD_I64LE, \
        H5T_STD_U8LE, H5T_STD_U16LE, H5T_STD_U32LE, H5T_STD_U64LE, \
        H5T_IEEE_F32LE, H5T_IEEE_F64LE
 
+  platform_byteorder = H5T_ORDER_LE
   # Standard types, independent of the byteorder
   H5T_STD_B8   = H5T_STD_B8LE
   H5T_STD_I8   = H5T_STD_I8LE
@@ -46,15 +49,19 @@ if sys.byteorder == "little":
   H5T_STD_U64  = H5T_STD_U64LE
   H5T_IEEE_F32 = H5T_IEEE_F32LE
   H5T_IEEE_F64 = H5T_IEEE_F64LE
+  H5T_UNIX_D32  = H5T_UNIX_D32LE
+  H5T_UNIX_D64  = H5T_UNIX_D64LE
 
 else:  # sys.byteorder == "big"
 
   from definitions cimport \
-       H5T_STD_B8BE, \
+       H5T_ORDER_BE, \
+       H5T_STD_B8BE, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
        H5T_STD_I8BE, H5T_STD_I16BE, H5T_STD_I32BE, H5T_STD_I64BE, \
        H5T_STD_U8BE, H5T_STD_U16BE, H5T_STD_U32BE, H5T_STD_U64BE, \
        H5T_IEEE_F32BE, H5T_IEEE_F64BE
 
+  platform_byteorder = H5T_ORDER_BE
   # Standard types, independent of the byteorder
   H5T_STD_B8   = H5T_STD_B8BE
   H5T_STD_I8   = H5T_STD_I8BE
@@ -67,6 +74,8 @@ else:  # sys.byteorder == "big"
   H5T_STD_U64  = H5T_STD_U64BE
   H5T_IEEE_F32 = H5T_IEEE_F32BE
   H5T_IEEE_F64 = H5T_IEEE_F64BE
+  H5T_UNIX_D32  = H5T_UNIX_D32BE
+  H5T_UNIX_D64  = H5T_UNIX_D64BE
 
 
 #----------------------------------------------------------------------------
@@ -75,19 +84,16 @@ else:  # sys.byteorder == "big"
 # List only types that are susceptible of changing byteorder
 # (complex & enumerated types are special and should not be listed here)
 PTTypeToHDF5 = {
-  'bool'   : H5T_STD_B8,
   'int8'   : H5T_STD_I8,   'uint8'  : H5T_STD_U8,
   'int16'  : H5T_STD_I16,  'uint16' : H5T_STD_U16,
   'int32'  : H5T_STD_I32,  'uint32' : H5T_STD_U32,
   'int64'  : H5T_STD_I64,  'uint64' : H5T_STD_U64,
   'float32': H5T_IEEE_F32, 'float64': H5T_IEEE_F64,
-  # time datatypes cannot be distinguished if they are LE and BE
-  # so, we (arbitrarily) always choose BE byteorder
-  'time32' : H5T_UNIX_D32BE, 'time64' : H5T_UNIX_D64BE,
+  'time32' : H5T_UNIX_D32, 'time64' : H5T_UNIX_D64,
   }
 
 # Special cases whose byteorder cannot be directly changed
-PTSpecialKinds = ['complex', 'string', 'enum']
+PTSpecialKinds = ['complex', 'string', 'enum', 'bool']
 
 # Conversion table from NumPy extended codes prefixes to PyTables kinds
 NPExtPrefixesToPTKinds = {
@@ -152,15 +158,12 @@ cdef hid_t get_native_type(hid_t type_id):
     H5Tclose(super_type_id)
   if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_COMPOUND, H5T_ENUM):
     native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
-  elif class_id in (H5T_BITFIELD, H5T_TIME):
-    # These types are not supported yet by H5Tget_native_type
-    native_type_id = H5Tcopy(type_id)
-    sys_byteorder = PyString_AsString(sys.byteorder)
-    if set_order(native_type_id, sys_byteorder) < 0:
-      raise HDF5ExtError(
-        "problems setting the byteorder for type of class: %s" % class_id)
   else:
-    # Fixing the byteorder for these types shouldn't be needed
+    # Fixing the byteorder for other types shouldn't be needed.
+    # More in particular, H5T_TIME is not managed yet by HDF5 and so this
+    # has to be managed explicitely inside the PyTables extensions.
+    # Regarding H5T_BITFIELD, well, I'm not sure if changing the byteorder
+    # of this is a good idea at all.
     native_type_id = H5Tcopy(type_id)
   if native_type_id < 0:
     raise HDF5ExtError("Problems getting type id for class %s" % class_id)

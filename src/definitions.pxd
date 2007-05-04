@@ -207,6 +207,14 @@ cdef extern from "hdf5.h":
     H5D_CHUNKED         = 2,    # slow and fancy
     H5D_NLAYOUTS        = 3     # this one must be last!
 
+  # Byte orders
+  cdef enum H5T_order_t:
+    H5T_ORDER_ERROR      = -1,  # error
+    H5T_ORDER_LE         = 0,   # little endian
+    H5T_ORDER_BE         = 1,   # bit endian
+    H5T_ORDER_VAX        = 2,   # VAX mixed endian
+    H5T_ORDER_NONE       = 3    # no particular order (strings, bits,..)
+
   # HDF5 signed enums
   cdef enum H5T_sign_t:
     H5T_SGN_ERROR        = -1,  # error
@@ -282,6 +290,8 @@ cdef extern from "hdf5.h":
 
   # Types which are particular to UNIX (for Time types)
   cdef enum:
+    H5T_UNIX_D32LE
+    H5T_UNIX_D64LE
     H5T_UNIX_D32BE
     H5T_UNIX_D64BE
 
@@ -360,6 +370,7 @@ cdef extern from "hdf5.h":
   H5T_class_t H5Tget_class(hid_t type_id)
   hid_t H5Tget_super(hid_t type)
   H5T_sign_t H5Tget_sign(hid_t type_id)
+  H5T_order_t H5Tget_order(hid_t type_id)
   size_t H5Tget_size(hid_t type_id)
   herr_t H5Tset_size(hid_t type_id, size_t size)
   herr_t H5Tset_precision(hid_t type_id, size_t prec)

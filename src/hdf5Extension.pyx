@@ -44,6 +44,7 @@ from tables.utilsExtension import  \
      enumToHDF5, enumFromHDF5, getTypeEnum, isHDF5File, isPyTablesFile, \
      AtomToHDF5Type, AtomFromHDF5Type, loadEnum, HDF5ToNPExtType
 
+
 # Types, constants, functions, classes & other objects from everywhere
 from definitions cimport  \
      strdup, malloc, free, \
@@ -73,7 +74,6 @@ from definitions cimport  \
      set_cache_size, Giterate, Aiterate, H5UIget_info, get_len_of_range, \
      get_order, set_order, \
      conv_float64_timeval32
-
 
 
 # Include conversion tables
@@ -979,6 +979,11 @@ cdef class Array(Leaf):
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
+    if self.atom.kind == 'time':
+      # Swap the byteorder by hand (this is not currently supported by HDF5)
+      if H5Tget_order(self.type_id) != platform_byteorder:
+        nparr.byteswap(True)
+
     # Convert some HDF5 types to NumPy after reading.
     if self.atom.type == 'time64':
       self._convertTime64(nparr, 1)
@@ -1004,6 +1009,11 @@ cdef class Array(Leaf):
                            start, stop, step, rbuf)
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
+
+    if self.atom.kind == 'time':
+      # Swap the byteorder by hand (this is not currently supported by HDF5)
+      if H5Tget_order(self.type_id) != platform_byteorder:
+        nparr.byteswap(True)
 
     # Convert some HDF5 types to NumPy after reading
     if self.atom.type == 'time64':
@@ -1220,6 +1230,10 @@ cdef class VLArray(Leaf):
       nparr = numpy.ndarray(buffer=buf, dtype=self._atomicdtype, shape=shape)
       # Set the writeable flag for this ndarray object
       nparr.flags.writeable = True
+      if self.atom.kind == 'time':
+        # Swap the byteorder by hand (this is not currently supported by HDF5)
+        if H5Tget_order(self.type_id) != platform_byteorder:
+          nparr.byteswap(True)
       # Convert some HDF5 types to NumPy after reading.
       if self.atom.type == 'time64':
         self._convertTime64(nparr, 1)

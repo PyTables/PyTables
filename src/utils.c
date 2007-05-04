@@ -685,7 +685,7 @@ herr_t set_order(hid_t type_id, const char *byteorder) {
     if (strcmp(byteorder, "little") == 0)
       status = H5Tset_order(type_id, H5T_ORDER_LE);
     else if (strcmp(byteorder, "big") == 0)
-      status = H5Tset_order(type_id, H5T_ORDER_BE );
+      status = H5Tset_order(type_id, H5T_ORDER_BE);
     else if (strcmp(byteorder, "irrelevant") == 0) {
       /* Do nothing because 'irrelevant' doesn't require setting the
          byteorder explicitely */
