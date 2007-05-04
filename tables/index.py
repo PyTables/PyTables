@@ -1093,7 +1093,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # The item is not in cache. Do the real lookup.
         sorted = self.sorted
         if sorted.nrows > 0:
-            if 0 and self.type in self.opt_search_types:
+            if self.type in self.opt_search_types:
                 # The next are optimizations. However, they hide the
                 # CPU functions consumptions from python profiles.
                 # You may want to de-activate them during profiling.
