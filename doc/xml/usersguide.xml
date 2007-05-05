@@ -8095,9 +8095,9 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               index filters will be used (currently, zlib level 1 with
               shuffling).</para>
 
-              <para>See the Column.optimizeIndex() (<xref
-              linkend="Column.optimizeIndex" xrefstyle="select: label" />)
-              method for optimizing the created index.</para>
+              <para>See the <literal>Column.optimizeIndex()</literal> methd
+              (<xref linkend="Column.optimizeIndex" xrefstyle="select: label"
+              />) for optimizing the created index.</para>
 
               <note>
                 <!-- XXXPRO -->
@@ -8117,7 +8117,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               better chances for reducing the entropy of the index at the
               price of using more CPU and I/O resources for creating the
               index.</para>
-  
+
               <note>
                 <!-- XXXPRO -->
                 <para>Column indexing is only available in PyTables

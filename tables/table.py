@@ -2902,13 +2902,15 @@ class Column(object):
 
     def createIndex( self, filters=None, _blocksizes=None,
                      _testmode=False, _verbose=False ):
-        """ Create an index for this column.
+        """
+        Create an index for this column.
 
         The `filters` argument can be used to set the `Filters` used to
         compress the index.  If ``None``, default index filters will be
         used (currently, zlib level 1 with shuffling).
 
-        See the optimizeIndex() method for optimizing the created index.
+        See the `Column.optimizeIndex()` method for optimizing the
+        created index.
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
