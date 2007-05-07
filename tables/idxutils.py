@@ -73,7 +73,7 @@ def computeslicesize(expectedrows, memlevel):
     ss = int(cs * memlevel**2)
     # We *need* slicesize to be an exact multiple of the actual chunksize
     ss = (ss // chunksize) * chunksize
-    ss *= 2    # slicesize should be at least divisible by 2
+    ss *= 4    # slicesize should be at least divisible by 2
     # ss cannot be bigger than 2**32 - 1 elements because of
     # implementation reasons (this limitation can be overridden when
     # keysort would be implemented for the string type)
@@ -82,21 +82,25 @@ def computeslicesize(expectedrows, memlevel):
     return ss
 
 
-def computeblocksize(expectedrows, compoundsize):
+def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
     """Calculate the optimum number of superblocks made from compounds blocks.
 
     This is useful for computing the sizes of both blocks and
     superblocks (using the PyTables terminology for blocks in indexes).
     """
 
-    nblocks = (expectedrows // compoundsize) + 1
-    if nblocks > 500:
-        # Protection against too large number of expected rows
-        nblocks = 500
-    return compoundsize * nblocks
+    nblocks = (expectedrows // lowercompoundsize) + 1
+    if nblocks > 2**20:
+        # Protection against too large number of compound blocks
+        nblocks = 2**20
+    sbs = lowercompoundsize * nblocks
+    # We *need* superblocksize to be an exact multiple of the actual
+    # compoundblock size (a ceil must be performed here!)
+    sbs = ((sbs // compoundsize) + 1) * compoundsize
+    return sbs
 
 
-def calcChunksize(expectedrows, memlevel=8):
+def calcChunksize(expectedrows, memlevel=4):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -106,11 +110,10 @@ def calcChunksize(expectedrows, memlevel=8):
     be further optimized by doing more experiments.
     """
 
-    expMrows = expectedrows / 1000000.  # Multiples of one million
     chunksize = computechunksize(expectedrows)
     slicesize = computeslicesize(expectedrows, memlevel)
-    blocksize = computeblocksize(expectedrows, slicesize)
-    superblocksize = computeblocksize(expectedrows, blocksize)
+    blocksize = computeblocksize(expectedrows, slicesize, chunksize)
+    superblocksize = computeblocksize(expectedrows, blocksize, slicesize)
     # The size for different blocks information
     sizes = (superblocksize, blocksize, slicesize, chunksize)
     return sizes

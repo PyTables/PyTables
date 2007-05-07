@@ -561,7 +561,6 @@ compliant with %s: '%r' The error was: <%s>""" % \
         # Create the container for the slice
         arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
         # Protection against reading empty arrays
-        print "shape-->", arr.shape, arr.size
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
             self._g_readSlice(startl, stopl, stepl, arr)
