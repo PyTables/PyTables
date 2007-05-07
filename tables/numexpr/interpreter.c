@@ -304,7 +304,7 @@ op_signature(int op, int n) {
             break;
         case OP_COPY_SS:
             if (n == 0 || n == 1) return 's';
-	    break;
+            break;
         case OP_PROD_IIN:
         case OP_SUM_IIN:
             if (n == 0 || n == 1) return 'i';
@@ -1284,6 +1284,7 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
             self->memsteps[i+1] = PyArray_STRIDE(a, PyArray_NDIM(a)-1);
             self->memsizes[i+1] = PyArray_ITEMSIZE(a);
             inputs[i] = PyArray_DATA(a);
+
         }
     }
 
