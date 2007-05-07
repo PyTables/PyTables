@@ -132,7 +132,8 @@ enum OpCodes {
 };
 
 /* returns the sig of the nth op, '\0' if no more ops -1 on failure */
-static int op_signature(int op, int n) {
+static int
+op_signature(int op, int n) {
     switch (op) {
         case OP_NOOP:
             break;
@@ -506,16 +507,20 @@ NumExpr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 static char
 get_return_sig(PyObject* program) {
+    int sig;
     char last_opcode;
-    int sig, end = PyString_Size(program);
+    int end = PyString_Size(program);
     do {
         end -= 4;
         if (end < 0) return 'X';
     }
     while ((last_opcode = PyString_AS_STRING(program)[end]) == OP_NOOP);
     sig = op_signature(last_opcode, 0);
-    if (sig <= 0) return 'X';
-    return sig;
+    if (sig <= 0) {
+        return 'X';
+    } else {
+        return (char)sig;
+    }
 }
 
 static int
