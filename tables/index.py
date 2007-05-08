@@ -550,8 +550,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Compute the correct optimizations for optim level (if needed)
         if opts is None:
-            nss = self.superblocksize / self.slicesize
-            opts = calcoptlevels(nss, level, testmode)
+            opts = calcoptlevels(self.nblocks, level, testmode)
         optmedian, optstarts, optstops, optfull = opts
         if debug:
             print "optvalues:", opts
@@ -593,12 +592,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.cleanup_temps()
             # This should be called only if the overlaps are not zero
             # and in full optimization mode!
-            # Commented out until more tests will say if this is necessary
-            # F. Altet  2007-04-14
-#             (nover, mult, tover) = self.compute_overlaps("", False)
-#             if nover > 0 and level == 9:
-#                 # Do a last pass by reordering the slices alone
-#                 self.swap('reorder_slices')
+            (nover, mult, tover) = self.compute_overlaps("", False)
+            if nover > 0 and level == 9:
+                # Do a last pass by reordering the slices alone
+                self.swap('reorder_slices')
             if swap_done:
                 # the memory data cache is dirty now
                 self.dirtycache = True

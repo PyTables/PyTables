@@ -132,11 +132,10 @@ opts_testmode_dict = {0: (0,0,0,0),
                       9: (0,0,0,3),
                       }
 
-def calcoptlevels(nss, optlevel, testmode):
+def calcoptlevels(nblocks, optlevel, testmode):
     """Compute the optimizations to be done.
 
-    The calculation is based on the number of slices per
-    superblock and the optlevel.
+    The calculation is based on the number of blocks and the optlevel.
     """
 
     optmedian, optstarts, optstops, optfull = (False,)*4
@@ -145,45 +144,20 @@ def calcoptlevels(nss, optlevel, testmode):
         return optmedian, optstarts, optstops, optfull
 
     # Regular case
-    if nss < 5:
-        if 6 <= optlevel < 9:
+    if nblocks <= 1:
+        if 0 < optlevel <= 3:
             optmedian = True
-        elif optlevel == 9:
-            optstarts, optstops = (True, True)
-    elif 5 <= nss <= 25:
-        if 3 <= optlevel < 6:
-            optmedian = True
-        elif 6 <= optlevel < 9:
-            optstarts, optstops = (True, True)
-        elif optlevel == 9:
+        elif 3 < optlevel <= 6:
+            optmedian, optstarts = (True, True)
+        elif 6 < optlevel <= 9:
             optfull = 1
-    elif 25 <= nss <= 125:
-        if 0 < optlevel < 3:
-            optmedian = True
-        elif 3 <= optlevel < 6:
-            optstarts, optstops = (True, True)
-        elif 6 <= optlevel < 9:
+    else:  # More than a block
+        if 0 < optlevel <= 3:
             optfull = 1
-        elif optlevel == 9:
+        elif 3 < optlevel <= 6:
             optfull = 2
-    elif 125 <= nss <= 625:
-        if 0 < optlevel < 3:
-            optstarts, optstops = (True, True)
-        elif 3 <= optlevel < 6:
-            optfull = 1
-        elif 6 <= optlevel < 9:
-            optfull = 2
-        elif optlevel == 9:
+        elif 6 < optlevel <= 9:
             optfull = 3
-    else:  # superblocks with more than 625 slices. Are there some?
-        if 0 < optlevel < 3:
-            optfull = 1
-        elif 3 <= optlevel < 6:
-            optfull = 2
-        elif 6 <= optlevel < 9:
-            optfull = 3
-        elif optlevel == 9:
-            optfull = 4
 
     return optmedian, optstarts, optstops, optfull
 
