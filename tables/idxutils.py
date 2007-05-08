@@ -73,7 +73,7 @@ def computeslicesize(expectedrows, memlevel):
     ss = int(cs * memlevel**2)
     # We *need* slicesize to be an exact multiple of the actual chunksize
     ss = (ss // chunksize) * chunksize
-    ss *= 4    # slicesize should be at least divisible by 2
+    ss *= 8    # slicesize should be at least divisible by 2
     # ss cannot be bigger than 2**32 - 1 elements because of
     # implementation reasons (this limitation can be overridden when
     # keysort would be implemented for the string type)
@@ -89,15 +89,15 @@ def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
     superblocks (using the PyTables terminology for blocks in indexes).
     """
 
-    nblocks = (expectedrows // lowercompoundsize) + 1
-    if nblocks > 2**20:
+    nlowerblocks = (expectedrows // lowercompoundsize) + 1
+    if nlowerblocks > 2**20:
         # Protection against too large number of compound blocks
-        nblocks = 2**20
-    sbs = lowercompoundsize * nblocks
+        nlowerblocks = 2**20
+    size = lowercompoundsize * nlowerblocks
     # We *need* superblocksize to be an exact multiple of the actual
     # compoundblock size (a ceil must be performed here!)
-    sbs = ((sbs // compoundsize) + 1) * compoundsize
-    return sbs
+    size = ((size // compoundsize) + 1) * compoundsize
+    return size
 
 
 def calcChunksize(expectedrows, memlevel=4):
