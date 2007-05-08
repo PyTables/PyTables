@@ -422,11 +422,11 @@ cdef class Table(Leaf):
       for colpathname in self.colpathnames:
         if self.coltypes[colpathname] in ["time32", "time64"]:
           colobj = self.coldescrs[colpathname]
-          if (hasattr(colobj, "_byteorder") and
-              colobj._byteorder != platform_byteorder):
-            column = getNestedField(recarr, colpathname)
-            # Do an *inplace* byteswapping
-            column.byteswap(True)
+          if hasattr(colobj, "_byteorder"):
+            if colobj._byteorder != platform_byteorder:
+              column = getNestedField(recarr, colpathname)
+              # Do an *inplace* byteswapping
+              column.byteswap(True)
             # Delete the _byteorder attribute as it is not needed anymore
             del colobj._byteorder
 
