@@ -427,6 +427,8 @@ cdef class Table(Leaf):
             column = getNestedField(recarr, colpathname)
             # Do an *inplace* byteswapping
             column.byteswap(True)
+            # Delete the _byteorder attribute as it is not needed anymore
+            del colobj._byteorder
 
     # This should be generalised to support other type conversions.
     for t64cname in self._time64colnames:
