@@ -61,10 +61,11 @@ def computechunksize(expectedrows):
 def computeslicesize(expectedrows, memlevel):
     """Get the optimum slicesize based on expectedrows and memorylevel."""
 
-    # Protection against creating too small slices (there will be not
-    # such a protection for creating large ones!)
+    # Protection against creating too small or too large slices
     if expectedrows < 10**3:
         expectedrows = 10**3
+    elif expectedrows > 10**12:
+        expectedrows = 10**12
     # First, the optimum chunksize
     cs = csformula(expectedrows)
     # Now, the actual chunksize
