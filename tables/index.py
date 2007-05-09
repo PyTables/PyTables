@@ -811,10 +811,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         where._modify(startl, stepl, countl, buffer)
 
 
-    def reorder_slice(self, nslice, sorted, indices, tmp_sorted, tmp_indices):
+    def reorder_slice(self, nslice, sorted, indices, ssorted, sindices,
+                      tmp_sorted, tmp_indices):
         """Copy & reorder the slice in source to final destination."""
         ss = self.slicesize
-        ssorted = self.slice_sorted; sindices = self.slice_indices
         # Load the second part in buffers
         self.read_slice(tmp_sorted, nslice, ssorted[ss:])
         self.read_slice(tmp_indices, nslice, sindices[ss:])
@@ -825,15 +825,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Update caches
         self.update_caches(nslice-1, ssorted[:ss])
         # Shift the slice in the end to the beginning
-        #ssorted[:ss] = ssorted[ss:]; sindices[:ss] = sindices[ss:]
-        # The next is a bit slower, but takes far less additional memory
-        step = ss//20
-        for i in range(0, ss-step, step):
-            ssorted[i:i+step] = ssorted[ss+i:ss+i+step]
-            sindices[i:i+step] = sindices[ss+i:ss+i+step]
-        i += step; r = ss%step
-        ssorted[i:i+r] = ssorted[ss+i:ss+i+r]
-        sindices[i:i+r] = sindices[ss+i:ss+i+r]
+        ssorted[:ss] = ssorted[ss:]; sindices[:ss] = sindices[ss:]
 
 
     def update_caches(self, nslice, ssorted):
@@ -887,9 +879,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.stopl = numpy.empty(shape=2, dtype=numpy.uint64)
         self.stepl = numpy.ones(shape=2, dtype=numpy.uint64)
         # Create the buffer for reordering 2 slices at a time
-        self.slice_sorted = numpy.empty(shape=ss*2, dtype=self.dtype)
-        self.slice_indices = numpy.empty(shape=ss*2, dtype=numpy.uint64)
-        ssorted = self.slice_sorted; sindices = self.slice_indices
+        ssorted = numpy.empty(shape=ss*2, dtype=self.dtype)
+        sindices = numpy.empty(shape=ss*2, dtype=numpy.uint64)
 
         # Bootstrap the process for reordering
         # Read the first slice in buffers
@@ -898,8 +889,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Loop over the rest of slices in block
         for nslice in xrange(1, sorted.nrows):
-            self.reorder_slice(
-                nslice, sorted, indices, tmp_sorted, tmp_indices)
+            self.reorder_slice(nslice, sorted, indices, ssorted, sindices,
+                               tmp_sorted, tmp_indices)
 
         # End the process (enrolling the lastrow if necessary)
         if nelementsLR > 0:
