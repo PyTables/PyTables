@@ -825,7 +825,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Update caches
         self.update_caches(nslice-1, ssorted[:ss])
         # Shift the slice in the end to the beginning
-        ssorted[:ss] = ssorted[ss:]; sindices[:ss] = sindices[ss:]
+        #ssorted[:ss] = ssorted[ss:]; sindices[:ss] = sindices[ss:]
+        # The next is a bit slower, but takes far less additional memory
+        step = ss//20
+        for i in range(0, ss-step, step):
+            ssorted[i:i+step] = ssorted[ss+i:ss+i+step]
+            sindices[i:i+step] = sindices[ss+i:ss+i+step]
+        i += step; r = ss%step
+        ssorted[i:i+r] = ssorted[ss+i:ss+i+r]
+        sindices[i:i+r] = sindices[ss+i:ss+i+r]
 
 
     def update_caches(self, nslice, ssorted):
