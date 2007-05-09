@@ -50,10 +50,13 @@ def computechunksize(expectedrows):
     # 8. 10**9 <= rows < 10**10
     # 9. rows >= 10**10
     zone = int(math.log10(expectedrows))
+    # Protection against creating too small or too large chunks
     if zone < 3:
         zone = 3
-    elif zone > 10:
-        zone = 10
+    elif zone > 12:
+        # It is important to limit the size of the chunksize or
+        # the times for reading a single chunk can grow too much.
+        zone = 12
     nrows = 10**zone
     return int(csformula(nrows))
 
