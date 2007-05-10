@@ -1,84 +1,80 @@
 from pylab import *
 
-def get_values(filename, optlevel):
+def get_values(filename):
     f = open(filename)
     sizes = []
     values = []
     for line in f:
         if line.startswith('Processing database:'):
             txtime = 0
-            if line.endswith('.h5\n'):
-                select = 0
-            else:
-                select = 1
             line = line.split(':')[1]
             # Check if entry is compressed and if has to be processed
             line = line[:line.rfind('.')]
             params = line.split('-')
-            #print "params-->", params, complib
-            foptlevel = 0
             for param in params:
-                if param[0] == 'O' and param[1].isdigit():
-                    foptlevel = int(param[1])
-                elif param[-1] in ('k', 'm', 'g'):
+                if param[-1] in ('k', 'm', 'g'):
                     size = param
                     isize = int(size[:-1]) * 1000
                     if size[-1] == "m":
                         isize *= 1000
                     elif size[-1] == "g":
                         isize *= 1000*1000
-            if foptlevel == optlevel:
-                select = 1
-        if line.startswith('Insert time'):
+        elif insert and line.startswith('Insert time'):
             tmp = line.split(':')[1]
-            #itime = float(tmp[:tmp.index(',')])
             itime = float(tmp)
-            if select:
-                if insert:
-                    sizes.append(isize)
-                    values.append(itime)
-        if line.startswith('Index time'):
+            sizes.append(isize)
+            values.append(itime)
+        elif (create_total or create_index) and line.startswith('Index time'):
             tmp = line.split(':')[1]
-            #xtime = float(tmp[:tmp.index(',')])
             xtime = float(tmp)
             txtime += xtime
-            if select:
-                if create_index and line.find(create_index) <> -1:
-                    sizes.append(isize)
-                    values.append(xtime)
-                elif create_total and txtime > xtime:
-                    sizes.append(isize)
-                    values.append(txtime)
-        if line.startswith('Table size'):
+            if create_index and create_index in line:
+                sizes.append(isize)
+                values.append(xtime)
+            elif create_total and txtime > xtime:
+                sizes.append(isize)
+                values.append(txtime)
+        elif table_size and line.startswith('Table size'):
             tsize = float(line.split(':')[1])
-            if select:
-                if table_size:
-                    sizes.append(isize)
-                    values.append(tsize)
-        if line.startswith('Indexes size'):
+            sizes.append(isize)
+            values.append(tsize)
+        elif indexes_size and line.startswith('Indexes size'):
             xsize = float(line.split(':')[1])
-            if select:
-                if indexes_size:
-                    sizes.append(isize)
-                    values.append(xsize)
-        if line.startswith('Full size'):
+            sizes.append(isize)
+            values.append(xsize)
+        elif total_size and line.startswith('Full size'):
             fsize = float(line.split(':')[1])
-            if select:
-                if total_size:
-                    sizes.append(isize)
-                    values.append(fsize)
-        if line.startswith('Query time'):
+            sizes.append(isize)
+            values.append(fsize)
+        elif query and line.startswith('Query time'):
             tmp = line.split(':')[1]
-            #qtime = float(tmp[:tmp.index(',')])
             qtime = float(tmp)
-            if (query or query_cache) and line.find(colname) <> -1:
-                if select:
-                    if query and line.find('cache') == -1:
-                        sizes.append(isize)
-                        values.append(qtime)
-                    if query_cache and line.find('cache') <> -1:
-                        sizes.append(isize)
-                        values.append(qtime)
+            if colname in line:
+                sizes.append(isize)
+                values.append(qtime)
+        elif ((query or query_cold or query_warm) and
+              line.startswith('[NOREP]')):
+            tmp = line.split(':')[1]
+            try:
+                qtime = float(tmp[:tmp.index('+-')])
+            except ValueError:
+                qtime = float(tmp)
+            if colname in line:
+                if query and '1st' in line:
+                    sizes.append(isize)
+                    values.append(qtime)
+                elif query_cold and 'cold' in line:
+                    sizes.append(isize)
+                    values.append(qtime)
+                elif query_warm and 'warm' in line:
+                    sizes.append(isize)
+                    values.append(qtime)
+        elif query_repeated and line.startswith('[REP]'):
+            if colname in line and 'warm' in line:
+                tmp = line.split(':')[1]
+                qtime = float(tmp[:tmp.index('+-')])
+                sizes.append(isize)
+                values.append(qtime)
 
     f.close()
     return sizes, values
@@ -104,7 +100,7 @@ if __name__ == '__main__':
 
     import sys, getopt
 
-    usage = """usage: %s [-o file] [-t title] [--insert] [--create-index] [--create-total] [--table-size] [--indexes-size] [--total-size] [--query=colname] [--query-cache=colname] files
+    usage = """usage: %s [-o file] [-t title] [--insert] [--create-index] [--create-total] [--table-size] [--indexes-size] [--total-size] [--query=colname] [--query-cold=colname] [--query-warm=colname] [--query-repeated=colname] files
  -o filename for output (only .png and .jpg extensions supported)
  -t title of the plot
  --insert -- Insert time for table
@@ -114,7 +110,9 @@ if __name__ == '__main__':
  --indexes-size -- Size of all indexes
  --total-size -- Total size of table + indexes
  --query=colname -- Time for querying the specified column
- --query-cache=colname -- Time for querying the specified column (cached)
+ --query-cold=colname -- Time for querying the specified column (cold cache)
+ --query-warm=colname -- Time for querying the specified column (warm cache)
+ --query-repeated=colname -- Time for querying the specified column (rep query)
  \n""" % sys.argv[0]
 
     try:
@@ -126,7 +124,9 @@ if __name__ == '__main__':
                                      'indexes-size',
                                      'total-size',
                                      'query=',
-                                     'query-cache=',
+                                     'query-cold=',
+                                     'query-warm=',
+                                     'query-repeated=',
                                      ])
     except:
         sys.stderr.write(usage)
@@ -149,7 +149,9 @@ if __name__ == '__main__':
     indexes_size = 0
     total_size = 0
     query = 0
-    query_cache = 0
+    query_cold = 0
+    query_warm = 0
+    query_repeated = 0
     colname = None
     yaxis = "No axis name"
     tit = None
@@ -189,12 +191,22 @@ if __name__ == '__main__':
             query = 1
             colname = option[1]
             yaxis = "Time (s)"
-            gtitle = "Query time for col " + colname + "(index not in cache)"
-        elif option[0] == '--query-cache':
-            query_cache = 1
+            gtitle = "Query time for " + colname + " (first query)"
+        elif option[0] == '--query-cold':
+            query_cold = 1
             colname = option[1]
             yaxis = "Time (s)"
-            gtitle = "Query time for col " + colname + "(index in cache)"
+            gtitle = "Query time for " + colname + " (cold cache)"
+        elif option[0] == '--query-warm':
+            query_warm = 1
+            colname = option[1]
+            yaxis = "Time (s)"
+            gtitle = "Query time for " + colname + " (warm cache)"
+        elif option[0] == '--query-repeated':
+            query_repeated = 1
+            colname = option[1]
+            yaxis = "Time (s)"
+            gtitle = "Query time for " + colname + " (repeated query)"
 
     filenames = pargs
 
@@ -204,19 +216,16 @@ if __name__ == '__main__':
     plots = []
     legends = []
     for filename in filenames:
-        plegend = filename[filename.find('-'):filename.index('.out')]
+        #plegend = filename[filename.find('-'):filename.index('.out')]
+        plegend = filename[:filename.index('.out')]
         plegend = plegend.replace('-', ' ')
         if filename.find('PyTables') <> -1:
-            for optlevel in [0, 3, 6, 9]:
-                xval, yval = get_values(filename, optlevel)
-                print "Values for %s --> %s, %s" % (filename, xval, yval)
-                if xval != []:
-                    plots.append(loglog(xval, yval, linewidth=5))
-                    #plots.append(semilogx(xval, yval, linewidth=5))
-                    if optlevel > 0:
-                        legends.append(plegend + ' ' + 'O%s'%optlevel)
-                    else:
-                        legends.append(plegend)
+            xval, yval = get_values(filename)
+            print "Values for %s --> %s, %s" % (filename, xval, yval)
+            if xval != []:
+                plots.append(loglog(xval, yval, linewidth=5))
+                #plots.append(semilogx(xval, yval, linewidth=5))
+                legends.append(plegend)
         else:
             xval, yval = get_values(filename, '')
             print "Values for %s --> %s, %s" % (filename, xval, yval)
