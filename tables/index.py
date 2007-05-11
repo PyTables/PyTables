@@ -70,7 +70,7 @@ obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series
 
 
 debug = False
-#debug = True  # Uncomment this for printing sizes purposes
+debug = True  # Uncomment this for printing sizes purposes
 profile = False
 #profile = True  # uncomment for profiling purposes only
 
@@ -539,12 +539,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.last_tover = 0
         self.last_nover = 0
 
-        # Optimize only when we have more than one slice
-        if self.nslices <= 1:
-            if self.verbose:
-                print "Less than 1 slice. Skipping optimization!"
-            return
-
         if self.verbose:
             (nover, mult, tover) = self.compute_overlaps("init", self.verbose)
 
@@ -887,10 +881,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.read_slice(tmp_sorted, 0, ssorted[:ss])
         self.read_slice(tmp_indices, 0, sindices[:ss])
 
-        # Loop over the rest of slices in block
-        for nslice in xrange(1, sorted.nrows):
-            self.reorder_slice(nslice, sorted, indices, ssorted, sindices,
-                               tmp_sorted, tmp_indices)
+        if sorted.nrows <= 1:
+            nslice = 0    # Just in case the loop behind doesn't execute anything
+        else:
+            # Loop over the remainding slices in block
+            for nslice in xrange(1, sorted.nrows):
+                self.reorder_slice(nslice, sorted, indices, ssorted, sindices,
+                                   tmp_sorted, tmp_indices)
 
         # End the process (enrolling the lastrow if necessary)
         if nelementsLR > 0:
