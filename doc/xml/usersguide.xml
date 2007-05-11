@@ -3186,7 +3186,7 @@ class NestedDescr(IsDescription):
 >>> nra
 array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
        (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L),
-       (((1.0, 8), 'name2-8', 0.0), ('name1-8', 0.0), 2L)], 
+       (((1.0, 8), 'name2-8', 0.0), ('name1-8', 0.0), 2L)],
       dtype=[('info2', [('info3', [('x', '&gt;f8'), ('y', '|u1')]),
              ('name', '|S10'), ('value', '&gt;f8')]),
 	     ('info1', [('name', '|S10'), ('value', '&gt;f8')]),
@@ -3223,7 +3223,7 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
 >>> table2[:]
 array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
        (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L),
-       (((1.0, 8), 'name2-8', 0.0), ('name1-8', 0.0), 2L)], 
+       (((1.0, 8), 'name2-8', 0.0), ('name1-8', 0.0), 2L)],
       dtype=[('info2', [('info3', [('x', '&lt;f8'), ('y', '|u1')]),
              ('name', '|S10'), ('value', '&lt;f8')]),
 	     ('info1', [('name', '|S10'), ('value', '&lt;f8')]),
@@ -3262,7 +3262,7 @@ array([((1.0, 1), 'name2-1', 0.0), ((1.0, 2), 'name2-2', 0.0),
           and ask for data in <emphasis>info3</emphasis> substructure:</para>
 
           <screen>>>> table.cols.info2.info3[1:5]
-array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)], 
+array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)],
       dtype=[('x', '&lt;f8'), ('y', '|u1')])</screen>
 
           <para>You can also use the <literal>_f_col</literal> method to get a
@@ -3355,14 +3355,14 @@ array([(1.0, 1), (1.0, 2), (1.0, 3), (1.0, 4)],
  ('color', '()u4')]
 >>> numpy.rec.array(None, shape=0,
                     dtype=table.description._v_nestedDescr)
-recarray([], 
+recarray([],
       dtype=[('info2', [('info3', [('x', '&gt;f8'), ('y', '|u1')]),
              ('name', '|S10'), ('value', '&gt;f8')]),
 	     ('info1', [('name', '|S10'), ('value', '&gt;f8')]),
 	     ('color', '&gt;u4')])
 >>> numpy.rec.array(None, shape=0,
                     dtype=table.description.info2._v_nestedDescr)
-recarray([], 
+recarray([],
       dtype=[('info3', [('x', '&gt;f8'), ('y', '|u1')]), ('name', '|S10'),
              ('value', '&gt;f8')])
 >>> from tables import nra
@@ -14885,8 +14885,13 @@ Object Tree:
                 role="bold">H5T_COMPOUND</emphasis></glossterm>
 
                 <glossdef>
-                  <para>This allows the support of complex numbers. Its format
-                  is described below:</para>
+
+                  <para>This allows the support for datatypes that are
+                  compounds of compounds (this is also known as
+                  <emphasis>nested types</emphasis> along this manual).</para>
+
+                  <para>This support can also be used for defining complex
+                  numbers. Its format is described below:</para>
 
                   <para>The H5T_COMPOUND type class contains two members. Both
                   members must have the H5T_FLOAT atomic datatype class. The
@@ -14902,9 +14907,6 @@ Object Tree:
               </glossentry>
             </glosslist>
 
-            <para>Currently, PyTables does not support nested H5T_COMPOUND
-            types, the only exception being supporting complex numbers in
-            <literal>Table</literal> objects as described above.</para>
           </section>
         </section>
 
