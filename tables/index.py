@@ -70,7 +70,7 @@ obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series
 
 
 debug = False
-debug = True  # Uncomment this for printing sizes purposes
+#debug = True  # Uncomment this for printing sizes purposes
 profile = False
 #profile = True  # uncomment for profiling purposes only
 
@@ -550,6 +550,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             print "optvalues:", opts
         # Overwrite the new optimizations in opts (a packed attribute)
         self._v_attrs.opts = opts_pack(opts)
+
+        if self.sorted.nrows == 0:
+            return
 
         # Start the optimization process
         if optmedian or optstarts or optstops or optfull:
