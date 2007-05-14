@@ -372,4 +372,8 @@ def _column__createIndex(self, optlevel, filters, blocksizes, verbose):
     index.dirty = False
     table._indexedrows = indexedrows
     table._unsaved_indexedrows = table.nrows - indexedrows
+
+    # Finally, optimize the index that has been already filled-up
+    index.optimize()
+
     return indexedrows

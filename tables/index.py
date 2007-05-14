@@ -415,9 +415,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.lengths = numpy.empty(shape=self.nrows, dtype=numpy.int32)
         """Lengths of the values fulfilling conditions for every slice."""
 
-        # Everything has been setup. Proceed with the optimization.
-        self.optimize()
-
 
     def _g_updateDependent(self):
         super(Index, self)._g_updateDependent()
