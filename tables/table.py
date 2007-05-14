@@ -2209,10 +2209,8 @@ The 'names' parameter must be a list of strings.""")
         for colname in newcols:
             oldcolindex = oldcols[colname].index
             if oldcolindex:
-                blocksizes = oldcolindex.blocksizes
-                opts = oldcolindex.opts
                 newcol = newcols[colname]
-                newcol.createIndex()
+                newcol.createIndex(oldcolindex.optlevel, oldcolindex.filters)
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
@@ -2691,10 +2689,8 @@ class Column(object):
     Public methods
     --------------
 
-    createIndex([filters])
+    createIndex([optlevel][, filters])
         Create an index for this column.
-    optimizeIndex([level])
-        Optimize an already created index for this column.
     reIndex()
         Recompute the index associated with this column.
     reIndexDirty()
@@ -2900,57 +2896,36 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex( self, filters=None, _blocksizes=None,
-                     _testmode=False, _verbose=False ):
+    def createIndex( self, optlevel=6, filters=None,
+                     _blocksizes=None, _testmode=False, _verbose=False ):
         """
         Create an index for this column.
+
+        You can select the optimization level of the index by setting
+        `optlevel` from 0 (no optimization) to 9 (maximum optimization).
+        Higher levels of optimization mean better chances for reducing
+        the entropy of the index at the price of using more CPU and I/O
+        resources for creating the index.
 
         The `filters` argument can be used to set the `Filters` used to
         compress the index.  If ``None``, default index filters will be
         used (currently, zlib level 1 with shuffling).
 
-        See the `Column.optimizeIndex()` method for optimizing the
-        created index.
-
         .. Note:: Column indexing is only available in PyTables Pro.
         """
 
         _checkIndexingAvailable()
+        if (not isinstance(optlevel, (int, long)) or
+            (optlevel < 0 or optlevel > 9)):
+            raise (ValueError,
+                   "Optimization level should be an integer in the range 0-9.")
         if (_blocksizes is not None and
             (type(_blocksizes) is not tuple or len(_blocksizes) != 4)):
             raise (ValueError,
                    "_blocksizes must be a tuple with exactly 4 elements.")
-        idxrows = _column__createIndex(self, filters, _blocksizes,  _verbose)
+        idxrows = _column__createIndex(self, optlevel, filters,
+                                       _blocksizes,  _verbose)
         return idxrows
-
-
-    def optimizeIndex(self, level=6, _opts=None,
-                      _testmode=False, _verbose=False):
-        """
-        Optimize an already created index for this column.
-
-        You can select the optimization level of the index by setting
-        `level` from 0 (no optimization) to 9 (maximum optimization).
-        Higher levels of optimization mean better chances for reducing
-        the entropy of the index at the price of using more CPU and I/O
-        resources for creating the index.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-        """
-
-        if (type(level) not in (int, long) or
-            (level < 0 or level > 9)):
-            raise ValueError, "Optimization level should be in the range 0-9."
-        if (_opts is not None and
-            (type(_opts) is not tuple or len(_opts) != 4)):
-            raise ValueError, "_opts must be a tuple with exactly 4 elements."
-        if not self.index:
-            warnings.warn("""\
-column '%s' is not indexed, so it can't be optimized."""
-                          % (self.pathname), UserWarning)
-            return
-        if level > 0 or _opts != None:
-            self.index.optimize(level, _opts, _testmode, _verbose)
 
 
     def reIndex(self):

@@ -77,7 +77,7 @@ def computeslicesize(expectedrows, memlevel):
     ss = int(cs * memlevel**2)
     # We *need* slicesize to be an exact multiple of the actual chunksize
     ss = (ss // chunksize) * chunksize
-    ss *= 8    # slicesize should be at least divisible by 2
+    ss *= 4    # slicesize should be at least divisible by 4
     # ss cannot be bigger than 2**32 - 1 elements because of
     # implementation reasons (this limitation can be overridden when
     # keysort would be implemented for the string type)
@@ -104,7 +104,7 @@ def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
     return size
 
 
-def calcChunksize(expectedrows, memlevel=4):
+def calcChunksize(expectedrows, optlevel=6, memlevel=4):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -116,6 +116,17 @@ def calcChunksize(expectedrows, memlevel=4):
 
     chunksize = computechunksize(expectedrows)
     slicesize = computeslicesize(expectedrows, memlevel)
+    # Correct the slicesize and the chunksize based on optlevel
+    if optlevel in (0,1,2):
+        slicesize /= 2
+    elif optlevel in (3,4,5):
+        pass
+    elif optlevel in (6,7,8):
+        chunksize /= 2
+    elif optlevel == 9:
+        # Reducing the chunksize and enlarging the slicesize is the
+        # best way to reduce the entropy with the current algorithm.
+        chunksize /= 2; slicesize *= 2
     blocksize = computeblocksize(expectedrows, slicesize, chunksize)
     superblocksize = computeblocksize(expectedrows, blocksize, slicesize)
     # The size for different blocks information
@@ -123,29 +134,13 @@ def calcChunksize(expectedrows, memlevel=4):
     return sizes
 
 
-# Dictionary of optimization values for the test mode
-opts_testmode_dict = {0: (0,0,0,0),
-                      1: (1,0,0,0),
-                      2: (0,1,0,0),
-                      3: (0,0,1,0),
-                      4: (0,1,1,0),
-                      5: (1,1,1,0),
-                      6: (1,1,1,1),
-                      7: (0,0,0,1),
-                      8: (0,0,0,2),
-                      9: (0,0,0,3),
-                      }
-
-def calcoptlevels(nblocks, optlevel, testmode):
+def calcoptlevels(nblocks, optlevel):
     """Compute the optimizations to be done.
 
     The calculation is based on the number of blocks and the optlevel.
     """
 
     optmedian, optstarts, optstops, optfull = (False,)*4
-    if testmode:
-        optmedian, optstarts, optstops, optfull = opts_testmode_dict[optlevel]
-        return optmedian, optstarts, optstops, optfull
 
     # Regular case
     if nblocks <= 1:
@@ -164,23 +159,6 @@ def calcoptlevels(nblocks, optlevel, testmode):
             optfull = 3
 
     return optmedian, optstarts, optstops, optfull
-
-
-# Function to pack and unpack optimizations for index
-def opts_pack(opts):
-    packed = numpy.int32(0)
-    for opt in opts[::-1]:  # pack in reverse order
-        packed |= opt
-        packed <<= 8
-    return packed
-
-
-def opts_unpack(packed):
-    opts = []
-    for i in range(4):
-        opts.append(int(packed & 0xff))
-        packed >>= 8
-    return tuple(opts)
 
 
 # Python implementations of NextAfter and NextAfterF

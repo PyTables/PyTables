@@ -280,7 +280,7 @@ def sliceCoords(coords, start, stop, step):
     valid = _sliceCoordsFunc(coords, start, stop, step)
     return coords[valid]
 
-def _column__createIndex(self, filters, blocksizes, verbose):
+def _column__createIndex(self, optlevel, filters, blocksizes, verbose):
     name = self.name
     table = self.table
     tableName = table._v_name
@@ -352,6 +352,7 @@ def _column__createIndex(self, filters, blocksizes, verbose):
     index = Index(
         idgroup, name, atom=atom, column=self,
         title="Index for %s column" % name,
+        optlevel=optlevel,
         filters=filters,
         expectedrows=expectedrows,
         byteorder=table.byteorder,

@@ -230,9 +230,9 @@ class BaseTableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
             vprint("* Indexing ``%s`` columns." % colname)
             for acolname in [colname, ncolname]:
                 acolumn = self.table.colinstances[acolname]
-                acolumn.createIndex(_blocksizes=small_blocksizes,
+                acolumn.createIndex(optlevel=self.optlevel,
+                                    _blocksizes=small_blocksizes,
                                     _testmode=True)
-                acolumn.optimizeIndex(self.optlevel)
 
         except TypeError, te:
             if self.colNotIndexable_re.search(str(te)):

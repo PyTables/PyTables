@@ -38,8 +38,8 @@ import sys
 
 import numpy
 
-from idxutils import calcChunksize, calcoptlevels, opts_pack, opts_unpack, \
-     nextafter, infType, show_stats
+from idxutils import calcChunksize, calcoptlevels, show_stats, \
+     nextafter, infType
 
 from tables import indexesExtension
 from tables import utilsExtension
@@ -203,8 +203,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def __init__(self, parentNode, name,
-                 atom=None, column=None,
-                 title="", filters=None,
+                 atom=None, column=None, title="",
+                 optlevel=None,
+                 filters=None,
                  expectedrows=0,
                  byteorder=None,
                  blocksizes=None,
@@ -220,6 +221,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         column -- The column object to be indexed
 
         title -- Sets a TITLE attribute of the Index entity.
+
+        optlevel -- The desired optimization level for this index.
 
         filters -- An instance of the Filters class that provides
             information about the desired I/O filters to be applied
@@ -241,6 +244,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self._v_version = None
         """The object version of this index."""
 
+        self.optlevel = optlevel
+        """The optimization level for this index."""
         self.expectedrows = expectedrows
         """The expected number of items of index arrays."""
         if byteorder in ["little", "big"]:
@@ -267,8 +272,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """The number of currently indexed row for this column."""
         self.blocksizes = blocksizes
         """The four main sizes of the compound blocks (if specified)."""
-        self.opts = (False,)*4
-        """The four optimization procedures applied."""
         self.dirtycache = True
         """Dirty cache (for ranges, bounds & sorted) flag."""
         self.superblocksize = None
@@ -308,7 +311,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.chunksize = attrs.chunksize
             self.blocksizes = (self.superblocksize, self.blocksize,
                                self.slicesize, self.chunksize)
-            self.opts = opts_unpack(attrs.opts)
+            self.optlevel = attrs.optlevel
             sorted = self.sorted
             self.dtype = sorted.atom.dtype
             self.type = sorted.atom.type
@@ -343,7 +346,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Compute the superblocksize, blocksize, slicesize and chunksize values
         # (in case these parameters haven't been passed to the constructor)
         if self.blocksizes is None:
-            self.blocksizes = calcChunksize(self.expectedrows)
+            self.blocksizes = calcChunksize(self.expectedrows, self.optlevel)
         (self.superblocksize, self.blocksize,
          self.slicesize, self.chunksize) = self.blocksizes
         if debug:
@@ -354,10 +357,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self._v_attrs.blocksize = numpy.int64(self.blocksize)
         self._v_attrs.slicesize = numpy.uint32(self.slicesize)
         self._v_attrs.chunksize = numpy.uint32(self.chunksize)
-
-        # Save the optimization procedures (this attribute will be
-        # overwritten in case an optimization is made later on)
-        self._v_attrs.opts = opts_pack(self.opts)
+        # Save the optlevel as well
+        self._v_attrs.optlevel = self.optlevel
 
         # Create the IndexArray for sorted values
         atom = Atom.from_dtype(self.dtype)
@@ -413,6 +414,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         """Where the values fulfiling conditions starts for every slice."""
         self.lengths = numpy.empty(shape=self.nrows, dtype=numpy.int32)
         """Lengths of the values fulfilling conditions for every slice."""
+
+        # Everything has been setup. Proceed with the optimization.
+        self.optimize()
 
 
     def _g_updateDependent(self):
@@ -511,24 +515,16 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if profile: show_stats("Eixint de appendLR", tref)
 
 
-    def optimize(self, level, opts=None, testmode=False, verbose=False):
+    def optimize(self, verbose=False):
         """Optimize an index so as to allow faster searches.
-
-        level -- The desired level of optimization for the index.
-
-        opts -- A low level specification of the optimizations for the
-            index. It is a tuple with the format ``(optmedian,
-            optstarts, optstops, optfull)``.
-
-        testmode -- If True, a optimization specific to be used in
-            tests is used (basically, it does not depend on anything
-            but the `level` argument). This is not considered if
-            `opts` is specified.
 
         verbose -- If True, messages about the progress of the
             optimization process are printed out.
 
         """
+
+        if self.optlevel == 0 or self.sorted.nrows == 0:
+            return
 
         if verbose == True:
             self.verbose = True
@@ -542,17 +538,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.verbose:
             (nover, mult, tover) = self.compute_overlaps("init", self.verbose)
 
-        # Compute the correct optimizations for optim level (if needed)
-        if opts is None:
-            opts = calcoptlevels(self.nblocks, level, testmode)
+        # Compute the correct optimizations for current optim level
+        opts = calcoptlevels(self.nblocks, self.optlevel)
         optmedian, optstarts, optstops, optfull = opts
+
         if debug:
             print "optvalues:", opts
-        # Overwrite the new optimizations in opts (a packed attribute)
-        self._v_attrs.opts = opts_pack(opts)
-
-        if self.sorted.nrows == 0:
-            return
 
         # Start the optimization process
         if optmedian or optstarts or optstops or optfull:
@@ -590,7 +581,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # This should be called only if the overlaps are not zero
             # and in full optimization mode!
             (nover, mult, tover) = self.compute_overlaps("", False)
-            if nover > 0 and level == 9:
+            if nover > 0 and self.optlevel == 9:
                 # Do a last pass by reordering the slices alone
                 self.swap('reorder_slices')
             if swap_done:
