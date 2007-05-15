@@ -4,56 +4,55 @@ def get_values(filename):
     f = open(filename)
     sizes = []
     values = []
+    isize = None
     for line in f:
         if line.startswith('range'):
             tmp = line.split(':')[1]
             tmp = tmp.strip()
             tmp = tmp[1:-1]
-            tmp = tmp.split(',')[1]
-            isize = int(tmp)*2
+            lower, upper = int(tmp.split(',')[0]), int(tmp.split(',')[1])
+            isize = upper - lower
             #print "isize-->", isize
-        if line.startswith('Insert time'):
+        if isize is None or isize == 0:
+            continue
+        if insert and line.startswith('Insert time'):
             tmp = line.split(':')[1]
             #itime = float(tmp[:tmp.index(',')])
             itime = float(tmp)
-            if insert:
-                sizes.append(isize)
-                values.append(itime)
-        if line.startswith('Index time'):
+            sizes.append(isize)
+            values.append(itime)
+        elif line.startswith('Index time'):
             tmp = line.split(':')[1]
             #xtime = float(tmp[:tmp.index(',')])
             xtime = float(tmp)
             txtime += xtime
-            if create_index and line.find(create_index) <> -1:
+            if create_index and create_index in line:
                 sizes.append(isize)
                 values.append(xtime)
             elif create_total and txtime > xtime:
                 sizes.append(isize)
                 values.append(txtime)
-        if line.startswith('Table size'):
+        elif table_size and line.startswith('Table size'):
             tsize = float(line.split(':')[1])
-            if table_size:
-                sizes.append(isize)
-                values.append(tsize)
-        if line.startswith('Indexes size'):
+            sizes.append(isize)
+            values.append(tsize)
+        elif indexes_size and line.startswith('Indexes size'):
             xsize = float(line.split(':')[1])
-            if indexes_size:
-                sizes.append(isize)
-                values.append(xsize)
-        if line.startswith('Full size'):
+            sizes.append(isize)
+            values.append(xsize)
+        elif total_size and line.startswith('Full size'):
             fsize = float(line.split(':')[1])
-            if total_size:
-                sizes.append(isize)
-                values.append(fsize)
-        if line.startswith('Query time'):
+            sizes.append(isize)
+            values.append(fsize)
+        elif (query or query_cache) and line.startswith('[NOREP]'):
             tmp = line.split(':')[1]
-            #qtime = float(tmp[:tmp.index(',')])
-            qtime = float(tmp)
-            if (query or query_cache) and line.find(colname) <> -1:
-                if query and line.find('cache') == -1:
+            if colname in line:
+                if query and '1st' in line:
+                    qtime = float(tmp)
                     sizes.append(isize)
                     values.append(qtime)
-                if query_cache and line.find('cache') <> -1:
+                elif query_cache and 'cache' in line:
+                    qtime = float(tmp[:tmp.index('+-')])
                     sizes.append(isize)
                     values.append(qtime)
 
@@ -64,7 +63,7 @@ def show_plot(plots, yaxis, legends, gtitle):
     xlabel('Number of hits')
     ylabel(yaxis)
     title(gtitle)
-    ylim(0, 400)
+    #ylim(0, 400)
     grid(True)
 
 #     legends = [f[f.find('-'):f.index('.out')] for f in filenames]
@@ -198,20 +197,11 @@ if __name__ == '__main__':
     for filename in filenames:
         plegend = filename[filename.find('-'):filename.index('.out')]
         plegend = plegend.replace('-', ' ')
-        if filename.find('PyTables') <> -1:
-            xval, yval = get_values(filename)
-            print "Values for %s --> %s, %s" % (filename, xval, yval)
-            if xval != []:
-                #plots.append(loglog(xval, yval, linewidth=5))
-                plots.append(semilogx(xval, yval, linewidth=5))
-                legends.append(plegend)
-        else:
-            xval, yval = get_values(filename)
-            print "Values for %s --> %s, %s" % (filename, xval, yval)
-            #plots.append(loglog(xval, yval, linewidth=5))
-            plots.append(semilogx(xval, yval, linewidth=5))
-            #legends.append("PyTables Std")
-            legends.append(plegend)
+        xval, yval = get_values(filename)
+        print "Values for %s --> %s, %s" % (filename, xval, yval)
+        plots.append(loglog(xval, yval, linewidth=5))
+        #plots.append(semilogx(xval, yval, linewidth=5))
+        legends.append(plegend)
     if 0:  # Per a introduir dades simulades si es vol...
         xval = [1000, 10000, 100000, 1000000, 10000000,
                 100000000, 1000000000]
