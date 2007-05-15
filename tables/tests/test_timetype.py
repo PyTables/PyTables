@@ -18,7 +18,9 @@ import os
 import numpy
 
 import tables
-from tables.tests.common import verbose, allequal, cleanup
+from tables.tests import common
+from tables.tests.common import (
+    verbose, cleanup, allequal)
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = cleanup
@@ -28,7 +30,7 @@ __revision__ = '$Id$'
 
 
 
-class LeafCreationTestCase(unittest.TestCase):
+class LeafCreationTestCase(common.PyTablesTestCase):
     "Tests creating Tables, VLArrays an EArrays with Time data."
 
     def setUp(self):
@@ -100,7 +102,7 @@ class LeafCreationTestCase(unittest.TestCase):
 
 
 
-class OpenTestCase(unittest.TestCase):
+class OpenTestCase(common.PyTablesTestCase):
     "Tests opening a file with Time nodes."
 
     # The description used in the test Table.
@@ -212,7 +214,7 @@ class OpenTestCase(unittest.TestCase):
 
 
 
-class CompareTestCase(unittest.TestCase):
+class CompareTestCase(common.PyTablesTestCase):
     "Tests whether stored and retrieved time data is kept the same."
 
     # The description used in the test Table.
@@ -454,7 +456,7 @@ class CompareTestCase(unittest.TestCase):
 
 
 
-class UnalignedTestCase(unittest.TestCase):
+class UnalignedTestCase(common.PyTablesTestCase):
     "Tests writing and reading unaligned time values in a table."
 
     # The description used in the test Table.
@@ -542,6 +544,114 @@ class UnalignedTestCase(unittest.TestCase):
 
 
 
+class BigEndianTestCase(common.PyTablesTestCase):
+    "Tests for reading big-endian time values in arrays and nested tables."
+
+    def setUp(self):
+        filename = self._testFilename('times-nested-be.h5')
+        self.h5f = tables.openFile(filename, 'r')
+
+
+    def tearDown(self):
+        self.h5f.close()
+
+
+    def test00a_Read32Array(self):
+        "Checking Time32 type in arrays."
+
+        # Check the written data.
+        earr = self.h5f.root.earr32[:]
+
+        # Generate the expected Time32 array.
+        start = 1178896298
+        nrows = 10
+        orig_val = numpy.arange(start, start+nrows, dtype=numpy.int32)
+
+        if verbose:
+            print "Retrieved values:", earr
+            print "Should look like:", orig_val
+        self.assert_(
+                numpy.alltrue(earr == orig_val),
+                "Retrieved values do not match the expected values.")
+
+
+    def test00b_Read64Array(self):
+        "Checking Time64 type in arrays."
+
+        # Check the written data.
+        earr = self.h5f.root.earr64[:]
+
+        # Generate the expected Time64 array.
+        start = 1178896298.832258
+        nrows = 10
+        orig_val = numpy.arange(start, start+nrows, dtype=numpy.float64)
+
+        if verbose:
+            print "Retrieved values:", earr
+            print "Should look like:", orig_val
+        self.assert_(
+                numpy.allclose(earr, orig_val, rtol=1.e-15),
+                "Retrieved values do not match the expected values.")
+
+
+    def test01a_ReadPlainColumn(self):
+        "Checking Time32 type in plain columns."
+
+        # Check the written data.
+        t32 = self.h5f.root.tbl.cols.t32[:]
+
+        # Generate the expected Time32 array.
+        start = 1178896298
+        nrows = 10
+        orig_val = numpy.arange(start, start+nrows, dtype=numpy.int32)
+
+        if verbose:
+            print "Retrieved values:", t32
+            print "Should look like:", orig_val
+        self.assert_(
+                numpy.alltrue(t32 == orig_val),
+                "Retrieved values do not match the expected values.")
+
+
+    def test01b_ReadNestedColumn(self):
+        "Checking Time64 type in nested columns."
+
+        # Check the written data.
+        t64 = self.h5f.root.tbl.cols.nested.t64[:]
+
+        # Generate the expected Time64 array.
+        start = 1178896298.832258
+        nrows = 10
+        orig_val = numpy.arange(start, start+nrows, dtype=numpy.float64)
+
+        if verbose:
+            print "Retrieved values:", t64
+            print "Should look like:", orig_val
+        self.assert_(
+                numpy.allclose(t64, orig_val, rtol=1.e-15),
+                "Retrieved values do not match the expected values.")
+
+
+    def test02_ReadNestedColumnTwice(self):
+        "Checking Time64 type in nested columns (read twice)."
+
+        # Check the written data.
+        _ = self.h5f.root.tbl.cols.nested.t64[:]
+        t64 = self.h5f.root.tbl.cols.nested.t64[:]
+
+        # Generate the expected Time64 array.
+        start = 1178896298.832258
+        nrows = 10
+        orig_val = numpy.arange(start, start+nrows, dtype=numpy.float64)
+
+        if verbose:
+            print "Retrieved values:", t64
+            print "Should look like:", orig_val
+        self.assert_(
+                numpy.allclose(t64, orig_val, rtol=1.e-15),
+                "Retrieved values do not match the expected values.")
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -556,9 +666,7 @@ def suite():
     theSuite.addTest(unittest.makeSuite(OpenTestCase))
     theSuite.addTest(unittest.makeSuite(CompareTestCase))
     theSuite.addTest(unittest.makeSuite(UnalignedTestCase))
-
-# More tests are needed so as to check atributes, compression, exceptions,
-# etc... Francesc Altet 2005-01-06
+    theSuite.addTest(unittest.makeSuite(BigEndianTestCase))
 
     return theSuite
 

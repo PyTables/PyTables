@@ -2202,9 +2202,9 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var1"] <= sl]
         results1.sort(); results2.sort()
         if verbose:
-#             print "Superior & inferior limits:", il, sl
-#             print "Selection results (index):", results1
-#             print "Should look like:", results2
+            print "Superior & inferior limits:", il, sl
+            print "Selection results (index):", results1
+            print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
