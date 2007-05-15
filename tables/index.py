@@ -744,17 +744,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             nslices = ncb2/ncs
             bounds = boundsobj[nblock*ncb:nblock*ncb+ncb2]
             sbounds_idx = bounds.argsort(kind=defsort)
-            # Don't swap the block at all if it doesn't need to
-            ndiff = (sbounds_idx != numpy.arange(ncb2)).sum()/2
-            if ndiff*20 < ncb2:
-                # The number of chunks to rearrange is less than 5%,
-                # so skip the reordering of this superblock
-                # (too expensive for such a little improvement)
-                if self.verbose:
-                    print "skipping reordering of block-->", nblock, ndiff, ncb2
-                continue
-            # Swap sorted and indices following the new order
             offset = nblock*nsb
+            # Swap sorted and indices following the new order
             self.get_neworder(sbounds_idx, sorted, tmp_sorted,
                               nslices, offset, self.dtype)
             self.get_neworder(sbounds_idx, indices, tmp_indices,
