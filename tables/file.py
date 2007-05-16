@@ -1240,6 +1240,10 @@ class File(hdf5Extension.File, object):
         file.
         """
 
+        # Check that we are not treading our own shoes
+        if os.path.abspath(self.filename) == os.path.abspath(dstfilename):
+            raise IOError("You cannot copy a file over itself")
+
         self._checkOpen()
 
         # Compute default arguments.

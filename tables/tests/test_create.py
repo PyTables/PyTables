@@ -1003,11 +1003,12 @@ class CopyFileTestCase(unittest.TestCase):
         # Close the file
         if self.h5file.isopen:
             self.h5file.close()
-        if self.h5file2.isopen:
+        if hasattr(self, 'h5file2') and self.h5file2.isopen:
             self.h5file2.close()
 
         os.remove(self.file)
-        os.remove(self.file2)
+        if hasattr(self, 'file2') and os.path.exists(self.file2):
+            os.remove(self.file2)
         cleanup(self)
 
     #----------------------------------------
@@ -1050,6 +1051,16 @@ class CopyFileTestCase(unittest.TestCase):
         assert srcgroup._v_nchildren == dstgroup._v_nchildren
         assert nodelist1 == nodelist2
         assert self.h5file2.title == self.title
+
+    def test00a_srcdstequal(self):
+        "Checking copy of a File (srcfile == dstfile)"
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00a_srcdstequal..." % self.__class__.__name__
+
+        # Copy the file to the destination
+        self.assertRaises(IOError, self.h5file.copyFile, self.h5file.filename)
 
     def test00b_firstclass(self):
         "Checking copy of a File (first-class function)"
