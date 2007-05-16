@@ -921,14 +921,24 @@ class BasicTestCase(common.PyTablesTestCase):
         for i in xrange(9):
             row['var2'] = 110+i
             row.append()
+        table.flush()  # XXX al eliminar...
         result = [ row['var2'] for row in table.iterrows()
                    if 100 <= row['var2'] < 120 ]
         if verbose:
             print "Result length ==>", len(result)
             print "Result contents ==>", result
-        assert len(result) == 19
-        assert result == [100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
-                          110, 111, 112, 113, 114, 115, 116, 117, 118]
+        if table.nrows > 119:
+            # Case for big tables
+            assert len(result) == 39
+            assert result == [100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+                              110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+                              100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+                              110, 111, 112, 113, 114, 115, 116, 117, 118]
+        else:
+            assert len(result) == 19
+            assert result == [100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+                              110, 111, 112, 113, 114, 115, 116, 117, 118]
+            
 
     # CAVEAT: The next test only works for tables with rows < 2**15
     def test03_endianess(self):
