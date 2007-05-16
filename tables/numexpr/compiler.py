@@ -214,6 +214,8 @@ def stringToExpression(s, types, context):
         ex = eval(c, names)
         if expressions.isConstant(ex):
             ex = expressions.ConstantNode(ex, expressions.getKind(ex))
+        elif not isinstance(ex, expressions.ExpressionNode): 
+            raise TypeError("unsupported expression type: %s" % type(ex))
     finally:
         expressions._context.ctx = old_ctx
 
