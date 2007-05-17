@@ -83,11 +83,13 @@ def show_plot(plots, yaxis, legends, gtitle):
     xlabel('Number of rows')
     ylabel(yaxis)
     title(gtitle)
+    xlim(10**3, 10**9)
     grid(True)
 
 #     legends = [f[f.find('-'):f.index('.out')] for f in filenames]
 #     legends = [l.replace('-', ' ') for l in legends]
     legend([p[0] for p in plots], legends, loc = "upper left")
+    #legend([p[0] for p in plots], legends, loc = "center left")
 
 
     #subplots_adjust(bottom=0.2, top=None, wspace=0.2, hspace=0.2)
@@ -170,7 +172,7 @@ if __name__ == '__main__':
         elif option[0] == '--create-index':
             create_index = option[1]
             yaxis = "Time (s)"
-            gtitle = "Create index time for column " + create_index
+            gtitle = "Create index time for " + create_index + " column"
         elif option[0] == '--create-total':
             create_total = 1
             yaxis = "Time (s)"
@@ -191,22 +193,25 @@ if __name__ == '__main__':
             query = 1
             colname = option[1]
             yaxis = "Time (s)"
-            gtitle = "Query time for " + colname + " (first query)"
+            gtitle = "Query time for " + colname + " column (first query)"
         elif option[0] == '--query-cold':
             query_cold = 1
             colname = option[1]
             yaxis = "Time (s)"
-            gtitle = "Query time for " + colname + " (cold cache)"
+            gtitle = "Query time for " + colname + " column (cold cache)"
         elif option[0] == '--query-warm':
             query_warm = 1
             colname = option[1]
             yaxis = "Time (s)"
-            gtitle = "Query time for " + colname + " (warm cache)"
+            gtitle = "Query time for " + colname + " column (warm cache)"
         elif option[0] == '--query-repeated':
             query_repeated = 1
             colname = option[1]
             yaxis = "Time (s)"
-            gtitle = "Query time for " + colname + " (repeated query)"
+            gtitle = "Query time for " + colname + " column (repeated query)"
+
+    gtitle = gtitle.replace('col2', 'Int32')
+    gtitle = gtitle.replace('col4', 'Float64')
 
     filenames = pargs
 
@@ -227,11 +232,10 @@ if __name__ == '__main__':
                 #plots.append(semilogx(xval, yval, linewidth=5))
                 legends.append(plegend)
         else:
-            xval, yval = get_values(filename, '')
+            xval, yval = get_values(filename)
             print "Values for %s --> %s, %s" % (filename, xval, yval)
             plots.append(loglog(xval, yval, linewidth=5))
             #plots.append(semilogx(xval, yval, linewidth=5))
-            #legends.append("PyTables Std")
             legends.append(plegend)
     if 0:  # Per a introduir dades simulades si es vol...
         xval = [1000, 10000, 100000, 1000000, 10000000,
