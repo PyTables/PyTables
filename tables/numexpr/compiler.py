@@ -188,7 +188,6 @@ class Immediate(Register):
     def __str__(self):
         return 'Immediate(%d)' % (self.node.value,)
 
-
 def stringToExpression(s, types, context):
     """Given a string, convert it to a tree of ExpressionNode's.
     """
@@ -202,9 +201,9 @@ def stringToExpression(s, types, context):
         for name in c.co_names:
             if name == "None":
                 names[name] = None
-            elif name == "True": 
-                names[name] = True 
-            elif name == "False": 
+            elif name == "True":
+                names[name] = True
+            elif name == "False":
                 names[name] = False
             else:
                 t = types.get(name, float)
@@ -214,11 +213,10 @@ def stringToExpression(s, types, context):
         ex = eval(c, names)
         if expressions.isConstant(ex):
             ex = expressions.ConstantNode(ex, expressions.getKind(ex))
-        elif not isinstance(ex, expressions.ExpressionNode): 
+        elif not isinstance(ex, expressions.ExpressionNode):
             raise TypeError("unsupported expression type: %s" % type(ex))
     finally:
         expressions._context.ctx = old_ctx
-
     return ex
 
 
