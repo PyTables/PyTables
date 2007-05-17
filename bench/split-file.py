@@ -27,10 +27,14 @@ for line in f:
                 optlevel = int(param[1])
             elif param[:-1] in ('zlib', 'lzo'):
                 complib = param
-        if complib:
-            sfilename = "%s-O%s-%s.out" % (prefix, optlevel, complib)
+        if 'PyTables' in prefix:
+            if complib:
+                sfilename = "%s-O%s-%s.out" % (prefix, optlevel, complib)
+            else:
+                sfilename = "%s-O%s.out" % (prefix, optlevel,)
         else:
-            sfilename = "%s-O%s.out" % (prefix, optlevel,)
+            sfilename = "%s.out" % (prefix,)
         sf = file(sfilename, 'a')
-    sf.write(line)
+    if sf:
+        sf.write(line)
 f.close()
