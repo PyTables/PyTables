@@ -95,7 +95,12 @@ class SelectValuesTestCase(unittest.TestCase):
         table2.flush()
         # Index all entries:
         for col in table1.colinstances.itervalues():
-            indexrows = col.createIndex(_blocksizes=self.blocksizes)
+            if not heavy:
+                indexrows = col.createIndex(_blocksizes=self.blocksizes)
+            else:
+                # Do optimization only with heavy tests
+                indexrows = col.createIndex(optlevel=9,
+                                            _blocksizes=self.blocksizes)
         if verbose:
             print "Number of written rows:", table1.nrows
             print "Number of indexed rows:", indexrows
@@ -2202,9 +2207,9 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var1"] <= sl]
         results1.sort(); results2.sort()
         if verbose:
-            print "Superior & inferior limits:", il, sl
-            print "Selection results (index):", results1
-            print "Should look like:", results2
+#             print "Superior & inferior limits:", il, sl
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
