@@ -1141,6 +1141,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         hi = self.nelementsLR               # maximum number of elements
         assert hi == self.nelements - self.sorted.nrows * self.slicesize
 
+        nchunk = -1
         # Lookup for item1
         if item1 > b0:
             if item1 <= b1:
