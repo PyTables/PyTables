@@ -48,6 +48,13 @@ SORTED_MAX_SIZE = 1*_MB
 INDICES_MAX_SIZE = 1*_MB
 """The maximum size for indices values cached during index lookups."""
 
+SORTEDLR_MAX_SLOTS = 128
+"""The maximum number of chunks in last row cached in data lookups."""
+
+SORTEDLR_MAX_SIZE = 1*_MB
+"""The maximum space that will take SORTEDLR cache (in bytes)."""
+
+
 ENABLE_EVERY_CYCLES = 50
 """The number of cycles that the several LRU caches for data (not nodes)
 will be forced to be (re-)enabled, irregardingly of the hit ratio. This

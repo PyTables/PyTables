@@ -36,27 +36,20 @@ def csformula(nrows):
     return 64 * 2**math.log10(nrows)
 
 
+def limit_er(expectedrows):
+    """Protection against creating too small or too large chunks or slices."""
+    if expectedrows < 10**5:
+        expectedrows = 10**5
+    elif expectedrows > 10**12:
+        expectedrows = 10**12
+    return expectedrows
+
+
 def computechunksize(expectedrows):
     """Get the optimum chunksize based on expectedrows."""
 
-    # Nine zones for varying chunksizes here:
-    # 1. rows < 10**3
-    # 2. 10**3 <= rows < 10**4
-    # 3. 10**4 <= rows < 10**5
-    # 4. 10**5 <= rows < 10**6
-    # 5. 10**6 <= rows < 10**7
-    # 6. 10**7 <= rows < 10**8
-    # 7. 10**8 <= rows < 10**9
-    # 8. 10**9 <= rows < 10**10
-    # 9. rows >= 10**10
+    expectedrows = limit_er(expectedrows)
     zone = int(math.log10(expectedrows))
-    # Protection against creating too small or too large chunks
-    if zone < 3:
-        zone = 3
-    elif zone > 12:
-        # It is important to limit the size of the chunksize or
-        # the times for reading a single chunk can grow too much.
-        zone = 12
     nrows = 10**zone
     return int(csformula(nrows))
 
@@ -64,11 +57,7 @@ def computechunksize(expectedrows):
 def computeslicesize(expectedrows, memlevel):
     """Get the optimum slicesize based on expectedrows and memorylevel."""
 
-    # Protection against creating too small or too large slices
-    if expectedrows < 10**3:
-        expectedrows = 10**3
-    elif expectedrows > 10**12:
-        expectedrows = 10**12
+    expectedrows = limit_er(expectedrows)
     # First, the optimum chunksize
     cs = csformula(expectedrows)
     # Now, the actual chunksize

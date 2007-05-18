@@ -55,6 +55,7 @@ from tables.path import joinPath
 from tables.parameters import (
     LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE,
     BOUNDS_MAX_SLOTS, BOUNDS_MAX_SIZE,
+    SORTEDLR_MAX_SLOTS, SORTEDLR_MAX_SIZE,
     MAX_GROUP_WIDTH )
 from tables.exceptions import PerformanceWarning
 
@@ -1030,8 +1031,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                                           LIMBOUNDS_MAX_SIZE,
                                           'bounding limits')
         """A cache for bounding limits."""
-        self.starts = numpy.empty(shape=self.nrows, dtype = numpy.int32)
-        self.lengths = numpy.empty(shape=self.nrows, dtype = numpy.int32)
+        self.sortedLRcache = ObjectCache(SORTEDLR_MAX_SLOTS,
+                                         SORTEDLR_MAX_SIZE,
+                                         'last row chunks')
+        """A cache for the last row chunks. Only used for searches in
+        the last row, and mainly useful for small indexes."""
+        self.starts = numpy.empty(shape=self.nrows, dtype=numpy.int32)
+        self.lengths = numpy.empty(shape=self.nrows, dtype=numpy.int32)
         # Initialize the sorted array in extension
         self.sorted._initSortedSlice(self)
         self.dirtycache = False
@@ -1126,65 +1132,67 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def searchLastRow(self, item):
+        # Variable initialization
         item1, item2 = item
-        item1done = 0; item2done = 0
-
-        #t1=time()
-        hi = self.nelementsLR               # maximum number of elements
-        bebounds = self.bebounds
-        assert hi == self.nelements - self.sorted.nrows * self.slicesize
-        begin = bebounds[0]
-        # Look for items at the beginning of sorted slices
-        if item1 <= begin:
-            result1 = 0
-            item1done = 1
-        if item2 < begin:
-            result2 = 0
-            item2done = 1
-        if item1done and item2done:
-            return (result1, result2)
-        # Then, look for items at the end of the sorted slice
-        end = bebounds[-1]
-        if not item1done:
-            if item1 > end:
-                result1 = hi
-                item1done = 1
-        if not item2done:
-            if item2 >= end:
-                result2 = hi
-                item2done = 1
-        if item1done and item2done:
-            return (result1, result2)
-        # Finally, do a lookup for item1 and item2 if they were not found
-        # Lookup in the middle of the slice for item1
-        bounds = bebounds[1:-1] # Get the bounds array w/out begin and end
+        b0, b1 = self.bebounds[[0,-1]]
+        bounds = self.bebounds[1:-1]
         readSliceLR = self.sortedLR._readSortedSlice
-        nchunk = -1
-        if not item1done:
-            # Search the appropriate chunk in bounds cache
-            nchunk = bisect.bisect_left(bounds, item1)
-            begin = self.chunksize*nchunk
-            end = self.chunksize*(nchunk+1)
-            if end > hi:
-                end = hi
-            chunk = readSliceLR(self.sorted, begin, end)
-            result1 = bisect.bisect_left(chunk, item1)
-            result1 += self.chunksize*nchunk
-        # Lookup in the middle of the slice for item2
-        if not item2done:
-            # Search the appropriate chunk in bounds cache
-            nchunk2 = bisect.bisect_right(bounds, item2)
-            if nchunk2 <> nchunk:
-                begin = self.chunksize*nchunk2
-                end = self.chunksize*(nchunk2+1)
+        itemsize = self.dtype.itemsize
+        hi = self.nelementsLR               # maximum number of elements
+        assert hi == self.nelements - self.sorted.nrows * self.slicesize
+
+        # Lookup for item1
+        if item1 > b0:
+            if item1 <= b1:
+                # Search the appropriate chunk in bounds cache
+                nchunk = bisect.bisect_left(bounds, item1)
+                begin = self.chunksize*nchunk
+                end = self.chunksize*(nchunk+1)
                 if end > hi:
                     end = hi
-                chunk = readSliceLR(self.sorted, begin, end)
-            result2 = bisect.bisect_right(chunk, item2)
-            result2 += self.chunksize*nchunk2
-        #t = time()-t1
-        #print "time searching indices (last row):", round(t*1000, 3), "ms"
-        return (result1, result2)
+                # Lookup for this chunk in cache
+                nslot = self.sortedLRcache.getslot(nchunk)
+                if nslot >= 0:
+                    chunk = self.sortedLRcache.getitem(nslot)
+                else:
+                    # Read the chunk from disk
+                    chunk = readSliceLR(self.sorted, begin, end)
+                    # Put it in cache
+                    self.sortedLRcache.setitem(nchunk, chunk,
+                                               (end-begin)*itemsize)
+                start = bisect.bisect_left(chunk, item1)
+                start += self.chunksize*nchunk
+            else:
+                start = hi
+        else:
+            start = 0
+        # Lookup for item2
+        if item2 >= b0:
+            if item2 < b1:
+                # Search the appropriate chunk in bounds cache
+                nchunk2 = bisect.bisect_right(bounds, item2)
+                if nchunk2 <> nchunk:
+                    begin = self.chunksize*nchunk2
+                    end = self.chunksize*(nchunk2+1)
+                    if end > hi:
+                        end = hi
+                    # Lookup for this chunk in cache
+                    nslot = self.sortedLRcache.getslot(nchunk2)
+                    if nslot >= 0:
+                        chunk = self.sortedLRcache.getitem(nslot)
+                    else:
+                        # Read the chunk from disk
+                        chunk = readSliceLR(self.sorted, begin, end)
+                        # Put it in cache
+                        self.sortedLRcache.setitem(nchunk2, chunk,
+                                                   (end-begin)*itemsize)
+                stop = bisect.bisect_right(chunk, item2)
+                stop += self.chunksize*nchunk2
+            else:
+                stop = hi
+        else:
+            stop = 0
+        return (start, stop)
 
 
     def getLookupRange(self, ops, limits, table):
