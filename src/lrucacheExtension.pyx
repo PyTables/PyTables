@@ -341,7 +341,6 @@ cdef class ObjectCache(BaseCache):
   # Put the object in cache (for Pyrex calls)
   # size can be the exact size of the value object or an estimation.
   cdef long setitem_(self, object key, object value, long size):
-    cdef ObjectNode node
     cdef long nslot, nslot1
     cdef object lruidx
 
@@ -365,7 +364,7 @@ cdef class ObjectCache(BaseCache):
       # Protection against too large data cache size
       while size + self.cachesize > self.maxcachesize:
         # Remove the largest object in last 10 LRU nodes
-        lruidx = self.atimes.argsort()[:10]
+        lruidx = self.atimes[:self.nextslot].argsort()[:10]
         nslot1 = self.sizes[lruidx].argmax()
         nslot = lruidx[nslot1]
         self.removeslot_(nslot)

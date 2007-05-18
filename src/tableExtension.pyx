@@ -831,7 +831,6 @@ cdef class Row:
           if tmp.size > 0 and self.start > 0:
             # Pyrex can't use the tmp>=number notation when tmp is a numpy
             # object. Why?
-            # XYX Xequejar aco per a numpy...
             tmp = tmp[tmp.__ge__(self.start)]
           if tmp.size > 0 and self.stop < self.nrows:
             tmp = tmp[tmp.__lt__(self.stop)]
