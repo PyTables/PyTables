@@ -358,6 +358,22 @@ class Table(tableExtension.Table, Leaf):
     _v_wdflts = property(_g_getwdflts, None, None,
                          "The defaults for writing in recarray format.")
 
+    def _getcolunaligned(self):
+        mydict = self.__dict__
+        if '_colunaligned' in mydict:
+            return mydict['_colunaligned']
+        colunaligned, rarr = [], self._get_container(0)
+        for colpathname in self.colpathnames:
+            carr = getNestedField(rarr, colpathname)
+            if not carr.flags.aligned and carr.ndim == 1:
+                colunaligned.append(colpathname)
+        mydict['_colunaligned'] = colunaligned = frozenset(colunaligned)
+        return colunaligned
+
+    _colunaligned = property(
+        _getcolunaligned, None, None,
+        "The pathnames of unaligned, *unidimensional* columns." )
+
     # Index-related properties
     # ````````````````````````
     autoIndex = _table__autoIndex
@@ -1069,23 +1085,30 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # Fortunately, the key provides some valuable information. ;)
         (condition, colnames, varnames, colpaths, vartypes) = condkey
 
-        # Extract types from *all* the given variables.
+        # Extract more information from referenced columns.
         typemap = dict(zip(varnames, vartypes))  # start with normal variables
-        for colname in colnames:  # then add types of columns
-            coltype = condvars[colname].dtype.type
+        indexedcols, copycols = [], []
+        for colname in colnames:
+            col = condvars[colname]
+
+            # Extract types from *all* the given variables.
+            coltype = col.dtype.type
             typemap[colname] = _nxTypeFromNPType[coltype]
 
-        # Get the set of columns with usable indexes.
-        def can_use_index(column):
-            if not self._enabledIndexingInQueries:
-                return False  # looks like testing in-kernel searches
-            return self.colindexed[column.pathname] and not column.index.dirty
-        indexedcols = frozenset(
-            colname for colname in colnames
-            if can_use_index(condvars[colname]) )
+            # Get the set of columns with usable indexes.
+            if ( self._enabledIndexingInQueries  # not test in-kernel searches
+                 and self.colindexed[col.pathname] and not col.index.dirty ):
+                indexedcols.append(colname)
+
+            # Get the list of unaligned, unidimensional columns.  See
+            # the comments in `tables.numexpr.evaluate()` for the
+            # reasons of inserting copy operators for these columns.
+            if col.pathname in self._colunaligned:
+                copycols.append(colname)
+        indexedcols = frozenset(indexedcols)
 
         # Now let ``split_condition()`` do the Numexpr-related job.
-        splitted = split_condition(condition, typemap, indexedcols)
+        splitted = split_condition(condition, typemap, indexedcols, copycols)
 
         # Check that there actually are columns in the condition.
         resparams = splitted.residual_parameters

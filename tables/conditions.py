@@ -69,7 +69,7 @@ def _get_variable_names(expression):
             stack.extend(node.children)
     return list(set(names))  # remove repeated names
 
-def split_condition(condition, typemap, indexedcols):
+def split_condition(condition, typemap, indexedcols, copycols):
     """
     Split a condition into indexable and non-indexable parts.
 
@@ -99,6 +99,12 @@ def split_condition(condition, typemap, indexedcols):
     mapping.  The ``residual_condition`` of the ``SplittedCondition``
     instance is a Numexpr function object, and the ``residual_params``
     list indicates the order of its parameters.
+
+    For columns whose variable names appear in `copycols`, an
+    additional copy operation is inserted whenever the column is
+    referenced.  This seems to accelerate access to unaligned,
+    *unidimensional* arrays up to 2x (multidimensional arrays still
+    need to be copied by `call_on_recarr()`.).
     """
 
     def check_boolean(expr):
@@ -120,7 +126,10 @@ def split_condition(condition, typemap, indexedcols):
         for var in resvarnames:
             ressignature.append((var, typemap[var]))
         try:
-            resfunc = numexpr(resexpr, ressignature)
+            # See the comments in `tables.numexpr.evaluate()` for the
+            # reasons of inserting copy operators for unaligned,
+            # *unidimensional* arrays.
+            resfunc = numexpr(resexpr, ressignature, copy_args=copycols)
         except NotImplementedError, nie:
             # Try to make this Numexpr error less cryptic.
             raise _unsupported_operation_error(nie)
@@ -154,7 +163,9 @@ def call_on_recarr(func, params, recarr, param2arg=None):
         # unaligned arrays anymore. The reason for doing this is that,
         # for unaligned arrays, a pure copy() in Python is faster than
         # the equivalent in C. I'm not completely sure why.
-        if not arg.flags.aligned:
+        if not arg.flags.aligned and arg.ndim > 1:
+            # See the comments in `tables.numexpr.evaluate()` for the
+            # reasons of copying unaligned, *multidimensional* arrays.
             arg = arg.copy()
         args.append(arg)
     return func(*args)
