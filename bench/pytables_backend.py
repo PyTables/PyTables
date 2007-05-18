@@ -81,8 +81,6 @@ class PyTables_DB(DB):
                                  "col2": table.cols.col2,
                                  "col3": table.cols.col3,
                                  "col4": table.cols.col4,
-                                 "inf": self.rng[0],
-                                 "sup": self.rng[1],
                                  }
             table = self.table_cache
             colobj = self.colobj
@@ -94,9 +92,9 @@ class PyTables_DB(DB):
                              "col2": table.cols.col2,
                              "col3": table.cols.col3,
                              "col4": table.cols.col4,
-                             "inf": self.rng[0],
-                             "sup": self.rng[1],
                              }
+        self.condvars['inf'] = self.rng[0]+base
+        self.condvars['sup'] = self.rng[1]+base
         condition = "(inf<=col) & (col<=sup)"
 #         condition = "(%s<=col) & (col<=%s)" % \
 #                     (self.rng[0]+base, self.rng[1]+base)
