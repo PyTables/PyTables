@@ -1,4 +1,4 @@
-########################################################################
+#######################################################################
 #
 #       License: BSD
 #       Created: June 08, 2004
@@ -30,7 +30,7 @@ Misc variables:
 
 import sys, os, subprocess
 
-import bisect
+from bisect import bisect_left, bisect_right
 from time import time, clock
 import os, os.path
 import tempfile
@@ -1134,10 +1134,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def searchLastRow(self, item):
         # Variable initialization
         item1, item2 = item
-        b0, b1 = self.bebounds[[0,-1]]
-        bounds = self.bebounds[1:-1]
-        readSliceLR = self.sortedLR._readSortedSlice
+        bebounds = self.bebounds
+        b0, b1 = bebounds[0], bebounds[-1]
+        bounds = bebounds[1:-1]
         itemsize = self.dtype.itemsize
+        sortedLRcache = self.sortedLRcache
         hi = self.nelementsLR               # maximum number of elements
         assert hi == self.nelements - self.sorted.nrows * self.slicesize
 
@@ -1146,22 +1147,23 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if item1 > b0:
             if item1 <= b1:
                 # Search the appropriate chunk in bounds cache
-                nchunk = bisect.bisect_left(bounds, item1)
-                begin = self.chunksize*nchunk
-                end = self.chunksize*(nchunk+1)
-                if end > hi:
-                    end = hi
+                nchunk = bisect_left(bounds, item1)
                 # Lookup for this chunk in cache
-                nslot = self.sortedLRcache.getslot(nchunk)
+                nslot = sortedLRcache.getslot(nchunk)
                 if nslot >= 0:
-                    chunk = self.sortedLRcache.getitem(nslot)
+                    chunk = sortedLRcache.getitem(nslot)
                 else:
+                    begin = self.chunksize*nchunk
+                    end = self.chunksize*(nchunk+1)
+                    if end > hi:
+                        end = hi
                     # Read the chunk from disk
-                    chunk = readSliceLR(self.sorted, begin, end)
+                    chunk = self.sortedLR._readSortedSlice(
+                        self.sorted, begin, end)
                     # Put it in cache
-                    self.sortedLRcache.setitem(nchunk, chunk,
-                                               (end-begin)*itemsize)
-                start = bisect.bisect_left(chunk, item1)
+                    sortedLRcache.setitem(nchunk, chunk,
+                                          (end-begin)*itemsize)
+                start = bisect_left(chunk, item1)
                 start += self.chunksize*nchunk
             else:
                 start = hi
@@ -1171,23 +1173,24 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if item2 >= b0:
             if item2 < b1:
                 # Search the appropriate chunk in bounds cache
-                nchunk2 = bisect.bisect_right(bounds, item2)
+                nchunk2 = bisect_right(bounds, item2)
                 if nchunk2 <> nchunk:
-                    begin = self.chunksize*nchunk2
-                    end = self.chunksize*(nchunk2+1)
-                    if end > hi:
-                        end = hi
                     # Lookup for this chunk in cache
-                    nslot = self.sortedLRcache.getslot(nchunk2)
+                    nslot = sortedLRcache.getslot(nchunk2)
                     if nslot >= 0:
-                        chunk = self.sortedLRcache.getitem(nslot)
+                        chunk = sortedLRcache.getitem(nslot)
                     else:
+                        begin = self.chunksize*nchunk2
+                        end = self.chunksize*(nchunk2+1)
+                        if end > hi:
+                            end = hi
                         # Read the chunk from disk
-                        chunk = readSliceLR(self.sorted, begin, end)
+                        chunk = self.sortedLR._readSortedSlice(
+                            self.sorted, begin, end)
                         # Put it in cache
-                        self.sortedLRcache.setitem(nchunk2, chunk,
-                                                   (end-begin)*itemsize)
-                stop = bisect.bisect_right(chunk, item2)
+                        sortedLRcache.setitem(nchunk2, chunk,
+                                              (end-begin)*itemsize)
+                stop = bisect_right(chunk, item2)
                 stop += self.chunksize*nchunk2
             else:
                 stop = hi
