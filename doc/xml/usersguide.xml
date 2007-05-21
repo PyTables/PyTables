@@ -10475,17 +10475,17 @@ True</screen>
       performance of his application. If you are planning to deal with really
       large data, you should read carefully this section in order to learn how
       to get an important efficiency boost for your code. But if your dataset
-      is small or medium size (say, up to 10 MB), you should not worry about
-      that as the default parameters in PyTables are already tuned to handle
-      that perfectly.</para>
+      is small (say, up to 10 MB), you should not worry about that as the
+      default parameters in PyTables are already tuned to cope with that
+      perfectly.</para>
 
       <section id="expectedRowsOptim">
         <title>Informing PyTables about expected number of rows in
-        tables</title>
+        tables or arrays</title>
 
         <para>The underlying HDF5 library that is used by PyTables allows for
-        certain datasets (<emphasis>chunked</emphasis> datasets) to take the
-        data in bunches of a certain length, so-called
+        certain datasets (the <emphasis>chunked</emphasis> datasets) to take
+        the data in bunches of a certain length, so-called
         <emphasis>chunks</emphasis>, to write them on disk as a whole, i.e.
         the HDF5 library treats chunks as atomic objects and disk I/O is
         always made in terms of complete chunks. This allows data filters to
@@ -10501,21 +10501,27 @@ True</screen>
 
         <para>PyTables can determine an optimum chunk size to make B-trees
         adequate to your dataset size if you help it by providing an
-        estimation of the number of rows for a table. This must be made at
-        table creation time by passing this value to the
+        estimation of the final number of rows for a extensible leaf. This
+        must be made at leaf creation time by passing this value to the
         <literal>expectedrows</literal> keyword of the
         <literal>createTable</literal> method (see <xref
-        linkend="createTableDescr"
-        xrefstyle="select:         label" />).</para>
+        linkend="createTableDescr" xrefstyle="select: label" />) and
+        <literal>createEArray</literal> method (see <xref
+        linkend="createEArrayDescr" xrefstyle="select: label" />).  For
+        <literal>VLArray</literal> leaves, pass the expected size in MBytes by
+        using the argument <literal>expectedsizeinMB</literal> of
+        <literal>createVLArray</literal> (see <xref
+        linkend="createVLArrayDescr" xrefstyle="select: label" />)
+        instead.</para>
 
-        <para>When your table size is bigger than 10 MB (take this figure only
+        <para>When your leaf size is bigger than 10 MB (take this figure only
         as a reference, not strictly), by providing this guess of the number
         of rows you will be optimizing the access to your data. When the table
-        size is larger than, say 100MB, you are <emphasis>strongly</emphasis>
-        suggested to provide such a guess; failing to do that may cause your
-        application to do very slow I/O operations and to demand
-        <emphasis>huge</emphasis> amounts of memory. You have been
-        warned!</para>
+        or array size is larger than, say 100MB, you are
+        <emphasis>strongly</emphasis> suggested to provide such a guess;
+        failing to do that may cause your application to do very slow I/O
+        operations and to demand <emphasis>huge</emphasis> amounts of
+        memory. You have been warned!</para>
       </section>
 
       <section id="searchOptim">
@@ -10592,8 +10598,10 @@ result = [ row['var2'] for row in table.where('var1 &lt;= 20')]</screen> This
           <emphasis>condition</emphasis> is passed to the PyTables kernel
           (hence the name), written in C, and evaluated there at C speed (with
           some help of the NumPy package), so that the only values that are
-          brought to the Python space are the references for
-          <literal>rows</literal> that fulfilled the condition.</para>
+          brought to the Python space are the <literal>rows</literal> that
+          fulfilled the condition.  Hence, for selections that only have a
+          tiny number of hits (compared with the total amount of rows), the
+          savings are huge.</para>
 
           <para>You can mix the <emphasis>in-kernel</emphasis> and
           <emphasis>standard</emphasis> selection modes for evaluating
@@ -10625,16 +10633,22 @@ result = [ row['var2']
         <section id="indexedSearches">
           <title>Indexed searches</title>
 
+          <note>
+            <!-- XXXPRO -->
+            <para>Indexing is only available in PyTables Pro.</para>
+          </note>
+
           <para>When you need more speed than <emphasis>in-kernel</emphasis>
           selections can offer you, PyTables offers a third selection method,
-          the so-called <emphasis>indexed</emphasis> mode. In this mode, you
+          the so-called <emphasis>indexed</emphasis> mode.  In this mode, you
           have to decide which column(s) you are going to do your selections
-          on, and index them. Indexing is just a kind of sort operation, so
-          that next searches along a column will look at the sorted
-          information using a <emphasis>binary search</emphasis> which is much
-          faster than a <emphasis>sequential search</emphasis>.</para>
+          on, and index them. Indexing is just a kind of sort operation over a
+          column, so that next searches along such a column will look at this
+          sorted information using kind of a <emphasis>binary
+          search</emphasis> which is much faster than a typical
+          <emphasis>sequential search</emphasis>.</para>
 
-          <para>You can index the columns you choose by calling the
+          <para>You can index the columns you want by calling the
           <literal>Column.createIndex()</literal> method (see <xref
           linkend="Column.createIndex" />) on an already created table.
           For example: <screen>indexrows = table.cols.var1.createIndex()
@@ -10644,12 +10658,15 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           <literal>var3</literal> columns.</para>
 
           <para>After you have indexed a column, PyTables will try to use the
-          index in your queries. For the moment, a one-piece, non-empty range
-          involving constants and an indexed column (all possibly ANDed with
-          other conditions) can be detected and the index will then be used.
-          It is recommended that you place comparisons involving indexed
-          colums the least deep in the condition as possible to maximise the
-          chances of actually using indexes.</para>
+          index in your queries. However, as the query optimizer is not very
+          sophisticated right now<footnote> <para>We plan to address this
+          limitation in the short future.</para> </footnote> it is recommended
+          that you place comparisons involving indexed colums as much to the
+          left in the condition expression as possible in order to maximise
+          the chances of actually using indexes.  Avoiding too nested
+          conditions also do help the current optimizer.  See below for
+          examples where the optimizer can safely (or not) determine if an
+          index can be used or not.</para>
 
           <para>Example conditions where an index can be used: <itemizedlist>
               <listitem>
@@ -10701,65 +10718,132 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
               </listitem>
             </itemizedlist></para>
 
-          <para>Remember you can use the
+          <para>Remember that you can use the
           <literal>willQueryUseIndexing()</literal> method (see <xref
           linkend="Table.willQueryUseIndexing" xrefstyle="select: label" />)
           to check whether a particular query will used indexing or
           not.</para>
 
-          <para>You can see in figures <xref linkend="searchTimes-int"
-          xrefstyle="select: labelnumber" /> and <xref
-          linkend="searchTimes-float"
-          xrefstyle="select:           labelnumber" /> that indexing can
-          accelerate quite a lot your data selections in tables. For
-          moderately large tables (&gt; one million rows), you can get
-          speedups in the order of 100x with regard to
-          <emphasis>in-kernel</emphasis> selections, and in the order of 1000x
-          with regard to <emphasis>standard</emphasis> selections.</para>
-
           <para>One important aspect of indexing in PyTables is that it has
-          been implemented with the goal of being capable to manage
-          effectively very large tables. In <xref linkend="indexTimes"
-          xrefstyle="select: label" />, you can see that the times to index
-          columns in tables always grow <emphasis>linearly</emphasis>. In
-          particular, the time to index a couple of columns with 1 billion of
-          rows each is 40 min. (roughly 20 min. each), which is a quite
-          reasonable figure. This is because PyTables has chosen an algorithm
-          that does a <emphasis>partial</emphasis> sort of the columns in
-          order to ensure that the indexing time grows
-          <emphasis>linearly</emphasis>. On the contrary, most of relational
-          databases try to do a <emphasis>complete</emphasis> sort of columns,
-          and this makes the time to index grow much faster with the number of
-          rows.</para>
+          been designed from the ground with the goal of being capable to
+          effectively manage very large tables. In <xref
+          linkend="createIndexTimes" xrefstyle="select: label" />, you can see
+          that the times to index columns in tables is pretty short. In
+          particular, the time to index a column with 1 billion of rows with
+          no index optimization is roughly 15 min., while indexing the same
+          column with full optimization is around 100 min. which are a quite
+          small figures compared with the time for a relational database (in
+          this case, Postgres 8), which takes more than 500 min. for doing the
+          same job.  This is because PyTables has chosen an algorithm that
+          does a <emphasis>partial</emphasis> sort of the columns in order to
+          ensure contained indexing times.  On the contrary, most of
+          relational databases try to do a <emphasis>complete</emphasis> sort
+          of columns, and this fact makes the time to create an index to be
+          much bigger.</para>
 
-          <para>The fact that relational databases use a complete sorting
-          algorithm for indexes means that their index would be more effective
-          (but not by a large extent) for searching purposes than the PyTables
-          approach. However, for relatively large tables (&gt; 10 millions of
-          rows) the time required for completing such a sort can be so large,
-          that indexing is not normally worth the effort. In other words,
-          PyTables indexing scales much better than relational databases. So
-          don't worry if you have extremely large columns to index: PyTables
-          is designed to cope with that perfectly.</para>
-
-          <figure id="indexTimes">
-            <title>Times for indexing a couple of columns of data type
-            <literal>Int32</literal> and <literal>Float64</literal>. Benchmark
-            made on a machine with Itanium (IA64) @ 900 MHz processors with
-            SCSI disk @ 10K RPM.</title>
+          <figure id="createIndexTimes">
+            <title>Times for indexing a <literal>Float64</literal>
+            column. Benchmark made on a machine with AMD Opteron (AMD64) @ 2
+            GHz processors with IDE disk @ 7200 RPM.</title>
 
             <mediaobject>
+
               <imageobject role="fo">
-                <imagedata align="center" fileref="indexTimes-itanium.svg"
-                           format="SVG" scale="50" />
+                <imagedata align="center" fileref="create-index-time-float64.svg"
+                           format="SVG" scale="75" />
               </imageobject>
 
               <imageobject role="html">
-                <imagedata align="center" fileref="indexTimes-itanium.png"
+                <imagedata align="center" fileref="create-index-time-float64.png"
                            format="PNG" />
               </imageobject>
+
             </mediaobject>
           </figure>
+
+          <para>Another important feature to stress out is the aforementioned
+          capability of PyTables to support a customizable quality for the
+          indexes, allowing the user to select the best one that suits her
+          needs.  This quality can be specified by passing the desired
+          <literal>optlevel</literal> argument to the
+          <literal>createIndex()</literal> method (see <xref
+          linkend="Column.createIndex" />).  In the figures <xref
+          linkend="queryTimes-float64-cold-cache" xrefstyle="select:
+          labelnumber" /> and <xref linkend="queryTimes-float64-warm-cache"
+          xrefstyle="select: labelnumber" /> you can see the effect in time
+          lookup of specifying several optimization levels.</para>
+
+          <figure id="queryTimes-float64-cold-cache">
+            <title>Times for querying a <literal>Float64</literal> column with
+            a cold cache (mean of 10 first queries). Benchmark made on a
+            machine with AMD Opteron (AMD64) @ 2 GHz processors with IDE disk
+            @ 7200 RPM.</title>
+
+            <mediaobject>
+
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="query-time-cold-cache-float64.svg"
+                           format="SVG" scale="75" />
+              </imageobject>
+
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="query-time-cold-cache-float64.png"
+                           format="PNG" />
+              </imageobject>
+
+            </mediaobject>
+          </figure>
+
+          <figure id="queryTimes-float64-warm-cache">
+            <title>Times for querying a <literal>Float64</literal> column with
+            a warm cache (mean of 500 queries). Benchmark made on a
+            machine with AMD Opteron (AMD64) @ 2 GHz processors with IDE disk
+            @ 7200 RPM.</title>
+
+            <mediaobject>
+
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="query-time-warm-cache-float64.svg"
+                           format="SVG" scale="75" />
+              </imageobject>
+
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="query-time-warm-cache-float64.png"
+                           format="PNG" />
+              </imageobject>
+
+            </mediaobject>
+          </figure>
+
+          <para>Finally, let's point out that, despite the fact that
+          relational databases do use a complete sorting algorithm for indexes
+          might induce the reader to think that that they would be faster for
+          searching purposes than the PyTables approach, this is not
+          necessarily the case (or, at least, not always), as you can see in
+          the figures <xref linkend="queryTimes-float64-cold-cache"
+          xrefstyle="select: labelnumber" /> and <xref
+          linkend="queryTimes-float64-warm-cache" xrefstyle="select:
+          labelnumber" />.  This is because when one choose a high
+          optimization level for medium to large table sizes (&lt; 10 billions
+          of rows), the PyTables indexing engine can effectively achieve a
+          complete sorting, making its lookup times usually faster than using
+          a relational database (most specially if compression is used). For
+          very large tables (&gt; 10 billions of rows) the PyTables indexing
+          engine cannot normally achieve the goal of getting a completely
+          sorted index.  However, this is not a grave limitation in practice
+          because the time required for completing such a complete sort in a
+          tradicional relational database can be huge, so it is not normally
+          worth the effort doing this, while, on its hand, PyTables can still
+          perform a <emphasis>partial</emphasis> sort in a reasonable amount
+          of time.  In other words, PyTables indexing engine scales much
+          better than relational databases, so don't worry if you have
+          extremely large columns to index: PyTables is designed to cope with
+          that perfectly.</para>
+
         </section>
       </section>
 
@@ -10869,7 +10953,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           <mediaobject>
             <imageobject role="fo">
               <imagedata align="center" fileref="compressed-recordsize.svg"
-                         format="SVG" scale="55" />
+                         format="SVG" scale="75" />
             </imageobject>
 
             <imageobject role="html">
@@ -10902,7 +10986,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             <imageobject role="fo">
               <imagedata align="center"
                          fileref="compressed-recordsize-zlib.svg" format="SVG"
-                         scale="55" />
+                         scale="75" />
             </imageobject>
 
             <imageobject role="html">
@@ -10924,7 +11008,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           <mediaobject>
             <imageobject role="fo">
               <imagedata align="center" fileref="compressed-writing.svg"
-                         format="SVG" scale="60" />
+                         format="SVG" scale="75" />
             </imageobject>
 
             <imageobject role="html">
@@ -10974,7 +11058,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             <imageobject role="fo">
               <imagedata align="center"
                          fileref="compressed-select-nocache.svg" format="SVG"
-                         scale="60" />
+                         scale="75" />
             </imageobject>
 
             <imageobject role="html">
@@ -10991,7 +11075,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           <mediaobject>
             <imageobject role="fo">
               <imagedata align="center" fileref="compressed-select-cache.svg"
-                         format="SVG" scale="60" />
+                         format="SVG" scale="75" />
             </imageobject>
 
             <imageobject role="html">
@@ -11055,7 +11139,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           <mediaobject>
             <imageobject role="fo">
               <imagedata align="center" fileref="compressed-writing-zlib.svg"
-                         format="SVG" scale="60" />
+                         format="SVG" scale="75" />
             </imageobject>
 
             <imageobject role="html">
@@ -11073,7 +11157,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             <imageobject role="fo">
               <imagedata align="center"
                          fileref="compressed-select-cache-zlib.svg"
-                         format="SVG" scale="60" />
+                         format="SVG" scale="75" />
             </imageobject>
 
             <imageobject role="html">
@@ -11132,7 +11216,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             <imageobject role="fo">
               <imagedata align="center"
                          fileref="compressed-recordsize-shuffle.svg"
-                         format="SVG" scale="60" />
+                         format="SVG" scale="75" />
             </imageobject>
 
             <imageobject role="html">
@@ -11179,7 +11263,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             <imageobject role="fo">
               <imagedata align="center"
                          fileref="compressed-writing-shuffle.svg" format="SVG"
-                         scale="60" />
+                         scale="75" />
             </imageobject>
 
             <imageobject role="html">
@@ -11198,7 +11282,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             <imageobject role="fo">
               <imagedata align="center"
                          fileref="compressed-select-nocache-shuffle-only.svg"
-                         format="SVG" scale="60" />
+                         format="SVG" scale="75" />
             </imageobject>
 
             <imageobject role="html">
@@ -11218,7 +11302,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             <imageobject role="fo">
               <imagedata align="center"
                          fileref="compressed-select-cache-shuffle.svg"
-                         format="SVG" scale="60" />
+                         format="SVG" scale="75" />
             </imageobject>
 
             <imageobject role="html">
