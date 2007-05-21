@@ -30,6 +30,7 @@ from tables.registry import classNameDict, classIdDict
 from tables.exceptions import \
      ClosedNodeError, NodeError, UndoRedoWarning, PerformanceWarning
 from tables.path import joinPath, splitPath, isVisiblePath
+from tables.utils import lazyattr
 from tables.undoredo import moveToShadow
 from tables.attributeset import AttributeSet, NotLoggedAttributeSet
 
@@ -186,16 +187,10 @@ class Node(object):
 
     # '_v_attrs' is defined as a lazy read-only attribute.
     # This saves 0.7s/3.8s.
-    def _g_getattrs(self):
-        mydict = self.__dict__
-        if '_v_attrs' in mydict:
-            return mydict['_v_attrs']
-        else:
-            mydict['_v_attrs'] = attrs = self._AttributeSet(self)
-            return attrs
-
-    _v_attrs = property(_g_getattrs, None, None,
-                        "The associated `AttributeSet` instance.")
+    @lazyattr
+    def _v_attrs(self):
+        """The associated `AttributeSet` instance."""
+        return self._AttributeSet(self)
 
 
     # '_v_title' is a direct read-write shorthand for the 'TITLE' attribute

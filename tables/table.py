@@ -38,7 +38,7 @@ from tables.conditions import split_condition
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import is_idx
+from tables.utils import is_idx, lazyattr
 from tables.leaf import Leaf
 from tables.description import IsDescription, Description, Col
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
@@ -305,20 +305,10 @@ class Table(tableExtension.Table, Leaf):
 
     # Properties
     # ~~~~~~~~~~
-    def _g_getrow(self):
-        mydict = self.__dict__
-        if '_v_row' in mydict:
-            # Return the existing Row class
-            return mydict['_v_row']
-        else:
-            # Create a new class and return it
-            mydict['_v_row'] = row = tableExtension.Row(self)
-            return row
-
-    row = property(
-        _g_getrow, None, None,
-        #lambda self: tableExtension.Row(self), None, None,
-        """The associated `Row` instance.""")
+    @lazyattr
+    def row(self):
+        """The associated `Row` instance."""
+        return tableExtension.Row(self)
 
     # Read-only shorthands
     # ````````````````````
@@ -333,46 +323,29 @@ class Table(tableExtension.Table, Leaf):
 
     # Lazy attributes
     # ```````````````
-    def _g_getiobuf(self):
-        mydict = self.__dict__
-        if '_v_iobuf' in mydict:
-            return mydict['_v_iobuf']
-        else:
-            mydict['_v_iobuf'] = iobuf = self._get_container(self.nrowsinbuf)
-            return iobuf
+    @lazyattr
+    def _v_iobuf(self):
+        """A buffer for doing I/O."""
+        return self._get_container(self.nrowsinbuf)
 
-    _v_iobuf = property(_g_getiobuf, None, None,
-                          "A buffer for doing IO.")
+    @lazyattr
+    def _v_wdflts(self):
+        """The defaults for writing in recarray format."""
+        wdflts = self._get_container(1)
+        for colname, coldflt in self.coldflts.iteritems():
+           ra = getNestedField(wdflts, colname)
+           ra[:] = coldflt
+        return wdflts
 
-    def _g_getwdflts(self):
-        mydict = self.__dict__
-        if '_v_wdflts' in mydict:
-            return mydict['_v_wdflts']
-        else:
-            mydict['_v_wdflts'] = wdflts = self._get_container(1)
-            for colname, coldflt in self.coldflts.iteritems():
-               ra = getNestedField(wdflts, colname)
-               ra[:] = coldflt
-            return wdflts
-
-    _v_wdflts = property(_g_getwdflts, None, None,
-                         "The defaults for writing in recarray format.")
-
-    def _getcolunaligned(self):
-        mydict = self.__dict__
-        if '_colunaligned' in mydict:
-            return mydict['_colunaligned']
+    @lazyattr
+    def _colunaligned(self):
+        """The pathnames of unaligned, *unidimensional* columns."""
         colunaligned, rarr = [], self._get_container(0)
         for colpathname in self.colpathnames:
             carr = getNestedField(rarr, colpathname)
             if not carr.flags.aligned and carr.ndim == 1:
                 colunaligned.append(colpathname)
-        mydict['_colunaligned'] = colunaligned = frozenset(colunaligned)
-        return colunaligned
-
-    _colunaligned = property(
-        _getcolunaligned, None, None,
-        "The pathnames of unaligned, *unidimensional* columns." )
+        return frozenset(colunaligned)
 
     # Index-related properties
     # ````````````````````````
@@ -2275,8 +2248,8 @@ The 'names' parameter must be a list of strings.""")
         """Flush the table buffers."""
 
         # Flush rows that remains to be appended
-        if '_v_row' in self.__dict__:
-            self._v_row._flushBufferedRows()
+        if 'row' in self.__dict__:
+            self.row._flushBufferedRows()
         if self.indexed and self.autoIndex:
             # Flush any unindexed row
             rowsadded = self.flushRowsToIndex(_lastrow=True)
@@ -2309,8 +2282,8 @@ The 'names' parameter must be a list of strings.""")
         # I've added a Performance warning in order to compel the user to
         # call self.flush() before the table is being preempted.
         # F. Altet 2006-08-03
-        if ('_v_row' in self.__dict__ and
-            self._v_row._getUnsavedNrows() > 0 or
+        if ('row' in self.__dict__ and
+            self.row._getUnsavedNrows() > 0 or
             (self.indexed and self.autoIndex and
              self._unsaved_indexedrows > 0)):
             warnings.warn("""\
@@ -2323,8 +2296,8 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
             del mydict['_v_iobuf']
         if '_v_wdflts' in mydict:
             del mydict['_v_wdflts']
-        if '_v_row' in mydict:
-            del mydict['_v_row']
+        if 'row' in mydict:
+            del mydict['row']
         return
 
 

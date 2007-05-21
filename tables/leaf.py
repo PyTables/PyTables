@@ -39,7 +39,7 @@ from tables import hdf5Extension
 from tables import utilsExtension
 from tables.node import Node
 from tables.filters import Filters
-from tables.utils import idx2long, byteorders
+from tables.utils import idx2long, byteorders, lazyattr
 from tables.parameters import CHUNKTIMES, BUFFERTIMES
 from tables.exceptions import PerformanceWarning
 
@@ -221,15 +221,10 @@ class Leaf(Node):
 
     # Lazy read-only attributes
     # `````````````````````````
-    def _getfilters(self):
-        mydict = self.__dict__
-        if 'filters' in mydict:
-            return mydict['filters']
-        mydict['filters'] = filters = Filters._from_leaf(self)
-        return filters
-
-    filters = property(_getfilters, None, None,
-                       "Filter properties for this leaf.")
+    @lazyattr
+    def filters(self):
+        """Filter properties for this leaf."""
+        return Filters._from_leaf(self)
 
     # Other properties
     # ````````````````

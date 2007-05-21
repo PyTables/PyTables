@@ -154,6 +154,65 @@ def checkFileAccess(filename, mode='r'):
         raise ValueError("invalid mode: %r" % (mode,))
 
 
+def lazyattr(fget):
+    """
+    Create a *lazy attribute* from the result of `fget`.
+
+    This function is intended to be used as a *method decorator*.  It
+    returns a *property* which caches the result of calling the `fget`
+    instance method.  The docstring of `fget` is used for the property
+    itself.  For instance:
+
+    >>> class MyClass(object):
+    ...     @lazyattr
+    ...     def attribute(self):
+    ...         'Attribute description.'
+    ...         print 'creating value'
+    ...         return 10
+    ...
+    >>> type(MyClass.attribute)
+    <type 'property'>
+    >>> MyClass.attribute.__doc__
+    'Attribute description.'
+    >>> obj = MyClass()
+    >>> obj.__dict__
+    {}
+    >>> obj.attribute
+    creating value
+    10
+    >>> obj.__dict__
+    {'attribute': 10}
+    >>> obj.attribute
+    10
+    >>> del obj.attribute
+    Traceback (most recent call last):
+      ...
+    AttributeError: can't delete attribute
+
+    .. Warning:: Please note that this decorator *changes the type of
+       the decorated object* from an instance method into a property.
+    """
+    name = fget.__name__
+    def newfget(self):
+        mydict = self.__dict__
+        if name in mydict:
+            return mydict[name]
+        mydict[name] = value = fget(self)
+        return value
+    return property(newfget, None, None, fget.__doc__)
+
+
+# Main part
+# =========
+def _test():
+    """Run ``doctest`` on this module."""
+    import doctest
+    doctest.testmod()
+
+if __name__ == '__main__':
+    _test()
+
+
 ## Local Variables:
 ## mode: python
 ## py-indent-offset: 4
