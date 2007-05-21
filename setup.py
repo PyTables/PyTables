@@ -4,7 +4,7 @@
 
 import sys, os
 import textwrap
-from os.path import exists
+from os.path import exists, expanduser
 
 # Using ``setuptools`` enables lots of goodies, such as building eggs.
 if 'FORCE_SETUPTOOLS' in os.environ:
@@ -263,13 +263,13 @@ LIBS = os.environ.get('LIBS', '').split()
 args = sys.argv[:]
 for arg in args:
     if arg.find('--hdf5=') == 0:
-        HDF5_DIR = arg.split('=')[1]
+        HDF5_DIR = expanduser(arg.split('=')[1])
         sys.argv.remove(arg)
     elif arg.find('--lzo=') == 0:
-        LZO_DIR = arg.split('=')[1]
+        LZO_DIR = expanduser(arg.split('=')[1])
         sys.argv.remove(arg)
     elif arg.find('--bzip2=') == 0:
-        BZIP2_DIR = arg.split('=')[1]
+        BZIP2_DIR = expanduser(arg.split('=')[1])
         sys.argv.remove(arg)
     elif arg.find('--lflags=') == 0:
         LFLAGS = arg.split('=')[1].split()
