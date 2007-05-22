@@ -1,7 +1,5 @@
 #!/bin/sh
-# I don't know why, but the /usr/bin/python2.3 from Debian is a 30% slower
-# than my own compiled version! 2004-08-18
-python="/usr/local/bin/python2.3 -O"
+python="/usr/local/bin/python2.5 -O"
 
 writedata () {
   nrows=$1
@@ -61,7 +59,7 @@ shuffle=1
 
 # The name of the data bench file
 bfile="dbench-cl-${libcomp}-c${complevel}-S${shuffle}.h5"
-  
+
 # Move out a possible previous benchmark file
 bn=`basename $bfile ".h5"`
 mv -f ${bn}-bck2.h5 ${bn}-bck3.h5
@@ -75,13 +73,13 @@ else
 fi
 
 # Configuration for testing
-#nrowslist="1 2"
-#nrowslistheavy="5 10"
+nrowslist="1 2"
+nrowslistheavy="5 10"
 # This config takes 10 minutes to complete (psyco, zlib)
 #nrowslist="1 2 5 10 20 50 100 200 500 1000"
 #nrowslistheavy="2000 5000 10000"
-nrowslist=""
-nrowslistheavy="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000 20000 50000 100000"
+#nrowslist=""
+#nrowslistheavy="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000 20000 50000 100000"
 
 # Normal test
 #nrowslist="1 2 5 10 20 50 100 200 500 1000 2000 5000 10000"
@@ -108,7 +106,8 @@ for heavy in "" -h; do
 	writedata ${nrows} ${bfile} "${heavy}" "${psyco}"
     done
     # Read data files
-    for smode in indexed inkernel standard; do
+    #for smode in indexed inkernel standard; do
+    for smode in inkernel standard; do
 #    for smode in indexed; do
 	${python} cacheout.py
 	for nrows in $nrowslist; do

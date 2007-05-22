@@ -3,19 +3,16 @@
 import sys
 
 import time
-import numarray as NA
 from tables import *
 import random
 import math
 import warnings
-import numarray
-from numarray import strings
-from numarray import random_array
+import numpy
 
 # Initialize the random generator always with the same integer
 # in order to have reproductible results
 random.seed(19)
-random_array.seed(19, 20)
+numpy.random.seed(19)
 
 randomvalues = 0
 worst=0
@@ -91,12 +88,12 @@ def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
     # set the properties of the index (the same of table)
     if not index:
         auto = False
-    table.autoIndex = auto
-    table.indexFilters = filters
-    if not heavy:
-        table.cols.var1.createIndex()
-    for colname in ['var2', 'var3']:
-        table.colinstances[colname].createIndex()
+    #table.autoIndex = auto
+    #table.indexFilters = filters
+#     if not heavy:
+#         table.cols.var1.createIndex()
+#     for colname in ['var2', 'var3']:
+#         table.colinstances[colname].createIndex()
 
     t1 = time.time()
     cpu1 = time.clock()
@@ -109,14 +106,14 @@ def createFile(filename, nrows, filters, index, heavy, auto, noise, verbose):
         else:
             j = i+nrowsbuf
         if randomvalues:
-            var3 = random_array.uniform(minimum, maximum, shape=[j-i])
+            var3 = numpy.random.uniform(minimum, maximum, size=j-i)
         else:
-            var3 = numarray.arange(i, j, type=numarray.Float64)
+            var3 = numpy.arange(i, j, dtype=numpy.float64)
             # uncomment this for introducing noise
             if noise > 0:
-                var3 += random_array.uniform(-noise, noise, shape=[j-i])
-        var2 = numarray.array(var3, type=numarray.Int32)
-        var1 = strings.array(None, shape=[j-i], itemsize=4)
+                var3 += numpy.random.uniform(-noise, noise, size=j-i)
+        var2 = numpy.array(var3, dtype=numpy.int32)
+        var1 = numpy.empty(shape=[j-i], dtype="S4")
         if not heavy:
             for n in xrange(j-i):
                 var1[n] = str("%.4s" % var2[n])
@@ -234,7 +231,7 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
             indexmode = "inkernel"
             where = table._whereInRange
     elif indexmode == "inkernel":
-        where = table._whereInRange
+        where = table.where
     if verbose:
         print "Max rows in buf:", table.nrowsinbuf
         print "Rows in", table._v_pathname, ":", table.nrows
@@ -245,8 +242,8 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
             print "Number of elements per slice:", var2.index.nelemslice
             print "Slice number in", table._v_pathname, ":", var2.index.nrows
 
-    table.nrowsinbuf = 10
-    print "nrowsinbuf-->", table.nrowsinbuf
+    #table.nrowsinbuf = 10
+    #print "nrowsinbuf-->", table.nrowsinbuf
     rowselected = 0
     time2 = 0.
     tcpu2 = 0.
@@ -259,62 +256,36 @@ def readFile(filename, atom, riter, indexmode, dselect, verbose):
     # Initialize the random generator always with the same integer
     # in order to have reproductible results on each read iteration
     random.seed(19)
-    random_array.seed(19, 20)
+    numpy.random.seed(19)
     for i in xrange(riter):
-        rnd = random.randrange(table.nrows)
+        rnd = numpy.random.randint(table.nrows)
         cpu1 = time.clock()
         t1 = time.time()
         if atom == "string":
+            val = str(rnd)[-4:]
             if indexmode in ["indexed", "inkernel"]:
                 results = [p.nrow
-                           # for p in where("1000" <= var1 <= "1010")]
-                           #for p in where(var1 == "1111")]
-                           for p in where(var1 == str(rnd)[-4:])]
+                           for p in where('var1 == val')]
             else:
                 results = [p.nrow for p in table
-                           # if "1000" <= p["var1"] <= "1010"]
-                           #if p["var1"] == "1111"]
-                           if p["var1"] == str(rnd)[-4:]]
+                           if p["var1"] == val]
         elif atom == "int":
+            val = rnd+dselect
             if indexmode in ["indexed", "inkernel"]:
                 results = [p.nrow
-                           # for p in where(2+i<= var2 < 10+i)]
-                           # for p in where(2<= var2 < 10)]
-                           # for p in where(110*i <= var2 < 110*(i+1))]
-                           # for p in where(1000-30 < var2 < 1000+60)]
-                           # for p in where(3 <= var2 < 5)]
-                           #for p in where(rnd <= var2 < rnd+3)]
-                           for p in where(rnd <= var2 < rnd+dselect)]
+                           for p in where('rnd <= var2 < val')]
             else:
                 results = [p.nrow for p in table
-                           # if p["var2"] < 10+i]
-                           # if 2 <= p["var2"] < 10)]
-                           # if 110*i <= p["var2"] < 110*(i+1)]
-                           # if 1000-30 < p["var2"] < 1000+60]
-                           #if 3 <= p["var2"] < 5]
-                           #if rnd <= p["var2"] < rnd+3]
-                           if rnd <= p["var2"] < rnd+dselect]
+                           if rnd <= p["var2"] < val]
         elif atom == "float":
+            val = rnd+dselect
             if indexmode in ["indexed", "inkernel"]:
                 t1=time.time()
                 results = [p.nrow
-                           # for p in where(var3 < 5.)]
-                           #for p in where(3. <= var3 < 5.)]
-                           #for p in where(float(rnd) <= var3 < float(rnd+3))]
-                           #for p in where(rnd <= var3 < rnd+3)]
-                           for p in where(rnd <= var3 < rnd+dselect)]
-                           # for p in where(1000.-i <= var3 < 1000.+i)]
-                           # for p in where(100*i <= var3 < 100*(i+1))]
-                #print "time for complete selection-->", time.time()-t1
-                #print "results-->", results, rnd
+                           for p in where('rnd <= var3 < val')]
             else:
                 results = [p.nrow for p in table
-                           # if p["var3"] < 5.]
-                           #if 3. <= p["var3"] < 5.]
-                           #if float(rnd) <= p["var3"] < float(rnd+3)]
-                           if float(rnd) <= p["var3"] < float(rnd+dselect)]
-                           # if 1000.-i <= p["var3"] < 1000.+i]
-                           # if 100*i <= p["var3"] < 100*(i+1)]
+                           if float(rnd) <= p["var3"] < float(val)]
         else:
             raise ValueError, "Value for atom '%s' not supported." % atom
         rowselected += len(results)
@@ -415,6 +386,7 @@ def benchSearch(file, riter, indexmode, bfile, heavy, psyco, dselect, verbose):
             print
         # Append the info to the table
         table.row.append()
+        table.flush()
     # Close the benchmark file
     bf.close()
 
@@ -479,8 +451,8 @@ if __name__=="__main__":
     index = 1
     heavy = 0
     bfile = "bench.h5"
-    supported_imodes = ["indexed","inkernel","standard"]
-    indexmode = "indexed"
+    supported_imodes = ["indexed", "inkernel", "standard"]
+    indexmode = "inkernel"
     riter = 1
 
     # Get the options
