@@ -35,7 +35,8 @@ from tables import hdf5Extension
 from tables.utils import convertToNPAtom, convertToNPAtom2, idx2long, \
      correct_byteorder
 
-from tables.atom import ObjectAtom, VLStringAtom, EnumAtom, Atom, split_type
+from tables.atom import (
+    ObjectAtom, VLStringAtom, VLUnicodeAtom, EnumAtom, Atom, split_type )
 from tables.flavor import internal_to_flavor
 from tables.leaf import Leaf, calc_chunksize
 
@@ -371,6 +372,8 @@ be zero."""
             kind = self.attrs.PSEUDOATOM
             if kind == 'vlstring':
                 atom = VLStringAtom()
+            elif kind == 'vlunicode':
+                atom = VLUnicodeAtom()
             elif kind == 'object':
                 atom = ObjectAtom()
             else:

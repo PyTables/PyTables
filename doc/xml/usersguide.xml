@@ -9915,11 +9915,11 @@ True</screen>
           <section id="PseudoAtomsDescr">
             <title>Pseudo atoms</title>
 
-            <para>Now, there come two special classes,
-            <literal>ObjectAtom</literal> and <literal>VLStringAtom</literal>,
-            that actually do not descend from <literal>Atom</literal>, but
-            which goal is so similar that they should be described
-            here. Pseudo-atoms can only be used with
+            <para>Now, there come three special classes,
+            <literal>ObjectAtom</literal>, <literal>VLStringAtom</literal> and
+            <literal>VLUnicodeAtom</literal>, that actually do not descend
+            from <literal>Atom</literal>, but which goal is so similar that
+            they should be described here. Pseudo-atoms can only be used with
             <literal>VLArray</literal> datasets (see <xref
             linkend="VLArrayClassDescr" xrefstyle="select: label" />), and
             they do not support multidimensional values, nor multiple values
@@ -9962,7 +9962,7 @@ True</screen>
               <literal>VLArray</literal> dataset.</para>
             </section>
 
-            <section>
+            <section id="VLStringAtom" xreflabel="description">
               <title>VLStringAtom()</title>
 
               <para>Defines an atom of type
@@ -9979,14 +9979,41 @@ True</screen>
               <para>Like <literal>StringAtom</literal>, this class does not
               make assumptions on the encoding of the string, and raw bytes
               are stored as is.  Unicode strings are supported as long as no
-              character is out of the ASCII set.  Otherwise, you will need to
+              character is out of the ASCII set; otherwise, you will need to
               <emphasis>explicitly</emphasis> convert them to strings before
-              you can save them.</para>
+              you can save them.  For full Unicode support, using
+              <literal>VLUnicodeAtom</literal> (see <xref
+              linkend="VLUnicodeAtom" />) is recommended.</para>
 
               <para>Variable-length string atoms do not accept parameters and
               they cause the reads of rows to always return Python strings.
               You can regard <literal>vlstring</literal> atoms as an easy way
               to save generic variable length strings.</para>
+            </section>
+
+            <section id="VLUnicodeAtom" xreflabel="description">
+              <title>VLUnicodeAtom()</title>
+
+              <para>Defines an atom of type
+              <literal>vlunicode</literal>.</para>
+
+              <para>This class describes a <emphasis>row</emphasis> of the
+              <literal>VLArray</literal> class, rather than an atom.  It is
+              very similar to <literal>VLStringAtom</literal> (see <xref
+              linkend="VLStringAtom" />), but it stores Unicode strings (using
+              32-bit characters a la UCS-4, so all strings of the same length
+              also take up the same space).</para>
+
+              <para>This class does not make assumptions on the encoding of
+              plain input strings.  Plain strings are supported as long as no
+              character is out of the ASCII set; otherwise, you will need to
+              <emphasis>explicitly</emphasis> convert them to Unicode before
+              you can save them.</para>
+
+              <para>Variable-length Unicode atoms do not accept parameters and
+              they cause the reads of rows to always return Python Unicode
+              strings.  You can regard <literal>vlunicode</literal> atoms as
+              an easy way to save variable length Unicode strings.</para>
             </section>
           </section>
         </section>
@@ -15228,10 +15255,10 @@ Object Tree:
 
                 <glossdef>
                   <para>This is used so as to specify the kind of pseudo-atom
-                  (see <xref linkend="VLArrayFormatDescr"
-                  xrefstyle="select:                   label" />) for the
-                  <literal>VLArray</literal>. It can take the values
-                  <literal>'vlstring'</literal> or
+                  (see <xref linkend="VLArrayFormatDescr" xrefstyle="select:
+                  label" />) for the <literal>VLArray</literal>. It can take
+                  the values <literal>'vlstring'</literal>,
+                  <literal>'vlunicode'</literal> or
                   <literal>'object'</literal>. If your atom is not a
                   pseudo-atom then you should not specify it.</para>
                 </glossdef>
@@ -15314,9 +15341,11 @@ Object Tree:
             of a complex number. Note as well that, for
             <literal>object</literal> and <literal>vlstring</literal>
             pseudo-atoms, the base for the VL datatype is always a
-            H5T_NATIVE_UCHAR. That means that the complete row entry in the
-            dataset has to be used in order to fully serialize the object or
-            the variable length string.</para>
+            <literal>H5T_NATIVE_UCHAR</literal>
+            (<literal>H5T_NATIVE_UINT</literal> for
+            <literal>vlunicode</literal>). That means that the complete row
+            entry in the dataset has to be used in order to fully serialize
+            the object or the variable length string.</para>
           </section>
         </section>
       </section>

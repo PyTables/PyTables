@@ -1210,6 +1210,7 @@ class TypesTestCase(unittest.TestCase):
         vlarray.append("asd")
         vlarray.append("asd\xe4")
         vlarray.append(u"aaana")
+        vlarray.append("")
         # Check for ticket #62.
         self.assertRaises(TypeError, vlarray.append, ["foo", "bar"])
         # `VLStringAtom` makes no encoding assumptions.  See ticket #51.
@@ -1228,13 +1229,15 @@ class TypesTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
 
-        assert vlarray.nrows == 3
+        assert vlarray.nrows == 4
         assert row[0] == "asd"
         assert row[1] == "asd\xe4"
         assert row[2] == "aaana"
+        assert row[3] == ""
         assert len(row[0]) == 3
         assert len(row[1]) == 4
         assert len(row[2]) == 5
+        assert len(row[3]) == 0
 
     def test05b_VLStringAtom(self):
         """Checking updating vlarray with variable length strings"""
@@ -1248,13 +1251,10 @@ class TypesTestCase(unittest.TestCase):
         vlarray.append(u"aaana")
 
         # Modify values
-        # We have the problem here that we can only update values with
-        # *exactly* the same bytes than in the original row. With
-        # UTF-8 encoding this is problematic because 'c' takes 1 byte,
-        # but 'ç' takes at least two (!). Perhaps another codification
-        # does not have this problem, I don't know.
         vlarray[0] = "as4"
         vlarray[1] = "aaanc"
+        self.assertRaises(ValueError, vlarray.__setitem__, 1, "shrt")
+        self.assertRaises(ValueError, vlarray.__setitem__, 1, "toolong")
 
         if self.reopen:
             name = vlarray._v_pathname
@@ -1312,7 +1312,6 @@ class TypesTestCase(unittest.TestCase):
         assert len(row[1]) == 3
         self.assertRaises(TypeError, len, row[2])
 
-
     def test06b_Object(self):
         """Checking updating vlarray with object atoms """
 
@@ -1354,6 +1353,85 @@ class TypesTestCase(unittest.TestCase):
         assert obj == [24]
         assert len(row[0]) == 3
         assert len(row[1]) == 3
+
+    def test07_VLUnicodeAtom(self):
+        """Checking vlarray with variable length Unicode strings"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07_VLUnicodeAtom..." % self.__class__.__name__
+
+        vlarray = self.fileh.createVLArray(
+            '/', "VLUnicodeAtom", VLUnicodeAtom() )
+        vlarray.append("asd")
+        vlarray.append(u"asd\u0140")
+        vlarray.append(u"aaana")
+        vlarray.append(u"")
+        # Check for ticket #62.
+        self.assertRaises(TypeError, vlarray.append, ["foo", "bar"])
+        # `VLUnicodeAtom` makes no encoding assumptions.
+        self.assertRaises(UnicodeDecodeError, vlarray.append, "asd\xe4")
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
+
+        # Read all the rows:
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row[0]
+
+        assert vlarray.nrows == 4
+        assert row[0] == u"asd"
+        assert row[1] == u"asd\u0140"
+        assert row[2] == u"aaana"
+        assert row[3] == u""
+        assert len(row[0]) == 3
+        assert len(row[1]) == 4
+        assert len(row[2]) == 5
+        assert len(row[3]) == 0
+
+    def test07b_VLUnicodeAtom(self):
+        """Checking updating vlarray with variable length Unicode strings"""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07b_VLUnicodeAtom..." % self.__class__.__name__
+
+        vlarray = self.fileh.createVLArray(
+            '/', "VLUnicodeAtom", VLUnicodeAtom() )
+        vlarray.append("asd")
+        vlarray.append(u"aaan\xe4")
+
+        # Modify values
+        vlarray[0] = u"as\xe4"
+        vlarray[1] = u"aaan\u0140"
+        self.assertRaises(ValueError, vlarray.__setitem__, 1, "shrt")
+        self.assertRaises(ValueError, vlarray.__setitem__, 1, "toolong")
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
+
+        # Read all the rows:
+        row = vlarray.read()
+        if verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", `row[0]`
+            print "Second row in vlarray ==>", `row[1]`
+
+        assert vlarray.nrows == 2
+        assert row[0] == u"as\xe4"
+        assert row[1] == u"aaan\u0140"
+        assert len(row[0]) == 3
+        assert len(row[1]) == 5
 
 
 class TypesReopenTestCase(TypesTestCase):
@@ -3950,6 +4028,20 @@ class ChunkshapeTestCase(unittest.TestCase):
             print "chunkshape-->", vla.chunkshape
         assert vla.chunkshape == (13,)
 
+
+class VLUEndianTestCase(common.PyTablesTestCase):
+    def test(self):
+        """Accessing ``vlunicode`` data of a different endianness."""
+        h5fname = self._testFilename('vlunicode_endian.h5')
+        h5f = openFile(h5fname)
+        try:
+            bedata = h5f.root.vlunicode_big[0]
+            ledata = h5f.root.vlunicode_little[0]
+            self.assertEqual(bedata, u'para\u0140lel')
+            self.assertEqual(ledata, u'para\u0140lel')
+        finally:
+            h5f.close()
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -3996,6 +4088,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))
         theSuite.addTest(unittest.makeSuite(ChunkshapeTestCase))
+        theSuite.addTest(unittest.makeSuite(VLUEndianTestCase))
 
         if numeric_imported:
             theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))

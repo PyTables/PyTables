@@ -948,11 +948,11 @@ class EnumAtom(Atom):
 # Pseudo-atom classes
 # ===================
 #
-# Now, there come two special classes, `ObjectAtom` and
-# `VLStringAtom`, that actually do not descend from `Atom`, but which
-# goal is so similar that they should be described here.  Pseudo-atoms
-# can only be used with `VLArray` datasets, and they do not support
-# multidimensional values, nor multiple values per row.
+# Now, there come three special classes, `ObjectAtom`, `VLStringAtom`
+# and `VLUnicodeAtom`, that actually do not descend from `Atom`, but
+# which goal is so similar that they should be described here.
+# Pseudo-atoms can only be used with `VLArray` datasets, and they do
+# not support multidimensional values, nor multiple values per row.
 #
 # They can be recognised because they also have ``kind``, ``type`` and
 # ``shape`` attributes, but no ``size``, ``itemsize`` or ``dflt``
@@ -985,9 +985,8 @@ class PseudoAtom(object):
         raise NotImplementedError
 
 class _BufferedAtom(PseudoAtom):
-    """Pseudo-atom which stores data as a buffer (array of bytes)."""
+    """Pseudo-atom which stores data as a buffer (flat array of uints)."""
     shape = ()
-    base = UInt8Atom()
 
     def toarray(self, object_):
         buffer_ = self._tobuffer(object_)
@@ -1012,8 +1011,9 @@ class VLStringAtom(_BufferedAtom):
     Like `StringAtom`, this class does not make assumptions on the
     encoding of the string, and raw bytes are stored as is.  Unicode
     strings are supported as long as no character is out of the ASCII
-    set.  Otherwise, you will need to *explicitly* convert them to
-    strings before you can save them.
+    set; otherwise, you will need to *explicitly* convert them to
+    strings before you can save them.  For full Unicode support, using
+    `VLUnicodeAtom` is recommended.
 
     Variable-length string atoms do not accept parameters and they
     cause the reads of rows to always return Python strings.  You can
@@ -1022,14 +1022,56 @@ class VLStringAtom(_BufferedAtom):
     """
     kind = 'vlstring'
     type = 'vlstring'
+    base = UInt8Atom()
 
     def _tobuffer(self, object_):
         if not isinstance(object_, basestring):
             raise TypeError("object is not a string: %r" % (object_,))
-        return str(object_)
+        return numpy.string0(object_)
 
     def fromarray(self, array):
         return array.tostring()
+
+class VLUnicodeAtom(_BufferedAtom):
+    """
+    Defines an atom of type ``vlunicode``.
+
+    This class describes a *row* of the `VLArray` class, rather than
+    an atom.  It is very similar to `VLStringAtom`, but it stores
+    Unicode strings (using 32-bit characters a la UCS-4, so all
+    strings of the same length also take up the same space).
+
+    This class does not make assumptions on the encoding of plain
+    input strings.  Plain strings are supported as long as no
+    character is out of the ASCII set; otherwise, you will need to
+    *explicitly* convert them to Unicode before you can save them.
+
+    Variable-length Unicode atoms do not accept parameters and they
+    cause the reads of rows to always return Python Unicode strings.
+    You can regard ``vlunicode`` atoms as an easy way to save variable
+    length Unicode strings.
+    """
+    kind = 'vlunicode'
+    type = 'vlunicode'
+    base = UInt32Atom()
+
+    def _tobuffer(self, object_):
+        if not isinstance(object_, basestring):
+            raise TypeError("object is not a string: %r" % (object_,))
+        ## return numpy.unicode0(object_)  # avoid problems with UCS-2 builds
+        # Work around NumPy ticket #525.  Since creating a scalar
+        # raises the NumPy bug and returning an array is not compliant
+        # with what ``toarray()`` expects, we do the construction of
+        # the array right here.
+        ustr = unicode(object_)
+        uarr = numpy.array(ustr, dtype='U')
+        return numpy.ndarray(buffer=uarr, dtype=self.base, shape=len(ustr))
+
+    def fromarray(self, array):
+        length = len(array)
+        if length == 0:
+            return u''  # ``array.view('U0')`` raises a `TypeError`
+        return array.view('U%d' % length).item()
 
 class ObjectAtom(_BufferedAtom):
     """
@@ -1050,6 +1092,7 @@ class ObjectAtom(_BufferedAtom):
     """
     kind = 'object'
     type = 'object'
+    base = UInt8Atom()
 
     def _tobuffer(self, object_):
         return cPickle.dumps(object_, 0)

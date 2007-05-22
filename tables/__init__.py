@@ -87,7 +87,7 @@ __all__ = [
     'ComplexAtom', 'Complex32Atom', 'Complex64Atom', 'Complex128Atom',
     'TimeAtom', 'Time32Atom', 'Time64Atom',
     'EnumAtom',
-    'PseudoAtom', 'ObjectAtom', 'VLStringAtom',
+    'PseudoAtom', 'ObjectAtom', 'VLStringAtom', 'VLUnicodeAtom',
     # Column types:
     'Col', 'StringCol', 'BoolCol',
     'IntCol', 'UIntCol', 'Int8Col', 'UInt8Col', 'Int16Col', 'UInt16Col',
