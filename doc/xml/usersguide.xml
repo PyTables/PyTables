@@ -4,7 +4,7 @@
 <book lang="en">
   <title><literal>PyTables</literal> User's Guide</title>
 
-  <subtitle>Hierarchical datasets in Python - Release 2.0 beta</subtitle>
+  <subtitle>Hierarchical datasets in Python - Release 2.0</subtitle>
 
   <bookinfo>
     <authorgroup>
@@ -3932,9 +3932,6 @@ ValueError: malformed type: 'foo bar'</screen>
                 linkend="openFileDescr" xrefstyle="select: label" />).</para>
 
                 <!-- manual-only -->
-                <para>You can also have a look at <xref
-                linkend="rootUEPOptim"/> for a more in-depth
-                explanation.</para>
               </glossdef>
             </glossentry>
 
@@ -11501,8 +11498,13 @@ print readFile("myfile.h5")</screen>
       <section>
         <title>Getting the most from the node LRU cache</title>
 
-        <para>Starting from PyTables 1.2 on, it has been introduced a new LRU
-        cache that prevents from loading all the nodes of the <emphasis>object
+        <para>One limitation of the initial versions of PyTables was that it
+        needed to load all the nodes in a file completely before being ready
+        to deal with the, making the opening times for files with a lot of
+        nodes very high and unacceptable in many cases.</para>
+
+        <para>Starting from PyTables 1.2 on, it was introduced a new LRU cache
+        that prevents from loading all the nodes of the <emphasis>object
         tree</emphasis> in memory. This cache is responsible of loading just
         up to a certain amount of nodes and discard the least recent used ones
         when there is a need to load new ones. This represents a big advantage
@@ -11684,72 +11686,13 @@ fileh.close()</screen>
 
         <para>Anyway, if you feel that this issue is important for you, setup
         your own experiments and proceed fine-tuning the
-        <literal>NODE_CACHE_SIZE</literal> parameter.</para>
-      </section>
+        <literal>NODE_CACHE_SIZE</literal> parameter.<note>
+            <!-- XXXPRO -->
 
-      <section id="rootUEPOptim">
-        <title>Selecting an User Entry Point (UEP) in your tree</title>
-
-        <para>If you have a <emphasis>huge</emphasis> tree in your data file
-        with many nodes on it, creating the object tree would take long time.
-        Many times, however, you are interested only in access to a part of
-        the complete tree, so you won't strictly need PyTables to build the
-        entire object tree in-memory, but only the
-        <emphasis>interesting</emphasis> part.</para>
-
-        <para>This is where the <literal>rootUEP</literal> parameter of
-        <literal>openFile</literal> function (see <xref
-        linkend="openFileDescr" xrefstyle="select: label" />) can be
-        helpful. Imagine that you have a file called
-        <literal>"test.h5"</literal> with the associated tree that you can see
-        in <xref linkend="rootUEPfig1" xrefstyle="select: label" />, and you
-        are interested only in the section marked in red. You can avoid the
-        build of all the object tree by saying to <literal>openFile</literal>
-        that your root will be the <literal>/Group2/Group3</literal> group.
-        That is:</para>
-
-        <screen>fileh = openFile("test.h5", rootUEP="/Group2/Group3")</screen>
-
-        <para>As a result, the actual object tree built will be like the one
-        that can be seen in <xref linkend="rootUEPfig2"
-        xrefstyle="select: label" />.</para>
-
-        <para>Of course this has been a simple example and the use of the
-        <literal>rootUEP</literal> parameter was not very necessary. But when
-        you have <emphasis>thousands</emphasis> of nodes on a tree, you will
-        certainly appreciate the <literal>rootUEP</literal> parameter.</para>
-
-        <figure id="rootUEPfig1">
-          <title>Complete tree in file <literal>test.h5</literal>, and subtree
-          of interest for the user.</title>
-
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center" fileref="rootUEP1.svg" format="SVG"
-                         scale="60" />
-            </imageobject>
-
-            <imageobject role="html">
-              <imagedata align="center" fileref="rootUEP1.png" format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
-
-        <figure id="rootUEPfig2">
-          <title>Resulting object tree derived from the use of the
-          <literal>rootUEP</literal> parameter.</title>
-
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center" fileref="rootUEP2.svg" format="SVG"
-                         scale="70" />
-            </imageobject>
-
-            <imageobject role="html">
-              <imagedata align="center" fileref="rootUEP2.png" format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
+            <para>PyTables Pro wears an optimized LRU cache node written in C,
+            so you should expect significatly faster LRU cache operations when
+            working with it.</para>
+          </note></para>
       </section>
 
       <section>
@@ -11761,8 +11704,8 @@ fileh.close()</screen>
         <emphasis>holes</emphasis> (i.e. space that is not used anymore) in
         your files, that may potentially affect not only the size of the files
         but, more importantly, the performance of I/O. This is because when
-        you delete a lot of rows on a table, the space is not automatically
-        recovered on-the-flight. In addition, if you add many more rows to a
+        you delete a lot of rows in a table, the space is not automatically
+        recovered on the flight. In addition, if you add many more rows to a
         table than specified in the <literal>expectedrows</literal> keyword in
         creation time this may affect performance as well, as explained in
         <xref linkend="expectedRowsOptim" xrefstyle="select: label" />.</para>
@@ -11777,7 +11720,7 @@ fileh.close()</screen>
         tutorial on its use.</para>
 
         <para>Another thing that you might want to use
-        <literal>ptrepack</literal> for is changing the compression filters or
+        <literal>ptrepack</literal> is for changing the compression filters or
         compression levels on your existing data for different goals, like
         checking how this can affect both final size and I/O performance, or
         getting rid of the optional compressors like <literal>LZO</literal> or
