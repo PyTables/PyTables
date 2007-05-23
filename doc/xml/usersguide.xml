@@ -7218,7 +7218,7 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             condition will be used to speed up the search. It is recommended
             that you place the indexed columns as left and out in the
             condition as possible. Anyway, this method has always better
-            performance than standard Python selections on the table.
+            performance than regular Python selections on the table.
             <!-- manual-only -->
             Please check the <xref linkend="searchOptim" xrefstyle="select:
             label" /> for more information about the performance of the
@@ -7229,7 +7229,7 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
               <para>Column indexing is only available in PyTables Pro.</para>
             </note>
 
-            <para>You can mix this method with standard Python selections in
+            <para>You can mix this method with regular Python selections in
             order to support even more complex queries. It is strongly
             recommended that you pass the most restrictive condition as the
             parameter to this method if you want to achieve maximum
@@ -10557,7 +10557,7 @@ True</screen>
         <para>If you are going to use a lot of searches like the next one:
         <screen>row = table.row
 result = [row['var2'] for row in table if row['var1'] &lt;= 20 ]</screen> (for
-        future reference, we will call this the <emphasis>standard</emphasis>
+        future reference, we will call this the <emphasis>regular</emphasis>
         selection mode) and you want to improve the time taken to run it, keep
         reading.</para>
 
@@ -10569,80 +10569,89 @@ result = [row['var2'] for row in table if row['var1'] &lt;= 20 ]</screen> (for
           iterator (see <xref linkend="Table.where" />). We will call this
           mode of selecting data <emphasis>in-kernel</emphasis>. Let's see an
           example of <emphasis>in-kernel</emphasis> selection based on the
-          <emphasis>standard</emphasis> selection mentioned above: <screen>row = table
-result = [ row['var2'] for row in table.where('var1 &lt;= 20')]</screen> This
-          simple change of mode selection can account for an improvement in
-          search times up to a factor of 10 (see the <xref
-          linkend="searchTimes-int" xrefstyle="select: label" />).</para>
+          <emphasis>regular</emphasis> selection mentioned above:
+          <screen>row = table
+result = [ row['var2'] for row in table.where('var1 &lt;= 20')]</screen>
+          This simple change of mode selection can account for an improvement
+          in search times of more than 30x for large tables as you can see in
+          <xref linkend="sequentialTimes" xrefstyle="select: label" />.</para>
 
-          <figure id="searchTimes-int">
-            <title>Times for different selection modes over
-            <literal>Int32</literal> values. Benchmark made on a machine with
-            Itanium (IA64) @ 900 MHz processors with SCSI disk @ 10K
-            RPM.</title>
-
-            <mediaobject>
-              <imageobject role="fo">
-                <imagedata align="center"
-                           fileref="searchTimes-int-itanium.svg" format="SVG"
-                           scale="50" />
-              </imageobject>
-
-              <imageobject role="html">
-                <imagedata align="center"
-                           fileref="searchTimes-int-itanium.png" format="PNG" />
-              </imageobject>
-            </mediaobject>
-          </figure>
-
-          <figure id="searchTimes-float">
-            <title>Times for different selection modes over
+          <figure id="sequentialTimes">
+            <title>Times for different sequential selection modes over
             <literal>Float64</literal> values. Benchmark made on a machine
-            with Itanium (IA64) @ 900 MHz processors with SCSI disk @ 10K
+            with AMD Opteron (AMD64) @ 2 GHz processors with IDE disk @ 7200
             RPM.</title>
 
             <mediaobject>
               <imageobject role="fo">
                 <imagedata align="center"
-                           fileref="searchTimes-float-itanium.svg"
-                           format="SVG" scale="50" />
+                           fileref="query-time-regular-inkernel-postgres.svg"
+                           format="SVG"
+                           scale="75" />
               </imageobject>
 
               <imageobject role="html">
                 <imagedata align="center"
-                           fileref="searchTimes-float-itanium.png"
+                           fileref="query-time-regular-inkernel-postgres.png"
                            format="PNG" />
               </imageobject>
             </mediaobject>
           </figure>
 
           <para>So, where is the trick? It's easy. In the
-          <emphasis>standard</emphasis> selection mode the data for column
-          <literal>var1</literal> has to be carried up to Python space so as
+          <emphasis>regular</emphasis> selection mode the data for column
+          <literal>var1</literal> has to be carried up into Python space so as
           to evaluate the condition and decide if the <literal>var2</literal>
           value should be added to the <literal>result</literal> list. On the
           contrary, in the <emphasis>in-kernel</emphasis> mode, the
           <emphasis>condition</emphasis> is passed to the PyTables kernel
           (hence the name), written in C, and evaluated there at C speed (with
-          some help of the NumPy package), so that the only values that are
-          brought to the Python space are the <literal>rows</literal> that
-          fulfilled the condition.  Hence, for selections that only have a
-          tiny number of hits (compared with the total amount of rows), the
+          the help of the integrated numexpr package), so that the only values
+          that are brought to the Python space are the <literal>rows</literal>
+          that fulfilled the condition.  Hence, for selections that only have
+          a tiny number of hits (compared with the total amount of rows), the
           savings are huge.</para>
 
-          <para>You can mix the <emphasis>in-kernel</emphasis> and
-          <emphasis>standard</emphasis> selection modes for evaluating
+          <para>Incidentally, in-kernel searches are not only much faster than
+          regular PyTables queries, but also much more than sequential queries
+          in relational databases coded in pure C (see the Postgres line in
+          figure <xref linkend="sequentialTimes" xrefstyle="select: label"
+          />).  I'm not completely sure about the reasons on why in-kernel
+          queries works so fast in comparison with relational engines made in
+          C, but a couple of reasons comes to my mind:</para>
+
+          <itemizedlist>
+
+            <listitem><para>PyTables does implement adaptative buffers
+              (i.e. its size grows as the table grows) for doing the I/O.
+              This fact, combined with the use of the highly optimized HDF5
+              hyperslice reads, allows for a very high data input
+              speed.</para>
+            </listitem>
+
+            <listitem><para>In addition, PyTables uses the powerful <ulink
+              url="http://scipy.org/SciPyPackages/NumExpr">Numexpr</ulink>
+              computing kernel (written in C) for evaluating mathematical
+              expressions.  This kernel takes full advantage of on-die caches
+              in modern processors for achieving a very high computing
+              throughput (and, in particular, allowing ultra-fast condition
+              evaluations).</para>
+            </listitem>
+
+          </itemizedlist>
+
+          <para>Furthermore, you can mix the <emphasis>in-kernel</emphasis>
+          and <emphasis>regular</emphasis> selection modes for evaluating
           arbitrarily complex conditions making use of external functions.
-          Look at this example: <screen>row = table
-result = [ row['var2']
-           for row in table.where('(var3 == "foo") &amp; (var1 &lt;= 20)')
-           if your_function(row['var2']) ]</screen> Here, we use an
+          Look at this example: <screen>row = table result = [ row['var2'] for
+          row in table.where('(var3 == "foo") &amp; (var1 &lt;= 20)') if
+          your_function(row['var2']) ]</screen> Here, we use an
           <emphasis>in-kernel</emphasis> selection to choose rows according to
           the values of the <literal>var3</literal> and
           <literal>var1</literal> fields. Then, we apply a
-          <emphasis>standard</emphasis> selection to complete the query. Of
+          <emphasis>regular</emphasis> selection to complete the query. Of
           course, when you mix the <emphasis>in-kernel</emphasis> and
-          <emphasis>standard</emphasis> selection modes you should pass the
+          <emphasis>regular</emphasis> selection modes you should pass the
           most restrictive condition to the <emphasis>in-kernel</emphasis>
           part, i.e. to the <literal>where</literal> iterator. In situations
           where it is not clear which is the most restrictive condition, you
@@ -10652,7 +10661,7 @@ result = [ row['var2']
           <para>However, since in-kernel condition strings allow rich
           expressions with multiple columns, arithmetic operations and some
           functions, it is unlikely that you will be forced to use external
-          standard selections in conditions of small to medium complexity. See
+          regular selections in conditions of small to medium complexity. See
           <xref linkend="conditionSyntax" xrefstyle="select: label" /> for
           more information on in-kernel condition syntax.</para>
         </section>
@@ -10846,6 +10855,37 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             </mediaobject>
           </figure>
 
+          <para>In addition, PyTables does implement an efficient cache for
+          (small) results of queries.  Such a cache can be very important in
+          cases where you repeat the same query interspersed with others.  In
+          that case, the repeated queries will be done very fast as you can
+          see in <xref linkend="queryTimes-float64-repeated"
+          xrefstyle="select: label" />, effectively accelerating the whole
+          query process.</para>
+
+          <figure id="queryTimes-float64-repeated">
+            <title>Times for doing a query that is already in cache for a
+            <literal>Float64</literal> column. Benchmark made on a machine
+            with AMD Opteron (AMD64) @ 2 GHz processors with IDE disk @ 7200
+            RPM.</title>
+
+            <mediaobject>
+
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="query-time-repeated-query-float64.svg"
+                           format="SVG" scale="75" />
+              </imageobject>
+
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="query-time-repeated-query-float64.png"
+                           format="PNG" />
+              </imageobject>
+
+            </mediaobject>
+          </figure>
+
           <para>Finally, let's point out that, despite the fact that
           relational databases do use a complete sorting algorithm for indexes
           might induce the reader to think that that they would be faster for
@@ -10866,10 +10906,10 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           tradicional relational database can be huge, so it is not normally
           worth the effort doing this, while, on its hand, PyTables can still
           perform a <emphasis>partial</emphasis> sort in a reasonable amount
-          of time.  In other words, PyTables indexing engine scales much
-          better than relational databases, so don't worry if you have
-          extremely large columns to index: PyTables is designed to cope with
-          that perfectly.</para>
+          of time.  In other words, the PyTables engine scales much better
+          than relational databases, so don't worry if you have extremely
+          large columns to index: PyTables is designed to cope with that
+          perfectly.</para>
 
         </section>
       </section>
@@ -11371,7 +11411,11 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         <para>Psyco is very easy to install and use, so in most scenarios it
         is worth to give it a try. However, it only runs on Intel 386
         architectures, so if you are using other architectures, you are out of
-        luck (at least until Psyco will support yours).</para>
+        luck (at least until Psyco will support yours).  Moreover, with the
+        addition of flexible (and very fast) in-kernel queries (by the way,
+        they cannot be optimized at all by Psyco), the use of Psyco will only
+        help in rather few scenarios (like for example, during table
+        writings).</para>
 
         <para>As an example, imagine that you have a small script that reads
         and selects data over a series of datasets, like this:</para>
