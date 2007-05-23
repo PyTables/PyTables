@@ -75,8 +75,6 @@
     } break
 
 
-#define min(a,b)  (((a)<(b)) ? (a) : (b))
-
     unsigned int pc, j, k, r;
     /* set up pointers to next block of inputs and outputs */
     params.mem[0] = params.output + index * params.memsteps[0];
@@ -190,10 +188,10 @@
         case OP_EQ_BFF: VEC_ARG2(b_dest = (f1 == f2));
         case OP_NE_BFF: VEC_ARG2(b_dest = (f1 != f2));
 
-        case OP_GT_BSS: VEC_ARG2(b_dest = (strncmp(s1, s2, min(params.memsizes[arg1], params.memsizes[arg2])) > 0));
-        case OP_GE_BSS: VEC_ARG2(b_dest = (strncmp(s1, s2, min(params.memsizes[arg1], params.memsizes[arg2])) >= 0));
-        case OP_EQ_BSS: VEC_ARG2(b_dest = (strncmp(s1, s2, min(params.memsizes[arg1], params.memsizes[arg2])) == 0));
-        case OP_NE_BSS: VEC_ARG2(b_dest = (strncmp(s1, s2, min(params.memsizes[arg1], params.memsizes[arg2])) != 0));
+        case OP_GT_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, params.memsizes[arg1], params.memsizes[arg2]) > 0));
+        case OP_GE_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, params.memsizes[arg1], params.memsizes[arg2]) >= 0));
+        case OP_EQ_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, params.memsizes[arg1], params.memsizes[arg2]) == 0));
+        case OP_NE_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, params.memsizes[arg1], params.memsizes[arg2]) != 0));
 
         case OP_ONES_LIKE_II: VEC_ARG1(i_dest = 1);
         case OP_NEG_II: VEC_ARG1(i_dest = -i1);
@@ -315,8 +313,6 @@
 #undef VEC_ARG1
 #undef VEC_ARG2
 #undef VEC_ARG3
-
-#undef min
 
 #undef b_dest
 #undef i_dest

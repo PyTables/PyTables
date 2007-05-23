@@ -1023,6 +1023,20 @@ flat_index(struct index_data *id, unsigned int j) {
 #define BOUNDS_CHECK(arg)
 #endif
 
+#define min(a,b)  (((a)<(b)) ? (a) : (b))
+int
+stringcmp(const char *s1, const char *s2, intp maxn1, intp maxn2)
+{
+    int cmp, n1, n2;
+    n1 = strnlen(s1, maxn1);
+    n2 = strnlen(s2, maxn2);
+    cmp = strncmp(s1, s2, min(n1, n2));
+    if (cmp != 0)
+        return cmp;
+    return (n1 == n2)? 0 : ((n1 < n2)? -1 : +1);
+}
+#undef min
+
 static inline int
 vm_engine_1(int start, int blen, struct vm_params params, int *pc_error)
 {
