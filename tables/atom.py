@@ -32,6 +32,7 @@ Variables
 # Imports
 # =======
 import re
+import sys
 import inspect
 import cPickle
 
@@ -1055,17 +1056,27 @@ class VLUnicodeAtom(_BufferedAtom):
     type = 'vlunicode'
     base = UInt32Atom()
 
+    if sys.maxunicode <= 0xffff:
+        # When the Python build is UCS-2, we need to promote the
+        # Unicode string to UCS-4.  We *must* use a 0-d array since
+        # NumPy scalars inherit the UCS-2 encoding from Python (see
+        # NumPy ticket #525).  Since ``_tobuffer()`` can't return an
+        # array, we must override ``toarray()`` itself.
+        def toarray(self, object_):
+            if not isinstance(object_, basestring):
+                raise TypeError("object is not a string: %r" % (object_,))
+            ustr = unicode(object_)
+            uarr = numpy.array(ustr, dtype='U')
+            return numpy.ndarray(
+                buffer=uarr, dtype=self.base.dtype, shape=len(ustr) )
+
     def _tobuffer(self, object_):
+        # This works (and is used) only with UCS-4 builds of Python,
+        # where the width of the internal representation of a
+        # character matches that of the base atoms.
         if not isinstance(object_, basestring):
             raise TypeError("object is not a string: %r" % (object_,))
-        ## return numpy.unicode0(object_)  # avoid problems with UCS-2 builds
-        # Work around NumPy ticket #525.  Since creating a scalar
-        # raises the NumPy bug and returning an array is not compliant
-        # with what ``toarray()`` expects, we do the construction of
-        # the array right here.
-        ustr = unicode(object_)
-        uarr = numpy.array(ustr, dtype='U')
-        return numpy.ndarray(buffer=uarr, dtype=self.base, shape=len(ustr))
+        return numpy.unicode0(object_)
 
     def fromarray(self, array):
         length = len(array)
