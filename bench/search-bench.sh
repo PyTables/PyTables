@@ -1,5 +1,5 @@
 #!/bin/sh
-python="/usr/local/bin/python2.5 -O"
+python="python2.5 -O"
 
 writedata () {
   nrows=$1
@@ -11,7 +11,7 @@ writedata () {
   else
       shufflef=""
   fi
-  cmd="${python} search-bench.py -b ${bfile} ${heavy} ${psyco} -l ${libcomp} -c ${complevel} ${shufflef} -w -n ${nrows} data.nobackup/bench-${libcomp}-${nrows}k.h5"
+  cmd="${python} search-bench.py -b ${bfile} ${heavy} ${psyco} -l ${libcomp} -c ${complevel} ${shufflef} -w -n ${nrows} -x data.nobackup/bench-${libcomp}-${nrows}k.h5"
   echo ${cmd}
   ${cmd}
 }

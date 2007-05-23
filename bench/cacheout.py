@@ -1,7 +1,7 @@
 # Program to clean out the filesystem cache
-import numarray
+import numpy
 
-a=numarray.arange(1000*1000*25)  # 100 MB of RAM
+a=numpy.arange(1000*100*125, dtype='f8')  # 100 MB of RAM
 b=a*3  # Another 100 MB
 # delete the reference to the booked memory
 del a
