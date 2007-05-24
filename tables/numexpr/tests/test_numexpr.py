@@ -346,6 +346,14 @@ class test_strings(NumpyTestCase):
     str_array2 = array(str_list2 * str_nloops)
     str_constant = 'doodoo'
 
+    def check_null_chars(self):
+        str_list = [
+            '\0\0\0', '\0\0foo\0', '\0\0foo\0b', '\0\0foo\0b\0',
+            'foo\0', 'foo\0b', 'foo\0b\0', 'foo\0bar\0baz\0\0' ]
+        for s in str_list:
+            r = evaluate('s')
+            self.assertEqual(s, r.tostring())  # check *all* stored data
+
     def check_compare_copy(self):
         sarr = self.str_array1
         expr = 'sarr'

@@ -884,7 +884,7 @@ NumExpr_init(NumExprObject *self, PyObject *args, PyObject *kwds)
             char *smem = (char*)mem[i+n_inputs+1];
             char *value = PyString_AS_STRING(PyTuple_GET_ITEM(constants, i));
             for (j = 0; j < size*BLOCK_SIZE1; j+=size) {
-                strncpy(smem + j, value, size);
+                memcpy(smem + j, value, size);
             }
         }
     }
@@ -1262,7 +1262,7 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
                 int itemsize = PyArray_ITEMSIZE(a);
                 char *value = (char*)(PyArray_DATA(a));
                 for (j = 0; j < itemsize*BLOCK_SIZE1; j+=itemsize)
-                    strncpy((char*)(PyArray_DATA(b)) + j, value, itemsize);
+                    memcpy((char*)(PyArray_DATA(b)) + j, value, itemsize);
             } else {
                 PyErr_SetString(PyExc_RuntimeError, "illegal typecode value");
                 goto cleanup_and_exit;
