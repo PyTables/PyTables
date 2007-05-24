@@ -409,14 +409,17 @@ class test_strings(NumpyTestCase):
     def check_compare_prefix(self):
         # Check comparing two strings where one is a prefix of the
         # other (see PyTables ticket #76).
-        s1, s2 = 'foo', 'foobar'
-        self.assert_(evaluate('s1 < s2'))
-        self.assert_(evaluate('s1 <= s2'))
-        self.assert_(evaluate('~(s1 == s2)'))
-        self.assert_(evaluate('~(s1 >= s2)'))
-        self.assert_(evaluate('~(s1 > s2)'))
-        s1, s2 = string0('foo\0'), 'foo'
-        self.assert_(evaluate('s1 == s2'))  # string array semantics
+        for s1, s2 in [ ('foo', 'foobar'), ('foo', 'foo\0bar'),
+                        ('foo\0a', 'foo\0bar') ]:
+            self.assert_(evaluate('s1 < s2'))
+            self.assert_(evaluate('s1 <= s2'))
+            self.assert_(evaluate('~(s1 == s2)'))
+            self.assert_(evaluate('~(s1 >= s2)'))
+            self.assert_(evaluate('~(s1 > s2)'))
+
+        # Check for NumPy array-style semantics in string equality.
+        s1, s2 = 'foo', 'foo\0\0'
+        self.assert_(evaluate('s1 == s2'))
 
 # The following function is used to integrate Numexpr tests into PyTables'.
 def suite():

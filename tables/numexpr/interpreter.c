@@ -3,6 +3,7 @@
 #include "numpy/noprefix.h"
 #include "math.h"
 #include "string.h"
+#include "assert.h"
 
 #include "complex_functions.inc"
 
@@ -1023,19 +1024,25 @@ flat_index(struct index_data *id, unsigned int j) {
 #define BOUNDS_CHECK(arg)
 #endif
 
-#define min(a,b)  (((a)<(b)) ? (a) : (b))
 int
-stringcmp(const char *s1, const char *s2, intp maxn1, intp maxn2)
+stringcmp(const char *s1, const char *s2, intp maxlen1, intp maxlen2)
 {
-    int cmp, n1, n2;
-    n1 = strnlen(s1, maxn1);
-    n2 = strnlen(s2, maxn2);
-    cmp = strncmp(s1, s2, min(n1, n2));
-    if (cmp != 0)
-        return cmp;
-    return (n1 == n2)? 0 : ((n1 < n2)? -1 : +1);
+    intp maxlen, nextpos;
+    /* Point to this when the end of a string is found,
+       to simulate infinte trailing NUL characters. */
+    const char null = 0;
+
+    maxlen = (maxlen1 > maxlen2) ? maxlen1 : maxlen2;
+    for (nextpos = 1;  nextpos <= maxlen;  nextpos++) {
+        if (*s1 < *s2)
+            return -1;
+        if (*s1 > *s2)
+            return +1;
+        s1 = (nextpos >= maxlen1) ? &null : s1+1;
+        s2 = (nextpos >= maxlen2) ? &null : s2+1;
+    }
+    return 0;
 }
-#undef min
 
 static inline int
 vm_engine_1(int start, int blen, struct vm_params params, int *pc_error)
