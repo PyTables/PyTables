@@ -1,5 +1,6 @@
 import sys
 import timeit
+import numpy
 
 array_size = 1000*1000
 iterations = 10
