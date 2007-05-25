@@ -3930,8 +3930,6 @@ ValueError: malformed type: 'foo bar'</screen>
                 <para>The UEP (user entry point) group name in the file (see
                 the <literal>openFile()</literal> function in <xref
                 linkend="openFileDescr" xrefstyle="select: label" />).</para>
-
-                <!-- manual-only -->
               </glossdef>
             </glossentry>
 
@@ -10495,13 +10493,12 @@ True</screen>
       <para></para>
 
       <para>On this chapter, you will get deeper knowledge of PyTables
-      internals. PyTables has several places where the user can improve the
-      performance of his application. If you are planning to deal with really
+      internals. PyTables has several places where you can improve the
+      performance of your application. If you are planning to deal with really
       large data, you should read carefully this section in order to learn how
       to get an important efficiency boost for your code. But if your dataset
       is small (say, up to 10 MB), you should not worry about that as the
-      default parameters in PyTables are already tuned to cope with that
-      perfectly.</para>
+      default parameters in PyTables are already tuned for those sizes.</para>
 
       <section id="expectedRowsOptim">
         <title>Informing PyTables about expected number of rows in
@@ -10525,16 +10522,19 @@ True</screen>
 
         <para>PyTables can determine an optimum chunk size to make B-trees
         adequate to your dataset size if you help it by providing an
-        estimation of the final number of rows for a extensible leaf. This
-        must be made at leaf creation time by passing this value to the
-        <literal>expectedrows</literal> keyword of the
-        <literal>createTable</literal> method (see <xref
+        estimation of the final number of rows for an extensible
+        leaf<footnote><para><literal>CArray</literal> nodes, though not
+        extensible, are chunked and have their optimum chunk size
+        automatically computed at creation time, since their final shape is
+        known.</para></footnote>.  This must be made at leaf creation time by
+        passing this value to the <literal>expectedrows</literal> argument of
+        the <literal>createTable()</literal> method (see <xref
         linkend="createTableDescr" xrefstyle="select: label" />) and
-        <literal>createEArray</literal> method (see <xref
+        <literal>createEArray()</literal> method (see <xref
         linkend="createEArrayDescr" xrefstyle="select: label" />).  For
         <literal>VLArray</literal> leaves, pass the expected size in MBytes by
         using the argument <literal>expectedsizeinMB</literal> of
-        <literal>createVLArray</literal> (see <xref
+        <literal>createVLArray()</literal> (see <xref
         linkend="createVLArrayDescr" xrefstyle="select: label" />)
         instead.</para>
 
@@ -10552,8 +10552,7 @@ True</screen>
         <title>Accelerating your searches</title>
 
         <para>If you are going to use a lot of searches like the next one:
-        <screen>row = table.row
-result = [row['var2'] for row in table if row['var1'] &lt;= 20 ]</screen> (for
+        <screen>result = [row['var2'] for row in table if row['var1'] &lt;= 20 ]</screen> (for
         future reference, we will call this the <emphasis>regular</emphasis>
         selection mode) and you want to improve the time taken to run it, keep
         reading.</para>
@@ -10562,16 +10561,20 @@ result = [row['var2'] for row in table if row['var1'] &lt;= 20 ]</screen> (for
           <title>In-kernel searches</title>
 
           <para>PyTables provides a way to accelerate data selections relating
-          to a single table, through the use of the <literal>where</literal>
-          iterator (see <xref linkend="Table.where" />). We will call this
-          mode of selecting data <emphasis>in-kernel</emphasis>. Let's see an
-          example of <emphasis>in-kernel</emphasis> selection based on the
-          <emphasis>regular</emphasis> selection mentioned above:
-          <screen>row = table
-result = [ row['var2'] for row in table.where('var1 &lt;= 20')]</screen>
-          This simple change of mode selection can account for an improvement
-          in search times of more than 30x for large tables as you can see in
-          <xref linkend="sequentialTimes" xrefstyle="select: label" />.</para>
+          to a single table, through the use of the
+          <literal>Table.where()</literal> iterator and related query methods
+          (see <xref linkend="TableMethods_querying" xrefstyle="select: label"
+          />). We will call this mode of selecting data
+          <emphasis>in-kernel</emphasis>. Let's see an example of
+          <emphasis>in-kernel</emphasis> selection based on the
+          <emphasis>regular</emphasis> selection mentioned above:</para>
+
+          <screen>result = [row['var2'] for row in table.where('var1 &lt;= 20')]</screen>
+
+          <para>This simple change of mode selection can account for an
+          improvement in search times of more than 30x for large tables as you
+          can see in <xref linkend="sequentialTimes" xrefstyle="select: label"
+          />.</para>
 
           <figure id="sequentialTimes">
             <title>Times for different sequential selection modes over
@@ -10603,25 +10606,24 @@ result = [ row['var2'] for row in table.where('var1 &lt;= 20')]</screen>
           contrary, in the <emphasis>in-kernel</emphasis> mode, the
           <emphasis>condition</emphasis> is passed to the PyTables kernel
           (hence the name), written in C, and evaluated there at C speed (with
-          the help of the integrated numexpr package, see <biblioref
+          the help of the integrated Numexpr package, see <biblioref
           linkend="Numexpr" />), so that the only values that are brought to
-          the Python space are the <literal>rows</literal> that fulfilled the
-          condition.  Hence, for selections that only have a tiny number of
-          hits (compared with the total amount of rows), the savings are
-          huge.</para>
+          Python space are the rows that fulfilled the condition.  Hence, for
+          selections that only have a tiny number of hits (compared with the
+          total amount of rows), the savings are huge.</para>
 
           <para>Incidentally, in-kernel searches are not only much faster than
           regular PyTables queries, but also much more than sequential queries
           in relational databases coded in pure C (see the Postgres line in
           figure <xref linkend="sequentialTimes" xrefstyle="select: label"
-          />).  I'm not completely sure about the reasons on why in-kernel
-          queries works so fast in comparison with relational engines made in
-          C, but a couple of reasons comes to my mind:</para>
+          />).  I'm not completely sure about the reasons of why in-kernel
+          queries work so fast in comparison with relational engines made in
+          C, but a couple of reasons come to my mind:</para>
 
           <itemizedlist>
 
-            <listitem><para>PyTables does implement adaptative buffers
-              (i.e. its size grows as the table grows) for doing the I/O.
+            <listitem><para>PyTables implements adaptive buffers
+              (i.e. their size grows as the table grows) for doing I/O.
               This fact, combined with the use of the highly optimized HDF5
               hyperslice reads, allows for a very high data input
               speed.</para>
@@ -10640,27 +10642,30 @@ result = [ row['var2'] for row in table.where('var1 &lt;= 20')]</screen>
           <para>Furthermore, you can mix the <emphasis>in-kernel</emphasis>
           and <emphasis>regular</emphasis> selection modes for evaluating
           arbitrarily complex conditions making use of external functions.
-          Look at this example: <screen>row = table result = [ row['var2'] for
-          row in table.where('(var3 == "foo") &amp; (var1 &lt;= 20)') if
-          your_function(row['var2']) ]</screen> Here, we use an
-          <emphasis>in-kernel</emphasis> selection to choose rows according to
-          the values of the <literal>var3</literal> and
-          <literal>var1</literal> fields. Then, we apply a
+          Look at this example:</para>
+
+          <screen>result = [ row['var2']
+           for row in table.where('(var3 == "foo") &amp; (var1 &lt;= 20)')
+           if your_function(row['var2']) ]</screen>
+
+          <para>Here, we use an <emphasis>in-kernel</emphasis> selection to
+          choose rows according to the values of the <literal>var3</literal>
+          and <literal>var1</literal> fields. Then, we apply a
           <emphasis>regular</emphasis> selection to complete the query. Of
           course, when you mix the <emphasis>in-kernel</emphasis> and
           <emphasis>regular</emphasis> selection modes you should pass the
           most restrictive condition to the <emphasis>in-kernel</emphasis>
-          part, i.e. to the <literal>where</literal> iterator. In situations
+          part, i.e. to the <literal>where()</literal> iterator. In situations
           where it is not clear which is the most restrictive condition, you
           might want to experiment a bit in order to find the best
           combination.</para>
 
           <para>However, since in-kernel condition strings allow rich
-          expressions with multiple columns, arithmetic operations and some
-          functions, it is unlikely that you will be forced to use external
-          regular selections in conditions of small to medium complexity. See
-          <xref linkend="conditionSyntax" xrefstyle="select: label" /> for
-          more information on in-kernel condition syntax.</para>
+          expressions with multiple columns, variables, arithmetic operations
+          and some functions, it is unlikely that you will be forced to use
+          external regular selections in conditions of small to medium
+          complexity. See <xref linkend="conditionSyntax" xrefstyle="select:
+          label" /> for more information on in-kernel condition syntax.</para>
         </section>
 
         <section id="indexedSearches">
@@ -10694,12 +10699,10 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           index in your queries. However, as the query optimizer is not very
           sophisticated right now<footnote> <para>We plan to address this
           limitation in the short future.</para> </footnote> it is recommended
-          that you place comparisons involving indexed colums as much to the
-          left in the condition expression as possible in order to maximise
-          the chances of actually using indexes.  Avoiding too nested
-          conditions also do help the current optimizer.  See below for
-          examples where the optimizer can safely (or not) determine if an
-          index can be used or not.</para>
+          that you avoid placing comparisons involving indexed colums too deep
+          into the condition expression in order to maximise the chances of
+          actually using indexes.  See below for examples where the optimizer
+          can safely determine if an index can be used or not.</para>
 
           <para>Example conditions where an index can be used: <itemizedlist>
               <listitem>
@@ -10751,28 +10754,29 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
               </listitem>
             </itemizedlist></para>
 
-          <para>Remember that you can use the
-          <literal>willQueryUseIndexing()</literal> method (see <xref
-          linkend="Table.willQueryUseIndexing" xrefstyle="select: label" />)
-          to check whether a particular query will used indexing or
-          not.</para>
+          <note>
+            <para>If you want to know for sure whether a particular query will
+            use indexing or not (without actually running it), you are advised
+            to use the <literal>Table.willQueryUseIndexing()</literal> method
+            (see <xref linkend="Table.willQueryUseIndexing" xrefstyle="select:
+            label" />).</para>
+          </note>
 
           <para>One important aspect of indexing in PyTables is that it has
-          been designed from the ground with the goal of being capable to
+          been designed from the ground up with the goal of being capable to
           effectively manage very large tables. In <xref
           linkend="createIndexTimes" xrefstyle="select: label" />, you can see
-          that the times to index columns in tables is pretty short. In
-          particular, the time to index a column with 1 billion of rows with
-          no index optimization is roughly 15 min., while indexing the same
-          column with full optimization is around 100 min. which are a quite
-          small figures compared with the time for a relational database (in
-          this case, Postgres 8), which takes more than 500 min. for doing the
-          same job.  This is because PyTables has chosen an algorithm that
+          that the times to index columns in tables are pretty short. In
+          particular, the time to index a column with 1 billion rows (1
+          gigarow) with no index optimization is roughly 15 min. while
+          indexing the same column with full optimization is around 100 min.,
+          which are a quite small figures compared with a relational database
+          (in this case, Postgres 8), which takes more than 500 min. for doing
+          the same job.  This is because PyTables has chosen an algorithm that
           does a <emphasis>partial</emphasis> sort of the columns in order to
-          ensure contained indexing times.  On the contrary, most of
-          relational databases try to do a <emphasis>complete</emphasis> sort
-          of columns, and this fact makes the time to create an index to be
-          much bigger.</para>
+          ensure contained indexing times.  On the contrary, most relational
+          databases try to do a <emphasis>complete</emphasis> sort of columns,
+          and this fact makes the time to create an index much bigger.</para>
 
           <figure id="createIndexTimes">
             <title>Times for indexing a <literal>Float64</literal>
@@ -10795,7 +10799,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           </figure>
 
           <para>Another important feature to stress out is the aforementioned
-          capability of PyTables to support a customizable quality for the
+          capability of PyTables to support a customizable quality for
           indexes, allowing the user to select the best one that suits her
           needs.  This quality can be specified by passing the desired
           <literal>optlevel</literal> argument to the
@@ -10803,8 +10807,8 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           linkend="Column.createIndex" />).  In the figures <xref
           linkend="queryTimes-float64-cold-cache" xrefstyle="select:
           labelnumber" /> and <xref linkend="queryTimes-float64-warm-cache"
-          xrefstyle="select: labelnumber" /> you can see the effect in time
-          lookup of specifying several optimization levels.</para>
+          xrefstyle="select: labelnumber" /> you can see the effect in lookup
+          time of specifying several optimization levels.</para>
 
           <figure id="queryTimes-float64-cold-cache">
             <title>Times for querying a <literal>Float64</literal> column with
@@ -10852,7 +10856,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             </mediaobject>
           </figure>
 
-          <para>In addition, PyTables does implement an efficient cache for
+          <para>In addition, PyTables implements an efficient cache for
           (small) results of queries.  Such a cache can be very important in
           cases where you repeat the same query interspersed with others.  In
           that case, the repeated queries will be done very fast as you can
@@ -10884,14 +10888,14 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           </figure>
 
           <para>Finally, let's point out that, despite the fact that
-          relational databases do use a complete sorting algorithm for indexes
+          relational databases use a complete sorting algorithm for indexes
           might induce the reader to think that that they would be faster for
           searching purposes than the PyTables approach, this is not
           necessarily the case (or, at least, not always), as you can see in
           the figures <xref linkend="queryTimes-float64-cold-cache"
           xrefstyle="select: labelnumber" /> and <xref
           linkend="queryTimes-float64-warm-cache" xrefstyle="select:
-          labelnumber" />.  This is because when one choose a high
+          labelnumber" />.  This is because when one chooses a high
           optimization level for medium to large table sizes (&lt; 10 billions
           of rows), the PyTables indexing engine can effectively achieve a
           complete sorting, making its lookup times usually faster than using
@@ -10900,7 +10904,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           engine cannot normally achieve the goal of getting a completely
           sorted index.  However, this is not a grave limitation in practice
           because the time required for completing such a complete sort in a
-          tradicional relational database can be huge, so it is not normally
+          traditional relational database can be huge, so it is not normally
           worth the effort doing this, while, on its hand, PyTables can still
           perform a <emphasis>partial</emphasis> sort in a reasonable amount
           of time.  In other words, the PyTables engine scales much better
@@ -10957,16 +10961,17 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         Because of that, it is a good candidate to be used for compressing you
         data.</para>
 
-        <para>However, in some situations it is critical to have
-        <emphasis>very good</emphasis> decompression speed (at the expense of
+        <para>However, in some situations it is critical to have a
+        <emphasis>very good decompression speed</emphasis> (at the expense of
         lower compression ratios or more CPU wasted on compression, as we will
-        see soon). In others, the emphasis is put in achieving the maximum
-        compression ratios, no matter which reading speed will result. This is
-        why support for two additional compressors has been added to PyTables:
-        LZO (see <biblioref linkend="lzoRef" />) and bzip2 (see <biblioref
-        linkend="bzip2Ref" />). Following the author of LZO (and checked by
-        the author of this section, as you will see soon), LZO offers pretty
-        fast compression (though a small compression ratio) and extremely fast
+        see soon). In others, the emphasis is put in achieving the
+        <emphasis>maximum compression ratios</emphasis>, no matter which
+        reading speed will result. This is why support for two additional
+        compressors has been added to PyTables: LZO (see <biblioref
+        linkend="lzoRef" />) and bzip2 (see <biblioref linkend="bzip2Ref"
+        />). Following the author of LZO (and checked by the author of this
+        section, as you will see soon), LZO offers pretty fast compression
+        (though a small compression ratio) and extremely fast
         decompression. In fact, LZO is so fast when compressing/decompressing
         that it may well happen (that depends on your data, of course) that
         writing or reading a compressed dataset is sometimes faster than if it
@@ -10995,10 +11000,10 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         PyTables 1.3. Also, the tests have been conducted on a IBM OpenPower
         720 (e-series) with a PowerPC G5 at 1.65 GHz and a hard disk spinning
         at 15K RPM. As your data and platform may be totally different for
-        your case, take this just as a guide because your mileage will
-        probably vary. Finally, and to be able to play with tables with a
-        number of rows as large as possible, the record size has been chosen
-        to be small (16 bytes). Here is its definition:</para>
+        your case, take this just as a guide because your mileage may
+        vary. Finally, and to be able to play with tables with a number of
+        rows as large as possible, the record size has been chosen to be small
+        (16 bytes). Here is its definition:</para>
 
         <screen>class Bench(IsDescription):
     var1 = StringCol(length=4)
@@ -11062,7 +11067,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
 
         <para>Have also a look at <xref linkend="comprWriteComparison"
         xrefstyle="select: label" />. It shows how the speed of writing rows
-        evolves as the size (the row number) of the table grows. Even though
+        evolves as the size (number of rows) of the table grows. Even though
         in these graphs the size of one single row is 16 bytes, you can most
         probably extrapolate these figures to other row sizes.</para>
 
@@ -11091,25 +11096,25 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         test. Compared with the reference line without compression, the
         general trend here is that LZO does not affect too much the reading
         performance (and in some points it is actually better), Zlib makes
-        speed to drop to a half, while bzip2 is performing very slow (up to 8x
+        speed drop to a half, while bzip2 is performing very slow (up to 8x
         slower).</para>
 
         <para>Also, in the same <xref linkend="comprReadNoCacheComparison"
         xrefstyle="select: label" /> you can notice some strange peaks in the
         speed that we might be tempted to attribute to libraries on which
         PyTables relies (HDF5, compressors...), or to PyTables itself.
-        However, <xref linkend="comprReadCacheComparison"
-        xrefstyle="select: label" /> reveals that, if we put the file in the
-        filesystem cache (by reading it several times before, for example),
-        the evolution of the performance is much smoother. So, the most
-        probable explanation would be that such a peaks are a consequence of
-        the underlying OS filesystem, rather than a flaw in PyTables (or any
-        other library behind it). Another consequence that can be derived from
-        the above plot is that LZO decompression performance is much better
-        than Zlib, allowing an improvement in overal speed of more than 2x,
-        and perhaps more important, the read performance for really large
-        datasets (i.e. when they do not fit in the OS filesystem cache) can be
-        actually <emphasis>better</emphasis> than not using compression at
+        However, <xref linkend="comprReadCacheComparison" xrefstyle="select:
+        label" /> reveals that, if we put the file in the filesystem cache (by
+        reading it several times before, for example), the evolution of the
+        performance is much smoother. So, the most probable explanation would
+        be that such peaks are a consequence of the underlying OS filesystem,
+        rather than a flaw in PyTables (or any other library behind
+        it). Another consequence that can be derived from the aforementioned
+        plot is that LZO decompression performance is much better than Zlib,
+        allowing an improvement in overal speed of more than 2x, and perhaps
+        more important, the read performance for really large datasets
+        (i.e. when they do not fit in the OS filesystem cache) can be actually
+        <emphasis>better</emphasis> than not using compression at
         all. Finally, one can see that reading performance is very badly
         affected when bzip2 is used (it is 10x slower than LZO and 4x than
         Zlib), but this is not too strange anyway.</para>
@@ -11153,11 +11158,11 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         can expect that LZO will be the fastest in both compressing and
         decompressing, but the one that achieves the worse compression ratio
         (although that may be just OK for many situations, specially when used
-        with the <xref linkend="ShufflingOptim" xrefstyle="select: label" />).
-        bzip2 is the slowest, by large, in both compressing and decompressing,
-        and besides, it does not achieve any better compression ratio than
-        Zlib. Zlib represents a balance between them: it's somewhat slow
-        compressing (2x) and decompressing (3x) than LZO, but it normally
+        with shuffling —see <xref linkend="ShufflingOptim" xrefstyle="select:
+        label" />).  bzip2 is the slowest, by large, in both compressing and
+        decompressing, and besides, it does not achieve any better compression
+        ratio than Zlib. Zlib represents a balance between them: it's somewhat
+        slow compressing (2x) and decompressing (3x) than LZO, but it normally
         achieves fairly good compression ratios.</para>
 
         <para>Finally, by looking at the plots <xref
@@ -11241,13 +11246,13 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         leverage the results of your favorite compressor. Its name is
         <emphasis>shuffle</emphasis>, and because it can greatly benefit
         compression and it does not take many CPU resources (see below for a
-        justification), it is active by <emphasis>default</emphasis> in
+        justification), it is active <emphasis>by default</emphasis> in
         PyTables whenever compression is activated (independently of the
-        chosen compressor). It is of course deactivated when compression is
-        off (which is the default, as you already should know). Of course, you
-        can deactivate it if you want, but this is not recommended.</para>
+        chosen compressor). It is deactivated when compression is off (which
+        is the default, as you already should know). Of course, you can
+        deactivate it if you want, but this is not recommended.</para>
 
-        <para>So, how exactly works this mysterious filter? From the HDF5
+        <para>So, how does this mysterious filter exactly work? From the HDF5
         reference manual: <quote>The shuffle filter de-interlaces a block of
         data by reordering the bytes. All the bytes from one consistent byte
         position of each data element are placed together in one block; all
@@ -11263,7 +11268,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         xrefstyle="select: label" /> you can see a benchmark that shows how
         the <emphasis>shuffle</emphasis> filter can help the different
         libraries in compressing data. In this experiment, shuffle has made
-        LZO to compress almost 3x more (!), while Zlib and bzip2 are seeing
+        LZO compress almost 3x more (!), while Zlib and bzip2 are seeing
         improvements of 2x. Once again, the data for this experiment is
         synthetic, and <emphasis>shuffle</emphasis> seems to do a great work
         with it, but in general, the results will vary in each case<footnote>
@@ -11408,7 +11413,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         <para>Psyco is very easy to install and use, so in most scenarios it
         is worth to give it a try. However, it only runs on Intel 386
         architectures, so if you are using other architectures, you are out of
-        luck (at least until Psyco will support yours).  Moreover, with the
+        luck (at least until Psyco supports yours).  Moreover, with the
         addition of flexible (and very fast) in-kernel queries (by the way,
         they cannot be optimized at all by Psyco), the use of Psyco will only
         help in rather few scenarios (like for example, during table
@@ -11418,15 +11423,15 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         and selects data over a series of datasets, like this:</para>
 
         <screen>def readFile(filename):
-"Select data from all the tables in filename"
+    "Select data from all the tables in filename"
 
-fileh = openFile(filename, mode = "r")
-result = []
-for table in fileh("/", 'Table'):
-result = [ p['var3'] for p in table if p['var2'] &lt;= 20 ]
+    fileh = openFile(filename, mode = "r")
+    result = []
+    for table in fileh("/", 'Table'):
+    result = [p['var3'] for p in table if p['var2'] &lt;= 20]
 
-fileh.close()
-return result
+    fileh.close()
+    return result
 
 if __name__=="__main__":
 print readFile("myfile.h5")</screen>
@@ -11498,33 +11503,33 @@ print readFile("myfile.h5")</screen>
       <section>
         <title>Getting the most from the node LRU cache</title>
 
-        <para>One limitation of the initial versions of PyTables was that it
-        needed to load all the nodes in a file completely before being ready
-        to deal with the, making the opening times for files with a lot of
-        nodes very high and unacceptable in many cases.</para>
+        <para>One limitation of the initial versions of PyTables was that they
+        needed to load all nodes in a file completely before being ready to
+        deal with them, making the opening times for files with a lot of nodes
+        very high and unacceptable in many cases.</para>
 
-        <para>Starting from PyTables 1.2 on, it was introduced a new LRU cache
-        that prevents from loading all the nodes of the <emphasis>object
-        tree</emphasis> in memory. This cache is responsible of loading just
-        up to a certain amount of nodes and discard the least recent used ones
-        when there is a need to load new ones. This represents a big advantage
-        over the old schema, specially in terms of memory usage (as there is
-        no need to load <emphasis>every</emphasis> node in memory), but it
-        also adds very convenient optimizations for working interactively
-        like, for example, speeding-up the opening times of files with lots of
-        nodes, allowing to open almost any kind of file in typically less than
-        one tenth of second (compare this with the more than 10 seconds for
-        files with more than 10000 nodes in PyTables pre-1.2 era). See
-        <biblioref linkend="NewObjectTreeCacheRef" /> for more info on the
-        advantages (and also drawbacks) of this approach.</para>
+        <para>Starting from PyTables 1.2, a new LRU cache was introduced that
+        avoids loading all the nodes of the <emphasis>object tree</emphasis>
+        in memory. This cache is responsible of loading just up to a certain
+        amount of nodes and discard the least recent used ones when there is a
+        need to load new ones. This represents a big advantage over the old
+        schema, specially in terms of memory usage (as there is no need to
+        load <emphasis>every</emphasis> node in memory), but it also adds very
+        convenient optimizations for working interactively like, for example,
+        speeding-up the opening times of files with lots of nodes, allowing to
+        open almost any kind of file in typically less than one tenth of
+        second (compare this with the more than 10 seconds for files with more
+        than 10000 nodes in PyTables pre-1.2 era). See <biblioref
+        linkend="NewObjectTreeCacheRef" /> for more info on the advantages
+        (and also drawbacks) of this approach.</para>
 
         <para>One thing that deserves some discussion is the election of the
         parameter that sets the maximum amount of nodes to be held in memory
         at any time. As PyTables is meant to be deployed in machines that have
         potentially low memory, the default for it is quite conservative (you
         can look at its actual value in the <literal>NODE_CACHE_SIZE</literal>
-        parameter in module <literal>tables/constants.py</literal>). However,
-        if you usually have to deal with files that have much more nodes than
+        parameter in module <literal>tables/parameters.py</literal>). However,
+        if you usually have to deal with files that have many more nodes than
         the maximum default, and you have a lot of free memory in your system,
         then you may want to experiment which is the appropriate value of
         <literal>NODE_CACHE_SIZE</literal> that fits better your needs.</para>
@@ -11532,24 +11537,24 @@ print readFile("myfile.h5")</screen>
         <para>As an example, look at the next code:</para>
 
         <screen>def browse_tables(filename):
-fileh = openFile(filename,'a')
-group = fileh.root.newgroup
-for j in range(10):
-for tt in fileh.walkNodes(group, "Table"):
-      title = tt.attrs.TITLE
-      for row in tt:
-pass
-fileh.close()</screen>
+    fileh = openFile(filename,'a')
+    group = fileh.root.newgroup
+    for j in range(10):
+        for tt in fileh.walkNodes(group, "Table"):
+            title = tt.attrs.TITLE
+            for row in tt:
+                pass
+    fileh.close()</screen>
 
         <para>We will be running the code above against a couple of files
         having a <literal>/newgroup</literal> containing 100 tables and 1000
         tables respectively. We will run this small benchmark for different
-        values of the LRU cache size, namely 256 and 1024. You can see the
-        results in <xref linkend="LRUTblComparison"
-        xrefstyle="select: label" />.</para>
+        values of the LRU cache size, specifically 256 and 1024. You can see
+        the results in <xref linkend="LRUTblComparison" xrefstyle="select:
+        label" />.</para>
 
         <table align="center" id="LRUTblComparison">
-          <title>Retrieving speed and memory consumption dependency of the
+          <title>Retrieval speed and memory consumption depending on the
           number of nodes in LRU cache.</title>
 
           <tgroup cols="10">
@@ -11625,7 +11630,7 @@ fileh.close()</screen>
 
             <tbody>
               <row>
-                <entry align="left">From disk</entry>
+                <entry align="left">Disk</entry>
 
                 <entry align="left"></entry>
 
@@ -11647,7 +11652,7 @@ fileh.close()</screen>
               </row>
 
               <row>
-                <entry align="left">From cache</entry>
+                <entry align="left">Cache</entry>
 
                 <entry align="left"></entry>
 
@@ -11672,59 +11677,59 @@ fileh.close()</screen>
         </table>
 
         <para>From the data in <xref linkend="LRUTblComparison"
-        xrefstyle="select: label" />, one can see that, when the number of
+        xrefstyle="select: label" />, one can see that when the number of
         objects that you are dealing with does fit in cache, you will get
         better access times to them. Also, incrementing the node cache size
-        does effectively consumes more memory <emphasis>only</emphasis> if the
+        does effectively consume more memory <emphasis>only</emphasis> if the
         total nodes exceeds the slots in cache; otherwise the memory
         consumption remains the same. It is also worth noting that
         incrementing the node cache size in the case you want to fit all your
-        nodes in cache, it does not take much more memory than keeping too
-        conservative. On another hand, it might happen that the speed-up that
-        you can achieve by allocating more slots in your cache maybe is not
+        nodes in cache does not take much more memory than being too
+        conservative. On the other hand, it might happen that the speed-up
+        that you can achieve by allocating more slots in your cache is not
         worth the amount of memory used.</para>
 
-        <para>Anyway, if you feel that this issue is important for you, setup
-        your own experiments and proceed fine-tuning the
-        <literal>NODE_CACHE_SIZE</literal> parameter.<note>
-            <!-- XXXPRO -->
+        <para>Anyway, if you feel that this issue is important for you, set
+        your own experiments up and proceed to fine-tune the
+        <literal>NODE_CACHE_SIZE</literal> parameter.</para>
 
-            <para>PyTables Pro wears an optimized LRU cache node written in C,
-            so you should expect significatly faster LRU cache operations when
-            working with it.</para>
-          </note></para>
+        <note>
+          <!-- XXXPRO -->
+          <para>PyTables Pro sports an optimized LRU cache node written in C,
+          so you should expect significantly faster LRU cache operations when
+          working with it.</para>
+        </note>
       </section>
 
       <section>
         <title>Compacting your PyTables files</title>
 
-        <para>Let's suppose that you have a file on which you have made a lot
-        of row deletions on one or more tables, or deleted many leaves or even
+        <para>Let's suppose that you have a file where you have made a lot of
+        row deletions on one or more tables, or deleted many leaves or even
         entire subtrees. These operations might leave
         <emphasis>holes</emphasis> (i.e. space that is not used anymore) in
-        your files, that may potentially affect not only the size of the files
+        your files that may potentially affect not only the size of the files
         but, more importantly, the performance of I/O. This is because when
         you delete a lot of rows in a table, the space is not automatically
-        recovered on the flight. In addition, if you add many more rows to a
-        table than specified in the <literal>expectedrows</literal> keyword in
+        recovered on the fly. In addition, if you add many more rows to a
+        table than specified in the <literal>expectedrows</literal> keyword at
         creation time this may affect performance as well, as explained in
         <xref linkend="expectedRowsOptim" xrefstyle="select: label" />.</para>
 
-        <para>In order to cope with these issues, you should be aware that a
-        handy PyTables utility called <literal>ptrepack</literal> can be very
-        useful, not only to compact your already existing
-        <emphasis>leaky</emphasis> files, but also to adjust some internal
-        parameters (both in memory and in file) in order to create adequate
-        buffer sizes and chunk sizes for optimum I/O speed. Please check the
-        <xref linkend="ptrepackDescr" xrefstyle="select: label" /> for a brief
-        tutorial on its use.</para>
+        <para>In order to cope with these issues, you should be aware that
+        PyTables includes a handy utility called <literal>ptrepack</literal>
+        which can be very useful not only to compact
+        <emphasis>fragmented</emphasis> files, but also to adjust some
+        internal parameters in order to use better buffer and chunk sizes for
+        optimum I/O speed. Please check the <xref linkend="ptrepackDescr"
+        xrefstyle="select: label" /> for a brief tutorial on its use.</para>
 
         <para>Another thing that you might want to use
-        <literal>ptrepack</literal> is for changing the compression filters or
+        <literal>ptrepack</literal> for is changing the compression filters or
         compression levels on your existing data for different goals, like
         checking how this can affect both final size and I/O performance, or
         getting rid of the optional compressors like <literal>LZO</literal> or
-        <literal>bzip2</literal> in your existing files in case you want to
+        <literal>bzip2</literal> in your existing files, in case you want to
         use them with generic HDF5 tools that do not have support for these
         filters.</para>
       </section>
