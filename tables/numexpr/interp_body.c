@@ -8,6 +8,7 @@
     {                                           \
         char *dest = params.mem[store_in];      \
         char *x1 = params.mem[arg1];            \
+        intp ss1 = params.memsizes[arg1];       \
         intp sb1 = params.memsteps[arg1];       \
         intp si1 = sb1 / sizeof(int);           \
         intp sl1 = sb1 / sizeof(long long);     \
@@ -15,7 +16,7 @@
         /* nowarns is defined and used so as to \
         avoid compiler warnings about unused    \
         variables */                            \
-        intp nowarns = sb1+si1+sl1+sf1+*x1;     \
+        intp nowarns = ss1+sb1+si1+sl1+sf1+*x1; \
         nowarns += 1;                           \
         VEC_LOOP(expr);                         \
     } break
@@ -26,6 +27,7 @@
     {                                           \
         char *dest = params.mem[store_in];      \
         char *x1 = params.mem[arg1];            \
+        intp ss1 = params.memsizes[arg1];       \
         intp sb1 = params.memsteps[arg1];       \
         intp si1 = sb1 / sizeof(int);           \
         intp sl1 = sb1 / sizeof(long long);     \
@@ -33,13 +35,14 @@
         /* nowarns is defined and used so as to \
         avoid compiler warnings about unused    \
         variables */                            \
-        intp nowarns = sb1+si1+sl1+sf1+*x1;     \
+        intp nowarns = ss1+sb1+si1+sl1+sf1+*x1; \
         char *x2 = params.mem[arg2];            \
+        intp ss2 = params.memsizes[arg2];       \
         intp sb2 = params.memsteps[arg2];       \
         intp si2 = sb2 / sizeof(int);           \
         intp sl2 = sb2 / sizeof(long long);     \
         intp sf2 = sb2 / sizeof(double);        \
-        nowarns += sb2+si2+sl2+sf2+*x2;         \
+        nowarns += ss2+sb2+si2+sl2+sf2+*x2;         \
         VEC_LOOP(expr);                         \
     } break
 
@@ -51,6 +54,7 @@
     {                                           \
         char *dest = params.mem[store_in];      \
         char *x1 = params.mem[arg1];            \
+        intp ss1 = params.memsizes[arg1];       \
         intp sb1 = params.memsteps[arg1];       \
         intp si1 = sb1 / sizeof(int);           \
         intp sl1 = sb1 / sizeof(long long);     \
@@ -58,19 +62,21 @@
         /* nowarns is defined and used so as to \
         avoid compiler warnings about unused    \
         variables */                            \
-        intp nowarns = sb1+si1+sl1+sf1+*x1;     \
+        intp nowarns = ss1+sb1+si1+sl1+sf1+*x1; \
         char *x2 = params.mem[arg2];            \
+        intp ss2 = params.memsizes[arg2];       \
         intp sb2 = params.memsteps[arg2];       \
         intp si2 = sb2 / sizeof(int);           \
         intp sl2 = sb2 / sizeof(long long);     \
         intp sf2 = sb2 / sizeof(double);        \
         char *x3 = params.mem[arg3];            \
+        intp ss3 = params.memsizes[arg3];       \
         intp sb3 = params.memsteps[arg3];       \
         intp si3 = sb3 / sizeof(int);           \
         intp sl3 = sb3 / sizeof(long long);     \
         intp sf3 = sb3 / sizeof(double);        \
-        nowarns += sb2+si2+sl2+sf2+*x2;         \
-        nowarns += sb3+si3+sl3+sf3+*x3;         \
+        nowarns += ss2+sb2+si2+sl2+sf2+*x2;     \
+        nowarns += ss3+sb3+si3+sl3+sf3+*x3;     \
         VEC_LOOP(expr);                         \
     } break
 
@@ -146,25 +152,20 @@
         double fa, fb;
         cdouble ca, cb;
         char *ptr;
-        intp stride1 = params.memsteps[arg1];
 
         switch (op) {
 
         case OP_NOOP: break;
 
         case OP_COPY_BB: VEC_ARG1(b_dest = b1);
-        case OP_COPY_SS: VEC_ARG1(memcpy(s_dest, s1, params.memsizes[arg1]));
+        case OP_COPY_SS: VEC_ARG1(memcpy(s_dest, s1, ss1));
         /* The next versions of copy opcodes can cope with unaligned
            data even on platforms that crash while accessing it
            (like the Sparc architecture under Solaris). */
-        case OP_COPY_II: VEC_ARG1(memcpy(dest, x1, sizeof(int));
-                                  dest += sizeof(int); x1 += stride1);
-        case OP_COPY_LL: VEC_ARG1(memcpy(dest, x1, sizeof(long long));
-                                  dest += sizeof(long long); x1 += stride1);
-        case OP_COPY_FF: VEC_ARG1(memcpy(dest, x1, sizeof(double));
-                                  dest += sizeof(double); x1 += stride1);
-        case OP_COPY_CC: VEC_ARG1(memcpy(dest, x1, sizeof(double)*2);
-                                  dest += sizeof(double)*2; x1 += stride1);
+        case OP_COPY_II: VEC_ARG1(memcpy(&i_dest, x1+sb1*j, sizeof(int)));
+        case OP_COPY_LL: VEC_ARG1(memcpy(&f_dest, x1+sb1*j, sizeof(long long)));
+        case OP_COPY_FF: VEC_ARG1(memcpy(&f_dest, x1+sb1*j, sizeof(double)));
+        case OP_COPY_CC: VEC_ARG1(memcpy(&cr_dest, x1+sb1*j, sizeof(double)*2));
 
         case OP_INVERT_BB: VEC_ARG1(b_dest = !b1);
         case OP_AND_BBB: VEC_ARG2(b_dest = (b1 && b2));
@@ -188,10 +189,10 @@
         case OP_EQ_BFF: VEC_ARG2(b_dest = (f1 == f2));
         case OP_NE_BFF: VEC_ARG2(b_dest = (f1 != f2));
 
-        case OP_GT_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, params.memsizes[arg1], params.memsizes[arg2]) > 0));
-        case OP_GE_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, params.memsizes[arg1], params.memsizes[arg2]) >= 0));
-        case OP_EQ_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, params.memsizes[arg1], params.memsizes[arg2]) == 0));
-        case OP_NE_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, params.memsizes[arg1], params.memsizes[arg2]) != 0));
+        case OP_GT_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, ss1, ss2) > 0));
+        case OP_GE_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, ss1, ss2) >= 0));
+        case OP_EQ_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, ss1, ss2) == 0));
+        case OP_NE_BSS: VEC_ARG2(b_dest = (stringcmp(s1, s2, ss1, ss2) != 0));
 
         case OP_ONES_LIKE_II: VEC_ARG1(i_dest = 1);
         case OP_NEG_II: VEC_ARG1(i_dest = -i1);
