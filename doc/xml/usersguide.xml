@@ -10603,11 +10603,12 @@ result = [ row['var2'] for row in table.where('var1 &lt;= 20')]</screen>
           contrary, in the <emphasis>in-kernel</emphasis> mode, the
           <emphasis>condition</emphasis> is passed to the PyTables kernel
           (hence the name), written in C, and evaluated there at C speed (with
-          the help of the integrated numexpr package), so that the only values
-          that are brought to the Python space are the <literal>rows</literal>
-          that fulfilled the condition.  Hence, for selections that only have
-          a tiny number of hits (compared with the total amount of rows), the
-          savings are huge.</para>
+          the help of the integrated numexpr package, see <biblioref
+          linkend="Numexpr" />), so that the only values that are brought to
+          the Python space are the <literal>rows</literal> that fulfilled the
+          condition.  Hence, for selections that only have a tiny number of
+          hits (compared with the total amount of rows), the savings are
+          huge.</para>
 
           <para>Incidentally, in-kernel searches are not only much faster than
           regular PyTables queries, but also much more than sequential queries
@@ -10626,13 +10627,12 @@ result = [ row['var2'] for row in table.where('var1 &lt;= 20')]</screen>
               speed.</para>
             </listitem>
 
-            <listitem><para>In addition, PyTables uses the powerful <ulink
-              url="http://scipy.org/SciPyPackages/NumExpr">Numexpr</ulink>
-              computing kernel (written in C) for evaluating mathematical
-              expressions.  This kernel takes full advantage of on-die caches
-              in modern processors for achieving a very high computing
-              throughput (and, in particular, allowing ultra-fast condition
-              evaluations).</para>
+            <listitem><para>In addition, PyTables uses the powerful Numexpr
+              computing kernel, written in C, for evaluating mathematical
+              expressions (see <biblioref linkend="Numexpr" />).  This kernel
+              takes full advantage of on-die caches in modern processors for
+              achieving a very high computing throughput (and, in particular,
+              allowing ultra-fast condition evaluations).</para>
             </listitem>
 
           </itemizedlist>
@@ -13598,11 +13598,10 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       <para>Conditions in PyTables are used in methods related with in-kernel
       and indexed searches such as <literal>Table.where()</literal> (see <xref
       linkend="Table.where" />) or <literal>Table.readWhere()</literal> (see
-      <xref linkend="Table.readWhere" />). They are interpreted using a
-      customized version of <ulink
-      url="http://scipy.org/SciPyPackages/NumExpr">Numexpr</ulink>, a powerful
-      package for C-speed computation of array operations, originally written
-      by David Cooke.</para>
+      <xref linkend="Table.readWhere" />).  They are interpreted using a
+      customized version of Numexpr, a powerful package for C-speed
+      computation of array operations (see <biblioref linkend="Numexpr"
+      />).</para>
 
       <para>A condition on a table is just a <emphasis>string</emphasis>
       containing a Python expression involving <emphasis>at least one
@@ -15426,6 +15425,8 @@ Object Tree:
     <bibliomixed id="Numeric"></bibliomixed>
 
     <bibliomixed id="Numarray"></bibliomixed>
+
+    <bibliomixed id="Numexpr"></bibliomixed>
 
     <bibliomixed id="lzoRef"></bibliomixed>
 

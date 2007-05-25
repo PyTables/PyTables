@@ -160,6 +160,22 @@
     </bibliosource>
   </biblioentry>
 
+  <biblioentry id="Numexpr">
+    <authorgroup>
+      <author><firstname>David</firstname><surname>Cooke</surname></author>
+      <othername role='mi'>M</othername>
+      <author><firstname>Timothy</firstname><surname>Hochberg</surname></author>
+    </authorgroup>
+    <title>Numexpr. Fast evaluation of array expressions by using a
+    vector-based virtual machine</title>
+    <bibliomisc>It is an enhaced computing kernel that is generally
+    faster (between 1x and 10x, depending on the kind of operations)
+    than NumPy at evaluating complex array expressions</bibliomisc>
+    <bibliosource>
+      <ulink url="http://www.scipy.org/SciPyPackages/NumExpr">http://www.scipy.org/SciPyPackages/NumExpr</ulink>
+    </bibliosource>
+  </biblioentry>
+
   <biblioentry id="lzoRef">
     <author><firstname>Markus</firstname><surname>Oberhumer</surname>
     <othername role='mi'>F</othername><othername role='mi'>X</othername>
@@ -224,7 +240,7 @@
     <title>Optimization of file openings in PyTables</title>
     <bibliomisc>This document explores the savings of the opening process in terms of both CPU time and memory, due to the adoption of a LRU cache for the nodes in the object tree</bibliomisc>
     <bibliosource>
-      <ulink url="http://pytables.sourceforge.net/doc/NewObjectTreeCache.pdf">http://pytables.sourceforge.net/doc/NewObjectTreeCache.pdf</ulink>
+      <ulink url="http://www.pytables.org/docs/NewObjectTreeCache.pdf">http://www.pytables.org/docs/NewObjectTreeCache.pdf</ulink>
     </bibliosource>
   </biblioentry>
 
