@@ -8,6 +8,56 @@
 :Contact: ivilata@carabos.com
 
 
+Changes from 2.0rc1 to 2.0rc2
+=============================
+
+- The "Optimization tips" chapter of the User's Guide has been completely
+  updated to adapt to PyTables 2.0 series.  In particular, new benchmarks on
+  the much improved indexed queries have been included; you will see that
+  PyTables indexing is competitive (and sometimes much faster) than that of
+  traditional relational databases.  With this, the manual should be fairly
+  finished for 2.0 final release.
+
+- Large refactoring done on the ``Row`` class.  The most important change is
+  that ``Table.row`` is now a single object.  This allows to reuse the same
+  ``Row`` instance even after ``Table.flush()`` calls, which can be convenient
+  in many situations.
+
+- I/O buffers unified in the ``Row`` class.  That allows for bigger savings in
+  memory space whenever the ``Row`` extension is used.
+
+- Improved speed (up to a 70%) with unaligned column operations (a quite
+  commomn scenario when dealing with ``Table`` objects) through the integrated
+  Numexpr.  In-kernel searches take advantage of this optimization.
+
+- Added ``VLUnicodeAtom`` for storing variable-length Unicode strings in
+  ``VLArray`` objects regardless of encoding.  Closes ticket #51.
+
+- Added support for ``time`` datatypes to be portable between big-endian and
+  low-endian architectures.  This feature is not currently suported natively
+  by the HDF5 library, so the support for such conversion has been added in
+  PyTables itself.  Fixes #72.
+
+- Added slice arguments to ``Table.readWhere()`` and ``Table.getWhereList()``.
+  Although API changes are frozen, this may still be seen as an inconsistency
+  with other query methods.  The patch is backwards-compatible anyway.
+
+- Added missing overwrite argument to ``File.renameNode()`` and
+  ``Node._f_rename()``.  Fixes ticket #66.
+
+- Calling ``tables.test()`` no longer exits the interpreter session.  Fixes
+  ticket #67.
+
+- Fix comparing strings where one is a prefix of the other in integrated
+  Numexpr.  Fixes ticket #76.
+
+- Added a check for avoiding an ugly HDF5 message when copying a file over
+  itself (for both ``copyFile()`` and ``File.copyFile()``).  Fixes ticket #73.
+
+- Corrected the appendix E, were it was said that PyTables doesn't support
+  compounds of compounds (it does since version 1.2!).
+
+
 Changes from 2.0b2 to 2.0rc1
 ============================
 
