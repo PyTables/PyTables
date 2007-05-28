@@ -10552,10 +10552,13 @@ True</screen>
         <title>Accelerating your searches</title>
 
         <para>If you are going to use a lot of searches like the next one:
-        <screen>result = [row['var2'] for row in table if row['var1'] &lt;= 20 ]</screen> (for
-        future reference, we will call this the <emphasis>regular</emphasis>
-        selection mode) and you want to improve the time taken to run it, keep
-        reading.</para>
+
+        <screen>result = [row['var2'] for row in table
+   if row['var1'] &gt; 2 and row['var1'] &lt;= 20 and row['var2'] &gt; 3]</screen>
+
+        (for future reference, we will call this the
+        <emphasis>regular</emphasis> selection mode) and you want to improve
+        the time taken to run it, keep reading.</para>
 
         <section id="inkernelSearch">
           <title>In-kernel searches</title>
@@ -10587,7 +10590,7 @@ True</screen>
                 <imagedata align="center"
                            fileref="query-time-regular-inkernel-postgres.svg"
                            format="SVG"
-                           scale="75" />
+                           scale="85" />
               </imageobject>
 
               <imageobject role="html">
@@ -10615,7 +10618,7 @@ True</screen>
           <para>Incidentally, in-kernel searches are not only much faster than
           regular PyTables queries, but also much more than sequential queries
           in relational databases coded in pure C (see the Postgres line in
-          figure <xref linkend="sequentialTimes" xrefstyle="select: label"
+          <xref linkend="sequentialTimes" xrefstyle="select: label"
           />).  I'm not completely sure about the reasons of why in-kernel
           queries work so fast in comparison with relational engines made in
           C, but a couple of reasons come to my mind:</para>
@@ -10766,7 +10769,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           been designed from the ground up with the goal of being capable to
           effectively manage very large tables. In <xref
           linkend="createIndexTimes" xrefstyle="select: label" />, you can see
-          that the times to index columns in tables are pretty short. In
+          that the times to index columns in tables are pretty short.  In
           particular, the time to index a column with 1 billion rows (1
           gigarow) with no index optimization is roughly 15 min. while
           indexing the same column with full optimization is around 100 min.,
@@ -10787,7 +10790,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
 
               <imageobject role="fo">
                 <imagedata align="center" fileref="create-index-time-float64.svg"
-                           format="SVG" scale="75" />
+                           format="SVG" scale="85" />
               </imageobject>
 
               <imageobject role="html">
@@ -10821,7 +10824,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
               <imageobject role="fo">
                 <imagedata align="center"
                            fileref="query-time-cold-cache-float64.svg"
-                           format="SVG" scale="75" />
+                           format="SVG" scale="85" />
               </imageobject>
 
               <imageobject role="html">
@@ -10844,7 +10847,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
               <imageobject role="fo">
                 <imagedata align="center"
                            fileref="query-time-warm-cache-float64.svg"
-                           format="SVG" scale="75" />
+                           format="SVG" scale="85" />
               </imageobject>
 
               <imageobject role="html">
@@ -10855,6 +10858,42 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
 
             </mediaobject>
           </figure>
+
+          <para>It is worth to say that, in figures <xref
+          linkend="queryTimes-float64-cold-cache" xrefstyle="select:
+          labelnumber" /> and <xref linkend="queryTimes-float64-warm-cache"
+          xrefstyle="select: labelnumber" />, the query was chosen so as to
+          return 0 rows (0 hits query).  This has been done that way in order
+          to have a measure of the <emphasis>pure</emphasis> lookup time, and
+          not taking in account the <emphasis>retrieving</emphasis> time for
+          actual data (see <xref linkend="nhitsTimes" xrefstyle="select:
+          label" /> for a graph measuring retrieval times for different number
+          of hits in range queries).</para>
+
+          <para>As an aside, let's point out that, despite the fact that
+          relational databases use a complete sorting algorithm for indexes
+          might induce the reader to think that that they would be faster for
+          searching purposes than the PyTables approach, this is not
+          necessarily the case (or, at least, not always), as you can see in
+          the figures <xref linkend="queryTimes-float64-cold-cache"
+          xrefstyle="select: labelnumber" /> and <xref
+          linkend="queryTimes-float64-warm-cache" xrefstyle="select:
+          labelnumber" />.  This is because when one chooses a high
+          optimization level for medium to large table sizes (&lt; 10 billions
+          of rows), the PyTables indexing engine can effectively achieve a
+          complete sorting, making its lookup times usually faster than using
+          a relational database (most specially if compression is used). For
+          very large tables (&gt; 10 billions of rows) the PyTables indexing
+          engine cannot normally achieve the goal of getting a completely
+          sorted index.  However, this is not a grave limitation in practice
+          because the time required for completing such a complete sort in a
+          traditional relational database can be huge, so it is not normally
+          worth the effort doing this, while, on its hand, PyTables can still
+          perform a <emphasis>partial</emphasis> sort in a reasonable amount
+          of time while keeping very good lookup times.  In other words, the
+          PyTables engine scales much better than relational databases, so
+          don't worry if you have extremely large columns to index: PyTables
+          is designed to cope with that perfectly.</para>
 
           <para>In addition, PyTables implements an efficient cache for
           (small) results of queries.  Such a cache can be very important in
@@ -10875,7 +10914,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
               <imageobject role="fo">
                 <imagedata align="center"
                            fileref="query-time-repeated-query-float64.svg"
-                           format="SVG" scale="75" />
+                           format="SVG" scale="85" />
               </imageobject>
 
               <imageobject role="html">
@@ -10887,30 +10926,52 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             </mediaobject>
           </figure>
 
-          <para>Finally, let's point out that, despite the fact that
-          relational databases use a complete sorting algorithm for indexes
-          might induce the reader to think that that they would be faster for
-          searching purposes than the PyTables approach, this is not
-          necessarily the case (or, at least, not always), as you can see in
-          the figures <xref linkend="queryTimes-float64-cold-cache"
-          xrefstyle="select: labelnumber" /> and <xref
-          linkend="queryTimes-float64-warm-cache" xrefstyle="select:
-          labelnumber" />.  This is because when one chooses a high
-          optimization level for medium to large table sizes (&lt; 10 billions
-          of rows), the PyTables indexing engine can effectively achieve a
-          complete sorting, making its lookup times usually faster than using
-          a relational database (most specially if compression is used). For
-          very large tables (&gt; 10 billions of rows) the PyTables indexing
-          engine cannot normally achieve the goal of getting a completely
-          sorted index.  However, this is not a grave limitation in practice
-          because the time required for completing such a complete sort in a
-          traditional relational database can be huge, so it is not normally
-          worth the effort doing this, while, on its hand, PyTables can still
-          perform a <emphasis>partial</emphasis> sort in a reasonable amount
-          of time.  In other words, the PyTables engine scales much better
-          than relational databases, so don't worry if you have extremely
-          large columns to index: PyTables is designed to cope with that
-          perfectly.</para>
+          <para>Finally, let's conclude this section with a view at how
+          PyTables indexed searches does perform for queries with different
+          result sizes (or number of hits).  In <xref linkend="nhitsTimes"
+          xrefstyle="select: label" /> you can see the mean time for the first
+          5 distinct queries (but having aproximately the same number of hits)
+          along a table with one billion of rows (a gigarow) for different
+          query ranges (and hence, having different number of hits) for the
+          next query:
+
+<screen>results = [ row[col4] for row in
+    table.where("(inf&lt;=col4) &amp; (col4&lt;=sup) &amp; (sqrt(col1+3.1*col2+col3*col4) &gt; 3)") ]</screen>
+
+          where <emphasis>col4</emphasis> is an indexed float64 column and
+          <emphasis>col1</emphasis>, <emphasis>col2</emphasis> and
+          <emphasis>col3</emphasis> are unindexed ones (of types int32,
+          float64 and int32 respectively).  The <emphasis>inf</emphasis> and
+          <emphasis>sup</emphasis> values defines the query range.  You can
+          see how, for a number of hits greater than 10, PyTables performs
+          between 2x and 50x faster than a traditional relational database (in
+          this case, Postgres 8).  Again, this is the consequence of the
+          combination of a highly optimized access to data through the HDF5
+          library and the use of Numexpr (<biblioref linkend="Numexpr" />) for
+          quick evaluation of complex expressions for each row.</para>
+
+          <figure id="nhitsTimes">
+            <title>Times for doing a query with different number of hits on a
+            indexed table with one gigarow. Benchmark made on a machine with
+            AMD Opteron (AMD64) @ 2 GHz processors with IDE disk @ 7200
+            RPM.</title>
+
+            <mediaobject>
+
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="query-time-nhits-cold-cache-float64.svg"
+                           format="SVG" scale="85" />
+              </imageobject>
+
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="query-time-nhits-cold-cache-float64.png"
+                           format="PNG" />
+              </imageobject>
+
+            </mediaobject>
+          </figure>
 
         </section>
       </section>
@@ -11470,7 +11531,7 @@ print readFile("myfile.h5")</screen>
             <imageobject role="fo">
               <imagedata align="center"
                          fileref="write-medium-psyco-nopsyco-comparison.svg"
-                         format="SVG" scale="60" />
+                         format="SVG" scale="45" />
             </imageobject>
 
             <imageobject role="html">
@@ -11488,7 +11549,7 @@ print readFile("myfile.h5")</screen>
             <imageobject role="fo">
               <imagedata align="center"
                          fileref="read-medium-psyco-nopsyco-comparison.svg"
-                         format="SVG" scale="60" />
+                         format="SVG" scale="45" />
             </imageobject>
 
             <imageobject role="html">
