@@ -67,18 +67,19 @@ vlarray.append([1,0,3,0])  # This will be converted to a boolean
 # This gives a TypeError
 #vlarray.append([1,0,1])
 
-# Unicode variable length strings (latin-1 encoding
+# Variable length strings
 vlarray = fileh.createVLArray(root, 'vlarray7', VLStringAtom(),
                               "Variable Length String")
-vlarray.append(u"asd")
-vlarray.append(u"aaana")
+vlarray.append("asd")
+vlarray.append("aaana")
 
-# Unicode variable length strings (utf-8 encoding)
-vlarray = fileh.createVLArray(root, 'vlarray8', VLStringAtom(),
-                               "Variable Length String")
+# Unicode variable length strings
+vlarray = fileh.createVLArray(root, 'vlarray8', VLUnicodeAtom(),
+                               "Variable Length Unicode String")
 vlarray.append(u"aaana")
 vlarray.append(u"")   # The empty string
 vlarray.append(u"asd")
+vlarray.append(u"para\u0140lel")
 
 # Close the file
 fileh.close()

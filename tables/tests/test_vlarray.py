@@ -1,4 +1,3 @@
-# Eh! python!, We are going to include utf-8 characters here
 # -*- coding: latin-1 -*-
 
 import sys
@@ -541,48 +540,6 @@ class TypesTestCase(unittest.TestCase):
         assert row[1] == ["44", "4"]
         assert len(row[0]) == 5
         assert len(row[1]) == 2
-
-    # Strings Atoms with UString (unicode strings) flavor can't be safely
-    # implemented because the strings can be cut in the middle of a utf-8
-    # codification and that can lead to errors like:
-    #     >>> print 'a\xc3'.decode('utf-8')
-    # Traceback (most recent call last):
-    #   File "<stdin>", line 1, in ?
-    # UnicodeDecodeError: 'utf8' codec can't decode byte 0xc3 in position 1: unexpected end of data
-
-#     def test01c_StringAtom(self):
-#         """Checking vlarray with NumPy string atoms (UString flavor)"""
-
-#         if verbose:
-#             print '\n', '-=' * 30
-#             print "Running %s.test01c_StringAtom..." % self.__class__.__name__
-
-#         vlarray = self.fileh.createVLArray('/', 'stringAtom2',
-#                                            StringAtom(itemsize=3),
-#                                            "Ragged array of unicode strings")
-#         vlarray.flavor = "UString"
-#         vlarray.append(["áéç", "èàòÉ", "ñ"])
-#         vlarray.append(["ççççç", "asaËÏÖÜ"])
-
-#         if self.reopen:
-#             name = vlarray._v_pathname
-#             self.fileh.close()
-#             self.fileh = openFile(self.file, "r")
-#             vlarray = self.fileh.getNode(name)
-
-#         # Read all the rows:
-#         row = vlarray.read()
-#         if verbose:
-#             print "Testing String flavor"
-#             print "Object read:", row
-#             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-#             print "First row in vlarray ==>", row[0]
-
-#         assert vlarray.nrows == 2
-#         assert row[0] == ("123", "456", "3")
-#         assert row[1] == ("456", "3")
-#         assert len(row[0]) == 3
-#         assert len(row[1]) == 2
 
     def test02_BoolAtom(self):
         """Checking vlarray with boolean atoms"""
