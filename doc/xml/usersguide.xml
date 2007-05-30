@@ -10980,38 +10980,14 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         <title>Compression issues</title>
 
         <para>One of the beauties of PyTables is that it supports compression
-        on tables and arrays<footnote>
-            <para>More precisely, it is supported in
-            <literal>CArray</literal>, <literal>EArray</literal> and
-            <literal>VLArray</literal> objects, but not in
-            <literal>Array</literal> objects.</para>
-          </footnote>, although it is not used by default. Compression of big
-        amounts of data might be a bit controversial feature, because
-        compression has a legend of being a very big consumer of CPU time
-        resources. However, if you are willing to check if compression can
-        help not only by reducing your dataset file size but
-        <emphasis>also</emphasis> by improving I/O efficiency, specially when
-        dealing with very large datasets, keep reading.</para>
-
-        <para>There is a common scenario where users need to save duplicated
-        data in some record fields, while the others have varying values. In a
-        relational database approach such redundant data can normally be moved
-        to other tables and a relationship between the rows on the separate
-        tables can be created. But that takes analysis and implementation
-        time, and makes the underlying libraries more complex and
-        slower.</para>
-
-        <para>PyTables transparent compression allows the users to not worry
-        about finding which is their optimum strategy for data tables, but
-        rather use less, not directly related, tables with a larger number of
-        columns while still not cluttering the database too much with
-        duplicated data (compression is responsible to avoid that). As a side
-        effect, data selections can be made more easily because you have more
-        fields available in a single table, and they can be referred in the
-        same loop. This process may normally end in a simpler, yet powerful
-        manner to process your data (although you should still be careful
-        about in which kind of scenarios the use of compression is convenient
-        or not).</para>
+        on tables and arrays<footnote><para>Except for
+        <literal>Array</literal> objects.</para></footnote>, although it is
+        not used by default. Compression of big amounts of data might be a bit
+        controversial feature, because compression has a legend of being a
+        very big consumer of CPU time resources. However, if you are willing
+        to check if compression can help not only by reducing your dataset
+        file size but <emphasis>also</emphasis> by improving I/O efficiency,
+        specially when dealing with very large datasets, keep reading.</para>
 
         <para>The compression library used by default is the
         <emphasis>Zlib</emphasis> (see <biblioref linkend="zlibRef" />). Since
@@ -11031,17 +11007,16 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         compressors has been added to PyTables: LZO (see <biblioref
         linkend="lzoRef" />) and bzip2 (see <biblioref linkend="bzip2Ref"
         />). Following the author of LZO (and checked by the author of this
-        section, as you will see soon), LZO offers pretty fast compression
-        (though a small compression ratio) and extremely fast
-        decompression. In fact, LZO is so fast when compressing/decompressing
-        that it may well happen (that depends on your data, of course) that
-        writing or reading a compressed dataset is sometimes faster than if it
-        is not compressed at all (specially when dealing with extremely large
-        datasets). This fact is very important, specially if you have to deal
-        with very large amounts of data. Regarding bzip2, it has a reputation
-        of achieving excellent compression ratios, but at the price of
-        spending much more CPU time, which results in very low
-        compression/decompression speeds.</para>
+        section, as you will see soon), LZO offers pretty fast compression and
+        extremely fast decompression. In fact, LZO is so fast when
+        compressing/decompressing that it may well happen (that depends on
+        your data, of course) that writing or reading a compressed dataset is
+        sometimes faster than if it is not compressed at all (specially when
+        dealing with extremely large datasets). This fact is very important,
+        specially if you have to deal with very large amounts of
+        data. Regarding bzip2, it has a reputation of achieving excellent
+        compression ratios, but at the price of spending much more CPU time,
+        which results in very low compression/decompression speeds.</para>
 
         <para>Be aware that the LZO and bzip2 support in PyTables is not
         standard on HDF5, so if you are going to use your PyTables files in
@@ -11095,18 +11070,13 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
 
         <para>Also, PyTables lets you select different compression levels for
         Zlib and bzip2, although you may get a bit disappointed by the small
-        improvement that show these compressors when dealing with a
+        improvement that these compressors show when dealing with a
         combination of numbers and strings as in our example. As a reference,
-        see plot <xref linkend="comprZlibComparison"
-        xrefstyle="select: labelnumber" /> for a comparison of the compression
-        achieved by selecting different levels of Zlib. Very oddly, the best
-        compression ratio corresponds to level 1 (!). It's difficult to
-        explain that, but this lesson will serve to reaffirm that there is no
-        replacement for experiments with your own data. In general, it is
-        recommended to select the <emphasis>lowest</emphasis> level of
-        compression in order to achieve best performance and decent (if not
-        the best!) compression ratio. See later for more figures on this
-        regard.</para>
+        see plot <xref linkend="comprZlibComparison" xrefstyle="select:
+        labelnumber" /> for a comparison of the compression achieved by
+        selecting different levels of Zlib.  Very oddly, the best compression
+        ratio corresponds to level 1 (!).  See later for an explanation and
+        more figures on this subject.</para>
 
         <figure id="comprZlibComparison">
           <title>Comparison between different compression levels of
@@ -11178,7 +11148,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         <emphasis>better</emphasis> than not using compression at
         all. Finally, one can see that reading performance is very badly
         affected when bzip2 is used (it is 10x slower than LZO and 4x than
-        Zlib), but this is not too strange anyway.</para>
+        Zlib), but this was somewhat expected anyway.</para>
 
         <figure id="comprReadNoCacheComparison">
           <title>Selecting values in tables with several compressors. The file
@@ -11224,33 +11194,34 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         decompressing, and besides, it does not achieve any better compression
         ratio than Zlib. Zlib represents a balance between them: it's somewhat
         slow compressing (2x) and decompressing (3x) than LZO, but it normally
-        achieves fairly good compression ratios.</para>
+        achieves better compression ratios.</para>
 
         <para>Finally, by looking at the plots <xref
-        linkend="comprWriteZlibComparison"
-        xrefstyle="select:         labelnumber" />, <xref
-        linkend="comprReadZlibComparison" xrefstyle="select: labelnumber" />,
-        and the aforementioned <xref linkend="comprZlibComparison"
-        xrefstyle="select: labelnumber" /> you can see why the recommended
-        compression level to use for all compression libraries is 1. This is
-        the lowest level of compression, but if you take the approach
-        suggested above, the redundant data is to be found normally in the
-        same row, making redundancy locality very high so that a small level
-        of compression should be enough to achieve a good compression ratio on
-        your data tables, saving CPU cycles for doing other things.
-        Nonetheless, in some situations you may want to check for your own how
-        the different compression levels affect your application.</para>
+        linkend="comprWriteZlibComparison" xrefstyle="select: labelnumber" />,
+        <xref linkend="comprReadZlibComparison" xrefstyle="select:
+        labelnumber" />, and the aforementioned <xref
+        linkend="comprZlibComparison" xrefstyle="select: labelnumber" /> you
+        can see why the recommended compression level to use for all
+        compression libraries is 1.  This is the lowest level of compression,
+        but as the size of the underlying HDF5 chunk size is normally rather
+        small compared with the size of compression buffers, there is not much
+        point in increasing the latter (i.e. increasing the compression
+        level).  Nonetheless, in some situations (like for example, in
+        extremely large tables or arrays, where the computed chunk size can be
+        rather large) you may want to check, on your own, how the different
+        compression levels do actually affect your application.</para>
 
         <para>You can select the compression library and level by setting the
         <literal>complib</literal> and <literal>complevel</literal> keywords
         in the <literal>Filters</literal> class (see <xref
         linkend="FiltersClassDescr" xrefstyle="select: label" />). A
         compression level of 0 will completely disable compression (the
-        default), 1 is the less CPU time demanding level, while 9 is the
-        maximum level and most CPU intensive. Finally, have in mind that LZO
-        is not accepting a compression level right now, so, when using LZO, 0
-        means that compression is not active, and any other value means that
-        LZO is active.</para>
+        default), 1 is the less memory and CPU time demanding level, while 9
+        is the maximum level and the most memory demaning and CPU
+        intensive. Finally, have in mind that LZO is not accepting a
+        compression level right now, so, when using LZO, 0 means that
+        compression is not active, and any other value means that LZO is
+        active.</para>
 
         <para>So, in conclusion, if your ultimate goal is writing and reading
         as fast as possible, choose LZO. If you want to reduce as much as
@@ -11474,11 +11445,17 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         <para>Psyco is very easy to install and use, so in most scenarios it
         is worth to give it a try. However, it only runs on Intel 386
         architectures, so if you are using other architectures, you are out of
-        luck (at least until Psyco supports yours).  Moreover, with the
-        addition of flexible (and very fast) in-kernel queries (by the way,
-        they cannot be optimized at all by Psyco), the use of Psyco will only
-        help in rather few scenarios (like for example, during table
-        writings).</para>
+        luck (and, moreover, it seems that there are no plans to support other
+        platforms).  Besides, with the addition of flexible (and very fast)
+        in-kernel queries (by the way, they cannot be optimized at all by
+        Psyco), the use of Psyco will only help in rather few scenarios.  In
+        fact, the only important situation that you might benefit right now
+        from using Psyco (I mean, in PyTables contexts) is for speeding-up the
+        write speed in tables when using the Row interface (see <xref
+        linkend="RowClassDescr" />.  But again, this latter case can also be
+        accelerated by using the Table.append() (see <xref
+        linkend="Table.append" />) method and building your own
+        buffers.</para>
 
         <para>As an example, imagine that you have a small script that reads
         and selects data over a series of datasets, like this:</para>
