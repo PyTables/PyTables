@@ -2101,6 +2101,10 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         /group0/group1/tuple2 (Table(100L,)) 'This is the table title'
         /group0/group1/group2 (Group) ''
         """
+
+        if not self.isopen:
+            return "<closed File>"
+
         # Print all the nodes (Group and Leaf objects) on object tree
         date = time.asctime(time.localtime(os.stat(self.filename)[8]))
         astring =  self.filename + ' (File) ' + repr(self.title) + '\n'
