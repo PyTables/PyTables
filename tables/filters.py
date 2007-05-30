@@ -40,6 +40,9 @@ __version__ = '$Revision$'
 all_complibs = ['zlib', 'lzo', 'bzip2']
 """List of all compression libraries."""
 
+foreign_complibs = ['szip']
+"""List of all foreign filters."""
+
 default_complib = 'zlib'
 """The default compression library."""
 
@@ -130,6 +133,9 @@ class Filters(object):
             if name in all_complibs:
                 kwargs['complib'] = name
                 kwargs['complevel'] = values[0]
+            elif name in foreign_complibs:
+                kwargs['complib'] = name
+                kwargs['complevel'] = -1
             elif name in ['shuffle', 'fletcher32']:
                 kwargs[name] = True
         return class_(**kwargs)
@@ -233,14 +239,17 @@ class Filters(object):
             chunk.  A false value (the default) disables the checksum.
         """
 
-        if not (0 <= complevel <= 9):
-            raise ValueError("compression level must be between 0 and 9")
-        if complevel > 0 and complib not in all_complibs:
+        # Check that the complevel is numerical
+        if complib in all_complibs:
+            if not (0 <= complevel <= 9):
+                raise ValueError("compression level must be between 0 and 9")
+        # Check that complib is in all and foreign complibs lists
+        extended_complibs = all_complibs[:]
+        extended_complibs.extend(foreign_complibs)
+        if complevel != 0 and complib not in extended_complibs:
             raise ValueError( "compression library ``%s`` is not supported; "
                               "it must be one of: %s"
-                              % (complib, ", ".join(all_complibs)) )
-        complevel = int(complevel)
-        complib = str(complib)
+                              % (complib, ", ".join(extended_complibs)) )
         shuffle = bool(shuffle)
         fletcher32 = bool(fletcher32)
 
@@ -269,7 +278,8 @@ class Filters(object):
 
     def __repr__(self):
         args = []
-        args.append('complevel=%d' % self.complevel)
+        if self.complib not in foreign_complibs:
+            args.append('complevel=%d' % self.complevel)
         if self.complevel:
             args.append('complib=%r' % self.complib)
         args.append('shuffle=%s' % self.shuffle)

@@ -300,6 +300,20 @@ class ExtendibleTestCase(HDF5CompatibilityTestCase):
         self.assert_(common.areArraysEqual(data, expectedData))
 
 
+class SzipTestCase(HDF5CompatibilityTestCase):
+    """
+    Test for native HDF5 files with datasets compressed with szip.
+    """
+
+    h5fname = 'test_szip.h5'
+
+    def _test(self):
+        self.assert_('/dset_szip' in self.h5file)
+
+        arr = self.h5file.getNode('/dset_szip')
+        filters = "Filters(complib='szip', shuffle=False, fletcher32=False)"
+        self.assert_(repr(arr.filters) == filters)
+
 
 def suite():
     """Return a test suite consisting of all the test cases in the module."""
@@ -322,6 +336,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ContiguousCompoundAppendTestCase))
 
         theSuite.addTest(unittest.makeSuite(ExtendibleTestCase))
+
+        theSuite.addTest(unittest.makeSuite(SzipTestCase))
 
     return theSuite
 

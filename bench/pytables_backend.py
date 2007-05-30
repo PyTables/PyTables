@@ -1,6 +1,5 @@
 import os, os.path
 import tables
-from numarray import records
 from indexed_search import DB
 from time import time
 

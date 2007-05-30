@@ -404,10 +404,11 @@ if __name__=="__main__":
         db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
                     avoidfscache, verbose)
         for i in xrange(repeatvalue):
-            rng = 10**i
-            db.rng = [-rng/2, rng/2]
-            if verbose:
-                print "range:", db.rng
-            db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
-                        avoidfscache, verbose)
+            for j in (1, 2, 5):
+                rng = j*10**i
+                db.rng = [-rng/2, rng/2]
+                if verbose:
+                    print "range:", db.rng
+                db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
+                            avoidfscache, verbose)
 
