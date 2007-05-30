@@ -18,6 +18,8 @@ Variables
     List of all compression libraries.
 `default_complib`
     The default compression library.
+`foreign_complibs`
+    List of known but unsupported compression libraries.
 """
 
 # Imports
@@ -41,7 +43,7 @@ all_complibs = ['zlib', 'lzo', 'bzip2']
 """List of all compression libraries."""
 
 foreign_complibs = ['szip']
-"""List of all foreign filters."""
+"""List of known but unsupported compression libraries."""
 
 default_complib = 'zlib'
 """The default compression library."""
@@ -135,7 +137,7 @@ class Filters(object):
                 kwargs['complevel'] = values[0]
             elif name in foreign_complibs:
                 kwargs['complib'] = name
-                kwargs['complevel'] = -1
+                kwargs['complevel'] = 1  # any nonzero value will do
             elif name in ['shuffle', 'fletcher32']:
                 kwargs[name] = True
         return class_(**kwargs)
@@ -239,17 +241,22 @@ class Filters(object):
             chunk.  A false value (the default) disables the checksum.
         """
 
-        # Check that the complevel is numerical
-        if complib in all_complibs:
-            if not (0 <= complevel <= 9):
-                raise ValueError("compression level must be between 0 and 9")
-        # Check that complib is in all and foreign complibs lists
-        extended_complibs = all_complibs[:]
-        extended_complibs.extend(foreign_complibs)
-        if complevel != 0 and complib not in extended_complibs:
-            raise ValueError( "compression library ``%s`` is not supported; "
-                              "it must be one of: %s"
-                              % (complib, ", ".join(extended_complibs)) )
+        if not (0 <= complevel <= 9):
+            raise ValueError("compression level must be between 0 and 9")
+
+        if _new and complevel > 0:
+            # These checks are not performed when loading filters from disk.
+            if complib not in all_complibs:
+                raise ValueError(
+                    "compression library ``%s`` is not supported; "
+                    "it must be one of: %s"
+                    % (complib, ", ".join(all_complibs)) )
+            if utilsExtension.whichLibVersion(complib) is None:
+                warnings.warn( "compression library ``%s`` is not available; "
+                               "using ``%s`` instead"
+                               % (complib, default_complib), FiltersWarning )
+                complib = default_complib  # always available
+
         shuffle = bool(shuffle)
         fletcher32 = bool(fletcher32)
 
@@ -257,12 +264,9 @@ class Filters(object):
             # Override some inputs when compression is not enabled.
             complib = None  # make it clear there is no compression
             shuffle = False  # shuffling and not compressing makes no sense
-        elif _new and utilsExtension.whichLibVersion(complib) is None:
-            # This is not issued when loading filters from disk.
-            warnings.warn( "compression library ``%s`` is not available; "
-                           "using ``%s`` instead"
-                           % (complib, default_complib), FiltersWarning )
-            complib = default_complib  # always available
+        elif complib not in all_complibs:
+            # Do not try to use a meaningful level for unsupported libs.
+            complevel = -1
 
         self.complevel = complevel
         """The compression level (0 disables compression)."""
@@ -277,10 +281,10 @@ class Filters(object):
         """Whether the *Fletcher32* filter is active or not."""
 
     def __repr__(self):
-        args = []
-        if self.complib not in foreign_complibs:
-            args.append('complevel=%d' % self.complevel)
-        if self.complevel:
+        args, complevel = [], self.complevel
+        if complevel >= 0:  # meaningful compression level
+            args.append('complevel=%d' % complevel)
+        if complevel != 0:  # compression enabled (-1 or > 0)
             args.append('complib=%r' % self.complib)
         args.append('shuffle=%s' % self.shuffle)
         args.append('fletcher32=%s' % self.fletcher32)

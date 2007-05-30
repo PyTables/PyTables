@@ -312,7 +312,7 @@ class SzipTestCase(HDF5CompatibilityTestCase):
 
         arr = self.h5file.getNode('/dset_szip')
         filters = "Filters(complib='szip', shuffle=False, fletcher32=False)"
-        self.assert_(repr(arr.filters) == filters)
+        self.assertEqual(repr(arr.filters), filters)
 
 
 def suite():
