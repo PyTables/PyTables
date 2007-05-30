@@ -257,6 +257,8 @@ class Filters(object):
                                % (complib, default_complib), FiltersWarning )
                 complib = default_complib  # always available
 
+        complevel = int(complevel)
+        complib = str(complib)
         shuffle = bool(shuffle)
         fletcher32 = bool(fletcher32)
 
