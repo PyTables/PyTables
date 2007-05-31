@@ -5,21 +5,21 @@ HTMLDIR = html
 .PHONY:		dist clean
 
 dist:		usersguide.pdf usersguide.html
-	(cd $(SRCDIR) && make clean)
+	$(MAKE) -C $(SRCDIR) clean
 
 clean:
 	-rm usersguide.pdf
 	-rm -r $(HTMLDIR)
-	(cd $(SRCDIR) && make clean)
+	$(MAKE) -C $(SRCDIR) clean
 
 
 usersguide.pdf: $(SRCDIR)/usersguide.xml
-	(cd $(SRCDIR) && make usersguide.pdf)
+	$(MAKE) -C $(SRCDIR) usersguide.pdf
 	cp  $(SRCDIR)/usersguide.pdf  .
 
 usersguide.html: $(SRCDIR)/usersguide.xml
+	$(MAKE) -C $(SRCDIR) usersguide.html
 	mkdir -p $(HTMLDIR)
-	(cd $(SRCDIR) && make usersguide.html)
 	cp  $(SRCDIR)/pytables_style.css $(HTMLDIR)
 	cp  $(SRCDIR)/*.html $(HTMLDIR)
 	cp  $(SRCDIR)/*.png $(HTMLDIR)

@@ -12,13 +12,13 @@ GENERATED = ANNOUNCE.txt
 
 
 dist:		$(GENERATED)
-	for srcdir in $(SRCDIRS) ; do (cd $$srcdir && make $@) ; done
+	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
 
 clean:
 	-rm -rf MANIFEST build dist
 	-rm $(GENERATED) tables/*.so tables/numexpr/*.so
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
-	for srcdir in $(SRCDIRS) ; do (cd $$srcdir && make $@) ; done
+	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
 
 %:		%.in VERSION
 	cat "$<" | sed -e 's/@VERSION@/$(VERSION)/g' > "$@"
