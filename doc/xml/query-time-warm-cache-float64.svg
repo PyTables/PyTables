@@ -23,47 +23,47 @@
 <path style="fill: none; stroke: #00bfbf; stroke-width: 5.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000" clip-path="url(#812402975)" d="M 526.500000,190.326188 L 503.753421,199.621864 L 473.684079,216.682381 L 450.937500,224.727815 L 428.190921,234.569445 L 398.121579,246.852177 L 375.375000,242.929328 L 352.628421,249.461740 L 322.559079,281.541129 L 299.812500,337.377247 L 277.065921,355.984638 L 246.996579,361.193666 L 224.250000,361.801691 L 201.503421,359.138511 L 171.434079,362.264129 L 148.687500,359.281707 L 125.940921,362.109362 L 95.871579,362.109362 L 73.125000,361.648778 "/>
 <g id="matplotlib.axis1">
 <g id="xtick1">
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="66.625000" y="406.900000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="77.625000" y="403.400000" >3</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="66.625000" y="406.900000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="77.625000" y="403.400000" >3</text>
 </g>
 <g id="xtick2">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000" clip-path="url(#812402975)" d="M 148.687500,396.900000 L 148.687500,44.100000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 148.687500,396.900000 L 148.687500,391.900000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 148.687500,49.100000 L 148.687500,44.100000"/>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="141.687500" y="406.900000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="152.687500" y="403.400000" >4</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="141.687500" y="406.900000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="152.687500" y="403.400000" >4</text>
 </g>
 <g id="xtick3">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000" clip-path="url(#812402975)" d="M 224.250000,396.900000 L 224.250000,44.100000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 224.250000,396.900000 L 224.250000,391.900000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 224.250000,49.100000 L 224.250000,44.100000"/>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="217.750000" y="406.900000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="228.750000" y="403.400000" >5</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="217.750000" y="406.900000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="228.750000" y="403.400000" >5</text>
 </g>
 <g id="xtick4">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000" clip-path="url(#812402975)" d="M 299.812500,396.900000 L 299.812500,44.100000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 299.812500,396.900000 L 299.812500,391.900000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 299.812500,49.100000 L 299.812500,44.100000"/>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="292.812500" y="406.900000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="303.812500" y="403.400000" >6</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="292.812500" y="406.900000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="303.812500" y="403.400000" >6</text>
 </g>
 <g id="xtick5">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000" clip-path="url(#812402975)" d="M 375.375000,396.900000 L 375.375000,44.100000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 375.375000,396.900000 L 375.375000,391.900000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 375.375000,49.100000 L 375.375000,44.100000"/>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="368.875000" y="406.900000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="379.875000" y="403.400000" >7</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="368.875000" y="406.900000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="379.875000" y="403.400000" >7</text>
 </g>
 <g id="xtick6">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000" clip-path="url(#812402975)" d="M 450.937500,396.900000 L 450.937500,44.100000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 450.937500,396.900000 L 450.937500,391.900000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 450.937500,49.100000 L 450.937500,44.100000"/>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="443.937500" y="406.900000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="454.937500" y="403.400000" >8</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="443.937500" y="406.900000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="454.937500" y="403.400000" >8</text>
 </g>
 <g id="xtick7">
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="519.500000" y="406.900000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="530.500000" y="403.400000" >9</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="519.500000" y="406.900000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="530.500000" y="403.400000" >9</text>
 </g>
 <g id="xtick8">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 95.871579,396.900000 L 95.871579,394.900000"/>
@@ -257,37 +257,37 @@
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 523.042450,396.900000 L 523.042450,394.900000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 523.042450,46.100000 L 523.042450,44.100000"/>
 </g>
-<text style="font-size: 12.000000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="249.812500" y="421.900000" >Number of rows</text>
+<text style="font-size: 12.000000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="249.812500" y="421.900000" >Number of rows</text>
 </g>
 <g id="matplotlib.axis2">
 <g id="ytick1">
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="54.125000" y="400.400000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="65.125000" y="396.900000" >-4</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="54.125000" y="400.400000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="65.125000" y="396.900000" >-4</text>
 </g>
 <g id="ytick2">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000" clip-path="url(#812402975)" d="M 73.125000,308.700000 L 526.500000,308.700000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 73.125000,308.700000 L 78.125000,308.700000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 521.500000,308.700000 L 526.500000,308.700000"/>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="55.125000" y="312.200000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="66.125000" y="308.700000" >-3</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="55.125000" y="312.200000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="66.125000" y="308.700000" >-3</text>
 </g>
 <g id="ytick3">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000" clip-path="url(#812402975)" d="M 73.125000,220.500000 L 526.500000,220.500000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 73.125000,220.500000 L 78.125000,220.500000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 521.500000,220.500000 L 526.500000,220.500000"/>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="55.125000" y="224.000000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="66.125000" y="220.500000" >-2</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="55.125000" y="224.000000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="66.125000" y="220.500000" >-2</text>
 </g>
 <g id="ytick4">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000" clip-path="url(#812402975)" d="M 73.125000,132.300000 L 526.500000,132.300000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 73.125000,132.300000 L 78.125000,132.300000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 521.500000,132.300000 L 526.500000,132.300000"/>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="54.125000" y="135.800000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="65.125000" y="132.300000" >-1</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="54.125000" y="135.800000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="65.125000" y="132.300000" >-1</text>
 </g>
 <g id="ytick5">
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="56.125000" y="47.600000" >10</text>
-<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="67.125000" y="44.100000" >0</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="56.125000" y="47.600000" >10</text>
+<text style="font-size: 6.997200; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="67.125000" y="44.100000" >0</text>
 </g>
 <g id="ytick6">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 73.125000,370.349154 L 75.125000,370.349154"/>
@@ -417,20 +417,20 @@
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 73.125000,48.135811 L 75.125000,48.135811"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000"  d="M 524.500000,48.135811 L 526.500000,48.135811"/>
 </g>
-<text style="font-size: 12.000000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="49.125000" y="245.500000" transform="translate(49.125000,245.500000) rotate(-90.0) translate(-49.125000,-245.500000)">Time (s)</text>
+<text style="font-size: 12.000000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="49.125000" y="245.500000" transform="translate(49.125000,245.500000) rotate(-90.0) translate(-49.125000,-245.500000)">Time (s)</text>
 </g>
 <path style="fill: none; stroke: #000000; stroke-width: 1.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000"  d="M 73.125000,396.900000 L 526.500000,396.900000 L 526.500000,44.100000 L 73.125000,44.100000 L 73.125000,396.900000 "/>
-<text style="font-size: 14.400000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="141.812500" y="37.044000" >Query time for Float64 column (warm cache)</text>
+<text style="font-size: 14.400000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="141.812500" y="37.044000" >Query time for Float64 column (warm cache)</text>
 <g id="legend1">
 <polygon style="fill: #ffffff; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000"  points = "82.192500,109.176480 82.192500,51.156000 222.036000,51.156000 222.036000,109.176480"/>
 <path style="fill: none; stroke: #0000ff; stroke-width: 5.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000"  d="M 95.646125,60.991040 L 103.202375,60.991040 L 110.758625,60.991040 L 118.314875,60.991040 "/>
 <path style="fill: none; stroke: #008000; stroke-width: 5.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000"  d="M 95.646125,74.107840 L 103.202375,74.107840 L 110.758625,74.107840 L 118.314875,74.107840 "/>
 <path style="fill: none; stroke: #ff0000; stroke-width: 5.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000"  d="M 95.646125,87.224640 L 103.202375,87.224640 L 110.758625,87.224640 L 118.314875,87.224640 "/>
 <path style="fill: none; stroke: #00bfbf; stroke-width: 5.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000"  d="M 95.646125,99.841440 L 103.202375,99.841440 L 110.758625,99.841440 L 118.314875,99.841440 "/>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="127.382375" y="65.991040" >PyTables Pro O0</text>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="127.382375" y="79.107840" >PyTables Pro O3</text>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="127.382375" y="92.224640" >PyTables Pro O9</text>
-<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: Roman; fill: #000000;" x="127.382375" y="104.341440" >Postgres</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="127.382375" y="65.991040" >PyTables Pro O0</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="127.382375" y="79.107840" >PyTables Pro O3</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="127.382375" y="92.224640" >PyTables Pro O9</text>
+<text style="font-size: 9.996000; font-family: Bitstream Vera Serif; font-style: normal; fill: #000000;" x="127.382375" y="104.341440" >Postgres</text>
 </g>
 </g>
 </g>

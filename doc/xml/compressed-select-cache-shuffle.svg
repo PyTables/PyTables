@@ -24,43 +24,43 @@
 <path style="fill: none; stroke: #bf00bf; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,371.618705 L 98.875958,368.431977 L 134.404042,365.296403 L 161.280000,360.842288 L 188.155958,337.922836 L 223.684042,322.949610 L 250.560000,314.948794 L 277.435958,294.173358 L 312.964042,274.962406 L 339.840000,266.175136 L 366.715958,258.828676 L 402.244042,255.863855 L 429.120000,253.529123 L 455.995958,250.336827 L 491.524042,251.184411 L 518.400000,288.137675 "/>
 <path style="fill: none; stroke: #bfbf00; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,381.527224 L 98.875958,381.062291 L 134.404042,380.929394 L 161.280000,380.123958 L 188.155958,378.844508 L 223.684042,378.798613 L 250.560000,377.900763 L 277.435958,377.603557 L 312.964042,377.445839 L 339.840000,377.453699 L 366.715958,377.093194 L 402.244042,377.265257 L 429.120000,377.515778 L 455.995958,377.413691 L 491.524042,377.703236 L 518.400000,377.670534 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,379.856568 L 98.875958,379.054723 L 134.404042,378.524973 L 161.280000,376.892664 L 188.155958,374.493898 L 223.684042,374.474285 L 250.560000,371.832338 L 277.435958,370.659927 L 312.964042,369.808152 L 339.840000,370.497383 L 366.715958,369.200154 L 402.244042,368.883939 L 429.120000,370.374127 L 455.995958,369.696775 L 491.524042,369.655750 L 518.400000,369.350866 "/>
-<text style="font-size: 14.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="98.200000" y="36.288000" >Selecting with small (16 bytes) record size (file in cache)</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="98.200000" y="36.288000" >Selecting with small (16 bytes) record size (file in cache)</text>
 <g id="matplotlib.axis1">
 <g id="xtick1">
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="63.585938" y="401.800000" >10</text>
-<text style="font-size: 8.400000; font-family: Verdana; font-style: Regular; fill: #000000;" x="77.885937" y="397.300000" >3</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="63.585938" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="77.885937" y="397.300000" >3</text>
 </g>
 <g id="xtick2">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 161.280000,388.800000 L 161.280000,43.200000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 161.280000,388.800000 L 161.280000,384.800000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 161.280000,47.200000 L 161.280000,43.200000"/>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="152.576875" y="401.800000" >10</text>
-<text style="font-size: 8.400000; font-family: Verdana; font-style: Regular; fill: #000000;" x="166.876875" y="397.300000" >4</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="152.576875" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="166.876875" y="397.300000" >4</text>
 </g>
 <g id="xtick3">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 250.560000,388.800000 L 250.560000,43.200000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 250.560000,388.800000 L 250.560000,384.800000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 250.560000,47.200000 L 250.560000,43.200000"/>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="242.169375" y="401.800000" >10</text>
-<text style="font-size: 8.400000; font-family: Verdana; font-style: Regular; fill: #000000;" x="256.469375" y="397.300000" >5</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="242.169375" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="256.469375" y="397.300000" >5</text>
 </g>
 <g id="xtick4">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 339.840000,388.800000 L 339.840000,43.200000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 339.840000,388.800000 L 339.840000,384.800000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 339.840000,47.200000 L 339.840000,43.200000"/>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="331.277500" y="401.800000" >10</text>
-<text style="font-size: 8.400000; font-family: Verdana; font-style: Regular; fill: #000000;" x="345.577500" y="397.300000" >6</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="331.277500" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="345.577500" y="397.300000" >6</text>
 </g>
 <g id="xtick5">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 429.120000,388.800000 L 429.120000,43.200000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 429.120000,388.800000 L 429.120000,384.800000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 429.120000,47.200000 L 429.120000,43.200000"/>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="420.635625" y="401.800000" >10</text>
-<text style="font-size: 8.400000; font-family: Verdana; font-style: Regular; fill: #000000;" x="434.935625" y="397.300000" >7</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="420.635625" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="434.935625" y="397.300000" >7</text>
 </g>
 <g id="xtick6">
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="509.837500" y="401.800000" >10</text>
-<text style="font-size: 8.400000; font-family: Verdana; font-style: Regular; fill: #000000;" x="524.137500" y="397.300000" >8</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="509.837500" y="401.800000" >10</text>
+<text style="font-size: 8.400000; font-family: Verdana; font-style: normal; fill: #000000;" x="524.137500" y="397.300000" >8</text>
 </g>
 <g id="xtick7">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 98.875958,388.800000 L 98.875958,386.800000"/>
@@ -222,58 +222,58 @@
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.314771,388.800000 L 514.314771,386.800000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.314771,45.200000 L 514.314771,43.200000"/>
 </g>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="245.645313" y="416.800000" >Number of rows</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="245.645313" y="416.800000" >Number of rows</text>
 </g>
 <g id="matplotlib.axis2">
 <g id="ytick1">
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="62.000000" y="393.300000" >0</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="62.000000" y="393.300000" >0</text>
 </g>
 <g id="ytick2">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,345.600000 L 518.400000,345.600000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,345.600000 L 76.000000,345.600000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,345.600000 L 518.400000,345.600000"/>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="62.000000" y="350.100000" >2</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="62.000000" y="350.100000" >2</text>
 </g>
 <g id="ytick3">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,302.400000 L 518.400000,302.400000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,302.400000 L 76.000000,302.400000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,302.400000 L 518.400000,302.400000"/>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="61.000000" y="306.900000" >4</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="61.000000" y="306.900000" >4</text>
 </g>
 <g id="ytick4">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,259.200000 L 518.400000,259.200000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,259.200000 L 76.000000,259.200000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,259.200000 L 518.400000,259.200000"/>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="62.000000" y="263.700000" >6</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="62.000000" y="263.700000" >6</text>
 </g>
 <g id="ytick5">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,216.000000 L 518.400000,216.000000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,216.000000 L 76.000000,216.000000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,216.000000 L 518.400000,216.000000"/>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="62.000000" y="220.500000" >8</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="62.000000" y="220.500000" >8</text>
 </g>
 <g id="ytick6">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,172.800000 L 518.400000,172.800000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,172.800000 L 76.000000,172.800000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,172.800000 L 518.400000,172.800000"/>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="55.000000" y="177.300000" >10</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="55.000000" y="177.300000" >10</text>
 </g>
 <g id="ytick7">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,129.600000 L 518.400000,129.600000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,129.600000 L 76.000000,129.600000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,129.600000 L 518.400000,129.600000"/>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="55.000000" y="134.100000" >12</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="55.000000" y="134.100000" >12</text>
 </g>
 <g id="ytick8">
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt; stroke-dasharray: 1.000000 3.000000; stroke-dashoffset: 0.000000; opacity: 1.000000; clip-path:url(#1499967875);" d="M 72.000000,86.400000 L 518.400000,86.400000 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 72.000000,86.400000 L 76.000000,86.400000"/>
 <path style="fill: none; stroke: #000000; stroke-width: 0.500000; stroke-linejoin: miter; stroke-linecap: butt;  opacity: 1.000000; " d="M 514.400000,86.400000 L 518.400000,86.400000"/>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="54.000000" y="90.900000" >14</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="54.000000" y="90.900000" >14</text>
 </g>
 <g id="ytick9">
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="55.000000" y="47.700000" >16</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="55.000000" y="47.700000" >16</text>
 </g>
-<text style="font-size: 12.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="49.000000" y="243.054688" transform="translate(49.000000,243.054688) rotate(-90.0) translate(-49.000000,-243.054688)">MRows/s</text>
+<text style="font-size: 12.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="49.000000" y="243.054688" transform="translate(49.000000,243.054688) rotate(-90.0) translate(-49.000000,-243.054688)">MRows/s</text>
 </g>
 <g id="legend1">
 <polygon style="fill: #ffffff; stroke: #000000; stroke-width: 1.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " points = "80.928000,198.411840 80.928000,50.112000 279.225600,50.112000 279.225600,198.411840"/>
@@ -284,13 +284,13 @@
 <path style="fill: none; stroke: #bf00bf; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " d="M 100.452800,139.959120 L 107.892800,139.959120 L 115.332800,139.959120 L 122.772800,139.959120 "/>
 <path style="fill: none; stroke: #bfbf00; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " d="M 100.452800,159.506320 L 107.892800,159.506320 L 115.332800,159.506320 L 122.772800,159.506320 "/>
 <path style="fill: none; stroke: #000000; stroke-width: 4.000000; stroke-linejoin: miter; stroke-linecap: square;  opacity: 1.000000; " d="M 100.452800,179.053520 L 107.892800,179.053520 L 115.332800,179.053520 L 122.772800,179.053520 "/>
-<text style="font-size: 14.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="131.700800" y="75.470320" >No compression</text>
-<text style="font-size: 14.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="131.700800" y="91.917520" >zlib lvl1</text>
-<text style="font-size: 14.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="131.700800" y="111.164720" >zlib lvl1 (Shuffle)</text>
-<text style="font-size: 14.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="131.700800" y="127.711920" >lzo lvl1</text>
-<text style="font-size: 14.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="131.700800" y="146.959120" >lzo lvl1 (Shuffle)</text>
-<text style="font-size: 14.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="131.700800" y="166.506320" >bzip2 lvl1</text>
-<text style="font-size: 14.000000; font-family: Verdana; font-style: Regular; fill: #000000;" x="131.700800" y="186.053520" >bzip2 lvl1 (Shuffle)</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="75.470320" >No compression</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="91.917520" >zlib lvl1</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="111.164720" >zlib lvl1 (Shuffle)</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="127.711920" >lzo lvl1</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="146.959120" >lzo lvl1 (Shuffle)</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="166.506320" >bzip2 lvl1</text>
+<text style="font-size: 14.000000; font-family: Verdana; font-style: normal; fill: #000000;" x="131.700800" y="186.053520" >bzip2 lvl1 (Shuffle)</text>
 </g>
 </g>
 </g>
