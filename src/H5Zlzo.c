@@ -65,8 +65,12 @@ int register_lzo(char **version, char **date) {
 #endif /* if H5_VERSION < "1.7" */
 
   /* Init the LZO library */
-  if (lzo_init()!=LZO_E_OK)
+  if (lzo_init()!=LZO_E_OK) {
     fprintf(stderr, "Problems initializing LZO library\n");
+    *version = NULL;
+    *date = NULL;
+    return 0; /* lib is not available */
+  }
 
   /* Register the lzo compressor */
   H5Zregister(&filter_class);
