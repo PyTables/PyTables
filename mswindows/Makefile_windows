@@ -1,0 +1,99 @@
+# MingW Makefile for the mswindows subdirectory
+# This Makefile is intended to create the PyTables Pro installer for Windows
+
+#SED="C:\Archivos de programa\GnuWin32\bin\sed"
+SED=sed
+
+# The template for the NSIS intstaller script
+PTPRONSIS=pytables_pro.nsi
+
+#Variables for software versions: PyTables Pro, Python and required libraries
+VERSIONFILE=..\VERSION
+VERSION=$(shell type ..\VERSION)
+
+# ifnodef PYTHONVERSION
+# PYTHONVERSION=24
+
+ifeq ($(PYTHONVERSION), 24)
+	DOTPYTHONVERSION=2.4
+endif
+ifeq ($(PYTHONVERSION), 25)
+	DOTPYTHONVERSION=2.5
+endif
+
+NUMPYVERSION=1.0.3
+HDF5VERSION=1.6.5
+ZLIBVERSION=1.2.3
+SZIPVERSION=2.0
+BZIP2VERSION=1.0.3
+
+# Required paths
+WINDOWS32=C:\Windows\system32
+PYTHONDIR=C:\Python$(PYTHONVERSION)
+SVN_PTPRO=..
+
+# The resources folder. The installer will get the needed files from this folder.
+RESOURCES=PyTables_Pro_installer
+PTPRO=$(RESOURCES)\\PyTables_Pro
+HDF5=$(RESOURCES)\\HDF5
+ZLIB=$(RESOURCES)\\zlib
+SZIP=$(RESOURCES)\\szip
+BZIP2=$(RESOURCES)\\bzip2
+NUMPY=$(RESOURCES)\\Numpy
+
+clean:
+	rmdir /s /q $(RESOURCES)
+	-del $(PTPRONSIS)
+	-del PyTablesPro*-Win.exe
+
+install_dirs:
+	mkdir $(RESOURCES)
+	mkdir $(HDF5)
+	mkdir $(ZLIB)
+	mkdir $(SZIP)
+	mkdir $(BZIP2)\include
+	mkdir $(BZIP2)\lib
+	mkdir $(NUMPY)\Lib\site-packages\numpy
+	mkdir $(PTPRO)\doc\html
+	mkdir $(PTPRO)\LICENSES
+	mkdir $(PTPRO)\examples
+	mkdir $(PTPRO)\icons
+	mkdir $(PTPRO)\Scripts
+	mkdir $(PTPRO)\Lib\site-packages\tables
+
+populate_dirs:install_dirs
+# System libraries
+	copy $(WINDOWS32)\hdf5dll.dll $(HDF5)
+	copy $(WINDOWS32)\zlib1.dll $(ZLIB)
+	copy $(WINDOWS32)\szlibdll.dll $(SZIP)
+	copy $(WINDOWS32)\bzip2.dll $(BZIP2)
+	xcopy /e $(WINDOWS32)\include\bzlib.h $(BZIP2)\include
+	xcopy /e $(WINDOWS32)\lib\bzip2* $(BZIP2)\lib
+	xcopy /e $(WINDOWS32)\lib\libbz2* $(BZIP2)\lib
+# Numpy libraries
+	xcopy /e $(PYTHONDIR)\Lib\site-packages\numpy $(NUMPY)\Lib\site-packages\numpy
+# PyTables Pro sources
+	copy $(SVN_PTPRO)\utils\* $(PTPRO)\Scripts
+	xcopy /e $(SVN_PTPRO)\tables $(PTPRO)\Lib\site-packages\tables
+	copy $(SVN_PTPRO)\*.txt $(PTPRO)
+	copy $(SVN_PTPRO)\LICENSES\*.txt $(PTPRO)\LICENSES
+	copy $(SVN_PTPRO)\examples\*.py $(PTPRO)\examples
+	xcopy /e $(SVN_PTPRO)\examples\check_examples.sh $(PTPRO)\examples
+	xcopy /e $(SVN_PTPRO)\doc\html $(PTPRO)\doc\html
+	copy $(SVN_PTPRO)\doc\usersguide.pdf $(PTPRO)\doc
+	copy $(SVN_PTPRO)\mswindows\*.ico $(PTPRO)\icons
+# PyTables Pro extensions
+	copy $(PYTHONDIR)\Lib\site-packages\tables_orig\*.pyd $(PTPRO)\Lib\site-packages\tables
+	copy $(PYTHONDIR)\Lib\site-packages\tables_orig\numexpr\*.pyd $(PTPRO)\Lib\site-packages\tables\numexpr
+
+installer: populate_dirs pytables_pro.nsi.in $(VERSIONFILE)
+	type pytables_pro.nsi.in | $(SED) -e "s/@PYTABLESPROFOLDER@/$(PTPRO)/g" -e "s/@NUMPY@/$(NUMPY)/g" \
+	-e "s/@HDF5@/$(HDF5)/g" -e "s/@ZLIB@/$(ZLIB)/g" -e "s/@SZIP@/$(SZIP)/g" -e "s/@BZIP2@/$(BZIP2)/g" \
+	-e "s/@PTVERSION@/$(VERSION)/g" -e "s/@VERSIONNAME@/$(VERSION)/g" -e "s/@INSTALLERNAME@/$(VERSION)/g" \
+	-e "s/@PTVERSION@/$(PTVERSION)/g" -e "s/@NUMPYVERSION@/$(NUMPYVERSION)/g" \
+	-e "s/@HDF5VERSION@/$(HDF5VERSION)/g" -e "s/@ZLIBVERSION@/$(ZLIBVERSION)/g" \
+	-e "s/@SZIPVERSION@/$(SZIPVERSION)/g" -e "s/@BZIP2VERSION@/$(BZIP2VERSION)/g" \
+	-e "s/@PYTHONVERSION@/$(PYTHONVERSION)/g" -e "s/@DOTPYTHONVERSION@/$(DOTPYTHONVERSION)/g" \
+	> $(PTPRONSIS)
+	makensis $(PTPRONSIS)
+

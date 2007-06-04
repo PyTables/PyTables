@@ -1,0 +1,24 @@
+# MingW makefile for the doc subdirectory
+SRCDIR=xml
+HTMLDIR=html
+
+.PHONY:	clean
+
+installer:	usersguide.pdf html
+
+clean:
+	-del usersguide.pdf
+	-del /q /s $(HTMLDIR)
+	-rmdir $(HTMLDIR)
+	$(MAKE) -f Makefile_windows -C $(SRCDIR) clean
+
+usersguide.pdf:	$(SRCDIR)\usersguide.xml
+	$(MAKE) -f Makefile_windows -C $(SRCDIR) usersguide.pdf
+	copy $(SRCDIR)\usersguide.pdf .
+
+html:	$(SRCDIR)\usersguide.xml
+	$(MAKE) -f Makefile_windows -C $(SRCDIR) %.html
+	mkdir $(HTMLDIR)
+	copy  $(SRCDIR)\pytables_style.css $(HTMLDIR)
+	copy  $(SRCDIR)\*.html $(HTMLDIR)
+	copy  $(SRCDIR)\*.png $(HTMLDIR)

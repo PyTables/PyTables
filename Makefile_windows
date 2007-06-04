@@ -1,0 +1,19 @@
+# This Makefile is only intended to create a Windows installer for PyTables
+# using sources exported from a repository.
+
+VERSION=$(shell type VERSION)
+SRCDIRS=doc mswindows
+
+GENERATED=ANNOUNCE.txt
+
+.PHONY: clean
+
+installer: $(GENERATED)
+	for %%f in ($(SRCDIRS)) do $(MAKE) -f Makefile_windows -C %%f $@
+
+clean:
+	-del /q /s $(GENERATED)
+	for %%f in ($(SRCDIRS)) do $(MAKE) -f Makefile_windows -C %%f $@
+
+%: %.in VERSION
+	type "$<" | sed -e "s/@VERSION@/$(VERSION)/g" > "$@"
