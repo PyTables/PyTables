@@ -89,8 +89,18 @@ cdef extern from "Python.h":
 # API for NumPy objects
 cdef extern from "numpy/arrayobject.h":
 
-  # Types
+  # Platform independent types
   ctypedef int npy_intp
+  ctypedef signed int npy_int8
+  ctypedef unsigned int npy_uint8
+  ctypedef signed int npy_int16
+  ctypedef unsigned int npy_uint16
+  ctypedef signed int npy_int32
+  ctypedef unsigned int npy_uint32
+  ctypedef signed long long npy_int64
+  ctypedef unsigned long long npy_uint64
+  ctypedef float npy_float32
+  ctypedef double npy_float64
 
   cdef enum NPY_TYPES:
     NPY_BOOL

@@ -93,7 +93,9 @@ defaultIndexFilters = Filters( complevel=1, complib='zlib',
 
 # The list of types for which an optimised search in Pyrex and C has
 # been implemented. Always add here the name of a new optimised type.
-opt_search_types = ("int32", "int64", "float32", "float64")
+opt_search_types = ("int8", "int16", "int32", "int64",
+                    "uint8", "uint16", "uint32", "uint64",
+                    "float32", "float64")
 
 # The upper limit for uint32 ints
 max32 = 2**32
@@ -1086,11 +1088,23 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     tlen = sorted._searchBinNA_f(*item)
                 elif self.type == "float64":
                     tlen = sorted._searchBinNA_d(*item)
+                elif self.type == "uint32":
+                    tlen = sorted._searchBinNA_ui(*item)
+                elif self.type == "uint64":
+                    tlen = sorted._searchBinNA_ull(*item)
+                elif self.type == "int8":
+                    tlen = sorted._searchBinNA_b(*item)
+                elif self.type == "int16":
+                    tlen = sorted._searchBinNA_s(*item)
+                elif self.type == "uint8":
+                    tlen = sorted._searchBinNA_ub(*item)
+                elif self.type == "uint16":
+                    tlen = sorted._searchBinNA_us(*item)
                 else:
                     assert False, "This can't happen!"
             else:
                 tlen = self.search_scalar(item, sorted)
-        # Get possible remaing values in last row
+        # Get possible remaining values in last row
         if self.nelementsLR > 0:
             # Look for more indexes in the last row
             (start, stop) = self.searchLastRow(item)

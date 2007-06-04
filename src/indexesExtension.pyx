@@ -43,6 +43,11 @@ from definitions cimport \
      memcpy, \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      import_array, ndarray, \
+     npy_int8, npy_uint8, \
+     npy_int16, npy_uint16, \
+     npy_int32, npy_uint32, \
+     npy_int64, npy_uint64, \
+     npy_float32, npy_float64, \
      hid_t, herr_t, hsize_t, \
      H5Dget_space, H5Screate_simple, H5Sclose
 
@@ -79,47 +84,54 @@ cdef extern from "H5ARRAY-opt.h":
   herr_t H5ARRAYOreadSliceLR(hid_t dataset_id, hsize_t start,
                              hsize_t stop, void *data)
 
-ctypedef long long llong
-ctypedef short int sint
-ctypedef unsigned long long ullong
-ctypedef unsigned int uint
-ctypedef unsigned short int usint
-ctypedef unsigned char uchar
+
 
 # Functions for optimized operations for dealing with indexes
 cdef extern from "idx-opt.h":
-  int bisect_left_i(int *a, int x, int hi, int offset)
-  int bisect_right_i(int *a, int x, int hi, int offset)
-  int bisect_left_ll(llong *a, llong x, int hi, int offset)
-  int bisect_right_ll(llong *a, llong x, int hi, int offset)
-  int bisect_left_f(float *a, float x, int hi, int offset)
-  int bisect_right_f(float *a, float x, int hi, int offset)
-  int bisect_left_d(double *a, double x, int hi, int offset)
-  int bisect_right_d(double *a, double x, int hi, int offset)
-  int get_sorted_indices(int nrows, llong *rbufC,
+  int bisect_left_b(npy_int8 *a, long x, int hi, int offset)
+  int bisect_left_ub(npy_uint8 *a, long x, int hi, int offset)
+  int bisect_right_b(npy_int8 *a, long x, int hi, int offset)
+  int bisect_right_ub(npy_uint8 *a, long x, int hi, int offset)
+  int bisect_left_s(npy_int16 *a, long x, int hi, int offset)
+  int bisect_left_us(npy_uint16 *a, long x, int hi, int offset)
+  int bisect_right_s(npy_int16 *a, long x, int hi, int offset)
+  int bisect_right_us(npy_uint16 *a, long x, int hi, int offset)
+  int bisect_left_i(npy_int32 *a, long x, int hi, int offset)
+  int bisect_left_ui(npy_uint32 *a, npy_uint32 x, int hi, int offset)
+  int bisect_right_i(npy_int32 *a, long x, int hi, int offset)
+  int bisect_right_ui(npy_uint32 *a, npy_uint32 x, int hi, int offset)
+  int bisect_left_ll(npy_int64 *a, npy_int64 x, int hi, int offset)
+  int bisect_left_ull(npy_uint64 *a, npy_uint64 x, int hi, int offset)
+  int bisect_right_ll(npy_int64 *a, npy_int64 x, int hi, int offset)
+  int bisect_right_ull(npy_uint64 *a, npy_uint64 x, int hi, int offset)
+  int bisect_left_f(npy_float32 *a, npy_float64 x, int hi, int offset)
+  int bisect_right_f(npy_float32 *a, npy_float64 x, int hi, int offset)
+  int bisect_left_d(npy_float64 *a, npy_float64 x, int hi, int offset)
+  int bisect_right_d(npy_float64 *a, npy_float64 x, int hi, int offset)
+
+  int keysort_di(npy_float64 *start1, npy_uint32 *start2, long num)
+  int keysort_dll(npy_float64 *start1, npy_int64 *start2, long num)
+  int keysort_fi(npy_float32 *start1, npy_uint32 *start2, long num)
+  int keysort_fll(npy_float32 *start1, npy_int64 *start2, long num)
+  int keysort_lli(npy_int64 *start1, npy_uint32 *start2, long num)
+  int keysort_llll(npy_int64 *start1, npy_int64 *start2, long num)
+  int keysort_ii(npy_int32 *start1, npy_uint32 *start2, long num)
+  int keysort_ill(npy_int32 *start1, npy_int64 *start2, long num)
+  int keysort_si(npy_int16 *start1, npy_uint32 *start2, long num)
+  int keysort_sll(npy_int16 *start1, npy_int64 *start2, long num)
+  int keysort_bi(npy_int8 *start1, npy_uint32 *start2, long num)
+  int keysort_bll(npy_int8 *start1, npy_int64 *start2, long num)
+  int keysort_ulli(npy_uint64 *start1, npy_uint32 *start2, long num)
+  int keysort_ullll(npy_uint64 *start1, npy_int64 *start2, long num)
+  int keysort_uii(npy_uint32 *start1, npy_uint32 *start2, long num)
+  int keysort_uill(npy_uint32 *start1, npy_int64 *start2, long num)
+  int keysort_usi(npy_uint16 *start1, npy_uint32 *start2, long num)
+  int keysort_usll(npy_uint16 *start1, npy_int64 *start2, long num)
+  int keysort_ubi(npy_uint8 *start1, npy_uint32 *start2, long num)
+  int keysort_ubll(npy_uint8 *start1, npy_int64 *start2, long num)
+
+  int get_sorted_indices(int nrows, npy_int64 *rbufC,
                          int *rbufst, int *rbufln, int ssize)
-  int convert_addr64(int nrows, int nelem, llong *rbufA,
-                     int *rbufR, int *rbufln)
-  int keysort_di(double *start1, uint *start2, long num)
-  int keysort_dll(double *start1, llong *start2, long num)
-  int keysort_fi(float *start1, uint *start2, long num)
-  int keysort_fll(float *start1, llong *start2, long num)
-  int keysort_lli(llong *start1, uint *start2, long num)
-  int keysort_llll(llong *start1, llong *start2, long num)
-  int keysort_ii(int *start1, uint *start2, long num)
-  int keysort_ill(int *start1, llong *start2, long num)
-  int keysort_si(sint *start1, uint *start2, long num)
-  int keysort_sll(sint *start1, llong *start2, long num)
-  int keysort_bi(char *start1, uint *start2, long num)
-  int keysort_bll(char *start1, llong *start2, long num)
-  int keysort_ulli(ullong *start1, uint *start2, long num)
-  int keysort_ullll(ullong *start1, long long *start2, long num)
-  int keysort_uii(uint *start1, uint *start2, long num)
-  int keysort_uill(uint *start1, long long *start2, long num)
-  int keysort_usi(usint *start1, uint *start2, long num)
-  int keysort_usll(usint *start1, long long *start2, long num)
-  int keysort_ubi(uchar *start1, uint *start2, long num)
-  int keysort_ubll(uchar *start1, long long *start2, long num)
 
 
 
@@ -143,59 +155,81 @@ def keysort(ndarray array1, ndarray array2):
   size = array1.size
   if array1.dtype == "float64":
     if array2.dtype == "uint32":
-      return keysort_di(<double *>array1.data, <uint *>array2.data, size)
+      return keysort_di(<npy_float64 *>array1.data, <npy_uint32 *>array2.data,
+                        size)
     else:
-      return keysort_dll(<double *>array1.data, <llong *>array2.data, size)
+      return keysort_dll(<npy_float64 *>array1.data, <npy_int64 *>array2.data,
+                         size)
   elif array1.dtype == "float32":
     if array2.dtype == "uint32":
-      return keysort_fi(<float *>array1.data, <uint *>array2.data, size)
+      return keysort_fi(<npy_float32 *>array1.data, <npy_uint32 *>array2.data,
+                        size)
     else:
-      return keysort_fll(<float *>array1.data, <llong *>array2.data, size)
+      return keysort_fll(<npy_float32 *>array1.data, <npy_int64 *>array2.data,
+                         size)
   elif array1.dtype == "int64":
     if array2.dtype == "uint32":
-      return keysort_lli(<llong *>array1.data, <uint *>array2.data, size)
+      return keysort_lli(<npy_int64 *>array1.data, <npy_uint32 *>array2.data,
+                         size)
     else:
-      return keysort_llll(<llong *>array1.data, <llong *>array2.data, size)
+      return keysort_llll(<npy_int64 *>array1.data, <npy_int64 *>array2.data,
+                          size)
   elif array1.dtype == "uint64":
     if array2.dtype == "uint32":
-      return keysort_ulli(<ullong *>array1.data, <uint *>array2.data, size)
+      return keysort_ulli(<npy_uint64 *>array1.data, <npy_uint32 *>array2.data,
+                          size)
     else:
-      return keysort_ullll(<ullong *>array1.data, <llong *>array2.data, size)
+      return keysort_ullll(<npy_uint64 *>array1.data, <npy_int64 *>array2.data,
+                           size)
   elif array1.dtype == "int32":
     if array2.dtype == "uint32":
-      return keysort_ii(<int *>array1.data, <uint *>array2.data, size)
+      return keysort_ii(<npy_int32 *>array1.data, <npy_uint32 *>array2.data,
+                        size)
     else:
-      return keysort_ill(<int *>array1.data, <llong *>array2.data, size)
+      return keysort_ill(<npy_int32 *>array1.data, <npy_int64 *>array2.data,
+                         size)
   elif array1.dtype == "uint32":
     if array2.dtype == "uint32":
-      return keysort_uii(<uint *>array1.data, <uint *>array2.data, size)
+      return keysort_uii(<npy_uint32 *>array1.data, <npy_uint32 *>array2.data,
+                         size)
     else:
-      return keysort_uill(<uint *>array1.data, <llong *>array2.data, size)
+      return keysort_uill(<npy_uint32 *>array1.data, <npy_int64 *>array2.data,
+                          size)
   elif array1.dtype == "int16":
     if array2.dtype == "uint32":
-      return keysort_si(<sint *>array1.data, <uint *>array2.data, size)
+      return keysort_si(<npy_int16 *>array1.data, <npy_uint32 *>array2.data,
+                        size)
     else:
-      return keysort_sll(<sint *>array1.data, <llong *>array2.data, size)
+      return keysort_sll(<npy_int16 *>array1.data, <npy_int64 *>array2.data,
+                         size)
   elif array1.dtype == "uint16":
     if array2.dtype == "uint32":
-      return keysort_usi(<usint *>array1.data, <uint *>array2.data, size)
+      return keysort_usi(<npy_uint16 *>array1.data, <npy_uint32 *>array2.data,
+                         size)
     else:
-      return keysort_usll(<usint *>array1.data, <llong *>array2.data, size)
+      return keysort_usll(<npy_uint16 *>array1.data, <npy_int64 *>array2.data,
+                          size)
   elif array1.dtype == "int8":
     if array2.dtype == "uint32":
-      return keysort_bi(<char *>array1.data, <uint *>array2.data, size)
+      return keysort_bi(<npy_int8 *>array1.data, <npy_uint32 *>array2.data,
+                        size)
     else:
-      return keysort_bll(<char *>array1.data, <llong *>array2.data, size)
+      return keysort_bll(<npy_int8 *>array1.data, <npy_int64 *>array2.data,
+                         size)
   elif array1.dtype == "uint8":
     if array2.dtype == "uint32":
-      return keysort_ubi(<uchar *>array1.data, <uint *>array2.data, size)
+      return keysort_ubi(<npy_uint8 *>array1.data, <npy_uint32 *>array2.data,
+                         size)
     else:
-      return keysort_ubll(<uchar *>array1.data, <llong *>array2.data, size)
+      return keysort_ubll(<npy_uint8 *>array1.data, <npy_int64 *>array2.data,
+                          size)
   elif array1.dtype == "bool":
     if array2.dtype == "uint32":
-      return keysort_bi(<char *>array1.data, <uint *>array2.data, size)
+      return keysort_bi(<npy_int8 *>array1.data, <npy_uint32 *>array2.data,
+                        size)
     else:
-      return keysort_bll(<char *>array1.data, <llong *>array2.data, size)
+      return keysort_bll(<npy_int8 *>array1.data, <npy_int64 *>array2.data,
+                         size)
   elif array1.dtype.char == "S":
     # The case of strings has been not optimized (it is difficult, although it
     # should be possible)
@@ -296,10 +330,10 @@ cdef class IndexArray(Array):
   cdef _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
                   int offsetl):
     cdef herr_t ret
-    cdef llong *rbufA
+    cdef npy_int64 *rbufA
 
     # Correct the start of the buffer with offsetl
-    rbufA = <llong *>self.rbufA + offsetl
+    rbufA = <npy_int64 *>self.rbufA + offsetl
     # Do the physical read
     ##Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
@@ -315,12 +349,12 @@ cdef class IndexArray(Array):
   cdef _readIndex_single(self, hsize_t coord, int relcoord):
     cdef herr_t ret
     cdef hsize_t irow, icol
-    cdef llong *rbufA
+    cdef npy_int64 *rbufA
 
     irow = coord / self.l_slicesize
     icol = coord - irow * self.l_slicesize
     # Do the physical read
-    rbufA = <llong *>self.rbufA + relcoord
+    rbufA = <npy_int64 *>self.rbufA + relcoord
     if irow < self.nrows:
       # Py_BEGIN_ALLOW_THREADS
       ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id,
@@ -437,21 +471,6 @@ cdef class IndexArray(Array):
     return lo
 
 
-  # This accelerates quite a bit (~25%) respect to _bisect_left
-  # Besides, it can manage general python objects
-  cdef _bisect_left_optim(self, a, x, int hi, int stride):
-    cdef int lo, mid
-
-    lo = 0
-    if x <= getPythonScalar(a, 0): return 0
-    if getPythonScalar(a, (hi-1)*stride) < x: return hi
-    while lo < hi:
-        mid = (lo+hi)/2
-        if getPythonScalar(a, mid*stride) < x: lo = mid+1
-        else: hi = mid
-    return lo
-
-
   def _bisect_right(self, a, x, int hi):
     """Return the index where to insert item x in list a, assuming a is sorted.
 
@@ -468,21 +487,6 @@ cdef class IndexArray(Array):
     while lo < hi:
       mid = (lo+hi)/2
       if x < a[mid]: hi = mid
-      else: lo = mid+1
-    return lo
-
-
-  # This accelerates quite a bit (~25%) respect to _bisect_right
-  # Besides, it can manage general python objects
-  cdef _bisect_right_optim(self, a, x, int hi, int stride):
-    cdef int lo, mid
-
-    lo = 0
-    if x < getPythonScalar(a, 0): return 0
-    if getPythonScalar(a, (hi-1)*stride) <= x: return hi
-    while lo < hi:
-      mid = (lo+hi)/2
-      if x < getPythonScalar(a, mid*stride): hi = mid
       else: lo = mid+1
     return lo
 
@@ -506,7 +510,7 @@ cdef class IndexArray(Array):
   # Get the sorted row from the cache or read it.
   cdef void *getLRUsorted(self, int nrow, int ncs, int nchunk, int cs):
     cdef void *vpointer
-    cdef llong nckey
+    cdef npy_int64 nckey
     cdef long nslot
 
     # Compute the number of chunk read and use it as the key for the cache.
@@ -521,29 +525,221 @@ cdef class IndexArray(Array):
     return vpointer
 
 
-  # Optimized version for ints
-  def _searchBinNA_i(self, int item1, int item2):
+  # Optimized version for int8
+  def _searchBinNA_b(self, long item1, long item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef int *rbufrv, *rbufbc, *rbuflb
+    cdef npy_int8 *rbufrv, *rbufbc, *rbuflb
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <int *>self.rbufrv; tlength = 0
+    rbufrv = <npy_int8 *>self.rbufrv; tlength = 0
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2;  bread = 0;  nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <int *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_int8 *>self.getLRUbounds(nrow, nbounds)
+          bread = 1
+          nchunk = bisect_left_b(rbufbc, item1, nbounds, 0)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <npy_int8 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          start = bisect_left_b(rbuflb, item1, cs, 0) + cs*nchunk
+        else:
+          start = ss
+      else:
+        start = 0
+      # Now, for item2
+      if item2 >= rbufrv[rvrow]:
+        if item2 < rbufrv[rvrow+1]:
+          if not bread:
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <npy_int8 *>self.getLRUbounds(nrow, nbounds)
+          nchunk2 = bisect_right_b(rbufbc, item2, nbounds, 0)
+          if nchunk2 <> nchunk:
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <npy_int8 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+          stop = bisect_right_b(rbuflb, item2, cs, 0) + cs*nchunk2
+        else:
+          stop = ss
+      else:
+        stop = 0
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
+
+
+  # Optimized version for uint8
+  def _searchBinNA_ub(self, long item1, long item2):
+    cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
+    cdef int *rbufst, *rbufln
+    # Variables with specific type
+    cdef npy_uint8 *rbufrv, *rbufbc, *rbuflb
+
+    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.nrows
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    rbufrv = <npy_uint8 *>self.rbufrv; tlength = 0
+    for nrow from 0 <= nrow < nrows:
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
+      if item1 > rbufrv[rvrow]:
+        if item1 <= rbufrv[rvrow+1]:
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <npy_uint8 *>self.getLRUbounds(nrow, nbounds)
+          bread = 1
+          nchunk = bisect_left_ub(rbufbc, item1, nbounds, 0)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <npy_uint8 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          start = bisect_left_ub(rbuflb, item1, cs, 0) + cs*nchunk
+        else:
+          start = ss
+      else:
+        start = 0
+      # Now, for item2
+      if item2 >= rbufrv[rvrow]:
+        if item2 < rbufrv[rvrow+1]:
+          if not bread:
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <npy_uint8 *>self.getLRUbounds(nrow, nbounds)
+          nchunk2 = bisect_right_ub(rbufbc, item2, nbounds, 0)
+          if nchunk2 <> nchunk:
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <npy_uint8 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+          stop = bisect_right_ub(rbuflb, item2, cs, 0) + cs*nchunk2
+        else:
+          stop = ss
+      else:
+        stop = 0
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
+
+
+  # Optimized version for int16
+  def _searchBinNA_s(self, long item1, long item2):
+    cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
+    cdef int *rbufst, *rbufln
+    # Variables with specific type
+    cdef npy_int16 *rbufrv, *rbufbc, *rbuflb
+
+    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.nrows
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    rbufrv = <npy_int16 *>self.rbufrv; tlength = 0
+    for nrow from 0 <= nrow < nrows:
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
+      if item1 > rbufrv[rvrow]:
+        if item1 <= rbufrv[rvrow+1]:
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <npy_int16 *>self.getLRUbounds(nrow, nbounds)
+          bread = 1
+          nchunk = bisect_left_s(rbufbc, item1, nbounds, 0)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <npy_int16 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          start = bisect_left_s(rbuflb, item1, cs, 0) + cs*nchunk
+        else:
+          start = ss
+      else:
+        start = 0
+      # Now, for item2
+      if item2 >= rbufrv[rvrow]:
+        if item2 < rbufrv[rvrow+1]:
+          if not bread:
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <npy_int16 *>self.getLRUbounds(nrow, nbounds)
+          nchunk2 = bisect_right_s(rbufbc, item2, nbounds, 0)
+          if nchunk2 <> nchunk:
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <npy_int16 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+          stop = bisect_right_s(rbuflb, item2, cs, 0) + cs*nchunk2
+        else:
+          stop = ss
+      else:
+        stop = 0
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
+
+
+  # Optimized version for uint16
+  def _searchBinNA_us(self, long item1, long item2):
+    cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
+    cdef int *rbufst, *rbufln
+    # Variables with specific type
+    cdef npy_uint16 *rbufrv, *rbufbc, *rbuflb
+
+    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.nrows
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    rbufrv = <npy_uint16 *>self.rbufrv; tlength = 0
+    for nrow from 0 <= nrow < nrows:
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
+      if item1 > rbufrv[rvrow]:
+        if item1 <= rbufrv[rvrow+1]:
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <npy_uint16 *>self.getLRUbounds(nrow, nbounds)
+          bread = 1
+          nchunk = bisect_left_us(rbufbc, item1, nbounds, 0)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <npy_uint16 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          start = bisect_left_us(rbuflb, item1, cs, 0) + cs*nchunk
+        else:
+          start = ss
+      else:
+        start = 0
+      # Now, for item2
+      if item2 >= rbufrv[rvrow]:
+        if item2 < rbufrv[rvrow+1]:
+          if not bread:
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <npy_uint16 *>self.getLRUbounds(nrow, nbounds)
+          nchunk2 = bisect_right_us(rbufbc, item2, nbounds, 0)
+          if nchunk2 <> nchunk:
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <npy_uint16 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+          stop = bisect_right_us(rbuflb, item2, cs, 0) + cs*nchunk2
+        else:
+          stop = ss
+      else:
+        stop = 0
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
+
+
+  # Optimized version for int32
+  def _searchBinNA_i(self, long item1, long item2):
+    cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
+    cdef int *rbufst, *rbufln
+    # Variables with specific type
+    cdef npy_int32 *rbufrv, *rbufbc, *rbuflb
+
+    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.nrows
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    rbufrv = <npy_int32 *>self.rbufrv; tlength = 0
+    for nrow from 0 <= nrow < nrows:
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
+      if item1 > rbufrv[rvrow]:
+        if item1 <= rbufrv[rvrow+1]:
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <npy_int32 *>self.getLRUbounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_i(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <int *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_int32 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
           start = bisect_left_i(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -554,11 +750,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <int *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_int32 *>self.getLRUbounds(nrow, nbounds)
           nchunk2 = bisect_right_i(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <int *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_int32 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_i(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -569,29 +765,77 @@ cdef class IndexArray(Array):
     return tlength
 
 
-  # Optimized version for llong
-  def _searchBinNA_ll(self, llong item1, llong item2):
+  # Optimized version for uint32
+  def _searchBinNA_ui(self, npy_uint32 item1, npy_uint32 item2):
     cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef llong *rbufrv, *rbufbc, *rbuflb
+    cdef npy_uint32 *rbufrv, *rbufbc, *rbuflb
 
     cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufrv = <llong *>self.rbufrv; tlength = 0
+    rbufrv = <npy_uint32 *>self.rbufrv; tlength = 0
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2;  bread = 0;  nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <llong *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_uint32 *>self.getLRUbounds(nrow, nbounds)
+          bread = 1
+          nchunk = bisect_left_ui(rbufbc, item1, nbounds, 0)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <npy_uint32 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          start = bisect_left_ui(rbuflb, item1, cs, 0) + cs*nchunk
+        else:
+          start = ss
+      else:
+        start = 0
+      # Now, for item2
+      if item2 >= rbufrv[rvrow]:
+        if item2 < rbufrv[rvrow+1]:
+          if not bread:
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <npy_uint32 *>self.getLRUbounds(nrow, nbounds)
+          nchunk2 = bisect_right_ui(rbufbc, item2, nbounds, 0)
+          if nchunk2 <> nchunk:
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <npy_uint32 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+          stop = bisect_right_ui(rbuflb, item2, cs, 0) + cs*nchunk2
+        else:
+          stop = ss
+      else:
+        stop = 0
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
+
+
+  # Optimized version for int64
+  def _searchBinNA_ll(self, npy_int64 item1, npy_int64 item2):
+    cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
+    cdef int *rbufst, *rbufln
+    # Variables with specific type
+    cdef npy_int64 *rbufrv, *rbufbc, *rbuflb
+
+    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.nrows
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    rbufrv = <npy_int64 *>self.rbufrv; tlength = 0
+    for nrow from 0 <= nrow < nrows:
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
+      if item1 > rbufrv[rvrow]:
+        if item1 <= rbufrv[rvrow+1]:
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <npy_int64 *>self.getLRUbounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_ll(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <llong *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_int64 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
           start = bisect_left_ll(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -602,11 +846,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <llong *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_int64 *>self.getLRUbounds(nrow, nbounds)
           nchunk2 = bisect_right_ll(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <llong *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_int64 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_ll(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -617,29 +861,78 @@ cdef class IndexArray(Array):
     return tlength
 
 
-  def _searchBinNA_f(self, float item1, float item2):
-    cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
+  # Optimized version for uint64
+  def _searchBinNA_ull(self, npy_uint64 item1, npy_uint64 item2):
+    cdef int cs, ss, ncs, nrow, nrows, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef float *rbufrv, *rbufbc, *rbuflb
+    cdef npy_uint64 *rbufrv, *rbufbc, *rbuflb
 
-    cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
-    nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
+    cs = self.l_chunksize;  ss = self.l_slicesize; ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.nrows
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    # Limits not in cache, do a lookup
-    rbufrv = <float *>self.rbufrv
+    rbufrv = <npy_uint64 *>self.rbufrv; tlength = 0
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2;  bread = 0;  nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <float *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_uint64 *>self.getLRUbounds(nrow, nbounds)
+          bread = 1
+          nchunk = bisect_left_ull(rbufbc, item1, nbounds, 0)
+          # Get the sorted row from the LRU cache or read it.
+          rbuflb = <npy_uint64 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          start = bisect_left_ull(rbuflb, item1, cs, 0) + cs*nchunk
+        else:
+          start = ss
+      else:
+        start = 0
+      # Now, for item2
+      if item2 >= rbufrv[rvrow]:
+        if item2 < rbufrv[rvrow+1]:
+          if not bread:
+            # Get the bounds row from the LRU cache or read them.
+            rbufbc = <npy_uint64 *>self.getLRUbounds(nrow, nbounds)
+          nchunk2 = bisect_right_ull(rbufbc, item2, nbounds, 0)
+          if nchunk2 <> nchunk:
+            # Get the sorted row from the LRU cache or read it.
+            rbuflb = <npy_uint64 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+          stop = bisect_right_ull(rbuflb, item2, cs, 0) + cs*nchunk2
+        else:
+          stop = ss
+      else:
+        stop = 0
+      length = stop - start;  tlength = tlength + length
+      rbufst[nrow] = start;  rbufln[nrow] = length;
+    return tlength
+
+
+  # Optimized version for float32
+  def _searchBinNA_f(self, npy_float64 item1, npy_float64 item2):
+    cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
+    cdef int start, stop, tlength, length, bread, nchunk, nchunk2
+    cdef int *rbufst, *rbufln
+    # Variables with specific type
+    cdef npy_float32 *rbufrv, *rbufbc, *rbuflb
+
+    cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
+    nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
+    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
+    # Limits not in cache, do a lookup
+    rbufrv = <npy_float32 *>self.rbufrv
+    for nrow from 0 <= nrow < nrows:
+      rvrow = nrow*2;  bread = 0;  nchunk = -1
+      # Look if item1 is in this row
+      if item1 > rbufrv[rvrow]:
+        if item1 <= rbufrv[rvrow+1]:
+          # Get the bounds row from the LRU cache or read them.
+          rbufbc = <npy_float32 *>self.getLRUbounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_f(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <float *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_float32 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
           start = bisect_left_f(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -650,11 +943,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <float *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_float32 *>self.getLRUbounds(nrow, nbounds)
           nchunk2 = bisect_right_f(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <float *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_float32 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_f(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -665,29 +958,30 @@ cdef class IndexArray(Array):
     return tlength
 
 
-  def _searchBinNA_d(self, double item1, double item2):
+  # Optimized version for float64
+  def _searchBinNA_d(self, npy_float64 item1, npy_float64 item2):
     cdef int cs, ss, ncs, nrow, nrows, nrow2, nbounds, rvrow
     cdef int start, stop, tlength, length, bread, nchunk, nchunk2
     cdef int *rbufst, *rbufln
     # Variables with specific type
-    cdef double *rbufrv, *rbufbc, *rbuflb
+    cdef npy_float64 *rbufrv, *rbufbc, *rbuflb
 
     cs = self.l_chunksize;  ss = self.l_slicesize;  ncs = ss / cs
     nbounds = self.nbounds;  nrows = self.nrows;  tlength = 0
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
     # Limits not in cache, do a lookup
-    rbufrv = <double *>self.rbufrv
+    rbufrv = <npy_float64 *>self.rbufrv
     for nrow from 0 <= nrow < nrows:
       rvrow = nrow*2;  bread = 0;  nchunk = -1
       # Look if item1 is in this row
       if item1 > rbufrv[rvrow]:
         if item1 <= rbufrv[rvrow+1]:
           # Get the bounds row from the LRU cache or read them.
-          rbufbc = <double *>self.getLRUbounds(nrow, nbounds)
+          rbufbc = <npy_float64 *>self.getLRUbounds(nrow, nbounds)
           bread = 1
           nchunk = bisect_left_d(rbufbc, item1, nbounds, 0)
           # Get the sorted row from the LRU cache or read it.
-          rbuflb = <double *>self.getLRUsorted(nrow, ncs, nchunk, cs)
+          rbuflb = <npy_float64 *>self.getLRUsorted(nrow, ncs, nchunk, cs)
           start = bisect_left_d(rbuflb, item1, cs, 0) + cs*nchunk
         else:
           start = ss
@@ -698,11 +992,11 @@ cdef class IndexArray(Array):
         if item2 < rbufrv[rvrow+1]:
           if not bread:
             # Get the bounds row from the LRU cache or read them.
-            rbufbc = <double *>self.getLRUbounds(nrow, nbounds)
+            rbufbc = <npy_float64 *>self.getLRUbounds(nrow, nbounds)
           nchunk2 = bisect_right_d(rbufbc, item2, nbounds, 0)
           if nchunk2 <> nchunk:
             # Get the sorted row from the LRU cache or read it.
-            rbuflb = <double *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
+            rbuflb = <npy_float64 *>self.getLRUsorted(nrow, ncs, nchunk2, cs)
           stop = bisect_right_d(rbuflb, item2, cs, 0) + cs*nchunk2
         else:
           stop = ss
@@ -720,7 +1014,7 @@ cdef class IndexArray(Array):
     cdef int relcoord, bcoords
     cdef int startl, stopl, incr, stop
     cdef int *rbufst, *rbufln
-    cdef llong coord
+    cdef npy_int64 coord
     cdef long nslot
 
     len1 = 0; len2 = 0; bcoords = 0
@@ -771,8 +1065,8 @@ cdef class IndexArray(Array):
   def _getCoords_sparse(self, index, int ncoords):
     cdef int nrow, nrows, startl, stopl, lenl, relcoord
     cdef int *rbufst, *rbufln
-    cdef llong *rbufC, *rbufA
-    cdef llong coord
+    cdef npy_int64 *rbufC, *rbufA
+    cdef npy_int64 coord
     cdef object nckey
     cdef long nslot
 
@@ -780,8 +1074,8 @@ cdef class IndexArray(Array):
     # Initialize the index dataset
     self._initIndexSlice(index, ncoords)
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufC = <llong *>self.rbufC
-    rbufA = <llong *>self.rbufA
+    rbufC = <npy_int64 *>self.rbufC
+    rbufA = <npy_int64 *>self.rbufA
 
     # Get the sorted indices
     get_sorted_indices(nrows, rbufC, rbufst, rbufln, self.l_slicesize)
@@ -819,9 +1113,9 @@ cdef class LastRowArray(Array):
   def _readIndexSlice(self, IndexArray indices, hsize_t start, hsize_t stop,
                       int offsetl):
     "Read the reverse index part of an LR index."
-    cdef llong *rbufA
+    cdef npy_int64 *rbufA
 
-    rbufA = <llong *>indices.rbufA + offsetl
+    rbufA = <npy_int64 *>indices.rbufA + offsetl
     Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbufA)
     Py_END_ALLOW_THREADS
