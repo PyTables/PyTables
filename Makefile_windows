@@ -1,18 +1,22 @@
-# This Makefile is only intended to create a Windows installer for PyTables
-# using sources exported from a repository.
+# This MingW Makefile is only intended to prepare for distribution the PyTables
+# sources exported from a repository in a Windows box.  For building and
+# installing PyTables, please use ``setup.py`` as described in the
+# ``README.txt`` file.
 
 VERSION=$(shell type VERSION)
-SRCDIRS=doc mswindows
+SRCDIRS=src doc
 
 GENERATED=ANNOUNCE.txt
 
-.PHONY: clean
+.PHONY: dist clean
 
-installer: $(GENERATED)
+dist: $(GENERATED)
 	for %%f in ($(SRCDIRS)) do $(MAKE) -f Makefile_windows -C %%f $@
 
 clean:
-	-del /q /s $(GENERATED)
+	-del /q /s MANIFEST build dist
+	-del /q /s $(GENERATED) tables\*.so tables\numexpr\*.so
+	-del /q /s *.pyc *.pyo *~
 	for %%f in ($(SRCDIRS)) do $(MAKE) -f Makefile_windows -C %%f $@
 
 %: %.in VERSION

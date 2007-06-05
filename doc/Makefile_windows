@@ -2,9 +2,10 @@
 SRCDIR=xml
 HTMLDIR=html
 
-.PHONY:	clean
+.PHONY:	dist clean
 
-installer:	usersguide.pdf html
+dist:	usersguide.pdf html
+	$(MAKE) -f Makefile_windows -C $(SRCDIR) clean
 
 clean:
 	-del usersguide.pdf

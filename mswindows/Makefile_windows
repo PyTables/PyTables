@@ -1,9 +1,6 @@
 # MingW Makefile for the mswindows subdirectory
 # This Makefile is intended to create the PyTables Pro installer for Windows
 
-#SED="C:\Archivos de programa\GnuWin32\bin\sed"
-SED=sed
-
 # The template for the NSIS intstaller script
 PTPRONSIS=pytables_pro.nsi
 
@@ -41,7 +38,12 @@ SZIP=$(RESOURCES)\\szip
 BZIP2=$(RESOURCES)\\bzip2
 NUMPY=$(RESOURCES)\\Numpy
 
+
+dist:
+	$(MAKE) -f Makefile_windows -C ..
+
 clean:
+	$(MAKE) -f Makefile_windows -C .. $@
 	rmdir /s /q $(RESOURCES)
 	-del $(PTPRONSIS)
 	-del PyTablesPro*-Win.exe
@@ -86,8 +88,8 @@ populate_dirs:install_dirs
 	copy $(PYTHONDIR)\Lib\site-packages\tables_orig\*.pyd $(PTPRO)\Lib\site-packages\tables
 	copy $(PYTHONDIR)\Lib\site-packages\tables_orig\numexpr\*.pyd $(PTPRO)\Lib\site-packages\tables\numexpr
 
-installer: populate_dirs pytables_pro.nsi.in $(VERSIONFILE)
-	type pytables_pro.nsi.in | $(SED) -e "s/@PYTABLESPROFOLDER@/$(PTPRO)/g" -e "s/@NUMPY@/$(NUMPY)/g" \
+installer: dist populate_dirs pytables_pro.nsi.in $(VERSIONFILE)
+	type pytables_pro.nsi.in | sed -e "s/@PYTABLESPROFOLDER@/$(PTPRO)/g" -e "s/@NUMPY@/$(NUMPY)/g" \
 	-e "s/@HDF5@/$(HDF5)/g" -e "s/@ZLIB@/$(ZLIB)/g" -e "s/@SZIP@/$(SZIP)/g" -e "s/@BZIP2@/$(BZIP2)/g" \
 	-e "s/@PTVERSION@/$(VERSION)/g" -e "s/@VERSIONNAME@/$(VERSION)/g" -e "s/@INSTALLERNAME@/$(VERSION)/g" \
 	-e "s/@PTVERSION@/$(PTVERSION)/g" -e "s/@NUMPYVERSION@/$(NUMPYVERSION)/g" \
