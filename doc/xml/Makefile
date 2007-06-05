@@ -14,7 +14,7 @@ export XML_CATALOG_FILES XML_DEBUG_CATALOG
 
 .PHONY:		all clean
 
-all:		usersguide.pdf usersguide.html
+all:		usersguide.pdf %.html
 
 clean:
 	rm -f $(genpng)
@@ -27,7 +27,7 @@ usersguide.pdf: usersguide.xml usersguide_bib.xml
 	fop -d -c fop_conf.xml usersguide.fo usersguide.pdf
 
 
-usersguide.html:	 usersguide.xml $(allpng)
+%.html:	 usersguide.xml $(allpng)
 	xsltproc pytables_html.xsl usersguide.xml
 
 %.png:	        %.svg
