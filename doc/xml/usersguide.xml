@@ -8098,6 +8098,13 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               index filters will be used (currently, zlib level 1 with
               shuffling).</para>
 
+              <para>When <literal>optlevel</literal> is greater that 0, a
+              temporary file is created during the index build process.  You
+              can use the <literal>tmp_dir</literal> argument to specify the
+              directory for this temporary file.  The default is to create it
+              in the same directory as the file containing the original
+              table.</para>
+
               <note>
                 <!-- XXXPRO -->
                 <para>Column indexing is only available in PyTables

@@ -30,6 +30,7 @@ Misc variables:
 
 import sys
 import warnings
+import os.path
 
 import numpy
 
@@ -2685,7 +2686,7 @@ class Column(object):
     Public methods
     --------------
 
-    createIndex([optlevel][, filters])
+    createIndex([optlevel][, filters][,tmp_dir])
         Create an index for this column.
     reIndex()
         Recompute the index associated with this column.
@@ -2892,7 +2893,7 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex( self, optlevel=6, filters=None,
+    def createIndex( self, optlevel=6, filters=None, tmp_dir=None,
                      _blocksizes=None, _testmode=False, _verbose=False ):
         """
         Create an index for this column.
@@ -2907,6 +2908,12 @@ class Column(object):
         compress the index.  If ``None``, default index filters will be
         used (currently, zlib level 1 with shuffling).
 
+        When `optlevel` is greater that 0, a temporary file is created
+        during the index build process.  You can use the `tmp_dir`
+        argument to specify the directory for this temporary file.  The
+        default is to create it in the same directory as the file
+        containing the original table.
+
         .. Note:: Column indexing is only available in PyTables Pro.
         """
 
@@ -2915,11 +2922,17 @@ class Column(object):
             (optlevel < 0 or optlevel > 9)):
             raise (ValueError,
                    "Optimization level should be an integer in the range 0-9.")
+        if tmp_dir is None:
+            tmp_dir = os.path.dirname(self._tableFile.filename)
+        else:
+            if not os.path.isdir(tmp_dir):
+                raise (ValueError,
+                       "Temporary directory '%s' does not exist." % tmp_dir)
         if (_blocksizes is not None and
             (type(_blocksizes) is not tuple or len(_blocksizes) != 4)):
             raise (ValueError,
                    "_blocksizes must be a tuple with exactly 4 elements.")
-        idxrows = _column__createIndex(self, optlevel, filters,
+        idxrows = _column__createIndex(self, optlevel, filters, tmp_dir,
                                        _blocksizes,  _verbose)
         return idxrows
 

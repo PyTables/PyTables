@@ -209,6 +209,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                  atom=None, column=None, title="",
                  optlevel=None,
                  filters=None,
+                 tmp_dir=None,
                  expectedrows=0,
                  byteorder=None,
                  blocksizes=None,
@@ -233,6 +234,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             & shuffle will be activated by default (i.e., they are not
             inherited from the parent, that is, the Table).
 
+        tmp_dir -- The directory for the temporary files.
+
         expectedrows -- Represents an user estimate about the number
             of row slices that will be added to the growable dimension
             in the IndexArray object.
@@ -249,6 +252,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         self.optlevel = optlevel
         """The optimization level for this index."""
+        self.tmp_dir = tmp_dir
+        """The directory for the temporary files."""
         self.expectedrows = expectedrows
         """The expected number of items of index arrays."""
         if byteorder in ["little", "big"]:
@@ -646,8 +651,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # the contents of a single superblock.
         # F. Altet 2007-01-03
         # Build the name of the temporary file
-        dirname = os.path.dirname(self._v_file.filename)
-        fd, self.tmpfilename = tempfile.mkstemp(".tmp", "pytables-", dirname)
+        fd, self.tmpfilename = tempfile.mkstemp(
+            ".tmp", "pytables-" , self.tmp_dir)
         # Close the file descriptor so as to avoid leaks
         os.close(fd)
         # Create the proper PyTables file
