@@ -156,6 +156,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
     #  Assign the root to srcGroup
     srcGroup = srcfileh.root
 
+    created_dstGroup = False
     # Check whether the destination group exists or not
     if os.path.isfile(dstfile) and not overwritefile:
         dstfileh = openFile(dstfile, "a")
@@ -164,6 +165,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
         except:
             # The dstgroup does not seem to exist. Try creating it.
             dstGroup = newdstGroup(dstfileh, dstgroup, title, filters)
+            created_dstGroup = True
         else:
             # The node exists, but it is really a group?
             if not isinstance(dstGroup, Group):
@@ -182,8 +184,13 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
         # The destination file does not exist or will be overwritten.
         dstfileh = openFile(dstfile, "w", title=title, filters=filters)
         dstGroup = newdstGroup(dstfileh, dstgroup, title="", filters=filters)
+        created_dstGroup = True
 
-    # Finally, copy srcGroup to dstGroup
+    # Copy the attributes to dstGroup, if needed
+    if created_dstGroup and copyuserattrs:
+        srcGroup._v_attrs._f_copy(dstGroup)
+
+    # Finally, copy srcGroup children to dstGroup
     try:
         srcGroup._f_copyChildren(
             dstGroup, recursive = recursive, filters = filters,
@@ -201,10 +208,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
         raise RuntimeError, "Please check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired. In particular, pay attention that rootUEP is not fooling you."
 
     # Upgrade flavors in dstNode, if required
-    print "upgradeflavors-->", upgradeflavors
-    print "format_version-->", srcfileh.format_version
     if upgradeflavors and srcfileh.format_version.startswith("1"):
-        print "fent upgrade!"
         for dstNode in dstGroup._f_walkNodes("Leaf"):
             # Remove original flavor in case the source file has 1.x format
             dstNode.delAttr('FLAVOR')
