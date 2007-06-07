@@ -365,23 +365,25 @@ class Group(hdf5Extension.Group, Node):
 
         if childCID in classIdDict:
             return classIdDict[childCID]  # look up leaf class
-        elif childCID is None:
-            # No ``CLASS`` attribute, try a guess.
-            childCID = utilsExtension.whichClass(self._v_objectID, childH5Name)
-            if childCID == 'UNSUPPORTED':
-                if warn:
-                    warnings.warn("leaf ``%s`` is of an unsupported type; "
-                                  "it will become an ``UnImplemented`` node"
-                                  % self._g_join(childName))
-                return UnImplemented
-            assert childCID in classIdDict
-            return classIdDict[childCID]  # look up leaf class
         else:
-            if warn:
-                warnings.warn("leaf ``%s`` has an unknown class ID ``%s``; "
-                              "it will become an ``UnImplemented`` node"""
-                              % (self._g_join(childName), childCID))
-            return UnImplemented  # default leaf class
+            # Unknown or no ``CLASS`` attribute, try a guess.
+            childCID2 = utilsExtension.whichClass(
+                self._v_objectID, childH5Name)
+            if childCID2 == 'UNSUPPORTED':
+                if warn:
+                    if childCID is None:
+                        warnings.warn(
+                            "leaf ``%s`` is of an unsupported type; "
+                            "it will become an ``UnImplemented`` node"
+                            % self._g_join(childName))
+                    else:
+                        warnings.warn(
+                            "leaf ``%s`` has an unknown class ID ``%s``; "
+                            "it will become an ``UnImplemented`` node"""
+                            % (self._g_join(childName), childCID))
+                return UnImplemented
+            assert childCID2 in classIdDict
+            return classIdDict[childCID2]  # look up leaf class
 
 
     def _g_addChildrenNames(self):
