@@ -308,8 +308,7 @@
             <para><emphasis>Indexing support for columns of tables:</emphasis>
             Very useful if you have large tables and you want to quickly look
             up for values in columns satisfying some criteria.</para>
-            <note>
-              <!-- XXXPRO -->
+            <note role="pro">
               <para>Column indexing is only available in PyTables Pro.</para>
             </note>
           </listitem>
@@ -6472,8 +6471,7 @@ for node in h5file.root.detector:
         a non-nested one.  Search methods automatically take advantage of
         indexing where available.</para>
 
-        <note>
-          <!-- XXXPRO -->
+        <note role="pro">
           <para>Column indexing is only available in PyTables Pro.</para>
         </note>
 
@@ -6533,8 +6531,7 @@ for node in h5file.root.detector:
                 />).</para>
 
                 <para>This value is persistent.
-                <note>
-                  <!-- XXXPRO -->
+                <note role="pro">
                   <para>Column indexing is only available in PyTables
                   Pro.</para>
                 </note>
@@ -6576,8 +6573,7 @@ for node in h5file.root.detector:
 
               <glossdef>
                 <para>Is the column which name is used as a key indexed?
-                <note>
-                  <!-- XXXPRO -->
+                <note role="pro">
                   <para>Column indexing is only available in PyTables
                   Pro.</para>
                 </note>
@@ -6670,8 +6666,7 @@ for node in h5file.root.detector:
 
               <glossdef>
                 <para>Does this table have any indexed columns?
-                <note>
-                  <!-- XXXPRO -->
+                <note role="pro">
                   <para>Column indexing is only available in PyTables
                   Pro.</para>
                 </note>
@@ -6686,8 +6681,7 @@ for node in h5file.root.detector:
               <glossdef>
                 <para>List of the pathnames of indexed columns in the
                 table.
-                <note>
-                  <!-- XXXPRO -->
+                <note role="pro">
                   <para>Column indexing is only available in PyTables
                   Pro.</para>
                 </note>
@@ -6716,8 +6710,7 @@ for node in h5file.root.detector:
                 linkend="Table.reIndex" xrefstyle="select: label" />).</para>
 
                 <para>This value is persistent.
-                <note>
-                  <!-- XXXPRO -->
+                <note role="pro">
                   <para>Column indexing is only available in PyTables
                   Pro.</para>
                 </note>
@@ -7234,8 +7227,7 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             label" /> for more information about the performance of the
             different searching modes.</para>
 
-            <note>
-              <!-- XXXPRO -->
+            <note role="pro">
               <para>Column indexing is only available in PyTables Pro.</para>
             </note>
 
@@ -7304,8 +7296,7 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             make this method return different values for the same arguments at
             different times.</para>
 
-            <note>
-              <!-- XXXPRO -->
+            <note role="pro">
               <para>Column indexing is only available in PyTables Pro.</para>
             </note>
           </section>
@@ -7325,8 +7316,7 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             xrefstyle="select: label" />) and you want to update the indexes
             on it.</para>
 
-            <note>
-              <!-- XXXPRO -->
+            <note role="pro">
               <para>Column indexing is only available in PyTables Pro.</para>
             </note>
           </section>
@@ -7355,8 +7345,7 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             the index information for columns is no longer valid and want to
             rebuild the indexes on it.</para>
 
-            <note>
-              <!-- XXXPRO -->
+            <note role="pro">
               <para>Column indexing is only available in PyTables Pro.</para>
             </note>
           </section>
@@ -7374,8 +7363,7 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             after a invalidating index operation
             (<literal>Table.removeRows()</literal>, for example).</para>
 
-            <note>
-              <!-- XXXPRO -->
+            <note role="pro">
               <para>Column indexing is only available in PyTables Pro.</para>
             </note>
           </section>
@@ -7987,8 +7975,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
           linkend="ColsClassDescr" xrefstyle="select: label" />), but there
           are a few other associated methods to deal with indexes.</para>
 
-          <note>
-            <!-- XXXPRO -->
+          <note role="pro">
             <para>Column indexing is only available in PyTables Pro.</para>
           </note>
 
@@ -8026,8 +8013,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
                   associated with this column (<literal>None</literal> if the
                   column is not indexed).
 
-                  <note>
-                    <!-- XXXPRO -->
+                  <note role="pro">
                     <para>Column indexing is only available in PyTables
                     Pro.</para>
                   </note>
@@ -8042,8 +8028,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
                 <glossdef>
                   <para>True if the column is indexed, false otherwise.
 
-                  <note>
-                    <!-- XXXPRO -->
+                  <note role="pro">
                     <para>Column indexing is only available in PyTables
                     Pro.</para>
                   </note>
@@ -8120,8 +8105,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               in the same directory as the file containing the original
               table.</para>
 
-              <note>
-                <!-- XXXPRO -->
+              <note role="pro">
                 <para>Column indexing is only available in PyTables
                 Pro.</para>
               </note>
@@ -8139,8 +8123,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <para>This method does nothing if the column is not
               indexed.</para>
 
-              <note>
-                <!-- XXXPRO -->
+              <note role="pro">
                 <para>Column indexing is only available in PyTables
                 Pro.</para>
               </note>
@@ -8162,8 +8145,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <para>This method does nothing if the column is not
               indexed.</para>
 
-              <note>
-                <!-- XXXPRO -->
+              <note role="pro">
                 <para>Column indexing is only available in PyTables
                 Pro.</para>
               </note>
@@ -8179,8 +8161,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <literal>Column.createIndex()</literal> method (see <xref
               linkend="Column.createIndex" />).</para>
 
-              <note>
-                <!-- XXXPRO -->
+              <note role="pro">
                 <para>Column indexing is only available in PyTables
                 Pro.</para>
               </note>
@@ -10696,8 +10677,7 @@ True</screen>
         <section id="indexedSearches">
           <title>Indexed searches</title>
 
-          <note>
-            <!-- XXXPRO -->
+          <note role="pro">
             <para>Indexing is only available in PyTables Pro.</para>
           </note>
 
@@ -11753,8 +11733,7 @@ print readFile("myfile.h5")</screen>
         your own experiments up and proceed to fine-tune the
         <literal>NODE_CACHE_SIZE</literal> parameter.</para>
 
-        <note>
-          <!-- XXXPRO -->
+        <note role="pro">
           <para>PyTables Pro sports an optimized LRU cache node written in C,
           so you should expect significantly faster LRU cache operations when
           working with it.</para>
