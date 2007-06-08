@@ -8,18 +8,21 @@ dist:	usersguide.pdf html
 	$(MAKE) -f Makefile_windows -C $(SRCDIR) clean
 
 clean:
-	-del usersguide.pdf
-	-del /q /s $(HTMLDIR)
-	-rmdir $(HTMLDIR)
+	del usersguide.pdf
+	rmdir /s /q $(HTMLDIR)
 	$(MAKE) -f Makefile_windows -C $(SRCDIR) clean
 
 usersguide.pdf:	$(SRCDIR)\usersguide.xml
 	$(MAKE) -f Makefile_windows -C $(SRCDIR) usersguide.pdf
 	copy $(SRCDIR)\usersguide.pdf .
 
+# The copy of PNG files should be done in the %.html target of
+# xml/Makefile_windows IF that target was not .PRECIOUS
 html:	$(SRCDIR)\usersguide.xml
 	$(MAKE) -f Makefile_windows -C $(SRCDIR) %.html
-	mkdir $(HTMLDIR)
-	copy  $(SRCDIR)\pytables_style.css $(HTMLDIR)
+	mkdir $(HTMLDIR)\images
 	copy  $(SRCDIR)\*.html $(HTMLDIR)
+	copy  $(SRCDIR)\pytables_style.css $(HTMLDIR)
 	copy  $(SRCDIR)\*.png $(HTMLDIR)
+	copy  $(SRCDIR)\images\*.png $(HTMLDIR)\images
+
