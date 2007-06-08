@@ -4,6 +4,7 @@
 
     <!-- The base stylesheet -->
     <xsl:import href="tldp-chapters.xsl"/>
+    <xsl:import href="role_admon.xsl"/>
     <xsl:include href="../common/pytables_common.xsl"/>
 
     <!-- The CSS location -->

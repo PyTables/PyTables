@@ -8,6 +8,7 @@
     <xsl:import href="tldp-print.xsl"/>
     <xsl:import href="bookmarks_fop.xsl"/>
     <xsl:include href="graphical_titlepage.xsl"/>
+    <xsl:include href="role_admon.xsl"/>
     <xsl:include href="../common/pytables_common.xsl"/>
 
     <!-- Render correctly the greater equal symbol -->
