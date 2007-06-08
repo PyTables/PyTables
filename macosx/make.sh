@@ -5,7 +5,7 @@ VER=$(cat ../VERSION)
 PYVERS="2.4 2.5"
 PMPROJ_TMPL="pytables-@VER@-py@PYVER@.pmproj"
 
-SUBPKGS="szip-2.0.pkg hdf5-1.6.5.pkg numpy-1.0.3 SELF"
+SUBPKGS="hdf5-1.6.5.pkg numpy-1.0.3 SELF"
 
 packagemaker=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
 
