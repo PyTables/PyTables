@@ -72,6 +72,7 @@ for PYVER in $PYVERS; do
 	echo "Building $DMG..."
 	mkdir -p "$DMGDIR"
 	mv "$MPKG" "$DMGDIR"
+	cp ../README.txt "$DMGDIR/ReadMe.txt"
 	mkdir -p "$DMGDIR/Examples"
 	cp -R ../examples/* "$DMGDIR/Examples/"
 	cp ../doc/usersguide.pdf "$DMGDIR/User's Guide.pdf"
