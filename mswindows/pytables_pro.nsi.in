@@ -8,15 +8,15 @@
 SetCompressor bzip2
 
 # The name of the installer
-Name "PyTables Pro @VERSIONNAME@"
+Name "PyTables Pro @VERSION@"
 
 # The file where the installer will be saved
-OutFile "PyTablesPro-@INSTALLERNAME@-Win.exe"
+OutFile "PyTablesPro-@VERSION@-Win-py@DOTPYTHONVERSION@.exe"
 
-# The commands Icon/UninstallIcon do not work (a bug?) Instead we have to use
-# the following !define or hack the nsisconf.h
-!define MUI_ICON "@PYTABLESPROFOLDER@\icons\ptinstaller.ico"
-!define MUI_UNICON "@PYTABLESPROFOLDER@\icons\ptinstaller.ico"
+# The commands Icon/UninstallIcon with MUI Instead we have to use
+# the following !define (see NSIS FAQ)
+!define MUI_ICON "@SVN_PTPRO@\mswindows\ptinstaller.ico"
+!define MUI_UNICON "@SVN_PTPRO@\mswindows\ptinstaller.ico"
 
 # Use the new XP style
 XPStyle on
@@ -28,17 +28,23 @@ Var MUI_TEMP
 Var PYTHONDIR
 Var UNCUSTOMTEXT
 
+###########################################################
+#	PART I: INSTALLER
+###########################################################
+
 # --------------------------------
-# Callback functions
+# Functions
+# --------------------------------
 
 Function .onInit
 	# The registry key where application settings will be stored
 	StrCpy $PTPRO_SUBKEY "SOFTWARE\Carabos\PyTables_Pro\Python@PYTHONVERSION@"
+	StrCpy $STARTMENU_FOLDER "PyTables Pro for Python@DOTPYTHONVERSION@"
 FunctionEnd
 
 Function preInstallDir
   # Default installation directory
-  StrCpy $INSTDIR "$PROGRAMFILES\PyTables_Pro (Python@DOTPYTHONVERSION@)"
+  StrCpy $INSTDIR "$PROGRAMFILES\$STARTMENU_FOLDER"
 FunctionEnd
 
 Function prePythonDir
@@ -57,6 +63,7 @@ FunctionEnd
 
 # --------------------------------
 # Pages
+# --------------------------------
 
 # Welcome page
 !insertmacro MUI_PAGE_WELCOME
@@ -67,17 +74,17 @@ FunctionEnd
 !define MUI_LICENSEPAGE_TEXT_TOP " "
 !define MUI_LICENSEPAGE_TEXT_BOTTOM " "
 !define MUI_LICENSEPAGE_BUTTON "I'm warned"
-!insertmacro MUI_PAGE_LICENSE @PYTABLESPROFOLDER@\LICENSE_SUMMARY.txt
+!insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\LICENSE_SUMMARY.txt
 
 # License page
-!insertmacro MUI_PAGE_LICENSE @PYTABLESPROFOLDER@\LICENSE.txt
+!insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\LICENSE.txt
 
 # Components selection page
 !insertmacro MUI_PAGE_COMPONENTS
 
 # Installation directory page for PyTables Pro data files
 !define MUI_PAGE_CUSTOMFUNCTION_PRE preInstallDir
-!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install PyTables Pro @VERSIONNAME@ data \
+!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install PyTables Pro @VERSION@ data \
 files in the following folder. To install in a different folder, click \
 Browse and select another folder. Click Next to Continue."
 !insertmacro MUI_PAGE_DIRECTORY
@@ -88,12 +95,11 @@ Browse and select another folder. Click Next to Continue."
 !define MUI_PAGE_HEADER_TEXT "Choose the Python-@DOTPYTHONVERSION@ interpreter"
 !define MUI_PAGE_HEADER_SUBTEXT "Choose the folder in which the Python-@DOTPYTHONVERSION@ \
 interpreter is located."
-!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install PyTables Pro @VERSIONNAME@ modules and \
+!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install PyTables Pro @VERSION@ modules and \
 scripts under the following folder. To install in a different folder, click \
 Browse and select another folder. Click Next to Continue."
 !define MUI_DIRECTORYPAGE_VARIABLE $PYTHONDIR
 !insertmacro MUI_PAGE_DIRECTORY
-
 
 
 # Start Menu Folder Page Configuration
@@ -103,42 +109,54 @@ Browse and select another folder. Click Next to Continue."
 !insertmacro MUI_PAGE_STARTMENU Application $STARTMENU_FOLDER
 
 # Install selected components page
+!define MUI_FINISHPAGE_CANCEL_ENABLED
 !insertmacro MUI_PAGE_INSTFILES
-!insertmacro MUI_LANGUAGE "English"
-
-# Uninstall page: components selection
-PageEx un.components
-  ComponentText $UNCUSTOMTEXT
-  PageCallbacks "" "" ""
-PageExEnd
-
-# Uninstall page: execute uninstall sections
-UninstPage instfiles
 
 # The stuff to install a.k.a. Sections
 # ------------------------------------------
 
-Section "PyTables Pro" PT
+Section "PyTables Pro @PTVERSION@" PT
 
-  # Copy the PyTables Pro sources and scripts in the installation directory
-  SetOutPath $PYTHONDIR
-  File /r @PYTABLESPROFOLDER@\Scripts
-  File /r @PYTABLESPROFOLDER@\Lib
+  # Copy the PyTables Pro utilities in the Python Scripts directory
+  SetOutPath $PYTHONDIR\Scripts
+  File /x .svn @SVN_PTPRO@\utils\*
 
-  WriteRegStr HKLM $PTPRO_SUBKEY "INSTDIR" $INSTDIR
-  WriteRegStr HKLM $PTPRO_SUBKEY "PYTHONDIR" $PYTHONDIR
-  WriteRegStr HKLM $PTPRO_SUBKEY "ptproinst" "1"
+  # Copy the PyTables Pro sources in the Python site-packages directory
+  CreateDirectory $PYTHONDIR\Lib\site-packages\tables
+  SetOutPath $PYTHONDIR\Lib\site-packages\tables
+  File /r /x .svn @SVN_PTPRO@\tables\*
 
-  # Default aplication directory (will contain the uninstaller and text files
-  # TODO.txt, INSTALL.txt and stuff like that)
+  # Copy the PyTables Pro extensions in the tables directory
+  SetOutPath $PYTHONDIR\Lib\site-packages\tables
+  File @TABLES_ORIG@\*.pyd
+  SetOutPath $PYTHONDIR\Lib\site-packages\tables\numexpr
+  File @TABLES_ORIG@\numexpr\*.pyd
+
+  # The text files: TODO.txt, INSTALL.txt and stuff like that
   SetOutPath $INSTDIR
-  File /r @PYTABLESPROFOLDER@\doc
-  File /r @PYTABLESPROFOLDER@\examples
-#  File /r @PYTABLESPROFOLDER@\icons
-  File /r @PYTABLESPROFOLDER@\LICENSES
-  File @PYTABLESPROFOLDER@\*.txt
+  File /x packagingHOWTO.txt @SVN_PTPRO@\*.txt
+
+  # The documentation directory
+  CreateDirectory $INSTDIR\doc
+  SetOutPath $INSTDIR\doc
+  File @SVN_PTPRO@\doc\usersguide.pdf
+  CreateDirectory $INSTDIR\doc\html
+  SetOutPath $INSTDIR\doc\html
+  File /r @SVN_PTPRO@\doc\html\*
+
+  # The examples directory
+  CreateDirectory $INSTDIR\examples
+  SetOutPath $INSTDIR\examples
+  File @SVN_PTPRO@\examples\*.py
+  File @SVN_PTPRO@\examples\check_examples.sh
+
+  # The LICENSES directory
+  CreateDirectory $INSTDIR\LICENSES
+  SetOutPath $INSTDIR\LICENSES
+  File /r /x .svn @SVN_PTPRO@\LICENSES\*.txt
 
   # Create the uninstaller and put data in the aplication directory
+  SetOutPath $INSTDIR
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
@@ -154,17 +172,22 @@ Section "PyTables Pro" PT
 
   # Install needed libraries under the PyTables Pro directory
   SetOutPath $PYTHONDIR\Lib\site-packages\tables
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @HDF5@\hdf5dll.dll \
+  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @WINDOWS32@\hdf5dll.dll \
   hdf5dll.dll $PYTHONDIR\Lib\site-packages\tables
-  WriteRegStr HKLM $PTPRO_SUBKEY "hdfinst" "1"
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @ZLIB@\zlib1.dll \
+  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @WINDOWS32@\zlib1.dll \
   zlib1.dll $PYTHONDIR\Lib\site-packages\tables
-  WriteRegStr HKLM $PTPRO_SUBKEY "zlinst" "1"
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @SZIP@\szlibdll.dll \
+  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @WINDOWS32@\szlibdll.dll \
   szlibdll.dll $PYTHONDIR\Lib\site-packages\tables
-  WriteRegStr HKLM $PTPRO_SUBKEY "szlinst" "1"
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @BZIP2@\bzip2.dll \
+  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @WINDOWS32@\bzip2.dll \
   bzip2.dll $PYTHONDIR\Lib\site-packages\tables
+
+  # Update the registry
+  WriteRegStr HKLM $PTPRO_SUBKEY "INSTDIR" $INSTDIR
+  WriteRegStr HKLM $PTPRO_SUBKEY "PYTHONDIR" $PYTHONDIR
+  WriteRegStr HKLM $PTPRO_SUBKEY "ptproinst" "1"
+  WriteRegStr HKLM $PTPRO_SUBKEY "hdfinst" "1"
+  WriteRegStr HKLM $PTPRO_SUBKEY "zlinst" "1"
+  WriteRegStr HKLM $PTPRO_SUBKEY "szlinst" "1"
   WriteRegStr HKLM $PTPRO_SUBKEY "bz2linst" "1"
 
 SectionEnd
@@ -173,8 +196,11 @@ SectionGroup "PyTables Pro Requisites"
 Section "Numpy @NUMPYVERSION@" NA
 
   # Copy Numpy package in the system directory
-  SetOutPath $PYTHONDIR
-  File /r @NUMPY@\Lib
+  CreateDirectory $PYTHONDIR\Lib\site-packages\numpy
+  SetOutPath $PYTHONDIR\Lib\site-packages\numpy
+  File /r @NUMPY@\*
+
+  # Update the registry
   WriteRegStr HKLM $PTPRO_SUBKEY "numpyinst" "1"
 SectionEnd
 
@@ -193,22 +219,52 @@ with Python."
   !insertmacro MUI_DESCRIPTION_TEXT 2 $(DESC_NA)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
+###########################################################
+#	PART II: UNINSTALLER
+###########################################################
+
+
 # --------------------------------
-# Uninstaller Section
+# Pages
+# --------------------------------
+
+# Components selection page
+!define MUI_PAGE_HEADER_TEXT "Choose components"
+!define MUI_PAGE_HEADER_SUBTEXT "Choose which features of PyTables Pro @VERSION@ \
+you want to uninstall."
+!define MUI_COMPONENTSPAGE_TEXT_TOP $UNCUSTOMTEXT
+!define MUI_COMPONENTSPAGE_TEXT_COMPLIST " "
+!insertmacro MUI_UNPAGE_COMPONENTS
+
+# Uninstall page: execute uninstall sections
+!define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "Uninstallation complete"
+!define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "Components deletion completed \
+succesfully."
+!define MUI_UNFINSIHPAGE_NOAUTOCLOSE 1
+!insertmacro MUI_UNPAGE_INSTFILES
+
+# Eventually the LANGUAGE macro must be inserted 
+!insertmacro MUI_LANGUAGE "English"
+
+# --------------------------------
+# Uninstaller Sections
+# --------------------------------
 
 Section "Un.PyTables Pro @PTVERSION@ uninstall" UPT
 
-  # ADD YOUR OWN FILES HERE...
   ReadRegStr $PYTHONDIR HKLM $PTPRO_SUBKEY "PYTHONDIR"
   ReadRegStr $INSTDIR HKLM $PTPRO_SUBKEY "INSTDIR"
 
+  # Remove the application directory
   RMDir /r $INSTDIR
 
+  # Remove the tables package
   RMDir /r "$PYTHONDIR\Lib\site-packages\tables"
   Delete "$PYTHONDIR\Scripts\nctoh5"
   Delete "$PYTHONDIR\Scripts\ptdump"
   Delete "$PYTHONDIR\Scripts\ptrepack"
 
+  # Remove the application entry in the Start Menu
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
 
   Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
@@ -216,7 +272,7 @@ Section "Un.PyTables Pro @PTVERSION@ uninstall" UPT
   Delete "$SMPROGRAMS\$MUI_TEMP\User's Guide (PDF).lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\User's Guide (HTML).lnk"
 
-  # Delete empty start menu parent diretories
+  # Delete empty start menu parent directories
   StrCpy $MUI_TEMP "$SMPROGRAMS\$MUI_TEMP"
 
   startMenuDeleteLoop:
@@ -229,28 +285,39 @@ Section "Un.PyTables Pro @PTVERSION@ uninstall" UPT
     StrCmp $MUI_TEMP $SMPROGRAMS startMenuDeleteLoopDone startMenuDeleteLoop
   startMenuDeleteLoopDone:
 
+  # Delete the PyTables Pro key from the registry and update the ViTables key
   DeleteRegKey HKLM $PTPRO_SUBKEY
   DeleteRegValue HKLM "SOFTWARE\Carabos\ViTables" "ptproinst"
 
 
 SectionEnd
 
-
 Section "Un.Numpy @NUMPYVERSION@ uninstall" UNA
 
+  # Remove the numpy package
   StrCmp $PYTHONDIR "" 0 +2
     ReadRegStr $PYTHONDIR HKLM $PTPRO_SUBKEY "PYTHONDIR"
-
   RMDir /r "$PYTHONDIR\Lib\site-packages\numpy"
-  WriteRegStr HKLM $PTPRO_SUBKEY "numpyinst" "0"
+
+  # Update the registry (if the key still exists)
+  ReadRegStr $0 HKLM $PTPRO_SUBKEY "numpyinst"
+  StrCmp $0 "" +2 0
+    WriteRegStr HKLM $PTPRO_SUBKEY "numpyinst" "0"
 
 SectionEnd
+
+
+# --------------------------------
+# Functions
+# --------------------------------
 
 Function un.onInit
   # Variables set in installer functions are not available here so we must set
   # PTPRO_SUBKEY again
   StrCpy $PTPRO_SUBKEY "SOFTWARE\Carabos\PyTables_Pro\Python@PYTHONVERSION@"
-  StrCpy $UNCUSTOMTEXT "Check the components you want to uninstall. If PyTables Pro is uninstalled the remaining packages only can be removed manually later"
+  StrCpy $UNCUSTOMTEXT "Check the components you want to uninstall. Beware that\
+   ,if PyTables Pro is uninstalled, this uninstaller will not be longer \
+   available."
   # The SF_RO variable is defined in Sections.nsh. Its current value
   # is 16 what means Read-only section
   ReadRegStr $0 HKLM $PTPRO_SUBKEY "ptproinst"
