@@ -14,13 +14,20 @@ SUBPKGS="SELF $SUBPKGS"
 
 packagemaker=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
 
+if [ "$1" = "clean" ]; then
+	cleaning=true
+fi
+
 for PYVER in $PYVERS; do
 	PMPROJ=$(echo "$PMPROJ_TMPL" | sed -e "s/@VER@/$VER/" -e "s/@VERNP@/$VERNP/" -e "s/@PYVER@/$PYVER/")
 	WELCOME=$(echo "$WELCOME_TMPL" | sed -e "s/@VER@/$VER/" -e "s/@VERNP@/$VERNP/" -e "s/@PYVER@/$PYVER/")
 	MPKG="PyTables Pro $VERNP for Python $PYVER.mpkg"
+	LICENSE="$MPKG/Contents/Resources/License.txt"
+	DMGDIR="PyTables Pro $VERNP (py$PYVER)"
+	DMG="PyTables-Pro-${VERNP}_py${PYVER}.dmg"
 
-	if [ "$1" = "clean" ]; then
-		rm -rf "$WELCOME" "$PMPROJ" "$MPKG" *.bak
+	if [ $cleaning ]; then
+		rm -rf "$WELCOME" "$PMPROJ" "$MPKG" "$DMGDIR" "$DMG" *.bak
 		continue
 	fi
 
@@ -40,7 +47,6 @@ for PYVER in $PYVERS; do
 	cp "$BACKGROUND" "$MPKG/Contents/Resources"
 
 	echo -n "Adding subpackages..."
-	LICENSE="$MPKG/Contents/Resources/License.txt"
 	true > "$LICENSE"
 	for SUBPKG in $SUBPKGS; do
 		echo -n " $SUBPKG"
@@ -62,5 +68,14 @@ for PYVER in $PYVERS; do
 		echo -e "\n--------------------------------\n" >> "$LICENSE"
 	done
 	echo
+
+	echo "Building $DMG..."
+	mkdir -p "$DMGDIR"
+	mv "$MPKG" "$DMGDIR"
+	mkdir -p "$DMGDIR/Examples"
+	cp -R ../examples/* "$DMGDIR/Examples/"
+	cp ../doc/usersguide.pdf "$DMGDIR/User's Guide.pdf"
+	cp -R ../doc/html "$DMGDIR/User's Guide (HTML)"
+	hdiutil create -srcfolder "$DMGDIR" -anyowners -format UDZO -imagekey zlib-level=9 "$DMG"
 done
 echo "Done"
