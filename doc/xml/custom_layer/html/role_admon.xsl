@@ -91,12 +91,13 @@ calls the admon.graphic template with the current is_pro param value. -->
   </xsl:variable>
 
   <div>
-    <xsl:apply-templates select="." mode="class.attribute"/>
     <xsl:if test="$admon.style != ''">
       <xsl:attribute name="style">
         <xsl:value-of select="$admon.style"/>
       </xsl:attribute>
     </xsl:if>
+
+    <xsl:apply-templates select="." mode="class.attribute"/>
 
     <table border="0">
       <xsl:attribute name="summary">
@@ -137,12 +138,13 @@ calls the admon.graphic template with the current is_pro param value. -->
 
 <xsl:template name="nongraphical.admonition">
   <div>
-    <xsl:apply-templates select="." mode="class.attribute"/>
     <xsl:if test="$admon.style">
       <xsl:attribute name="style">
         <xsl:value-of select="$admon.style"/>
       </xsl:attribute>
     </xsl:if>
+
+    <xsl:apply-templates select="." mode="class.attribute"/>
 
     <h3 class="title">
       <xsl:call-template name="anchor"/>
