@@ -4,12 +4,13 @@
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    version="1.0"
-   width="210mm"
-   height="297mm"
+   width="59.999989"
+   height="51.097256"
    id="svg2">
   <defs
      id="defs4" />
   <g
+     transform="matrix(0.1837042,0,0,0.1837042,-30.96728,-71.113049)"
      id="layer1">
     <g
        id="g2195">
@@ -61,7 +62,7 @@
              style="opacity:1;color:#000000;fill:#5ac4fe;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.31200001;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
              id="rect11882" />
           <path
-             d="M 250.50726,537.72582 A 34.057678,34.057678 0 1 1 253.18711,539.82692"
+             d="M 250.50726,537.72582 C 236.55414,525.61222 234.80555,504.58217 246.56647,490.33052 C 258.32739,476.07888 279.30714,473.80498 293.84841,485.20587 C 308.38968,496.60675 311.18745,517.52309 300.15373,532.34488 C 289.12001,547.16668 268.28016,550.48658 253.18711,539.82692"
              transform="translate(0.391719,-1.379946)"
              style="opacity:1;color:#000000;fill:#fe0000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.31200001;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
              id="path10124" />
@@ -79,7 +80,7 @@
              style="opacity:1;color:#000000;fill:#5ac4fe;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.31200001;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
              id="rect11884" />
           <path
-             d="M 250.50726,537.72582 A 34.057678,34.057678 0 1 1 253.18711,539.82692"
+             d="M 250.50726,537.72582 C 236.55414,525.61222 234.80555,504.58217 246.56647,490.33052 C 258.32739,476.07888 279.30714,473.80498 293.84841,485.20587 C 308.38968,496.60675 311.18745,517.52309 300.15373,532.34488 C 289.12001,547.16668 268.28016,550.48658 253.18711,539.82692"
              transform="translate(188.2894,-74.85915)"
              style="opacity:1;color:#000000;fill:#5afe00;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.31200001;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible"
              id="path11872" />
