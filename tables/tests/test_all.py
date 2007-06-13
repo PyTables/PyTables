@@ -134,12 +134,10 @@ def test(verbose=False, heavy=False):
     resources from your computer).
     """
     print_versions()
-    if verbose:
-        common.verbose = True
-    if heavy:
-        common.heavy = True
+    common.verbose = verbose
+    common.heavy = heavy
 
-    if common.heavy:
+    if heavy:
         print \
 """Performing the complete test suite!"""
     else:

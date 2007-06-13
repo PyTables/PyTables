@@ -709,7 +709,7 @@ fileh.close()</screen>
 
                 <screen>--hdf5=/stuff/hdf5-1.6.5
 --lzo=/stuff/lzo-1.08
---bzip2=/stuff/bzip2-1.0.3</screen>
+--bzip2=/stuff/bzip2-1.0.4</screen>
 
                 <para>If your HDF5 library was built as a shared library not
                 in the runtime load path, then you can specify the additional
@@ -951,7 +951,7 @@ python -c "import tables; tables.test()"</screen>
 
           <para>For the HDF5 library it should be enough to manually copy the
           <literal>hdf5dll.dll</literal>, <literal>zlib1.dll</literal>
-          <emphasis>and</emphasis> <literal>szipdll.dll</literal> files to a
+          <emphasis>and</emphasis> <literal>szlibdll.dll</literal> files to a
           directory in your <literal>PATH</literal> environment variable (for
           example <literal>C:\WINDOWS\SYSTEM32</literal>).</para>
 

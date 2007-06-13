@@ -28,8 +28,7 @@ Misc variables:
 
 """
 
-import sys, os, subprocess
-
+import sys
 from bisect import bisect_left, bisect_right
 from time import time, clock
 import os, os.path

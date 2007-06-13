@@ -563,9 +563,9 @@ class GroupsArrayTestCase(unittest.TestCase):
             if verbose:
                 print "Info from dataset:", dset._v_pathname
                 print "  shape ==>", dset.shape,
-                print "  type ==> %s" % dset.dtype
+                print "  type ==> %s" % dset.atom.dtype
                 print "Array b read from file. Shape: ==>", b.shape,
-                print ". Type ==>" % b.dtype
+                print ". Type ==> %s" % b.dtype
             assert a.shape == b.shape
             assert a.dtype == b.dtype
             assert allequal(a,b)
