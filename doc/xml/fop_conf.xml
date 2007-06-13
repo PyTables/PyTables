@@ -47,9 +47,6 @@ the location of this file.
       </filterList>
 
       <fonts>
-        <font embed-url="file:///C:/WINDOWS/Fonts/verdana.TTF">
-		<font-triplet name="Verdana" style="normal" weight="400"/>
-        </font>
         <!-- embedded fonts -->
         <!--
         This information must exactly match the font specified
