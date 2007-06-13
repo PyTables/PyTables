@@ -30,7 +30,7 @@ dist:
 clean:
 	$(MAKE) -f Makefile_windows -C .. $@
 	-del $(PTPRONSIS)
-	-del PyTablesPro*-Win-py$(DOTPYTHONVERSION).exe
+	-del PyTablesPro*.win32-py$(DOTPYTHONVERSION).exe
 
 installer: dist pytables_pro.nsi.in $(VERSIONFILE)
 	type pytables_pro.nsi.in | sed -e "s/@VERSION@/$(VERSION)/g" \

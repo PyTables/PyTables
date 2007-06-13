@@ -11,7 +11,7 @@ SetCompressor bzip2
 Name "PyTables Pro @VERSION@"
 
 # The file where the installer will be saved
-OutFile "PyTablesPro-@VERSION@-Win-py@DOTPYTHONVERSION@.exe"
+OutFile "PyTablesPro-@VERSION@.win32-py@DOTPYTHONVERSION@.exe"
 
 # The commands Icon/UninstallIcon with MUI Instead we have to use
 # the following !define (see NSIS FAQ)
@@ -122,7 +122,6 @@ Section "PyTables Pro @PTVERSION@" PT
   File /x .svn @SVN_PTPRO@\utils\*
 
   # Copy the PyTables Pro sources in the Python site-packages directory
-  CreateDirectory $PYTHONDIR\Lib\site-packages\tables
   SetOutPath $PYTHONDIR\Lib\site-packages\tables
   File /r /x .svn @SVN_PTPRO@\tables\*
 
@@ -137,21 +136,17 @@ Section "PyTables Pro @PTVERSION@" PT
   File /x packagingHOWTO.txt @SVN_PTPRO@\*.txt
 
   # The documentation directory
-  CreateDirectory $INSTDIR\doc
   SetOutPath $INSTDIR\doc
   File @SVN_PTPRO@\doc\usersguide.pdf
-  CreateDirectory $INSTDIR\doc\html
   SetOutPath $INSTDIR\doc\html
   File /r @SVN_PTPRO@\doc\html\*
 
   # The examples directory
-  CreateDirectory $INSTDIR\examples
   SetOutPath $INSTDIR\examples
   File @SVN_PTPRO@\examples\*.py
   File @SVN_PTPRO@\examples\check_examples.sh
 
   # The LICENSES directory
-  CreateDirectory $INSTDIR\LICENSES
   SetOutPath $INSTDIR\LICENSES
   File /r /x .svn @SVN_PTPRO@\LICENSES\*.txt
 
@@ -184,7 +179,6 @@ Section "PyTables Pro @PTVERSION@" PT
   # Update the registry
   WriteRegStr HKLM $PTPRO_SUBKEY "INSTDIR" $INSTDIR
   WriteRegStr HKLM $PTPRO_SUBKEY "PYTHONDIR" $PYTHONDIR
-  WriteRegStr HKLM $PTPRO_SUBKEY "ptproinst" "1"
   WriteRegStr HKLM $PTPRO_SUBKEY "hdfinst" "1"
   WriteRegStr HKLM $PTPRO_SUBKEY "zlinst" "1"
   WriteRegStr HKLM $PTPRO_SUBKEY "szlinst" "1"
@@ -240,7 +234,7 @@ you want to uninstall."
 !define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "Uninstallation complete"
 !define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "Components deletion completed \
 succesfully."
-!define MUI_UNFINSIHPAGE_NOAUTOCLOSE 1
+#!define MUI_UNFINSIHPAGE_NOAUTOCLOSE 1
 !insertmacro MUI_UNPAGE_INSTFILES
 
 # Eventually the LANGUAGE macro must be inserted 
@@ -285,9 +279,8 @@ Section "Un.PyTables Pro @PTVERSION@ uninstall" UPT
     StrCmp $MUI_TEMP $SMPROGRAMS startMenuDeleteLoopDone startMenuDeleteLoop
   startMenuDeleteLoopDone:
 
-  # Delete the PyTables Pro key from the registry and update the ViTables key
+  # Delete the PyTables Pro key from the registry
   DeleteRegKey HKLM $PTPRO_SUBKEY
-  DeleteRegValue HKLM "SOFTWARE\Carabos\ViTables" "ptproinst"
 
 
 SectionEnd
@@ -320,14 +313,10 @@ Function un.onInit
    available."
   # The SF_RO variable is defined in Sections.nsh. Its current value
   # is 16 what means Read-only section
-  ReadRegStr $0 HKLM $PTPRO_SUBKEY "ptproinst"
-  StrCmp $0 "1" new1 0
-    SectionSetFlags ${UPT} ${SF_RO}
-  new1:
   ReadRegStr $0 HKLM $PTPRO_SUBKEY "numpyinst"
-  StrCmp $0 "1" new2 0
+  StrCmp $0 "1" new1 0
     SectionSetFlags ${UNA} ${SF_RO}
-  new2:
+  new1:
 FunctionEnd
 
 
