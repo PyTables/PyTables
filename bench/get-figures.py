@@ -1,5 +1,11 @@
 from pylab import *
 
+linewidth=2
+#markers= ['+', ',', 'o', '.', 's', 'v', 'x', '>', '<', '^']
+#markers= [ 'x', '+', 'o', 's', 'v', '^', '>', '<', ]
+markers= [ 's', 'o', 'v', '^', '+', 'x', '>', '<', ]
+markersize = 8
+
 def get_values(filename):
     f = open(filename)
     sizes = []
@@ -24,6 +30,17 @@ def get_values(filename):
             itime = float(tmp)
             sizes.append(isize)
             values.append(itime)
+        elif (overlaps or entropy) and line.startswith('overlaps'):
+            tmp = line.split(':')[1]
+            e1, e2 = tmp.split()
+            if isize in sizes:
+                sizes.pop()
+                values.pop()
+            sizes.append(isize)
+            if overlaps:
+                values.append(int(e1)+1)
+            else:
+                values.append(float(e2)+1)
         elif (create_total or create_index) and line.startswith('Index time'):
             tmp = line.split(':')[1]
             xtime = float(tmp)
@@ -83,7 +100,12 @@ def show_plot(plots, yaxis, legends, gtitle):
     xlabel('Number of rows')
     ylabel(yaxis)
     title(gtitle)
-    xlim(10**3, 10**9)
+    #xlim(10**3, 10**9)
+    xlim(10**3, 10**10)
+    #ylim(1.01e-1)
+    #ylim(-1e4, 1e5)
+    #ylim(-1e3, 1e4)
+    #ylim(-1e2, 1e3)
     grid(True)
 
 #     legends = [f[f.find('-'):f.index('.out')] for f in filenames]
@@ -102,12 +124,14 @@ if __name__ == '__main__':
 
     import sys, getopt
 
-    usage = """usage: %s [-o file] [-t title] [--insert] [--create-index] [--create-total] [--table-size] [--indexes-size] [--total-size] [--query=colname] [--query-cold=colname] [--query-warm=colname] [--query-repeated=colname] files
+    usage = """usage: %s [-o file] [-t title] [--insert] [--create-index] [--create-total] [--overlaps] [--entropy] [--table-size] [--indexes-size] [--total-size] [--query=colname] [--query-cold=colname] [--query-warm=colname] [--query-repeated=colname] files
  -o filename for output (only .png and .jpg extensions supported)
  -t title of the plot
  --insert -- Insert time for table
  --create-index=colname -- Index time for column
  --create-total -- Total time for creation of table + indexes
+ --overlaps -- The overlapping for the created index
+ --entropy -- The entropy for the created index
  --table-size -- Size of table
  --indexes-size -- Size of all indexes
  --total-size -- Total size of table + indexes
@@ -122,6 +146,8 @@ if __name__ == '__main__':
                                     ['insert',
                                      'create-index=',
                                      'create-total',
+                                     'overlaps',
+                                     'entropy',
                                      'table-size',
                                      'indexes-size',
                                      'total-size',
@@ -147,6 +173,8 @@ if __name__ == '__main__':
     insert = 0
     create_index = None
     create_total = 0
+    overlaps = 0
+    entropy = 0
     table_size = 0
     indexes_size = 0
     total_size = 0
@@ -177,6 +205,14 @@ if __name__ == '__main__':
             create_total = 1
             yaxis = "Time (s)"
             gtitle = "Create time for table + indexes"
+        elif option[0] == '--overlaps':
+            overlaps = 1
+            yaxis = "Overlapping index + 1"
+            gtitle = "Overlapping for col4 column"
+        elif option[0] == '--entropy':
+            entropy = 1
+            yaxis = "Entropy + 1"
+            gtitle = "Entropy for col4 column"
         elif option[0] == '--table-size':
             table_size = 1
             yaxis = "Size (MB)"
@@ -220,22 +256,26 @@ if __name__ == '__main__':
 
     plots = []
     legends = []
-    for filename in filenames:
-        #plegend = filename[filename.find('-'):filename.index('.out')]
+    for i, filename in enumerate(filenames):
         plegend = filename[:filename.index('.out')]
         plegend = plegend.replace('-', ' ')
+        #plegend = plegend.replace('zlib1', '')
         if filename.find('PyTables') <> -1:
             xval, yval = get_values(filename)
             print "Values for %s --> %s, %s" % (filename, xval, yval)
             if xval != []:
-                plots.append(loglog(xval, yval, linewidth=5))
-                #plots.append(semilogx(xval, yval, linewidth=5))
+                plot = loglog(xval, yval)
+                #line, = semilogx(xval, yval)
+                #setp(plot, linewidth=linewidth)
+                setp(plot, marker=markers[i], markersize=markersize,
+                     linewidth=linewidth)
+                plots.append(plot)
                 legends.append(plegend)
         else:
             xval, yval = get_values(filename)
             print "Values for %s --> %s, %s" % (filename, xval, yval)
-            plots.append(loglog(xval, yval, linewidth=5))
-            #plots.append(semilogx(xval, yval, linewidth=5))
+            plots.append(loglog(xval, yval, linewidth=linewidth))
+            #plots.append(semilogx(xval, yval, linewidth=linewidth))
             legends.append(plegend)
     if 0:  # Per a introduir dades simulades si es vol...
         xval = [1000, 10000, 100000, 1000000, 10000000,
@@ -244,6 +284,6 @@ if __name__ == '__main__':
 #                 40, 210]
         yval = [0.0009, 0.0011, 0.0022, 0.005, 0.02,
                 0.2, 5.6]
-        plots.append(loglog(xval, yval, linewidth=5))
+        plots.append(loglog(xval, yval, linewidth=linewidth))
         legends.append("PyTables Std")
     show_plot(plots, yaxis, legends, gtitle)
