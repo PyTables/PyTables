@@ -22,6 +22,7 @@ OutFile "PyTablesPro-@VERSION@.win32-py@DOTPYTHONVERSION@.exe"
 XPStyle on
 
 # Variables declaration
+Var PTPRO_KEY
 Var PTPRO_SUBKEY
 Var STARTMENU_FOLDER
 Var MUI_TEMP
@@ -38,13 +39,14 @@ Var UNCUSTOMTEXT
 
 Function .onInit
 	# The registry key where application settings will be stored
-	StrCpy $PTPRO_SUBKEY "SOFTWARE\Carabos\PyTables_Pro\Python@PYTHONVERSION@"
-	StrCpy $STARTMENU_FOLDER "PyTables Pro for Python@DOTPYTHONVERSION@"
+	StrCpy $PTPRO_KEY "SOFTWARE\Carabos\PyTables_Pro\@VERSION@"
+	StrCpy $PTPRO_SUBKEY "$PTPRO_KEY\Python@PYTHONVERSION@"
+	StrCpy $STARTMENU_FOLDER "PyTables Pro @VERSION@ for Python@DOTPYTHONVERSION@"
 FunctionEnd
 
 Function preInstallDir
   # Default installation directory
-  StrCpy $INSTDIR "$PROGRAMFILES\$STARTMENU_FOLDER"
+  StrCpy $INSTDIR "$PROGRAMFILES\Carabos\$STARTMENU_FOLDER"
 FunctionEnd
 
 Function prePythonDir
@@ -306,8 +308,9 @@ SectionEnd
 
 Function un.onInit
   # Variables set in installer functions are not available here so we must set
-  # PTPRO_SUBKEY again
-  StrCpy $PTPRO_SUBKEY "SOFTWARE\Carabos\PyTables_Pro\Python@PYTHONVERSION@"
+  # them again
+  StrCpy $PTPRO_KEY "SOFTWARE\Carabos\PyTables_Pro\@VERSION@"
+  StrCpy $PTPRO_SUBKEY "$PTPRO_KEY\Python@PYTHONVERSION@"
   StrCpy $UNCUSTOMTEXT "Check the components you want to uninstall. Beware that\
    ,if PyTables Pro is uninstalled, this uninstaller will not be longer \
    available."
