@@ -482,10 +482,10 @@ cdef class NumCache(BaseCache):
     assert nslot < self.nslots, "Number of nodes exceeding cache capacity."
     # Copy the data to the appropriate row in cache
     base1 = nslot * self.slotsize;  base2 = start * self.itemsize
-    memcpy(self.rcache + base1, data + base2, self.slotsize)
+    memcpy(<char *>self.rcache + base1, <char *>data + base2, self.slotsize)
     # Refresh the atimes, sorted and indices data with the new slot info
     self.ratimes[nslot] = self.incseqn()
-    nidx = self.slotlookup_(nslot)
+    nidx = self.slotlookup_(<unsigned short>nslot)
     self.rsorted[nidx] = key
     self.indices[:] = self.indices[self.sorted.argsort()]
     # The take() method seems similar in speed. This is striking,
@@ -566,7 +566,7 @@ cdef class NumCache(BaseCache):
 
     self.getcount = self.getcount + 1
     self.ratimes[nslot] = self.incseqn()
-    return self.rcache + nslot * self.slotsize
+    return <char *>self.rcache + nslot * self.slotsize
 
 
   def getitem2(self, long nslot, ndarray nparr, long start):
@@ -582,7 +582,7 @@ cdef class NumCache(BaseCache):
     self.ratimes[nslot] = self.incseqn()
     # Copy the data in cache to destination
     base1 = start * self.itemsize;   base2 = nslot * self.slotsize
-    memcpy(data + base1, self.rcache + base2, self.slotsize)
+    memcpy(<char *>data + base1, <char *>self.rcache + base2, self.slotsize)
     return nslot
 
 
