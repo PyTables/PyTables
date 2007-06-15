@@ -23,7 +23,8 @@ import warnings
 from tables.file import openFile
 from tables.group import Group
 from tables.leaf import Filters
-from tables.exceptions import OldIndexWarning, NoIndexingWarning
+from tables.exceptions import \
+     OldIndexWarning, NoIndexingWarning, NoSuchNodeError
 
 # Global variables
 verbose = False
@@ -36,14 +37,14 @@ def newdstGroup(dstfileh, dstgroup, title, filters):
     for nodeName in dstgroup.split('/'):
         if nodeName == '':
             continue
-        if not hasattr(dstfileh, nodeName):
+        # First try if possible intermediate groups does already exist.
+        try:
+            group2 = dstfileh.getNode(group, nodeName)
+        except NoSuchNodeError:
+            # The group does not exist. Create it.
             group2 = dstfileh.createGroup(group, nodeName,
                                           title=title,
                                           filters=filters)
-        else:
-            # We assume that nodeName is a group. If not, an error will
-            # be issued later on.
-            group2 = dstfileh._f_getChild(nodeName)
         group = group2
     return group
 
