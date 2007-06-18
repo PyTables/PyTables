@@ -121,6 +121,20 @@ def print_versions():
     print '-=' * 38
 
 
+def print_heavy(heavy):
+    if heavy:
+        print """\
+Performing the complete test suite!"""
+    else:
+        print """\
+Performing only a light (yet comprehensive) subset of the test suite.
+If you want a more complete test, try passing the --heavy flag to this script
+(or set the 'heavy' parameter in case you are using tables.test() call).
+The whole suite will take more than 2 minutes to complete on a relatively
+modern CPU and around 80 MB of main memory."""
+    print '-=' * 38
+
+
 def test(verbose=False, heavy=False):
     """
     Run all the tests in the test suite.
@@ -134,18 +148,7 @@ def test(verbose=False, heavy=False):
     resources from your computer).
     """
     print_versions()
-
-    if heavy:
-        print \
-"""Performing the complete test suite!"""
-    else:
-        print \
-"""Performing only a light (yet comprehensive) subset of the test suite.
-If you want a more complete test, try passing the --heavy flag to this script
-(or set the 'heavy' parameter in case you are using tables.test() call).
-The whole suite will take more than 50 minutes to complete on a relatively
-modern CPU and around 100 MB of main memory."""
-        print '-=' * 38
+    print_heavy(heavy)
 
     # What a context this is!
     oldverbose, common.verbose = common.verbose, verbose
@@ -174,8 +177,7 @@ if __name__ == '__main__':
             common.show_memory = True
             sys.argv.remove(arg)
 
-    if only_versions:
-        print_versions()
-    else:
-        # The ``common`` module takes care of the command line.
-        test(verbose=common.verbose, heavy=common.heavy)
+    print_versions()
+    if not only_versions:
+        print_heavy(common.heavy)
+        unittest.main(defaultTest='tables.tests.suite')
