@@ -4,13 +4,13 @@ import tempfile
 import numpy
 
 from tables import netcdf3 as NetCDF
-from tables.tests.common import PyTablesTestCase, cleanup
+from tables.tests import common
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 
-class NetCDFFileTestCase(PyTablesTestCase):
+class NetCDFFileTestCase(common.PyTablesTestCase):
 
     def setUp(self):
         # Create an HDF5 with the NetCDF interface.
@@ -65,7 +65,7 @@ class NetCDFFileTestCase(PyTablesTestCase):
     def tearDown(self):
         # Remove the temporary file
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     def test_repr(self):
         """open file and examine the __repr__ method"""
@@ -176,7 +176,7 @@ class NetCDFFileTestCase2(NetCDFFileTestCase):
         # (not a good idea, filesizes should not be expected to be the same)
 #         file1size = os.stat(self.file).st_size
 #         file2size = os.stat(self.fileh5).st_size
-#         if verbose:
+#         if common.verbose:
 #             print "file1size-->", file1size
 #             print "file2size-->", file2size
 #         assert file1size == file2size

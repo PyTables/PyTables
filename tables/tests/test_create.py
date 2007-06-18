@@ -16,14 +16,13 @@ import warnings
 from tables import *
 # important objects to test
 from tables import File, Group, Leaf, Table, Array
-from tables.tests.common import verbose, heavy, cleanup
+from tables.tests import common
 from tables.parameters import MAX_COLUMNS
 
 import tables
-from tables.tests import common as tests
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 class Record(IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
@@ -60,7 +59,7 @@ class createTestCase(unittest.TestCase):
 
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -78,7 +77,7 @@ class createTestCase(unittest.TestCase):
             self.array = self.fileh.createArray(self.root, 'anarray',
                                                 [1], "Array title")
         except NodeError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next NameError was catched!"
                 print value
@@ -95,7 +94,7 @@ class createTestCase(unittest.TestCase):
             self.array = self.fileh.createArray(self.root, ' array',
                                                 [1], "Array title")
         except NaturalNameWarning:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next NaturalNameWarning was catched!"
                 print value
@@ -107,7 +106,7 @@ class createTestCase(unittest.TestCase):
             self.array = self.fileh.createArray(self.root, '$array',
                                                 [1], "Array title")
         except NaturalNameWarning:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next NaturalNameWarning was catched!"
                 print value
@@ -119,7 +118,7 @@ class createTestCase(unittest.TestCase):
             self.array = self.fileh.createArray(self.root, 'for',
                                                 [1], "Array title")
         except NaturalNameWarning:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next NaturalNameWarning was catched!"
                 print value
@@ -203,7 +202,7 @@ class createTestCase(unittest.TestCase):
 
         # Compare the input rowlist and output row list. They should
         # be equal.
-        if verbose:
+        if common.verbose:
             print "Original row list:", listrows[-1]
             print "Retrieved row list:", listout[-1]
         assert listrows == listout
@@ -237,7 +236,7 @@ class createTestCase(unittest.TestCase):
             table = self.fileh.createTable(self.root, 'table',
                                            recordDict, "MetaRecord instance")
         except PerformanceWarning:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next PerformanceWarning was catched!"
                 print value
@@ -265,7 +264,7 @@ class createTestCase(unittest.TestCase):
             table = self.fileh.createTable(self.root, 'table',
                                            recordDict, "MetaRecord instance")
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
                 print value
@@ -358,19 +357,19 @@ class FiltersTreeTestCase(unittest.TestCase):
             self.h5file.close()
 
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
     def test00_checkFilters(self):
         "Checking inheritance of filters on trees (open file version)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_checkFilters..." % self.__class__.__name__
 
         # First level check
-        if verbose:
+        if common.verbose:
             print "Test filter:", repr(self.filters)
             print "Filters in file:", repr(self.h5file.filters)
 
@@ -398,7 +397,7 @@ class FiltersTreeTestCase(unittest.TestCase):
                 gfilters = self.filters
         else:
             gfilters = self.gfilters
-        if verbose:
+        if common.verbose:
             print "Test gfilter:", repr(gfilters)
             print "Filters in file:", repr(group1._v_filters)
 
@@ -424,7 +423,7 @@ class FiltersTreeTestCase(unittest.TestCase):
         else:
             filters = self.filters
         group3 = self.h5file.root.group0.group1.group2.group3
-        if verbose:
+        if common.verbose:
             print "Test filter:", repr(filters)
             print "Filters in file:", repr(group3._v_filters)
 
@@ -459,7 +458,7 @@ class FiltersTreeTestCase(unittest.TestCase):
     def test01_checkFilters(self):
         "Checking inheritance of filters on trees (close file version)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_checkFilters..." % self.__class__.__name__
 
@@ -473,7 +472,7 @@ class FiltersTreeTestCase(unittest.TestCase):
             filters = Filters()
         else:
             filters = self.filters
-        if verbose:
+        if common.verbose:
             print "Test filter:", repr(filters)
             print "Filters in file:", repr(self.h5file.filters)
 
@@ -497,7 +496,7 @@ class FiltersTreeTestCase(unittest.TestCase):
                 gfilters = self.filters
         else:
             gfilters = self.gfilters
-        if verbose:
+        if common.verbose:
             print "Test filter:", repr(gfilters)
             print "Filters in file:", repr(group1._v_filters)
 
@@ -522,7 +521,7 @@ class FiltersTreeTestCase(unittest.TestCase):
         else:
             filters = self.filters
         group3 = self.h5file.root.group0.group1.group2.group3
-        if verbose:
+        if common.verbose:
             print "Test filter:", repr(filters)
             print "Filters in file:", repr(group3._v_filters)
 
@@ -673,14 +672,14 @@ class CopyGroupTestCase(unittest.TestCase):
 
         os.remove(self.file)
         os.remove(self.file2)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
     def test00_nonRecursive(self):
         "Checking non-recursive copy of a Group"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_nonRecursive..." % self.__class__.__name__
 
@@ -704,7 +703,7 @@ class CopyGroupTestCase(unittest.TestCase):
         nodelist2 = dstgroup._v_children.keys()
         # Sort the lists
         nodelist1.sort(); nodelist2.sort()
-        if verbose:
+        if common.verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
         assert srcgroup._v_nchildren == dstgroup._v_nchildren
@@ -713,7 +712,7 @@ class CopyGroupTestCase(unittest.TestCase):
     def test01_nonRecursiveAttrs(self):
         "Checking non-recursive copy of a Group (attributes copied)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_nonRecursiveAttrs..." % self.__class__.__name__
 
@@ -747,13 +746,13 @@ class CopyGroupTestCase(unittest.TestCase):
             if self.filters is not None:
                 dstattrskeys.remove('FILTERS')
             # These lists should already be ordered
-            if verbose:
+            if common.verbose:
                 print "srcattrskeys for node %s: %s" %(srcnode._v_name,
                                                        srcattrskeys)
                 print "dstattrskeys for node %s: %s" %(dstnode._v_name,
                                                        dstattrskeys)
             assert srcattrskeys == dstattrskeys
-            if verbose:
+            if common.verbose:
                 print "The attrs names has been copied correctly"
 
             # Now, for the contents of attributes
@@ -764,13 +763,13 @@ class CopyGroupTestCase(unittest.TestCase):
             if self.filters is not None:
                 assert dstattrs.FILTERS == self.filters
 
-            if verbose:
+            if common.verbose:
                 print "The attrs contents has been copied correctly"
 
     def test02_Recursive(self):
         "Checking recursive copy of a Group"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_Recursive..." % self.__class__.__name__
 
@@ -819,7 +818,7 @@ class CopyGroupTestCase(unittest.TestCase):
                 continue
             nodelist2.append(node._v_pathname[lenDstGroup:])
 
-        if verbose:
+        if common.verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
         assert nodelist1 == nodelist2
@@ -827,7 +826,7 @@ class CopyGroupTestCase(unittest.TestCase):
     def test03_RecursiveFilters(self):
         "Checking recursive copy of a Group (cheking Filters)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_RecursiveFilters..." % self.__class__.__name__
 
@@ -1009,14 +1008,14 @@ class CopyFileTestCase(unittest.TestCase):
         os.remove(self.file)
         if hasattr(self, 'file2') and os.path.exists(self.file2):
             os.remove(self.file2)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
     def test00_overwrite(self):
         "Checking copy of a File (overwriting file)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_overwrite..." % self.__class__.__name__
 
@@ -1045,7 +1044,7 @@ class CopyFileTestCase(unittest.TestCase):
         nodelist2 = dstgroup._v_children.keys()
         # Sort the lists
         nodelist1.sort(); nodelist2.sort()
-        if verbose:
+        if common.verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
         assert srcgroup._v_nchildren == dstgroup._v_nchildren
@@ -1055,7 +1054,7 @@ class CopyFileTestCase(unittest.TestCase):
     def test00a_srcdstequal(self):
         "Checking copy of a File (srcfile == dstfile)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00a_srcdstequal..." % self.__class__.__name__
 
@@ -1065,7 +1064,7 @@ class CopyFileTestCase(unittest.TestCase):
     def test00b_firstclass(self):
         "Checking copy of a File (first-class function)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00b_firstclass..." % self.__class__.__name__
 
@@ -1087,7 +1086,7 @@ class CopyFileTestCase(unittest.TestCase):
         nodelist2 = dstgroup._v_children.keys()
         # Sort the lists
         nodelist1.sort(); nodelist2.sort()
-        if verbose:
+        if common.verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
         assert srcgroup._v_nchildren == dstgroup._v_nchildren
@@ -1097,7 +1096,7 @@ class CopyFileTestCase(unittest.TestCase):
     def test01_copy(self):
         "Checking copy of a File (attributes not copied)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_copy..." % self.__class__.__name__
 
@@ -1122,7 +1121,7 @@ class CopyFileTestCase(unittest.TestCase):
         nodelist2 = dstgroup._v_children.keys()
         # Sort the lists
         nodelist1.sort(); nodelist2.sort()
-        if verbose:
+        if common.verbose:
             print "The origin node list -->", nodelist1
             print "The copied node list -->", nodelist2
         assert srcgroup._v_nchildren == dstgroup._v_nchildren
@@ -1142,13 +1141,13 @@ class CopyFileTestCase(unittest.TestCase):
             if self.filters is not None:
                 dstattrskeys.remove('FILTERS')
             # These lists should already be ordered
-            if verbose:
+            if common.verbose:
                 print "srcattrskeys for node %s: %s" %(srcnode._v_name,
                                                        srcattrskeys)
                 print "dstattrskeys for node %s: %s" %(dstnode._v_name,
                                                        dstattrskeys)
             assert srcattrskeys == dstattrskeys
-            if verbose:
+            if common.verbose:
                 print "The attrs names has been copied correctly"
 
             # Now, for the contents of attributes
@@ -1159,14 +1158,14 @@ class CopyFileTestCase(unittest.TestCase):
             if self.filters is not None:
                 assert dstattrs.FILTERS == self.filters
 
-            if verbose:
+            if common.verbose:
                 print "The attrs contents has been copied correctly"
 
 
     def test02_Attrs(self):
         "Checking copy of a File (attributes copied)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_Attrs..." % self.__class__.__name__
 
@@ -1195,7 +1194,7 @@ class CopyFileTestCase(unittest.TestCase):
             dstattrs = dstnode._v_attrs
             dstattrskeys = dstattrs._f_list("all")
             # These lists should already be ordered
-            if verbose:
+            if common.verbose:
                 print "srcattrskeys for node %s: %s" %(srcnode._v_name,
                                                        srcattrskeys)
                 print "dstattrskeys for node %s: %s" %(dstnode._v_name,
@@ -1204,7 +1203,7 @@ class CopyFileTestCase(unittest.TestCase):
             if self.filters is not None:
                 dstattrskeys.remove('FILTERS')
             assert srcattrskeys == dstattrskeys
-            if verbose:
+            if common.verbose:
                 print "The attrs names has been copied correctly"
 
             # Now, for the contents of attributes
@@ -1215,7 +1214,7 @@ class CopyFileTestCase(unittest.TestCase):
             if self.filters is not None:
                 assert dstattrs.FILTERS == self.filters
 
-            if verbose:
+            if common.verbose:
                 print "The attrs contents has been copied correctly"
 
 class CopyFileCase1(CopyFileTestCase):
@@ -1263,7 +1262,7 @@ class CopyFileCase10(unittest.TestCase):
     def test01_notoverwrite(self):
         "Checking copy of a File (checking not overwriting)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_notoverwrite..." % self.__class__.__name__
 
@@ -1278,7 +1277,7 @@ class CopyFileCase10(unittest.TestCase):
         try:
             fileh.copyFile(file2, overwrite=False)
         except IOError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next IOError was catched!"
                 print value
@@ -1291,7 +1290,7 @@ class CopyFileCase10(unittest.TestCase):
         os.remove(file)
         os.remove(file2)
 
-class GroupFiltersTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
+class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
     filters = tables.Filters(complevel=4)  # something non-default
 
     def setUp(self):
@@ -1400,7 +1399,7 @@ def suite():
 
     theSuite = unittest.TestSuite()
     niter = 1
-    #heavy = 1 # Uncomment this only for testing purposes!
+    #common.heavy = 1 # Uncomment this only for testing purposes!
 
     #theSuite.addTest(unittest.makeSuite(FiltersCase1))
     #theSuite.addTest(unittest.makeSuite(createTestCase))
@@ -1416,7 +1415,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyFileCase2))
         theSuite.addTest(unittest.makeSuite(GroupFiltersTestCase))
         theSuite.addTest(doctest.DocTestSuite(tables.filters))
-    if heavy:
+    if common.heavy:
         theSuite.addTest(unittest.makeSuite(createTestCase))
         theSuite.addTest(unittest.makeSuite(FiltersCase3))
         theSuite.addTest(unittest.makeSuite(FiltersCase4))

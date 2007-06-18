@@ -8,10 +8,10 @@ from numpy import *
 
 from tables import *
 from tables.tests import common
-from tables.tests.common import verbose, heavy, allequal, cleanup
+from tables.tests.common import allequal
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 # It is important that columns are ordered according to their names
 # to ease the comparison with record arrays.
@@ -172,7 +172,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.fileh.close()
         #del self.fileh, self.rootgroup
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -223,7 +223,7 @@ class BasicTestCase(common.PyTablesTestCase):
 
         # Column defaults.
         for v in expectedNames:
-            if verbose:
+            if common.verbose:
                 print "dflt-->", columns[v].dflt
                 print "coldflts-->", tbl.coldflts[v]
                 print "desc.dflts-->", desc._v_dflts[v]
@@ -244,7 +244,7 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking table read and cuts"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_readTable..." % self.__class__.__name__
 
@@ -258,7 +258,7 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [ rec['var2'][0][0] for rec in table.iterrows()
                    if rec['var2'][0][0] < 20 ]
 
-        if verbose:
+        if common.verbose:
             print "Table:", repr(table)
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
@@ -286,7 +286,7 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking table read and cuts (multidimensional columns case)"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_readTable..." % self.__class__.__name__
 
@@ -299,7 +299,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var5'] for rec in table.iterrows()
                    if rec['var2'][0][0] < 20 ]
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
@@ -342,7 +342,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Now, open it, but in "append" mode
         self.fileh = openFile(self.file, mode = "a")
         self.rootgroup = self.fileh.root
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_AppendRows..." % self.__class__.__name__
 
@@ -350,7 +350,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/group0/table1")
         # Get their row object
         row = table.row
-        if verbose:
+        if common.verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
             print "Record Format ==>", table.description._v_nestedFormats
             print "Record Size ==>", table.rowsize
@@ -406,7 +406,7 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking if table is endianess aware"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_endianess..." % self.__class__.__name__
 
@@ -416,7 +416,7 @@ class BasicTestCase(common.PyTablesTestCase):
 
         # Read the records and select the ones with "var3" column less than 20
         result = [ rec['var2'] for rec in table.iterrows() if rec['var3'] < 20]
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "On-disk byteorder ==>", table.byteorder
             print "Last record in table ==>", rec
@@ -569,7 +569,7 @@ class BasicRangeTestCase(unittest.TestCase):
             self.fileh.close()
         #del self.fileh, self.rootgroup
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -616,7 +616,7 @@ class BasicRangeTestCase(unittest.TestCase):
         if self.nrows < stopr:
             stopr = self.nrows
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             if reslength:
                 if self.checkrecarray:
@@ -645,7 +645,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test01_range(self):
         """Checking ranges in table iterators (case1)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_range..." % self.__class__.__name__
 
@@ -661,7 +661,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test02_range(self):
         """Checking ranges in table iterators (case2)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_range..." % self.__class__.__name__
 
@@ -677,7 +677,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test03_range(self):
         """Checking ranges in table iterators (case3)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_range..." % self.__class__.__name__
 
@@ -693,7 +693,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test04_range(self):
         """Checking ranges in table iterators (case4)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_range..." % self.__class__.__name__
 
@@ -709,7 +709,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test05_range(self):
         """Checking ranges in table iterators (case5)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_range..." % self.__class__.__name__
 
@@ -725,7 +725,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test06_range(self):
         """Checking ranges in table iterators (case6)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test06_range..." % self.__class__.__name__
 
@@ -741,7 +741,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test07_range(self):
         """Checking ranges in table iterators (case7)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test07_range..." % self.__class__.__name__
 
@@ -757,7 +757,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test08_range(self):
         """Checking ranges in table iterators (case8)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test08_range..." % self.__class__.__name__
 
@@ -773,7 +773,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test09_range(self):
         """Checking ranges in table iterators (case9)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test09_range..." % self.__class__.__name__
 
@@ -789,7 +789,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test10_range(self):
         """Checking ranges in table iterators (case10)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test10_range..." % self.__class__.__name__
 
@@ -807,7 +807,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test11_range(self):
         """Checking ranges in table iterators (case11)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test11_range..." % self.__class__.__name__
 
@@ -825,7 +825,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test12_range(self):
         """Checking ranges in table iterators (case12)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test12_range..." % self.__class__.__name__
 
@@ -843,7 +843,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test13_range(self):
         """Checking ranges in table iterators (case13)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test13_range..." % self.__class__.__name__
 
@@ -852,7 +852,7 @@ class BasicRangeTestCase(unittest.TestCase):
         try:
             self.check_range()
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
                 print value
@@ -866,7 +866,7 @@ class BasicRangeTestCase(unittest.TestCase):
         try:
             self.check_range()
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
                 print value
@@ -888,7 +888,7 @@ class getColRangeTestCase(BasicRangeTestCase):
     def test01_nonexistentField(self):
         """Checking non-existing Field in getCol method """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_nonexistentField..." % self.__class__.__name__
 
@@ -900,7 +900,7 @@ class getColRangeTestCase(BasicRangeTestCase):
         try:
             column = table.read(field='non-existent-column')
         except KeyError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next KeyError was catched!"
                 print value
@@ -1073,7 +1073,7 @@ class DefaultValues(unittest.TestCase):
 
         # This generates too much output. Activate only when
         # self.nrowsinbuf is very small (<10)
-        if verbose and 1:
+        if common.verbose and 1:
             print "Table values:"
             print r2
             print "Record values:"
@@ -1115,7 +1115,7 @@ class ShapeTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1127,7 +1127,7 @@ class ShapeTestCase(unittest.TestCase):
             self.fileh = openFile(self.file)
         table = self.fileh.root.table
 
-        if verbose:
+        if common.verbose:
             print "The values look like:", table.cols.var0[:]
             print "They should look like:", [1]
 
@@ -1142,7 +1142,7 @@ class ShapeTestCase(unittest.TestCase):
             self.fileh = openFile(self.file)
         table = self.fileh.root.table
 
-        if verbose:
+        if common.verbose:
             print "The values look like:", table.cols.var1[:]
             print "They should look like:", [[1]]
 
@@ -1157,7 +1157,7 @@ class ShapeTestCase(unittest.TestCase):
             self.fileh = openFile(self.file)
         table = self.fileh.root.table
 
-        if verbose:
+        if common.verbose:
             print "The values look like:", table.cols.var2[:]
             print "They should look like:", [[1,1]]
 
@@ -1173,7 +1173,7 @@ class ShapeTestCase(unittest.TestCase):
             self.fileh = openFile(self.file)
         table = self.fileh.root.table
 
-        if verbose:
+        if common.verbose:
             print "The values look like:", table.cols.var3[:]
             print "They should look like:", [[[0,0],[1,1]]]
 
@@ -1192,7 +1192,7 @@ class ShapeTestCase2(ShapeTestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
-    #heavy = 1  # Uncomment this only for testing purposes
+    #common.heavy = 1  # Uncomment this only for testing purposes
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
@@ -1210,7 +1210,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
         theSuite.addTest(unittest.makeSuite(ShapeTestCase1))
         theSuite.addTest(unittest.makeSuite(ShapeTestCase2))
-    if heavy:
+    if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressBZIP2TablesTestCase))
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))

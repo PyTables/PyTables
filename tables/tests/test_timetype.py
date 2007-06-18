@@ -19,11 +19,10 @@ import numpy
 
 import tables
 from tables.tests import common
-from tables.tests.common import (
-    verbose, cleanup, allequal)
+from tables.tests.common import allequal
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 
 __revision__ = '$Id$'
@@ -315,7 +314,7 @@ class CompareTestCase(common.PyTablesTestCase):
         arr = numpy.array(arr)
         orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 1, 2)
-        if verbose:
+        if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", arr
         self.assert_(
@@ -380,7 +379,7 @@ class CompareTestCase(common.PyTablesTestCase):
 
         # Time32 column.
         orig_val = numpy.arange(nrows, dtype=numpy.int32)
-        if verbose:
+        if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", recarr['t32col'][:]
         self.assert_(
@@ -390,7 +389,7 @@ class CompareTestCase(common.PyTablesTestCase):
         # Time64 column.
         orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 2)
-        if verbose:
+        if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", recarr['t64col'][:]
         self.assert_(
@@ -447,7 +446,7 @@ class CompareTestCase(common.PyTablesTestCase):
 
         orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 2)
-        if verbose:
+        if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", arr
         self.assert_(
@@ -516,7 +515,7 @@ class UnalignedTestCase(common.PyTablesTestCase):
 
         # Int8 column.
         orig_val = numpy.arange(nrows, dtype=numpy.int8)
-        if verbose:
+        if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", recarr['i8col'][:]
         self.assert_(
@@ -525,7 +524,7 @@ class UnalignedTestCase(common.PyTablesTestCase):
 
         # Time32 column.
         orig_val = numpy.arange(nrows, dtype=numpy.int32)
-        if verbose:
+        if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", recarr['t32col'][:]
         self.assert_(
@@ -535,7 +534,7 @@ class UnalignedTestCase(common.PyTablesTestCase):
         # Time64 column.
         orig_val = numpy.arange(0, nrows*2, dtype=numpy.int32) + 0.012
         orig_val.shape = (nrows, 2)
-        if verbose:
+        if common.verbose:
             print "Original values:", orig_val
             print "Retrieved values:", recarr['t64col'][:]
         self.assert_(
@@ -567,7 +566,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
         nrows = 10
         orig_val = numpy.arange(start, start+nrows, dtype=numpy.int32)
 
-        if verbose:
+        if common.verbose:
             print "Retrieved values:", earr
             print "Should look like:", orig_val
         self.assert_(
@@ -586,7 +585,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
         nrows = 10
         orig_val = numpy.arange(start, start+nrows, dtype=numpy.float64)
 
-        if verbose:
+        if common.verbose:
             print "Retrieved values:", earr
             print "Should look like:", orig_val
         self.assert_(
@@ -605,7 +604,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
         nrows = 10
         orig_val = numpy.arange(start, start+nrows, dtype=numpy.int32)
 
-        if verbose:
+        if common.verbose:
             print "Retrieved values:", t32
             print "Should look like:", orig_val
         self.assert_(
@@ -624,7 +623,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
         nrows = 10
         orig_val = numpy.arange(start, start+nrows, dtype=numpy.float64)
 
-        if verbose:
+        if common.verbose:
             print "Retrieved values:", t64
             print "Should look like:", orig_val
         self.assert_(
@@ -644,7 +643,7 @@ class BigEndianTestCase(common.PyTablesTestCase):
         nrows = 10
         orig_val = numpy.arange(start, start+nrows, dtype=numpy.float64)
 
-        if verbose:
+        if common.verbose:
             print "Retrieved values:", t64
             print "Should look like:", orig_val
         self.assert_(

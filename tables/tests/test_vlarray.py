@@ -11,8 +11,7 @@ import numpy
 from tables import *
 from tables.tests import common
 from tables.tests.common import (
-    verbose, typecode, allequal, cleanup,
-    numeric_imported, numarray_imported)
+    typecode, allequal, numeric_imported, numarray_imported)
 from tables.utils import byteorders
 
 if numarray_imported:
@@ -21,7 +20,7 @@ if numeric_imported:
     import Numeric
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 class C:
     c = (3,4.5)
@@ -75,7 +74,7 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -83,7 +82,7 @@ class BasicTestCase(unittest.TestCase):
         """Checking vlarray read"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_read..." % self.__class__.__name__
 
@@ -96,7 +95,7 @@ class BasicTestCase(unittest.TestCase):
         # Read some rows
         row = vlarray.read(0)[0]
         row2 = vlarray.read(2)[0]
-        if verbose:
+        if common.verbose:
             print "Flavor:", vlarray.flavor
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row
@@ -122,17 +121,17 @@ class BasicTestCase(unittest.TestCase):
         assert len(row) == 2
 
         # Check filters:
-        if self.compress <> vlarray.filters.complevel and verbose:
+        if self.compress <> vlarray.filters.complevel and common.verbose:
             print "Error in compress. Class:", self.__class__.__name__
             print "self, vlarray:", self.compress, vlarray.filters.complevel
         assert vlarray.filters.complevel == self.compress
         if self.compress > 0 and whichLibVersion(self.complib):
             assert vlarray.filters.complib == self.complib
-        if self.shuffle <> vlarray.filters.shuffle and verbose:
+        if self.shuffle <> vlarray.filters.shuffle and common.verbose:
             print "Error in shuffle. Class:", self.__class__.__name__
             print "self, vlarray:", self.shuffle, vlarray.filters.shuffle
         assert self.shuffle == vlarray.filters.shuffle
-        if self.fletcher32 <> vlarray.filters.fletcher32 and verbose:
+        if self.fletcher32 <> vlarray.filters.fletcher32 and common.verbose:
             print "Error in fletcher32. Class:", self.__class__.__name__
             print "self, vlarray:", self.fletcher32, vlarray.filters.fletcher32
         assert self.fletcher32 == vlarray.filters.fletcher32
@@ -142,7 +141,7 @@ class BasicTestCase(unittest.TestCase):
         """Checking vlarray __getitem__"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_getitem..." % self.__class__.__name__
 
@@ -163,7 +162,7 @@ class BasicTestCase(unittest.TestCase):
             rows2 = vlarray[slc]
             rows1 = rows[slc]
             rows1f = []
-            if verbose:
+            if common.verbose:
                 print "Flavor:", vlarray.flavor
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "Original rows ==>", rows1
@@ -192,7 +191,7 @@ class BasicTestCase(unittest.TestCase):
         """Checking vlarray append"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_append..." % self.__class__.__name__
 
@@ -208,7 +207,7 @@ class BasicTestCase(unittest.TestCase):
         row1 = vlarray[0]
         row2 = vlarray[2]
         row3 = vlarray[-1]
-        if verbose:
+        if common.verbose:
             print "Flavor:", vlarray.flavor
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row1
@@ -291,14 +290,14 @@ class TypesTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
     def test01_StringAtom(self):
         """Checking vlarray with NumPy string atoms ('numpy' flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_StringAtom..." % self.__class__.__name__
 
@@ -317,7 +316,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
@@ -332,7 +331,7 @@ class TypesTestCase(unittest.TestCase):
     def _test01_1_StringAtom(self):
         """Checking vlarray with NumPy string atoms ('numarray' flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_1_StringAtom..." % self.__class__.__name__
 
@@ -352,7 +351,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray:", row[0]
@@ -369,7 +368,7 @@ class TypesTestCase(unittest.TestCase):
     def test01a_StringAtom(self):
         """Checking vlarray with NumPy string atoms ('numpy' flavor, strided)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_StringAtom..." % self.__class__.__name__
 
@@ -388,7 +387,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
@@ -402,7 +401,7 @@ class TypesTestCase(unittest.TestCase):
     def test01a_2_StringAtom(self):
         """Checking vlarray with NumPy string atoms (NumPy flavor, no conv)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_2_StringAtom..." % self.__class__.__name__
 
@@ -421,7 +420,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
@@ -435,7 +434,7 @@ class TypesTestCase(unittest.TestCase):
     def test01b_StringAtom(self):
         """Checking vlarray with NumPy string atoms (python flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_StringAtom..." % self.__class__.__name__
 
@@ -454,7 +453,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Testing String flavor"
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -469,7 +468,7 @@ class TypesTestCase(unittest.TestCase):
     def test01c_StringAtom(self):
         """Checking updating vlarray with NumPy string atoms ('numpy' flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01c_StringAtom..." % self.__class__.__name__
 
@@ -492,7 +491,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
@@ -506,7 +505,7 @@ class TypesTestCase(unittest.TestCase):
     def test01d_StringAtom(self):
         """Checking updating vlarray with string atoms (String flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01d_StringAtom..." % self.__class__.__name__
 
@@ -529,7 +528,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Testing String flavor"
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -544,7 +543,7 @@ class TypesTestCase(unittest.TestCase):
     def test02_BoolAtom(self):
         """Checking vlarray with boolean atoms"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_BoolAtom..." % self.__class__.__name__
 
@@ -562,7 +561,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
@@ -576,7 +575,7 @@ class TypesTestCase(unittest.TestCase):
     def test02b_BoolAtom(self):
         """Checking setting vlarray with boolean atoms"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_BoolAtom..." % self.__class__.__name__
 
@@ -598,7 +597,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
@@ -621,7 +620,7 @@ class TypesTestCase(unittest.TestCase):
                   "Int64",
                   #"UInt64",  # Unavailable in some platforms
                   ]
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
@@ -639,7 +638,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -663,7 +662,7 @@ class TypesTestCase(unittest.TestCase):
                   "Int64": numpy.int64,
                   #"UInt64": numpy.int64,  # Unavailable in some platforms
                   }
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03a_IntAtom..." % self.__class__.__name__
 
@@ -685,7 +684,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -709,7 +708,7 @@ class TypesTestCase(unittest.TestCase):
                   "Int64",
                   #"UInt64",  # Unavailable in some platforms
                   ]
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
@@ -731,7 +730,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -755,7 +754,7 @@ class TypesTestCase(unittest.TestCase):
                   "Int64": numpy.int64,
                   #"UInt64": numpy.int64,  # Unavailable in some platforms
                   }
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03c_IntAtom..." % self.__class__.__name__
 
@@ -784,7 +783,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -808,7 +807,7 @@ class TypesTestCase(unittest.TestCase):
                   "Int64": numpy.int64,
                   #"UInt64": numpy.int64,  # Unavailable in some platforms
                   }
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03d_IntAtom..." % self.__class__.__name__
 
@@ -839,7 +838,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -861,7 +860,7 @@ class TypesTestCase(unittest.TestCase):
         ttypes = ["Float32",
                   "Float64",
                   ]
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_FloatAtom..." % self.__class__.__name__
 
@@ -879,7 +878,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -897,7 +896,7 @@ class TypesTestCase(unittest.TestCase):
         ttypes = {"Float32": numpy.float32,
                   "Float64": numpy.float64,
                   }
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04a_FloatAtom..." % self.__class__.__name__
 
@@ -919,7 +918,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -939,7 +938,7 @@ class TypesTestCase(unittest.TestCase):
         ttypes = ["Float32",
                   "Float64",
                   ]
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_FloatAtom..." % self.__class__.__name__
 
@@ -961,7 +960,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -979,7 +978,7 @@ class TypesTestCase(unittest.TestCase):
         ttypes = {"Float32": numpy.float32,
                   "Float64": numpy.float64,
                   }
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04c_FloatAtom..." % self.__class__.__name__
 
@@ -1008,7 +1007,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -1028,7 +1027,7 @@ class TypesTestCase(unittest.TestCase):
         ttypes = {"Float32": numpy.float32,
                   "Float64": numpy.float64,
                   }
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04d_FloatAtom..." % self.__class__.__name__
 
@@ -1059,7 +1058,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -1082,7 +1081,7 @@ class TypesTestCase(unittest.TestCase):
         ttypes = ["Complex32",
                   "Complex64",
                   ]
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_ComplexAtom..." % self.__class__.__name__
 
@@ -1100,7 +1099,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -1120,7 +1119,7 @@ class TypesTestCase(unittest.TestCase):
         ttypes = ["Complex32",
                   "Complex64",
                   ]
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_ComplexAtom..." % self.__class__.__name__
 
@@ -1142,7 +1141,7 @@ class TypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -1159,7 +1158,7 @@ class TypesTestCase(unittest.TestCase):
     def test05_VLStringAtom(self):
         """Checking vlarray with variable length strings"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_VLStringAtom..." % self.__class__.__name__
 
@@ -1181,7 +1180,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
@@ -1199,7 +1198,7 @@ class TypesTestCase(unittest.TestCase):
     def test05b_VLStringAtom(self):
         """Checking updating vlarray with variable length strings"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05b_VLStringAtom..." % self.__class__.__name__
 
@@ -1221,7 +1220,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", `row[0]`
@@ -1236,7 +1235,7 @@ class TypesTestCase(unittest.TestCase):
     def test06_Object(self):
         """Checking vlarray with object atoms """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test06_Object..." % self.__class__.__name__
 
@@ -1253,7 +1252,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
@@ -1272,7 +1271,7 @@ class TypesTestCase(unittest.TestCase):
     def test06b_Object(self):
         """Checking updating vlarray with object atoms """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test06_Object..." % self.__class__.__name__
 
@@ -1296,7 +1295,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
@@ -1314,7 +1313,7 @@ class TypesTestCase(unittest.TestCase):
     def test07_VLUnicodeAtom(self):
         """Checking vlarray with variable length Unicode strings"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test07_VLUnicodeAtom..." % self.__class__.__name__
 
@@ -1337,7 +1336,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
@@ -1355,7 +1354,7 @@ class TypesTestCase(unittest.TestCase):
     def test07b_VLUnicodeAtom(self):
         """Checking updating vlarray with variable length Unicode strings"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test07b_VLUnicodeAtom..." % self.__class__.__name__
 
@@ -1378,7 +1377,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", `row[0]`
@@ -1414,7 +1413,7 @@ class MDTypesTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1422,7 +1421,7 @@ class MDTypesTestCase(unittest.TestCase):
         """Checking vlarray with MD NumPy string atoms"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_StringAtom..." % self.__class__.__name__
 
@@ -1436,7 +1435,7 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -1452,7 +1451,7 @@ class MDTypesTestCase(unittest.TestCase):
         """Checking vlarray with MD NumPy string atoms ('python' flavor)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_StringAtom..." % self.__class__.__name__
 
@@ -1467,7 +1466,7 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -1484,7 +1483,7 @@ class MDTypesTestCase(unittest.TestCase):
         """Checking vlarray with MD NumPy string atoms (with offset)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01c_StringAtom..." % self.__class__.__name__
 
@@ -1502,7 +1501,7 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -1518,7 +1517,7 @@ class MDTypesTestCase(unittest.TestCase):
         """Checking vlarray with MD NumPy string atoms (with stride)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01d_StringAtom..." % self.__class__.__name__
 
@@ -1536,7 +1535,7 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -1551,7 +1550,7 @@ class MDTypesTestCase(unittest.TestCase):
         """Checking vlarray with MD boolean atoms"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_BoolAtom..." % self.__class__.__name__
 
@@ -1564,7 +1563,7 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -1579,7 +1578,7 @@ class MDTypesTestCase(unittest.TestCase):
         """Checking vlarray with MD boolean atoms (with offset)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_BoolAtom..." % self.__class__.__name__
 
@@ -1594,7 +1593,7 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -1609,7 +1608,7 @@ class MDTypesTestCase(unittest.TestCase):
         """Checking vlarray with MD boolean atoms (with strides)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02c_BoolAtom..." % self.__class__.__name__
 
@@ -1624,7 +1623,7 @@ class MDTypesTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -1648,7 +1647,7 @@ class MDTypesTestCase(unittest.TestCase):
                   #"UInt64",  # Unavailable in some platforms
                   ]
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
@@ -1662,7 +1661,7 @@ class MDTypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "Second row in vlarray ==>", repr(row[1])
@@ -1685,7 +1684,7 @@ class MDTypesTestCase(unittest.TestCase):
                   "Complex64",
                   ]
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_FloatAtom..." % self.__class__.__name__
 
@@ -1699,7 +1698,7 @@ class MDTypesTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing type:", atype
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
                 print "Second row in vlarray ==>", row[1]
@@ -1730,7 +1729,7 @@ class AppendShapeTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1738,7 +1737,7 @@ class AppendShapeTestCase(unittest.TestCase):
         """Checking vlarray.append() with different inputs"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_difinputs..." % self.__class__.__name__
 
@@ -1755,7 +1754,7 @@ class AppendShapeTestCase(unittest.TestCase):
         vlarray.append(numpy.array([1,2,3], dtype='int32')) # and array
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r")
@@ -1763,7 +1762,7 @@ class AppendShapeTestCase(unittest.TestCase):
 
         # Read all the vlarray
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
@@ -1777,7 +1776,7 @@ class AppendShapeTestCase(unittest.TestCase):
         """Checking vlarray.append() with too many dimensions"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_toomanydims..." % self.__class__.__name__
 
@@ -1789,7 +1788,7 @@ class AppendShapeTestCase(unittest.TestCase):
         try:
             vlarray.append([["123", "456", "3"]])
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next RuntimeError was catched!"
                 print value
@@ -1797,7 +1796,7 @@ class AppendShapeTestCase(unittest.TestCase):
             self.fail("expected a ValueError")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r")
@@ -1805,7 +1804,7 @@ class AppendShapeTestCase(unittest.TestCase):
 
         # Read all the rows (there should be none)
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
 
@@ -1815,7 +1814,7 @@ class AppendShapeTestCase(unittest.TestCase):
         """Checking vlarray.append() with a zero-dimensional array"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_zerodims..." % self.__class__.__name__
 
@@ -1826,7 +1825,7 @@ class AppendShapeTestCase(unittest.TestCase):
         vlarray.append(numpy.zeros(dtype='int32', shape=(6,0)))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r")
@@ -1834,7 +1833,7 @@ class AppendShapeTestCase(unittest.TestCase):
 
         # Read the only row in vlarray
         row = vlarray.read(0)[0]
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", repr(row)
@@ -1847,7 +1846,7 @@ class AppendShapeTestCase(unittest.TestCase):
         """Checking vlarray.append() with a casted array (upgrading case)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03a_cast..." % self.__class__.__name__
 
@@ -1859,7 +1858,7 @@ class AppendShapeTestCase(unittest.TestCase):
         vlarray.append(numpy.array([1,2], dtype='int16'))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r")
@@ -1867,7 +1866,7 @@ class AppendShapeTestCase(unittest.TestCase):
 
         # Read the only row in vlarray
         row = vlarray.read(0)[0]
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", repr(row)
@@ -1880,7 +1879,7 @@ class AppendShapeTestCase(unittest.TestCase):
         """Checking vlarray.append() with a casted array (downgrading case)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03b_cast..." % self.__class__.__name__
 
@@ -1892,7 +1891,7 @@ class AppendShapeTestCase(unittest.TestCase):
         vlarray.append(numpy.array([1,2], dtype='float64'))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r")
@@ -1900,7 +1899,7 @@ class AppendShapeTestCase(unittest.TestCase):
 
         # Read the only row in vlarray
         row = vlarray.read(0)[0]
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", repr(row)
@@ -1931,7 +1930,7 @@ class FlavorTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1939,7 +1938,7 @@ class FlavorTestCase(unittest.TestCase):
         """Checking empty vlarrays with different flavors (closing the file)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_EmptyVLArray..." % self.__class__.__name__
 
@@ -1952,7 +1951,7 @@ class FlavorTestCase(unittest.TestCase):
         # Read all the rows (it should be empty):
         vlarray = self.fileh.root.vlarray
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Testing flavor:", self.flavor
             print "Object read:", row, repr(row)
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -1964,7 +1963,7 @@ class FlavorTestCase(unittest.TestCase):
         """Checking empty vlarrays with different flavors (no closing file)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_EmptyVLArray..." % self.__class__.__name__
 
@@ -1974,7 +1973,7 @@ class FlavorTestCase(unittest.TestCase):
         vlarray.flavor = self.flavor
         # Read all the rows (it should be empty):
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Testing flavor:", self.flavor
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -1986,7 +1985,7 @@ class FlavorTestCase(unittest.TestCase):
         """Checking vlarray with different flavors (boolean versions)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_BoolAtom..." % self.__class__.__name__
 
@@ -1999,7 +1998,7 @@ class FlavorTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = vlarray.read()
-        if verbose:
+        if common.verbose:
             print "Testing flavor:", self.flavor
             print "Object read:", row
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -2052,7 +2051,7 @@ class FlavorTestCase(unittest.TestCase):
                   #"UInt64",
                   ]
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
@@ -2067,7 +2066,7 @@ class FlavorTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing flavor:", self.flavor
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -2121,7 +2120,7 @@ class FlavorTestCase(unittest.TestCase):
                   #"UInt64",
                   ]
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_IntAtom..." % self.__class__.__name__
 
@@ -2139,7 +2138,7 @@ class FlavorTestCase(unittest.TestCase):
             vlarray = self.fileh.getNode(root, str(atype))
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing flavor:", self.flavor
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -2187,7 +2186,7 @@ class FlavorTestCase(unittest.TestCase):
                   "Complex64",
                   ]
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_FloatAtom..." % self.__class__.__name__
 
@@ -2202,7 +2201,7 @@ class FlavorTestCase(unittest.TestCase):
 
             # Read all the rows:
             row = vlarray.read()
-            if verbose:
+            if common.verbose:
                 print "Testing flavor:", self.flavor
                 print "Object read:", row
                 print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -2282,13 +2281,13 @@ class ReadRangeTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #------------------------------------------------------------------
 
     def test01_start(self):
         "Checking reads with only a start value"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_start..." % self.__class__.__name__
 
@@ -2300,7 +2299,7 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(0)[0])
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(99)[0])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2314,7 +2313,7 @@ class ReadRangeTestCase(unittest.TestCase):
 
     def test01b_start(self):
         "Checking reads with only a start value in a slice"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_start..." % self.__class__.__name__
 
@@ -2326,7 +2325,7 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[0])
         row.append(vlarray[10])
         row.append(vlarray[99])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2340,7 +2339,7 @@ class ReadRangeTestCase(unittest.TestCase):
 
     def test01np_start(self):
         "Checking reads with only a start value in a slice (numpy indexes)"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01np_start..." % self.__class__.__name__
 
@@ -2352,7 +2351,7 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[numpy.int8(0)])
         row.append(vlarray[numpy.int32(10)])
         row.append(vlarray[numpy.int64(99)])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2366,7 +2365,7 @@ class ReadRangeTestCase(unittest.TestCase):
 
     def test02_stop(self):
         "Checking reads with only a stop value"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_stop..." % self.__class__.__name__
 
@@ -2380,7 +2379,7 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(stop=1))
         row.append(vlarray.read(stop=10))
         row.append(vlarray.read(stop=99))
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
             print "Second row in vlarray ==>", row[1]
@@ -2397,7 +2396,7 @@ class ReadRangeTestCase(unittest.TestCase):
 
     def test02b_stop(self):
         "Checking reads with only a stop value in a slice"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_stop..." % self.__class__.__name__
 
@@ -2411,7 +2410,7 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[:1])
         row.append(vlarray[:10])
         row.append(vlarray[:99])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2429,7 +2428,7 @@ class ReadRangeTestCase(unittest.TestCase):
 
     def test03_startstop(self):
         "Checking reads with a start and stop values"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_startstop..." % self.__class__.__name__
 
@@ -2443,7 +2442,7 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(0,10))
         row.append(vlarray.read(5,15))
         row.append(vlarray.read(0,100))  # read all the array
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2460,7 +2459,7 @@ class ReadRangeTestCase(unittest.TestCase):
 
     def test03b_startstop(self):
         "Checking reads with a start and stop values in slices"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03b_startstop..." % self.__class__.__name__
 
@@ -2474,7 +2473,7 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[0:10])
         row.append(vlarray[5:15])
         row.append(vlarray[:])  # read all the array
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2491,7 +2490,7 @@ class ReadRangeTestCase(unittest.TestCase):
 
     def test04_startstopstep(self):
         "Checking reads with a start, stop & step values"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_startstopstep..." % self.__class__.__name__
 
@@ -2505,7 +2504,7 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(0,10,2))
         row.append(vlarray.read(5,15,3))
         row.append(vlarray.read(0,100,20))
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2522,7 +2521,7 @@ class ReadRangeTestCase(unittest.TestCase):
 
     def test04np_startstopstep(self):
         "Checking reads with a start, stop & step values (numpy indices)"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04np_startstopstep..." % self.__class__.__name__
 
@@ -2536,7 +2535,7 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(numpy.int8(0),numpy.int8(10),numpy.int8(2)))
         row.append(vlarray.read(numpy.int8(5),numpy.int8(15),numpy.int8(3)))
         row.append(vlarray.read(numpy.int8(0),numpy.int8(100),numpy.int8(20)))
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2553,7 +2552,7 @@ class ReadRangeTestCase(unittest.TestCase):
 
     def test04b_slices(self):
         "Checking reads with start, stop & step values in slices"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_slices..." % self.__class__.__name__
 
@@ -2567,7 +2566,7 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[0:10:2])
         row.append(vlarray[5:15:3])
         row.append(vlarray[0:100:20])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2584,7 +2583,7 @@ class ReadRangeTestCase(unittest.TestCase):
 
     def test04bnp_slices(self):
         "Checking reads with start, stop & step values in slices (numpy indices)"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04bnp_slices..." % self.__class__.__name__
 
@@ -2598,7 +2597,7 @@ class ReadRangeTestCase(unittest.TestCase):
         row.append(vlarray[numpy.int16(0):numpy.int16(10):numpy.int32(2)])
         row.append(vlarray[numpy.int16(5):numpy.int16(15):numpy.int64(3)])
         row.append(vlarray[numpy.uint16(0):numpy.int32(100):numpy.int8(20)])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2615,21 +2614,21 @@ class ReadRangeTestCase(unittest.TestCase):
 
     def test05_out_of_range(self):
         "Checking out of range reads"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_out_of_range..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
 
         try:
             row = vlarray.read(1000)[0]
             print "row-->", row
         except IndexError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next IndexError was catched!"
                 print value
@@ -2669,13 +2668,13 @@ class GetItemRangeTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #------------------------------------------------------------------
 
     def test01_start(self):
         "Checking reads with only a start value"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_start..." % self.__class__.__name__
 
@@ -2687,7 +2686,7 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[0])
         row.append(vlarray[10])
         row.append(vlarray[99])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2701,7 +2700,7 @@ class GetItemRangeTestCase(unittest.TestCase):
 
     def test01b_start(self):
         "Checking reads with only a start value in a slice"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_start..." % self.__class__.__name__
 
@@ -2713,7 +2712,7 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[0])
         row.append(vlarray[10])
         row.append(vlarray[99])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2727,7 +2726,7 @@ class GetItemRangeTestCase(unittest.TestCase):
 
     def test02_stop(self):
         "Checking reads with only a stop value"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_stop..." % self.__class__.__name__
 
@@ -2741,7 +2740,7 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[:1])
         row.append(vlarray[:10])
         row.append(vlarray[:99])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "First row in vlarray ==>", row[0]
             print "Second row in vlarray ==>", row[1]
@@ -2758,7 +2757,7 @@ class GetItemRangeTestCase(unittest.TestCase):
 
     def test02b_stop(self):
         "Checking reads with only a stop value in a slice"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_stop..." % self.__class__.__name__
 
@@ -2772,7 +2771,7 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[:1])
         row.append(vlarray[:10])
         row.append(vlarray[:99])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2790,7 +2789,7 @@ class GetItemRangeTestCase(unittest.TestCase):
 
     def test03_startstop(self):
         "Checking reads with a start and stop values"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_startstop..." % self.__class__.__name__
 
@@ -2804,7 +2803,7 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[0:10])
         row.append(vlarray[5:15])
         row.append(vlarray[0:100])  # read all the array
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2821,7 +2820,7 @@ class GetItemRangeTestCase(unittest.TestCase):
 
     def test03b_startstop(self):
         "Checking reads with a start and stop values in slices"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03b_startstop..." % self.__class__.__name__
 
@@ -2835,7 +2834,7 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[0:10])
         row.append(vlarray[5:15])
         row.append(vlarray[:])  # read all the array
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2852,7 +2851,7 @@ class GetItemRangeTestCase(unittest.TestCase):
 
     def test04_slices(self):
         "Checking reads with a start, stop & step values"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_slices..." % self.__class__.__name__
 
@@ -2866,7 +2865,7 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[0:10:2])
         row.append(vlarray[5:15:3])
         row.append(vlarray[0:100:20])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2883,7 +2882,7 @@ class GetItemRangeTestCase(unittest.TestCase):
 
     def test04bnp_slices(self):
         "Checking reads with start, stop & step values (numpy indices)"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04np_slices..." % self.__class__.__name__
 
@@ -2897,7 +2896,7 @@ class GetItemRangeTestCase(unittest.TestCase):
         row.append(vlarray[numpy.int8(0):numpy.int8(10):numpy.int8(2)])
         row.append(vlarray[numpy.int8(5):numpy.int8(15):numpy.int8(3)])
         row.append(vlarray[numpy.int8(0):numpy.int8(100):numpy.int8(20)])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -2914,21 +2913,21 @@ class GetItemRangeTestCase(unittest.TestCase):
 
     def test05_out_of_range(self):
         "Checking out of range reads"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_out_of_range..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
 
         try:
             row = vlarray[1000]
             print "row-->", row
         except IndexError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next IndexError was catched!"
                 print value
@@ -2939,21 +2938,21 @@ class GetItemRangeTestCase(unittest.TestCase):
 
     def test05np_out_of_range(self):
         "Checking out of range reads (numpy indexes)"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05np_out_of_range..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "r")
         vlarray = self.fileh.root.vlarray
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
 
         try:
             row = vlarray[numpy.int32(1000)]
             print "row-->", row
         except IndexError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next IndexError was catched!"
                 print value
@@ -2993,13 +2992,13 @@ class SetRangeTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #------------------------------------------------------------------
 
     def test01_start(self):
         "Checking updates that modifies a complete row"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_start..." % self.__class__.__name__
 
@@ -3016,7 +3015,7 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(0)[0])
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(99)[0])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -3030,7 +3029,7 @@ class SetRangeTestCase(unittest.TestCase):
 
     def test01np_start(self):
         "Checking updates that modifies a complete row"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01np_start..." % self.__class__.__name__
 
@@ -3047,7 +3046,7 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(numpy.int8(0))[0])
         row.append(vlarray.read(numpy.int8(10))[0])
         row.append(vlarray.read(numpy.int8(99))[0])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -3061,7 +3060,7 @@ class SetRangeTestCase(unittest.TestCase):
 
     def test02_start(self):
         "Checking updates with only a part of a row (start, None)"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_start..." % self.__class__.__name__
 
@@ -3079,7 +3078,7 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(0)[0])
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(99)[0])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -3094,7 +3093,7 @@ class SetRangeTestCase(unittest.TestCase):
 
     def test03_stop(self):
         "Checking updates with only a part of a row (None, stop)"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_stop..." % self.__class__.__name__
 
@@ -3112,7 +3111,7 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(0)[0])
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(99)[0])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -3127,7 +3126,7 @@ class SetRangeTestCase(unittest.TestCase):
 
     def test04_start_stop(self):
         "Checking updates with only a part of a row (start, stop)"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_start_stop..." % self.__class__.__name__
 
@@ -3145,7 +3144,7 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(0)[0])
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(99)[0])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -3161,7 +3160,7 @@ class SetRangeTestCase(unittest.TestCase):
 
     def test05_start_stop(self):
         "Checking updates with only a part of a row (-start, -stop)"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_start_stop_step..." % self.__class__.__name__
 
@@ -3179,7 +3178,7 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(0)[0])
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(99)[0])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -3195,7 +3194,7 @@ class SetRangeTestCase(unittest.TestCase):
 
     def test06_start_stop_step(self):
         "Checking updates with only a part of a row (start, stop, step)"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test06_start_stop_step..." % self.__class__.__name__
 
@@ -3213,7 +3212,7 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(0)[0])
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(99)[0])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -3228,7 +3227,7 @@ class SetRangeTestCase(unittest.TestCase):
 
     def test06np_start_stop_step(self):
         "Checking updates with only a part of a row (start, stop, step). numpy idx"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test06np_start_stop_step..." % self.__class__.__name__
 
@@ -3246,7 +3245,7 @@ class SetRangeTestCase(unittest.TestCase):
         row.append(vlarray.read(0)[0])
         row.append(vlarray.read(10)[0])
         row.append(vlarray.read(99)[0])
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
 
@@ -3261,21 +3260,21 @@ class SetRangeTestCase(unittest.TestCase):
 
     def test07_out_of_range(self):
         "Checking out of range updates (first index)"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test07_out_of_range..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
 
         try:
             vlarray[1000] = [1]
             print "row-->", row
         except IndexError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next IndexError was catched!"
                 print value
@@ -3286,21 +3285,21 @@ class SetRangeTestCase(unittest.TestCase):
 
     def test08_value_error(self):
         "Checking out value errors"
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test08_value_error..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
 
         try:
             vlarray[10,1:100] = [1]*10
             print "row-->", row
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
                 print value
@@ -3315,7 +3314,7 @@ class CopyTestCase(unittest.TestCase):
     def test01a_copy(self):
         """Checking VLArray.copy() method """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_copy..." % self.__class__.__name__
 
@@ -3332,7 +3331,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append([[3, 457],[2,4]])
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3342,14 +3341,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", repr(array1)
             print "array2-->", repr(array2)
             print "array1[:]-->", repr(array1.read())
@@ -3376,7 +3375,7 @@ class CopyTestCase(unittest.TestCase):
     def test01b_copy(self):
         """Checking VLArray.copy() method. Pseudo-atom case."""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_copy..." % self.__class__.__name__
 
@@ -3393,7 +3392,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append("another string")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3403,14 +3402,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", repr(array1)
             print "array2-->", repr(array2)
             print "array1[:]-->", repr(array1.read())
@@ -3437,7 +3436,7 @@ class CopyTestCase(unittest.TestCase):
     def test02_copy(self):
         """Checking VLArray.copy() method (where specified)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_copy..." % self.__class__.__name__
 
@@ -3454,7 +3453,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append([[3, 457],[2,4]])
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3465,14 +3464,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy(group1, 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", repr(array1)
             print "array2-->", repr(array2)
             print "array1-->", array1.read()
@@ -3498,7 +3497,7 @@ class CopyTestCase(unittest.TestCase):
     def test03_copy(self):
         """Checking VLArray.copy() method ('numarray' flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_copy..." % self.__class__.__name__
 
@@ -3520,7 +3519,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append([[3, 457],[2,4]])
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3530,14 +3529,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -3556,7 +3555,7 @@ class CopyTestCase(unittest.TestCase):
     def test03a_copy(self):
         """Checking VLArray.copy() method ('numeric' flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03a_copy..." % self.__class__.__name__
 
@@ -3578,7 +3577,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append([[3, 457],[2,4]])
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3588,14 +3587,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -3614,7 +3613,7 @@ class CopyTestCase(unittest.TestCase):
     def test03b_copy(self):
         """Checking VLArray.copy() method ('python' flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_copy..." % self.__class__.__name__
 
@@ -3632,7 +3631,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append(((3, 457),(2,4)))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3642,14 +3641,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -3668,7 +3667,7 @@ class CopyTestCase(unittest.TestCase):
     def test04_copy(self):
         """Checking VLArray.copy() method (checking title copying)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_copy..." % self.__class__.__name__
 
@@ -3688,7 +3687,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr2 = 2
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3698,7 +3697,7 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', title="title array2")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
@@ -3706,7 +3705,7 @@ class CopyTestCase(unittest.TestCase):
             array2 = fileh.root.array2
 
         # Assert user attributes
-        if verbose:
+        if common.verbose:
             print "title of destination array-->", array2.title
         array2.title == "title array2"
 
@@ -3717,7 +3716,7 @@ class CopyTestCase(unittest.TestCase):
     def test05_copy(self):
         """Checking VLArray.copy() method (user attributes copied)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_copy..." % self.__class__.__name__
 
@@ -3737,7 +3736,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr2 = 2
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3747,14 +3746,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', copyuserattrs=1)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -3769,7 +3768,7 @@ class CopyTestCase(unittest.TestCase):
     def notest05b_copy(self):
         """Checking VLArray.copy() method (user attributes not copied)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05b_copy..." % self.__class__.__name__
 
@@ -3789,7 +3788,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr2 = 2
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3799,14 +3798,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', copyuserattrs=0)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -3832,7 +3831,7 @@ class CopyIndexTestCase(unittest.TestCase):
     def test01_index(self):
         """Checking VLArray.copy() method with indexes"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_index..." % self.__class__.__name__
 
@@ -3851,7 +3850,7 @@ class CopyIndexTestCase(unittest.TestCase):
             array1.append([row, row+1])
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3864,7 +3863,7 @@ class CopyIndexTestCase(unittest.TestCase):
                              step=self.step)
 
         r2 = r[self.start:self.stop:self.step]
-        if verbose:
+        if common.verbose:
             print "r2-->", r2
             print "array2-->", array2[:]
             print "attrs array1-->", repr(array1.attrs)
@@ -3971,7 +3970,7 @@ class ChunkshapeTestCase(unittest.TestCase):
         """Test setting the chunkshape in a table (no reopen)."""
 
         vla = self.fileh.root.vlarray
-        if verbose:
+        if common.verbose:
             print "chunkshape-->", vla.chunkshape
         assert vla.chunkshape == (13,)
 
@@ -3981,7 +3980,7 @@ class ChunkshapeTestCase(unittest.TestCase):
         self.fileh.close()
         self.fileh = openFile(self.file, 'r')
         vla = self.fileh.root.vlarray
-        if verbose:
+        if common.verbose:
             print "chunkshape-->", vla.chunkshape
         assert vla.chunkshape == (13,)
 

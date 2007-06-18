@@ -17,7 +17,6 @@ import unittest
 import gc
 
 from tables.tests import common
-from tables.tests.common import verbose
 
 
 class GarbageTestCase(common.PyTablesTestCase):

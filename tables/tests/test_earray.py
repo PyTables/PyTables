@@ -10,9 +10,9 @@ import numpy
 
 from tables import *
 from tables.flavor import flavor_to_flavor
+from tables.tests import common
 from tables.tests.common import (
-    verbose, typecode, allequal, cleanup, heavy,
-    numeric_imported, numarray_imported)
+    typecode, allequal, numeric_imported, numarray_imported)
 from tables.utils import byteorders
 
 if numarray_imported:
@@ -22,7 +22,7 @@ if numeric_imported:
 
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 class BasicTestCase(unittest.TestCase):
     # Default values
@@ -91,7 +91,7 @@ class BasicTestCase(unittest.TestCase):
         elif self.flavor == "numeric":
             object = Numeric.asarray(object)
 
-        if verbose:
+        if common.verbose:
             if self.flavor == "numpy":
                 print "Object to append -->", object
             else:
@@ -109,7 +109,7 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -117,7 +117,7 @@ class BasicTestCase(unittest.TestCase):
         """Checking enlargeable array iterator"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_iterEArray..." % self.__class__.__name__
 
@@ -128,7 +128,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Choose a small value for buffer size
         earray.nrowsinbuf = 3
-        if verbose:
+        if common.verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
             print "reopening?:", self.reopen
@@ -159,7 +159,7 @@ class BasicTestCase(unittest.TestCase):
                         object__ = object__.astype(typecode[earray.atom.type])
             object = object__[chunk]
             # The next adds much more verbosity
-            if verbose and 0:
+            if common.verbose and 0:
                 print "number of row ==>", earray.nrow
                 if hasattr(object, "shape"):
                     print "shape should look as:", object.shape
@@ -175,17 +175,17 @@ class BasicTestCase(unittest.TestCase):
                 assert len(self.shape) == 1
 
             # Check filters:
-            if self.compress <> earray.filters.complevel and verbose:
+            if self.compress <> earray.filters.complevel and common.verbose:
                 print "Error in compress. Class:", self.__class__.__name__
                 print "self, earray:", self.compress, earray.filters.complevel
             assert earray.filters.complevel == self.compress
             if self.compress > 0 and whichLibVersion(self.complib):
                 assert earray.filters.complib == self.complib
-            if self.shuffle <> earray.filters.shuffle and verbose:
+            if self.shuffle <> earray.filters.shuffle and common.verbose:
                 print "Error in shuffle. Class:", self.__class__.__name__
                 print "self, earray:", self.shuffle, earray.filters.shuffle
             assert self.shuffle == earray.filters.shuffle
-            if self.fletcher32 <> earray.filters.fletcher32 and verbose:
+            if self.fletcher32 <> earray.filters.fletcher32 and common.verbose:
                 print "Error in fletcher32. Class:", self.__class__.__name__
                 print "self, earray:", self.fletcher32, earray.filters.fletcher32
             assert self.fletcher32 == earray.filters.fletcher32
@@ -194,7 +194,7 @@ class BasicTestCase(unittest.TestCase):
         """Checking enlargeable array iterator with (start, stop, step)"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_sssEArray..." % self.__class__.__name__
 
@@ -205,7 +205,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Choose a small value for buffer size
         earray.nrowsinbuf = 3
-        if verbose:
+        if common.verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
             print "reopening?:", self.reopen
@@ -240,7 +240,7 @@ class BasicTestCase(unittest.TestCase):
                     object__ = object__.astype(typecode[earray.atom.type])
             object = object__[index]
             # The next adds much more verbosity
-            if verbose and 0:
+            if common.verbose and 0:
                 print "number of row ==>", earray.nrow
                 if hasattr(object, "shape"):
                     print "shape should look as:", object.shape
@@ -259,7 +259,7 @@ class BasicTestCase(unittest.TestCase):
         """Checking read() of enlargeable arrays"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_readEArray..." % self.__class__.__name__
 
@@ -275,7 +275,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Choose a small value for buffer size
         earray.nrowsinbuf = 3
-        if verbose:
+        if common.verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
             print "reopening?:", self.reopen
@@ -364,7 +364,7 @@ class BasicTestCase(unittest.TestCase):
             elif self.flavor == "numeric":
                 row = Numeric.asarray(row)
 
-        if verbose:
+        if common.verbose:
             if hasattr(object, "shape"):
                 print "shape should look as:", object.shape
             print "Object read ==>", repr(row)
@@ -386,7 +386,7 @@ class BasicTestCase(unittest.TestCase):
         """Checking enlargeable array __getitem__ special method"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_getitemEArray..." % self.__class__.__name__
 
@@ -405,7 +405,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Choose a small value for buffer size
         #earray.nrowsinbuf = 3   # this does not really changes the chunksize
-        if verbose:
+        if common.verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
             print "reopening?:", self.reopen
@@ -475,7 +475,7 @@ class BasicTestCase(unittest.TestCase):
             elif self.flavor == "numeric":
                 row = Numeric.asarray(row)
 
-        if verbose:
+        if common.verbose:
             print "Object read:\n", repr(row)
             print "Should look like:\n", repr(object)
             if hasattr(object, "shape"):
@@ -499,7 +499,7 @@ class BasicTestCase(unittest.TestCase):
             # it is not worth the effort to solve it
             # F.Altet 2004-10-27
             return
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_setitemEArray..." % self.__class__.__name__
 
@@ -518,7 +518,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Choose a small value for buffer size
         #earray.nrowsinbuf = 3   # this does not really changes the chunksize
-        if verbose:
+        if common.verbose:
             print "EArray descr:", repr(earray)
             print "shape of read array ==>", earray.shape
             print "reopening?:", self.reopen
@@ -616,7 +616,7 @@ class BasicTestCase(unittest.TestCase):
             elif self.flavor == "numeric":
                 row = Numeric.asarray(self.shape)
 
-        if verbose:
+        if common.verbose:
             print "Object read:\n", repr(row)
             print "Should look like:\n", repr(object)
             if hasattr(object, "shape"):
@@ -1131,7 +1131,7 @@ class OffsetStrideTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1139,7 +1139,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking earray with offseted numpy strings appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_StringAtom..." % self.__class__.__name__
 
@@ -1153,7 +1153,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = earray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", earray._v_pathname, ":", earray.nrows
             print "Second row in earray ==>", row[1].tolist()
@@ -1168,7 +1168,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking earray with strided numpy strings appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_StringAtom..." % self.__class__.__name__
 
@@ -1182,7 +1182,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = earray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", earray._v_pathname, ":", earray.nrows
             print "Second row in earray ==>", row[1].tolist()
@@ -1197,7 +1197,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking earray with offseted NumPy ints appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02a_int..." % self.__class__.__name__
 
@@ -1212,7 +1212,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = earray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", earray._v_pathname, ":", earray.nrows
             print "Third row in vlarray ==>", row[2]
@@ -1226,7 +1226,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking earray with strided NumPy ints appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_int..." % self.__class__.__name__
 
@@ -1240,7 +1240,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Read all the rows:
         row = earray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", row
             print "Nrows in", earray._v_pathname, ":", earray.nrows
             print "Third row in vlarray ==>", row[2]
@@ -1255,7 +1255,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking earray with byteswapped appends (ints)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03a_int..." % self.__class__.__name__
 
@@ -1274,7 +1274,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         # Read all the rows:
         native = earray[:4,:]
         swapped = earray[4:,:]
-        if verbose:
+        if common.verbose:
             print "Native rows:", native
             print "Byteorder native rows:", native.dtype.byteorder
             print "Swapped rows:", swapped
@@ -1287,7 +1287,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking earray with byteswapped appends (floats)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03b_float..." % self.__class__.__name__
 
@@ -1306,7 +1306,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         # Read all the rows:
         native = earray[:4,:]
         swapped = earray[4:,:]
-        if verbose:
+        if common.verbose:
             print "Native rows:", native
             print "Byteorder native rows:", native.dtype.byteorder
             print "Swapped rows:", swapped
@@ -1319,7 +1319,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking earray with byteswapped appends (2, ints)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04a_int..." % self.__class__.__name__
 
@@ -1340,7 +1340,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         # Read all the rows:
         native = earray[:4,:]
         swapped = earray[4:,:]
-        if verbose:
+        if common.verbose:
             print "Byteorder native rows:", byteorders[native.dtype.byteorder]
             print "Byteorder earray on-disk:", earray.byteorder
 
@@ -1353,7 +1353,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking earray with byteswapped appends (2, ints, reopen)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_int..." % self.__class__.__name__
 
@@ -1377,7 +1377,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         # Read all the rows:
         native = earray[:4,:]
         swapped = earray[4:,:]
-        if verbose:
+        if common.verbose:
             print "Byteorder native rows:", byteorders[native.dtype.byteorder]
             print "Byteorder earray on-disk:", earray.byteorder
 
@@ -1390,7 +1390,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking earray with byteswapped appends (2, floats)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04c_float..." % self.__class__.__name__
 
@@ -1411,7 +1411,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         # Read all the rows:
         native = earray[:4,:]
         swapped = earray[4:,:]
-        if verbose:
+        if common.verbose:
             print "Byteorder native rows:", byteorders[native.dtype.byteorder]
             print "Byteorder earray on-disk:", earray.byteorder
 
@@ -1424,7 +1424,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking earray with byteswapped appends (2, floats, reopen)"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04d_float..." % self.__class__.__name__
 
@@ -1448,7 +1448,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         # Read all the rows:
         native = earray[:4,:]
         swapped = earray[4:,:]
-        if verbose:
+        if common.verbose:
             print "Byteorder native rows:", byteorders[native.dtype.byteorder]
             print "Byteorder earray on-disk:", earray.byteorder
 
@@ -1462,7 +1462,7 @@ class CopyTestCase(unittest.TestCase):
     def test01_copy(self):
         """Checking EArray.copy() method """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_copy..." % self.__class__.__name__
 
@@ -1477,7 +1477,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1487,14 +1487,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             #print "dirs-->", dir(array1), dir(array2)
@@ -1522,7 +1522,7 @@ class CopyTestCase(unittest.TestCase):
     def test02_copy(self):
         """Checking EArray.copy() method (where specified)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_copy..." % self.__class__.__name__
 
@@ -1537,7 +1537,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1548,14 +1548,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy(group1, 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             #print "dirs-->", dir(array1), dir(array2)
@@ -1583,7 +1583,7 @@ class CopyTestCase(unittest.TestCase):
     def test03_copy(self):
         """Checking EArray.copy() method ('numarray' flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_copy..." % self.__class__.__name__
 
@@ -1603,7 +1603,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1613,14 +1613,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1642,7 +1642,7 @@ class CopyTestCase(unittest.TestCase):
     def test03a_copy(self):
         """Checking EArray.copy() method (Numeric flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03a_copy..." % self.__class__.__name__
 
@@ -1662,7 +1662,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1672,14 +1672,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1701,7 +1701,7 @@ class CopyTestCase(unittest.TestCase):
     def test03b_copy(self):
         """Checking EArray.copy() method (python flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03b_copy..." % self.__class__.__name__
 
@@ -1716,7 +1716,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append(((456, 2),(3, 457)))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1726,14 +1726,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1757,7 +1757,7 @@ class CopyTestCase(unittest.TestCase):
     def test03d_copy(self):
         """Checking EArray.copy() method (python string flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03d_copy..." % self.__class__.__name__
 
@@ -1772,7 +1772,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append([["456", "2"],["3", "457"]])
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1782,14 +1782,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1814,7 +1814,7 @@ class CopyTestCase(unittest.TestCase):
     def test03e_copy(self):
         """Checking EArray.copy() method (String flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03e_copy..." % self.__class__.__name__
 
@@ -1829,7 +1829,7 @@ class CopyTestCase(unittest.TestCase):
         array1.append(numpy.array([["456", "2"],["3", "457"]], dtype="S4"))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1839,14 +1839,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1870,7 +1870,7 @@ class CopyTestCase(unittest.TestCase):
     def test04_copy(self):
         """Checking EArray.copy() method (checking title copying)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_copy..." % self.__class__.__name__
 
@@ -1888,7 +1888,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr2 = 2
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1898,7 +1898,7 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', title="title array2")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
@@ -1906,7 +1906,7 @@ class CopyTestCase(unittest.TestCase):
             array2 = fileh.root.array2
 
         # Assert user attributes
-        if verbose:
+        if common.verbose:
             print "title of destination array-->", array2.title
         array2.title == "title array2"
 
@@ -1917,7 +1917,7 @@ class CopyTestCase(unittest.TestCase):
     def test05_copy(self):
         """Checking EArray.copy() method (user attributes copied)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_copy..." % self.__class__.__name__
 
@@ -1935,7 +1935,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr2 = 2
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1945,14 +1945,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', copyuserattrs=1)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1967,7 +1967,7 @@ class CopyTestCase(unittest.TestCase):
     def test05b_copy(self):
         """Checking EArray.copy() method (user attributes not copied)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05b_copy..." % self.__class__.__name__
 
@@ -1985,7 +1985,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr2 = 2
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1995,14 +1995,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', copyuserattrs=0)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -2027,7 +2027,7 @@ class CopyIndexTestCase(unittest.TestCase):
     def test01_index(self):
         """Checking EArray.copy() method with indexes"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_index..." % self.__class__.__name__
 
@@ -2051,7 +2051,7 @@ class CopyIndexTestCase(unittest.TestCase):
                              start=self.start,
                              stop=self.stop,
                              step=self.step)
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             print "attrs array1-->", repr(array1.attrs)
@@ -2062,7 +2062,7 @@ class CopyIndexTestCase(unittest.TestCase):
         assert allequal(r2, array2.read())
 
         # Assert the number of rows in array
-        if verbose:
+        if common.verbose:
             print "nrows in array2-->", array2.nrows
             print "and it should be-->", r2.shape[0]
         assert r2.shape[0] == array2.nrows
@@ -2074,7 +2074,7 @@ class CopyIndexTestCase(unittest.TestCase):
     def test02_indexclosef(self):
         """Checking EArray.copy() method with indexes (close file version)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_indexclosef..." % self.__class__.__name__
 
@@ -2104,7 +2104,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1 = fileh.root.array1
         array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             print "attrs array1-->", repr(array1.attrs)
@@ -2115,7 +2115,7 @@ class CopyIndexTestCase(unittest.TestCase):
         assert allequal(r2, array2.read())
 
         # Assert the number of rows in array
-        if verbose:
+        if common.verbose:
             print "nrows in array2-->", array2.nrows
             print "and it should be-->", r2.shape[0]
         assert r2.shape[0] == array2.nrows
@@ -2196,7 +2196,7 @@ class TruncateTestCase(unittest.TestCase):
     def _test00_truncate(self):
         """Checking EArray.truncate() method (truncating to 0 rows)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_truncate..." % self.__class__.__name__
 
@@ -2220,13 +2220,13 @@ class TruncateTestCase(unittest.TestCase):
         array1.truncate(0)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
 
         assert allequal(array1[:], numpy.array([], dtype='Int16', shape=(0,2)))
@@ -2238,7 +2238,7 @@ class TruncateTestCase(unittest.TestCase):
     def test01_truncate(self):
         """Checking EArray.truncate() method (truncating to 1 rows)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_truncate..." % self.__class__.__name__
 
@@ -2262,13 +2262,13 @@ class TruncateTestCase(unittest.TestCase):
         array1.truncate(1)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
 
         assert allequal(array1.read(), numpy.array([[456, 2]], dtype='Int16'))
@@ -2280,7 +2280,7 @@ class TruncateTestCase(unittest.TestCase):
     def test02_truncate(self):
         """Checking EArray.truncate() method (truncating to >= earray.nrows)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_truncate..." % self.__class__.__name__
 
@@ -2304,13 +2304,13 @@ class TruncateTestCase(unittest.TestCase):
         array1.truncate(2)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
 
         assert allequal(array1.read(), numpy.array([[456, 2],[3, 457]],
@@ -2323,7 +2323,7 @@ class TruncateTestCase(unittest.TestCase):
     def test03_truncate(self):
         """Checking EArray.truncate() method (truncating to > earray.nrows)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_truncate..." % self.__class__.__name__
 
@@ -2347,13 +2347,13 @@ class TruncateTestCase(unittest.TestCase):
         array1.truncate(3)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
 
         assert allequal(array1.read(), numpy.array([[456, 2],[3, 457]],
@@ -2370,7 +2370,7 @@ class TruncateOpenTestCase(TruncateTestCase):
 class TruncateCloseTestCase(TruncateTestCase):
     close = 1
 
-# The next test should be run only in **heavy** mode
+# The next test should be run only in **common.heavy** mode
 class Rows64bitsTestCase(unittest.TestCase):
     narows = 1000*1000L   # each numpy object will have 1 million entries
     #narows = 1000L   # for testing only
@@ -2399,7 +2399,7 @@ class Rows64bitsTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -2410,7 +2410,7 @@ class Rows64bitsTestCase(unittest.TestCase):
         array = fileh.root.array
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 # Check how many entries there are in the array
                 print "Before closing"
                 print "Entries:", array.nrows, type(array.nrows)
@@ -2421,11 +2421,11 @@ class Rows64bitsTestCase(unittest.TestCase):
             # Re-open the file
             fileh = self.fileh = openFile(self.file)
             array = fileh.root.array
-            if verbose:
+            if common.verbose:
                 print "After re-open"
 
         # Check how many entries there are in the array
-        if verbose:
+        if common.verbose:
             print "Entries:", array.nrows, type(array.nrows)
             print "Entries:", array.nrows / (1000*1000), "Millions"
             print "Shape:", array.shape
@@ -2474,7 +2474,7 @@ class ZeroSizedTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test01_canAppend(self):
@@ -2502,7 +2502,7 @@ def suite():
     global numeric
     global numarray_imported
     niter = 1
-    #heavy = 1  # uncomment this only for testing purposes
+    #common.heavy = 1  # uncomment this only for testing purposes
 
     #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
     #theSuite.addTest(unittest.makeSuite(Rows64bitsTestCase1))
@@ -2553,7 +2553,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
         theSuite.addTest(unittest.makeSuite(ZeroSizedTestCase))
-    if heavy:
+    if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Ellipsis4EArrayTestCase))

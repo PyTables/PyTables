@@ -5,14 +5,15 @@ import numpy
 
 from tables import *
 from tables.tests import common
+from tables.tests import common
 from tables.tests.common import (
-    verbose, cleanup, allequal, numeric_imported)
+    allequal, numeric_imported)
 
 if numeric_imported:
     import Numeric
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 # Check read Tables from pytables version 0.8
 class BackCompatTablesTestCase(common.PyTablesTestCase):
@@ -22,7 +23,7 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
     def test01_readTable(self):
         """Checking backward compatibility of old formats of tables"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_readTable..." % self.__class__.__name__
 
@@ -35,7 +36,7 @@ class BackCompatTablesTestCase(common.PyTablesTestCase):
 
         # Read the 100 records
         result = [ rec['var2'] for rec in table]
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
@@ -66,7 +67,7 @@ class BackCompatAttrsTestCase(common.PyTablesTestCase):
     def test01_readAttr(self):
         """Checking backward compatibility of old formats for attributes"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_readAttr..." % self.__class__.__name__
 

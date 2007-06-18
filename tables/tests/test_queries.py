@@ -16,8 +16,8 @@ import unittest
 import numpy
 
 import tables
-import tables.tests.common as tests
-from tables.tests.common import verbosePrint as vprint
+from tables.tests import common
+from common import verbosePrint as vprint
 
 
 # Data parameters
@@ -61,11 +61,11 @@ nxtype_from_type = dict( (type_, info[1])
                          for (type_, info) in type_info.iteritems() )
 """Maps PyTables types to Numexpr types."""
 
-heavy_types = ['uint8', 'int16', 'uint16', 'float32', 'complex64']
-"""PyTables types to be tested only in heavy mode."""
+common.heavy_types = ['uint8', 'int16', 'uint16', 'float32', 'complex64']
+"""PyTables types to be tested only in common.heavy mode."""
 
-if not tests.heavy:
-    for type_ in heavy_types:
+if not common.heavy:
+    for type_ in common.heavy_types:
         for tdict in type_info, sctype_from_type, nxtype_from_type:
             del tdict[type_]
 
@@ -194,7 +194,7 @@ def fill_table(table, shape, nrows):
 
 # Base test cases
 # ---------------
-class BaseTableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
+class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     """
     Base test case for querying tables.
@@ -236,13 +236,13 @@ class BaseTableQueryTestCase(tests.TempFileMixin, tests.PyTablesTestCase):
 
         except TypeError, te:
             if self.colNotIndexable_re.search(str(te)):
-                raise tests.SkipTest(
+                raise common.SkipTest(
                     "Columns of this type can not be indexed." )
             raise
         except tables.NoIndexingError:
-            raise tests.SkipTest("Indexing is not supported.")
+            raise common.SkipTest("Indexing is not supported.")
         except NotImplementedError:
-            raise tests.SkipTest(
+            raise common.SkipTest(
                 "Indexing columns of this type is not supported yet." )
 
     def setUp(self):
@@ -265,7 +265,7 @@ class MDTableMixin:
 # ------------------------
 operators = [None, '<', '==', '!=', ('<', '<=')]
 """Comparison operators to check with different types."""
-if tests.heavy:
+if common.heavy:
     operators += ['~', '<=', '>=', '>', ('>', '>=')]
 left_bound = row_period / 4
 """Operand of left side operator in comparisons with operator pairs."""
@@ -339,7 +339,7 @@ def create_test_method(type_, op, extracond):
                 try:
                     isvalidrow = eval(pycond, {}, pyvars)
                 except TypeError:
-                    raise tests.SkipTest(
+                    raise common.SkipTest(
                         "The Python type does not support the operation." )
                 if isvalidrow:
                     pyrownos.append(row.nrow)
@@ -371,10 +371,10 @@ def create_test_method(type_, op, extracond):
                               for _ in range(2) ]
             except TypeError, te:
                 if self.condNotBoolean_re.search(str(te)):
-                    raise tests.SkipTest("The condition is not boolean.")
+                    raise common.SkipTest("The condition is not boolean.")
                 raise
             except NotImplementedError:
-                raise tests.SkipTest(
+                raise common.SkipTest(
                     "The PyTables type does not support the operation." )
             for ptfvals in ptfvalues:  # row numbers already sorted
                 ptfvals.sort()
@@ -401,7 +401,7 @@ for type_ in type_info:  # for type_ in ['String']:
             # identify failing methods in non-verbose mode.
             tmethod.__name__ = TableDataTestCase._testfmt % testn
             tmethod.__doc__ += ' [#%d]' % testn
-            ptmethod = tests.pyTablesTest(tmethod)
+            ptmethod = common.pyTablesTest(tmethod)
             imethod = new.instancemethod(ptmethod, None, TableDataTestCase)
             setattr(TableDataTestCase, tmethod.__name__, imethod)
             testn += 1
@@ -423,7 +423,7 @@ class BigNITableMixin:
 
 # Parameters for non-indexed queries.
 table_sizes = ['Small']
-if tests.heavy:
+if common.heavy:
     table_sizes += ['Big']
 table_ndims = ['Scalar']  # to enable multidimensional testing, include 'MD'
 
@@ -453,7 +453,7 @@ class BigITableMixin:
 # Parameters for indexed queries.
 itable_sizes = ['Small']
 itable_optvalues = [0, 1, 3]
-if tests.heavy:
+if common.heavy:
     itable_sizes += ['Medium', 'Big']
     itable_optvalues += [7, 9]
 
@@ -660,7 +660,7 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
             self.assert_( willQueryUseIndexing(condition, {'var': 0}),
                           "query with condition ``%s`` should use indexing"
                           % condition )
-            tests.verbosePrint(
+            vprint(
                 "* Query with condition ``%s`` will use indexing."
                 % condition )
 

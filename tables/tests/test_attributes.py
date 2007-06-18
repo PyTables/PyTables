@@ -11,10 +11,11 @@ import numpy
 from numpy.testing import assert_array_equal, assert_almost_equal
 
 from tables import *
-from tables.tests.common import verbose, heavy, cleanup, allequal
+from tables.tests import common
+from tables.tests.common import allequal
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 class Record(IsDescription):
     var1 = StringCol(itemsize=4)  # 4-character String
@@ -44,7 +45,7 @@ class CreateTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 #---------------------------------------
 
@@ -63,7 +64,7 @@ class CreateTestCase(unittest.TestCase):
                                        "attr1", "n" * attrlength)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -89,7 +90,7 @@ class CreateTestCase(unittest.TestCase):
         self.root.anarray.setAttr('attr1', "n" * attrlength)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -111,7 +112,7 @@ class CreateTestCase(unittest.TestCase):
         self.array.attrs.attr1 = "n" * attrlength
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -128,25 +129,25 @@ class CreateTestCase(unittest.TestCase):
         self.group._v_attrs.pq = "1"
         self.group._v_attrs.qr = "2"
         self.group._v_attrs.rs = "3"
-        if verbose:
+        if common.verbose:
             print "Attribute list:", self.group._v_attrs._f_list()
 
         # Now, try with a Table object
         self.table.attrs.a = "1"
         self.table.attrs.c = "2"
         self.table.attrs.b = "3"
-        if verbose:
+        if common.verbose:
             print "Attribute list:", self.table.attrs._f_list()
 
         # Finally, try with an Array object
         self.array.attrs.k = "1"
         self.array.attrs.j = "2"
         self.array.attrs.i = "3"
-        if verbose:
+        if common.verbose:
             print "Attribute list:", self.array.attrs._f_list()
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -198,17 +199,17 @@ class CreateTestCase(unittest.TestCase):
         del self.group._v_attrs.pq
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
             self.root = self.fileh.root
 
-        if verbose:
+        if common.verbose:
             print "Attribute list:", self.root.agroup._v_attrs._f_list()
         # Check the local attributes names
         assert self.root.agroup._v_attrs._f_list() == ["qr", "rs"]
-        if verbose:
+        if common.verbose:
             print "Attribute list in disk:", \
                   self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names
@@ -217,11 +218,11 @@ class CreateTestCase(unittest.TestCase):
 
         # delete an attribute (__delattr__ method)
         del self.root.agroup._v_attrs.qr
-        if verbose:
+        if common.verbose:
             print "Attribute list:", self.root.agroup._v_attrs._f_list()
         # Check the local attributes names
         assert self.root.agroup._v_attrs._f_list() == ["rs"]
-        if verbose:
+        if common.verbose:
             print "Attribute list in disk:", \
                   self.root.agroup._v_attrs._g_listAttr()
         # Check the disk attribute names
@@ -239,17 +240,17 @@ class CreateTestCase(unittest.TestCase):
         self.fileh.delNodeAttr(self.group, "pq")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
             self.root = self.fileh.root
 
-        if verbose:
+        if common.verbose:
             print "Attribute list:", self.root.agroup._v_attrs._f_list()
         # Check the local attributes names
         assert self.root.agroup._v_attrs._f_list() == ["qr", "rs"]
-        if verbose:
+        if common.verbose:
             print "Attribute list in disk:", \
                   self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names
@@ -258,11 +259,11 @@ class CreateTestCase(unittest.TestCase):
 
         # delete an attribute (File.delNodeAttr method)
         self.fileh.delNodeAttr(self.root, "qr", "agroup")
-        if verbose:
+        if common.verbose:
             print "Attribute list:", self.root.agroup._v_attrs._f_list()
         # Check the local attributes names
         assert self.root.agroup._v_attrs._f_list() == ["rs"]
-        if verbose:
+        if common.verbose:
             print "Attribute list in disk:", \
                   self.root.agroup._v_attrs._g_listAttr()
         # Check the disk attribute names
@@ -273,13 +274,13 @@ class CreateTestCase(unittest.TestCase):
         """Checking removing system attributes """
 
         # remove a system attribute
-        if verbose:
+        if common.verbose:
             print "Before removing CLASS attribute"
             print "System attrs:", self.group._v_attrs._v_attrnamessys
         del self.group._v_attrs.CLASS
         assert self.group._v_attrs._f_list("sys") == \
                ['TITLE', 'VERSION']
-        if verbose:
+        if common.verbose:
             print "After removing CLASS attribute"
             print "System attrs:", self.group._v_attrs._v_attrnamessys
 
@@ -294,17 +295,17 @@ class CreateTestCase(unittest.TestCase):
         self.group._v_attrs._f_rename("pq", "op")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
             self.root = self.fileh.root
 
-        if verbose:
+        if common.verbose:
             print "Attribute list:", self.root.agroup._v_attrs._f_list()
         # Check the local attributes names (alphabetically sorted)
         assert self.root.agroup._v_attrs._f_list() == ["op", "qr", "rs"]
-        if verbose:
+        if common.verbose:
             print "Attribute list in disk:", self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
         assert self.root.agroup._v_attrs._f_list("all") == \
@@ -313,12 +314,12 @@ class CreateTestCase(unittest.TestCase):
     def test08_renameAttributes(self):
         """Checking renaming system attributes """
 
-        if verbose:
+        if common.verbose:
             print "Before renaming CLASS attribute"
             print "All attrs:", self.group._v_attrs._v_attrnames
         # rename a system attribute
         self.group._v_attrs._f_rename("CLASS", "op")
-        if verbose:
+        if common.verbose:
             print "After renaming CLASS attribute"
             print "All attrs:", self.group._v_attrs._v_attrnames
             
@@ -339,19 +340,19 @@ class CreateTestCase(unittest.TestCase):
         self.group._v_attrs.rs = [1,2,3]
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
             self.root = self.fileh.root
 
-        if verbose:
+        if common.verbose:
             print "Value of Attribute pq:", self.root.agroup._v_attrs.pq
         # Check the local attributes names (alphabetically sorted)
         assert self.root.agroup._v_attrs.pq == "4"
         assert self.root.agroup._v_attrs.qr == 2
         assert self.root.agroup._v_attrs.rs == [1,2,3]
-        if verbose:
+        if common.verbose:
             print "Attribute list in disk:", \
                   self.root.agroup._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
@@ -369,17 +370,17 @@ class CreateTestCase(unittest.TestCase):
         self.group._v_attrs._f_copy(self.root.atable)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
             self.root = self.fileh.root
 
-        if verbose:
+        if common.verbose:
             print "Attribute list:", self.root.atable._v_attrs._f_list()
         # Check the local attributes names (alphabetically sorted)
         assert self.root.atable._v_attrs._f_list() == ["pq", "qr", "rs"]
-        if verbose:
+        if common.verbose:
             print "Complete attribute list:", self.root.atable._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
         assert self.root.atable._v_attrs._f_list("all") == \
@@ -404,17 +405,17 @@ class CreateTestCase(unittest.TestCase):
         self.fileh.copyNodeAttrs(self.group, self.root.atable)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
             self.root = self.fileh.root
 
-        if verbose:
+        if common.verbose:
             print "Attribute list:", self.root.atable._v_attrs._f_list()
         # Check the local attributes names (alphabetically sorted)
         assert self.root.atable._v_attrs._f_list() == ["pq", "qr", "rs"]
-        if verbose:
+        if common.verbose:
             print "Complete attribute list:", self.root.atable._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
         assert self.root.atable._v_attrs._f_list("all") == \
@@ -453,7 +454,7 @@ class TypesTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 #---------------------------------------
 
@@ -465,13 +466,13 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.rs = True
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
             print "qr -->", self.array.attrs.qr
             print "rs -->", self.array.attrs.rs
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -490,13 +491,13 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.rs = numpy.bool_(True)
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
             print "qr -->", self.array.attrs.qr
             print "rs -->", self.array.attrs.rs
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -518,13 +519,13 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.rs = numpy.array(True)
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
             print "qr -->", self.array.attrs.qr
             print "rs -->", self.array.attrs.rs
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -543,13 +544,13 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.rs = numpy.array([[True, False],[True, False]])
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
             print "qr -->", self.array.attrs.qr
             print "rs -->", self.array.attrs.rs
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -569,13 +570,13 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.rs = 3
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
             print "qr -->", self.array.attrs.qr
             print "rs -->", self.array.attrs.rs
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -600,12 +601,12 @@ class TypesTestCase(unittest.TestCase):
             setattr(self.array.attrs, dtype, numpy.array(1, dtype=dtype))
 
         # Check the results
-        if verbose:
+        if common.verbose:
             for dtype in checktypes:
                 print "type, value-->", dtype, getattr(self.array.attrs, dtype)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -629,7 +630,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -637,7 +638,7 @@ class TypesTestCase(unittest.TestCase):
             self.array = self.fileh.root.anarray
 
         for dtype in checktypes:
-            if verbose:
+            if common.verbose:
                 print "type, value-->", dtype, getattr(self.array.attrs, dtype)
             assert_array_equal(getattr(self.array.attrs, dtype),
                                numpy.array([1,2], dtype=dtype))
@@ -654,7 +655,7 @@ class TypesTestCase(unittest.TestCase):
                     numpy.array([[1,2],[2,3]], dtype=dtype))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -663,7 +664,7 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         for dtype in checktypes:
-            if verbose:
+            if common.verbose:
                 print "type, value-->", dtype, getattr(self.array.attrs, dtype)
             assert_array_equal(getattr(self.array.attrs, dtype),
                                numpy.array([[1,2],[2,3]], dtype=dtype))
@@ -677,13 +678,13 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.rs = 3.0
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
             print "qr -->", self.array.attrs.qr
             print "rs -->", self.array.attrs.rs
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -707,12 +708,12 @@ class TypesTestCase(unittest.TestCase):
                     numpy.array(1.1, dtype=dtype))
 
         # Check the results
-        if verbose:
+        if common.verbose:
             for dtype in checktypes:
                 print "type, value-->", dtype, getattr(self.array.attrs, dtype)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -734,12 +735,12 @@ class TypesTestCase(unittest.TestCase):
                     numpy.array([1.1,2.1], dtype=dtype))
 
         # Check the results
-        if verbose:
+        if common.verbose:
             for dtype in checktypes:
                 print "type, value-->", dtype, getattr(self.array.attrs, dtype)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -760,12 +761,12 @@ class TypesTestCase(unittest.TestCase):
                     numpy.array([[1.1,2.1],[2.1,3.1]], dtype=dtype))
 
         # Check the results
-        if verbose:
+        if common.verbose:
             for dtype in checktypes:
                 print "type, value-->", dtype, getattr(self.array.attrs, dtype)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -785,13 +786,13 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.rs = {"ddf":32.1, "dsd":1}
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
             print "qr -->", self.array.attrs.qr
             print "rs -->", self.array.attrs.rs
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -810,13 +811,13 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.rs = 'baz'
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
             print "qr -->", self.array.attrs.qr
             print "rs -->", self.array.attrs.rs
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -837,11 +838,11 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.pq = numpy.array(['foo'])
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -858,17 +859,17 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.pq = numpy.array([''])
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
             self.root = self.fileh.root
             self.array = self.fileh.root.anarray
-            if verbose:
+            if common.verbose:
                 print "pq -->", self.array.attrs.pq
 
         assert_array_equal(self.root.anarray.attrs.pq,
@@ -880,11 +881,11 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.pq = numpy.array(['foo', 'bar3'])
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -900,11 +901,11 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.pq = numpy.array(['', ''])
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -921,11 +922,11 @@ class TypesTestCase(unittest.TestCase):
                                            ['foo3', 'foo4']])
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -945,13 +946,13 @@ class TypesTestCase(unittest.TestCase):
         self.array.attrs.rs = 3.0+4j
 
         # Check the results
-        if verbose:
+        if common.verbose:
             print "pq -->", self.array.attrs.pq
             print "qr -->", self.array.attrs.qr
             print "rs -->", self.array.attrs.rs
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -975,12 +976,12 @@ class TypesTestCase(unittest.TestCase):
                     numpy.array(1.1+2j, dtype=dtype))
 
         # Check the results
-        if verbose:
+        if common.verbose:
             for dtype in checktypes:
                 print "type, value-->", dtype, getattr(self.array.attrs, dtype)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -1002,12 +1003,12 @@ class TypesTestCase(unittest.TestCase):
                     numpy.array([1.1,2.1], dtype=dtype))
 
         # Check the results
-        if verbose:
+        if common.verbose:
             for dtype in checktypes:
                 print "type, value-->", dtype, getattr(self.array.attrs, dtype)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -1028,12 +1029,12 @@ class TypesTestCase(unittest.TestCase):
                     numpy.array([[1.1,2.1],[2.1,3.1]], dtype=dtype))
 
         # Check the results
-        if verbose:
+        if common.verbose:
             for dtype in checktypes:
                 print "type, value-->", dtype, getattr(self.array.attrs, dtype)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
             self.fileh = openFile(self.file, mode = "r+")
@@ -1057,7 +1058,6 @@ class CloseTypesTestCase(TypesTestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
-    #heavy = 1 # Uncomment this only for testing purposes!
 
     #theSuite.addTest(unittest.makeSuite(NotCloseTypesTestCase))
     #theSuite.addTest(unittest.makeSuite(CloseCreateTestCase))

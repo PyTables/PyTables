@@ -16,7 +16,6 @@ import numpy
 
 import tables as t
 from tables.tests import common
-from tables.tests.common import verbose
 from tables.description import Description
 
 minRowIndex = 10
@@ -194,7 +193,7 @@ class DescriptionTestCase(common.PyTablesTestCase):
         """Checking attrs of an instance of a nested description."""
 
         descr = Description(self._TestTDescr().columns)
-        if verbose:
+        if common.verbose:
             print "Generated description:", descr._v_nestedDescr
             print "Should look like:", self._testADescr2
         self.assert_(self._testADescr2 == descr._v_nestedDescr,
@@ -291,7 +290,7 @@ class CreateTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._testAData, title=self._getMethodName())
         tbl.flush()
         readAData = tbl.read()
-        if verbose:
+        if common.verbose:
             print "Read data:", readAData
             print "Should look like:", self._testAData
         self.assert_(common.areArraysEqual(self._testAData, readAData),
@@ -476,7 +475,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         raReadTable = tbl.read()
-        if verbose:
+        if common.verbose:
             print "Table read:", raReadTable
             print "Should look like:", raTable
 
@@ -508,7 +507,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         raReadTable = tbl.read()
-        if verbose:
+        if common.verbose:
             print "Table read:", raReadTable
             print "Should look like:", raTable
 
@@ -547,7 +546,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         raCols2 = numpy.rec.fromarrays([tbl.cols._f_col('x'),
                                         tbl.cols._f_col('color')],
                                        dtype=raCols.dtype)
-        if verbose:
+        if common.verbose:
             print "Table read:", raCols2
             print "Should look like:", raCols
 
@@ -576,7 +575,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         raReadTable = tbl.read()
-        if verbose:
+        if common.verbose:
             print "Table read:", raReadTable
             print "Should look like:", raTable
 
@@ -602,7 +601,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
             coltoindex = tbl.cols._f_col(self._testCondCol)
 
-        if verbose:
+        if common.verbose:
             print "Number of written rows:", tbl.nrows
             print "Number of indexed rows:", coltoindex.index.nelements
 
@@ -616,7 +615,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         searchedCoords.sort()
 
         expectedCoords = numpy.arange(0, minRowIndex*2, 2, 'int64')
-        if verbose:
+        if common.verbose:
             print "Searched coords:", searchedCoords
             print "Expected coords:", expectedCoords
         # All even rows match the condition.
@@ -650,7 +649,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        if verbose:
+        if common.verbose:
             print "str(tbl)-->", str(tbl)
             print "repr(tbl)-->", repr(tbl)
 
@@ -692,7 +691,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        if verbose:
+        if common.verbose:
             print "str(tbl.cols.y)-->'%s'" % str(tbl.cols.y)
             print "repr(tbl.cols.y)-->'%s'" % repr(tbl.cols.y)
 
@@ -712,7 +711,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        if verbose:
+        if common.verbose:
             print "str(tbl.cols.Info.z2)-->'%s'" % str(tbl.cols.Info.z2)
             print "repr(tbl.cols.Info.z2)-->'%s'" % repr(tbl.cols.Info.z2)
 
@@ -736,7 +735,7 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                 dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.read(start=0, step=2, field='Info')
         nrarrcols = nrarr['Info'][0::2]
-        if verbose:
+        if common.verbose:
             print "Read cols:", tblcols
             print "Should look like:", nrarrcols
         self.assert_(common.areArraysEqual(nrarrcols, tblcols),
@@ -786,7 +785,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        if verbose:
+        if common.verbose:
             print "str(tbl.cols)-->", str(tbl.cols)
             print "repr(tbl.cols)-->", repr(tbl.cols)
 
@@ -811,7 +810,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._reopen()
             tbl = self.h5file.root.test
 
-        if verbose:
+        if common.verbose:
             print "str(tbl.cols.Info)-->", str(tbl.cols.Info)
             print "repr(tbl.cols.Info)-->", repr(tbl.cols.Info)
 
@@ -836,7 +835,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         tblcol = tbl.cols._f_col(self._testNestedCol)
-        if verbose:
+        if common.verbose:
             print "Column group name:", tblcol._v_desc._v_pathname
         self.assert_(tblcol._v_desc._v_pathname == self._testNestedCol,
                      "Column group name doesn't match.")
@@ -852,7 +851,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         tblcol = tbl.cols._f_col(self._testNestedCol+"/name")
-        if verbose:
+        if common.verbose:
             print "Column name:", tblcol.name
         self.assert_(tblcol.name == "name",
                      "Column name doesn't match.")
@@ -864,7 +863,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             '/', 'test', self._TestTDescr, title=self._getMethodName())
 
         tblcol = tbl.cols._f_col(self._testNestedCol+"/Info2")
-        if verbose:
+        if common.verbose:
             print "Column group name:", tblcol._v_desc._v_pathname
         self.assert_(tblcol._v_desc._v_pathname == self._testNestedCol+"/Info2",
                      "Column group name doesn't match.")
@@ -880,7 +879,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         length = len(tbl.cols)
-        if verbose:
+        if common.verbose:
             print "Column group length:", length
         self.assert_(length == tbl.nrows,
                      "Column group length doesn't match.")
@@ -896,7 +895,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         length = len(tbl.cols.Info)
-        if verbose:
+        if common.verbose:
             print "Column group length:", length
         self.assert_(length == tbl.nrows,
                      "Column group length doesn't match.")
@@ -915,7 +914,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols[1]
         nrarrcols = nrarr[1]
-        if verbose:
+        if common.verbose:
             print "Read cols:", tblcols
             print "Should look like:", nrarrcols
         self.assert_(common.areArraysEqual(nrarrcols, tblcols),
@@ -935,7 +934,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols[0:2]
         nrarrcols = nrarr[0:2]
-        if verbose:
+        if common.verbose:
             print "Read cols:", tblcols
             print "Should look like:", nrarrcols
         self.assert_(common.areArraysEqual(nrarrcols, tblcols),
@@ -955,7 +954,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols[0::2]
         nrarrcols = nrarr[0::2]
-        if verbose:
+        if common.verbose:
             print "Read cols:", tblcols
             print "Should look like:", nrarrcols
         self.assert_(common.areArraysEqual(nrarrcols, tblcols),
@@ -976,7 +975,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info')[1]
         nrarrcols = nrarr['Info'][1]
-        if verbose:
+        if common.verbose:
             print "Read cols:", tblcols
             print "Should look like:", nrarrcols
         self.assert_(common.areArraysEqual(nrarrcols, tblcols),
@@ -996,7 +995,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info')[0:2]
         nrarrcols = nrarr['Info'][0:2]
-        if verbose:
+        if common.verbose:
             print "Read cols:", tblcols
             print "Should look like:", nrarrcols
         self.assert_(common.areArraysEqual(nrarrcols, tblcols),
@@ -1016,7 +1015,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info')[0::2]
         nrarrcols = nrarr['Info'][0::2]
-        if verbose:
+        if common.verbose:
             print "Read cols:", tblcols
             print "Should look like:", nrarrcols
         self.assert_(common.areArraysEqual(nrarrcols, tblcols),
@@ -1036,7 +1035,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info/value')[1]
         nrarrcols = nrarr['Info']['value'][1]
-        if verbose:
+        if common.verbose:
             print "Read cols:", tblcols
             print "Should look like:", nrarrcols
         self.assert_(nrarrcols == tblcols,
@@ -1056,7 +1055,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info/value')[0:2]
         nrarrcols = nrarr['Info']['value'][0:2]
-        if verbose:
+        if common.verbose:
             print "Read cols:", tblcols
             print "Should look like:", nrarrcols
         self.assert_(common.areArraysEqual(nrarrcols, tblcols),
@@ -1076,7 +1075,7 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         nrarr = numpy.array(testABuffer, dtype=tbl.description._v_nestedDescr)
         tblcols = tbl.cols._f_col('Info/value')[0::2]
         nrarrcols = nrarr['Info']['value'][0::2]
-        if verbose:
+        if common.verbose:
             print "Read cols:", tblcols
             print "Should look like:", nrarrcols
         self.assert_(common.areArraysEqual(nrarrcols, tblcols),
@@ -1140,7 +1139,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
-        if verbose:
+        if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
         self.assert_(names == self.correct_names,
@@ -1157,7 +1156,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
-        if verbose:
+        if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
         self.assert_(names == self.correct_names,
@@ -1174,7 +1173,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
-        if verbose:
+        if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
         self.assert_(names == self.correct_names,
@@ -1191,7 +1190,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
-        if verbose:
+        if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
         self.assert_(names == self.correct_names,
@@ -1208,7 +1207,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
-        if verbose:
+        if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
         self.assert_(names == self.correct_names,
@@ -1225,7 +1224,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
             tbl = self.h5file.root.test
 
         names = [col._v_pathname for col in tbl.description._f_walk(type="All")]
-        if verbose:
+        if common.verbose:
             print "Pathnames of columns:", names
             print "Should look like:", self.correct_names
         self.assert_(names == self.correct_names,
@@ -1268,7 +1267,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
         i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
 
-        if verbose:
+        if common.verbose:
            print "Retrieved values (i1):", i1res
            print "Should look like:", range(10)
            print "Retrieved values (i2):", i2res
@@ -1318,7 +1317,7 @@ class SameNestedTestCase(common.TempFileMixin, common.PyTablesTestCase):
         i1res = [row[i1] for row in tbl.where('i1 < 10', cols)]
         i2res = [row[i2] for row in tbl.where('i2 < 10', cols)]
 
-        if verbose:
+        if common.verbose:
            print "Retrieved values (i1):", i1res
            print "Should look like:", range(10)
            print "Retrieved values (i2):", i2res
@@ -1346,7 +1345,7 @@ def suite():
 
     theSuite = unittest.TestSuite()
     niter = 1
-    #heavy = 1  # uncomment this only for testing purposes
+    #common.heavy = 1  # uncomment this only for testing purposes
 
     #theSuite.addTest(unittest.makeSuite(DescriptionTestCase))
     #theSuite.addTest(unittest.makeSuite(WriteReopen))

@@ -11,9 +11,9 @@ from tables import *
 
 from tables.tests import common
 from tables.utils import byteorders
+from tables.tests import common
 from tables.tests.common import (
-    verbose, allequal, cleanup,
-    numeric_imported, numarray_imported)
+    allequal, numeric_imported, numarray_imported)
 
 if numarray_imported:
     import numarray
@@ -21,7 +21,7 @@ if numeric_imported:
     import Numeric
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 warnings.resetwarnings()
 
@@ -33,7 +33,7 @@ class BasicTestCase(unittest.TestCase):
     endiancheck = False
 
     def WriteRead(self, testArray):
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running test for array with type '%s'" % \
                   testArray.dtype.type,
@@ -64,7 +64,7 @@ class BasicTestCase(unittest.TestCase):
         b = self.root.somearray.read()
 
         # Compare them. They should be equal.
-        if verbose and not allequal(a,b):
+        if common.verbose and not allequal(a,b):
             print "Write and read arrays differ!"
             #print "Array written:", a
             print "Array written shape:", a.shape
@@ -277,10 +277,10 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
 
         # Then, delete the file
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     def WriteRead(self, testArray):
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "\nRunning test for array with type '%s'" % \
                   testArray.dtype.type
@@ -308,7 +308,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         c = a.newbyteorder(byteorder)
 
         # Compare them. They should be equal.
-        if not allequal(c,b) and verbose:
+        if not allequal(c,b) and common.verbose:
             print "Write and read arrays differ!"
             print "Array written:", a
             print "Array written shape:", a.shape
@@ -447,7 +447,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         array[2:4, 3:5] = b
         # Check that the array is back in the correct byteorder
         c = array[...]
-        if verbose:
+        if common.verbose:
             print "byteorder of array on disk-->", array.byteorder
             print "byteorder of subarray-->", b.dtype.byteorder
             print "subarray-->", b
@@ -481,7 +481,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         array[2:4, 3:5] = b
         # Check that the array is back in the correct byteorder
         c = array[...]
-        if verbose:
+        if common.verbose:
             print "byteorder of array on disk-->", array.byteorder
             print "byteorder of subarray-->", b.dtype.byteorder
             print "subarray-->", b
@@ -515,7 +515,7 @@ class GroupsArrayTestCase(unittest.TestCase):
     def test00_iterativeGroups(self):
         """Checking combinations of arrays with groups."""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_iterativeGroups..." % \
                   self.__class__.__name__
@@ -539,7 +539,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         for i, typecode in enumerate(typecodes):
             a = numpy.ones((3,), typecode)
             dsetname = 'array_' + typecode
-            if verbose:
+            if common.verbose:
                 print "Creating dataset:", group._g_join(dsetname)
             hdfarray = fileh.createArray(group, dsetname, a, "Large array")
             group = fileh.createGroup(group, 'group' + str(i))
@@ -560,7 +560,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             dset = getattr(group, 'array_' + typecodes[i])
             # Get the actual array
             b = dset.read()
-            if verbose:
+            if common.verbose:
                 print "Info from dataset:", dset._v_pathname
                 print "  shape ==>", dset.shape,
                 print "  type ==> %s" % dset.atom.dtype
@@ -593,7 +593,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         minrank = 1
         maxrank = 32
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_largeRankArrays..." % \
                   self.__class__.__name__
@@ -603,12 +603,12 @@ class GroupsArrayTestCase(unittest.TestCase):
         file = "test_array.h5"
         fileh = openFile(file, mode = "w")
         group = fileh.root
-        if verbose:
+        if common.verbose:
             print "Rank array writing progress: ",
         for rank in range(minrank, maxrank + 1):
             # Create an array of integers, with incrementally bigger ranges
             a = numpy.ones((1,) * rank, numpy.int32)
-            if verbose:
+            if common.verbose:
                 print "%3d," % (rank),
             fileh.createArray(group, "array", a, "Rank: %s" % rank)
             group = fileh.createGroup(group, 'group' + str(rank))
@@ -620,7 +620,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         # Open the previous HDF5 file in read-only mode
         fileh = openFile(file, mode = "r")
         group = fileh.root
-        if verbose:
+        if common.verbose:
             print
             print "Rank array reading progress: "
         # Get the metadata on the previosly saved arrays
@@ -629,9 +629,9 @@ class GroupsArrayTestCase(unittest.TestCase):
             a = numpy.ones((1,) * rank, numpy.int32)
             # Get the actual array
             b = group.array.read()
-            if verbose:
+            if common.verbose:
                 print "%3d," % (rank),
-            if verbose and not allequal(a,b):
+            if common.verbose and not allequal(a,b):
                 print "Info from dataset:", dset._v_pathname
                 print "  Shape: ==>", dset.shape,
                 print "  typecode ==> %c" % dset.typecode
@@ -651,7 +651,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             # Iterate over the next group
             group = fileh.getNode(group, 'group' + str(rank))
 
-        if verbose:
+        if common.verbose:
             print # This flush the stdout buffer
         # Close the file
         fileh.close()
@@ -664,7 +664,7 @@ class CopyTestCase(unittest.TestCase):
     def test01_copy(self):
         """Checking Array.copy() method """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_copy..." % self.__class__.__name__
 
@@ -680,14 +680,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             #print "dirs-->", dir(array1), dir(array2)
@@ -710,7 +710,7 @@ class CopyTestCase(unittest.TestCase):
     def test02_copy(self):
         """Checking Array.copy() method (where specified)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_copy..." % self.__class__.__name__
 
@@ -727,14 +727,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy(group1, 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             #print "dirs-->", dir(array1), dir(array2)
@@ -757,7 +757,7 @@ class CopyTestCase(unittest.TestCase):
     def test03_copy(self):
         """Checking Array.copy() method (Numeric flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_copy..." % self.__class__.__name__
 
@@ -778,14 +778,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -802,7 +802,7 @@ class CopyTestCase(unittest.TestCase):
     def test04_copy(self):
         """Checking Array.copy() method (checking title copying)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_copy..." % self.__class__.__name__
 
@@ -820,7 +820,7 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', title="title array2")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
@@ -828,7 +828,7 @@ class CopyTestCase(unittest.TestCase):
             array2 = fileh.root.array2
 
         # Assert user attributes
-        if verbose:
+        if common.verbose:
             print "title of destination array-->", array2.title
         array2.title == "title array2"
 
@@ -839,7 +839,7 @@ class CopyTestCase(unittest.TestCase):
     def test05_copy(self):
         """Checking Array.copy() method (user attributes copied)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_copy..." % self.__class__.__name__
 
@@ -857,14 +857,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', copyuserattrs=1)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -879,7 +879,7 @@ class CopyTestCase(unittest.TestCase):
     def test05b_copy(self):
         """Checking Array.copy() method (user attributes not copied)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05b_copy..." % self.__class__.__name__
 
@@ -897,14 +897,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', copyuserattrs=0)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -927,7 +927,7 @@ class CopyIndexTestCase(unittest.TestCase):
     def test01_index(self):
         """Checking Array.copy() method with indexes"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_index..." % self.__class__.__name__
 
@@ -945,7 +945,7 @@ class CopyIndexTestCase(unittest.TestCase):
                              start=self.start,
                              stop=self.stop,
                              step=self.step)
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             print "attrs array1-->", repr(array1.attrs)
@@ -956,7 +956,7 @@ class CopyIndexTestCase(unittest.TestCase):
         allequal(r2, array2.read())
 
         # Assert the number of rows in array
-        if verbose:
+        if common.verbose:
             print "nrows in array2-->", array2.nrows
             print "and it should be-->", r2.shape[0]
         assert r2.shape[0] == array2.nrows
@@ -968,7 +968,7 @@ class CopyIndexTestCase(unittest.TestCase):
     def test02_indexclosef(self):
         """Checking Array.copy() method with indexes (close file version)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_indexclosef..." % self.__class__.__name__
 
@@ -992,7 +992,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1 = fileh.root.array1
         array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             print "attrs array1-->", repr(array1.attrs)
@@ -1003,7 +1003,7 @@ class CopyIndexTestCase(unittest.TestCase):
         allequal(r2, array2.read())
 
         # Assert the number of rows in array
-        if verbose:
+        if common.verbose:
             print "nrows in array2-->", array2.nrows
             print "and it should be-->", r2.shape[0]
         assert r2.shape[0] == array2.nrows
@@ -1090,7 +1090,7 @@ class GetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original first element:", a[0]
             print "Read first element:", arr[0]
         assert allequal(a[0], arr[0])
@@ -1116,7 +1116,7 @@ class GetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original first element:", a[0]
             print "Read first element:", arr[0]
         assert a[0] == arr[0]
@@ -1142,7 +1142,7 @@ class GetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4]
             print "Read elements:", arr[1:4]
         assert allequal(a[1:4], arr[1:4])
@@ -1168,7 +1168,7 @@ class GetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4]
             print "Read elements:", arr[1:4]
         assert allequal(a[1:4], arr[1:4])
@@ -1194,7 +1194,7 @@ class GetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4:2]
             print "Read elements:", arr[1:4:2]
         assert allequal(a[1:4:2], arr[1:4:2])
@@ -1220,7 +1220,7 @@ class GetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4:2]
             print "Read elements:", arr[1:4:2]
         assert allequal(a[1:4:2], arr[1:4:2])
@@ -1245,7 +1245,7 @@ class GetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original last element:", a[-1]
             print "Read last element:", arr[-1]
         assert allequal(a[-1], arr[-1])
@@ -1271,7 +1271,7 @@ class GetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original before last element:", a[-2]
             print "Read before last element:", arr[-2]
         if isinstance(a[-2], numpy.ndarray):
@@ -1300,7 +1300,7 @@ class GetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original last elements:", a[-4:-1]
             print "Read last elements:", arr[-4:-1]
         assert allequal(a[-4:-1], arr[-4:-1])
@@ -1325,7 +1325,7 @@ class GetItemTestCase(unittest.TestCase):
             arr = fileh.root.somearray
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original last elements:", a[-4:-1]
             print "Read last elements:", arr[-4:-1]
         assert allequal(a[-4:-1], arr[-4:-1])
@@ -1397,7 +1397,7 @@ class SetItemTestCase(unittest.TestCase):
         arr[0] = "b"
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original first element:", a[0]
             print "Read first element:", arr[0]
         assert allequal(a[0], arr[0])
@@ -1427,7 +1427,7 @@ class SetItemTestCase(unittest.TestCase):
         arr[0] = 333
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original first element:", a[0]
             print "Read first element:", arr[0]
         assert a[0] == arr[0]
@@ -1457,7 +1457,7 @@ class SetItemTestCase(unittest.TestCase):
         arr[1:3] = "xXx"
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4]
             print "Read elements:", arr[1:4]
         assert allequal(a[1:4], arr[1:4])
@@ -1489,7 +1489,7 @@ class SetItemTestCase(unittest.TestCase):
         arr[s] = rng
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4]
             print "Read elements:", arr[1:4]
         assert allequal(a[1:4], arr[1:4])
@@ -1520,7 +1520,7 @@ class SetItemTestCase(unittest.TestCase):
         arr[s] = "xXx"
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4:2]
             print "Read elements:", arr[1:4:2]
         assert allequal(a[1:4:2], arr[1:4:2])
@@ -1552,7 +1552,7 @@ class SetItemTestCase(unittest.TestCase):
         arr[s] = rng
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4:2]
             print "Read elements:", arr[1:4:2]
         assert allequal(a[1:4:2], arr[1:4:2])
@@ -1583,7 +1583,7 @@ class SetItemTestCase(unittest.TestCase):
         arr[s] = "xXx"
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original last element:", a[-1]
             print "Read last element:", arr[-1]
         assert allequal(a[-1], arr[-1])
@@ -1614,7 +1614,7 @@ class SetItemTestCase(unittest.TestCase):
         arr[s] = arr[s]*2+3
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original before last element:", a[-2]
             print "Read before last element:", arr[-2]
         if isinstance(a[-2], numpy.ndarray):
@@ -1648,7 +1648,7 @@ class SetItemTestCase(unittest.TestCase):
         arr[s] = "xXx"
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original last elements:", a[-4:-1]
             print "Read last elements:", arr[-4:-1]
         assert allequal(a[-4:-1], arr[-4:-1])
@@ -1680,7 +1680,7 @@ class SetItemTestCase(unittest.TestCase):
         arr[s] = rng
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original last elements:", a[-4:-1]
             print "Read last elements:", arr[-4:-1]
         assert allequal(a[-4:-1], arr[-4:-1])
@@ -1714,7 +1714,7 @@ class SetItemTestCase(unittest.TestCase):
         arr[s2] = rng2
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original last elements:", a[-4:-1]
             print "Read last elements:", arr[-4:-1]
         assert allequal(a[-4:-1], arr[-4:-1])
@@ -1783,7 +1783,7 @@ class GeneratorTestCase(unittest.TestCase):
         # Get and compare an element
         ga = [i for i in a]
         garr = [i for i in arr]
-        if verbose:
+        if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
         assert ga == garr
@@ -1812,7 +1812,7 @@ class GeneratorTestCase(unittest.TestCase):
         ga = [i for i in a]
         garr = [i for i in arr]
 
-        if verbose:
+        if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
         for i in range(len(ga)):
@@ -1841,7 +1841,7 @@ class GeneratorTestCase(unittest.TestCase):
         # Get and compare an element
         ga = [i for i in a]
         garr = [i for i in arr]
-        if verbose:
+        if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
         assert ga == garr
@@ -1869,7 +1869,7 @@ class GeneratorTestCase(unittest.TestCase):
         # Get and compare an element
         ga = [i for i in a]
         garr = [i for i in arr]
-        if verbose:
+        if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
         for i in range(len(ga)):

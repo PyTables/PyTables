@@ -10,9 +10,9 @@ import numpy
 
 from tables import *
 from tables.flavor import flavor_to_flavor
+from tables.tests import common
 from tables.tests.common import (
-    verbose, typecode, allequal, cleanup, heavy,
-    numeric_imported, numarray_imported)
+    typecode, allequal, numeric_imported, numarray_imported)
 
 if numarray_imported:
     import numarray
@@ -20,7 +20,7 @@ if numeric_imported:
     import Numeric
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 
 class BasicTestCase(unittest.TestCase):
@@ -89,7 +89,7 @@ class BasicTestCase(unittest.TestCase):
             object = Numeric.arange(self.objsize,
                                     typecode=typecode[carray.atom.type])
             object = Numeric.reshape(object, self.shape)
-        if verbose:
+        if common.verbose:
             print "Object to append -->", repr(object)
 
         carray[...] = object
@@ -98,7 +98,7 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -106,7 +106,7 @@ class BasicTestCase(unittest.TestCase):
         """Checking read() of chunked layout arrays"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_readCArray..." % self.__class__.__name__
 
@@ -117,7 +117,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Choose a small value for buffer size
         carray.nrowsinbuf = 3
-        if verbose:
+        if common.verbose:
             print "CArray descr:", repr(carray)
             print "shape of read array ==>", carray.shape
             print "reopening?:", self.reopen
@@ -176,7 +176,7 @@ class BasicTestCase(unittest.TestCase):
             else:
                 data = Numeric.zeros(self.shape, typecode[self.type])
 
-        if verbose:
+        if common.verbose:
             if hasattr(object, "shape"):
                 print "shape should look as:", object.shape
             print "Object read ==>", repr(data)
@@ -194,7 +194,7 @@ class BasicTestCase(unittest.TestCase):
         """Checking chunked layout array __getitem__ special method"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_getitemCArray..." % self.__class__.__name__
 
@@ -207,7 +207,7 @@ class BasicTestCase(unittest.TestCase):
             self.fileh = openFile(self.file, "r")
         carray = self.fileh.getNode("/carray1")
 
-        if verbose:
+        if common.verbose:
             print "CArray descr:", repr(carray)
             print "shape of read array ==>", carray.shape
             print "reopening?:", self.reopen
@@ -245,7 +245,7 @@ class BasicTestCase(unittest.TestCase):
             else:
                 data = Numeric.zeros(self.shape, typecode[self.type])
 
-        if verbose:
+        if common.verbose:
             print "Object read:\n", repr(data) #, data.info()
             print "Should look like:\n", repr(object) #, object.info()
             if hasattr(object, "shape"):
@@ -266,7 +266,7 @@ class BasicTestCase(unittest.TestCase):
         if self.__class__.__name__ == "Ellipsis6CArrayTestCase":
             # see test_earray.py BasicTestCase.test03_setitemEArray
             return
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_setitemCArray..." % self.__class__.__name__
 
@@ -279,7 +279,7 @@ class BasicTestCase(unittest.TestCase):
             self.fileh = openFile(self.file, "a")
         carray = self.fileh.getNode("/carray1")
 
-        if verbose:
+        if common.verbose:
             print "CArray descr:", repr(carray)
             print "shape of read array ==>", carray.shape
             print "reopening?:", self.reopen
@@ -335,7 +335,7 @@ class BasicTestCase(unittest.TestCase):
             else:
                 data = Numeric.zeros(self.shape, typecode[self.type])
 
-        if verbose:
+        if common.verbose:
             print "Object read:\n", repr(data) #, data.info()
             print "Should look like:\n", repr(object) #, object.info()
             if hasattr(object, "shape"):
@@ -834,7 +834,7 @@ class OffsetStrideTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -842,7 +842,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking carray with offseted NumPy strings appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_String..." % self.__class__.__name__
 
@@ -859,7 +859,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Read all the data:
         data = carray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", data
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Second row in carray ==>", data[1].tolist()
@@ -874,7 +874,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking carray with strided NumPy strings appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_String..." % self.__class__.__name__
 
@@ -891,7 +891,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Read all the rows:
         data = carray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", data
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Second row in carray ==>", data[1].tolist()
@@ -906,7 +906,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking carray with offseted NumPy ints appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02a_int..." % self.__class__.__name__
 
@@ -923,7 +923,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Read all the rows:
         data = carray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", data
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
@@ -937,7 +937,7 @@ class OffsetStrideTestCase(unittest.TestCase):
         """Checking carray with strided NumPy ints appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_int..." % self.__class__.__name__
 
@@ -954,7 +954,7 @@ class OffsetStrideTestCase(unittest.TestCase):
 
         # Read all the rows:
         data = carray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", data
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
@@ -980,7 +980,7 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -988,7 +988,7 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
         """Checking carray with offseted numarray ints appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02a_int..." % self.__class__.__name__
 
@@ -1005,7 +1005,7 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
 
         # Read all the rows:
         data = carray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", data
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
@@ -1019,7 +1019,7 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
         """Checking carray with strided numarray ints appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_int..." % self.__class__.__name__
 
@@ -1036,7 +1036,7 @@ class NumarrayOffsetStrideTestCase(unittest.TestCase):
 
         # Read all the rows:
         data = carray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", data
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
@@ -1062,7 +1062,7 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1070,7 +1070,7 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
         """Checking carray with offseted Numeric ints appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02a_int..." % self.__class__.__name__
 
@@ -1087,7 +1087,7 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
 
         # Read all the rows:
         data = carray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", data
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
@@ -1101,7 +1101,7 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
         """Checking carray with strided Numeric ints appends"""
 
         root = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_int..." % self.__class__.__name__
 
@@ -1118,7 +1118,7 @@ class NumericOffsetStrideTestCase(unittest.TestCase):
 
         # Read all the rows:
         data = carray.read()
-        if verbose:
+        if common.verbose:
             print "Object read:", data
             print "Nrows in", carray._v_pathname, ":", carray.nrows
             print "Third row in carray ==>", data[2]
@@ -1134,7 +1134,7 @@ class CopyTestCase(unittest.TestCase):
     def test01a_copy(self):
         """Checking CArray.copy() method """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_copy..." % self.__class__.__name__
 
@@ -1150,7 +1150,7 @@ class CopyTestCase(unittest.TestCase):
         array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1160,14 +1160,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             #print "dirs-->", dir(array1), dir(array2)
@@ -1198,7 +1198,7 @@ class CopyTestCase(unittest.TestCase):
     def test01b_copy(self):
         """Checking CArray.copy() method """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_copy..." % self.__class__.__name__
 
@@ -1214,7 +1214,7 @@ class CopyTestCase(unittest.TestCase):
         array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1224,14 +1224,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             #print "dirs-->", dir(array1), dir(array2)
@@ -1262,7 +1262,7 @@ class CopyTestCase(unittest.TestCase):
     def test01c_copy(self):
         """Checking CArray.copy() method """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01c_copy..." % self.__class__.__name__
 
@@ -1278,7 +1278,7 @@ class CopyTestCase(unittest.TestCase):
         array1[:2,:2] = numpy.array([[456, 2],[3, 457]], dtype='int16')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1288,14 +1288,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             #print "dirs-->", dir(array1), dir(array2)
@@ -1326,7 +1326,7 @@ class CopyTestCase(unittest.TestCase):
     def test02_copy(self):
         """Checking CArray.copy() method (where specified)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_copy..." % self.__class__.__name__
 
@@ -1342,7 +1342,7 @@ class CopyTestCase(unittest.TestCase):
         array1[:2,:2] = numpy.array([[456, 2],[3, 457]], dtype='int16')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1353,14 +1353,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy(group1, 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.group1.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             #print "dirs-->", dir(array1), dir(array2)
@@ -1391,7 +1391,7 @@ class CopyTestCase(unittest.TestCase):
     def test03_copy(self):
         """Checking CArray.copy() method (Numeric flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_copy..." % self.__class__.__name__
 
@@ -1412,7 +1412,7 @@ class CopyTestCase(unittest.TestCase):
         array1[...] = numpy.array([[456, 2],[3, 457]], dtype='int16')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1422,14 +1422,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1454,7 +1454,7 @@ class CopyTestCase(unittest.TestCase):
     def test03c_copy(self):
         """Checking CArray.copy() method (python flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03c_copy..." % self.__class__.__name__
 
@@ -1470,7 +1470,7 @@ class CopyTestCase(unittest.TestCase):
         array1[...] = [[456, 2],[3, 457]]
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1480,14 +1480,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1514,7 +1514,7 @@ class CopyTestCase(unittest.TestCase):
     def test03d_copy(self):
         """Checking CArray.copy() method (string python flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03d_copy..." % self.__class__.__name__
 
@@ -1530,7 +1530,7 @@ class CopyTestCase(unittest.TestCase):
         array1[...] = [["456", "2"],["3", "457"]]
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1540,14 +1540,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "type value-->", type(array2[:][0][0])
             print "value-->", array2[:]
             print "attrs array1-->", repr(array1.attrs)
@@ -1577,7 +1577,7 @@ class CopyTestCase(unittest.TestCase):
     def test03e_copy(self):
         """Checking CArray.copy() method (chararray flavor)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03e_copy..." % self.__class__.__name__
 
@@ -1592,7 +1592,7 @@ class CopyTestCase(unittest.TestCase):
         array1[...] = numpy.array([["456", "2"],["3", "457"]], dtype="S4")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1602,14 +1602,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1636,7 +1636,7 @@ class CopyTestCase(unittest.TestCase):
     def test04_copy(self):
         """Checking CArray.copy() method (checking title copying)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_copy..." % self.__class__.__name__
 
@@ -1655,7 +1655,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr2 = 2
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1665,7 +1665,7 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', title="title array2")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
@@ -1673,7 +1673,7 @@ class CopyTestCase(unittest.TestCase):
             array2 = fileh.root.array2
 
         # Assert user attributes
-        if verbose:
+        if common.verbose:
             print "title of destination array-->", array2.title
         array2.title == "title array2"
 
@@ -1684,7 +1684,7 @@ class CopyTestCase(unittest.TestCase):
     def test05_copy(self):
         """Checking CArray.copy() method (user attributes copied)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_copy..." % self.__class__.__name__
 
@@ -1703,7 +1703,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr2 = 2
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1713,14 +1713,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', copyuserattrs=1)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1735,7 +1735,7 @@ class CopyTestCase(unittest.TestCase):
     def test05b_copy(self):
         """Checking CArray.copy() method (user attributes not copied)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05b_copy..." % self.__class__.__name__
 
@@ -1754,7 +1754,7 @@ class CopyTestCase(unittest.TestCase):
         array1.attrs.attr2 = 2
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -1764,14 +1764,14 @@ class CopyTestCase(unittest.TestCase):
         array2 = array1.copy('/', 'array2', copyuserattrs=0)
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             array1 = fileh.root.array1
             array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "attrs array1-->", repr(array1.attrs)
             print "attrs array2-->", repr(array2.attrs)
 
@@ -1796,7 +1796,7 @@ class CopyIndexTestCase(unittest.TestCase):
     def test01_index(self):
         """Checking CArray.copy() method with indexes"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_index..." % self.__class__.__name__
 
@@ -1821,7 +1821,7 @@ class CopyIndexTestCase(unittest.TestCase):
                              start=self.start,
                              stop=self.stop,
                              step=self.step)
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             print "attrs array1-->", repr(array1.attrs)
@@ -1832,7 +1832,7 @@ class CopyIndexTestCase(unittest.TestCase):
         assert allequal(r2, array2.read())
 
         # Assert the number of rows in array
-        if verbose:
+        if common.verbose:
             print "nrows in array2-->", array2.nrows
             print "and it should be-->", r2.shape[0]
 
@@ -1849,7 +1849,7 @@ class CopyIndexTestCase(unittest.TestCase):
     def _test02_indexclosef(self):
         """Checking CArray.copy() method with indexes (close file version)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_indexclosef..." % self.__class__.__name__
 
@@ -1880,7 +1880,7 @@ class CopyIndexTestCase(unittest.TestCase):
         array1 = fileh.root.array1
         array2 = fileh.root.array2
 
-        if verbose:
+        if common.verbose:
             print "array1-->", array1.read()
             print "array2-->", array2.read()
             print "attrs array1-->", repr(array1.attrs)
@@ -1892,7 +1892,7 @@ class CopyIndexTestCase(unittest.TestCase):
         assert allequal(r2, array2.read())
 
         # Assert the number of rows in array
-        if verbose:
+        if common.verbose:
             print "nrows in array2-->", array2.nrows
             print "and it should be-->", r2.shape[0]
         assert r2.shape[0] == array2.nrows
@@ -2000,7 +2000,7 @@ class Rows64bitsTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -2011,7 +2011,7 @@ class Rows64bitsTestCase(unittest.TestCase):
         array = fileh.root.array
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 # Check how many entries there are in the array
                 print "Before closing"
                 print "Entries:", array.nrows, type(array.nrows)
@@ -2022,11 +2022,11 @@ class Rows64bitsTestCase(unittest.TestCase):
             # Re-open the file
             fileh = self.fileh = openFile(self.file)
             array = fileh.root.array
-            if verbose:
+            if common.verbose:
                 print "After re-open"
 
         # Check how many entries there are in the array
-        if verbose:
+        if common.verbose:
             print "Entries:", array.nrows, type(array.nrows)
             print "Entries:", array.nrows / (1000*1000), "Millions"
             print "Shape:", array.shape
@@ -2075,7 +2075,7 @@ class MDAtomTestCase(unittest.TestCase):
             carray = fileh.createCArray(fileh.root, 'carray',
                                         Int8Atom(shape=(2,)), (2,3))
         except NotImplementedError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next error was catched:"
                 print value
@@ -2086,7 +2086,7 @@ class MDAtomTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
 
@@ -2098,7 +2098,7 @@ def suite():
     theSuite = unittest.TestSuite()
     global numeric
     niter = 1
-    #heavy = 1  # uncomment this only for testing purposes
+    #common.heavy = 1  # uncomment this only for testing purposes
 
     #theSuite.addTest(unittest.makeSuite(BasicTestCase))
     for n in range(niter):
@@ -2154,7 +2154,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
         theSuite.addTest(unittest.makeSuite(MDAtomTestCase))
-    if heavy:
+    if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3CArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4CArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Ellipsis4CArrayTestCase))

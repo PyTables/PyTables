@@ -9,11 +9,10 @@ from numpy import rec as records
 
 from tables import *
 from tables.tests import common
-from tables.tests.common import verbose, allequal, areArraysEqual, \
-     heavy, cleanup
+from tables.tests.common import allequal, areArraysEqual
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 # Test Record class
 class Record(IsDescription):
@@ -191,7 +190,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -246,7 +245,7 @@ class BasicTestCase(common.PyTablesTestCase):
 
         # Column defaults.
         for v in expectedNames:
-            if verbose:
+            if common.verbose:
                 print "dflt-->", columns[v].dflt, type(columns[v].dflt)
                 print "coldflts-->", tbl.coldflts[v], type(tbl.coldflts[v])
                 print "desc.dflts-->", desc._v_dflts[v], type(desc._v_dflts[v])
@@ -267,7 +266,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01_readTable(self):
         """Checking table read"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_readTable..." % self.__class__.__name__
 
@@ -280,7 +279,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var2'] for rec in table.iterrows()
                    if rec['var2'] < 20 ]
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
@@ -301,7 +300,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01a_fetch_all_fields(self):
         """Checking table read (using Row.fetch_all_fields)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_fetch_all_fields..." % self.__class__.__name__
 
@@ -315,7 +314,7 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [ rec.fetch_all_fields() for rec in table.iterrows()
                    if rec['var2'] < 20 ]
         rec = result[-1]
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
@@ -338,7 +337,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01a_integer(self):
         """Checking table read (using Row[integer])"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_integer..." % self.__class__.__name__
 
@@ -351,7 +350,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Read the records and select those with "var2" file less than 20
         result = [ rec[1] for rec in table.iterrows()
                    if rec['var2'] < 20 ]
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Total selected records in table ==> ", len(result)
             print "All results ==>", result
@@ -361,7 +360,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01a_extslice(self):
         """Checking table read (using Row[::2])"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_extslice..." % self.__class__.__name__
 
@@ -375,7 +374,7 @@ class BasicTestCase(common.PyTablesTestCase):
         result = [ rec[::2] for rec in table.iterrows()
                    if rec['var2'] < 20 ]
         rec = result[-1]
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
             print "Total selected records in table ==> ", len(result)
@@ -398,7 +397,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01a_nofield(self):
         """Checking table read (using Row['no-field'])"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_nofield..." % self.__class__.__name__
 
@@ -412,7 +411,7 @@ class BasicTestCase(common.PyTablesTestCase):
         try:
             result = [rec['no-field'] for rec in table]
         except KeyError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next KeyError was catched!"
                 print value
@@ -423,7 +422,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def test01a_badtypefield(self):
         """Checking table read (using Row[{}])"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_badtypefield..." % self.__class__.__name__
 
@@ -437,7 +436,7 @@ class BasicTestCase(common.PyTablesTestCase):
         try:
             result = [rec[{}] for rec in table]
         except TypeError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next TypeError was catched!"
                 print value
@@ -449,7 +448,7 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking table read and cuts (multidimensional columns case)"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_readTable..." % self.__class__.__name__
 
@@ -462,7 +461,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Read the records and select those with "var2" file less than 20
         result = [ rec['var5'] for rec in table.iterrows()
                    if rec['var2'] < 20 ]
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last record in table ==>", rec
             print "rec['var5'] ==>", rec['var5'],
@@ -503,7 +502,7 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking nested iterators (reading)"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01c_readTable..." % self.__class__.__name__
 
@@ -517,7 +516,7 @@ class BasicTestCase(common.PyTablesTestCase):
             for rec2 in table.iterrows(stop=2):
                 if rec2['var2'] < 20:
                     result.append([rec['var2'],rec2['var2']])
-        if verbose:
+        if common.verbose:
             print "result ==>", result
 
         assert result == [[0, 0], [0, 1], [1, 0], [1, 1]]
@@ -526,7 +525,7 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking nested iterators (reading, mixed conditions)"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01d_readTable..." % self.__class__.__name__
 
@@ -539,7 +538,7 @@ class BasicTestCase(common.PyTablesTestCase):
         for rec in table.iterrows(stop=2):
             for rec2 in table.where('var2 < 20', stop=2):
                 result.append([rec['var2'],rec2['var2']])
-        if verbose:
+        if common.verbose:
             print "result ==>", result
 
         assert result == [[0, 0], [0, 1], [1, 0], [1, 1]]
@@ -548,7 +547,7 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking nested iterators (reading, both conditions)"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01e_readTable..." % self.__class__.__name__
 
@@ -561,7 +560,7 @@ class BasicTestCase(common.PyTablesTestCase):
         for rec in table.where('var3 < 2'):
             for rec2 in table.where('var2 < 3'):
                 result.append([rec['var2'],rec2['var3']])
-        if verbose:
+        if common.verbose:
             print "result ==>", result
 
         assert result == [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]]
@@ -570,7 +569,7 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking nested iterators (reading, break in the loop)"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01f_readTable..." % self.__class__.__name__
 
@@ -585,7 +584,7 @@ class BasicTestCase(common.PyTablesTestCase):
                 if rec2['var2'] >= 3:
                     break
                 result.append([rec['var2'],rec2['var3']])
-        if verbose:
+        if common.verbose:
             print "result ==>", result
 
         assert result == [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]]
@@ -594,7 +593,7 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking iterator with an evanescent table."""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01g_readTable..." % self.__class__.__name__
 
@@ -613,7 +612,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Now, open it, but in "append" mode
         self.fileh = openFile(self.file, mode = "a")
         self.rootgroup = self.fileh.root
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_AppendRows..." % self.__class__.__name__
 
@@ -621,7 +620,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/group0/table1")
         # Get their row object
         row = table.row
-        if verbose:
+        if common.verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
             print "Record Format ==>", table.description._v_nestedFormats
             print "Record Size ==>", table.rowsize
@@ -679,7 +678,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Now, open it, but in "append" mode
         self.fileh = openFile(self.file, mode = "a")
         self.rootgroup = self.fileh.root
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02a_AppendRows..." % self.__class__.__name__
 
@@ -691,7 +690,7 @@ class BasicTestCase(common.PyTablesTestCase):
             group = self.fileh.getNode(group, 'group'+str(i))
             # Get their row object
             row = table.row
-            if verbose:
+            if common.verbose:
                 print "Nrows in old", table._v_pathname, ":", table.nrows
                 print "Record Format ==>", table.description._v_nestedFormats
                 print "Record Size ==>", table.rowsize
@@ -751,13 +750,13 @@ class BasicTestCase(common.PyTablesTestCase):
         # Now, open it, but in "append" mode
         self.fileh = openFile(self.file, mode = "a")
         self.rootgroup = self.fileh.root
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02b_AppendRows..." % self.__class__.__name__
 
         # Get a table
         table = self.fileh.getNode("/group0/table1")
-        if verbose:
+        if common.verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
             print "Record Format ==>", table.description._v_nestedFormats
             print "Record Size ==>", table.rowsize
@@ -810,7 +809,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table.flush()
         result = [ row['var2'] for row in table.iterrows()
                    if row['var2'] < 20 ]
-        if verbose:
+        if common.verbose:
             print "Result length ==>", len(result)
             print "Result contents ==>", result
         assert len(result) == 20+3*table.nrowsinbuf
@@ -823,7 +822,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # row['var7'] = row['var1'][-1]
         result7 = [ row['var7'] for row in table.iterrows()
                     if row['var2'] < 20 ]
-        if verbose:
+        if common.verbose:
             print "Result7 length ==>", len(result7)
             print "Result7 contents ==>", result7
         assert result7 == ['0', '9', '8', '7', '6', '5', '4', '3', '2', '1',
@@ -841,13 +840,13 @@ class BasicTestCase(common.PyTablesTestCase):
         # Now, open it, but in "append" mode
         self.fileh = openFile(self.file, mode = "a")
         self.rootgroup = self.fileh.root
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02c_AppendRows..." % self.__class__.__name__
 
         # Get a table
         table = self.fileh.getNode("/group0/table1")
-        if verbose:
+        if common.verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
             print "Record Format ==>", table.description._v_nestedFormats
             print "Record Size ==>", table.rowsize
@@ -868,7 +867,7 @@ class BasicTestCase(common.PyTablesTestCase):
 #         try:
 #             self.__dict__.pop('row')  # force the table object to be destroyed
 #         except PerformanceWarning:
-#             if verbose:
+#             if common.verbose:
 #                 (type, value, traceback) = sys.exc_info()
 #                 print "\nGreat!, the next PerformanceWarning was catched:"
 #                 print value
@@ -882,7 +881,7 @@ class BasicTestCase(common.PyTablesTestCase):
         warnings.filterwarnings('default', category=PerformanceWarning)
         result = [ row['var2'] for row in table.iterrows()
                    if 100 <= row['var2'] < 122 ]
-        if verbose:
+        if common.verbose:
             print "Result length ==>", len(result)
             print "Result contents ==>", result
         assert len(result) == 22
@@ -897,13 +896,13 @@ class BasicTestCase(common.PyTablesTestCase):
         # Now, open it, but in "append" mode
         self.fileh = openFile(self.file, mode = "a")
         self.rootgroup = self.fileh.root
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02d_AppendRows..." % self.__class__.__name__
 
         # Get a table
         table = self.fileh.getNode("/group0/table1")
-        if verbose:
+        if common.verbose:
             print "Nrows in old", table._v_pathname, ":", table.nrows
             print "Record Format ==>", table.description._v_nestedFormats
             print "Record Size ==>", table.rowsize
@@ -924,7 +923,7 @@ class BasicTestCase(common.PyTablesTestCase):
         table.flush()  # XXX al eliminar...
         result = [ row['var2'] for row in table.iterrows()
                    if 100 <= row['var2'] < 120 ]
-        if verbose:
+        if common.verbose:
             print "Result length ==>", len(result)
             print "Result contents ==>", result
         if table.nrows > 119:
@@ -945,7 +944,7 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking if table is endianess aware"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_endianess..." % self.__class__.__name__
 
@@ -955,7 +954,7 @@ class BasicTestCase(common.PyTablesTestCase):
 
         # Read the records and select the ones with "var3" column less than 20
         result = [ rec['var2'] for rec in table.iterrows() if rec['var3'] < 20]
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "On-disk byteorder ==>", table.byteorder
             print "Last record in table ==>", rec
@@ -969,7 +968,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def test04_delete(self):
         """Checking whether a single row can be deleted"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_delete..." % self.__class__.__name__
 
@@ -980,7 +979,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Read the records and select the ones with "var2" column less than 20
         result = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last selected value ==>", result[-1]
             print "Total selected records in table ==>", len(result)
@@ -993,7 +992,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Re-read the records
         result2 = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last selected value ==>", result2[-1]
             print "Total selected records in table ==>", len(result2)
@@ -1007,7 +1006,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def test04b_delete(self):
         """Checking whether a range of rows can be deleted"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04b_delete..." % self.__class__.__name__
 
@@ -1018,7 +1017,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Read the records and select the ones with "var2" column less than 20
         result = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last selected value ==>", result[-1]
             print "Total selected records in table ==>", len(result)
@@ -1031,7 +1030,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Re-read the records
         result2 = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last selected value ==>", result2[-1]
             print "Total selected records in table ==>", len(result2)
@@ -1045,7 +1044,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def test04c_delete(self):
         """Checking whether removing a bad range of rows is detected"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04c_delete..." % self.__class__.__name__
 
@@ -1064,7 +1063,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Re-read the records
         result2 = [ r['var2'] for r in table.iterrows() if r['var2'] < 20]
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last selected value ==>", result2[-1]
             print "Total selected records in table ==>", len(result2)
@@ -1078,7 +1077,7 @@ class BasicTestCase(common.PyTablesTestCase):
     def test04d_delete(self):
         """Checking whether removing rows several times at once is working"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04d_delete..." % self.__class__.__name__
 
@@ -1136,7 +1135,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # Re-read the records
         result2 = [ r['var2'] for r in table if r['var2'] < 20 ]
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             print "Last selected value ==>", result2[-1]
             print "Total selected records in table ==>", len(result2)
@@ -1152,7 +1151,7 @@ class BasicTestCase(common.PyTablesTestCase):
         """Checking tablefilters"""
 
         rootgroup = self.rootgroup
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_filtersTable..." % self.__class__.__name__
 
@@ -1161,17 +1160,17 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/table0")
 
         # Check filters:
-        if self.compress <> table.filters.complevel and verbose:
+        if self.compress <> table.filters.complevel and common.verbose:
             print "Error in compress. Class:", self.__class__.__name__
             print "self, table:", self.compress, table.filters.complevel
         assert table.filters.complevel == self.compress
         if self.compress > 0 and whichLibVersion(self.complib):
             assert table.filters.complib == self.complib
-        if self.shuffle <> table.filters.shuffle and verbose:
+        if self.shuffle <> table.filters.shuffle and common.verbose:
             print "Error in shuffle. Class:", self.__class__.__name__
             print "self, table:", self.shuffle, table.filters.shuffle
         assert self.shuffle == table.filters.shuffle
-        if self.fletcher32 <> table.filters.fletcher32 and verbose:
+        if self.fletcher32 <> table.filters.fletcher32 and common.verbose:
             print "Error in fletcher32. Class:", self.__class__.__name__
             print "self, table:", self.fletcher32, table.filters.fletcher32
         assert self.fletcher32 == table.filters.fletcher32
@@ -1275,7 +1274,7 @@ class BigTablesTestCase(BasicTestCase):
     # 10000 rows takes much more time than we can afford for tests
     # reducing to 1000 would be more than enough
     # F. Altet 2004-01-19
-    # Will be executed only in heavy mode
+    # Will be executed only in common.heavy mode
     expectedrows = 10000
     appendrows = 100
 
@@ -1348,7 +1347,7 @@ class BasicRangeTestCase(unittest.TestCase):
         if self.fileh.isopen:
             self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -1394,7 +1393,7 @@ class BasicRangeTestCase(unittest.TestCase):
         if self.nrows < stopr:
             stopr = self.nrows
 
-        if verbose:
+        if common.verbose:
             print "Nrows in", table._v_pathname, ":", table.nrows
             if reslength:
                 if self.checkrecarray:
@@ -1423,7 +1422,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test01_range(self):
         """Checking ranges in table iterators (case1)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_range..." % self.__class__.__name__
 
@@ -1439,7 +1438,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test02_range(self):
         """Checking ranges in table iterators (case2)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_range..." % self.__class__.__name__
 
@@ -1455,7 +1454,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test03_range(self):
         """Checking ranges in table iterators (case3)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_range..." % self.__class__.__name__
 
@@ -1471,7 +1470,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test04_range(self):
         """Checking ranges in table iterators (case4)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_range..." % self.__class__.__name__
 
@@ -1487,7 +1486,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test05_range(self):
         """Checking ranges in table iterators (case5)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_range..." % self.__class__.__name__
 
@@ -1503,7 +1502,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test06_range(self):
         """Checking ranges in table iterators (case6)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test06_range..." % self.__class__.__name__
 
@@ -1519,7 +1518,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test07_range(self):
         """Checking ranges in table iterators (case7)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test07_range..." % self.__class__.__name__
 
@@ -1535,7 +1534,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test08_range(self):
         """Checking ranges in table iterators (case8)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test08_range..." % self.__class__.__name__
 
@@ -1551,7 +1550,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test09_range(self):
         """Checking ranges in table iterators (case9)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test09_range..." % self.__class__.__name__
 
@@ -1567,7 +1566,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test10_range(self):
         """Checking ranges in table iterators (case10)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test10_range..." % self.__class__.__name__
 
@@ -1586,7 +1585,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test10a_range(self):
         """Checking ranges in table iterators (case10a)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test10a_range..." % self.__class__.__name__
 
@@ -1604,7 +1603,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test11_range(self):
         """Checking ranges in table iterators (case11)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test11_range..." % self.__class__.__name__
 
@@ -1622,7 +1621,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test12_range(self):
         """Checking ranges in table iterators (case12)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test12_range..." % self.__class__.__name__
 
@@ -1640,7 +1639,7 @@ class BasicRangeTestCase(unittest.TestCase):
     def test13_range(self):
         """Checking ranges in table iterators (case13)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test13_range..." % self.__class__.__name__
 
@@ -1649,7 +1648,7 @@ class BasicRangeTestCase(unittest.TestCase):
         try:
             self.check_range()
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
                 print value
@@ -1663,7 +1662,7 @@ class BasicRangeTestCase(unittest.TestCase):
         try:
             self.check_range()
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
                 print value
@@ -1686,7 +1685,7 @@ class getColRangeTestCase(BasicRangeTestCase):
     def test01_nonexistentField(self):
         """Checking non-existing Field in getCol method """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_nonexistentField..." % self.__class__.__name__
 
@@ -1699,7 +1698,7 @@ class getColRangeTestCase(BasicRangeTestCase):
             #column = table.read(field='non-existent-column')
             column = table.col('non-existent-column')
         except KeyError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next KeyError was catched!"
                 print value
@@ -1777,14 +1776,14 @@ class getItemTestCase(unittest.TestCase):
         if self.fileh.isopen:
             self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
     def test01a_singleItem(self):
         """Checking __getitem__ method with single parameter (int) """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01a_singleItem..." % self.__class__.__name__
 
@@ -1803,7 +1802,7 @@ class getItemTestCase(unittest.TestCase):
     def test01b_singleItem(self):
         """Checking __getitem__ method with single parameter (neg. int)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b_singleItem..." % self.__class__.__name__
 
@@ -1822,7 +1821,7 @@ class getItemTestCase(unittest.TestCase):
     def test01c_singleItem(self):
         """Checking __getitem__ method with single parameter (long)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01c_singleItem..." % self.__class__.__name__
 
@@ -1841,7 +1840,7 @@ class getItemTestCase(unittest.TestCase):
     def test01d_singleItem(self):
         """Checking __getitem__ method with single parameter (neg. long)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01d_singleItem..." % self.__class__.__name__
 
@@ -1860,7 +1859,7 @@ class getItemTestCase(unittest.TestCase):
     def test02_twoItems(self):
         """Checking __getitem__ method with start, stop parameters """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_twoItem..." % self.__class__.__name__
 
@@ -1878,7 +1877,7 @@ class getItemTestCase(unittest.TestCase):
     def test03_threeItems(self):
         """Checking __getitem__ method with start, stop, step parameters """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_threeItem..." % self.__class__.__name__
 
@@ -1896,7 +1895,7 @@ class getItemTestCase(unittest.TestCase):
     def test04_negativeStep(self):
         """Checking __getitem__ method with negative step parameter"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_negativeStep..." % self.__class__.__name__
 
@@ -1905,7 +1904,7 @@ class getItemTestCase(unittest.TestCase):
         try:
             table[2:3:-3]
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
                 print value
@@ -1916,7 +1915,7 @@ class getItemTestCase(unittest.TestCase):
     def test06a_singleItemCol(self):
         """Checking __getitem__ method in Col with single parameter """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test06a_singleItemCol..." % self.__class__.__name__
 
@@ -1929,7 +1928,7 @@ class getItemTestCase(unittest.TestCase):
     def test06b_singleItemCol(self):
         """Checking __getitem__ method in Col with single parameter (negative)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test06b_singleItem..." % self.__class__.__name__
 
@@ -1942,7 +1941,7 @@ class getItemTestCase(unittest.TestCase):
     def test07_twoItemsCol(self):
         """Checking __getitem__ method in Col with start, stop parameters """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test07_twoItemCol..." % self.__class__.__name__
 
@@ -1956,7 +1955,7 @@ class getItemTestCase(unittest.TestCase):
     def test08_threeItemsCol(self):
         """Checking __getitem__ method in Col with start, stop, step parameters """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test08_threeItemCol..." % self.__class__.__name__
 
@@ -1970,7 +1969,7 @@ class getItemTestCase(unittest.TestCase):
     def test09_negativeStep(self):
         """Checking __getitem__ method in Col with negative step parameter"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test09_negativeStep..." % self.__class__.__name__
 
@@ -1979,7 +1978,7 @@ class getItemTestCase(unittest.TestCase):
         try:
             colvar2[2:3:-3]
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
                 print value
@@ -1998,7 +1997,7 @@ class setItem(common.PyTablesTestCase):
         self.fileh.close()
         #del self.fileh, self.rootgroup
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     def test01(self):
         "Checking modifying one table row with __setitem__"
@@ -2029,7 +2028,7 @@ class setItem(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2064,7 +2063,7 @@ class setItem(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2101,7 +2100,7 @@ class setItem(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2139,7 +2138,7 @@ class setItem(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2177,7 +2176,7 @@ class setItem(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2212,7 +2211,7 @@ class setItem(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2247,7 +2246,7 @@ class setItem(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2275,7 +2274,7 @@ class setItem(common.PyTablesTestCase):
                 row.append()
             table.flush()
         except NotImplementedError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next NotImplementedError was catched!"
                 print value
@@ -2294,7 +2293,7 @@ class setItem(common.PyTablesTestCase):
 #             table = self.fileh.root.recarray
 #             table.nrowsinbuf = self.buffersize  # set buffer value
 #         r2 = table.read()
-#         if verbose:
+#         if common.verbose:
 #             print "Original table-->", repr(r2)
 #             print "Should look like-->", repr(r1)
 #         assert r1.tostring() == r2.tostring()
@@ -2328,7 +2327,7 @@ class setItem(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2363,7 +2362,7 @@ class setItem(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2401,7 +2400,7 @@ class setItem(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2429,7 +2428,7 @@ class updateRow(common.PyTablesTestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     def test01(self):
         "Checking modifying one table row with Row.update"
@@ -2462,7 +2461,7 @@ class updateRow(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2503,7 +2502,7 @@ class updateRow(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2543,7 +2542,7 @@ class updateRow(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2583,7 +2582,7 @@ class updateRow(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2620,7 +2619,7 @@ class updateRow(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2657,7 +2656,7 @@ class updateRow(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2694,7 +2693,7 @@ class updateRow(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2742,7 +2741,7 @@ class updateRow(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2790,7 +2789,7 @@ class updateRow(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2843,7 +2842,7 @@ class updateRow(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2897,7 +2896,7 @@ class updateRow(common.PyTablesTestCase):
             table = self.fileh.root.recarray
             table.nrowsinbuf = self.buffersize  # set buffer value
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -2926,7 +2925,7 @@ class RecArrayIO(unittest.TestCase):
     def test00(self):
         "Checking saving a regular recarray"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00..." % self.__class__.__name__
 
@@ -2952,7 +2951,7 @@ class RecArrayIO(unittest.TestCase):
     def test01(self):
         "Checking saving a recarray with an offset in its buffer"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01..." % self.__class__.__name__
 
@@ -2982,7 +2981,7 @@ class RecArrayIO(unittest.TestCase):
     def test02(self):
         "Checking saving a large recarray with an offset in its buffer"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02..." % self.__class__.__name__
 
@@ -3012,7 +3011,7 @@ class RecArrayIO(unittest.TestCase):
     def test03(self):
         "Checking saving a strided recarray with an offset in its buffer"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03..." % self.__class__.__name__
 
@@ -3044,7 +3043,7 @@ class RecArrayIO(unittest.TestCase):
     def test04(self):
         "Checking appending several rows at once"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04..." % self.__class__.__name__
 
@@ -3074,7 +3073,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = fileh.root.recarray.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3086,7 +3085,7 @@ class RecArrayIO(unittest.TestCase):
     def test05(self):
         "Checking appending several rows at once (close file version)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05..." % self.__class__.__name__
 
@@ -3115,7 +3114,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = fileh.root.recarray.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3127,7 +3126,7 @@ class RecArrayIO(unittest.TestCase):
     def test06a(self):
         "Checking modifying one table row (list version)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test06a..." % self.__class__.__name__
 
@@ -3154,7 +3153,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3166,7 +3165,7 @@ class RecArrayIO(unittest.TestCase):
     def test06b(self):
         "Checking modifying one table row (recarray version)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test06b..." % self.__class__.__name__
 
@@ -3194,7 +3193,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3206,7 +3205,7 @@ class RecArrayIO(unittest.TestCase):
     def test07a(self):
         "Checking modifying several rows at once (list version)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test07a..." % self.__class__.__name__
 
@@ -3233,7 +3232,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3245,7 +3244,7 @@ class RecArrayIO(unittest.TestCase):
     def test07b(self):
         "Checking modifying several rows at once (recarray version)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test07b..." % self.__class__.__name__
 
@@ -3274,7 +3273,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3286,7 +3285,7 @@ class RecArrayIO(unittest.TestCase):
     def test08a(self):
         "Checking modifying one column (single column version)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test08a..." % self.__class__.__name__
 
@@ -3314,7 +3313,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3326,7 +3325,7 @@ class RecArrayIO(unittest.TestCase):
     def test08a2(self):
         "Checking modifying one column (single column version, modifyColumn)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test08a2..." % self.__class__.__name__
 
@@ -3354,7 +3353,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3366,7 +3365,7 @@ class RecArrayIO(unittest.TestCase):
     def test08b(self):
         "Checking modifying one column (single column version, recarray)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test08b..." % self.__class__.__name__
 
@@ -3396,7 +3395,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3408,7 +3407,7 @@ class RecArrayIO(unittest.TestCase):
     def test08b2(self):
         "Checking modifying one column (single column version, recarray, modifyColumn)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test08b2..." % self.__class__.__name__
 
@@ -3437,7 +3436,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3449,7 +3448,7 @@ class RecArrayIO(unittest.TestCase):
     def test08c(self):
         "Checking modifying one column (single column version, single element)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test08c..." % self.__class__.__name__
 
@@ -3479,7 +3478,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3491,7 +3490,7 @@ class RecArrayIO(unittest.TestCase):
     def test09a(self):
         "Checking modifying table columns (multiple column version)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test09a..." % self.__class__.__name__
 
@@ -3521,7 +3520,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3533,7 +3532,7 @@ class RecArrayIO(unittest.TestCase):
     def test09b(self):
         "Checking modifying table columns (multiple columns, recarray)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test09b..." % self.__class__.__name__
 
@@ -3563,7 +3562,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3575,7 +3574,7 @@ class RecArrayIO(unittest.TestCase):
     def test09c(self):
         "Checking modifying table columns (single column, step)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test09c..." % self.__class__.__name__
 
@@ -3605,7 +3604,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3617,7 +3616,7 @@ class RecArrayIO(unittest.TestCase):
     def test09d(self):
         "Checking modifying table columns (multiple columns, step)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test09d..." % self.__class__.__name__
 
@@ -3648,7 +3647,7 @@ class RecArrayIO(unittest.TestCase):
             fileh = openFile(file, "r")
             table = fileh.root.recarray
         r2 = table.read()
-        if verbose:
+        if common.verbose:
             print "Original table-->", repr(r2)
             print "Should look like-->", repr(r1)
         assert r1.tostring() == r2.tostring()
@@ -3686,7 +3685,7 @@ class CopyTestCase(unittest.TestCase):
     def test01_copy(self):
         """Checking Table.copy() method """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_copy..." % self.__class__.__name__
 
@@ -3700,7 +3699,7 @@ class CopyTestCase(unittest.TestCase):
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3710,14 +3709,14 @@ class CopyTestCase(unittest.TestCase):
         table2 = table1.copy('/', 'table2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
             table1 = fileh.root.table1
             table2 = fileh.root.table2
 
-        if verbose:
+        if common.verbose:
             print "table1-->", table1.read()
             print "table2-->", table2.read()
             #print "dirs-->", dir(table1), dir(table2)
@@ -3759,7 +3758,7 @@ class CopyTestCase(unittest.TestCase):
     def test02_copy(self):
         """Checking Table.copy() method (where specified)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_copy..." % self.__class__.__name__
 
@@ -3773,7 +3772,7 @@ class CopyTestCase(unittest.TestCase):
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3784,14 +3783,14 @@ class CopyTestCase(unittest.TestCase):
         table2 = table1.copy(group1, 'table2')
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             table1 = fileh.root.table1
             table2 = fileh.root.group1.table2
 
-        if verbose:
+        if common.verbose:
             print "table1-->", table1.read()
             print "table2-->", table2.read()
             print "attrs table1-->", repr(table1.attrs)
@@ -3827,7 +3826,7 @@ class CopyTestCase(unittest.TestCase):
     def test03_copy(self):
         """Checking Table.copy() method (table larger than buffer)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_copy..." % self.__class__.__name__
 
@@ -3846,7 +3845,7 @@ class CopyTestCase(unittest.TestCase):
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3857,14 +3856,14 @@ class CopyTestCase(unittest.TestCase):
         table1.nrowsinbuf = 2  # small value of buffer
         table2 = table1.copy(group1, 'table2', title="title table2")
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             table1 = fileh.root.table1
             table2 = fileh.root.group1.table2
 
-        if verbose:
+        if common.verbose:
             print "table1-->", table1.read()
             print "table2-->", table2.read()
             print "attrs table1-->", repr(table1.attrs)
@@ -3899,7 +3898,7 @@ class CopyTestCase(unittest.TestCase):
     def test04_copy(self):
         """Checking Table.copy() method (different compress level)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_copy..." % self.__class__.__name__
 
@@ -3913,7 +3912,7 @@ class CopyTestCase(unittest.TestCase):
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3925,14 +3924,14 @@ class CopyTestCase(unittest.TestCase):
                              filters=Filters(complevel=6))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             table1 = fileh.root.table1
             table2 = fileh.root.group1.table2
 
-        if verbose:
+        if common.verbose:
             print "table1-->", table1.read()
             print "table2-->", table2.read()
             print "attrs table1-->", repr(table1.attrs)
@@ -3967,7 +3966,7 @@ class CopyTestCase(unittest.TestCase):
     def test05_copy(self):
         """Checking Table.copy() method (user attributes copied)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_copy..." % self.__class__.__name__
 
@@ -3984,7 +3983,7 @@ class CopyTestCase(unittest.TestCase):
         table1.attrs.attr2 = 2
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -3997,14 +3996,14 @@ class CopyTestCase(unittest.TestCase):
                              filters=Filters(complevel=6))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             table1 = fileh.root.table1
             table2 = fileh.root.group1.table2
 
-        if verbose:
+        if common.verbose:
             print "table1-->", table1.read()
             print "table2-->", table2.read()
             print "attrs table1-->", repr(table1.attrs)
@@ -4041,7 +4040,7 @@ class CopyTestCase(unittest.TestCase):
     def test05b_copy(self):
         """Checking Table.copy() method (user attributes not copied)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05b_copy..." % self.__class__.__name__
 
@@ -4058,7 +4057,7 @@ class CopyTestCase(unittest.TestCase):
         table1.attrs.attr2 = 2
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -4071,14 +4070,14 @@ class CopyTestCase(unittest.TestCase):
                              filters=Filters(complevel=6))
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "r")
             table1 = fileh.root.table1
             table2 = fileh.root.group1.table2
 
-        if verbose:
+        if common.verbose:
             print "table1-->", table1.read()
             print "table2-->", table2.read()
             print "attrs table1-->", repr(table1.attrs)
@@ -4125,7 +4124,7 @@ class CopyIndexTestCase(unittest.TestCase):
     def test01_index(self):
         """Checking Table.copy() method with indexes"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_index..." % self.__class__.__name__
 
@@ -4142,7 +4141,7 @@ class CopyIndexTestCase(unittest.TestCase):
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -4154,7 +4153,7 @@ class CopyIndexTestCase(unittest.TestCase):
                              start=self.start,
                              stop=self.stop,
                              step=self.step)
-        if verbose:
+        if common.verbose:
             print "table1-->", table1.read()
             print "table2-->", table2.read()
             print "attrs table1-->", repr(table1.attrs)
@@ -4168,7 +4167,7 @@ class CopyIndexTestCase(unittest.TestCase):
                                 table2[nrow][colname])
 
         # Assert the number of rows in table
-        if verbose:
+        if common.verbose:
             print "nrows in table2-->", table2.nrows
             print "and it should be-->", r2.shape[0]
         assert r2.shape[0] == table2.nrows
@@ -4180,7 +4179,7 @@ class CopyIndexTestCase(unittest.TestCase):
     def test02_indexclosef(self):
         """Checking Table.copy() method with indexes (close file version)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_indexclosef..." % self.__class__.__name__
 
@@ -4195,7 +4194,7 @@ class CopyIndexTestCase(unittest.TestCase):
         table1 = fileh.createTable(fileh.root, 'table1', r, "title table1")
 
         if self.close:
-            if verbose:
+            if common.verbose:
                 print "(closing file version)"
             fileh.close()
             fileh = openFile(file, mode = "a")
@@ -4213,7 +4212,7 @@ class CopyIndexTestCase(unittest.TestCase):
         table1 = fileh.root.table1
         table2 = fileh.root.table2
 
-        if verbose:
+        if common.verbose:
             print "table1-->", table1.read()
             print "table2-->", table2.read()
             print "attrs table1-->", repr(table1.attrs)
@@ -4227,7 +4226,7 @@ class CopyIndexTestCase(unittest.TestCase):
                                 table2[nrow][colname])
 
         # Assert the number of rows in table
-        if verbose:
+        if common.verbose:
             print "nrows in table2-->", table2.nrows
             print "and it should be-->", r2.shape[0]
         assert r2.shape[0] == table2.nrows
@@ -4353,7 +4352,7 @@ class LargeRowSize(unittest.TestCase):
 #         try:
 #             fileh.createTable(fileh.root, 'largerow', r)
 #         except ValueError:
-#             if verbose:
+#             if common.verbose:
 #                 (type, value, traceback) = sys.exc_info()
 #               print "\nGreat!, the next ValueError was catched!"
 #                 print value
@@ -4413,7 +4412,7 @@ class DefaultValues(unittest.TestCase):
 
         # This generates too much output. Activate only when
         # self.nrowsinbuf is very small (<10)
-        if verbose:
+        if common.verbose:
             print "First 10 table values:"
             for row in table.iterrows(0, 10):
                 print row
@@ -4465,7 +4464,7 @@ class DefaultValues(unittest.TestCase):
 
         # This generates too much output. Activate only when
         # self.nrowsinbuf is very small (<10)
-        if verbose:
+        if common.verbose:
             print "First 10 table values:"
             for row in table.iterrows(0, 10):
                 print row
@@ -4520,14 +4519,14 @@ class LengthTestCase(unittest.TestCase):
         if self.fileh.isopen:
             self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
     def test01_lengthrows(self):
         """Checking __length__ in Table"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_lengthrows..." % self.__class__.__name__
 
@@ -4537,7 +4536,7 @@ class LengthTestCase(unittest.TestCase):
     def test02_lengthcols(self):
         """Checking __length__ in Cols"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_lengthcols..." % self.__class__.__name__
 
@@ -4550,7 +4549,7 @@ class LengthTestCase(unittest.TestCase):
     def test03_lengthcol(self):
         """Checking __length__ in Column"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_lengthcol..." % self.__class__.__name__
 
@@ -4769,7 +4768,7 @@ class ChunkshapeTestCase(unittest.TestCase):
         """Test setting the chunkshape in a table (no reopen)."""
 
         tbl = self.fileh.root.table
-        if verbose:
+        if common.verbose:
             print "chunkshape-->", tbl.chunkshape
         assert tbl.chunkshape == (13,)
 
@@ -4779,7 +4778,7 @@ class ChunkshapeTestCase(unittest.TestCase):
         self.fileh.close()
         self.fileh = openFile(self.file, 'r')
         tbl = self.fileh.root.table
-        if verbose:
+        if common.verbose:
             print "chunkshape-->", tbl.chunkshape
         assert tbl.chunkshape == (13,)
 
@@ -4800,7 +4799,7 @@ class ZeroSizedTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test01_canAppend(self):
@@ -4818,7 +4817,7 @@ class ZeroSizedTestCase(unittest.TestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
-    #heavy = 1  # uncomment this only for testing purposes
+    #common.heavy = 1  # uncomment this only for testing purposes
 
     #theSuite.addTest(unittest.makeSuite(setItem1))
     #theSuite.addTest(unittest.makeSuite(WhereAppendTestCase))
@@ -4872,7 +4871,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ChunkshapeTestCase))
         theSuite.addTest(unittest.makeSuite(ZeroSizedTestCase))
 
-    if heavy:
+    if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressBZIP2TablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressBZIP2ShuffleTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))

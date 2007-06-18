@@ -10,10 +10,9 @@ from tables.node import NotLoggedMixin
 from tables.path import joinPath
 
 from tables.tests import common
-from tables.tests.common import verbose, cleanup, heavy
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 
 class BasicTestCase(unittest.TestCase):
@@ -63,12 +62,12 @@ class BasicTestCase(unittest.TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     def test00_simple(self):
         """Checking simple do/undo"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_simple..." % self.__class__.__name__
 
@@ -85,7 +84,7 @@ class BasicTestCase(unittest.TestCase):
         # Redo the operation
         self._doReopen()
         self.fileh.redo()
-        if verbose:
+        if common.verbose:
             print "Object tree after redo:", self.fileh
         # Check that otherarray has come back to life in a sane state
         self.assert_("/otherarray" in self.fileh)
@@ -97,7 +96,7 @@ class BasicTestCase(unittest.TestCase):
     def test01_twice(self):
         """Checking do/undo (twice operations intertwined)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_twice..." % self.__class__.__name__
 
@@ -128,7 +127,7 @@ class BasicTestCase(unittest.TestCase):
     def test02_twice2(self):
         """Checking twice ops and two marks"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_twice2..." % self.__class__.__name__
 
@@ -175,7 +174,7 @@ class BasicTestCase(unittest.TestCase):
     def test03_6times3marks(self):
         """Checking with six ops and three marks"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_6times3marks..." % self.__class__.__name__
 
@@ -258,7 +257,7 @@ class BasicTestCase(unittest.TestCase):
     def test04_6times3marksro(self):
         """Checking with six operations, three marks and do/undo in random order"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_6times3marksro..." % self.__class__.__name__
 
@@ -279,7 +278,7 @@ class BasicTestCase(unittest.TestCase):
         self.assert_("/otherarray3" not in self.fileh)
         self.assert_("/otherarray4" not in self.fileh)
         # Put a mark in the middle of stack
-        if verbose:
+        if common.verbose:
             print "All nodes:", self.fileh.walkNodes()
         self.fileh.mark()
         self._doReopen()
@@ -328,7 +327,7 @@ class BasicTestCase(unittest.TestCase):
     def test05_destructive(self):
         """Checking with a destructive action during undo"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_destructive..." % self.__class__.__name__
 
@@ -357,7 +356,7 @@ class BasicTestCase(unittest.TestCase):
     def test05b_destructive(self):
         """Checking with a destructive action during undo (II)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05b_destructive..." % self.__class__.__name__
 
@@ -393,7 +392,7 @@ class BasicTestCase(unittest.TestCase):
     def test05c_destructive(self):
         """Checking with a destructive action during undo (III)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05c_destructive..." % self.__class__.__name__
 
@@ -427,7 +426,7 @@ class BasicTestCase(unittest.TestCase):
     def test05d_destructive(self):
         """Checking with a destructive action during undo (IV)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05d_destructive..." % self.__class__.__name__
 
@@ -459,7 +458,7 @@ class BasicTestCase(unittest.TestCase):
     def test05e_destructive(self):
         """Checking with a destructive action during undo (V)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05e_destructive..." % self.__class__.__name__
 
@@ -486,7 +485,7 @@ class BasicTestCase(unittest.TestCase):
     def test05f_destructive(self):
         "Checking with a destructive creation of existing node during undo"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05f_destructive..." % self.__class__.__name__
 
@@ -507,7 +506,7 @@ class BasicTestCase(unittest.TestCase):
     def test06_totalunwind(self):
         """Checking do/undo (total unwind)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test06_totalunwind..." % self.__class__.__name__
 
@@ -526,7 +525,7 @@ class BasicTestCase(unittest.TestCase):
     def test07_totalrewind(self):
         """Checking do/undo (total rewind)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test07_totalunwind..." % self.__class__.__name__
 
@@ -553,7 +552,7 @@ class BasicTestCase(unittest.TestCase):
     def test08_marknames(self):
         """Checking mark names"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test08_marknames..." % self.__class__.__name__
 
@@ -602,7 +601,7 @@ class BasicTestCase(unittest.TestCase):
     def test08_initialmark(self):
         """Checking initial mark"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test08_initialmark..." % self.__class__.__name__
 
@@ -633,7 +632,7 @@ class BasicTestCase(unittest.TestCase):
     def test09_marknames(self):
         """Checking mark names (wrong direction)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test09_marknames..." % self.__class__.__name__
 
@@ -654,7 +653,7 @@ class BasicTestCase(unittest.TestCase):
         try:
             self.fileh.undo("third")
         except UndoRedoError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next UndoRedoError was catched!"
                 print value
@@ -667,7 +666,7 @@ class BasicTestCase(unittest.TestCase):
         try:
             self.fileh.redo("second")
         except UndoRedoError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next UndoRedoError was catched!"
                 print value
@@ -682,7 +681,7 @@ class BasicTestCase(unittest.TestCase):
     def test10_goto(self):
         """Checking mark names (goto)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test10_goto..." % self.__class__.__name__
 
@@ -733,7 +732,7 @@ class BasicTestCase(unittest.TestCase):
     def test10_gotoint(self):
         """Checking mark sequential ids (goto)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test10_gotoint..." % self.__class__.__name__
 
@@ -791,7 +790,7 @@ class BasicTestCase(unittest.TestCase):
     def test11_contiguous(self):
         "Creating contiguous marks"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test11_contiguous..." % self.__class__.__name__
 
@@ -817,7 +816,7 @@ class BasicTestCase(unittest.TestCase):
     def test12_keepMark(self):
         "Ensuring the mark is kept after an UNDO operation"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test12_keepMark..." % self.__class__.__name__
 
@@ -835,7 +834,7 @@ class BasicTestCase(unittest.TestCase):
     def test13_severalEnableDisable(self):
         "Checking that successive enable/disable Undo works"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test13_severalEnableDisable..." % self.__class__.__name__
 
@@ -929,13 +928,13 @@ class createArrayTestCase(unittest.TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test00(self):
         """Checking one action"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00..." % self.__class__.__name__
 
@@ -958,7 +957,7 @@ class createArrayTestCase(unittest.TestCase):
     def test01(self):
         """Checking two actions"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01..." % self.__class__.__name__
 
@@ -986,7 +985,7 @@ class createArrayTestCase(unittest.TestCase):
     def test02(self):
         """Checking three actions"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02..." % self.__class__.__name__
 
@@ -1018,7 +1017,7 @@ class createArrayTestCase(unittest.TestCase):
     def test03(self):
         """Checking three actions in different depth levels"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03..." % self.__class__.__name__
 
@@ -1084,13 +1083,13 @@ class createGroupTestCase(unittest.TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test00(self):
         """Checking one action"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00..." % self.__class__.__name__
 
@@ -1112,7 +1111,7 @@ class createGroupTestCase(unittest.TestCase):
     def test01(self):
         """Checking two actions"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01..." % self.__class__.__name__
 
@@ -1138,7 +1137,7 @@ class createGroupTestCase(unittest.TestCase):
     def test02(self):
         """Checking three actions"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02..." % self.__class__.__name__
 
@@ -1168,7 +1167,7 @@ class createGroupTestCase(unittest.TestCase):
     def test03(self):
         """Checking three actions in different depth levels"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03..." % self.__class__.__name__
 
@@ -1224,7 +1223,7 @@ def populateTable(where, name):
         indexrows = table.cols.var3.createIndex()
         # Do not index the var4 column
         #indexrows = table.cols.var4.createIndex()
-    if verbose:
+    if common.verbose:
         print "Number of written rows:", nrows
         if tables.is_pro:
             print "Number of indexed rows:", table.cols.var1.index.nelements
@@ -1267,12 +1266,12 @@ class renameNodeTestCase(unittest.TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     def test00(self):
         """Checking renameNode (over Groups without children)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00..." % self.__class__.__name__
 
@@ -1296,7 +1295,7 @@ class renameNodeTestCase(unittest.TestCase):
     def test01(self):
         """Checking renameNode (over Groups with children)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01..." % self.__class__.__name__
 
@@ -1328,7 +1327,7 @@ class renameNodeTestCase(unittest.TestCase):
     def test01b(self):
         """Checking renameNode (over Groups with children 2)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b..." % self.__class__.__name__
 
@@ -1361,7 +1360,7 @@ class renameNodeTestCase(unittest.TestCase):
     def test02(self):
         """Checking renameNode (over Leaves)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02..." % self.__class__.__name__
 
@@ -1385,7 +1384,7 @@ class renameNodeTestCase(unittest.TestCase):
     def test03(self):
         """Checking renameNode (over Tables)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03..." % self.__class__.__name__
 
@@ -1462,13 +1461,13 @@ class moveNodeTestCase(unittest.TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test00(self):
         """Checking moveNode (over Leaf)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00..." % self.__class__.__name__
 
@@ -1492,7 +1491,7 @@ class moveNodeTestCase(unittest.TestCase):
     def test01(self):
         """Checking moveNode (over Groups with children)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01..." % self.__class__.__name__
 
@@ -1524,7 +1523,7 @@ class moveNodeTestCase(unittest.TestCase):
     def test01b(self):
         """Checking moveNode (over Groups with children 2)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b..." % self.__class__.__name__
 
@@ -1557,7 +1556,7 @@ class moveNodeTestCase(unittest.TestCase):
     def test02(self):
         """Checking moveNode (over Leaves)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02..." % self.__class__.__name__
 
@@ -1581,7 +1580,7 @@ class moveNodeTestCase(unittest.TestCase):
     def test03(self):
         """Checking moveNode (over Tables)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03..." % self.__class__.__name__
 
@@ -1660,13 +1659,13 @@ class removeNodeTestCase(unittest.TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test00(self):
         """Checking removeNode (over Leaf)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00..." % self.__class__.__name__
 
@@ -1687,7 +1686,7 @@ class removeNodeTestCase(unittest.TestCase):
     def test00b(self):
         """Checking removeNode (over several Leaves)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00b..." % self.__class__.__name__
 
@@ -1712,7 +1711,7 @@ class removeNodeTestCase(unittest.TestCase):
     def test00c(self):
         """Checking removeNode (over Tables)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00c..." % self.__class__.__name__
 
@@ -1742,7 +1741,7 @@ class removeNodeTestCase(unittest.TestCase):
     def test01(self):
         """Checking removeNode (over Groups with children)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01..." % self.__class__.__name__
 
@@ -1769,7 +1768,7 @@ class removeNodeTestCase(unittest.TestCase):
     def test01b(self):
         """Checking removeNode (over Groups with children 2)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01b..." % self.__class__.__name__
 
@@ -1837,13 +1836,13 @@ class copyNodeTestCase(unittest.TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test00_copyLeaf(self):
         """Checking copyNode (over Leaves)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_copyLeaf..." % self.__class__.__name__
 
@@ -1867,7 +1866,7 @@ class copyNodeTestCase(unittest.TestCase):
     def test00b_copyTable(self):
         """Checking copyNode (over Tables)"""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00b_copyTable..." % self.__class__.__name__
 
@@ -1921,7 +1920,7 @@ class copyNodeTestCase(unittest.TestCase):
     def test01_copyGroup(self):
         "Copying a group (recursively)."
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_copyGroup..." % self.__class__.__name__
 
@@ -1952,7 +1951,7 @@ class copyNodeTestCase(unittest.TestCase):
     def test02_copyLeafOverwrite(self):
         "Copying a leaf, overwriting destination."
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_copyLeafOverwrite..." % self.__class__.__name__
 
@@ -1979,7 +1978,7 @@ class copyNodeTestCase(unittest.TestCase):
     def test03_copyChildren(self):
         "Copying the children of a group."
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_copyChildren..." % self.__class__.__name__
 
@@ -2040,14 +2039,14 @@ class ComplexTestCase(unittest.TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test00(self):
         """Mix of createArray, createGroup, renameNone, moveNode, removeNode,
            copyNode and copyChildren."""
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00..." % self.__class__.__name__
 
@@ -2091,7 +2090,7 @@ class ComplexTestCase(unittest.TestCase):
     def test01(self):
         "Test with multiple generations (Leaf case)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01..." % self.__class__.__name__
 
@@ -2125,7 +2124,7 @@ class ComplexTestCase(unittest.TestCase):
     def test02(self):
         "Test with multiple generations (Group case)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02..." % self.__class__.__name__
 
@@ -2159,7 +2158,7 @@ class ComplexTestCase(unittest.TestCase):
     def test03(self):
         "Test with multiple generations (Group case, recursive remove)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03..." % self.__class__.__name__
 
@@ -2199,7 +2198,7 @@ class ComplexTestCase(unittest.TestCase):
     def test03b(self):
         "Test with multiple generations (Group case, recursive remove, case 2)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03b..." % self.__class__.__name__
 
@@ -2248,13 +2247,13 @@ class AttributesTestCase(unittest.TestCase):
         # Remove the temporary file
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test00_setAttr(self):
         "Setting a nonexistent attribute."
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_setAttr..." % self.__class__.__name__
 
@@ -2274,7 +2273,7 @@ class AttributesTestCase(unittest.TestCase):
     def test01_setAttrExisting(self):
         "Setting an existing attribute."
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_setAttrExisting..." % self.__class__.__name__
 
@@ -2295,7 +2294,7 @@ class AttributesTestCase(unittest.TestCase):
     def test02_delAttr(self):
         "Removing an attribute."
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test02_delAttr..." % self.__class__.__name__
 
@@ -2314,7 +2313,7 @@ class AttributesTestCase(unittest.TestCase):
     def test03_copyNodeAttrs(self):
         "Copying an attribute set."
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test03_copyNodeAttrs..." % self.__class__.__name__
 
@@ -2345,7 +2344,7 @@ class AttributesTestCase(unittest.TestCase):
     def test04_replaceNode(self):
         "Replacing a node with a rewritten attribute."
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test04_replaceNode..." % self.__class__.__name__
 
@@ -2501,7 +2500,7 @@ class CreateParentsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
-    #heavy = 1  # uncomment this only for testing purposes
+    #common.heavy = 1  # uncomment this only for testing purposes
 
     #theSuite.addTest(unittest.makeSuite(copyNodeTestCase))
     #theSuite.addTest(unittest.makeSuite(BasicTestCase))
@@ -2521,7 +2520,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ComplexTestCase))
         theSuite.addTest(unittest.makeSuite(NotLoggedTestCase))
         theSuite.addTest(unittest.makeSuite(CreateParentsTestCase))
-    if heavy:
+    if common.heavy:
         pass
 
     return theSuite

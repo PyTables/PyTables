@@ -16,7 +16,7 @@ import numpy
 
 import tables
 from tables.tests import common
-from tables.tests.common import verbose, allequal
+from tables.tests.common import allequal
 
 
 class HDF5CompatibilityTestCase(common.PyTablesTestCase):

@@ -5,11 +5,11 @@ import tempfile
 from Numeric import *
 
 from tables import *
-from tables.tests.common import verbose, typecode, allequal, cleanup
 from tables.tests import common
+from tables.tests.common import typecode, allequal
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 class BasicTestCase(unittest.TestCase):
     """Basic test for all the supported typecodes present in Numeric.
@@ -18,7 +18,7 @@ class BasicTestCase(unittest.TestCase):
     endiancheck = 0
 
     def WriteRead(self, testArray):
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running test for array with typecode '%s'" % \
                   testArray.typecode(),
@@ -47,7 +47,7 @@ class BasicTestCase(unittest.TestCase):
             b = array(b, typecode=a.typecode())
 
         # Compare them. They should be equal.
-        if not allequal(a,b, "numeric") and verbose:
+        if not allequal(a,b, "numeric") and common.verbose:
             print "Write and read arrays differ!"
             print "Array written:", a
             print "Array written shape:", a.shape
@@ -192,7 +192,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         It also uses arrays ranks which ranges until 10.
         """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_iterativeGroups..." % \
                   self.__class__.__name__
@@ -211,7 +211,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             a = ones((2,) * i, typecode)
             # Save it on the HDF5 file
             dsetname = 'array_' + typecode
-            if verbose:
+            if common.verbose:
                 print "Creating dataset:", group._g_join(dsetname)
             hdfarray = fileh.createArray(group, dsetname, a, "Large array")
             # Create a new group
@@ -235,7 +235,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             dset = getattr(group, 'array_' + typecodes[i-1])
             # Get the actual array
             b = dset.read()
-            if not allequal(a,b, "numeric") and verbose:
+            if not allequal(a,b, "numeric") and common.verbose:
                 print "Array a original. Shape: ==>", a.shape
                 print "Array a original. Data: ==>", a
                 print "Info from dataset:", dset._v_pathname
@@ -279,7 +279,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         #maxrank = 32 # old limit (Numeric <= 22.0)
         maxrank = 30  # This limit is set in Numeric 23.x and 24.x
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_largeRankArrays..." % \
                   self.__class__.__name__
@@ -289,12 +289,12 @@ class GroupsArrayTestCase(unittest.TestCase):
         file = "test_array.h5"
         fileh = openFile(file, mode = "w")
         group = fileh.root
-        if verbose:
+        if common.verbose:
             print "Rank array writing progress: ",
         for rank in range(minrank, maxrank + 1):
             # Create an array of integers, with incrementally bigger ranges
             a = ones((1,) * rank, 'i')
-            if verbose:
+            if common.verbose:
                 print "%3d," % (rank),
             fileh.createArray(group, "array", a, "Rank: %s" % rank)
             group = fileh.createGroup(group, 'group' + str(rank))
@@ -306,7 +306,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         # Open the previous HDF5 file in read-only mode
         fileh = openFile(file, mode = "r")
         group = fileh.root
-        if verbose:
+        if common.verbose:
             print
             print "Rank array reading progress: "
         # Get the metadata on the previosly saved arrays
@@ -315,9 +315,9 @@ class GroupsArrayTestCase(unittest.TestCase):
             a = ones((1,) * rank, 'i')
             # Get the actual array
             b = group.array.read()
-            if verbose:
+            if common.verbose:
                 print "%3d," % (rank),
-            if not a.tolist() == b.tolist() and verbose:
+            if not a.tolist() == b.tolist() and common.verbose:
                 print "Info from dataset:", dset._v_pathname
                 print "  Shape: ==>", dset.shape,
                 print "  typecode ==> %c" % dset.typecode
@@ -346,7 +346,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             # Iterate over the next group
             group = fileh.getNode(group, 'group' + str(rank))
 
-        if verbose:
+        if common.verbose:
             print # This flush the stdout buffer
         # Close the file
         fileh.close()
@@ -394,7 +394,7 @@ class TableReadTestCase(common.PyTablesTestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test01_readTableChar(self):
@@ -413,7 +413,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                 else:
                     orignumcol = array(['a']*self.nrows, typecode='c')
                     orignumcol.shape=(self.nrows,)
-                if verbose:
+                if common.verbose:
                     print "Typecode of Numeric column read:", nctypecode
                     print "Should look like:", 'c'
                     print "Itemsize of column:", itemsizecol
@@ -437,7 +437,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     return
                 if typecol == "bool":
                     nctypecode = "B"
-                if verbose:
+                if common.verbose:
                     print "Typecode of Numeric column read:", nctypecode
                     print "Should look like:", typecode[typecol]
                 orignumcol = ones(shape=self.nrows, typecode=numcol.typecode())
@@ -463,7 +463,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                 else:
                     orignumcol = array(['a']*self.nrows, typecode='c')
                     orignumcol.shape=(self.nrows,)
-                if verbose:
+                if common.verbose:
                     print "Typecode of Numeric column read:", nctypecode
                     print "Should look like:", 'c'
                     print "Itemsize of column:", itemsizecol
@@ -489,7 +489,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     return
                 if typecol == "bool":
                     nctypecode = "B"
-                if verbose:
+                if common.verbose:
                     print "Typecode of Numeric column read:", nctypecode
                     print "Should look like:", typecode[typecol]
                 orignumcol = ones(shape=self.nrows, typecode=numcol.typecode())

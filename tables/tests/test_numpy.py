@@ -8,11 +8,11 @@ from numpy import *
 
 import tables
 from tables import *
-from tables.tests.common import verbose, allequal, cleanup, heavy
 from tables.tests import common
+from tables.tests.common import allequal
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 typecodes = ['b', 'h', 'i', 'l', 'q', 'f', 'd']
 # UInt64 checking disabled on win platforms
@@ -32,7 +32,7 @@ class BasicTestCase(unittest.TestCase):
     endiancheck = 0
 
     def WriteRead(self, testArray):
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running test for array with typecode '%s'" % \
                   testArray.dtype.char,
@@ -60,8 +60,8 @@ class BasicTestCase(unittest.TestCase):
             b = array(b, dtype=a.dtype.str)
 
         # Compare them. They should be equal.
-        #if not allequal(a,b, "numpy") and verbose:
-        if verbose:
+        #if not allequal(a,b, "numpy") and common.verbose:
+        if common.verbose:
             print "Array written:", a
             print "Array written shape:", a.shape
             print "Array written itemsize:", a.itemsize
@@ -187,7 +187,7 @@ class Basic10DTestCase(BasicTestCase):
     tupleInt = ones((2,)*10)
     #tupleChar = reshape(array([1],dtype="S1"),(1,)*10)
     # The next tuple consumes far more time, so this
-    # test should be run in heavy mode.
+    # test should be run in common.heavy mode.
     tupleChar = array(tupleInt, dtype="S1")
 
 
@@ -210,7 +210,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         It also uses arrays ranks which ranges until 10.
         """
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test00_iterativeGroups..." % \
                   self.__class__.__name__
@@ -227,7 +227,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             a = ones((2,) * i, typecode)
             # Save it on the HDF5 file
             dsetname = 'array_' + typecode
-            if verbose:
+            if common.verbose:
                 print "Creating dataset:", group._g_join(dsetname)
             hdfarray = fileh.createArray(group, dsetname, a, "Large array")
             # Create a new group
@@ -251,7 +251,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             dset = getattr(group, 'array_' + typecodes[i-1])
             # Get the actual array
             b = dset.read()
-            if not allequal(a,b, "numpy") and verbose:
+            if not allequal(a,b, "numpy") and common.verbose:
                 print "Array a original. Shape: ==>", a.shape
                 print "Array a original. Data: ==>", a
                 print "Info from dataset:", dset._v_pathname
@@ -308,7 +308,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         minrank = 1
         maxrank = 32
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test01_largeRankArrays..." % \
                   self.__class__.__name__
@@ -317,12 +317,12 @@ class GroupsArrayTestCase(unittest.TestCase):
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
         group = fileh.root
-        if verbose:
+        if common.verbose:
             print "Rank array writing progress: ",
         for rank in range(minrank, maxrank + 1):
             # Create an array of integers, with incrementally bigger ranges
             a = ones((1,) * rank, 'i')
-            if verbose:
+            if common.verbose:
                 print "%3d," % (rank),
             fileh.createArray(group, "array", a, "Rank: %s" % rank)
             group = fileh.createGroup(group, 'group' + str(rank))
@@ -334,7 +334,7 @@ class GroupsArrayTestCase(unittest.TestCase):
         # Open the previous HDF5 file in read-only mode
         fileh = openFile(file, mode = "r")
         group = fileh.root
-        if verbose:
+        if common.verbose:
             print
             print "Rank array reading progress: "
         # Get the metadata on the previosly saved arrays
@@ -343,9 +343,9 @@ class GroupsArrayTestCase(unittest.TestCase):
             a = ones((1,) * rank, 'i')
             # Get the actual array
             b = group.array.read()
-            if verbose:
+            if common.verbose:
                 print "%3d," % (rank),
-            if not a.tolist() == b.tolist() and verbose:
+            if not a.tolist() == b.tolist() and common.verbose:
                 print "Info from dataset:", dset._v_pathname
                 print "  Shape: ==>", dset.shape,
                 print "  typecode ==> %c" % dset.typecode
@@ -365,7 +365,7 @@ class GroupsArrayTestCase(unittest.TestCase):
             # Iterate over the next group
             group = fileh.getNode(group, 'group' + str(rank))
 
-        if verbose:
+        if common.verbose:
             print # This flush the stdout buffer
         # Close the file
         fileh.close()
@@ -408,7 +408,7 @@ class TableReadTestCase(common.PyTablesTestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test01_readTableChar(self):
@@ -426,7 +426,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     orignumcol = array(['abcd']*self.nrows, dtype='S4')
                 else:
                     orignumcol = array(['a']*self.nrows, dtype='S1')
-                if verbose:
+                if common.verbose:
                     print "Typecode of NumPy column read:", nctypecode
                     print "Should look like:", 'c'
                     print "Itemsize of column:", itemsizecol
@@ -446,7 +446,7 @@ class TableReadTestCase(common.PyTablesTestCase):
             typecol = table.coltypes[colname]
             nctypecode = typeNA[numcol.dtype.char[0]]
             if typecol <> "string":
-                if verbose:
+                if common.verbose:
                     print "Typecode of NumPy column read:", nctypecode
                     print "Should look like:", typecol
                 orignumcol = ones(shape=self.nrows, dtype=numcol.dtype.char)
@@ -471,7 +471,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                     orignumcol = array(['abcd']*self.nrows, dtype='S4')
                 else:
                     orignumcol = array(['a']*self.nrows, dtype='S1')
-                if verbose:
+                if common.verbose:
                     print "Typecode of NumPy column read:", nctypecode
                     print "Should look like:", 'c'
                     print "Itemsize of column:", itemsizecol
@@ -495,7 +495,7 @@ class TableReadTestCase(common.PyTablesTestCase):
             if typecol <> "string":
                 if typecol == "int64":
                     return
-                if verbose:
+                if common.verbose:
                     print "Type of read NumPy column:", type_
                     print "Should look like:", typecol
                 orignumcol = ones(shape=self.nrows, dtype=numcol.dtype.char)
@@ -514,7 +514,7 @@ class TableReadTestCase(common.PyTablesTestCase):
                 if typecol == "int64":
                     return
                 numcol = numpy.array(numcol, typecol)
-                if verbose:
+                if common.verbose:
                     type_ = numcol.dtype.type
                     print "Type of read NumPy column:", type_
                     print "Should look like:", typecol
@@ -537,7 +537,7 @@ class TableReadTestCase(common.PyTablesTestCase):
         table[coords[0]] = tuple(["aasa","x"]+[232]*12)
         #record = list(table[coords[0]])
         record = table.read(coords[0])
-        if verbose:
+        if common.verbose:
             print """Original row:
 ['aasa', 'x', 232, -24, 232, 232, 1, 232L, 232, (232+0j), 232.0, 232L, (232+0j), 232.0]
 """
@@ -596,7 +596,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
 
     def test01a_basicTableRead(self):
@@ -607,7 +607,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
         table = self.fileh.root.table
         data = table[:]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -632,7 +632,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
                  ('z2', 'u1')]
         npcol = zeros((3,), dtype=dtype)
         assert col.dtype.descr == npcol.dtype.descr
-        if verbose:
+        if common.verbose:
             print "col-->", col
             print "npcol-->", npcol
         # A copy() is needed in case the buffer can be in different segments
@@ -646,7 +646,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
         table = self.fileh.root.table
         data = table[::3]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -671,7 +671,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
                  ('z2', '|u1')]
         npcol = zeros((3,), dtype=dtype)
         assert col.dtype.descr == npcol.dtype.descr
-        if verbose:
+        if common.verbose:
             print "col-->", col
             print "npcol-->", npcol
         # A copy() is needed in case the buffer can be in different segments
@@ -685,7 +685,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
         table = self.fileh.root.table
         data = table.getWhereList('z == 1')
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -707,7 +707,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         data = table.readWhere('color == "ab"')
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
@@ -726,7 +726,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         data = table.readWhere('z == 0')
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Length of the data read:", len(data)
         # Check that both NumPy objects are equal
@@ -752,7 +752,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table2
         data = table[:]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -761,7 +761,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == npdata.dtype.descr
-        if verbose:
+        if common.verbose:
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
@@ -778,7 +778,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         data = table[-3:]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "Last 3 elements of read:", data[-3:]
@@ -787,7 +787,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == npdata.dtype.descr
-        if verbose:
+        if common.verbose:
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
@@ -803,7 +803,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         data = table.cols.z[:]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -828,7 +828,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         data = table.cols.y[3:6]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -837,7 +837,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == ycol.dtype.descr
-        if verbose:
+        if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
@@ -856,7 +856,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             table = self.fileh.root.table
         ycol = zeros((3, 2, 2), 'float64')
         data = table.cols.y[3:6]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -865,7 +865,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == ycol.dtype.descr
-        if verbose:
+        if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
@@ -891,7 +891,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         data = table.cols.Info[3:6]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -900,7 +900,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == npdata.dtype.descr
-        if verbose:
+        if common.verbose:
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
@@ -927,7 +927,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh = openFile(self.file, "a")
             table = self.fileh.root.table
         data = table.cols.Info[3:6]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -936,7 +936,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == npdata.dtype.descr
-        if verbose:
+        if common.verbose:
             print "npdata-->", npdata
             print "data-->", data
         # A copy() is needed in case the buffer would be in different segments
@@ -957,7 +957,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             table = self.fileh.root.table
         ycol = zeros((3,2,2), 'float64')-1
         data = table.cols.y[3:6]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -966,7 +966,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == ycol.dtype.descr
-        if verbose:
+        if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
         assert allequal(ycol, data, "numpy")
@@ -987,7 +987,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # Check that some column has been actually modified
         ycol = zeros((3,2,2), 'float64')-1
         data = table.cols.y[3:6]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -996,7 +996,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == ycol.dtype.descr
-        if verbose:
+        if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
         assert allequal(ycol, data, "numpy")
@@ -1017,7 +1017,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # Check that some column has been actually modified
         ycol = zeros((2,2), 'float64')-1
         data = table.cols.y[6]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -1026,7 +1026,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == ycol.dtype.descr
-        if verbose:
+        if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
         assert allequal(ycol, data, "numpy")
@@ -1047,7 +1047,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         # Check that some column has been actually modified
         ycol = zeros((2,2), 'float64')-1
         data = table.cols.y[6]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -1056,7 +1056,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == ycol.dtype.descr
-        if verbose:
+        if common.verbose:
             print "ycol-->", ycol
             print "data-->", data
         assert allequal(ycol, data, "numpy")
@@ -1070,7 +1070,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
         table = self.fileh.root.table
         rdata = table.getWhereList('color == "ab"')
         data = table.readCoordinates(rdata)
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -1093,7 +1093,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             table.cols.color[i] = "a  "
         table.flush()
         data = table[:]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -1125,7 +1125,7 @@ class TableNativeFlavorTestCase(common.PyTablesTestCase):
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
         data = self.fileh.root.table[:]
-        if verbose:
+        if common.verbose:
             print "Type of read:", type(data)
             print "Description of the record:", data.dtype.descr
             print "First 3 elements of read:", data[:3]
@@ -1160,7 +1160,7 @@ class AttributesTestCase(common.PyTablesTestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     def test01_writeAttribute(self):
         """Checking the creation of a numpy attribute."""
@@ -1177,7 +1177,7 @@ class AttributesTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == npcomp.dtype.descr
-        if verbose:
+        if common.verbose:
             print "npcomp-->", npcomp
             print "data-->", data
         assert allequal(npcomp, data, "numpy")
@@ -1200,7 +1200,7 @@ class AttributesTestCase(common.PyTablesTestCase):
         assert isinstance(data, ndarray)
         # Check the type
         assert data.dtype.descr == npcomp.dtype.descr
-        if verbose:
+        if common.verbose:
             print "npcomp-->", npcomp
             print "data-->", data
         assert allequal(npcomp, data, "numpy")
@@ -1232,7 +1232,7 @@ class StrlenTestCase(common.PyTablesTestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     def test01(self):
         """Checking the lengths of strings (read field)."""
@@ -1243,7 +1243,7 @@ class StrlenTestCase(common.PyTablesTestCase):
         # Get both strings
         str1 = self.table.col('Text')[0]
         str2 = self.table.col('Text')[1]
-        if verbose:
+        if common.verbose:
             print "string1-->", str1
             print "string2-->", str2
         # Check that both NumPy objects are equal
@@ -1315,7 +1315,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AttributesCloseTestCase))
         theSuite.addTest(unittest.makeSuite(StrlenOpenTestCase))
         theSuite.addTest(unittest.makeSuite(StrlenCloseTestCase))
-        if heavy:
+        if common.heavy:
             theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
             # The 32 dimensions case takes forever to run!!
             # theSuite.addTest(unittest.makeSuite(Basic32DTestCase))

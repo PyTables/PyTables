@@ -4,13 +4,13 @@ import os
 import tempfile
 
 from tables import *
-from tables.tests.common import verbose, cleanup
+from tables.tests import common
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 def WriteRead(filename, testTuple):
-    if verbose:
+    if common.verbose:
         print '\n', '-=' * 30
         print "Running test for object %s" % \
                   (type(testTuple))
@@ -34,7 +34,7 @@ def WriteRead(filename, testTuple):
     try:
         b = root.somearray.read()
         # Compare them. They should be equal.
-        if not a == b and verbose:
+        if not a == b and common.verbose:
             print "Write and read lists/tuples differ!"
             print "Object written:", a
             print "Object read:", b
@@ -119,7 +119,7 @@ class ExceptionTestCase(unittest.TestCase):
     def test00_char(self):
         "Non suppported lists objects (character objects)"
 
-        if verbose:
+        if common.verbose:
             print '\n', '-=' * 30
             print "Running test for %s" % \
                   (self.title)
@@ -131,7 +131,7 @@ class ExceptionTestCase(unittest.TestCase):
             finally:
                 os.remove(fname)
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next error was catched!"
                 print type, ":", value
@@ -152,7 +152,7 @@ class ExceptionTestCase(unittest.TestCase):
             finally:
                 os.remove(fname)
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next was catched!"
                 print value
@@ -180,7 +180,7 @@ class GetItemTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original first element:", a[0]
             print "Read first element:", arr[0]
         assert a[0] == arr[0]
@@ -201,7 +201,7 @@ class GetItemTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original first element:", a[0]
             print "Read first element:", arr[0]
         assert a[0] == arr[0]
@@ -222,7 +222,7 @@ class GetItemTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4]
             print "Read elements:", arr[1:4]
         assert a[1:4] == arr[1:4]
@@ -243,7 +243,7 @@ class GetItemTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4]
             print "Read elements:", arr[1:4]
         assert a[1:4] == arr[1:4]
@@ -264,7 +264,7 @@ class GetItemTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4:2]
             print "Read elements:", arr[1:4:2]
         assert a[1:4:2] == arr[1:4:2]
@@ -285,7 +285,7 @@ class GetItemTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original elements:", a[1:4:2]
             print "Read elements:", arr[1:4:2]
         assert a[1:4:2] == arr[1:4:2]
@@ -306,7 +306,7 @@ class GetItemTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original last element:", a[-1]
             print "Read last element:", arr[-1]
         assert a[-1] == arr[-1]
@@ -327,7 +327,7 @@ class GetItemTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original before last element:", a[-2]
             print "Read before last element:", arr[-2]
         assert a[-2] == arr[-2]
@@ -348,7 +348,7 @@ class GetItemTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original last elements:", a[-4:-1]
             print "Read last elements:", arr[-4:-1]
         assert a[-4:-1] == arr[-4:-1]
@@ -369,7 +369,7 @@ class GetItemTestCase(unittest.TestCase):
         arr=fileh.createArray(fileh.root, 'somearray', a, "Some array")
 
         # Get and compare an element
-        if verbose:
+        if common.verbose:
             print "Original last elements:", a[-4:-1]
             print "Read last elements:", arr[-4:-1]
         assert a[-4:-1] == arr[-4:-1]
@@ -420,7 +420,7 @@ class GeneratorTestCase(unittest.TestCase):
         # Get and compare an element
         ga = [i for i in a]
         garr = [i for i in arr]
-        if verbose:
+        if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
         assert ga == garr
@@ -446,7 +446,7 @@ class GeneratorTestCase(unittest.TestCase):
         else:
             ga = [i for i in a]
         garr = [i for i in arr]
-        if verbose:
+        if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
         assert ga == garr
@@ -469,7 +469,7 @@ class GeneratorTestCase(unittest.TestCase):
         # Get and compare an element
         ga = [i for i in a]
         garr = [i for i in arr]
-        if verbose:
+        if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
         assert ga == garr
@@ -495,7 +495,7 @@ class GeneratorTestCase(unittest.TestCase):
         else:
             ga = [i for i in a]
         garr = [i for i in arr]
-        if verbose:
+        if common.verbose:
             print "Result of original iterator:", ga
             print "Result of read generator:", garr
         assert ga == garr

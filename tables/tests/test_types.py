@@ -4,10 +4,10 @@ import os
 import tempfile
 
 from tables import *
-from tables.tests.common import verbose, cleanup
+from tables.tests import common
 
 # To delete the internal attributes automagically
-unittest.TestCase.tearDown = cleanup
+unittest.TestCase.tearDown = common.cleanup
 
 # Test Record class
 class Record(IsDescription):
@@ -38,7 +38,7 @@ class RangeTestCase(unittest.TestCase):
     def tearDown(self):
         self.fileh.close()
         os.remove(self.file)
-        cleanup(self)
+        common.cleanup(self)
 
     #----------------------------------------
 
@@ -55,13 +55,13 @@ class RangeTestCase(unittest.TestCase):
         try:
             rec.append()
         except ValueError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next ValueError was catched!"
                 print value
             pass
         else:
-            if verbose:
+            if common.verbose:
                 print "\nNow, the range overflow no longer issues a ValueError"
 
     def test01_type(self):
@@ -76,7 +76,7 @@ class RangeTestCase(unittest.TestCase):
         try:
             rec['var4'] = "124"
         except TypeError:
-            if verbose:
+            if common.verbose:
                 (type, value, traceback) = sys.exc_info()
                 print "\nGreat!, the next TypeError was catched!"
                 print value
