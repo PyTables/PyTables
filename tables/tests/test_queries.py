@@ -61,11 +61,11 @@ nxtype_from_type = dict( (type_, info[1])
                          for (type_, info) in type_info.iteritems() )
 """Maps PyTables types to Numexpr types."""
 
-common.heavy_types = ['uint8', 'int16', 'uint16', 'float32', 'complex64']
+heavy_types = ['uint8', 'int16', 'uint16', 'float32', 'complex64']
 """PyTables types to be tested only in common.heavy mode."""
 
 if not common.heavy:
-    for type_ in common.heavy_types:
+    for type_ in heavy_types:
         for tdict in type_info, sctype_from_type, nxtype_from_type:
             del tdict[type_]
 
