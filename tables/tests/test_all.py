@@ -134,8 +134,6 @@ def test(verbose=False, heavy=False):
     resources from your computer).
     """
     print_versions()
-    common.verbose = verbose
-    common.heavy = heavy
 
     if heavy:
         print \
@@ -149,10 +147,14 @@ The whole suite will take more than 50 minutes to complete on a relatively
 modern CPU and around 100 MB of main memory."""
         print '-=' * 38
 
-    # unittest.main(defaultTest='tables.tests.suite')
-    # The next is more appropriate for running inside the interpreters
-    # (it doesn't exit at the end)
-    unittest.TextTestRunner().run(suite())
+    # What a context this is!
+    oldverbose, common.verbose = common.verbose, verbose
+    oldheavy, common.heavy = common.heavy, heavy
+    try:
+        unittest.TextTestRunner().run(suite())
+    finally:
+        common.verbose = oldverbose
+        common.heavy = oldheavy  # there are pretty young heavies, too ;)
 
 
 if __name__ == '__main__':
@@ -175,4 +177,5 @@ if __name__ == '__main__':
     if only_versions:
         print_versions()
     else:
-        test()
+        # The ``common`` module takes care of the command line.
+        test(verbose=common.verbose, heavy=common.heavy)
