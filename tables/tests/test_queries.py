@@ -61,13 +61,8 @@ nxtype_from_type = dict( (type_, info[1])
                          for (type_, info) in type_info.iteritems() )
 """Maps PyTables types to Numexpr types."""
 
-heavy_types = ['uint8', 'int16', 'uint16', 'float32', 'complex64']
-"""PyTables types to be tested only in common.heavy mode."""
-
-if not common.heavy:
-    for type_ in heavy_types:
-        for tdict in type_info, sctype_from_type, nxtype_from_type:
-            del tdict[type_]
+heavy_types = frozenset(['uint8', 'int16', 'uint16', 'float32', 'complex64'])
+"""PyTables types to be tested only in heavy mode."""
 
 enum = tables.Enum(dict(('n%d' % i, i) for i in range(_maxnvalue)))
 """Enumerated type to be used in tests."""
@@ -82,7 +77,10 @@ def append_columns(classdict, shape=()):
     A column of a certain TYPE gets called ``c_TYPE``.  The number of
     added columns is returned.
     """
+    heavy = common.heavy
     for (itype, type_) in enumerate(sorted(type_info.iterkeys())):
+        if not heavy and type_ in heavy_types:
+            continue  # skip heavy type in non-heavy mode
         colpos = itype + 1
         colname = 'c_%s' % type_
         if type_ == 'enum':
@@ -164,12 +162,15 @@ def fill_table(table, shape, nrows):
         table.flush()
         return
 
+    heavy = common.heavy
     size = int(numpy.product(shape))
 
     row, value = table.row, 0
     for nrow in xrange(nrows):
         data = numpy.arange(value, value + size).reshape(shape)
         for (type_, sctype) in sctype_from_type.iteritems():
+            if not heavy and type_ in heavy_types:
+                continue  # skip heavy type in non-heavy mode
             colname = 'c_%s' % type_
             ncolname = 'c_nested/%s' % colname
             if type_ == 'bool':
@@ -263,10 +264,13 @@ class MDTableMixin:
 
 # Test cases on query data
 # ------------------------
-operators = [None, '<', '==', '!=', ('<', '<=')]
+operators = [
+    None, '~',
+    '<', '<=', '==', '!=', '>=', '>',
+    ('<', '<='), ('>', '>=') ]
 """Comparison operators to check with different types."""
-if common.heavy:
-    operators += ['~', '<=', '>=', '>', ('>', '>=')]
+heavy_operators = frozenset(['~', '<=', '>=', '>', ('>', '>=')])
+"""Comparison operators to be tested only in heavy mode."""
 left_bound = row_period / 4
 """Operand of left side operator in comparisons with operator pairs."""
 right_bound = row_period * 3 / 4
@@ -279,9 +283,12 @@ class TableDataTestCase(BaseTableQueryTestCase):
     Base test case for querying table data.
 
     Automatically created test method names have the format
-    ``test_aNNNN``, where ``NNNN`` is the zero-padded test number.
+    ``test_XNNNN``, where ``NNNN`` is the zero-padded test number and
+    ``X`` indicates whether the test belongs to the light (``l``) or
+    heavy (``h``) set.
     """
-    _testfmt = 'test_a%04d'
+    _testfmt_light = 'test_l%04d'
+    _testfmt_heavy = 'test_h%04d'
 
 def create_test_method(type_, op, extracond):
     sctype = sctype_from_type[type_]
@@ -393,14 +400,22 @@ def create_test_method(type_, op, extracond):
 # Create individual tests.  You may restrict which tests are generated
 # by replacing the sequences in the ``for`` statements.  For instance:
 testn = 0
-for type_ in type_info:  # for type_ in ['String']:
+for type_ in type_info:  # for type_ in ['string']:
     for op in operators:  # for op in ['!=']:
+        # Decide to which set the test belongs.
+        heavy = type_ in heavy_types or op in heavy_operators
+        if heavy:
+            testfmt = TableDataTestCase._testfmt_heavy
+            numfmt = ' [#H%d]'
+        else:
+            testfmt = TableDataTestCase._testfmt_light
+            numfmt = ' [#L%d]'
         for extracond in extra_conditions:  # for extracond in ['']:
             tmethod = create_test_method(type_, op, extracond)
             # The test number is appended to the docstring to help
             # identify failing methods in non-verbose mode.
-            tmethod.__name__ = TableDataTestCase._testfmt % testn
-            tmethod.__doc__ += ' [#%d]' % testn
+            tmethod.__name__ = testfmt % testn
+            tmethod.__doc__ += numfmt % testn
             ptmethod = common.pyTablesTest(tmethod)
             imethod = new.instancemethod(ptmethod, None, TableDataTestCase)
             setattr(TableDataTestCase, tmethod.__name__, imethod)
@@ -422,9 +437,8 @@ class BigNITableMixin:
     assert nrows % NX_BLOCK_SIZE2 != 0  # to have some residual rows
 
 # Parameters for non-indexed queries.
-table_sizes = ['Small']
-if common.heavy:
-    table_sizes += ['Big']
+table_sizes = ['Small', 'Big']
+heavy_table_sizes = frozenset(['Big'])
 table_ndims = ['Scalar']  # to enable multidimensional testing, include 'MD'
 
 # Non-indexed queries: ``[SB][SM]TDTestCase``, where:
@@ -435,11 +449,13 @@ table_ndims = ['Scalar']  # to enable multidimensional testing, include 'MD'
 #    Dimensionalities are listed in `table_ndims`.
 def niclassdata():
     for size in table_sizes:
+        heavy = size in heavy_table_sizes
         for ndim in table_ndims:
             classname = '%s%sTDTestCase' % (size[0], ndim[0])
             cbasenames = ( '%sNITableMixin' % size, '%sTableMixin' % ndim,
                            'TableDataTestCase' )
-            yield (classname, cbasenames, {})
+            classdict = dict(heavy=heavy)
+            yield (classname, cbasenames, classdict)
 
 
 # Base classes for indexed queries.
@@ -451,11 +467,10 @@ class BigITableMixin:
     nrows = 500
 
 # Parameters for indexed queries.
-itable_sizes = ['Small']
-itable_optvalues = [0, 1, 3]
-if common.heavy:
-    itable_sizes += ['Medium', 'Big']
-    itable_optvalues += [7, 9]
+itable_sizes = ['Small', 'Medium', 'Big']
+heavy_itable_sizes = frozenset(['Medium', 'Big'])
+itable_optvalues = [0, 1, 3, 7, 9]
+heavy_itable_optvalues = frozenset([7, 9])
 
 # Indexed queries: ``[SMB]I[01379]TDTestCase``, where:
 #
@@ -466,11 +481,13 @@ if common.heavy:
 def iclassdata():
     for size in itable_sizes:
         for optlevel in itable_optvalues:
+            heavy = ( optlevel in heavy_itable_optvalues
+                      or size in heavy_itable_sizes )
             classname = '%sI%dTDTestCase' % (size[0], optlevel)
             cbasenames = ( '%sITableMixin' % size, 'ScalarTableMixin',
                            'TableDataTestCase' )
-            yield ( classname, cbasenames,
-                    {'optlevel': optlevel, 'indexed': True} )
+            classdict = dict(heavy=heavy, optlevel=optlevel, indexed=True)
+            yield (classname, cbasenames, classdict)
 
 
 # Create test classes.
@@ -676,13 +693,22 @@ def suite():
     if tables.is_pro:
         cdatafuncs.append(iclassdata)  # indexing data tests
 
+    heavy = common.heavy
+    # Choose which tests to run in classes with autogenerated tests.
+    if heavy:
+        autoprefix = 'test'  # all tests
+    else:
+        autoprefix = 'test_l'  # only light tests
+
     niter = 1
     for i in range(niter):
         # Tests on query data.
         for cdatafunc in cdatafuncs:
             for cdata in cdatafunc():
-                cname = cdata[0]
-                testSuite.addTest(unittest.makeSuite(eval(cname)))
+                class_ = eval(cdata[0])
+                if heavy or not class_.heavy:
+                    suite_ = unittest.makeSuite(class_, prefix=autoprefix)
+                    testSuite.addTest(suite_)
         # Tests on query usage.
         testSuite.addTest(unittest.makeSuite(ScalarTableUsageTestCase))
         testSuite.addTest(unittest.makeSuite(MDTableUsageTestCase))
