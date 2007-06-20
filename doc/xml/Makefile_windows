@@ -9,7 +9,7 @@ svgs := $(svgs_current) $(addprefix images\, $(notdir $(svgs_images)))
 genpng := $(patsubst %.svg,%.png,$(svgs))
 
 # PNG files with no SVG version. They MUST NOT be cleaned
-no_svg=logo3-ombra.png objecttree-h5.png tutorial1-1-tableview.png tutorial1-2-tableview.png tutorial1-general.png tutorial1-general.png
+no_svg=objecttree-h5.png tutorial1-1-tableview.png tutorial1-2-tableview.png tutorial1-general.png tutorial1-general.png
 
 # Required PNG files
 allpng := $(genpng) $(no_svg)

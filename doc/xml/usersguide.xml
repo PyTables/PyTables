@@ -56,8 +56,7 @@
 
     <mediaobject>
       <imageobject>
-        <imagedata align="center" fileref="logo3-ombra.png" format="PNG"
-                   scale="80" />
+        <imagedata align="center" fileref="pytables.svg" format="SVG" />
       </imageobject>
     </mediaobject>
 
