@@ -396,8 +396,8 @@ if newer('VERSION', 'src/version.h'):
 # Package information for ``setuptools``.
 setuptools_kwargs = {}
 if has_setuptools:
-    # PyTables contains no data files whatsoever.
-    setuptools_kwargs['zip_safe'] = True
+    # PyTables contains data files for tests.
+    setuptools_kwargs['zip_safe'] = False
 
     # ``NumPy`` headers are needed for building the extensions.
     setuptools_kwargs['install_requires'] = ['numpy>=%s' % min_numpy_version]
