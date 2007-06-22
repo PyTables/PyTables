@@ -84,6 +84,7 @@ debug = '--debug' in sys.argv
 lib_dirs = []
 inc_dirs = []
 optional_libs = []
+data_files = []    # list of data files to add to packages (mainly for DLL's)
 
 default_header_dirs = None
 default_library_dirs = None
@@ -104,8 +105,7 @@ elif os.name == 'nt':
         _path for _path in os.environ['PATH'].split(';') ]
     # Add the \path_to_python\DLLs and tables package to the list
     default_runtime_dirs.extend(
-        [os.path.join(sys.prefix, 'DLLs'),
-         os.path.join(sys.prefix, 'Lib\\site-packages\\tables') ] )
+        [ os.path.join(sys.prefix, 'Lib\\site-packages\\tables') ] )
 
 from numpy.distutils.misc_util import get_numpy_include_dirs
 inc_dirs.extend(get_numpy_include_dirs())
@@ -228,6 +228,11 @@ elif os.name == 'nt':
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'], }
+    # Copy the next DLL's to binaries by default.
+    # Update these paths for your own system!
+    dll_files = ['\\windows\\system32\\zlib1.dll',
+                 '\\windows\\system32\\szlibdll.dll',
+                 ]
     if '--debug' in sys.argv:
         _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
 
@@ -336,6 +341,12 @@ for (package, location) in [
               + " In case of runtime problems, please remember to install it." )
             % dict(name=package.name) )
 
+    if os.name == "nt":
+        # LZO DLLs cannot be copied to the binary package for license reasons
+        if package.tag not in ['LZO', 'LZO2']:
+            dll_file = _platdep[package.tag][1] + '.dll'
+            dll_files.append(os.path.join(rundir, dll_file))
+
     if package.tag == 'LZO2':
         lzo2_enabled = True
 
@@ -367,7 +378,7 @@ def get_pyrex_extfiles(extnames):
         extcfile = '%s.c' % extfile
         if not pyrex and newer(extpfile, extcfile):
             exit_with_error(
-                "Need Pyrex (at least %s) to generate extensions. " 
+                "Need Pyrex (at least %s) to generate extensions. "
                 % min_pyrex_version,
                 "The ``%s`` file does not exist or is out of date "
                 "and Pyrex is not available. Please install Pyrex "
@@ -452,6 +463,11 @@ def find_name(base='tables'):
 
 
 name = find_name()
+
+if os.name == "nt":
+    # Add DLL's to the final package for windows
+    data_files.extend([('Lib/site-packages/%s'%name, dll_files),
+                       ])
 
 hdf5Extension_libs = LIBS + [hdf5_package.library_name]
 tableExtension_libs = LIBS + [hdf5_package.library_name]
@@ -600,6 +616,7 @@ interactively save and retrieve large amounts of data.
       platforms = ['any'],
       ext_modules = extensions,
       cmdclass = cmdclass,
+      data_files = data_files,
 
       **setuptools_kwargs
 )

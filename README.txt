@@ -99,7 +99,7 @@ http://www.pytables.org/moin/HowToUse).
    http://numpy.scipy.org/. Compile/install them.
 
    Optionally, consider to install the excellent LZO compression
-   libraries from http://www.oberhumer.com/opensource/.  You can also
+   library from http://www.oberhumer.com/opensource/.  You can also
    install the high-performance bzip2 compression library, available
    at http://www.bzip.org/.
 

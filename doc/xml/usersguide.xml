@@ -944,42 +944,33 @@ python -c "import tables; tables.test()"</screen>
         <section id="prerequisitesBinInst">
           <title>Windows prerequisites</title>
 
-          <para>First, make sure that you have Python 2.4 or higher, HDF5
-          1.6.5 or higher and NumPy 1.0.3 or higher installed (PyTables
-          binaries have been built using HDF5 1.6.5 and NumPy 1.0.3).</para>
+          <para>First, make sure that you have Python 2.4 or higher and NumPy
+          1.0.3 or higher installed (PyTables binaries have been built using
+          NumPy 1.0.3).  The binaries already includes DLLs for HDF5 (1.6.5),
+          zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2
+          (1.0.4).  The LZO DLL can't be included because of license issues
+          (but read below for directives to install it if you want so).</para>
 
-          <para>For the HDF5 library it should be enough to manually copy the
-          <literal>hdf5dll.dll</literal>, <literal>zlib1.dll</literal>
-          <emphasis>and</emphasis> <literal>szlibdll.dll</literal> files to a
-          directory in your <literal>PATH</literal> environment variable (for
-          example <literal>C:\WINDOWS\SYSTEM32</literal>).</para>
-
-          <para><emphasis>Caveat:</emphasis> When downloading the binary
-          distribution for HDF5 libraries, select the one compiled with a .NET
-          version of MSVC compiler. The file
-          <literal>5-165-win-net.zip</literal> was compiled with the MSVC 7.1
-          (aka "<literal>.NET 2003</literal>") and you
-          <emphasis>must</emphasis> choose it if you want to run PyTables with
-          Python 2.4.x or 2.5.x series. You have been warned!</para>
-
-          <para>To enable compression with the optional LZO or bzip2 libraries
-          (see the <xref linkend="compressionIssues"
-          xrefstyle="select: label" /> for hints about how they may be used to
-          improve performance), fetch and install the <literal>LZO</literal>
-          (choose v1.x, <literal>LZO</literal> v2.x is not supported in
-          precompiled Windows builds) and <literal>bzip2</literal> binaries
-          from <biblioref linkend="GnuWin32" />. Normally, you will only need
-          to fetch and install the
+          <para>To enable compression with the optional LZO library (see the
+          <xref linkend="compressionIssues" xrefstyle="select: label" /> for
+          hints about how it may be used to improve performance), fetch and
+          install the <literal>LZO</literal> (choose v1.x,
+          <literal>LZO</literal> v2.x is not supported in precompiled Windows
+          builds) from <biblioref linkend="GnuWin32"/>. Normally, you will
+          only need to fetch and install the
           <literal>&lt;package&gt;-&lt;version&gt;-bin.zip</literal> file and
-          copy the <literal>lzo1.dll</literal> or <literal>bzip2.dll</literal>
-          files in a directory in the <literal>PATH</literal> environment
-          variable, so that they can be found by the PyTables
-          extensions.</para>
+          copy the <literal>lzo1.dll</literal> file in a directory in the
+          <literal>PATH</literal> environment variable (for example
+          <literal>C:\WINDOWS\SYSTEM32></literal>) or
+          <literal>python_installation_path\Lib\site-packages\tables</literal>
+          (the last directory may have not exist yet, so if you want to
+          install the DLL there, you should do so <emphasis>after</emphasis>
+          installing the PyTables package), so that it can be found by the
+          PyTables extensions.</para>
 
           <para>Please note that PyTables has internal machinery for dealing
           with uninstalled optional compression libraries, so, you don't need
-          to install any of LZO or bzip2 dynamic libraries if you don't want
-          to.</para>
+          to install the LZO dynamic libraries if you don't want to.</para>
         </section>
 
         <section id="PyTablesBinInstallDescr">
@@ -993,7 +984,7 @@ python -c "import tables; tables.test()"</screen>
           installation by running the next commands: <screen>>>> import tables
 >>> tables.test()</screen> on your favorite python shell. If all the
           tests pass (possibly with a few warnings, related to the potential
-          unavailability of LZO or bzip2 libs) you already have a working,
+          unavailability of LZO lib) you already have a working,
           well-tested copy of PyTables installed! If any test fails, please
           copy the output of the error messages as well as the output of:
           <screen>>>> tables.print_versions()</screen> and mail them
