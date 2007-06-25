@@ -946,7 +946,7 @@ python -c "import tables; tables.test()"</screen>
 
           <para>First, make sure that you have Python 2.4 or higher and NumPy
           1.0.3 or higher installed (PyTables binaries have been built using
-          NumPy 1.0.3).  The binaries already includes DLLs for HDF5 (1.6.5),
+          NumPy 1.0.3).  The binaries already include DLLs for HDF5 (1.6.5),
           zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2
           (1.0.4).  The LZO DLL can't be included because of license issues
           (but read below for directives to install it if you want so).</para>
@@ -961,16 +961,16 @@ python -c "import tables; tables.test()"</screen>
           <literal>&lt;package&gt;-&lt;version&gt;-bin.zip</literal> file and
           copy the <literal>lzo1.dll</literal> file in a directory in the
           <literal>PATH</literal> environment variable (for example
-          <literal>C:\WINDOWS\SYSTEM32></literal>) or
+          <literal>C:\WINDOWS\SYSTEM32</literal>) or
           <literal>python_installation_path\Lib\site-packages\tables</literal>
-          (the last directory may have not exist yet, so if you want to
-          install the DLL there, you should do so <emphasis>after</emphasis>
-          installing the PyTables package), so that it can be found by the
-          PyTables extensions.</para>
+          (the last directory may not exist yet, so if you want to install the
+          DLL there, you should do so <emphasis>after</emphasis> installing
+          the PyTables package), so that it can be found by the PyTables
+          extensions.</para>
 
           <para>Please note that PyTables has internal machinery for dealing
           with uninstalled optional compression libraries, so, you don't need
-          to install the LZO dynamic libraries if you don't want to.</para>
+          to install the LZO dynamic library if you don't want to.</para>
         </section>
 
         <section id="PyTablesBinInstallDescr">
