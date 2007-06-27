@@ -11,10 +11,11 @@ GENERATED = ANNOUNCE.txt
 .PHONY:		dist clean
 
 
-dist:		$(GENERATED)
+dist:		LICENSE.txt $(GENERATED)
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
 
 clean:
+	-rm LICENSE.txt
 	-rm -rf MANIFEST build dist
 	-rm $(GENERATED) tables/*.so tables/numexpr/*.so
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
