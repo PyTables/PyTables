@@ -48,7 +48,7 @@ any of the Licensee products. Licensee may modify the Licensed Software in
 any way they might find adequate for his needs. The Licensee cannot extend
 this right to the users of his products.
 
-6. The users of Licensee products cannot make direct use of the Licensed
+6. The users of the Licensee products cannot make direct use of the Licensed
 Software but only indirectly through the Licensee product. This restriction
 applies as well to modifications of the Licensed Software made by the
 Licensee.
@@ -81,7 +81,7 @@ has paid to Carabos in connection with this Agreement.
 
 Appendix 1
 Third Party Libraries distributed with binary installers of the Licensed 
-Software (not included in beta versions).
+Software.
 - HDF5
 - NumPy
 - ZLib

@@ -81,7 +81,7 @@ has paid to Carabos in connection with this Agreement.
 
 Appendix 1
 Third Party Libraries distributed with binary installers of the Licensed 
-Software (not included in beta versions).
+Software.
 - HDF5
 - NumPy
 - ZLib
