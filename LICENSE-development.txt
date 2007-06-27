@@ -39,19 +39,19 @@ Licensed Software.
 
 4. Upon Licensee's acceptance of the terms and conditions of this Agreement, 
 Carabos grants Licensee the right to use the Licensed Software in the manner 
-provided below. 
- 
+provided below.
+
 GENERAL TERMS OF USE, COPYING, DISTRIBUTION AND MODIFICATION
 
-5. Carabos grants to Licensee the right to include the Licensed Software in
-any of the Licensee products. Licensee may modify the Licensed Software in
-any way they might find adequate for his needs. The Licensee cannot extend
-this right to the users of his products.
+5. Carabos grants to Licensee the right to include the Licensed Software in 
+any of the Licensee products. Licensee may modify the Licensed Software in 
+any way it might find adequate for its needs. The Licensee cannot extend 
+this right to the users of its products.
 
-6. The users of the Licensee products cannot make direct use of the Licensed
-Software but only indirectly through the Licensee product. This restriction
-applies as well to modifications of the Licensed Software made by the
-Licensee.
+6. The users of the Licensee products cannot make direct use of the Licensed 
+Software other than indirectly through the Licensee product. This 
+restriction applies as well to modifications of the Licensed Software made 
+by the Licensee.
 
 WARRANTY DISCLAIMER
 

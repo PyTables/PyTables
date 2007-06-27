@@ -39,18 +39,18 @@ Licensed Software.
 
 4. Upon Licensee's acceptance of the terms and conditions of this Agreement, 
 Carabos grants Licensee the right to use the Licensed Software in the manner 
-provided below. 
- 
+provided below.
+
 GENERAL TERMS OF USE, COPYING, DISTRIBUTION AND MODIFICATION
 
-5. Carabos grants to Licensee as a corporation/organization a site-wide,
-non-transferable, perpetual license to make use and modifications of the
-Licensed Software.  Licensee may install copies of the Licensed Software on
+5. Carabos grants to Licensee as a corporation/organization a site-wide, 
+non-transferable, perpetual license to make use and modifications of the 
+Licensed Software.  Licensee may install copies of the Licensed Software on 
 an unlimited number of computers in the corporation/organization.
 
-6. The Licensee cannot distribute the Licensed Software to anybody external
-to the corporation/organization (except Carabos) in any way. This restriction
-applies as well to modifications of the Licensed Software made by the
+6. The Licensee cannot distribute the Licensed Software to anybody external 
+to the corporation/organization (except Carabos) in any way. This restriction 
+applies as well to modifications of the Licensed Software made by the 
 Licensee.
 
 WARRANTY DISCLAIMER

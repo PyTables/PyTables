@@ -39,8 +39,8 @@ Licensed Software.
 
 4. Upon Licensee's acceptance of the terms and conditions of this Agreement, 
 Carabos grants Licensee the right to use the Licensed Software in the manner 
-provided below. 
- 
+provided below.
+
 GENERAL TERMS OF USE, COPYING, DISTRIBUTION AND MODIFICATION
 
 5. Carabos grants to Licensee as an individual a personal, non-transferable, 
