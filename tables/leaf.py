@@ -397,7 +397,9 @@ class Leaf(Node):
         """Calculate the number of rows that fits on a PyTables buffer."""
 
         # Compute the nrowsinbuf
-        chunksize = numpy.prod(chunkshape) * itemsize
+        # Use an int64 type to avoid overflows in 32-bit systems
+        # Fixes ticket #90
+        chunksize = numpy.prod(chunkshape, dtype='int64') * itemsize
         buffersize = chunksize * CHUNKTIMES
         nrowsinbuf = buffersize // rowsize
         # Safeguard against row sizes being extremely large
