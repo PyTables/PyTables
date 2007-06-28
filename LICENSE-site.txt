@@ -6,89 +6,97 @@ COMMERCIAL LICENSE AGREEMENT FOR PYTABLES PRO APPLICATION SOFTWARE
 
 IMPORTANT-READ CAREFULLY:
 
-1. This Carabos Coop. V. End-User License Agreement ("Agreement") is a legal 
-agreement between you (either an individual or a legal entity) ("Licensee") 
-and Carabos Coop. V. ("Carabos") for the Carabos software product(s) 
-accompanying this Agreement, which include(s) computer software and may 
-include "online" or electronic documentation, associated media, and printed 
-materials, including the source code, example programs and the documentation 
+1. This Carabos Coop. V. End-User License Agreement ("Agreement") is a legal
+agreement between you (either an individual or a legal entity) ("Licensee")
+and Carabos Coop. V. ("Carabos") for the Carabos software product(s)
+accompanying this Agreement, which include(s) computer software and may
+include "online" or electronic documentation, associated media, and printed
+materials, including the source code, example programs and the documentation
 ("Licensed Software").
 
-2. By installing, copying, or otherwise using the Licensed Software, 
-Licensee agrees to be bound by the terms of this Agreement. If Licensee does 
-not agree to the terms of this Agreement, Licensee may not install, copy, or 
-otherwise use the Licensed Software. Licensee may, however, return it to 
-Licensee's place of purchase within 14 days of purchase for a full refund. 
-In addition, by installing, copying, or otherwise using any updates or other 
-components of the Licensed Software that Licensee receives separately as 
-part of the Licensed Software ("Updates"), Licensee agrees to be bound by 
-any additional license terms that accompany such Updates. If Licensee does 
-not agree to the additional license terms that accompany such Updates, 
-Licensee may not install, copy, or otherwise use such Updates.
+2. By installing, copying, or otherwise using the Licensed Software, Licensee
+agrees to be bound by the terms of this Agreement. If Licensee does not agree
+to the terms of this Agreement, Licensee may not install, copy, or otherwise
+use the Licensed Software. If Licensee is not satisfied with the product, we
+will revoke its license and refund its purchase price upon written request
+within 30 days of the purchase as long as Licensee destroys all its copies of
+the software. In addition, by installing, copying, or otherwise using any
+updates or other components of the Licensed Software that Licensee receives
+separately as part of the Licensed Software ("Updates"), Licensee agrees to
+be bound by any additional license terms that accompany such Updates. If
+Licensee does not agree to the additional license terms that accompany such
+Updates, Licensee may not install, copy, or otherwise use such Updates.
 
-3. The Licensed Software uses third party libraries or code (collectively 
-"Third Party Libraries") to implement various functions. Third Party 
-Libraries do not comprise part of the Licensed Software. Licensee 
-acknowledges (1) that some Third Party Libraries may require additional 
-licensing of copyright and patents from the owners of such, and (2) that 
-distribution of any of the Licensed Software referencing any portion of a 
-Third Party Library may require appropriate licensing from such third 
-parties. For details, see the copyright notice of the individual packages. 
-See Appendix 1 for a list of the Third Party Software distributed with the 
-Licensed Software.
+3. The Licensed Software uses third party libraries or code (collectively
+"Third Party Libraries") to implement various functions. Third Party
+Libraries do not comprise part of the Licensed Software. Licensee
+acknowledges (1) that some Third Party Libraries may require additional
+licensing of copyright and patents from the owners of such, and (2) that
+distribution of any of the Licensed Software referencing any portion of a
+Third Party Library may require appropriate licensing from such third
+parties. For details, see the copyright notice of the individual packages.
+See Appendix 1 for a list of the Third Party Software included with the
+sources of the Licensed Software.  See Appendix 2 for a list of the Third
+Party Software distributed with the binaries of the Licensed Software
 
-4. Upon Licensee's acceptance of the terms and conditions of this Agreement, 
-Carabos grants Licensee the right to use the Licensed Software in the manner 
+4. Upon Licensee's acceptance of the terms and conditions of this Agreement,
+Carabos grants Licensee the right to use the Licensed Software in the manner
 provided below.
 
 GENERAL TERMS OF USE, COPYING, DISTRIBUTION AND MODIFICATION
 
-5. Carabos grants to Licensee as a corporation/organization a site-wide, 
-non-transferable, perpetual license to make use and modifications of the 
-Licensed Software.  Licensee may install copies of the Licensed Software on 
+5. Carabos grants to Licensee as a corporation/organization a site-wide,
+non-transferable, perpetual license to make use and modifications of the
+Licensed Software.  Licensee may install copies of the Licensed Software on
 an unlimited number of computers in the corporation/organization.
 
-6. The Licensee cannot distribute the Licensed Software to anybody external 
-to the corporation/organization (except Carabos) in any way. This restriction 
-applies as well to modifications of the Licensed Software made by the 
+6. The Licensee cannot distribute the Licensed Software to anybody external
+to the corporation/organization (except Carabos) in any way. This restriction
+applies as well to modifications of the Licensed Software made by the
 Licensee.
 
 WARRANTY DISCLAIMER
 
-7. The Licensed Software is licensed to Licensee "as is". To the maximum 
-extent permitted by applicable law, Carabos on behalf of itself and its 
-suppliers, disclaims all warranties and conditions, either express or 
-implied, including, but not limited to, implied warranties of 
-merchantability, fitness for a particular purpose, title and 
-non-infringement with regard to the Licensed Software.
+7. The Licensed Software is licensed to Licensee "as is". To the maximum
+extent permitted by applicable law, Carabos on behalf of itself and its
+suppliers, disclaims all warranties and conditions, either express or
+implied, including, but not limited to, implied warranties of
+merchantability, fitness for a particular purpose, title and non-infringement
+with regard to the Licensed Software.
 
 LIMITATION OF LIABILITY
 
-8. If, Carabos's warranty disclaimer notwithstanding, Carabos is held liable 
-to Licensee, whether in contract, tort or any other legal theory, based on 
-the Licensed Software, Carabos's entire liability to Licensee and Licensee's 
-exclusive remedy shall be, at Carabos's option, either (A) return of the 
-price Licensee paid for the Licensed Software, or (B) repair or replacement 
-of the Licensed Software, provided Licensee returns to Carabos all copies of 
-the Licensed Software as originally delivered to Licensee. Carabos shall not 
-under any circumstances be liable to Licensee based on failure of the 
-Licensed Software if the failure resulted from accident, abuse or 
-misapplication, nor shall Carabos under any circumstances be liable for 
-special damages, punitive or exemplary damages, damages for loss of profits 
-or interruption of business or for loss or corruption of data. Any award of 
-damages from Carabos to Licensee shall not exceed the total amount Licensee 
+8. If, Carabos's warranty disclaimer notwithstanding, Carabos is held liable
+to Licensee, whether in contract, tort or any other legal theory, based on
+the Licensed Software, Carabos's entire liability to Licensee and Licensee's
+exclusive remedy shall be, at Carabos's option, either (A) return of the
+price Licensee paid for the Licensed Software, or (B) repair or replacement
+of the Licensed Software, provided Licensee returns to Carabos all copies of
+the Licensed Software as originally delivered to Licensee. Carabos shall not
+under any circumstances be liable to Licensee based on failure of the
+Licensed Software if the failure resulted from accident, abuse or
+misapplication, nor shall Carabos under any circumstances be liable for
+special damages, punitive or exemplary damages, damages for loss of profits
+or interruption of business or for loss or corruption of data. Any award of
+damages from Carabos to Licensee shall not exceed the total amount Licensee
 has paid to Carabos in connection with this Agreement.
 
 Appendix 1
-Third Party Libraries distributed with binary installers of the Licensed 
+Third Party Libraries included with the sources of the Licensed Software.
+
+- HDF5
+- Lrucache
+- Numexpr
+
+For copyright notices of these libraries, see the LICENSES directory.
+
+Appendix 2
+Third Party Libraries distributed with binary installers of the Licensed
 Software.
+
 - HDF5
 - NumPy
 - ZLib
 - Szip (decompressor only)
 - Bzip2
 
-Appendix 2
-Copyright Notices of Included Third Party Libraries
-
-See the LICENSES directory.
