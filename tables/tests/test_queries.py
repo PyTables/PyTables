@@ -27,7 +27,7 @@ row_period = 50
 md_shape = (2, 2)
 """Shape of multidimensional fields."""
 
-_maxnvalue = row_period + numpy.product(md_shape) - 1
+_maxnvalue = row_period + numpy.prod(md_shape, dtype='int64') - 1
 _strlen = int(numpy.log10(_maxnvalue-1)) + 1
 
 str_format = '%%0%dd' % _strlen
@@ -163,7 +163,7 @@ def fill_table(table, shape, nrows):
         return
 
     heavy = common.heavy
-    size = int(numpy.product(shape))
+    size = int(numpy.prod(shape, dtype='int64'))
 
     row, value = table.row, 0
     for nrow in xrange(nrows):

@@ -294,6 +294,6 @@ chunkshape parameter cannot have zero-dimensions."""
             object[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.product(self.shape)*self.atom.itemsize
+        nbytes = numpy.prod(self.shape, dtype='int64')*self.atom.itemsize
 
         return (object, nbytes)

@@ -622,7 +622,7 @@ class NetCDFVariable:
             # fill with _FillValue
             if datatype == 'c':
                 # numpy string arrays with itemsize=1 used for char arrays.
-                deflen = numpy.product(vardimsizes)
+                deflen = numpy.prod(vardimsizes, dtype='int64')
                 self[:] = numpy.ndarray(buffer=_NetCDF_FillValue*deflen,
                                         shape=tuple(vardimsizes), dtype="S1")
             else:

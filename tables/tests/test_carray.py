@@ -68,7 +68,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Fill it with data
         self.rowshape = list(carray.shape)
-        self.objsize = self.length * numpy.product(self.shape)
+        self.objsize = self.length * numpy.prod(self.shape)
         if self.flavor == "numarray":
             if self.type == "string":
                 object = strings.array("a"*self.objsize, shape=self.shape,

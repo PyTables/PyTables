@@ -278,6 +278,6 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
             object._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.product(self.shape)*self.atom.itemsize
+        nbytes = numpy.prod(self.shape, dtype='int64')*self.atom.itemsize
 
         return (object, nbytes)

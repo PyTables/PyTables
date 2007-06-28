@@ -373,7 +373,7 @@ class Leaf(Node):
         chunkshape = list(self.shape)
         # Check whether trimming the main dimension is enough
         chunkshape[maindim] = 1
-        newchunknitems = numpy.prod(chunkshape)
+        newchunknitems = numpy.prod(chunkshape, dtype='int64')
         if newchunknitems <= chunknitems:
             chunkshape[maindim] = chunknitems // newchunknitems
         else:
@@ -381,7 +381,7 @@ class Leaf(Node):
             for j in xrange(len(chunkshape)):
                 # Check whether trimming this dimension is enough
                 chunkshape[j] = 1
-                newchunknitems = numpy.prod(chunkshape)
+                newchunknitems = numpy.prod(chunkshape, dtype='int64')
                 if newchunknitems <= chunknitems:
                     chunkshape[j] = chunknitems // newchunknitems
                     break
