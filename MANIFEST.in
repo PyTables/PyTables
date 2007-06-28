@@ -1,5 +1,6 @@
 include MANIFEST.in
 include *.txt THANKS
+exclude LICENSE*.txt
 include setup.py setup.cfg VERSION Makefile
 
 recursive-include tables *.py
@@ -10,10 +11,10 @@ recursive-include src *.pyx *.pxd *.pxi *.c *.h Makefile
 
 recursive-include LICENSES *
 recursive-include utils *
-recursive-include doc *.txt *.pdf *.html *.css *.png *.jpg Makefile
+recursive-include doc *.txt *.pdf *.html *.css *.png Makefile
 recursive-include doc/scripts *.py
 recursive-exclude doc/xml *
 recursive-include examples *.py *.sh
-recursive-include bench *.sh *.py *.h5 *.txt *.gnuplot
+recursive-include bench *.sh *.py *.txt
 recursive-include contrib README *.py
 recursive-include debian *
