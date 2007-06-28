@@ -17,14 +17,14 @@ materials, including the source code, example programs and the documentation
 2. By installing, copying, or otherwise using the Licensed Software, Licensee
 agrees to be bound by the terms of this Agreement. If Licensee does not agree
 to the terms of this Agreement, Licensee may not install, copy, or otherwise
-use the Licensed Software. If Licensee is not satisfied with the product, we
-will revoke its license and refund its purchase price upon written request
-within 30 days of the purchase as long as Licensee destroys all its copies of
-the Licensed Software. In addition, by installing, copying, or otherwise
-using any updates or other components of the Licensed Software that Licensee
-receives separately as part of the Licensed Software ("Updates"), Licensee
-agrees to be bound by any additional license terms that accompany such
-Updates. If Licensee does not agree to the additional license terms that
+use the Licensed Software. If Licensee is not satisfied with the product,
+Carabos will revoke its license and refund its purchase price upon written
+request within 30 days of the purchase as long as Licensee destroys all its
+copies of the Licensed Software. In addition, by installing, copying, or
+otherwise using any updates or other components of the Licensed Software that
+Licensee receives separately as part of the Licensed Software ("Updates"),
+Licensee agrees to be bound by any additional license terms that accompany
+such Updates. If Licensee does not agree to the additional license terms that
 accompany such Updates, Licensee may not install, copy, or otherwise use such
 Updates.
 
