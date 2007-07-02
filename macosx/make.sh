@@ -2,7 +2,6 @@
 set -e
 
 PYVERS="2.4 2.5"
-LICENSES="personal site development"
 PMPROJ_TMPL="pytables-@VER@-@LIC@-py@PYVER@.pmproj"
 WELCOME_TMPL="welcome-@VER@-@LIC@-py@PYVER@.rtf"
 BACKGROUND="background.tif"
@@ -10,8 +9,14 @@ SUBPKGS="hdf5-1.6.5.pkg numpy-1.0.3"
 
 VER=$(cat ../VERSION)
 VERNP=${VER%pro}
+LICENSES="$(ls ../LICENSE-*.txt | sed -e 's#\.\./LICENSE-\([a-z]*\).txt#\1#')"
 WELCOME_EXT=$(echo "$WELCOME_TMPL" | sed -ne 's/.*\.\(.*\)/\1/p')
 SUBPKGS="SELF $SUBPKGS"
+
+if [ ! "$LICENSES" ]; then
+	echo "No available licenses." > /dev/stderr
+	exit 1
+fi
 
 packagemaker=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
 
