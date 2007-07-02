@@ -10888,6 +10888,10 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             </mediaobject>
           </figure>
 
+          <para>You can find a more complete description and benchmarking
+          about the indexing system of PyTables Pro in <biblioref
+          linkend="OPSI" />.</para>
+
         </section>
       </section>
 
@@ -15361,8 +15365,6 @@ Object Tree:
   <bibliography>
     <bibliomixed id="HDFWhatIs"></bibliomixed>
 
-    <bibliomixed id="HL-HDF"></bibliomixed>
-
     <bibliomixed id="HDFIntr"></bibliomixed>
 
     <bibliomixed id="TableExamples"></bibliomixed>
@@ -15389,6 +15391,8 @@ Object Tree:
 
     <bibliomixed id="bzip2Ref"></bibliomixed>
 
+    <bibliomixed id="GnuWin32"></bibliomixed>
+
     <bibliomixed id="psycoRef"></bibliomixed>
 
     <bibliomixed id="scientificpythonRef"></bibliomixed>
@@ -15399,7 +15403,8 @@ Object Tree:
 
     <bibliomixed id="ViTablesRef"></bibliomixed>
 
-    <bibliomixed id="GnuWin32"></bibliomixed>
+    <bibliomixed id="OPSI"></bibliomixed>
+
   </bibliography>
 </book>
 <!-- Local Variables: -->

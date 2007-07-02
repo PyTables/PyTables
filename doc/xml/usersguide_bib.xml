@@ -4,7 +4,7 @@
 <bibliography>
 
   <biblioentry id="HDFWhatIs">
-    <publisher><publishername>NCSA</publishername></publisher>
+    <publisher><publishername>The HDF Group</publishername></publisher>
     <title>What is HDF5?</title>
     <bibliomisc>Concise description about HDF5 capabilities and its differences
     from earlier versions (HDF4)</bibliomisc>
@@ -13,23 +13,8 @@
     </bibliosource>
   </biblioentry>
 
-  <biblioentry id="HL-HDF">
-    <authorgroup>
-      <author><firstname>Anders</firstname><surname>Henja</surname></author>
-      <author><firstname>Daniel</firstname><othername role='mi'>B</othername>
-      <surname>Michelson</surname></author>
-    </authorgroup>
-    <title>A High Level Interface to the HDF5 File Format</title>
-    <bibliomisc>HL-HDF is a high level interface to the Hierarchical Data
-    Format, version 5. HL-HDF also contains an interface to the Python
-    programming language, called PyHL</bibliomisc>
-    <bibliosource>
-      <ulink url="ftp://ftp.hdfgroup.org/HDF5/contrib/hl-hdf5/README.html">ftp://ftp.hdfgroup.org/HDF5/contrib/hl-hdf5/README.html</ulink>
-    </bibliosource>
-  </biblioentry>
-
   <biblioentry id="HDFIntr">
-    <publisher><publishername>NCSA</publishername></publisher>
+    <publisher><publishername>The HDF Group</publishername></publisher>
     <title>Introduction to HDF5</title>
     <bibliomisc>Introduction to the HDF5 data model and programming
     model</bibliomisc>
@@ -39,7 +24,7 @@
   </biblioentry>
 
   <biblioentry id="TableExamples">
-    <publisher><publishername>NCSA</publishername></publisher>
+    <publisher><publishername>The HDF Group</publishername></publisher>
     <title>The HDF5 table programming model</title>
     <bibliomisc>Examples on using HDF5 tables with the C API</bibliomisc>
     <bibliosource>
@@ -268,4 +253,17 @@
       <ulink url="http://gnuwin32.sourceforge.net/">http://gnuwin32.sourceforge.net/</ulink>
     </bibliosource>
   </biblioentry>
+
+  <biblioentry id="OPSI">
+    <authorgroup>
+      <author><firstname>Francesc</firstname><surname>Altet</surname></author>
+      <author><firstname>Ivan</firstname><surname>Vilata</surname></author>
+    </authorgroup>
+    <title>OPSI: The indexing system of PyTables 2 Professional Edition</title>
+    <bibliomisc>Exhaustive description and benchmarks about the indexing engine that comes with PyTables Pro.</bibliomisc>
+    <bibliosource>
+      <ulink url="http://www.pytables.org/docs/OPSI-indexes.pdf">http://www.pytables.org/docs/OPSI-indexes.pdf</ulink>
+    </bibliosource>
+  </biblioentry>
+
 </bibliography>
