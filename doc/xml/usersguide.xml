@@ -15369,8 +15369,6 @@ Object Tree:
 
     <bibliomixed id="TableExamples"></bibliomixed>
 
-    <bibliomixed id="zlibRef"></bibliomixed>
-
     <bibliomixed id="Objectify"></bibliomixed>
 
     <bibliomixed id="Pyrex"></bibliomixed>
@@ -15387,6 +15385,8 @@ Object Tree:
 
     <bibliomixed id="Numexpr"></bibliomixed>
 
+    <bibliomixed id="zlibRef"></bibliomixed>
+
     <bibliomixed id="lzoRef"></bibliomixed>
 
     <bibliomixed id="bzip2Ref"></bibliomixed>
@@ -15401,9 +15401,9 @@ Object Tree:
 
     <bibliomixed id="NewObjectTreeCacheRef"></bibliomixed>
 
-    <bibliomixed id="ViTablesRef"></bibliomixed>
-
     <bibliomixed id="OPSI"></bibliomixed>
+
+    <bibliomixed id="ViTablesRef"></bibliomixed>
 
   </bibliography>
 </book>
