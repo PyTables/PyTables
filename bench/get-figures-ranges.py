@@ -1,5 +1,11 @@
 from pylab import *
 
+linewidth=2
+#markers= ['+', ',', 'o', '.', 's', 'v', 'x', '>', '<', '^']
+#markers= [ 'x', '+', 'o', 's', 'v', '^', '>', '<', ]
+markers= [ 's', 'o', 'v', '^', '+', 'x', '>', '<', ]
+markersize = 8
+
 def get_values(filename):
     f = open(filename)
     sizes = []
@@ -44,15 +50,21 @@ def get_values(filename):
             fsize = float(line.split(':')[1])
             sizes.append(isize)
             values.append(fsize)
-        elif (query or query_cache) and line.startswith('[NOREP]'):
+        elif ((query or query_cold or query_warm) and
+              line.startswith('[NOREP]')):
             tmp = line.split(':')[1]
+            try:
+                qtime = float(tmp[:tmp.index('+-')])
+            except ValueError:
+                qtime = float(tmp)
             if colname in line:
                 if query and '1st' in line:
-                    qtime = float(tmp)
                     sizes.append(isize)
                     values.append(qtime)
-                elif query_cache and 'cache' in line:
-                    qtime = float(tmp[:tmp.index('+-')])
+                elif query_cold and 'cold' in line:
+                    sizes.append(isize)
+                    values.append(qtime)
+                elif query_warm and 'warm' in line:
                     sizes.append(isize)
                     values.append(qtime)
 
@@ -81,7 +93,7 @@ if __name__ == '__main__':
 
     import sys, getopt
 
-    usage = """usage: %s [-o file] [-t title] [--insert] [--create-index] [--create-total] [--table-size] [--indexes-size] [--total-size] [--query=colname] [--query-cache=colname] files
+    usage = """usage: %s [-o file] [-t title] [--insert] [--create-index] [--create-total] [--table-size] [--indexes-size] [--total-size] [--query=colname]  [--query-cold=colname] [--query-warm=colname] files
  -o filename for output (only .png and .jpg extensions supported)
  -t title of the plot
  --insert -- Insert time for table
@@ -91,7 +103,8 @@ if __name__ == '__main__':
  --indexes-size -- Size of all indexes
  --total-size -- Total size of table + indexes
  --query=colname -- Time for querying the specified column
- --query-cache=colname -- Time for querying the specified column (cached)
+ --query-cold=colname -- Time for querying the specified column (cold cache)
+ --query-warm=colname -- Time for querying the specified column (warm cache)
  \n""" % sys.argv[0]
 
     try:
@@ -103,7 +116,8 @@ if __name__ == '__main__':
                                      'indexes-size',
                                      'total-size',
                                      'query=',
-                                     'query-cache=',
+                                     'query-cold=',
+                                     'query-warm=',
                                      ])
     except:
         sys.stderr.write(usage)
@@ -126,7 +140,8 @@ if __name__ == '__main__':
     indexes_size = 0
     total_size = 0
     query = 0
-    query_cache = 0
+    query_cold = 0
+    query_warm = 0
     colname = None
     yaxis = "No axis name"
     tit = None
@@ -166,26 +181,17 @@ if __name__ == '__main__':
             query = 1
             colname = option[1]
             yaxis = "Time (s)"
-            if colname == 'col1':
-                gtitle = "Query time for int32 (not indexed)"
-            elif colname == 'col3':
-                gtitle = "Query time for float64 (not indexed)"
-            elif colname == 'col2':
-                gtitle = "Query time for int32 (index not in cache)"
-            elif colname == 'col4':
-                gtitle = "Query time for float64 (index not in cache)"
-        elif option[0] == '--query-cache':
-            query_cache = 1
+            gtitle = "Query time for " + colname + " column (first query)"
+        elif option[0] == '--query-cold':
+            query_cold = 1
             colname = option[1]
             yaxis = "Time (s)"
-            if colname == 'col1':
-                gtitle = "Query time for int32 (not indexed, in cache)"
-            elif colname == 'col3':
-                gtitle = "Query time for float64 (not indexed, in cache)"
-            elif colname == 'col2':
-                gtitle = "Query time for int32 (index in cache)"
-            elif colname == 'col4':
-                gtitle = "Query time for float64 (index in cache)"
+            gtitle = "Query time for " + colname + " column (cold cache)"
+        elif option[0] == '--query-warm':
+            query_warm = 1
+            colname = option[1]
+            yaxis = "Time (s)"
+            gtitle = "Query time for " + colname + " column (warm cache)"
 
     filenames = pargs
 
@@ -199,7 +205,13 @@ if __name__ == '__main__':
         plegend = plegend.replace('-', ' ')
         xval, yval = get_values(filename)
         print "Values for %s --> %s, %s" % (filename, xval, yval)
-        plots.append(loglog(xval, yval, linewidth=5))
+        if "PyTables" in filename:
+            plot = loglog(xval, yval, linewidth=2)
+            plots.append(plot)
+            setp(plot, marker=markers[0], markersize=markersize,
+                 linewidth=linewidth)
+        else:
+            plots.append(loglog(xval, yval, linewidth=3, color='m'))
         #plots.append(semilogx(xval, yval, linewidth=5))
         legends.append(plegend)
     if 0:  # Per a introduir dades simulades si es vol...

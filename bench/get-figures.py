@@ -102,7 +102,7 @@ def show_plot(plots, yaxis, legends, gtitle):
     title(gtitle)
     #xlim(10**3, 10**9)
     xlim(10**3, 10**10)
-    #ylim(1.01e-1)
+    #ylim(1.0e-5)
     #ylim(-1e4, 1e5)
     #ylim(-1e3, 1e4)
     #ylim(-1e2, 1e3)
@@ -220,7 +220,8 @@ if __name__ == '__main__':
         elif option[0] == '--indexes-size':
             indexes_size = 1
             yaxis = "Size (MB)"
-            gtitle = "Indexes size"
+            #gtitle = "Indexes size"
+            gtitle = "Index size for col4 column"
         elif option[0] == '--total-size':
             total_size = 1
             yaxis = "Size (MB)"
@@ -265,8 +266,7 @@ if __name__ == '__main__':
             print "Values for %s --> %s, %s" % (filename, xval, yval)
             if xval != []:
                 plot = loglog(xval, yval)
-                #line, = semilogx(xval, yval)
-                #setp(plot, linewidth=linewidth)
+                #plot = semilogx(xval, yval)
                 setp(plot, marker=markers[i], markersize=markersize,
                      linewidth=linewidth)
                 plots.append(plot)
@@ -274,8 +274,8 @@ if __name__ == '__main__':
         else:
             xval, yval = get_values(filename)
             print "Values for %s --> %s, %s" % (filename, xval, yval)
-            plots.append(loglog(xval, yval, linewidth=linewidth))
-            #plots.append(semilogx(xval, yval, linewidth=linewidth))
+            plots.append(loglog(xval, yval, linewidth=3, color='m'))
+            #plots.append(semilogx(xval, yval, linewidth=linewidth, color='m'))
             legends.append(plegend)
     if 0:  # Per a introduir dades simulades si es vol...
         xval = [1000, 10000, 100000, 1000000, 10000000,
