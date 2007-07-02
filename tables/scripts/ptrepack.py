@@ -24,7 +24,7 @@ from tables.file import openFile
 from tables.group import Group
 from tables.leaf import Filters
 from tables.exceptions import \
-     OldIndexWarning, NoIndexingWarning, NoSuchNodeError
+     OldIndexWarning, NoIndexingWarning, NoSuchNodeError, FlavorWarning
 
 # Global variables
 verbose = False
@@ -370,6 +370,9 @@ def main():
     # Let the user be warned in case he is using ptrepack when copying
     # files with indexes
     #warnings.filterwarnings("ignore", category=NoIndexingWarning)
+    # Ignore the flavors warnings during upgrading flavor operations
+    if upgradeflavors:
+        warnings.filterwarnings("ignore", category=FlavorWarning)
 
     # Build the Filters instance
     if ((complevel, complib, shuffle, fletcher32) == (None,)*4 or keepfilters):
