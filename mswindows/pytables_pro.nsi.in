@@ -11,7 +11,7 @@ SetCompressor bzip2
 Name "PyTables Pro @VERSION@"
 
 # The file where the installer will be saved
-OutFile "PyTablesPro-@VERSION@.win32-py@DOTPYTHONVERSION@.exe"
+OutFile "PyTablesPro-@VERSION@-@LICENSE@.win32-py@DOTPYTHONVERSION@.exe"
 
 # The commands Icon/UninstallIcon with MUI Instead we have to use
 # the following !define (see NSIS FAQ)
@@ -79,7 +79,7 @@ FunctionEnd
 !insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\LICENSE_SUMMARY.txt
 
 # License page
-!insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\LICENSE.txt
+!insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\@LICENSEFILENAME@
 
 # Components selection page
 !insertmacro MUI_PAGE_COMPONENTS
@@ -135,7 +135,9 @@ Section "PyTables Pro @PTVERSION@" PT
 
   # The text files: TODO.txt, INSTALL.txt and stuff like that
   SetOutPath $INSTDIR
-  File /x packagingHOWTO.txt @SVN_PTPRO@\*.txt
+  File /x packagingHOWTO.txt /x LICENSE-* @SVN_PTPRO@\*.txt
+  File @SVN_PTPRO@\@LICENSEFILENAME@
+  Rename @LICENSEFILENAME@ LICENSE.txt
 
   # The documentation directory
   SetOutPath $INSTDIR\doc
@@ -169,13 +171,13 @@ Section "PyTables Pro @PTVERSION@" PT
 
   # Install needed libraries under the PyTables Pro directory
   SetOutPath $PYTHONDIR\Lib\site-packages\tables
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @WINDOWS32@\hdf5dll.dll \
+  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @TABLES_ORIG@\hdf5dll.dll \
   hdf5dll.dll $PYTHONDIR\Lib\site-packages\tables
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @WINDOWS32@\zlib1.dll \
+  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @TABLES_ORIG@\zlib1.dll \
   zlib1.dll $PYTHONDIR\Lib\site-packages\tables
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @WINDOWS32@\szlibdll.dll \
+  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @TABLES_ORIG@\szlibdll.dll \
   szlibdll.dll $PYTHONDIR\Lib\site-packages\tables
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @WINDOWS32@\bzip2.dll \
+  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @TABLES_ORIG@\bzip2.dll \
   bzip2.dll $PYTHONDIR\Lib\site-packages\tables
 
   # Update the registry

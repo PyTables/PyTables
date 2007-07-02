@@ -13,6 +13,19 @@ ifeq ($(PYTHONVERSION), 25)
 	DOTPYTHONVERSION=2.5
 endif
 
+ifeq ($(LICENSE), development)
+	LICENSEFILE=..\LICENSE-development.txt
+	LICENSEFILENAME=LICENSE-development.txt
+endif
+ifeq ($(LICENSE), site)
+	LICENSEFILE=..\LICENSE-site.txt
+	LICENSEFILENAME=LICENSE-site.txt
+endif
+ifeq ($(LICENSE), personal)
+	LICENSEFILE=..\LICENSE-personal.txt
+	LICENSEFILENAME=LICENSE-personal.txt
+endif
+
 NUMPYVERSION=1.0.3
 
 # The NSIS intstaller script
@@ -32,7 +45,7 @@ clean:
 	-del $(PTPRONSIS)
 	-del PyTablesPro*.win32-py$(DOTPYTHONVERSION).exe
 
-installer: dist pytables_pro.nsi.in $(VERSIONFILE)
+installer: dist pytables_pro.nsi.in $(VERSIONFILE) $(LICENSEFILE)
 	type pytables_pro.nsi.in | sed -e "s/@VERSION@/$(VERSION)/g" \
 	-e "s/@PTVERSION@/$(VERSION)/g" \
 	-e "s/@NUMPYVERSION@/$(NUMPYVERSION)/g" \
@@ -42,6 +55,8 @@ installer: dist pytables_pro.nsi.in $(VERSIONFILE)
 	-e "s/@TABLES_ORIG@/$(TABLES_ORIG)/g" \
 	-e "s/@NUMPY@/$(NUMPY)/g" \
 	-e "s/@WINDOWS32@/$(WINDOWS32)/g" \
+	-e "s/@LICENSE@/$(LICENSE)/g" \
+	-e "s/@LICENSEFILENAME@/$(LICENSEFILENAME)/g" \
 	> $(PTPRONSIS)
 	makensis $(PTPRONSIS)
 
