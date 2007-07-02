@@ -13,7 +13,7 @@ GENERATED = $(genc) version.h
 dist:           $(GENERATED)
 
 clean:
-	-rm -f $(GENERATED)
+	rm -f $(GENERATED)
 
 
 %.c:            %.pyx

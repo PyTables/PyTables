@@ -8,8 +8,8 @@ dist:		usersguide.pdf html
 	$(MAKE) -C $(SRCDIR) clean
 
 clean:
-	-rm usersguide.pdf
-	-rm -r $(HTMLDIR)
+	rm -f usersguide.pdf
+	rm -rf $(HTMLDIR)
 	$(MAKE) -C $(SRCDIR) clean
 
 

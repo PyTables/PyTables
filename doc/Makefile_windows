@@ -8,7 +8,7 @@ dist:	usersguide.pdf html
 	$(MAKE) -f Makefile_windows -C $(SRCDIR) clean
 
 clean:
-	del usersguide.pdf
+	del /q usersguide.pdf
 	rmdir /s /q $(HTMLDIR)
 	$(MAKE) -f Makefile_windows -C $(SRCDIR) clean
 
