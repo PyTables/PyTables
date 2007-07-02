@@ -1158,6 +1158,10 @@ class TypesTestCase(unittest.TestCase):
     def test05_VLStringAtom(self):
         """Checking vlarray with variable length strings"""
 
+        # Skip the test if the default encoding has been mangled.
+        if sys.getdefaultencoding() != 'ascii':
+            return
+
         if common.verbose:
             print '\n', '-=' * 30
             print "Running %s.test05_VLStringAtom..." % self.__class__.__name__
@@ -1312,6 +1316,10 @@ class TypesTestCase(unittest.TestCase):
 
     def test07_VLUnicodeAtom(self):
         """Checking vlarray with variable length Unicode strings"""
+
+        # Skip the test if the default encoding has been mangled.
+        if sys.getdefaultencoding() != 'ascii':
+            return
 
         if common.verbose:
             print '\n', '-=' * 30
