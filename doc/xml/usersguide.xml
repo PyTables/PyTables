@@ -10595,13 +10595,15 @@ True</screen>
 
           <para>When you need more speed than <emphasis>in-kernel</emphasis>
           selections can offer you, PyTables offers a third selection method,
-          the so-called <emphasis>indexed</emphasis> mode.  In this mode, you
-          have to decide which column(s) you are going to do your selections
-          on, and index them. Indexing is just a kind of sort operation over a
-          column, so that next searches along such a column will look at this
-          sorted information using kind of a <emphasis>binary
-          search</emphasis> which is much faster than a typical
-          <emphasis>sequential search</emphasis>.</para>
+          the so-called <emphasis>indexed</emphasis> mode (based on the highly
+          efficient, extremely large datasets oriented, OPSI indexing engine
+          <biblioref linkend="OPSI" />). In this mode, you have to decide
+          which column(s) you are going to do your selections on, and index
+          them. Indexing is just a kind of sort operation over a column, so
+          that next searches along such a column will look at this sorted
+          information using kind of a <emphasis>binary search</emphasis> which
+          is much faster than a typical <emphasis>sequential
+          search</emphasis>.</para>
 
           <para>You can index the columns you want by calling the
           <literal>Column.createIndex()</literal> method (see <xref
@@ -10888,7 +10890,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           </figure>
 
           <para>You can find a more complete description and benchmarking
-          about the indexing system of PyTables Pro in <biblioref
+          about OPSI, the indexing system of PyTables Pro in <biblioref
           linkend="OPSI" />.</para>
 
         </section>
