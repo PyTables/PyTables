@@ -131,7 +131,7 @@ class Node(object):
     _v_attrs
         The associated `AttributeSet` instance.
     _v_objectID
-        The identifier of this node in the hosting HDF5 file.
+        A node identifier (may change from run to run).
 
     Public instance variables -- attribute shorthands
     -------------------------------------------------
@@ -232,7 +232,7 @@ class Node(object):
         """Is the node being deleted?"""
 
         self._v_objectID = None
-        """The identifier of this node in the hosting HDF5 file."""
+        """A node identifier (may change from run to run)."""
 
         validate = new = self._v_new  # set by subclass constructor
 

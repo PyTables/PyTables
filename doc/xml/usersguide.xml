@@ -213,7 +213,7 @@
           <listitem>
             <para><emphasis>Support for table entities:</emphasis> You can
             tailor your data adding or deleting records in your tables. Large
-            numbers of rows (up to 2**62, much more than will fit into memory)
+            numbers of rows (up to 2**63, much more than will fit into memory)
             are supported as well.</para>
           </listitem>
 
@@ -5280,8 +5280,7 @@ for node in h5file:
               role="bold">_v_objectID</emphasis></glossterm>
 
               <glossdef>
-                <para>The identifier of this node in the hosting HDF5
-                file.</para>
+                <para>A node identifier (may change from run to run).</para>
               </glossdef>
             </glossentry>
           </glosslist>
@@ -6126,7 +6125,7 @@ for node in h5file.root.detector:
               <glossterm><emphasis role="bold">objectID</emphasis></glossterm>
 
               <glossdef>
-                <para>The identifier of this node in the hosting HDF5 file
+                <para>A node identifier (may change from run to run).
                 (<literal>Node._v_objectID</literal>).</para>
               </glossdef>
             </glossentry>

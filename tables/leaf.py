@@ -165,7 +165,7 @@ class Leaf(Node):
     name
         The name of this node in its parent group (`Node._v_name`).
     objectID
-        The identifier of this node in the hosting HDF5 file
+        A node identifier (may change from run to run).
         (`Node._v_objectID`).
     title
         A description for this node (`Node._v_title`).
@@ -217,7 +217,7 @@ class Leaf(Node):
 
     objectID = property(
         lambda self: self._v_objectID, None, None,
-        "The identifier of this node in the hosting HDF5 file." )
+        "A node identifier (may change from run to run)." )
 
     # Lazy read-only attributes
     # `````````````````````````
