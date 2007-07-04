@@ -7,7 +7,8 @@ import os
 import unittest
 
 # Recommended minimum versions for optional packages
-minimum_numpy_version = "1.0.2"
+minimum_hdf5_version = "1.6.5"
+minimum_numpy_version = "1.0.3"
 minimum_numeric_version = "24.2"
 minimum_numarray_version = "1.5.2"
 
@@ -162,6 +163,11 @@ def test(verbose=False, heavy=False):
 
 if __name__ == '__main__':
 
+    hdf5_version = tables.whichLibVersion("hdf5")[1]
+    if hdf5_version < minimum_hdf5_version:
+        print "*Warning*: HDF5 version is lower than recommended: %s < %s" % \
+              (hdf5_version, minimum_hdf5_version)
+    
     if numpy.__version__ < minimum_numpy_version:
         print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
               (numpy.__version__, minimum_numpy_version)
