@@ -131,8 +131,8 @@ Performing the complete test suite!"""
 Performing only a light (yet comprehensive) subset of the test suite.
 If you want a more complete test, try passing the --heavy flag to this script
 (or set the 'heavy' parameter in case you are using tables.test() call).
-The whole suite will take more than 2 minutes to complete on a relatively
-modern CPU and around 80 MB of main memory."""
+The whole suite will take more than 100 minutes to complete on a relatively
+modern CPU and around 120 MB of main memory."""
     print '-=' * 38
 
 
