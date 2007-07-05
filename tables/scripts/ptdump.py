@@ -111,14 +111,14 @@ def dumpGroup(h5file):
 
 def main():
     usage = \
-    """usage: %s [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
-      -R RANGE -- Select a RANGE of rows in the form "start,stop,step"
+    """usage: %s [-d] [-v] [-a] [-c] [-i] [-R start,stop,step] [-h] file[:nodepath]
+      -d -- Dump data information on leaves
+      -v -- Dump more metainformation on nodes
       -a -- Show attributes in nodes (only useful when -v or -d are active)
       -c -- Show info of columns in tables (only useful when -v or -d are active)
       -i -- Show info of indexed columns (only useful when -v or -d are active)
-      -d -- Dump data information on leaves
+      -R RANGE -- Select a RANGE of rows in the form "start,stop,step"
       -h -- Print help on usage
-      -v -- Dump more metainformation on nodes
                 \n""" \
     % os.path.basename(sys.argv[0])
 

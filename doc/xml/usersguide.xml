@@ -14038,14 +14038,14 @@ NestedRecArray[
 
           <para>For instructions on how to use it, just pass the
           <literal>-h</literal> flag to the command: <screen>$ ptdump -h</screen>
-          to see the message usage: <screen>usage: ptdump [-R start,stop,step] [-a] [-h] [-d] [-v] file[:nodepath]
-      -R RANGE -- Select a RANGE of rows in the form "start,stop,step"
+          to see the message usage: <screen>usage: ptdump [-d] [-v] [-a] [-c] [-i] [-R start,stop,step] [-h] file[:nodepath]
+      -d -- Dump data information on leaves
+      -v -- Dump more metainformation on nodes
       -a -- Show attributes in nodes (only useful when -v or -d are active)
       -c -- Show info of columns in tables (only useful when -v or -d are active)
       -i -- Show info of indexed columns (only useful when -v or -d are active)
-      -d -- Dump data information on leaves
-      -h -- Print help on usage
-      -v -- Dump more metainformation on nodes</screen></para>
+      -R RANGE -- Select a RANGE of rows in the form "start,stop,step"
+      -h -- Print help on usage</screen></para>
         </section>
 
         <section>
