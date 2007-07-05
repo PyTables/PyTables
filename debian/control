@@ -15,6 +15,8 @@ XB-Python-Version: ${python:Versions}
 Depends: ${python:Depends}, ${shlibs:Depends}, python-numpy
 Recommends: ${shlibs:Recommends}
 Suggests: python-tables-doc, ${shlibs:Suggests}
+Replaces: python-tables
+Conflicts: python-tables
 Description: hierarchical database for Python based on HDF5
  PyTables is a hierarchical database package designed to efficently
  manage very large amounts of data. PyTables is built on top of the
@@ -33,6 +35,8 @@ Description: hierarchical database for Python based on HDF5
   - It supports the complete set of NumPy, Numeric and numarray objects.
  .
   Homepage: http://www.pytables.org
+ .
+  This is the Pro version of the PyTables package.
 
 Package: python-tables-doc
 Section: doc
