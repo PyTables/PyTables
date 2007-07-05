@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH PTDUMP 1 "March 25, 2004"
+.TH PTDUMP 1 "July 7, 2007"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -19,8 +19,8 @@
 ptdump \- Let's you dig into the contents of a \fIPyTables\fR file.
 .SH SYNOPSIS
 .B ptdump
-.RB [\| \-R \| \  start,stop,step] 
-.RB [\| \-adhv \|] 
+.RB [\| \-dvacih \|]
+.RB [\| \-R \| \  start,stop,step]
 .RB file[:nodepath]
 .br
 .SH DESCRIPTION
@@ -31,20 +31,26 @@ and additional information in the form of attributes).
 .SH OPTIONS
 A summary of options is included below.
 .TP
-.B \-a
-Show attributes in nodes (only useful when \-v or \-d are active as well).
-.TP
 .B \-d
 Dump data information on leaves.
-.TP
-.B \-h
-Print help on usage.
 .TP
 .B \-v
 Dump more metainformation on nodes.
 .TP
+.B \-a
+Show attributes in nodes (only useful when \-v or \-d are active).
+.TP
+.B \-c
+Show info of columns in tables (only useful when \-v or \-d are active).
+.TP
+.B \-i
+Show info of indexed column (only useful when \-v or \-d are active).
+.TP
 .BI \-R\  start,stop,step
 Select a range of rows in the form "start,stop,step" for \fIall\fR leaves.
+.TP
+.B \-h
+Print help on usage.
 
 .br
 

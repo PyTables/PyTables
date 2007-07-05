@@ -1,11 +1,69 @@
-pytables (1.1-1) unstable; urgency=low
+pytables (2.0-1) unstable; urgency=low
+
+  * New upstream release. This no longer depends on numarray (closes: #423797)
+  * Incorporates patch from Didrik Pinte (closes: #431686)
+  * Python 2.5 packages are already available (closes: #391939)
+
+ -- Francesc Altet <faltet@carabos.com>  Thu, 05 Jul 2007 12:08:45 +0200
+
+pytables (2.0rc2-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * New upstream release
+
+ -- Didrik Pinte <dpinte@itae.be>  Tue, 03 Jul 2007 15:40:34 +0200
+
+pytables (1.3.2-2) unstable; urgency=low
+
+    * Fixed call to pyversions in debian/rules which failed on recent versions
+      of pyversions
+    * Fixed clean rule in debian/rules which left the stamp files behind
+    * Acknowledge NMU
+    * Added Alexandre Fayolle to uploaders
+
+ -- Alexandre Fayolle <afayolle@debian.org>  Wed, 28 Jun 2006 10:45:03 +0200
+
+pytables (1.3.2-1) unstable; urgency=low
+
+    * New upstream release (closes: #375691)
+
+ -- Francesc Altet <faltet@carabos.com>  Tue, 27 Jun 2006 19:57:46 +0200
+
+pytables (1.3-1.1) unstable; urgency=low
+
+  * NMU
+  * Comply with the new python policy (removes python2.X-tables 
+    packages) (closes: #373508)
+  * Build-Depend on python-numarray (closes: #374177)
+  * Removed versioned dependency on virtual package python2.X-numarray
+    (closes: #374799)
+  
+ -- Alexandre Fayolle <afayolle@debian.org>  Wed, 21 Jun 2006 14:16:13 +0200
+
+pytables (1.3-1) unstable; urgency=low
+
+   * New upstream release. NumPy support added.
+     (Closes: #347743)
+   * Support of new HDF5 1.6.5 packages in debian.
+   * Due to the new dynamic discovery of LZO, UCL and bzip2 libraries,
+     they are not required anymore by binaries. More specifically, LZO
+     and bzip2 are Recommended:, while UCL which is being deprecated in
+     PyTables is just "Suggested:". Many thanks to Steve Langasek for
+     suggesting an automatic way to do this.
+   * Note that, although deprecated, UCL support is in, in order to
+     allow users to migrate existing files to other supported libraries
+     (Zlib, LZO or bzip2).
+
+ -- Francesc Altet <faltet@carabos.com>  Mon, 10 Apr 2006 12:08:33 +0200
+
+pytables (1.1.1-1) unstable; urgency=low
 
    * New upstream release. Introduced nested types, enumerated types,
      native multidimensional attributes and a new CArray object.
      (Closes: #309018, #308795)
    * Drop python2.2 packages.
 
- -- Francesc Altet <faltet@carabos.com>  Fri, 15 Jul 2005 19:21:05 +0200
+ -- Francesc Altet <faltet@carabos.com>  Wed, 14 Sep 2005 13:38:23 +0200
 
 pytables (0.9.1-2) unstable; urgency=high
 

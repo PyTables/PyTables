@@ -6,24 +6,26 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-# This is the debhelper compatibility version to use.
-export DH_COMPAT=4
+PYVERS:= $(shell pyversions -v --requested debian/control)
 
 build: build-stamp
-	/usr/bin/python2.3 setup.py build
-	/usr/bin/python2.4 setup.py build
 
-	gzip -9 < RELEASE-NOTES.txt > changelog.gz
+	gzip -9 < RELEASE_NOTES.txt > changelog.gz
 	gzip -9 < debian/changelog > changelog.Debian.gz
 
-build-stamp: 
-	touch build-stamp
+build-stamp: $(PYVERS:%=build-stamp-%)
+	touch $@
+
+build-stamp-%:
+	dh_testdir
+	python$* setup.py build
+	touch $@
+
 
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp
-
+	rm -f build-stamp* install-stamp*
 	-rm -rf build
 	-rm -f changelog.gz changelog.Debian.gz
 
@@ -31,31 +33,27 @@ clean:
 	: # Delete some possible dirt
 	-find -name '*.py[co]' | xargs rm -f
 
-install: build
+install: install-stamp
+install-stamp-%: build-stamp-%
 	dh_testdir
 	dh_testroot
-	dh_clean -k
-	/usr/bin/python2.3 setup.py install --no-compile --prefix=$(CURDIR)/debian/python2.3-tables/usr
-	: # Delete scripts
-	rm -rf $(CURDIR)/debian/python2.3-tables/usr/bin
-	/usr/bin/python2.4 setup.py install --no-compile --prefix=$(CURDIR)/debian/python2.4-tables/usr
-	: # Delete scripts
-	rm -rf $(CURDIR)/debian/python2.4-tables/usr/bin
+	python$* setup.py install --prefix=$(CURDIR)/debian/python-tables/usr --no-compile
+	rm -f $(CURDIR)/debian/python-tables/usr/bin/*
+	touch $@
+
+install-stamp: build $(PYVERS:%=install-stamp-%)
+	dh_testdir
+	dh_testroot
+
 # Build architecture-independent files here.
 binary-indep: install
 	dh_testdir
 	dh_testroot
-	dh_install -ppython-tables --sourcedir=utils/ ptdump ptrepack /usr/bin
-	gzip -9 < debian/ptdump.1 > /tmp/ptdump.1.gz
-	gzip -9 < debian/ptrepack.1 > /tmp/ptrepack.1.gz
-	dh_installman -ppython-tables /tmp/ptdump.1.gz /tmp/ptrepack.1.gz
-	dh_installdocs -ppython-tables README.txt changelog.gz changelog.Debian.gz ANNOUNCE.txt test/ examples/
 	: # remove executables from doc package
 	dh_installdocs -ppython-tables-doc -Xmake -Xgenerahtml.sh README.txt changelog.gz changelog.Debian.gz ANNOUNCE.txt doc/usersguide.pdf doc/html bench/
 	dh_compress -i -X.py -X.h5
 	dh_fixperms -i
 	dh_installdeb -i
-	dh_shlibdeps -i
 	dh_gencontrol -i
 	dh_md5sums -i
 	dh_builddeb -i
@@ -63,17 +61,29 @@ binary-indep: install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-
-	dh_installdocs -ppython2.3-tables README.txt changelog.gz changelog.Debian.gz
-	dh_installdocs -ppython2.4-tables README.txt changelog.gz changelog.Debian.gz
-
-	dh_python -ppython2.3-tables -ppython2.4-tables
+	dh_install -ppython-tables --sourcedir=utils/ ptdump ptrepack /usr/bin
+	gzip -9 < debian/ptdump.1 > /tmp/ptdump.1.gz
+	gzip -9 < debian/ptrepack.1 > /tmp/ptrepack.1.gz
+	dh_installman -ppython-tables /tmp/ptdump.1.gz /tmp/ptrepack.1.gz
+	dh_installdocs -ppython-tables README.txt changelog.gz changelog.Debian.gz ANNOUNCE.txt tables/tests/ examples/
+	dh_pycentral -ppython-tables
+	dh_python -ppython-tables
 
 	dh_strip -a
-	dh_compress -a -X.py
+	dh_compress -a -X.py -X.h5
 	dh_fixperms -a
 	dh_installdeb -a
-	dh_shlibdeps -a
+	#dh_shlibdeps -a
+	# In order to automatically add the Depends, Recommends & Suggests
+	# fields automatically.
+	dh_shlibdeps -ppython-tables -X _comp_ -- \
+	    -dRecommends \
+	      debian/python-tables/usr/lib/python*/site-packages/tables/_comp_bzip2.so \
+	      debian/python-tables/usr/lib/python*/site-packages/tables/_comp_lzo.so \
+	    -dDepends
+#	    -dSuggests \
+#	      debian/python-tables/usr/lib/python*/site-packages/tables/_comp_ucl.so \
+
 	dh_gencontrol -a
 	dh_md5sums -a
 	dh_builddeb -a
