@@ -8,6 +8,45 @@
 :Contact: ivilata@carabos.com
 
 
+Changes from 2.0rc2 to 2.0
+==========================
+
+- Added support for recognizing native HDF5 files with datasets compressed
+  with szip compressor.
+
+- Fixed a problem when asking for the string representation (str()) of closed
+  files. Fixes ticket #79.
+
+- Do not take LZO as available when its initialisation fails.
+
+- Fixed a glitch in ptrepack utility. When the user wants a copy of a group,
+  and a group is *to be created* in destination, the attributes of the
+  original group *are* copied. If it is *not to be created*, the attributes
+  will *not be* copied. I think this should be what the user would expect most
+  of the times.
+
+- Fixed the check for creating intermediate groups in ptrepack utility.
+  Solves ticket #83.
+
+- Before, when reading a dataset with an unknown CLASS id, a warning was
+  issued and the dataset mapped to ``UnImplemented``. This closed the door to
+  have the opportunity to try to recognize the dataset and map it to a
+  supported CLASS. Now, when a CLASS attribute is not recognized, an attempt
+  to recognize its associated dataset is made. If it is recognized, the
+  matching class is associated with the dataset. If it is not recognized, then
+  a warning is issued and the dataset becomes mapped to ``UnImplemented``.
+
+- Always pass verbose and heavy values in the common test module to test().
+  Fixes ticket #85.
+
+- Now, the ``verbose`` and ``--heavy`` flag passed to test_all.py are honored.
+
+- All the DLL's of dependencies are included now in Windows binaries.  This
+  should allow for better portability of the binaries.
+
+- Fixed the description of Node._v_objectID that was misleading.
+
+
 Changes from 2.0rc1 to 2.0rc2
 =============================
 
@@ -27,14 +66,14 @@ Changes from 2.0rc1 to 2.0rc2
   memory space whenever the ``Row`` extension is used.
 
 - Improved speed (up to a 70%) with unaligned column operations (a quite
-  commomn scenario when dealing with ``Table`` objects) through the integrated
+  common scenario when dealing with ``Table`` objects) through the integrated
   Numexpr.  In-kernel searches take advantage of this optimization.
 
 - Added ``VLUnicodeAtom`` for storing variable-length Unicode strings in
   ``VLArray`` objects regardless of encoding.  Closes ticket #51.
 
 - Added support for ``time`` datatypes to be portable between big-endian and
-  low-endian architectures.  This feature is not currently suported natively
+  low-endian architectures.  This feature is not currently supported natively
   by the HDF5 library, so the support for such conversion has been added in
   PyTables itself.  Fixes #72.
 

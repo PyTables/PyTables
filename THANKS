@@ -1,4 +1,4 @@
-November 2006
+July 2007
 
 We would like to thank the people have contributed directly or
 indirectly to PyTables.
@@ -62,14 +62,14 @@ and technical issues.
 
 Gerard Vermeulen for Windows/MSVS-2005 testing.
 
+Enric Cervera for testing the binaries for MacOSX/Intel.
+
+Daniel Bungert, Steve Langasek and Alexandre Fayolle for their support
+in creating Debian packages for PyTables.
+
 Greg Ewing for writing the excelent Pyrex tool and allowing to beginners
 like me to quickly and safely start writing Python extensions. He was
 also very responsive about questions on Pyrex.
-
-Torsten Bronger for writing tbook, an excellent XML authoring system,
-which is used to create the different versions of the User's Manual
-(both the PDF and HTML versions). He promptly answered my questions
-and he was always very helpful.
 
 Guido, you know who ;-).
 

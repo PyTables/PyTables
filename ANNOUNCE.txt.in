@@ -7,26 +7,28 @@ efficiently cope with extremely large amounts of data with support for
 full 64-bit file addressing.  PyTables runs on top of the HDF5 library
 and NumPy package for achieving maximum throughput and convenient use.
 
-.. XXX Write a paragraph briefly describing this major or pre release.
-
-You can download a source package of the version @VERSION@ with
-generated PDF and HTML docs and binaries for Windows from
-http://www.pytables.org/download/preliminary/
-
-Please have in mind that some sections in the manual can be obsolete
-(specially the "Optimization tips" chapter).  Other chapters should be
-fairly up-to-date though (although still a bit in state of flux).
-
-In case you want to know more in detail what has changed in this
-version, have a look at ``RELEASE_NOTES.txt``.  Find the HTML version
-for this document at:
-http://www.pytables.org/moin/ReleaseNotes/Release_@VERSION@
+After more than one year of continuous development and about five months
+of alpha, beta and release candidates, we are very happy to announce
+that the PyTables Pro 2.0 (final) is here.  We are pretty confident that
+PyTables Pro 2.0 is ready to be used in production scenarios, bringing
+higher performance, better portability (specially in 64-bit
+environments) and more stability than the 1.x series.  Moreover,
+PyTables Pro includes the powerful OPSI technology for indexing very
+large amounts of data.  See more about OPSI at:
+http://www.pytables.org/docs/OPSI-indexes.pdf
 
 If you are a user of PyTables 1.x, probably it is worth for you to look
 at ``MIGRATING_TO_2.x.txt`` file where you will find directions on how
-to migrate your existing PyTables 1.x apps to the 2.0 version.  You can
-find an HTML version of this document at
+to migrate your existing PyTables 1.x apps to the 2.x versions.  You can
+find an HTML version of this document at:
 http://www.pytables.org/moin/ReleaseNotes/Migrating_To_2.x
+
+You can buy PyTables Pro at the Carabos shop:
+http://www.carabos.com/buy
+
+Also, you should want to know that, by acquiring a PyTables Pro license,
+you are contributing to releasing it as open source.  For details, see:
+http://www.carabos.com/liberation
 
 Keep reading for an overview of the most prominent improvements in
 PyTables 2.0 series.
