@@ -50,7 +50,7 @@ binary-indep: install
 	dh_testdir
 	dh_testroot
 	: # remove executables from doc package
-	dh_installdocs -ppython-tables-doc -Xmake -Xgenerahtml.sh README.txt changelog.gz changelog.Debian.gz ANNOUNCE.txt doc/usersguide.pdf doc/html bench/
+	dh_installdocs -ppython-tables-doc -Xmake -Xgenerahtml.sh README.txt changelog.gz changelog.Debian.gz ANNOUNCE.txt doc/usersguide.pdf doc/html bench/ examples/
 	dh_compress -i -X.py -X.h5
 	dh_fixperms -i
 	dh_installdeb -i
@@ -65,7 +65,7 @@ binary-arch: build install
 	gzip -9 < debian/ptdump.1 > /tmp/ptdump.1.gz
 	gzip -9 < debian/ptrepack.1 > /tmp/ptrepack.1.gz
 	dh_installman -ppython-tables /tmp/ptdump.1.gz /tmp/ptrepack.1.gz
-	dh_installdocs -ppython-tables README.txt changelog.gz changelog.Debian.gz ANNOUNCE.txt tables/tests/ examples/
+	dh_installdocs -ppython-tables README.txt changelog.gz changelog.Debian.gz ANNOUNCE.txt
 	dh_pycentral -ppython-tables
 	dh_python -ppython-tables
 
