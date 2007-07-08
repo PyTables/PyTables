@@ -3,7 +3,10 @@
 # please use ``setup.py`` as described in the ``README.txt`` file.
 
 VERSION = $(shell cat VERSION)
+SVER = $(strip $(patsubst %pro, %, $(VERSION)))
 SRCDIRS = src doc
+LICENSES = personal site development
+DEBFILES = debian/control debian/changelog debian/rules
 
 GENERATED = ANNOUNCE.txt
 
@@ -13,9 +16,18 @@ GENERATED = ANNOUNCE.txt
 
 dist:		$(GENERATED)
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done
+	for license in $(LICENSES) ; do \
+	    cp LICENSE-$$license.txt LICENSE.txt ; \
+	    for f in $(DEBFILES) ; do \
+	        cat $$f.in | sed -e 's/@LICENSE@/$(license)/g' > $$f ; \
+	    done ; \
+	    python setup.py sdist ; \
+	    mv dist/tables-$(VERSION).tar.gz \
+               dist/pytables-pro-$$license-$(SVER).tar.gz ; \
+	done
 
 clean:
-	rm -rf MANIFEST build dist
+	rm -rf LICENSE.txt MANIFEST build dist
 	rm -f $(GENERATED) tables/*.so tables/numexpr/*.so
 	find . '(' -name '*.py[co]' -o -name '*~' ')' -exec rm '{}' ';'
 	for srcdir in $(SRCDIRS) ; do $(MAKE) -C $$srcdir $@ ; done

@@ -1,6 +1,6 @@
 include MANIFEST.in
 include *.txt THANKS
-exclude LICENSE*.txt
+exclude LICENSE-*.txt
 include setup.py setup.cfg VERSION Makefile
 
 recursive-include tables *.py

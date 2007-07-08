@@ -1,4 +1,4 @@
-Source: pytables
+Source: pytables-pro-@LICENSE@
 Section: python
 Priority: optional
 Maintainer: Francesc Altet <faltet@carabos.com>
@@ -9,17 +9,20 @@ Build-Depends: debhelper (>= 5.0.38), python-central (>= 0.5.6),
                python-numpy (>= 1.0.3), python-pyrex (>= 0.9.5.1a),
                zlib1g-dev, liblzo2-dev, libbz2-dev
 
-Package: python-tables
+Package: python-tables-pro-@LICENSE@
 Section: python
 Architecture: any
 XB-Python-Version: ${python:Versions}
 Depends: ${python:Depends}, ${shlibs:Depends}, python-numpy
 Recommends: ${shlibs:Recommends}
-Suggests: python-tables-doc, ${shlibs:Suggests}
+Suggests: python-tables-pro-@LICENSE@-doc, ${shlibs:Suggests}
+Provides: python-tables
 Replaces: python-tables
 Conflicts: python-tables
+Bugs: https://www.pytables.org/trac/
+Origin: Carabos Coop. V.
 Description: hierarchical database for Python based on HDF5
- PyTables is a hierarchical database package designed to efficently
+ PyTables Pro is a hierarchical database package designed to efficently
  manage very large amounts of data. PyTables is built on top of the
  HDF5 library and the NumPy package. It features an object-oriented
  interface that, combined with natural naming and C-code generated
@@ -34,16 +37,22 @@ Description: hierarchical database for Python based on HDF5
   - Very easy to select data through the use of iterators over the
     rows in tables. Extended slicing is supported as well.
   - It supports the complete set of NumPy, Numeric and numarray objects.
+  - It allows to index fields of tables to allow first-class lookup times.
  .
-  Homepage: http://www.pytables.org
+  Homepage: http://www.carabos.com/products/pytables-pro
  .
   This is the Pro version of the PyTables package.
 
-Package: python-tables-doc
+Package: python-tables-pro-@LICENSE@-doc
 Section: doc
 Architecture: all
+Provides: python-tables-doc
+Replaces: python-tables-doc
+Conflicts: python-tables-doc
+Bugs: https://www.pytables.org/trac/
+Origin: Carabos Coop. V.
 Suggests: xpdf | pdf-viewer
 Description: hierarchical database for Python based on HDF5 - documentation
  This package includes the manual in PDF and HTML formats.
  .
-  Homepage: http://www.pytables.org
+  Homepage: http://www.carabos.com/products/pytables-pro
