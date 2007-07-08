@@ -22,7 +22,7 @@ dist:		$(GENERATED)
 	        cat $$f.in | sed -e "s/@LICENSE@/$$license/g" > $$f ; \
                 if [ $$f == "debian/rules" ] ; then \
 	            chmod 755 $$f ; \
-		endif ; \
+		fi ; \
 	    done ; \
 	    python setup.py sdist ; \
 	    mv dist/tables-$(VERSION).tar.gz \
