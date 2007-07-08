@@ -18,3 +18,4 @@ recursive-include examples *.py *.sh
 recursive-include bench *.sh *.py *.txt
 recursive-include contrib README *.py
 recursive-include debian *
+recursive-exclude debian *.in

@@ -19,7 +19,7 @@ dist:		$(GENERATED)
 	for license in $(LICENSES) ; do \
 	    cp LICENSE-$$license.txt LICENSE.txt ; \
 	    for f in $(DEBFILES) ; do \
-	        cat $$f.in | sed -e 's/@LICENSE@/$(license)/g' > $$f ; \
+	        cat $$f.in | sed -e 's/@LICENSE@/$$license/g' > $$f ; \
 	    done ; \
 	    python setup.py sdist ; \
 	    mv dist/tables-$(VERSION).tar.gz \
