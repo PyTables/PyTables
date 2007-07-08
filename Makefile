@@ -19,7 +19,10 @@ dist:		$(GENERATED)
 	for license in $(LICENSES) ; do \
 	    cp LICENSE-$$license.txt LICENSE.txt ; \
 	    for f in $(DEBFILES) ; do \
-	        cat $$f.in | sed -e 's/@LICENSE@/$$license/g' > $$f ; \
+	        cat $$f.in | sed -e "s/@LICENSE@/$$license/g" > $$f ; \
+                if [ $$f == "debian/rules" ] ; then \
+	            chmod 755 $$f ; \
+		endif ; \
 	    done ; \
 	    python setup.py sdist ; \
 	    mv dist/tables-$(VERSION).tar.gz \

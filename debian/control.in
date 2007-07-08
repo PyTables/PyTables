@@ -19,11 +19,9 @@ Suggests: python-tables-pro-@LICENSE@-doc, ${shlibs:Suggests}
 Provides: python-tables
 Replaces: python-tables
 Conflicts: python-tables
-Bugs: https://www.pytables.org/trac/
-Origin: Carabos Coop. V.
 Description: hierarchical database for Python based on HDF5
  PyTables Pro is a hierarchical database package designed to efficently
- manage very large amounts of data. PyTables is built on top of the
+ manage very large amounts of data. PyTables Pro is built on top of the
  HDF5 library and the NumPy package. It features an object-oriented
  interface that, combined with natural naming and C-code generated
  from Pyrex sources, makes it a fast, yet extremely easy to use tool
@@ -40,8 +38,6 @@ Description: hierarchical database for Python based on HDF5
   - It allows to index fields of tables to allow first-class lookup times.
  .
   Homepage: http://www.carabos.com/products/pytables-pro
- .
-  This is the Pro version of the PyTables package.
 
 Package: python-tables-pro-@LICENSE@-doc
 Section: doc
@@ -49,8 +45,6 @@ Architecture: all
 Provides: python-tables-doc
 Replaces: python-tables-doc
 Conflicts: python-tables-doc
-Bugs: https://www.pytables.org/trac/
-Origin: Carabos Coop. V.
 Suggests: xpdf | pdf-viewer
 Description: hierarchical database for Python based on HDF5 - documentation
  This package includes the manual in PDF and HTML formats.
