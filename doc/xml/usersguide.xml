@@ -5554,7 +5554,7 @@ for node in h5file:
 
             <glossentry>
               <glossterm><emphasis role="bold">
-              _v_leaves</emphasis></glossterm>
+              _v_hidden</emphasis></glossterm>
 
               <glossdef>
                 <para>Dictionary with all hidden nodes hanging from this
