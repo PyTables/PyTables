@@ -1032,8 +1032,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         if verbose:
             print "auto flag:", table.autoIndex
             for colname in table.colnames:
-                print "dirty flag col %s: %s" % \
-                      (colname, table.cols._f_col(colname).index.dirty)
+                if table.cols._f_col(colname).index:
+                    print "dirty flag col %s: %s" % \
+                          (colname, table.cols._f_col(colname).index.dirty)
         # Check the flags
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
@@ -1080,8 +1081,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Check the dirty flag for indexes
         if verbose:
             for colname in table.colnames:
-                print "dirty flag col %s: %s" % \
-                      (colname, table.cols._f_col(colname).index.dirty)
+                if table.cols._f_col(colname).index:
+                    print "dirty flag col %s: %s" % \
+                          (colname, table.cols._f_col(colname).index.dirty)
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
                 if not table.autoIndex:
@@ -1117,8 +1119,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Check the dirty flag for indexes
         if verbose:
             for colname in table.colnames:
-                print "dirty flag col %s: %s" % \
-                      (colname, table.cols._f_col(colname).index.dirty)
+                if table.cols._f_col(colname).index:
+                    print "dirty flag col %s: %s" % \
+                          (colname, table.cols._f_col(colname).index.dirty)
         for colname in table.colnames:
             if table.cols._f_col(colname).index:
                 if not table.autoIndex:
@@ -1175,8 +1178,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Check the dirty flag for indexes
         if verbose:
             for colname in table2.colnames:
-                print "dirty flag col %s: %s" % \
-                      (colname, table2.cols._f_col(colname).index.dirty)
+                if table2.cols._f_col(colname).index:
+                    print "dirty flag col %s: %s" % \
+                          (colname, table2.cols._f_col(colname).index.dirty)
         for colname in table2.colnames:
             if table2.cols._f_col(colname).index:
                 assert table2.cols._f_col(colname).index.dirty == False
