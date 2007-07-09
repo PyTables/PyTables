@@ -82,6 +82,8 @@ FunctionEnd
 !insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\@LICENSEFILENAME@
 
 # Components selection page
+!define MUI_COMPONENTSPAGE_TEXT_COMPLIST "Do not forget to check the Numpy \
+component if it is not already installed in a standard location of your system."
 !insertmacro MUI_PAGE_COMPONENTS
 
 # Installation directory page for PyTables Pro data files
@@ -190,8 +192,8 @@ Section "PyTables Pro @PTVERSION@" PT
 
 SectionEnd
 
-SectionGroup "PyTables Pro Requisites"
-Section "Numpy @NUMPYVERSION@" NA
+SectionGroup /e "PyTables Pro Requisites"
+Section /o "Numpy @NUMPYVERSION@" NA
 
   # Copy Numpy package in the system directory
   CreateDirectory $PYTHONDIR\Lib\site-packages\numpy
@@ -289,7 +291,7 @@ Section "Un.PyTables Pro @PTVERSION@ uninstall" UPT
 
 SectionEnd
 
-Section "Un.Numpy @NUMPYVERSION@ uninstall" UNA
+Section /o "Un.Numpy @NUMPYVERSION@ uninstall" UNA
 
   # Remove the numpy package
   StrCmp $PYTHONDIR "" 0 +2
