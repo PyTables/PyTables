@@ -67,7 +67,6 @@ binary-arch: build install
 	dh_installman -ppython-tables-pro-@LICENSE@ /tmp/ptdump.1.gz /tmp/ptrepack.1.gz
 	dh_installdocs -ppython-tables-pro-@LICENSE@ README.txt LICENSE.txt changelog.gz changelog.Debian.gz ANNOUNCE.txt
 	dh_pycentral -ppython-tables-pro-@LICENSE@
-	dh_python -ppython-tables-pro-@LICENSE@
 
 	dh_strip -a
 	dh_compress -a -X.py -X.h5
