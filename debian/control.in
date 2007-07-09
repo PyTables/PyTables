@@ -4,10 +4,9 @@ Priority: optional
 Maintainer: Francesc Altet <faltet@carabos.com>
 Standards-Version: 3.7.2
 XS-Python-Version: >= 2.4
-Build-Depends: debhelper (>= 5.0.38), python-central (>= 0.5.6),
-               python-all-dev, libhdf5-serial-dev (>= 1.6.5),
-               python-numpy (>= 1.0.3), python-pyrex (>= 0.9.5.1a),
-               zlib1g-dev, liblzo2-dev, libbz2-dev
+Build-Depends: debhelper (>= 5.0.38), libhdf5-serial-dev (>= 1.6.5),
+               python-all-dev, python-central (>= 0.5.6),
+               python-numpy (>= 1.0.3), zlib1g-dev, liblzo2-dev, libbz2-dev
 
 Package: python-tables-pro-@LICENSE@
 Section: python
