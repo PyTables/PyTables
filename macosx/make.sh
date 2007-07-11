@@ -36,7 +36,7 @@ for LIC in $LICENSES; do
 		MPKG="PyTables Pro $VERNP ($LIC) for Python $PYVER.mpkg"
 		LICENSE="$MPKG/Contents/Resources/License.txt"
 		DMGDIR="PyTables Pro $VERNP $LIC (py$PYVER)"
-		DMG="PyTablesPro-${VERNP}-${LIC}.macosx-py${PYVER}.dmg"
+		DMG="PyTablesPro-${VERNP}-${LIC}.macosxppc-py${PYVER}.dmg"
 	
 		if [ $cleaning ]; then
 			rm -rf "$WELCOME" "$PMPROJ" "$MPKG" "$DMGDIR" "$DMG" *.bak
