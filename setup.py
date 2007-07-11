@@ -585,7 +585,7 @@ Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
 Intended Audience :: Information Technology
 Intended Audience :: Science/Research
-License :: OSI Approved :: BSD License
+License :: Commercial. See LICENSE.txt for more info.
 Programming Language :: Python
 Topic :: Database
 Topic :: Software Development :: Libraries :: Python Modules

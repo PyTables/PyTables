@@ -15,7 +15,7 @@ higher performance, better portability (specially in 64-bit
 environments) and more stability than the 1.x series.  Moreover,
 PyTables Pro includes the powerful OPSI technology for indexing very
 large amounts of data.  See more about OPSI at:
-http://www.pytables.org/docs/OPSI-indexes.pdf
+http://www.carabos.com/docs/OPSI-indexes.pdf
 
 If you are a user of PyTables 1.x, probably it is worth for you to look
 at ``MIGRATING_TO_2.x.txt`` file where you will find directions on how
