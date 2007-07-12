@@ -125,6 +125,10 @@ New features of PyTables 2.0
 Resources
 =========
 
+To know more about the company behind the development of PyTables Pro, see:
+
+http://www.carabos.com/
+
 Go to the PyTables web site for more details:
 
 http://www.pytables.org
@@ -136,10 +140,6 @@ http://hdfgroup.org/HDF5/
 About NumPy:
 
 http://numpy.scipy.org/
-
-To know more about the company behind the development of PyTables, see:
-
-http://www.carabos.com/
 
 
 Acknowledgments
