@@ -2,20 +2,44 @@
  Announcing PyTables @VERSION@
 ===========================
 
-PyTables is a library for managing hierarchical datasets and designed to
-efficiently cope with extremely large amounts of data with support for
-full 64-bit file addressing.  PyTables runs on top of the HDF5 library
-and NumPy package for achieving maximum throughput and convenient use.
+PyTables Pro is a library for managing hierarchical datasets and
+designed to efficiently cope with extremely large amounts of data with
+support for full 64-bit file addressing.  PyTables Pro runs on top of
+the HDF5 library and NumPy package for achieving maximum throughput and
+convenient use.  The main difference between PyTables Pro and regular
+PyTables is that the Pro version includes OPSI, a new indexing
+technology, allowing to perform data lookups in tables exceeding 10
+gigarows (10**10 rows) in less than 1 tenth of a second.
 
-After more than one year of continuous development and about five months
-of alpha, beta and release candidates, we are very happy to announce
-that the PyTables Pro 2.0 (final) is here.  We are pretty confident that
-PyTables Pro 2.0 is ready to be used in production scenarios, bringing
-higher performance, better portability (specially in 64-bit
-environments) and more stability than the 1.x series.  Moreover,
-PyTables Pro includes the powerful OPSI technology for indexing very
-large amounts of data.  See more about OPSI at:
+After more than two years of continuous development and about five
+months of exhaustive testing and benchmarking, we are very happy to
+announce that PyTables Pro 2.0 (final) is here.  Wearing more than 15000
+tests and having passed the complete test suite in the most common
+platforms (Windows, Mac OS X, Linux 32-bit and Linux 64-bit), we are
+pretty confident that PyTables Pro 2.0 is ready to be used in production
+scenarios, bringing maximum stability and top performance to those users
+who need it.  For more info about PyTables Pro, see:
+http://www.carabos.com/products/pytables-pro
+
+As already said, PyTables Pro includes, as its most distinguishing
+feature, the powerful OPSI technology that allows to index very large
+amounts of data very rapidly while allowing first-class query response
+times.  Its operational details as well as exhaustive benchmarks are
+explained with full detail in the OPSI white paper:
 http://www.carabos.com/docs/OPSI-indexes.pdf
+
+You can buy PyTables Pro at the Carabos shop:
+http://www.carabos.com/buy
+
+Coinciding with the publication of PyTables Pro we are introducing an
+innovative liberation process that will allow to ultimate release the
+PyTables Pro 2.x series as open source.  You may want to know that, by
+buying a PyTables Pro license, you are contributing to this process. For
+details, see: http://www.carabos.com/liberation
+
+
+Migration Notes
+===============
 
 If you are a user of PyTables 1.x, probably it is worth for you to look
 at ``MIGRATING_TO_2.x.txt`` file where you will find directions on how
@@ -23,141 +47,24 @@ to migrate your existing PyTables 1.x apps to the 2.x versions.  You can
 find an HTML version of this document at:
 http://www.pytables.org/moin/ReleaseNotes/Migrating_To_2.x
 
-You can buy PyTables Pro at the Carabos shop:
-http://www.carabos.com/buy
-
-Also, you should want to know that, by acquiring a PyTables Pro license,
-you are contributing to releasing it as open source.  For details, see:
-http://www.carabos.com/liberation
-
-Keep reading for an overview of the most prominent improvements in
-PyTables 2.0 series.
-
-
-New features of PyTables 2.0
-============================
-
-- NumPy is finally at the core!  That means that PyTables no longer
-  needs numarray in order to operate, although it continues to be
-  supported (as well as Numeric).  This also means that you should be
-  able to run PyTables in scenarios combining Python 2.5 and 64-bit
-  platforms (these are a source of problems with numarray/Numeric
-  because they don't support this combination as of this writing).
-
-- Most of the operations in PyTables have experimented noticeable
-  speed-ups (sometimes up to 2x, like in regular Python table
-  selections).  This is a consequence of both using NumPy internally and
-  a considerable effort in terms of refactorization and optimization of
-  the new code.
-
-- Combined conditions are finally supported for in-kernel selections.
-  So, now it is possible to perform complex selections like::
-
-      result = [ row['var3'] for row in
-                 table.where('(var2 < 20) | (var1 == "sas")') ]
-
-  or::
-
-      complex_cond = '((%s <= col5) & (col2 <= %s)) ' \
-                     '| (sqrt(col1 + 3.1*col2 + col3*col4) > 3)'
-      result = [ row['var3'] for row in
-                 table.where(complex_cond % (inf, sup)) ]
-
-  and run them at full C-speed (or perhaps more, due to the cache-tuned
-  computing kernel of Numexpr, which has been integrated into PyTables).
-
-- Now, it is possible to get fields of the ``Row`` iterator by
-  specifying their position, or even ranges of positions (extended
-  slicing is supported).  For example, you can do::
-
-      result = [ row[4] for row in table    # fetch field #4
-                 if row[1] < 20 ]
-      result = [ row[:] for row in table    # fetch all fields
-                 if row['var2'] < 20 ]
-      result = [ row[1::2] for row in       # fetch odd fields
-                 table.iterrows(2, 3000, 3) ]
-
-  in addition to the classical::
-
-      result = [row['var3'] for row in table.where('var2 < 20')]
-
-- ``Row`` has received a new method called ``fetch_all_fields()`` in
-  order to easily retrieve all the fields of a row in situations like::
-
-      [row.fetch_all_fields() for row in table.where('column1 < 0.3')]
-
-  The difference between ``row[:]`` and ``row.fetch_all_fields()`` is
-  that the former will return all the fields as a tuple, while the
-  latter will return the fields in a NumPy void type and should be
-  faster.  Choose whatever fits better to your needs.
-
-- Now, all data that is read from disk is converted, if necessary, to
-  the native byteorder of the hosting machine (before, this only
-  happened with ``Table`` objects).  This should help to accelerate
-  applications that have to do computations with data generated in
-  platforms with a byteorder different than the user machine.
-
-- The modification of values in ``*Array`` objects (through __setitem__)
-  now doesn't make a copy of the value in the case that the shape of the
-  value passed is the same as the slice to be overwritten. This results
-  in considerable memory savings when you are modifying disk objects
-  with big array values.
-
-- All leaf constructors (except for ``Array``) have received a new
-  ``chunkshape`` argument that lets the user explicitly select the
-  chunksizes for the underlying HDF5 datasets (only for advanced users).
-
-- All leaf constructors have received a new parameter called
-  ``byteorder`` that lets the user specify the byteorder of their data
-  *on disk*.  This effectively allows to create datasets in other
-  byteorders than the native platform.
-
-- Native HDF5 datasets with ``H5T_ARRAY`` datatypes are fully supported
-  for reading now.
-
-- The test suites for the different packages are installed now, so you
-  don't need a copy of the PyTables sources to run the tests.  Besides,
-  you can run the test suite from the Python console by using::
-
-  >>> tables.tests()
-
 
 Resources
 =========
 
-To know more about the company behind the development of PyTables Pro, see:
+Go to the PyTables Pro web page for more details:
+http://www.carabos.com/products/pytables-pro
 
+To know more about the company behind the development of PyTables Pro, see:
 http://www.carabos.com/
 
-Go to the PyTables web site for more details:
-
+Go to the PyTables web site, its free counterpart:
 http://www.pytables.org
 
 About the HDF5 library:
-
 http://hdfgroup.org/HDF5/
 
 About NumPy:
-
 http://numpy.scipy.org/
-
-
-Acknowledgments
-===============
-
-Thanks to many users who provided feature improvements, patches, bug
-reports, support and suggestions.  See the ``THANKS`` file in the
-distribution package for a (incomplete) list of contributors.  Many
-thanks also to SourceForge who have helped to make and distribute this
-package!  And last, but not least thanks a lot to the HDF5 and NumPy
-(and numarray!) makers. Without them PyTables simply would not exist.
-
-
-Share your experience
-=====================
-
-Let us know of any bugs, suggestions, gripes, kudos, etc. you may
-have.
 
 
 ----
