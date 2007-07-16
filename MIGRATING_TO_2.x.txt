@@ -15,7 +15,7 @@ migrating from PyTables 1.x to PyTables 2.x series.
 New type system
 ===============
 
-In PyTables 2.0 all the data types for leaves are described through a couple
+In PyTables 2.x all the data types for leaves are described through a couple
 of classes:
 
 - ``Atom``: Describes homogeneous types of the atomic components in ``*Array``
@@ -163,7 +163,7 @@ but it can be useful for inspection by advanced users.
 New flavor specification
 ========================
 
-As of 2.0, flavors can *only* be set through the ``flavor`` attribute of
+As of 2.x, flavors can *only* be set through the ``flavor`` attribute of
 leaves, and they are *persistent*, so changing a flavor requires that the file
 be writable.
 

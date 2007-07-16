@@ -8,6 +8,12 @@
 :Contact: ivilata@carabos.com
 
 
+Changes from 2.0 to 2.0.1
+=========================
+
+(None yet.)
+
+
 Changes from 2.0rc2 to 2.0
 ==========================
 

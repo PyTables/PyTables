@@ -11,15 +11,7 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-After more than two years of continuous development and about five
-months of exhaustive testing and benchmarking, we are very happy to
-announce that PyTables Pro 2.0 (final) is here.  Wearing more than 15000
-tests and having passed the complete test suite in the most common
-platforms (Windows, Mac OS X, Linux 32-bit and Linux 64-bit), we are
-pretty confident that PyTables Pro 2.0 is ready to be used in production
-scenarios, bringing maximum stability and top performance to those users
-who need it.  For more info about PyTables Pro, see:
-http://www.carabos.com/products/pytables-pro
+#XXX version-specific blurb XXX#
 
 As already said, PyTables Pro includes, as its most distinguishing
 feature, the powerful OPSI technology that allows to index very large
