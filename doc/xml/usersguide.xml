@@ -3667,7 +3667,7 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
           </section>
 
           <section id="restrict_flavors">
-            <title>restrict_flavors(keep=['python']</title>
+            <title>restrict_flavors(keep=['python'])</title>
 
             <para>Disable all flavors except those in
             <literal>keep</literal>.</para>
@@ -4345,8 +4345,9 @@ Object Tree:
                     </glossentry>
 
                     <glossentry>
-                      <glossterm><emphasis role="bold">A NumPy (record)
-                      array</emphasis></glossterm>
+                      <glossterm><emphasis role="bold">A
+                      <literal>NumPy (record)
+                      array</literal> instance</emphasis></glossterm>
 
                       <glossdef>
                         <para>You can use a NumPy array, whether nested or
