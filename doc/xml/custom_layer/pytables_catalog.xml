@@ -7,7 +7,7 @@
   <nextCatalog catalog="/etc/xml/catalog"/>
 
   <!-- Locate the Docbook XSL stylesheets -->
-  <group xml:base="file:///usr/share/xml/docbook/stylesheet/ldp/">
+  <group xml:base="file:///Users/ivan/Desktop/Programari/docbook-xsl-1.72.0/">
     <uri name="custom_layer/fo/tldp-print.xsl" uri="fo/tldp-print.xsl"/>
     <uri name="custom_layer/html/tldp-chapters.xsl" uri="html/tldp-chapters.xsl"/>
   </group>

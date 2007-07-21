@@ -89,6 +89,7 @@ for LIC in $LICENSES; do
 	
 		echo "Building $DMG..."
 		mkdir -p "$DMGDIR"
+		cp "$LICENSE" "$DMGDIR/License.txt"
 		mv "$MPKG" "$DMGDIR"
 		cp ../README.txt "$DMGDIR/ReadMe.txt"
 		mkdir -p "$DMGDIR/Examples"
