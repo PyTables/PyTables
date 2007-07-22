@@ -11,10 +11,15 @@ VERNP=${VER%pro}
 WELCOME_EXT=$(echo "$WELCOME_TMPL" | sed -ne 's/.*\.\(.*\)/\1/p')
 SUBPKGS="SELF $SUBPKGS"
 
-PYVERS="$(ls -d ../dist/tables-$VER-py*-*.?pkg | sed -e 's#.*-py\([0-9].[0-9]\)-.*#\1#')"
-if [ ! "$PYVERS" ]; then
-	echo "No available binary packages." > /dev/stderr
-	exit 1
+if [ "$1" = "clean" ]; then
+	cleaning=true
+	PYVERS="$(ls /Library/Frameworks/Python.framework/Versions | grep -v Current)"
+else
+	PYVERS="$(ls -d ../dist/tables-$VER-py*-*.?pkg | sed -e 's#.*-py\([0-9].[0-9]\)-.*#\1#')"
+	if [ ! "$PYVERS" ]; then
+		echo "No available binary packages." > /dev/stderr
+		exit 1
+	fi
 fi
 
 LICENSES="$(ls ../LICENSE-*.txt | sed -e 's#.*-\([a-z]*\).txt$#\1#')"
@@ -24,10 +29,6 @@ if [ ! "$LICENSES" ]; then
 fi
 
 packagemaker=/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker
-
-if [ "$1" = "clean" ]; then
-	cleaning=true
-fi
 
 for LIC in $LICENSES; do
 	for PYVER in $PYVERS; do
