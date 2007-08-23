@@ -96,10 +96,10 @@ cdef class NodeCache:
     # Check if we are growing out of space
     if self.nextslot == self.nslots:
       # Remove the LRU node and path (the start of the lists)
-      PyObject_DelItem(self.nodes, 0);  PyObject_DelItem(self.paths, 0)
+      del self.nodes[0];  del self.paths[0]
       self.nextslot = self.nextslot - 1
     # Add the node and path to the end of its lists
-    PyList_Append(self.nodes, node);  PyList_Append(self.paths, path)
+    self.nodes.append(node);  self.paths.append(path)
     self.nextslot = self.nextslot + 1
 
 
@@ -114,12 +114,13 @@ cdef class NodeCache:
   cdef long getslot(self, object path):
     cdef long i, nslot
 
-    if self.nextslot == 0:   # No chance for finding the path
-      return -1
     nslot = -1  # -1 means not found
-    # Start looking from the trailing values (most recently used)
-    for i from self.nextslot > i >= 0:
-      if path == PyObject_GetItem(self.paths, i):
+    # It is not clear to me whether we should start looking at the LRU or the
+    # MRU node.  For most benchmarking uses, starting by the LRU will give the
+    # best results, so set's start using the LRU and see if this is
+    # appropriate or not.  F. Altet 2007-08-23
+    for i from 0 <= i < self.nextslot:
+      if strcmp(path, self.paths[i]) == 0:
         nslot = i
         break
     return nslot
@@ -130,11 +131,11 @@ cdef class NodeCache:
 
 
   cdef object cpop(self, object path):
-    cdef object nslot
+    cdef long nslot
 
     nslot = self.getslot(path)
-    node = PyObject_GetItem(self.nodes, nslot)
-    PyObject_DelItem(self.nodes, nslot);  PyObject_DelItem(self.paths, nslot)
+    node = self.nodes[nslot]
+    del self.nodes[nslot];  del self.paths[nslot]
     self.nextslot = self.nextslot - 1
     return node
 
@@ -414,7 +415,7 @@ cdef class ObjectCache(BaseCache):
     cdef ObjectNode node
 
     self.getcount = self.getcount + 1
-    node = PyObject_GetItem(self.__list, nslot)
+    node = self.__list[nslot]
     self.ratimes[nslot] = self.incseqn()
     self.mrunode = node
     return node.obj
@@ -454,9 +455,9 @@ cdef class NumCache(BaseCache):
     cdef long nslots
 
     nslots = shape[0];  self.slotsize = shape[1]*itemsize
-    if nslots >= 2**16:
+    if nslots >= 2.**16:
       # nslots can't be higher than 2**16. Will silently trunk the number.
-      nslots = <long>((2**16)-1)  # Cast makes Pyrex happy here
+      nslots = <long>((2.**16)-1)  # Cast makes Pyrex happy here
     super(NumCache, self).__init__(nslots, name)
     self.itemsize = itemsize
     # The cache object where all data will go
@@ -473,7 +474,7 @@ cdef class NumCache(BaseCache):
 
   cdef removeslot_(self, long nslot):
     self.nextslot = self.nextslot - 1
-  
+
 
   # Copy new data into a free slot starting in 'start'
   cdef addslot_(self, long nslot, long start, long long key, void *data):
