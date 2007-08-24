@@ -29,8 +29,6 @@ import sys
 import numpy
 from definitions cimport \
      memcpy, strcmp, \
-     PyList_Append, PyObject_GetItem, PyObject_SetItem, \
-     PyObject_DelItem, PyObject_Length, PyObject_Compare, \
      import_array, ndarray
 
 from tables.parameters import ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
@@ -115,11 +113,8 @@ cdef class NodeCache:
     cdef long i, nslot
 
     nslot = -1  # -1 means not found
-    # It is not clear to me whether we should start looking at the LRU or the
-    # MRU node.  For most benchmarking uses, starting by the LRU will give the
-    # best results, so set's start using the LRU and see if this is
-    # appropriate or not.  F. Altet 2007-08-23
-    for i from 0 <= i < self.nextslot:
+    # Start looking from the trailing values (most recently used)
+    for i from self.nextslot > i >= 0:
       if strcmp(path, self.paths[i]) == 0:
         nslot = i
         break
