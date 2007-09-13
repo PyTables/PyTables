@@ -1087,7 +1087,7 @@ class DefaultValues(unittest.TestCase):
         os.remove(file)
 
 class RecordT(IsDescription):
-    var0 = IntCol(dflt=1, shape=1) # native int
+    var0 = IntCol(dflt=1, shape=()) # native int
     var1 = IntCol(dflt=[1], shape=(1,)) # 1-D int (one element)
     var2_s = IntCol(dflt=[1,1], shape=2) # 1-D int (two elements)
     var2 = IntCol(dflt=[1,1], shape=(2,)) # 1-D int (two elements)

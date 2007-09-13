@@ -203,7 +203,7 @@ class EnumTableTestCase(common.TempFileMixin, common.PyTablesTestCase):
     enumType = 'uint16'
 
 
-    def _description(self, shape=1):
+    def _description(self, shape=()):
         class TestDescription(tables.IsDescription):
             rid = tables.IntCol(pos=0)
             rcolor = tables.EnumCol(
@@ -383,7 +383,7 @@ class EnumEArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     enumType = 'uint16'
 
 
-    def _atom(self, shape=1):
+    def _atom(self, shape=()):
         return tables.EnumAtom(
             self.enum, 'red', base=self.enumType, shape=shape)
 
@@ -483,7 +483,7 @@ class EnumVLArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
     enumType = 'uint16'
 
 
-    def _atom(self, shape=1):
+    def _atom(self, shape=()):
         return tables.EnumAtom(
             self.enum, 'red', base=self.enumType, shape=shape)
 

@@ -1835,15 +1835,18 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """
 
     array_data = numpy.arange(10)
+    scalar_data = numpy.int32(10)
 
     def _reopen(self, mode='r'):
         super(FlavorTestCase, self)._reopen(mode)
-        self.array = self.h5file.getNode('/test')
+        self.array = self.h5file.getNode('/array')
+        self.scalar = self.h5file.getNode('/scalar')
         return True
 
     def setUp(self):
         super(FlavorTestCase, self).setUp()
-        self.array = self.h5file.createArray('/', 'test', self.array_data)
+        self.array = self.h5file.createArray('/', 'array', self.array_data)
+        self.scalar = self.h5file.createArray('/', 'scalar', self.scalar_data)
 
     def tearDown(self):
         self.array = None
@@ -1894,6 +1897,26 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         del self.array.flavor
         self.assertEqual(self.array.flavor, tables.flavor.internal_flavor)
         self.assertRaises(AttributeError, getattr, self.array.attrs, 'FLAVOR')
+
+    def test06_copyDeleted(self):
+        """Copying a node with a deleted flavor (see #100)."""
+        snames = [node._v_name for node in [self.array, self.scalar]]
+        dnames = ['%s_copy' % name for name in snames]
+        for name in snames:
+            node = self.h5file.getNode('/', name)
+            del node.flavor
+        # Check the copied flavors right after copying and after reopening.
+        for fmode in ['r+', 'r']:
+            self._reopen(fmode)
+            for sname, dname in zip(snames, dnames):
+                if fmode == 'r+':
+                    snode = self.h5file.getNode('/', sname)
+                    node = snode.copy('/', dname)
+                elif fmode == 'r':
+                    node = self.h5file.getNode('/', dname)
+                self.assertEqual( node.flavor, tables.flavor.internal_flavor,
+                                  "flavor of node ``%s`` is not internal: %r"
+                                  % (node._v_pathname, node.flavor) )
 
 
 class OldFlavorTestCase(common.PyTablesTestCase):

@@ -8,23 +8,47 @@
 #
 ########################################################################
 
-"""Import modules and functions needed by users.
+"""
+PyTables, hierarchical datasets in Python
 
-To know what modules/functions are imported by a line like:
+:URL: http://www.pytables.org/
 
-from tables import *
+PyTables is a package for managing hierarchical datasets and designed
+to efficiently cope with extremely large amounts of data.
 
-look at the __all__ variable that controls that.
+You can support the development of PyTables by purchasing the
+PyTables Professional edition available at
+http://www.carabos.com/products/pytables-pro
 
-Classes:
+Most Important Classes
+======================
 
-Functions:
+Nodes
+~~~~~
 
-Misc variables:
+Group, Table, Array, CArray, EArray, VLArray, UnImplemented
 
-    __version__
-    hdf5Version
-    is_pro
+Declarative
+~~~~~~~~~~~
+
+IsDescription, {Type}Atom, {Type}Col
+
+Helpers
+~~~~~~~
+
+File, Filters, Cols, Column
+
+
+First Level Functions
+=====================
+
+openFile, copyFile, test,  print_versions, whichLibVersion,
+isPyTablesFile, isHDF5File
+
+Misc variables
+==============
+
+__version__, hdf5Version, is_pro
 
 """
 
@@ -38,7 +62,8 @@ hdf5Version = getHDF5Version()
 is_pro = __version__.endswith('pro')
 """True for PyTables Professional edition, false otherwise."""
 
-from tables.utilsExtension import isHDF5File, isPyTablesFile, whichLibVersion
+from tables.utilsExtension import (
+    isHDF5File, isPyTablesFile, whichLibVersion, lrange )
 
 from tables.misc.enum import Enum
 from tables.atom import *
@@ -74,7 +99,7 @@ __all__ = [
     # Functions:
     'isHDF5File', 'isPyTablesFile', 'whichLibVersion',
     'copyFile', 'openFile', 'print_versions', 'test',
-    'split_type', 'restrict_flavors',
+    'split_type', 'restrict_flavors', 'lrange',
     # Helper classes:
     'IsDescription', 'Description', 'Filters', 'Cols', 'Column',
     # Types:

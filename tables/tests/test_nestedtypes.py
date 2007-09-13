@@ -622,6 +622,26 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertEqual(searchedCoords.tolist(), expectedCoords.tolist(),
                          "Search returned incorrect results.")
 
+    def test08_setNestedField(self):
+        "Checking modifying a nested field via natural naming."
+        # See ticket #93 (http://www.pytables.org/trac/ticket/93).
+
+        tbl = self.h5file.createTable(
+            '/', 'test', self._TestTDescr, title=self._getMethodName())
+        tbl.append(self._testAData)
+        tbl.flush()
+
+        oldvalue = tbl.cols.Info.z2[0]
+        tbl.cols.Info.z2[0] = oldvalue + 1
+        tbl.flush()
+
+        if self.reopen:
+            self._reopen()
+            tbl = self.h5file.root.test
+
+        newvalue = tbl.cols.Info.z2[0]
+        self.assertEqual(newvalue, oldvalue + 1)
+
 
 class WriteNoReopen(WriteTestCase):
     reopen = 0

@@ -15,7 +15,6 @@ import os
 import os.path
 import warnings
 import sys
-import popen2
 import time
 
 import numpy
@@ -452,10 +451,8 @@ class ShowMemTime(PyTablesTestCase):
     def test00(self):
         """Showing memory and time consumption."""
 
-        # Build the command to obtain memory info (only for Linux 2.6.x)
-        cmd = "cat /proc/%s/status" % os.getpid()
-        sout, sin = popen2.popen2(cmd)
-        for line in sout:
+        # Obtain memory info (only for Linux 2.6.x)
+        for line in open("/proc/self/status"):
             if line.startswith("VmSize:"):
                 vmsize = int(line.split()[1])
             elif line.startswith("VmRSS:"):
@@ -468,8 +465,6 @@ class ShowMemTime(PyTablesTestCase):
                 vmexe = int(line.split()[1])
             elif line.startswith("VmLib:"):
                 vmlib = int(line.split()[1])
-        sout.close()
-        sin.close()
         print "\nWallClock time:", time.time() - self.tref
         print "Memory usage: ******* %s *******" % self._getName()
         print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)

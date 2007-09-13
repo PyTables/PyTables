@@ -132,7 +132,7 @@ class Col(atom.Atom):
         return colclass(pos=pos, **kwargs)
 
     @classmethod
-    def from_sctype(class_, sctype, shape=1, dflt=None, pos=None):
+    def from_sctype(class_, sctype, shape=(), dflt=None, pos=None):
         """
         Create a `Col` definition from a NumPy scalar type `sctype`.
 
@@ -159,7 +159,7 @@ class Col(atom.Atom):
         return class_.from_atom(newatom, pos=pos)
 
     @classmethod
-    def from_type(class_, type, shape=1, dflt=None, pos=None):
+    def from_type(class_, type, shape=(), dflt=None, pos=None):
         """
         Create a `Col` definition from a PyTables `type`.
 
@@ -170,7 +170,7 @@ class Col(atom.Atom):
         return class_.from_atom(newatom, pos=pos)
 
     @classmethod
-    def from_kind(class_, kind, itemsize=None, shape=1, dflt=None, pos=None):
+    def from_kind(class_, kind, itemsize=None, shape=(), dflt=None, pos=None):
         """
         Create a `Col` definition from a PyTables `kind`.
 

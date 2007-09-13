@@ -46,7 +46,9 @@ from definitions cimport import_array, ndarray, \
      H5ATTRget_attribute_string, H5ATTRfind_attribute, \
      H5ARRAYget_ndims, H5ARRAYget_info, \
      create_ieee_complex64, create_ieee_complex128, \
-     get_order, set_order
+     get_order, set_order, \
+     get_len_of_range, NPY_INT64, npy_int64, dtype, \
+     PyArray_DescrFromType, PyArray_Scalar
 
 
 
@@ -673,6 +675,79 @@ def AtomFromHDF5Type(hid_t type_id, issue_error = True):
     atom = Atom.from_kind(kind, tsize, shape=shape)
 
   return atom
+
+
+cdef class lrange:
+  """
+  Iterate over long ranges.
+
+  This is similar to ``xrange()``, but it allows 64-bit arguments on all
+  platforms.  The results of the iteration are sequentially yielded in
+  the form of ``numpy.int64`` values, but getting random individual
+  items is not supported.
+
+  Because of the Python 32-bit limitation on object lengths, the
+  ``length`` attribute (which is also a ``numpy.int64`` value) should be
+  used instead of the ``len()`` syntax.
+
+  Default ``start`` and ``step`` arguments are supported in the same way
+  as in ``xrange()``.  When the standard ``[x]range()`` Python objects
+  support 64-bit arguments, this iterator will be deprecated.
+  """
+  cdef npy_int64 start, stop, step, next
+  cdef dtype int64  # caches the ``numpy.int64`` type
+
+  property length:  # no __len__ since the result would get truncated
+    """
+    Get the number of elements in this iteration.
+
+    This should be used instead of ``len()`` because the latter
+    truncates the real length to a 32-bit signed value.
+    """
+    def __get__(self):
+      cdef npy_int64 rlen
+      rlen = get_len_of_range(self.start, self.stop, self.step)
+      return PyArray_Scalar(&rlen, self.int64, None)
+
+  def __new__(self, *args):
+    cdef int nargs
+    cdef object start, stop, step
+
+    nargs = len(args)
+    if nargs == 1:
+      start = 0
+      stop = args[0]
+      step = 1
+    elif nargs == 2:
+      start = args[0]
+      stop = args[1]
+      step = 1
+    elif nargs == 3:
+      start = args[0]
+      stop = args[1]
+      step = args[2]
+    else:
+      raise TypeError("expected 1-3 arguments, got %d" % nargs)
+
+    if step == 0:
+      raise ValueError("``step`` argument can not be zero")
+    self.start = start
+    self.stop = stop
+    self.step = step
+    self.next = start
+    self.int64 = PyArray_DescrFromType(NPY_INT64)
+
+  def __iter__(self):
+    return self
+
+  def __next__(self):
+    cdef object current
+    if ( (self.step > 0 and self.next >= self.stop)
+         or (self.step < 0 and self.next <= self.stop) ):
+      raise StopIteration
+    current = PyArray_Scalar(&self.next, self.int64, None)
+    self.next = self.next + self.step
+    return current
 
 
 

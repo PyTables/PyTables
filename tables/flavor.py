@@ -321,15 +321,12 @@ _python_aliases = [
 _python_desc = ( "homogeneous list or tuple, "
                  "integer, float, complex or string" )
 def _is_python(array):
-    if ( 'numpy' in all_flavors and numpy.isscalar(array)
-         and not isinstance(array, numpy.void) ):  # NumPy record
-        return True  # NumPy scalars will be treated as Python objects
     return isinstance(array, (tuple, list, int, float, complex, str))
 
 _numpy_aliases = []
-_numpy_desc = "NumPy array or record"
+_numpy_desc = "NumPy array, record or scalar"
 def _is_numpy(array):
-    return isinstance(array, (numpy.ndarray, numpy.void))
+    return isinstance(array, (numpy.ndarray, numpy.generic))
 
 _numarray_aliases = ['NumArray', 'CharArray']
 _numarray_desc = "numarray array or record"
@@ -354,8 +351,10 @@ def _numpy_contiguous(convfunc):
     return conv_to_numpy
 
 @_numpy_contiguous
-def _conv_numpy_to_numpy(array):  # just to make the array contiguous
-    return array
+def _conv_numpy_to_numpy(array):
+    # Passes contiguous arrays through and converts scalars into
+    # scalar arrays.
+    return numpy.asarray(array)
 
 @_numpy_contiguous
 def _conv_numarray_to_numpy(array):
@@ -447,6 +446,10 @@ def _conv_numpy_to_numarray(array):
         return numarray.strings.array( buffer=array, shape=array.shape,
                                        itemsize=array.itemsize, padc='\x00' )
     if kind != 'V':  # homogeneous array
+        # NumPy scalars are mishandled by numarray, see #98.  This
+        # case may be removed when the bug in numarray is fixed.
+        if numpy.isscalar(array):
+            array = array.item()
         # This works for regular homogeneous arrays and even for rank-0 arrays
         # Using asarray gives problems in some tests (I don't know exactly why)
         ##return numarray.asarray(array)  # use the array protocol

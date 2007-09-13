@@ -310,8 +310,8 @@ class Leaf(Node):
 
     def __str__(self):
 
-        """The string reprsentation choosed for this object is its pathname
-        in the HDF5 object tree.
+        """The string representation for this object is its pathname in
+        the HDF5 object tree plus some additional metainfo.
         """
 
         # Get this class name

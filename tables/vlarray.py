@@ -32,6 +32,7 @@ import warnings
 import numpy
 
 from tables import hdf5Extension
+from tables.utilsExtension import lrange
 from tables.utils import convertToNPAtom, convertToNPAtom2, idx2long, \
      correct_byteorder
 
@@ -129,7 +130,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         # Create a VLArray:
         fileh = tables.openFile('vlarray1.h5', mode='w')
         vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
-                                      tables.Int32Atom(shape=1),
+                                      tables.Int32Atom(shape=()),
                                       \"ragged array of ints\",
                                       filters=tables.Filters(1))
         # Append some (variable length) rows:
@@ -749,7 +750,7 @@ be zero."""
             atomsize = self.atom.base.size
         else:
             atomsize = self.atom.size
-        for start2 in xrange(start, stop, step*nrowsinbuf):
+        for start2 in lrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:

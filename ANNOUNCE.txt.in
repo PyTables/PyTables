@@ -36,26 +36,37 @@ Migration Notes
 If you are a user of PyTables 1.x, probably it is worth for you to look
 at ``MIGRATING_TO_2.x.txt`` file where you will find directions on how
 to migrate your existing PyTables 1.x apps to the 2.x versions.  You can
-find an HTML version of this document at:
+find an HTML version of this document at
 http://www.pytables.org/moin/ReleaseNotes/Migrating_To_2.x
+
+
+Bugfixes
+========
+
+- (None yet.)
 
 
 Resources
 =========
 
 Go to the PyTables Pro web page for more details:
+
 http://www.carabos.com/products/pytables-pro
 
 To know more about the company behind the development of PyTables Pro, see:
+
 http://www.carabos.com/
 
 Go to the PyTables web site, its free counterpart:
+
 http://www.pytables.org
 
 About the HDF5 library:
+
 http://hdfgroup.org/HDF5/
 
 About NumPy:
+
 http://numpy.scipy.org/
 
 

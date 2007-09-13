@@ -1172,6 +1172,23 @@ class StrlenCloseTestCase(StrlenTestCase):
     close = 1
 
 
+class ScalarTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def test(self):
+        """Reading scalar arrays (see #98)."""
+
+        arr = self.h5file.createArray('/', 'scalar_na', 1234)
+        arr.flavor = 'numarray'
+
+        self._reopen()
+
+        arr = self.h5file.root.scalar_na
+
+        common.verbosePrint("* %r == %r ?" % (arr.read(), array(1234)))
+        self.assert_(all(arr.read() == array(1234)))
+        common.verbosePrint("* %r == %r ?" % (arr[()], array(1234)))
+        self.assert_(all(arr[()] == 1234))
+
+
 #--------------------------------------------------------
 
 def suite():
@@ -1194,6 +1211,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(TableNativeFlavorCloseTestCase))
         theSuite.addTest(unittest.makeSuite(StrlenOpenTestCase))
         theSuite.addTest(unittest.makeSuite(StrlenCloseTestCase))
+        theSuite.addTest(unittest.makeSuite(ScalarTestCase))
         if common.heavy:
             theSuite.addTest(unittest.makeSuite(Basic10DTestCase))
     return theSuite

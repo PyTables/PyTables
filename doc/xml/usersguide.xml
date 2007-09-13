@@ -1151,7 +1151,8 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
   "idnumber": Int64Col(shape=(), dflt=0, pos=5),
   "name": StringCol(itemsize=16, shape=(), dflt='', pos=6),
   "pressure": Float32Col(shape=(), dflt=0.0, pos=7)}
-  byteorder := 'little'</screen>
+  byteorder := 'little'
+  chunkshape := (87L,)</screen>
 
           <para>More detailed information is displayed about each object in
           the tree. Note how <literal>Particle</literal>, our table descriptor
@@ -1302,7 +1303,8 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
   atom := Float64Atom(shape=(), dflt=0.0)
   maindim := 0
   flavor := 'numpy'
-  byteorder := 'little'</screen>
+  byteorder := 'little'
+  chunkshape := None</screen>
 
           <para>We already know the first two parameters of the
           <literal>createArray</literal> (see <xref
@@ -1325,7 +1327,8 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
   atom := StringAtom(itemsize=16, shape=(), dflt='')
   maindim := 0
   flavor := 'python'
-  byteorder := 'irrelevant'</screen>
+  byteorder := 'irrelevant'
+  chunkshape := None</screen>
 
           <para>As you can see, <literal>createArray()</literal> accepts
           <emphasis>names</emphasis> (which is a regular Python list) as an
@@ -1884,6 +1887,7 @@ Info on the object: /columns/pressure (Array(3L,)) 'Pressure column selection'
   maindim := 0
   flavor := 'numpy'
   byteorder := 'little'
+  chunkshape := None
 >>> print "  shape: ==&gt;", pressureObject.shape
   shape: ==&gt; (3L,)
 >>> print "  title: ==&gt;", pressureObject.title
@@ -3512,6 +3516,29 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
             file, an <literal>HDF5ExtError</literal> is raised.</para>
           </section>
 
+          <section id="lrange">
+            <title>lrange([start, ]stop[, step])</title>
+
+            <para>Iterate over long ranges.</para>
+
+            <para>This is similar to <literal>xrange()</literal>, but it
+            allows 64-bit arguments on all platforms.  The results of the
+            iteration are sequentially yielded in the form of
+            <literal>numpy.int64</literal> values, but getting random
+            individual items is not supported.</para>
+
+            <para>Because of the Python 32-bit limitation on object lengths,
+            the <literal>length</literal> attribute (which is also a
+            <literal>numpy.int64</literal> value) should be used instead of
+            the <literal>len()</literal> syntax.</para>
+
+            <para>Default <literal>start</literal> and <literal>step</literal>
+            arguments are supported in the same way as in
+            <literal>xrange()</literal>.  When the standard
+            <literal>[x]range()</literal> Python objects support 64-bit
+            arguments, this iterator will be deprecated.</para>
+          </section>
+
           <section id="openFileDescr" xreflabel="description">
             <title>openFile(filename, mode='r', title='', trMap={},
             rootUEP="/", filters=None, nodeCacheSize=NODE_MAX_SLOTS)</title>
@@ -3667,7 +3694,7 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
           </section>
 
           <section id="restrict_flavors">
-            <title>restrict_flavors(keep=['python']</title>
+            <title>restrict_flavors(keep=['python'])</title>
 
             <para>Disable all flavors except those in
             <literal>keep</literal>.</para>
@@ -4345,8 +4372,9 @@ Object Tree:
                     </glossentry>
 
                     <glossentry>
-                      <glossterm><emphasis role="bold">A NumPy (record)
-                      array</emphasis></glossterm>
+                      <glossterm><emphasis role="bold">A
+                      <literal>NumPy (record)
+                      array</literal> instance</emphasis></glossterm>
 
                       <glossdef>
                         <para>You can use a NumPy array, whether nested or
@@ -8421,7 +8449,7 @@ h5f.close()</screen>
 
           <screen>carray1.h5 (File) ''
 Last modif.: 'Thu Apr 12 10:15:38 2007'
-Object Tree: 
+Object Tree:
 / (RootGroup) ''
 /carray (CArray(200L, 300L), shuffle, zlib(5)) ''
 
@@ -8774,7 +8802,7 @@ from numpy import *
 # Create a VLArray:
 fileh = tables.openFile('vlarray1.h5', mode='w')
 vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
-                              tables.Int32Atom(shape=1),
+                              tables.Int32Atom(shape=()),
                               "ragged array of ints",
                               filters=tables.Filters(1))
 # Append some (variable length) rows:
@@ -9212,7 +9240,7 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
             </section>
 
             <section>
-              <title>from_kind(kind, itemsize=None, shape=1, dflt=None,
+              <title>from_kind(kind, itemsize=None, shape=(), dflt=None,
               pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a PyTables
@@ -9226,7 +9254,7 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
             </section>
 
             <section>
-              <title>from_sctype(sctype, shape=1, dflt=None, pos=None)</title>
+              <title>from_sctype(sctype, shape=(), dflt=None, pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a NumPy
               scalar type <literal>sctype</literal>.</para>
@@ -9239,7 +9267,7 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
             </section>
 
             <section>
-              <title>from_type(type, shape=1, dflt=None, pos=None)</title>
+              <title>from_type(type, shape=(), dflt=None, pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a PyTables
               <literal>type</literal>.</para>
@@ -9470,7 +9498,7 @@ Float64Atom(shape=(), dflt=0.0)</screen>
             </section>
 
             <section>
-              <title>from_kind(kind, itemsize=None, shape=1,
+              <title>from_kind(kind, itemsize=None, shape=(),
               dflt=None)</title>
 
               <para>Create an <literal>Atom</literal> from a PyTables
@@ -9508,7 +9536,7 @@ ValueError: the ``enum`` kind is not supported...</screen>
             </section>
 
             <section>
-              <title>from_sctype(sctype, shape=1, dflt=None)</title>
+              <title>from_sctype(sctype, shape=(), dflt=None)</title>
 
               <para>Create an <literal>Atom</literal> from a NumPy scalar type
               <literal>sctype</literal>.</para>
@@ -9531,7 +9559,7 @@ Float64Atom(shape=(), dflt=0.0)</screen>
             </section>
 
             <section>
-              <title>from_type(type, shape=1, dflt=None)</title>
+              <title>from_type(type, shape=(), dflt=None)</title>
 
               <para>Create an <literal>Atom</literal> from a PyTables
               <literal>type</literal>.</para>
@@ -9596,7 +9624,7 @@ ValueError: unknown type: 'Float64'</screen>
             parameters follows.</para>
 
             <section>
-              <title>StringAtom(itemsize, shape=1, dflt='')</title>
+              <title>StringAtom(itemsize, shape=(), dflt='')</title>
 
               <para>Defines an atom of type <literal>string</literal>.</para>
 
@@ -9605,87 +9633,87 @@ ValueError: unknown type: 'Float64'</screen>
             </section>
 
             <section>
-              <title>BoolAtom(shape=1, dflt=False)</title>
+              <title>BoolAtom(shape=(), dflt=False)</title>
 
               <para>Defines an atom of type <literal>bool</literal>.</para>
             </section>
 
             <section>
-              <title>IntAtom(itemsize=4, shape=1, dflt=0)</title>
+              <title>IntAtom(itemsize=4, shape=(), dflt=0)</title>
 
               <para>Defines an atom of a signed integral type
               (<literal>int</literal> kind).</para>
             </section>
 
             <section>
-              <title>Int8Atom(shape=1, dflt=0)</title>
+              <title>Int8Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>int8</literal>.</para>
             </section>
 
             <section>
-              <title>Int16Atom(shape=1, dflt=0)</title>
+              <title>Int16Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>int16</literal>.</para>
             </section>
 
             <section>
-              <title>Int32Atom(shape=1, dflt=0)</title>
+              <title>Int32Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>int32</literal>.</para>
             </section>
 
             <section>
-              <title>Int64Atom(shape=1, dflt=0)</title>
+              <title>Int64Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>int64</literal>.</para>
             </section>
 
             <section>
-              <title>UIntAtom(itemsize=4, shape=1, dflt=0)</title>
+              <title>UIntAtom(itemsize=4, shape=(), dflt=0)</title>
 
               <para>Defines an atom of an unsigned integral type
               (<literal>uint</literal> kind).</para>
             </section>
 
             <section>
-              <title>UInt8Atom(shape=1, dflt=0)</title>
+              <title>UInt8Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>uint8</literal>.</para>
             </section>
 
             <section>
-              <title>UInt16Atom(shape=1, dflt=0)</title>
+              <title>UInt16Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>uint16</literal>.</para>
             </section>
 
             <section>
-              <title>UInt32Atom(shape=1, dflt=0)</title>
+              <title>UInt32Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>uint32</literal>.</para>
             </section>
 
             <section>
-              <title>UInt64Atom(shape=1, dflt=0)</title>
+              <title>UInt64Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>uint64</literal>.</para>
             </section>
 
             <section>
-              <title>Float32Atom(shape=1, dflt=0.0)</title>
+              <title>Float32Atom(shape=(), dflt=0.0)</title>
 
               <para>Defines an atom of type <literal>float32</literal>.</para>
             </section>
 
             <section>
-              <title>Float64Atom(shape=1, dflt=0.0)</title>
+              <title>Float64Atom(shape=(), dflt=0.0)</title>
 
               <para>Defines an atom of type <literal>float64</literal>.</para>
             </section>
 
             <section>
-              <title>ComplexAtom(itemsize, shape=1, dflt=0j)</title>
+              <title>ComplexAtom(itemsize, shape=(), dflt=0j)</title>
 
               <para>Defines an atom of kind <literal>complex</literal>.</para>
 
@@ -9696,7 +9724,7 @@ ValueError: unknown type: 'Float64'</screen>
             </section>
 
             <section>
-              <title>TimeAtom(itemsize=4, shape=1, dflt=0)</title>
+              <title>TimeAtom(itemsize=4, shape=(), dflt=0)</title>
 
               <para>Defines an atom of time type (<literal>time</literal>
               kind).</para>
@@ -9709,19 +9737,19 @@ ValueError: unknown type: 'Float64'</screen>
             </section>
 
             <section>
-              <title>Time32Atom(shape=1, dflt=0)</title>
+              <title>Time32Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>time32</literal>.</para>
             </section>
 
             <section>
-              <title>Time64Atom(shape=1, dflt=0.0)</title>
+              <title>Time64Atom(shape=(), dflt=0.0)</title>
 
               <para>Defines an atom of type <literal>time64</literal>.</para>
             </section>
 
             <section>
-              <title>EnumAtom(enum, dflt, base, shape=1)</title>
+              <title>EnumAtom(enum, dflt, base, shape=())</title>
 
               <para>Description of an atom of an enumerated type.</para>
 

@@ -421,6 +421,28 @@ class test_strings(NumpyTestCase):
         s1, s2 = 'foo', 'foo\0\0'
         self.assert_(evaluate('s1 == s2'))
 
+# Case for testing PyTables ticket #103, i.e. selections in fields
+# which are aligned but whose data length is not an exact multiple of
+# the length of the record.  The following test exposes the problem
+# only in 32-bit machines, because in 64-bit machines 'c2' is
+# unaligned.  However, this should check most platforms where, while
+# not unaligned, 'len(datatype) > boundary_alignment' is fullfilled.
+class test_irregular_stride(NumpyTestCase):
+    def check_select(self):
+        f0 = arange(10, dtype=int32)
+        f1 = arange(10, dtype=float64)
+
+        irregular = rec.fromarrays([f0, f1])
+
+        f0 = irregular['f0']
+        f1 = irregular['f1']
+
+        i0 = evaluate('f0 < 5')
+        i1 = evaluate('f1 < 5')
+
+        assert_array_equal(f0[i0], arange(5, dtype=int32))
+        assert_array_equal(f1[i1], arange(5, dtype=float64))
+
 # The following function is used to integrate Numexpr tests into PyTables'.
 def suite():
     import unittest
@@ -435,6 +457,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(test_expressions, prefix='check'))
         theSuite.addTest(unittest.makeSuite(test_int32_int64, prefix='check'))
         theSuite.addTest(unittest.makeSuite(test_strings, prefix='check'))
+        theSuite.addTest(
+            unittest.makeSuite(test_irregular_stride, prefix='check') )
 
     return theSuite
 

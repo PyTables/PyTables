@@ -30,6 +30,7 @@ import sys
 
 import numpy
 
+from tables.utilsExtension import lrange
 from tables.parameters import EXPECTED_ROWS_EARRAY
 from tables.utils import convertToNPAtom, convertToNPAtom2
 from tables.atom import Atom, EnumAtom, split_type
@@ -268,7 +269,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         (start, stop, step) = self._processRangeRead(start, stop, step)
         self._v_convert = False
         # Start the copy itself
-        for start2 in range(start, stop, step*nrowsinbuf):
+        for start2 in lrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:

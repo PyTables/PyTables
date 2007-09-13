@@ -841,7 +841,7 @@ cdef class Row:
           if self.whereCond:
             # Evaluate the condition on this table fragment.
             self.indexValid = call_on_recarr(
-              self.condfunc, self.condargs, self.rfields )
+              self.condfunc, self.condargs, self.IObuf[:recout] )
           else:
             # No residual condition, all selected rows are valid.
             self.indexValid = numpy.ones(recout, numpy.bool8)
@@ -901,7 +901,7 @@ cdef class Row:
 
         # Evaluate the condition on this table fragment.
         self.indexValid = call_on_recarr(
-          self.condfunc, self.condargs, self.rfields )
+          self.condfunc, self.condargs, self.IObuf[:recout] )
 
         # Is still there any interesting information in this buffer?
         if not numpy.sometrue(self.indexValid):

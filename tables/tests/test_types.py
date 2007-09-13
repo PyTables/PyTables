@@ -85,6 +85,25 @@ class RangeTestCase(unittest.TestCase):
             print rec
             self.fail("expected a TypeError")
 
+
+class AtomShapeTestCase(common.PyTablesTestCase):
+    """
+    Check for atom unidimensional shape shorthand (see ticket #96).
+
+    This test case may be removed once ticket #96 is closed and proper
+    doctests are added.
+    """
+    def test_atom_shape_shorthand(self):
+        atom = Atom.from_kind('int')
+        self.assertEqual(atom.shape, ())
+
+        atom = self.assertWarns( DeprecationWarning,
+                                 Atom.from_kind, 'int', shape=1 )
+        self.assertEqual(atom.shape, ())
+
+        atom = Atom.from_kind('int', shape=2)
+        self.assertEqual(atom.shape, (2,))
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -96,6 +115,7 @@ def suite():
     for i in range(1):
         theSuite.addTest(doctest.DocTestSuite(tables.atom))
         theSuite.addTest(unittest.makeSuite(RangeTestCase))
+        theSuite.addTest(unittest.makeSuite(AtomShapeTestCase))
 
     return theSuite
 

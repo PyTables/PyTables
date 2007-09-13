@@ -35,6 +35,7 @@ import os.path
 import numpy
 
 from tables import tableExtension
+from tables.utilsExtension import lrange
 from tables.conditions import split_condition
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
@@ -746,13 +747,18 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 PerformanceWarning )
 
         # 1. Create the HDF5 table (some parameters need to be computed).
-        if self._v_chunkshape is None:
-            self._v_chunkshape = self._calc_chunkshape(
-                self._v_expectedrows, self.rowsize, self.rowsize)
-        # Fix the byteorder of the recarray
+
+        # Fix the byteorder of the recarray and update the number of
+        # expected rows if necessary
         if self._v_recarray is not None:
             self._v_recarray = self._g_fix_byteorder_data(self._v_recarray,
                                                           self._rabyteorder)
+            if len(self._v_recarray) > self._v_expectedrows:
+                self._v_expectedrows = len(self._v_recarray)
+        # Compute a sensible chunkshape
+        if self._v_chunkshape is None:
+            self._v_chunkshape = self._calc_chunkshape(
+                self._v_expectedrows, self.rowsize, self.rowsize)
         # Correct the byteorder, if still needed
         if self.byteorder is None:
             self.byteorder = sys.byteorder
@@ -1446,7 +1452,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 return nra
             return numpy.empty(shape=0, dtype=dtypeField)
 
-        nrows = len(xrange(start, stop, step))
+        nrows = lrange(start, stop, step).length
 
         # Compute the shape of the resulting column object
         if field:
@@ -1787,7 +1793,7 @@ You cannot append rows to a non-chunked table.""")
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = lrange(start, stop, step).length
         if len(rows) < nrows:
             raise ValueError, \
            "The value has not enough elements to fill-in the specified range"
@@ -1880,7 +1886,7 @@ table format '%s'. The error was: <%s>
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = lrange(start, stop, step).length
         if len(recarray) < nrows:
             raise ValueError, \
                   "The value has not enough elements to fill-in the specified range"
@@ -1954,15 +1960,16 @@ The 'names' parameter must be a list of strings.""")
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = lrange(start, stop, step).length
         if len(recarray) < nrows:
             raise ValueError, \
            "The value has not enough elements to fill-in the specified range"
         # Now, read the original values:
         mod_recarr = self._read(start, stop, step)
         # Modify the appropriate columns in the original recarray
-        for name in recarray.dtype.names:
-            mod_recarr[name] = recarray[name]
+        for i, name in enumerate(recarray.dtype.names):
+            mod_col = getNestedField(mod_recarr, names[i])
+            mod_col[:] = recarray[name]
         # save this modified rows in table
         self._update_records(start, stop, step, mod_recarr)
         # Redo the index if needed
@@ -2182,7 +2189,7 @@ The 'names' parameter must be a list of strings.""")
         nrowsinbuf = self.nrowsinbuf
         object._open_append(self._v_iobuf)
         nrowsdest = object.nrows
-        for start2 in xrange(start, stop, step*nrowsinbuf):
+        for start2 in lrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:
@@ -2297,9 +2304,6 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
             del mydict['_v_iobuf']
         if '_v_wdflts' in mydict:
             del mydict['_v_wdflts']
-        if 'row' in mydict:
-            del mydict['row']
-        return
 
 
     def _f_close(self, flush=True):
@@ -2338,15 +2342,20 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
 %s
   description := %r
   byteorder := %r
+  chunkshape := %r
   autoIndex := %r
   indexFilters := %r
   indexedcolpathnames := %r"""
             return format % ( str(self), self.description, self.byteorder,
-                              self.autoIndex, self.indexFilters,
-                              self.indexedcolpathnames )
+                              self.chunkshape, self.autoIndex,
+                              self.indexFilters, self.indexedcolpathnames )
         else:
-            return "%s\n  description := %r\n  byteorder := %r\n" % \
-                   (str(self), self.description, self.byteorder)
+            return """\
+%s
+  description := %r
+  byteorder := %r
+  chunkshape := %r""" % \
+        (str(self), self.description, self.byteorder, self.chunkshape)
 
 
 
