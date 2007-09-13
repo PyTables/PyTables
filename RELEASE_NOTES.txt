@@ -11,7 +11,71 @@
 Changes from 2.0 to 2.0.1
 =========================
 
-- (None yet.)
+- The argument `coords` of Table.readCoords was neither checked for
+  contiguousness, raising fatal errors when it was discontiguous.
+  This has been fixed.
+
+- There was an inconsistency in the way used to specify the atom shape
+  in Atom constructors.  When shape is specified as shape=() means a
+  scalar atom and when shape is specified as shape=N>1 means an atom
+  with shape=(N,). But when shape was specified as shape=1 (i.e. in
+  the default case) then a scalar atom was obtained instead of an atom
+  with shape=(1,). This is inconsistent and is not the behavior that
+  NumPy exhibits.
+
+  Changing this will require a migration path which includes
+  deprecating the old behaviour if we want to make the change happen
+  before a new major version. The proposed path is:
+
+   1. In PyTables 2.0.1, we are changing the default value of the
+      shape argument to (), and issue a DeprecationWarning when
+      someone uses shape=1 stating that, for the time being, it is
+      equivalent to (), but in near future versions it will become
+      equivalent to (1,), and recommending the user to pass shape=()
+      if a scalar is desired.
+
+   2. In PyTables 2.1, we will remove the previous warning and take
+      scalar=n to mean scalar=(n,) for any value of n.
+
+  See ticket #96 for more info.
+
+- The info about `chunkshape` attribute is now printed in the __repr__
+  of chunked leaves (all except Array).
+
+- After some scrupulous benchmarking job, the size of the I/O buffer
+  for Table objects has been reduced to the minimum that allows
+  maximum performance.  This represents more than 10x of reduction in
+  size for that buffer, which will benefit those programs dealing with
+  many tables simultaneously (#109).
+
+- In the ptrepack utility, when --complevel and --shuffle were
+  specified at the same time, the 'shuffle' filter was always set to
+  'off'. This has been fixed (#104).
+
+- An ugly bug related with the integrated NumExpr not being aware of
+  all the variations of data arrangements in recarray objects has been
+  fixed (#103).  The bug only affected the NumExpr version integrated
+  in PyTables, and *not* the original one.
+
+- When passing a record array to a table at creation time, its real
+  length is now used instead of the default value for `expectedrows`
+  (#97).
+
+- Added some workarounds so that NumPy scalars can be successfully
+  converted to numarray objects.  Fixes #98.
+
+- PyTables is now able to access table rows beyond 2**31 in 32-bit
+  Python.  The problem was a limitation of `xrange` and we have
+  replaced it by a new `lrange` class written in Pyrex.  Moreover,
+  `lrange` has been made publicly accessible as a safe 64-bit
+  replacement for `xrange` for 32-bit platforms users.  Fixes #99.
+
+- If a group and a table are created in a function, and the table is
+  accessed through the group, the table can be flushed now.  Fixes
+  #94.
+
+- It is now possible to directly assign a field in a nested record of
+  a table using the natural naming notation.  Fixes #93.
 
 
 Changes from 2.0rc2 to 2.0
