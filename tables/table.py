@@ -1533,8 +1533,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         if ncoords > 0:
             # Turn coords into an array of 64-bit indexes, if necessary
             if not (type(coords) is numpy.ndarray and
-                    coords.dtype.type is numpy.int64):
-                coords = numpy.asarray(coords, dtype=numpy.int64)
+                    coords.dtype.type is numpy.int64 and
+                    coords.flags.contiguous and
+                    coords.flags.aligned):
+                # Get a contiguous and aligned int64 array
+                coords = numpy.array(coords, dtype=numpy.int64)
             self._read_elements(result, coords)
 
         # Do the final conversions, if needed
@@ -1545,6 +1548,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 # Get an empty array from the cache
                 result = self._getemptyarray(self.coldtypes[field])
         return result
+
 
     def readCoordinates(self, coords, field=None):
         """
