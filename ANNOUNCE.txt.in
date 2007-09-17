@@ -1,6 +1,6 @@
-===========================
+==============================
  Announcing PyTables @VERSION@
-===========================
+==============================
 
 PyTables Pro is a library for managing hierarchical datasets and
 designed to efficiently cope with extremely large amounts of data with
@@ -36,7 +36,8 @@ Coinciding with the publication of PyTables Pro we are introducing an
 innovative liberation process that will allow to ultimate release the
 PyTables Pro 2.x series as open source.  You may want to know that, by
 buying a PyTables Pro license, you are contributing to this process. For
-details, see: http://www.carabos.com/liberation
+details, see:
+http://www.carabos.com/liberation
 
 Migration Notes for PyTables 1.x users
 ======================================
@@ -70,10 +71,9 @@ About NumPy:
 
 http://numpy.scipy.org/
 
+To know more about the company behind the development of PyTables, see:
 
-=======
 http://www.carabos.com/
-
 
 Acknowledgments
 ===============
@@ -85,13 +85,11 @@ thanks also to SourceForge who have helped to make and distribute this
 package!  And last, but not least thanks a lot to the HDF5 and NumPy
 (and numarray!) makers. Without them, PyTables simply would not exist.
 
-
 Share your experience
 =====================
 
 Let us know of any bugs, suggestions, gripes, kudos, etc. you may
 have.
-
 
 ----
 
