@@ -156,7 +156,9 @@ class Package(object):
             # (headers, libraries, runtime) are going to be searched
             # are constructed by appending platform-dependent
             # component directories to the given path.
-            locations = [ os.path.join(location, compdir)
+            # Remove leading and trailing '"' chars that can mislead
+            # the finding routines on Windows machines
+            locations = [ os.path.join(location.strip('"'), compdir)
                           for compdir in self._component_dirs ]
 
         directories = [None, None, None]  # headers, libraries, runtime
