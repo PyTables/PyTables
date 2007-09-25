@@ -7,6 +7,10 @@
 :Author: Ivan Vilata i Balaguer
 :Contact: ivilata@carabos.com
 
+Changes from 2.0.1 to 2.0.2
+===========================
+
+- (None yet.)
 
 Changes from 2.0 to 2.0.1
 =========================
