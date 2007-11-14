@@ -8,6 +8,7 @@ import numpy
 
 from tables import *
 from tables.idxutils import calcChunksize
+from tables.tests import common
 from tables.tests.common import verbose, allequal, heavy, cleanup
 
 # To delete the internal attributes automagically
@@ -2474,6 +2475,34 @@ class SV15bTestCase(SelectValuesTestCase):
     sl = nrows
 
 
+class LastRowReuseBuffers(common.PyTablesTestCase):
+    # Test that checks for possible reuse of buffers coming
+    # from last row in the sorted part of indexes
+    # See bug #60 in the private Trac of xot.carabos.com
+    numpy.random.seed(1); random.seed(1)
+
+    class Record(IsDescription):
+        id1 = Int16Col()
+
+    nelem = 1221
+    filename = tempfile.mktemp(".h5")
+    fp = openFile(filename, 'w')
+    ta = fp.createTable('/', 'table', Record, filters=Filters(1))
+    id1 = numpy.random.randint(0, 2**15, nelem)
+    ta.append([id1])
+
+    ta.cols.id1.createIndex()
+
+    for i in xrange(nelem):
+        nrow = random.randint(0, nelem-1)
+        value = id1[nrow]
+        idx = ta.getWhereList('id1 == %s' % value)
+        assert len(idx) > 0 , "idx--> %s %s %s %s" % (idx, i, nrow, value)
+        assert nrow in idx, "nrow not found: %s <> %s, %s" % (idx, nrow, value)
+
+    fp.close()
+    os.remove(filename)
+
 # -----------------------------
 
 def suite():
@@ -2499,6 +2528,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(SV13aTestCase))
         theSuite.addTest(unittest.makeSuite(SV14aTestCase))
         theSuite.addTest(unittest.makeSuite(SV15aTestCase))
+        theSuite.addTest(unittest.makeSuite(LastRowReuseBuffers))
     if heavy:
         theSuite.addTest(unittest.makeSuite(SV1bTestCase))
         theSuite.addTest(unittest.makeSuite(SV2bTestCase))
