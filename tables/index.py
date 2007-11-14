@@ -1178,8 +1178,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     # Read the chunk from disk
                     chunk = self.sortedLR._readSortedSlice(
                         self.sorted, begin, end)
-                    # Put it in cache
-                    sortedLRcache.setitem(nchunk, chunk,
+                    # Put it in cache.  It's important to *copy*
+                    # the buffer, as it is reused in future reads!
+                    # See bug #60 in xot.carabos.com
+                    sortedLRcache.setitem(nchunk, chunk.copy(),
                                           (end-begin)*itemsize)
                 start = bisect_left(chunk, item1)
                 start += self.chunksize*nchunk
@@ -1205,8 +1207,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                         # Read the chunk from disk
                         chunk = self.sortedLR._readSortedSlice(
                             self.sorted, begin, end)
-                        # Put it in cache
-                        sortedLRcache.setitem(nchunk2, chunk,
+                        # Put it in cache.  It's important to *copy*
+                        # the buffer, as it is reused in future reads!
+                        # See bug #60 in xot.carabos.com
+                        sortedLRcache.setitem(nchunk2, chunk.copy(),
                                               (end-begin)*itemsize)
                 stop = bisect_right(chunk, item2)
                 stop += self.chunksize*nchunk2
