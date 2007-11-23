@@ -449,7 +449,10 @@ def _conv_numpy_to_numarray(array):
         # NumPy scalars are mishandled by numarray, see #98.  This
         # case may be removed when the bug in numarray is fixed.
         if numpy.isscalar(array):
-            array = array.item()
+            # A problem with the ``item()`` conversion is the lose of
+            # precise type information (see #125).
+            natype = numpy.sctypeNA[type(array)]
+            return numarray.array(array.item(), type=natype)
         # This works for regular homogeneous arrays and even for rank-0 arrays
         # Using asarray gives problems in some tests (I don't know exactly why)
         ##return numarray.asarray(array)  # use the array protocol

@@ -409,12 +409,12 @@ class Leaf(Node):
             maxrowsize = BUFFERTIMES * buffersize
             if rowsize > maxrowsize:
                 warnings.warn("""\
-array or table ``%s`` is exceeding the maximum recommended rowsize (%d bytes);
-be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
-You may want to reduce the rowsize by trimming the value of dimensions
-that are orthogonal to the main dimension of this array or table.
-Alternatively, in case you have specified a very small chunksize,
-you may want to increase it."""
+The Leaf ``%s`` is exceeding the maximum recommended rowsize (%d bytes);
+be ready to see PyTables asking for *lots* of memory and possibly slow
+I/O.  You may want to reduce the rowsize by trimming the value of
+dimensions that are orthogonal (and preferably close) to the main
+dimension of this leave.  Alternatively, in case you have specified a
+very small/large chunksize, you may want to increase/decrease it."""
                               % (self._v_pathname, maxrowsize),
                                  PerformanceWarning)
 # It is difficult to forsee the level of code nesting to reach user code.

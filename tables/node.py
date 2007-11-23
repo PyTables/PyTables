@@ -43,6 +43,27 @@ __version__ = '$Revision$'
 """Repository version of this file."""
 
 
+def _closedrepr(oldmethod):
+    """
+    Decorate string representation method to handle closed nodes.
+
+    If the node is closed, a string like this is returned::
+
+      <closed MODULE.CLASS at ADDRESS>
+
+    instead of calling `oldmethod` and returning its result.
+    """
+    def newmethod(self):
+        if not self._v_isopen:
+            cmod = self.__class__.__module__
+            cname = self.__class__.__name__
+            addr = hex(id(self))
+            return '<closed %s.%s at %s>' % (cmod, cname, addr)
+        return oldmethod(self)
+    newmethod.__name__ = oldmethod.__name__
+    newmethod.__doc__ = oldmethod.__doc__
+    return newmethod
+
 
 class MetaNode(type):
 
@@ -53,7 +74,21 @@ class MetaNode(type):
     into several dictionaries (namely the `tables.utils.classNameDict`
     class name dictionary and the `tables.utils.classIdDict` class
     identifier dictionary).
+
+    It also adds sanity checks to some methods:
+
+      * Check that the node is open when calling string representation
+        and provide a default string if so.
     """
+
+    def __new__(class_, name, bases, dict_):
+        # Add default behaviour for representing closed nodes.
+        for mname in ['__str__', '__repr__']:
+            if mname in dict_:
+                dict_[mname] = _closedrepr(dict_[mname])
+
+        return type.__new__(class_, name, bases, dict_)
+
 
     def __init__(class_, name, bases, dict_):
         super(MetaNode, class_).__init__(name, bases, dict_)
@@ -413,13 +448,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         oldPath = self._v_pathname
         newPath = joinPath(newParentPath, self._v_name)
-        parentDepth = newParentPath.count('/')
+        newDepth = newPath.count('/')
 
         self._v_pathname = newPath
-        self._v_depth = parentDepth + 1
+        self._v_depth = newDepth
 
         # Check if the node is too deep in the tree.
-        if parentDepth >= MAX_TREE_DEPTH:
+        if newDepth > MAX_TREE_DEPTH:
             warnings.warn("""\
 moved descendent node is exceeding the recommended maximum depth (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""

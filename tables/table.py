@@ -1780,7 +1780,7 @@ You cannot append rows to a non-chunked table.""")
         """
 
         if rows is None:      # Nothing to be done
-            return
+            return 0
         if start is None:
             start = 0
 

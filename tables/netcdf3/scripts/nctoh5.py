@@ -12,8 +12,6 @@ http://starship.python.net/~hinsen/ScientificPython
 import sys, os.path, getopt, time
 
 import tables.netcdf3
-if not tables.netcdf3.ScientificIONetCDF_imported:
-    raise ImportError, 'nctoh5 requires the ScientificIONetCDF module'
 
 from tables.leaf import Filters
 
@@ -37,6 +35,11 @@ def nctoh5(ncfilename, h5filename, filters, verbose, overwritefile):
 
 
 def main():
+    if not tables.netcdf3.ScientificIONetCDF_imported:
+        sys.stderr.write(
+            'You need Scientific Python installed in order to use this utility.\n')
+        sys.exit(1)
+
     usage = """usage: %s [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] netcdffilename hdf5filename
      -h -- Print usage message.
      -v -- Show more information.

@@ -646,41 +646,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             del self._v_hidden[childName]  # remove node
 
 
-    def _g_updateLocation(self, newParentPath):
-        # Update location of self.
-        oldPath = self._v_pathname
-        super(Group, self)._g_updateLocation(newParentPath)
-        newPath = self._v_pathname
-        # Update location information in children.
-        self._g_updateChildrenLocation(oldPath, newPath)
-
-
     def _g_move(self, newParent, newName):
         # Move the node to the new location.
         oldPath = self._v_pathname
         super(Group, self)._g_move(newParent, newName)
         newPath = self._v_pathname
 
-        # Update location information in children.
-        self._g_updateChildrenLocation(oldPath, newPath)
-
-
-    def _g_updateChildrenLocation(self, oldPath, newPath):
-        # Update location information of *already loaded* children.
-        file_ = self._v_file
-        oldPathSlash = oldPath + '/'  # root node can not be renamed, anyway
-
-        # Update alive descendents.
-        for nodePath in file_._aliveNodes:
-            if nodePath.startswith(oldPathSlash):
-                descendentNode = file_._getNode(nodePath)
-                descendentNode._g_updateLocation(newPath)
-
-        # Update dead descendents.
-        for nodePath in file_._deadNodes:
-            if nodePath.startswith(oldPathSlash):
-                descendentNode = file_._getNode(nodePath)
-                descendentNode._g_updateLocation(newPath)
+        # Update location information in children.  This node shouldn't
+        # be affected since it has already been relocated.
+        self._v_file._updateNodeLocations(oldPath, newPath)
 
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
@@ -1105,9 +1079,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             /group0 (Group) 'First Group'</screen>
         """
 
-        if not self._v_isopen:
-            return repr(self)
-
         # Get the associated filename
         filename = self._v_file.filename
         # The pathname
@@ -1130,9 +1101,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             /group0 (Group) 'First Group'
               children := ['tuple1' (Table), 'group1' (Group)]
         """
-
-        if not self._v_isopen:
-            return "<closed Group>"
 
         rep = [ '%r (%s)' %  \
                 (childname, child.__class__.__name__)

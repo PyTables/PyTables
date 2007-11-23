@@ -629,7 +629,7 @@ be zero."""
             vlarray[0] = vlarray[0] * 2 + 3
             vlarray[99, 3:] = arange(96) * 2 + 3
             # Negative values for start and stop (but not step) are supported.
-            vlarray[99, -99:-89:2] = vlarray[5] * 2 + 3</screen>
+            vlarray[99, -99:-89:2] = vlarray[5] * 2 + 3
         """
 
         self._v_file._checkWritable()

@@ -80,6 +80,8 @@ class Array(hdf5Extension.Array, Leaf):
     atom
         An `Atom` instance representing the *type* and *shape* of the
         atomic objects to be saved.
+    rowsize
+        The size of the rows in dimensions orthogonal to ``maindim``.
     nrow
         On iterators, this is the index of the current row.
 

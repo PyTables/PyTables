@@ -3814,6 +3814,10 @@ ValueError: malformed type: 'foo bar'</screen>
         only be disabled by calling the <literal>disableUndo()</literal> (see
         <xref linkend="File.disableUndo"/>) method.</para>
 
+        <para>File objects can also act as context managers when using the
+        <literal>with</literal> statement introduced in Python 2.5.  When
+        exiting a context, the file is automatically closed.</para>
+
         <section>
           <title><literal>File</literal> instance variables</title>
 
@@ -3948,6 +3952,18 @@ ValueError: malformed type: 'foo bar'</screen>
             <title>flush()</title>
 
             <para>Flush all the alive leaves in the object tree.</para>
+          </section>
+
+          <section id="File.__enter__">
+            <title>__enter__()</title>
+
+            <para>Enter a context and return the same file.</para>
+          </section>
+
+          <section id="File.__exit__">
+            <title>__exit__([*exc_info])</title>
+
+            <para>Exit a context and close the file.</para>
           </section>
 
           <section id="File.__str__">
@@ -6749,10 +6765,11 @@ for node in h5file.root.detector:
             coordinates.</para>
 
             <para>A true value for <literal>sort</literal> means that the
-            <literal>sequence</literal>d` will be sorted so that I/O
+            <literal>sequence</literal> will be sorted so that I/O
             <emphasis>might</emphasis> perform better.  If your sequence is
             already sorted or you don't want to sort it, leave this parameter
-            as false.  The default is not to sort the `sequence`.</para>
+            as false.  The default is not to sort the
+            <literal>sequence</literal>.</para>
 
             <note>
               <para>This iterator can be nested (see
@@ -8244,6 +8261,15 @@ table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])</screen>
             </glossentry>
 
             <glossentry>
+              <glossterm><emphasis role="bold">rowsize</emphasis></glossterm>
+
+              <glossdef>
+                <para>The size of the rows in dimensions orthogonal to
+                <emphasis>maindim</emphasis>.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
               <glossterm><emphasis role="bold">nrow</emphasis></glossterm>
 
               <glossdef>
@@ -8439,7 +8465,7 @@ ca = h5f.createCArray(h5f.root, 'carray', atom, shape, filters=filters)
 ca[10:60, 20:70] = numpy.ones((50, 50))
 h5f.close()
 
-# Re-open a read another hyperslab
+# Re-open and read another hyperslab
 h5f = tables.openFile(fileName)
 print h5f
 print h5f.root.carray[8:12, 18:22]
