@@ -11,7 +11,10 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-#XXX version-specific blurb XXX#
+In this version, a *critical* bug affecting repeated queries using the
+same index. Because of this, an upgrade is strongly recommended. Also, a
+problem when moving o renaming a group has been fixed.  Some other bugs
+and small improvements has been added as well.
 
 In case you want to know more in detail what has changed in this
 version, have a look at ``RELEASE_NOTES.txt``.  Find the HTML version
