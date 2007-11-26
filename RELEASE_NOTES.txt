@@ -14,8 +14,8 @@ Changes from 2.0.1 to 2.0.2
   queries affecting the last row part of indices.  Fixes #60 of the private
   Trac of Carabos.
 
-- Added __enter__ and __exit__ methods to File; fixes #113.  With this, and if
-  using Python 2.5 you can do things like:
+- Added ``__enter__()`` and ``__exit__()`` methods to ``File``; fixes #113.
+  With this, and if using Python 2.5 you can do things like:
 
     with tables.openFile("test.h5") as h5file:
         ...
@@ -24,13 +24,13 @@ Changes from 2.0.1 to 2.0.2
   #125.
 
 - Fixed a nasty bug that appeared when moving or renaming groups due to a bad
-  interaction between Group._g_updateChildrenLocation() and the LRU cache.
+  interaction between ``Group._g_updateChildrenLocation()`` and the LRU cache.
   Solves #126.
 
-- Return 0 when no rows are given to Table.modifyRows(); fixes #128.
+- Return 0 when no rows are given to ``Table.modifyRows()``; fixes #128.
 
-- Added an informative message when the nctoh5 utility is run without the
-  NetCDF interface of Scientific-python bening installed.
+- Added an informative message when the ``nctoh5`` utility is run without the
+  NetCDF interface of ScientificPython bening installed.
 
 - Now, a default representation of closed nodes is provided; fixes #129.
 
@@ -68,7 +68,7 @@ Changes from 2.0 to 2.0.1
   See ticket #96 for more info.
 
 - The info about the ``chunkshape`` attribute of a leaf is now printed
-  in the ``__repr__`` of chunked leaves (all except ``Array``).
+  in the ``__repr__()`` of chunked leaves (all except ``Array``).
 
 - After some scrupulous benchmarking job, the size of the I/O buffer
   for ``Table`` objects has been reduced to the minimum that allows
