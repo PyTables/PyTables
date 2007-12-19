@@ -666,6 +666,7 @@ cdef class Row:
   cdef object  mod_elements, colenums
   cdef object  rfieldscache, wfieldscache
   cdef object  _tableFile, _tablePath
+  cdef object  modified_fields
 
   # The nrow() method has been converted into a property, which is handier
   property nrow:
@@ -709,6 +710,7 @@ cdef class Row:
     self.mod_elements = None
     self.rfieldscache = {}
     self.wfieldscache = {}
+    self.modified_fields = set()
 
 
   def _iter(self, start=0, stop=0, step=1, coords=None, ncoords=0):
@@ -976,7 +978,8 @@ cdef class Row:
         self.wrec[:] = self.IObuf[self._row]
     self._riterator = 0        # out of iterator
     if self._mod_nrows > 0:    # Check if there is some modified row
-      self._flushModRows()       # Flush any possible modified row
+      self._flushModRows()     # Flush any possible modified row
+    self.modified_fields = set()  # Empty the set of modified fields
     raise StopIteration        # end of iteration
 
 
@@ -1160,9 +1163,8 @@ cdef class Row:
     table._update_elements(self._mod_nrows, self.mod_elements, self.IObufcpy)
     # Reset the counter of modified rows to 0
     self._mod_nrows = 0
-    # Redo the indexes if needed. This could be optimized if we would
-    # be able to track the modified columns.
-    table._reIndex(table.colpathnames)
+    # Redo the modified fields' indexes.
+    table._reIndex(self.modified_fields)
 
 
   # This method is twice as faster than __getattr__ because there is
@@ -1288,6 +1290,8 @@ cdef class Row:
 
     # Get the field to be modified
     field = getNestedFieldCache(fields, key, fieldscache)
+    if key not in self.modified_fields:
+      self.modified_fields.add(key)
 
     # Finally, try to set it to the value
     try:

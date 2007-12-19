@@ -1901,7 +1901,7 @@ table format '%s'. The error was: <%s>
         # save this modified rows in table
         self._update_records(start, stop, step, mod_recarr)
         # Redo the index if needed
-        self._reIndex(colname)
+        self._reIndex([colname])
 
         return nrows
 
@@ -2135,14 +2135,31 @@ The 'names' parameter must be a list of strings.""")
         """Re-index columns in `colnames` if automatic indexing is true."""
 
         if self.indexed:
+            colstoindex = []
             # Mark the proper indexes as dirty
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed and colname in colnames:
                     col = self.cols._g_col(colname)
                     col.index.dirty = True
+                    colstoindex.append(colname)
             # Now, re-index the dirty ones
-            if self.autoIndex:
-                self.reIndex()
+            if self.autoIndex and colstoindex:
+                self._doReIndex(dirty=True)
+
+
+    def _doReIndex(self, dirty):
+        """Common code for `reIndex()` and `reIndexDirty()`."""
+
+        indexedrows = 0
+        for (colname, colindexed) in self.colindexed.iteritems():
+            if colindexed:
+                indexcol = self.cols._g_col(colname)
+                indexedrows = indexcol._doReIndex(dirty)
+        # Update counters in case some column has been updated
+        if indexedrows > 0:
+            self._indexedrows = indexedrows
+            self._unsaved_indexedrows = self.nrows - indexedrows
+        return indexedrows
 
 
     def reIndex(self):
@@ -2155,15 +2172,7 @@ The 'names' parameter must be a list of strings.""")
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        indexedrows = 0
-        for (colname, colindexed) in self.colindexed.iteritems():
-            if colindexed:
-                indexcol = self.cols._g_col(colname)
-                indexedrows = indexcol.reIndex()
-        # Update counters
-        self._indexedrows = indexedrows
-        self._unsaved_indexedrows = self.nrows - indexedrows
-        return indexedrows
+        self._doReIndex(dirty=False)
 
 
     def reIndexDirty(self):
@@ -2177,14 +2186,7 @@ The 'names' parameter must be a list of strings.""")
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        for (colname, colindexed) in self.colindexed.iteritems():
-            if colindexed:
-                indexcol = self.cols._g_col(colname)
-                indexedrows = indexcol.reIndexDirty()
-        # Update counters
-        self._indexedrows = indexedrows
-        self._unsaved_indexedrows = self.nrows - indexedrows
-        return indexedrows
+        self._doReIndex(dirty=True)
 
 
     def _g_copyRows(self, object, start, stop, step):
@@ -2950,6 +2952,25 @@ class Column(object):
         return idxrows
 
 
+    def _doReIndex(self, dirty):
+        "Common code for reIndex() and reIndexDirty() codes."
+
+        self._tableFile._checkWritable()
+
+        index = self.index
+        dodirty = True
+        if dirty and not index.dirty: dodirty = False
+        if index is not None and dodirty:
+            # Delete the existing Index
+            index._f_remove()
+            self._updateIndexLocation(None)
+            # Create a new Index without warnings
+            return self.createIndex()
+        else:
+            # The column is not intended for indexing or is not dirty
+            return 0
+
+
     def reIndex(self):
         """
         Recompute the index associated with this column.
@@ -2962,17 +2983,7 @@ class Column(object):
         .. Note:: Column indexing is only available in PyTables Pro.
         """
 
-        self._tableFile._checkWritable()
-
-        index = self.index
-        if index is not None:
-            # Delete the existing Index
-            index._f_remove()
-            self._updateIndexLocation(None)
-            # Create a new Index without warnings
-            return self.createIndex()
-        else:
-            return 0  # The column is not intended for indexing
+        self._doReIndex(dirty=False)
 
 
     def reIndexDirty(self):
@@ -2980,7 +2991,7 @@ class Column(object):
         Recompute the associated index only if it is dirty.
 
         This can be useful when you have set `Table.autoIndex` to false
-        for the table and tou want to update the column's index after an
+        for the table and you want to update the column's index after an
         invalidating index operation (like `Table.removeRows()`).
 
         This method does nothing if the column is not indexed.
@@ -2988,17 +2999,7 @@ class Column(object):
         .. Note:: Column indexing is only available in PyTables Pro.
         """
 
-        self._tableFile._checkWritable()
-
-        index = self.index
-        if index is not None and index.dirty:
-            # Delete the existing Index
-            index._f_remove()
-            # Create a new Index without warnings
-            return self.createIndex()
-        else:
-            # The column is not intended for indexing or is not dirty
-            return 0
+        self._doReIndex(dirty=True)
 
 
     def removeIndex(self):
