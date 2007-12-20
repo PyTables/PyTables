@@ -8,10 +8,12 @@
 :Contact: ivilata@carabos.com
 
 
-Changes from 2.0.2 to 2.0.3
-===========================
+Changes from 2.0.2 to 2.0.2.1
+=============================
 
-- (None yet.)
+- Optimization added for avoid to unnecessarily update index columns
+  that have not been modified in table update operations.  Fixes #139.
+
 
 Changes from 2.0.1 to 2.0.2
 ===========================
