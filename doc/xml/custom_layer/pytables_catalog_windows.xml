@@ -4,10 +4,10 @@
    "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
 <catalog  xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
 
-  <nextCatalog catalog="C:/docbook-xsl-1.72.0/catalog.xml"/>
+  <nextCatalog catalog="C:/docbook-xsl/catalog.xml"/>
 
   <!-- Locate the Docbook XSL stylesheets in my Windows XP box -->
-  <group xml:base="file:///C:/docbook-xsl-1.72.0/">
+  <group xml:base="file:///C:/docbook-xsl/">
     <uri name="custom_layer/fo/tldp-print.xsl" uri="fo/tldp-print.xsl"/>
     <uri name="custom_layer/html/tldp-chapters.xsl" uri="html/tldp-chapters.xsl"/>
   </group>
