@@ -365,7 +365,7 @@ pyrex_extnames = [
     'utilsExtension',
     '_comp_lzo',
     '_comp_bzip2' ]
-if VERSION.endswith('pro'):
+if 'pro' in VERSION:
     pyrex_extnames.extend([
         'lrucacheExtension',
         'indexesExtension' ])
