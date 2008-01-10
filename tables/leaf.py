@@ -29,6 +29,7 @@ Misc variables:
 
 import sys
 import warnings
+import math
 
 import numpy
 
@@ -48,6 +49,24 @@ from tables.exceptions import PerformanceWarning
 __version__ = "$Revision$"
 
 
+def csformula(expectedsizeinMB):
+    """Return the fitted chunksize for expectedsizeinMB."""
+    # For a basesize of 8 KB, this will return:
+    # 8 KB for datasets <= 1 MB
+    # 1 MB for datasets >= 1 TB
+    basesize = 8*1024   # 8 KB is a good minimum
+    return basesize * int(2**math.log10(expectedsizeinMB))
+
+
+def limit_es(expectedsizeinMB):
+    """Protection against creating too small or too large chunks."""
+    if expectedsizeinMB < 1:        # < 1 MB
+        expectedsizeinMB = 1
+    elif expectedsizeinMB > 10**6:  # > 1 TB
+        expectedsizeinMB = 10**6
+    return expectedsizeinMB
+
+
 def calc_chunksize(expectedsizeinMB):
     """Compute the optimum HDF5 chunksize for I/O purposes.
 
@@ -64,29 +83,10 @@ def calc_chunksize(expectedsizeinMB):
     always, your mileage may vary.
     """
 
-    basesize = 1024*4   # 4KB is one page of memory
-    if expectedsizeinMB < 1:
-        # Values for files less than 1 MB of size
-        chunksize = basesize
-    elif (expectedsizeinMB >= 1 and
-        expectedsizeinMB < 10):
-        # Values for files between 1 MB and 10 MB
-        chunksize = 2 * basesize
-    elif (expectedsizeinMB >= 10 and
-          expectedsizeinMB < 100):
-        # Values for sizes between 10 MB and 100 MB
-        chunksize = 4 * basesize
-    elif (expectedsizeinMB >= 100 and
-          expectedsizeinMB < 1000):
-        # Values for sizes between 100 MB and 1 GB
-        chunksize = 8 * basesize
-    elif (expectedsizeinMB >= 1000 and
-          expectedsizeinMB < 10000):
-        # Values for sizes between 1 GB and 10 GB
-        chunksize = 16 * basesize
-    else:  # Greater than 10 GB
-        chunksize = 32 * basesize
-
+    expectedsizeinMB = limit_es(expectedsizeinMB)
+    zone = int(math.log10(expectedsizeinMB))
+    expectedsizeinMB = 10**zone
+    chunksize = csformula(expectedsizeinMB)
     return chunksize
 
 

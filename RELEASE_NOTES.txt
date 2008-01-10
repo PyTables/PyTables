@@ -10,7 +10,12 @@
 Changes from 2.0.2.1 to 2.0.3
 =============================
 
-        - (None yet.)
+- Replaced the algorithm for computing chunksizes by another that is
+  more general and useful for a larger range of expected dataset
+  sizes. The outcome of the new calculation is the same than before
+  for dataset sizes <= 100 GB. For datasets between 100 GB <= size <
+  10 TB, larger values are returned. For sizes >= 10 TB a maximum
+  value of 1 MB is always returned.
 
 
 Changes from 2.0.2 to 2.0.2.1
