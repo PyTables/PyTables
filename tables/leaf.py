@@ -53,7 +53,7 @@ def csformula(expectedsizeinMB):
     """Return the fitted chunksize for expectedsizeinMB."""
     # For a basesize of 8 KB, this will return:
     # 8 KB for datasets <= 1 MB
-    # 1 MB for datasets >= 1 TB
+    # 1 MB for datasets >= 10 TB
     basesize = 8*1024   # 8 KB is a good minimum
     return basesize * int(2**math.log10(expectedsizeinMB))
 
@@ -62,8 +62,8 @@ def limit_es(expectedsizeinMB):
     """Protection against creating too small or too large chunks."""
     if expectedsizeinMB < 1:        # < 1 MB
         expectedsizeinMB = 1
-    elif expectedsizeinMB > 10**6:  # > 1 TB
-        expectedsizeinMB = 10**6
+    elif expectedsizeinMB > 10**7:  # > 10 TB
+        expectedsizeinMB = 10**7
     return expectedsizeinMB
 
 
