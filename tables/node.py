@@ -244,6 +244,10 @@ class Node(object):
 
     # </properties>
 
+    # This may be looked up by ``__del__`` when ``__init__`` doesn't get
+    # to be called.  See ticket #144 for more info.
+    _v_isopen = False
+    """The default class attribute for _v_isopen."""
 
     # The ``_log`` argument is only meant to be used by ``_g_copyAsChild()``
     # to avoid logging the creation of children nodes of a copied sub-tree.
@@ -340,10 +344,8 @@ class Node(object):
         #    revived, the user would also need to force the closed
         #    `Node` out of memory, which is not a trivial task.
         #
-        if not hasattr(self, "_v_isopen"):
-            return  # the node is probably being aborted during creation time
         if not self._v_isopen:
-            return  # the node is already closed
+            return  # the node is already closed or not initialized
 
         # If we get here, the `Node` is still open.
         file_ = self._v_file

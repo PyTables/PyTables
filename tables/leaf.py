@@ -666,10 +666,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         flush pending data to disk or not before closing.
         """
 
-        if not hasattr(self, "_v_isopen"):
-            return  # the node is probably being aborted during creation time
         if not self._v_isopen:
-            return  # the node is already closed
+            return  # the node is already closed or not initialized
 
         if flush:
             self.flush()
