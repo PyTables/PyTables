@@ -1303,7 +1303,7 @@ cdef class Row:
           raise TypeError
       ##### End of optimization for scalar values
       else:
-        field[0] = value
+        field[offset] = value
     except TypeError:
       raise TypeError("invalid type (%s) for column ``%s``" % (type(value),
                                                                key))

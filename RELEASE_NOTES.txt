@@ -17,6 +17,8 @@ Changes from 2.0.2.1 to 2.0.3
   10 TB, larger values are returned. For sizes >= 10 TB a maximum
   value of 1 MB is always returned.
 
+- Fixed a problem when using 64-bit indexes in 32-bit platforms.
+  Solves ticket #148
 
 Changes from 2.0.2 to 2.0.2.1
 =============================
