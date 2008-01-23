@@ -1897,7 +1897,8 @@ table format '%s'. The error was: <%s>
         # Now, read the original values:
         mod_recarr = self._read(start, stop, step)
         # Modify the appropriate column in the original recarray
-        mod_recarr[colname] = recarray[colname]
+        mod_col = getNestedField(mod_recarr, colname)
+        mod_col[:] = recarray.field(0)
         # save this modified rows in table
         self._update_records(start, stop, step, mod_recarr)
         # Redo the index if needed
@@ -2605,7 +2606,8 @@ class Cols(object):
         if colgroup == "":  # The root group
             table.modifyRows(start, stop, step, rows=value)
         else:
-            table.modifyColumn(start, stop, step, colname=colgroup, column=value)
+            table.modifyColumn(
+                start, stop, step, colname=colgroup, column=value)
 
 
     def _g_close(self):
@@ -2897,13 +2899,13 @@ class Column(object):
             if key < 0:
                 # To support negative values
                 key += table.nrows
-            return table.modifyColumns(key, key+1, 1,
-                                       [[value]], names=[self.pathname])
+            return table.modifyColumn(key, key+1, 1,
+                                      [[value]], self.pathname)
         elif isinstance(key, slice):
             (start, stop, step) = table._processRange(
                 key.start, key.stop, key.step )
-            return table.modifyColumns(start, stop, step,
-                                       [value], names=[self.pathname])
+            return table.modifyColumn(start, stop, step,
+                                      value, self.pathname)
         else:
             raise ValueError, "Non-valid index or slice: %s" % key
 

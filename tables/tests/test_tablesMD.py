@@ -5,6 +5,7 @@ import tempfile
 
 import numpy
 from numpy import *
+from numpy import rec as records
 
 from tables import *
 from tables.tests import common
@@ -1187,6 +1188,853 @@ class ShapeTestCase1(ShapeTestCase):
 class ShapeTestCase2(ShapeTestCase):
     reopen = 1
 
+
+class Rec(IsDescription):
+    col1 = IntCol(pos=1, shape=(2,))
+    col2 = StringCol(itemsize=3, pos=2, shape=(3,))
+    col3 = FloatCol(pos=3, shape=(3,2))
+
+class setItem(common.PyTablesTestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
+        # Create a new table:
+        self.table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
+        self.table.nrowsinbuf = self.buffersize  # set buffer value
+
+    def tearDown(self):
+        self.fileh.close()
+        #del self.fileh, self.rootgroup
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test01(self):
+        "Checking modifying one table row with __setitem__"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify just one existing row
+        table[2] = (456,'db2',1.2)
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [456,'db2',1.2],[5,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test01b(self):
+        "Checking modifying one table row with __setitem__ (long index)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify just one existing row
+        table[2] = (456,'db2',1.2)
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [456,'db2',1.2],[5,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test02(self):
+        "Modifying one row, with a step (__setitem__)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify two existing rows
+        rows = records.array([[457,'db1',1.2],[6,'de2',1.3]],
+                             formats=formats)
+        table[1:3:2] = rows
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
+                          [457,'db1',1.2],[5,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test03(self):
+        "Checking modifying several rows at once (__setitem__)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify two existing rows
+        rows = records.array([[457,'db1',1.2],[5,'de1',1.3]],
+                             formats=formats)
+        #table.modifyRows(start=1, rows=rows)
+        table[1:3] = rows
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
+                          [5,'de1',1.3],[5,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test04(self):
+        "Modifying several rows at once, with a step (__setitem__)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify two existing rows
+        rows = records.array([[457,'db1',1.2],[6,'de2',1.3]],
+                             formats=formats)
+        #table[1:4:2] = rows
+        table[1::2] = rows
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
+                          [457,'db1',1.2],[6,'de2',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test05(self):
+        "Checking modifying one column (single element, __setitem__)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify just one existing column
+        table.cols.col1[1] = -1
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[-1,'ded',1.3],
+                          [457,'db1',1.2],[5,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test06a(self):
+        "Checking modifying one column (several elements, __setitem__)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify just one existing column
+        table.cols.col1[1:4] = [(2,2),(3,3),(4,4)]
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [3,'db1',1.2],[4,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test06b(self):
+        "Checking modifying one column (iterator, __setitem__)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify just one existing column
+        try:
+            for row in table.iterrows():
+                row['col1'] = row.nrow+1
+                row.append()
+            table.flush()
+        except NotImplementedError:
+            if common.verbose:
+                (type, value, traceback) = sys.exc_info()
+                print "\nGreat!, the next NotImplementedError was catched!"
+                print value
+        else:
+            self.fail("expected a NotImplementedError")
+
+
+    def test07(self):
+        "Modifying one column (several elements, __setitem__, step)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[1,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        # Modify just one existing column
+        table.cols.col1[1:4:2] = [(2,2),(3,3)]
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [457,'db1',1.2],[3,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test08(self):
+        "Modifying one column (one element, __setitem__, step)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify just one existing column
+        table.cols.col1[1:4:3] = [(2,2)]
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [457,'db1',1.2],[5,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test09(self):
+        "Modifying beyond the table extend (__setitem__, step)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Try to modify beyond the extend
+        # This will silently exclude the non-fitting rows
+        rows = records.array([[457,'db1',1.2],[6,'de2',1.3],[457,'db1',1.2]],
+                             formats=formats)
+        table[1:6:2] = rows
+        # How it should look like
+        r1 = records.array([[456,'dbe',1.2],[457,'db1',1.2],
+                            [457,'db1',1.2],[6,'de2',1.3]],
+                           formats=formats)
+
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+class setItem1(setItem):
+    reopen=0
+    buffersize = 1
+
+class setItem2(setItem):
+    reopen=1
+    buffersize = 2
+
+class setItem3(setItem):
+    reopen=0
+    buffersize = 1000
+
+class setItem4(setItem):
+    reopen=1
+    buffersize = 1000
+
+
+class updateRow(common.PyTablesTestCase):
+
+    def setUp(self):
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
+        # Create a new table:
+        self.table = self.fileh.createTable(self.fileh.root, 'recarray', Rec)
+        self.table.nrowsinbuf = self.buffersize  # set buffer value
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test01(self):
+        "Checking modifying one table row with Row.update"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify just one existing row
+        for row in table.iterrows(2):
+            (row['col1'], row['col2'], row['col3']) = [456,'db2',1.2]
+            row.update()
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [456,'db2',1.2],[5,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+
+    def test02(self):
+        "Modifying one row, with a step (Row.update)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify two existing rows
+        for row in table.iterrows(1, 3, 2):
+            if row.nrow == 1:
+                (row['col1'], row['col2'], row['col3']) = [457,'db1',1.2]
+            elif row.nrow == 3:
+                (row['col1'], row['col2'], row['col3']) = [6,'de2',1.3]
+            row.update()
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
+                          [457,'db1',1.2],[5,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test03(self):
+        "Checking modifying several rows at once (Row.update)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify two existing rows
+        for row in table.iterrows(1, 3):
+            if row.nrow == 1:
+                (row['col1'], row['col2'], row['col3']) = [457,'db1',1.2]
+            elif row.nrow == 2:
+                (row['col1'], row['col2'], row['col3']) = [5,'de1',1.3]
+            row.update()
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
+                          [5,'de1',1.3],[5,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test04(self):
+        "Modifying several rows at once, with a step (Row.update)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify two existing rows
+        for row in table.iterrows(1, stop=4, step=2):
+            if row.nrow == 1:
+                (row['col1'], row['col2'], row['col3']) = [457,'db1',1.2]
+            elif row.nrow == 3:
+                (row['col1'], row['col2'], row['col3']) = [6,'de2',1.3]
+            row.update()
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[457,'db1',1.2],
+                          [457,'db1',1.2],[6,'de2',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test05(self):
+        "Checking modifying one column (single element, Row.update)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify just one existing column
+        for row in table.iterrows(1):
+            row['col1'] = -1
+            row.update()
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[-1,'ded',1.3],
+                          [457,'db1',1.2],[5,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test06(self):
+        "Checking modifying one column (several elements, Row.update)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        # Modify just one existing column
+        for row in table.iterrows(1,4):
+            row['col1'] = row.nrow+1
+            row.update()
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
+                          [3,'db1',1.2],[4,'de1',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test07(self):
+        "Modifying values from a selection"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[1,'ded',1.3]], formats=formats)
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+        # Modify just rows with col1 < 456
+        for row in table.iterrows():
+            if row['col1'][0] < 456:
+                row['col1'] = 2
+                row['col2'] = 'ada'
+                row.update()
+        # Create the modified recarray
+        r1=records.array([[456,'dbe',1.2],[2,'ada',1.3],
+                          [457,'db1',1.2],[2,'ada',1.3]],
+                         formats=formats,
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+    def test08(self):
+        "Modifying a large table (Row.update)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        nrows = 100
+        # append new rows
+        row = table.row
+        for i in xrange(nrows):
+            row['col1'] = i-1
+            row['col2'] = 'a'+str(i-1)
+            row['col3'] = -1.0
+            row.append()
+        table.flush()
+
+        # Modify all the rows
+        for row in table.iterrows():
+            row['col1'] = row.nrow
+            row['col2'] = 'b'+str(row.nrow)
+            row['col3'] = 0.0
+            row.update()
+
+        # Create the modified recarray
+        r1=records.array(None, shape=nrows,
+                         formats=formats,
+                         names = "col1,col2,col3")
+        for i in xrange(nrows):
+            r1['col1'][i] = i
+            r1['col2'][i] = 'b'+str(i)
+            r1['col3'][i] = 0.0
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == nrows
+
+    def test08b(self):
+        "Setting values on a large table without calling Row.update"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        nrows = 100
+        # append new rows
+        row = table.row
+        for i in xrange(nrows):
+            row['col1'] = i-1
+            row['col2'] = 'a'+str(i-1)
+            row['col3'] = -1.0
+            row.append()
+        table.flush()
+
+        # Modify all the rows (actually don't)
+        for row in table.iterrows():
+            row['col1'] = row.nrow
+            row['col2'] = 'b'+str(row.nrow)
+            row['col3'] = 0.0
+            #row.update()
+
+        # Create the modified recarray
+        r1=records.array(None, shape=nrows,
+                         formats=formats,
+                         names = "col1,col2,col3")
+        for i in xrange(nrows):
+            r1['col1'][i] = i-1
+            r1['col2'][i] = 'a'+str(i-1)
+            r1['col3'][i] = -1.0
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == nrows
+
+    def test09(self):
+        "Modifying selected values on a large table"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        nrows = 100
+        # append new rows
+        row = table.row
+        for i in xrange(nrows):
+            row['col1'] = i-1
+            row['col2'] = 'a'+str(i-1)
+            row['col3'] = -1.0
+            row.append()
+        table.flush()
+
+        # Modify selected rows
+        for row in table.iterrows():
+            if row['col1'][0] > nrows-3:
+                row['col1'] = row.nrow
+                row['col2'] = 'b'+str(row.nrow)
+                row['col3'] = 0.0
+                row.update()
+
+        # Create the modified recarray
+        r1=records.array(None, shape=nrows,
+                         formats=formats,
+                         names = "col1,col2,col3")
+        for i in xrange(nrows):
+            r1['col1'][i] = i-1
+            r1['col2'][i] = 'a'+str(i-1)
+            r1['col3'][i] = -1.0
+        # modify just the last line
+        r1['col1'][i] = i
+        r1['col2'][i] = 'b'+str(i)
+        r1['col3'][i] = 0.0
+
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == nrows
+
+    def test09b(self):
+        "Modifying selected values on a large table (alternate values)"
+
+        table = self.table
+        formats = table.description._v_nestedFormats
+
+        nrows = 100
+        # append new rows
+        row = table.row
+        for i in xrange(nrows):
+            row['col1'] = i-1
+            row['col2'] = 'a'+str(i-1)
+            row['col3'] = -1.0
+            row.append()
+        table.flush()
+
+        # Modify selected rows
+        for row in table.iterrows(step=10):
+            row['col1'] = row.nrow
+            row['col2'] = 'b'+str(row.nrow)
+            row['col3'] = 0.0
+            row.update()
+
+        # Create the modified recarray
+        r1=records.array(None, shape=nrows,
+                         formats=formats,
+                         names = "col1,col2,col3")
+        for i in xrange(nrows):
+            if i % 10 > 0:
+                r1['col1'][i] = i-1
+                r1['col2'][i] = 'a'+str(i-1)
+                r1['col3'][i] = -1.0
+            else:
+                r1['col1'][i] = i
+                r1['col2'][i] = 'b'+str(i)
+                r1['col3'][i] = 0.0
+
+        # Read the modified table
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            table = self.fileh.root.recarray
+            table.nrowsinbuf = self.buffersize  # set buffer value
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == nrows
+
+
+class updateRow1(updateRow):
+    reopen=0
+    buffersize = 1
+
+class updateRow2(updateRow):
+    reopen=1
+    buffersize = 2
+
+class updateRow3(updateRow):
+    reopen=0
+    buffersize = 1000
+
+class updateRow4(updateRow):
+    reopen=1
+    buffersize = 1000
+
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -1210,6 +2058,14 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayIO))
         theSuite.addTest(unittest.makeSuite(ShapeTestCase1))
         theSuite.addTest(unittest.makeSuite(ShapeTestCase2))
+        theSuite.addTest(unittest.makeSuite(setItem1))
+        theSuite.addTest(unittest.makeSuite(setItem2))
+        theSuite.addTest(unittest.makeSuite(setItem3))
+        theSuite.addTest(unittest.makeSuite(setItem4))
+        theSuite.addTest(unittest.makeSuite(updateRow1))
+        theSuite.addTest(unittest.makeSuite(updateRow2))
+        theSuite.addTest(unittest.makeSuite(updateRow3))
+        theSuite.addTest(unittest.makeSuite(updateRow4))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressBZIP2TablesTestCase))
