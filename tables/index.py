@@ -392,7 +392,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                    (1, nbounds_inslice), byteorder=self.byteorder)
 
         # begin, end & median bounds (only for numerical types)
-        EArray(self, 'abounds', atom, (0,), "Start bounds",
+        EArray(self, 'abounds', atom, (0,), "Start bounds", filters,
                byteorder=self.byteorder, _log=False)
         EArray(self, 'zbounds', atom, (0,), "End bounds", filters,
                byteorder=self.byteorder, _log=False)
