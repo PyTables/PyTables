@@ -871,30 +871,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.read_slice(tmp_indices, 0, sindices[:ss])
 
         if sorted.nrows <= 1:
-            nslice = 0    # Just in case the loop behind doesn't execute anything
+            # Just in case the loop behind doesn't execute anything
+            nslice = 0
         else:
             # Loop over the remainding slices in block
             for nslice in xrange(1, sorted.nrows):
                 self.reorder_slice(nslice, sorted, indices, ssorted, sindices,
                                    tmp_sorted, tmp_indices)
 
-        # End the process (enrolling the lastrow if necessary)
-        if nelementsLR > 0:
-            sortedLR = self.sortedLR; indicesLR = self.indicesLR
-            # Shrink the ssorted and sindices arrays to the minimum
-            ssorted2 = ssorted[:ss+nelementsLR]; sortedlr = ssorted2[ss:]
-            sindices2 = sindices[:ss+nelementsLR]; indiceslr = sindices2[ss:]
-            # Read the last row info in the second part of the buffer
-            self.read_sliceLR(sortedLR, sortedlr)
-            self.read_sliceLR(indicesLR, indiceslr)
-            indexesExtension.keysort(ssorted2, sindices2)
-            # Write the second part of the buffers to the lastrow indices
-            self.write_sliceLR(sortedLR, sortedlr)
-            self.write_sliceLR(indicesLR, indiceslr)
-            # Update the caches for last row
-            bebounds = numpy.concatenate((sortedlr[::cs], [sortedlr[-1]]))
-            sortedLR[nelementsLR:nelementsLR+len(bebounds)] = bebounds
-            self.bebounds = bebounds
         # Write the first part of the buffers to the regular indices
         self.write_slice(sorted, nslice, ssorted[:ss])
         self.write_slice(indices, nslice, sindices[:ss])
