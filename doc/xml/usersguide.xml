@@ -591,9 +591,9 @@ fileh.close()</screen>
           <title>Prerequisites</title>
 
           <para>First, make sure that you have at least Python 2.4, HDF5 1.6.5
-          and NumPy 1.0.3 or higher installed (we are using HDF5 1.8.0 and
-          NumPy 1.0.3.1 currently). If you don't, fetch and install them
-          before proceeding.</para>
+          and NumPy 1.0.3 or higher installed (for testing purposes, we are
+          using HDF5 1.6.7/1.8.0 and NumPy 1.0.5 currently). If you don't,
+          fetch and install them before proceeding.</para>
 
           <para>Compile and install these packages (but see <xref
           linkend="prerequisitesBinInst" xrefstyle="select: label" /> for
@@ -631,7 +631,7 @@ fileh.close()</screen>
                 of the resource root directories on the
                 <literal>setup.py</literal> command line. For example:</para>
 
-                <screen>--hdf5=/stuff/hdf5-1.8.0
+                <screen>--hdf5=/stuff/hdf5-1.6.7
 --lzo=/stuff/lzo-2.02
 --bzip2=/stuff/bzip2-1.0.4</screen>
 
@@ -640,7 +640,7 @@ fileh.close()</screen>
                 linker flags needed to find the shared library on the command
                 line as well. For example:</para>
 
-                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.0/lib"</screen>
+                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.7/lib"</screen>
 
                 <para>You may also want to try setting the LD_LIBRARY_PATH
                 environment variable to point to the directory where the
@@ -653,7 +653,7 @@ fileh.close()</screen>
                 setting the <literal>LIBS</literal> environment
                 variable:</para>
 
-                <screen>LIBS="hdf5-1.8.0 nsl"</screen>
+                <screen>LIBS="hdf5-1.6.7 nsl"</screen>
 
                 <para>Finally, you can give additional flags to your compiler
                 by passing them to the <literal>--cflags</literal>
@@ -871,7 +871,7 @@ python -c "import tables; tables.test()"</screen>
 
           <para>First, make sure that you have Python 2.4 or higher and NumPy
           1.0.3 or higher installed (PyTables binaries have been built using
-          NumPy 1.0.3.1).  The binaries already include DLLs for HDF5 (1.8.0),
+          NumPy 1.0.5).  The binaries already include DLLs for HDF5 (1.6.7),
           zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2
           (1.0.4).  The LZO DLL can't be included because of license issues
           (but read below for directives to install it if you want so).</para>

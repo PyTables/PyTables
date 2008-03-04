@@ -18,7 +18,10 @@ Changes from 2.0.2.1 to 2.0.3
   value of 1 MB is always returned.
 
 - Fixed a problem when using 64-bit indexes in 32-bit platforms.
-  Solves ticket #148
+  Solves ticket #148.
+
+- Added support for the latest 1.8.0 version of the HDF5 library.
+  Fixes ticket #127.
 
 Changes from 2.0.2 to 2.0.2.1
 =============================
