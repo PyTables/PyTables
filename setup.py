@@ -259,8 +259,9 @@ LZO_DIR = os.environ.get('LZO_DIR', '')
 BZIP2_DIR = os.environ.get('BZIP2_DIR', '')
 LFLAGS = os.environ.get('LFLAGS', '').split()
 # in GCC-style compilers, -w in extra flags will get rid of copious
-# 'uninitialized variable' Pyrex warnings. However, this shouldn't be the default
-# as it will suppress *all* the warnings, which definitely is not a good idea.
+# 'uninitialized variable' Pyrex warnings. However, this shouldn't be
+# the default as it will suppress *all* the warnings, which definitely
+# is not a good idea.
 CFLAGS = os.environ.get('CFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
 
@@ -291,6 +292,9 @@ for arg in args:
         # Don't delete this argument. It maybe useful for distutils
         # when adding more flags later on
         #sys.argv.remove(arg)
+
+# The next flag for the C compiler is needed when using the HDF5 1.8.x series
+CFLAGS.append("-DH5_USE_16_API")
 
 # Try to locate the compulsory and optional libraries.
 lzo2_enabled = False

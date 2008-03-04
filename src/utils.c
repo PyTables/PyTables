@@ -201,7 +201,7 @@ PyObject *get_filter_names( hid_t loc_id,
    if ((nf = H5Pget_nfilters(dcpl))>0) {
      for (i=0; i<nf; i++) {
        cd_nelmts = 20;
-#if H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7
+#if H5_USE_16_API || (H5_VERS_MAJOR == 1 && H5_VERS_MINOR < 7)
        /* 1.6.x */
        filt_id = H5Pget_filter(dcpl, i, &filt_flags, &cd_nelmts,
 			       cd_values, sizeof(f_name), f_name);
