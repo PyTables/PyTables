@@ -1228,8 +1228,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             range_ = index.getLookupRange(
                 splitted.index_operators, splitted.index_limits, self )
             ncoords = index.search(range_)  # do use indexing (always >= 0)
-            if ncoords == 0 and not rescond:
-                # No values neither from index nor from residual condition.
+            if ncoords == 0:
+                # No values from index condition, thus no resulting rows.
                 self._whereIndex = self._whereCondition = None
                 return iter([])
 
