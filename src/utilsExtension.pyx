@@ -127,6 +127,48 @@ else:  # Unix systems
 # End of initialization code
 #---------------------------------------------------------------------
 
+# Helper functions
+
+cdef hsize_t *malloc_dims(object pdims):
+  """Returns a malloced hsize_t dims from a python pdims."""
+  cdef int i, rank
+  cdef hsize_t *dims
+
+  dims = NULL
+  rank = len(pdims)
+  if rank > 0:
+    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+    for i from 0 <= i < rank:
+      dims[i] = pdims[i]
+  return dims
+
+
+cdef hid_t get_native_type(hid_t type_id):
+  """Get the native type of a HDF5 type."""
+  cdef H5T_class_t class_id
+  cdef hid_t native_type_id, super_type_id
+  cdef char *sys_byteorder
+
+  class_id = H5Tget_class(type_id)
+  if class_id in (H5T_ARRAY, H5T_VLEN):
+    # Get the array base component
+    super_type_id = H5Tget_super(type_id)
+    # Get the class
+    class_id = H5Tget_class(super_type_id)
+    H5Tclose(super_type_id)
+  if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_COMPOUND, H5T_ENUM):
+    native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
+  else:
+    # Fixing the byteorder for other types shouldn't be needed.
+    # More in particular, H5T_TIME is not managed yet by HDF5 and so this
+    # has to be managed explicitely inside the PyTables extensions.
+    # Regarding H5T_BITFIELD, well, I'm not sure if changing the byteorder
+    # of this is a good idea at all.
+    native_type_id = H5Tcopy(type_id)
+  if native_type_id < 0:
+    raise HDF5ExtError("Problems getting type id for class %s" % class_id)
+  return native_type_id
+
 
 # Main functions
 

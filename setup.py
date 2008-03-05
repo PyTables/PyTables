@@ -21,7 +21,7 @@ from distutils.util     import convert_path
 # The minimum version of NumPy required
 min_numpy_version = '1.0.3'
 # The minimum version of Pyrex required for compiling the extensions
-min_pyrex_version = '0.9.5.1a'
+min_pyrex_version = '0.9.6.4'
 
 # Some functions for showing errors and warnings.
 def _print_admonition(kind, head, body):
@@ -364,9 +364,9 @@ else:
 #------------------------------------------------------------------------------
 
 pyrex_extnames = [
+    'utilsExtension',
     'hdf5Extension',
     'tableExtension',
-    'utilsExtension',
     '_comp_lzo',
     '_comp_bzip2' ]
 if VERSION.endswith('pro'):
@@ -475,10 +475,10 @@ if os.name == "nt":
     data_files.extend([('Lib/site-packages/%s'%name, dll_files),
                        ])
 
+utilsExtension_libs = LIBS + [hdf5_package.library_name]
 hdf5Extension_libs = LIBS + [hdf5_package.library_name]
 tableExtension_libs = LIBS + [hdf5_package.library_name]
 indexesExtension_libs = LIBS + [hdf5_package.library_name]
-utilsExtension_libs = LIBS + [hdf5_package.library_name]
 lrucacheExtension_libs = []    # Doesn't need external libraries
 
 # Compressor modules only need other libraries if they are enabled.
@@ -492,6 +492,18 @@ for (package, complibs) in [
         complibs.extend([hdf5_package.library_name, package.library_name])
 
 extensions = [
+    Extension( "tables.utilsExtension",
+               include_dirs=inc_dirs,
+               define_macros=def_macros,
+               sources=[ pyrex_extfiles['utilsExtension'],
+                         "src/utils.c",
+                         "src/H5ARRAY.c",
+                         "src/H5ATTR.c" ],
+               library_dirs=lib_dirs,
+               libraries=utilsExtension_libs,
+               extra_link_args=LFLAGS,
+               extra_compile_args=CFLAGS ),
+
     Extension( "tables.hdf5Extension",
                include_dirs=inc_dirs,
                define_macros=def_macros,
@@ -517,18 +529,6 @@ extensions = [
                          "src/H5ATTR.c"],
                library_dirs=lib_dirs,
                libraries=tableExtension_libs,
-               extra_link_args=LFLAGS,
-               extra_compile_args=CFLAGS ),
-
-    Extension( "tables.utilsExtension",
-               include_dirs=inc_dirs,
-               define_macros=def_macros,
-               sources=[ pyrex_extfiles['utilsExtension'],
-                         "src/utils.c",
-                         "src/H5ARRAY.c",
-                         "src/H5ATTR.c" ],
-               library_dirs=lib_dirs,
-               libraries=utilsExtension_libs,
                extra_link_args=LFLAGS,
                extra_compile_args=CFLAGS ),
 

@@ -33,6 +33,8 @@ from tables.conditions import call_on_recarr
 from tables.utilsExtension import \
      getNestedField, AtomFromHDF5Type, AtomToHDF5Type
 
+from utilsExtension cimport get_native_type
+
 # numpy functions & objects
 from hdf5Extension cimport Leaf
 from definitions cimport import_array, ndarray, \
