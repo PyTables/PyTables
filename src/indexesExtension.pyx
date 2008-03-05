@@ -426,7 +426,7 @@ cdef class IndexArray(Array):
 
   cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start,
                                 hsize_t stop):
-#    "Read the sorted part of an index."
+    """Read the sorted part of an index."""
 
     Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
@@ -491,8 +491,8 @@ cdef class IndexArray(Array):
     return lo
 
 
-  # Get the bounds from the cache, or read them
   cdef void *getLRUbounds(self, int nrow, int nbounds):
+    """Get the bounds from the cache, or read them."""
     cdef void *vpointer
     cdef long nslot
 
@@ -507,8 +507,8 @@ cdef class IndexArray(Array):
     return vpointer
 
 
-  # Get the sorted row from the cache or read it.
   cdef void *getLRUsorted(self, int nrow, int ncs, int nchunk, int cs):
+    """Get the sorted row from the cache or read it."""
     cdef void *vpointer
     cdef npy_int64 nckey
     cdef long nslot

@@ -709,7 +709,7 @@ cdef class lrange:
       rlen = get_len_of_range(self.start, self.stop, self.step)
       return PyArray_Scalar(&rlen, self.int64, None)
 
-  def __new__(self, *args):
+  def __cinit__(self, *args):
     cdef int nargs
     cdef object start, stop, step
 

@@ -26,16 +26,19 @@ from definitions cimport \
      H5T_ORDER_LE, H5T_ORDER_BE, H5Tget_order, \
      npy_intp
 
+from definitions cimport \
+     H5T_ORDER_BE, \
+     H5T_STD_B8LE, H5T_UNIX_D32LE, H5T_UNIX_D64LE, \
+     H5T_STD_I8LE, H5T_STD_I16LE, H5T_STD_I32LE, H5T_STD_I64LE, \
+     H5T_STD_U8LE, H5T_STD_U16LE, H5T_STD_U32LE, H5T_STD_U64LE, \
+     H5T_IEEE_F32LE, H5T_IEEE_F64LE, \
+     H5T_STD_B8BE, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
+     H5T_STD_I8BE, H5T_STD_I16BE, H5T_STD_I32BE, H5T_STD_I64BE, \
+     H5T_STD_U8BE, H5T_STD_U16BE, H5T_STD_U32BE, H5T_STD_U64BE, \
+     H5T_IEEE_F32BE, H5T_IEEE_F64BE
+
 # Platform-dependent types
 if sys.byteorder == "little":
-
-  from definitions cimport \
-       H5T_ORDER_BE, \
-       H5T_STD_B8LE, H5T_UNIX_D32LE, H5T_UNIX_D64LE, \
-       H5T_STD_I8LE, H5T_STD_I16LE, H5T_STD_I32LE, H5T_STD_I64LE, \
-       H5T_STD_U8LE, H5T_STD_U16LE, H5T_STD_U32LE, H5T_STD_U64LE, \
-       H5T_IEEE_F32LE, H5T_IEEE_F64LE
-
   platform_byteorder = H5T_ORDER_LE
   # Standard types, independent of the byteorder
   H5T_STD_B8   = H5T_STD_B8LE
@@ -51,16 +54,7 @@ if sys.byteorder == "little":
   H5T_IEEE_F64 = H5T_IEEE_F64LE
   H5T_UNIX_D32  = H5T_UNIX_D32LE
   H5T_UNIX_D64  = H5T_UNIX_D64LE
-
 else:  # sys.byteorder == "big"
-
-  from definitions cimport \
-       H5T_ORDER_BE, \
-       H5T_STD_B8BE, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
-       H5T_STD_I8BE, H5T_STD_I16BE, H5T_STD_I32BE, H5T_STD_I64BE, \
-       H5T_STD_U8BE, H5T_STD_U16BE, H5T_STD_U32BE, H5T_STD_U64BE, \
-       H5T_IEEE_F32BE, H5T_IEEE_F64BE
-
   platform_byteorder = H5T_ORDER_BE
   # Standard types, independent of the byteorder
   H5T_STD_B8   = H5T_STD_B8BE
@@ -128,9 +122,8 @@ HDF5ClassToString = {
 # The next functions are not directly related with this file. If the list
 # below starts to grow, they should be moved to its own .pxi file.
 
-# cdef'd functions make the c compilers to issue a warning on string docs
-#  "Returns a malloced hsize_t dims from a python pdims."
 cdef hsize_t *malloc_dims(object pdims):
+  """Returns a malloced hsize_t dims from a python pdims."""
   cdef int i, rank
   cdef hsize_t *dims
 
@@ -143,8 +136,8 @@ cdef hsize_t *malloc_dims(object pdims):
   return dims
 
 
-#  "Get the native type of a HDF5 type"
 cdef hid_t get_native_type(hid_t type_id):
+  """Get the native type of a HDF5 type."""
   cdef H5T_class_t class_id
   cdef hid_t native_type_id, super_type_id
   cdef char *sys_byteorder

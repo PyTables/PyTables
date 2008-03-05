@@ -158,9 +158,8 @@ import_array()
 
 # Helper functions
 
-# cdef'd functions make the c compilers to issue a warning on string docs
-#   "Returns a malloced hsize_t dims from a npy_intp *pdims."
 cdef hsize_t *npy_malloc_dims(int rank, npy_intp *pdims):
+  """Returns a malloced hsize_t dims from a npy_intp *pdims."""
   cdef int i
   cdef hsize_t *dims
 
@@ -173,7 +172,7 @@ cdef hsize_t *npy_malloc_dims(int rank, npy_intp *pdims):
 
 
 cdef object getshape(int rank, hsize_t *dims):
-#  "Return a shape (tuple) from a dims C array of rank dimensions."
+  """Return a shape (tuple) from a dims C array of rank dimensions."""
   cdef int i
   cdef object shape
 
@@ -186,12 +185,11 @@ cdef object getshape(int rank, hsize_t *dims):
 
 # Helper function for quickly fetch an attribute string
 cdef object get_attribute_string_or_none(node_id, attr_name):
-#   """
-#   Returns a string attribute if it exists in node_id.
+  """Returns a string attribute if it exists in node_id.
 
-#   It returns ``None`` in case it don't exists (or there have been problems
-#   reading it).
-#   """
+  It returns ``None`` in case it don't exists (or there have been problems
+  reading it).
+  """
 
   cdef char *attr_value
   cdef object retvalue
@@ -243,9 +241,9 @@ cdef class File:
   cdef char    *name
 
 
-  def __new__(self, object name, char *mode, char *title,
-              object trTable, char *root, object filters,
-              size_t metadataCacheSize, size_t nodeCacheSize):
+  def __cinit__(self, object name, char *mode, char *title,
+                object trTable, char *root, object filters,
+                size_t metadataCacheSize, size_t nodeCacheSize):
     # Create a new file using default properties
     self.name = name
     self.mode = pymode = mode
@@ -676,11 +674,11 @@ cdef class Leaf(Node):
 
 
   cdef _get_type_ids(self):
-#     """Get the disk and native HDF5 types associated with this leaf.
+    """Get the disk and native HDF5 types associated with this leaf.
 
-#     It is guaranteed that both disk and native types are not the same
-#     descriptor (so that it is safe to close them separately).
-#     """
+    It is guaranteed that both disk and native types are not the same
+    descriptor (so that it is safe to close them separately).
+    """
     cdef hid_t disk_type_id, native_type_id
 
     disk_type_id = H5Dget_type(self.dataset_id)
@@ -689,12 +687,12 @@ cdef class Leaf(Node):
 
 
   cdef _convertTime64(self, ndarray nparr, int sense):
-#   """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
+    """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
 
-#   NumPy to HDF5 conversion is performed when 'sense' is 0.
-#   Otherwise, HDF5 to NumPy conversion is performed.
-#   The conversion is done in place, i.e. 'nparr' is modified.
-#   """
+    NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
+    to NumPy conversion is performed.  The conversion is done in place,
+    i.e. 'nparr' is modified.
+    """
 
     cdef void *t64buf
     cdef long byteoffset, bytestride, nelements
