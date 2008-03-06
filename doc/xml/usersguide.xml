@@ -6713,6 +6713,15 @@ for node in h5file.root.detector:
               <literal>Table.where()</literal> —<xref linkend="Table.where"
               />— for an example).</para>
             </note>
+
+            <warning>
+              <para>When in the middle of a table row iterator, you should not
+              use methods that can change the number of rows in the table
+              (like <literal>Table.append()</literal> or
+              <literal>Table.removeRows()</literal>) or unexpected errors will
+              happen.</para>
+            </warning>
+
           </section>
 
           <section id="Table.itersequence">
@@ -7172,6 +7181,14 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             <literal>examples/nested-iter.py</literal> for the full
             code.</para>
           </section>
+
+          <warning>
+            <para>When in the middle of a table row iterator, you should not
+            use methods that can change the number of rows in the table
+            (like <literal>Table.append()</literal> or
+            <literal>Table.removeRows()</literal>) or unexpected errors will
+            happen.</para>
+          </warning>
 
           <section id="Table.whereAppend">
             <title>whereAppend(dstTable, condition, condvars=None, start=None,
