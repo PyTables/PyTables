@@ -847,7 +847,6 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         self.table = self.fileh.createTable(root, 'table', TDescr, title,
                                             None, self.nrows)
         self.table.autoIndex = self.iprops.auto
-        self.table.indexFilters = self.iprops.filters
         for colname in self.colsToIndex:
             self.table.colinstances[colname].createIndex()
         for i in range(self.nrows):
@@ -1425,6 +1424,8 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         super(IndexPropsChangeTestCase, self).setUp()
         table = self.h5file.createTable('/', 'test', self.MyDescription)
         table.autoIndex = self.oldIndexProps.auto
+        # Ignoring the DeprecationWarning for all tests in this class
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         table.indexFilters = self.oldIndexProps.filters
         row = table.row
         for i in xrange(100):
@@ -1454,7 +1455,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         self.table.indexFilters = self.newIndexProps.filters
         icol = self.table.cols.icol
         icol.createIndex()
-        self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
+        self.assertEqual(icol.index.filters, self.newIndexProps.filters)
 
     def test_reindex(self):
         """Using changed index properties in recomputed indexes."""
@@ -1463,8 +1464,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
         self.table.indexFilters = self.newIndexProps.filters
         icol.reIndex()
-        #self.assertEqual(icol.index.filters, self.newIndexProps.filters)
-        self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
+        self.assertEqual(icol.index.filters, self.newIndexProps.filters)
 
 
 class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
@@ -1502,18 +1502,6 @@ class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(icol.index.filters, argfilters)
         icol.removeIndex()
 
-        # Filters set in table, not in argument.
-        self.table.indexFilters = idxfilters
-        icol.createIndex()
-        # self.assertEqual(icol.index.filters, idxfilters)
-        self.assertEqual(icol.index.filters, defaultIndexFilters)
-        icol.removeIndex()
-
-        # Filters set in table and in argument.
-        self.table.indexFilters = idxfilters
-        icol.createIndex(filters=argfilters)
-        self.assertEqual(icol.index.filters, argfilters)
-        icol.removeIndex()
 
 
 class OldIndexTestCase(PyTablesTestCase):

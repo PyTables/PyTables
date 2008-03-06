@@ -2258,7 +2258,10 @@ The 'names' parameter must be a list of strings.""")
             # second part of the condition.
             if ( _is_pro and ('FILTERS' in indexgroup._v_attrs
                  or self.indexFilters != defaultIndexFilters) ):
+                # Ignoring the DeprecationWarning temporarily here
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
                 newtable.indexFilters = self.indexFilters
+                warnings.filterwarnings('default', category=DeprecationWarning)
         # Generate equivalent indexes in the new table, if any.
         if self.indexed:
             warnings.warn(
