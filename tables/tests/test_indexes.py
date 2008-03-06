@@ -86,7 +86,7 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test01_readIndex..." % self.__class__.__name__
+            print "Running %s.test00_flushLastRow..." % self.__class__.__name__
 
         # Open the HDF5 file in append mode
         self.fileh = openFile(self.file, mode = "a")
@@ -105,6 +105,36 @@ class BasicTestCase(PyTablesTestCase):
 
         # Do a selection
         results = [p["var1"] for p in table.where('var1 == "1"')]
+        assert len(results) == 2
+
+    def test00_update(self):
+        """Checking automatic re-indexing after an update operation."""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_update..." % self.__class__.__name__
+
+        # Open the HDF5 file in append mode
+        self.fileh = openFile(self.file, mode = "a")
+        table = self.fileh.root.table
+        # Modify a couple of columns
+        for i,row in enumerate(table.where("(var3>1) & (var3<5)")):
+            row['var1'] = str(i)
+            row['var3'] = i
+            row.update()
+        table.flush()  # redo the indexes
+        idxcol1 = table.cols.var1.index
+        idxcol2 = table.cols.var2.index
+        if verbose:
+            print "Dirtyness of var1 col:", indxcol1.dirty
+            print "Dirtyness of var3 col:", indxcol3.dirty
+        assert idxcol1.dirty == False
+        assert idxcol2.dirty == False
+
+        # Do a couple of selections
+        results = [p["var1"] for p in table.where('var1 == "1"')]
+        assert len(results) == 2
+        results = [p["var3"] for p in table.where('var3 == 0')]
         assert len(results) == 2
 
     def test01_readIndex(self):

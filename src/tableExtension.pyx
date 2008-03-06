@@ -1165,8 +1165,8 @@ cdef class Row:
     table._update_elements(self._mod_nrows, self.mod_elements, self.IObufcpy)
     # Reset the counter of modified rows to 0
     self._mod_nrows = 0
-    # Redo the modified fields' indexes.
-    table._reIndex(self.modified_fields)
+    # Mark the modified fields' indexes as dirty.
+    table._markColumnsAsDirty(self.modified_fields)
 
 
   # This method is twice as faster than __getattr__ because there is
