@@ -1190,6 +1190,11 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         been used, but you may as well use any of the other reading
         iterators that ``Table`` objects offer.  See the file
         ``examples/nested-iter.py`` for the full code.
+
+        .. Warning:: When in the middle of a table row iterator, you
+           should not use methods that can change the number of rows in
+           the table (like ``Table.append()`` or ``Table.removeRows()``)
+           or unexpected errors will happen.
         """
         # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)
@@ -1394,6 +1399,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         .. Note:: This iterator can be nested (see `Table.where()` for
            an example).
+
+        .. Warning:: When in the middle of a table row iterator, you
+           should not use methods that can change the number of rows in
+           the table (like ``Table.append()`` or ``Table.removeRows()``)
+           or unexpected errors will happen.
         """
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:
