@@ -847,6 +847,9 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         self.table = self.fileh.createTable(root, 'table', TDescr, title,
                                             None, self.nrows)
         self.table.autoIndex = self.iprops.auto
+        # Ignoring the DeprecationWarning for all tests in this class
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
+        self.table.indexFilters = self.iprops.filters
         for colname in self.colsToIndex:
             self.table.colinstances[colname].createIndex()
         for i in range(self.nrows):
@@ -859,6 +862,8 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.table = self.fileh.root.table
 
     def tearDown(self):
+        # Restore the DeprecationWarning
+        warnings.filterwarnings('default', category=DeprecationWarning)
         self.fileh.close()
         os.remove(self.file)
         cleanup(self)
