@@ -36,11 +36,6 @@ Changes from 2.0.2.1 to 2.0.3
 - Fixed a problem when using 64-bit indexes in 32-bit platforms.
   Solves ticket #148.
 
-- During update operations, the indexes are marked now as dirty. After the
-  update operation has finished, the call to Table.flush() will redo the dirty
-  indexes. This avoids unnecessary re-build of indexes every output buffer
-  flush, as it was the case before. Fixes #141.
-
 - Table.indexFilters is working now as documented. However, as per ticket
   #155, its use is now deprecated (will be removed in 2.1). Fixes #155.
 

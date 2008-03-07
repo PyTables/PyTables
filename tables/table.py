@@ -2142,17 +2142,6 @@ The 'names' parameter must be a list of strings.""")
         self.indexed = max(colindexed.values())  # this is an OR :)
 
 
-    def _markColumnsAsDirty(self, colnames):
-        """Mark column indexes in `colnames` as dirty."""
-
-        if self.indexed:
-            # Mark the proper indexes as dirty
-            for (colname, colindexed) in self.colindexed.iteritems():
-                if colindexed and colname in colnames:
-                    col = self.cols._g_col(colname)
-                    col.index.dirty = True
-
-
     def _reIndex(self, colnames):
         """Re-index columns in `colnames` if automatic indexing is true."""
 
@@ -2297,9 +2286,6 @@ The 'names' parameter must be a list of strings.""")
                      "and rows in the table (%d) is not equal; "
                      "please report this to the authors."
                      % (self._indexedrows, self.nrows) )
-            # Finally, re-index any dirty column (for example, from a
-            # previous update operation).
-            self.reIndexDirty()
 
         super(Table, self).flush()
 
