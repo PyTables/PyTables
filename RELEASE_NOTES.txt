@@ -18,16 +18,31 @@ Changes from 2.0.2.1 to 2.0.3
   10 TB, larger values are returned. For sizes >= 10 TB a maximum
   value of 1 MB is always returned.
 
+- Added support for the latest 1.8.0 version of the HDF5 library.
+  Fixes ticket #127.
+
+- PyTables compiles now against latest versions of Pyrex (0.9.6.4).  For the
+  first time, the extensions do compile without warnings!  Fixes #159.
+
+- Numexpr module has been put in sync with the version in SciPy sandbox.
+
+- Added a couple of warnings in User's Guide so as to tell the user that it is
+  not safe to use methods that can change the number of rows of a table in the
+  middle of a row iterator. Fixes #153.
+
 - Fixed a problem when updating multidimensional cells using the
   Row.update() method in the middle of table iterators .  Fixes #149.
 
 - Fixed a problem when using 64-bit indexes in 32-bit platforms.
   Solves ticket #148.
 
-- Added support for the latest 1.8.0 version of the HDF5 library.
-  Fixes ticket #127.
+- During update operations, the indexes are marked now as dirty. After the
+  update operation has finished, the call to Table.flush() will redo the dirty
+  indexes. This avoids unnecessary re-build of indexes every output buffer
+  flush, as it was the case before. Fixes #141.
 
-- PyTables compiles now against latest versions of Pyrex (0.9.6.4).
+- Table.indexFilters is working now as documented. However, as per ticket
+  #155, its use is now deprecated (will be removed in 2.1). Fixes #155.
 
 
 Changes from 2.0.2 to 2.0.2.1
