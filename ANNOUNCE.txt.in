@@ -11,7 +11,13 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-#XXX version-specific blurb XXX#
+This is a maintenance release that mainly fixes a couple of important
+bugs (bad update of multidimensional columns in table objects, and
+problems using large indexes in 32-bit platforms), some small
+enhancements, and most importantly, support for the HDF5 1.8.0 library.
+Also, binaries have been compiled against the latest stable version of
+HDF5, 1.6.7, released during the past February.  Thanks to the
+broadening PyTables community for all the valuable feedback.
 
 In case you want to know more in detail what has changed in this
 version, have a look at ``RELEASE_NOTES.txt``.  Find the HTML version
