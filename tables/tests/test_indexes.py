@@ -124,12 +124,12 @@ class BasicTestCase(PyTablesTestCase):
             row.update()
         table.flush()  # redo the indexes
         idxcol1 = table.cols.var1.index
-        idxcol2 = table.cols.var2.index
+        idxcol3 = table.cols.var3.index
         if verbose:
-            print "Dirtyness of var1 col:", indxcol1.dirty
-            print "Dirtyness of var3 col:", indxcol3.dirty
+            print "Dirtyness of var1 col:", idxcol1.dirty
+            print "Dirtyness of var3 col:", idxcol3.dirty
         assert idxcol1.dirty == False
-        assert idxcol2.dirty == False
+        assert idxcol3.dirty == False
 
         # Do a couple of selections
         results = [p["var1"] for p in table.where('var1 == "1"')]
