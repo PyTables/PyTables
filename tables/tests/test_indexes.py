@@ -1434,6 +1434,11 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         table.flush()
         self.table = table
 
+    def tearDown(self):
+        # Restore the DeprecationWarning
+        warnings.filterwarnings('default', category=DeprecationWarning)
+        super(IndexPropsChangeTestCase, self).tearDown()
+
     def test_attributes(self):
         """Storing index properties as table attributes."""
         for refprops in [self.oldIndexProps, self.newIndexProps]:

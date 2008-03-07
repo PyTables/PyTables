@@ -133,9 +133,9 @@ _table__autoIndex = property(
 
 def _table__setindexFilters(self, filters):
     warnings.warn(
-        "``indexFilters`` property will soon be deprecated."
-        "Please, do specify the filters in the `filters`"
-        "argument of ``createFilters`` method.",
+        "``indexFilters`` property will soon be deprecated.  "
+        "Please, do specify the filters in the ``filters`` "
+        "argument of ``createIndex()`` method.",
         DeprecationWarning )
     if not isinstance(filters, Filters):
         raise TypeError("not an instance of ``Filters``: %r" % filters)
