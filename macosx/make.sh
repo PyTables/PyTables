@@ -4,7 +4,7 @@ set -e
 PMPROJ_TMPL="pytables-@VER@-@LIC@-py@PYVER@.pmproj"
 WELCOME_TMPL="welcome-@VER@-@LIC@-py@PYVER@.rtf"
 BACKGROUND="background.tif"
-SUBPKGS="hdf5-1.6.6.pkg numpy-1.0.3"
+SUBPKGS="hdf5-1.6.7.pkg numpy-1.0.3"
 
 VER=$(cat ../VERSION)
 VERNP=${VER%pro}
