@@ -35,6 +35,7 @@ import re
 import sys
 import inspect
 import cPickle
+import warnings
 
 import numpy
 
@@ -115,7 +116,7 @@ def _invalid_itemsize_error(kind, itemsize, itemsizes):
 def _abstract_atom_init(deftype, defvalue):
     """Return a constructor for an abstract `Atom` class."""
     defitemsize = split_type(deftype)[1]
-    def __init__(self, itemsize=defitemsize, shape=1, dflt=defvalue):
+    def __init__(self, itemsize=defitemsize, shape=(), dflt=defvalue):
         assert self.kind in atom_map
         try:
             atomclass = atom_map[self.kind][itemsize]
@@ -134,7 +135,13 @@ def _normalize_shape(shape):
             raise ValueError( "shape value must be greater than 0: %d"
                               % shape )
         elif shape == 1:
-            shape = ()  # 1 is a shorthand for ()
+            # This branch shall be removed for the second step of #96.
+            shape = ()  # 1 is a *deprecated* shorthand for ()
+            warnings.warn(
+                "``shape=1`` will soon stop being equivalent to ``shape=()`` "
+                "and become equivalent to ``shape=(1,)``; "
+                "please use ``shape=()`` to get a scalar shape",
+                DeprecationWarning )
         else:
             shape = (shape,)  # N is a shorthand for (N,)
     elif type(shape) in (tuple, list):
@@ -358,7 +365,7 @@ class Atom(object):
         return cname[:cname.rfind('Atom')]
 
     @classmethod
-    def from_sctype(class_, sctype, shape=1, dflt=None):
+    def from_sctype(class_, sctype, shape=(), dflt=None):
         """
         Create an `Atom` from a NumPy scalar type `sctype`.
 
@@ -414,7 +421,7 @@ class Atom(object):
         return class_.from_type(basedtype.name, dtype.shape, dflt)
 
     @classmethod
-    def from_type(class_, type, shape=1, dflt=None):
+    def from_type(class_, type, shape=(), dflt=None):
         """
         Create an `Atom` from a PyTables `type`.
 
@@ -440,7 +447,7 @@ class Atom(object):
         return class_.from_kind(kind, itemsize, shape, dflt)
 
     @classmethod
-    def from_kind(class_, kind, itemsize=None, shape=1, dflt=None):
+    def from_kind(class_, kind, itemsize=None, shape=(), dflt=None):
         """
         Create an `Atom` from a PyTables `kind`.
 
@@ -598,7 +605,7 @@ class StringAtom(Atom):
     type = 'string'
     _defvalue = ''
 
-    def __init__(self, itemsize, shape=1, dflt=_defvalue):
+    def __init__(self, itemsize, shape=(), dflt=_defvalue):
         if not hasattr(itemsize, '__int__') or int(itemsize) < 0:
             raise ValueError( "invalid item size for kind ``%s``: %r; "
                               "it must be a positive integer"
@@ -613,7 +620,7 @@ class BoolAtom(Atom):
     type = 'bool'
     _deftype = 'bool8'
     _defvalue = False
-    def __init__(self, shape=1, dflt=_defvalue):
+    def __init__(self, shape=(), dflt=_defvalue):
         Atom.__init__(self, self.type, shape, dflt)
 
 
@@ -650,7 +657,7 @@ def _create_numeric_class(baseclass, itemsize):
     type_ = prefix.lower()
     classdict = { 'itemsize': itemsize, 'type': type_,
                   '__doc__': "Defines an atom of type ``%s``." % type_ }
-    def __init__(self, shape=1, dflt=baseclass._defvalue):
+    def __init__(self, shape=(), dflt=baseclass._defvalue):
         Atom.__init__(self, self.type, shape, dflt)
     classdict['__init__'] = __init__
     return type('%sAtom' % prefix, (baseclass,), classdict)
@@ -704,7 +711,7 @@ class ComplexAtom(Atom):
     all_types.add('complex64')
     all_types.add('complex128')
 
-    def __init__(self, itemsize, shape=1, dflt=_defvalue):
+    def __init__(self, itemsize, shape=(), dflt=_defvalue):
         isizes = [8, 16]
         if itemsize not in isizes:
             raise _invalid_itemsize_error('complex', itemsize, isizes)
@@ -714,7 +721,7 @@ class ComplexAtom(Atom):
 class _ComplexErrorAtom(ComplexAtom):
     """Reminds the user to stop using the old complex atom names."""
     __metaclass__ = type  # do not register anything about this class
-    def __init__(self, shape=1, dflt=ComplexAtom._defvalue):
+    def __init__(self, shape=(), dflt=ComplexAtom._defvalue):
         raise TypeError(
             "to avoid confusions with PyTables 1.X complex atom names, "
             "please use ``ComplexAtom(itemsize=N)``, "
@@ -743,7 +750,7 @@ class Time32Atom(TimeAtom):
     itemsize = 4
     type = 'time32'
     _defvalue = 0
-    def __init__(self, shape=1, dflt=_defvalue):
+    def __init__(self, shape=(), dflt=_defvalue):
         Atom.__init__(self, 'int32', shape, dflt)
 
 class Time64Atom(TimeAtom):
@@ -751,7 +758,7 @@ class Time64Atom(TimeAtom):
     itemsize = 8
     type = 'time64'
     _defvalue = 0.0
-    def __init__(self, shape=1, dflt=_defvalue):
+    def __init__(self, shape=(), dflt=_defvalue):
         Atom.__init__(self, 'float64', shape, dflt)
 
 
@@ -913,7 +920,7 @@ class EnumAtom(Atom):
 
     # Special methods
     # ~~~~~~~~~~~~~~~
-    def __init__(self, enum, dflt, base, shape=1):
+    def __init__(self, enum, dflt, base, shape=()):
         if not isinstance(enum, Enum):
             enum = Enum(enum)
         self.enum = enum

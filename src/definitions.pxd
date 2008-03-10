@@ -133,10 +133,6 @@ cdef extern from "numpy/arrayobject.h":
     NPY_UINT8, NPY_UINT16, NPY_UINT32, NPY_UINT64,
     NPY_FLOAT32, NPY_FLOAT64, NPY_COMPLEX64, NPY_COMPLEX128
 
-  # Functions
-  object PyArray_GETITEM(object arr, void *itemptr)
-  int PyArray_SETITEM(object arr, void *itemptr, object obj)
-
   # Classes
   ctypedef extern class numpy.dtype [object PyArray_Descr]:
     cdef int type_num, elsize, alignment
@@ -152,7 +148,13 @@ cdef extern from "numpy/arrayobject.h":
     cdef dtype descr
     cdef int flags
 
-  # The NumPy initialization funtion
+  # Functions
+  object PyArray_GETITEM(object arr, void *itemptr)
+  int PyArray_SETITEM(object arr, void *itemptr, object obj)
+  dtype PyArray_DescrFromType(int type)
+  object PyArray_Scalar(void *data, dtype descr, object base)
+
+  # The NumPy initialization function
   void import_array()
 
 

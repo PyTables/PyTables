@@ -10,6 +10,8 @@
 
 """Here is defined the Table class (pro)."""
 
+import warnings
+
 import numpy
 
 from tables.parameters import (
@@ -130,6 +132,11 @@ _table__autoIndex = property(
     """ )
 
 def _table__setindexFilters(self, filters):
+    warnings.warn(
+        "``indexFilters`` property will soon be deprecated.  "
+        "Please, do specify the filters in the ``filters`` "
+        "argument of ``createIndex()`` method.",
+        DeprecationWarning )
     if not isinstance(filters, Filters):
         raise TypeError("not an instance of ``Filters``: %r" % filters)
     try:
@@ -311,16 +318,9 @@ def _column__createIndex(self, optlevel, filters, tmp_dir,
     except NoSuchNodeError:
         itgroup = table._createIndexesTable()
 
-    # If no filters are specified, try the table and then the default.
-    # ************* Note ****************
-    # table.indexFilters will be always set, so this will always set
-    # the filters of the index to be the same of the table, even if
-    # the table *doesn't* have any!
-    # F. Altet 2007-02-27
-#     if filters is None:
-#         filters = table.indexFilters
+    # If no filters are specified, try the indexFilters property
     if filters is None:
-        filters = defaultIndexFilters
+        filters = table.indexFilters
 
     # Create the necessary intermediate groups for descriptors
     idgroup = itgroup

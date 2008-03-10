@@ -43,6 +43,27 @@ __version__ = '$Revision$'
 """Repository version of this file."""
 
 
+def _closedrepr(oldmethod):
+    """
+    Decorate string representation method to handle closed nodes.
+
+    If the node is closed, a string like this is returned::
+
+      <closed MODULE.CLASS at ADDRESS>
+
+    instead of calling `oldmethod` and returning its result.
+    """
+    def newmethod(self):
+        if not self._v_isopen:
+            cmod = self.__class__.__module__
+            cname = self.__class__.__name__
+            addr = hex(id(self))
+            return '<closed %s.%s at %s>' % (cmod, cname, addr)
+        return oldmethod(self)
+    newmethod.__name__ = oldmethod.__name__
+    newmethod.__doc__ = oldmethod.__doc__
+    return newmethod
+
 
 class MetaNode(type):
 
@@ -53,7 +74,21 @@ class MetaNode(type):
     into several dictionaries (namely the `tables.utils.classNameDict`
     class name dictionary and the `tables.utils.classIdDict` class
     identifier dictionary).
+
+    It also adds sanity checks to some methods:
+
+      * Check that the node is open when calling string representation
+        and provide a default string if so.
     """
+
+    def __new__(class_, name, bases, dict_):
+        # Add default behaviour for representing closed nodes.
+        for mname in ['__str__', '__repr__']:
+            if mname in dict_:
+                dict_[mname] = _closedrepr(dict_[mname])
+
+        return type.__new__(class_, name, bases, dict_)
+
 
     def __init__(class_, name, bases, dict_):
         super(MetaNode, class_).__init__(name, bases, dict_)
@@ -209,6 +244,10 @@ class Node(object):
 
     # </properties>
 
+    # This may be looked up by ``__del__`` when ``__init__`` doesn't get
+    # to be called.  See ticket #144 for more info.
+    _v_isopen = False
+    """The default class attribute for _v_isopen."""
 
     # The ``_log`` argument is only meant to be used by ``_g_copyAsChild()``
     # to avoid logging the creation of children nodes of a copied sub-tree.
@@ -305,10 +344,8 @@ class Node(object):
         #    revived, the user would also need to force the closed
         #    `Node` out of memory, which is not a trivial task.
         #
-        if not hasattr(self, "_v_isopen"):
-            return  # the node is probably being aborted during creation time
         if not self._v_isopen:
-            return  # the node is already closed
+            return  # the node is already closed or not initialized
 
         # If we get here, the `Node` is still open.
         file_ = self._v_file
@@ -413,13 +450,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         oldPath = self._v_pathname
         newPath = joinPath(newParentPath, self._v_name)
-        parentDepth = newParentPath.count('/')
+        newDepth = newPath.count('/')
 
         self._v_pathname = newPath
-        self._v_depth = parentDepth + 1
+        self._v_depth = newDepth
 
         # Check if the node is too deep in the tree.
-        if parentDepth >= MAX_TREE_DEPTH:
+        if newDepth > MAX_TREE_DEPTH:
             warnings.warn("""\
 moved descendent node is exceeding the recommended maximum depth (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""

@@ -8,6 +8,7 @@ from numpy import *
 from numpy import rec as records
 
 from tables import *
+from tables.parameters import NODE_MAX_SLOTS
 from tables.tests import common
 from tables.tests.common import allequal, areArraysEqual
 
@@ -45,15 +46,15 @@ RecordDescriptionDict = {
 # Old fashion of defining tables (for testing backward compatibility)
 class OldRecord(IsDescription):
     var1 = StringCol(itemsize=4, dflt="abcd", pos=0)
-    var2 = Col.from_type("int32", 1, 1, pos=1)
-    var3 = Col.from_type("int16", 1, 2, pos=2)
-    var4 = Col.from_type("float64", 1, 3.1, pos=3)
-    var5 = Col.from_type("float32", 1, 4.2, pos=4)
-    var6 = Col.from_type("uint16", 1, 5, pos=5)
+    var2 = Col.from_type("int32", (), 1, pos=1)
+    var3 = Col.from_type("int16", (), 2, pos=2)
+    var4 = Col.from_type("float64", (), 3.1, pos=3)
+    var5 = Col.from_type("float32", (), 4.2, pos=4)
+    var6 = Col.from_type("uint16", (), 5, pos=5)
     var7 = StringCol(itemsize=1, dflt="e", pos=6)
-    var8 = Col.from_type("bool", shape=1, dflt=1, pos=7)
-    var9 = ComplexCol(itemsize=8, shape=1, dflt=(0.+1.j), pos=8)
-    var10 = ComplexCol(itemsize=16, shape=1, dflt=(1.-0.j), pos = 9)
+    var8 = Col.from_type("bool", shape=(), dflt=1, pos=7)
+    var9 = ComplexCol(itemsize=8, shape=(), dflt=(0.+1.j), pos=8)
+    var10 = ComplexCol(itemsize=16, shape=(), dflt=(1.-0.j), pos = 9)
 
 
 class BasicTestCase(common.PyTablesTestCase):
@@ -937,7 +938,36 @@ class BasicTestCase(common.PyTablesTestCase):
             assert len(result) == 19
             assert result == [100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
                               110, 111, 112, 113, 114, 115, 116, 117, 118]
-            
+
+    def test02e_AppendRows(self):
+        """Checking appending using the Row of an unreferenced table."""
+        # See ticket #94 (http://www.pytables.org/trac/ticket/94).
+
+        # Reopen the file in append mode.
+        self.fileh = openFile(self.file, mode='a')
+
+        # Get the row handler which will outlive the reference to the table.
+        table = self.fileh.getNode('/group0/table1')
+        oldnrows = table.nrows
+        row = table.row
+
+        # Few appends are made to avoid flushing the buffers in ``row``.
+
+        # First case: append to an alive (referenced) table.
+        row.append()
+        table.flush()
+        newnrows = table.nrows
+        self.assertEqual( newnrows, oldnrows + 1,
+                          "Append to alive table failed." )
+
+        # Second case: append to a dead (unreferenced) table.
+        del table
+        row.append()
+        table = self.fileh.getNode('/group0/table1')
+        table.flush()
+        newnrows = table.nrows
+        self.assertEqual( newnrows, oldnrows + 2,
+                          "Append to dead table failed."  )
 
     # CAVEAT: The next test only works for tables with rows < 2**15
     def test03_endianess(self):
@@ -4811,6 +4841,46 @@ class ZeroSizedTestCase(unittest.TestCase):
         self.assert_(t.nrows == 1, "The number of rows should be 1.")
 
 
+# Case for testing ticket #103, i.e. selections in columns which are
+# aligned but that its data length is not an exact multiple of the
+# length of the record.  This exposes the problem only in 32-bit
+# machines, because in 64-bit machine, 'c2' is unaligned.  However,
+# this should check most platforms where, while not unaligned,
+# len(datatype) > boundary_alignment is fullfilled.
+class IrregularStrideTestCase(unittest.TestCase):
+
+    def setUp(self):
+
+        class IRecord(IsDescription):
+            c1 = Int32Col(pos=1)
+            c2 = FloatCol(pos=2)
+
+        self.file = tempfile.mktemp('.h5')
+        self.fileh = openFile(self.file, 'w', title='Chunkshape test')
+        table = self.fileh.createTable('/', 'table', IRecord)
+        for i in range(10):
+            table.row['c1'] = i
+            table.row['c2'] = i
+            table.row.append()
+        table.flush()
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+
+    def test00(self):
+        """Selecting rows in a table with irregular stride (but aligned)."""
+
+        table = self.fileh.root.table
+        coords1 = table.getWhereList('c1<5')
+        coords2 = table.getWhereList('c2<5')
+        if common.verbose:
+            print "\nSelected coords1-->", coords1
+            print "Selected coords2-->", coords2
+        assert allequal(coords1, arange(5, dtype=int64))
+        assert allequal(coords2, arange(5, dtype=int64))
+
+
 
 #----------------------------------------------------------------------
 
@@ -4870,6 +4940,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(DerivedTableTestCase))
         theSuite.addTest(unittest.makeSuite(ChunkshapeTestCase))
         theSuite.addTest(unittest.makeSuite(ZeroSizedTestCase))
+        theSuite.addTest(unittest.makeSuite(IrregularStrideTestCase))
 
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressBZIP2TablesTestCase))

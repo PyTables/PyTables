@@ -32,6 +32,7 @@ import types, warnings, sys
 import numpy
 
 from tables import hdf5Extension
+from tables.utilsExtension import lrange
 from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx, convertToNPAtom2
@@ -79,6 +80,8 @@ class Array(hdf5Extension.Array, Leaf):
     atom
         An `Atom` instance representing the *type* and *shape* of the
         atomic objects to be saved.
+    rowsize
+        The size of the rows in dimensions orthogonal to ``maindim``.
     nrow
         On iterators, this is the index of the current row.
 
@@ -262,6 +265,8 @@ class Array(hdf5Extension.Array, Leaf):
             self.nrows, self.rowsize, self.atom.itemsize)
         self.nrowsinbuf = self._calc_nrowsinbuf(
             chunkshape, self.rowsize, self.atom.itemsize)
+        # Arrays don't have chunkshapes (so, set it to None)
+        self._v_chunkshape = None
 
         return self._v_objectID
 
@@ -468,8 +473,9 @@ class Array(hdf5Extension.Array, Leaf):
             # for more info on this issue.
             # I've finally decided to rely on the len(xrange) function.
             # F. Altet 2006-09-25
+            # Switch to `lrange` to allow long ranges (see #99).
             #new_dim = ((stopl[dim] - startl[dim] - 1) / stepl[dim]) + 1
-            new_dim = len(xrange(startl[dim], stopl[dim], stepl[dim]))
+            new_dim = lrange(startl[dim], stopl[dim], stepl[dim]).length
             if not (new_dim == 1 and stop_None[dim]):
             #if not stop_None[dim]:
                 # Append dimension
@@ -574,7 +580,7 @@ compliant with %s: '%r' The error was: <%s>""" % \
         """Read the array from disk without slice or flavor processing."""
 
         #rowstoread = ((stop - start - 1) / step) + 1
-        rowstoread = len(xrange(start, stop, step))
+        rowstoread = lrange(start, stop, step).length
         shape = list(self.shape)
         if shape:
             shape[self.maindim] = rowstoread
@@ -629,8 +635,10 @@ compliant with %s: '%r' The error was: <%s>""" % \
   atom := %r
   maindim := %r
   flavor := %r
-  byteorder := %r""" % (self, self.atom, self.maindim,
-                        self.flavor, self.byteorder)
+  byteorder := %r
+  chunkshape := %r""" % (self, self.atom, self.maindim,
+                         self.flavor, self.byteorder,
+                         self.chunkshape)
 
 
 

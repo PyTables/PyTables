@@ -46,7 +46,9 @@ from definitions cimport import_array, ndarray, \
      H5ATTRget_attribute_string, H5ATTRfind_attribute, \
      H5ARRAYget_ndims, H5ARRAYget_info, \
      create_ieee_complex64, create_ieee_complex128, \
-     get_order, set_order
+     get_order, set_order, \
+     get_len_of_range, NPY_INT64, npy_int64, dtype, \
+     PyArray_DescrFromType, PyArray_Scalar
 
 
 
@@ -124,6 +126,48 @@ else:  # Unix systems
 
 # End of initialization code
 #---------------------------------------------------------------------
+
+# Helper functions
+
+cdef hsize_t *malloc_dims(object pdims):
+  """Returns a malloced hsize_t dims from a python pdims."""
+  cdef int i, rank
+  cdef hsize_t *dims
+
+  dims = NULL
+  rank = len(pdims)
+  if rank > 0:
+    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
+    for i from 0 <= i < rank:
+      dims[i] = pdims[i]
+  return dims
+
+
+cdef hid_t get_native_type(hid_t type_id):
+  """Get the native type of a HDF5 type."""
+  cdef H5T_class_t class_id
+  cdef hid_t native_type_id, super_type_id
+  cdef char *sys_byteorder
+
+  class_id = H5Tget_class(type_id)
+  if class_id in (H5T_ARRAY, H5T_VLEN):
+    # Get the array base component
+    super_type_id = H5Tget_super(type_id)
+    # Get the class
+    class_id = H5Tget_class(super_type_id)
+    H5Tclose(super_type_id)
+  if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_COMPOUND, H5T_ENUM):
+    native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
+  else:
+    # Fixing the byteorder for other types shouldn't be needed.
+    # More in particular, H5T_TIME is not managed yet by HDF5 and so this
+    # has to be managed explicitely inside the PyTables extensions.
+    # Regarding H5T_BITFIELD, well, I'm not sure if changing the byteorder
+    # of this is a good idea at all.
+    native_type_id = H5Tcopy(type_id)
+  if native_type_id < 0:
+    raise HDF5ExtError("Problems getting type id for class %s" % class_id)
+  return native_type_id
 
 
 # Main functions
@@ -673,6 +717,79 @@ def AtomFromHDF5Type(hid_t type_id, issue_error = True):
     atom = Atom.from_kind(kind, tsize, shape=shape)
 
   return atom
+
+
+cdef class lrange:
+  """
+  Iterate over long ranges.
+
+  This is similar to ``xrange()``, but it allows 64-bit arguments on all
+  platforms.  The results of the iteration are sequentially yielded in
+  the form of ``numpy.int64`` values, but getting random individual
+  items is not supported.
+
+  Because of the Python 32-bit limitation on object lengths, the
+  ``length`` attribute (which is also a ``numpy.int64`` value) should be
+  used instead of the ``len()`` syntax.
+
+  Default ``start`` and ``step`` arguments are supported in the same way
+  as in ``xrange()``.  When the standard ``[x]range()`` Python objects
+  support 64-bit arguments, this iterator will be deprecated.
+  """
+  cdef npy_int64 start, stop, step, next
+  cdef dtype int64  # caches the ``numpy.int64`` type
+
+  property length:  # no __len__ since the result would get truncated
+    """
+    Get the number of elements in this iteration.
+
+    This should be used instead of ``len()`` because the latter
+    truncates the real length to a 32-bit signed value.
+    """
+    def __get__(self):
+      cdef npy_int64 rlen
+      rlen = get_len_of_range(self.start, self.stop, self.step)
+      return PyArray_Scalar(&rlen, self.int64, None)
+
+  def __cinit__(self, *args):
+    cdef int nargs
+    cdef object start, stop, step
+
+    nargs = len(args)
+    if nargs == 1:
+      start = 0
+      stop = args[0]
+      step = 1
+    elif nargs == 2:
+      start = args[0]
+      stop = args[1]
+      step = 1
+    elif nargs == 3:
+      start = args[0]
+      stop = args[1]
+      step = args[2]
+    else:
+      raise TypeError("expected 1-3 arguments, got %d" % nargs)
+
+    if step == 0:
+      raise ValueError("``step`` argument can not be zero")
+    self.start = start
+    self.stop = stop
+    self.step = step
+    self.next = start
+    self.int64 = PyArray_DescrFromType(NPY_INT64)
+
+  def __iter__(self):
+    return self
+
+  def __next__(self):
+    cdef object current
+    if ( (self.step > 0 and self.next >= self.stop)
+         or (self.step < 0 and self.next <= self.stop) ):
+      raise StopIteration
+    current = PyArray_Scalar(&self.next, self.int64, None)
+    self.next = self.next + self.step
+    return current
 
 
 

@@ -159,14 +159,9 @@ EXPECTED_ROWS_TABLE = 10000
 EXPECTED_ROWS_EARRAY = 1000
 """Default expected number of rows for ``EArray`` objects."""
 
-#CHUNKTIMES = 10 #Makes large seq writings and reads very fast. (1.28 Mrw/s)
-#CHUNKTIMES = 50 # Makes large seq writings and reads quite fast. (1.26 Mrw/s)
-                 # Acceptable read times for small pieces (2.88 ms, no comp)
-CHUNKTIMES = 100 # Makes large seq writings and reads acceptable (1.20 Mrw/s)
-                 # Quite fast read times for small pieces (2.75 ms, no comp)
-                 # --> Seems a good compromise value
-#CHUNKTIMES = 200 # Makes large seq writings and reads too slow
-                 # Quite fast read times for small pieces (2.72 ms, no compr)
+#CHUNKTIMES = 4  # Makes large seq writings and reads quite fast (4.96 Mrw/s)
+CHUNKTIMES = 8   # Makes large seq writings and reads very fast (5.30 Mrw/s)
+#CHUNKTIMES = 16   # Makes large seq writings and reads very fast (5.30 Mrw/s)
 """The buffersize/chunksize ratio for chunked datasets."""
 
 BUFFERTIMES = 100

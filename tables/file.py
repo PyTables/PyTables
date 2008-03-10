@@ -341,6 +341,10 @@ class File(hdf5Extension.File, object):
     The Undo/Redo mechanism is persistent between sessions and can only
     be disabled by calling the `disableUndo()` method.
 
+    File objects can also act as context managers when using the
+    ``with`` statement introduced in Python 2.5.  When exiting a
+    context, the file is automatically closed.
+
     Public instance variables
     -------------------------
 
@@ -374,6 +378,8 @@ class File(hdf5Extension.File, object):
     * close()
     * copyFile(dstfilename[, overwrite][, **kwargs])
     * flush()
+    * __enter__()
+    * __exit__([*exc_info])
     * __str__()
     * __repr__()
 
@@ -2084,6 +2090,15 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         # Delete the entry in the dictionary of opened files
         del _open_files[self]
 
+    def __enter__(self):
+        """Enter a context and return the same file."""
+        return self
+
+    def __exit__(self, *exc_info):
+        """Exit a context and close the file."""
+        self.close()
+        return False  # do not hide exceptions
+
     def __str__(self):
         """
         Return a short string representation of the object tree.
@@ -2208,6 +2223,27 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         node._g_postReviveHook()
 
         return node
+
+
+    def _updateNodeLocations(self, oldPath, newPath):
+        """
+        Update location information of nodes under `oldPath`.
+
+        This only affects *already loaded* nodes.
+        """
+        oldPrefix = oldPath + '/'  # root node can not be renamed, anyway
+        oldPrefixLen = len(oldPrefix)
+
+        # Update alive and dead descendents.
+        for cache in [self._aliveNodes, self._deadNodes]:
+            for nodePath in cache:
+                if nodePath.startswith(oldPrefix):
+                    nodeSuffix = nodePath[oldPrefixLen:]
+                    newNodePath = joinPath(newPath, nodeSuffix)
+                    newNodePPath = splitPath(newNodePath)[0]
+                    descendentNode = self._getNode(nodePath)
+                    descendentNode._g_updateLocation(newNodePPath)
+
 
 # If a user hits ^C during a run, it is wise to gracefully close the opened files.
 def close_open_files():

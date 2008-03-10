@@ -31,6 +31,7 @@ import sys, warnings
 
 import numpy
 
+from tables.utilsExtension import lrange
 from tables.atom import Atom, EnumAtom, split_type
 from tables.leaf import Leaf
 from tables.array import Array
@@ -85,7 +86,7 @@ class CArray(Array):
 
         carray1.h5 (File) ''
         Last modif.: 'Thu Apr 12 10:15:38 2007'
-        Object Tree: 
+        Object Tree:
         / (RootGroup) ''
         /carray (CArray(200L, 300L), shuffle, zlib(5)) ''
 
@@ -264,7 +265,7 @@ chunkshape parameter cannot have zero-dimensions."""
         "Private part of Leaf.copy() for each kind of leaf"
         maindim = self.maindim
         shape = list(self.shape)
-        shape[maindim] = len(xrange(start, stop, step))
+        shape[maindim] = lrange(start, stop, step).length
         # Now, fill the new carray with values from source
         nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__
@@ -278,7 +279,7 @@ chunkshape parameter cannot have zero-dimensions."""
         object = CArray(group, name, atom=self.atom, shape=shape,
                         title=title, filters=filters, _log=_log)
         # Start the copy itself
-        for start2 in range(start, stop, step*nrowsinbuf):
+        for start2 in lrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2 + step * nrowsinbuf
             if stop2 > stop:

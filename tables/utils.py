@@ -41,13 +41,18 @@ def is_idx(index):
 
     if type(index) in (int,long):
         return True
-    elif hasattr(index, "__index__"):  # Only works on Python 2.5 on (as per PEP 357)
-        try:
+    elif hasattr(index, "__index__"):  # Only works on Python 2.5 on
+        try:                           # (as per PEP 357)
             idx = index.__index__()
             return True
         except TypeError:
             return False
     elif isinstance(index, numpy.integer):
+        return True
+    # For Python 2.4 one should test 0-dim arrays as well
+    elif (isinstance(index, numpy.ndarray) and
+          index.shape == () and
+          index.dtype.str[1] == 'i'):
         return True
 
     return False

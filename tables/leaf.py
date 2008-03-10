@@ -29,6 +29,7 @@ Misc variables:
 
 import sys
 import warnings
+import math
 
 import numpy
 
@@ -48,6 +49,24 @@ from tables.exceptions import PerformanceWarning
 __version__ = "$Revision$"
 
 
+def csformula(expectedsizeinMB):
+    """Return the fitted chunksize for expectedsizeinMB."""
+    # For a basesize of 8 KB, this will return:
+    # 8 KB for datasets <= 1 MB
+    # 1 MB for datasets >= 10 TB
+    basesize = 8*1024   # 8 KB is a good minimum
+    return basesize * int(2**math.log10(expectedsizeinMB))
+
+
+def limit_es(expectedsizeinMB):
+    """Protection against creating too small or too large chunks."""
+    if expectedsizeinMB < 1:        # < 1 MB
+        expectedsizeinMB = 1
+    elif expectedsizeinMB > 10**7:  # > 10 TB
+        expectedsizeinMB = 10**7
+    return expectedsizeinMB
+
+
 def calc_chunksize(expectedsizeinMB):
     """Compute the optimum HDF5 chunksize for I/O purposes.
 
@@ -64,29 +83,10 @@ def calc_chunksize(expectedsizeinMB):
     always, your mileage may vary.
     """
 
-    basesize = 1024*4   # 4KB is one page of memory
-    if expectedsizeinMB < 1:
-        # Values for files less than 1 MB of size
-        chunksize = basesize
-    elif (expectedsizeinMB >= 1 and
-        expectedsizeinMB < 10):
-        # Values for files between 1 MB and 10 MB
-        chunksize = 2 * basesize
-    elif (expectedsizeinMB >= 10 and
-          expectedsizeinMB < 100):
-        # Values for sizes between 10 MB and 100 MB
-        chunksize = 4 * basesize
-    elif (expectedsizeinMB >= 100 and
-          expectedsizeinMB < 1000):
-        # Values for sizes between 100 MB and 1 GB
-        chunksize = 8 * basesize
-    elif (expectedsizeinMB >= 1000 and
-          expectedsizeinMB < 10000):
-        # Values for sizes between 1 GB and 10 GB
-        chunksize = 16 * basesize
-    else:  # Greater than 10 GB
-        chunksize = 32 * basesize
-
+    expectedsizeinMB = limit_es(expectedsizeinMB)
+    zone = int(math.log10(expectedsizeinMB))
+    expectedsizeinMB = 10**zone
+    chunksize = csformula(expectedsizeinMB)
     return chunksize
 
 
@@ -310,8 +310,8 @@ class Leaf(Node):
 
     def __str__(self):
 
-        """The string reprsentation choosed for this object is its pathname
-        in the HDF5 object tree.
+        """The string representation for this object is its pathname in
+        the HDF5 object tree plus some additional metainfo.
         """
 
         # Get this class name
@@ -409,12 +409,12 @@ class Leaf(Node):
             maxrowsize = BUFFERTIMES * buffersize
             if rowsize > maxrowsize:
                 warnings.warn("""\
-array or table ``%s`` is exceeding the maximum recommended rowsize (%d bytes);
-be ready to see PyTables asking for *lots* of memory and possibly slow I/O.
-You may want to reduce the rowsize by trimming the value of dimensions
-that are orthogonal to the main dimension of this array or table.
-Alternatively, in case you have specified a very small chunksize,
-you may want to increase it."""
+The Leaf ``%s`` is exceeding the maximum recommended rowsize (%d bytes);
+be ready to see PyTables asking for *lots* of memory and possibly slow
+I/O.  You may want to reduce the rowsize by trimming the value of
+dimensions that are orthogonal (and preferably close) to the main
+dimension of this leave.  Alternatively, in case you have specified a
+very small/large chunksize, you may want to increase/decrease it."""
                               % (self._v_pathname, maxrowsize),
                                  PerformanceWarning)
 # It is difficult to forsee the level of code nesting to reach user code.
@@ -666,10 +666,8 @@ you may want to increase it."""
         flush pending data to disk or not before closing.
         """
 
-        if not hasattr(self, "_v_isopen"):
-            return  # the node is probably being aborted during creation time
         if not self._v_isopen:
-            return  # the node is already closed
+            return  # the node is already closed or not initialized
 
         if flush:
             self.flush()

@@ -35,6 +35,7 @@ import os.path
 import numpy
 
 from tables import tableExtension
+from tables.utilsExtension import lrange
 from tables.conditions import split_condition
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
@@ -746,13 +747,18 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 PerformanceWarning )
 
         # 1. Create the HDF5 table (some parameters need to be computed).
-        if self._v_chunkshape is None:
-            self._v_chunkshape = self._calc_chunkshape(
-                self._v_expectedrows, self.rowsize, self.rowsize)
-        # Fix the byteorder of the recarray
+
+        # Fix the byteorder of the recarray and update the number of
+        # expected rows if necessary
         if self._v_recarray is not None:
             self._v_recarray = self._g_fix_byteorder_data(self._v_recarray,
                                                           self._rabyteorder)
+            if len(self._v_recarray) > self._v_expectedrows:
+                self._v_expectedrows = len(self._v_recarray)
+        # Compute a sensible chunkshape
+        if self._v_chunkshape is None:
+            self._v_chunkshape = self._calc_chunkshape(
+                self._v_expectedrows, self.rowsize, self.rowsize)
         # Correct the byteorder, if still needed
         if self.byteorder is None:
             self.byteorder = sys.byteorder
@@ -1184,6 +1190,11 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         been used, but you may as well use any of the other reading
         iterators that ``Table`` objects offer.  See the file
         ``examples/nested-iter.py`` for the full code.
+
+        .. Warning:: When in the middle of a table row iterator, you
+           should not use methods that can change the number of rows in
+           the table (like ``Table.append()`` or ``Table.removeRows()``)
+           or unexpected errors will happen.
         """
         # Split the condition into indexable and residual parts.
         condvars = self._requiredExprVars(condition, condvars)
@@ -1222,8 +1233,8 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             range_ = index.getLookupRange(
                 splitted.index_operators, splitted.index_limits, self )
             ncoords = index.search(range_)  # do use indexing (always >= 0)
-            if ncoords == 0 and not rescond:
-                # No values neither from index nor from residual condition.
+            if ncoords == 0:
+                # No values from index condition, thus no resulting rows.
                 self._whereIndex = self._whereCondition = None
                 return iter([])
 
@@ -1388,6 +1399,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         .. Note:: This iterator can be nested (see `Table.where()` for
            an example).
+
+        .. Warning:: When in the middle of a table row iterator, you
+           should not use methods that can change the number of rows in
+           the table (like ``Table.append()`` or ``Table.removeRows()``)
+           or unexpected errors will happen.
         """
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:
@@ -1446,7 +1462,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 return nra
             return numpy.empty(shape=0, dtype=dtypeField)
 
-        nrows = len(xrange(start, stop, step))
+        nrows = lrange(start, stop, step).length
 
         # Compute the shape of the resulting column object
         if field:
@@ -1527,8 +1543,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         if ncoords > 0:
             # Turn coords into an array of 64-bit indexes, if necessary
             if not (type(coords) is numpy.ndarray and
-                    coords.dtype.type is numpy.int64):
-                coords = numpy.asarray(coords, dtype=numpy.int64)
+                    coords.dtype.type is numpy.int64 and
+                    coords.flags.contiguous and
+                    coords.flags.aligned):
+                # Get a contiguous and aligned int64 array
+                coords = numpy.array(coords, dtype=numpy.int64)
             self._read_elements(result, coords)
 
         # Do the final conversions, if needed
@@ -1539,6 +1558,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 # Get an empty array from the cache
                 result = self._getemptyarray(self.coldtypes[field])
         return result
+
 
     def readCoordinates(self, coords, field=None):
         """
@@ -1770,7 +1790,7 @@ You cannot append rows to a non-chunked table.""")
         """
 
         if rows is None:      # Nothing to be done
-            return
+            return 0
         if start is None:
             start = 0
 
@@ -1787,7 +1807,7 @@ You cannot append rows to a non-chunked table.""")
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = lrange(start, stop, step).length
         if len(rows) < nrows:
             raise ValueError, \
            "The value has not enough elements to fill-in the specified range"
@@ -1880,18 +1900,19 @@ table format '%s'. The error was: <%s>
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = lrange(start, stop, step).length
         if len(recarray) < nrows:
             raise ValueError, \
                   "The value has not enough elements to fill-in the specified range"
         # Now, read the original values:
         mod_recarr = self._read(start, stop, step)
         # Modify the appropriate column in the original recarray
-        mod_recarr[colname] = recarray[colname]
+        mod_col = getNestedField(mod_recarr, colname)
+        mod_col[:] = recarray.field(0)
         # save this modified rows in table
         self._update_records(start, stop, step, mod_recarr)
         # Redo the index if needed
-        self._reIndex(colname)
+        self._reIndex([colname])
 
         return nrows
 
@@ -1954,15 +1975,16 @@ The 'names' parameter must be a list of strings.""")
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
         # Compute the number of rows to read.
-        nrows = len(xrange(start, stop, step))
+        nrows = lrange(start, stop, step).length
         if len(recarray) < nrows:
             raise ValueError, \
            "The value has not enough elements to fill-in the specified range"
         # Now, read the original values:
         mod_recarr = self._read(start, stop, step)
         # Modify the appropriate columns in the original recarray
-        for name in recarray.dtype.names:
-            mod_recarr[name] = recarray[name]
+        for i, name in enumerate(recarray.dtype.names):
+            mod_col = getNestedField(mod_recarr, names[i])
+            mod_col[:] = recarray[name]
         # save this modified rows in table
         self._update_records(start, stop, step, mod_recarr)
         # Redo the index if needed
@@ -2124,14 +2146,31 @@ The 'names' parameter must be a list of strings.""")
         """Re-index columns in `colnames` if automatic indexing is true."""
 
         if self.indexed:
+            colstoindex = []
             # Mark the proper indexes as dirty
             for (colname, colindexed) in self.colindexed.iteritems():
                 if colindexed and colname in colnames:
                     col = self.cols._g_col(colname)
                     col.index.dirty = True
+                    colstoindex.append(colname)
             # Now, re-index the dirty ones
-            if self.autoIndex:
-                self.reIndex()
+            if self.autoIndex and colstoindex:
+                self._doReIndex(dirty=True)
+
+
+    def _doReIndex(self, dirty):
+        """Common code for `reIndex()` and `reIndexDirty()`."""
+
+        indexedrows = 0
+        for (colname, colindexed) in self.colindexed.iteritems():
+            if colindexed:
+                indexcol = self.cols._g_col(colname)
+                indexedrows = indexcol._doReIndex(dirty)
+        # Update counters in case some column has been updated
+        if indexedrows > 0:
+            self._indexedrows = indexedrows
+            self._unsaved_indexedrows = self.nrows - indexedrows
+        return indexedrows
 
 
     def reIndex(self):
@@ -2144,15 +2183,7 @@ The 'names' parameter must be a list of strings.""")
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        indexedrows = 0
-        for (colname, colindexed) in self.colindexed.iteritems():
-            if colindexed:
-                indexcol = self.cols._g_col(colname)
-                indexedrows = indexcol.reIndex()
-        # Update counters
-        self._indexedrows = indexedrows
-        self._unsaved_indexedrows = self.nrows - indexedrows
-        return indexedrows
+        self._doReIndex(dirty=False)
 
 
     def reIndexDirty(self):
@@ -2166,14 +2197,7 @@ The 'names' parameter must be a list of strings.""")
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        for (colname, colindexed) in self.colindexed.iteritems():
-            if colindexed:
-                indexcol = self.cols._g_col(colname)
-                indexedrows = indexcol.reIndexDirty()
-        # Update counters
-        self._indexedrows = indexedrows
-        self._unsaved_indexedrows = self.nrows - indexedrows
-        return indexedrows
+        self._doReIndex(dirty=True)
 
 
     def _g_copyRows(self, object, start, stop, step):
@@ -2182,7 +2206,7 @@ The 'names' parameter must be a list of strings.""")
         nrowsinbuf = self.nrowsinbuf
         object._open_append(self._v_iobuf)
         nrowsdest = object.nrows
-        for start2 in xrange(start, stop, step*nrowsinbuf):
+        for start2 in lrange(start, stop, step*nrowsinbuf):
             # Save the records on disk
             stop2 = start2+step*nrowsinbuf
             if stop2 > stop:
@@ -2233,7 +2257,10 @@ The 'names' parameter must be a list of strings.""")
             # second part of the condition.
             if ( _is_pro and ('FILTERS' in indexgroup._v_attrs
                  or self.indexFilters != defaultIndexFilters) ):
+                # Ignoring the DeprecationWarning temporarily here
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
                 newtable.indexFilters = self.indexFilters
+                warnings.filterwarnings('default', category=DeprecationWarning)
         # Generate equivalent indexes in the new table, if any.
         if self.indexed:
             warnings.warn(
@@ -2297,9 +2324,6 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
             del mydict['_v_iobuf']
         if '_v_wdflts' in mydict:
             del mydict['_v_wdflts']
-        if 'row' in mydict:
-            del mydict['row']
-        return
 
 
     def _f_close(self, flush=True):
@@ -2338,15 +2362,20 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
 %s
   description := %r
   byteorder := %r
+  chunkshape := %r
   autoIndex := %r
   indexFilters := %r
   indexedcolpathnames := %r"""
             return format % ( str(self), self.description, self.byteorder,
-                              self.autoIndex, self.indexFilters,
-                              self.indexedcolpathnames )
+                              self.chunkshape, self.autoIndex,
+                              self.indexFilters, self.indexedcolpathnames )
         else:
-            return "%s\n  description := %r\n  byteorder := %r\n" % \
-                   (str(self), self.description, self.byteorder)
+            return """\
+%s
+  description := %r
+  byteorder := %r
+  chunkshape := %r""" % \
+        (str(self), self.description, self.byteorder, self.chunkshape)
 
 
 
@@ -2590,7 +2619,8 @@ class Cols(object):
         if colgroup == "":  # The root group
             table.modifyRows(start, stop, step, rows=value)
         else:
-            table.modifyColumn(start, stop, step, colname=colgroup, column=value)
+            table.modifyColumn(
+                start, stop, step, colname=colgroup, column=value)
 
 
     def _g_close(self):
@@ -2882,13 +2912,13 @@ class Column(object):
             if key < 0:
                 # To support negative values
                 key += table.nrows
-            return table.modifyColumns(key, key+1, 1,
-                                       [[value]], names=[self.pathname])
+            return table.modifyColumn(key, key+1, 1,
+                                      [[value]], self.pathname)
         elif isinstance(key, slice):
             (start, stop, step) = table._processRange(
                 key.start, key.stop, key.step )
-            return table.modifyColumns(start, stop, step,
-                                       [value], names=[self.pathname])
+            return table.modifyColumn(start, stop, step,
+                                      value, self.pathname)
         else:
             raise ValueError, "Non-valid index or slice: %s" % key
 
@@ -2937,6 +2967,24 @@ class Column(object):
         return idxrows
 
 
+    def _doReIndex(self, dirty):
+        "Common code for reIndex() and reIndexDirty() codes."
+
+        index = self.index
+        dodirty = True
+        if dirty and not index.dirty: dodirty = False
+        if index is not None and dodirty:
+            self._tableFile._checkWritable()
+            # Delete the existing Index
+            index._f_remove()
+            self._updateIndexLocation(None)
+            # Create a new Index without warnings
+            return self.createIndex()
+        else:
+            # The column is not intended for indexing or is not dirty
+            return 0
+
+
     def reIndex(self):
         """
         Recompute the index associated with this column.
@@ -2949,17 +2997,7 @@ class Column(object):
         .. Note:: Column indexing is only available in PyTables Pro.
         """
 
-        self._tableFile._checkWritable()
-
-        index = self.index
-        if index is not None:
-            # Delete the existing Index
-            index._f_remove()
-            self._updateIndexLocation(None)
-            # Create a new Index without warnings
-            return self.createIndex()
-        else:
-            return 0  # The column is not intended for indexing
+        self._doReIndex(dirty=False)
 
 
     def reIndexDirty(self):
@@ -2967,7 +3005,7 @@ class Column(object):
         Recompute the associated index only if it is dirty.
 
         This can be useful when you have set `Table.autoIndex` to false
-        for the table and tou want to update the column's index after an
+        for the table and you want to update the column's index after an
         invalidating index operation (like `Table.removeRows()`).
 
         This method does nothing if the column is not indexed.
@@ -2975,17 +3013,7 @@ class Column(object):
         .. Note:: Column indexing is only available in PyTables Pro.
         """
 
-        self._tableFile._checkWritable()
-
-        index = self.index
-        if index is not None and index.dirty:
-            # Delete the existing Index
-            index._f_remove()
-            # Create a new Index without warnings
-            return self.createIndex()
-        else:
-            # The column is not intended for indexing or is not dirty
-            return 0
+        self._doReIndex(dirty=True)
 
 
     def removeIndex(self):

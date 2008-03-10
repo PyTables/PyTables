@@ -86,7 +86,7 @@ class BasicTestCase(PyTablesTestCase):
 
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test01_readIndex..." % self.__class__.__name__
+            print "Running %s.test00_flushLastRow..." % self.__class__.__name__
 
         # Open the HDF5 file in append mode
         self.fileh = openFile(self.file, mode = "a")
@@ -105,6 +105,36 @@ class BasicTestCase(PyTablesTestCase):
 
         # Do a selection
         results = [p["var1"] for p in table.where('var1 == "1"')]
+        assert len(results) == 2
+
+    def test00_update(self):
+        """Checking automatic re-indexing after an update operation."""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test00_update..." % self.__class__.__name__
+
+        # Open the HDF5 file in append mode
+        self.fileh = openFile(self.file, mode = "a")
+        table = self.fileh.root.table
+        # Modify a couple of columns
+        for i,row in enumerate(table.where("(var3>1) & (var3<5)")):
+            row['var1'] = str(i)
+            row['var3'] = i
+            row.update()
+        table.flush()  # redo the indexes
+        idxcol1 = table.cols.var1.index
+        idxcol3 = table.cols.var3.index
+        if verbose:
+            print "Dirtyness of var1 col:", idxcol1.dirty
+            print "Dirtyness of var3 col:", idxcol3.dirty
+        assert idxcol1.dirty == False
+        assert idxcol3.dirty == False
+
+        # Do a couple of selections
+        results = [p["var1"] for p in table.where('var1 == "1"')]
+        assert len(results) == 2
+        results = [p["var3"] for p in table.where('var3 == 0')]
         assert len(results) == 2
 
     def test01_readIndex(self):
@@ -817,6 +847,8 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         self.table = self.fileh.createTable(root, 'table', TDescr, title,
                                             None, self.nrows)
         self.table.autoIndex = self.iprops.auto
+        # Ignoring the DeprecationWarning for all tests in this class
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         self.table.indexFilters = self.iprops.filters
         for colname in self.colsToIndex:
             self.table.colinstances[colname].createIndex()
@@ -830,6 +862,8 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.table = self.fileh.root.table
 
     def tearDown(self):
+        # Restore the DeprecationWarning
+        warnings.filterwarnings('default', category=DeprecationWarning)
         self.fileh.close()
         os.remove(self.file)
         cleanup(self)
@@ -1395,6 +1429,8 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         super(IndexPropsChangeTestCase, self).setUp()
         table = self.h5file.createTable('/', 'test', self.MyDescription)
         table.autoIndex = self.oldIndexProps.auto
+        # Ignoring the DeprecationWarning for all tests in this class
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         table.indexFilters = self.oldIndexProps.filters
         row = table.row
         for i in xrange(100):
@@ -1402,6 +1438,11 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
             row.append()
         table.flush()
         self.table = table
+
+    def tearDown(self):
+        # Restore the DeprecationWarning
+        warnings.filterwarnings('default', category=DeprecationWarning)
+        super(IndexPropsChangeTestCase, self).tearDown()
 
     def test_attributes(self):
         """Storing index properties as table attributes."""
@@ -1424,7 +1465,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         self.table.indexFilters = self.newIndexProps.filters
         icol = self.table.cols.icol
         icol.createIndex()
-        self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
+        self.assertEqual(icol.index.filters, self.newIndexProps.filters)
 
     def test_reindex(self):
         """Using changed index properties in recomputed indexes."""
@@ -1433,8 +1474,7 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
         self.table.indexFilters = self.newIndexProps.filters
         icol.reIndex()
-        #self.assertEqual(icol.index.filters, self.newIndexProps.filters)
-        self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
+        self.assertEqual(icol.index.filters, self.newIndexProps.filters)
 
 
 class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
@@ -1472,18 +1512,6 @@ class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(icol.index.filters, argfilters)
         icol.removeIndex()
 
-        # Filters set in table, not in argument.
-        self.table.indexFilters = idxfilters
-        icol.createIndex()
-        # self.assertEqual(icol.index.filters, idxfilters)
-        self.assertEqual(icol.index.filters, defaultIndexFilters)
-        icol.removeIndex()
-
-        # Filters set in table and in argument.
-        self.table.indexFilters = idxfilters
-        icol.createIndex(filters=argfilters)
-        self.assertEqual(icol.index.filters, argfilters)
-        icol.removeIndex()
 
 
 class OldIndexTestCase(PyTablesTestCase):

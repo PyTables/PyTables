@@ -1,6 +1,6 @@
-===========================
+==============================
  Announcing PyTables @VERSION@
-===========================
+==============================
 
 PyTables Pro is a library for managing hierarchical datasets and
 designed to efficiently cope with extremely large amounts of data with
@@ -12,6 +12,11 @@ technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
 #XXX version-specific blurb XXX#
+
+In case you want to know more in detail what has changed in this
+version, have a look at ``RELEASE_NOTES.txt``.  Find the HTML version
+for this document at:
+http://www.pytables.org/moin/ReleaseNotes/Release_@VERSION@
 
 As already said, PyTables Pro includes, as its most distinguishing
 feature, the powerful OPSI technology that allows to index very large
@@ -27,37 +32,60 @@ Coinciding with the publication of PyTables Pro we are introducing an
 innovative liberation process that will allow to ultimate release the
 PyTables Pro 2.x series as open source.  You may want to know that, by
 buying a PyTables Pro license, you are contributing to this process. For
-details, see: http://www.carabos.com/liberation
+details, see:
+http://www.carabos.com/liberation
 
-
-Migration Notes
-===============
+Migration Notes for PyTables 1.x users
+======================================
 
 If you are a user of PyTables 1.x, probably it is worth for you to look
 at ``MIGRATING_TO_2.x.txt`` file where you will find directions on how
 to migrate your existing PyTables 1.x apps to the 2.x versions.  You can
-find an HTML version of this document at:
+find an HTML version of this document at
 http://www.pytables.org/moin/ReleaseNotes/Migrating_To_2.x
-
 
 Resources
 =========
 
 Go to the PyTables Pro web page for more details:
+
 http://www.carabos.com/products/pytables-pro
 
 To know more about the company behind the development of PyTables Pro, see:
+
 http://www.carabos.com/
 
 Go to the PyTables web site, its free counterpart:
+
 http://www.pytables.org
 
 About the HDF5 library:
+
 http://hdfgroup.org/HDF5/
 
 About NumPy:
+
 http://numpy.scipy.org/
 
+To know more about the company behind the development of PyTables, see:
+
+http://www.carabos.com/
+
+Acknowledgments
+===============
+
+Thanks to many users who provided feature improvements, patches, bug
+reports, support and suggestions.  See the ``THANKS`` file in the
+distribution package for a (incomplete) list of contributors.  Many
+thanks also to SourceForge who have helped to make and distribute this
+package!  And last, but not least thanks a lot to the HDF5 and NumPy
+(and numarray!) makers. Without them, PyTables simply would not exist.
+
+Share your experience
+=====================
+
+Let us know of any bugs, suggestions, gripes, kudos, etc. you may
+have.
 
 ----
 

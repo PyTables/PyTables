@@ -21,7 +21,7 @@ from distutils.util     import convert_path
 # The minimum version of NumPy required
 min_numpy_version = '1.0.3'
 # The minimum version of Pyrex required for compiling the extensions
-min_pyrex_version = '0.9.5.1a'
+min_pyrex_version = '0.9.6.4'
 
 # Some functions for showing errors and warnings.
 def _print_admonition(kind, head, body):
@@ -156,7 +156,9 @@ class Package(object):
             # (headers, libraries, runtime) are going to be searched
             # are constructed by appending platform-dependent
             # component directories to the given path.
-            locations = [ os.path.join(location, compdir)
+            # Remove leading and trailing '"' chars that can mislead
+            # the finding routines on Windows machines
+            locations = [ os.path.join(location.strip('"'), compdir)
                           for compdir in self._component_dirs ]
 
         directories = [None, None, None]  # headers, libraries, runtime
@@ -257,8 +259,9 @@ LZO_DIR = os.environ.get('LZO_DIR', '')
 BZIP2_DIR = os.environ.get('BZIP2_DIR', '')
 LFLAGS = os.environ.get('LFLAGS', '').split()
 # in GCC-style compilers, -w in extra flags will get rid of copious
-# 'uninitialized variable' Pyrex warnings. However, this shouldn't be the default
-# as it will suppress *all* the warnings, which definitely is not a good idea.
+# 'uninitialized variable' Pyrex warnings. However, this shouldn't be
+# the default as it will suppress *all* the warnings, which definitely
+# is not a good idea.
 CFLAGS = os.environ.get('CFLAGS', '').split()
 LIBS = os.environ.get('LIBS', '').split()
 
@@ -289,6 +292,9 @@ for arg in args:
         # Don't delete this argument. It maybe useful for distutils
         # when adding more flags later on
         #sys.argv.remove(arg)
+
+# The next flag for the C compiler is needed when using the HDF5 1.8.x series
+CFLAGS.append("-DH5_USE_16_API")
 
 # Try to locate the compulsory and optional libraries.
 lzo2_enabled = False
@@ -358,9 +364,9 @@ else:
 #------------------------------------------------------------------------------
 
 pyrex_extnames = [
+    'utilsExtension',
     'hdf5Extension',
     'tableExtension',
-    'utilsExtension',
     '_comp_lzo',
     '_comp_bzip2' ]
 if VERSION.endswith('pro'):
@@ -469,10 +475,10 @@ if os.name == "nt":
     data_files.extend([('Lib/site-packages/%s'%name, dll_files),
                        ])
 
+utilsExtension_libs = LIBS + [hdf5_package.library_name]
 hdf5Extension_libs = LIBS + [hdf5_package.library_name]
 tableExtension_libs = LIBS + [hdf5_package.library_name]
 indexesExtension_libs = LIBS + [hdf5_package.library_name]
-utilsExtension_libs = LIBS + [hdf5_package.library_name]
 lrucacheExtension_libs = []    # Doesn't need external libraries
 
 # Compressor modules only need other libraries if they are enabled.
@@ -486,6 +492,18 @@ for (package, complibs) in [
         complibs.extend([hdf5_package.library_name, package.library_name])
 
 extensions = [
+    Extension( "tables.utilsExtension",
+               include_dirs=inc_dirs,
+               define_macros=def_macros,
+               sources=[ pyrex_extfiles['utilsExtension'],
+                         "src/utils.c",
+                         "src/H5ARRAY.c",
+                         "src/H5ATTR.c" ],
+               library_dirs=lib_dirs,
+               libraries=utilsExtension_libs,
+               extra_link_args=LFLAGS,
+               extra_compile_args=CFLAGS ),
+
     Extension( "tables.hdf5Extension",
                include_dirs=inc_dirs,
                define_macros=def_macros,
@@ -511,18 +529,6 @@ extensions = [
                          "src/H5ATTR.c"],
                library_dirs=lib_dirs,
                libraries=tableExtension_libs,
-               extra_link_args=LFLAGS,
-               extra_compile_args=CFLAGS ),
-
-    Extension( "tables.utilsExtension",
-               include_dirs=inc_dirs,
-               define_macros=def_macros,
-               sources=[ pyrex_extfiles['utilsExtension'],
-                         "src/utils.c",
-                         "src/H5ARRAY.c",
-                         "src/H5ATTR.c" ],
-               library_dirs=lib_dirs,
-               libraries=utilsExtension_libs,
                extra_link_args=LFLAGS,
                extra_compile_args=CFLAGS ),
 

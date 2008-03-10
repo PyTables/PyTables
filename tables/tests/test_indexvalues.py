@@ -2217,6 +2217,125 @@ class SelectValuesTestCase(unittest.TestCase):
         assert results1 == results2
 
 
+    def test12a(self):
+        """Checking selecting values after a Table.append() operation."""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test12a..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Append more rows in already created indexes
+        count = 0
+        for i in xrange(0, self.nrows/2, self.nrep):
+            for j in range(self.nrep):
+                if self.random:
+                    k = random.randrange(self.nrows)
+                elif self.values is not None:
+                    lenvalues = len(self.values)
+                    if i >= lenvalues:
+                        i %= lenvalues
+                    k = self.values[i]
+                else:
+                    k = i
+                table1.row['var1'] = str(k)
+                table2.row['var1'] = str(k)
+                table1.row['var2'] = k % 2
+                table2.row['var2'] = k % 2
+                table1.row['var3'] = k
+                table2.row['var3'] = k
+                table1.row['var4'] = float(self.nrows - k - 1)
+                table2.row['var4'] = float(self.nrows - k - 1)
+                table1.row.append()
+                table2.row.append()
+                count += 1
+        table1.flush()
+        table2.flush()
+
+        t1var1 = table1.cols.var1
+        t1var2 = table1.cols.var2
+        t1var3 = table1.cols.var3
+        t1var4 = table1.cols.var4
+        self.assert_(t1var1.index.dirty == False)
+        self.assert_(t1var2.index.dirty == False)
+        self.assert_(t1var3.index.dirty == False)
+        self.assert_(t1var4.index.dirty == False)
+
+        # Do some selections and check the results
+        # First selection: string
+        # Convert the limits to the appropriate type
+        il = str(self.il)
+        sl = str(self.sl)
+
+        results1 = [p["var1"] for p in
+                    table1.where('(il<=t1var1)&(t1var1<=sl)')]
+        results2 = [p["var1"] for p in table2
+                    if il <= p["var1"] <= sl]
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Superior & inferior limits:", il, sl
+#             print "Selection results (index):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Second selection: bool
+        results1 = [p["var2"] for p in table1.where('t1var2 == True')]
+        results2 = [p["var2"] for p in table2
+                    if p["var2"] == True]
+        if verbose:
+            print "Selection results (index):", results1
+            print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Third selection: int
+        # Convert the limits to the appropriate type
+        il = int(self.il)
+        sl = int(self.sl)
+
+        t1var3 = table1.cols.var3
+        results1 = [p["var3"] for p in table1.where('(il<=t1var3)&(t1var3<=sl)')]
+        results2 = [p["var3"] for p in table2
+                    if il <= p["var3"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Fourth selection: float
+        # Convert the limits to the appropriate type
+        il = float(self.il)
+        sl = float(self.sl)
+
+        # Do some selections and check the results
+        results1 = [p["var4"] for p in table1.where('(il<=t1var4)&(t1var4<=sl)')]
+        results2 = [p["var4"] for p in table2
+                    if il <= p["var4"] <= sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1.sort() == results2.sort()
+
+
 class SV1aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
     buffersize = 1
@@ -2233,7 +2352,7 @@ class SV1bTestCase(SV1aTestCase):
 class SV2aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
     buffersize = 2
-    ss = blocksizes[2]; nrows = ss
+    ss = blocksizes[2]; nrows = ss*2-1
     reopen = 1
     nrep = 1
     il = 0
@@ -2246,7 +2365,7 @@ class SV2bTestCase(SV2aTestCase):
 class SV3aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
     buffersize = 3
-    ss = blocksizes[2]; nrows = ss*2-1
+    ss = blocksizes[2]; nrows = ss*5-1
     reopen = 1
     nrep = 3
     il = 0
@@ -2283,7 +2402,7 @@ class SV5bTestCase(SV5aTestCase):
 
 class SV6aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
-    ss = blocksizes[2]; nrows = ss*5-1
+    ss = blocksizes[2]; nrows = ss*5+1
     reopen = 0
     cs = blocksizes[3]
     nrep = cs+1
@@ -2296,7 +2415,7 @@ class SV6bTestCase(SV6aTestCase):
 class SV7aTestCase(SelectValuesTestCase):
     random = 1
     blocksizes = small_blocksizes
-    ss = blocksizes[2]; nrows = ss*5+1
+    ss = blocksizes[2]; nrows = ss*5+3
     reopen = 0
     cs = blocksizes[3]
     nrep = cs-1
@@ -2309,7 +2428,7 @@ class SV7bTestCase(SV7aTestCase):
 class SV8aTestCase(SelectValuesTestCase):
     random = 0
     blocksizes = small_blocksizes
-    ss = blocksizes[2]; nrows = ss*5+1
+    ss = blocksizes[2]; nrows = ss*5-3
     reopen = 0
     cs = blocksizes[3]
     nrep = cs-1
@@ -2323,7 +2442,7 @@ class SV8bTestCase(SV8aTestCase):
 class SV9aTestCase(SelectValuesTestCase):
     random = 1
     blocksizes = small_blocksizes
-    ss = blocksizes[2]; nrows = ss*5+1
+    ss = blocksizes[2]; nrows = ss*5+11
     reopen = 0
     cs = blocksizes[3]
     nrep = cs-1

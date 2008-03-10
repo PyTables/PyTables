@@ -26,16 +26,19 @@ from definitions cimport \
      H5T_ORDER_LE, H5T_ORDER_BE, H5Tget_order, \
      npy_intp
 
+from definitions cimport \
+     H5T_ORDER_BE, \
+     H5T_STD_B8LE, H5T_UNIX_D32LE, H5T_UNIX_D64LE, \
+     H5T_STD_I8LE, H5T_STD_I16LE, H5T_STD_I32LE, H5T_STD_I64LE, \
+     H5T_STD_U8LE, H5T_STD_U16LE, H5T_STD_U32LE, H5T_STD_U64LE, \
+     H5T_IEEE_F32LE, H5T_IEEE_F64LE, \
+     H5T_STD_B8BE, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
+     H5T_STD_I8BE, H5T_STD_I16BE, H5T_STD_I32BE, H5T_STD_I64BE, \
+     H5T_STD_U8BE, H5T_STD_U16BE, H5T_STD_U32BE, H5T_STD_U64BE, \
+     H5T_IEEE_F32BE, H5T_IEEE_F64BE
+
 # Platform-dependent types
 if sys.byteorder == "little":
-
-  from definitions cimport \
-       H5T_ORDER_BE, \
-       H5T_STD_B8LE, H5T_UNIX_D32LE, H5T_UNIX_D64LE, \
-       H5T_STD_I8LE, H5T_STD_I16LE, H5T_STD_I32LE, H5T_STD_I64LE, \
-       H5T_STD_U8LE, H5T_STD_U16LE, H5T_STD_U32LE, H5T_STD_U64LE, \
-       H5T_IEEE_F32LE, H5T_IEEE_F64LE
-
   platform_byteorder = H5T_ORDER_LE
   # Standard types, independent of the byteorder
   H5T_STD_B8   = H5T_STD_B8LE
@@ -51,16 +54,7 @@ if sys.byteorder == "little":
   H5T_IEEE_F64 = H5T_IEEE_F64LE
   H5T_UNIX_D32  = H5T_UNIX_D32LE
   H5T_UNIX_D64  = H5T_UNIX_D64LE
-
 else:  # sys.byteorder == "big"
-
-  from definitions cimport \
-       H5T_ORDER_BE, \
-       H5T_STD_B8BE, H5T_UNIX_D32BE, H5T_UNIX_D64BE, \
-       H5T_STD_I8BE, H5T_STD_I16BE, H5T_STD_I32BE, H5T_STD_I64BE, \
-       H5T_STD_U8BE, H5T_STD_U16BE, H5T_STD_U32BE, H5T_STD_U64BE, \
-       H5T_IEEE_F32BE, H5T_IEEE_F64BE
-
   platform_byteorder = H5T_ORDER_BE
   # Standard types, independent of the byteorder
   H5T_STD_B8   = H5T_STD_B8BE
@@ -122,52 +116,6 @@ HDF5ClassToString = {
   H5T_VLEN      : 'H5T_VLEN',
   H5T_ARRAY     : 'H5T_ARRAY',
   }
-
-
-# Helper routines. These are here so as to easy the including in .pyx files.
-# The next functions are not directly related with this file. If the list
-# below starts to grow, they should be moved to its own .pxi file.
-
-# cdef'd functions make the c compilers to issue a warning on string docs
-#  "Returns a malloced hsize_t dims from a python pdims."
-cdef hsize_t *malloc_dims(object pdims):
-  cdef int i, rank
-  cdef hsize_t *dims
-
-  dims = NULL
-  rank = len(pdims)
-  if rank > 0:
-    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
-    for i from 0 <= i < rank:
-      dims[i] = pdims[i]
-  return dims
-
-
-#  "Get the native type of a HDF5 type"
-cdef hid_t get_native_type(hid_t type_id):
-  cdef H5T_class_t class_id
-  cdef hid_t native_type_id, super_type_id
-  cdef char *sys_byteorder
-
-  class_id = H5Tget_class(type_id)
-  if class_id in (H5T_ARRAY, H5T_VLEN):
-    # Get the array base component
-    super_type_id = H5Tget_super(type_id)
-    # Get the class
-    class_id = H5Tget_class(super_type_id)
-    H5Tclose(super_type_id)
-  if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_COMPOUND, H5T_ENUM):
-    native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
-  else:
-    # Fixing the byteorder for other types shouldn't be needed.
-    # More in particular, H5T_TIME is not managed yet by HDF5 and so this
-    # has to be managed explicitely inside the PyTables extensions.
-    # Regarding H5T_BITFIELD, well, I'm not sure if changing the byteorder
-    # of this is a good idea at all.
-    native_type_id = H5Tcopy(type_id)
-  if native_type_id < 0:
-    raise HDF5ExtError("Problems getting type id for class %s" % class_id)
-  return native_type_id
 
 
 ## Local Variables:

@@ -30,7 +30,7 @@ clean:
 	rm -f *.html
 
 usersguide.pdf: usersguide.xml usersguide_bib.xml
-	xsltproc -o usersguide.fo pytables_fo.xsl usersguide.xml
+	xsltproc --xinclude -o usersguide.fo pytables_fo.xsl usersguide.xml
 	fop -d -c fop_conf.xml usersguide.fo usersguide.pdf
 
 
@@ -38,6 +38,6 @@ usersguide.pdf: usersguide.xml usersguide_bib.xml
 	inkscape "$<" --export-png="$@"
 
 %.html:	usersguide.xml $(allpng)
-	xsltproc pytables_html.xsl usersguide.xml
+	xsltproc --xinclude pytables_html.xsl usersguide.xml
 
 

@@ -296,7 +296,7 @@ cdef class IndexArray(Array):
   cdef ndarray arrAbs, coords, bufferbc, bufferlb
 
 
-  def _initIndexSlice(self, index, ncoords):
+  def _initIndexSlice(self, index, long ncoords):
     "Initialize the structures for doing a binary search"
     cdef long buflen
     cdef ndarray starts, lengths
@@ -426,7 +426,7 @@ cdef class IndexArray(Array):
 
   cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start,
                                 hsize_t stop):
-#    "Read the sorted part of an index."
+    """Read the sorted part of an index."""
 
     Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
@@ -491,8 +491,8 @@ cdef class IndexArray(Array):
     return lo
 
 
-  # Get the bounds from the cache, or read them
   cdef void *getLRUbounds(self, int nrow, int nbounds):
+    """Get the bounds from the cache, or read them."""
     cdef void *vpointer
     cdef long nslot
 
@@ -507,8 +507,8 @@ cdef class IndexArray(Array):
     return vpointer
 
 
-  # Get the sorted row from the cache or read it.
   cdef void *getLRUsorted(self, int nrow, int ncs, int nchunk, int cs):
+    """Get the sorted row from the cache or read it."""
     cdef void *vpointer
     cdef npy_int64 nckey
     cdef long nslot
@@ -1009,12 +1009,12 @@ cdef class IndexArray(Array):
 
   # This version of getCoords reads the indexes in chunks.
   # Because of that, it can be used in iterators.
-  def _getCoords(self, index, int startcoords, int ncoords):
-    cdef int nrow, nrows, leni, len1, len2, nidxelem
+  def _getCoords(self, index, hsize_t startcoords, long ncoords):
+    cdef int nrow, nrows, leni, len1, len2
     cdef int relcoord, bcoords
     cdef int startl, stopl, incr, stop
     cdef int *rbufst, *rbufln
-    cdef npy_int64 coord
+    cdef npy_int64 coord, nidxelem
     cdef long nslot
 
     len1 = 0; len2 = 0; bcoords = 0
@@ -1062,7 +1062,7 @@ cdef class IndexArray(Array):
   # This is aproximately a 25% faster than _getCoords above.
   # If there is a last row with interesting values on it, this has been
   # optimised as well.
-  def _getCoords_sparse(self, index, int ncoords):
+  def _getCoords_sparse(self, index, long ncoords):
     cdef int nrow, nrows, startl, stopl, lenl, relcoord
     cdef int *rbufst, *rbufln
     cdef npy_int64 *rbufC, *rbufA

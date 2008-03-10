@@ -379,10 +379,11 @@ def main():
         filters = None
     else:
         if complevel is None: complevel = 0
-        if complevel > 0 and shuffle is None:
-            shuffle = True
-        else:
-            shuffle = False
+        if shuffle is None:
+            if complevel > 0:
+                shuffle = True
+            else:
+                shuffle = False
         if complib is None: complib = "zlib"
         if fletcher32 is None: fletcher32 = False
         filters = Filters(complevel=complevel, complib=complib,

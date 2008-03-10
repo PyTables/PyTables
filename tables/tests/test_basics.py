@@ -53,6 +53,9 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Create a new group in the second level
         group3 = fileh.createGroup(group, 'agroup3',
                                    "Group title 3")
+        # Create a new group in the third level
+        group4 = fileh.createGroup(group3, 'agroup4',
+                                   "Group title 4")
 
         # Create an array in the root with the same name as one in 'agroup'
         fileh.createArray(root, 'anarray1', [1,2],
@@ -685,6 +688,22 @@ class OpenFileTestCase(common.PyTablesTestCase):
         assert group._v_title == "Group title 3"
         fileh.close()
 
+    def test09e_renameGroup(self):
+        """Checking renaming a Group with nested groups in the LRU cache"""
+        # This checks for ticket #126.
+
+        fileh = openFile(self.file, mode = "r+")
+        # Load intermediate groups and keep a nested one alive.
+        g = fileh.root.agroup.agroup3.agroup4
+        fileh.renameNode('/', name='agroup', newname='agroup_')
+        self.assert_('/agroup_/agroup4' not in fileh)  # see ticket #126
+        self.assert_('/agroup' not in fileh)
+        for newpath in [ '/agroup_', '/agroup_/agroup3',
+                         '/agroup_/agroup3/agroup4' ]:
+            self.assert_(newpath in fileh)
+            self.assertEqual(newpath, fileh.getNode(newpath)._v_pathname)
+        fileh.close()
+
     def test10_moveLeaf(self):
         """Checking moving a leave and access it after a close/open"""
 
@@ -1209,6 +1228,15 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assert_(not hasattr(dstNode._v_attrs, 'testattr'))
         self.assert_(not hasattr(dstNode.anarray1.attrs, 'testattr'))
         self.assertEqual(srcNode.anarray1.read()[0:5:2], dstNode.anarray1.read())
+        fileh.close()
+
+    def test17_closedRepr(self):
+        "Representing a closed node as a string."
+        fileh = openFile(self.file)
+        for node in [fileh.root.agroup, fileh.root.anarray]:
+            node._f_close()
+            self.assert_('closed' in str(node))
+            self.assert_('closed' in repr(node))
         fileh.close()
 
 
@@ -1835,15 +1863,18 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
     """
 
     array_data = numpy.arange(10)
+    scalar_data = numpy.int32(10)
 
     def _reopen(self, mode='r'):
         super(FlavorTestCase, self)._reopen(mode)
-        self.array = self.h5file.getNode('/test')
+        self.array = self.h5file.getNode('/array')
+        self.scalar = self.h5file.getNode('/scalar')
         return True
 
     def setUp(self):
         super(FlavorTestCase, self).setUp()
-        self.array = self.h5file.createArray('/', 'test', self.array_data)
+        self.array = self.h5file.createArray('/', 'array', self.array_data)
+        self.scalar = self.h5file.createArray('/', 'scalar', self.scalar_data)
 
     def tearDown(self):
         self.array = None
@@ -1894,6 +1925,26 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
         del self.array.flavor
         self.assertEqual(self.array.flavor, tables.flavor.internal_flavor)
         self.assertRaises(AttributeError, getattr, self.array.attrs, 'FLAVOR')
+
+    def test06_copyDeleted(self):
+        """Copying a node with a deleted flavor (see #100)."""
+        snames = [node._v_name for node in [self.array, self.scalar]]
+        dnames = ['%s_copy' % name for name in snames]
+        for name in snames:
+            node = self.h5file.getNode('/', name)
+            del node.flavor
+        # Check the copied flavors right after copying and after reopening.
+        for fmode in ['r+', 'r']:
+            self._reopen(fmode)
+            for sname, dname in zip(snames, dnames):
+                if fmode == 'r+':
+                    snode = self.h5file.getNode('/', sname)
+                    node = snode.copy('/', dname)
+                elif fmode == 'r':
+                    node = self.h5file.getNode('/', dname)
+                self.assertEqual( node.flavor, tables.flavor.internal_flavor,
+                                  "flavor of node ``%s`` is not internal: %r"
+                                  % (node._v_pathname, node.flavor) )
 
 
 class OldFlavorTestCase(common.PyTablesTestCase):

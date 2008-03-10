@@ -33,6 +33,8 @@ from tables.conditions import call_on_recarr
 from tables.utilsExtension import \
      getNestedField, AtomFromHDF5Type, AtomToHDF5Type
 
+from utilsExtension cimport get_native_type
+
 # numpy functions & objects
 from hdf5Extension cimport Leaf
 from definitions cimport import_array, ndarray, \
@@ -110,13 +112,13 @@ import_array()
 
 # Private functions
 cdef getNestedFieldCache(recarray, fieldname, fieldcache):
-#   """
-#   Get the maybe nested field named `fieldname` from the `recarray`.
+  """
+  Get the maybe nested field named `fieldname` from the `recarray`.
 
-#   The `fieldname` may be a simple field name or a nested field name
-#   with slah-separated components. It can also be an integer specifying
-#   the position of the field.
-#   """
+  The `fieldname` may be a simple field name or a nested field name with
+  slah-separated components. It can also be an integer specifying the position
+  of the field.
+  """
   try:
     field = fieldcache[fieldname]
   except KeyError:
@@ -146,7 +148,7 @@ cdef class Table(Leaf):
 
 
   cdef createNestedType(self, object desc, char *byteorder):
-    #"""Create a nested type based on a description and return an HDF5 type."""
+    """Create a nested type based on a description and return an HDF5 type."""
     cdef hid_t   tid, tid2
     cdef herr_t  ret
     cdef size_t  offset
@@ -247,7 +249,7 @@ cdef class Table(Leaf):
 
   cdef getNestedType(self, hid_t type_id, hid_t native_type_id,
                      object colpath, object field_byteorders):
-    # """Open a nested type and return a nested dictionary as description."""
+    """Open a nested type and return a nested dictionary as description."""
     cdef hid_t   member_type_id, native_member_type_id
     cdef hsize_t nfields, dims[1]
     cdef size_t  itemsize
@@ -389,12 +391,12 @@ cdef class Table(Leaf):
 
 
   cdef _convertTime64_(self, ndarray nparr, hsize_t nrecords, int sense):
-#   """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
+    """Converts a NumPy of Time64 elements between NumPy and HDF5 formats.
 
-#   NumPy to HDF5 conversion is performed when 'sense' is 0.
-#   Otherwise, HDF5 to NumPy conversion is performed.
-#   The conversion is done in place, i.e. 'nparr' is modified.
-#   """
+    NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
+    to NumPy conversion is performed.  The conversion is done in place,
+    i.e. 'nparr' is modified.
+    """
 
     cdef void *t64buf
     cdef long byteoffset, bytestride, nelements
@@ -410,11 +412,11 @@ cdef class Table(Leaf):
 
 
   cdef _convertTypes(self, ndarray recarr, hsize_t nrecords, int sense):
-#     """Converts columns in 'recarr' between NumPy and HDF5 formats.
+    """Converts columns in 'recarr' between NumPy and HDF5 formats.
 
-#     NumPy to HDF5 conversion is performed when 'sense' is 0.
-#     Otherwise, HDF5 to NumPy conversion is performed.  The conversion
-#     is done in place, i.e. 'recarr' is modified.  """
+    NumPy to HDF5 conversion is performed when 'sense' is 0.  Otherwise, HDF5
+    to NumPy conversion is performed.  The conversion is done in place,
+    i.e. 'recarr' is modified."""
 
     # For reading, first swap the byteorder by hand
     # (this is not currently supported by HDF5)
@@ -666,6 +668,7 @@ cdef class Row:
   cdef object  mod_elements, colenums
   cdef object  rfieldscache, wfieldscache
   cdef object  _tableFile, _tablePath
+  cdef object  modified_fields
 
   # The nrow() method has been converted into a property, which is handier
   property nrow:
@@ -684,7 +687,7 @@ cdef class Row:
         return self._tableFile._getNode(self._tablePath)
 
 
-  def __new__(self, table):
+  def __cinit__(self, table):
     cdef int nfields, i
     # Location-dependent information.
     self._tableFile = table._v_file
@@ -709,6 +712,7 @@ cdef class Row:
     self.mod_elements = None
     self.rfieldscache = {}
     self.wfieldscache = {}
+    self.modified_fields = set()
 
 
   def _iter(self, start=0, stop=0, step=1, coords=None, ncoords=0):
@@ -725,7 +729,7 @@ cdef class Row:
 
 
   cdef _newBuffer(self, table):
-#     "Create the recarrays for I/O buffering"
+    "Create the recarrays for I/O buffering"
 
     self.wrec = table._v_wdflts.copy()  # The private record
     self.wreccpy = self.wrec.copy()  # A copy of the defaults
@@ -754,7 +758,7 @@ cdef class Row:
 
   cdef _initLoop(self, hsize_t start, hsize_t stop, hsize_t step,
                  object coords, int ncoords):
-#     "Initialization for the __iter__ iterator"
+    "Initialization for the __iter__ iterator"
 
     table = self.table
     self._riterator = 1   # We are inside a read iterator
@@ -792,7 +796,7 @@ cdef class Row:
 
 
   def __next__(self):
-#     "next() method for __iter__() that is called on each iteration"
+    "next() method for __iter__() that is called on each iteration"
     if self.indexed or self.coords is not None:
       return self.__next__indexed()
     elif self.whereCond:
@@ -802,7 +806,7 @@ cdef class Row:
 
 
   cdef __next__indexed(self):
-#     """The version of next() for indexed columns or with user coordinates"""
+    """The version of next() for indexed columns or with user coordinates"""
     cdef int recout
     cdef long long stop
     cdef long long nextelement
@@ -841,7 +845,7 @@ cdef class Row:
           if self.whereCond:
             # Evaluate the condition on this table fragment.
             self.indexValid = call_on_recarr(
-              self.condfunc, self.condargs, self.rfields )
+              self.condfunc, self.condargs, self.IObuf[:recout] )
           else:
             # No residual condition, all selected rows are valid.
             self.indexValid = numpy.ones(recout, numpy.bool8)
@@ -878,7 +882,7 @@ cdef class Row:
 
 
   cdef __next__inKernel(self):
-#     """The version of next() in case of in-kernel conditions"""
+    """The version of next() in case of in-kernel conditions"""
     cdef hsize_t recout, correct
     cdef object numexpr_locals, colvar, col
 
@@ -901,7 +905,7 @@ cdef class Row:
 
         # Evaluate the condition on this table fragment.
         self.indexValid = call_on_recarr(
-          self.condfunc, self.condargs, self.rfields )
+          self.condfunc, self.condargs, self.IObuf[:recout] )
 
         # Is still there any interesting information in this buffer?
         if not numpy.sometrue(self.indexValid):
@@ -933,7 +937,7 @@ cdef class Row:
 
   # This is the most general __next__ version, simple, but effective
   cdef __next__general(self):
-#     """The version of next() for the general cases"""
+    """The version of next() for the general cases"""
     cdef int recout
 
     self.nextelement = self._nrow + self.step
@@ -966,7 +970,7 @@ cdef class Row:
 
 
   cdef _finish_riterator(self):
-#     """Clean-up things after iterator has been done"""
+    """Clean-up things after iterator has been done"""
 
     self.rfieldscache = {}     # empty rfields cache
     self.wfieldscache = {}     # empty wfields cache
@@ -976,7 +980,8 @@ cdef class Row:
         self.wrec[:] = self.IObuf[self._row]
     self._riterator = 0        # out of iterator
     if self._mod_nrows > 0:    # Check if there is some modified row
-      self._flushModRows()       # Flush any possible modified row
+      self._flushModRows()     # Flush any possible modified row
+    self.modified_fields = set()  # Empty the set of modified fields
     raise StopIteration        # end of iteration
 
 
@@ -1160,9 +1165,8 @@ cdef class Row:
     table._update_elements(self._mod_nrows, self.mod_elements, self.IObufcpy)
     # Reset the counter of modified rows to 0
     self._mod_nrows = 0
-    # Redo the indexes if needed. This could be optimized if we would
-    # be able to track the modified columns.
-    table._reIndex(table.colpathnames)
+    # Redo the modified fields' indexes.
+    table._reIndex(self.modified_fields)
 
 
   # This method is twice as faster than __getattr__ because there is
@@ -1288,6 +1292,8 @@ cdef class Row:
 
     # Get the field to be modified
     field = getNestedFieldCache(fields, key, fieldscache)
+    if key not in self.modified_fields:
+      self.modified_fields.add(key)
 
     # Finally, try to set it to the value
     try:
@@ -1299,7 +1305,7 @@ cdef class Row:
           raise TypeError
       ##### End of optimization for scalar values
       else:
-        field[0] = value
+        field[offset] = value
     except TypeError:
       raise TypeError("invalid type (%s) for column ``%s``" % (type(value),
                                                                key))

@@ -67,7 +67,7 @@
     </copyright>
 
     <copyright>
-      <year>2005, 2006, 2007</year>
+      <year>2005, 2006, 2007, 2008</year>
 
       <holder>Cárabos Coop. V.</holder>
     </copyright>
@@ -589,9 +589,9 @@ fileh.close()</screen>
           <title>Prerequisites</title>
 
           <para>First, make sure that you have at least Python 2.4, HDF5 1.6.5
-          and NumPy 1.0.3 or higher installed (I'm using HDF5 1.6.5 and NumPy
-          1.0.3 currently). If you don't, fetch and install them before
-          proceeding.</para>
+          and NumPy 1.0.3 or higher installed (for testing purposes, we are
+          using HDF5 1.6.7/1.8.0 and NumPy 1.0.5 currently). If you don't,
+          fetch and install them before proceeding.</para>
 
           <para>Compile and install these packages (but see <xref
           linkend="prerequisitesBinInst" xrefstyle="select: label" /> for
@@ -629,8 +629,8 @@ fileh.close()</screen>
                 of the resource root directories on the
                 <literal>setup.py</literal> command line. For example:</para>
 
-                <screen>--hdf5=/stuff/hdf5-1.6.5
---lzo=/stuff/lzo-1.08
+                <screen>--hdf5=/stuff/hdf5-1.6.7
+--lzo=/stuff/lzo-2.02
 --bzip2=/stuff/bzip2-1.0.4</screen>
 
                 <para>If your HDF5 library was built as a shared library not
@@ -638,7 +638,7 @@ fileh.close()</screen>
                 linker flags needed to find the shared library on the command
                 line as well. For example:</para>
 
-                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.5/lib"</screen>
+                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.7/lib"</screen>
 
                 <para>You may also want to try setting the LD_LIBRARY_PATH
                 environment variable to point to the directory where the
@@ -651,7 +651,7 @@ fileh.close()</screen>
                 setting the <literal>LIBS</literal> environment
                 variable:</para>
 
-                <screen>LIBS="hdf5-1.6.5 nsl"</screen>
+                <screen>LIBS="hdf5-1.6.7 nsl"</screen>
 
                 <para>Finally, you can give additional flags to your compiler
                 by passing them to the <literal>--cflags</literal>
@@ -869,7 +869,7 @@ python -c "import tables; tables.test()"</screen>
 
           <para>First, make sure that you have Python 2.4 or higher and NumPy
           1.0.3 or higher installed (PyTables binaries have been built using
-          NumPy 1.0.3).  The binaries already include DLLs for HDF5 (1.6.5),
+          NumPy 1.0.5).  The binaries already include DLLs for HDF5 (1.6.7),
           zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2
           (1.0.4).  The LZO DLL can't be included because of license issues
           (but read below for directives to install it if you want so).</para>
@@ -1151,7 +1151,8 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
   "idnumber": Int64Col(shape=(), dflt=0, pos=5),
   "name": StringCol(itemsize=16, shape=(), dflt='', pos=6),
   "pressure": Float32Col(shape=(), dflt=0.0, pos=7)}
-  byteorder := 'little'</screen>
+  byteorder := 'little'
+  chunkshape := (87L,)</screen>
 
           <para>More detailed information is displayed about each object in
           the tree. Note how <literal>Particle</literal>, our table descriptor
@@ -1302,7 +1303,8 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
   atom := Float64Atom(shape=(), dflt=0.0)
   maindim := 0
   flavor := 'numpy'
-  byteorder := 'little'</screen>
+  byteorder := 'little'
+  chunkshape := None</screen>
 
           <para>We already know the first two parameters of the
           <literal>createArray</literal> (see <xref
@@ -1325,7 +1327,8 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
   atom := StringAtom(itemsize=16, shape=(), dflt='')
   maindim := 0
   flavor := 'python'
-  byteorder := 'irrelevant'</screen>
+  byteorder := 'irrelevant'
+  chunkshape := None</screen>
 
           <para>As you can see, <literal>createArray()</literal> accepts
           <emphasis>names</emphasis> (which is a regular Python list) as an
@@ -1884,6 +1887,7 @@ Info on the object: /columns/pressure (Array(3L,)) 'Pressure column selection'
   maindim := 0
   flavor := 'numpy'
   byteorder := 'little'
+  chunkshape := None
 >>> print "  shape: ==&gt;", pressureObject.shape
   shape: ==&gt; (3L,)
 >>> print "  title: ==&gt;", pressureObject.title
@@ -3512,6 +3516,29 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
             file, an <literal>HDF5ExtError</literal> is raised.</para>
           </section>
 
+          <section id="lrange">
+            <title>lrange([start, ]stop[, step])</title>
+
+            <para>Iterate over long ranges.</para>
+
+            <para>This is similar to <literal>xrange()</literal>, but it
+            allows 64-bit arguments on all platforms.  The results of the
+            iteration are sequentially yielded in the form of
+            <literal>numpy.int64</literal> values, but getting random
+            individual items is not supported.</para>
+
+            <para>Because of the Python 32-bit limitation on object lengths,
+            the <literal>length</literal> attribute (which is also a
+            <literal>numpy.int64</literal> value) should be used instead of
+            the <literal>len()</literal> syntax.</para>
+
+            <para>Default <literal>start</literal> and <literal>step</literal>
+            arguments are supported in the same way as in
+            <literal>xrange()</literal>.  When the standard
+            <literal>[x]range()</literal> Python objects support 64-bit
+            arguments, this iterator will be deprecated.</para>
+          </section>
+
           <section id="openFileDescr" xreflabel="description">
             <title>openFile(filename, mode='r', title='', trMap={},
             rootUEP="/", filters=None, nodeCacheSize=NODE_MAX_SLOTS)</title>
@@ -3787,6 +3814,10 @@ ValueError: malformed type: 'foo bar'</screen>
         only be disabled by calling the <literal>disableUndo()</literal> (see
         <xref linkend="File.disableUndo"/>) method.</para>
 
+        <para>File objects can also act as context managers when using the
+        <literal>with</literal> statement introduced in Python 2.5.  When
+        exiting a context, the file is automatically closed.</para>
+
         <section>
           <title><literal>File</literal> instance variables</title>
 
@@ -3921,6 +3952,18 @@ ValueError: malformed type: 'foo bar'</screen>
             <title>flush()</title>
 
             <para>Flush all the alive leaves in the object tree.</para>
+          </section>
+
+          <section id="File.__enter__">
+            <title>__enter__()</title>
+
+            <para>Enter a context and return the same file.</para>
+          </section>
+
+          <section id="File.__exit__">
+            <title>__exit__([*exc_info])</title>
+
+            <para>Exit a context and close the file.</para>
           </section>
 
           <section id="File.__str__">
@@ -6731,16 +6774,26 @@ for node in h5file.root.detector:
             coordinates.</para>
 
             <para>A true value for <literal>sort</literal> means that the
-            <literal>sequence</literal>d` will be sorted so that I/O
+            <literal>sequence</literal> will be sorted so that I/O
             <emphasis>might</emphasis> perform better.  If your sequence is
             already sorted or you don't want to sort it, leave this parameter
-            as false.  The default is not to sort the `sequence`.</para>
+            as false.  The default is not to sort the
+            <literal>sequence</literal>.</para>
 
             <note>
               <para>This iterator can be nested (see
               <literal>Table.where()</literal> —<xref linkend="Table.where"
               />— for an example).</para>
             </note>
+
+            <warning>
+              <para>When in the middle of a table row iterator, you should not
+              use methods that can change the number of rows in the table
+              (like <literal>Table.append()</literal> or
+              <literal>Table.removeRows()</literal>) or unexpected errors will
+              happen.</para>
+            </warning>
+
           </section>
 
           <section id="Table.read" xreflabel="description">
@@ -7180,6 +7233,14 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             <literal>Table</literal> objects offer. See the file
             <literal>examples/nested-iter.py</literal> for the full
             code.</para>
+
+            <warning>
+              <para>When in the middle of a table row iterator, you should not
+              use methods that can change the number of rows in the table
+              (like <literal>Table.append()</literal> or
+              <literal>Table.removeRows()</literal>) or unexpected errors will
+              happen.</para>
+            </warning>
           </section>
 
           <warning>
@@ -8234,6 +8295,15 @@ table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])</screen>
             </glossentry>
 
             <glossentry>
+              <glossterm><emphasis role="bold">rowsize</emphasis></glossterm>
+
+              <glossdef>
+                <para>The size of the rows in dimensions orthogonal to
+                <emphasis>maindim</emphasis>.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
               <glossterm><emphasis role="bold">nrow</emphasis></glossterm>
 
               <glossdef>
@@ -8429,7 +8499,7 @@ ca = h5f.createCArray(h5f.root, 'carray', atom, shape, filters=filters)
 ca[10:60, 20:70] = numpy.ones((50, 50))
 h5f.close()
 
-# Re-open a read another hyperslab
+# Re-open and read another hyperslab
 h5f = tables.openFile(fileName)
 print h5f
 print h5f.root.carray[8:12, 18:22]
@@ -8439,7 +8509,7 @@ h5f.close()</screen>
 
           <screen>carray1.h5 (File) ''
 Last modif.: 'Thu Apr 12 10:15:38 2007'
-Object Tree: 
+Object Tree:
 / (RootGroup) ''
 /carray (CArray(200L, 300L), shuffle, zlib(5)) ''
 
@@ -8792,7 +8862,7 @@ from numpy import *
 # Create a VLArray:
 fileh = tables.openFile('vlarray1.h5', mode='w')
 vlarray = fileh.createVLArray(fileh.root, 'vlarray1',
-                              tables.Int32Atom(shape=1),
+                              tables.Int32Atom(shape=()),
                               "ragged array of ints",
                               filters=tables.Filters(1))
 # Append some (variable length) rows:
@@ -9230,7 +9300,7 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
             </section>
 
             <section>
-              <title>from_kind(kind, itemsize=None, shape=1, dflt=None,
+              <title>from_kind(kind, itemsize=None, shape=(), dflt=None,
               pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a PyTables
@@ -9244,7 +9314,7 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
             </section>
 
             <section>
-              <title>from_sctype(sctype, shape=1, dflt=None, pos=None)</title>
+              <title>from_sctype(sctype, shape=(), dflt=None, pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a NumPy
               scalar type <literal>sctype</literal>.</para>
@@ -9257,7 +9327,7 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
             </section>
 
             <section>
-              <title>from_type(type, shape=1, dflt=None, pos=None)</title>
+              <title>from_type(type, shape=(), dflt=None, pos=None)</title>
 
               <para>Create a <literal>Col</literal> definition from a PyTables
               <literal>type</literal>.</para>
@@ -9488,7 +9558,7 @@ Float64Atom(shape=(), dflt=0.0)</screen>
             </section>
 
             <section>
-              <title>from_kind(kind, itemsize=None, shape=1,
+              <title>from_kind(kind, itemsize=None, shape=(),
               dflt=None)</title>
 
               <para>Create an <literal>Atom</literal> from a PyTables
@@ -9526,7 +9596,7 @@ ValueError: the ``enum`` kind is not supported...</screen>
             </section>
 
             <section>
-              <title>from_sctype(sctype, shape=1, dflt=None)</title>
+              <title>from_sctype(sctype, shape=(), dflt=None)</title>
 
               <para>Create an <literal>Atom</literal> from a NumPy scalar type
               <literal>sctype</literal>.</para>
@@ -9549,7 +9619,7 @@ Float64Atom(shape=(), dflt=0.0)</screen>
             </section>
 
             <section>
-              <title>from_type(type, shape=1, dflt=None)</title>
+              <title>from_type(type, shape=(), dflt=None)</title>
 
               <para>Create an <literal>Atom</literal> from a PyTables
               <literal>type</literal>.</para>
@@ -9614,7 +9684,7 @@ ValueError: unknown type: 'Float64'</screen>
             parameters follows.</para>
 
             <section>
-              <title>StringAtom(itemsize, shape=1, dflt='')</title>
+              <title>StringAtom(itemsize, shape=(), dflt='')</title>
 
               <para>Defines an atom of type <literal>string</literal>.</para>
 
@@ -9623,87 +9693,87 @@ ValueError: unknown type: 'Float64'</screen>
             </section>
 
             <section>
-              <title>BoolAtom(shape=1, dflt=False)</title>
+              <title>BoolAtom(shape=(), dflt=False)</title>
 
               <para>Defines an atom of type <literal>bool</literal>.</para>
             </section>
 
             <section>
-              <title>IntAtom(itemsize=4, shape=1, dflt=0)</title>
+              <title>IntAtom(itemsize=4, shape=(), dflt=0)</title>
 
               <para>Defines an atom of a signed integral type
               (<literal>int</literal> kind).</para>
             </section>
 
             <section>
-              <title>Int8Atom(shape=1, dflt=0)</title>
+              <title>Int8Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>int8</literal>.</para>
             </section>
 
             <section>
-              <title>Int16Atom(shape=1, dflt=0)</title>
+              <title>Int16Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>int16</literal>.</para>
             </section>
 
             <section>
-              <title>Int32Atom(shape=1, dflt=0)</title>
+              <title>Int32Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>int32</literal>.</para>
             </section>
 
             <section>
-              <title>Int64Atom(shape=1, dflt=0)</title>
+              <title>Int64Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>int64</literal>.</para>
             </section>
 
             <section>
-              <title>UIntAtom(itemsize=4, shape=1, dflt=0)</title>
+              <title>UIntAtom(itemsize=4, shape=(), dflt=0)</title>
 
               <para>Defines an atom of an unsigned integral type
               (<literal>uint</literal> kind).</para>
             </section>
 
             <section>
-              <title>UInt8Atom(shape=1, dflt=0)</title>
+              <title>UInt8Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>uint8</literal>.</para>
             </section>
 
             <section>
-              <title>UInt16Atom(shape=1, dflt=0)</title>
+              <title>UInt16Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>uint16</literal>.</para>
             </section>
 
             <section>
-              <title>UInt32Atom(shape=1, dflt=0)</title>
+              <title>UInt32Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>uint32</literal>.</para>
             </section>
 
             <section>
-              <title>UInt64Atom(shape=1, dflt=0)</title>
+              <title>UInt64Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>uint64</literal>.</para>
             </section>
 
             <section>
-              <title>Float32Atom(shape=1, dflt=0.0)</title>
+              <title>Float32Atom(shape=(), dflt=0.0)</title>
 
               <para>Defines an atom of type <literal>float32</literal>.</para>
             </section>
 
             <section>
-              <title>Float64Atom(shape=1, dflt=0.0)</title>
+              <title>Float64Atom(shape=(), dflt=0.0)</title>
 
               <para>Defines an atom of type <literal>float64</literal>.</para>
             </section>
 
             <section>
-              <title>ComplexAtom(itemsize, shape=1, dflt=0j)</title>
+              <title>ComplexAtom(itemsize, shape=(), dflt=0j)</title>
 
               <para>Defines an atom of kind <literal>complex</literal>.</para>
 
@@ -9714,7 +9784,7 @@ ValueError: unknown type: 'Float64'</screen>
             </section>
 
             <section>
-              <title>TimeAtom(itemsize=4, shape=1, dflt=0)</title>
+              <title>TimeAtom(itemsize=4, shape=(), dflt=0)</title>
 
               <para>Defines an atom of time type (<literal>time</literal>
               kind).</para>
@@ -9727,19 +9797,19 @@ ValueError: unknown type: 'Float64'</screen>
             </section>
 
             <section>
-              <title>Time32Atom(shape=1, dflt=0)</title>
+              <title>Time32Atom(shape=(), dflt=0)</title>
 
               <para>Defines an atom of type <literal>time32</literal>.</para>
             </section>
 
             <section>
-              <title>Time64Atom(shape=1, dflt=0.0)</title>
+              <title>Time64Atom(shape=(), dflt=0.0)</title>
 
               <para>Defines an atom of type <literal>time64</literal>.</para>
             </section>
 
             <section>
-              <title>EnumAtom(enum, dflt, base, shape=1)</title>
+              <title>EnumAtom(enum, dflt, base, shape=())</title>
 
               <para>Description of an atom of an enumerated type.</para>
 

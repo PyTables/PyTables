@@ -62,8 +62,7 @@ import_array()
 
 
 cdef class NodeCache:
-  """Least-Recently-Used (LRU) cache for PyTables nodes.
-  """
+  """Least-Recently-Used (LRU) cache for PyTables nodes."""
   # This class variables are declared in utilsExtension.pxd
 
 
@@ -86,8 +85,8 @@ cdef class NodeCache:
     self.setitem(path, node)
 
 
-  # Puts a new node in the node list
   cdef setitem(self, object path, object node):
+    """Puts a new node in the node list."""
 
     if self.nslots == 0:   # Oops, the cache is set to empty
       return
@@ -108,8 +107,8 @@ cdef class NodeCache:
       return 1
 
 
-  # Checks whether path is in this cache or not
   cdef long getslot(self, object path):
+    """Checks whether path is in this cache or not."""
     cdef long i, nslot
 
     nslot = -1  # -1 means not found
@@ -450,9 +449,9 @@ cdef class NumCache(BaseCache):
     cdef long nslots
 
     nslots = shape[0];  self.slotsize = shape[1]*itemsize
-    if nslots >= 2.**16:
+    if nslots >= 1<<16:
       # nslots can't be higher than 2**16. Will silently trunk the number.
-      nslots = <long>((2.**16)-1)  # Cast makes Pyrex happy here
+      nslots = <long>((1<<16)-1)  # Cast makes Pyrex happy here
     super(NumCache, self).__init__(nslots, name)
     self.itemsize = itemsize
     # The cache object where all data will go
