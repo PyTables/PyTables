@@ -13576,7 +13576,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
             </row>
 
             <row>
-              <entry align="left">String</entry>
+              <entry align="left">string</entry>
 
               <entry align="left">arbitrary length string</entry>
 
