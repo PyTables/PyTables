@@ -1,4 +1,4 @@
-#######################################################################
+######################################################################
 #
 #       License: BSD
 #       Created: September 4, 2002
@@ -31,12 +31,13 @@ Misc variables:
 import sys
 import warnings
 import os.path
+from time import time
 
 import numpy
 
 from tables import tableExtension
 from tables.utilsExtension import lrange
-from tables.conditions import split_condition
+from tables.conditions import compile_condition
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
@@ -47,6 +48,7 @@ from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
      OldIndexWarning, NoSuchNodeError
 from tables.parameters import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES
 from tables.utilsExtension import getNestedField
+from tables.numexpr.compiler import stringToExpression, numexpr
 
 from tables._table_common import (
     _indexNameOf, _indexPathnameOf, _indexPathnameOfColumn )
@@ -58,7 +60,6 @@ try:
     from tables._table_pro import (
         NailedDict,
         _table__autoIndex, _table__indexFilters,
-        _table__restorecache, _table__readWhere, _table__getWhereList,
         _column__createIndex )
 except ImportError:
     from tables.exceptions import NoIndexingError, NoIndexingWarning
@@ -483,7 +484,7 @@ class Table(tableExtension.Table, Leaf):
         self._whereIndex = None
         """Path of the indexed column to be used in an indexed search."""
         self._conditionCache = NailedDict()
-        """Cache of already splitted conditions."""
+        """Cache of already compiled conditions."""
         self._exprvarsCache = {}
         """Cache of variables participating in numexpr expressions."""
         self._enabledIndexingInQueries = True
@@ -911,7 +912,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         """Force queries not to use indexing.  *Use only for testing.*"""
         if not self._enabledIndexingInQueries:
             return  # already disabled
-        # The nail avoids setting/getting splitted conditions in/from
+        # The nail avoids setting/getting compiled conditions in/from
         # the cache where indexing is used.
         self._conditionCache.nail()
         self._enabledIndexingInQueries = False
@@ -1043,13 +1044,13 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         condkey = (condition, colnames, varnames, colpaths, vartypes)
         return condkey
 
-    def _splitCondition(self, condition, condvars):
+    def _compileCondition(self, condition, condvars):
         """
-        Split the `condition` into indexable and non-indexable parts.
+        Compile the `condition` and extract usable index conditions.
 
-        This method returns an instance of ``SplittedCondition``.  See
-        the ``split_condition()`` function in the ``conditions`` module
-        for more information about the splitting process.
+        This method returns an instance of ``CompiledCondition``.  See
+        the ``compile_condition()`` function in the ``conditions``
+        module for more information about the compilation process.
 
         This method makes use of the condition cache when possible.
         """
@@ -1057,11 +1058,11 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # Look up the condition in the condition cache.
         condcache = self._conditionCache
         condkey = self._getConditionKey(condition, condvars)
-        splitted = condcache.get(condkey)
-        if splitted:
-            return splitted.with_replaced_vars(condvars)  # bingo!
+        compiled = condcache.get(condkey)
+        if compiled:
+            return compiled.with_replaced_vars(condvars)  # bingo!
 
-        # Bad luck, the condition must be parsed and splitted.
+        # Bad luck, the condition must be parsed and compiled.
         # Fortunately, the key provides some valuable information. ;)
         (condition, colnames, varnames, colpaths, vartypes) = condkey
 
@@ -1087,19 +1088,17 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
                 copycols.append(colname)
         indexedcols = frozenset(indexedcols)
 
-        # Now let ``split_condition()`` do the Numexpr-related job.
-        splitted = split_condition(condition, typemap, indexedcols, copycols)
+        # Now let ``compile_condition()`` do the Numexpr-related job.
+        compiled = compile_condition(condition, typemap, indexedcols, copycols)
 
         # Check that there actually are columns in the condition.
-        resparams = splitted.residual_parameters
-        if ( not splitted.index_variable
-             and not set(resparams).intersection(set(colnames)) ):
+        if not set(compiled.parameters).intersection(set(colnames)):
             raise ValueError( "there are no columns taking part "
                               "in condition ``%s``" % (condition,) )
 
-        # Store the splitted condition in the cache and return it.
-        condcache[condkey] = splitted
-        return splitted.with_replaced_vars(condvars)
+        # Store the compiled condition in the cache and return it.
+        condcache[condkey] = compiled
+        return compiled.with_replaced_vars(condvars)
 
 
     def willQueryUseIndexing(self, condition, condvars=None):
@@ -1118,12 +1117,12 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        # Split the condition into indexable and residual parts.
+        # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars)
-        splitted = self._splitCondition(condition, condvars)
-        if not splitted.index_variable:
+        compiled = self._compileCondition(condition, condvars)
+        if not compiled.index_variable:
             return None
-        return condvars[splitted.index_variable].pathname
+        return condvars[compiled.index_variable].pathname
 
 
     def where( self, condition, condvars=None,
@@ -1196,44 +1195,39 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
            the table (like ``Table.append()`` or ``Table.removeRows()``)
            or unexpected errors will happen.
         """
-        # Split the condition into indexable and residual parts.
+        # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars)
-        splitted = self._splitCondition(condition, condvars)
-        return self._where(splitted, condvars, start, stop, step)
+        compiled = self._compileCondition(condition, condvars)
+        return self._where(compiled, condvars, start, stop, step)
 
-    def _where( self, splitted, condvars,
+    def _where( self, compiled, condvars,
                 start=None, stop=None, step=None ):
         """
         Low-level counterpart of `self.where()`.
 
-        This version needs the condition to already be `splitted`.  It
+        This version needs the condition to already be `compiled`.  It
         also uses `condvars` as is.  This is on purpose; if you want
         default variables and the like, use `self._requiredExprVars()`.
         """
 
-        # Set the index column and residual condition (if any)
+        # Set the index column (if any) and condition
         # for the ``Row`` iterator.
-        idxvar = splitted.index_variable
+        idxvar = compiled.index_variable
         if idxvar:
             idxcol = condvars[idxvar]
             index = idxcol.index
             assert index is not None, "the chosen column is not indexed"
             assert not index.dirty, "the chosen column has a dirty index"
             self._whereIndex = idxcol.pathname
-        rescond = splitted.residual_function
-        if rescond:
-            resparams = splitted.residual_parameters
-            resargs = [condvars[param] for param in resparams]
-            self._whereCondition = (rescond, resargs)
+        args = [condvars[param] for param in compiled.parameters]
+        self._whereCondition = (compiled.function, args)
 
         # Get the number of rows that the indexed condition yields.
-        # This also signals ``Row`` whether to use indexing or not.
-        ncoords = -1  # do not use indexing by default
         if idxvar:
             range_ = index.getLookupRange(
-                splitted.index_operators, splitted.index_limits, self )
+                compiled.index_operators, compiled.index_limits, self )
             ncoords = index.search(range_)  # do use indexing (always >= 0)
-            if ncoords == 0:
+            if index.reduction == 1 and ncoords == 0:
                 # No values from index condition, thus no resulting rows.
                 self._whereIndex = self._whereCondition = None
                 return iter([])
@@ -1244,9 +1238,17 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             self._whereIndex = self._whereCondition = None
             return iter([])
 
-        # Iterate according to the index and residual conditions.
+        chunkmap = None  # default to an in-kernel query
+        if idxvar:
+            # Iterate according to the chunkmap and condition
+            chunkmap = index.get_chunkmap()
+            #print "chunks to read-->", chunkmap.sum(), chunkmap.nonzero()
+            if chunkmap.sum() == 0:
+                # The chunkmap is empty
+                self._whereIndex = self._whereCondition = None
+                return iter([])
         row = tableExtension.Row(self)
-        return row._iter(start, stop, step, coords=None, ncoords=ncoords)
+        return row._iter(start, stop, step, chunkmap=chunkmap)
 
 
     def _checkFieldIfNumeric(self, field):
@@ -1271,20 +1273,14 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         """
         self._checkFieldIfNumeric(field)
 
-        # Split the condition into indexable and residual parts.
+        # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars)
-        splitted = self._splitCondition(condition, condvars)
+        compiled = self._compileCondition(condition, condvars)
 
-        idxvar = splitted.index_variable
-        if not idxvar:
-            coords = [ p.nrow for p in
-                       self._where(splitted, condvars, start, stop, step) ]
-            self._whereCondition = None  # reset the conditions
-            return self.readCoordinates(coords, field)
-
-        # Retrieve the array of rows fulfilling the index condition.
-        return _table__readWhere( self, splitted, condvars, field,
-                                  start, stop, step )
+        coords = [ p.nrow for p in
+                   self._where(compiled, condvars, start, stop, step) ]
+        self._whereCondition = None  # reset the conditions
+        return self.readCoordinates(coords, field)
 
 
     def whereAppend( self, dstTable, condition, condvars=None,
@@ -1303,9 +1299,9 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # Check that the destination file is not in read-only mode.
         dstTable._v_file._checkWritable()
 
-        # Split the condition into indexable and residual parts.
+        # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars)
-        splitted = self._splitCondition(condition, condvars)
+        compiled = self._compileCondition(condition, condvars)
 
         # Row objects do not support nested columns, so we must iterate
         # over the flat column paths.  When rows support nesting,
@@ -1313,7 +1309,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         colNames = [colName for colName in self.colpathnames]
         dstRow = dstTable.row
         nrows = 0
-        for srcRow in self._where(splitted, condvars, start, stop, step):
+        for srcRow in self._where(compiled, condvars, start, stop, step):
             for colName in colNames:
                 dstRow[colName] = srcRow[colName]
             dstRow.append()
@@ -1335,21 +1331,15 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         `Table.where()` method.
         """
 
-        # Split the condition into indexable and residual parts.
+        # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars)
-        splitted = self._splitCondition(condition, condvars)
+        compiled = self._compileCondition(condition, condvars)
 
-        # Take advantage of indexing, if present
-        idxvar = splitted.index_variable
-        if idxvar is None:
-            coords = [ p.nrow for p in
-                       self._where(splitted, condvars, start, stop, step) ]
-            coords = numpy.array(coords, dtype=numpy.int64)
-            # Reset the conditions
-            self._whereCondition = None
-        else:
-            coords = _table__getWhereList( self, splitted, condvars,
-                                           start, stop, step )
+        coords = [ p.nrow for p in
+                   self._where(compiled, condvars, start, stop, step) ]
+        coords = numpy.array(coords, dtype=numpy.int64)
+        # Reset the conditions
+        self._whereCondition = None
         if sort:
             coords = numpy.sort(coords)
         return internal_to_flavor(coords, self.flavor)
@@ -1372,13 +1362,12 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             raise TypeError("""\
 Wrong 'sequence' parameter type. Only sequences are suported.""")
 
-        coords = numpy.asarray(sequence, dtype=numpy.int64)
         # That might allow the retrieving on a sequential order
         # although this is not totally clear.
         if sort:
-            coords.sort()
+            sequence.sort()
         row = tableExtension.Row(self)
-        return row._iter(coords=coords, ncoords=-1)
+        return row._iter(coords=sequence)
 
 
     def iterrows(self, start=None, stop=None, step=None):
@@ -1408,7 +1397,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:
             row = tableExtension.Row(self)
-            return row._iter(start, stop, step, coords=None, ncoords=-1)
+            return row._iter(start, stop, step)
         # Fall-back action is to return an empty iterator
         return iter([])
 
@@ -1759,7 +1748,7 @@ You cannot append rows to a non-chunked table.""")
         lenrows = wbufRA.shape[0]
         # If the number of rows to append is zero, don't do anything else
         if lenrows > 0:
-            # Update indexes in table (if needed)
+            # Save write buffer to disk
             self._saveBufferedRows(wbufRA, lenrows)
 
 
@@ -2014,13 +2003,13 @@ The 'names' parameter must be a list of strings.""")
                     col = self.cols._g_col(colname)
                     if nrows > 0 and not col.index.dirty:
                         rowsadded = self._addRowsToIndex(
-                            colname, start, nrows, _lastrow )
+                            colname, start, nrows, _lastrow, update=True )
             self._unsaved_indexedrows -= rowsadded
             self._indexedrows += rowsadded
         return rowsadded
 
 
-    def _addRowsToIndex(self, colname, start, nrows, lastrow):
+    def _addRowsToIndex(self, colname, start, nrows, lastrow, update):
         """Add more elements to the existing index """
 
         # This method really belongs to Column, but since it makes extensive
@@ -2032,11 +2021,13 @@ The 'names' parameter must be a list of strings.""")
         # deal with long ints (i.e. more than 32-bit integers)
         # This allows to index columns with more than 2**31 rows
         # F. Altet 2005-05-09
-        startLR = (index.sorted.nrows)*slicesize
+        startLR = index.sorted.nrows*slicesize
         indexedrows = startLR - start
         stop = start+nrows-slicesize+1
         while startLR < stop:
-            index.append([self._read(startLR, startLR+slicesize, 1, colname)])
+            index.append(
+                [self._read(startLR, startLR+slicesize, 1, colname)],
+                update=update)
             indexedrows += slicesize
             startLR += slicesize
         # index the remaining rows in last row
@@ -2231,7 +2222,9 @@ The 'names' parameter must be a list of strings.""")
             oldcolindex = oldcols[colname].index
             if oldcolindex:
                 newcol = newcols[colname]
-                newcol.createIndex(oldcolindex.optlevel, oldcolindex.filters)
+                newcol._createIndex(
+                    oldcolindex.optlevel, oldcolindex.filters,
+                    tmp_dir=None, _indsize=oldcolindex.indsize)
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
@@ -2716,7 +2709,7 @@ class Column(object):
     Public methods
     --------------
 
-    createIndex([optlevel][, filters][,tmp_dir])
+    createIndex([kind][, filters][,tmp_dir])
         Create an index for this column.
     reIndex()
         Recompute the index associated with this column.
@@ -2923,10 +2916,10 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex( self, optlevel=6, filters=None, tmp_dir=None,
-                     _blocksizes=None, _testmode=False, _verbose=False ):
-        """
-        Create an index for this column.
+    def createUltraLightIndex( self, optlevel=3, filters=None,
+                               tmp_dir=None, _blocksizes=None,
+                               _testmode=False, _verbose=False ):
+        """Create an index of kind 'ultralight' for this column.
 
         You can select the optimization level of the index by setting
         `optlevel` from 0 (no optimization) to 9 (maximum optimization).
@@ -2934,19 +2927,127 @@ class Column(object):
         the entropy of the index at the price of using more CPU and I/O
         resources for creating the index.
 
+        For the meaning of `filters` and `tmp_dir` arguments see
+        ``Column.createIndex()``.
+        """
+        return self._createIndex(optlevel, filters, tmp_dir,
+                                 _blocksizes, _indsize=1,
+                                 _testmode=_testmode, _verbose=_verbose)
+
+
+    def createLightIndex( self, optlevel=3, filters=None,
+                           tmp_dir=None, _blocksizes=None,
+                          _testmode=False, _verbose=False ):
+        """Create an index of kind 'light' for this column.
+
+        You can select the optimization level of the index by setting
+        `optlevel` from 0 (no optimization) to 9 (maximum optimization).
+        Higher levels of optimization mean better chances for reducing
+        the entropy of the index at the price of using more CPU and I/O
+        resources for creating the index.
+
+        For the meaning of `filters` and `tmp_dir` arguments see
+        ``Column.createIndex()``.
+        """
+        return self._createIndex(optlevel, filters, tmp_dir,
+                                 _blocksizes, _indsize=2,
+                                 _testmode=_testmode, _verbose=_verbose)
+
+
+    def createMediumIndex( self, optlevel=6, filters=None,
+                           tmp_dir=None,_blocksizes=None,
+                           _testmode=False, _verbose=False ):
+        """Create an index of kind 'medium' for this column.
+
+        You can select the optimization level of the index by setting
+        `optlevel` from 0 (no optimization) to 9 (maximum optimization).
+        Higher levels of optimization mean better chances for reducing
+        the entropy of the index at the price of using more CPU and I/O
+        resources for creating the index.
+
+        For the meaning of `filters` and `tmp_dir` arguments see
+        ``Column.createIndex()``.
+        """
+        return self._createIndex(optlevel, filters, tmp_dir,
+                                 _blocksizes, _indsize=4,
+                                 _testmode=_testmode, _verbose=_verbose)
+
+
+    def createFullIndex( self, optlevel=6, filters=None,
+                          tmp_dir=None, _blocksizes=None,
+                         _testmode=False, _verbose=False ):
+        """Create an index of kind 'full' for this column.
+
+        You can select the optimization level of the index by setting
+        `optlevel` from 0 (no optimization) to 9 (maximum optimization).
+        Higher levels of optimization mean better chances for reducing
+        the entropy of the index at the price of using more CPU and I/O
+        resources for creating the index.
+
+        For the meaning of `filters` and `tmp_dir` arguments see
+        ``Column.createIndex()``.
+        """
+        return self._createIndex(optlevel, filters, tmp_dir,
+                                 _blocksizes, _indsize=8,
+                                 _testmode=_testmode, _verbose=_verbose)
+
+
+    def createIndex( self, kind="medium", filters=None, tmp_dir=None,
+                     _blocksizes=None, _indsize=4,
+                     _testmode=False, _verbose=False ):
+        """
+        Create an index for this column.
+
+        You can select the kind of the index by setting `kind` from
+        'ultralight', 'light', 'medium' or 'full' values.  Lighter kinds
+        ('ultralight' and 'light') mean that the index takes less space
+        on disk.  Heavier kinds ('medium' and 'full') mean better
+        chances for reducing the entropy of the index at the price of
+        using more disk space as well as more CPU and I/O resources for
+        creating the index.
+
         The `filters` argument can be used to set the `Filters` used to
         compress the index.  If ``None``, default index filters will be
         used (currently, zlib level 1 with shuffling).
 
-        When `optlevel` is greater that 0, a temporary file is created
-        during the index build process.  You can use the `tmp_dir`
-        argument to specify the directory for this temporary file.  The
-        default is to create it in the same directory as the file
-        containing the original table.
+        When `kind` is heavier than 'ultralight', a temporary file is
+        created during the index build process.  You can use the
+        `tmp_dir` argument to specify the directory for this temporary
+        file.  The default is to create it in the same directory as the
+        file containing the original table.
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
+        if kind == "ultralight":
+            return self.createUltraLightIndex(
+                filters=filters, tmp_dir=tmp_dir,
+                _blocksizes=_blocksizes,
+                _testmode=_testmode, _verbose=_verbose)
+        elif kind == "light":
+            return self.createLightIndex(
+                filters=filters, tmp_dir=tmp_dir,
+                _blocksizes=_blocksizes,
+                _testmode=_testmode, _verbose=_verbose)
+        elif kind == "medium":
+            return self.createMediumIndex(
+                filters=filters, tmp_dir=tmp_dir,
+                _blocksizes=_blocksizes,
+                _testmode=_testmode, _verbose=_verbose)
+        elif kind == "full":
+            return self.createFullIndex(
+                filters=filters, tmp_dir=tmp_dir,
+                _blocksizes=_blocksizes,
+                _testmode=_testmode, _verbose=_verbose)
 
+        else:
+            raise (ValueError,
+                   "`kind` argument can only be 'ultralight', 'light', 'medium' or 'full'.")
+
+
+    def _createIndex( self, optlevel, filters, tmp_dir,
+                      _blocksizes=None, _indsize=4,
+                      _testmode=False, _verbose=False ):
+        """Private method to call the real index code."""
         _checkIndexingAvailable()
         if (not isinstance(optlevel, (int, long)) or
             (optlevel < 0 or optlevel > 9)):
@@ -2963,7 +3064,8 @@ class Column(object):
             raise (ValueError,
                    "_blocksizes must be a tuple with exactly 4 elements.")
         idxrows = _column__createIndex(self, optlevel, filters, tmp_dir,
-                                       _blocksizes,  _verbose)
+                                       _blocksizes, _indsize,
+                                       _verbose)
         return idxrows
 
 

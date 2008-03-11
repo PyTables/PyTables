@@ -28,26 +28,18 @@ int bisect_left_d(npy_float64 *a, npy_float64 x, int hi, int offset);
 int bisect_right_d(npy_float64 *a, npy_float64 x, int hi, int offset);
 
 
-int keysort_di(npy_float64 *start1, npy_uint32 *start2, long num);
-int keysort_dll(npy_float64 *start1, npy_int64 *start2, long num);
-int keysort_fi(npy_float32 *start1, npy_uint32 *start2, long num);
-int keysort_fll(npy_float32 *start1, npy_int64 *start2, long num);
-int keysort_lli(npy_int64 *start1, npy_uint32 *start2, long num);
-int keysort_llll(npy_int64 *start1, npy_int64 *start2, long num);
-int keysort_ii(npy_int32 *start1, npy_uint32 *start2, long num);
-int keysort_ill(npy_int32 *start1, npy_int64 *start2, long num);
-int keysort_si(npy_int16 *start1, npy_uint32 *start2, long num);
-int keysort_sll(npy_int16 *start1, npy_int64 *start2, long num);
-int keysort_bi(npy_int8 *start1, npy_uint32 *start2, long num);
-int keysort_bll(npy_int8 *start1, npy_int64 *start2, long num);
-int keysort_ulli(npy_uint64 *start1, npy_uint32 *start2, long num);
-int keysort_ullll(npy_uint64 *start1, npy_int64 *start2, long num);
-int keysort_uii(npy_uint32 *start1, npy_uint32 *start2, long num);
-int keysort_uill(npy_uint32 *start1, npy_int64 *start2, long num);
-int keysort_usi(npy_uint16 *start1, npy_uint32 *start2, long num);
-int keysort_usll(npy_uint16 *start1, npy_int64 *start2, long num);
-int keysort_ubi(npy_uint8 *start1, npy_uint32 *start2, long num);
-int keysort_ubll(npy_uint8 *start1, npy_int64 *start2, long num);
+int keysort_f64(npy_float64 *start1, char *start2, npy_intp num, int ts);
+int keysort_f32(npy_float32 *start1, char *start2, npy_intp num, int ts);
+int keysort_i64(npy_int64 *start1, char *start2, npy_intp num, int ts);
+int keysort_u64(npy_uint64 *start1, char *start2, npy_intp num, int ts);
+int keysort_i32(npy_int32 *start1, char *start2, npy_intp num, int ts);
+int keysort_u32(npy_uint32 *start1, char *start2, npy_intp num, int ts);
+int keysort_i16(npy_int16 *start1, char *start2, npy_intp num, int ts);
+int keysort_u16(npy_uint16 *start1, char *start2, npy_intp num, int ts);
+int keysort_i8(npy_int8 *start1, char *start2, npy_intp num, int ts);
+int keysort_u8(npy_uint8 *start1, char *start2, npy_intp num, int ts);
+int keysort_S(char *start1, int ss, char *start2, npy_intp num, int ts);
+
 
 int get_sorted_indices(int nrows, npy_int64 *rbufC,
 		       int *rbufst, int *rbufln, int ssize);

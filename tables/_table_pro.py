@@ -14,17 +14,10 @@ import warnings
 
 import numpy
 
-from tables.parameters import (
-    TABLE_MAX_SIZE, LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE )
 from tables.atom import Atom
-from tables.conditions import call_on_recarr
 from tables.exceptions import NoSuchNodeError
-from tables.flavor import internal_to_flavor
 from tables.index import defaultAutoIndex, defaultIndexFilters, Index
 from tables.leaf import Filters
-from tables.lrucacheExtension import ObjectCache, NumCache
-from tables.utilsExtension import getNestedField
-from tables.numexpr import numexpr
 
 from tables._table_common import _indexPathnameOf
 
@@ -171,124 +164,9 @@ _table__indexFilters = property(
     .. Note:: Column indexing is only available in PyTables Pro.
     """ )
 
-def _table__restorecache(self):
-    # Define a cache for sparse table reads
-    maxslots = TABLE_MAX_SIZE / self.rowsize
-    self._limdatacache = ObjectCache( LIMDATA_MAX_SLOTS, LIMDATA_MAX_SIZE,
-                                      "data limits" )
-    """A cache for data based on table column, search limits and slice."""
-
-def _table__readWhere( self, splitted, condvars, field,
-                       start=None, stop=None, step=None ):
-    idxvar = splitted.index_variable
-    column = condvars[idxvar]
-    index = column.index
-    assert index is not None, "the chosen column is not indexed"
-    assert not index.dirty, "the chosen column has a dirty index"
-
-    # Clean the cache if needed
-    if self._dirtycache:
-        self._restorecache()
-
-    # Get the coordinates to lookup
-    range_ = index.getLookupRange(
-        splitted.index_operators, splitted.index_limits, self )
-
-    # Consider all coordinates or just those in the slice?
-    allcoords = start is stop is step is None  # Rose is a rose is a rose...
-
-    # Check whether the array is in the limdata cache or not.
-    if allcoords:
-        key = (column.name, range_)
-    else:
-        key = (column.name, range_, start, stop, step)
-    limdatacache = self._limdatacache
-    nslot = limdatacache.getslot(key)
-    if nslot >= 0:
-        # Cache hit. Use the array kept there.
-        recarr = limdatacache.getitem(nslot)
-        nrecords = len(recarr)
-    else:
-        # No luck with cached data. Proceed with the regular search.
-        nrecords = index.search(range_)
-        # Create a buffer and read the values in.
-        if nrecords > 0:
-            coords = index.indices._getCoords(index, 0, nrecords)
-            # Remove indexes not in the given range (if specified).
-            if not allcoords:
-                start, stop, step = self._processRangeRead(start, stop, step)
-                coords = sliceCoords(coords, start, stop, step)
-                nrecords = len(coords)
-            recarr = self._get_container(nrecords)
-            recout = self._read_elements(recarr, coords)
-        else:
-            recarr = self._get_container(0)
-        # Put this recarray in limdata cache.
-        size = len(recarr) * self.rowsize + 1  # approx. size of array
-        limdatacache.setitem(key, recarr, size)
-
-    # Filter out rows not fulfilling the residual condition.
-    rescond = splitted.residual_function
-    if rescond and nrecords > 0:
-        indexValid = call_on_recarr(
-            rescond, splitted.residual_parameters,
-            recarr, param2arg=condvars.__getitem__ )
-        recarr = recarr[indexValid]
-
-    if field:
-        recarr = getNestedField(recarr, field)
-    return internal_to_flavor(recarr, self.flavor)
-
-def _table__getWhereList( self, splitted, condvars,
-                          start=None, stop=None, step=None ):
-    idxvar = splitted.index_variable
-    index = condvars[idxvar].index
-    assert index is not None, "the chosen column is not indexed"
-    assert not index.dirty, "the chosen column has a dirty index"
-
-    # get the number of coords and set-up internal variables
-    range_ = index.getLookupRange(
-        splitted.index_operators, splitted.index_limits, self )
-    ncoords = index.search(range_)
-    if ncoords > 0:
-        coords = index.indices._getCoords_sparse(index, ncoords)
-        # Get a copy of the internal buffer to handle it to the user
-        coords = coords.copy()
-    else:
-        #coords = numpy.empty(type=numpy.int64, shape=0)
-        coords = self._getemptyarray("int64")
-
-    # Remove indexes not in the given range (if specified).
-    if not (start is stop is step is None):  # Rose is a rose is a rose...
-        start, stop, step = self._processRangeRead(start, stop, step)
-        coords = sliceCoords(coords, start, stop, step)
-        ncoords = len(coords)
-
-    # Filter out rows not fulfilling the residual condition.
-    rescond = splitted.residual_function
-    if rescond and ncoords > 0:
-        indexValid = call_on_recarr(
-            rescond, splitted.residual_parameters,
-            recarr=self._readCoordinates(coords),
-            param2arg=condvars.__getitem__ )
-        coords = coords[indexValid]
-
-    return coords
-
-_sliceCoordsFunc = numexpr(
-    '(i >= start) & (i < stop) & ((i - start) % step == 0)',
-    [(x, long) for x in ['i', 'start', 'stop', 'step']] )
-def sliceCoords(coords, start, stop, step):
-    """
-    Filter the array of indices `coords` according to a slice.
-
-    `coords` must be a contiguous, aligned array of type ``int64``.
-    """
-    valid = _sliceCoordsFunc(coords, start, stop, step)
-    return coords[valid]
-
 def _column__createIndex(self, optlevel, filters, tmp_dir,
-                         blocksizes, verbose):
+                         blocksizes, indsize,
+                         verbose):
     name = self.name
     table = self.table
     tableName = table._v_name
@@ -358,7 +236,8 @@ def _column__createIndex(self, optlevel, filters, tmp_dir,
         tmp_dir=tmp_dir,
         expectedrows=expectedrows,
         byteorder=table.byteorder,
-        blocksizes=blocksizes)
+        blocksizes=blocksizes,
+        indsize=indsize)
     self._updateIndexLocation(index)
 
     table._setColumnIndexing(self.pathname, True)
@@ -368,7 +247,7 @@ def _column__createIndex(self, optlevel, filters, tmp_dir,
     # Add rows to the index if necessary
     if table.nrows > 0:
         indexedrows = table._addRowsToIndex(
-            self.pathname, 0, table.nrows, lastrow=True )
+            self.pathname, 0, table.nrows, lastrow=True, update=False )
     else:
         indexedrows = 0
     index.dirty = False

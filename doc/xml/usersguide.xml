@@ -8070,17 +8070,21 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             <title><literal>Column</literal> methods</title>
 
             <section id="Column.createIndex" xreflabel="description">
-              <title><literal>createIndex(optlevel=6,
-              filters=None)</literal></title>
+              <title><literal>createIndex(kind="medium",
+              filters=None, tmp_dir=None)</literal></title>
 
               <para>Create an index for this column.</para>
 
-              <para>You can select the optimization level of the index by
-              setting <literal>optlevel</literal> from 0 (no optimization) to
-              9 (maximum optimization).  Higher levels of optimization mean
+              <para>You can select the kind of the index by setting
+              <literal>kind</literal> from <literal>'ultralight'</literal>,
+              <literal>'light'</literal>, <literal>'medium'</literal> or
+              <literal>'full'</literal> values.  Lighter kinds
+              (<literal>'ultralight'</literal> and <literal>'light'</literal>)
+              mean that the index takes less space on disk.  Heavier kinds
+              (<literal>'medium'</literal> and <literal>'full'</literal>) mean
               better chances for reducing the entropy of the index at the
-              price of using more CPU and I/O resources for creating the
-              index.</para>
+              price of using more disk space as well as more CPU and I/O
+              resources for creating the index.</para>
 
               <para>The <literal>filters</literal> argument can be used to set
               the <literal>Filters</literal> (see <xref
@@ -8089,12 +8093,116 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               index filters will be used (currently, zlib level 1 with
               shuffling).</para>
 
-              <para>When <literal>optlevel</literal> is greater that 0, a
-              temporary file is created during the index build process.  You
-              can use the <literal>tmp_dir</literal> argument to specify the
-              directory for this temporary file.  The default is to create it
-              in the same directory as the file containing the original
-              table.</para>
+              <para>When <literal>kind</literal> is heavier than
+              <literal>'ultralight'</literal>, a temporary file is created
+              during the index build process.  You can use the
+              <literal>tmp_dir</literal> argument to specify the directory for
+              this temporary file.  The default is to create it in the same
+              directory as the file containing the original table.</para>
+
+              <note role="pro">
+                <para>Column indexing is only available in PyTables
+                Pro.</para>
+              </note>
+            </section>
+
+            <section id="Column.createUltraLightIndex" xreflabel="description">
+              <title><literal>createUltraLightIndex(optlevel=3,
+              filters=None, tmp_dir=None)</literal></title>
+
+              <para>Create an index of kind <literal>'ultralight'</literal>
+              for this column.</para>
+
+              <para>You can select the optimization level of the index by
+              setting <literal>optlevel</literal> from 0 (no optimization) to
+              9 (maximum optimization).  Higher levels of optimization mean
+              better chances for reducing the entropy of the index at the
+              price of using more CPU and I/O resources for creating the
+              index.</para>
+
+              <para>For the meaning of <literal>filters</literal> and
+              <literal>tmp_dir</literal> arguments see
+              <literal>Column.createIndex()</literal> (<xref
+              linkend="Column.createIndex" xrefstyle="select: label"
+              />).</para>
+
+              <note role="pro">
+                <para>Column indexing is only available in PyTables
+                Pro.</para>
+              </note>
+            </section>
+
+            <section id="Column.createLightIndex" xreflabel="description">
+              <title><literal>createLightIndex(optlevel=3,
+              filters=None, tmp_dir=None)</literal></title>
+
+              <para>Create an index of kind <literal>'light'</literal> for
+              this column.</para>
+
+              <para>You can select the optimization level of the index by
+              setting <literal>optlevel</literal> from 0 (no optimization) to
+              9 (maximum optimization).  Higher levels of optimization mean
+              better chances for reducing the entropy of the index at the
+              price of using more CPU and I/O resources for creating the
+              index.</para>
+
+              <para>For the meaning of <literal>filters</literal> and
+              <literal>tmp_dir</literal> arguments see
+              <literal>Column.createIndex()</literal> (<xref
+              linkend="Column.createIndex" xrefstyle="select: label"
+              />).</para>
+
+              <note role="pro">
+                <para>Column indexing is only available in PyTables
+                Pro.</para>
+              </note>
+            </section>
+
+            <section id="Column.createMediumIndex" xreflabel="description">
+              <title><literal>createMediumIndex(optlevel=6,
+              filters=None, tmp_dir=None)</literal></title>
+
+              <para>Create an index of kind <literal>'medium'</literal>
+              for this column.</para>
+
+              <para>You can select the optimization level of the index by
+              setting <literal>optlevel</literal> from 0 (no optimization) to
+              9 (maximum optimization).  Higher levels of optimization mean
+              better chances for reducing the entropy of the index at the
+              price of using more CPU and I/O resources for creating the
+              index.</para>
+
+              <para>For the meaning of <literal>filters</literal> and
+              <literal>tmp_dir</literal> arguments see
+              <literal>Column.createIndex()</literal> (<xref
+              linkend="Column.createIndex" xrefstyle="select: label"
+              />).</para>
+
+              <note role="pro">
+                <para>Column indexing is only available in PyTables
+                Pro.</para>
+              </note>
+            </section>
+
+            <section id="Column.createFullIndex" xreflabel="description">
+              <title><literal>createFullIndex(optlevel=6,
+              filters=None, tmp_dir=None)</literal></title>
+
+              <para>Create an index of kind <literal>'full'</literal> for this
+              column.</para>
+
+              <para>You can select the optimization level of the index by
+              setting <literal>optlevel</literal> from 0 (no optimization) to
+              9 (maximum optimization).  Higher levels of optimization mean
+              better chances for reducing the entropy of the index at the
+              price of using more CPU and I/O resources for creating the
+              index.</para>
+
+              <para>For the meaning of <literal>filters</literal> and
+              <literal>tmp_dir</literal> arguments see
+              <literal>Column.createIndex()</literal> (<xref
+              linkend="Column.createIndex" xrefstyle="select: label"
+              />).</para>
 
               <note role="pro">
                 <para>Column indexing is only available in PyTables

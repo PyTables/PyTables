@@ -43,6 +43,7 @@ from definitions cimport \
      memcpy, \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, \
      import_array, ndarray, \
+     npy_intp, \
      npy_int8, npy_uint8, \
      npy_int16, npy_uint16, \
      npy_int32, npy_uint32, \
@@ -109,26 +110,17 @@ cdef extern from "idx-opt.h":
   int bisect_left_d(npy_float64 *a, npy_float64 x, int hi, int offset)
   int bisect_right_d(npy_float64 *a, npy_float64 x, int hi, int offset)
 
-  int keysort_di(npy_float64 *start1, npy_uint32 *start2, long num)
-  int keysort_dll(npy_float64 *start1, npy_int64 *start2, long num)
-  int keysort_fi(npy_float32 *start1, npy_uint32 *start2, long num)
-  int keysort_fll(npy_float32 *start1, npy_int64 *start2, long num)
-  int keysort_lli(npy_int64 *start1, npy_uint32 *start2, long num)
-  int keysort_llll(npy_int64 *start1, npy_int64 *start2, long num)
-  int keysort_ii(npy_int32 *start1, npy_uint32 *start2, long num)
-  int keysort_ill(npy_int32 *start1, npy_int64 *start2, long num)
-  int keysort_si(npy_int16 *start1, npy_uint32 *start2, long num)
-  int keysort_sll(npy_int16 *start1, npy_int64 *start2, long num)
-  int keysort_bi(npy_int8 *start1, npy_uint32 *start2, long num)
-  int keysort_bll(npy_int8 *start1, npy_int64 *start2, long num)
-  int keysort_ulli(npy_uint64 *start1, npy_uint32 *start2, long num)
-  int keysort_ullll(npy_uint64 *start1, npy_int64 *start2, long num)
-  int keysort_uii(npy_uint32 *start1, npy_uint32 *start2, long num)
-  int keysort_uill(npy_uint32 *start1, npy_int64 *start2, long num)
-  int keysort_usi(npy_uint16 *start1, npy_uint32 *start2, long num)
-  int keysort_usll(npy_uint16 *start1, npy_int64 *start2, long num)
-  int keysort_ubi(npy_uint8 *start1, npy_uint32 *start2, long num)
-  int keysort_ubll(npy_uint8 *start1, npy_int64 *start2, long num)
+  int keysort_f64(npy_float64 *start1, char *start2, npy_intp num, int ts)
+  int keysort_f32(npy_float32 *start1, char *start2, npy_intp num, int ts)
+  int keysort_i64(npy_int64 *start1, char *start2, npy_intp num, int ts)
+  int keysort_u64(npy_uint64 *start1, char *start2, npy_intp num, int ts)
+  int keysort_i32(npy_int32 *start1, char *start2, npy_intp num, int ts)
+  int keysort_u32(npy_uint32 *start1, char *start2, npy_intp num, int ts)
+  int keysort_i16(npy_int16 *start1, char *start2, npy_intp num, int ts)
+  int keysort_u16(npy_uint16 *start1, char *start2, npy_intp num, int ts)
+  int keysort_i8(npy_int8 *start1, char *start2, npy_intp num, int ts)
+  int keysort_u8(npy_uint8 *start1, char *start2, npy_intp num, int ts)
+  int keysort_S(char *start1, int ss, char *start2, npy_intp num, int ts)
 
   int get_sorted_indices(int nrows, npy_int64 *rbufC,
                          int *rbufst, int *rbufln, int ssize)
@@ -149,94 +141,53 @@ import_array()
 
 # Sorting functions
 def keysort(ndarray array1, ndarray array2):
-  "Sort array1 in-place. array2 is also sorted following the array1 order."
-  cdef long size
+  """Sort array1 in-place. array2 is also sorted following the array1 order.
+
+  array1 can be of any type, except complex or string.  array2 may be made of
+  elements on any size.
+
+  """
+  cdef npy_intp size
+  cdef int elsize1, elsize2
 
   size = array1.size
+  elsize1 = array1.itemsize
+  elsize2 = array2.itemsize
   if array1.dtype == "float64":
-    if array2.dtype == "uint32":
-      return keysort_di(<npy_float64 *>array1.data, <npy_uint32 *>array2.data,
-                        size)
-    else:
-      return keysort_dll(<npy_float64 *>array1.data, <npy_int64 *>array2.data,
-                         size)
+    return keysort_f64(<npy_float64 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "float32":
-    if array2.dtype == "uint32":
-      return keysort_fi(<npy_float32 *>array1.data, <npy_uint32 *>array2.data,
-                        size)
-    else:
-      return keysort_fll(<npy_float32 *>array1.data, <npy_int64 *>array2.data,
-                         size)
+    return keysort_f32(<npy_float32 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "int64":
-    if array2.dtype == "uint32":
-      return keysort_lli(<npy_int64 *>array1.data, <npy_uint32 *>array2.data,
-                         size)
-    else:
-      return keysort_llll(<npy_int64 *>array1.data, <npy_int64 *>array2.data,
-                          size)
+    return keysort_i64(<npy_int64 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "uint64":
-    if array2.dtype == "uint32":
-      return keysort_ulli(<npy_uint64 *>array1.data, <npy_uint32 *>array2.data,
-                          size)
-    else:
-      return keysort_ullll(<npy_uint64 *>array1.data, <npy_int64 *>array2.data,
-                           size)
+    return keysort_u64(<npy_uint64 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "int32":
-    if array2.dtype == "uint32":
-      return keysort_ii(<npy_int32 *>array1.data, <npy_uint32 *>array2.data,
-                        size)
-    else:
-      return keysort_ill(<npy_int32 *>array1.data, <npy_int64 *>array2.data,
-                         size)
+    return keysort_i32(<npy_int32 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "uint32":
-    if array2.dtype == "uint32":
-      return keysort_uii(<npy_uint32 *>array1.data, <npy_uint32 *>array2.data,
-                         size)
-    else:
-      return keysort_uill(<npy_uint32 *>array1.data, <npy_int64 *>array2.data,
-                          size)
+    return keysort_u32(<npy_uint32 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "int16":
-    if array2.dtype == "uint32":
-      return keysort_si(<npy_int16 *>array1.data, <npy_uint32 *>array2.data,
-                        size)
-    else:
-      return keysort_sll(<npy_int16 *>array1.data, <npy_int64 *>array2.data,
-                         size)
+    return keysort_i16(<npy_int16 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "uint16":
-    if array2.dtype == "uint32":
-      return keysort_usi(<npy_uint16 *>array1.data, <npy_uint32 *>array2.data,
-                         size)
-    else:
-      return keysort_usll(<npy_uint16 *>array1.data, <npy_int64 *>array2.data,
-                          size)
+    return keysort_u16(<npy_uint16 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "int8":
-    if array2.dtype == "uint32":
-      return keysort_bi(<npy_int8 *>array1.data, <npy_uint32 *>array2.data,
-                        size)
-    else:
-      return keysort_bll(<npy_int8 *>array1.data, <npy_int64 *>array2.data,
-                         size)
+    return keysort_i8(<npy_int8 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "uint8":
-    if array2.dtype == "uint32":
-      return keysort_ubi(<npy_uint8 *>array1.data, <npy_uint32 *>array2.data,
-                         size)
-    else:
-      return keysort_ubll(<npy_uint8 *>array1.data, <npy_int64 *>array2.data,
-                          size)
+    return keysort_u8(<npy_uint8 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype == "bool":
-    if array2.dtype == "uint32":
-      return keysort_bi(<npy_int8 *>array1.data, <npy_uint32 *>array2.data,
-                        size)
-    else:
-      return keysort_bll(<npy_int8 *>array1.data, <npy_int64 *>array2.data,
-                         size)
+    return keysort_u8(<npy_uint8 *>array1.data, array2.data, size, elsize2)
   elif array1.dtype.char == "S":
-    # The case of strings has been not optimized (it is difficult, although it
-    # should be possible)
-    sidx = array1.argsort()
-    array1[:] = array1[sidx]
-    array2[:] = array2[sidx]
-    return 0
+    return keysort_S(array1.data, elsize1, array2.data, size, elsize2)
+    # As it turns out, an indirect sort is always faster, and much faster on
+    # new processors.  See
+    # http://www.mail-archive.com/numpy-discussion@scipy.org/msg06639.html
+    #
+    # The next takes more memory (the idx array), but for large strings, this
+    # should be negligible.
+    #
+    #sidx = array1.argsort()
+    #array1[:] = array1[sidx]
+    #array2[:] = array2[sidx]
+    #return 0
   else:
     raise ValueError, "This shouldn't happen!"
 
@@ -290,7 +241,7 @@ cdef class IndexArray(Array):
   cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
   cdef void    *rbufC, *rbufA
   cdef hid_t   space_id, mem_space_id
-  cdef int     l_chunksize, l_slicesize, nbounds
+  cdef int     l_chunksize, l_slicesize, nbounds, indsize
   cdef CacheArray bounds_ext
   cdef NumCache boundscache, sortedcache, indicescache
   cdef ndarray arrAbs, coords, bufferbc, bufferlb
@@ -304,8 +255,9 @@ cdef class IndexArray(Array):
 
     # Create buffers for reading reverse index data
     if <object>self.arrAbs is None or len(self.arrAbs) < ncoords:
+      self.indsize = index.indsize
       self.coords = numpy.empty(dtype=numpy.int64, shape=ncoords)
-      self.arrAbs = numpy.empty(dtype=numpy.int64, shape=ncoords)
+      self.arrAbs = numpy.empty(dtype="i%d"%self.indsize, shape=ncoords)
       # Get the pointers to the buffer data area
       self.rbufC = self.coords.data
       self.rbufA = self.arrAbs.data
@@ -322,9 +274,9 @@ cdef class IndexArray(Array):
       self.l_chunksize = index.chunksize
       if <object>self.indicescache is None:
         # Define a LRU cache for indices
-        maxslots = INDICES_MAX_SIZE / (self.l_chunksize*8)
+        maxslots = INDICES_MAX_SIZE / (self.l_chunksize*self.indsize)
         self.indicescache = <NumCache>NumCache(
-          shape=(maxslots, 1), itemsize=8, name="indices")
+          shape=(maxslots, 1), itemsize=self.indsize, name="indices")
 
 
   cdef _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
@@ -333,7 +285,7 @@ cdef class IndexArray(Array):
     cdef npy_int64 *rbufA
 
     # Correct the start of the buffer with offsetl
-    rbufA = <npy_int64 *>self.rbufA + offsetl
+    rbufA = <npy_int64 *>self.rbufA + offsetl*self.indsize
     # Do the physical read
     ##Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
@@ -354,7 +306,7 @@ cdef class IndexArray(Array):
     irow = coord / self.l_slicesize
     icol = coord - irow * self.l_slicesize
     # Do the physical read
-    rbufA = <npy_int64 *>self.rbufA + relcoord
+    rbufA = <npy_int64 *>self.rbufA + relcoord*self.indsize
     if irow < self.nrows:
       # Py_BEGIN_ALLOW_THREADS
       ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id,
@@ -390,7 +342,7 @@ cdef class IndexArray(Array):
       count[0] = 1; count[1] = self.chunksize;
       self.mem_space_id = H5Screate_simple(rank, count, NULL)
       # cache some counters in local extension variables
-      self.l_slicesize = index.slicesize
+      self.l_slicesize = index.shape[1]
       self.l_chunksize = index.chunksize
 
     # Get the addresses of buffer data
@@ -1065,7 +1017,7 @@ cdef class IndexArray(Array):
   def _getCoords_sparse(self, index, long ncoords):
     cdef int nrow, nrows, startl, stopl, lenl, relcoord
     cdef int *rbufst, *rbufln
-    cdef npy_int64 *rbufC, *rbufA
+    cdef npy_int64 *rbufC
     cdef npy_int64 coord
     cdef object nckey
     cdef long nslot
@@ -1075,7 +1027,6 @@ cdef class IndexArray(Array):
     self._initIndexSlice(index, ncoords)
     rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
     rbufC = <npy_int64 *>self.rbufC
-    rbufA = <npy_int64 *>self.rbufA
 
     # Get the sorted indices
     get_sorted_indices(nrows, rbufC, rbufst, rbufln, self.l_slicesize)
@@ -1115,7 +1066,7 @@ cdef class LastRowArray(Array):
     "Read the reverse index part of an LR index."
     cdef npy_int64 *rbufA
 
-    rbufA = <npy_int64 *>indices.rbufA + offsetl
+    rbufA = <npy_int64 *>indices.rbufA + offsetl*indices.indsize
     Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbufA)
     Py_END_ALLOW_THREADS

@@ -10,6 +10,9 @@ NI_NTIMES = 1      # The number of queries for doing a mean (non-idx cols)
 COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
 WARMCACHE = 1500   # The number of reads until the cache is considered 'warmed'
 READ_TIMES = WARMCACHE+500    # The number of complete calls to DB.query_db()
+COLDCACHE = 5   # The number of reads where the cache is considered 'cold'
+WARMCACHE = 10   # The number of reads until the cache is considered 'warmed'
+READ_TIMES = 50    # The number of complete calls to DB.query_db()
 MROW = 1000*1000.
 
 # global variables
@@ -104,7 +107,7 @@ class DB(object):
             arr_i4 = numpy.array(arr_f8, dtype='int32')
         return arr_i4, arr_f8
 
-    def create_db(self, dtype, optlevel, verbose):
+    def create_db(self, dtype, optlevel, idxtype, verbose):
         self.con = self.open_db(remove=1)
         self.create_table(self.con)
         init_size = self.get_db_size()
@@ -112,12 +115,12 @@ class DB(object):
         self.fill_table(self.con)
         table_size = self.get_db_size()
         self.print_mtime(t1, 'Insert time')
-        self.index_db(dtype, optlevel, verbose)
+        self.index_db(dtype, optlevel, idxtype, verbose)
         indexes_size = self.get_db_size()
         self.print_db_sizes(init_size, table_size, indexes_size)
         self.close_db(self.con)
 
-    def index_db(self, dtype, optlevel, verbose):
+    def index_db(self, dtype, optlevel, idxtype, verbose):
         if dtype == "int":
             idx_cols = ['col2']
         elif dtype == "float":
@@ -126,7 +129,7 @@ class DB(object):
             idx_cols = ['col2', 'col4']
         for colname in idx_cols:
             t1=time()
-            self.index_col(self.con, colname, optlevel, verbose)
+            self.index_col(self.con, colname, optlevel, idxtype, verbose)
             self.print_mtime(t1, 'Index time (%s)' % colname)
 
     def query_db(self, niter, dtype, onlyidxquery, onlynonidxquery,
@@ -175,6 +178,8 @@ class DB(object):
                     t1=time()
                     results = self.do_query(self.con, colname, base)
                     ltimes.append(time()-t1)
+                if verbose:
+                    print "Results len:", results
                 self.print_qtime_idx(colname, ltimes, False, verbose)
                 # Always reopen the file after *every* query loop.
                 # Necessary to make the benchmark to run correctly.
@@ -210,7 +215,7 @@ if __name__=="__main__":
     except:
         psyco_imported = 0
 
-    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-k] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-N niter] [-n nrows] [-d datadir] [-O level] [-s] col -Q [suplim]
+    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-k] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-N niter] [-n nrows] [-d datadir] [-O level] [-t idxtype] [-s] col -Q [suplim]
             -T use Pytables
             -S use Sqlite3
             -P use Postgres
@@ -231,15 +236,16 @@ if __name__=="__main__":
             -n sets the number of rows (in krows) in each table
             -d directory to save data (default: data.nobackup)
             -O set the optimization level for PyTables Pro indexes
+            -t select the index type: "medium" (default) or "full", "light", "ultralight"
             -s select a type column for operations ('int' or 'float'. def all)
             -Q do a repeteated query up to 10**value
             \n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfkpmcqiIxz:l:R:N:n:d:O:s:Q:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfkpmcqiIxz:l:R:N:n:d:O:t:s:Q:')
     except:
         sys.stderr.write(usage)
-        sys.exit(0)
+        sys.exit(1)
 
     # default options
     usepytables = 0
@@ -252,6 +258,7 @@ if __name__=="__main__":
     userandom = 0
     docreate = 0
     optlevel = 0
+    idxtype = "medium"
     docompress = 0
     complib = "zlib"
     doquery = False
@@ -312,12 +319,18 @@ if __name__=="__main__":
             datadir = option[1]
         elif option[0] == '-O':
             optlevel = int(option[1])
+        elif option[0] == '-t':
+            if option[1] in ('full', 'medium', 'light', 'ultralight'):
+                idxtype = option[1]
+            else:
+                print "idxtype should be either 'full', 'medium', 'light' or 'ultralight'"
+                sys.exit(1)
         elif option[0] == '-s':
             if option[1] in ('int', 'float'):
                 dtype = option[1]
             else:
                 print "column should be either 'int' or 'float'"
-                sys.exit(0)
+                sys.exit(1)
         elif option[0] == '-Q':
             repeatquery = 1
             repeatvalue = int(option[1])
@@ -328,13 +341,13 @@ if __name__=="__main__":
         print "PyTables: -T"
         print "Sqlite3:  -S"
         print "Postgres: -P"
-        sys.exit(0)
+        sys.exit(1)
 
     # Create the class for the database
     if usepytables:
         from pytables_backend import PyTables_DB
         db = PyTables_DB(krows, rng, userandom, datadir,
-                         docompress, complib, optlevel)
+                         docompress, complib, optlevel, idxtype)
     elif usesqlite3:
         from sqlite3_backend import Sqlite3_DB
         db = Sqlite3_DB(krows, rng, userandom, datadir)
@@ -359,7 +372,7 @@ if __name__=="__main__":
     if docreate:
         if verbose:
             print "writing %s rows" % krows
-        db.create_db(dtype, optlevel, verbose)
+        db.create_db(dtype, optlevel, idxtype, verbose)
 
     if doquery:
         print "Calling query_db() %s times" % niter

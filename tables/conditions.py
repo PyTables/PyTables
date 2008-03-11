@@ -9,13 +9,13 @@ Utility functions and classes for supporting query conditions.
 
 Classes:
 
-`SplittedCondition`
-    Container for an splitted condition.
+`CompileCondition`
+    Container for a compiled condition.
 
 Functions:
 
-`split_condition`
-    Split a condition into indexable and non-indexable parts.
+`compile_condition`
+    Compile a condition and extract usable index conditions.
 `call_on_recarr`
     Evaluate a function over a record array.
 """
@@ -31,20 +31,20 @@ except ImportError:
         return (None, [], [], exprnode)
 
 
-class SplittedCondition(object):
-    """Container for an splitted condition."""
-    def __init__(self, idxvar, idxops, idxlims, resfunc, resparams):
+class CompiledCondition(object):
+    """Container for a compiled condition."""
+    def __init__(self, func, params, idxvar, idxops, idxlims):
+        self.function = func
+        self.parameters = params
         self.index_variable = idxvar
         self.index_operators = idxops
         self.index_limits = idxlims
-        self.residual_function = resfunc
-        self.residual_parameters = resparams
 
     def with_replaced_vars(self, condvars):
         """
         Replace index limit variables with their values.
 
-        A new splitted condition is returned.  Values are taken from
+        A new compiled condition is returned.  Values are taken from
         the `condvars` mapping and converted to Python scalars.
         """
         limit_values = []
@@ -53,9 +53,9 @@ class SplittedCondition(object):
                 idxlim = condvars[idxlim[0]]  # look up value
                 idxlim = idxlim.tolist()  # convert back to Python
             limit_values.append(idxlim)
-        return SplittedCondition(
-            self.index_variable, self.index_operators, limit_values,
-            self.residual_function, self.residual_parameters )
+        return CompiledCondition(
+            self.function, self.parameters,
+            self.index_variable, self.index_operators, limit_values )
 
 def _get_variable_names(expression):
     """Return the list of variable names in the Numexpr `expression`."""
@@ -69,36 +69,36 @@ def _get_variable_names(expression):
             stack.extend(node.children)
     return list(set(names))  # remove repeated names
 
-def split_condition(condition, typemap, indexedcols, copycols):
+def compile_condition(condition, typemap, indexedcols, copycols):
     """
-    Split a condition into indexable and non-indexable parts.
+    Compile a condition and extract usable index conditions.
 
-    Looks for variable-constant comparisons in the condition string
-    `condition` involving the indexed columns whose variable names
-    appear in `indexedcols`.  The *topmost* comparison or comparison
-    pair is splitted apart from the rest of the condition (the
-    *residual condition*) and the resulting `SplittedCondition` is
-    returned.  Thus (for indexed column *c1*):
+    Looks for variable-constant comparisons in the `condition` string
+    involving the indexed columns whose variable names appear in
+    `indexedcols`.  The *topmost* comparison or comparison pair is
+    used to extract usable index conditions, which are returned
+    together with the compiled condition in a `CompiledCondition`.
+    Thus, for an indexed column *c1* (*CC* is the compiled condition):
 
-    * 'c1>0' -> ('c1', ['gt'], [0], None, [])
-    * '(0<c1)&(c1<=1)' -> ('c1', ['gt', 'le'], [0, 1], None, [])
-    * '(0<c1)&(c1<=1)&(c2>2)' -> ('c1',['gt','le'],[0,1],{c2>2},['c2'])
+    * 'c1>0' -> (CC, ['c1'], 'c1', ['gt'], [0])
+    * '(0<c1)&(c1<=1)' -> (CC, ['c1'], 'c1', ['gt', 'le'], [0, 1])
+    * '(0<c1)&(c1<=1)&(c2>2)' -> (CC,['c2','c1'],'c1',['gt','le'],[0,1])
 
-    * 'c2>2' -> (None, [], [],'(c2>2)')
-    * '(c2>2)&(c1<=1)' -> ('c1', ['le'], [1], {c2>2}, ['c2'])
-    * '(0<c1)&(c1<=1)&(c2>2)' -> ('c1',['gt','le'],[0,1],{c2>2},['c2'])
+    * 'c2>2' -> (CC, ['c2'], None, [], [])
+    * '(c2>2)&(c1<=1)' -> (CC, ['c2', 'c1'], 'c1', ['le'], [1])
+    * '(0<c1)&(c1<=1)&(c2>2)' -> (CC,['c2','c1'],'c1',['gt','le'],[0,1])
 
-    * '(c2>2)&(0<c1)&(c1<=1)' -> ('c1',['le'],[1],{(c2>2)&(c1>0)},['c2','c1'])
-    * '(c2>2)&((0<c1)&(c1<=1))' -> ('c1',['gt','le'],[0,1],{c2>2},['c2'])
+    * '(c2>2)&(0<c1)&(c1<=1)' -> (CC, ['c2', 'c1'], 'c1', ['le'], [1])
+    * '(c2>2)&((0<c1)&(c1<=1))' -> (CC,['c2','c1'],'c1',['gt','le'],[0,1])
 
-    * '(0<c1)&(c2>2)&(c1<=1)' -> ('c1',['le'],[1],{(c1>0)&(c2>2)},['c1','c2'])
-    * '(0<c1)&((c2>2)&(c1<=1))'->('c1',['gt'],[0],{(c2>2)&(c1<=1)},['c2','c1'])
+    * '(0<c1)&(c2>2)&(c1<=1)' -> (CC, ['c2','c1'], 'c1', ['le'], [1])
+    * '(0<c1)&((c2>2)&(c1<=1))' -> (CC, ['c2', 'c1'], 'c1', ['gt'], [0])
 
     Expressions such as '0 < c1 <= 1' do not work as expected.  The
     Numexpr types of *all* variables must be given in the `typemap`
-    mapping.  The ``residual_condition`` of the ``SplittedCondition``
-    instance is a Numexpr function object, and the ``residual_params``
-    list indicates the order of its parameters.
+    mapping.  The ``function`` of the resulting `CompiledCondition`
+    instance is a Numexpr function object, and the ``parameters`` list
+    indicates the order of its parameters.
 
     For columns whose variable names appear in `copycols`, an
     additional copy operation is inserted whenever the column is
@@ -107,40 +107,29 @@ def split_condition(condition, typemap, indexedcols, copycols):
     need to be copied by `call_on_recarr()`.).
     """
 
-    def check_boolean(expr):
-        if expr and expr.astKind != 'bool':
-            raise TypeError( "condition ``%s`` does not have a boolean type"
-                             % condition )
-
-    # Get the expression tree and split the indexable part out.
+    # Get the expression tree and extract index conditions.
     expr = stringToExpression(condition, typemap, {})
-    check_boolean(expr)
+    if expr.astKind != 'bool':
+        raise TypeError( "condition ``%s`` does not have a boolean type"
+                         % condition )
     idxvar, idxops, idxlims, resexpr = _split_expression(expr, indexedcols)
-    check_boolean(resexpr)
 
-    # Get the variable names used in the residual condition.
-    # At the same time, build the signature of the residual condition.
-    resfunc, resparams = None, []
-    if resexpr:
-        resvarnames, ressignature = _get_variable_names(resexpr), []
-        for var in resvarnames:
-            ressignature.append((var, typemap[var]))
-        try:
-            # See the comments in `tables.numexpr.evaluate()` for the
-            # reasons of inserting copy operators for unaligned,
-            # *unidimensional* arrays.
-            resfunc = numexpr(resexpr, ressignature, copy_args=copycols)
-        except NotImplementedError, nie:
-            # Try to make this Numexpr error less cryptic.
-            raise _unsupported_operation_error(nie)
-        resparams = resvarnames
-
-    assert idxvar or resfunc, (
-        "no usable indexed column and no residual condition "
-        "after splitting search condition" )
+    # Get the variable names used in the condition.
+    # At the same time, build its signature.
+    varnames = _get_variable_names(expr)
+    signature = [(var, typemap[var]) for var in varnames]
+    try:
+        # See the comments in `tables.numexpr.evaluate()` for the
+        # reasons of inserting copy operators for unaligned,
+        # *unidimensional* arrays.
+        func = numexpr(expr, signature, copy_args=copycols)
+    except NotImplementedError, nie:
+        # Try to make this Numexpr error less cryptic.
+        raise _unsupported_operation_error(nie)
+    params = varnames
 
     # This is more comfortable to handle about than a tuple.
-    return SplittedCondition(idxvar, idxops, idxlims, resfunc, resparams)
+    return CompiledCondition(func, params, idxvar, idxops, idxlims)
 
 def call_on_recarr(func, params, recarr, param2arg=None):
     """

@@ -28,10 +28,6 @@ Misc variables:
 """
 
 __version__ = "$Revision$"
-# default version for IndexARRAY objects
-#obversion = "1.0"    # Initial version for PyTables 1.x series.
-obversion = "2.0"    # Version of indexes in PyTables Pro 2.x series.
-                     # Added new attributes for keeping optimization params.
 
 import types
 import warnings
@@ -56,7 +52,7 @@ class CacheArray(NotLoggedMixin, EArray, indexesExtension.CacheArray):
 
 
 class LastRowArray(NotLoggedMixin, CArray, indexesExtension.LastRowArray):
-    """Container for keeping sorted and indices values of last rows of an index."""
+    """Container for keeping sorted and indices values of last row of an index."""
 
     # Class identifier.
     _c_classId = 'LASTROWARRAY'
@@ -112,7 +108,10 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         self._v_pathname = parentNode._g_join(name)
         if atom is not None:
             # The shape and chunkshape needs to be fixed here
-            shape = (0, parentNode.slicesize)
+            if name == "sorted":
+                shape = (0, parentNode.slicesize/parentNode.reduction)
+            else:
+                shape = (0, parentNode.slicesize)
             chunkshape = (1, parentNode.chunksize)
         else:
             # The shape and chunkshape will be read from disk later on
@@ -124,28 +123,17 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
             chunkshape=chunkshape, byteorder=byteorder)
 
 
-    def append(self, arr):
-        """Append the object to this (enlargeable) object"""
-
-        extent = arr.shape[0]
-        arr.shape = (1, extent)
-        self._append(arr)
-        arr.shape = (extent,)
-
-
     # This version of searchBin uses both ranges (1st level) and
     # bounds (2nd level) caches. It uses a cache for boundary rows,
     # but not for 'sorted' rows (this is only supported for the
-    # 'optimized' types.
+    # 'optimized' types).
     def _searchBin(self, nrow, item):
         item1, item2 = item
         result1 = -1; result2 = -1
-        hi = self.slicesize
+        hi = self.shape[1]
         ranges = self._v_parent.rvcache
         boundscache = self.boundscache
-        #t1=time()
         # First, look at the beginning of the slice
-        #begin, end = ranges[nrow]  # this is slower
         begin = ranges[nrow,0]
         # Look for items at the beginning of sorted slices
         if item1 <= begin:

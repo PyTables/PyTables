@@ -93,8 +93,6 @@ Version: 20051110
 """
 __version__ = '20051110'
 
-import math
-
 import numpy
 
 # need Numeric for h5 <--> netCDF conversion.
@@ -152,7 +150,7 @@ _fillvalue_dict = {'f': 9.9692099683868690e+36,
                    '1': -127,   # (signed char)-127
                    'c': chr(0)} # (char)0
 
-def _quantize(data,least_significant_digit):
+def quantize(data,least_significant_digit):
     """quantize data to improve compression.
     data is quantized using around(scale*data)/scale,
     where scale is 2**bits, and bits is determined from
@@ -637,7 +635,7 @@ class NetCDFVariable:
 
     def __setitem__(self,key,data):
         if hasattr(self,'least_significant_digit'):
-            self._NetCDF_varobj[key] = _quantize(data,self.least_significant_digit)
+            self._NetCDF_varobj[key] = quantize(data,self.least_significant_digit)
         else:
             self._NetCDF_varobj[key] = data
 
@@ -728,7 +726,7 @@ class NetCDFVariable:
                 raise IndexError,'data must either have same number of dimensions as variable, or one less (excluding unlimited dimension)'
         # append the data to the variable object.
         if hasattr(self,'least_significant_digit'):
-            self._NetCDF_varobj.append(_quantize(data,self.least_significant_digit))
+            self._NetCDF_varobj.append(quantize(data,self.least_significant_digit))
         else:
             self._NetCDF_varobj.append(data)
 

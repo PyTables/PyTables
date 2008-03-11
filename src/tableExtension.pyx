@@ -651,19 +651,23 @@ cdef class Row:
   cdef long _row, _unsaved_nrows, _mod_nrows
   cdef hsize_t start, stop, step, nextelement, _nrow
   cdef hsize_t nrowsinbuf, nrows, nrowsread, stopindex
-  cdef hsize_t startb, stopb
+  cdef hsize_t chunksize, nchunksinbuf, totalchunks
+  cdef hsize_t startb, stopb, lenbuf
   cdef long long indexChunk
   cdef int     bufcounter, counter
   cdef int     exist_enum_cols
   cdef int     _riterator, _stride, _rowsize
   cdef int     whereCond, indexed
   cdef int     ro_filemode, chunked
-  cdef int     _bufferinfo_done
+  cdef int     _bufferinfo_done, sss_on
+  cdef ndarray bufcoords, indexValid, indexValues, chunkmap
+  cdef hsize_t *bufcoordsData, *indexValuesData
+  cdef char    *chunkmapData, *indexValidData
   cdef object  dtype
   cdef object  IObuf, IObufcpy
   cdef object  wrec, wreccpy
   cdef object  wfields, rfields
-  cdef object  indexValid, coords, bufcoords, index, indices
+  cdef object  coords, index, indices
   cdef object  condfunc, condargs
   cdef object  mod_elements, colenums
   cdef object  rfieldscache, wfieldscache
@@ -707,6 +711,8 @@ cdef class Row:
     self.colenums = table._colenums
     self.exist_enum_cols = len(self.colenums)
     self.nrowsinbuf = table.nrowsinbuf
+    self.chunksize = table.chunkshape[0]
+    self.nchunksinbuf = self.nrowsinbuf / self.chunksize
     self.dtype = table._v_dtype
     self._newBuffer(table)
     self.mod_elements = None
@@ -715,10 +721,10 @@ cdef class Row:
     self.modified_fields = set()
 
 
-  def _iter(self, start=0, stop=0, step=1, coords=None, ncoords=0):
+  def _iter(self, start=0, stop=0, step=1, coords=None, chunkmap=None):
     """Return an iterator for traversiong the data in table."""
 
-    self._initLoop(start, stop, step, coords, ncoords)
+    self._initLoop(start, stop, step, coords, chunkmap)
     return iter(self)
 
 
@@ -757,7 +763,7 @@ cdef class Row:
 
 
   cdef _initLoop(self, hsize_t start, hsize_t stop, hsize_t step,
-                 object coords, int ncoords):
+                 object coords, object chunkmap):
     "Initialization for the __iter__ iterator"
 
     table = self.table
@@ -783,22 +789,31 @@ cdef class Row:
       self.indexed = 1
       self.index = table.cols._g_col(table._whereIndex).index
       self.indices = self.index.indices
+      # Compute totalchunks here because self.nrows can change during the
+      # life of a Row instance.
+      self.totalchunks = self.nrows / self.chunksize
+      if self.nrows % self.chunksize:
+        self.totalchunks = self.totalchunks + 1
       self.nrowsread = 0
       self.nextelement = 0
+      self.chunkmap = chunkmap
+      self.chunkmapData = <char*>self.chunkmap.data
       table._whereIndex = None
-
-    if self.coords is not None:
-      self.stopindex = coords.size
+      self.lenbuf = self.nrowsinbuf
+      # Check if we have limitations on start, stop, step
+      self.sss_on = (self.start > 0 or self.stop < self.nrows or self.step > 1)
+    elif self.coords is not None:
+      self.stopindex = len(coords)
       self.nrowsread = 0
       self.nextelement = 0
-    elif self.indexed:
-      self.stopindex = ncoords
 
 
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
-    if self.indexed or self.coords is not None:
-      return self.__next__indexed()
+    if self.indexed:
+        return self.__next__indexed()
+    elif self.coords is not None:
+        return self.__next__coords()
     elif self.whereCond:
       return self.__next__inKernel()
     else:
@@ -806,10 +821,89 @@ cdef class Row:
 
 
   cdef __next__indexed(self):
-    """The version of next() for indexed columns or with user coordinates"""
-    cdef int recout
-    cdef long long stop
-    cdef long long nextelement
+    """The version of next() for indexed columns and a chunkmap."""
+    cdef int recout, i, j, nrowstoread, cs, lencoords
+    cdef hsize_t nchunksread, start, nrowsreadold
+    cdef object tmp_range
+
+    assert self.nrowsinbuf >= self.chunksize
+    while self.nextelement < self.stop:
+      if self.nextelement >= self.nrowsread:
+        # Skip until there is interesting information
+        while self.start > self.nrowsread + self.nrowsinbuf:
+          self.nrowsread = self.nrowsread + self.nrowsinbuf
+          self.nextelement = self.nextelement + self.nrowsinbuf
+        j = 0; cs = self.chunksize
+        nrowsreadold = self.nrowsread
+        nchunksread = self.nrowsread / cs
+        tmp_range = numpy.arange(0, cs, dtype='int64')
+        lencoords = self.nchunksinbuf * cs
+        self.bufcoords = numpy.empty(self.nrowsinbuf, dtype='int64')
+        # Fetch valid chunks until the I/O buffer is full
+        while nchunksread < self.totalchunks:
+          if self.chunkmapData[nchunksread]:
+            self.bufcoords[j*cs:(j+1)*cs] = tmp_range + self.nrowsread
+            j = j + 1
+          self.nrowsread = (nchunksread+1)*cs
+          if self.nrowsread > self.stop:
+            if self.chunkmapData[nchunksread]:
+              lencoords = j*cs-(self.nrowsread-self.stop-1)
+            else:
+              lencoords = j*cs
+            self.nrowsread = self.stop
+            break
+          elif j == self.nchunksinbuf:
+            break
+          nchunksread = nchunksread + 1
+        self._row = -1
+        recout = 0;  nrowstoread = cs;
+        self.bufcoordsData = <hsize_t*>self.bufcoords.data
+        for i from 0 <= i < j:
+          if i == j - 1:
+            nrowstoread = lencoords - i * cs
+          recout = recout + self.table._read_records(
+            self.bufcoordsData[i*cs], nrowstoread, self.IObuf[i*cs:])
+        # Evaluate the condition on this table fragment.
+        self.indexValid = call_on_recarr(
+          self.condfunc, self.condargs, self.IObuf[:recout] )
+        self.indexValidData = <char *>self.indexValid.data
+        # Get the valid coordinates in the (start, stop, step) range
+        self.indexValues = self.bufcoords[self.indexValid]
+        self.indexValuesData = <hsize_t *>self.indexValues.data
+        self.lenbuf = self.indexValues.size
+        # Place the valid results at the beginning of the buffer
+        self.IObuf[:self.lenbuf] = self.IObuf[self.indexValid]
+      self._row = self._row + 1
+      # Check whether we have read all the rows in buf
+      if self._row == self.lenbuf:
+        self.nextelement = self.nrowsread
+        # Make _row to point to the last valid entry in buffer
+        # (this is useful for accessing the last row after an iterator loop)
+        self._row = self._row - 1
+        continue
+      self._nrow = self.indexValuesData[self._row]
+      # Check additional conditions on start, stop, step params
+      if self.sss_on:
+        if (self._nrow < self.start or self._nrow >= self.stop):
+          self.nextelement = self.nextelement + 1
+          continue
+        if (self.step > 1 and
+            ((self._nrow - self.start) % self.step > 0)):
+          self.nextelement = self.nextelement + 1
+          continue
+      # Return this row
+      self.nextelement = self._nrow + 1
+      return self
+    else:
+      # All the elements have been read for this mode
+      self._finish_riterator()
+
+
+  cdef __next__coords(self):
+#     """The version of next() for user-required coordinates"""
+    cdef int recout, nrowsread
+    cdef long long stop, nextelement
+    cdef object tmp
 
     while self.nextelement < self.stopindex:
       if self.nextelement >= self.nrowsread:
@@ -818,67 +912,27 @@ cdef class Row:
           stop = self.stopindex-self.nrowsread
         else:
           stop = self.nrowsinbuf
-        if self.coords is not None:
-          self.bufcoords = self.coords[self.nrowsread:self.nrowsread+stop]
-          nrowsread = self.bufcoords.size
-        else:
-          # Optmized version of getCoords in Pyrex
-          self.bufcoords = self.indices._getCoords(self.index,
-                                                   self.nrowsread, stop)
-          nrowsread = self.bufcoords.size
-          tmp = self.bufcoords
-          # If a step was specified, select the strided elements first
-          if tmp.size > 0 and self.step > 1:
-            tmp2=(tmp-self.start) % self.step
-            tmp = tmp[tmp2.__eq__(0)]
-          # Now, select those indices in the range start, stop:
-          if tmp.size > 0 and self.start > 0:
-            # Pyrex can't use the tmp>=number notation when tmp is a numpy
-            # object. Why?
-            tmp = tmp[tmp.__ge__(self.start)]
-          if tmp.size > 0 and self.stop < self.nrows:
-            tmp = tmp[tmp.__lt__(self.stop)]
-          self.bufcoords = tmp
+        tmp = self.coords[self.nrowsread:self.nrowsread+stop]
+        self.bufcoords = numpy.array(tmp, dtype="int64")
+        nrowsread = self.bufcoords.size
         self._row = -1
         if self.bufcoords.size > 0:
           recout = self.table._read_elements(self.IObuf, self.bufcoords)
-          if self.whereCond:
-            # Evaluate the condition on this table fragment.
-            self.indexValid = call_on_recarr(
-              self.condfunc, self.condargs, self.IObuf[:recout] )
-          else:
-            # No residual condition, all selected rows are valid.
-            self.indexValid = numpy.ones(recout, numpy.bool8)
         else:
           recout = 0
+        self.bufcoordsData = <hsize_t*>self.bufcoords.data
         self.nrowsread = self.nrowsread + nrowsread
-        # Correction for elements that are eliminated by its
-        # [start:stop:step] range
         self.nextelement = self.nextelement + nrowsread - recout
         if recout == 0:
           # no items were read, skip out
           continue
       self._row = self._row + 1
-      self._nrow = self.bufcoords[self._row]
+      self._nrow = self.bufcoordsData[self._row]
       self.nextelement = self.nextelement + 1
-      # Return this row if it fullfills the residual condition
-      if self.indexValid[self._row]:
-        return self
+      return self
     else:
-      # Re-initialize the possible cuts in columns
-      self.indexed = 0
-      self.coords = None
       # All the elements have been read for this mode
-      nextelement = self.nrows
-      if nextelement >= self.nrows:
-        self._finish_riterator()
-      else:
-        # Continue the iteration with the __next__inKernel() method
-        self.start = nextelement
-        self.startb = 0
-        self.nrowsread = self.start
-        self._nrow = self.start - self.step
-        return self.__next__inKernel()
+      self._finish_riterator()
 
 
   cdef __next__inKernel(self):
@@ -907,7 +961,7 @@ cdef class Row:
         self.indexValid = call_on_recarr(
           self.condfunc, self.condargs, self.IObuf[:recout] )
 
-        # Is still there any interesting information in this buffer?
+        # Is there any interesting information in this buffer?
         if not numpy.sometrue(self.indexValid):
           # No, so take the next one
           if self.step >= self.nrowsinbuf:
@@ -919,6 +973,7 @@ cdef class Row:
               correct = (self.nextelement - self.start) % self.step
               self.nextelement = self.nextelement + self.step - correct
           continue
+        self.indexValidData = <char *>self.indexValid.data
 
       self._row = self._row + self.step
       self._nrow = self.nextelement
@@ -929,7 +984,7 @@ cdef class Row:
       self.nextelement = self._nrow + self.step
       # Return only if this value is interesting
       self.indexChunk = self.indexChunk + self.step
-      if self.indexValid[self.indexChunk]:
+      if self.indexValidData[self.indexChunk]:
         return self
     else:
       self._finish_riterator()
@@ -977,7 +1032,7 @@ cdef class Row:
     # Make a copy of the last read row in the private record
     # (this is useful for accessing the last row after an iterator loop)
     if self._row >= 0:
-        self.wrec[:] = self.IObuf[self._row]
+      self.wrec[:] = self.IObuf[self._row]
     self._riterator = 0        # out of iterator
     if self._mod_nrows > 0:    # Check if there is some modified row
       self._flushModRows()     # Flush any possible modified row
@@ -992,7 +1047,7 @@ cdef class Row:
     cdef object fields
 
     # We can't reuse existing buffers in this context
-    self._initLoop(start, stop, step, None, 0)
+    self._initLoop(start, stop, step, None, None)
     istart, istop, istep = (self.start, self.stop, self.step)
     inrowsinbuf, inextelement, inrowsread = (self.nrowsinbuf, istart, istart)
     istartb, startr = (self.startb, 0)

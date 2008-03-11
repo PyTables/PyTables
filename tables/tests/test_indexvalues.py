@@ -3,6 +3,7 @@ import os
 import tempfile
 import warnings
 import random
+import new
 
 import numpy
 
@@ -24,7 +25,6 @@ small_blocksizes = (16, 8, 4, 2)  # This params runs a bit faster but...
 # The size for medium indexes
 minRowIndex = 1000
 
-
 class Small(IsDescription):
     var1 = StringCol(itemsize=4, dflt="")
     var2 = BoolCol(dflt=0)
@@ -36,12 +36,16 @@ class SelectValuesTestCase(unittest.TestCase):
     complib = "zlib"
     shuffle = 1
     fletcher32 = 0
+    chunkshape = 10
     buffersize = 0
     random = 0
     values = None
+    reopen = False
 
     def setUp(self):
         # Create an instance of an HDF5 Table
+        if verbose:
+            print "Checking index type-->", self.idxtype
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
         self.rootgroup = self.fileh.root
@@ -61,14 +65,11 @@ class SelectValuesTestCase(unittest.TestCase):
                           shuffle = self.shuffle,
                           fletcher32 = self.fletcher32)
         table1 = self.fileh.createTable(group, 'table1', Small, title,
-                                        filters, self.nrows)
+                                        filters, self.nrows,
+                                        chunkshape=(self.chunkshape,))
         table2 = self.fileh.createTable(group, 'table2', Small, title,
-                                        filters, self.nrows)
-        # Select small value for table buffers
-        if self.buffersize:
-            # Change the buffersize by default
-            table1.nrowsinbuf = self.buffersize
-        #table2.nrowsinbuf = self.buffersize  # This is not necessary
+                                        filters, self.nrows,
+                                        chunkshape=(self.chunkshape,))
         count = 0
         for i in xrange(0, self.nrows, self.nrep):
             for j in range(self.nrep):
@@ -94,14 +95,20 @@ class SelectValuesTestCase(unittest.TestCase):
                 count += 1
         table1.flush()
         table2.flush()
+        if self.buffersize:
+            # Change the buffersize by default
+            table1.nrowsinbuf = self.buffersize
         # Index all entries:
         for col in table1.colinstances.itervalues():
-            if not heavy:
-                indexrows = col.createIndex(_blocksizes=self.blocksizes)
-            else:
-                # Do optimization only with heavy tests
-                indexrows = col.createIndex(optlevel=9,
-                                            _blocksizes=self.blocksizes)
+            if self.idxtype == "Full":
+                indexrows = col.createFullIndex(_blocksizes=self.blocksizes)
+            elif self.idxtype == "Medium":
+                indexrows = col.createMediumIndex(_blocksizes=self.blocksizes)
+            elif self.idxtype == "Light":
+                indexrows = col.createLightIndex(_blocksizes=self.blocksizes)
+            elif self.idxtype == "UltraLight":
+                indexrows = col.createUltraLightIndex(
+                    _blocksizes=self.blocksizes)
         if verbose:
             print "Number of written rows:", table1.nrows
             print "Number of indexed rows:", indexrows
@@ -355,8 +362,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # order)
         results1.sort(); results2.sort()
         if verbose:
-            print "Selection results (index):", results1
-            print "Should look like:", results2
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -418,8 +425,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limit:", sl
-            print "Selection results (index):", results1
-            print "Should look like:", results2
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -499,8 +506,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limit:", sl
-            print "Selection results (index):", results1
-            print "Should look like:", results2
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -580,8 +587,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limit:", sl
-            print "Selection results (index):", results1
-            print "Should look like:", results2
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1254,8 +1261,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # order)
         results1.sort(); results2.sort()
         if verbose:
-            print "Selection results (index):", results1
-            print "Should look like:", results2
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1273,8 +1280,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # order)
         results1.sort(); results2.sort()
         if verbose:
-            print "Selection results (index):", results1
-            print "Should look like:", results2
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1292,8 +1299,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # order)
         results1.sort(); results2.sort()
         if verbose:
-            print "Selection results (index):", results1
-            print "Should look like:", results2
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1313,8 +1320,8 @@ class SelectValuesTestCase(unittest.TestCase):
         # order)
         results1.sort(); results2.sort()
         if verbose:
-            print "Selection results (index):", results1
-            print "Should look like:", results2
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1441,8 +1448,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] <= sl]
         if verbose:
             print "Limit:", sl
-            print "Selection results (in-kernel):", results1
-            print "Should look like:", results2
+#             print "Selection results (in-kernel):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1457,8 +1464,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il<p["var1"]<sl]
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (in-kernel):", results1
-            print "Should look like:", results2
+#             print "Selection results (in-kernel):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1474,8 +1481,8 @@ class SelectValuesTestCase(unittest.TestCase):
         if verbose:
             print "Limits:", il, sl
             print "Limit:", sl
-            print "Selection results (in-kernel):", results1
-            print "Should look like:", results2
+#             print "Selection results (in-kernel):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1507,8 +1514,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var1"] >= sl]
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (in-kernel):", results1
-            print "Should look like:", results2
+#             print "Selection results (in-kernel):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1542,8 +1549,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] < sl]
         if verbose:
             print "Limit:", sl
-            print "Selection results (in-kernel):", results1
-            print "Should look like:", results2
+#             print "Selection results (in-kernel):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1558,8 +1565,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il < p["var4"] <= sl]
         if verbose:
             print "Limit:", sl
-            print "Selection results (in-kernel):", results1
-            print "Should look like:", results2
+#             print "Selection results (in-kernel):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1574,8 +1581,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if il <= p["var4"] <= sl]
         if verbose:
             print "Limit:", sl
-            print "Selection results (in-kernel):", results1
-            print "Should look like:", results2
+#             print "Selection results (in-kernel):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1590,8 +1597,8 @@ class SelectValuesTestCase(unittest.TestCase):
                     if p["var4"] >= sl]
         if verbose:
             print "Limit:", sl
-            print "Selection results (in-kernel):", results1
-            print "Should look like:", results2
+#             print "Selection results (in-kernel):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1629,8 +1636,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1648,8 +1655,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1667,8 +1674,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1686,8 +1693,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1725,8 +1732,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1744,8 +1751,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1763,8 +1770,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1782,8 +1789,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1817,8 +1824,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1836,8 +1843,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1855,8 +1862,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1874,8 +1881,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1894,8 +1901,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1930,8 +1937,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1949,8 +1956,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1968,8 +1975,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -1988,8 +1995,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -2025,8 +2032,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -2044,8 +2051,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -2063,8 +2070,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -2082,8 +2089,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -2119,8 +2126,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -2138,8 +2145,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -2157,8 +2164,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -2176,8 +2183,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results1.sort(); results2.sort()
         if verbose:
             print "Limits:", il, sl
-            print "Selection results (indexed):", results1
-            print "Should look like:", results2
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -2288,8 +2295,8 @@ class SelectValuesTestCase(unittest.TestCase):
         results2 = [p["var2"] for p in table2
                     if p["var2"] == True]
         if verbose:
-            print "Selection results (index):", results1
-            print "Should look like:", results2
+#             print "Selection results (index):", results1
+#             print "Should look like:", results2
             print "Length results:", len(results1)
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
@@ -2338,7 +2345,8 @@ class SelectValuesTestCase(unittest.TestCase):
 
 class SV1aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
-    buffersize = 1
+    chunkshape = 1
+    buffersize = 2
     ss = blocksizes[2]; nrows = ss
     reopen = 0
     nrep = ss
@@ -2347,10 +2355,12 @@ class SV1aTestCase(SelectValuesTestCase):
 
 class SV1bTestCase(SV1aTestCase):
     blocksizes = calcChunksize(minRowIndex, memlevel=1)
-    buffersize = 10
+    chunkshape = blocksizes[2]/2**9
+    buffersize = chunkshape*5
 
 class SV2aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
+    chunkshape = 2
     buffersize = 2
     ss = blocksizes[2]; nrows = ss*2-1
     reopen = 1
@@ -2360,10 +2370,12 @@ class SV2aTestCase(SelectValuesTestCase):
 
 class SV2bTestCase(SV2aTestCase):
     blocksizes = calcChunksize(minRowIndex, memlevel=1)
-    buffersize = 20
+    chunkshape = blocksizes[2]/2**7
+    buffersize = chunkshape*20
 
 class SV3aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
+    chunkshape = 2
     buffersize = 3
     ss = blocksizes[2]; nrows = ss*5-1
     reopen = 1
@@ -2373,7 +2385,10 @@ class SV3aTestCase(SelectValuesTestCase):
 
 class SV3bTestCase(SV3aTestCase):
     blocksizes = calcChunksize(minRowIndex, memlevel=1)
-    buffersize = 33
+#    chunkshape = 4
+#    buffersize = 16
+    chunkshape = 3
+    buffersize = 9
 
 class SV4aTestCase(SelectValuesTestCase):
     blocksizes = small_blocksizes
@@ -2387,6 +2402,7 @@ class SV4aTestCase(SelectValuesTestCase):
 
 class SV4bTestCase(SV4aTestCase):
     blocksizes = calcChunksize(minRowIndex, memlevel=1)
+    chunkshape = 500
     buffersize = 1000
 
 class SV5aTestCase(SelectValuesTestCase):
@@ -2427,6 +2443,7 @@ class SV7bTestCase(SV7aTestCase):
 
 class SV8aTestCase(SelectValuesTestCase):
     random = 0
+    chunkshape = 1
     blocksizes = small_blocksizes
     ss = blocksizes[2]; nrows = ss*5-3
     reopen = 0
@@ -2455,6 +2472,7 @@ class SV9bTestCase(SV9aTestCase):
 class SV10aTestCase(SelectValuesTestCase):
     random = 1
     blocksizes = small_blocksizes
+    chunkshape = 1
     buffersize = 1
     ss = blocksizes[2]; nrows = ss
     reopen = 0
@@ -2464,6 +2482,8 @@ class SV10aTestCase(SelectValuesTestCase):
 
 class SV10bTestCase(SV10aTestCase):
     blocksizes = calcChunksize(minRowIndex, memlevel=1)
+    chunkshape = 5
+    buffersize = 6
 
 class SV11aTestCase(SelectValuesTestCase):
     # This checks a special case that failed. It was discovered in a
@@ -2471,6 +2491,7 @@ class SV11aTestCase(SelectValuesTestCase):
     # to always check that specific case.
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     blocksizes = small_blocksizes
+    chunkshape = 1
     buffersize = 1
     ss = blocksizes[2]; nrows = ss
     reopen = 0
@@ -2483,6 +2504,7 @@ class SV11bTestCase(SelectValuesTestCase):
     # random test above (SV10a). It is explicitely put here as a way
     # to always check that specific case.
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
+    chunkshape = 2
     buffersize = 2
     blocksizes = calcChunksize(minRowIndex, memlevel=1)
     ss = blocksizes[2]; nrows = ss
@@ -2498,6 +2520,7 @@ class SV12aTestCase(SelectValuesTestCase):
     #values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
     blocksizes = small_blocksizes
+    chunkshape = 1
     buffersize = 1
     ss = blocksizes[2]; nrows = ss
     reopen = 0
@@ -2512,6 +2535,7 @@ class SV12bTestCase(SelectValuesTestCase):
     #values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     values = [4, 4, 1, 5, 2, 0, 1, 4, 3, 9]
     blocksizes = calcChunksize(minRowIndex, memlevel=1)
+    chunkshape = 2
     buffersize = 2
     ss = blocksizes[2]; nrows = ss
     reopen = 1
@@ -2522,6 +2546,7 @@ class SV12bTestCase(SelectValuesTestCase):
 class SV13aTestCase(SelectValuesTestCase):
     values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     blocksizes = small_blocksizes
+    chunkshape = 3
     buffersize = 5
     ss = blocksizes[2]; nrows = ss
     reopen = 0
@@ -2532,6 +2557,7 @@ class SV13aTestCase(SelectValuesTestCase):
 class SV13bTestCase(SelectValuesTestCase):
     values = [0, 7, 0, 6, 5, 1, 6, 7, 0, 0]
     blocksizes = calcChunksize(minRowIndex, memlevel=1)
+    chunkshape = 5
     buffersize = 10
     ss = blocksizes[2]; nrows = ss
     reopen = 1
@@ -2542,6 +2568,7 @@ class SV13bTestCase(SelectValuesTestCase):
 class SV14aTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     blocksizes = small_blocksizes
+    chunkshape = 2
     buffersize = 5
     ss = blocksizes[2]; nrows = ss
     reopen = 0
@@ -2553,6 +2580,7 @@ class SV14aTestCase(SelectValuesTestCase):
 class SV14bTestCase(SelectValuesTestCase):
     values = [1, 7, 6, 7, 0, 7, 4, 4, 9, 5]
     blocksizes = calcChunksize(minRowIndex, memlevel=1)
+    chunkshape = 9
     buffersize = 10
     ss = blocksizes[2]; nrows = ss
     reopen = 1
@@ -2622,52 +2650,79 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
     fp.close()
     os.remove(filename)
 
+normal_tests = (
+    "SV1aTestCase", "SV2aTestCase", "SV3aTestCase",
+    )
+
+heavy_tests = (
+    # The next are too hard to be in the 'normal' suite
+    "SV1bTestCase", "SV2bTestCase", "SV3bTestCase",
+    "SV4aTestCase", "SV5aTestCase", "SV6aTestCase",
+    "SV7aTestCase", "SV8aTestCase", "SV9aTestCase",
+    "SV10aTestCase", "SV11aTestCase", "SV12aTestCase",
+    "SV13aTestCase", "SV14aTestCase", "SV15aTestCase",
+    # This are properly heavy
+    "SV4bTestCase", "SV5bTestCase", "SV6bTestCase",
+    "SV7bTestCase", "SV8bTestCase", "SV9bTestCase",
+    "SV10bTestCase", "SV11bTestCase", "SV12bTestCase",
+    "SV13bTestCase", "SV14bTestCase", "SV15bTestCase",
+    )
+
+
+# Base classes for the different type index.
+class UltraLightITableMixin:
+    idxtype = "UltraLight"
+class LightITableMixin:
+    idxtype = "Light"
+class MediumITableMixin:
+    idxtype = "Medium"
+class FullITableMixin:
+    idxtype = "Full"
+
+# Parameters for indexed queries.
+idxtypes = ['UltraLight', 'Light', 'Medium', 'Full']
+testlevels = ['Normal', 'Heavy']
+
+# Indexed queries: ``[ULMF]I[NH]SVXYTestCase``, where:
+#
+# 1. U is for 'UltraLight', L for 'Light', M for 'Medium', F for 'Full' indexes
+# 2. N is for 'Normal', H for 'Heavy' tests
+def iclassdata():
+    for idxtype in idxtypes:
+        for ctest in normal_tests + heavy_tests:
+            heavy = ctest in heavy_tests
+            classname = '%sI%s%s' % (idxtype[0], testlevels[heavy][0], ctest)
+            # Uncomment the next one and comment the past one if one
+            # don't want to include the methods (testing purposes only)
+            ###cbasenames = ( '%sITableMixin' % idxtype, "object")
+            cbasenames = ( '%sITableMixin' % idxtype, ctest)
+            classdict = dict(heavy=heavy)
+            yield (classname, cbasenames, classdict)
+
+
+# Create test classes.
+for (cname, cbasenames, cdict) in iclassdata():
+    cbases = tuple(eval(cbase) for cbase in cbasenames)
+    class_ = new.classobj(cname, cbases, cdict)
+    exec '%s = class_' % cname
+
+
 # -----------------------------
 
 def suite():
     theSuite = unittest.TestSuite()
 
-    # Default is to run light benchmarks
     niter = 1
-    #heavy = 1  # Uncomment this only for testing purposes!
 
-    #theSuite.addTest(unittest.makeSuite(SV15bTestCase))
-    #theSuite.addTest(unittest.makeSuite(SV4aTestCase))
-    #theSuite.addTest(unittest.makeSuite(SV1bTestCase))
     for n in range(niter):
-        theSuite.addTest(unittest.makeSuite(SV1aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV2aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV3aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV4aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV7aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV8aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV10aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV11aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV12aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV13aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV14aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV15aTestCase))
-        theSuite.addTest(unittest.makeSuite(LastRowReuseBuffers))
-    if heavy:
-        theSuite.addTest(unittest.makeSuite(SV1bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV2bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV3bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV4bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV5bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV6bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV7bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV8bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV9bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV10bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV11bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV12bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV13bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV14bTestCase))
-        theSuite.addTest(unittest.makeSuite(SV15bTestCase))
-        # The next are too hard to be above
-        theSuite.addTest(unittest.makeSuite(SV5aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV6aTestCase))
-        theSuite.addTest(unittest.makeSuite(SV9aTestCase))
+        for cdata in iclassdata():
+            class_ = eval(cdata[0])
+            if not class_.heavy:
+                suite_ = unittest.makeSuite(class_)
+                theSuite.addTest(suite_)
+            elif heavy:
+                suite_ = unittest.makeSuite(class_)
+                theSuite.addTest(suite_)
 
     return theSuite
 

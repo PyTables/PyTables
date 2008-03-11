@@ -6,15 +6,16 @@ from time import time
 class PyTables_DB(DB):
 
     def __init__(self, nrows, rng, userandom, datadir,
-                 docompress=0, complib='zlib', optlevel=0):
+                 docompress=0, complib='zlib', optlevel=0,
+                 idxtype="medium"):
         DB.__init__(self, nrows, rng, userandom)
         # Specific part for pytables
         self.docompress = docompress
         self.complib = complib
         # Complete the filename
         self.filename = "pro-" + self.filename
-        if optlevel > 0:
-            self.filename += '-' + 'O%s' % optlevel
+        self.filename += '-' + 'O%s' % optlevel
+        self.filename += '-' + idxtype
         if docompress:
             self.filename += '-' + complib + str(docompress)
         self.filename = datadir + '/' + self.filename + '.h5'
@@ -60,11 +61,20 @@ class PyTables_DB(DB):
             j += 1
         table.flush()
 
-    def index_col(self, con, column, optlevel, verbose):
+    def index_col(self, con, column, optlevel, idxtype, verbose):
         col = getattr(con.root.table.cols, column)
-        col.createIndex(optlevel=optlevel, filters=self.filters,
-                        _verbose=verbose,
-                        _blocksizes=None)
+        if idxtype == "full":
+            col.createFullIndex(optlevel=optlevel, filters=self.filters,
+                                _verbose=verbose, _blocksizes=None)
+        elif idxtype == "medium":
+            col.createMediumIndex(optlevel=optlevel, filters=self.filters,
+                                  _verbose=verbose, _blocksizes=None)
+        elif idxtype == "light":
+            col.createLightIndex(optlevel=optlevel, filters=self.filters,
+                                 _verbose=verbose, _blocksizes=None)
+        elif idxtype == "ultralight":
+            col.createUltraLightIndex(optlevel=optlevel, filters=self.filters,
+                                      _verbose=verbose, _blocksizes=None)
 #                       _blocksizes=(2**27, 2**22, 2**15, 2**7))
 #                       _blocksizes=(2**27, 2**22, 2**14, 2**6))
 #                       _blocksizes=(2**27, 2**20, 2**13, 2**5),
@@ -75,6 +85,7 @@ class PyTables_DB(DB):
             if not hasattr(self, "table_cache"):
                 self.table_cache = table = con.root.table
                 self.colobj = getattr(table.cols, column)
+                #self.colobj = getattr(table.cols, 'col1')
                 self.condvars = {"col": self.colobj,
                                  "col1": table.cols.col1,
                                  "col2": table.cols.col2,
@@ -95,6 +106,9 @@ class PyTables_DB(DB):
         self.condvars['inf'] = self.rng[0]+base
         self.condvars['sup'] = self.rng[1]+base
         condition = "(inf<=col) & (col<=sup)"
+        #condition += " & (sqrt(col1+3.1*col2+col3*col4) > 3)"
+        #condition += " & (col2*(col3+3.1)+col3*col4 > col1)"
+#        condition = "(inf<=col) & (col<=sup) & (col3 >= 0)"
 #         condition = "(%s<=col) & (col<=%s)" % \
 #                     (self.rng[0]+base, self.rng[1]+base)
         # condition = "(%s<=col1*col2) & (col3*col4<=%s)" % \

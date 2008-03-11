@@ -228,12 +228,29 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if not self.indexed:
             return
         try:
-            vprint("* Indexing ``%s`` columns." % colname)
+            idxtype = self.idxtype
+            vprint("* Indexing ``%s`` columns. Type: %s." % (colname, idxtype))
             for acolname in [colname, ncolname]:
                 acolumn = self.table.colinstances[acolname]
-                acolumn.createIndex(optlevel=self.optlevel,
-                                    _blocksizes=small_blocksizes,
-                                    _testmode=True)
+                if idxtype == "Full":
+                    acolumn.createFullIndex(optlevel=self.optlevel,
+                                            _blocksizes=small_blocksizes,
+                                            _testmode=True)
+                elif idxtype == "Medium":
+                    acolumn.createMediumIndex(optlevel=self.optlevel,
+                                              _blocksizes=small_blocksizes,
+                                              _testmode=True)
+                elif idxtype == "Light":
+                    acolumn.createLightIndex(optlevel=self.optlevel,
+                                             _blocksizes=small_blocksizes,
+                                             _testmode=True)
+                elif idxtype == "UltraLight":
+                    acolumn.createUltraLightIndex(optlevel=self.optlevel,
+                                                  _blocksizes=small_blocksizes,
+                                                  _testmode=True)
+                else:
+                    raise common.SkipTest(
+                        "Indexing type ``%s`` is not supported yet." % idxtype )
 
         except TypeError, te:
             if self.colNotIndexable_re.search(str(te)):
@@ -415,7 +432,8 @@ for type_ in type_info:  # for type_ in ['string']:
             # The test number is appended to the docstring to help
             # identify failing methods in non-verbose mode.
             tmethod.__name__ = testfmt % testn
-            tmethod.__doc__ += numfmt % testn
+            #tmethod.__doc__ += numfmt % testn
+            tmethod.__doc__ += testfmt % testn
             ptmethod = common.pyTablesTest(tmethod)
             imethod = new.instancemethod(ptmethod, None, TableDataTestCase)
             setattr(TableDataTestCase, tmethod.__name__, imethod)
@@ -458,36 +476,53 @@ def niclassdata():
             yield (classname, cbasenames, classdict)
 
 
-# Base classes for indexed queries.
-class SmallITableMixin:
-    nrows = 50
+# Base classes for the different type index.
+class UltraLightITableMixin:
+    idxtype = "UltraLight"
+class LightITableMixin:
+    idxtype = "Light"
 class MediumITableMixin:
+    idxtype = "Medium"
+class FullITableMixin:
+    idxtype = "Full"
+
+# Base classes for indexed queries.
+class SmallSTableMixin:
+    nrows = 50
+class MediumSTableMixin:
     nrows = 100
-class BigITableMixin:
+class BigSTableMixin:
     nrows = 500
 
 # Parameters for indexed queries.
+idxtypes = ['UltraLight', 'Light', 'Medium', 'Full']
 itable_sizes = ['Small', 'Medium', 'Big']
 heavy_itable_sizes = frozenset(['Medium', 'Big'])
 itable_optvalues = [0, 1, 3, 7, 9]
-heavy_itable_optvalues = frozenset([7, 9])
+heavy_itable_optvalues = frozenset([0, 1, 7, 9])
 
-# Indexed queries: ``[SMB]I[01379]TDTestCase``, where:
+# Indexed queries: ``[SMB]I[ULMF]O[01379]TDTestCase``, where:
 #
 # 1. S is for small, M for medium and B for big size table.
 #    Sizes are listed in `itable_sizes`.
-# 2. 0 to 9 is the desired index optimization level.
+# 2. U is for 'UltraLight', L for 'Light', R for 'Medium', F for 'Full' indexes
+#    Index types are listed in `idxtypes`.
+# 3. 0 to 9 is the desired index optimization level.
 #    Optimizations are listed in `itable_optvalues`.
 def iclassdata():
-    for size in itable_sizes:
-        for optlevel in itable_optvalues:
-            heavy = ( optlevel in heavy_itable_optvalues
-                      or size in heavy_itable_sizes )
-            classname = '%sI%dTDTestCase' % (size[0], optlevel)
-            cbasenames = ( '%sITableMixin' % size, 'ScalarTableMixin',
-                           'TableDataTestCase' )
-            classdict = dict(heavy=heavy, optlevel=optlevel, indexed=True)
-            yield (classname, cbasenames, classdict)
+    for idxtype in idxtypes:
+        for size in itable_sizes:
+            for optlevel in itable_optvalues:
+                heavy = ( optlevel in heavy_itable_optvalues
+                          or size in heavy_itable_sizes )
+                classname = '%sI%sO%dTDTestCase' % (
+                    size[0], idxtype[0], optlevel)
+                cbasenames = ( '%sSTableMixin' % size,
+                               '%sITableMixin' % idxtype,
+                               'ScalarTableMixin',
+                               'TableDataTestCase' )
+                classdict = dict(heavy=heavy, optlevel=optlevel, indexed=True)
+                yield (classname, cbasenames, classdict)
 
 
 # Create test classes.

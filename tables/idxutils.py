@@ -67,11 +67,12 @@ def computeslicesize(expectedrows, memlevel):
     # We *need* slicesize to be an exact multiple of the actual chunksize
     ss = (ss // chunksize) * chunksize
     ss *= 4    # slicesize should be at least divisible by 4
-    # ss cannot be bigger than 2**32 - 1 elements because of
-    # implementation reasons (this limitation can be overridden when
-    # keysort would be implemented for the string type)
-    if ss >= 2**32:
-        ss = 2**32 - 2
+    # ss cannot be bigger than 2**31 - 1 elements because of fundamental
+    # reasons (this limitation comes mainly from the way of compute
+    # indices for indexes, but also because C keysort is not implemented
+    # yet for the string type)
+    if ss >= 2**31:
+        ss = 2**30   # because it should be a multiple of 4
     return ss
 
 
@@ -93,7 +94,7 @@ def computeblocksize(expectedrows, compoundsize, lowercompoundsize):
     return size
 
 
-def calcChunksize(expectedrows, optlevel=6, memlevel=4):
+def calcChunksize(expectedrows, optlevel=6, indsize=4, memlevel=4):
     """Calculate the HDF5 chunk size for index and sorted arrays.
 
     The logic to do that is based purely in experiments playing with
@@ -105,7 +106,43 @@ def calcChunksize(expectedrows, optlevel=6, memlevel=4):
 
     chunksize = computechunksize(expectedrows)
     slicesize = computeslicesize(expectedrows, memlevel)
+
     # Correct the slicesize and the chunksize based on optlevel
+    if indsize == 1:  # ultralight
+        chunksize, slicesize = ccs_ultralight(optlevel, chunksize, slicesize)
+    elif indsize == 2:  # light
+        chunksize, slicesize = ccs_light(optlevel, chunksize, slicesize)
+    elif indsize == 4:  # medium
+        chunksize, slicesize = ccs_medium(optlevel, chunksize, slicesize)
+    elif indsize == 8:  # full
+        chunksize, slicesize = ccs_full(optlevel, chunksize, slicesize)
+
+    # Finally, compute blocksize and superblocksize
+    blocksize = computeblocksize(expectedrows, slicesize, chunksize)
+    superblocksize = computeblocksize(expectedrows, blocksize, slicesize)
+    # The size for different blocks information
+    sizes = (superblocksize, blocksize, slicesize, chunksize)
+    return sizes
+
+
+def ccs_ultralight(optlevel, chunksize, slicesize):
+    """Correct the slicesize and the chunksize based on optlevel."""
+
+    if optlevel in (0,1,2):
+        slicesize /= 2
+        slicesize += optlevel*slicesize
+    elif optlevel in (3,4,5):
+        slicesize *= optlevel-1
+    elif optlevel in (6,7,8):
+        slicesize *= optlevel-1
+    elif optlevel == 9:
+        slicesize *= optlevel-1
+    return chunksize, slicesize
+
+
+def ccs_light(optlevel, chunksize, slicesize):
+    """Correct the slicesize and the chunksize based on optlevel."""
+
     if optlevel in (0,1,2):
         slicesize /= 2
     elif optlevel in (3,4,5):
@@ -116,22 +153,77 @@ def calcChunksize(expectedrows, optlevel=6, memlevel=4):
         # Reducing the chunksize and enlarging the slicesize is the
         # best way to reduce the entropy with the current algorithm.
         chunksize /= 2; slicesize *= 2
-    blocksize = computeblocksize(expectedrows, slicesize, chunksize)
-    superblocksize = computeblocksize(expectedrows, blocksize, slicesize)
-    # The size for different blocks information
-    sizes = (superblocksize, blocksize, slicesize, chunksize)
-    return sizes
+    return chunksize, slicesize
 
 
-def calcoptlevels(nblocks, optlevel):
+def ccs_medium(optlevel, chunksize, slicesize):
+    """Correct the slicesize and the chunksize based on optlevel."""
+
+    if optlevel in (0,1,2):
+        slicesize /= 2
+    elif optlevel in (3,4,5):
+        pass
+    elif optlevel in (6,7,8):
+        chunksize /= 2
+    elif optlevel == 9:
+        # Reducing the chunksize and enlarging the slicesize is the
+        # best way to reduce the entropy with the current algorithm.
+        chunksize /= 2; slicesize *= 2
+    return chunksize, slicesize
+
+
+def ccs_full(optlevel, chunksize, slicesize):
+    """Correct the slicesize and the chunksize based on optlevel."""
+
+    if optlevel in (0,1,2):
+        slicesize /= 2
+    elif optlevel in (3,4,5):
+        pass
+    elif optlevel in (6,7,8):
+        chunksize /= 2
+    elif optlevel == 9:
+        # Reducing the chunksize and enlarging the slicesize is the
+        # best way to reduce the entropy with the current algorithm.
+        chunksize /= 2; slicesize *= 2
+    return chunksize, slicesize
+
+
+def calcoptlevels(nblocks, optlevel, indsize):
     """Compute the optimizations to be done.
 
-    The calculation is based on the number of blocks and the optlevel.
+    The calculation is based on the number of blocks, optlevel and
+    indexing mode.
     """
+
+    if indsize == 2:  # light
+        return col_light(nblocks, optlevel)
+    elif indsize == 4:  # medium
+        return col_medium(nblocks, optlevel)
+    elif indsize == 8:  # full
+        return col_full(nblocks, optlevel)
+
+
+def col_light(nblocks, optlevel):
+    """Compute the optimizations to be done for light indexes."""
 
     optmedian, optstarts, optstops, optfull = (False,)*4
 
-    # Regular case
+    if 0 < optlevel <= 3:
+        optmedian = True
+    elif 3 < optlevel <= 6:
+        optmedian, optstarts = (True, True)
+    elif 6 < optlevel <= 9:
+        optmedian, optstarts, optstops = (True, True, True)
+
+    return optmedian, optstarts, optstops, optfull
+
+
+def col_medium(nblocks, optlevel):
+    """Compute the optimizations to be done for medium indexes."""
+
+    optmedian, optstarts, optstops, optfull = (False,)*4
+
+    # Medium case
     if nblocks <= 1:
         if 0 < optlevel <= 3:
             optmedian = True
@@ -148,6 +240,49 @@ def calcoptlevels(nblocks, optlevel):
             optfull = 3
 
     return optmedian, optstarts, optstops, optfull
+
+
+def col_full(nblocks, optlevel):
+    """Compute the optimizations to be done for full indexes."""
+
+    optmedian, optstarts, optstops, optfull = (False,)*4
+
+    # Full case
+    if nblocks <= 1:
+        if 0 < optlevel <= 3:
+            optmedian = True
+        elif 3 < optlevel <= 6:
+            optmedian, optstarts = (True, True)
+        elif 6 < optlevel <= 9:
+            optfull = 1
+    else:  # More than a block
+        if 0 < optlevel <= 3:
+            optfull = 1
+        elif 3 < optlevel <= 6:
+            optfull = 2
+        elif 6 < optlevel <= 9:
+            optfull = 3
+
+    return optmedian, optstarts, optstops, optfull
+
+
+def get_reduction_level(indsize, optlevel, slicesize, chunksize):
+    """Compute the reduction level based on indsize and optlevel."""
+    rlevels = [
+        [8,8,8,8,4,4,4,2,2,1],  # 8-bit indices (ultralight)
+        [4,4,4,4,2,2,2,1,1,1],  # 16-bit indices (light)
+        [2,2,2,2,1,1,1,1,1,1],  # 32-bit indices (medium)
+        [1,1,1,1,1,1,1,1,1,1],  # 64-bit indices (full)
+        ]
+    isizes = {1:0, 2:1, 4:2, 8:3}
+    rlevel = rlevels[isizes[indsize]][optlevel]
+    # The next cases should only happen in tests
+    if rlevel >= slicesize:
+        rlevel = 1
+    if slicesize <= chunksize*rlevel:
+        rlevel = 1
+    return rlevel
+
 
 
 # Python implementations of NextAfter and NextAfterF
