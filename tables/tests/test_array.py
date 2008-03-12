@@ -456,7 +456,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         # Close the file
         fileh.close()
         # Then, delete the file
-        #os.remove(file)
+        os.remove(file)
 
     def test12_float_byteorder(self):
         "Checking setting data with different byteorder in a range (float)"
