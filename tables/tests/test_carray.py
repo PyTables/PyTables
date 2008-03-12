@@ -157,7 +157,7 @@ class BasicTestCase(unittest.TestCase):
         if carray.nrows < stop:
             # self.stop == 0 means last row only in read()
             # and not in [::] slicing notation
-            stop = carray.nrows
+            stop = int(carray.nrows)
         # do a copy() in order to ensure that len(object._data)
         # actually do a measure of its length
         # Numeric 23.8 will issue an error with slices like -1:20:20
@@ -1970,9 +1970,9 @@ class CopyIndex12TestCase(CopyIndexTestCase):
 
 # The next test should be run only in **heavy** mode
 class Rows64bitsTestCase(unittest.TestCase):
-    narows = 1000*1000L   # each array will have 1 million entries
-    #narows = 1000L        # for testing only
-    nanumber = 1000*3L    # That should account for more than 2**31-1
+    narows = 1000*1000   # each array will have 1 million entries
+    #narows = 1000        # for testing only
+    nanumber = 1000*3    # That should account for more than 2**31-1
 
     def setUp(self):
 

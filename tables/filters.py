@@ -109,9 +109,9 @@ class Filters(object):
     example::
 
         Result Array:
-        /earray (EArray(3L, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
+        /earray (EArray(3, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
           type = float32
-          shape = (3L, 2)
+          shape = (3, 2)
           itemsize = 4
           nrows = 3
           extdim = 0

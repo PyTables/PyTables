@@ -2109,11 +2109,11 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         Last modif.: 'Mon Sep 20 12:40:47 2004'
         Object Tree:
         / (Group) 'Table Benchmark'
-        /tuple0 (Table(100L,)) 'This is the table title'
+        /tuple0 (Table(100,)) 'This is the table title'
         /group0 (Group) ''
-        /group0/tuple1 (Table(100L,)) 'This is the table title'
+        /group0/tuple1 (Table(100,)) 'This is the table title'
         /group0/group1 (Group) ''
-        /group0/group1/tuple2 (Table(100L,)) 'This is the table title'
+        /group0/group1/tuple2 (Table(100,)) 'This is the table title'
         /group0/group1/group2 (Group) ''
         """
 

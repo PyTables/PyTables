@@ -27,6 +27,10 @@ byteorders = {'>': 'big',
               '=': sys.byteorder,
               '|': 'irrelevant'}
 
+# The type used for size values: indexes, coordinates, dimension
+# lengths, row numbers, shapes, chunk shapes, byte counts...
+SizeType = numpy.int64
+
 
 def correct_byteorder(ptype, byteorder):
     "Fix the byteorder depending on the PyTables types."

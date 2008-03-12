@@ -35,7 +35,7 @@ from tables.utilsExtension import lrange
 from tables.atom import Atom, EnumAtom, split_type
 from tables.leaf import Leaf
 from tables.array import Array
-from tables.utils import correct_byteorder
+from tables.utils import correct_byteorder, SizeType
 
 
 __version__ = "$Revision$"
@@ -88,7 +88,7 @@ class CArray(Array):
         Last modif.: 'Thu Apr 12 10:15:38 2007'
         Object Tree:
         / (RootGroup) ''
-        /carray (CArray(200L, 300L), shuffle, zlib(5)) ''
+        /carray (CArray(200, 300), shuffle, zlib(5)) ''
 
         [[0 0 0 0]
          [0 0 0 0]
@@ -194,27 +194,30 @@ atom parameter should be an instance of tables.Atom and you passed a %s.""" \
 sorry, but multidimensional atoms are not supported in this context yet."""
 
             if shape is None:
-                raise ValueError, """\
-you must specify a non-empty shape."""
-            elif type(shape) not in (list, tuple):
-                raise ValueError, """\
-shape parameter should be either a tuple or a list and you passed a %s.""" \
-% type(shape)
-            self.shape = tuple(shape)
+                raise ValueError("you must specify a non-empty shape")
+            try:
+                shape = tuple(shape)
+            except TypeError:
+                raise TypeError(
+                    "`shape` parameter must be a sequence "
+                    "and you passed a %s" % type(shape) )
+            self.shape = tuple(SizeType(s) for s in shape)
 
             if chunkshape is not None:
-                if type(chunkshape) not in (list, tuple):
-                    raise ValueError, """\
-chunkshape parameter should be either a tuple or a list and you passed a %s.
-""" % type(chunkshape)
-                elif len(shape) != len(chunkshape):
+                try:
+                    chunkshape = tuple(chunkshape)
+                except TypeError:
+                    raise TypeError(
+                        "`chunkshape` parameter must be a sequence "
+                        "and you passed a %s" % type(chunkshape) )
+                if len(shape) != len(chunkshape):
                     raise ValueError, """\
 the shape (%s) and chunkshape (%s) ranks must be equal.""" \
 % (shape, chunkshape)
                 elif min(chunkshape) < 1:
                     raise ValueError, """ \
 chunkshape parameter cannot have zero-dimensions."""
-                self._v_chunkshape = tuple(chunkshape)
+                self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         # The `Array` class is not abstract enough! :(
         super(Array, self).__init__(parentNode, name, new, filters,
@@ -295,6 +298,6 @@ chunkshape parameter cannot have zero-dimensions."""
             object[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.prod(self.shape, dtype='int64')*self.atom.itemsize
+        nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.itemsize
 
         return (object, nbytes)

@@ -40,7 +40,7 @@ from tables import hdf5Extension
 from tables import utilsExtension
 from tables.node import Node
 from tables.filters import Filters
-from tables.utils import idx2long, byteorders, lazyattr
+from tables.utils import idx2long, byteorders, lazyattr, SizeType
 from tables.parameters import CHUNKTIMES, BUFFERTIMES
 from tables.exceptions import PerformanceWarning
 
@@ -355,14 +355,14 @@ class Leaf(Node):
     def _calc_chunkshape(self, expectedrows, rowsize, itemsize):
         """Calculate the shape for the HDF5 chunk."""
 
+        # In case of a scalar shape, return the unit chunksize
+        if self.shape == ():
+            return (SizeType(1),)
+
         # Compute the chunksize
         MB = 1024 * 1024
         expectedsizeinMB = (expectedrows * rowsize) / MB
         chunksize = calc_chunksize(expectedsizeinMB)
-
-        # In case of a scalar shape, return the unit chunksize
-        if self.shape == ():
-            return (1,)
 
         maindim = self.maindim
         # Compute the chunknitems
@@ -373,7 +373,7 @@ class Leaf(Node):
         chunkshape = list(self.shape)
         # Check whether trimming the main dimension is enough
         chunkshape[maindim] = 1
-        newchunknitems = numpy.prod(chunkshape, dtype='int64')
+        newchunknitems = numpy.prod(chunkshape, dtype=SizeType)
         if newchunknitems <= chunknitems:
             chunkshape[maindim] = chunknitems // newchunknitems
         else:
@@ -381,7 +381,7 @@ class Leaf(Node):
             for j in xrange(len(chunkshape)):
                 # Check whether trimming this dimension is enough
                 chunkshape[j] = 1
-                newchunknitems = numpy.prod(chunkshape, dtype='int64')
+                newchunknitems = numpy.prod(chunkshape, dtype=SizeType)
                 if newchunknitems <= chunknitems:
                     chunkshape[j] = chunknitems // newchunknitems
                     break
@@ -390,16 +390,14 @@ class Leaf(Node):
                 # Set the last dimension to chunknitems
                 chunkshape[-1] = chunknitems
 
-        return tuple(chunkshape)
+        return tuple(SizeType(s) for s in chunkshape)
 
 
     def _calc_nrowsinbuf(self, chunkshape, rowsize, itemsize):
         """Calculate the number of rows that fits on a PyTables buffer."""
 
         # Compute the nrowsinbuf
-        # Use an int64 type to avoid overflows in 32-bit systems
-        # Fixes ticket #90
-        chunksize = numpy.prod(chunkshape, dtype='int64') * itemsize
+        chunksize = numpy.prod(chunkshape, dtype=SizeType) * itemsize
         buffersize = chunksize * CHUNKTIMES
         nrowsinbuf = buffersize // rowsize
         # Safeguard against row sizes being extremely large

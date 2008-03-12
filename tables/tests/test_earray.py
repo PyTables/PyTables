@@ -154,7 +154,7 @@ class BasicTestCase(unittest.TestCase):
                 if self.type == "string":
                     object__ = object_
                 else:
-                    object__ = object_ * (earray.nrow / self.chunksize)
+                    object__ = object_ * (int(earray.nrow) / self.chunksize)
                     if self.flavor == "numeric":
                         object__ = object__.astype(typecode[earray.atom.type])
             object = object__[chunk]
@@ -235,7 +235,7 @@ class BasicTestCase(unittest.TestCase):
             if self.type == "string":
                 object__ = object_
             else:
-                object__ = object_ * (earray.nrow / self.chunksize)
+                object__ = object_ * (int(earray.nrow) / self.chunksize)
                 if self.flavor == "numeric":
                     object__ = object__.astype(typecode[earray.atom.type])
             object = object__[index]
@@ -2372,9 +2372,9 @@ class TruncateCloseTestCase(TruncateTestCase):
 
 # The next test should be run only in **common.heavy** mode
 class Rows64bitsTestCase(unittest.TestCase):
-    narows = 1000*1000L   # each numpy object will have 1 million entries
-    #narows = 1000L   # for testing only
-    nanumber = 1000*3L    # That should account for more than 2**31-1
+    narows = 1000*1000   # each numpy object will have 1 million entries
+    #narows = 1000   # for testing only
+    nanumber = 1000*3    # That should account for more than 2**31-1
 
     def setUp(self):
 

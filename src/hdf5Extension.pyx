@@ -37,7 +37,8 @@ import numpy
 
 from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError
-from tables.utils import checkFileAccess, byteorders, correct_byteorder
+from tables.utils import checkFileAccess, byteorders, correct_byteorder, \
+     SizeType
 from tables.atom import Atom
 
 from tables.utilsExtension import \
@@ -179,7 +180,7 @@ cdef object getshape(int rank, hsize_t *dims):
 
   shape = []
   for i from 0 <= i < rank:
-    shape.append(dims[i])
+    shape.append(SizeType(dims[i]))
 
   return tuple(shape)
 
@@ -905,7 +906,7 @@ cdef class Array(Leaf):
     free(dims_arr)
     # Update the new dimensionality
     shape = list(self.shape)
-    shape[self.extdim] = self.dims[self.extdim]
+    shape[self.extdim] = SizeType(self.dims[self.extdim])
     self.shape = tuple(shape)
 
 
@@ -949,7 +950,7 @@ cdef class Array(Leaf):
 
     # Update the new dimensionality
     shape = list(self.shape)
-    shape[self.extdim] = size
+    shape[self.extdim] = SizeType(size)
     self.shape = tuple(shape)
 
 
@@ -1126,7 +1127,7 @@ cdef class VLArray(Leaf):
     H5ARRAYget_chunkshape(self.dataset_id, 1, &chunksize)
 
     self.nrecords = nrecords  # Initialize the number of records saved
-    return self.dataset_id, nrecords, (chunksize,), atom
+    return self.dataset_id, SizeType(nrecords), (SizeType(chunksize),), atom
 
 
   def _append(self, ndarray nparr, int nobjects):
@@ -1264,6 +1265,7 @@ cdef class UnImplemented(Leaf):
 
     # Get info on dimensions
     shape = H5UIget_info(self.parent_id, self.name, byteorder)
+    shape = tuple(map(SizeType, shape))
     self.dataset_id = H5Dopen(self.parent_id, self.name)
     return (shape, byteorder, self.dataset_id)
 

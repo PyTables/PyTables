@@ -1129,7 +1129,7 @@ Last modif.: 'Wed Mar  7 11:06:12 2007'
 Object Tree:
 / (RootGroup) 'Test file'
 /detector (Group) 'Detector information'
-/detector/readout (Table(0L,)) 'Readout example'</screen>
+/detector/readout (Table(0,)) 'Readout example'</screen>
 
           <para>As you can see, a dump of the object tree is displayed. It's
           easy to see the <literal>Group</literal> and
@@ -1141,7 +1141,7 @@ Object Tree:
 File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/', filters=Filters(complevel=0, shuffle=False, fletcher32=False))
 / (RootGroup) 'Test file'
 /detector (Group) 'Detector information'
-/detector/readout (Table(0L,)) 'Readout example'
+/detector/readout (Table(0,)) 'Readout example'
   description := {
   "ADCcount": UInt16Col(shape=(), dflt=0, pos=0),
   "TDCcount": UInt8Col(shape=(), dflt=0, pos=1),
@@ -1152,7 +1152,7 @@ File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/'
   "name": StringCol(itemsize=16, shape=(), dflt='', pos=6),
   "pressure": Float32Col(shape=(), dflt=0.0, pos=7)}
   byteorder := 'little'
-  chunkshape := (87L,)</screen>
+  chunkshape := (87,)</screen>
 
           <para>More detailed information is displayed about each object in
           the tree. Note how <literal>Particle</literal>, our table descriptor
@@ -1358,7 +1358,7 @@ Object Tree:
 /columns/name (Array(3,)) 'Name column selection'
 /columns/pressure (Array(3,)) 'Pressure column selection'
 /detector (Group) 'Detector information'
-/detector/readout (Table(10L,)) 'Readout example'</screen>
+/detector/readout (Table(10,)) 'Readout example'</screen>
         </section>
 
         <section>
@@ -1410,10 +1410,10 @@ Last modif.: 'Wed Mar  7 19:50:57 2007'
 Object Tree:
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
-/columns/name (Array(3L,)) 'Name column selection'
-/columns/pressure (Array(3L,)) 'Pressure column selection'
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
 /detector (Group) 'Detector information'
-/detector/readout (Table(10L,)) 'Readout example'</screen>
+/detector/readout (Table(10,)) 'Readout example'</screen>
 
           <para>You can pass the <literal>-v</literal> or
           <literal>-d</literal> options to <literal>ptdump</literal> if you
@@ -1483,10 +1483,10 @@ Last modif.: 'Wed Mar  7 19:50:57 2007'
 Object Tree:
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
-/columns/name (Array(3L,)) 'Name column selection'
-/columns/pressure (Array(3L,)) 'Pressure column selection'
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
 /detector (Group) 'Detector information'
-/detector/readout (Table(10L,)) 'Readout example'</screen>
+/detector/readout (Table(10,)) 'Readout example'</screen>
 
           <para>It looks like all of our objects are there. Now let's make use
           of the <literal>File</literal> iterator to see how to list all the
@@ -1498,9 +1498,9 @@ Object Tree:
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
 /detector (Group) 'Detector information'
-/columns/name (Array(3L,)) 'Name column selection'
-/columns/pressure (Array(3L,)) 'Pressure column selection'
-/detector/readout (Table(10L,)) 'Readout example'</screen>
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
+/detector/readout (Table(10,)) 'Readout example'</screen>
 
           <para>We can use the <literal>walkGroups</literal> method (see <xref
           linkend="walkGroupsDescr" />) of the <literal>File</literal> class
@@ -1561,7 +1561,7 @@ Object Tree:
           <screen>>>> for leaf in h5file.root.detector._f_walkNodes('Leaf'):
       print leaf
 
-/detector/readout (Table(10L,)) 'Readout example'</screen>
+/detector/readout (Table(10,)) 'Readout example'</screen>
 
           <para>We have used a call to the
           <literal>Group._f_walkNodes(classname)</literal> method (see <xref
@@ -1787,7 +1787,7 @@ Opened "tutorial1.h5" with sec2 driver.
           instance variables. Let's take a look at some examples:</para>
 
           <screen>>>> print "Object:", table
-Object: /detector/readout (Table(10L,)) 'Readout example'
+Object: /detector/readout (Table(10,)) 'Readout example'
 >>> print "Table name:", table.name
 Table name: readout
 >>> print "Table title:", table.title
@@ -1882,14 +1882,14 @@ class Table(tableExtension.Table, tables.leaf.Leaf)
 
           <screen>>>> pressureObject = h5file.getNode("/columns", "pressure")
 >>> print "Info on the object:", repr(pressureObject)
-Info on the object: /columns/pressure (Array(3L,)) 'Pressure column selection'
+Info on the object: /columns/pressure (Array(3,)) 'Pressure column selection'
   atom := Float64Atom(shape=(), dflt=0.0)
   maindim := 0
   flavor := 'numpy'
   byteorder := 'little'
   chunkshape := None
 >>> print "  shape: ==&gt;", pressureObject.shape
-  shape: ==&gt; (3L,)
+  shape: ==&gt; (3,)
 >>> print "  title: ==&gt;", pressureObject.title
   title: ==&gt; Pressure column selection
 >>> print "  atom: ==&gt;", pressureObject.atom
@@ -2202,7 +2202,7 @@ Third modif--&gt; ['Particle:     -3', 'Particle:      0', 'Particle:     -5']</
           rows (inclusive):</para>
 
           <screen>>>> table.removeRows(5,10)
-5L</screen>
+5</screen>
 
           <para><literal>removeRows(start, stop)</literal> (see <xref
           linkend="Table.removeRows" />) deletes therows in the range (start,
@@ -3100,7 +3100,7 @@ class NestedDescr(IsDescription):
 
 >>> table.flush()
 >>> table.nrows
-10L</screen>
+10</screen>
 
           <para>You see? In order to fill the fields located in the
           substructures, we just need to specify its full path in the table
@@ -3146,7 +3146,7 @@ array([(((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L),
 
           <screen>>>> table.append(nra)
 >>> table.nrows
-13L</screen>
+13</screen>
 
           <para>Or, to create new tables:</para>
 
@@ -3351,7 +3351,7 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
 
           <screen>$ ptdump -d nested-tut.h5
 / (RootGroup) ''
-/table (Table(13L,)) ''
+/table (Table(13,)) ''
   Data dump:
 [0] (((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L)
 [1] (((1.0, 1), 'name2-1', 0.0), ('name1-1', 0.0), 1L)
@@ -3366,7 +3366,7 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
 [10] (((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L)
 [11] (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L)
 [12] (((1.0, 8), 'name2-8', 0.0), ('name1-8', 0.0), 2L)
-/table2 (Table(3L,)) ''
+/table2 (Table(3,)) ''
   Data dump:
 [0] (((1.0, 0), 'name2-0', 0.0), ('name1-0', 0.0), 0L)
 [1] (((1.0, 4), 'name2-4', 0.0), ('name1-4', 0.0), 1L)
@@ -3980,11 +3980,11 @@ data/test.h5 (File) 'Table Benchmark'
 Last modif.: 'Mon Sep 20 12:40:47 2004'
 Object Tree:
 / (Group) 'Table Benchmark'
-/tuple0 (Table(100L,)) 'This is the table title'
+/tuple0 (Table(100,)) 'This is the table title'
 /group0 (Group) ''
-/group0/tuple1 (Table(100L,)) 'This is the table title'
+/group0/tuple1 (Table(100,)) 'This is the table title'
 /group0/group1 (Group) ''
-/group0/group1/tuple2 (Table(100L,)) 'This is the table title'
+/group0/group1/tuple2 (Table(100,)) 'This is the table title'
 /group0/group1/group2 (Group) ''</screen>
           </section>
 
@@ -8619,7 +8619,7 @@ h5f.close()</screen>
 Last modif.: 'Thu Apr 12 10:15:38 2007'
 Object Tree:
 / (RootGroup) ''
-/carray (CArray(200L, 300L), shuffle, zlib(5)) ''
+/carray (CArray(200, 300), shuffle, zlib(5)) ''
 
 [[0 0 0 0]
  [0 0 0 0]
@@ -10221,9 +10221,9 @@ fileh.close()</screen>
             output of this example:</para>
 
             <screen>Result Array:
-/earray (EArray(3L, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
+/earray (EArray(3, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
   type = float32
-  shape = (3L, 2)
+  shape = (3, 2)
   itemsize = 4
   nrows = 3
   extdim = 0
@@ -12792,7 +12792,7 @@ times =  [ 0.  1.  2.  3.  4.  5.  6.  7.  8.  9.]</screen>
 temp.shape before sync =  (0, 12, 90)
 >>> file.sync()
 >>> print 'temp.shape after sync = ',temp.shape
-temp.shape after sync =  (10L, 12, 90)
+temp.shape after sync =  (10, 12, 90)
 >>> from numarray import random_array
 >>> for n in range(10):
 >>>     temp[n] = 10.*random_array.random(pressure.shape)
@@ -13223,7 +13223,7 @@ packing temp as short integers ...
 >>> temp = file.variables['temp']
 >>> times = file.variables['time']
 >>> print 'temp.shape after h5 --&gt; netCDF --&gt; h5 conversion = ',temp.shape
-temp.shape after h5 --&gt; netCDF --&gt; h5 conversion =  (10L, 12, 90)
+temp.shape after h5 --&gt; netCDF --&gt; h5 conversion =  (10, 12, 90)
 >>> for n in range(10):
 >>>     print 'time, min/max temp, temp[n,0,0] = ',\
              times[n],min(temp[n].flat),max(temp[n].flat),temp[n,0,0]
@@ -14254,8 +14254,8 @@ vlarray1.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:21:25 2007'
 Object Tree: 
 / (RootGroup) ''
-/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
-/vlarray2 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of strings'</screen>
+/vlarray1 (VLArray(3,), shuffle, zlib(1)) 'ragged array of ints'
+/vlarray2 (VLArray(3,), shuffle, zlib(1)) 'ragged array of strings'</screen>
           we can see that the file contains just a leaf object called
           <literal>vlarray1</literal>, that is an instance of
           <literal>VLArray</literal>, has 4 rows, and two filters has been
@@ -14265,12 +14265,12 @@ Object Tree:
           <para>Let's say we want more meta-information. Just add the
           <literal>-v</literal> (verbose) flag: <screen>$ ptdump -v vlarray1.h5
 / (RootGroup) ''
-/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
+/vlarray1 (VLArray(3,), shuffle, zlib(1)) 'ragged array of ints'
   atom = Int32Atom(shape=(), dflt=0)
   byteorder = 'little'
   nrows = 3
   flavor = 'numeric'
-/vlarray2 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of strings'
+/vlarray2 (VLArray(3,), shuffle, zlib(1)) 'ragged array of strings'
   atom = StringAtom(itemsize=2, shape=(), dflt='')
   byteorder = 'irrelevant'
   nrows = 3
@@ -14287,7 +14287,7 @@ Object Tree:
     PYTABLES_FORMAT_VERSION := '2.0',
     TITLE := '',
     VERSION := '1.0']
-/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
+/vlarray1 (VLArray(3,), shuffle, zlib(1)) 'ragged array of ints'
   atom = Int32Atom(shape=(), dflt=0)
   byteorder = 'little'
   nrows = 3
@@ -14297,7 +14297,7 @@ Object Tree:
     FLAVOR := 'numeric',
     TITLE := 'ragged array of ints',
     VERSION := '1.2']
-/vlarray2 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of strings'
+/vlarray2 (VLArray(3,), shuffle, zlib(1)) 'ragged array of strings'
   atom = StringAtom(itemsize=2, shape=(), dflt='')
   byteorder = 'irrelevant'
   nrows = 3
@@ -14310,12 +14310,12 @@ Object Tree:
 
           <para>Let's have a look at the real data: <screen>$ ptdump -d vlarray1.h5
 / (RootGroup) ''
-/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
+/vlarray1 (VLArray(3,), shuffle, zlib(1)) 'ragged array of ints'
   Data dump:
 [0] [5 6]
 [1] [5 6 7]
 [2] [5 6 9 8]
-/vlarray2 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of strings'
+/vlarray2 (VLArray(3,), shuffle, zlib(1)) 'ragged array of strings'
   Data dump:
 [0] ['5', '66']
 [1] ['5', '6', '77']
@@ -14327,7 +14327,7 @@ Object Tree:
           <para>Say that we are interested only on a specific <emphasis>row
           range</emphasis> of the <literal>/vlarray1</literal> object:
           <screen>ptdump -R2,3 -d vlarray1.h5:/vlarray1
-/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
+/vlarray1 (VLArray(3,), shuffle, zlib(1)) 'ragged array of ints'
   Data dump:
 [2] [5 6 9 8]</screen> Here, we have specified the range of rows between 2 and
           4 (the upper limit excluded, as usual in Python). See how we have
@@ -14335,7 +14335,7 @@ Object Tree:
           dump (<literal>vlarray1.h5:/vlarray1</literal>).</para>
 
           <para>Finally, you can mix several information at once: <screen>$ ptdump -R2,3 -vad vlarray1.h5:/vlarray1
-/vlarray1 (VLArray(3L,), shuffle, zlib(1)) 'ragged array of ints'
+/vlarray1 (VLArray(3,), shuffle, zlib(1)) 'ragged array of ints'
   atom = Int32Atom(shape=(), dflt=0)
   byteorder = 'little'
   nrows = 3
@@ -14421,10 +14421,10 @@ Last modif.: 'Mon Jan  8 16:30:30 2007'
 Object Tree: 
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
-/columns/name (Array(3L,)) 'Name column selection'
-/columns/pressure (Array(3L,)) 'Pressure column selection'
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
 /detector (Group) 'Detector information'
-/detector/readout (Table(10L,)) 'Readout example'</screen> Now, copy the
+/detector/readout (Table(10,)) 'Readout example'</screen> Now, copy the
           <literal>/columns</literal> to other non-existing file. That's easy:
           <screen>$ ptrepack tutorial1.h5:/columns reduced.h5</screen> That's
           all. Let's see the contents of the newly created
@@ -14433,8 +14433,8 @@ reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:31:31 2007'
 Object Tree: 
 / (RootGroup) ''
-/name (Array(3L,)) 'Name column selection'
-/pressure (Array(3L,)) 'Pressure column selection'</screen> so, you have
+/name (Array(3,)) 'Name column selection'
+/pressure (Array(3,)) 'Pressure column selection'</screen> so, you have
           copied the children of <literal>/columns</literal> group into the
           <emphasis>root</emphasis> of the <literal>reduced.h5</literal>
           file.</para>
@@ -14448,11 +14448,11 @@ reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:32:25 2007'
 Object Tree: 
 / (RootGroup) ''
-/name (Array(3L,)) 'Name column selection'
-/pressure (Array(3L,)) 'Pressure column selection'
+/name (Array(3,)) 'Name column selection'
+/pressure (Array(3,)) 'Pressure column selection'
 /columns (Group) ''
-/columns/name (Array(3L,)) 'Name column selection'
-/columns/pressure (Array(3L,)) 'Pressure column selection'</screen> OK. Much
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'</screen> OK. Much
           better. But you want to get rid of the existing nodes on the new
           file. You can achieve this by adding the -o flag: <screen>$ ptrepack -o tutorial1.h5:/columns reduced.h5:/columns
 $ ptdump reduced.h5
@@ -14461,8 +14461,8 @@ Last modif.: 'Mon Jan  8 16:33:08 2007'
 Object Tree: 
 / (RootGroup) ''
 /columns (Group) ''
-/columns/name (Array(3L,)) 'Name column selection'
-/columns/pressure (Array(3L,)) 'Pressure column selection'</screen> where you
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'</screen> where you
           can see how the old contents of the <literal>reduced.h5</literal>
           file has been overwritten.</para>
 
@@ -14473,10 +14473,10 @@ reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:33:59 2007'
 Object Tree: 
 / (RootGroup) ''
-/rawdata (Table(10L,)) 'Readout example'
+/rawdata (Table(10,)) 'Readout example'
 /columns (Group) ''
-/columns/name (Array(3L,)) 'Name column selection'
-/columns/pressure (Array(3L,)) 'Pressure column selection'</screen> where the
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'</screen> where the
           <literal>/detector/readout</literal> has been copied to
           <literal>/rawdata</literal> in destination.</para>
 
@@ -14488,10 +14488,10 @@ reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:33:59 2007'
 Object Tree: 
 / (RootGroup) ''
-/rawdata (Table(10L,)) 'Readout example'
+/rawdata (Table(10,)) 'Readout example'
 /columns (Group) ''
-/columns/name (Array(3L,)) 'Name column selection'
-/columns/pressure (Array(3L,)) 'Pressure column selection'
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
 
 Traceback (most recent call last):
   File "utils/ptrepack", line 3, in ?
@@ -14514,10 +14514,10 @@ reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:36:54 2007'
 Object Tree: 
 / (RootGroup) ''
-/rawdata (Table(10L,), shuffle, zlib(1)) 'Readout example'
+/rawdata (Table(10,), shuffle, zlib(1)) 'Readout example'
 /columns (Group) ''
-/columns/name (Array(3L,)) 'Name column selection'
-/columns/pressure (Array(3L,)) 'Pressure column selection'</screen> you can
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'</screen> you can
           check how the filter properties has been changed for the
           <literal>/rawdata</literal> table. Check as the other nodes still
           exists.</para>
@@ -14531,12 +14531,12 @@ reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:38:13 2007'
 Object Tree: 
 / (RootGroup) ''
-/rawdata (Table(10L,), shuffle, zlib(1)) 'Readout example'
+/rawdata (Table(10,), shuffle, zlib(1)) 'Readout example'
 /columns (Group) ''
-/columns/name (Array(3L,)) 'Name column selection'
-/columns/pressure (Array(3L,)) 'Pressure column selection'
+/columns/name (Array(3,)) 'Name column selection'
+/columns/pressure (Array(3,)) 'Pressure column selection'
 /slices (Group) ''
-/slices/aslice (Table(3L,)) 'Readout example'</screen> note how only 3 rows of
+/slices/aslice (Table(3,)) 'Readout example'</screen> note how only 3 rows of
           the original <literal>readout</literal> table has been copied to the
           new <literal>aslice</literal> destination. Note as well how the
           previously inexistent <literal>slices</literal> group has been

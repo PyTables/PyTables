@@ -25,7 +25,10 @@ Misc variables:
 
 import warnings
 
+import numpy
+
 from tables import hdf5Extension
+from tables.utils import SizeType
 from tables.leaf import Leaf
 
 
@@ -68,9 +71,9 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
         # (they can not be created).
         self._v_new = False
         """Is this the first time the node has been created?"""
-        self.nrows = 0
+        self.nrows = SizeType(0)
         """The length of the first dimension of the data."""
-        self.shape = (0,)
+        self.shape = (SizeType(0),)
         """The shape of the stored data."""
         self.byteorder = None
         """
@@ -84,7 +87,7 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
     def _g_open(self):
         (self.shape, self.byteorder, objectID) = \
                      self._openUnImplemented()
-        self.nrows = self.shape[0]
+        self.nrows = SizeType(self.shape[0])
         return objectID
 
 

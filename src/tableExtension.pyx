@@ -32,6 +32,7 @@ from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
 from tables.utilsExtension import \
      getNestedField, AtomFromHDF5Type, AtomToHDF5Type
+from tables.utils import SizeType
 
 from utilsExtension cimport get_native_type
 
@@ -361,7 +362,7 @@ cdef class Table(Leaf):
     H5Sget_simple_extent_dims(space_id, dims, NULL)
     self.totalrecords = dims[0]
     # Make totalrecords visible in python space
-    self.nrows = self.totalrecords
+    self.nrows = SizeType(self.totalrecords)
     # Free resources
     H5Sclose(space_id)
 
@@ -387,7 +388,7 @@ cdef class Table(Leaf):
       raise HDF5ExtError("Problems getting desciption for table %s", self.name)
 
     # Return the object ID and the description
-    return (self.dataset_id, desc, chunksize[0])
+    return (self.dataset_id, desc, SizeType(chunksize[0]))
 
 
   cdef _convertTime64_(self, ndarray nparr, hsize_t nrecords, int sense):
@@ -683,7 +684,7 @@ cdef class Row:
     middle of a loop or iterator.
     """
     def __get__(self):
-      return self._nrow
+      return SizeType(self._nrow)
 
 
   property table:
@@ -1192,8 +1193,7 @@ cdef class Row:
     if self.mod_elements is None:
       # Initialize an array for keeping the modified elements
       # (just in case Row.update() would be used)
-      self.mod_elements = numpy.empty(shape=self.nrowsinbuf,
-                                      dtype=numpy.int64)
+      self.mod_elements = numpy.empty(shape=self.nrowsinbuf, dtype=SizeType)
       # We need a different copy for self.IObuf here
       self.IObufcpy = self.IObuf.copy()
 

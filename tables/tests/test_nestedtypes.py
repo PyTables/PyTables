@@ -15,6 +15,7 @@ import unittest
 import numpy
 
 import tables as t
+from tables.utils import SizeType
 from tables.tests import common
 from tables.description import Description
 
@@ -614,7 +615,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self._testCondition, self._testCondVars(tbl))
         searchedCoords.sort()
 
-        expectedCoords = numpy.arange(0, minRowIndex*2, 2, 'int64')
+        expectedCoords = numpy.arange(0, minRowIndex*2, 2, SizeType)
         if common.verbose:
             print "Searched coords:", searchedCoords
             print "Expected coords:", expectedCoords
@@ -673,12 +674,12 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "str(tbl)-->", str(tbl)
             print "repr(tbl)-->", repr(tbl)
 
-        self.assert_(str(tbl) == "/test (Table(2L,)) 'test00'")
+        self.assert_(str(tbl) == "/test (Table(2,)) 'test00'")
         tblrepr = repr(tbl)
         # Remove the platform-dependent information (i.e. byteorder)
         tblrepr = "\n".join(tblrepr.split("\n")[:-2])+"\n"
         self.assert_(tblrepr == \
-"""/test (Table(2L,)) 'test00'
+"""/test (Table(2,)) 'test00'
   description := {
   "x": Int32Col(shape=(2,), dflt=0, pos=0),
   "Info": {

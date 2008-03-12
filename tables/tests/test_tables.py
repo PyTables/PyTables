@@ -9,6 +9,7 @@ from numpy import rec as records
 
 from tables import *
 from tables.parameters import NODE_MAX_SLOTS
+from tables.utils import SizeType
 from tables.tests import common
 from tables.tests.common import allequal, areArraysEqual
 
@@ -1857,15 +1858,15 @@ class getItemTestCase(unittest.TestCase):
 
         self.fileh = openFile(self.file, "r")
         table = self.fileh.root.table0
-        result = table[2L]
+        result = table[2]
         assert result["var2"] == 2
-        #assert result[1L] == 2
-        result = table[25L]
+        #assert result[1] == 2
+        result = table[25]
         assert result["var2"] == 25
-        #assert result[1L] == 25
+        #assert result[1] == 25
         result = table[self.expectedrows-1]
         assert result["var2"] == self.expectedrows - 1
-        #assert result[1L] == self.expectedrows - 1
+        #assert result[1] == self.expectedrows - 1
 
     def test01d_singleItem(self):
         """Checking __getitem__ method with single parameter (neg. long)"""
@@ -1876,15 +1877,15 @@ class getItemTestCase(unittest.TestCase):
 
         self.fileh = openFile(self.file, "r")
         table = self.fileh.root.table0
-        result = table[-5L]
+        result = table[-5]
         assert result["var2"] == self.expectedrows - 5
-        #assert result[1L] == self.expectedrows - 5
-        result = table[-1L]
+        #assert result[1] == self.expectedrows - 5
+        result = table[-1]
         assert result["var2"] == self.expectedrows - 1
-        #assert result[1L] == self.expectedrows - 1
+        #assert result[1] == self.expectedrows - 1
         result = table[-self.expectedrows]
         assert result["var2"] == 0
-        #assert result[1L] == 0
+        #assert result[1] == 0
 
     def test02_twoItems(self):
         """Checking __getitem__ method with start, stop parameters """
@@ -2080,7 +2081,7 @@ class setItem(common.PyTablesTestCase):
         table.append([[457,'db1',1.2],[5,'de1',1.3]])
 
         # Modify just one existing row
-        table[2L] = (456,'db2',1.2)
+        table[2] = (456,'db2',1.2)
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
                           [456,'db2',1.2],[5,'de1',1.3]],
@@ -4877,8 +4878,8 @@ class IrregularStrideTestCase(unittest.TestCase):
         if common.verbose:
             print "\nSelected coords1-->", coords1
             print "Selected coords2-->", coords2
-        assert allequal(coords1, arange(5, dtype=int64))
-        assert allequal(coords2, arange(5, dtype=int64))
+        assert allequal(coords1, arange(5, dtype=SizeType))
+        assert allequal(coords2, arange(5, dtype=SizeType))
 
 
 

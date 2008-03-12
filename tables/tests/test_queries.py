@@ -16,6 +16,7 @@ import unittest
 import numpy
 
 import tables
+from tables.utils import SizeType
 from tables.tests import common
 from common import verbosePrint as vprint
 
@@ -27,7 +28,7 @@ row_period = 50
 md_shape = (2, 2)
 """Shape of multidimensional fields."""
 
-_maxnvalue = row_period + numpy.prod(md_shape, dtype='int64') - 1
+_maxnvalue = row_period + numpy.prod(md_shape, dtype=SizeType) - 1
 _strlen = int(numpy.log10(_maxnvalue-1)) + 1
 
 str_format = '%%0%dd' % _strlen
@@ -163,7 +164,7 @@ def fill_table(table, shape, nrows):
         return
 
     heavy = common.heavy
-    size = int(numpy.prod(shape, dtype='int64'))
+    size = int(numpy.prod(shape, dtype=SizeType))
 
     row, value = table.row, 0
     for nrow in xrange(nrows):

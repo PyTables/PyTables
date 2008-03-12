@@ -34,7 +34,7 @@ import numpy
 from tables import hdf5Extension
 from tables.utilsExtension import lrange
 from tables.utils import convertToNPAtom, convertToNPAtom2, idx2long, \
-     correct_byteorder
+     correct_byteorder, SizeType
 
 from tables.atom import (
     ObjectAtom, VLStringAtom, VLUnicodeAtom, EnumAtom, Atom, split_type )
@@ -239,7 +239,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         """New filter properties for this array."""
         self._v_expectedsizeinMB = expectedsizeinMB
         """The expected size of the array in MiB."""
-        self._v_chunkshape = chunkshape
+        self._v_chunkshape = None
         """Private storage for the `chunkshape` property of Leaf."""
 
         # Miscellaneous iteration rubbish.
@@ -273,19 +273,20 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         self.nrows = None
         """The total number of rows."""
 
-        if new:
-            if chunkshape is not None:
-                if type(chunkshape) in (int, long):
-                    chunkshape = (long(chunkshape),)
-                if type(chunkshape) not in (tuple, list):
-                    raise ValueError, """\
-chunkshape parameter should be an int, tuple or list and you passed a %s.
-""" % type(chunkshape)
-                elif len(chunkshape) != 1:
-                    raise ValueError, """\
-the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
-                else:
-                    self._v_chunkshape = chunkshape
+        # Check the chunkshape parameter
+        if new and chunkshape is not None:
+            if isinstance(chunkshape, (int, numpy.integer, long)):
+                chunkshape = (chunkshape,)
+            try:
+                chunkshape = tuple(chunkshape)
+            except TypeError:
+                raise TypeError(
+                    "`chunkshape` parameter must be an integer or sequence "
+                    "and you passed a %s" % type(chunkshape) )
+            if len(chunkshape) != 1:
+                raise ValueError( "`chunkshape` rank (length) must be 1: %r"
+                                  % (chunkshape,) )
+            self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         super(VLArray, self).__init__(parentNode, name, new, filters,
                                       byteorder, _log)
@@ -314,7 +315,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
         # Safeguard against itemsizes being extremely large
         if chunkshape == 0:
             chunkshape = 1
-        return (chunkshape,)
+        return (SizeType(chunkshape),)
 
 
     def _g_create(self):
@@ -344,7 +345,7 @@ be zero."""
         if self._v_chunkshape is None:
             self._v_chunkshape = self._calc_chunkshape(
                 self._v_expectedsizeinMB)
-        self.nrows = 0     # No rows at creation time
+        self.nrows = SizeType(0)     # No rows at creation time
 
         # Correct the byteorder if needed
         if self.byteorder is None:
@@ -542,7 +543,7 @@ be zero."""
         self._startb = self._start
         self._row = -1   # Sentinel
         self._init = True  # Sentinel
-        self.nrow = self._start - self._step    # row number
+        self.nrow = SizeType(self._start - self._step)    # row number
 
 
     def next(self):
@@ -744,7 +745,7 @@ be zero."""
         nrowsinbuf = 1
         (start, stop, step) = self._processRangeRead(start, stop, step)
         # Optimized version (no conversions, no type and shape checks, etc...)
-        nrowscopied = 0
+        nrowscopied = SizeType(0)
         nbytes = 0
         if not hasattr(self.atom, 'size'):  # it is a pseudo-atom
             atomsize = self.atom.base.size

@@ -36,6 +36,7 @@ import numpy
 
 from tables import hdf5Extension
 from tables.parameters import MAX_NODE_ATTRS
+from tables.utils import SizeType
 from tables.registry import classNameDict
 from tables.exceptions import ClosedNodeError, PerformanceWarning
 from tables.path import checkNameValidity
@@ -385,7 +386,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                 stvalue = numpy.array(value, dtype=numpy.int32)
                 value = stvalue[()]
             elif name == "NROWS":
-                stvalue = numpy.array(value, dtype=numpy.int64)
+                stvalue = numpy.array(value, dtype=SizeType)
                 value = stvalue[()]
             elif name == "FILTERS" and self._v__format_version >= (2, 0):
                 stvalue = value._pack()

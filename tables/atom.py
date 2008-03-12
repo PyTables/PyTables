@@ -39,6 +39,7 @@ import warnings
 
 import numpy
 
+from tables.utils import SizeType
 from tables.misc.enum import Enum
 
 
@@ -130,24 +131,15 @@ def _abstract_atom_init(deftype, defvalue):
 def _normalize_shape(shape):
     """Check that the `shape` is safe to be used and return it as a tuple."""
 
-    if type(shape) in (int, long):
+    if isinstance(shape, (int, numpy.integer, long)):
         if shape < 1:
             raise ValueError( "shape value must be greater than 0: %d"
                               % shape )
-        elif shape == 1:
-            # This branch shall be removed for the second step of #96.
-            shape = ()  # 1 is a *deprecated* shorthand for ()
-            warnings.warn(
-                "``shape=1`` will soon stop being equivalent to ``shape=()`` "
-                "and become equivalent to ``shape=(1,)``; "
-                "please use ``shape=()`` to get a scalar shape",
-                DeprecationWarning )
-        else:
-            shape = (shape,)  # N is a shorthand for (N,)
-    elif type(shape) in (tuple, list):
+        shape = (shape,)  # N is a shorthand for (N,)
+    try:
         shape = tuple(shape)
-    else:
-        raise TypeError( "shape must be an integer, tuple or list: %r"
+    except TypeError:
+        raise TypeError( "shape must be an integer or sequence: %r"
                          % (shape,) )
 
     ## XXX Get from HDF5 library if possible.
@@ -156,7 +148,7 @@ def _normalize_shape(shape):
         raise ValueError(
             "shapes with rank > 32 are not supported: %r" % (shape,) )
 
-    return shape
+    return tuple(SizeType(s) for s in shape)
 
 def _normalize_default(value, dtype):
     """Return `value` as a valid default of NumPy type `dtype`."""
@@ -529,7 +521,10 @@ class Atom(object):
                                        "please use one of its subclasses"
                                        % self.__class__.__name__ )
         self.shape = shape = _normalize_shape(shape)
-        self.dtype = dtype = numpy.dtype((nptype, shape))
+        # Curiously enough, NumPy isn't generally able to accept NumPy
+        # integers in a shape. ;(
+        npshape = tuple(int(s) for s in shape)
+        self.dtype = dtype = numpy.dtype((nptype, npshape))
         self.dflt = _normalize_default(dflt, dtype)
 
     def __repr__(self):

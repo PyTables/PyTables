@@ -32,7 +32,7 @@ import numpy
 
 from tables.utilsExtension import lrange
 from tables.parameters import EXPECTED_ROWS_EARRAY
-from tables.utils import convertToNPAtom, convertToNPAtom2
+from tables.utils import convertToNPAtom, convertToNPAtom2, SizeType
 from tables.atom import Atom, EnumAtom, split_type
 from tables.leaf import Leaf
 from tables.carray import CArray
@@ -279,6 +279,6 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
             object._append(self.__getitem__(tuple(slices)))
         # Active the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.prod(self.shape, dtype='int64')*self.atom.itemsize
+        nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.itemsize
 
         return (object, nbytes)

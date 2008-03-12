@@ -35,7 +35,7 @@ from tables import hdf5Extension
 from tables.utilsExtension import lrange
 from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import is_idx, convertToNPAtom2
+from tables.utils import is_idx, convertToNPAtom2, SizeType
 from tables.atom import split_type
 from tables.leaf import Leaf
 
@@ -122,7 +122,7 @@ class Array(hdf5Extension.Array, Leaf):
     # ~~~~~~~~~~
     def _getnrows(self):
         if self.shape == ():
-            return 1  # scalar case
+            return SizeType(1)  # scalar case
         else:
             return self.shape[self.maindim]
     nrows = property(
@@ -243,7 +243,7 @@ class Array(hdf5Extension.Array, Leaf):
         self._object = None
 
         # The shape of this array
-        self.shape = nparr.shape
+        self.shape = tuple(SizeType(s) for s in nparr.shape)
 
         # Fix the byteorder of data
         nparr = self._g_fix_byteorder_data(nparr, nparr.dtype.byteorder)
@@ -368,7 +368,7 @@ class Array(hdf5Extension.Array, Leaf):
         self._startb = self._start
         self._row = -1   # Sentinel
         self._init = True  # Sentinel
-        self.nrow = self._start - self._step    # row number
+        self.nrow = SizeType(self._start - self._step)    # row number
 
 
     def next(self):
@@ -410,10 +410,10 @@ class Array(hdf5Extension.Array, Leaf):
 
         maxlen = len(self.shape)
         shape = (maxlen,)
-        startl = numpy.empty(shape=shape, dtype=numpy.int64)
-        stopl = numpy.empty(shape=shape, dtype=numpy.int64)
-        stepl = numpy.empty(shape=shape, dtype=numpy.int64)
-        stop_None = numpy.zeros(shape=shape, dtype=numpy.int64)
+        startl = numpy.empty(shape=shape, dtype=SizeType)
+        stopl = numpy.empty(shape=shape, dtype=SizeType)
+        stepl = numpy.empty(shape=shape, dtype=SizeType)
+        stop_None = numpy.zeros(shape=shape, dtype=SizeType)
         if not isinstance(keys, tuple):
             keys = (keys,)
         nkeys = len(keys)

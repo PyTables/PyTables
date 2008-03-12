@@ -41,7 +41,7 @@ from tables.conditions import compile_condition
 from tables.numexpr.compiler import getType as numexpr_getType
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import is_idx, lazyattr
+from tables.utils import is_idx, lazyattr, SizeType
 from tables.leaf import Leaf
 from tables.description import IsDescription, Description, Col
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
@@ -123,6 +123,9 @@ _nxTypeFromNPType = {
     numpy.complex64: complex,
     numpy.complex128: complex,
     numpy.str_: str, }
+
+# The NumPy scalar type corresponding to `SizeType`.
+_npSizeType = numpy.array(SizeType(0)).dtype.type
 
 
 class Table(tableExtension.Table, Leaf):
@@ -422,7 +425,7 @@ class Table(tableExtension.Table, Leaf):
         """The computed byteorder of the self._v_recarray."""
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the table."""
-        self.nrows = 0L
+        self.nrows = SizeType(0)
         """The current number of rows in the table."""
         self.description = None
         """A `Description` instance reflecting the structure of the table."""
@@ -432,7 +435,7 @@ class Table(tableExtension.Table, Leaf):
         """The names of ``String`` columns."""
         self._colenums = {}
         """Maps the name of an enumerated column to its ``Enum`` instance."""
-        self._v_chunkshape = chunkshape
+        self._v_chunkshape = None
         """Private storage for the `chunkshape` property of the leaf."""
 
         self.indexed = False
@@ -532,7 +535,7 @@ class Table(tableExtension.Table, Leaf):
                     nparray = numpy.rec.array(description)
                 else:
                     nparray = array_as_internal(description, flavor)
-                self.nrows = nrows = long(nparray.size)
+                self.nrows = nrows = SizeType(nparray.size)
                 # If `self._v_recarray` is set, it will be used as the
                 # initial buffer.
                 if nrows > 0:
@@ -549,17 +552,18 @@ class Table(tableExtension.Table, Leaf):
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:
-            if type(chunkshape) in (int, long):
-                chunkshape = (long(chunkshape),)
-            if type(chunkshape) not in (tuple, list):
-                raise ValueError, """\
-chunkshape parameter should be an int, tuple or list and you passed a %s.
-""" % type(chunkshape)
-            elif len(chunkshape) != 1:
-                    raise ValueError, """\
-the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
-            else:
-                self._v_chunkshape = chunkshape
+            if isinstance(chunkshape, (int, numpy.integer, long)):
+                chunkshape = (chunkshape,)
+            try:
+                chunkshape = tuple(chunkshape)
+            except TypeError:
+                raise TypeError(
+                    "`chunkshape` parameter must be an integer or sequence "
+                    "and you passed a %s" % type(chunkshape) )
+            if len(chunkshape) != 1:
+                raise ValueError( "`chunkshape` rank (length) must be 1: %r"
+                                  % (chunkshape,) )
+            self._v_chunkshape = tuple(SizeType(s) for s in chunkshape)
 
         super(Table, self).__init__(parentNode, name, new, filters,
                                     byteorder, _log)
@@ -1362,6 +1366,7 @@ the chunkshape (%s) rank must be equal to 1.""" % (chunkshape)
             raise TypeError("""\
 Wrong 'sequence' parameter type. Only sequences are suported.""")
 
+        coords = numpy.asarray(sequence, dtype=SizeType)
         # That might allow the retrieving on a sequential order
         # although this is not totally clear.
         if sort:
@@ -1530,13 +1535,13 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         # Do the real read
         if ncoords > 0:
-            # Turn coords into an array of 64-bit indexes, if necessary
+            # Turn coords into an array of coordinate indexes, if necessary
             if not (type(coords) is numpy.ndarray and
-                    coords.dtype.type is numpy.int64 and
+                    coords.dtype.type is _npSizeType and
                     coords.flags.contiguous and
                     coords.flags.aligned):
-                # Get a contiguous and aligned int64 array
-                coords = numpy.array(coords, dtype=numpy.int64)
+                # Get a contiguous and aligned coordinate array
+                coords = numpy.array(coords, dtype=SizeType)
             self._read_elements(result, coords)
 
         # Do the final conversions, if needed
@@ -1779,7 +1784,7 @@ You cannot append rows to a non-chunked table.""")
         """
 
         if rows is None:      # Nothing to be done
-            return 0
+            return SizeType(0)
         if start is None:
             start = 0
 
@@ -1828,7 +1833,7 @@ table format '%s'. The error was: <%s>
         # Redo the index if needed
         self._reIndex(self.colpathnames)
 
-        return lenrows
+        return SizeType(lenrows)
 
 
     def modifyColumn(self, start=None, stop=None, step=1,
@@ -1856,7 +1861,7 @@ table format '%s'. The error was: <%s>
         self._v_file._checkWritable()
 
         if column is None:      # Nothing to be done
-            return 0
+            return SizeType(0)
         if start is None:
             start = 0
 
@@ -1903,7 +1908,7 @@ table format '%s'. The error was: <%s>
         # Redo the index if needed
         self._reIndex([colname])
 
-        return nrows
+        return SizeType(nrows)
 
 
     def modifyColumns(self, start=None, stop=None, step=1,
@@ -1930,7 +1935,7 @@ table format '%s'. The error was: <%s>
 The 'names' parameter must be a list of strings.""")
 
         if columns is None:      # Nothing to be done
-            return 0
+            return SizeType(0)
         if start is None:
             start = 0
         if start < 0:
@@ -1979,7 +1984,7 @@ The 'names' parameter must be a list of strings.""")
         # Redo the index if needed
         self._reIndex(names)
 
-        return nrows
+        return SizeType(nrows)
 
 
     def flushRowsToIndex(self, _lastrow=True):
@@ -2070,7 +2075,7 @@ The 'names' parameter must be a list of strings.""")
         # removeRows is a invalidating index operation
         self._reIndex(self.colpathnames)
 
-        return nrows
+        return SizeType(nrows)
 
 
     def _g_updateDependent(self):
@@ -2161,7 +2166,7 @@ The 'names' parameter must be a list of strings.""")
         if indexedrows > 0:
             self._indexedrows = indexedrows
             self._unsaved_indexedrows = self.nrows - indexedrows
-        return indexedrows
+        return SizeType(indexedrows)
 
 
     def reIndex(self):
@@ -3066,7 +3071,7 @@ class Column(object):
         idxrows = _column__createIndex(self, optlevel, filters, tmp_dir,
                                        _blocksizes, _indsize,
                                        _verbose)
-        return idxrows
+        return SizeType(idxrows)
 
 
     def _doReIndex(self, dirty):
@@ -3081,10 +3086,9 @@ class Column(object):
             index._f_remove()
             self._updateIndexLocation(None)
             # Create a new Index without warnings
-            return self.createIndex()
+            return SizeType(self.createIndex())
         else:
-            # The column is not intended for indexing or is not dirty
-            return 0
+            return SizeType(0)  # The column is not intended for indexing
 
 
     def reIndex(self):
