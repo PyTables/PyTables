@@ -9682,6 +9682,8 @@ Float64Atom(shape=(), dflt=0.0)</screen>
 Int16Atom(shape=(2, 2), dflt=0)
 >>> Atom.from_kind('int', shape=(2, 2))
 Int32Atom(shape=(2, 2), dflt=0)
+>>> Atom.from_kind('int', shape=1)
+Int32Atom(shape=(1,), dflt=0)
 >>> Atom.from_kind('string', itemsize=5, dflt='hello')
 StringAtom(itemsize=5, shape=(), dflt='hello')
 >>> Atom.from_kind('string', dflt='hello')
@@ -9772,9 +9774,9 @@ ValueError: unknown type: 'Float64'</screen>
                 <glossterm><emphasis role="bold">shape</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Sets the shape of the atom. An integer shape like
-                  <literal>2</literal> is equivalent to the tuple
-                  <literal>(2,)</literal>.</para>
+                  <para>Sets the shape of the atom. An integer shape of
+                  <literal>N</literal> is equivalent to the tuple
+                  <literal>(N,)</literal>.</para>
                 </glossdef>
               </glossentry>
 

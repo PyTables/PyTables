@@ -35,7 +35,6 @@ import re
 import sys
 import inspect
 import cPickle
-import warnings
 
 import numpy
 
@@ -337,8 +336,8 @@ class Atom(object):
         of individual items in the atom.
 
     shape
-        Sets the shape of the atom.  An integer shape like ``2`` is
-        equivalent to the tuple ``(2,)``.
+        Sets the shape of the atom.  An integer shape of ``N`` is
+        equivalent to the tuple ``(N,)``.
 
     dflt
         Sets the default value for the atom.
@@ -451,6 +450,8 @@ class Atom(object):
         Int16Atom(shape=(2, 2), dflt=0)
         >>> Atom.from_kind('int', shape=(2, 2))
         Int32Atom(shape=(2, 2), dflt=0)
+        >>> Atom.from_kind('int', shape=1)
+        Int32Atom(shape=(1,), dflt=0)
         >>> Atom.from_kind('string', itemsize=5, dflt='hello')
         StringAtom(itemsize=5, shape=(), dflt='hello')
         >>> Atom.from_kind('string', dflt='hello')
