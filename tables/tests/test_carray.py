@@ -2059,6 +2059,32 @@ class Rows64bitsTestCase1(Rows64bitsTestCase):
 class Rows64bitsTestCase2(Rows64bitsTestCase):
     close = 1
 
+class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    shape = (3000000000,)  # more than 2**31-1
+
+    def setUp(self):
+        super(BigArrayTestCase, self).setUp()
+        # This should be fast since disk space isn't actually allocated,
+        # so this case is OK for non-heavy test runs.
+        self.h5file.createCArray('/', 'array', Int8Atom(), self.shape)
+
+    def test00_shape(self):
+        """Check that the shape doesn't overflow."""
+        # See ticket #147.
+        self.assertEqual(self.h5file.root.array.shape, self.shape)
+        try:
+            self.assertEqual(len(self.h5file.root.array), self.shape[0])
+        except OverflowError:
+            # This can't be avoided in 32-bit platforms.
+            self.assert_( self.shape[0] > numpy.iinfo(int).max,
+                          "Array length overflowed but ``int`` "
+                          "is wide enough." )
+
+    def test01_shape_reopen(self):
+        """Check that the shape doesn't overflow after reopening."""
+        self._reopen('r')
+        self.test00_shape()
+
 
 class MDAtomTestCase(unittest.TestCase):
 
@@ -2153,6 +2179,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
+        theSuite.addTest(unittest.makeSuite(BigArrayTestCase))
         theSuite.addTest(unittest.makeSuite(MDAtomTestCase))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3CArrayTestCase))

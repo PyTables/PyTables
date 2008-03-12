@@ -304,7 +304,14 @@ class Leaf(Node):
 
 
     def __len__(self):
-        """Return the length of the main dimension of the leaf data."""
+        """
+        Return the length of the main dimension of the leaf data.
+
+        Please note that this may raise an ``OverflowError`` on 32-bit
+        platforms for datasets having more than 2**31-1 rows.  This is a
+        limitation of Python that you can work around by using the
+        ``nrows`` or ``shape`` attributes.
+        """
         return self.nrows
 
 

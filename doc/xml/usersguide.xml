@@ -589,7 +589,7 @@ fileh.close()</screen>
           <title>Prerequisites</title>
 
           <para>First, make sure that you have at least Python 2.4, HDF5 1.6.5
-          and NumPy 1.0.3 or higher installed (for testing purposes, we are
+          and NumPy 1.0.4 or higher installed (for testing purposes, we are
           using HDF5 1.6.7/1.8.0 and NumPy 1.0.5 currently). If you don't,
           fetch and install them before proceeding.</para>
 
@@ -868,7 +868,7 @@ python -c "import tables; tables.test()"</screen>
           <title>Windows prerequisites</title>
 
           <para>First, make sure that you have Python 2.4 or higher and NumPy
-          1.0.3 or higher installed (PyTables binaries have been built using
+          1.0.4 or higher installed (PyTables binaries have been built using
           NumPy 1.0.5).  The binaries already include DLLs for HDF5 (1.6.7),
           zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2
           (1.0.4).  The LZO DLL can't be included because of license issues
@@ -6361,6 +6361,11 @@ for node in h5file.root.detector:
             <title>__len__()</title>
             <para>Return the length of the main dimension of the leaf
             data.</para>
+            <para>Please note that this may raise an
+            <literal>OverflowError</literal> on 32-bit platforms for datasets
+            having more than 2**31-1 rows.  This is a limitation of Python
+            that you can work around by using the <literal>nrows</literal> or
+            <literal>shape</literal> attributes.</para>
           </section>
 
           <section id="Leaf._f_close" xreflabel="description">

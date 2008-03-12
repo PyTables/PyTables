@@ -8,7 +8,7 @@ import unittest
 
 # Recommended minimum versions for optional packages
 minimum_hdf5_version = "1.6.5"
-minimum_numpy_version = "1.0.3"
+minimum_numpy_version = "1.0.4"
 minimum_numeric_version = "24.2"
 minimum_numarray_version = "1.5.2"
 
