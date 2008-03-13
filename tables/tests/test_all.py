@@ -133,7 +133,7 @@ Performing only a light (yet comprehensive) subset of the test suite.
 If you want a more complete test, try passing the --heavy flag to this script
 (or set the 'heavy' parameter in case you are using tables.test() call).
 The whole suite will take more than 150 minutes to complete on a relatively
-modern CPU and around 180 MB of main memory."""
+modern CPU and around 220 MB of main memory."""
     print '-=' * 38
 
 
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     if hdf5_version < minimum_hdf5_version:
         print "*Warning*: HDF5 version is lower than recommended: %s < %s" % \
               (hdf5_version, minimum_hdf5_version)
-    
+
     if numpy.__version__ < minimum_numpy_version:
         print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
               (numpy.__version__, minimum_numpy_version)
