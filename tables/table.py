@@ -2713,8 +2713,16 @@ class Column(object):
     Public methods
     --------------
 
-    createIndex([kind][, filters][,tmp_dir])
+    createIndex([kind][, filters][, tmp_dir])
         Create an index for this column.
+    createUltraLightIndex([optlevel][, filters][, tmp_dir])
+        Create an ``ultralight`` index for this column.
+    createLightIndex([optlevel][, filters][, tmp_dir])
+        Create an ``light`` index for this column.
+    createMediumIndex([optlevel][, filters][, tmp_dir])
+        Create an ``medium`` index for this column.
+    createFullIndex([optlevel][, filters][, tmp_dir])
+        Create an ``full`` index for this column.
     reIndex()
         Recompute the index associated with this column.
     reIndexDirty()
@@ -2920,6 +2928,58 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
+    def createIndex( self, kind="medium", filters=None, tmp_dir=None,
+                     _blocksizes=None, _indsize=4,
+                     _testmode=False, _verbose=False ):
+        """
+        Create an index for this column.
+
+        You can select the kind of the index by setting `kind` from
+        'ultralight', 'light', 'medium' or 'full' values.  Lighter kinds
+        ('ultralight' and 'light') mean that the index takes less space
+        on disk.  Heavier kinds ('medium' and 'full') mean better
+        chances for reducing the entropy of the index at the price of
+        using more disk space as well as more CPU and I/O resources for
+        creating the index.
+
+        The `filters` argument can be used to set the `Filters` used to
+        compress the index.  If ``None``, default index filters will be
+        used (currently, zlib level 1 with shuffling).
+
+        When `kind` is heavier than 'ultralight', a temporary file is
+        created during the index build process.  You can use the
+        `tmp_dir` argument to specify the directory for this temporary
+        file.  The default is to create it in the same directory as the
+        file containing the original table.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+        """
+        if kind == "ultralight":
+            return self.createUltraLightIndex(
+                filters=filters, tmp_dir=tmp_dir,
+                _blocksizes=_blocksizes,
+                _testmode=_testmode, _verbose=_verbose)
+        elif kind == "light":
+            return self.createLightIndex(
+                filters=filters, tmp_dir=tmp_dir,
+                _blocksizes=_blocksizes,
+                _testmode=_testmode, _verbose=_verbose)
+        elif kind == "medium":
+            return self.createMediumIndex(
+                filters=filters, tmp_dir=tmp_dir,
+                _blocksizes=_blocksizes,
+                _testmode=_testmode, _verbose=_verbose)
+        elif kind == "full":
+            return self.createFullIndex(
+                filters=filters, tmp_dir=tmp_dir,
+                _blocksizes=_blocksizes,
+                _testmode=_testmode, _verbose=_verbose)
+
+        else:
+            raise (ValueError,
+                   "`kind` argument can only be 'ultralight', 'light', 'medium' or 'full'.")
+
+
     def createUltraLightIndex( self, optlevel=3, filters=None,
                                tmp_dir=None, _blocksizes=None,
                                _testmode=False, _verbose=False ):
@@ -2994,58 +3054,6 @@ class Column(object):
         return self._createIndex(optlevel, filters, tmp_dir,
                                  _blocksizes, _indsize=8,
                                  _testmode=_testmode, _verbose=_verbose)
-
-
-    def createIndex( self, kind="medium", filters=None, tmp_dir=None,
-                     _blocksizes=None, _indsize=4,
-                     _testmode=False, _verbose=False ):
-        """
-        Create an index for this column.
-
-        You can select the kind of the index by setting `kind` from
-        'ultralight', 'light', 'medium' or 'full' values.  Lighter kinds
-        ('ultralight' and 'light') mean that the index takes less space
-        on disk.  Heavier kinds ('medium' and 'full') mean better
-        chances for reducing the entropy of the index at the price of
-        using more disk space as well as more CPU and I/O resources for
-        creating the index.
-
-        The `filters` argument can be used to set the `Filters` used to
-        compress the index.  If ``None``, default index filters will be
-        used (currently, zlib level 1 with shuffling).
-
-        When `kind` is heavier than 'ultralight', a temporary file is
-        created during the index build process.  You can use the
-        `tmp_dir` argument to specify the directory for this temporary
-        file.  The default is to create it in the same directory as the
-        file containing the original table.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-        """
-        if kind == "ultralight":
-            return self.createUltraLightIndex(
-                filters=filters, tmp_dir=tmp_dir,
-                _blocksizes=_blocksizes,
-                _testmode=_testmode, _verbose=_verbose)
-        elif kind == "light":
-            return self.createLightIndex(
-                filters=filters, tmp_dir=tmp_dir,
-                _blocksizes=_blocksizes,
-                _testmode=_testmode, _verbose=_verbose)
-        elif kind == "medium":
-            return self.createMediumIndex(
-                filters=filters, tmp_dir=tmp_dir,
-                _blocksizes=_blocksizes,
-                _testmode=_testmode, _verbose=_verbose)
-        elif kind == "full":
-            return self.createFullIndex(
-                filters=filters, tmp_dir=tmp_dir,
-                _blocksizes=_blocksizes,
-                _testmode=_testmode, _verbose=_verbose)
-
-        else:
-            raise (ValueError,
-                   "`kind` argument can only be 'ultralight', 'light', 'medium' or 'full'.")
 
 
     def _createIndex( self, optlevel, filters, tmp_dir,
