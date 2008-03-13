@@ -1338,10 +1338,9 @@ class Table(tableExtension.Table, Leaf):
         # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars)
         compiled = self._compileCondition(condition, condvars)
-
         coords = [ p.nrow for p in
                    self._where(compiled, condvars, start, stop, step) ]
-        coords = numpy.array(coords, dtype=numpy.int64)
+        coords = numpy.array(coords, dtype=SizeType)
         # Reset the conditions
         self._whereCondition = None
         if sort:

@@ -37,13 +37,14 @@ import numpy
 
 from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError
-from tables.utils import checkFileAccess, byteorders, correct_byteorder, \
-     SizeType
+from tables.utils import \
+     checkFileAccess, byteorders, correct_byteorder, SizeType
+
 from tables.atom import Atom
 
 from tables.utilsExtension import \
-  enumToHDF5, enumFromHDF5, getTypeEnum, isHDF5File, isPyTablesFile, \
-  AtomToHDF5Type, AtomFromHDF5Type, loadEnum, HDF5ToNPExtType
+     enumToHDF5, enumFromHDF5, getTypeEnum, isHDF5File, isPyTablesFile, \
+     AtomToHDF5Type, AtomFromHDF5Type, loadEnum, HDF5ToNPExtType
 
 from utilsExtension cimport malloc_dims, get_native_type
 
