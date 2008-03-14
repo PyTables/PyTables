@@ -2928,7 +2928,7 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex( self, kind="medium", filters=None, tmp_dir=None,
+    def createIndex( self, kind="light", filters=None, tmp_dir=None,
                      _blocksizes=None, _indsize=4,
                      _testmode=False, _verbose=False ):
         """
@@ -2939,8 +2939,8 @@ class Column(object):
         ('ultralight' and 'light') mean that the index takes less space
         on disk.  Heavier kinds ('medium' and 'full') mean better
         chances for reducing the entropy of the index at the price of
-        using more disk space as well as more CPU and I/O resources for
-        creating the index.
+        using more disk space as well as more CPU, memory and I/O
+        resources for creating the index.
 
         The `filters` argument can be used to set the `Filters` used to
         compress the index.  If ``None``, default index filters will be
@@ -2980,7 +2980,7 @@ class Column(object):
                    "`kind` argument can only be 'ultralight', 'light', 'medium' or 'full'.")
 
 
-    def createUltraLightIndex( self, optlevel=3, filters=None,
+    def createUltraLightIndex( self, optlevel=6, filters=None,
                                tmp_dir=None, _blocksizes=None,
                                _testmode=False, _verbose=False ):
         """Create an index of kind 'ultralight' for this column.
@@ -2988,18 +2988,20 @@ class Column(object):
         You can select the optimization level of the index by setting
         `optlevel` from 0 (no optimization) to 9 (maximum optimization).
         Higher levels of optimization mean better chances for reducing
-        the entropy of the index at the price of using more CPU and I/O
-        resources for creating the index.
+        the entropy of the index at the price of using more CPU, memory
+        and I/O resources for creating the index.
 
         For the meaning of `filters` and `tmp_dir` arguments see
         ``Column.createIndex()``.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
         """
         return self._createIndex(optlevel, filters, tmp_dir,
                                  _blocksizes, _indsize=1,
                                  _testmode=_testmode, _verbose=_verbose)
 
 
-    def createLightIndex( self, optlevel=3, filters=None,
+    def createLightIndex( self, optlevel=6, filters=None,
                            tmp_dir=None, _blocksizes=None,
                           _testmode=False, _verbose=False ):
         """Create an index of kind 'light' for this column.
@@ -3007,11 +3009,13 @@ class Column(object):
         You can select the optimization level of the index by setting
         `optlevel` from 0 (no optimization) to 9 (maximum optimization).
         Higher levels of optimization mean better chances for reducing
-        the entropy of the index at the price of using more CPU and I/O
-        resources for creating the index.
+        the entropy of the index at the price of using more CPU, memory
+        and I/O resources for creating the index.
 
         For the meaning of `filters` and `tmp_dir` arguments see
         ``Column.createIndex()``.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
         """
         return self._createIndex(optlevel, filters, tmp_dir,
                                  _blocksizes, _indsize=2,
@@ -3026,11 +3030,13 @@ class Column(object):
         You can select the optimization level of the index by setting
         `optlevel` from 0 (no optimization) to 9 (maximum optimization).
         Higher levels of optimization mean better chances for reducing
-        the entropy of the index at the price of using more CPU and I/O
-        resources for creating the index.
+        the entropy of the index at the price of using more CPU, memory
+        and I/O resources for creating the index.
 
         For the meaning of `filters` and `tmp_dir` arguments see
         ``Column.createIndex()``.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
         """
         return self._createIndex(optlevel, filters, tmp_dir,
                                  _blocksizes, _indsize=4,
@@ -3045,11 +3051,13 @@ class Column(object):
         You can select the optimization level of the index by setting
         `optlevel` from 0 (no optimization) to 9 (maximum optimization).
         Higher levels of optimization mean better chances for reducing
-        the entropy of the index at the price of using more CPU and I/O
-        resources for creating the index.
+        the entropy of the index at the price of using more CPU, memory
+        and I/O resources for creating the index.
 
         For the meaning of `filters` and `tmp_dir` arguments see
         ``Column.createIndex()``.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
         """
         return self._createIndex(optlevel, filters, tmp_dir,
                                  _blocksizes, _indsize=8,
@@ -3057,7 +3065,7 @@ class Column(object):
 
 
     def _createIndex( self, optlevel, filters, tmp_dir,
-                      _blocksizes=None, _indsize=4,
+                      _blocksizes=None, _indsize=2,
                       _testmode=False, _verbose=False ):
         """Private method to call the real index code."""
         _checkIndexingAvailable()

@@ -8079,7 +8079,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             <title><literal>Column</literal> methods</title>
 
             <section id="Column.createIndex" xreflabel="description">
-              <title><literal>createIndex(kind="medium",
+              <title><literal>createIndex(kind="light",
               filters=None, tmp_dir=None)</literal></title>
 
               <para>Create an index for this column.</para>
@@ -8092,8 +8092,8 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               mean that the index takes less space on disk.  Heavier kinds
               (<literal>'medium'</literal> and <literal>'full'</literal>) mean
               better chances for reducing the entropy of the index at the
-              price of using more disk space as well as more CPU and I/O
-              resources for creating the index.</para>
+              price of using more disk space as well as more CPU, memory and
+              I/O resources for creating the index.</para>
 
               <para>The <literal>filters</literal> argument can be used to set
               the <literal>Filters</literal> (see <xref
@@ -8116,7 +8116,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             </section>
 
             <section id="Column.createUltraLightIndex" xreflabel="description">
-              <title><literal>createUltraLightIndex(optlevel=3,
+              <title><literal>createUltraLightIndex(optlevel=6,
               filters=None, tmp_dir=None)</literal></title>
 
               <para>Create an index of kind <literal>'ultralight'</literal>
@@ -8126,8 +8126,8 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               setting <literal>optlevel</literal> from 0 (no optimization) to
               9 (maximum optimization).  Higher levels of optimization mean
               better chances for reducing the entropy of the index at the
-              price of using more CPU and I/O resources for creating the
-              index.</para>
+              price of using more CPU, memory and I/O resources for creating
+              the index.</para>
 
               <para>For the meaning of <literal>filters</literal> and
               <literal>tmp_dir</literal> arguments see
@@ -8142,7 +8142,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             </section>
 
             <section id="Column.createLightIndex" xreflabel="description">
-              <title><literal>createLightIndex(optlevel=3,
+              <title><literal>createLightIndex(optlevel=6,
               filters=None, tmp_dir=None)</literal></title>
 
               <para>Create an index of kind <literal>'light'</literal> for
@@ -8152,8 +8152,8 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               setting <literal>optlevel</literal> from 0 (no optimization) to
               9 (maximum optimization).  Higher levels of optimization mean
               better chances for reducing the entropy of the index at the
-              price of using more CPU and I/O resources for creating the
-              index.</para>
+              price of using more CPU, memory and I/O resources for creating
+              the index.</para>
 
               <para>For the meaning of <literal>filters</literal> and
               <literal>tmp_dir</literal> arguments see
@@ -8178,8 +8178,8 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               setting <literal>optlevel</literal> from 0 (no optimization) to
               9 (maximum optimization).  Higher levels of optimization mean
               better chances for reducing the entropy of the index at the
-              price of using more CPU and I/O resources for creating the
-              index.</para>
+              price of using more CPU, memory and I/O resources for creating
+              the index.</para>
 
               <para>For the meaning of <literal>filters</literal> and
               <literal>tmp_dir</literal> arguments see
