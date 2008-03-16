@@ -332,18 +332,18 @@ cdef class IndexArray(Array):
     dtype = self.atom.dtype
     # Create the buffer for reading sorted data chunks if not created yet
     if <object>self.bufferlb is None:
-      self.bufferlb = numpy.empty(dtype=dtype, shape=self.chunksize)
       # Internal buffers
+      self.bufferlb = numpy.empty(dtype=dtype, shape=self.chunksize)
       # Get the pointers to the different buffer data areas
       self.rbuflb = self.bufferlb.data
       # Init structures for accelerating sorted array reads
       self.space_id = H5Dget_space(self.dataset_id)
       rank = 2
-      count[0] = 1; count[1] = self.chunksize;
+      count[0] = 1; count[1] = self.chunksize
       self.mem_space_id = H5Screate_simple(rank, count, NULL)
-      # cache some counters in local extension variables
-      self.l_slicesize = index.shape[1]
-      self.l_chunksize = index.chunksize
+      # Cache some counters in local extension variables
+      self.l_chunksize = self.chunksize
+      self.l_slicesize = self.slicesize
 
     # Get the addresses of buffer data
     starts = index.starts;  lengths = index.lengths
@@ -464,6 +464,7 @@ cdef class IndexArray(Array):
     cdef void *vpointer
     cdef npy_int64 nckey
     cdef long nslot
+    cdef hsize_t start, stop
 
     # Compute the number of chunk read and use it as the key for the cache.
     nckey = nrow*ncs+nchunk
@@ -472,7 +473,8 @@ cdef class IndexArray(Array):
       vpointer = self.sortedcache.getitem_(nslot)
     else:
       # The sorted chunk is not in cache. Read it and put it in the LRU cache.
-      vpointer = self._g_readSortedSlice(nrow, cs*nchunk, cs*(nchunk+1))
+      start = cs*nchunk;  stop = cs*(nchunk+1)
+      vpointer = self._g_readSortedSlice(nrow, start, stop)
       self.sortedcache.setitem_(nckey, vpointer, 0)
     return vpointer
 

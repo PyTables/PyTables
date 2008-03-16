@@ -471,10 +471,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                byteorder=self.byteorder, _log=False)
 
         # Create the cache for boundary values (2nd order cache)
-        nbounds_inslice = (self.slicesize-1)//(self.chunksize*self.reduction)
+        nbounds_inslice = (self.slicesize-1)//self.chunksize
         CacheArray(self, 'bounds', atom, (0, nbounds_inslice),
-                   "Boundary Values", sfilters,
-                   self.expectedrows//(self.chunksize*self.reduction),
+                   "Boundary Values", sfilters, self.nchunks,
                    (1, nbounds_inslice), byteorder=self.byteorder)
 
         # begin, end & median bounds (only for numerical types)
@@ -486,10 +485,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                byteorder=self.byteorder, _log=False)
 
         # Create the Array for last (sorted) row values + bounds
-        shape = ((self.slicesize/self.reduction) + 2 + nbounds_inslice,)
+        shape = ((self.slicesize//self.reduction) + 2 + nbounds_inslice,)
         sortedLR = LastRowArray(self, 'sortedLR', atom, shape,
                                 "Last Row sorted values + bounds",
-                                sfilters, (self.chunksize,),
+                                sfilters, (self.chunksize//self.reduction,),
                                 byteorder=self.byteorder)
 
         # Create the Array for the number of chunk in last row
@@ -609,7 +608,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         larr, arr, idx = self.initial_append(xarr, nrows, reduction)
         # Save the sorted array
         sorted.append(arr.reshape(1, arr.size))
-        cs = self.chunksize;  ncs = self.nchunkslice/self.reduction
+        cs = self.chunksize/reduction;  ncs = self.nchunkslice
         # Save ranges & bounds
         ranges.append([[arr[0], larr]])
         bounds.append([arr[cs::cs]])
@@ -644,11 +643,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         nrows = self.nslices
         indicesLR = self.indicesLR
         sortedLR = self.sortedLR
-        larr, arr, idx = self.initial_append(xarr, nrows, self.reduction)
+        reduction = self.reduction
+        larr, arr, idx = self.initial_append(xarr, nrows, reduction)
         nelementsSLR = len(arr)
         nelementsILR = len(idx)
         # Build the cache of bounds
-        self.bebounds = numpy.concatenate((arr[::self.chunksize], [larr]))
+        rcs = self.chunksize // reduction
+        self.bebounds = numpy.concatenate((arr[::rcs], [larr]))
         # The number of elements will be saved as an attribute
         sortedLR.attrs.nelements = nelementsSLR
         indicesLR.attrs.nelements = nelementsILR
@@ -860,7 +861,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             print "Copying temporary data..."
         # tmp -> index
         reduction = self.reduction
-        cs = self.chunksize;  ncs = self.nchunkslice
+        cs = self.chunksize//reduction;  ncs = self.nchunkslice
         tmp = self.tmp
         for i in xrange(self.nslices):
             # Copy sorted & indices slices
@@ -875,7 +876,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.zbounds.append(sorted[cs-1::cs])
             smedian = sorted[cs/2::cs]
             self.mbounds.append(smedian)
-            self.mranges.append([smedian[ncs/(2*reduction)]])
+            self.mranges.append([smedian[ncs/2]])
             del sorted, smedian   # delete references
             # Now that sorted is gone, we can copy the indices
             indices = tmp.indices[i]
@@ -1328,8 +1329,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         itemsize = self.dtype.itemsize
         sortedLRcache = self.sortedLRcache
         hi = self.nelementsSLR               # maximum number of elements
-        # No longer true due to reduction
-        ###assert hi == self.nelements - self.sorted.nrows * self.slicesize
+        rcs = self.chunksize // self.reduction
 
         nchunk = -1
         # Lookup for item1
@@ -1342,8 +1342,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 if nslot >= 0:
                     chunk = sortedLRcache.getitem(nslot)
                 else:
-                    begin = self.chunksize*nchunk
-                    end = self.chunksize*(nchunk+1)
+                    begin = rcs*nchunk
+                    end = rcs*(nchunk+1)
                     if end > hi:
                         end = hi
                     # Read the chunk from disk
@@ -1355,7 +1355,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     sortedLRcache.setitem(nchunk, chunk.copy(),
                                           (end-begin)*itemsize)
                 start = bisect_left(chunk, item1)
-                start += self.chunksize*nchunk
+                start += rcs*nchunk
             else:
                 start = hi
         else:
@@ -1371,8 +1371,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     if nslot >= 0:
                         chunk = sortedLRcache.getitem(nslot)
                     else:
-                        begin = self.chunksize*nchunk2
-                        end = self.chunksize*(nchunk2+1)
+                        begin = rcs*nchunk2
+                        end = rcs*(nchunk2+1)
                         if end > hi:
                             end = hi
                         # Read the chunk from disk
@@ -1384,7 +1384,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                         sortedLRcache.setitem(nchunk2, chunk.copy(),
                                               (end-begin)*itemsize)
                 stop = bisect_right(chunk, item2)
-                stop += self.chunksize*nchunk2
+                stop += rcs*nchunk2
             else:
                 stop = hi
         else:

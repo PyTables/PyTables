@@ -71,11 +71,11 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
     # Properties
     # ~~~~~~~~~~
     chunksize = property(
-        lambda self: self._v_parent.chunksize, None, None,
+        lambda self: self.chunkshape[1], None, None,
         """The chunksize for this object.""")
 
     slicesize = property(
-        lambda self: self._v_parent.slicesize, None, None,
+        lambda self: self.shape[1], None, None,
         """The slicesize for this object.""")
 
 
@@ -109,10 +109,12 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         if atom is not None:
             # The shape and chunkshape needs to be fixed here
             if name == "sorted":
-                shape = (0, parentNode.slicesize/parentNode.reduction)
+                reduction = parentNode.reduction
+                shape = (0, parentNode.slicesize/reduction)
+                chunkshape = (1, parentNode.chunksize/reduction)
             else:
                 shape = (0, parentNode.slicesize)
-            chunkshape = (1, parentNode.chunksize)
+                chunkshape = (1, parentNode.chunksize)
         else:
             # The shape and chunkshape will be read from disk later on
             shape = None
