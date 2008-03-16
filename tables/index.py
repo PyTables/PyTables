@@ -443,6 +443,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Compute the reduction level
         self.reduction = get_reduction_level(
             self.indsize, self.optlevel, self.slicesize, self.chunksize)
+        rchunksize = self.chunksize // self.reduction
+        rslicesize = self.slicesize // self.reduction
 
         # Save them on disk as attributes
         self._v_attrs.superblocksize = numpy.uint64(self.superblocksize)
@@ -471,7 +473,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                byteorder=self.byteorder, _log=False)
 
         # Create the cache for boundary values (2nd order cache)
-        nbounds_inslice = (self.slicesize-1)//self.chunksize
+        nbounds_inslice = (rslicesize-1)//rchunksize
         CacheArray(self, 'bounds', atom, (0, nbounds_inslice),
                    "Boundary Values", sfilters, self.nchunks,
                    (1, nbounds_inslice), byteorder=self.byteorder)
@@ -485,10 +487,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                byteorder=self.byteorder, _log=False)
 
         # Create the Array for last (sorted) row values + bounds
-        shape = ((self.slicesize//self.reduction) + 2 + nbounds_inslice,)
+        shape = (rslicesize + 2 + nbounds_inslice,)
         sortedLR = LastRowArray(self, 'sortedLR', atom, shape,
                                 "Last Row sorted values + bounds",
-                                sfilters, (self.chunksize//self.reduction,),
+                                sfilters, (rchunksize,),
                                 byteorder=self.byteorder)
 
         # Create the Array for the number of chunk in last row
