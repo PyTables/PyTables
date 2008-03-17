@@ -23,13 +23,13 @@
  */
 
 herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
-			       hid_t space_id,
 			       hid_t type_id,
 			       hsize_t irow,
 			       hsize_t start,
 			       hsize_t stop,
 			       void *data )
 {
+ hid_t    space_id;
  hid_t    mem_space_id;
  hsize_t  count[2];
  int      rank = 2;
@@ -41,6 +41,10 @@ herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
  count[1] = stop - start;
  offset[0] = irow;
  offset[1] = start;
+
+  /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+  goto out;
 
  /* Create a memory dataspace handle */
  if ( (mem_space_id = H5Screate_simple( rank, count, NULL )) < 0 )
@@ -58,46 +62,14 @@ herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
  if ( H5Sclose( mem_space_id ) < 0 )
    goto out;
 
+ /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
+
 return 0;
 
 out:
  H5Dclose( dataset_id );
- return -1;
-
-}
-
-
-herr_t H5ARRAYOread_index_sparse( hid_t dataset_id,
-				  hid_t space_id,
-				  hid_t type_id,
-				  hsize_t ncoords,
-				  void *coords,
-				  void *data )
-{
- hid_t    mem_space_id;
- hsize_t  mem_size[1];
-
- if ( H5Sselect_elements(space_id, H5S_SELECT_SET, (size_t)ncoords,
-			 (const hsize_t **)coords) < 0 )
-  goto out;
-
- /* Create a memory dataspace handle */
- mem_size[0] = ncoords;
- if ( (mem_space_id = H5Screate_simple(1, mem_size, NULL)) < 0 )
-  goto out;
-
- if ( H5Dread(dataset_id, type_id, mem_space_id, space_id,
-	      H5P_DEFAULT, data) < 0 )
-  goto out;
-
- /* Terminate access to the memory dataspace */
- if ( H5Sclose(mem_space_id) < 0 )
-  goto out;
-
-return 0;
-
-out:
- H5Dclose(dataset_id);
  return -1;
 
 }

@@ -67,13 +67,9 @@ cdef extern from "H5ARRAY-opt.h":
   herr_t H5ARRAYOinit_readSlice(hid_t dataset_id, hid_t type_id,
                                 hid_t *space_id,  hid_t *mem_space_id,
                                 hsize_t count)
-  herr_t H5ARRAYOread_readSlice(hid_t dataset_id, hid_t space_id,
-                                hid_t type_id, hsize_t irow,
-                                hsize_t start, hsize_t stop,
+  herr_t H5ARRAYOread_readSlice(hid_t dataset_id, hid_t type_id,
+                                hsize_t irow, hsize_t start, hsize_t stop,
                                 void *data)
-  herr_t H5ARRAYOread_index_sparse(hid_t dataset_id, hid_t space_id,
-                                   hid_t type_id, hsize_t ncoords,
-                                   void *coords, void *data)
   herr_t H5ARRAYOread_readSortedSlice(hid_t dataset_id, hid_t space_id,
                                       hid_t mem_space_id, hid_t type_id,
                                       hsize_t irow, hsize_t start,
@@ -121,9 +117,6 @@ cdef extern from "idx-opt.h":
   int keysort_i8(npy_int8 *start1, char *start2, npy_intp num, int ts)
   int keysort_u8(npy_uint8 *start1, char *start2, npy_intp num, int ts)
   int keysort_S(char *start1, int ss, char *start2, npy_intp num, int ts)
-
-  int get_sorted_indices(int nrows, npy_int64 *rbufC,
-                         int *rbufst, int *rbufln, int ssize)
 
 
 
@@ -239,83 +232,24 @@ cdef class CacheArray(Array):
 cdef class IndexArray(Array):
   """Container for keeping sorted and indices values."""
   cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
-  cdef void    *rbufC, *rbufA
   cdef hid_t   space_id, mem_space_id
   cdef int     l_chunksize, l_slicesize, nbounds, indsize
   cdef CacheArray bounds_ext
-  cdef NumCache boundscache, sortedcache, indicescache
-  cdef ndarray arrAbs, coords, bufferbc, bufferlb
+  cdef NumCache boundscache, sortedcache
+  cdef ndarray bufferbc, bufferlb
 
 
-  def _initIndexSlice(self, index, long ncoords):
-    "Initialize the structures for doing a binary search"
-    cdef long buflen
-    cdef ndarray starts, lengths
-    cdef object maxslots
-
-    # Create buffers for reading reverse index data
-    if <object>self.arrAbs is None or len(self.arrAbs) < ncoords:
-      self.indsize = index.indsize
-      self.coords = numpy.empty(dtype=numpy.int64, shape=ncoords)
-      self.arrAbs = numpy.empty(dtype="i%d"%self.indsize, shape=ncoords)
-      # Get the pointers to the buffer data area
-      self.rbufC = self.coords.data
-      self.rbufA = self.arrAbs.data
-      # Access starts and lengths in parent index.
-      # This sharing method should be improved.
-      starts = <ndarray>index.starts;  lengths = <ndarray>index.lengths
-      self.rbufst = starts.data;  self.rbufln = lengths.data
-      if not self.space_id:
-        # Initialize the index array for reading
-        self.space_id = H5Dget_space(self.dataset_id )
-      # cache some counters in local extension variables
-      # nrows cannot be cached because it can grow!
-      self.l_slicesize = index.slicesize
-      self.l_chunksize = index.chunksize
-      if <object>self.indicescache is None:
-        # Define a LRU cache for indices
-        maxslots = INDICES_MAX_SIZE / (self.l_chunksize*self.indsize)
-        self.indicescache = <NumCache>NumCache(
-          shape=(maxslots, 1), itemsize=self.indsize, name="indices")
-
-
-  cdef _readIndex(self, hsize_t irow, hsize_t start, hsize_t stop,
-                  int offsetl):
+  def _readIndexSlice(self, hsize_t irow, hsize_t start, hsize_t stop,
+                      ndarray idx):
     cdef herr_t ret
-    cdef npy_int64 *rbufA
 
-    # Correct the start of the buffer with offsetl
-    rbufA = <npy_int64 *>self.rbufA + offsetl*self.indsize
     # Do the physical read
-    ##Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id, self.type_id,
-                                 irow, start, stop, rbufA)
-    ##Py_END_ALLOW_THREADS
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5ARRAYOread_readSlice(self.dataset_id, self.type_id,
+                                 irow, start, stop, idx.data)
+    Py_END_ALLOW_THREADS
     if ret < 0:
-      raise HDF5ExtError("Problems reading the array data.")
-
-    return
-
-
-  # The next method is able to read data from last row if necessary
-  cdef _readIndex_single(self, hsize_t coord, int relcoord):
-    cdef herr_t ret
-    cdef hsize_t irow, icol
-    cdef npy_int64 *rbufA
-
-    irow = coord / self.l_slicesize
-    icol = coord - irow * self.l_slicesize
-    # Do the physical read
-    rbufA = <npy_int64 *>self.rbufA + relcoord*self.indsize
-    if irow < self.nrows:
-      # Py_BEGIN_ALLOW_THREADS
-      ret = H5ARRAYOread_readSlice(self.dataset_id, self.space_id,
-                                   self.type_id, irow, icol, icol+1, rbufA)
-      # Py_END_ALLOW_THREADS
-      if ret < 0:
-        raise HDF5ExtError("_readIndex_single: Problems reading the indices.")
-    else:
-      self._v_parent.indicesLR._readIndexSlice(self, icol, icol+1, relcoord)
+      raise HDF5ExtError("Problems reading the index indices.")
 
     return
 
@@ -961,94 +895,6 @@ cdef class IndexArray(Array):
     return tlength
 
 
-  # This version of getCoords reads the indexes in chunks.
-  # Because of that, it can be used in iterators.
-  def _getCoords(self, index, hsize_t startcoords, long ncoords):
-    cdef int nrow, nrows, leni, len1, len2
-    cdef int relcoord, bcoords
-    cdef int startl, stopl, incr, stop
-    cdef int *rbufst, *rbufln
-    cdef npy_int64 coord, nidxelem
-    cdef long nslot
-
-    len1 = 0; len2 = 0; bcoords = 0
-    # Correction against asking too many elements
-    nidxelem = index.nelements
-    if startcoords + ncoords > nidxelem:
-      ncoords = nidxelem - startcoords
-    # create buffers for indices
-    self._initIndexSlice(index, ncoords)
-    arrAbs = self.arrAbs
-    rbufst = <int *>self.rbufst
-    rbufln = <int *>self.rbufln
-    nrows = index.nrows
-    for nrow from 0 <= nrow < nrows:
-      leni = rbufln[nrow]; len2 = len2 + leni
-      if (leni > 0 and len1 <= startcoords < len2):
-        startl = rbufst[nrow] + (startcoords-len1)
-        # Read ncoords as maximum
-        stopl = startl + ncoords
-        # Correction if stopl exceeds the limits
-        if stopl > rbufst[nrow] + rbufln[nrow]:
-          stopl = rbufst[nrow] + rbufln[nrow]
-        # Use the cache for reading reverse coordinates
-        for relcoord from 0 <= relcoord < stopl-startl:
-          coord = nrow * self.l_slicesize + startl + relcoord
-          nslot = self.indicescache.getslot_(coord)
-          if nslot >= 0:
-            self.indicescache.getitem2_(nslot, self.rbufA, bcoords+relcoord)
-          else:
-            # The coord is not in cache. Read it and put it in the LRU cache.
-            self._readIndex_single(coord, bcoords+relcoord)
-            self.indicescache.setitem_(coord, self.rbufA, bcoords+relcoord)
-        incr = stopl - startl
-        bcoords = bcoords + incr
-        startcoords = startcoords + incr
-        ncoords = ncoords - incr
-        if ncoords == 0:
-          break
-      len1 = len1 + leni
-    return arrAbs[:bcoords]
-
-
-  # This version of getCoords reads all the indexes in one pass.
-  # Because of that, it is not meant to be used on iterators.
-  # This is aproximately a 25% faster than _getCoords above.
-  # If there is a last row with interesting values on it, this has been
-  # optimised as well.
-  def _getCoords_sparse(self, index, long ncoords):
-    cdef int nrow, nrows, startl, stopl, lenl, relcoord
-    cdef int *rbufst, *rbufln
-    cdef npy_int64 *rbufC
-    cdef npy_int64 coord
-    cdef object nckey
-    cdef long nslot
-
-    nrows = self._v_parent.nrows  # Get the nrows of Index!
-    # Initialize the index dataset
-    self._initIndexSlice(index, ncoords)
-    rbufst = <int *>self.rbufst;  rbufln = <int *>self.rbufln
-    rbufC = <npy_int64 *>self.rbufC
-
-    # Get the sorted indices
-    get_sorted_indices(nrows, rbufC, rbufst, rbufln, self.l_slicesize)
-
-    # Retrieve the reverse coordinates
-    for relcoord from 0 <= relcoord < ncoords:
-      coord = rbufC[relcoord]
-      # Look at the cache for this coord
-      nslot = self.indicescache.getslot_(coord)
-      if nslot >= 0:
-        self.indicescache.getitem2_(nslot, self.rbufA, relcoord)
-      else:
-        # The coord is not in cache. Read it and put it in the LRU cache.
-        self._readIndex_single(coord, relcoord) # Puts result in self.rbufA
-        self.indicescache.setitem_(coord, self.rbufA, relcoord)
-
-    # Return ncoords as maximum because arrAbs can have more elements
-    return self.arrAbs[:ncoords]
-
-
   def _g_close(self):
     super(Array, self)._g_close()
     # Release specific resources of this class
@@ -1063,14 +909,11 @@ cdef class LastRowArray(Array):
   """Container for keeping sorted and indices values of last rows of an index."""
 
 
-  def _readIndexSlice(self, IndexArray indices, hsize_t start, hsize_t stop,
-                      int offsetl):
+  def _readIndexSlice(self, hsize_t start, hsize_t stop, ndarray idx):
     "Read the reverse index part of an LR index."
-    cdef npy_int64 *rbufA
 
-    rbufA = <npy_int64 *>indices.rbufA + offsetl*indices.indsize
     Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbufA)
+    ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, idx.data)
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data in Last Row.")

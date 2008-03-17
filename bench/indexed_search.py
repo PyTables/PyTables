@@ -12,11 +12,12 @@ WARMCACHE = 1500   # The number of reads until the cache is considered 'warmed'
 READ_TIMES = WARMCACHE+500    # The number of complete calls to DB.query_db()
 COLDCACHE = 5   # The number of reads where the cache is considered 'cold'
 WARMCACHE = 10   # The number of reads until the cache is considered 'warmed'
-READ_TIMES = 50    # The number of complete calls to DB.query_db()
+READ_TIMES = 100    # The number of complete calls to DB.query_db()
 MROW = 1000*1000.
 
 # global variables
 rdm_cod = ['lin', 'rnd']
+prec = 6  # precision for printing floats purposes
 
 
 def get_nrows(nrows_str):
@@ -69,10 +70,8 @@ class DB(object):
     def print_qtime_idx(self, colname, ltimes, repeated, verbose):
         if repeated:
             r = "[REP] "
-            prec = 6
         else:
             r = "[NOREP] "
-            prec = 6
         ltimes = numpy.array(ltimes)
         ntimes = len(ltimes)
         qtime1 = ltimes[0] # First measured time
@@ -177,6 +176,7 @@ class DB(object):
                     base = rndbase[i]
                     t1=time()
                     results = self.do_query(self.con, colname, base)
+                    #results, tprof = self.do_query(self.con, colname, base)
                     ltimes.append(time()-t1)
                 if verbose:
                     print "Results len:", results
@@ -190,10 +190,17 @@ class DB(object):
                 for i in range(niter):
                     t1=time()
                     results = self.do_query(self.con, colname, base)
+                    #results, tprof = self.do_query(self.con, colname, base)
                     ltimes.append(time()-t1)
                 if verbose:
                     print "Results len:", results
                 self.print_qtime_idx(colname, ltimes, True, verbose)
+                # Print internal PyTables index tprof statistics
+                #tprof = numpy.array(tprof)
+                #tmean, tstd = self.norm_times(tprof)
+                #print "tprof-->", round(tmean, prec), "+-", round(tstd, prec)
+                #print "tprof hist-->", numpy.histogram(tprof)
+                #print "tprof raw-->", tprof
                 # Always reopen the file after *every* query loop.
                 # Necessary to make the benchmark to run correctly.
                 self.close_db(self.con)

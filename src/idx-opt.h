@@ -40,6 +40,3 @@ int keysort_i8(npy_int8 *start1, char *start2, npy_intp num, int ts);
 int keysort_u8(npy_uint8 *start1, char *start2, npy_intp num, int ts);
 int keysort_S(char *start1, int ss, char *start2, npy_intp num, int ts);
 
-
-int get_sorted_indices(int nrows, npy_int64 *rbufC,
-		       int *rbufst, int *rbufln, int ssize);

@@ -345,6 +345,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.opt_search_types = opt_search_types
         """The types for which and optimized search has been implemented."""
 
+        self.tprof = 0
+        """Time counter for benchmarking purposes."""
+
         from tables.file import openFile
         self._openFile = openFile
         """The `openFile()` function, to avoid a circular import."""
@@ -509,9 +512,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.bebounds = None
 
         # The starts and lengths initialization
-        self.starts = numpy.empty(shape=self.nrows, dtype=numpy.uint32)
+        self.starts = numpy.empty(shape=self.nrows, dtype=numpy.int32)
         """Where the values fulfiling conditions starts for every slice."""
-        self.lengths = numpy.empty(shape=self.nrows, dtype=numpy.uint32)
+        self.lengths = numpy.empty(shape=self.nrows, dtype=numpy.int32)
         """Lengths of the values fulfilling conditions for every slice."""
 
         # Finally, create a temporary file for indexes if needed
@@ -1215,8 +1218,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                                          'last row chunks')
         """A cache for the last row chunks. Only used for searches in
         the last row, and mainly useful for small indexes."""
-        self.starts = numpy.empty(shape=self.nrows, dtype=numpy.uint32)
-        self.lengths = numpy.empty(shape=self.nrows, dtype=numpy.uint32)
+        self.starts = numpy.empty(shape=self.nrows, dtype=numpy.int32)
+        self.lengths = numpy.empty(shape=self.nrows, dtype=numpy.int32)
         # Initialize the sorted array in extension
         self.sorted._initSortedSlice(self)
         self.dirtycache = False
@@ -1397,64 +1400,43 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def get_chunkmap(self):
         """Compute a map with the interesting chunks in index"""
 
-        indices = self.indices
+        #t1 = time()
+        ss = self.slicesize;  bs = self.blocksize
+        nsb = self.nslicesblock;  nslices = self.nslices
+        lbucket = self.lbucket;
         indsize = self.indsize
-        nelements = self.nelements
-        ss = self.slicesize
-        bs = self.blocksize
-        nsb = self.nslicesblock
-        lbucket = self.lbucket
-        nchunks = long(math.ceil(float(nelements)/lbucket))
+        bucketsinblock = float(self.blocksize)/lbucket
+        nchunks = long(math.ceil(float(self.nelements)/lbucket))
         chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
-        starts = self.starts; lengths = self.lengths
         reduction = self.reduction
-        nslices = indices.nrows
-        for i in xrange(nslices):
-            start = (starts[i]-1)*reduction+1
-            stop = (starts[i]+lengths[i])*reduction
-            if start < 0: start = 0
+        starts = (self.starts-1)*reduction+1
+        stops = (self.starts+self.lengths)*reduction
+        starts[starts < 0] = 0    # All negative values set to zero
+        indices = self.indices
+        for nslice in xrange(self.nrows):
+            start = starts[nslice];  stop = stops[nslice]
             if stop > start:
-                idx = indices[i, start:stop]
+                idx = numpy.empty(shape=stop-start, dtype='i%d' % indsize)
+                if nslice < nslices:
+                    indices._readIndexSlice(nslice, start, stop, idx)
+                else:
+                    self.indicesLR._readIndexSlice(start, stop, idx)
                 if indsize == 8:
                     idx /= lbucket
-                elif indsize == 4:
-                    pass
                 elif indsize == 2:
                     idx = idx.astype("int_")
-                    # The next are *incorrect* ways to compute the offset
-                    #offset = (i/nsb)*(bs/lbucket)
-                    #offset = (i*bs)/(nsb*lbucket)
-                    # This *is* the correct one:
-                    offset = long((i/nsb)*(float(bs)/lbucket))
+                    offset = long((nslice/nsb)*bucketsinblock)
                     idx += offset
                 elif indsize == 1:
                     idx = idx.astype("int_")
-                    idx += (i*ss)/lbucket
-                chunkmap[idx] = True
-        # Get possible remaining values in last row
-        if self.nelementsSLR > 0:
-            start = (starts[-1]-1)*reduction+1
-            stop = (starts[-1]+lengths[-1])*reduction
-            if start < 0: start = 0
-            if stop > start:
-                idx = self.indicesLR[start:stop]
-                if indsize == 8:
-                    idx /= lbucket
-                elif indsize == 4:
-                    pass
-                elif indsize == 2:
-                    idx = idx.astype("int_")
-                    # See above for different ways of computing this offset
-                    offset = long((nslices/nsb)*(float(bs)/lbucket))
+                    offset = (nslice*ss)/lbucket
                     idx += offset
-                elif indsize == 1:
-                    idx = idx.astype("int_")
-                    idx += (nslices*ss)/lbucket
                 chunkmap[idx] = True
-        nrowsinchunk = self.nrowsinchunk
         # The case lbucket < nrowsinchunk should only happen in tests
+        nrowsinchunk = self.nrowsinchunk
         if lbucket <> nrowsinchunk:
             # Map the 'coarse grain' chunkmap into the 'true' chunkmap
+            nelements = self.nelements
             tnchunks = long(math.ceil(float(nelements)/nrowsinchunk))
             tchunkmap = numpy.zeros(shape=tnchunks, dtype="bool")
             ratio = float(lbucket)/nrowsinchunk
@@ -1464,6 +1446,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             for i in range(len(idx)):
                 tchunkmap[starts[i]:stops[i]] = True
             chunkmap = tchunkmap
+        #self.tprof = round(time()-t1, 4)
         return chunkmap
 
 

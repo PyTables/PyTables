@@ -7,8 +7,9 @@ class PyTables_DB(DB):
 
     def __init__(self, nrows, rng, userandom, datadir,
                  docompress=0, complib='zlib', optlevel=0,
-                 idxtype="medium"):
+                 idxtype="light"):
         DB.__init__(self, nrows, rng, userandom)
+        self.tprof = []
         # Specific part for pytables
         self.docompress = docompress
         self.complib = complib
@@ -145,3 +146,5 @@ class PyTables_DB(DB):
         #print "results-->", results
         #return results
         return ncoords
+        #self.tprof.append( self.colobj.index.tprof )
+        #return ncoords, self.tprof

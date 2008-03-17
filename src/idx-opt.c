@@ -1166,17 +1166,3 @@ int keysort_S(char *start1, int ss, char *start2, npy_intp num, int ts)
 }
 
 
-/* Get indices from sorted values */
-int get_sorted_indices(int nrows, npy_int64 *rbufC,
-		       int *rbufst, int *rbufln, int ssize) {
-  int irow, jrow;
-  int len1 = 0;
-
-  for (irow = 0; irow < nrows; irow++) {
-    for (jrow = 0; jrow < rbufln[irow]; jrow++) {
-      rbufC[len1++] = irow * ssize + rbufst[irow] + jrow;
-    }
-  }
-  return 0;
-}
-
