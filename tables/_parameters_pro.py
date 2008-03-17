@@ -24,12 +24,6 @@ __version__ = '$Revision$'
 # ==================
 # Be careful when touching these!
 
-LIMDATA_MAX_SLOTS = 128
-"""The maximum number of limits (lim1 <= col < lim2) cached in data lookups."""
-
-LIMDATA_MAX_SIZE = 256*_KB
-"""The maximum space that will take LIMDATA cache (in bytes)."""
-
 LIMBOUNDS_MAX_SLOTS = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
 
