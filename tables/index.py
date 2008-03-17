@@ -528,6 +528,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def initial_append(self, xarr, nrow, reduction):
+        """Compute an initial indices arrays for data to be indexed."""
         if profile: tref = time()
         if profile: show_stats("Entering initial_append", tref)
         arr = xarr.pop()
@@ -565,31 +566,28 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             if profile: show_stats("After reduction", tref)
             arr = reduc
             if profile: show_stats("After arr <-- reduc", tref)
+        if profile: show_stats("Entering initial_append", tref)
         return larr, arr, idx
 
 
     def final_idx(self, idx, offset):
+        """Upcast idx to 64-bit and a possible additional downcast."""
         if profile: tref = time()
         if profile: show_stats("Entering final_idx", tref)
-        if self.indsize in (4,8):
-            # For medium (32-bit) and full (64-bit) indexes, all the
-            # rows in tables should by directly reachable.
-            # Do an upcast first in order to add the offset
-            idx = idx.astype('uint64')
-            idx += offset
-            # Check if we have to do an additional downcast
-            if self.indsize == 4:
-                # The next partition is valid up to table sizes of
-                # 2**30*2**20 = 2**50 bytes, that is, 1 Exabyte, which
-                # should be a safe figure, at least for a while.
-                idx /= self.lbucket
-                # After the division, we can downsize the indexes to 'uint32'
-                idx = idx.astype('uint32')
-        else:
-            # For ultra-light (8-bit) and light (16-bit) indexes, we
-            # don't need to keep in account the offset, as it will be added
-            # during the chunkmap building during query completion.
-            pass
+        # For medium (32-bit) and full (64-bit) indexes, all the
+        # rows in tables should by directly reachable.
+        # Do an upcast first in order to add the offset
+        idx = idx.astype('uint64')
+        idx += offset
+        # Check if we have to do an additional downcast
+        if self.indsize == 4:
+            # The next partition is valid up to table sizes of
+            # 2**30*2**20 = 2**50 bytes, that is, 1 Exabyte, which
+            # should be a safe figure, at least for a while.
+            idx /= self.lbucket
+            # After the division, we can downsize the indexes to 'uint32'
+            idx = idx.astype('uint32')
+        if profile: show_stats("Exiting final_idx", tref)
         return idx
 
 
@@ -625,8 +623,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         mranges.append([smedian[ncs/2]])
         if profile: show_stats("Before deleting arr & smedian", tref)
         del arr, smedian   # delete references
+        if profile: show_stats("After deleting arr & smedian", tref)
         # Now that arr is gone, we can upcast the indices and add the offset
-        idx = self.final_idx(idx, nrows*self.slicesize)
+        if self.indsize >= 4:
+            idx = self.final_idx(idx, nrows*self.slicesize)
         indices.append(idx.reshape(1, idx.size))
         if profile: show_stats("Before deleting idx", tref)
         del idx
@@ -665,7 +665,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         sortedLR[:nelementsSLR] = arr
         del arr
         # Now that arr is gone, we can upcast the indices and add the offset
-        idx = self.final_idx(idx, nrows*self.slicesize)
+        if self.indsize >= 4:
+            idx = self.final_idx(idx, nrows*self.slicesize)
         # Save the reverse index array
         indicesLR[:len(idx)] = idx
         del idx
