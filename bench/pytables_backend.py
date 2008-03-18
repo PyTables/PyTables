@@ -129,8 +129,8 @@ class PyTables_DB(DB):
 #            results = table.readWhere(condition, self.condvars, field=column)
 
         elif True:
-            coords = [r.nrow for r in table.where(condition, self.condvars)]
             #results = [r[column] for r in table.where(condition, condvars)]
+            coords = [r.nrow for r in table.where(condition, self.condvars)]
             results = table.readCoordinates(coords)
 #             for r in table.where(condition, self.condvars):
 #                 var = r[column]
@@ -145,6 +145,6 @@ class PyTables_DB(DB):
         #return coords
         #print "results-->", results
         #return results
-        return ncoords
-        #self.tprof.append( self.colobj.index.tprof )
-        #return ncoords, self.tprof
+        #return ncoords
+        self.tprof.append( colobj.index.tprof )
+        return ncoords, self.tprof

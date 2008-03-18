@@ -2726,7 +2726,7 @@ def suite():
             elif heavy:
                 suite_ = unittest.makeSuite(class_)
                 theSuite.addTest(suite_)
-        testSuite.addTest(unittest.makeSuite(LastRowReuseBuffers))
+        theSuite.addTest(unittest.makeSuite(LastRowReuseBuffers))
 
     return theSuite
 
