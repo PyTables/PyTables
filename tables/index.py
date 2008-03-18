@@ -401,7 +401,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             if nelementsILR > 0:
                 self.nrows += 1
             # Get the bounds as a cache (this has to remain here!)
-            nboundsLR = (nelementsSLR - 1 ) // self.chunksize
+            rchunksize = self.chunksize // self.reduction
+            nboundsLR = (nelementsSLR - 1 ) // rchunksize
             if nboundsLR < 0:
                 nboundsLR = 0 # correction for -1 bounds
             nboundsLR += 2 # bounds + begin + end
@@ -653,8 +654,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         nelementsSLR = len(arr)
         nelementsILR = len(idx)
         # Build the cache of bounds
-        rcs = self.chunksize // reduction
-        self.bebounds = numpy.concatenate((arr[::rcs], [larr]))
+        rchunksize = self.chunksize // reduction
+        self.bebounds = numpy.concatenate((arr[::rchunksize], [larr]))
         # The number of elements will be saved as an attribute
         sortedLR.attrs.nelements = nelementsSLR
         indicesLR.attrs.nelements = nelementsILR
@@ -954,7 +955,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.get_neworder(sbounds_idx, sorted, tmp_sorted,
                               nslices, offset, self.dtype)
             self.get_neworder(sbounds_idx, indices, tmp_indices,
-                              nslices, offset, 'i%d' % self.indsize)
+                              nslices, offset, 'u%d' % self.indsize)
         # Reorder completely the index at slice level
         self.reorder_slices(tmp=True)
 
@@ -1050,7 +1051,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Create the buffer for reordering 2 slices at a time
         ssorted = numpy.empty(shape=ss*2, dtype=self.dtype)
         sindices = numpy.empty(shape=ss*2,
-                               dtype=numpy.dtype('i%d' % self.indsize))
+                               dtype=numpy.dtype('u%d' % self.indsize))
 
         # Iterate over each block.  No data should cross block
         # boundaries to avoid adressing problems with 16-bit indices.
@@ -1335,7 +1336,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         itemsize = self.dtype.itemsize
         sortedLRcache = self.sortedLRcache
         hi = self.nelementsSLR               # maximum number of elements
-        rcs = self.chunksize // self.reduction
+        rchunksize = self.chunksize // self.reduction
 
         nchunk = -1
         # Lookup for item1
@@ -1348,8 +1349,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 if nslot >= 0:
                     chunk = sortedLRcache.getitem(nslot)
                 else:
-                    begin = rcs*nchunk
-                    end = rcs*(nchunk+1)
+                    begin = rchunksize*nchunk
+                    end = rchunksize*(nchunk+1)
                     if end > hi:
                         end = hi
                     # Read the chunk from disk
@@ -1361,7 +1362,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     sortedLRcache.setitem(nchunk, chunk.copy(),
                                           (end-begin)*itemsize)
                 start = bisect_left(chunk, item1)
-                start += rcs*nchunk
+                start += rchunksize*nchunk
             else:
                 start = hi
         else:
@@ -1377,8 +1378,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     if nslot >= 0:
                         chunk = sortedLRcache.getitem(nslot)
                     else:
-                        begin = rcs*nchunk2
-                        end = rcs*(nchunk2+1)
+                        begin = rchunksize*nchunk2
+                        end = rchunksize*(nchunk2+1)
                         if end > hi:
                             end = hi
                         # Read the chunk from disk
@@ -1390,7 +1391,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                         sortedLRcache.setitem(nchunk2, chunk.copy(),
                                               (end-begin)*itemsize)
                 stop = bisect_right(chunk, item2)
-                stop += rcs*nchunk2
+                stop += rchunksize*nchunk2
             else:
                 stop = hi
         else:
@@ -1417,7 +1418,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         for nslice in xrange(self.nrows):
             start = starts[nslice];  stop = stops[nslice]
             if stop > start:
-                idx = numpy.empty(shape=stop-start, dtype='i%d' % indsize)
+                idx = numpy.empty(shape=stop-start, dtype='u%d' % indsize)
                 if nslice < nslices:
                     indices._readIndexSlice(nslice, start, stop, idx)
                 else:
@@ -1425,10 +1426,12 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 if indsize == 8:
                     idx /= lbucket
                 elif indsize == 2:
+                    # The chunkmap size cannot be never larger than 'int_'
                     idx = idx.astype("int_")
                     offset = long((nslice/nsb)*bucketsinblock)
                     idx += offset
                 elif indsize == 1:
+                    # The chunkmap size cannot be never larger than 'int_'
                     idx = idx.astype("int_")
                     offset = (nslice*ss)/lbucket
                     idx += offset
