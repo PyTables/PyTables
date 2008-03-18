@@ -2631,24 +2631,27 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
     class Record(IsDescription):
         id1 = Int16Col()
 
-    nelem = 1221
-    filename = tempfile.mktemp(".h5")
-    fp = openFile(filename, 'w')
-    ta = fp.createTable('/', 'table', Record, filters=Filters(1))
-    id1 = numpy.random.randint(0, 2**15, nelem)
-    ta.append([id1])
+    def test00(self):
+        nelem = 1221
+        filename = tempfile.mktemp(".h5")
+        fp = openFile(filename, 'w')
+        ta = fp.createTable('/', 'table', self.Record, filters=Filters(1))
+        id1 = numpy.random.randint(0, 2**15, nelem)
+        ta.append([id1])
 
-    ta.cols.id1.createIndex()
+        ta.cols.id1.createIndex()
 
-    for i in xrange(nelem):
-        nrow = random.randint(0, nelem-1)
-        value = id1[nrow]
-        idx = ta.getWhereList('id1 == %s' % value)
-        assert len(idx) > 0 , "idx--> %s %s %s %s" % (idx, i, nrow, value)
-        assert nrow in idx, "nrow not found: %s <> %s, %s" % (idx, nrow, value)
+        for i in xrange(nelem):
+            nrow = random.randint(0, nelem-1)
+            value = id1[nrow]
+            idx = ta.getWhereList('id1 == %s' % value)
+            assert len(idx) > 0 , "idx--> %s %s %s %s" % (idx, i, nrow, value)
+            assert nrow in idx, "nrow not found: %s <> %s, %s" % \
+                   (idx, nrow, value)
 
-    fp.close()
-    os.remove(filename)
+        fp.close()
+        os.remove(filename)
+
 
 normal_tests = (
     "SV1aTestCase", "SV2aTestCase", "SV3aTestCase",
@@ -2723,6 +2726,7 @@ def suite():
             elif heavy:
                 suite_ = unittest.makeSuite(class_)
                 theSuite.addTest(suite_)
+        testSuite.addTest(unittest.makeSuite(LastRowReuseBuffers))
 
     return theSuite
 
