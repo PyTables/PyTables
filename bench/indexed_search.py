@@ -175,8 +175,8 @@ class DB(object):
                 for i in range(niter):
                     base = rndbase[i]
                     t1=time()
-                    #results = self.do_query(self.con, colname, base)
-                    results, tprof = self.do_query(self.con, colname, base)
+                    results = self.do_query(self.con, colname, base)
+                    #results, tprof = self.do_query(self.con, colname, base)
                     ltimes.append(time()-t1)
                 if verbose:
                     print "Results len:", results
@@ -186,20 +186,20 @@ class DB(object):
                 self.close_db(self.con)
                 self.con = self.open_db()
                 ltimes = []
-#                 # Second, repeated queries
-#                 for i in range(niter):
-#                     t1=time()
-#                     #results = self.do_query(self.con, colname, base)
-#                     results, tprof = self.do_query(self.con, colname, base)
-#                     ltimes.append(time()-t1)
-#                 if verbose:
-#                     print "Results len:", results
-#                 self.print_qtime_idx(colname, ltimes, True, verbose)
+                # Second, repeated queries
+                for i in range(niter):
+                    t1=time()
+                    results = self.do_query(self.con, colname, base)
+                    #results, tprof = self.do_query(self.con, colname, base)
+                    ltimes.append(time()-t1)
+                if verbose:
+                    print "Results len:", results
+                self.print_qtime_idx(colname, ltimes, True, verbose)
                 # Print internal PyTables index tprof statistics
-                tprof = numpy.array(tprof)
-                tmean, tstd = self.norm_times(tprof)
-                print "tprof-->", round(tmean, prec), "+-", round(tstd, prec)
-                print "tprof hist-->", numpy.histogram(tprof)
+                #tprof = numpy.array(tprof)
+                #tmean, tstd = self.norm_times(tprof)
+                #print "tprof-->", round(tmean, prec), "+-", round(tstd, prec)
+                #print "tprof hist-->", numpy.histogram(tprof)
                 #print "tprof raw-->", tprof
                 # Always reopen the file after *every* query loop.
                 # Necessary to make the benchmark to run correctly.
