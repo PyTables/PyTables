@@ -26,6 +26,7 @@ Misc variables:
 
 import sys
 import numpy
+from time import time
 
 from tables.description import Description, Col
 from tables.exceptions import HDF5ExtError
@@ -55,6 +56,8 @@ from definitions cimport import_array, ndarray, \
      H5ATTRset_attribute_string, H5ATTRset_attribute, \
      get_len_of_range, get_order, set_order, is_complex, \
      conv_float64_timeval32
+
+from lrucacheExtension cimport ObjectCache, NumCache
 
 
 # Include conversion tables & type
@@ -531,7 +534,6 @@ cdef class Table(Leaf):
 
 
   def _read_records(self, hsize_t start, hsize_t nrecords, ndarray recarr):
-    cdef long buflen
     cdef void *rbuf
     cdef int ret
 
@@ -553,6 +555,37 @@ cdef class Table(Leaf):
     # Convert some HDF5 types to NumPy after reading.
     self._convertTypes(recarr, nrecords, 1)
 
+    return nrecords
+
+
+  cdef hsize_t _read_chunk(self, hsize_t nchunk, ndarray IObuf, long cstart):
+    cdef long nslot
+    cdef hsize_t start, nrecords, chunkshape
+    cdef int ret
+    cdef void *rbuf
+    cdef NumCache chunkcache
+
+    chunkcache = self.chunknumcache
+    chunkshape = chunkcache.slotsize
+    # Correct the number of records to read, if needed
+    start = nchunk*chunkshape
+    nrecords = chunkshape
+    if (start + nrecords) > self.totalrecords:
+      nrecords = self.totalrecords - start
+    rbuf = <char *>IObuf.data + cstart * chunkcache.itemsize
+    # Try to see if the chunk is in cache
+    nslot = chunkcache.getslot_(nchunk)
+    if nslot >= 0:
+      chunkcache.getitem_(nslot, rbuf, 0)
+    else:
+      # Chunk is not in cache. Read it and put it in the LRU cache.
+      Py_BEGIN_ALLOW_THREADS
+      ret = H5TBOread_records(self.dataset_id, self.type_id,
+                              start, nrecords, rbuf)
+      Py_END_ALLOW_THREADS
+      if ret < 0:
+        raise HDF5ExtError("Problems reading chunk records.")
+      nslot = chunkcache.setitem_(nchunk, rbuf, 0)
     return nrecords
 
 
@@ -823,9 +856,12 @@ cdef class Row:
 
   cdef __next__indexed(self):
     """The version of next() for indexed columns and a chunkmap."""
-    cdef int recout, i, j, nrowstoread, cs, lencoords
-    cdef hsize_t nchunksread, start, nrowsreadold
+    cdef long recout, j, cs, vlen, rowsize
+    cdef hsize_t nchunksread
     cdef object tmp_range
+    cdef Table table
+    cdef ndarray IObuf
+    cdef void *IObufData
 
     assert self.nrowsinbuf >= self.chunksize
     while self.nextelement < self.stop:
@@ -834,46 +870,45 @@ cdef class Row:
         while self.start > self.nrowsread + self.nrowsinbuf:
           self.nrowsread = self.nrowsread + self.nrowsinbuf
           self.nextelement = self.nextelement + self.nrowsinbuf
-        j = 0; cs = self.chunksize
-        nrowsreadold = self.nrowsread
+
+        table = self.table
+        IObuf = self.IObuf
+        j = 0;  recout = 0;  cs = self.chunksize
         nchunksread = self.nrowsread / cs
         tmp_range = numpy.arange(0, cs, dtype='int64')
-        lencoords = self.nchunksinbuf * cs
         self.bufcoords = numpy.empty(self.nrowsinbuf, dtype='int64')
         # Fetch valid chunks until the I/O buffer is full
         while nchunksread < self.totalchunks:
           if self.chunkmapData[nchunksread]:
             self.bufcoords[j*cs:(j+1)*cs] = tmp_range + self.nrowsread
+            # Not optimized read
+#             recout = recout + table._read_records(
+#               nchunksread*cs, cs, IObuf[j*cs:])
+            # Optimized through the use of a chunk cache
+            recout = recout + table._read_chunk(nchunksread, IObuf, j*cs)
             j = j + 1
           self.nrowsread = (nchunksread+1)*cs
           if self.nrowsread > self.stop:
-            if self.chunkmapData[nchunksread]:
-              lencoords = j*cs-(self.nrowsread-self.stop-1)
-            else:
-              lencoords = j*cs
             self.nrowsread = self.stop
             break
           elif j == self.nchunksinbuf:
             break
           nchunksread = nchunksread + 1
-        self._row = -1
-        recout = 0;  nrowstoread = cs;
-        self.bufcoordsData = <hsize_t*>self.bufcoords.data
-        for i from 0 <= i < j:
-          if i == j - 1:
-            nrowstoread = lencoords - i * cs
-          recout = recout + self.table._read_records(
-            self.bufcoordsData[i*cs], nrowstoread, self.IObuf[i*cs:])
+
         # Evaluate the condition on this table fragment.
+        IObuf = IObuf[:recout]
         self.indexValid = call_on_recarr(
-          self.condfunc, self.condargs, self.IObuf[:recout] )
+          self.condfunc, self.condargs, IObuf)
         self.indexValidData = <char *>self.indexValid.data
-        # Get the valid coordinates in the (start, stop, step) range
+
+        # Get the valid coordinates
         self.indexValues = self.bufcoords[self.indexValid]
         self.indexValuesData = <hsize_t *>self.indexValues.data
         self.lenbuf = self.indexValues.size
         # Place the valid results at the beginning of the buffer
-        self.IObuf[:self.lenbuf] = self.IObuf[self.indexValid]
+        IObuf[:self.lenbuf] = IObuf[self.indexValid]
+        self._row = -1
+
       self._row = self._row + 1
       # Check whether we have read all the rows in buf
       if self._row == self.lenbuf:

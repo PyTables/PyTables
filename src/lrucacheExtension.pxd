@@ -14,7 +14,9 @@ cdef class NodeCache:
 cdef class BaseCache:
   cdef int iscachedisabled, incsetcount
   cdef long setcount, getcount, containscount
-  cdef long cyclecount, enableeverycycles
+  cdef long disablecyclecount, disableeverycycles
+  cdef long enablecyclecount, enableeverycycles
+  cdef double nprobes, hitratio
   cdef long seqn_, nextslot, nslots
   cdef long *ratimes
   cdef double lowesthr
@@ -48,17 +50,16 @@ cdef class ObjectCache(BaseCache):
 # The NumCache class is useful for caching numerical data in an efficient way
 cdef class NumCache(BaseCache):
   cdef long itemsize, slotsize
-  cdef ndarray cacheobj, sorted, indices
+  cdef ndarray cacheobj, keys
   cdef void *rcache
-  cdef long long *rsorted
-  cdef unsigned short *rindices
-  cdef removeslot_(self, long nslot)
-  cdef addslot_(self, long nslot, long start, long long key, void *data)
+  cdef long long *rkeys
+  cdef object __dict
+  cdef void *getaddrslot_(self, long nslot)
   cdef long setitem_(self, long long key, void *data, long start)
-  cdef long slotlookup_(self, unsigned short x)
+  cdef long setitem1_(self, long long key)
   cdef long getslot_(self, long long key)
-  cdef void *getitem_(self, long nslot)
-  cdef long getitem2_(self, long nslot, void *data, long start)
+  cdef getitem_(self, long nslot, void *data, long start)
+  cdef void *getitem1_(self, long nslot)
 
 
 

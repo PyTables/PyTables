@@ -24,6 +24,9 @@ __version__ = '$Revision$'
 # ==================
 # Be careful when touching these!
 
+TABLE_MAX_SIZE = 1*_MB
+"""The maximum size for table rows cached during table reads."""
+
 LIMBOUNDS_MAX_SLOTS = 128
 """The maximum number of limits (lim1 <= col < lim2) cached in index lookups."""
 
@@ -42,12 +45,18 @@ SORTED_MAX_SIZE = 1*_MB
 INDICES_MAX_SIZE = 1*_MB
 """The maximum size for indices values cached during index lookups."""
 
-SORTEDLR_MAX_SLOTS = 128
+SORTEDLR_MAX_SLOTS = 1024
 """The maximum number of chunks in last row cached in data lookups."""
 
-SORTEDLR_MAX_SIZE = 1*_MB
+SORTEDLR_MAX_SIZE = 8*_MB
 """The maximum space that will take SORTEDLR cache (in bytes)."""
 
+
+DISABLE_EVERY_CYCLES = 10
+"""The number of cycles that the several LRU caches for data (not nodes)
+will be forced to be disabled if the hit ratio is lower than the
+LOWEST_HIT_RATIO. This should provide time enough to check whether the
+cache is being efficient or not."""
 
 ENABLE_EVERY_CYCLES = 50
 """The number of cycles that the several LRU caches for data (not nodes)
@@ -57,7 +66,7 @@ doing caching again."""
 
 LOWEST_HIT_RATIO = 0.6
 """The minimum acceptable hit ratio for the several LRU caches for data
-(not nodes) to avoid disabling the cache."""
+(not nodes) to avoid disabling (and cleaning) the cache."""
 
 ## Local Variables:
 ## mode: python

@@ -14,10 +14,12 @@ import warnings
 
 import numpy
 
+from tables.parameters import TABLE_MAX_SIZE
 from tables.atom import Atom
 from tables.exceptions import NoSuchNodeError
 from tables.index import defaultAutoIndex, defaultIndexFilters, Index
 from tables.leaf import Filters
+from tables.lrucacheExtension import ObjectCache, NumCache
 
 from tables._table_common import _indexPathnameOf
 
@@ -163,6 +165,14 @@ _table__indexFilters = property(
 
     .. Note:: Column indexing is only available in PyTables Pro.
     """ )
+
+def _table__restorecache(self):
+    # Define a cache for sparse table reads
+    chunksize = self._v_chunkshape[0]
+    nslots = TABLE_MAX_SIZE / chunksize
+    self.chunknumcache = NumCache((nslots, chunksize),
+                                  self._v_dtype,
+                                  'table chunk cache')
 
 def _column__createIndex(self, optlevel, filters, tmp_dir,
                          blocksizes, indsize,

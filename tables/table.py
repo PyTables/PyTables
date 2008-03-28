@@ -60,6 +60,7 @@ try:
     from tables._table_pro import (
         NailedDict,
         _table__autoIndex, _table__indexFilters,
+        _table__restorecache,
         _column__createIndex )
 except ImportError:
     from tables.exceptions import NoIndexingError, NoIndexingWarning
@@ -1223,6 +1224,10 @@ class Table(tableExtension.Table, Leaf):
             assert index is not None, "the chosen column is not indexed"
             assert not index.dirty, "the chosen column has a dirty index"
             self._whereIndex = idxcol.pathname
+            # Clean the table caches for indexed queries if needed
+            if self._dirtycache:
+                self._restorecache()
+
         args = [condvars[param] for param in compiled.parameters]
         self._whereCondition = (compiled.function, args)
 
@@ -1251,6 +1256,7 @@ class Table(tableExtension.Table, Leaf):
                 # The chunkmap is empty
                 self._whereIndex = self._whereCondition = None
                 return iter([])
+
         row = tableExtension.Row(self)
         return row._iter(start, stop, step, chunkmap=chunkmap)
 
@@ -1764,6 +1770,8 @@ You cannot append rows to a non-chunked table.""")
         self.nrows += lenrows
         if self.indexed:
             self._unsaved_indexedrows += lenrows
+            # The table caches for indexed queries are dirty now
+            self._dirtycache = True
             if self.autoIndex:
                 # Flush the unindexed rows (this needs to read the table)
                 self.flushRowsToIndex(_lastrow=False)
@@ -2151,6 +2159,8 @@ The 'names' parameter must be a list of strings.""")
             # Now, re-index the dirty ones
             if self.autoIndex and colstoindex:
                 self._doReIndex(dirty=True)
+            # The table caches for indexed queries are dirty now
+            self._dirtycache = True
 
 
     def _doReIndex(self, dirty):

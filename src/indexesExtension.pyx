@@ -299,7 +299,7 @@ cdef class IndexArray(Array):
       rowsize = (self.bounds_ext._v_chunkshape[1] * dtype.itemsize)
       maxslots = BOUNDS_MAX_SIZE / rowsize
       self.boundscache = <NumCache>NumCache(
-        (maxslots, self.nbounds), dtype.itemsize, 'non-opt types bounds')
+        (maxslots, self.nbounds), dtype, 'non-opt types bounds')
       self.bufferbc = numpy.empty(dtype=dtype, shape=self.nbounds)
       # Get the pointer for the internal buffer for 2nd level cache
       self.rbufbc = self.bufferbc.data
@@ -307,7 +307,7 @@ cdef class IndexArray(Array):
       rowsize = (self.chunksize*dtype.itemsize)
       maxslots = SORTED_MAX_SIZE / (self.chunksize*dtype.itemsize)
       self.sortedcache = <NumCache>NumCache(
-        (maxslots, self.chunksize), dtype.itemsize, 'sorted')
+        (maxslots, self.chunksize), dtype, 'sorted')
 
 
   cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start,
@@ -384,7 +384,7 @@ cdef class IndexArray(Array):
 
     nslot = self.boundscache.getslot_(nrow)
     if nslot >= 0:
-      vpointer = self.boundscache.getitem_(nslot)
+      vpointer = self.boundscache.getitem1_(nslot)
     else:
       # Bounds row is not in cache. Read it and put it in the LRU cache.
       self.bounds_ext.readSlice(nrow, 0, nbounds, self.rbufbc)
@@ -404,7 +404,7 @@ cdef class IndexArray(Array):
     nckey = nrow*ncs+nchunk
     nslot = self.sortedcache.getslot_(nckey)
     if nslot >= 0:
-      vpointer = self.sortedcache.getitem_(nslot)
+      vpointer = self.sortedcache.getitem1_(nslot)
     else:
       # The sorted chunk is not in cache. Read it and put it in the LRU cache.
       start = cs*nchunk;  stop = cs*(nchunk+1)

@@ -28,10 +28,11 @@ import sys
 
 import numpy
 from definitions cimport \
-     memcpy, strcmp, \
-     import_array, ndarray
+  memcpy, strcmp, \
+  import_array, ndarray
 
-from tables.parameters import ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
+from tables.parameters import \
+  DISABLE_EVERY_CYCLES, ENABLE_EVERY_CYCLES, LOWEST_HIT_RATIO
 
 
 
@@ -158,11 +159,13 @@ cdef class BaseCache:
 
     if nslots < 0:
       raise ValueError, "Negative number (%s) of slots!" % nslots
-    self.setcount = 0;  self.getcount = 0;
-    self.containscount = 0;  self.cyclecount = 0
+    self.setcount = 0;  self.getcount = 0;  self.containscount = 0
+    self.enablecyclecount = 0;  self.disablecyclecount = 0
     self.iscachedisabled = False  # Cache is enabled by default
+    self.disableeverycycles = DISABLE_EVERY_CYCLES
     self.enableeverycycles = ENABLE_EVERY_CYCLES
     self.lowesthr = LOWEST_HIT_RATIO
+    self.nprobes = 0.0;  self.hitratio = 0.0
     self.nslots = nslots
     self.seqn_ = 0;  self.nextslot = 0
     self.name = name
@@ -187,23 +190,30 @@ cdef class BaseCache:
   # F. Altet 2006-08-09
   cdef int checkhitratio(self):
     cdef double hitratio
+    cdef long nslot
 
     if self.setcount > self.nslots:
-      self.cyclecount = self.cyclecount + 1
-      # Check whether the cache is being effective or not
+      self.disablecyclecount = self.disablecyclecount + 1
+      self.enablecyclecount = self.enablecyclecount + 1
+      self.nprobes = self.nprobes + 1
       hitratio = <double>self.getcount / self.containscount
-      if hitratio < self.lowesthr:
-        # Hit ratio is low. Disable the cache.
-        self.iscachedisabled = True
-      else:
-        # Hit ratio is acceptable. (Re-)Enable the cache.
-        self.iscachedisabled = False
-      if self.cyclecount > self.enableeverycycles:
+      self.hitratio = self.hitratio + hitratio
+      # Reset the hit counters
+      self.setcount = 0;  self.getcount = 0;  self.containscount = 0
+      if (not self.iscachedisabled and
+          self.disablecyclecount > self.disableeverycycles):
+        # Check whether the cache is being effective or not
+        if hitratio < self.lowesthr:
+          # Hit ratio is low. Disable the cache.
+          self.iscachedisabled = True
+        else:
+          # Hit ratio is acceptable. (Re-)Enable the cache.
+          self.iscachedisabled = False
+        self.disablecyclecount = 0
+      if self.enablecyclecount > self.enableeverycycles:
         # We have reached the time for forcing the cache to act again
         self.iscachedisabled = False
-        self.cyclecount = 0
-      # Reset the counters
-      self.setcount = 0;  self.getcount = 0;  self.containscount = 0
+        self.enablecyclecount = 0
     return not self.iscachedisabled
 
 
@@ -291,10 +301,10 @@ cdef class ObjectCache(BaseCache):
     super(ObjectCache, self).__init__(nslots, name)
     self.cachesize = 0
     self.maxcachesize = maxcachesize
-    # maxobjsize will be the double of maximum size
-    # (in case all the objects are of the same size)
-    self.maxobjsize = <long>((<double>maxcachesize / nslots) * 2)
-    self.__list = range(nslots);  self.__dict = {}
+    # maxobjsize will be the same as the maximum cache size
+    self.maxobjsize = maxcachesize
+    self.__list = range(nslots)
+    self.__dict = {}
     self.mrunode = <ObjectNode>None   # Most Recent Used node
     # The array for keeping the object size (using long ints here)
     self.sizes = <ndarray>numpy.zeros(shape=nslots, dtype=numpy.int_)
@@ -339,7 +349,7 @@ cdef class ObjectCache(BaseCache):
     cdef long nslot, nslot1
     cdef object lruidx
 
-    if self.nslots == 0:   # Oops, the cache is set to empty
+    if self.nslots == 0:   # The cache has been set to empty
       return -1
     # Perhaps setcount has been already incremented in couldenablecache()
     if not self.incsetcount:
@@ -367,6 +377,10 @@ cdef class ObjectCache(BaseCache):
         # No slots removed, get the next in the queue
         nslot = self.nextslot
       self.addslot_(nslot, size, key, value)
+    elif self.nextslot > 0:
+      # Empty the cache
+      for nslot from 0 <= nslot < self.nextslot:
+        self.removeslot_(nslot)
     return nslot
 
 
@@ -384,9 +398,9 @@ cdef class ObjectCache(BaseCache):
   cdef long getslot_(self, object key):
     cdef ObjectNode node
 
-    if self.nslots == 0:   # No chance for finding a slot
-      return -1
     self.containscount = self.containscount + 1
+    if self.nextslot == 0:   # No chances for finding a slot
+      return -1
     # Give a chance to the MRU node
     node = self.mrunode
     if self.nextslot > 0 and node.key == key:
@@ -395,9 +409,7 @@ cdef class ObjectCache(BaseCache):
     node = self.__dict.get(key)
     if node is <ObjectNode>None:
       return -1
-    else:
-      return node.nslot
-
+    return node.nslot
 
   # Return the object to the data in cache (for Python calls)
   def getitem(self, object nslot):
@@ -416,13 +428,22 @@ cdef class ObjectCache(BaseCache):
 
 
   def __repr__(self):
-    return "<%s(%s) (%d maxslots, %d slots used, %.3f KB cachesize, disabled? %s)>" % \
+    if self.nprobes > 0:
+      hitratio = self.hitratio / self.nprobes
+    else:
+      hitratio = <double>self.getcount / self.containscount
+    return """<%s(%s)
+  (%d maxslots, %d slots used, %.3f KB cachesize,
+  hit ratio: %.3f, disabled? %s)>
+  """ % \
            (self.name, str(self.__class__), self.nslots, self.nextslot,
-            self.cachesize / 1024., self.iscachedisabled)
+            self.cachesize / 1024., hitratio, self.iscachedisabled)
 
 
 ###################################################################
 #  Minimalistic LRU cache implementation for numerical data
+###################################################################
+# The next code is more efficient in situations where efficiency is low.
 ###################################################################
 
 #*********************** Important note! ****************************
@@ -436,7 +457,7 @@ cdef class NumCache(BaseCache):
   """Least-Recently-Used (LRU) cache specific for Numerical data.
   """
 
-  def __init__(self, object shape, int itemsize, object name):
+  def __init__(self, object shape, object dtype, object name):
     """Maximum size of the cache.
     If more than 'nslots' elements are added to the cache,
     the least-recently-used ones will be discarded.
@@ -448,56 +469,57 @@ cdef class NumCache(BaseCache):
     """
     cdef long nslots
 
-    nslots = shape[0];  self.slotsize = shape[1]*itemsize
+    nslots = shape[0];  self.slotsize = shape[1]
     if nslots >= 1<<16:
       # nslots can't be higher than 2**16. Will silently trunk the number.
       nslots = <long>((1<<16)-1)  # Cast makes Pyrex happy here
     super(NumCache, self).__init__(nslots, name)
-    self.itemsize = itemsize
+    self.itemsize = dtype.itemsize
+    self.__dict = {}
     # The cache object where all data will go
-    self.cacheobj = <ndarray>numpy.empty(shape=(nslots, self.slotsize),
-                                         dtype=numpy.uint8)
+    # The last slot is to allow the setitem1_ method to still return
+    # a valid scratch area for writing purposes
+    self.cacheobj = <ndarray>numpy.empty(shape=(nslots+1, self.slotsize),
+                                         dtype=dtype)
     self.rcache = <void *>self.cacheobj.data
-    # The arrays for keeping the indexes of slots
-    self.sorted = <ndarray>(-numpy.ones(shape=nslots, dtype=numpy.int64))
-    self.rsorted = <long long *>self.sorted.data
-    # 16-bits is more than enough for keeping the slot numbers
-    self.indices = <ndarray>numpy.arange(nslots, dtype=numpy.uint16)
-    self.rindices = <unsigned short *>self.indices.data
+    # The array for keeping the keys of slots
+    self.keys = <ndarray>(-numpy.ones(shape=nslots, dtype=numpy.int64))
+    self.rkeys = <long long *>self.keys.data
 
 
-  cdef removeslot_(self, long nslot):
-    self.nextslot = self.nextslot - 1
-
-
-  # Copy new data into a free slot starting in 'start'
-  cdef addslot_(self, long nslot, long start, long long key, void *data):
-    cdef long nidx, base1, base2
-
-    assert nslot < self.nslots, "Number of nodes exceeding cache capacity."
-    # Copy the data to the appropriate row in cache
-    base1 = nslot * self.slotsize;  base2 = start * self.itemsize
-    memcpy(<char *>self.rcache + base1, <char *>data + base2, self.slotsize)
-    # Refresh the atimes, sorted and indices data with the new slot info
-    self.ratimes[nslot] = self.incseqn()
-    nidx = self.slotlookup_(<unsigned short>nslot)
-    self.rsorted[nidx] = key
-    self.indices[:] = self.indices[self.sorted.argsort()]
-    # The take() method seems similar in speed. This is striking,
-    # because documentation says that it should be faster.
-    # Profiling is saying that take maybe using memmove() and
-    # this is *very* inneficient (at least with Linux/i386).
-    #self.indices[:] = self.indices.take(self.sorted.argsort())
-    self.sorted.sort()
-    self.nextslot = self.nextslot + 1
+  # Returns the address of nslot
+  cdef void *getaddrslot_(self, long nslot):
+    if nslot >= 0:
+      return <char *>self.rcache + nslot * self.slotsize * self.itemsize
+    else:
+      return <char *>self.rcache + self.nslots * self.slotsize * self.itemsize
 
 
   def setitem(self, long long key, ndarray nparr, long start):
     return self.setitem_(key, nparr.data, start)
 
-  # Add new data into a cache slot
+
+  # Copy the new data into a cache slot
   cdef long setitem_(self, long long key, void *data, long start):
     cdef long nslot
+
+    nslot = self.setitem1_(key)
+    if nslot >= 0:
+      # Copy the data to cache
+      memcpy(<char *>self.rcache + nslot * self.slotsize * self.itemsize,
+             <char *>data + start * self.itemsize,
+             self.slotsize * self.itemsize)
+    return nslot
+
+
+  # Return a cache data pointer appropriate to save data.
+  # Even if the cache is disabled, this will return a -1, which is
+  # the last element in the cache.
+  # This version avoids a memcpy of data, but the user should be
+  # aware that data in nslot cannot be overwritten!
+  cdef long setitem1_(self, long long key):
+    cdef long nslot
+    cdef object key2
 
     if self.nslots == 0:   # Oops, the cache is set to empty
       return -1
@@ -512,81 +534,84 @@ cdef class NumCache(BaseCache):
       if self.nextslot == self.nslots:
         # Get the least recently used slot
         nslot = self.atimes.argmin()
-        self.removeslot_(nslot)
+        # Remove the slot from the dict
+        key2 = self.keys[nslot]
+        del self.__dict[key2]
+        self.nextslot = self.nextslot - 1
       else:
         # Get the next slot available
         nslot = self.nextslot
-      self.addslot_(nslot, start, key, data)
-    return nslot
-
-
-  # Return the index for element x in array self.rindices.
-  # This should never fail because x should be always present.
-  cdef long slotlookup_(self, unsigned short x):
-    cdef long nslot
-    cdef unsigned short *a
-
-    a = self.rindices; nslot = 0
-    while x != a[nslot]:
-      nslot = nslot + 1
-      assert nslot < self.nslots
+      # Insert the slot in the dictionary
+      self.__dict[key] = nslot
+      self.keys[nslot] = key
+      self.ratimes[nslot] = self.incseqn()
+      self.nextslot = self.nextslot + 1
+      # The next reduces the performance of the cache in scenarios where
+      # the efficicency is near to zero.  I don't understand exactly why.
+      # F. Altet 24-03-2008
+    elif self.nextslot > 0:
+      # Empty the cache if needed
+      self.__dict.clear()
+      self.nextslot = 0
     return nslot
 
 
   def getslot(self, long long key):
     return self.getslot_(key)
 
+
   # Tells in which slot key is. If not found, -1 is returned.
   cdef long getslot_(self, long long key):
-    cdef long lo, hi, mid
-    cdef long long *rsorted
+    cdef object nslot
 
-    if self.nslots == 0:   # No chance for finding a slot
-      return -1
     self.containscount = self.containscount + 1
-    rsorted = self.rsorted
-    lo = 0;  hi = self.nslots
-    while lo < hi:
-      mid = (lo+hi)/2
-      if rsorted[mid] < key: lo = mid+1
-      else: hi = mid
-    if lo < self.nslots and key == rsorted[lo]:
-      return self.rindices[lo]
-    else:
+    if self.nextslot == 0:   # No chances for finding a slot
       return -1
+    try:
+      nslot = self.__dict[key]
+    except KeyError:
+      return -1
+    return nslot
 
 
-  # Return the pointer to the data in cache
-  cdef void *getitem_(self, long nslot):
+  def getitem(self, long nslot, ndarray nparr, long start):
+    self.getitem_(nslot, nparr.data, start)
 
-    self.getcount = self.getcount + 1
-    self.ratimes[nslot] = self.incseqn()
-    return <char *>self.rcache + nslot * self.slotsize
-
-
-  def getitem2(self, long nslot, ndarray nparr, long start):
-    return self.getitem2_(nslot, nparr.data, start)
 
   # This version copies data in cache to data+start.
   # The user should be responsible to provide a large enough data buffer
   # to keep all the data.
-  cdef long getitem2_(self, long nslot, void *data, long start):
-    cdef long base1, base2
+  cdef getitem_(self, long nslot, void *data, long start):
+    cdef void *cachedata
+
+    cachedata = self.getitem1_(nslot)
+    # Copy the data in cache to destination
+    memcpy(<char *>data + start * self.itemsize, cachedata,
+           self.slotsize * self.itemsize)
+
+
+  # Return the pointer to the data in cache
+  # This version avoids a memcpy of data, but the user should be
+  # aware that data in nslot cannot be overwritten!
+  cdef void *getitem1_(self, long nslot):
 
     self.getcount = self.getcount + 1
     self.ratimes[nslot] = self.incseqn()
-    # Copy the data in cache to destination
-    base1 = start * self.itemsize;   base2 = nslot * self.slotsize
-    memcpy(<char *>data + base1, <char *>self.rcache + base2, self.slotsize)
-    return nslot
+    return <char *>self.rcache + nslot * self.slotsize * self.itemsize
 
 
   def __repr__(self):
-
-    cachesize = (self.nextslot * self.slotsize) / 1024.
-    return "<%s(%s) (%d maxslots, %d slots used, %.3f KB cachesize, disabled? %s)>" % \
-           (self.name, str(self.__class__), self.nslots, self.nextslot,
-            cachesize, self.iscachedisabled)
+    cachesize = (self.nslots * self.slotsize * self.itemsize) / 1024.
+    if self.nprobes > 0:
+      hitratio = self.hitratio / self.nprobes
+    else:
+      hitratio = <double>self.getcount / self.containscount
+    return """<%s(%s)
+  (%d maxslots, %d slots used, %.3f KB cachesize,
+  hit ratio: %.3f, disabled? %s)>
+  """ % \
+  (self.name, str(self.__class__), self.nslots, self.nextslot,
+   cachesize, hitratio, self.iscachedisabled)
 
 
 
