@@ -24,6 +24,15 @@ __version__ = '$Revision$'
 # ==================
 # Be careful when touching these!
 
+ITERSEQ_MAX_SLOTS = 128
+"""The maximum number of iterator sequences cached in data lookups."""
+
+ITERSEQ_MAX_SIZE = 1*_MB
+"""The maximum space that will take ITERSEQ cache (in bytes)."""
+
+ITERSEQ_MAX_ELEMENT = 1024
+"""The maximum number of elements in ITERSEQ sequences."""
+
 TABLE_MAX_SIZE = 1*_MB
 """The maximum size for table rows cached during table reads."""
 
@@ -41,9 +50,6 @@ BOUNDS_MAX_SIZE = 1*_MB
 
 SORTED_MAX_SIZE = 1*_MB
 """The maximum size for sorted values cached during index lookups."""
-
-INDICES_MAX_SIZE = 1*_MB
-"""The maximum size for indices values cached during index lookups."""
 
 SORTEDLR_MAX_SLOTS = 1024
 """The maximum number of chunks in last row cached in data lookups."""

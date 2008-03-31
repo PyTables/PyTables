@@ -1205,6 +1205,7 @@ class Table(tableExtension.Table, Leaf):
         compiled = self._compileCondition(condition, condvars)
         return self._where(compiled, condvars, start, stop, step)
 
+
     def _where( self, compiled, condvars,
                 start=None, stop=None, step=None ):
         """
@@ -1214,6 +1215,12 @@ class Table(tableExtension.Table, Leaf):
         also uses `condvars` as is.  This is on purpose; if you want
         default variables and the like, use `self._requiredExprVars()`.
         """
+
+        # Adjust the slice to be used.
+        (start, stop, step) = self._processRangeRead(start, stop, step)
+        if start >= stop:  # empty range, reset conditions
+            self._whereIndex = self._whereCondition = None
+            return iter([])
 
         # Set the index column (if any) and condition
         # for the ``Row`` iterator.
@@ -1235,17 +1242,28 @@ class Table(tableExtension.Table, Leaf):
         if idxvar:
             range_ = index.getLookupRange(
                 compiled.index_operators, compiled.index_limits, self )
+            # It is important to include the range in the cache key
+            seqkey = (self._whereIndex, range_, (start, stop, step))
+            nslot = self._seqcache.getslot(seqkey)
+            if nslot >= 0:
+                self._whereIndex = self._whereCondition = None
+                # Get the row sequence from the cache
+                seq = self._seqcache.getitem(nslot)
+                seq = numpy.array(seq, dtype='int64')
+                # Correct the ranges in cached sequence
+                if (start, stop, step) <> (0, self.nrows, 1):
+                    seq = seq[(seq>=start)&(seq<stop)&((seq-start)%step==0)]
+                return self.itersequence(seq)
+            else:
+                # No luck.  Set row sequence to empty and hope that it
+                # can be populated in the iterator.  If not possible,
+                # the slot entry will be removed there.
+                self._nslotseq = self._seqcache.setitem(seqkey, [], 1)
             ncoords = index.search(range_)  # do use indexing (always >= 0)
             if index.reduction == 1 and ncoords == 0:
                 # No values from index condition, thus no resulting rows.
                 self._whereIndex = self._whereCondition = None
                 return iter([])
-
-        # Adjust the slice to be used.
-        (start, stop, step) = self._processRangeRead(start, stop, step)
-        if start >= stop:  # empty range, reset conditions
-            self._whereIndex = self._whereCondition = None
-            return iter([])
 
         chunkmap = None  # default to an in-kernel query
         if idxvar:
@@ -1370,7 +1388,8 @@ class Table(tableExtension.Table, Leaf):
         if not hasattr(sequence, '__getitem__'):
             raise TypeError("""\
 Wrong 'sequence' parameter type. Only sequences are suported.""")
-
+        if len(sequence) == 0:
+            return iter([])
         coords = numpy.asarray(sequence, dtype=SizeType)
         # That might allow the retrieving on a sequential order
         # although this is not totally clear.

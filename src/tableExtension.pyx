@@ -34,6 +34,7 @@ from tables.conditions import call_on_recarr
 from tables.utilsExtension import \
      getNestedField, AtomFromHDF5Type, AtomToHDF5Type
 from tables.utils import SizeType
+from tables.parameters import ITERSEQ_MAX_ELEMENT
 
 from utilsExtension cimport get_native_type
 
@@ -58,7 +59,6 @@ from definitions cimport import_array, ndarray, \
      conv_float64_timeval32
 
 from lrucacheExtension cimport ObjectCache, NumCache
-
 
 # Include conversion tables & type
 include "convtypetables.pxi"
@@ -565,7 +565,7 @@ cdef class Table(Leaf):
     cdef void *rbuf
     cdef NumCache chunkcache
 
-    chunkcache = self.chunknumcache
+    chunkcache = self._chunkcache
     chunkshape = chunkcache.slotsize
     # Correct the number of records to read, if needed
     start = nchunk*chunkshape
@@ -862,6 +862,9 @@ cdef class Row:
     cdef Table table
     cdef ndarray IObuf
     cdef void *IObufData
+    cdef long nslot
+    cdef object seq
+    cdef ObjectCache seqcache
 
     assert self.nrowsinbuf >= self.chunksize
     while self.nextelement < self.stop:
@@ -907,7 +910,23 @@ cdef class Row:
         self.lenbuf = self.indexValues.size
         # Place the valid results at the beginning of the buffer
         IObuf[:self.lenbuf] = IObuf[self.indexValid]
+
+        # Initialize the internal buffer row counter
         self._row = -1
+
+        # Feed the indexValues into the seqcache
+        seqcache = table._seqcache
+        nslot = table._nslotseq
+        if nslot >= 0:
+          seq = seqcache.getitem_(nslot)
+          if self.lenbuf + len(seq) < ITERSEQ_MAX_ELEMENT:
+            seq.extend(self.indexValues)
+            # Update the size of sequence in cache
+            # Each element in indexValues should take at least 8 bytes
+            seqcache.rsizes[nslot] = len(seq) * 8
+          else:
+            seqcache.removeslot_(nslot)
+            table._nslotseq = -1
 
       self._row = self._row + 1
       # Check whether we have read all the rows in buf

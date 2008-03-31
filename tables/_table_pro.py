@@ -14,7 +14,8 @@ import warnings
 
 import numpy
 
-from tables.parameters import TABLE_MAX_SIZE
+from tables.parameters import (
+    TABLE_MAX_SIZE, ITERSEQ_MAX_SLOTS, ITERSEQ_MAX_SIZE )
 from tables.atom import Atom
 from tables.exceptions import NoSuchNodeError
 from tables.index import defaultAutoIndex, defaultIndexFilters, Index
@@ -170,9 +171,10 @@ def _table__restorecache(self):
     # Define a cache for sparse table reads
     chunksize = self._v_chunkshape[0]
     nslots = TABLE_MAX_SIZE / chunksize
-    self.chunknumcache = NumCache((nslots, chunksize),
-                                  self._v_dtype,
-                                  'table chunk cache')
+    self._chunkcache = NumCache((nslots, chunksize), self._v_dtype,
+                                'table chunk cache')
+    self._seqcache = ObjectCache(ITERSEQ_MAX_SLOTS, ITERSEQ_MAX_SIZE,
+                                 'Iter sequence cache')
 
 def _column__createIndex(self, optlevel, filters, tmp_dir,
                          blocksizes, indsize,
