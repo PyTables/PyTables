@@ -164,12 +164,6 @@ def _split_expression(exprnode, indexedcols):
         elif lop in ['lt', 'le'] and rop in ['gt', 'ge']:  # l >= x >= r
             return (rcolvar, [rop, lop], [rlim, llim], None)  # r <= x <= l
 
-    # Indexable VC comparison on one side only.
-    for (colvar, op, lim, other) in [ (lcolvar, lop, llim, right),
-                                      (rcolvar, rop, rlim, left), ]:
-        if colvar:
-            return (colvar, [op], [lim], other)
-
     # Recursion: conjunction of indexable expression and other.
     for (this, other) in [(left, right), (right, left)]:
         colvar, ops, lims, res = _split_expression(this, indexedcols)
