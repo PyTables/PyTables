@@ -647,6 +647,7 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
     for _cbase in ['c_bool', '~c_bool']:
         conditions.append(_cbase)
         conditions.append('(%s) & (c_extra > 0)' % _cbase)
+        conditions.append('(%s) & (c_bool == False)' % _cbase)
         conditions.append('(c_extra > 0) & (%s)' % _cbase)
     # Add simple numeric conditions.
     for _usevar in [False, True]:
@@ -658,28 +659,161 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
                     _cdict = {'o': _op, 'v': 0}
                 conditions.append(_condt % _cdict)
     conditions.append('(c_int32 > 0) & (c_extra > 0)')
+    conditions.append('(c_int32 > 0) & (c_bool == True)')
     conditions.append('(c_extra > 0) & (c_int32 > 0)')
     # Add double numeric conditions.
     for _cbase in ['(0<c_int32) & (c_int32<10)', '(10>c_int32) & (c_int32>0)']:
         conditions.append(_cbase)
         conditions.append('(%s) & (c_extra > 0)' % _cbase)
+        conditions.append('(%s) & (c_bool == True)' % _cbase)
         conditions.append('(c_extra > 0) & (%s)' % _cbase)
 
     def setUp(self):
         super(IndexedTableUsageTestCase, self).setUp()
         self.table.cols.c_bool.createIndex(_blocksizes=small_blocksizes)
         self.table.cols.c_int32.createIndex(_blocksizes=small_blocksizes)
+        self.willQueryUseIndexing = self.table.willQueryUseIndexing
+        self.requiredExprVars = self.table._requiredExprVars
+        self.splitCondition = self.table._splitCondition
 
-    def test(self):
+    def test00(self):
         """Using indexing in some queries."""
-        willQueryUseIndexing = self.table.willQueryUseIndexing
         for condition in self.conditions:
-            self.assert_( willQueryUseIndexing(condition, {'var': 0}),
+            self.assert_( self.willQueryUseIndexing(condition, {'var': 0}),
                           "query with condition ``%s`` should use indexing"
                           % condition )
             vprint(
                 "* Query with condition ``%s`` will use indexing."
                 % condition )
+
+
+    def test01(self):
+        """Using indexing in specific queries (set #1)."""
+        conditions = [
+            '(c_int32 > 0)',
+            '(c_int32 > 0) & (c_bool == True)',
+            '(c_int32 > 0) & (c_extra > 0)']
+        for condition in conditions:
+            self.assert_( self.willQueryUseIndexing(condition, {'var': 0}),
+                          "query with condition ``%s`` should use indexing"
+                          % condition )
+            vprint(
+                "* Query with condition ``%s`` will use indexing."
+                % condition )
+            condvars = self.requiredExprVars(condition, None)
+            compiled = self.splitCondition(condition, condvars)
+            self.assert_( compiled.index_limits == [0],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+            self.assert_( compiled.index_operators == ['gt'],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+
+    def test02(self):
+        """Using indexing in specific queries (set #2)."""
+        conditions = [
+            '(c_int32 > 0) & (c_int32 < 5)',
+            '(c_int32 > 0) & (c_int32 < 5) & (c_bool == True)',
+            '(c_int32 > 0) & (c_int32 < 5) & (c_extra > 0)']
+        for condition in conditions:
+            self.assert_( self.willQueryUseIndexing(condition, {'var': 0}),
+                          "query with condition ``%s`` should use indexing"
+                          % condition )
+            vprint(
+                "* Query with condition ``%s`` will use indexing."
+                % condition )
+            condvars = self.requiredExprVars(condition, None)
+            compiled = self.splitCondition(condition, condvars)
+            self.assert_( compiled.index_limits == [0,5],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+            self.assert_( compiled.index_operators == ['gt','lt'],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+
+    def test03(self):
+        """Using indexing in specific queries (set #3)."""
+        conditions = [
+            '(c_bool == True)',
+            '(c_bool == True) & (c_extra > 0)',
+            '(c_bool == True) & (c_int32 > 0) & (c_int32 < 5)']
+        for condition in conditions:
+            self.assert_( self.willQueryUseIndexing(condition, {'var': 0}),
+                          "query with condition ``%s`` should use indexing"
+                          % condition )
+            vprint(
+                "* Query with condition ``%s`` will use indexing."
+                % condition )
+            condvars = self.requiredExprVars(condition, None)
+            compiled = self.splitCondition(condition, condvars)
+            self.assert_( compiled.index_limits == [True],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+            self.assert_( compiled.index_operators == ['eq'],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+
+    def test04(self):
+        """Using indexing in specific queries (set #4)."""
+        conditions = [
+            '(c_int32 >= 1) & (c_int32 < 2)',
+            '(c_int32 >= 1) & (c_int32 < 2) & (c_int32 > 0) & (c_int32 < 5)']
+        for condition in conditions:
+            self.assert_( self.willQueryUseIndexing(condition, {'var': 0}),
+                          "query with condition ``%s`` should use indexing"
+                          % condition )
+            vprint(
+                "* Query with condition ``%s`` will use indexing."
+                % condition )
+            condvars = self.requiredExprVars(condition, None)
+            compiled = self.splitCondition(condition, condvars)
+            self.assert_( compiled.index_limits == [1,2],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+            self.assert_( compiled.index_operators == ['ge','lt'],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+
+    def test05(self):
+        """Using indexing in specific queries (set #5)."""
+        conditions = [
+            '(c_extra > 0) & (c_bool == True)']
+        for condition in conditions:
+            self.assert_( self.willQueryUseIndexing(condition, {'var': 0}),
+                          "query with condition ``%s`` should use indexing"
+                          % condition )
+            vprint(
+                "* Query with condition ``%s`` will use indexing."
+                % condition )
+            condvars = self.requiredExprVars(condition, None)
+            compiled = self.splitCondition(condition, condvars)
+            self.assert_( compiled.index_limits == [True],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+            self.assert_( compiled.index_operators == ['eq'],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+
+    def test06(self):
+        """Using indexing in specific queries (set #6)."""
+        conditions = [
+            '(c_extra > 0) & (c_int32 > 0) & (c_int32 < 5)']
+        for condition in conditions:
+            self.assert_( self.willQueryUseIndexing(condition, {'var': 0}),
+                          "query with condition ``%s`` should use indexing"
+                          % condition )
+            vprint(
+                "* Query with condition ``%s`` will use indexing."
+                % condition )
+            condvars = self.requiredExprVars(condition, None)
+            compiled = self.splitCondition(condition, condvars)
+            self.assert_( compiled.index_limits == [0,5],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+            self.assert_( compiled.index_operators == ['gt','lt'],
+                          "wrong limits in condition ``%s``"
+                          % condition)
+
 
 
 # Main part
