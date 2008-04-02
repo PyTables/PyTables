@@ -60,8 +60,7 @@ try:
     from tables._table_pro import (
         NailedDict,
         _table__autoIndex, _table__indexFilters,
-        _table__restorecache,
-        _column__createIndex )
+        _table__whereIndexed, _column__createIndex )
 except ImportError:
     from tables.exceptions import NoIndexingError, NoIndexingWarning
     from tables.node import NotLoggedMixin
@@ -83,9 +82,6 @@ except ImportError:
 
     # Forbid accesses to these attributes.
     _table__autoIndex = _table__indexFilters = property()
-
-    def _table__restorecache(self):
-        pass
 
     def _checkIndexingAvailable():
         raise NoIndexingError
@@ -648,11 +644,6 @@ class Table(tableExtension.Table, Leaf):
             self._autoIndex = self.autoIndex
 
 
-    def _restorecache(self):
-        _table__restorecache(self)  # restore caches used by indexes
-        self._dirtycache = False
-
-
     def _getemptyarray(self, dtype):
         # Acts as a cache for empty arrays
         key = dtype
@@ -929,7 +920,7 @@ class Table(tableExtension.Table, Leaf):
         self._conditionCache.unnail()
         self._enabledIndexingInQueries = True
 
-    def _requiredExprVars(self, expression, uservars, depth):
+    def _requiredExprVars(self, expression, uservars, depth=1):
         """
         Get the variables required by the `expression`.
 
@@ -1218,59 +1209,24 @@ class Table(tableExtension.Table, Leaf):
         # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars, depth=3)
         compiled, condkey = self._compileCondition(condition, condvars)
-        args = [condvars[param] for param in compiled.parameters]
-        self._whereCondition = (compiled.function, args)
-
-        chunkmap = None  # default to an in-kernel query
 
         # Can we use indexes?
         idxvar = compiled.index_variable
         if idxvar:
-            # Clean the table caches for indexed queries if needed
-            if self._dirtycache:
-                self._restorecache()
-            # Set the index column (if any) and condition
-            # for the ``Row`` iterator.
-            idxcol = condvars[idxvar]
-            index = idxcol.index
-            assert index is not None, "the chosen column is not indexed"
-            assert not index.dirty, "the chosen column has a dirty index"
-            self._whereIndex = idxcol.pathname
-
-            # Get the number of rows that the indexed condition yields.
-            range_ = index.getLookupRange(
-                compiled.index_operators, compiled.index_limits, self )
-            # It is important to include the range in the cache key
-            seqkey = (condkey, range_, (start, stop, step))
-            nslot = self._seqcache.getslot(seqkey)
-            if nslot >= 0:
+            chunkmap = _table__whereIndexed(
+                self, idxvar, compiled, condvars, condkey, start, stop, step)
+            #if hasattr(chunkmap, "next"):
+            if type(chunkmap) <> numpy.ndarray:
+                # Quacks like an iterator
+                # Reset conditions
                 self._whereIndex = self._whereCondition = None
-                # Get the row sequence from the cache
-                seq = self._seqcache.getitem(nslot)
-                seq = numpy.array(seq, dtype='int64')
-                # Correct the ranges in cached sequence
-                if (start, stop, step) <> (0, self.nrows, 1):
-                    seq = seq[(seq>=start)&(seq<stop)&((seq-start)%step==0)]
-                return self.itersequence(seq)
-            else:
-                # No luck.  Set row sequence to empty and hope that it
-                # can be populated in the iterator.  If not possible,
-                # the slot entry will be removed there.
-                self._nslotseq = self._seqcache.setitem(seqkey, [], 1)
-            ncoords = index.search(range_)  # do use indexing (always >= 0)
-            if index.reduction == 1 and ncoords == 0:
-                # No values from index condition, thus no resulting rows.
-                self._whereIndex = self._whereCondition = None
-                return iter([])
+                # ...and return the iterator
+                return chunkmap
+        else:
+            chunkmap = None  # default to an in-kernel query
 
-            # Iterate according to the chunkmap and condition
-            chunkmap = index.get_chunkmap()
-            #print "chunks to read-->", chunkmap.sum(), chunkmap.nonzero()
-            if chunkmap.sum() == 0:
-                # The chunkmap is empty
-                self._whereIndex = self._whereCondition = None
-                return iter([])
-
+        args = [condvars[param] for param in compiled.parameters]
+        self._whereCondition = (compiled.function, args)
         row = tableExtension.Row(self)
         return row._iter(start, stop, step, chunkmap=chunkmap)
 

@@ -733,7 +733,7 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
             '(c_int32 > 0) & (c_extra > 0)']
         for condition in conditions:
             condvars = self.requiredExprVars(condition, None)
-            compiled = self.compileCondition(condition, condvars)
+            compiled, _ = self.compileCondition(condition, condvars)
             self.assert_( compiled.index_variable == 'c_int32',
                           "wrong index variable in condition ``%s``"
                           % condition)
@@ -756,7 +756,7 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
             '(c_int32 > 0) & (c_int32 < 5) & (c_extra > 0)']
         for condition in conditions:
             condvars = self.requiredExprVars(condition, None)
-            compiled = self.compileCondition(condition, condvars)
+            compiled, _ = self.compileCondition(condition, condvars)
             self.assert_( compiled.index_variable == 'c_int32',
                           "wrong index variable in condition ``%s``"
                           % condition)
@@ -779,7 +779,7 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
             '(c_bool == True) & (c_int32 > 0) & (c_int32 < 5)']
         for condition in conditions:
             condvars = self.requiredExprVars(condition, None)
-            compiled = self.compileCondition(condition, condvars)
+            compiled, _ = self.compileCondition(condition, condvars)
             self.assert_( compiled.index_variable == 'c_bool',
                           "wrong index variable in condition ``%s``"
                           % condition)
@@ -801,7 +801,7 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
             '(c_int32 >= 1) & (c_int32 < 2) & (c_int32 > 0) & (c_int32 < 5)']
         for condition in conditions:
             condvars = self.requiredExprVars(condition, None)
-            compiled = self.compileCondition(condition, condvars)
+            compiled, _ = self.compileCondition(condition, condvars)
             self.assert_( compiled.index_variable == 'c_int32',
                           "wrong index variable in condition ``%s``"
                           % condition)
@@ -822,7 +822,7 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
             '(c_extra > 0) & (c_bool == True)']
         for condition in conditions:
             condvars = self.requiredExprVars(condition, None)
-            compiled = self.compileCondition(condition, condvars)
+            compiled, _ = self.compileCondition(condition, condvars)
             self.assert_( compiled.index_variable == 'c_bool',
                           "wrong index variable in condition ``%s``"
                           % condition)
@@ -843,7 +843,7 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
             '(c_extra > 0) & (c_int32 > 0) & (c_int32 < 5)']
         for condition in conditions:
             condvars = self.requiredExprVars(condition, None)
-            compiled = self.compileCondition(condition, condvars)
+            compiled, _ = self.compileCondition(condition, condvars)
             self.assert_( compiled.index_variable == 'c_int32',
                           "wrong index variable in condition ``%s``"
                           % condition)
