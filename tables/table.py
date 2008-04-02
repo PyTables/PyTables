@@ -1241,7 +1241,7 @@ class Table(tableExtension.Table, Leaf):
             range_ = index.getLookupRange(
                 compiled.index_operators, compiled.index_limits, self )
             # It is important to include the range in the cache key
-            seqkey = (condkey, (start, stop, step))
+            seqkey = (condkey, range_, (start, stop, step))
             nslot = self._seqcache.getslot(seqkey)
             if nslot >= 0:
                 self._whereIndex = self._whereCondition = None

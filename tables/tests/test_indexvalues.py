@@ -2581,10 +2581,62 @@ class SelectValuesTestCase(unittest.TestCase):
 
         # Repeat the selection with a more complex condition
         t2col = table1.cols.var2
-        t3col = table1.cols.var3
-        il3 = int(self.il)
-        sl3 = int(self.sl)
         condition = '(il<=t1col)&(t1col<=sl)&(t2col==True)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=0, stop=10, step=1)]
+        results2 = [p["var1"] for p in table2.iterrows(0,10,1)
+                    if il<=p["var1"]<=sl and p["var2"]==True]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+    def test13f(self):
+        """Checking repeated queries, with different limits."""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test13f..." % self.__class__.__name__
+
+        table1 = self.fileh.root.table1
+        table2 = self.fileh.root.table2
+
+        # Convert the limits to the appropriate type
+        il = str(self.il)
+        sl = str(self.sl)
+
+        # Do some selections and check the results
+        t1col = table1.cols.var1
+        condition = '(il<=t1col)&(t1col<=sl)'
+        self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
+        results1 = [p['var1'] for p in
+                    table1.where(condition, start=0, stop=10, step=1)]
+        results2 = [p["var1"] for p in table2.iterrows(0,10,1)
+                    if il<=p["var1"]<=sl]
+        # sort lists (indexing does not guarantee that rows are returned in
+        # order)
+        results1.sort(); results2.sort()
+        if verbose:
+            print "Limits:", il, sl
+#             print "Selection results (indexed):", results1
+#             print "Should look like:", results2
+            print "Length results:", len(results1)
+            print "Should be:", len(results2)
+        assert len(results1) == len(results2)
+        assert results1 == results2
+
+        # Repeat the selection with different limits
+        il, sl = (str(self.il+1), str(self.sl-2))
+        t2col = table1.cols.var2
+        condition = '(il<=t1col)&(t1col<=sl)'
         self.assert_(table1.willQueryUseIndexing(condition) == t1col.pathname)
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
