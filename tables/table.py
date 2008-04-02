@@ -929,7 +929,7 @@ class Table(tableExtension.Table, Leaf):
         self._conditionCache.unnail()
         self._enabledIndexingInQueries = True
 
-    def _requiredExprVars(self, expression, uservars):
+    def _requiredExprVars(self, expression, uservars, depth):
         """
         Get the variables required by the `expression`.
 
@@ -947,6 +947,9 @@ class Table(tableExtension.Table, Leaf):
         Nested columns and columns from other tables are not allowed
         (`TypeError` and `ValueError` are raised, respectively).  Also,
         non-column variable values are converted to NumPy arrays.
+
+        `depth` specifies the depth of the frame in order to reach local
+        or global variables.
         """
         # Get the names of variables used in the expression.
         if not expression in self._exprvarsCache:
@@ -962,13 +965,14 @@ class Table(tableExtension.Table, Leaf):
         # if no mapping has been explicitly given for user variables.
         user_locals, user_globals = {}, {}
         if uservars is None:
-            # We use depth 2 to get the frame where the API callable
-            # using this method is called.  For instance:
+            # We use specified depth to get the frame where the API
+            # callable using this method is called.  For instance:
             #
             # * ``table._requiredExprVars()`` (depth 0) is called by
-            # * ``table.where()`` (depth 1) is called by
-            # * the user (depth 2)
-            user_frame = sys._getframe(2)
+            # * ``table._where()`` (depth 1) is called by
+            # * ``table.where()`` (depth 2) is called by
+            # * user-space functions (depth 3)
+            user_frame = sys._getframe(depth)
             user_locals = user_frame.f_locals
             user_globals = user_frame.f_globals
 
@@ -1065,7 +1069,7 @@ class Table(tableExtension.Table, Leaf):
         condkey = self._getConditionKey(condition, condvars)
         compiled = condcache.get(condkey)
         if compiled:
-            return compiled.with_replaced_vars(condvars)  # bingo!
+            return compiled.with_replaced_vars(condvars), condkey  # bingo!
 
         # Bad luck, the condition must be parsed and compiled.
         # Fortunately, the key provides some valuable information. ;)
@@ -1092,7 +1096,6 @@ class Table(tableExtension.Table, Leaf):
             if col.pathname in self._colunaligned:
                 copycols.append(colname)
         indexedcols = frozenset(indexedcols)
-
         # Now let ``compile_condition()`` do the Numexpr-related job.
         compiled = compile_condition(condition, typemap, indexedcols, copycols)
 
@@ -1103,7 +1106,7 @@ class Table(tableExtension.Table, Leaf):
 
         # Store the compiled condition in the cache and return it.
         condcache[condkey] = compiled
-        return compiled.with_replaced_vars(condvars)
+        return compiled.with_replaced_vars(condvars), condkey
 
 
     def willQueryUseIndexing(self, condition, condvars=None):
@@ -1123,8 +1126,8 @@ class Table(tableExtension.Table, Leaf):
         .. Note:: Column indexing is only available in PyTables Pro.
         """
         # Compile the condition and extract usable index conditions.
-        condvars = self._requiredExprVars(condition, condvars)
-        compiled = self._compileCondition(condition, condvars)
+        condvars = self._requiredExprVars(condition, condvars, depth=2)
+        compiled, condkey = self._compileCondition(condition, condvars)
         if not compiled.index_variable:
             return None
         return condvars[compiled.index_variable].pathname
@@ -1200,50 +1203,45 @@ class Table(tableExtension.Table, Leaf):
            the table (like ``Table.append()`` or ``Table.removeRows()``)
            or unexpected errors will happen.
         """
-        # Compile the condition and extract usable index conditions.
-        condvars = self._requiredExprVars(condition, condvars)
-        compiled = self._compileCondition(condition, condvars)
-        return self._where(compiled, condvars, start, stop, step)
+        return self._where(condition, condvars, start, stop, step)
 
 
-    def _where( self, compiled, condvars,
+    def _where( self, condition, condvars,
                 start=None, stop=None, step=None ):
-        """
-        Low-level counterpart of `self.where()`.
-
-        This version needs the condition to already be `compiled`.  It
-        also uses `condvars` as is.  This is on purpose; if you want
-        default variables and the like, use `self._requiredExprVars()`.
-        """
-
+        """Low-level counterpart of `self.where()`."""
         # Adjust the slice to be used.
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start >= stop:  # empty range, reset conditions
             self._whereIndex = self._whereCondition = None
             return iter([])
 
-        # Set the index column (if any) and condition
-        # for the ``Row`` iterator.
+        # Compile the condition and extract usable index conditions.
+        condvars = self._requiredExprVars(condition, condvars, depth=3)
+        compiled, condkey = self._compileCondition(condition, condvars)
+        args = [condvars[param] for param in compiled.parameters]
+        self._whereCondition = (compiled.function, args)
+
+        chunkmap = None  # default to an in-kernel query
+
+        # Can we use indexes?
         idxvar = compiled.index_variable
         if idxvar:
+            # Clean the table caches for indexed queries if needed
+            if self._dirtycache:
+                self._restorecache()
+            # Set the index column (if any) and condition
+            # for the ``Row`` iterator.
             idxcol = condvars[idxvar]
             index = idxcol.index
             assert index is not None, "the chosen column is not indexed"
             assert not index.dirty, "the chosen column has a dirty index"
             self._whereIndex = idxcol.pathname
-            # Clean the table caches for indexed queries if needed
-            if self._dirtycache:
-                self._restorecache()
 
-        args = [condvars[param] for param in compiled.parameters]
-        self._whereCondition = (compiled.function, args)
-
-        # Get the number of rows that the indexed condition yields.
-        if idxvar:
+            # Get the number of rows that the indexed condition yields.
             range_ = index.getLookupRange(
                 compiled.index_operators, compiled.index_limits, self )
             # It is important to include the range in the cache key
-            seqkey = (self._whereIndex, range_, (start, stop, step))
+            seqkey = (condkey, (start, stop, step))
             nslot = self._seqcache.getslot(seqkey)
             if nslot >= 0:
                 self._whereIndex = self._whereCondition = None
@@ -1265,8 +1263,6 @@ class Table(tableExtension.Table, Leaf):
                 self._whereIndex = self._whereCondition = None
                 return iter([])
 
-        chunkmap = None  # default to an in-kernel query
-        if idxvar:
             # Iterate according to the chunkmap and condition
             chunkmap = index.get_chunkmap()
             #print "chunks to read-->", chunkmap.sum(), chunkmap.nonzero()
@@ -1301,12 +1297,8 @@ class Table(tableExtension.Table, Leaf):
         """
         self._checkFieldIfNumeric(field)
 
-        # Compile the condition and extract usable index conditions.
-        condvars = self._requiredExprVars(condition, condvars)
-        compiled = self._compileCondition(condition, condvars)
-
         coords = [ p.nrow for p in
-                   self._where(compiled, condvars, start, stop, step) ]
+                   self._where(condition, condvars, start, stop, step) ]
         self._whereCondition = None  # reset the conditions
         return self.readCoordinates(coords, field)
 
@@ -1327,17 +1319,13 @@ class Table(tableExtension.Table, Leaf):
         # Check that the destination file is not in read-only mode.
         dstTable._v_file._checkWritable()
 
-        # Compile the condition and extract usable index conditions.
-        condvars = self._requiredExprVars(condition, condvars)
-        compiled = self._compileCondition(condition, condvars)
-
         # Row objects do not support nested columns, so we must iterate
         # over the flat column paths.  When rows support nesting,
         # ``self.colnames`` can be directly iterated upon.
         colNames = [colName for colName in self.colpathnames]
         dstRow = dstTable.row
         nrows = 0
-        for srcRow in self._where(compiled, condvars, start, stop, step):
+        for srcRow in self._where(condition, condvars, start, stop, step):
             for colName in colNames:
                 dstRow[colName] = srcRow[colName]
             dstRow.append()
@@ -1359,11 +1347,8 @@ class Table(tableExtension.Table, Leaf):
         `Table.where()` method.
         """
 
-        # Compile the condition and extract usable index conditions.
-        condvars = self._requiredExprVars(condition, condvars)
-        compiled = self._compileCondition(condition, condvars)
         coords = [ p.nrow for p in
-                   self._where(compiled, condvars, start, stop, step) ]
+                   self._where(condition, condvars, start, stop, step) ]
         coords = numpy.array(coords, dtype=SizeType)
         # Reset the conditions
         self._whereCondition = None
