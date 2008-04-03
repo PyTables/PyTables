@@ -124,7 +124,7 @@ class PyTables_DB(DB):
             #ncoords = colobj.index.search((inf, sup))
             results = [ r[column] for r in
                         table.where(condition, self.condvars) ]
-            sum(results)
+            #sum(results)
 
 #             coords = table.getWhereList(condition, self.condvars)
 #             results = table.readCoordinates(coords, field=column)
