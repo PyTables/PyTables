@@ -104,10 +104,11 @@ class PyTables_DB(DB):
                              "col3": table.cols.col3,
                              "col4": table.cols.col4,
                              }
-        self.condvars['inf'] = self.rng[0]+base
-        self.condvars['sup'] = self.rng[1]+base
+        inf = self.rng[0]+base; sup = self.rng[1]+base
+        self.condvars['inf'] = inf
+        self.condvars['sup'] = sup
         condition = "(inf<=col) & (col<=sup)"
-        #condition += " & (sqrt(col1+3.1*col2+col3*col4) > 3)"
+        condition += " & (sqrt(col1+3.1*col2+col3*col4) < 3)"
         #condition += " & (col2*(col3+3.1)+col3*col4 > col1)"
 #        condition = "(inf<=col) & (col<=sup) & (col3 >= 0)"
 #         condition = "(%s<=col) & (col<=%s)" % \
@@ -120,8 +121,10 @@ class PyTables_DB(DB):
 
         ncoords = 0
         if colobj.is_indexed:
+            #ncoords = colobj.index.search((inf, sup))
             results = [ r[column] for r in
                         table.where(condition, self.condvars) ]
+            sum(results)
 
 #             coords = table.getWhereList(condition, self.condvars)
 #             results = table.readCoordinates(coords, field=column)
@@ -129,9 +132,9 @@ class PyTables_DB(DB):
 #            results = table.readWhere(condition, self.condvars, field=column)
 
         elif True:
-            coords = [r.nrow for r in table.where(condition, self.condvars)]
-            #results = [r[column] for r in table.where(condition, condvars)]
-            results = table.readCoordinates(coords)
+            #coords = [r.nrow for r in table.where(condition, self.condvars)]
+            results = [r[column] for r in table.where(condition, self.condvars)]
+            #results = table.readCoordinates(coords)
 #             for r in table.where(condition, self.condvars):
 #                 var = r[column]
 #                 ncoords += 1

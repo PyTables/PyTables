@@ -190,20 +190,20 @@ def _table__whereIndexed(self, idxvar, compiled, condvars, condkey,
     assert not index.dirty, "the chosen column has a dirty index"
     self._whereIndex = idxcol.pathname
 
-    # Get the number of rows that the indexed condition yields.
-    range_ = index.getLookupRange(
-        compiled.index_operators, compiled.index_limits, self )
     # Build a key for the sequence cache
     # It is expensive to get a condkey, so it has been brought here
     # as a parameter.
     #condkey = self._getConditionKey(compiled, condvars)
-    # It is important to include the ranges in the cache key
-    seqkey = (condkey, range_, (start, stop, step))
+    # It is important to include the limits and the slice in the cache key
+    limits = tuple(compiled.index_limits)
+    seqkey = (condkey, limits, (start, stop, step))
     nslot = self._seqcache.getslot(seqkey)
     if nslot >= 0:
         self._whereIndex = self._whereCondition = None
         # Get the row sequence from the cache
         seq = self._seqcache.getitem(nslot)
+        if len(seq) == 0:
+            return iter([])
         seq = numpy.array(seq, dtype='int64')
         # Correct the ranges in cached sequence
         if (start, stop, step) <> (0, self.nrows, 1):
@@ -214,6 +214,9 @@ def _table__whereIndexed(self, idxvar, compiled, condvars, condkey,
         # can be populated in the iterator.  If not possible,
         # the slot entry will be removed there.
         self._nslotseq = self._seqcache.setitem(seqkey, [], 1)
+    # Get the number of rows that the indexed condition yields.
+    range_ = index.getLookupRange(
+        compiled.index_operators, compiled.index_limits, self )
     ncoords = index.search(range_)
     if index.reduction == 1 and ncoords == 0:
         # No values from index condition, thus no resulting rows.
