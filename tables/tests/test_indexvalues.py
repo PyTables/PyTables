@@ -2641,7 +2641,7 @@ class SelectValuesTestCase(unittest.TestCase):
         results1 = [p['var1'] for p in
                     table1.where(condition, start=0, stop=10, step=1)]
         results2 = [p["var1"] for p in table2.iterrows(0,10,1)
-                    if il<=p["var1"]<=sl and p["var2"]==True]
+                    if il<=p["var1"]<=sl]
         # sort lists (indexing does not guarantee that rows are returned in
         # order)
         results1.sort(); results2.sort()
