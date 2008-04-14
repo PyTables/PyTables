@@ -2,7 +2,10 @@ __all__ = ['E']
 
 import operator
 import sys
-import threading
+try:
+    import threading as _threading
+except ImportError:
+    import dummy_threading as _threading
 
 import numpy
 
@@ -20,16 +23,25 @@ class Expression(object):
 
 E = Expression()
 
-try:
-    _context = threading.local()
-except AttributeError:
-    class Context(object):
-        pass
-    _context = Context()
-_context.ctx = {}
+class Context(_threading.local):
+    initialized = False
+    def __init__(self, dict_):
+        if self.initialized:
+            raise SystemError('__init__ called too many times')
+        self.initialized = True
+        self.__dict__.update(dict_)
+    def get(self, value, default):
+        return self.__dict__.get(value, default)
+    def get_current_context(self):
+        return self.__dict__
+    def set_new_context(self, dict_):
+        self.__dict__.update(dict_)
+
+# This will be called each time the local object is used in a separate thread
+_context = Context({})
 
 def get_optimization():
-    return _context.ctx.get('optimization', 'none')
+    return _context.get('optimization', 'none')
 
 # helper functions for creating __magic__ methods
 def ophelper(f):
