@@ -19,8 +19,7 @@ from distutils.dep_util import newer
 from distutils.util     import convert_path
 
 # The minimum version of NumPy required
-#min_numpy_version = '1.0.4'
-min_numpy_version = '1.0.3'
+min_numpy_version = '1.0.4'
 # The minimum version of Pyrex required for compiling the extensions
 min_pyrex_version = '0.9.6.4'
 
