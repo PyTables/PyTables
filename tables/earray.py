@@ -30,7 +30,7 @@ import sys
 
 import numpy
 
-from tables.utilsExtension import lrange
+from tables.utilsExtension import lrange, whichLibVersion
 from tables.parameters import EXPECTED_ROWS_EARRAY
 from tables.utils import convertToNPAtom, convertToNPAtom2, SizeType
 from tables.atom import Atom, EnumAtom, split_type
@@ -237,16 +237,14 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
     def truncate(self, size):
         """
         Truncate the extendable dimension to at most `size` rows.
-
-        Due to limitations of the underlying HDF5 implementation,
-        `size` must be greater than 0 (i.e. the dataset can not be
-        completely emptied).
         """
-
-        if size <= 0:
-            raise ValueError("`size` must be greater than 0")
-        self._truncateArray(size)
-
+        if (size > 0 or
+            (size == 0 and whichLibVersion("hdf5")[1] >= "1.8.0")):
+                self._truncateArray(size)
+        else:
+            raise ValueError("""
+`size` must be greater than 0 if you are using HDF5 < 1.8.0.
+With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
 
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, _log):

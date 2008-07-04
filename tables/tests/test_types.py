@@ -74,7 +74,7 @@ class RangeTestCase(unittest.TestCase):
         rec['var3'] = i % self.maxshort
         rec['var5'] = float(i)
         try:
-            rec['var4'] = "124"
+            rec['var4'] = "124c"
         except TypeError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()

@@ -1356,6 +1356,34 @@ class SameNestedNoReopen(SameNestedTestCase):
 class SameNestedReopen(SameNestedTestCase):
     reopen = 1
 
+class NestedTypesWithGaps(common.PyTablesTestCase):
+
+    correct_descr = \
+"""{
+  "float": Float32Col(shape=(), dflt=0.0, pos=0),
+  "compound": {
+    "char": Int8Col(shape=(), dflt=0, pos=0),
+    "double": Float64Col(shape=(), dflt=0.0, pos=1)}}"""
+
+    def test01(self):
+        """Opening a table with nested types with gaps."""
+
+        h5file = t.openFile(self._testFilename('nested-type-with-gaps.h5'))
+        tbl = h5file.getNode('/nestedtype')
+        type_descr = repr(tbl.description)
+        if common.verbose:
+            print "Type size with no gaps:", tbl.description._v_itemsize
+            print "And should be: 13"
+            print "Representation of the nested type:\n", type_descr
+            print "And should be:\n", self.correct_descr
+
+        self.assert_(tbl.description._v_itemsize == 13)
+        self.assert_(type_descr == self.correct_descr)
+
+        if common.verbose:
+            print "Great!  Nested types with gaps recognized correctly."
+
+        h5file.close()
 
 
 
@@ -1381,6 +1409,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ReadReopen))
         theSuite.addTest(unittest.makeSuite(SameNestedNoReopen))
         theSuite.addTest(unittest.makeSuite(SameNestedReopen))
+        theSuite.addTest(unittest.makeSuite(NestedTypesWithGaps))
 
     return theSuite
 

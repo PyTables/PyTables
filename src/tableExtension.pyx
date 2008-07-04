@@ -282,9 +282,9 @@ cdef class Table(Leaf):
       class_id = H5Tget_class(member_type_id)
       if class_id == H5T_COMPOUND and not is_complex(member_type_id):
         colpath2 = joinPath(colpath, colname)
-        # Create the native data in-memory
+        # Create the native data in-memory (without gaps!)
         native_member_type_id = H5Tcreate(H5T_COMPOUND, itemsize)
-        desc[colname] = self.getNestedType(
+        desc[colname], itemsize = self.getNestedType(
           member_type_id, native_member_type_id, colpath2, field_byteorders)
         desc[colname]["_v_pos"] = i  # Remember the position
       else:
@@ -339,20 +339,20 @@ cdef class Table(Leaf):
       else:
         byteorder = "irrelevant"
       self.byteorder = byteorder
-      # Correct the type size in case the memory type size is less
-      # than the type in-disk (probably due to reading native HDF5
-      # files written with tools that do allow introducing padding)
-      # Solves bug #23
-      if H5Tget_size(native_type_id) > offset:
-        H5Tset_size(native_type_id, offset)
+    # Correct the type size in case the memory type size is less
+    # than the type in-disk (probably due to reading native HDF5
+    # files written with tools that do allow introducing padding)
+    # Solves bug #23
+    if H5Tget_size(native_type_id) > offset:
+      H5Tset_size(native_type_id, offset)
 
-    return desc
+    return desc, offset
 
 
   def _getInfo(self):
     "Get info from a table on disk."
     cdef hid_t   space_id, plist
-    cdef size_t  type_size, size2
+    cdef size_t  type_size, compact_type_size, size2
     cdef hsize_t dims[1], chunksize[1]  # enough for unidimensional tables
     cdef H5D_layout_t layout
 
@@ -385,8 +385,9 @@ cdef class Table(Leaf):
     type_size = H5Tget_size(self.disk_type_id)
     # Create the native data in-memory
     self.type_id = H5Tcreate(H5T_COMPOUND, type_size)
-    # Fill-up the (nested) native type and description
-    desc = self.getNestedType(self.disk_type_id, self.type_id, "", [])
+    # Fill-up the (nested) native type (removing the gaps!) and description
+    desc, compact_type_size = \
+          self.getNestedType(self.disk_type_id, self.type_id, "", [])
     if desc == {}:
       raise HDF5ExtError("Problems getting desciption for table %s", self.name)
 
@@ -1348,7 +1349,7 @@ cdef class Row:
       return PyArray_GETITEM(field, field.data + offset * self._stride)
     else:
       # Do a copy of the array, so that it can be overwritten by the user
-      # whitout damaging the internal self.rfields buffer
+      # without damaging the internal self.rfields buffer
       return field[offset].copy()
 
 

@@ -162,9 +162,9 @@ class NaturalNameWarning(Warning):
     Issued when a non-pythonic name is given for a node.
 
     This is not an error and may even be very useful in certain
-    contexts, but one should be aware that such nodes cannot be accessed
-    using natural naming.  (Instead, ``getattr()`` or
-    ``group._f_getChild()`` must be used explicitly.)
+    contexts, but one should be aware that such nodes cannot be
+    accessed using natural naming.  (Instead, ``getattr()`` must be
+    used explicitly.)    
     """
     pass
 
