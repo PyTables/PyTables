@@ -801,7 +801,7 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
   (condition, compiled.index_variable, compiled.index_limits,
    compiled.index_operators) )
 
-    def test06(self):
+    def _test06(self):
         """Using indexing in specific queries (set #6)."""
         conditions = [
             '(c_extra > 0) & (c_int32 > 0) & (c_int32 < 5)']
