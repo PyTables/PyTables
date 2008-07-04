@@ -69,9 +69,15 @@
     </copyright>
 
     <copyright>
-      <year>2005, 2006, 2007, 2008</year>
+      <year>2005, 2006, 2007</year>
 
       <holder>Cárabos Coop. V.</holder>
+    </copyright>
+
+    <copyright>
+      <year>2008</year>
+
+      <holder>Francesc Altet</holder>
     </copyright>
 
     <legalnotice>
@@ -1424,8 +1430,8 @@ Object Tree:
           <para>Also, in <xref linkend="tutorial1-1-tableview"
           xrefstyle="select: label" />, you can admire how the
           <literal>tutorial1.h5</literal> looks like using the <ulink
-          url="http://www.carabos.com/products/vitables.html">ViTables
-          </ulink> graphical interface .</para>
+          url="http://www.vitables.org">ViTables </ulink> graphical interface
+          .</para>
 
           <figure id="tutorial1-1-tableview">
             <title>The initial version of the data file for tutorial 1, with a

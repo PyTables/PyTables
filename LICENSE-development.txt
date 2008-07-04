@@ -1,6 +1,7 @@
 Copyright Notice and Statement for PyTables Pro Software Library and Utilities:
 
-Copyright 2002-2008 by Carabos Coop. V.
+Copyright 2005-2007 by Carabos Coop. V.
+Copyright 2008 by Francesc Altet
 
 COMMERCIAL LICENSE AGREEMENT FOR PYTABLES PRO APPLICATION SOFTWARE
 
