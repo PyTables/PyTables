@@ -7,9 +7,9 @@ COMMERCIAL LICENSE AGREEMENT FOR PYTABLES PRO APPLICATION SOFTWARE
 
 IMPORTANT-READ CAREFULLY:
 
-1. This Carabos Coop. V. End-User License Agreement ("Agreement") is a legal
+1. This Francesc Alted's End-User License Agreement ("Agreement") is a legal
 agreement between you (either an individual or a legal entity) ("Licensee")
-and Carabos Coop. V. ("Carabos") for the Carabos software product(s)
+and Francesc Alted for the Francesc Alted's software product(s)
 accompanying this Agreement, which include(s) computer software and may
 include "online" or electronic documentation, associated media, and printed
 materials, including the source code, example programs and the documentation
@@ -19,7 +19,7 @@ materials, including the source code, example programs and the documentation
 agrees to be bound by the terms of this Agreement. If Licensee does not agree
 to the terms of this Agreement, Licensee may not install, copy, or otherwise
 use the Licensed Software. If Licensee is not satisfied with the product,
-Carabos will revoke its license and refund its purchase price upon written
+Francesc Alted will revoke its license and refund its purchase price upon written
 request within 30 days of the purchase as long as Licensee destroys all its
 copies of the Licensed Software. In addition, by installing, copying, or
 otherwise using any updates or other components of the Licensed Software that
@@ -42,25 +42,25 @@ sources of the Licensed Software.  See Appendix 2 for a list of the Third
 Party Software distributed with the binaries of the Licensed Software
 
 4. Upon Licensee's acceptance of the terms and conditions of this Agreement,
-Carabos grants Licensee the right to use the Licensed Software in the manner
+Francesc Alted grants Licensee the right to use the Licensed Software in the manner
 provided below.
 
 GENERAL TERMS OF USE, COPYING, DISTRIBUTION AND MODIFICATION
 
-5. Carabos grants to Licensee as a corporation/organization a site-wide,
+5. Francesc Alted grants to Licensee as a corporation/organization a site-wide,
 non-transferable, perpetual license to make use and modifications of the
 Licensed Software.  Licensee may install copies of the Licensed Software on
 an unlimited number of computers in the corporation/organization.
 
 6. The Licensee cannot distribute the Licensed Software to anybody external
-to the corporation/organization (except Carabos) in any way. This restriction
+to the corporation/organization (except Francesc Alted) in any way. This restriction
 applies as well to modifications of the Licensed Software made by the
 Licensee.
 
 WARRANTY DISCLAIMER
 
 7. The Licensed Software is licensed to Licensee "as is". To the maximum
-extent permitted by applicable law, Carabos on behalf of itself and its
+extent permitted by applicable law, Francesc Alted on behalf of itself and its
 suppliers, disclaims all warranties and conditions, either express or
 implied, including, but not limited to, implied warranties of
 merchantability, fitness for a particular purpose, title and non-infringement
@@ -68,20 +68,20 @@ with regard to the Licensed Software.
 
 LIMITATION OF LIABILITY
 
-8. If, Carabos's warranty disclaimer notwithstanding, Carabos is held liable
+8. If, Francesc Alted's warranty disclaimer notwithstanding, Francesc Alted is held liable
 to Licensee, whether in contract, tort or any other legal theory, based on
-the Licensed Software, Carabos's entire liability to Licensee and Licensee's
-exclusive remedy shall be, at Carabos's option, either (A) return of the
+the Licensed Software, Francesc Alted's entire liability to Licensee and Licensee's
+exclusive remedy shall be, at Francesc Alted's option, either (A) return of the
 price Licensee paid for the Licensed Software, or (B) repair or replacement
-of the Licensed Software, provided Licensee returns to Carabos all copies of
-the Licensed Software as originally delivered to Licensee. Carabos shall not
+of the Licensed Software, provided Licensee returns to Francesc Alted all copies of
+the Licensed Software as originally delivered to Licensee. Francesc Alted shall not
 under any circumstances be liable to Licensee based on failure of the
 Licensed Software if the failure resulted from accident, abuse or
-misapplication, nor shall Carabos under any circumstances be liable for
+misapplication, nor shall Francesc Alted under any circumstances be liable for
 special damages, punitive or exemplary damages, damages for loss of profits
 or interruption of business or for loss or corruption of data. Any award of
-damages from Carabos to Licensee shall not exceed the total amount Licensee
-has paid to Carabos in connection with this Agreement.
+damages from Francesc Alted to Licensee shall not exceed the total amount Licensee
+has paid to Francesc Alted in connection with this Agreement.
 
 Appendix 1
 Third Party Libraries included with the sources of the Licensed Software.
