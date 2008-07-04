@@ -3,7 +3,7 @@ Test module for compatibility with plain HDF files
 ==================================================
 
 :Author:   Ivan Vilata i Balaguer
-:Contact:  ivilata@carabos.com
+:Contact:  ivan@selidor.net
 :Created:  2005-09-29
 :License:  BSD
 :Revision: $Id$

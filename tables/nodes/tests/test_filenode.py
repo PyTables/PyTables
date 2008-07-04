@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: October 2, 2004
-#       Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
+#       Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #       $Id$
 #

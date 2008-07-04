@@ -214,7 +214,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers:
- *  Francesc Altet
+ *  Francesc Alted
  *
  * Date: October 30, 2003
  *
@@ -302,7 +302,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers:
- *  Francesc Altet
+ *  Francesc Alted
  *
  * Date: October 26, 2004
  *
@@ -364,7 +364,7 @@ herr_t H5ARRAYwrite_records( hid_t dataset_id,
  * Return: Success: 0, Failure: -1
  *
  * Programmers:
- *  Francesc Altet
+ *  Francesc Alted
  *
  * Date: November 19, 2004
  *
@@ -441,7 +441,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@pytables.com
  *
  * Date: October 22, 2002
  *
@@ -560,7 +560,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@pytables.com
  *
  * Date: December 16, 2003
  *
@@ -664,7 +664,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@pytables.com
  *
  * Date: June 21, 2004
  *
@@ -781,7 +781,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet
+ * Programmer: Francesc Alted
  *
  * Date: October 22, 2002
  *
@@ -887,7 +887,7 @@ out:
  *
  * Return: Success: chunkshape, Failure: -1
  *
- * Programmer: Francesc Altet
+ * Programmer: Francesc Alted
  *
  * Date: May 20, 2004
  *

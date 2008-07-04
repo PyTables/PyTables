@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: October 1, 2002
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@pytables.com
 #
 #       $Id$
 #
@@ -18,7 +18,7 @@ to efficiently cope with extremely large amounts of data.
 
 You can support the development of PyTables by purchasing the
 PyTables Professional edition available at
-http://www.carabos.com/products/pytables-pro
+http://www.pytables.com
 
 Most Important Classes
 ======================

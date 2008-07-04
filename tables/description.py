@@ -1,8 +1,8 @@
 """
 Classes for describing columns for ``Table`` objects.
 
-:Author: Francesc Altet
-:Contact: faltet at carabos dot com
+:Author: Francesc Alted
+:Contact: faltet@pytables.com
 :License: BSD
 :Created: September 21, 2002
 :Revision: $Id$

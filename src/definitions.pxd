@@ -3,7 +3,7 @@
 #
 #       License: BSD
 #       Created: June 20, 2005
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@pytables.com
 #
 #       $Id: definitions.pyd 1018 2005-06-20 09:43:34Z faltet $
 #

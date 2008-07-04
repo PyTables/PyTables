@@ -159,7 +159,7 @@ PyObject *createNamesList(char *buffer[], int nelements)
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@pytables.com
  *
  * Date: December 19, 2003
  *

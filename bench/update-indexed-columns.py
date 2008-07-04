@@ -1,7 +1,7 @@
 # This is a small benchmark in order to detect whether the index code
 # would unnecessarily reindex updated rows that don't affect indexed
 # columns.  This is to cope with bug #139.
-# Francesc Altet
+# Francesc Alted
 # 2007-12-17
 
 import sys

@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: October 14, 2002
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@pytables.com
 #
 #       $Id$
 #

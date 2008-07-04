@@ -3,7 +3,7 @@
 # for mode of use. When using profiling, it is recommended to use it
 # with Python 2.4.
 #
-# Francesc Altet
+# Francesc Alted
 # 2005-03-09
 ###########################################################################
 

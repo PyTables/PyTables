@@ -2,7 +2,7 @@
 #
 #       License: XXX
 #       Created: February 12, 2006
-#       Author:  Ivan Vilata - reverse:com.carabos@ivilata
+#       Author:  Ivan Vilata - reverse:net.selidor@ivan
 #
 #       $Id$
 #

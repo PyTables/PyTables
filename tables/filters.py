@@ -2,7 +2,7 @@
 Functionality related with filters in a PyTables file.
 
 :Author: Ivan Vilata i Balaguer
-:Contact: ivilata at carabos dot com
+:Contact: reverse:net.selidor@ivan
 :License: BSD
 :Created: 2007-02-23
 :Revision: $Id$

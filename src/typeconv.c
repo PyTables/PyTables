@@ -2,10 +2,10 @@
  *
  *      License: BSD
  *      Created: December 21, 2004
- *      Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
+ *      Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
  *      Modified:
  *        Function inlining and some castings for 64-bit adressing
- *        Francesc Altet 2004-12-27
+ *        Francesc Alted 2004-12-27
  *
  *      $Source: /cvsroot/pytables/pytables/src/typeconv.c,v $
  *      $Id$

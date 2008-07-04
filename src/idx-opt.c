@@ -15,7 +15,7 @@
  *
  * Return: The index of the value in array
  *
- * Programmer: Francesc Altet
+ * Programmer: Francesc Alted
  *
  * Date: August, 2005
  *

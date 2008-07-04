@@ -3,7 +3,7 @@
 #
 #       License: BSD
 #       Created: Sep 15, 2006
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@pytables.com
 #
 #       $Id: convtypetables.pxi 1808 2006-09-15 10:33:19Z faltet $
 #

@@ -2,10 +2,10 @@
  Release notes for PyTables Pro 2.0 series
 ===========================================
 
-:Author: Francesc Altet i Abad
-:Contact: faltet@carabos.com
+:Author: Francesc Alted i Abad
+:Contact: faltet@pytables.com
 :Author: Ivan Vilata i Balaguer
-:Contact: ivilata@carabos.com
+:Contact: ivan@selidor.net
 
 
 Changes from 2.0.3 to 2.0.4

@@ -37,7 +37,7 @@
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet
+ * Programmer: Francesc Alted
  *
  * Date: Octoble 18, 2006
  *
@@ -224,7 +224,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@pytables.com
  *
  * Date: February 23, 2005
  *

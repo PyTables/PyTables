@@ -3,7 +3,7 @@ Utilities for PyTables' test suites
 ===================================
 
 :Author:   Ivan Vilata i Balaguer
-:Contact:  ivilata@carabos.com
+:Contact:  ivan@selidor.net
 :Created:  2005-05-24
 :License:  BSD
 :Revision: $Id$

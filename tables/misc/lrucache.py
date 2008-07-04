@@ -4,10 +4,10 @@
 # Licensed under the Academic Free License 2.1
 
 # Modified to use monotonically increasing integer values as access times
-# by Ivan Vilata i Balaguer <ivilata@carabos.com>.
+# by Ivan Vilata i Balaguer <ivan@selidor.net>.
 
 # Modified to use a container in Pyrex for accelerating the heapify()
-# process by Francesc Altet <faltet@carabos.com>.
+# process by Francesc Alted <faltet@pytables.com>.
 
 # arch-tag: LRU cache main module
 

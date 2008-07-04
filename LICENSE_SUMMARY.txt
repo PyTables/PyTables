@@ -3,6 +3,6 @@ of you that don't like to read license agreements.
 
 You can use PyTables Pro for whatever you want BUT you cannot redistribute it 
 (as is or modified). If you want to distribute PyTables Pro, you MUST ask for
-permission to Francesc Altet.
+permission to Francesc Alted.
 
 You've been warned :-)

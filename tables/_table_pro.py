@@ -2,7 +2,7 @@
 #
 #       License: XXX
 #       Created: February 13, 2007
-#       Author:  Ivan Vilata - ivilata@carabos.com
+#       Author:  Ivan Vilata - ivan@selidor.net
 #
 #       $Id$
 #

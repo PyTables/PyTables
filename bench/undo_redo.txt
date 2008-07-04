@@ -99,5 +99,5 @@ better performance for reading tables in backward direction. That
 would be a major task, and can be eventually addressed in the future.
 
 
-Francesc Altet
+Francesc Alted
 2005-03-10
