@@ -948,6 +948,7 @@ cdef class Array(Leaf):
       raise HDF5ExtError("Problems truncating the EArray node.")
 
     # Update the new dimensionality
+    self.dims[self.extdim] = size
     shape = list(self.shape)
     shape[self.extdim] = size
     self.shape = tuple(shape)

@@ -811,6 +811,7 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
             self.assert_( compiled.index_variable == 'c_int32',
                           "wrong index variable in condition ``%s``"
                           % condition)
+            print "index limits-->", compiled.index_limits
             self.assert_( compiled.index_limits == [0,5],
                           "wrong limits in condition ``%s``"
                           % condition)
