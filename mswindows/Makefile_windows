@@ -26,7 +26,7 @@ ifeq ($(LICENSE), personal)
 	LICENSEFILENAME=LICENSE-personal.txt
 endif
 
-NUMPYVERSION=1.0.4
+NUMPYVERSION=1.1
 
 # The NSIS intstaller script
 PTPRONSIS=pytables_pro-py$(DOTPYTHONVERSION).nsi
