@@ -11,7 +11,23 @@
 Changes from 2.0.3 to 2.0.4
 ===========================
 
-- (None yet.)
+- Selections in tables works now in threaded environments.  The problem was in
+  the Numexpr package -- the solution has been reported to the upstream
+  authors too.  Fixes #164.
+
+- PyTables had problems importing native HDF5 files with gaps in nested
+  compound types.  This has been solved.  Fixes #173.
+
+- In order to prevent a bug existing in HDF5 1.6 series, the
+  ``EArray.truncate()`` method refused to accept a 0 as parameter
+  (i.e. truncate an existing EArray to have zero rows did not work).  As this
+  has been fixed in the recent HDF5 1.8 series, this limitation has been
+  removed (but only if the user has one of these installed).  Fixes #171.
+
+- Small fixes for allowing the test suite to pass when using the new NumPy
+  1.1.  However, it remains a small issue with the way the new NumPy
+  represents complex numbers.  I'm not fixing that in the PyTables suite, as
+  there are chances that this can be fixed in NumPy itself (see ticket #841).
 
 
 Changes from 2.0.2.1 to 2.0.3
