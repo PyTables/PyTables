@@ -9,25 +9,25 @@ IMPORTANT-READ CAREFULLY:
 
 1. This Francesc Alted's End-User License Agreement ("Agreement") is a legal
 agreement between you (either an individual or a legal entity) ("Licensee")
-and Francesc Alted for the Francesc Alted's software product(s)
-accompanying this Agreement, which include(s) computer software and may
-include "online" or electronic documentation, associated media, and printed
-materials, including the source code, example programs and the documentation
-("Licensed Software").
+and Francesc Alted for the Francesc Alted's software product(s) accompanying
+this Agreement, which include(s) computer software and may include "online"
+or electronic documentation, associated media, and printed materials,
+including the source code, example programs and the documentation ("Licensed
+Software").
 
-2. By installing, copying, or otherwise using the Licensed Software, Licensee
-agrees to be bound by the terms of this Agreement. If Licensee does not agree
-to the terms of this Agreement, Licensee may not install, copy, or otherwise
-use the Licensed Software. If Licensee is not satisfied with the product,
-Francesc Alted will revoke its license and refund its purchase price upon written
-request within 30 days of the purchase as long as Licensee destroys all its
-copies of the Licensed Software. In addition, by installing, copying, or
-otherwise using any updates or other components of the Licensed Software that
-Licensee receives separately as part of the Licensed Software ("Updates"),
-Licensee agrees to be bound by any additional license terms that accompany
-such Updates. If Licensee does not agree to the additional license terms that
-accompany such Updates, Licensee may not install, copy, or otherwise use such
-Updates.
+2. By installing, copying, or otherwise using the Licensed Software,
+Licensee agrees to be bound by the terms of this Agreement. If Licensee does
+not agree to the terms of this Agreement, Licensee may not install, copy, or
+otherwise use the Licensed Software. If Licensee is not satisfied with the
+product, Francesc Alted will revoke its license and refund its purchase
+price upon written request within 30 days of the purchase as long as
+Licensee destroys all its copies of the Licensed Software. In addition, by
+installing, copying, or otherwise using any updates or other components of
+the Licensed Software that Licensee receives separately as part of the
+Licensed Software ("Updates"), Licensee agrees to be bound by any additional
+license terms that accompany such Updates. If Licensee does not agree to the
+additional license terms that accompany such Updates, Licensee may not
+install, copy, or otherwise use such Updates.
 
 3. The Licensed Software uses third party libraries or code (collectively
 "Third Party Libraries") to implement various functions. Third Party
@@ -47,41 +47,42 @@ manner provided below.
 
 GENERAL TERMS OF USE, COPYING, DISTRIBUTION AND MODIFICATION
 
-5. Francesc Alted grants to Licensee as an individual a personal, non-transferable,
-perpetual license to make use and modifications of the Licensed Software.
-Licensee may install copies of the Licensed Software on an unlimited number
-of computers, provided that Licensee is the only individual using the
-Licensed Software.
+5. Francesc Alted grants to Licensee as an individual a personal,
+non-transferable, perpetual license to make use and modifications of the
+Licensed Software.  Licensee may install copies of the Licensed Software on
+an unlimited number of computers, provided that Licensee is the only
+individual using the Licensed Software.
 
 6. The Licensee cannot distribute the Licensed Software to anybody (except
-Francesc Alted) in any way. This restriction applies as well to modifications
-of the Licensed Software made by the Licensee.
+Francesc Alted) in any way. This restriction applies as well to
+modifications of the Licensed Software made by the Licensee.
 
 WARRANTY DISCLAIMER
 
 7. The Licensed Software is licensed to Licensee "as is". To the maximum
-extent permitted by applicable law, Francesc Alted on behalf of itself and its
-suppliers, disclaims all warranties and conditions, either express or
+extent permitted by applicable law, Francesc Alted on behalf of itself and
+its suppliers, disclaims all warranties and conditions, either express or
 implied, including, but not limited to, implied warranties of
-merchantability, fitness for a particular purpose, title and non-infringement
-with regard to the Licensed Software.
+merchantability, fitness for a particular purpose, title and
+non-infringement with regard to the Licensed Software.
 
 LIMITATION OF LIABILITY
 
-8. If, Francesc Alted's warranty disclaimer notwithstanding, he is held liable
-to Licensee, whether in contract, tort or any other legal theory, based on
-the Licensed Software, Francesc Alted's entire liability to Licensee and
-Licensee's exclusive remedy shall be, at Carabos's option, either (A) return of
-the price Licensee paid for the Licensed Software, or (B) repair or replacement
-of the Licensed Software, provided Licensee returns to Francesc Alted all copies of
-the Licensed Software as originally delivered to Licensee. Francesc Alted shall not
-under any circumstances be liable to Licensee based on failure of the
-Licensed Software if the failure resulted from accident, abuse or
-misapplication, nor shall Carabos under any circumstances be liable for
-special damages, punitive or exemplary damages, damages for loss of profits
-or interruption of business or for loss or corruption of data. Any award of
-damages from Carabos to Licensee shall not exceed the total amount Licensee
-has paid to Carabos in connection with this Agreement.
+8. If, Francesc Alted's warranty disclaimer notwithstanding, he is held
+liable to Licensee, whether in contract, tort or any other legal theory,
+based on the Licensed Software, Francesc Alted's entire liability to
+Licensee and Licensee's exclusive remedy shall be, at Carabos's option,
+either (A) return of the price Licensee paid for the Licensed Software, or
+(B) repair or replacement of the Licensed Software, provided Licensee
+returns to Francesc Alted all copies of the Licensed Software as originally
+delivered to Licensee. Francesc Alted shall not under any circumstances be
+liable to Licensee based on failure of the Licensed Software if the failure
+resulted from accident, abuse or misapplication, nor shall Carabos under any
+circumstances be liable for special damages, punitive or exemplary damages,
+damages for loss of profits or interruption of business or for loss or
+corruption of data. Any award of damages from Carabos to Licensee shall not
+exceed the total amount Licensee has paid to Carabos in connection with this
+Agreement.
 
 Appendix 1
 Third Party Libraries included with the sources of the Licensed Software.
