@@ -36,12 +36,10 @@ http://www.carabos.com/docs/OPSI-indexes.pdf
 You can buy PyTables Pro at the Carabos shop:
 http://www.carabos.com/buy
 
-Coinciding with the publication of PyTables Pro we are introducing an
-innovative liberation process that will allow to ultimate release the
-PyTables Pro 2.x series as open source.  You may want to know that, by
-buying a PyTables Pro license, you are contributing to this process. For
-details, see:
-http://www.carabos.com/liberation
+*Important note for PyTables Pro users*: due to lack of resources, I'll 
+not be delivering a MacOSX binary version of Pro for the time being 
+(this is pretty easy to compile, though).  However, I'll continue 
+offering the all-in-one binary for Windows (32-bit).
 
 Migration Notes for PyTables 1.x users
 ======================================
