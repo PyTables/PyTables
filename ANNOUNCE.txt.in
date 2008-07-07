@@ -11,15 +11,7 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-After some months without new versions (I have been busy for a while
-doing things not related with PyTables, unfortunately), I'm happy to
-announce the availability of PyTables 2.0.4.  It fixes some important
-issues, and now it is possible to use table selections in threaded
-environments or ``EArray.truncate(0)`` can be used so that you can
-completely void existing EArrays (only enabled if you have a recent
-version, i.e. >= 1.8.0, of the HDF5 library installed).  Finally, the
-usage of recent versions of NumPy (1.1) and HDF5 (1.8.1) has been tested
-and, fortunately, they work just fine.
+#XXX version-specific blurb XXX#
 
 In case you want to know more in detail what has changed in this
 version, have a look at ``RELEASE_NOTES.txt``.  Find the HTML version

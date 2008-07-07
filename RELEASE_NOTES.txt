@@ -8,6 +8,12 @@
 :Contact: ivan@selidor.net
 
 
+Changes from 2.0.4 to 2.0.5
+===========================
+
+- (None yet.)
+
+
 Changes from 2.0.3 to 2.0.4
 ===========================
 
