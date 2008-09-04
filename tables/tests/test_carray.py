@@ -309,7 +309,7 @@ class BasicTestCase(unittest.TestCase):
             if hasattr(self, "wslice"):
                 object[self.wslize] = "xXx"
                 carray[self.wslice] = "xXx"
-            elif sum(object[self.slices].shape) <> 0 :
+            elif sum(object[self.slices].shape) != 0 :
                 object[:] = "xXx"
                 if object.size > 0:
                     carray[self.slices] = object
@@ -317,7 +317,7 @@ class BasicTestCase(unittest.TestCase):
             if hasattr(self, "wslice"):
                 object[self.wslice] = object[self.wslice] * 2 + 3
                 carray[self.wslice] = carray[self.wslice] * 2 + 3
-            elif sum(object[self.slices].shape) <> 0:
+            elif sum(object[self.slices].shape) != 0:
                 object = object * 2 + 3
                 if reduce(lambda x,y:x*y, object.shape) > 0:
                     carray[self.slices] = carray[self.slices] * 2 + 3

@@ -142,14 +142,14 @@ def allequal(a,b, flavor="numpy"):
         (not hasattr(b, "shape") or b.shape == ())):
         return a == b
 
-    if a.shape <> b.shape:
+    if a.shape != b.shape:
         if verbose:
-            print "Shape is not equal:", a.shape, "<>", b.shape
+            print "Shape is not equal:", a.shape, "!=", b.shape
         return 0
 
-    if hasattr(b, "type") and a.type() <> b.type():
+    if hasattr(b, "type") and a.type() != b.type():
         if verbose:
-            print "Type is not equal:", a.type(), "<>", b.type()
+            print "Type is not equal:", a.type(), "!=", b.type()
         return 0
 
     # Rank-0 case
@@ -158,7 +158,7 @@ def allequal(a,b, flavor="numpy"):
             return 1
         else:
             if verbose:
-                print "Shape is not equal:", a.shape, "<>", b.shape
+                print "Shape is not equal:", a.shape, "!=", b.shape
             return 0
 
     # null arrays

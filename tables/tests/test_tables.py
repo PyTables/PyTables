@@ -1191,17 +1191,17 @@ class BasicTestCase(common.PyTablesTestCase):
         table = self.fileh.getNode("/table0")
 
         # Check filters:
-        if self.compress <> table.filters.complevel and common.verbose:
+        if self.compress != table.filters.complevel and common.verbose:
             print "Error in compress. Class:", self.__class__.__name__
             print "self, table:", self.compress, table.filters.complevel
         assert table.filters.complevel == self.compress
         if self.compress > 0 and whichLibVersion(self.complib):
             assert table.filters.complib == self.complib
-        if self.shuffle <> table.filters.shuffle and common.verbose:
+        if self.shuffle != table.filters.shuffle and common.verbose:
             print "Error in shuffle. Class:", self.__class__.__name__
             print "self, table:", self.shuffle, table.filters.shuffle
         assert self.shuffle == table.filters.shuffle
-        if self.fletcher32 <> table.filters.fletcher32 and common.verbose:
+        if self.fletcher32 != table.filters.fletcher32 and common.verbose:
             print "Error in fletcher32. Class:", self.__class__.__name__
             print "self, table:", self.fletcher32, table.filters.fletcher32
         assert self.fletcher32 == table.filters.fletcher32

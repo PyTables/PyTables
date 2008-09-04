@@ -46,7 +46,7 @@ class BasicTestCase(unittest.TestCase):
 
         # Create the array under root and name 'somearray'
         a = testArray
-        if self.endiancheck and a.dtype.kind <> "S":
+        if self.endiancheck and a.dtype.kind != "S":
             b = a.byteswap()
             b.dtype = a.dtype.newbyteorder()
             a = b
@@ -74,7 +74,7 @@ class BasicTestCase(unittest.TestCase):
             print "Array read shape:", b.shape
             print "Array read itemsize:", b.itemsize
             print "Array read type:", b.dtype.type
-            if a.dtype.kind <> "S":
+            if a.dtype.kind != "S":
                 print "Array written byteorder:", a.dtype.byteorder
                 print "Array read byteorder:", b.dtype.byteorder
 
@@ -88,11 +88,11 @@ class BasicTestCase(unittest.TestCase):
             assert a.dtype.type == self.root.somearray.atom.dtype.type
             abo = byteorders[a.dtype.byteorder]
             bbo = byteorders[b.dtype.byteorder]
-            if abo <> "irrelevant":
+            if abo != "irrelevant":
                 assert abo == self.root.somearray.byteorder
                 assert bbo == sys.byteorder
                 if self.endiancheck:
-                    assert bbo <> abo
+                    assert bbo != abo
 
         assert allequal(a,b)
 
@@ -106,7 +106,7 @@ class BasicTestCase(unittest.TestCase):
     def test00_char(self):
         "Data integrity during recovery (character objects)"
 
-        if type(self.tupleChar) <> numpy.ndarray:
+        if type(self.tupleChar) != numpy.ndarray:
             a = numpy.array(self.tupleChar, dtype="S")
         else:
             a = self.tupleChar
@@ -142,7 +142,7 @@ class BasicTestCase(unittest.TestCase):
     def test01_char_nc(self):
         "Data integrity during recovery (non-contiguous character objects)"
 
-        if type(self.tupleChar) <> numpy.ndarray:
+        if type(self.tupleChar) != numpy.ndarray:
             a = numpy.array(self.tupleChar, dtype="S")
         else:
             a = self.tupleChar

@@ -23,39 +23,73 @@ Functions:
 from tables.numexpr.compiler import stringToExpression, numexpr
 from tables.utilsExtension import getNestedField
 from tables._conditions_common import _unsupported_operation_error
+from tables.utils import lazyattr
 
 try:
-    from _conditions_pro import _split_expression
+    from _conditions_pro import _get_idx_expr
 except ImportError:
-    def _split_expression(exprnode, indexedcols):
-        return (None, [], [], exprnode)
-
+    # Dummy version of get_idx_expr
+    def get_idx_expr(exprnode, indexedcols):
+        return ([], [''])  # This tuple means "not_indexable"
 
 class CompiledCondition(object):
     """Container for a compiled condition."""
-    def __init__(self, func, params, idxvar, idxops, idxlims):
-        self.function = func
-        self.parameters = params
-        self.index_variable = idxvar
-        self.index_operators = idxops
-        self.index_limits = idxlims
 
-    def with_replaced_vars(self, condvars):
+    # Lazy attributes
+    # ```````````````
+    @lazyattr
+    def index_variables(self):
+        """The columns participating in the index expression."""
+        idxexprs = self.index_expressions
+        idxvars = []
+        for expr in idxexprs:
+            idxvar = expr[0]
+            if idxvar not in idxvars:
+                idxvars.append(idxvar)
+        return frozenset(idxvars)
+
+
+    def __init__(self, func, params, idxexprs, strexpr):
+        self.function = func
+        """The compiled function object corresponding to this condition."""
+        self.parameters = params
+        """A list of parameter names for this condition."""
+        self.index_expressions = idxexprs
+        """A list of expressions in the form ``(var, (ops), (limits))``."""
+        self.string_expression = strexpr
+        """The indexable expression in string format."""
+
+    def __repr__(self):
+        return ( "idxexprs: %s\nstrexpr: %s\nidxvars: %s"
+                 % ( self.index_expressions, self.string_expression,
+                     self.index_variables) )
+
+
+    def with_replace_vars(self, condvars):
         """
-        Replace index limit variables with their values.
+        Replace index limit variables with their values in-place.
 
         A new compiled condition is returned.  Values are taken from
         the `condvars` mapping and converted to Python scalars.
         """
-        limit_values = []
-        for idxlim in self.index_limits:
-            if type(idxlim) is tuple:  # variable
-                idxlim = condvars[idxlim[0]]  # look up value
-                idxlim = idxlim.tolist()  # convert back to Python
-            limit_values.append(idxlim)
-        return CompiledCondition(
-            self.function, self.parameters,
-            self.index_variable, self.index_operators, limit_values )
+        exprs = self.index_expressions
+        exprs2 = []
+        for expr in exprs:
+            idxlims = expr[2]  # the limits are in third place
+            limit_values = []
+            for idxlim in idxlims:
+                if type(idxlim) is tuple:  # variable
+                    idxlim = condvars[idxlim[0]]  # look up value
+                    idxlim = idxlim.tolist()  # convert back to Python
+                limit_values.append(idxlim)
+            # Add this replaced entry to the new exprs2
+            var, ops, _ = expr
+            exprs2.append((var, ops, tuple(limit_values)))
+        # Create a new container for the converted values
+        newcc = CompiledCondition(
+            self.function, self.parameters, exprs2, self.string_expression )
+        return newcc
+
 
 def _get_variable_names(expression):
     """Return the list of variable names in the Numexpr `expression`."""
@@ -69,30 +103,15 @@ def _get_variable_names(expression):
             stack.extend(node.children)
     return list(set(names))  # remove repeated names
 
+
 def compile_condition(condition, typemap, indexedcols, copycols):
     """
     Compile a condition and extract usable index conditions.
 
     Looks for variable-constant comparisons in the `condition` string
     involving the indexed columns whose variable names appear in
-    `indexedcols`.  The *topmost* comparison or comparison pair is
-    used to extract usable index conditions, which are returned
-    together with the compiled condition in a `CompiledCondition`.
-    Thus, for an indexed column *c1* (*CC* is the compiled condition):
-
-    * 'c1>0' -> (CC, ['c1'], 'c1', ['gt'], [0])
-    * '(0<c1)&(c1<=1)' -> (CC, ['c1'], 'c1', ['gt', 'le'], [0, 1])
-    * '(0<c1)&(c1<=1)&(c2>2)' -> (CC,['c2','c1'],'c1',['gt','le'],[0,1])
-
-    * 'c2>2' -> (CC, ['c2'], None, [], [])
-    * '(c2>2)&(c1<=1)' -> (CC, ['c2', 'c1'], 'c1', ['le'], [1])
-    * '(0<c1)&(c1<=1)&(c2>2)' -> (CC,['c2','c1'],'c1',['gt','le'],[0,1])
-
-    * '(c2>2)&(0<c1)&(c1<=1)' -> (CC, ['c2', 'c1'], 'c1', ['le'], [1])
-    * '(c2>2)&((0<c1)&(c1<=1))' -> (CC,['c2','c1'],'c1',['gt','le'],[0,1])
-
-    * '(0<c1)&(c2>2)&(c1<=1)' -> (CC, ['c2','c1'], 'c1', ['le'], [1])
-    * '(0<c1)&((c2>2)&(c1<=1))' -> (CC, ['c2', 'c1'], 'c1', ['gt'], [0])
+    `indexedcols`.  The part of `condition` having usable indexes is
+    returned as a compiled condition in a `CompiledCondition` container.
 
     Expressions such as '0 < c1 <= 1' do not work as expected.  The
     Numexpr types of *all* variables must be given in the `typemap`
@@ -112,7 +131,16 @@ def compile_condition(condition, typemap, indexedcols, copycols):
     if expr.astKind != 'bool':
         raise TypeError( "condition ``%s`` does not have a boolean type"
                          % condition )
-    idxvar, idxops, idxlims, resexpr = _split_expression(expr, indexedcols)
+    idxexprs = _get_idx_expr(expr, indexedcols)
+    # Post-process the answer
+    if type(idxexprs) == list:
+        # Simple expression
+        strexpr = ['e0']
+    else:
+        # Complex expression
+        idxexprs, strexpr = idxexprs
+    # Get rid of the unneccessary list wrapper for strexpr
+    strexpr = strexpr[0]
 
     # Get the variable names used in the condition.
     # At the same time, build its signature.
@@ -129,7 +157,8 @@ def compile_condition(condition, typemap, indexedcols, copycols):
     params = varnames
 
     # This is more comfortable to handle about than a tuple.
-    return CompiledCondition(func, params, idxvar, idxops, idxlims)
+    return CompiledCondition(func, params, idxexprs, strexpr)
+
 
 def call_on_recarr(func, params, recarr, param2arg=None):
     """

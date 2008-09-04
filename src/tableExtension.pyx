@@ -702,7 +702,7 @@ cdef class Row:
   cdef object  IObuf, IObufcpy
   cdef object  wrec, wreccpy
   cdef object  wfields, rfields
-  cdef object  coords, index, indices
+  cdef object  coords
   cdef object  condfunc, condargs
   cdef object  mod_elements, colenums
   cdef object  rfieldscache, wfieldscache
@@ -816,14 +816,19 @@ cdef class Row:
 
     self.nrows = table.nrows   # Update the row counter
 
+    if self.coords is not None:
+      self.stopindex = len(coords)
+      self.nrowsread = 0
+      self.nextelement = 0
+      return
+
     if table._whereCondition:
       self.whereCond = 1
       self.condfunc, self.condargs = table._whereCondition
       table._whereCondition = None
+
     if table._whereIndex:
       self.indexed = 1
-      self.index = table.cols._g_col(table._whereIndex).index
-      self.indices = self.index.indices
       # Compute totalchunks here because self.nrows can change during the
       # life of a Row instance.
       self.totalchunks = self.nrows / self.chunksize
@@ -837,10 +842,6 @@ cdef class Row:
       self.lenbuf = self.nrowsinbuf
       # Check if we have limitations on start, stop, step
       self.sss_on = (self.start > 0 or self.stop < self.nrows or self.step > 1)
-    elif self.coords is not None:
-      self.stopindex = len(coords)
-      self.nrowsread = 0
-      self.nextelement = 0
 
 
   def __next__(self):

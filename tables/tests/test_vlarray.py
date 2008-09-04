@@ -121,17 +121,17 @@ class BasicTestCase(unittest.TestCase):
         assert len(row) == 2
 
         # Check filters:
-        if self.compress <> vlarray.filters.complevel and common.verbose:
+        if self.compress != vlarray.filters.complevel and common.verbose:
             print "Error in compress. Class:", self.__class__.__name__
             print "self, vlarray:", self.compress, vlarray.filters.complevel
         assert vlarray.filters.complevel == self.compress
         if self.compress > 0 and whichLibVersion(self.complib):
             assert vlarray.filters.complib == self.complib
-        if self.shuffle <> vlarray.filters.shuffle and common.verbose:
+        if self.shuffle != vlarray.filters.shuffle and common.verbose:
             print "Error in shuffle. Class:", self.__class__.__name__
             print "self, vlarray:", self.shuffle, vlarray.filters.shuffle
         assert self.shuffle == vlarray.filters.shuffle
-        if self.fletcher32 <> vlarray.filters.fletcher32 and common.verbose:
+        if self.fletcher32 != vlarray.filters.fletcher32 and common.verbose:
             print "Error in fletcher32. Class:", self.__class__.__name__
             print "self, vlarray:", self.fletcher32, vlarray.filters.fletcher32
         assert self.fletcher32 == vlarray.filters.fletcher32

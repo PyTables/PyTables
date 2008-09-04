@@ -673,7 +673,7 @@ class Table(tableExtension.Table, Leaf):
         for (name, (dtype, pos)) in recarr.dtype.fields.items():
             kind = dtype.base.kind
             byteorder = dtype.base.byteorder
-            if byteorder in '<>=':
+            if byteorder in '><=':
                 if fbyteorder not in ['|', byteorder]:
                     raise NotImplementedError(
                         "record arrays with mixed byteorders "
@@ -1060,7 +1060,7 @@ class Table(tableExtension.Table, Leaf):
         condkey = self._getConditionKey(condition, condvars)
         compiled = condcache.get(condkey)
         if compiled:
-            return compiled.with_replaced_vars(condvars), condkey  # bingo!
+            return compiled.with_replace_vars(condvars)  # bingo!
 
         # Bad luck, the condition must be parsed and compiled.
         # Fortunately, the key provides some valuable information. ;)
@@ -1097,7 +1097,7 @@ class Table(tableExtension.Table, Leaf):
 
         # Store the compiled condition in the cache and return it.
         condcache[condkey] = compiled
-        return compiled.with_replaced_vars(condvars), condkey
+        return compiled.with_replace_vars(condvars)
 
 
     def willQueryUseIndexing(self, condition, condvars=None):
@@ -1106,8 +1106,9 @@ class Table(tableExtension.Table, Leaf):
 
         The meaning of the `condition` and `condvars` arguments is the
         same as in the `Table.where()` method.  If the `condition` can
-        use indexing, this method returns the path name of the column
-        whose index is usable.  Otherwise, it returns `None`.
+        use indexing, this method returns a frozenset with the path
+        names of the columns whose index is usable.  Otherwise, it
+        returns an empty list.
 
         This method is mainly intended for testing.  Keep in mind that
         changing the set of indexed columns or their dirtyness may make
@@ -1118,10 +1119,10 @@ class Table(tableExtension.Table, Leaf):
         """
         # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars, depth=2)
-        compiled, condkey = self._compileCondition(condition, condvars)
-        if not compiled.index_variable:
-            return None
-        return condvars[compiled.index_variable].pathname
+        compiled = self._compileCondition(condition, condvars)
+        # Return the columns in indexed expressions
+        idxcols = [condvars[var].pathname for var in compiled.index_variables]
+        return frozenset(idxcols)
 
 
     def where( self, condition, condvars=None,
@@ -1208,16 +1209,14 @@ class Table(tableExtension.Table, Leaf):
 
         # Compile the condition and extract usable index conditions.
         condvars = self._requiredExprVars(condition, condvars, depth=3)
-        compiled, condkey = self._compileCondition(condition, condvars)
+        compiled = self._compileCondition(condition, condvars)
 
         # Can we use indexes?
-        idxvar = compiled.index_variable
-        if idxvar:
+        if compiled.index_expressions:
             chunkmap = _table__whereIndexed(
-                self, idxvar, compiled, condvars, condkey, start, stop, step)
-            #if hasattr(chunkmap, "next"):
-            if type(chunkmap) <> numpy.ndarray:
-                # Quacks like an iterator
+                self, compiled, condvars, start, stop, step)
+            if type(chunkmap) != numpy.ndarray:
+                # If it is not a NumPy array it should be an iterator
                 # Reset conditions
                 self._whereIndex = self._whereCondition = None
                 # ...and return the iterator

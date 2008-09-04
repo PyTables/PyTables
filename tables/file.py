@@ -1686,7 +1686,7 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         assert self.isUndoEnabled()
 
         # Check whether we are at the end of the action log or not
-        if self._curaction <> self._actionlog.nrows - 1:
+        if self._curaction != self._actionlog.nrows - 1:
             # We are not, so delete the trailing actions
             self._actionlog.removeRows(self._curaction + 1,
                                        self._actionlog.nrows)
@@ -1772,7 +1772,7 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
 #         print "curaction, finalaction, direction", \
 #               self._curaction, finalaction, direction
         for i in xrange(len(actionlog)):
-            if actionlog['opcode'][i] <> _opToCode["MARK"]:
+            if actionlog['opcode'][i] != _opToCode["MARK"]:
                 # undo/redo the action
                 if direction > 0:
                     # Uncomment this for debugging

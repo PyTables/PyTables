@@ -104,13 +104,34 @@ class PyTables_DB(DB):
                              "col3": table.cols.col3,
                              "col4": table.cols.col4,
                              }
-        inf = self.rng[0]+base; sup = self.rng[1]+base
-        self.condvars['inf'] = inf
-        self.condvars['sup'] = sup
-        condition = "(inf<=col) & (col<=sup)"
-        condition += " & (sqrt(col1+3.1*col2+col3*col4) < 3)"
+        self.condvars['inf'] = self.rng[0]+base
+        self.condvars['sup'] = self.rng[1]+base
+        # For queries that can use two indexes instead of just one
+        d = (self.rng[1] - self.rng[0]) / 2.
+        self.condvars['inf1'] = self.rng[0]+base
+        self.condvars['sup1'] = self.rng[0]+d+base
+        self.condvars['inf2'] = self.rng[0]+base*2
+        self.condvars['sup2'] = self.rng[0]+d+base*2
+        #condition = "(inf == col2)"
+        #condition = "(inf==col2) & (col4==sup)"
+        #condition = "(inf==col2) | (col4==sup)"
+        #condition = "(inf==col2) | (col2==sup)"
+        #condition = "(inf==col2) & (col3==sup)"
+        #condition = "((inf==col2) & (sup==col4)) & (col3==sup)"
+        #condition = "((inf==col1) & (sup==col4)) & (col3==sup)"
+        #condition = "(inf<=col1) & (col3<sup)"
+        #condition = "(inf<=col2) & (col4<sup)"
+        #condition = "(inf<=col4) & (col4<sup)"
+        #condition = "((inf<=col4) & (col4<sup)) | (col2<3)"
+        #condition = "((inf<=col4) | (col4<sup)) & (col2<3)"
+        #condition = "((inf<=col4) | (col4<sup)) & ((inf<col2) & (col2<sup))"
+        #condition = "((inf<=col4) & (col4<sup)) | ((inf<col2) & (col2<sup))"
+        #condition = "((inf<=col4) & (col4<sup)) & ((inf<col2) & (col2<sup))"
+        condition = "((inf2<=col4) & (col4<sup2)) | ((inf1<col2) & (col2<sup1))"
+        condition += " & (sqrt(col1+3.1*col2+col3*col4) > 3)"
         #condition += " & (col2*(col3+3.1)+col3*col4 > col1)"
 #        condition = "(inf<=col) & (col<=sup) & (col3 >= 0)"
+##        condition = "(inf<=col) & (col<=sup)"
 #         condition = "(%s<=col) & (col<=%s)" % \
 #                     (self.rng[0]+base, self.rng[1]+base)
         # condition = "(%s<=col1*col2) & (col3*col4<=%s)" % \
@@ -118,13 +139,12 @@ class PyTables_DB(DB):
         # condition = "(col**2.4==%s)" % (self.rng[0]+base)
         # condition = "(col==%s)" % (self.rng[0]+base)
         # condvars = {"col": colobj}
-
+        #c = self.condvars
+        #print "condvars-->", c['inf'], c['sup'], c['inf2'], c['sup2']
         ncoords = 0
         if colobj.is_indexed:
-            #ncoords = colobj.index.search((inf, sup))
             results = [ r[column] for r in
                         table.where(condition, self.condvars) ]
-            #sum(results)
 
 #             coords = table.getWhereList(condition, self.condvars)
 #             results = table.readCoordinates(coords, field=column)
@@ -132,9 +152,9 @@ class PyTables_DB(DB):
 #            results = table.readWhere(condition, self.condvars, field=column)
 
         elif True:
-            #coords = [r.nrow for r in table.where(condition, self.condvars)]
-            results = [r[column] for r in table.where(condition, self.condvars)]
-            #results = table.readCoordinates(coords)
+            coords = [r.nrow for r in table.where(condition, self.condvars)]
+            #results = [r[column] for r in table.where(condition, condvars)]
+            results = table.readCoordinates(coords)
 #             for r in table.where(condition, self.condvars):
 #                 var = r[column]
 #                 ncoords += 1

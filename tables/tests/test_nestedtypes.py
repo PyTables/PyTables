@@ -608,7 +608,7 @@ class WriteTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         # Check indexing flags:
         self.assert_(tbl.indexed == True, "Table not indexed")
-        self.assert_(coltoindex.index <> None, "Column not indexed")
+        self.assert_(coltoindex.index != None, "Column not indexed")
         self.assert_(tbl.colindexed[self._testCondCol], "Column not indexed")
         # Do a look-up for values
         searchedCoords = tbl.getWhereList(

@@ -11,8 +11,8 @@ COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
 WARMCACHE = 1500   # The number of reads until the cache is considered 'warmed'
 READ_TIMES = WARMCACHE+500    # The number of complete calls to DB.query_db()
 COLDCACHE = 5   # The number of reads where the cache is considered 'cold'
-WARMCACHE = 10   # The number of reads until the cache is considered 'warmed'
-READ_TIMES = 20    # The number of complete calls to DB.query_db()
+WARMCACHE = 5   # The number of reads until the cache is considered 'warmed'
+READ_TIMES = 10    # The number of complete calls to DB.query_db()
 MROW = 1000*1000.
 
 # global variables

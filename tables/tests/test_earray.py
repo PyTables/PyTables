@@ -73,7 +73,7 @@ class BasicTestCase(unittest.TestCase):
         self.rowshape = list(earray.shape)
         self.objsize = self.length
         for i in self.rowshape:
-            if i <> 0:
+            if i != 0:
                 self.objsize *= i
         self.extdim = earray.extdim
         self.objsize *= self.chunksize
@@ -175,17 +175,17 @@ class BasicTestCase(unittest.TestCase):
                 assert len(self.shape) == 1
 
             # Check filters:
-            if self.compress <> earray.filters.complevel and common.verbose:
+            if self.compress != earray.filters.complevel and common.verbose:
                 print "Error in compress. Class:", self.__class__.__name__
                 print "self, earray:", self.compress, earray.filters.complevel
             assert earray.filters.complevel == self.compress
             if self.compress > 0 and whichLibVersion(self.complib):
                 assert earray.filters.complib == self.complib
-            if self.shuffle <> earray.filters.shuffle and common.verbose:
+            if self.shuffle != earray.filters.shuffle and common.verbose:
                 print "Error in shuffle. Class:", self.__class__.__name__
                 print "self, earray:", self.shuffle, earray.filters.shuffle
             assert self.shuffle == earray.filters.shuffle
-            if self.fletcher32 <> earray.filters.fletcher32 and common.verbose:
+            if self.fletcher32 != earray.filters.fletcher32 and common.verbose:
                 print "Error in fletcher32. Class:", self.__class__.__name__
                 print "self, earray:", self.fletcher32, earray.filters.fletcher32
             assert self.fletcher32 == earray.filters.fletcher32
@@ -587,7 +587,7 @@ class BasicTestCase(unittest.TestCase):
                 #earray[self.wslice] = earray[self.wslice].pad("xXx")
                 object[self.wslize] = "xXx"
                 earray[self.wslice] = "xXx"
-            elif sum(object[self.slices].shape) <> 0 :
+            elif sum(object[self.slices].shape) != 0 :
                 #object[:] = object.pad("xXx")
                 object[:] = "xXx"
                 if self.flavor == "numarray":
@@ -600,7 +600,7 @@ class BasicTestCase(unittest.TestCase):
             if hasattr(self, "wslice"):
                 object[self.wslice] = object[self.wslice] * 2 + 3
                 earray[self.wslice] = earray[self.wslice] * 2 + 3
-            elif sum(object[self.slices].shape) <> 0:
+            elif sum(object[self.slices].shape) != 0:
                 object = object * 2 + 3
                 if reduce(lambda x,y:x*y, object.shape) > 0:
                     earray[self.slices] = earray[self.slices] * 2 + 3

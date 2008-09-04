@@ -179,7 +179,7 @@ class IndexArray(NotLoggedMixin, EArray, indexesExtension.IndexArray):
         if result2 < 0:
             # Search the appropriate chunk in bounds cache
             nchunk2 = bisect_right(bounds, item2)
-            if nchunk2 <> nchunk:
+            if nchunk2 != nchunk:
                 chunk = self._readSortedSlice(nrow, chunksize*nchunk2,
                                               chunksize*(nchunk2+1))
             result2 = self._bisect_right(chunk, item2, chunksize)

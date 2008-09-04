@@ -10,7 +10,7 @@
 
 """Here is defined the Table class (pro)."""
 
-import warnings
+import warnings, math
 
 import numpy
 
@@ -21,7 +21,7 @@ from tables.exceptions import NoSuchNodeError
 from tables.index import defaultAutoIndex, defaultIndexFilters, Index
 from tables.leaf import Filters
 from tables.lrucacheExtension import ObjectCache, NumCache
-
+from tables import numexpr
 from tables._table_common import _indexPathnameOf
 
 
@@ -83,6 +83,7 @@ def _table__setautoIndex(self, auto):
     # Update the cache in table instance as well
     self._autoIndex = auto
 
+
 # **************** WARNING! ***********************
 # This function can be called during the destruction time of a table
 # so measures have been taken so that it doesn't have to revive
@@ -127,6 +128,7 @@ _table__autoIndex = property(
     .. Note:: Column indexing is only available in PyTables Pro.
     """ )
 
+
 def _table__setindexFilters(self, filters):
     warnings.warn(
         "``indexFilters`` property will soon be deprecated.  "
@@ -167,6 +169,7 @@ _table__indexFilters = property(
     .. Note:: Column indexing is only available in PyTables Pro.
     """ )
 
+
 def restorecache(self):
     # Define a cache for sparse table reads
     chunksize = self._v_chunkshape[0]
@@ -177,58 +180,66 @@ def restorecache(self):
                                  'Iter sequence cache')
     self._dirtycache = False
 
-def _table__whereIndexed(self, idxvar, compiled, condvars, condkey,
-                         start, stop, step):
+
+def _table__whereIndexed(self, compiled, condvars, start, stop, step):
+    self._whereIndex = True
     # Clean the table caches for indexed queries if needed
     if self._dirtycache:
         restorecache(self)
-    # Set the index column (if any) and condition
-    # for the ``Row`` iterator.
-    idxcol = condvars[idxvar]
-    index = idxcol.index
-    assert index is not None, "the chosen column is not indexed"
-    assert not index.dirty, "the chosen column has a dirty index"
-    self._whereIndex = idxcol.pathname
 
     # Build a key for the sequence cache
-    # It is expensive to get a condkey, so it has been brought here
-    # as a parameter.
-    #condkey = self._getConditionKey(compiled, condvars)
-    # It is important to include the limits and the slice in the cache key
-    limits = tuple(compiled.index_limits)
-    seqkey = (condkey, limits, (start, stop, step))
+    idxexprs = compiled.index_expressions
+    strexpr = compiled.string_expression
+    seqkey = (tuple(idxexprs), strexpr, (start, stop, step))
+    # Do a lookup in sequential cache for this query
     nslot = self._seqcache.getslot(seqkey)
     if nslot >= 0:
-        self._whereIndex = self._whereCondition = None
         # Get the row sequence from the cache
         seq = self._seqcache.getitem(nslot)
         if len(seq) == 0:
             return iter([])
         seq = numpy.array(seq, dtype='int64')
         # Correct the ranges in cached sequence
-        if (start, stop, step) <> (0, self.nrows, 1):
+        if (start, stop, step) != (0, self.nrows, 1):
             seq = seq[(seq>=start)&(seq<stop)&((seq-start)%step==0)]
         return self.itersequence(seq)
     else:
-        # No luck.  Set row sequence to empty and hope that it
-        # can be populated in the iterator.  If not possible,
-        # the slot entry will be removed there.
+        # No luck.  Set row sequence to empty.  It will be populated
+        # in the iterator. If not possible, the slot entry will be
+        # removed there.
         self._nslotseq = self._seqcache.setitem(seqkey, [], 1)
-    # Get the number of rows that the indexed condition yields.
-    range_ = index.getLookupRange(
-        compiled.index_operators, compiled.index_limits, self )
-    ncoords = index.search(range_)
-    if index.reduction == 1 and ncoords == 0:
-        # No values from index condition, thus no resulting rows.
-        return iter([])
 
-    # Iterate according to the chunkmap and condition
-    chunkmap = index.get_chunkmap()
-    #print "chunks to read-->", chunkmap.sum(), chunkmap.nonzero()
+    # Compute the chunkmap for every index in indexed expression
+    cmvars = {}
+    for i, idxexpr in enumerate(idxexprs):
+        var, ops, lims = idxexpr
+        col = condvars[var]
+        index = col.index
+        assert index is not None, "the chosen column is not indexed"
+        assert not index.dirty, "the chosen column has a dirty index"
+
+        # Get the number of rows that the indexed condition yields.
+        range_ = index.getLookupRange(ops, lims, self)
+        ncoords = index.search(range_)
+        if index.reduction == 1 and ncoords == 0:
+            # No values from index condition, thus the chunkmap should be empty
+            nrowsinchunk = self.chunkshape[0]
+            nchunks = long(math.ceil(float(self.nrows)/nrowsinchunk))
+            chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
+        else:
+            # Get the chunkmap from the index
+            chunkmap = index.get_chunkmap()
+        # Assign the chunkmap to the cmvars dictionary
+        cmvars["e%d"%i] = chunkmap
+
+    # Compute the final chunkmap
+    chunkmap = numexpr.evaluate(strexpr, cmvars)
     if chunkmap.sum() == 0:
         # The chunkmap is empty
         return iter([])
+
     return chunkmap
+
 
 def _column__createIndex(self, optlevel, filters, tmp_dir,
                          blocksizes, indsize,

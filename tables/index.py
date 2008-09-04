@@ -1372,7 +1372,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             if item2 < b1:
                 # Search the appropriate chunk in bounds cache
                 nchunk2 = bisect_right(bounds, item2)
-                if nchunk2 <> nchunk:
+                if nchunk2 != nchunk:
                     # Lookup for this chunk in cache
                     nslot = sortedLRcache.getslot(nchunk2)
                     if nslot >= 0:
@@ -1405,8 +1405,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         #t1 = time()
         ss = self.slicesize;  bs = self.blocksize
         nsb = self.nslicesblock;  nslices = self.nslices
-        lbucket = self.lbucket;
-        indsize = self.indsize
+        lbucket = self.lbucket;  indsize = self.indsize
         bucketsinblock = float(self.blocksize)/lbucket
         nchunks = long(math.ceil(float(self.nelements)/lbucket))
         chunkmap = numpy.zeros(shape=nchunks, dtype="bool")
@@ -1438,7 +1437,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 chunkmap[idx] = True
         # The case lbucket < nrowsinchunk should only happen in tests
         nrowsinchunk = self.nrowsinchunk
-        if lbucket <> nrowsinchunk:
+        if lbucket != nrowsinchunk:
             # Map the 'coarse grain' chunkmap into the 'true' chunkmap
             nelements = self.nelements
             tnchunks = long(math.ceil(float(nelements)/nrowsinchunk))
@@ -1483,21 +1482,21 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 range_ = (limit, limit)
 
         elif len(limits) == 2:
-            assert ops[0] in ['gt', 'ge'] and ops[1] in ['lt', 'le']
+            assert ops[0] in ('gt', 'ge') and ops[1] in ('lt', 'le')
 
             lower, upper = limits
             if lower > upper:
                 # ``a <[=] x <[=] b`` is always false if ``a > b``.
                 return ()
 
-            if ops == ['gt', 'lt']:  # lower < col < upper
+            if ops == ('gt', 'lt'):  # lower < col < upper
                 range_ = (nextafter(lower, +1, coldtype, itemsize),
                           nextafter(upper, -1, coldtype, itemsize))
-            elif ops == ['ge', 'lt']:  # lower <= col < upper
+            elif ops == ('ge', 'lt'):  # lower <= col < upper
                 range_ = (lower, nextafter(upper, -1, coldtype, itemsize))
-            elif ops == ['gt', 'le']:  # lower < col <= upper
+            elif ops == ('gt', 'le'):  # lower < col <= upper
                 range_ = (nextafter(lower, +1, coldtype, itemsize), upper)
-            elif ops == ['ge', 'le']:  # lower <= col <= upper
+            elif ops == ('ge', 'le'):  # lower <= col <= upper
                 range_ = (lower, upper)
 
         return range_

@@ -432,7 +432,7 @@ class TableReadTestCase(common.PyTablesTestCase):
             numcol = table.read(field=colname)
             typecol = table.coltypes[colname]
             nctypecode = numcol.typecode()
-            if typecol <> "string":
+            if typecol != "string":
                 if typecol == "int64":
                     return
                 if typecol == "bool":
@@ -484,7 +484,7 @@ class TableReadTestCase(common.PyTablesTestCase):
             numcol = table.readCoordinates(coords, field=colname)
             typecol = table.coltypes[colname]
             nctypecode = numcol.typecode()
-            if typecol <> "string":
+            if typecol != "string":
                 if typecol == "int64":
                     return
                 if typecol == "bool":

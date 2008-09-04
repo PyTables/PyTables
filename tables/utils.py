@@ -85,7 +85,7 @@ def convertToNPAtom(arr, atom, copy=False):
     # Get copies of data if necessary for getting a contiguous buffer,
     # or if dtype is not the correct one.
     basetype = atom.dtype.base
-    if (copy or nparr.dtype <> basetype):
+    if (copy or nparr.dtype != basetype):
         nparr = numpy.array(nparr, dtype=basetype)
 
     return nparr

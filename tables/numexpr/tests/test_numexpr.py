@@ -442,7 +442,7 @@ class test_irregular_stride(NumpyTestCase):
 
         assert_array_equal(f0[i0], arange(5, dtype=int32))
         assert_array_equal(f1[i1], arange(5, dtype=float64))
-        
+
 # Case test for threads
 class test_threading(NumpyTestCase):
     def check_select(self):
@@ -454,7 +454,6 @@ class test_threading(NumpyTestCase):
 
         test = ThreadTest()
         test.start()
-
 
 # The following function is used to integrate Numexpr tests into PyTables'.
 def suite():
@@ -472,7 +471,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(test_strings, prefix='check'))
         theSuite.addTest(
             unittest.makeSuite(test_irregular_stride, prefix='check') )
-        theSuite.addTest(unittest.makeSuite(test_threading))
+        theSuite.addTest(unittest.makeSuite(test_threading, prefix='check'))
 
     return theSuite
 

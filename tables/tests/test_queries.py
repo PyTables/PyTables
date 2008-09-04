@@ -115,7 +115,9 @@ def table_description(classname, nclassname, shape=()):
     top level and in the ``c_nested`` nested column.  A column of a
     certain TYPE gets called ``c_TYPE``.  An extra integer column
     ``c_extra`` is also provided.  If a `shape` is given, it will be
-    used for all columns.
+    used for all columns.  Finally, an extra indexed column
+    ``c_idxextra`` is added as well in order to provide some basic
+    tests for multi-index queries.
     """
     classdict = {}
     colpos = append_columns(classdict, shape)
@@ -126,6 +128,10 @@ def table_description(classname, nclassname, shape=()):
 
     extracol = tables.IntCol(shape=shape, pos=colpos)
     classdict['c_extra'] = extracol
+    colpos += 1
+
+    idxextracol = tables.IntCol(shape=shape, pos=colpos)
+    classdict['c_idxextra'] = idxextracol
     colpos += 1
 
     return new.classobj(classname, (tables.IsDescription,), classdict)
@@ -183,6 +189,7 @@ def fill_table(table, shape, nrows):
                 coldata = numpy.asarray(data, dtype=sctype)
             row[ncolname] = row[colname] = coldata
             row['c_extra'] = data - (row_period / 2)
+            row['c_idxextra'] = data - (row_period / 2)
         row.append()
         value += 1
         if value == row_period:
@@ -225,13 +232,13 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
     colNotIndexable_re = re.compile(r"\bcan not be indexed\b")
     condNotBoolean_re = re.compile(r"\bdoes not have a boolean type\b")
 
-    def createIndexes(self, colname, ncolname):
+    def createIndexes(self, colname, ncolname, extracolname):
         if not self.indexed:
             return
         try:
             idxtype = self.idxtype
             vprint("* Indexing ``%s`` columns. Type: %s." % (colname, idxtype))
-            for acolname in [colname, ncolname]:
+            for acolname in [colname, ncolname, extracolname]:
                 acolumn = self.table.colinstances[acolname]
                 if idxtype == "Full":
                     acolumn.createFullIndex(optlevel=self.optlevel,
@@ -293,7 +300,12 @@ left_bound = row_period / 4
 """Operand of left side operator in comparisons with operator pairs."""
 right_bound = row_period * 3 / 4
 """Operand of right side operator in comparisons with operator pairs."""
-extra_conditions = ['', '& ((c_extra+1) > 0)', '| ((c_extra+1) > 0)']
+extra_conditions = [
+    '',                     # uses one index
+    '& ((c_extra+1) < 0)',  # uses one index
+    '| (c_idxextra > 0)',   # uses two indexes
+    '| ((c_idxextra > 0) | ((c_extra+1) > 0))',  # can't use indexes
+     ]
 """Extra conditions to append to comparison conditions."""
 
 class TableDataTestCase(BaseTableQueryTestCase):
@@ -349,7 +361,7 @@ def create_test_method(type_, op, extracond):
         pycond = compile(pycond, '<string>', 'eval')
 
         table = self.table
-        self.createIndexes(colname, ncolname)
+        self.createIndexes(colname, ncolname, 'c_idxextra')
 
         table_slice = dict(start=1, stop=table.nrows - 5, step=3)
         rownos, fvalues = None, None
@@ -361,6 +373,7 @@ def create_test_method(type_, op, extracond):
             for row in table.iterrows(**table_slice):
                 pyvars[colname] = row[acolname]
                 pyvars['c_extra'] = row['c_extra']
+                pyvars['c_idxextra'] = row['c_idxextra']
                 try:
                     isvalidrow = eval(pycond, {}, pyvars)
                 except TypeError:
@@ -385,6 +398,7 @@ def create_test_method(type_, op, extracond):
             ptvars = condvars.copy()
             ptvars[colname] = table.colinstances[acolname]
             ptvars['c_extra'] = table.colinstances['c_extra']
+            ptvars['c_idxextra'] = table.colinstances['c_idxextra']
             try:
                 isidxq = table.willQueryUseIndexing(cond, ptvars)
                 # Query twice to trigger possible query result caching.
@@ -667,7 +681,7 @@ class MDTableUsageTestCase(MDTableMixin, BaseTableUsageTestCase):
         self.assertRaises(NotImplementedError, self.table.where, 'c_bool')
 
 
-class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
+class IndexedTableUsage(ScalarTableMixin, BaseTableUsageTestCase):
 
     """
     Test case for query usage on indexed tables.
@@ -678,185 +692,398 @@ class IndexedTableUsageTestCase(ScalarTableMixin, BaseTableUsageTestCase):
     nrows = 50
     indexed = True
 
-    conditions = []
-    """List of conditions to be tested."""
-
-    # Add boolean conditions.
-    for _cbase in ['c_bool', '~c_bool']:
-        conditions.append(_cbase)
-        conditions.append('(%s) & (c_extra > 0)' % _cbase)
-        conditions.append('(%s) & (c_bool == False)' % _cbase)
-        conditions.append('(c_extra > 0) & (%s)' % _cbase)
-    # Add simple numeric conditions.
-    for _usevar in [False, True]:
-        for _condt in ['c_int32 %(o)s %(v)s', '%(v)s %(o)s c_int32']:
-            for _op in ['<', '<=', '==', '>=', '>']:
-                if _usevar:
-                    _cdict = {'o': _op, 'v': 'var'}
-                else:
-                    _cdict = {'o': _op, 'v': 0}
-                conditions.append(_condt % _cdict)
-    conditions.append('(c_int32 > 0) & (c_extra > 0)')
-    conditions.append('(c_int32 > 0) & (c_bool == True)')
-    conditions.append('(c_extra > 0) & (c_int32 > 0)')
-    # Add double numeric conditions.
-    for _cbase in ['(0<c_int32) & (c_int32<10)', '(10>c_int32) & (c_int32>0)']:
-        conditions.append(_cbase)
-        conditions.append('(%s) & (c_extra > 0)' % _cbase)
-        conditions.append('(%s) & (c_bool == True)' % _cbase)
-        conditions.append('(c_extra > 0) & (%s)' % _cbase)
-
     def setUp(self):
-        super(IndexedTableUsageTestCase, self).setUp()
+        super(IndexedTableUsage, self).setUp()
         self.table.cols.c_bool.createIndex(_blocksizes=small_blocksizes)
         self.table.cols.c_int32.createIndex(_blocksizes=small_blocksizes)
         self.willQueryUseIndexing = self.table.willQueryUseIndexing
         self.compileCondition = self.table._compileCondition
         self.requiredExprVars = self.table._requiredExprVars
+        usable_idxs = set()
+        for expr in self.idx_expr:
+            idxvar = expr[0]
+            if idxvar not in usable_idxs:
+                usable_idxs.add(idxvar)
+        self.usable_idxs = frozenset(usable_idxs)
 
-    def test00(self):
-        """Using indexing in some queries."""
+    def test(self):
         for condition in self.conditions:
-            self.assert_( self.willQueryUseIndexing(condition, {'var': 0}),
-                          "query with condition ``%s`` should use indexing"
-                          % condition )
-            vprint(
-                "* Query with condition ``%s`` will use indexing."
-                % condition )
-
-
-    def test01(self):
-        """Using indexing in specific queries (set #1)."""
-        conditions = [
-            '(c_int32 > 0)',
-            '(c_int32 > 0) & (c_bool == True)',
-            '(c_int32 > 0) & (c_extra > 0)']
-        for condition in conditions:
+            c_usable_idxs = self.willQueryUseIndexing(condition, {})
+            self.assert_( c_usable_idxs == self.usable_idxs,
+                          "\nQuery with condition: ``%s``\n"
+                          "Computed usable indexes are: ``%s``\n"
+                          "and should be: ``%s``"
+                          % (condition, c_usable_idxs, self.usable_idxs) )
             condvars = self.requiredExprVars(condition, None)
-            compiled, _ = self.compileCondition(condition, condvars)
-            self.assert_( compiled.index_variable == 'c_int32',
-                          "wrong index variable in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_limits == [0],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_operators == ['gt'],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            vprint(
-"* Query with condition ``%s`` will use ``%s`` variable for indexing, with ``%s`` limits and ``%s```operators."  % \
-  (condition, compiled.index_variable, compiled.index_limits,
-   compiled.index_operators) )
+            compiled = self.compileCondition(condition, condvars)
+            c_idx_expr = compiled.index_expressions
+            self.assert_( c_idx_expr == self.idx_expr,
+                          "\nWrong index expression in condition:\n``%s``\n"
+                          "Compiled index expression is:\n``%s``\n"
+                          "and should be:\n``%s``"
+                          % (condition, c_idx_expr, self.idx_expr) )
+            c_str_expr = compiled.string_expression
+            self.assert_( c_str_expr == self.str_expr,
+                          "\nWrong index operations in condition:\n``%s``\n"
+                          "Computed index operations are:\n``%s``\n"
+                          "and should be:\n``%s``"
+                          % (condition, c_str_expr, self.str_expr) )
+            vprint( "* Query with condition ``%s`` will use "
+                    "variables ``%s`` for indexing."
+                    % (condition, compiled.index_variables) )
 
-    def test02(self):
-        """Using indexing in specific queries (set #2)."""
-        conditions = [
-            '(c_int32 > 0) & (c_int32 < 5)',
-            '(c_int32 > 0) & (c_int32 < 5) & (c_bool == True)',
-            '(c_int32 > 0) & (c_int32 < 5) & (c_extra > 0)']
-        for condition in conditions:
-            condvars = self.requiredExprVars(condition, None)
-            compiled, _ = self.compileCondition(condition, condvars)
-            self.assert_( compiled.index_variable == 'c_int32',
-                          "wrong index variable in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_limits == [0,5],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_operators == ['gt','lt'],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            vprint(
-"* Query with condition ``%s`` will use ``%s`` variable for indexing, with ``%s`` limits and ``%s```operators."  % \
-  (condition, compiled.index_variable, compiled.index_limits,
-   compiled.index_operators) )
 
-    def test03(self):
-        """Using indexing in specific queries (set #3)."""
-        conditions = [
-            '(c_bool == True)',
-            '(c_bool == True) & (c_extra > 0)',
-            '(c_bool == True) & (c_int32 > 0) & (c_int32 < 5)']
-        for condition in conditions:
-            condvars = self.requiredExprVars(condition, None)
-            compiled, _ = self.compileCondition(condition, condvars)
-            self.assert_( compiled.index_variable == 'c_bool',
-                          "wrong index variable in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_limits == [True],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_operators == ['eq'],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            vprint(
-"* Query with condition ``%s`` will use ``%s`` variable for indexing, with ``%s`` limits and ``%s```operators."  % \
-  (condition, compiled.index_variable, compiled.index_limits,
-   compiled.index_operators) )
+class IndexedTableUsage1(IndexedTableUsage):
+    conditions = [
+        '(c_int32 > 0)',
+        '(c_int32 > 0) & (c_extra > 0)',
+        '(c_int32 > 0) & ((~c_bool) | (c_extra > 0))',
+        '(c_int32 > 0) & ((c_extra < 3) & (c_extra > 0))',
+        ]
+    idx_expr = [ ( 'c_int32', ('gt',), (0,) ) ]
+    str_expr = 'e0'
 
-    def test04(self):
-        """Using indexing in specific queries (set #4)."""
-        conditions = [
-            '(c_int32 >= 1) & (c_int32 < 2)',
-            '(c_int32 >= 1) & (c_int32 < 2) & (c_int32 > 0) & (c_int32 < 5)']
-        for condition in conditions:
-            condvars = self.requiredExprVars(condition, None)
-            compiled, _ = self.compileCondition(condition, condvars)
-            self.assert_( compiled.index_variable == 'c_int32',
-                          "wrong index variable in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_limits == [1,2],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_operators == ['ge','lt'],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            vprint(
-"* Query with condition ``%s`` will use ``%s`` variable for indexing, with ``%s`` limits and ``%s```operators."  % \
-  (condition, compiled.index_variable, compiled.index_limits,
-   compiled.index_operators) )
+class IndexedTableUsage2(IndexedTableUsage):
+    conditions = [
+        '(c_int32 > 0) & (c_int32 < 5)',
+        '(c_int32 > 0) & (c_int32 < 5) & (c_extra > 0)',
+        '(c_int32 > 0) & (c_int32 < 5) & ((c_bool == True) | (c_extra > 0))',
+        '(c_int32 > 0) & (c_int32 < 5) & ((c_extra > 0) | (c_bool == True))',
+        ]
+    idx_expr = [ ( 'c_int32', ('gt','lt'), (0,5) ) ]
+    str_expr = 'e0'
 
-    def test05(self):
-        """Using indexing in specific queries (set #5)."""
-        conditions = [
-            '(c_extra > 0) & (c_bool == True)']
-        for condition in conditions:
-            condvars = self.requiredExprVars(condition, None)
-            compiled, _ = self.compileCondition(condition, condvars)
-            self.assert_( compiled.index_variable == 'c_bool',
-                          "wrong index variable in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_limits == [True],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_operators == ['eq'],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            vprint(
-"* Query with condition ``%s`` will use ``%s`` variable for indexing, with ``%s`` limits and ``%s```operators."  % \
-  (condition, compiled.index_variable, compiled.index_limits,
-   compiled.index_operators) )
+class IndexedTableUsage3(IndexedTableUsage):
+    conditions = [
+        '(c_bool == True)',
+        '(c_bool == True) & (c_extra > 0)',
+        '(c_extra > 0) & (c_bool == True)',
+        '((c_extra > 0) & (c_extra < 4)) & (c_bool == True)',
+        '(c_bool == True) & ((c_extra > 0) & (c_extra < 4))',
+        ]
+    idx_expr = [ ( 'c_bool', ('eq',), (True,) ) ]
+    str_expr = 'e0'
 
-    def test06(self):
-        """Using indexing in specific queries (set #6)."""
-        conditions = [
-            '(c_extra > 0) & (c_int32 > 0) & (c_int32 < 5)']
-        for condition in conditions:
-            condvars = self.requiredExprVars(condition, None)
-            compiled, _ = self.compileCondition(condition, condvars)
-            self.assert_( compiled.index_variable == 'c_int32',
-                          "wrong index variable in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_limits == [0,5],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            self.assert_( compiled.index_operators == ['gt','lt'],
-                          "wrong limits in condition ``%s``"
-                          % condition)
-            vprint(
-"* Query with condition ``%s`` will use ``%s`` variable for indexing, with ``%s`` limits and ``%s```operators."  % \
-  (condition, compiled.index_variable, compiled.index_limits,
-   compiled.index_operators) )
+class IndexedTableUsage4(IndexedTableUsage):
+    conditions = [
+        '((c_int32 > 0) & (c_bool == True)) & (c_extra > 0)',
+        '((c_int32 > 0) & (c_bool == True)) & ((c_extra > 0)'+
+        ' & (c_extra < 4))',
+        ]
+    idx_expr = [ ( 'c_int32', ('gt',), (0,) ),
+                 ( 'c_bool', ('eq',), (True,) ),
+                 ]
+    str_expr = '(e0 & e1)'
+
+class IndexedTableUsage5(IndexedTableUsage):
+    conditions = [
+        '(c_int32 >= 1) & (c_int32 < 2) & (c_bool == True)',
+        '(c_int32 >= 1) & (c_int32 < 2) & (c_bool == True)'+
+        ' & (c_extra > 0)',
+        ]
+    idx_expr = [ ( 'c_int32', ('ge','lt'), (1,2) ),
+                 ( 'c_bool', ('eq',), (True,) ),
+                 ]
+    str_expr = '(e0 & e1)'
+
+class IndexedTableUsage6(IndexedTableUsage):
+    conditions = [
+        '(c_int32 >= 1) & (c_int32 < 2) & (c_int32 > 0) & (c_int32 < 5)',
+        '(c_int32 >= 1) & (c_int32 < 2) & (c_int32 > 0) & (c_int32 < 5)'+
+        ' & (c_extra > 0)',
+        ]
+    idx_expr = [ ( 'c_int32', ('ge','lt'), (1,2) ),
+                 ( 'c_int32', ('gt',), (0,) ),
+                 ( 'c_int32', ('lt',), (5,) ),
+                 ]
+    str_expr = '((e0 & e1) & e2)'
+
+class IndexedTableUsage7(IndexedTableUsage):
+    conditions = [
+        '(c_int32 >= 1) & (c_int32 < 2) & ((c_int32 > 0) & (c_int32 < 5))',
+        '((c_int32 >= 1) & (c_int32 < 2)) & ((c_int32 > 0) & (c_int32 < 5))',
+        '((c_int32 >= 1) & (c_int32 < 2)) & ((c_int32 > 0) & (c_int32 < 5))'+
+        ' & (c_extra > 0)',
+        ]
+    idx_expr = [ ( 'c_int32', ('ge','lt'), (1,2) ),
+                 ( 'c_int32', ('gt','lt'), (0,5) ),
+                 ]
+    str_expr = '(e0 & e1)'
+
+class IndexedTableUsage8(IndexedTableUsage):
+    conditions = [
+        '(c_extra > 0) & ((c_int32 > 0) & (c_int32 < 5))',
+        ]
+    idx_expr = [ ( 'c_int32', ('gt','lt'), (0,5) ),
+                 ]
+    str_expr = 'e0'
+
+class IndexedTableUsage9(IndexedTableUsage):
+    conditions = [
+        '(c_extra > 0) & (c_int32 > 0) & (c_int32 < 5)',
+        '((c_extra > 0) & (c_int32 > 0)) & (c_int32 < 5)',
+        '(c_extra > 0) & (c_int32 > 0) & (c_int32 < 5) & (c_extra > 3)',
+        ]
+    idx_expr = [ ('c_int32', ('gt',), (0,)),
+                 ('c_int32', ('lt',), (5,))]
+    str_expr = '(e0 & e1)'
+
+class IndexedTableUsage10(IndexedTableUsage):
+    conditions = [
+        '(c_int32 < 5) & (c_extra > 0) & (c_bool == True)',
+        '(c_int32 < 5) & (c_extra > 2) & c_bool',
+        '(c_int32 < 5) & (c_bool == True) & (c_extra > 0) & (c_extra < 4)',
+        '(c_int32 < 5) & (c_extra > 0) & (c_bool == True) & (c_extra < 4)',
+        ]
+    idx_expr = [ ( 'c_int32', ('lt',), (5,) ),
+                 ( 'c_bool', ('eq',), (True,) ) ]
+    str_expr = '(e0 & e1)'
+
+class IndexedTableUsage11(IndexedTableUsage):
+    """Complex operations are not eligible for indexing."""
+    conditions = [
+        'sin(c_int32) > 0',
+        '(c_int32*2.4) > 0',
+        '(c_int32 + c_int32) > 0',
+        'c_int32**2 > 0',
+        ]
+    idx_expr = []
+    str_expr = ''
+
+class IndexedTableUsage12(IndexedTableUsage):
+    conditions = [
+        '~c_bool',
+        '~(c_bool)',
+        '~c_bool & (c_extra > 0)',
+        '~(c_bool) & (c_extra > 0)',
+        ]
+    idx_expr = [ ( 'c_bool', ('eq',), (False,) ) ]
+    str_expr = 'e0'
+
+class IndexedTableUsage13(IndexedTableUsage):
+    conditions = [
+        '~(c_bool == True)',
+        '~((c_bool == True))',
+        '~(c_bool == True) & (c_extra > 0)',
+        '~(c_bool == True) & (c_extra > 0)',
+        ]
+    idx_expr = [ ( 'c_bool', ('eq',), (False,) ) ]
+    str_expr = 'e0'
+
+class IndexedTableUsage14(IndexedTableUsage):
+    conditions = [
+        '~(c_int32 > 0)',
+        '~((c_int32 > 0)) & (c_extra > 0)',
+        '~(c_int32 > 0) & ((~c_bool) | (c_extra > 0))',
+        '~(c_int32 > 0) & ((c_extra < 3) & (c_extra > 0))',
+        ]
+    idx_expr = [ ( 'c_int32', ('le',), (0,) ) ]
+    str_expr = 'e0'
+
+class IndexedTableUsage15(IndexedTableUsage):
+    conditions = [
+        '(~(c_int32 > 0) | ~c_bool)',
+        '(~(c_int32 > 0) | ~(c_bool)) & (c_extra > 0)',
+        '(~(c_int32 > 0) | ~(c_bool == True)) & ((c_extra > 0)'+
+        ' & (c_extra < 4))',
+        ]
+    idx_expr = [ ( 'c_int32', ('le',), (0,) ),
+                 ( 'c_bool', ('eq',), (False,) ),
+                 ]
+    str_expr = '(e0 | e1)'
+
+class IndexedTableUsage16(IndexedTableUsage):
+    conditions = [
+        '(~(c_int32 > 0) & ~(c_int32 < 2))',
+        '(~(c_int32 > 0) & ~(c_int32 < 2)) & (c_extra > 0)',
+        '(~(c_int32 > 0) & ~(c_int32 < 2)) & ((c_extra > 0)'+
+        ' & (c_extra < 4))',
+        ]
+    idx_expr = [ ( 'c_int32', ('le',), (0,) ),
+                 ( 'c_int32', ('ge',), (2,) ),
+                 ]
+    str_expr = '(e0 & e1)'
+
+class IndexedTableUsage17(IndexedTableUsage):
+    conditions = [
+        '(~(c_int32 > 0) & ~(c_int32 < 2))',
+        '(~(c_int32 > 0) & ~(c_int32 < 2)) & (c_extra > 0)',
+        '(~(c_int32 > 0) & ~(c_int32 < 2)) & ((c_extra > 0)'+
+        ' & (c_extra < 4))',
+        ]
+    idx_expr = [ ( 'c_int32', ('le',), (0,) ),
+                 ( 'c_int32', ('ge',), (2,) ),
+                 ]
+    str_expr = '(e0 & e1)'
+
+# Negations of complex conditions are not supported yet
+class IndexedTableUsage18(IndexedTableUsage):
+    conditions = [
+        '~((c_int32 > 0) & (c_bool))',
+        '~((c_int32 > 0) & (c_bool)) & (c_extra > 0)',
+        '~((c_int32 > 0) & (c_bool)) & ((c_extra > 0)'+
+        ' & (c_extra < 4))',
+        ]
+    idx_expr = []
+    str_expr = ''
+
+class IndexedTableUsage19(IndexedTableUsage):
+    conditions = [
+        '~((c_int32 > 0) & (c_bool)) & ((c_bool == False)'+
+        ' & (c_extra < 4))',
+        ]
+    idx_expr = [ ( 'c_bool', ('eq',), (False,) ),
+                 ]
+    str_expr = 'e0'
+
+class IndexedTableUsage20(IndexedTableUsage):
+    conditions = [
+        '((c_int32 > 0) & ~(c_bool))',
+        '((c_int32 > 0) & ~(c_bool)) & (c_extra > 0)',
+        '((c_int32 > 0) & ~(c_bool == True)) & ((c_extra > 0)'+
+        ' & (c_extra < 4))',
+        ]
+    idx_expr = [ ( 'c_int32', ('gt',), (0,) ),
+                 ( 'c_bool', ('eq',), (False,) ),
+                 ]
+    str_expr = '(e0 & e1)'
+
+class IndexedTableUsage21(IndexedTableUsage):
+    conditions = [
+        '(~(c_int32 > 0) & (c_bool))',
+        '(~(c_int32 > 0) & (c_bool)) & (c_extra > 0)',
+        '(~(c_int32 > 0) & (c_bool == True)) & ((c_extra > 0)'+
+        ' & (c_extra < 4))',
+        ]
+    idx_expr = [ ( 'c_int32', ('le',), (0,) ),
+                 ( 'c_bool', ('eq',), (True,) ),
+                 ]
+    str_expr = '(e0 & e1)'
+
+class IndexedTableUsage22(IndexedTableUsage):
+    conditions = [
+        '~((c_int32 >= 1) & (c_int32 < 2)) & ~(c_bool == True)',
+        '~(c_bool == True) & (c_extra > 0)',
+        '~((c_int32 >= 1) & (c_int32 < 2)) & (~(c_bool == True)'+
+        ' & (c_extra > 0))',
+        ]
+    idx_expr = [ ( 'c_bool', ('eq',), (False,) ),
+                 ]
+    str_expr = 'e0'
+
+class IndexedTableUsage23(IndexedTableUsage):
+    conditions = [
+        'c_int32 != 1',
+        'c_bool != False',
+        '~(c_int32 != 1)',
+        '~(c_bool != False)',
+        '(c_int32 != 1) & (c_extra != 2)',
+        ]
+    idx_expr = []
+    str_expr = ''
+
+class IndexedTableUsage24(IndexedTableUsage):
+    conditions = [
+        'c_bool',
+        'c_bool == True',
+        'True == c_bool',
+        '~(~c_bool)',
+        '~~c_bool',
+        '~~~~c_bool',
+        '~(~c_bool) & (c_extra != 2)',
+        ]
+    idx_expr = [ ( 'c_bool', ('eq',), (True,) ),
+                 ]
+    str_expr = 'e0'
+
+class IndexedTableUsage25(IndexedTableUsage):
+    conditions = [
+        '~c_bool',
+        'c_bool == False',
+        'False == c_bool',
+        '~(c_bool)',
+        '~((c_bool))',
+        '~~~c_bool',
+        '~~(~c_bool) & (c_extra != 2)',
+        ]
+    idx_expr = [ ( 'c_bool', ('eq',), (False,) ),
+                 ]
+    str_expr = 'e0'
+
+class IndexedTableUsage26(IndexedTableUsage):
+    conditions = [
+        'c_bool != True',
+        'True != c_bool',
+        'c_bool != False',
+        'False != c_bool',
+        ]
+    idx_expr = []
+    str_expr = ''
+
+class IndexedTableUsage27(IndexedTableUsage):
+    conditions = [
+        '(c_int32 == 3) | c_bool | (c_int32 == 5)',
+        '(((c_int32 == 3) | (c_bool == True)) | (c_int32 == 5))'+
+        ' & (c_extra > 0)',
+        ]
+    idx_expr = [ ( 'c_int32', ('eq',), (3,) ),
+                 ( 'c_bool', ('eq',), (True,) ),
+                 ( 'c_int32', ('eq',), (5,) ),
+                 ]
+    str_expr = '((e0 | e1) | e2)'
+
+class IndexedTableUsage28(IndexedTableUsage):
+    conditions = [
+        '((c_int32 == 3) | c_bool) & (c_int32 == 5)',
+        '(((c_int32 == 3) | (c_bool == True)) & (c_int32 == 5))'+
+        ' & (c_extra > 0)',
+        ]
+    idx_expr = [ ( 'c_int32', ('eq',), (3,) ),
+                 ( 'c_bool', ('eq',), (True,) ),
+                 ( 'c_int32', ('eq',), (5,) ),
+                 ]
+    str_expr = '((e0 | e1) & e2)'
+
+class IndexedTableUsage29(IndexedTableUsage):
+    conditions = [
+        '(c_int32 == 3) | ((c_int32 == 4) & (c_int32 == 5))',
+        '((c_int32 == 3) | ((c_int32 == 4) & (c_int32 == 5)))'+
+        ' & (c_extra > 0)',
+        ]
+    idx_expr = [ ( 'c_int32', ('eq',), (4,) ),
+                 ( 'c_int32', ('eq',), (5,) ),
+                 ( 'c_int32', ('eq',), (3,) ),
+                 ]
+    str_expr = '((e0 & e1) | e2)'
+
+class IndexedTableUsage30(IndexedTableUsage):
+    conditions = [
+        '((c_int32 == 3) | (c_int32 == 4)) & (c_int32 == 5)',
+        '((c_int32 == 3) | (c_int32 == 4)) & (c_int32 == 5)'+
+        ' & (c_extra > 0)',
+        ]
+    idx_expr = [ ( 'c_int32', ('eq',), (3,) ),
+                 ( 'c_int32', ('eq',), (4,) ),
+                 ( 'c_int32', ('eq',), (5,) ),
+                 ]
+    str_expr = '((e0 | e1) & e2)'
+
+class IndexedTableUsage31(IndexedTableUsage):
+    conditions = [
+        '(c_extra > 0) & ((c_extra < 4) & (c_bool == True))',
+        '(c_extra > 0) & ((c_bool == True) & (c_extra < 5))',
+        '((c_int32 > 0) | (c_extra > 0)) & (c_bool == True)',
+        ]
+    idx_expr = [ ('c_bool', ('eq',), (True,)),
+                 ]
+    str_expr = 'e0'
+
+class IndexedTableUsage32(IndexedTableUsage):
+    conditions = [
+        '(c_int32 < 5) & (c_extra > 0) & (c_bool == True) | (c_extra < 4)',
+        ]
+    idx_expr = []
+    str_expr = ''
 
 
 
@@ -891,7 +1118,38 @@ def suite():
         testSuite.addTest(unittest.makeSuite(ScalarTableUsageTestCase))
         testSuite.addTest(unittest.makeSuite(MDTableUsageTestCase))
         if tables.is_pro:
-            testSuite.addTest(unittest.makeSuite(IndexedTableUsageTestCase))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage1))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage2))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage3))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage4))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage5))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage6))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage7))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage8))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage9))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage10))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage11))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage12))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage13))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage14))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage15))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage16))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage17))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage18))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage19))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage20))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage21))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage22))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage23))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage24))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage25))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage26))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage27))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage28))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage29))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage30))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage31))
+            testSuite.addTest(unittest.makeSuite(IndexedTableUsage32))
 
     return testSuite
 

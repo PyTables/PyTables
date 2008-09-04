@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
 "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<book lang="en">
+<book lang="en" xmlns:xi="http://www.w3.org/2001/XInclude">
   <title><literal>PyTables</literal> User's Guide</title>
 
-  <subtitle>Hierarchical datasets in Python - Release 2.1b1.dev</subtitle>
+  <subtitle>Hierarchical datasets in Python - Release
+  <xi:include href="../../VERSION" parse="text"/>
+  </subtitle>
 
   <bookinfo>
     <authorgroup>
@@ -869,11 +871,7 @@ python -c "import tables; tables.test()"</screen>
 
           <para>First, make sure that you have Python 2.4 or higher and NumPy
           1.0.4 or higher installed (PyTables binaries have been built using
-<<<<<<< .working
-          NumPy 1.0.5).  The binaries already include DLLs for HDF5 (1.6.7),
-=======
           NumPy 1.0.4).  The binaries already include DLLs for HDF5 (1.6.7),
->>>>>>> .merge-right.r3548
           zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2
           (1.0.4).  The LZO DLL can't be included because of license issues
           (but read below for directives to install it if you want so).</para>
@@ -7287,9 +7285,9 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             <emphasis>condvars</emphasis> arguments is the same as in the
             <literal>Table.where()</literal> method (see <xref
             linkend="Table.where" />). If the <literal>condition</literal> can
-            use indexing, this method returns the path name of the column
-            whose index is usable. Otherwise, it returns
-            <literal>None</literal>.</para>
+            use indexing, this method returns a frozenset with the path names
+            of the columns whose index is usable. Otherwise, it returns an
+            empty list.</para>
 
             <para>This method is mainly intended for testing. Keep in mind
             that changing the set of indexed columns or their dirtyness may
@@ -10821,14 +10819,15 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           <literal>var1</literal>, <literal>var2</literal> and
           <literal>var3</literal> columns.</para>
 
-          <para>After you have indexed a column, PyTables will try to use the
-          index in your queries. However, as the query optimizer is not very
-          sophisticated right now<footnote> <para>We plan to address this
-          limitation in the short future.</para> </footnote> it is recommended
-          that you avoid placing comparisons involving indexed colums too deep
-          into the condition expression in order to maximise the chances of
-          actually using indexes.  See below for examples where the optimizer
-          can safely determine if an index can be used or not.</para>
+          <para>After you have indexed a series of columns, the PyTables query
+          optimizer will try hard to discover the usable indexes in a
+          potentially complex expression. However, there are still places
+          where it cannot determine that an index can be used (mainly when the
+          <literal>'!='</literal> operator is used, or negations of
+          complex boolean expressions). See below for examples where the
+          optimizer can safely determine if an index, or series of indexes,
+          can be used or not.
+          </para>
 
           <para>Example conditions where an index can be used: <itemizedlist>
               <listitem>
@@ -10839,11 +10838,6 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
               <listitem>
                 <para><literal>var1 &gt;= mystr</literal> (var1 is
                 used)</para>
-              </listitem>
-
-              <listitem>
-                <para><literal>(var1 &gt;= "foo") &amp; (var3 &gt;
-                10)</literal> (var1 is used)</para>
               </listitem>
 
               <listitem>
@@ -10860,6 +10854,22 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
                 <para><literal>(("bar" &lt;= var1) &amp; (var1 &lt; "foo"))
                 &amp; (var4 &gt; 0.0)</literal> (var1 is used)</para>
               </listitem>
+
+              <listitem>
+                <para><literal>(var1 &gt;= "foo") &amp; (var3 &gt;
+                10)</literal> (var1 and var3 are used)</para>
+              </listitem>
+
+              <listitem>
+                <para><literal>(var1 &gt;= "foo") | (var3 &gt; 10)</literal>
+                (var1 and var3 are used)</para>
+              </listitem>
+
+              <listitem>
+                <para><literal>~(var1 &gt;= "foo") | ~(var3 &gt; 10)</literal>
+                (var1 and var3 are used)</para>
+              </listitem>
+
             </itemizedlist></para>
 
           <para>Example conditions where an index can <emphasis>not</emphasis>
@@ -10875,10 +10885,17 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
               </listitem>
 
               <listitem>
-                <para><literal>(var1 &gt;= "foo") | (var3 &gt; 10)</literal>
-                (conditions are ORed)</para>
+                <para><literal>~(("bar" &lt;= var1) &amp; (var1 &lt; "foo"))
+                &amp; (var4 &gt; 0.0)</literal> (negation of a complex boolean
+                expression)</para>
               </listitem>
+
             </itemizedlist></para>
+
+          <note>
+            <para>Please be aware that, from PyTables Pro 2.1 on, several
+            indexes can be used in a single query.</para>
+          </note>
 
           <note>
             <para>If you want to know for sure whether a particular query will

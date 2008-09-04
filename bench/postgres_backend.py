@@ -5,7 +5,8 @@ from indexed_search import DB
 import psycopg2 as db2
 
 CLUSTER_NAME = "base"
-DATA_DIR = "/scratch/faltet/postgres/%s" % CLUSTER_NAME
+#DATA_DIR = "/scratch/faltet/postgres/%s" % CLUSTER_NAME
+DATA_DIR = "/etc/postgresql/8.2/main/pgdata/%s" % CLUSTER_NAME
 DSN = "dbname=%s port=%s"
 CREATE_DB = "createdb %s"
 DROP_DB = "dropdb %s"
@@ -104,12 +105,12 @@ class Postgres_DB(DB):
         self.cur.copy_from(st, TABLE_NAME)
         con.commit()
 
-    def index_col(self, con, colname, optlevel, verbose):
+    def index_col(self, con, colname, optlevel, idxtype, verbose):
         self.cur.execute("create index %s on %s(%s)" % \
                          (colname+'_idx', TABLE_NAME, colname))
         con.commit()
 
-    def do_query(self, con, column, base):
+    def do_query_simple(self, con, column, base):
         self.cur.execute(
             "select sum(%s) from %s where %s >= %s and %s <= %s" % \
             (column, TABLE_NAME,
@@ -122,6 +123,24 @@ class Postgres_DB(DB):
         #results = self.flatten(self.cur.fetchall())
         results = self.cur.fetchall()
         return results
+
+    def do_query(self, con, column, base):
+        d = (self.rng[1] - self.rng[0]) / 2.
+        inf1 = int(self.rng[0]+base);  sup1 = int(self.rng[0]+d+base)
+        inf2 = self.rng[0]+base*2;  sup2 = self.rng[0]+d+base*2
+        condition = "((col4>=%s) and (col4<%s)) or ((col2>%s) and (col2<%s))"
+        condition += " and (sqrt(col1+3.1*col2+col3*col4) > 3)"
+        condition = condition % (inf2, sup2, inf1, sup1) 
+        #print "condition-->", condition
+        self.cur.execute(
+#            "select sum(%s) from %s where %s" % \
+            "select %s from %s where %s" % \
+            (column, TABLE_NAME, condition))
+        results = self.flatten(self.cur.fetchall())
+        #results = self.cur.fetchall()
+        #return results
+        return len(results)
+
 
     def close_db(self, con):
         self.cur.close()

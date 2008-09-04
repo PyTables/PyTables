@@ -2,10 +2,7 @@ __all__ = ['E']
 
 import operator
 import sys
-try:
-    import threading as _threading
-except ImportError:
-    import dummy_threading as _threading
+import threading
 
 import numpy
 
@@ -23,7 +20,7 @@ class Expression(object):
 
 E = Expression()
 
-class Context(_threading.local):
+class Context(threading.local):
     initialized = False
     def __init__(self, dict_):
         if self.initialized:

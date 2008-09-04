@@ -11,7 +11,9 @@
 Changes from 2.0.x to 2.1b1
 ===========================
 
-(None yet.)
+[API change] Table.willQueryUseIndexing() has changed its return value by a
+list of usable indexed columns for its `condition` paramater.
+
 
 
 ----
