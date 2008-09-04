@@ -10566,7 +10566,7 @@ True</screen>
           <emphasis>in-kernel</emphasis> selection based on the
           <emphasis>regular</emphasis> selection mentioned above:</para>
 
-          <screen>result = [row['var2'] for row in table.where('var1 &lt;= 20')]</screen>
+          <screen>result = [row['var2'] for row in table.where('(var1 &gt; 2) & (var1 &lt;= 20) & (var2 &gt; 3)']</screen>
 
           <para>This simple change of mode selection can account for an
           improvement in search times of more than 30x for large tables as you
@@ -10597,8 +10597,8 @@ True</screen>
 
           <para>So, where is the trick? It's easy. In the
           <emphasis>regular</emphasis> selection mode the data for column
-          <literal>var1</literal> has to be carried up into Python space so as
-          to evaluate the condition and decide if the <literal>var2</literal>
+          <literal>var1</literal> has to be brought into Python space so as to
+          evaluate the condition and decide if the <literal>var2</literal>
           value should be added to the <literal>result</literal> list. On the
           contrary, in the <emphasis>in-kernel</emphasis> mode, the
           <emphasis>condition</emphasis> is passed to the PyTables kernel
@@ -10606,8 +10606,9 @@ True</screen>
           the help of the integrated Numexpr package, see <biblioref
           linkend="Numexpr" />), so that the only values that are brought to
           Python space are the rows that fulfilled the condition.  Hence, for
-          selections that only have a tiny number of hits (compared with the
-          total amount of rows), the savings are huge.</para>
+          selections that only have a relatively small number of hits
+          (compared with the total amount of rows), the savings are
+          huge.</para>
 
           <para>Incidentally, in-kernel searches are not only much faster than
           regular PyTables queries, but also much more than sequential queries
