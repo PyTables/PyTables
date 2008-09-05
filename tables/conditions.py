@@ -65,7 +65,7 @@ class CompiledCondition(object):
                      self.index_variables) )
 
 
-    def with_replace_vars(self, condvars):
+    def with_replaced_vars(self, condvars):
         """
         Replace index limit variables with their values in-place.
 

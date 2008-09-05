@@ -1060,7 +1060,7 @@ class Table(tableExtension.Table, Leaf):
         condkey = self._getConditionKey(condition, condvars)
         compiled = condcache.get(condkey)
         if compiled:
-            return compiled.with_replace_vars(condvars)  # bingo!
+            return compiled.with_replaced_vars(condvars)  # bingo!
 
         # Bad luck, the condition must be parsed and compiled.
         # Fortunately, the key provides some valuable information. ;)
@@ -1097,7 +1097,7 @@ class Table(tableExtension.Table, Leaf):
 
         # Store the compiled condition in the cache and return it.
         condcache[condkey] = compiled
-        return compiled.with_replace_vars(condvars)
+        return compiled.with_replaced_vars(condvars)
 
 
     def willQueryUseIndexing(self, condition, condvars=None):
