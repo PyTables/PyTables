@@ -293,6 +293,9 @@ for arg in args:
         # when adding more flags later on
         #sys.argv.remove(arg)
 
+# The next flag for the C compiler is needed for finding the C headers for
+# the Pyrex extensions
+CFLAGS.append("-Isrc")
 # The next flag for the C compiler is needed when using the HDF5 1.8.x series
 CFLAGS.append("-DH5_USE_16_API")
 
@@ -375,7 +378,7 @@ if VERSION.endswith('pro'):
         'indexesExtension' ])
 
 def get_pyrex_extfiles(extnames):
-    extdir = 'src'
+    extdir = 'tables'
     extfiles = {}
 
     for extname in extnames:

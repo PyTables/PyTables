@@ -349,7 +349,8 @@ class PyTablesTestCase(unittest.TestCase):
 
         # This warning-showing function hides and takes note
         # of expected warnings and acts normally on others.
-        def myShowWarning(message, category, filename, lineno, file=None):
+        def myShowWarning(message, category, filename, lineno,
+                          file=None, line=None):
             if issubclass(category, warnClass):
                 issued[0] = True
                 verbosePrint(
@@ -360,7 +361,7 @@ class PyTablesTestCase(unittest.TestCase):
                     "In file ``%s``, line number %d.\n"
                     % (category.__name__, message, filename, lineno))
             else:
-                showwarning(message, category, filename, lineno, file)
+                showwarning(message, category, filename, lineno, file, line)
 
         # By forcing Python to always show warnings of the wanted class,
         # and replacing the warning-showing function with a tailored one,

@@ -48,6 +48,7 @@ from tables.utilsExtension import \
 
 from utilsExtension cimport malloc_dims, get_native_type
 
+
 # Types, constants, functions, classes & other objects from everywhere
 from definitions cimport  \
      strdup, malloc, free, \

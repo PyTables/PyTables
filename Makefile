@@ -3,7 +3,7 @@
 # please use ``setup.py`` as described in the ``README.txt`` file.
 
 VERSION = $(shell cat VERSION)
-SRCDIRS = src doc
+SRCDIRS = tables src doc
 
 GENERATED = ANNOUNCE.txt
 

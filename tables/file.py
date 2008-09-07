@@ -975,7 +975,11 @@ class File(hdf5Extension.File, object):
             nodePath = where._v_pathname
         elif isinstance(where, basestring):  # Pyhton >= 2.3
             node = None
-            nodePath = where
+            if where.startswith('/'):
+                nodePath = where
+            else:
+                raise NameError(
+                    "``where`` must start with a slash ('/')")
         else:
             raise TypeError(
                 "``where`` is not a string nor a node: %r" % (where,))

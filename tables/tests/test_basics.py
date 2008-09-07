@@ -1762,7 +1762,7 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         #self.assertRaises(FileModeError, self.h5file.disableUndo)
 
 
-    def test19_getNode(self):
+    def test19a_getNode(self):
         """Test getting a child of a closed node."""
 
         g1 = self.h5file.createGroup('/', 'g1')
@@ -1789,6 +1789,16 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # And closed ones should not have been touched.
         g1_ = self.h5file.getNode('/g1/g2')
         self.assert_(g1_ is not g1, "closed node has been reused")
+
+
+    def test19b_getNode(self):
+        """Test getting a node that does not start with a slash ('/')."""
+
+        # Create an array in the root
+        arr = self.h5file.createArray('/', 'array', [1,2],
+                                      title = "Title example")
+        # Get the array without specifying a leading slash
+        self.assertRaises(NameError, self.h5file.getNode, "array")
 
 
     def test20_removeNode(self):

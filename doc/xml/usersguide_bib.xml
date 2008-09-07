@@ -260,7 +260,7 @@
       <author><firstname>Ivan</firstname><surname>Vilata</surname></author>
     </authorgroup>
     <title>OPSI: The indexing system of PyTables 2 Professional Edition</title>
-    <bibliomisc>Exhaustive description and benchmarks about the indexing engine that comes with PyTables Pro.</bibliomisc>
+    <bibliomisc>Exhaustive description and benchmarks about the indexing engine that comes with PyTables Pro</bibliomisc>
     <bibliosource>
       <ulink url="http://www.carabos.com/docs/OPSI-indexes.pdf">http://www.carabos.com/docs/OPSI-indexes.pdf</ulink>
     </bibliosource>
