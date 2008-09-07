@@ -29,7 +29,7 @@ try:
     from _conditions_pro import _get_idx_expr
 except ImportError:
     # Dummy version of get_idx_expr
-    def get_idx_expr(exprnode, indexedcols):
+    def _get_idx_expr(exprnode, indexedcols):
         return ([], [''])  # This tuple means "not_indexable"
 
 class CompiledCondition(object):

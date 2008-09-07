@@ -7,9 +7,9 @@ import numpy
 STEP = 1000*100  # the size of the buffer to fill the table, in rows
 SCALE = 0.1      # standard deviation of the noise compared with actual values
 NI_NTIMES = 1      # The number of queries for doing a mean (non-idx cols)
-COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
-WARMCACHE = 1500   # The number of reads until the cache is considered 'warmed'
-READ_TIMES = WARMCACHE+500    # The number of complete calls to DB.query_db()
+#COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
+#WARMCACHE = 1500   # The number of reads until the cache is considered 'warmed'
+#READ_TIMES = WARMCACHE+500    # The number of complete calls to DB.query_db()
 COLDCACHE = 5   # The number of reads where the cache is considered 'cold'
 WARMCACHE = 5   # The number of reads until the cache is considered 'warmed'
 READ_TIMES = 10    # The number of complete calls to DB.query_db()

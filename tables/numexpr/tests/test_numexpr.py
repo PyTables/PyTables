@@ -456,7 +456,7 @@ class test_irregular_stride(TestCase):
 
 # Case test for threads
 class test_threading(TestCase):
-    def check_select(self):
+    def test_select(self):
         import threading
         class ThreadTest(threading.Thread):
             def run(self):
@@ -465,7 +465,6 @@ class test_threading(TestCase):
 
         test = ThreadTest()
         test.start()
-
 
 # The following function is used to integrate Numexpr tests into PyTables'.
 def suite():
