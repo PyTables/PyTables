@@ -182,7 +182,7 @@ def restorecache(self):
 
 
 def _table__whereIndexed(self, compiled, condvars, start, stop, step):
-    self._whereIndex = True
+    self._useIndex = True
     # Clean the table caches for indexed queries if needed
     if self._dirtycache:
         restorecache(self)

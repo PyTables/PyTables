@@ -479,10 +479,10 @@ class Table(tableExtension.Table, Leaf):
         .. Note:: Column indexing is only available in PyTables Pro.
         """
 
+        self._useIndex = False
+        """Whether an index can be used or not in a search.  Boolean."""
         self._whereCondition = None
         """Condition function and argument list for selection of values."""
-        self._whereIndex = None
-        """Path of the indexed column to be used in an indexed search."""
         self._conditionCache = NailedDict()
         """Cache of already compiled conditions."""
         self._exprvarsCache = {}
@@ -1204,7 +1204,8 @@ class Table(tableExtension.Table, Leaf):
         # Adjust the slice to be used.
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start >= stop:  # empty range, reset conditions
-            self._whereIndex = self._whereCondition = None
+            self._useIndex = False
+            self._whereCondition = None
             return iter([])
 
         # Compile the condition and extract usable index conditions.
@@ -1218,7 +1219,8 @@ class Table(tableExtension.Table, Leaf):
             if type(chunkmap) != numpy.ndarray:
                 # If it is not a NumPy array it should be an iterator
                 # Reset conditions
-                self._whereIndex = self._whereCondition = None
+                self._useIndex = False
+                self._whereCondition = None
                 # ...and return the iterator
                 return chunkmap
         else:

@@ -826,7 +826,7 @@ cdef class Row:
       self.condfunc, self.condargs = table._whereCondition
       table._whereCondition = None
 
-    if table._whereIndex:
+    if table._useIndex:
       self.indexed = 1
       # Compute totalchunks here because self.nrows can change during the
       # life of a Row instance.
@@ -837,7 +837,7 @@ cdef class Row:
       self.nextelement = 0
       self.chunkmap = chunkmap
       self.chunkmapData = <char*>self.chunkmap.data
-      table._whereIndex = None
+      table._useIndex = None
       self.lenbuf = self.nrowsinbuf
       # Check if we have limitations on start, stop, step
       self.sss_on = (self.start > 0 or self.stop < self.nrows or self.step > 1)
