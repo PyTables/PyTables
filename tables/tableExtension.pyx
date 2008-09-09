@@ -838,7 +838,7 @@ cdef class Row:
       self.nextelement = 0
       self.chunkmap = chunkmap
       self.chunkmapData = <char*>self.chunkmap.data
-      table._useIndex = None
+      table._useIndex = False
       self.lenbuf = self.nrowsinbuf
       # Check if we have limitations on start, stop, step
       self.sss_on = (self.start > 0 or self.stop < self.nrows or self.step > 1)
