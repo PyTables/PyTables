@@ -13,7 +13,7 @@
       <author>
         <firstname>Francesc</firstname>
 
-        <surname>Altet</surname>
+        <surname>Alted</surname>
       </author>
 
       <author>
@@ -65,7 +65,7 @@
     <copyright>
       <year>2002, 2003, 2004</year>
 
-      <holder>Francesc Altet</holder>
+      <holder>Francesc Alted</holder>
     </copyright>
 
     <copyright>
@@ -12273,7 +12273,7 @@ owner := 'ivan']</screen>
         limitations:</para>
 
         <orderedlist>
-          <!-- This limitation no longer applies F. Altet 2006-10-25 -->
+          <!-- This limitation no longer applies F. Alted 2006-10-25 -->
 
           <!--           <listitem><para>Node file names are constrained to PyTables node -->
 

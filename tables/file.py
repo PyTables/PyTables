@@ -2,7 +2,7 @@
 #
 #       License:        BSD
 #       Created:        September 4, 2002
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id$
 #
@@ -1562,7 +1562,7 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
             #self._actionlog.append([(_opToCode["MARK"], str(0), '')])
             # Use '\x00' to represent a NULL string. This is a bug
             # in numarray and should be reported.
-            # F. Altet 2005-09-21
+            # F. Alted 2005-09-21
             self._actionlog.append([(_opToCode["MARK"], str(0), '\x00')])
             self._nmarks += 1
             self._seqmarkers.append(0) # current action is 0

@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: June 17, 2005
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id$
 #
@@ -784,7 +784,7 @@ cdef class Row:
     # Build the rfields dictionary for faster access to columns
     # This is quite fast, as it only takes around 5 us per column
     # in my laptop (Pentium 4 @ 2 GHz).
-    # F. Altet 2006-08-18
+    # F. Alted 2006-08-18
     self.rfields = {}
     for i, name in enumerate(self.dtype.names):
       self.rfields[i] = buff[name]

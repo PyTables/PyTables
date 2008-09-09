@@ -7,7 +7,7 @@
 # by Ivan Vilata i Balaguer <ivilata@carabos.com>.
 
 # Modified to use a container in Pyrex for accelerating the heapify()
-# process by Francesc Altet <faltet@carabos.com>.
+# process by Francesc Alted <faltet@carabos.com>.
 
 # arch-tag: LRU cache main module
 

@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: November 12, 2003
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id$
 #
@@ -307,7 +307,7 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         # not the size of the entire atom.  I don't know why this
         # should be like this, perhaps I should report this to the
         # HDF5 list.
-        # F. Altet 2006-11-23
+        # F. Alted 2006-11-23
         #elemsize = self.atom.atomsize()
         elemsize = self._basesize
         # Set the chunkshape

@@ -497,7 +497,7 @@ class BigTablesTestCase(BasicTestCase):
     title = "BigTables"
     # 10000 rows takes much more time than we can afford for tests
     # reducing to 1000 would be more than enough
-    # F. Altet 2004-01-19
+    # F. Alted 2004-01-19
 #     expectedrows = 10000
 #     appendrows = 1000
     expectedrows = 1000

@@ -1,6 +1,6 @@
 Stress test on a 64 bits AMD Opteron platform
 =============================================
-2004-02-04. F. Altet
+2004-02-04. F. Alted
 
 Platform description:
 

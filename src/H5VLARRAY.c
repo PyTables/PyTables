@@ -22,7 +22,7 @@
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: F. Altet
+ * Programmer: F. Alted
  *
  * Date: November 08, 2003
  *-------------------------------------------------------------------------
@@ -180,7 +180,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers:
- *  Francesc Altet
+ *  Francesc Alted
  *
  * Date: October 30, 2003
  *
@@ -258,7 +258,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers:
- *  Francesc Altet
+ *  Francesc Alted
  *
  * Date: October 28, 2004
  *
@@ -325,7 +325,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet
+ * Programmer: Francesc Alted
  *
  * Date: November 19, 2003
  *
@@ -373,7 +373,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet
+ * Programmer: Francesc Alted
  *
  * Date: November 19, 2003
  *

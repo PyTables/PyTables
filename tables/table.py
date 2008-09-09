@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: September 4, 2002
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id$
 #
@@ -734,7 +734,7 @@ class Table(tableExtension.Table, Leaf):
         """Create a new table on disk."""
 
         # Warning against assigning too much columns...
-        # F. Altet 2005-06-05
+        # F. Alted 2005-06-05
         if (len(self.description._v_names) > MAX_COLUMNS):
             warnings.warn(
                 "table ``%s`` is exceeding the recommended "
@@ -1439,7 +1439,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             self._read_records(start, stop-start, result)
         # Warning!: _read_field_name should not be used until
         # H5TBread_fields_name in tableExtension will be finished
-        # F. Altet 2005/05/26
+        # F. Alted 2005/05/26
         # XYX Ho implementem per a PyTables 2.0??
         elif field and step > 15 and 0:
             # For step>15, this seems to work always faster than row._fillCol.
@@ -1993,7 +1993,7 @@ The 'names' parameter must be a list of strings.""")
         # The next loop does not rely on xrange so that it can
         # deal with long ints (i.e. more than 32-bit integers)
         # This allows to index columns with more than 2**31 rows
-        # F. Altet 2005-05-09
+        # F. Alted 2005-05-09
         startLR = index.sorted.nrows*slicesize
         indexedrows = startLR - start
         stop = start+nrows-slicesize+1
@@ -2277,7 +2277,7 @@ The 'names' parameter must be a list of strings.""")
         #       finished working with his table.
         # I've added a Performance warning in order to compel the user to
         # call self.flush() before the table is being preempted.
-        # F. Altet 2006-08-03
+        # F. Alted 2006-08-03
         if ('row' in self.__dict__ and
             self.row._getUnsavedNrows() > 0 or
             (self.indexed and self.autoIndex and

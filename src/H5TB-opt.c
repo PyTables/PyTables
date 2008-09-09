@@ -19,12 +19,12 @@
    with those generated with HDF5_HL, although they should remain
    largely compatibles.
 
-   F. Altet  2005/06/09
+   F. Alted  2005/06/09
 
    Other modifications are that these routines are meant for opened
    nodes, and do not spend time opening and closing datasets.
 
-   F. Altet 2005/09/29
+   F. Alted 2005/09/29
 
  */
 
@@ -64,7 +64,7 @@
  * Comments: The data is packed
  *  * Heavily modified and not compliant with attributes
  *    May 20, 2005
- *    F. Altet
+ *    F. Alted
  *
  * Modifications:
  *
@@ -193,7 +193,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@carabos.com
  *
  * Date: April 19, 2003
  *
@@ -256,7 +256,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@carabos.com
  *
  * Date: April 19, 2003
  *
@@ -320,7 +320,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers:
- *  Francesc Altet, faltet@carabos.com
+ *  Francesc Alted, faltet@carabos.com
  *
  * Date: April 20, 2003
  *
@@ -396,10 +396,10 @@ out:
  *
  * Modifications:
  * -  Added a step parameter in order to support strided writing.
- *    Francesc Altet, faltet@carabos.com. 2004-08-12
+ *    Francesc Alted, faltet@carabos.com. 2004-08-12
  *
  * -  Removed the type_size which was unnecessary
- *    Francesc Altet, 2005-10-25
+ *    Francesc Alted, 2005-10-25
  *
  *-------------------------------------------------------------------------
  */
@@ -467,7 +467,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, 
+ * Programmer: Francesc Alted, 
  *
  * Date: October 25, 2005
  *
@@ -529,7 +529,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmer: Pedro Vicente, pvn@ncsa.uiuc.edu
- * Modified by: F. Altet
+ * Modified by: F. Alted
  *
  * Date: November 26, 2001
  *
@@ -575,7 +575,7 @@ herr_t H5TBOdelete_records( hid_t   dataset_id,
  write_start = start;
  read_nrecords = ntotal_records - read_start;
  /* This check added for the case that there are no records to be read */
- /* F. Altet  2003/07/16 */
+ /* F. Alted  2003/07/16 */
  if (read_nrecords > 0) {
    nrowsread = 0;
 

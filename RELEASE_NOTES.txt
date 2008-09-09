@@ -2,7 +2,7 @@
  Release notes for PyTables 2.1 series
 =======================================
 
-:Author: Francesc Altet i Abad
+:Author: Francesc Alted i Abad
 :Contact: faltet@carabos.com
 :Author: Ivan Vilata i Balaguer
 :Contact: ivilata@carabos.com

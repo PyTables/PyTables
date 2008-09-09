@@ -11,7 +11,7 @@
  *                                                                          *
  * Modified versions of H5LT for getting and setting attributes for open
  * groups and leaves.
- * F. Altet 2005/09/29
+ * F. Alted 2005/09/29
  *                                                                          *
  ****************************************************************************/
 

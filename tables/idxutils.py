@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: April 02, 2007
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id$
 #

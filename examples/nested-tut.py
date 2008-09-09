@@ -3,7 +3,7 @@
 The program creates an output file, 'nested-tut.h5'.  You can view it
 with ptdump or any HDF5 generic utility.
 
-:Author: F. Altet
+:Author: F. Alted
 :Date: 2005/06/10
 """
 

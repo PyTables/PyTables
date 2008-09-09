@@ -1,7 +1,7 @@
 """
 Classes for describing columns for ``Table`` objects.
 
-:Author: Francesc Altet
+:Author: Francesc Alted
 :Contact: faltet at carabos dot com
 :License: BSD
 :Created: September 21, 2002

@@ -3,7 +3,7 @@
 #       License: BSD
 #       Created: June 15, 2005
 #       Author:  Antonio Valentino
-#       Modified by:  Francesc Altet
+#       Modified by:  Francesc Alted
 #
 #       $Id$
 #

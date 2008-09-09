@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: May 26, 2003
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id$
 #
@@ -57,7 +57,7 @@ SYS_ATTRS = ["CLASS", "VERSION", "TITLE", "NROWS", "EXTDIM",
 SYS_ATTRS_PREFIXES = ["FIELD_"]
 # RO_ATTRS will be disabled and let the user modify them if they
 # want to. The user is still not allowed to remove or rename
-# system attributes. Francesc Altet 2004-12-19
+# system attributes. Francesc Alted 2004-12-19
 # Read-only attributes:
 # RO_ATTRS = ["CLASS", "FLAVOR", "VERSION", "NROWS", "EXTDIM",
 #             "PYTABLES_FORMAT_VERSION", "FILTERS",

@@ -222,7 +222,7 @@ def _matchFormats_orig(seq1, seq2):
                 """provided by the format specification""")
 
 # This should be quite faster than _matchFormats_orig.
-# F. Altet 2006-01-18
+# F. Alted 2006-01-18
 def _matchFormats(seq1, seq2):
     """Check if two flat formats lists are equivalent."""
 
@@ -422,7 +422,7 @@ def array(buffer=None, formats=None, shape=0, names=None,
 
     # First, check for easily convertible objects (NRA, NA and NumPy
     # objects)
-    # F. Altet 2006-01-20
+    # F. Alted 2006-01-20
     if isinstance(buffer, NestedRecArray):
         buffer = buffer.copy()    # Always return a copy of the data
         # Return as soon as possible is not descr, formats or names specified
@@ -895,13 +895,13 @@ shape=%(rsShape)s)''' % rsData
         # be temporarily modified during the assign process, and self
         # and self._flatArray may end having different shapes, which
         # gives problems (specially with numarray > 1.1.1)
-        # F. Altet 2005-06-09
+        # F. Alted 2005-06-09
         self._flatArray.__setitem__(key, value)
 
 
     # It seems like this method is never called, because __setitem__ calls
     # the flatArray (RecArray object) __setitem__
-    # F. Altet 2005-06-09
+    # F. Alted 2005-06-09
 #     def _setitem(self, offset, value):
 #         row = (offset - self._byteoffset) / self._strides[0]
 #         for i in range(0, self._nfields):

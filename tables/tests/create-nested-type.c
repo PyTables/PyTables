@@ -1,5 +1,5 @@
 // This program creates nested types with gaps for testing purposes.
-// F. Altet 2008-06-27
+// F. Alted 2008-06-27
 
 #include "hdf5.h"
 #include <stdlib.h>

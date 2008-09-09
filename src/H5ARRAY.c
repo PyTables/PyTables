@@ -21,11 +21,11 @@
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: F. Altet. October 21, 2002
+ * Programmer: F. Alted. October 21, 2002
  *
  * Date: March 19, 2001
  *
- * Comments: Modified by F. Altet. November 07, 2003
+ * Comments: Modified by F. Alted. November 07, 2003
  *
  *-------------------------------------------------------------------------
  */
@@ -214,7 +214,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers:
- *  Francesc Altet
+ *  Francesc Alted
  *
  * Date: October 30, 2003
  *
@@ -302,7 +302,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers:
- *  Francesc Altet
+ *  Francesc Alted
  *
  * Date: October 26, 2004
  *
@@ -364,7 +364,7 @@ herr_t H5ARRAYwrite_records( hid_t dataset_id,
  * Return: Success: 0, Failure: -1
  *
  * Programmers:
- *  Francesc Altet
+ *  Francesc Alted
  *
  * Date: November 19, 2004
  *
@@ -441,7 +441,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@carabos.com
  *
  * Date: October 22, 2002
  *
@@ -560,7 +560,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@carabos.com
  *
  * Date: December 16, 2003
  *
@@ -664,7 +664,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@carabos.com
  *
  * Date: June 21, 2004
  *
@@ -781,14 +781,14 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet
+ * Programmer: Francesc Alted
  *
  * Date: October 22, 2002
  *
  *-------------------------------------------------------------------------
  */
 /* Addition: Now, this routine can deal with both array and
-   atomic datatypes. F. Altet  2003-01-29 */
+   atomic datatypes. F. Alted  2003-01-29 */
 
 herr_t H5ARRAYget_ndims( hid_t dataset_id,
 			 hid_t type_id,
@@ -887,7 +887,7 @@ out:
  *
  * Return: Success: chunkshape, Failure: -1
  *
- * Programmer: Francesc Altet
+ * Programmer: Francesc Alted
  *
  * Date: May 20, 2004
  *

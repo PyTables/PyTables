@@ -1,5 +1,5 @@
 # Example to show how nested types can be dealed with PyTables
-# F. Altet 2005/05/27
+# F. Alted 2005/05/27
 
 import random
 from tables import *

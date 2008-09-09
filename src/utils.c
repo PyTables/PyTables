@@ -159,7 +159,7 @@ PyObject *createNamesList(char *buffer[], int nelements)
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@carabos.com
  *
  * Date: December 19, 2003
  *
@@ -456,11 +456,11 @@ out:
 */
 /* Note: This has been copied and modified from the original in
    Python/ceval.c so as to allow working with long long values.
-   F. Altet 2005-05-08
+   F. Alted 2005-05-08
 */
 
 /* Replaced LONLONG_MAX by ll_max because AIX does define the former.
-   F. Altet 2006-10-23
+   F. Alted 2006-10-23
  */
 
 hsize_t _PyEval_SliceIndex_modif(PyObject *v, hsize_t *pi)
@@ -469,7 +469,7 @@ hsize_t _PyEval_SliceIndex_modif(PyObject *v, hsize_t *pi)
 
   /* I think it should be a more efficient way to know ll_max,
    but this should work on every platform, be 32 or 64 bits.
-   F. Altet 2005-05-08
+   F. Alted 2005-05-08
   */
 
 /*  ll_max = (PY_LONG_LONG) (pow(2, 63) - 1); */ /* Works on Unix */
@@ -502,7 +502,7 @@ hsize_t _PyEval_SliceIndex_modif(PyObject *v, hsize_t *pi)
    with 64-bit ints and not only with ints.
  */
 
-/* F. Altet 2005-05-08 */
+/* F. Alted 2005-05-08 */
 
 hsize_t getIndicesExt(PyObject *s, hsize_t length,
 		      hsize_t *start, hsize_t *stop, hsize_t *step,
@@ -569,7 +569,7 @@ hsize_t getIndicesExt(PyObject *s, hsize_t length,
    so we make one from a HDF5 compound type class.
 
    Added by Tom Hedley <thedley@users.sourceforge.net> April 2004.
-   Adapted to support Tables by F. Altet September 2004.
+   Adapted to support Tables by F. Alted September 2004.
 */
 
 /* Test whether the datatype is of class complex
@@ -578,7 +578,7 @@ hsize_t getIndicesExt(PyObject *s, hsize_t length,
    called 'r' and 'i' and being floats, but in that case, the user
    most probably wanted to keep a complex type, so getting a complex
    instead of a nested type should not be a big issue (I hope!) :-/
-   F. Altet 2005-05-23 */
+   F. Alted 2005-05-23 */
 int is_complex(hid_t type_id) {
   hid_t class_id, base_type_id;
   hid_t class1, class2;
@@ -768,7 +768,7 @@ hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step)
      precision to compute the RHS exactly.
      Note: We are using here 64 bit ints because PyTables can deal
      with 64-bit addresses even on 32-bit platforms.
-     F. Altet 2006-09-25
+     F. Alted 2006-09-25
      ---------------------------------------------------------------*/
   hsize_t n = 0;
   if (lo < hi) {

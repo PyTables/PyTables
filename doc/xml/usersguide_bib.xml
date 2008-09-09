@@ -219,7 +219,7 @@
 
   <biblioentry id="NewObjectTreeCacheRef">
     <authorgroup>
-      <author><firstname>Francesc</firstname><surname>Altet</surname></author>
+      <author><firstname>Francesc</firstname><surname>Alted</surname></author>
       <author><firstname>Ivan</firstname><surname>Vilata</surname></author>
     </authorgroup>
     <title>Optimization of file openings in PyTables</title>
@@ -256,7 +256,7 @@
 
   <biblioentry id="OPSI">
     <authorgroup>
-      <author><firstname>Francesc</firstname><surname>Altet</surname></author>
+      <author><firstname>Francesc</firstname><surname>Alted</surname></author>
       <author><firstname>Ivan</firstname><surname>Vilata</surname></author>
     </authorgroup>
     <title>OPSI: The indexing system of PyTables 2 Professional Edition</title>

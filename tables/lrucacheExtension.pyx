@@ -3,7 +3,7 @@
 #
 #       License: BSD
 #       Created: Aug 13, 2006
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id: indexesExtension.pyx 1756 2006-08-13 10:19:29Z faltet $
 #
@@ -58,7 +58,7 @@ import_array()
 # The code behind has been carefully tuned to serve the needs of
 # PyTables cache for nodes. As a consequence, it is no longer
 # appropriate as a general LRU cache implementation. You have been
-# warned!.  F. Altet 2006-08-08
+# warned!.  F. Alted 2006-08-08
 #*********************************************************************
 
 
@@ -187,7 +187,7 @@ cdef class BaseCache:
   # re-enabled when a certain number of cycles has passed so as to
   # check whether a new scenario where the cache can be useful again
   # has come.
-  # F. Altet 2006-08-09
+  # F. Alted 2006-08-09
   cdef int checkhitratio(self):
     cdef double hitratio
     cdef long nslot
@@ -450,7 +450,7 @@ cdef class ObjectCache(BaseCache):
 # The code behind has been carefully tuned to serve the needs of
 # caching numerical data. As a consequence, it is no longer appropriate
 # as a general LRU cache implementation. You have been warned!.
-# F. Altet 2006-08-09
+# F. Alted 2006-08-09
 #********************************************************************
 
 cdef class NumCache(BaseCache):
@@ -548,7 +548,7 @@ cdef class NumCache(BaseCache):
       self.nextslot = self.nextslot + 1
       # The next reduces the performance of the cache in scenarios where
       # the efficicency is near to zero.  I don't understand exactly why.
-      # F. Altet 24-03-2008
+      # F. Alted 24-03-2008
     elif self.nextslot > 0:
       # Empty the cache if needed
       self.__dict.clear()

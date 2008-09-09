@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: October 14, 2002
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id$
 #
@@ -443,9 +443,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         # The next function is a substitute for slice().indices in order to
         # support full 64-bit integer for slices (Python 2.4 does not
         # support that yet)
-        # F. Altet 2005-05-08
+        # F. Alted 2005-05-08
         # In order to convert possible numpy.integer values to long ones
-        # F. Altet 2006-05-02
+        # F. Alted 2006-05-02
         if start is not None: start = idx2long(start)
         if stop is not None: stop = idx2long(stop)
         if step is not None: step = idx2long(step)

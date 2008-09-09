@@ -92,7 +92,7 @@ def _table__setautoIndex(self, auto):
 # it in creation time of the cache (which is a safe period) and then
 # update the cache whenever it changes.
 # This solves the error when running test_indexes.py ManyNodesTestCase.
-# F. Altet 2007-04-20
+# F. Alted 2007-04-20
 # **************************************************
 def _table__getautoIndex(self):
     if self._autoIndex is None:

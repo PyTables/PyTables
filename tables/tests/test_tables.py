@@ -673,7 +673,7 @@ class BasicTestCase(common.PyTablesTestCase):
 
     # This test has been commented out because appending records without
     # flushing them explicitely is being warned from now on.
-    # F. Altet 2006-08-03
+    # F. Alted 2006-08-03
     def _test02a_AppendRows(self):
         """Checking appending records without flushing explicitely"""
 
@@ -807,7 +807,7 @@ class BasicTestCase(common.PyTablesTestCase):
         # We are forced now to flush tables after append operations
         # because of unsolved issues with the LRU cache that are too
         # difficult to track.
-        # F. Altet 2006-08-03
+        # F. Alted 2006-08-03
         table.flush()
         result = [ row['var2'] for row in table.iterrows()
                    if row['var2'] < 20 ]
@@ -833,7 +833,7 @@ class BasicTestCase(common.PyTablesTestCase):
 
     # This test is commented out as it should not work anymore due to
     # the new policy of not doing a flush in the middle of a __del__
-    # operation. F. Altet 2006-08-24
+    # operation. F. Alted 2006-08-24
     def _test02c_AppendRows(self):
         """Checking appending with evanescent table objects"""
 
@@ -1304,7 +1304,7 @@ class BigTablesTestCase(BasicTestCase):
     title = "BigTables"
     # 10000 rows takes much more time than we can afford for tests
     # reducing to 1000 would be more than enough
-    # F. Altet 2004-01-19
+    # F. Alted 2004-01-19
     # Will be executed only in common.heavy mode
     expectedrows = 10000
     appendrows = 100

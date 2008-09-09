@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: October 10, 2002
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id$
 #
@@ -472,7 +472,7 @@ class Array(hdf5Extension.Array, Leaf):
             # http://www.peterbe.com/Integer-division-in-programming-languages
             # for more info on this issue.
             # I've finally decided to rely on the len(xrange) function.
-            # F. Altet 2006-09-25
+            # F. Alted 2006-09-25
             # Switch to `lrange` to allow long ranges (see #99).
             #new_dim = ((stopl[dim] - startl[dim] - 1) / stepl[dim]) + 1
             new_dim = lrange(startl[dim], stopl[dim], stepl[dim]).length

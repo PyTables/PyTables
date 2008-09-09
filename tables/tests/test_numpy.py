@@ -196,7 +196,7 @@ class Basic10DTestCase(BasicTestCase):
 #     tupleInt = reshape(array((22,)), (1,)*32)
 #     # Strings seems to be very slow with somewhat large dimensions
 #     # This should not be run unless the numarray people address this problem
-#     # F. Altet 2006-01-04
+#     # F. Alted 2006-01-04
 #     tupleChar = array(tupleInt, dtype="S1")
 
 

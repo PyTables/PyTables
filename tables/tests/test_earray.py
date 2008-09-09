@@ -497,7 +497,7 @@ class BasicTestCase(unittest.TestCase):
         if self.__class__.__name__ == "Ellipsis6EArrayTestCase":
             # We have a problem with test design here, but I think
             # it is not worth the effort to solve it
-            # F.Altet 2004-10-27
+            # F.Alted 2004-10-27
             return
         if common.verbose:
             print '\n', '-=' * 30
@@ -2578,7 +2578,7 @@ def suite():
         # The StringComprNumpyTestCase takes muchs more time than
         # its equivalent in numarray StringComprTestCase.
         # This should be further analyzed.
-        # F. Altet 2006-02-03
+        # F. Alted 2006-02-03
         if numarray_imported:
             theSuite.addTest(unittest.makeSuite(StringComprNumarrayTestCase))
 

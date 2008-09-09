@@ -3,7 +3,7 @@ Test module for nested types under PyTables
 ===========================================
 
 :Author:   Ivan Vilata
-:Author:   Francesc Altet
+:Author:   Francesc Alted
 :Contact:  ivilata@carabos.com
 :Created:  2005-05-18
 :License:  BSD

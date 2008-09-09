@@ -1,7 +1,7 @@
 Source: pytables-pro-@LICENSE@
 Section: python
 Priority: optional
-Maintainer: Francesc Altet <faltet@carabos.com>
+Maintainer: Francesc Alted <faltet@carabos.com>
 Standards-Version: 3.7.2
 XS-Python-Version: >= 2.4
 Build-Depends: debhelper (>= 5.0.38), libhdf5-serial-dev (>= 1.6.5),

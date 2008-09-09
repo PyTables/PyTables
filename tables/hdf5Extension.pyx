@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: September 21, 2002
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id$
 #
@@ -282,7 +282,7 @@ cdef class File:
           # I'm going to disable the next warning because
           # it should be enough to map unsupported objects to
           # UnImplemented class.
-          # F. Altet 2007-02-14
+          # F. Alted 2007-02-14
 #           warnings.warn("file ``%s`` is a valid HDF5 file, " \
 #                         "but is not in PyTables format; " \
 #                         "attempting to determine its contents " \

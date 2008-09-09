@@ -10,7 +10,7 @@
  *                                                                          *
  * Modified versions of H5LT for getting and setting attributes for open
  * groups and leaves.
- * F. Altet 2005/09/29
+ * F. Alted 2005/09/29
  *                                                                          *
  ****************************************************************************/
 
@@ -37,7 +37,7 @@
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet
+ * Programmer: Francesc Alted
  *
  * Date: Octoble 18, 2006
  *
@@ -224,7 +224,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Altet, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@carabos.com
  *
  * Date: February 23, 2005
  *

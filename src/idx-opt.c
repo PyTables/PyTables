@@ -15,7 +15,7 @@
  *
  * Return: The index of the value in array
  *
- * Programmer: Francesc Altet
+ * Programmer: Francesc Alted
  *
  * Date: August, 2005
  *
@@ -389,7 +389,7 @@ sSWAP(char *s1, char *s2, size_t len)
    See http://www.mail-archive.com/numpy-discussion@scipy.org/msg06639.html
    and other messages in the same thread
 
-   F. Altet 2008-02-11
+   F. Alted 2008-02-11
  */
 static void
 opt_memcpy(char *s1, char *s2, size_t len)

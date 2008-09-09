@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: May 20, 2005
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id$
 #
@@ -331,7 +331,7 @@ def whichClass(hid_t loc_id, char *name):
     else:  # Not chunked case
       # Octave saves complex arrays as non-chunked tables
       # with two fields: "real" and "imag"
-      # Francesc Altet 2005-04-29
+      # Francesc Alted 2005-04-29
       # Get number of records
       if iscomplex:
         classId = "ARRAY"  # It is probably an Octave complex array

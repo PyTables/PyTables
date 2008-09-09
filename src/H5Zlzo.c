@@ -17,20 +17,20 @@
 
 /* Activate the checksum. It is safer and takes only a 1% more of
    space and a 2% more of CPU (but sometimes is faster than without
-   checksum, which is almost negligible.  F. Altet 2003/07/22
+   checksum, which is almost negligible.  F. Alted 2003/07/22
 
    Added code for pytables 0.5 backward compatibility.
-   F. Altet 2003/07/28
+   F. Alted 2003/07/28
 
    Added code for saving the uncompressed length buffer as well.
-   F. Altet 2003/07/29
+   F. Alted 2003/07/29
 
 */
 
 /* From pytables 0.8 on I decided to let the user select the
    fletcher32 checksum provided in HDF5 1.6 or higher. So, even though
    the CHECKSUM support here seems pretty stable it will be disabled.
-   F. Altet 2004/01/02 */
+   F. Alted 2004/01/02 */
 #undef CHECKSUM
 
 size_t lzo_deflate (unsigned flags, size_t cd_nelmts,

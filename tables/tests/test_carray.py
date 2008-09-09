@@ -1188,7 +1188,7 @@ class CopyTestCase(unittest.TestCase):
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
-        # F. Altet 2006-11-27
+        # F. Alted 2006-11-27
         #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
@@ -1252,7 +1252,7 @@ class CopyTestCase(unittest.TestCase):
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
-        # F. Altet 2006-11-27
+        # F. Alted 2006-11-27
         #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
@@ -1316,7 +1316,7 @@ class CopyTestCase(unittest.TestCase):
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
-        # F. Altet 2006-11-27
+        # F. Alted 2006-11-27
         #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
@@ -1381,7 +1381,7 @@ class CopyTestCase(unittest.TestCase):
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
-        # F. Altet 2006-11-27
+        # F. Alted 2006-11-27
         #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
@@ -1444,7 +1444,7 @@ class CopyTestCase(unittest.TestCase):
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
-        # F. Altet 2006-11-27
+        # F. Alted 2006-11-27
         #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
@@ -1504,7 +1504,7 @@ class CopyTestCase(unittest.TestCase):
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
-        # F. Altet 2006-11-27
+        # F. Alted 2006-11-27
         #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
@@ -1567,7 +1567,7 @@ class CopyTestCase(unittest.TestCase):
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
-        # F. Altet 2006-11-27
+        # F. Alted 2006-11-27
         #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
@@ -1626,7 +1626,7 @@ class CopyTestCase(unittest.TestCase):
         assert str(array1.atom) == str(array2.atom)
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
-        # F. Altet 2006-11-27
+        # F. Alted 2006-11-27
         #assert array1.chunkshape == array2.chunkshape
 
         # Close the file
@@ -1838,7 +1838,7 @@ class CopyIndexTestCase(unittest.TestCase):
 
         # The next line is commented out because a copy should not
         # keep the same chunkshape anymore.
-        # F. Altet 2006-11-27
+        # F. Alted 2006-11-27
         #assert array1.chunkshape == array2.chunkshape
         assert r2.shape[0] == array2.nrows
 

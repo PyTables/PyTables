@@ -373,7 +373,7 @@ def _conv_numarray_to_numpy(array):
         # Create a NestedRecArray array from the RecArray to easy the
         # conversion. This is sub-optimal and should be replaced by a
         # faster way to convert a plain RecArray into a numpy recarray.
-        # F. Altet 2006-06-19
+        # F. Alted 2006-06-19
         array = nra.array(array)
     nparray = numpy.ndarray( buffer=array._data, shape=array.shape,
                              dtype=array.array_descr,

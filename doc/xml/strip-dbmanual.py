@@ -1,6 +1,6 @@
 # This script modifies slightly the dockbook file that comes from tbtodocbook
 # both to solve docbook errors and to personalize the final look.
-# F. Altet 2006-04-01
+# F. Alted 2006-04-01
 
 import sys
 import os

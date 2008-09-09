@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: June 08, 2004
-#       Author:  Francesc Altet - faltet@carabos.com
+#       Author:  Francesc Alted - faltet@carabos.com
 #
 #       $Id$
 #
@@ -829,7 +829,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # The algorithms for doing the swap can be optimized so that
         # one should be necessary to create temporaries for keeping just
         # the contents of a single superblock.
-        # F. Altet 2007-01-03
+        # F. Alted 2007-01-03
         cs = self.chunksize
         ss = self.slicesize
         sfilters = self.sfilters
@@ -942,7 +942,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 # Implementing this suppose to complicate quite a bit
                 # the code for index optimization and perhaps this is
                 # not worth the effort.
-                # F. Altet 2007-04-12
+                # F. Alted 2007-04-12
                 ncb2 = (remainingchunks/ncs)*ncs
             if ncb2 <= 1:
                 # if only zero or one chunks remains we are done
@@ -1194,7 +1194,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # non-numerical types. So, be careful and always check
             # that toverlap has a positive value (it must have been
             # initialized to -1. before) before using it.
-            # F. Altet 2007-01-19
+            # F. Alted 2007-01-19
             if erange > 0:
                 toverlap = soverlap / erange
         if verbose:

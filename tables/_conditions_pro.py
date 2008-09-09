@@ -5,7 +5,7 @@ Utility functions and classes for supporting query conditions (pro).
 :Contact:  ivilata@carabos.com
 :Created:  2007-02-12
 :License:  XXX
-:Notes:    Heavily modified by Francesc Altet for multi-index support.
+:Notes:    Heavily modified by Francesc Alted for multi-index support.
            2008-04-09
 :Revision: $Id$
 """

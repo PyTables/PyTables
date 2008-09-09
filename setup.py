@@ -175,7 +175,7 @@ class Package(object):
                 # and if they are located in places like:
                 #  \stuff\bzip2-1.0.3\lib\bzip2.lib
                 # then, the directory will be returned as '\stuff' (!!)
-                # F. Altet 2006-02-16
+                # F. Alted 2006-02-16
                 if idx == 0:
                     directories[idx] = os.path.dirname(path[:path.find(name)])
                 else:

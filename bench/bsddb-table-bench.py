@@ -2,7 +2,7 @@
 ###### WARNING #######
 ### This script is obsoleted ###
 ### If you get it working again, please drop me a line
-### F. Altet 2004-01-27
+### F. Alted 2004-01-27
 from tables import *
 import numarray as NA
 import struct, sys
