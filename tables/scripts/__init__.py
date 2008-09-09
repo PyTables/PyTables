@@ -3,7 +3,7 @@ Utility scripts for PyTables
 ============================
 
 :Author:   Ivan Vilata i Balaguer
-:Contact:  ivilata@carabos.com
+:Contact:  ivan@selidor.net
 :Created:  2005-12-01
 :License:  BSD
 :Revision: $Id$

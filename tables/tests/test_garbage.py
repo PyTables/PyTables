@@ -3,7 +3,7 @@ Test module for detecting uncollectable garbage in PyTables
 ===========================================================
 
 :Author:   Ivan Vilata i Balaguer
-:Contact:  ivilata@carabos.com
+:Contact:  ivan@selidor.net
 :Created:  2005-09-20
 :License:  BSD
 :Revision: $Id$

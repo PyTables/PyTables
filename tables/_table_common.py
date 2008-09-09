@@ -2,7 +2,7 @@
 Here is defined the Table class (common).
 
 :Author:   Ivan Vilata i Balaguer
-:Contact:  ivilata@carabos.com
+:Contact:  ivan@selidor.net
 :Created:  2007-02-15
 :License:  BSD
 :Revision: $Id$

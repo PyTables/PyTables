@@ -2,7 +2,7 @@
 Utility functions and classes for supporting query conditions.
 
 :Author:   Ivan Vilata i Balaguer
-:Contact:  ivilata@carabos.com
+:Contact:  ivan@selidor.net
 :Created:  2006-09-19
 :License:  BSD
 :Revision: $Id$

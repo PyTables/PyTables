@@ -441,7 +441,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@pytables.com
  *
  * Date: October 22, 2002
  *
@@ -560,7 +560,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@pytables.com
  *
  * Date: December 16, 2003
  *
@@ -664,7 +664,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@pytables.com
  *
  * Date: June 21, 2004
  *

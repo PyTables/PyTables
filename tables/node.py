@@ -3,7 +3,7 @@ Base class for PyTables nodes
 =============================
 
 :Author:   Ivan Vilata i Balaguer
-:Contact:  ivilata@carabos.com
+:Contact:  ivan@selidor.net
 :Created:  2005-02-11
 :License:  BSD
 :Revision: $Id$

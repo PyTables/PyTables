@@ -3,7 +3,7 @@ Test module for queries on datasets
 ===================================
 
 :Author:   Ivan Vilata i Balaguer
-:Contact:  ivilata@carabos.com
+:Contact:  ivan@selidor.net
 :Created:  2006-10-19
 :License:  BSD
 :Revision: $Id$

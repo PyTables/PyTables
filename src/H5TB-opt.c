@@ -193,7 +193,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@pytables.com
  *
  * Date: April 19, 2003
  *
@@ -256,7 +256,7 @@ out:
  *
  * Return: Success: 0, Failure: -1
  *
- * Programmer: Francesc Alted, faltet@carabos.com
+ * Programmer: Francesc Alted, faltet@pytables.com
  *
  * Date: April 19, 2003
  *
@@ -320,7 +320,7 @@ out:
  * Return: Success: 0, Failure: -1
  *
  * Programmers:
- *  Francesc Alted, faltet@carabos.com
+ *  Francesc Alted, faltet@pytables.com
  *
  * Date: April 20, 2003
  *
@@ -396,7 +396,7 @@ out:
  *
  * Modifications:
  * -  Added a step parameter in order to support strided writing.
- *    Francesc Alted, faltet@carabos.com. 2004-08-12
+ *    Francesc Alted, faltet@pytables.com. 2004-08-12
  *
  * -  Removed the type_size which was unnecessary
  *    Francesc Alted, 2005-10-25

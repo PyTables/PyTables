@@ -3,7 +3,7 @@ Test module for enumerated types under PyTables
 ===============================================
 
 :Author:   Ivan Vilata i Balaguer
-:Contact:  ivilata@carabos.com
+:Contact:  ivan@selidor.net
 :Created:  2005-05-09
 :License:  BSD
 :Revision: $Id$

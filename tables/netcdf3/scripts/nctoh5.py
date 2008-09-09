@@ -3,7 +3,7 @@ convert netCDF file to HDF5 using Scientific.IO.NetCDF and PyTables.
 Jeff Whitaker <jeffrey.s.whitaker@noaa.gov>
 
 Added some flags to select filters, as well as some small improvements.
-Francesc Alted <faltet@carabos.com>
+Francesc Alted <faltet@pytables.com>
 
 This requires Scientific from
 http://starship.python.net/~hinsen/ScientificPython

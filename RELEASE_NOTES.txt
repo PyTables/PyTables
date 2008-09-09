@@ -3,9 +3,9 @@
 =======================================
 
 :Author: Francesc Alted i Abad
-:Contact: faltet@carabos.com
+:Contact: faltet@pytables.com
 :Author: Ivan Vilata i Balaguer
-:Contact: ivilata@carabos.com
+:Contact: ivan@selidor.net
 
 
 Changes from 2.0.x to 2.1b2

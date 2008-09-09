@@ -3,7 +3,7 @@ Proxy dictionary for objects stored in a container
 ==================================================
 
 :Author:   Ivan Vilata i Balaguer
-:Contact:  ivilata@carabos.com
+:Contact:  ivan@selidor.net
 :Created:  2005-07-07
 :License:  BSD
 :Revision: $Id$

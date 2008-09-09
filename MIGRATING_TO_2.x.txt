@@ -3,9 +3,9 @@ Migrating from PyTables 1.x to 2.x
 ==================================
 
 :Author: Francesc Alted i Abad
-:Contact: faltet@carabos.com
+:Contact: faltet@pytables.com
 :Author: Ivan Vilata i Balaguer
-:Contact: ivilata@carabos.com
+:Contact: ivan@selidor.net
 
 
 Next are described a series of issues that you must have in mind when
