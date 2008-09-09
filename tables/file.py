@@ -378,6 +378,7 @@ class File(hdf5Extension.File, object):
     * close()
     * copyFile(dstfilename[, overwrite][, **kwargs])
     * flush()
+    * fileno()
     * __enter__()
     * __exit__([*exc_info])
     * __str__()

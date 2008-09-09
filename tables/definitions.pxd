@@ -18,6 +18,7 @@ import sys
 # Standard C functions.
 cdef extern from "stdlib.h":
   ctypedef long size_t
+  ctypedef long uintptr_t
   void *malloc(size_t size)
   void free(void *ptr)
 
@@ -344,6 +345,7 @@ cdef extern from "hdf5.h":
   herr_t H5Fclose (hid_t file_id)
   htri_t H5Fis_hdf5(char *name)
   herr_t H5Fflush(hid_t object_id, H5F_scope_t scope)
+  herr_t H5Fget_vfd_handle(hid_t file_id, hid_t fapl_id, void **file_handle)
 
   # Operations with groups
   hid_t  H5Gcreate(hid_t loc_id, char *name, size_t size_hint )

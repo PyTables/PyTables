@@ -57,12 +57,13 @@ from definitions cimport  \
      PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
      Py_INCREF, Py_DECREF, \
      import_array, ndarray, dtype, \
-     time_t, size_t, hid_t, herr_t, hsize_t, hvl_t, \
+     time_t, size_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
      H5T_class_t, H5T_sign_t, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
      H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5T_DIR_DEFAULT, H5S_SELECT_SET, \
      H5get_libversion, H5check_version, H5Fcreate, H5Fopen, H5Fclose, \
-     H5Fflush, H5Gcreate, H5Gopen, H5Gclose, H5Glink, H5Gunlink, H5Gmove, \
+     H5Fflush, H5Fget_vfd_handle, \
+     H5Gcreate, H5Gopen, H5Gclose, H5Glink, H5Gunlink, H5Gmove, \
      H5Gmove2,  H5Dopen, H5Dclose, H5Dread, H5Dget_type, \
      H5Tget_native_type, H5Tget_super, H5Tget_class, H5Tcopy, H5Dget_space, \
      H5Dvlen_reclaim, H5Adelete, H5Aget_num_attrs, H5Aget_name, H5Aopen_idx, \
@@ -323,6 +324,25 @@ cdef class File:
   # Accessor definitions
   def _getFileId(self):
     return self.file_id
+
+
+  def fileno(self):
+    """Return the underlying OS integer file descriptor.
+
+    This is needed for lower-level file interfaces, such as the ``fcntl``
+    module.
+    """
+
+    cdef void *file_handle
+    cdef uintptr_t *descriptor
+    cdef herr_t err
+    err = H5Fget_vfd_handle(self.file_id, H5P_DEFAULT, &file_handle)
+    if err < 0:
+      raise HDF5Error(
+        "Problems getting file descriptor for file ``%s``", self.name)
+    # Convert the 'void *file_handle' into an 'int *descriptor'
+    descriptor = <uintptr_t *>file_handle
+    return descriptor[0]
 
 
   def _flushFile(self, scope):

@@ -3956,6 +3956,15 @@ ValueError: malformed type: 'foo bar'</screen>
             <para>Flush all the alive leaves in the object tree.</para>
           </section>
 
+          <section>
+            <title>fileno()</title>
+
+            <para>Return the underlying OS integer file descriptor.</para>
+
+            <para>This is needed for lower-level file interfaces, such as the
+            <literal>fcntl</literal> module.</para>
+          </section>
+
           <section id="File.__enter__">
             <title>__enter__()</title>
 

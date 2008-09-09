@@ -1239,6 +1239,18 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.assert_('closed' in repr(node))
         fileh.close()
 
+    def test18_fileno(self):
+        """Checking that the 'fileno()' method works"""
+
+        # Open the old HDF5 file
+        fileh = openFile(self.file, mode = "r")
+        # Get the file descriptor for this file
+        fd = fileh.fileno()
+        if common.verbose:
+            print "Value of fileno():", fd
+        assert fd >= 0
+        fileh.close()
+
 
 class CheckFileTestCase(common.PyTablesTestCase):
 

@@ -11,6 +11,9 @@
 Changes from 2.0.x to 2.1b2
 ===========================
 
+[API change] New File.fileno() added.  This returns the underlying OS file
+descriptor for the file.
+
 [API change] Table.willQueryUseIndexing() has changed its return value by a
 frozen set of usable indexed columns for its `condition` parameter.
 
