@@ -37,8 +37,9 @@ from tables import hdf5Extension
 from tables import utilsExtension
 from tables.parameters import MAX_GROUP_WIDTH
 from tables.registry import classIdDict
-from tables.exceptions import \
-     NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning
+from tables.exceptions import (
+    NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning,
+    HDF5ExtError)
 from tables.filters import Filters
 from tables.registry import getClassByName
 from tables.path import checkNameValidity, joinPath, isVisibleName
@@ -189,6 +190,10 @@ class Group(hdf5Extension.Group, Node):
     # Class identifier.
     _c_classId = 'GROUP'
 
+    # Children containers that should be loaded only in a lazy way.
+    # These are documented in the ``Group._g_addChildrenNames`` method.
+    _c_lazy_children_attrs = (
+        '__members__', '_v_children', '_v_groups', '_v_leaves', '_v_hidden')
 
     # <properties>
 
@@ -201,9 +206,8 @@ class Group(hdf5Extension.Group, Node):
                             "The number of children hanging from this group.")
 
 
-    # `_v_filters` is a direct read-write shorthand
-    # for the ``FILTERS`` attribute
-    # with the default `Filters` instance as a default value.
+    # `_v_filters` is a direct read-write shorthand for the ``FILTERS``
+    # attribute with the default `Filters` instance as a default value.
     def _g_getfilters(self):
         filters = getattr(self._v_attrs, 'FILTERS', None)
         if filters is None:
@@ -249,13 +253,6 @@ class Group(hdf5Extension.Group, Node):
 
         # First, set attributes belonging to group objects.
 
-        # Adding the names of visible children nodes here
-        # allows readline-style completion to work on them
-        # although they are actually not attributes of this object.
-        # This must be the *very first* assignment and it must bypass
-        # ``__setattr()__`` to let the later work from this moment on.
-        self.__dict__['__members__'] = []  # 1st one, bypass __setattr__
-
         self._v_version = obversion
         """The object version of this group."""
 
@@ -265,15 +262,6 @@ class Group(hdf5Extension.Group, Node):
         """New title for this node."""
         self._v_new_filters = filters
         """New default filter properties for child nodes."""
-
-        self._v_children = _ChildrenDict(self)
-        """The number of children hanging from this group."""
-        self._v_groups = _ChildrenDict(self)
-        """Dictionary with all groups hanging from this group."""
-        self._v_leaves = _ChildrenDict(self)
-        """Dictionary with all leaves hanging from this group."""
-        self._v_hidden = _ChildrenDict(self)  # only place for hidden children
-        """Dictionary with all hidden nodes hanging from this group."""
 
         # Finally, set up this object as a node.
         super(Group, self).__init__(parentNode, name, _log)
@@ -306,12 +294,12 @@ class Group(hdf5Extension.Group, Node):
                 self._v_version = "0.0 (unknown)"
             # We don't need to get more attributes from disk,
             # since the most important ones are defined as properties.
-            # However, we *do* need to get the names of children nodes.
-            self._g_addChildrenNames()
 
 
     def __del__(self):
-        if self._v_isopen and self._v_pathname in self._v_file._aliveNodes:
+        if (self._v_isopen and
+            self._v_pathname in self._v_file._aliveNodes and
+            '_v_children' in self.__dict__):
             # The group is going to be killed.  Rebuild weak references
             # (that Python cancelled just before calling this method) so
             # that they are still usable if the object is revived later.
@@ -392,20 +380,31 @@ class Group(hdf5Extension.Group, Node):
         visibility and kind.
         """
 
+        myDict = self.__dict__
+
+        # The names of the lazy attributes
+        myDict['__members__'] = members = []
+        """The names of visible children nodes for readline-style completion."""
+        myDict['_v_children'] = children = _ChildrenDict(self)
+        """The number of children hanging from this group."""
+        myDict['_v_groups'] = groups = _ChildrenDict(self)
+        """Dictionary with all groups hanging from this group."""
+        myDict['_v_leaves'] = leaves = _ChildrenDict(self)
+        """Dictionary with all leaves hanging from this group."""
+        myDict['_v_hidden'] = hidden = _ChildrenDict(self)
+        """Dictionary with all hidden nodes hanging from this group."""
+
         # Get the names of *all* child groups and leaves.
         (groupNames, leafNames) = self._g_listGroup()
 
         # (Cache some objects.)
         ptNameFromH5Name = self._v_file._ptNameFromH5Name
-        members = self.__members__
-        children = self._v_children
-        hidden = self._v_hidden
 
         # Separate groups into visible groups and hidden nodes,
         # and leaves into visible leaves and hidden nodes.
         for (childNames, childDict) in (
-            (groupNames, self._v_groups),
-            (leafNames,  self._v_leaves)):
+            (groupNames, groups),
+            (leafNames,  leaves)):
 
             for childName in childNames:
                 # Get the PyTables name matching this HDF5 name.
@@ -423,17 +422,44 @@ class Group(hdf5Extension.Group, Node):
                     hidden[childName] = None
 
 
-    def _g_checkHasChild(self, childName):
-        """
-        Check that the group has a child called `childName`.
+    def _g_checkHasChild(self, name):
+        """Check whether 'name' is a children of 'self' and return its type. """
 
-        If it does not, a `NoSuchNodeError` is raised.
-        """
+        node_type = "Unknown"
+        # If '_v_children' is cached in memory, always use this
+        if '_v_children' in self.__dict__:
+            if name in self._v_children:
+                # Is the node a group or a leaf?
+                if name in self._v_groups:
+                    node_type = "Group"
+                else:
+                    node_type = "Leaf"
+            elif name in self._v_hidden:
+                # Hidden nodes are not separated into groups and leaves
+                # so, defer the type detection until later.
+                node_type = "Unknown"
+            else:
+                node_type = "NoSuchNode"
 
-        if childName not in self:
+        if node_type == "Unknown":
+            # The node type has not been discovered yet.
+            # Get the HDF5 name matching the PyTables name.
+            h5name = self._v_file._h5NameFromPTName(name)
+            if (h5name == name and
+                h5name in self._v_file.trMap.values() and
+                h5name not in self._v_file.trMap):  # check (key, key) entries
+                # The name has a reverse mapping in trMap,
+                # so it must not be found on disk.
+                node_type = "NoSuchNode"
+            else:
+                node_type = self._g_get_objinfo(h5name)
+
+        if node_type == "NoSuchNode":
             raise NoSuchNodeError(
                 "group ``%s`` does not have a child named ``%s``"
-                % (self._v_pathname, childName))
+                % (self._v_pathname, name))
+
+        return node_type
 
 
     def _g_loadChild(self, childName):
@@ -445,31 +471,15 @@ class Group(hdf5Extension.Group, Node):
         child, a `NoSuchNodeError` is raised.
         """
 
-        self._g_checkHasChild(childName)
-
-        # Get the HDF5 name matching the PyTables name.
-        childH5Name = self._v_file._h5NameFromPTName(childName)
-
         # Is the node a group or a leaf?
-        if childName in self._v_groups:
-            childIsGroup = True
-        elif childName in self._v_leaves:
-            childIsGroup = False
-        else:
-            # Worst case: hidden nodes are not separated into groups and
-            # leaves: we need to list children to get the kind of node.
-            # This is less efficient, so do we only do it if unavoidable.
-            assert childName in self._v_hidden
-            (groupNames, leafNames) = self._g_listGroup()
-            assert childH5Name in groupNames or childH5Name in leafNames
-            childIsGroup = childH5Name in groupNames
+        node_type = self._g_checkHasChild(childName)
 
         # Guess the PyTables class suited to the node,
         # build a PyTables node and return it.
-        if childIsGroup:
+        if node_type == "Group":
             childClass = self._g_getChildGroupClass(childName, warn=True)
             return childClass(self, childName, new=False)
-        else:
+        elif node_type == "Leaf":
             childClass = self._g_getChildLeafClass(childName, warn=True)
             # Building a leaf may still fail because of unsupported types
             # and other causes.
@@ -484,6 +494,8 @@ class Group(hdf5Extension.Group, Node):
                     % (self._g_join(childName), exc))
                 # If not, associate an UnImplemented object to it
                 return UnImplemented(self, childName)
+        else:
+            return UnImplemented(self, childName)
 
 
     def __iter__(self):
@@ -508,7 +520,11 @@ class Group(hdf5Extension.Group, Node):
         hidden) with the given `name` (a string), false otherwise.
         """
         self._g_checkOpen()
-        return name in self._v_children or name in self._v_hidden
+        try:
+            self._g_checkHasChild(name)
+        except NoSuchNodeError:
+            return False
+        return True
 
 
     def _f_walkNodes(self, classname=None):
@@ -604,20 +620,22 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         if len(self._v_children) + len(self._v_hidden) >= MAX_GROUP_WIDTH:
             self._g_widthWarning()
 
-        # Insert references to the new child.
-        # (Assigned values are entirely irrelevant.)
-        if isVisibleName(childName):
-            # Visible node.
-            self.__members__.insert(0, childName)  # enable completion
+        # Update members information, if needed
+        if '_v_children' in self.__dict__:
+            # Insert references to the new child.
+            # (Assigned values are entirely irrelevant.)
+            if isVisibleName(childName):
+                # Visible node.
+                self.__members__.insert(0, childName)  # enable completion
 
-            self._v_children[childName] = None  # insert node
-            if isinstance(childNode, Leaf):
-                self._v_leaves[childName] = None
-            elif isinstance(childNode, Group):
-                self._v_groups[childName] = None
-        else:
-            # Hidden node.
-            self._v_hidden[childName] = None  # insert node
+                self._v_children[childName] = None  # insert node
+                if isinstance(childNode, Leaf):
+                    self._v_leaves[childName] = None
+                elif isinstance(childNode, Group):
+                    self._v_groups[childName] = None
+            else:
+                # Hidden node.
+                self._v_hidden[childName] = None  # insert node
 
 
     def _g_unrefNode(self, childName):
@@ -632,18 +650,20 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                ("group ``%s`` does not have a child node named ``%s``"
                 % (self._v_pathname, childName))
 
-        if childName in self._v_children:
-            # Visible node.
-            members = self.__members__
-            memberIndex = members.index(childName)
-            del members[memberIndex]  # disables completion
+        # Update members information, if needed
+        if '_v_children' in self.__dict__:
+            if childName in self._v_children:
+                # Visible node.
+                members = self.__members__
+                memberIndex = members.index(childName)
+                del members[memberIndex]  # disables completion
 
-            del self._v_children[childName]  # remove node
-            self._v_leaves.pop(childName, None)
-            self._v_groups.pop(childName, None)
-        else:
-            # Hidden node.
-            del self._v_hidden[childName]  # remove node
+                del self._v_children[childName]  # remove node
+                self._v_leaves.pop(childName, None)
+                self._v_groups.pop(childName, None)
+            else:
+                # Hidden node.
+                del self._v_hidden[childName]  # remove node
 
 
     def _g_move(self, newParent, newName):
@@ -847,9 +867,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         is returned.  Else, an ``AttributeError`` is raised.
         """
         # That is true since a `NoSuchNodeError` is an `AttributeError`.
-
         myDict = self.__dict__
         if name in myDict:
+            return myDict[name]
+        elif name in self._c_lazy_children_attrs:
+            self._g_addChildrenNames()
             return myDict[name]
         return self._f_getChild(name)
 
@@ -907,55 +929,99 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         self._g_checkOpen()
         self._g_flushGroup()
 
-    def _g_closeNodes(self):
-        """Recursively close all nodes in `self` and their descendents.
 
-        This version correctly handles both visible and hidden nodes.
+    def _g_closeDescendents(self):
+        """
+        Close all the *loaded* descendent nodes of this group.
         """
 
-        stack = [self]
-        # Iterate over the descendants
-        while stack:
-            objgroup=stack.pop()
-            stack.extend(objgroup._v_groups.values())
-            # Collect any hidden group
-            for node in objgroup._v_hidden.values():
-                if isinstance(node, Group):
-                    stack.append(node)
-                else:
-                    # If it is not a group, close it
-                    node._f_close()
-            # Close the visible leaves
-            for leaf in objgroup._v_leaves.values():
-                leaf._f_close()
-            # Close the current group only if it is not myself to avoid
-            # recursivity in case of calling from '/' group
-            if objgroup is not self:
-                objgroup._f_close()
+        def closeNodes(prefix, nodePaths, getNode):
+            for nodePath in nodePaths:
+                if nodePath.startswith(prefix):
+                    try:
+                        node = getNode(nodePath)
+                        # Avoid descendent nodes to also iterate over
+                        # their descendents, which are already to be
+                        # closed by this loop.
+                        if hasattr(node, '_f_getChild'):
+                            node._g_close()
+                        else:
+                            node._f_close()
+                        del node
+                    except KeyError:
+                        pass
 
-    def _f_close(self):
-        """
-        Close this node in the tree.
+        prefix = self._v_pathname + '/'
+        if prefix == '//':
+            prefix = '/'
 
-        This method has the behavior described in `Node._f_close()`.  It
-        should be noted that this operation disables access to nodes
-        descending from this group.  Therefore, if you want to
-        explicitly close them, you will need to walk the nodes hanging
-        from this group *before* closing it.
-        """
+        # Close all loaded nodes.
+        aliveNodes = self._v_file._aliveNodes
+        deadNodes = self._v_file._deadNodes
+        reviveNode = self._v_file._reviveNode
+        # First, close the alive nodes and delete them
+        # so they are not placed in the limbo again.
+        # These two steps ensure tables are closed *before* their indices.
+        closeNodes(prefix,
+                   [path for path in aliveNodes
+                    if '/_i_' not in path],  # not indices
+                   lambda path: aliveNodes[path])
+        # Close everything else (i.e. indices)
+        closeNodes(prefix,
+                   [path for path in aliveNodes],
+                   lambda path: aliveNodes[path])
 
-        if not self._v_isopen:
-            return  # the node is already closed or not initialized
+        # Next, revive the dead nodes, close and delete them
+        # so they are not placed in the limbo again.
+        # These two steps ensure tables are closed *before* their indices.
+        closeNodes(prefix,
+                   [path for path in deadNodes
+                    if '/_i_' not in path],  # not indices
+                   lambda path: reviveNode(path))
+        # Close everything else (i.e. indices)
+        closeNodes(prefix,
+                   [path for path in deadNodes],
+                   lambda path: reviveNode(path))
 
+
+    def _g_close(self):
+        """Close this (open) group."""
         # hdf5Extension operations:
         #   Close HDF5 group.
         self._g_closeGroup()
 
-        # Clear group object attributes.
-        self.__dict__['__members__'] = []  # 1st one, bypass __setattr__
-
         # Close myself as a node.
         super(Group, self)._f_close()
+
+
+    def _f_close(self):
+        """Close this group and all its descendents.
+
+        This method has the behavior described in `Node._f_close()`.  It
+        should be noted that this operation closes all the nodes
+        descending from this group.
+
+        You should not need to close nodes manually because they are
+        automatically opened/closed when they are loaded/evicted from
+        the integrated LRU cache.
+        """
+
+        # If the group is already closed, return immediately
+        if not self._v_isopen:
+            return
+
+        # First, close all the descendents of this group, unless a) the
+        # group is being deleted (evicted from LRU cache) or b) the node
+        # is being closed during an aborted creation, in which cases
+        # this is not an explicit close issued by the user.
+        if not (self._v__deleting or self._v_objectID is None):
+            self._g_closeDescendents()
+
+        # When all the descendents have been closed, close this group.
+        # This is done at the end because some nodes may still need to
+        # be loaded during the closing process; thus this node must be
+        # open until the very end.
+        self._g_close()
 
 
     def _g_remove(self, recursive=False):
@@ -971,9 +1037,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
             # First close all the descendents hanging from this group,
             # so that it is not possible to use a node that no longer exists.
-            # We let the ``File`` instance close the nodes
-            # since it knows which of them are loaded and which not.
-            self._v_file._closeDescendentsOf(self)
+            self._g_closeDescendents()
 
         # Remove the node itself from the hierarchy.
         super(Group, self)._g_remove(recursive)
@@ -1114,9 +1178,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 class RootGroup(Group):
     def __init__(self, ptFile, h5name, title, new, filters):
         myDict = self.__dict__
-        # Set group attributes.
-        myDict['__members__'] = []   # 1st one, bypass __setattr__
 
+        # Set group attributes.
         self._v_version = obversion
         self._v_new = new
         if new:
@@ -1125,11 +1188,6 @@ class RootGroup(Group):
         else:
             self._v_new_title = None
             self._v_new_filters = None
-
-        self._v_children = _ChildrenDict(self)
-        self._v_groups = _ChildrenDict(self)
-        self._v_leaves = _ChildrenDict(self)
-        self._v_hidden = _ChildrenDict(self)
 
         # Set node attributes.
         self._v_file = ptFile

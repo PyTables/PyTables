@@ -357,7 +357,8 @@ cdef extern from "hdf5.h":
   herr_t H5Gmove(hid_t loc_id, char *src, char *dst)
   herr_t H5Gmove2(hid_t src_loc_id, char *src_name,
                   hid_t dst_loc_id, char *dst_name )
-
+  herr_t H5Gget_objinfo(hid_t loc_id, char *name,
+                        hbool_t follow_link, H5G_stat_t *statbuf)
   # For dealing with datasets
   hid_t  H5Dopen(hid_t file_id, char *name)
   herr_t H5Dclose(hid_t dset_id)
@@ -464,6 +465,7 @@ cdef extern from "H5ARRAY.h":
 # Some utilities
 cdef extern from "utils.h":
   herr_t set_cache_size(hid_t file_id, size_t cache_size)
+  int get_objinfo(hid_t loc_id, char *name)
   object Giterate(hid_t parent_id, hid_t loc_id, char *name)
   object Aiterate(hid_t loc_id)
   object H5UIget_info(hid_t loc_id, char *name, char *byteorder)

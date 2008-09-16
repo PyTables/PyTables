@@ -230,7 +230,6 @@ class Array(hdf5Extension.Array, Leaf):
             nparr = array_as_internal(self._object, flavor)
         except:  #XXX
             # Problems converting data. Close the node and re-raise exception.
-            #print "Problems converting input object:", str(self._object)
             self.close(flush=0)
             raise
 

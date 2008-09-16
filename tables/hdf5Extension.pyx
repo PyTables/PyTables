@@ -58,13 +58,14 @@ from definitions cimport  \
      Py_INCREF, Py_DECREF, \
      import_array, ndarray, dtype, \
      time_t, size_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
-     H5T_class_t, H5T_sign_t, \
+     H5G_GROUP, H5G_DATASET, H5G_stat_t, H5T_class_t, H5T_sign_t, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
      H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5T_DIR_DEFAULT, H5S_SELECT_SET, \
      H5get_libversion, H5check_version, H5Fcreate, H5Fopen, H5Fclose, \
      H5Fflush, H5Fget_vfd_handle, \
      H5Gcreate, H5Gopen, H5Gclose, H5Glink, H5Gunlink, H5Gmove, \
-     H5Gmove2,  H5Dopen, H5Dclose, H5Dread, H5Dget_type, \
+     H5Gmove2, H5Gget_objinfo, \
+     H5Dopen, H5Dclose, H5Dread, H5Dget_type, \
      H5Tget_native_type, H5Tget_super, H5Tget_class, H5Tcopy, H5Dget_space, \
      H5Dvlen_reclaim, H5Adelete, H5Aget_num_attrs, H5Aget_name, H5Aopen_idx, \
      H5Aread, H5Aclose, H5Tclose, H5Pcreate, H5Pclose, \
@@ -76,8 +77,8 @@ from definitions cimport  \
      H5ATTRget_attribute, H5ATTRget_attribute_string, \
      H5ATTRfind_attribute, H5ATTRget_type_ndims, H5ATTRget_dims, \
      H5ARRAYget_ndims, H5ARRAYget_info, \
-     set_cache_size, Giterate, Aiterate, H5UIget_info, get_len_of_range, \
-     get_order, set_order, \
+     set_cache_size, get_objinfo, Giterate, Aiterate, H5UIget_info, \
+     get_len_of_range, get_order, set_order, \
      conv_float64_timeval32
 
 
@@ -611,6 +612,22 @@ cdef class Group(Node):
       raise HDF5ExtError("Can't open the group: '%s'." % self.name)
     self.group_id = ret
     return self.group_id
+
+
+  def _g_get_objinfo(self, object h5name):
+    """Check whether 'name' is a children of 'self' and return its type. """
+    cdef int ret
+    cdef object node_type
+
+    node_type = "Unknown"
+    ret = get_objinfo(self.group_id, h5name)
+    if ret == -2:
+      node_type = "NoSuchNode"
+    elif ret == H5G_GROUP:
+      node_type = "Group"
+    elif ret == H5G_DATASET:
+      node_type = "Leaf"
+    return node_type
 
 
   def _g_listGroup(self):

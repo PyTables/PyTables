@@ -11,12 +11,19 @@
 Changes from 2.0.x to 2.1b2
 ===========================
 
-[API change] New File.fileno() added.  This returns the underlying OS file
-descriptor for the file.
+- When opening a node, that will be done directly, without populating first
+  all the parent directories.  So, for opening pre-known group and leaf
+  locations, the new code is substantially faster (in fact, the cost is O(1)).
 
-[API change] Table.willQueryUseIndexing() has changed its return value by a
-frozen set of usable indexed columns for its `condition` parameter.
 
+API changes from 2.0.x to 2.1b2
+===============================
+
+- New File.fileno() added.  This returns the underlying OS file descriptor for
+the file.
+
+- Table.willQueryUseIndexing() has changed its return value by a frozen set of
+usable indexed columns for its `condition` parameter.
 
 
 ----

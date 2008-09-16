@@ -239,6 +239,25 @@ out:
 
 /****************************************************************
 **
+**  get_objinfo(): Get information about the type of a child.
+**
+****************************************************************/
+int get_objinfo(hid_t loc_id, const char *name) {
+  herr_t     ret;            /* Generic return value         */
+  H5G_stat_t statbuf;
+
+  /* Get type of the object, without emiting an error in case the
+     node does not exist. */
+  H5E_BEGIN_TRY {
+    ret = H5Gget_objinfo(loc_id, name, TRUE, &statbuf);
+  } H5E_END_TRY;
+  if (ret < 0)
+    return -2;
+  return statbuf.type;
+}
+
+/****************************************************************
+**
 **  gitercb(): Custom group iteration callback routine.
 **
 ****************************************************************/

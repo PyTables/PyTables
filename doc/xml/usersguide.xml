@@ -5379,8 +5379,9 @@ for node in h5file:
             not be used again. On nodes with data, it may be flushed to
             disk.</para>
 
-            <para>The closing operation is <emphasis>not</emphasis> recursive,
-            i.e. closing a group does not close its children.</para>
+            <para>You should not need to close nodes manually because they are
+            automatically opened/closed when they are loaded/evicted from the
+            integrated LRU cache.</para>
           </section>
 
           <section id="Node._f_copy" xreflabel="description">
@@ -5665,15 +5666,17 @@ for node in h5file:
           <section id="Group._f_close">
             <title>_f_close()</title>
 
-            <para>Close this node in the tree.</para>
+            <para>Close this group and all its descendents.</para>
 
             <para>This method has the behavior described in
             <literal>Node._f_close()</literal> (see <xref
-            linkend="Node._f_close" />). It should be noted that this
-            operation disables access to nodes descending from this group.
-            Therefore, if you want to explicitly close them, you will need to
-            walk the nodes hanging from this group <emphasis>before</emphasis>
-            closing it.</para>
+            linkend="Node._f_close" />).  It should be noted that this
+            operation closes all the nodes descending from this group.</para>
+
+            <para>You should not need to close nodes manually because they are
+            automatically opened/closed when they are loaded/evicted from the
+            integrated LRU cache.</para>
+
           </section>
 
           <section id="Group._f_copy" xreflabel="description">

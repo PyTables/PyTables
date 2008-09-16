@@ -1992,44 +1992,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         self._flushFile(0)  # 0 means local scope, 1 global (virtual) scope
 
 
-    def _closeDescendentsOf(self, group):
-        """Close all the *loaded* descendent nodes of the given `group`."""
-
-        assert isinstance(group, Group)
-
-        prefix = group._v_pathname + '/'
-        if prefix == '//':
-            prefix = '/'
-
-        self._closeNodes(
-            [path for path in self._aliveNodes if path.startswith(prefix)])
-
-        self._closeNodes(
-            [path for path in self._deadNodes if path.startswith(prefix)])
-
-
-    def _closeNodes(self, nodePaths, getNode=None):
-        """
-        Close all nodes in the list of `nodePaths`.
-
-        This method uses the `getNode` callable object to get the node
-        object by its path.  If `getNode` is not given, `File.getNode()`
-        is used.  ``KeyError`` exceptions on `getNode` invocations are
-        ignored.
-        """
-
-        if getNode is None:
-            getNode = self.getNode
-
-        for nodePath in nodePaths:
-            try:
-                node = getNode(nodePath)
-                node._f_close()
-                del node
-            except KeyError:
-                pass
-
-
     def close(self):
         """Flush all the alive leaves in object tree and close the file."""
 
@@ -2043,46 +2005,17 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
             self._actionlog.attrs._g__setattr("CURACTION", self._curaction)
 
         # Close all loaded nodes.
+        self.root._f_close()
 
-        # First, close the alive nodes and delete them
-        # so they are not placed in the limbo again.
-        # We do not use ``getNode()`` for efficiency.
-        aliveNodes = self._aliveNodes
-        # These two steps ensure tables are closed *before* their indices.
-        self._closeNodes([path for path in aliveNodes.keys()
-                          if '/_i_' not in path],  # not indices
-                         lambda path: aliveNodes[path])
-        self._closeNodes(aliveNodes.keys(),  # everything else (i.e. indices)
-                         lambda path: aliveNodes[path])
-        assert len(aliveNodes) == 0, \
-               ("alive nodes remain after closing alive nodes: %s"
-                % aliveNodes.keys())
-
-        # Next, revive the dead nodes, close and delete them
-        # so they are not placed in the limbo again.
-        # We do not use ``getNode()`` for efficiency
-        # and to avoid accidentally loading ancestor nodes.
-        deadNodes = self._deadNodes
-        # These two steps ensure tables are closed *before* their indices.
-        self._closeNodes([path for path in deadNodes
-                          if '/_i_' not in path],  # not indices
-                         lambda path: self._reviveNode(path))
-        self._closeNodes([path for path in deadNodes],
-                         lambda path: self._reviveNode(path))
-        assert len(deadNodes) == 0, \
+        # Post-conditions
+        assert len(self._deadNodes) == 0, \
                ("dead nodes remain after closing dead nodes: %s"
                 % [path for path in deadNodes])
 
         # No other nodes should have been revived.
-        assert len(aliveNodes) == 0, \
+        assert len(self._aliveNodes) == 0, \
                ("alive nodes remain after closing dead nodes: %s"
-                % aliveNodes.keys())
-
-        # When all other nodes have been closed, close the root group.
-        # This is done at the end because some nodes
-        # may still need to be loaded during the closing process;
-        # thus the root node must be open until the very end.
-        self.root._f_close()
+                % [path for path in aliveNodes])
 
         # Close the file
         self._closeFile()

@@ -519,9 +519,7 @@ class DeepTreeTestCase(unittest.TestCase):
 
         # Open a new empty HDF5 file
         file = tempfile.mktemp(".h5")
-        #file = "deep.h5"
         fileh = openFile(file, mode = "w")
-        #group = fileh.root
         pathname = "/"
         if common.verbose:
             print "Depth writing progress: ",
@@ -531,9 +529,7 @@ class DeepTreeTestCase(unittest.TestCase):
             if common.verbose:
                 print "%3d," % (depth),
             a = [1, 1]
-            #fileh.createArray(group, 'array', a, "depth: %d" % depth)
             fileh.createArray(pathname, 'array', a, "depth: %d" % depth)
-            #group = fileh.createGroup(group, 'group' + str(depth))
             group = fileh.createGroup(pathname, 'group' + str(depth))
             pathname = group._v_pathname
         # Close the file
@@ -557,7 +553,6 @@ class DeepTreeTestCase(unittest.TestCase):
             assert a == b
             # Iterate over the next group
             group = fileh.getNode(pathname, 'group' + str(depth))
-            #group = fileh.getNode(group, 'group' + str(depth))
             pathname = group._v_pathname
         if common.verbose:
             print # This flush the stdout buffer

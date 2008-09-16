@@ -516,8 +516,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         This releases all resources held by the node, so it should not
         be used again.  On nodes with data, it may be flushed to disk.
 
-        The closing operation is *not* recursive, i.e. closing a group
-        does not close its children.
+        You should not need to close nodes manually because they are
+        automatically opened/closed when they are loaded/evicted from
+        the integrated LRU cache.
         """
 
         # After calling ``_f_close()``, two conditions are met:

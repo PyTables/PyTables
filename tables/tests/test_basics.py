@@ -163,6 +163,19 @@ class OpenFileTestCase(common.PyTablesTestCase):
         # Remove the temporary file
         os.remove(file)
 
+    def test01d_trMap(self):
+        """Checking the trMap for an equal (key, value) pair."""
+
+        # Open the old HDF5 file
+        trMap = {"array": "array"}
+        fileh = openFile(self.file, mode = "r", trMap=trMap)
+        # Get the array objects in the file
+        array_ = fileh.getNode("/array")
+
+        assert array_.name == "array"
+        assert array_._v_hdf5name == "array"
+
+        fileh.close()
 
     def test02_appendFile(self):
         """Checking appending objects to an existing file"""
@@ -1788,19 +1801,24 @@ class StateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(ClosedNodeError,
                           self.h5file.getNode, g1)
 
-        # Going through that *node* should reload it automatically.
+        # Going through that *node* should reopen it automatically.
         try:
             g2_ = self.h5file.getNode('/g1/g2')
         except ClosedNodeError:
-            self.fail("closed parent group has not been reloaded")
+            self.fail("closed parent group has not been reopened")
 
-        # Open nodes should still remain the same.
-        self.assert_(g2_ is g2,
-                     "open child of closed group has been reloaded")
+        # Already open nodes should be closed now, but not the new ones.
+        self.assert_(g2._v_isopen is False,
+                     "open child of closed group has not been closed")
+        self.assert_(g2_._v_isopen is True,
+                     "open child of closed group has not been closed")
 
-        # And closed ones should not have been touched.
-        g1_ = self.h5file.getNode('/g1/g2')
-        self.assert_(g1_ is not g1, "closed node has been reused")
+        # And existing closed ones should remain closed, but not the new ones.
+        g1_ = self.h5file.getNode('/g1')
+        self.assert_(g1._v_isopen is False,
+                     "already closed group is not closed anymore")
+        self.assert_(g1_._v_isopen is True,
+                     "newly opened group is still closed")
 
 
     def test19b_getNode(self):
