@@ -22,6 +22,10 @@ API changes from 2.0.x to 2.1b2
 - New File.fileno() added.  This returns the underlying OS file descriptor for
 the file.
 
+- The Table.indexFilters property has been removed (after a period
+of ``DeprecationWarnings``).  If you want to change filters in indexes, please
+use the `filters` parameter of the Column.createIndex() method (and the like).
+
 - Table.willQueryUseIndexing() has changed its return value by a frozen set of
 usable indexed columns for its `condition` parameter.
 

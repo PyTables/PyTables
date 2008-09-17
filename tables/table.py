@@ -54,13 +54,11 @@ from tables._table_common import (
     _indexNameOf, _indexPathnameOf, _indexPathnameOfColumn )
 
 try:
-    from tables.index import IndexesDescG
-    from tables.index import IndexesTableG, OldIndex
-    from tables.index import defaultIndexFilters
+    from tables.index import (
+        IndexesDescG, IndexesTableG, OldIndex, defaultIndexFilters)
     from tables._table_pro import (
-        NailedDict,
-        _table__autoIndex, _table__indexFilters,
-        _table__whereIndexed, _column__createIndex )
+        NailedDict, _table__autoIndex, _table__whereIndexed,
+        _column__createIndex )
 except ImportError:
     from tables.exceptions import NoIndexingError, NoIndexingWarning
     from tables.node import NotLoggedMixin
@@ -80,8 +78,8 @@ except ImportError:
 
     NailedDict = dict
 
-    # Forbid accesses to these attributes.
-    _table__autoIndex = _table__indexFilters = property()
+    # Forbid accesses to this attribute.
+    _table__autoIndex = property()
 
     def _checkIndexingAvailable():
         raise NoIndexingError
@@ -241,21 +239,6 @@ class Table(tableExtension.Table, Leaf):
 
         .. Note:: Column indexing is only available in PyTables Pro.
 
-    indexFilters
-        Filters used to compress indexes.
-
-        Setting this value to a `Filters` instance determines the
-        compression to be used for indexes.  Setting it to ``None``
-        means that no filters will be used for indexes.  The default is
-        zlib compression level 1 with shuffling.
-
-        This value is used when creating new indexes or recomputing old
-        ones.  To apply it to existing indexes, use `Table.reIndex()`.
-
-        This value is persistent.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-
     nrows
         Current number of rows in the table.
     row
@@ -353,7 +336,6 @@ class Table(tableExtension.Table, Leaf):
     # Index-related properties
     # ````````````````````````
     autoIndex = _table__autoIndex
-    indexFilters = _table__indexFilters
 
     indexedcolpathnames = property(
         lambda self: [ _colpname for _colpname in self.colpathnames
@@ -2005,7 +1987,9 @@ The 'names' parameter must be a list of strings.""")
             startLR += slicesize
         # index the remaining rows in last row
         if lastrow and startLR < self.nrows:
-            index.appendLastRow([self._read(startLR, self.nrows, 1, colname)])
+            index.appendLastRow(
+                [self._read(startLR, self.nrows, 1, colname)],
+                update=update)
             indexedrows += self.nrows - startLR
         return indexedrows
 
@@ -2197,9 +2181,9 @@ The 'names' parameter must be a list of strings.""")
             oldcolindex = oldcols[colname].index
             if oldcolindex:
                 newcol = newcols[colname]
-                newcol._createIndex(
-                    oldcolindex.optlevel, oldcolindex.filters,
-                    tmp_dir=None, _indsize=oldcolindex.indsize)
+                newcol.createIndex(
+                    oldcolindex.kind, oldcolindex.optlevel,
+                    oldcolindex.filters, tmp_dir=None)
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
@@ -2220,15 +2204,6 @@ The 'names' parameter must be a list of strings.""")
         else:
             if _is_pro and 'AUTO_INDEX' in indexgroup._v_attrs:
                 newtable.autoIndex = self.autoIndex
-            # There may be no filters; this is also a explicit change if
-            # the default is having filters.  This is the reason for the
-            # second part of the condition.
-            if ( _is_pro and ('FILTERS' in indexgroup._v_attrs
-                 or self.indexFilters != defaultIndexFilters) ):
-                # Ignoring the DeprecationWarning temporarily here
-                warnings.filterwarnings('ignore', category=DeprecationWarning)
-                newtable.indexFilters = self.indexFilters
-                warnings.filterwarnings('default', category=DeprecationWarning)
         # Generate equivalent indexes in the new table, if any.
         if self.indexed:
             warnings.warn(
@@ -2332,11 +2307,10 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
   byteorder := %r
   chunkshape := %r
   autoIndex := %r
-  indexFilters := %r
   indexedcolpathnames := %r"""
             return format % ( str(self), self.description, self.byteorder,
                               self.chunkshape, self.autoIndex,
-                              self.indexFilters, self.indexedcolpathnames )
+                              self.indexedcolpathnames )
         else:
             return """\
 %s
@@ -2665,12 +2639,15 @@ class Column(object):
         the column is not indexed).
 
         .. Note:: Column indexing is only available in PyTables Pro.
-
     is_indexed
         True if the column is indexed, false otherwise.
 
         .. Note:: Column indexing is only available in PyTables Pro.
+    is_index_completely_sorted
+        True if the index of the column is completely sorted, false
+        otherwise.
 
+        .. Note:: Column indexing is only available in PyTables Pro.
     name
         The name of the associated column.
     pathname
@@ -2733,6 +2710,12 @@ class Column(object):
             return True
 
     is_indexed = property(_isindexed)
+
+
+    is_index_completely_sorted = property(
+        lambda self: self.index.completely_sorted, None, None,
+        "True if the index of the column is completely sorted, False "
+        "otherwise.")
 
 
     def __init__(self, table, name, descr):
@@ -2899,11 +2882,10 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex( self, kind="light", filters=None, tmp_dir=None,
-                     _blocksizes=None, _indsize=4,
-                     _testmode=False, _verbose=False ):
-        """
-        Create an index for this column.
+    def createIndex( self, kind="medium", optlevel=6, filters=None,
+                     tmp_dir=None, _blocksizes=None, _testmode=False,
+                     _verbose=False ):
+        """ Create an index for this column.
 
         You can select the kind of the index by setting `kind` from
         'ultralight', 'light', 'medium' or 'full' values.  Lighter kinds
@@ -2912,6 +2894,16 @@ class Column(object):
         chances for reducing the entropy of the index at the price of
         using more disk space as well as more CPU, memory and I/O
         resources for creating the index.
+
+        For each `kind`, you can select its optimization level by
+        setting `optlevel` from 0 (no optimization) to 9 (maximum
+        optimization).  Higher levels of optimization mean better
+        chances for reducing the entropy of the index at the price of
+        using more CPU, memory and I/O resources for creating the index.
+
+        Note that selecting a 'full' kind with an `optlevel` of 9 (the
+        maximum) guarantees the creation of an index with zero entropy,
+        that is, a completely sorted index.
 
         The `filters` argument can be used to set the `Filters` used to
         compress the index.  If ``None``, default index filters will be
@@ -2925,33 +2917,33 @@ class Column(object):
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        if kind == "ultralight":
-            return self.createUltraLightIndex(
-                filters=filters, tmp_dir=tmp_dir,
-                _blocksizes=_blocksizes,
-                _testmode=_testmode, _verbose=_verbose)
-        elif kind == "light":
-            return self.createLightIndex(
-                filters=filters, tmp_dir=tmp_dir,
-                _blocksizes=_blocksizes,
-                _testmode=_testmode, _verbose=_verbose)
-        elif kind == "medium":
-            return self.createMediumIndex(
-                filters=filters, tmp_dir=tmp_dir,
-                _blocksizes=_blocksizes,
-                _testmode=_testmode, _verbose=_verbose)
-        elif kind == "full":
-            return self.createFullIndex(
-                filters=filters, tmp_dir=tmp_dir,
-                _blocksizes=_blocksizes,
-                _testmode=_testmode, _verbose=_verbose)
-
-        else:
+        _checkIndexingAvailable()
+        kinds = ['ultralight', 'light', 'medium', 'full']
+        if kind not in kinds:
             raise (ValueError,
-                   "`kind` argument can only be 'ultralight', 'light', 'medium' or 'full'.")
+                   "Kind must have any of these values: %s" % kinds)
+        if (not isinstance(optlevel, (int, long)) or
+            (optlevel < 0 or optlevel > 9)):
+            raise (ValueError,
+                   "Optimization level must be an integer in the range 0-9")
+        if filters is None:
+            filters = defaultIndexFilters
+        if tmp_dir is None:
+            tmp_dir = os.path.dirname(self._tableFile.filename)
+        else:
+            if not os.path.isdir(tmp_dir):
+                raise (ValueError,
+                       "Temporary directory '%s' does not exist" % tmp_dir)
+        if (_blocksizes is not None and
+            (type(_blocksizes) is not tuple or len(_blocksizes) != 4)):
+            raise (ValueError,
+                   "_blocksizes must be a tuple with exactly 4 elements")
+        idxrows = _column__createIndex(self, kind, optlevel, filters,
+                                       tmp_dir, _blocksizes, _verbose)
+        return SizeType(idxrows)
 
 
-    def createUltraLightIndex( self, optlevel=6, filters=None,
+    def createUltraLightIndex( self, optlevel=3, filters=None,
                                tmp_dir=None, _blocksizes=None,
                                _testmode=False, _verbose=False ):
         """Create an index of kind 'ultralight' for this column.
@@ -2967,9 +2959,8 @@ class Column(object):
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        return self._createIndex(optlevel, filters, tmp_dir,
-                                 _blocksizes, _indsize=1,
-                                 _testmode=_testmode, _verbose=_verbose)
+        return self.createIndex('ultralight', optlevel, filters, tmp_dir,
+            _blocksizes, _testmode=_testmode, _verbose=_verbose)
 
 
     def createLightIndex( self, optlevel=6, filters=None,
@@ -2988,9 +2979,8 @@ class Column(object):
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        return self._createIndex(optlevel, filters, tmp_dir,
-                                 _blocksizes, _indsize=2,
-                                 _testmode=_testmode, _verbose=_verbose)
+        return self.createIndex('light', optlevel, filters, tmp_dir,
+            _blocksizes, _testmode=_testmode, _verbose=_verbose)
 
 
     def createMediumIndex( self, optlevel=6, filters=None,
@@ -3009,12 +2999,11 @@ class Column(object):
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        return self._createIndex(optlevel, filters, tmp_dir,
-                                 _blocksizes, _indsize=4,
-                                 _testmode=_testmode, _verbose=_verbose)
+        return self.createIndex('medium', optlevel, filters, tmp_dir,
+            _blocksizes, _testmode=_testmode, _verbose=_verbose)
 
 
-    def createFullIndex( self, optlevel=6, filters=None,
+    def createFullIndex( self, optlevel=9, filters=None,
                           tmp_dir=None, _blocksizes=None,
                          _testmode=False, _verbose=False ):
         """Create an index of kind 'full' for this column.
@@ -3025,39 +3014,18 @@ class Column(object):
         the entropy of the index at the price of using more CPU, memory
         and I/O resources for creating the index.
 
+        Note that selecting an `optlevel` of 9 (the maximum) guarantees
+        the creation of an index with zero entropy, that is, a
+        completely sorted index.
+
         For the meaning of `filters` and `tmp_dir` arguments see
         ``Column.createIndex()``.
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        return self._createIndex(optlevel, filters, tmp_dir,
-                                 _blocksizes, _indsize=8,
-                                 _testmode=_testmode, _verbose=_verbose)
 
-
-    def _createIndex( self, optlevel, filters, tmp_dir,
-                      _blocksizes=None, _indsize=2,
-                      _testmode=False, _verbose=False ):
-        """Private method to call the real index code."""
-        _checkIndexingAvailable()
-        if (not isinstance(optlevel, (int, long)) or
-            (optlevel < 0 or optlevel > 9)):
-            raise (ValueError,
-                   "Optimization level should be an integer in the range 0-9.")
-        if tmp_dir is None:
-            tmp_dir = os.path.dirname(self._tableFile.filename)
-        else:
-            if not os.path.isdir(tmp_dir):
-                raise (ValueError,
-                       "Temporary directory '%s' does not exist." % tmp_dir)
-        if (_blocksizes is not None and
-            (type(_blocksizes) is not tuple or len(_blocksizes) != 4)):
-            raise (ValueError,
-                   "_blocksizes must be a tuple with exactly 4 elements.")
-        idxrows = _column__createIndex(self, optlevel, filters, tmp_dir,
-                                       _blocksizes, _indsize,
-                                       _verbose)
-        return SizeType(idxrows)
+        return self.createIndex('full', optlevel, filters, tmp_dir,
+            _blocksizes, _testmode=_testmode, _verbose=_verbose)
 
 
     def _doReIndex(self, dirty):
@@ -3068,11 +3036,15 @@ class Column(object):
         if dirty and not index.dirty: dodirty = False
         if index is not None and dodirty:
             self._tableFile._checkWritable()
+            # Get the old index parameters
+            kind = index.kind
+            optlevel = index.optlevel
+            filters = index.filters
             # Delete the existing Index
             index._f_remove()
             self._updateIndexLocation(None)
-            # Create a new Index without warnings
-            return SizeType(self.createIndex())
+            # Create a new Index with the previous parameters
+            return SizeType(self.createIndex(kind, optlevel, filters))
         else:
             return SizeType(0)  # The column is not intended for indexing
 

@@ -847,9 +847,6 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         self.table = self.fileh.createTable(root, 'table', TDescr, title,
                                             None, self.nrows)
         self.table.autoIndex = self.iprops.auto
-        # Ignoring the DeprecationWarning for all tests in this class
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        self.table.indexFilters = self.iprops.filters
         for colname in self.colsToIndex:
             self.table.colinstances[colname].createIndex()
         for i in range(self.nrows):
@@ -862,8 +859,6 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             self.table = self.fileh.root.table
 
     def tearDown(self):
-        # Restore the DeprecationWarning
-        warnings.filterwarnings('default', category=DeprecationWarning)
         self.fileh.close()
         os.remove(self.file)
         cleanup(self)
@@ -910,20 +905,14 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Check the policy parameters
         if verbose:
             if table.indexed:
-                print "index props:", table.autoIndex, table.indexFilters
+                print "index props:", table.autoIndex
             else:
                 print "Table is not indexed"
         # Check non-default values for index saving policy
         if self.iprops is NoAutoProps:
             assert not table.autoIndex
-            filters = Filters(complevel=1, complib="zlib",
-                              shuffle=True, fletcher32=False)
-            assert table.indexFilters == filters
         elif self.iprops is ChangeFiltersProps:
             assert table.autoIndex
-            filters = Filters(complevel=6, complib="zlib",
-                              shuffle=False, fletcher32=False)
-            assert table.indexFilters == filters
 
         # Check Index() objects exists and are properly placed
         if self.iprops is DefaultProps:
@@ -990,14 +979,8 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Check non-default values for index saving policy
         if self.iprops is NoAutoProps:
             assert not table.autoIndex
-            filters = Filters(complevel=1, complib="zlib",
-                              shuffle=True, fletcher32=False)
-            assert table.indexFilters == filters
         elif self.iprops is ChangeFiltersProps:
             assert table.autoIndex
-            filters = Filters(complevel=6, complib="zlib",
-                              shuffle=False, fletcher32=False)
-            assert table.indexFilters == filters
 
 
     def test05_icounters(self):
@@ -1038,14 +1021,8 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Check non-default values for index saving policy
         if self.iprops is NoAutoProps:
             assert not table.autoIndex
-            filters = Filters(complevel=1, complib="zlib",
-                              shuffle=True, fletcher32=False)
-            assert table.indexFilters == filters
         elif self.iprops is ChangeFiltersProps:
             assert table.autoIndex
-            filters = Filters(complevel=6, complib="zlib",
-                              shuffle=False, fletcher32=False)
-            assert table.indexFilters == filters
 
 
     def test06_dirty(self):
@@ -1417,7 +1394,6 @@ class ManyNodesTestCase(PyTablesTestCase):
 
 
 class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
-
     """Test case for changing index properties in a table."""
 
     class MyDescription(IsDescription):
@@ -1429,9 +1405,6 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         super(IndexPropsChangeTestCase, self).setUp()
         table = self.h5file.createTable('/', 'test', self.MyDescription)
         table.autoIndex = self.oldIndexProps.auto
-        # Ignoring the DeprecationWarning for all tests in this class
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        table.indexFilters = self.oldIndexProps.filters
         row = table.row
         for i in xrange(100):
             row['icol'] = i % 25
@@ -1440,45 +1413,22 @@ class IndexPropsChangeTestCase(TempFileMixin, PyTablesTestCase):
         self.table = table
 
     def tearDown(self):
-        # Restore the DeprecationWarning
-        warnings.filterwarnings('default', category=DeprecationWarning)
         super(IndexPropsChangeTestCase, self).tearDown()
 
     def test_attributes(self):
         """Storing index properties as table attributes."""
         for refprops in [self.oldIndexProps, self.newIndexProps]:
             self.assertEqual(self.table.autoIndex, refprops.auto)
-            self.assertEqual(self.table.indexFilters, refprops.filters)
             self.table.autoIndex = self.newIndexProps.auto
-            self.table.indexFilters = self.newIndexProps.filters
 
     def test_copyattrs(self):
         """Copying index properties attributes."""
         oldtable = self.table
         newtable = oldtable.copy('/', 'test2')
-
-        for prop in ['autoIndex', 'indexFilters']:
-            self.assertEqual(getattr(oldtable, prop), getattr(newtable, prop))
-
-    def test_newindex(self):
-        """Using changed index properties in new indexes."""
-        self.table.indexFilters = self.newIndexProps.filters
-        icol = self.table.cols.icol
-        icol.createIndex()
-        self.assertEqual(icol.index.filters, self.newIndexProps.filters)
-
-    def test_reindex(self):
-        """Using changed index properties in recomputed indexes."""
-        icol = self.table.cols.icol
-        icol.createIndex()
-        self.assertEqual(icol.index.filters, self.oldIndexProps.filters)
-        self.table.indexFilters = self.newIndexProps.filters
-        icol.reIndex()
-        self.assertEqual(icol.index.filters, self.newIndexProps.filters)
+        self.assertEqual(oldtable.autoIndex, newtable.autoIndex)
 
 
 class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
-
     """Test case for setting index filters."""
 
     def setUp(self):
@@ -1486,31 +1436,51 @@ class IndexFiltersTestCase(TempFileMixin, PyTablesTestCase):
         description = {'icol': IntCol()}
         self.table = self.h5file.createTable('/', 'test', description)
 
-    def tearDown(self):
-        self.table = None
-        super(IndexFiltersTestCase, self).tearDown()
-
-    def test(self):
+    def test_createIndex(self):
+        """Checking input parameters in new indexes."""
         # Different from default.
         argfilters = copy.copy(defaultIndexFilters)
         argfilters.shuffle = not defaultIndexFilters.shuffle
 
-        # Different bot from default and the previous one.
+        # Different both from default and the previous one.
         idxfilters = copy.copy(defaultIndexFilters)
         idxfilters.shuffle = not defaultIndexFilters.shuffle
         idxfilters.fletcher32 = not defaultIndexFilters.fletcher32
 
         icol = self.table.cols.icol
 
-        # Filters not set in table nor in argument.
-        icol.createIndex()
+        # First create
+        icol.createIndex(kind='ultralight', optlevel=4)
+        self.assertEqual(icol.index.kind, 'ultralight')
+        self.assertEqual(icol.index.optlevel, 4)
         self.assertEqual(icol.index.filters, defaultIndexFilters)
         icol.removeIndex()
 
-        # Filters not set in table, set in argument.
-        icol.createIndex(filters=argfilters)
+        # Second create
+        icol.createIndex(kind='medium', optlevel=3, filters=argfilters)
+        self.assertEqual(icol.index.kind, 'medium')
+        self.assertEqual(icol.index.optlevel, 3)
         self.assertEqual(icol.index.filters, argfilters)
         icol.removeIndex()
+
+
+    def test_reindex(self):
+        """Checking input parameters in recomputed indexes."""
+        icol = self.table.cols.icol
+        icol.createIndex(kind='full', optlevel=5, filters=Filters(complevel=3))
+        kind = icol.index.kind
+        optlevel = icol.index.optlevel
+        filters = icol.index.filters
+        icol.reIndex()
+        ni = icol.index
+        if verbose:
+            print "Old parameters: %s, %s, %s" % (kind, optlevel, filters)
+            print "New parameters: %s, %s, %s" % (
+                ni.kind, ni.optlevel, ni.filters)
+        self.assertEqual(ni.kind, kind)
+        self.assertEqual(ni.optlevel, optlevel)
+        self.assertEqual(ni.filters, filters)
+
 
 
 
@@ -1522,6 +1492,42 @@ class OldIndexTestCase(PyTablesTestCase):
         f = openFile(fname)
         self.assertWarns(OldIndexWarning, f.getNode, "/table")
         f.close()
+
+
+class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
+    """Test case for testing a complete sort in a table."""
+
+    class MyDescription(IsDescription):
+        icol = IntCol()
+
+    def setUp(self):
+        super(CompletelySortedIndexTestCase, self).setUp()
+        table = self.h5file.createTable('/', 'test', self.MyDescription)
+        row = table.row
+        nrows = 100
+        for i in xrange(nrows):
+            row['icol'] = nrows - i
+            row.append()
+        table.flush()
+        self.table = table
+
+    def test_completely_sorted_index(self):
+        """Testing the is_completely_sorted_index property."""
+        icol = self.table.cols.icol
+        # A full index with maximum optlevel should always be completely sorted
+        icol.createFullIndex(optlevel=9)
+        idx = icol.index
+        self.assertEqual(icol.is_index_completely_sorted, True)
+        icol.removeIndex()
+        # As the table is small, lesser optlevels should be able to
+        # create a completely sorted index too.
+        icol.createFullIndex(optlevel=6)
+        self.assertEqual(icol.is_index_completely_sorted, True)
+        icol.removeIndex()
+        # Other kinds than full, should never return a CSI
+        icol.createMediumIndex(optlevel=9)
+        self.assertEqual(icol.is_index_completely_sorted, False)
+
 
 
 #----------------------------------------------------------------------
@@ -1553,6 +1559,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(IndexPropsChangeTestCase))
         theSuite.addTest(unittest.makeSuite(IndexFiltersTestCase))
         theSuite.addTest(unittest.makeSuite(OldIndexTestCase))
+        theSuite.addTest(unittest.makeSuite(CompletelySortedIndexTestCase))
     if heavy:
         # These are too heavy for normal testing
         theSuite.addTest(unittest.makeSuite(AI4bTestCase))

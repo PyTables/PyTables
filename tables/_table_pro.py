@@ -18,8 +18,7 @@ from tables.parameters import (
     TABLE_MAX_SIZE, ITERSEQ_MAX_SLOTS, ITERSEQ_MAX_SIZE )
 from tables.atom import Atom
 from tables.exceptions import NoSuchNodeError
-from tables.index import defaultAutoIndex, defaultIndexFilters, Index
-from tables.leaf import Filters
+from tables.index import defaultAutoIndex, Index
 from tables.lrucacheExtension import ObjectCache, NumCache
 from tables import numexpr
 from tables._table_common import _indexPathnameOf
@@ -129,47 +128,6 @@ _table__autoIndex = property(
     """ )
 
 
-def _table__setindexFilters(self, filters):
-    warnings.warn(
-        "``indexFilters`` property will soon be deprecated.  "
-        "Please, do specify the filters in the ``filters`` "
-        "argument of ``createIndex()`` method.",
-        DeprecationWarning )
-    if not isinstance(filters, Filters):
-        raise TypeError("not an instance of ``Filters``: %r" % filters)
-    try:
-        indexgroup = self._v_file._getNode(_indexPathnameOf(self))
-    except NoSuchNodeError:
-        indexgroup = self._createIndexesTable()
-    indexgroup.filters = filters
-
-def _table__getindexFilters(self):
-    try:
-        indexgroup = self._v_file._getNode(_indexPathnameOf(self))
-    except NoSuchNodeError:
-        return defaultIndexFilters
-    else:
-        return indexgroup.filters
-
-_table__indexFilters = property(
-    _table__getindexFilters, _table__setindexFilters, None,
-    """
-    Filters used to compress indexes.
-
-    Setting this value to a `Filters` instance determines the
-    compression to be used for indexes.  Setting it to ``None``
-    means that no filters will be used for indexes.  The default is
-    zlib compression level 1 with shuffling.
-
-    This value is used when creating new indexes or recomputing old
-    ones.  To apply it to existing indexes, use `Table.reIndex()`.
-
-    This value is persistent.
-
-    .. Note:: Column indexing is only available in PyTables Pro.
-    """ )
-
-
 def restorecache(self):
     # Define a cache for sparse table reads
     chunksize = self._v_chunkshape[0]
@@ -219,7 +177,7 @@ def _table__whereIndexed(self, compiled, condvars, start, stop, step):
         assert not index.dirty, "the chosen column has a dirty index"
 
         # Get the number of rows that the indexed condition yields.
-        range_ = index.getLookupRange(ops, lims, self)
+        range_ = index.getLookupRange(ops, lims)
         ncoords = index.search(range_)
         if index.reduction == 1 and ncoords == 0:
             # No values from index condition, thus the chunkmap should be empty
@@ -241,9 +199,8 @@ def _table__whereIndexed(self, compiled, condvars, start, stop, step):
     return chunkmap
 
 
-def _column__createIndex(self, optlevel, filters, tmp_dir,
-                         blocksizes, indsize,
-                         verbose):
+def _column__createIndex(self, kind, optlevel, filters, tmp_dir,
+                         blocksizes, verbose):
     name = self.name
     table = self.table
     tableName = table._v_name
@@ -272,10 +229,6 @@ def _column__createIndex(self, optlevel, filters, tmp_dir,
         itgroup = getNode(_indexPathnameOf(table))
     except NoSuchNodeError:
         itgroup = table._createIndexesTable()
-
-    # If no filters are specified, try the indexFilters property
-    if filters is None:
-        filters = table.indexFilters
 
     # Create the necessary intermediate groups for descriptors
     idgroup = itgroup
@@ -308,13 +261,13 @@ def _column__createIndex(self, optlevel, filters, tmp_dir,
     index = Index(
         idgroup, name, atom=atom, column=self,
         title="Index for %s column" % name,
+        kind=kind,
         optlevel=optlevel,
         filters=filters,
         tmp_dir=tmp_dir,
         expectedrows=expectedrows,
         byteorder=table.byteorder,
-        blocksizes=blocksizes,
-        indsize=indsize)
+        blocksizes=blocksizes)
     self._updateIndexLocation(index)
 
     table._setColumnIndexing(self.pathname, True)
@@ -332,6 +285,6 @@ def _column__createIndex(self, optlevel, filters, tmp_dir,
     table._unsaved_indexedrows = table.nrows - indexedrows
 
     # Finally, optimize the index that has been already filled-up
-    index.optimize()
+    index.optimize(verbose=verbose)
 
     return indexedrows

@@ -3043,7 +3043,7 @@ heavy_tests = (
     )
 
 
-# Base classes for the different type index.
+# Base classes for the different type indexes.
 class UltraLightITableMixin:
     idxtype = "UltraLight"
 class LightITableMixin:

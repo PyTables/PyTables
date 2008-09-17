@@ -281,6 +281,10 @@ def get_reduction_level(indsize, optlevel, slicesize, chunksize):
         rlevel = 1
     if slicesize <= chunksize*rlevel:
         rlevel = 1
+    if indsize == 8:
+        # Ensure that, for full indexes we will never perform a reduction.
+        # This is required because of implementation assumptions.
+        assert rlevel == 1
     return rlevel
 
 
