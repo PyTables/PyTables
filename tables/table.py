@@ -55,7 +55,7 @@ from tables._table_common import (
 
 try:
     from tables.index import (
-        IndexesDescG, IndexesTableG, OldIndex, defaultIndexFilters)
+        OldIndex, defaultIndexFilters)
     from tables._table_pro import (
         NailedDict, _table__autoIndex, _table__whereIndexed,
         _column__createIndex )
@@ -63,24 +63,9 @@ except ImportError:
     from tables.exceptions import NoIndexingError, NoIndexingWarning
     from tables.node import NotLoggedMixin
     from tables.group import Group
-
-    # The following classes are registered to avoid extra warnings when
-    # checking for the existence of indexes and to avoid logging node
-    # renames and the like on them.
-    class _DummyIndexesTableG(NotLoggedMixin, Group):
-        _c_classId = 'TINDEX'
-    class _DummyIndex(NotLoggedMixin, Group):
-        _c_classId = 'INDEX'
-    class _DummyOldIndex(NotLoggedMixin, Group):
-        _c_classId = 'CINDEX'
-    class _DummyIndexesDescG(NotLoggedMixin, Group):
-        _c_classId = 'DINDEX'
-
     NailedDict = dict
-
     # Forbid accesses to this attribute.
     _table__autoIndex = property()
-
     def _checkIndexingAvailable():
         raise NoIndexingError
     _is_pro = False
@@ -695,21 +680,6 @@ class Table(tableExtension.Table, Leaf):
             if colobj.kind == 'enum':
                 enumMap[colobj._v_pathname] = colobj.enum
         return enumMap
-
-
-    def _createIndexesTable(self):
-        itgroup = IndexesTableG(
-            self._v_parent, _indexNameOf(self),
-            "Indexes container for table "+self._v_pathname, new=True)
-        return itgroup
-
-
-    def _createIndexesDescr(self, igroup, dname, iname, filters):
-        idgroup = IndexesDescG(
-            igroup, iname,
-            "Indexes container for sub-description "+dname,
-            filters=filters, new=True)
-        return idgroup
 
 
     def _g_create(self):

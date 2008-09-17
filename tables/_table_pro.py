@@ -18,10 +18,11 @@ from tables.parameters import (
     TABLE_MAX_SIZE, ITERSEQ_MAX_SLOTS, ITERSEQ_MAX_SIZE )
 from tables.atom import Atom
 from tables.exceptions import NoSuchNodeError
-from tables.index import defaultAutoIndex, Index
+from tables.index import (
+    defaultAutoIndex, Index, IndexesDescG, IndexesTableG )
 from tables.lrucacheExtension import ObjectCache, NumCache
 from tables import numexpr
-from tables._table_common import _indexPathnameOf
+from tables._table_common import _indexNameOf, _indexPathnameOf
 
 
 __version__ = "$Revision$"
@@ -77,7 +78,7 @@ def _table__setautoIndex(self, auto):
     try:
         indexgroup = self._v_file._getNode(_indexPathnameOf(self))
     except NoSuchNodeError:
-        indexgroup = self._createIndexesTable()
+        indexgroup = createIndexesTable(self)
     indexgroup.auto = auto
     # Update the cache in table instance as well
     self._autoIndex = auto
@@ -199,6 +200,21 @@ def _table__whereIndexed(self, compiled, condvars, start, stop, step):
     return chunkmap
 
 
+def createIndexesTable(table):
+    itgroup = IndexesTableG(
+        table._v_parent, _indexNameOf(table),
+        "Indexes container for table "+table._v_pathname, new=True)
+    return itgroup
+
+
+def createIndexesDescr(igroup, dname, iname, filters):
+    idgroup = IndexesDescG(
+        igroup, iname,
+        "Indexes container for sub-description "+dname,
+        filters=filters, new=True)
+    return idgroup
+
+
 def _column__createIndex(self, kind, optlevel, filters, tmp_dir,
                          blocksizes, verbose):
     name = self.name
@@ -228,7 +244,7 @@ def _column__createIndex(self, kind, optlevel, filters, tmp_dir,
     try:
         itgroup = getNode(_indexPathnameOf(table))
     except NoSuchNodeError:
-        itgroup = table._createIndexesTable()
+        itgroup = createIndexesTable(table)
 
     # Create the necessary intermediate groups for descriptors
     idgroup = itgroup
@@ -244,8 +260,7 @@ def _column__createIndex(self, kind, optlevel, filters, tmp_dir,
             try:
                 idgroup = getNode('%s/%s' % (itgroup._v_pathname, dname))
             except NoSuchNodeError:
-                idgroup = table._createIndexesDescr(
-                    idgroup, dname, iname, filters)
+                idgroup = createIndexesDescr(idgroup, dname, iname, filters)
 
     # Create the atom
     assert dtype.shape == ()

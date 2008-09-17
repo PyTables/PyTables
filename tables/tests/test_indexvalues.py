@@ -22,8 +22,7 @@ fzset = frozenset
 random.seed(19)
 
 # Sensible parameters for indexing with small blocksizes
-small_blocksizes = (16, 8, 4, 2)  # This params runs a bit faster but...
-#small_blocksizes = (180, 45, 15, 5)   # these others should also work
+small_blocksizes = (16, 8, 4, 2)  # The smaller set of parameters...
 # The size for medium indexes
 minRowIndex = 1000
 
