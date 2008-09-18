@@ -2,7 +2,7 @@ import numpy as np
 import tables
 from time import time
 
-N = 1000*200
+N = 1000*1000
 NCOLL = 200  # 200 collections maximum
 
 # In order to have reproducible results
@@ -42,11 +42,14 @@ table = f.root.Energies
 #########################################################
 t1 = time()
 t = table[:] # convert to structured array
+coll1 = []
 collections = np.unique(t['collection'])
 for c in collections:
     cond = t['collection'] == c
     energy_this_collection = t['energy'][cond]
-    print c,' : ', energy_this_collection.sum()
+    sener = energy_this_collection.sum()
+    coll1.append(sener)
+    print c,' : ', sener
 del collections, energy_this_collection
 print "Time for first solution: %.3f" % (time()-t1)
 
@@ -63,9 +66,12 @@ for row in table:
     else:
         collections[c] = [e]
 # Convert the lists in numpy arrays
+coll2 = []
 for c in sorted(collections):
     energy_this_collection = np.array(collections[c])
-    print c,' : ', energy_this_collection.sum()
+    sener = energy_this_collection.sum()
+    coll2.append(sener)
+    print c,' : ', sener
 del collections, energy_this_collection
 print "Time for second solution: %.3f" % (time()-t1)
 
@@ -79,10 +85,15 @@ if tables.is_pro:
 # Third solution: load each collection separately
 #########################################################
 t1 = time()
+coll3 = []
 for c in np.unique(table.col('collection')) :
     energy_this_collection = table.readWhere('collection == c', field='energy')
-    print c,' : ', energy_this_collection.sum()
+    sener = energy_this_collection.sum()
+    coll3.append(sener)
+    print c,' : ', sener
 del energy_this_collection
 print "Time for third solution: %.3f" % (time()-t1)
+
+assert coll1 == coll2 == coll3
 
 f.close()

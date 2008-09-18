@@ -1179,35 +1179,35 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.reorder_slices(tmp=True)
 
 
-    def read_slice(self, where, nslice, buffer):
+    def read_slice(self, where, nslice, buffer, start=0):
         """Read a slice from the `where` dataset and put it in `buffer`."""
-        self.startl[:] = (nslice, 0)
-        self.stopl[:] = (nslice+1, self.slicesize)
+        self.startl[:] = (nslice, start)
+        self.stopl[:] = (nslice+1, start+buffer.size)
         where._g_readSlice(self.startl, self.stopl, self.stepl, buffer)
 
 
-    def write_slice(self, where, nslice, buffer):
+    def write_slice(self, where, nslice, buffer, start=0):
         """Write a `slice` to the `where` dataset with the `buffer` data."""
-        self.startl[:] = (nslice, 0)
-        self.stopl[:] = (nslice+1, self.slicesize)
+        self.startl[:] = (nslice, start)
+        self.stopl[:] = (nslice+1, start+buffer.size)
         countl = self.stopl - self.startl   # (1, self.slicesize)
         where._modify(self.startl, self.stepl, countl, buffer)
 
 
     # Read version for LastRow
-    def read_sliceLR(self, where, buffer):
+    def read_sliceLR(self, where, buffer, start=0):
         """Read a slice from the `where` dataset and put it in `buffer`."""
-        startl = numpy.array([0], dtype=numpy.uint64)
-        stopl = numpy.array([buffer.size], dtype=numpy.uint64)
+        startl = numpy.array([start], dtype=numpy.uint64)
+        stopl = numpy.array([start+buffer.size], dtype=numpy.uint64)
         stepl = numpy.array([1], dtype=numpy.uint64)
         where._g_readSlice(startl, stopl, stepl, buffer)
 
 
     # Write version for LastRow
-    def write_sliceLR(self, where, buffer):
+    def write_sliceLR(self, where, buffer, start=0):
         """Write a slice from the `where` dataset with the `buffer` data."""
-        startl = numpy.array([0], dtype=numpy.uint64)
-        countl = numpy.array([buffer.size], dtype=numpy.uint64)
+        startl = numpy.array([start], dtype=numpy.uint64)
+        countl = numpy.array([start+buffer.size], dtype=numpy.uint64)
         stepl = numpy.array([1], dtype=numpy.uint64)
         where._modify(startl, stepl, countl, buffer)
 
@@ -1543,6 +1543,54 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Save the number of overlaps for future reference
         self.noverlaps = noverlaps
         return (noverlaps, multiplicity, toverlap)
+
+
+    def read_sorted_indices(self, what, start, stop):
+        """Return the sorted or indices values between `start` and `stop`"""
+
+        if start is None:
+            start = 0
+        if stop is None:
+            stop = self.nelements
+        if ((start < 0 or start > self.nelements) or
+            (stop < 0 or stop > self.nelements)):
+            raise ValueError, "Bounds out of limits."
+        if start >= stop:
+            return numpy.empty(0, self.dtype)
+        if what == "sorted":
+            values = self.sorted;  valuesLR = self.sortedLR
+            buffer_ = numpy.empty(stop-start, dtype=self.dtype)
+        else:
+            values = self.indices;  valuesLR = self.indicesLR
+            buffer_ = numpy.empty(stop-start, dtype="u%d"%self.indsize)
+        ss = self.slicesize
+        nrow_start = start // ss;  istart = start % ss
+        nrow_stop = stop // ss;  tlen = stop - start
+        bstart = 0;  ilen = 0
+        for nrow in xrange(nrow_start, nrow_stop+1):
+            blen = ss - istart
+            if ilen+blen > tlen:
+                blen = tlen - ilen
+            if blen <= 0:
+                break
+            if nrow < self.nslices:
+                self.read_slice(
+                    values, nrow, buffer_[bstart:bstart+blen], istart)
+            else:
+                self.read_sliceLR(
+                    valuesLR, buffer_[bstart:bstart+blen], istart)
+            istart = 0;  bstart += blen;  ilen += blen
+        return buffer_
+
+
+    def read_sorted(self, start=None, stop=None):
+        """Return the sorted values between `start` and `stop`"""
+        return self.read_sorted_indices('sorted', start, stop)
+
+
+    def read_indices(self, start=None, stop=None):
+        """Return the indices values between `start` and `stop`"""
+        return self.read_sorted_indices('indices', start, stop)
 
 
     def restorecache(self):
