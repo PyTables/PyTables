@@ -236,7 +236,7 @@ class Table(tableExtension.Table, Leaf):
 
     * col(name)
     * iterrows([start][, stop][, step])
-    * itersequence(sequence[, sort])
+    * itersequence(sequence)
     * read([start][, stop][, step][, field][, coords])
     * readCoordinates(coords[, field])
     * __getitem__(key)
@@ -1266,14 +1266,9 @@ class Table(tableExtension.Table, Leaf):
         return internal_to_flavor(coords, self.flavor)
 
 
-    def itersequence(self, sequence, sort=False):
+    def itersequence(self, sequence):
         """
         Iterate over a `sequence` of row coordinates.
-
-        A true value for `sort` means that the `sequence` will be sorted
-        so that I/O *might* perform better.  If your sequence is already
-        sorted or you don't want to sort it, leave this parameter as
-        false.  The default is not to sort the `sequence`.
 
         .. Note:: This iterator can be nested (see `Table.where()` for
            an example).
@@ -1282,15 +1277,43 @@ class Table(tableExtension.Table, Leaf):
         if not hasattr(sequence, '__getitem__'):
             raise TypeError("""\
 Wrong 'sequence' parameter type. Only sequences are suported.""")
-        if len(sequence) == 0:
+        # start, stop and step are necessary for the new iterator
+        # for coordinates, and perhaps it would be useful to add
+        # them as parameters in the future (not now, because I've just
+        # removed the `sort` argument for 2.1).
+        # F. Alted 2008-09-18
+        (start, stop, step) = self._processRangeRead(None, None, None)
+        if (start > stop) or (len(sequence) == 0):
             return iter([])
-        coords = numpy.asarray(sequence, dtype=SizeType)
-        # That might allow the retrieving on a sequential order
-        # although this is not totally clear.
-        if sort:
-            sequence.sort()
         row = tableExtension.Row(self)
-        return row._iter(coords=sequence)
+        return row._iter(start, stop, step, coords=sequence)
+
+
+    def itersorted(self, sortkey, start=None, stop=None, step=None):
+        """Iterate over the table following the order specified by `sortkey`.
+
+        `sortkey` must have associated a completely sorted index so as
+        to ensure that a fully sorted series of values are returned.
+
+        If you specify a `start`, `stop` and `step` parameters, only the
+        *sorted* values in this range are returned.
+        """
+
+        if sortkey not in self.description._v_names:
+            raise (KeyError, "Field `%s` not found in table `%s`" % \
+                   (sortkey, self))
+        icol = self.cols._f_col(sortkey)
+        if not icol.is_indexed or not icol.is_index_completely_sorted:
+            raise (ValueError,
+                   "Field `%s` must have associated a completely "
+                   "sorted index in table `%s`" % (sortkey, self))
+        # Adjust the slice to be used.
+        (start, stop, step) = self._processRangeRead(start, stop, step)
+        if start >= stop:  # empty range
+            return iter([])
+        (start, stop, step) = self._processRangeRead(start, stop, step)
+        row = tableExtension.Row(self)
+        return row._iter(start, stop, step, coords=icol.index)
 
 
     def iterrows(self, start=None, stop=None, step=None):
@@ -2148,8 +2171,9 @@ The 'names' parameter must be a list of strings.""")
         """Generate index in `other` table for every indexed column here."""
         oldcols, newcols = self.colinstances, other.colinstances
         for colname in newcols:
-            oldcolindex = oldcols[colname].index
-            if oldcolindex:
+            oldcolindexed = oldcols[colname].is_indexed
+            if oldcolindexed:
+                oldcolindex = oldcols[colname].index
                 newcol = newcols[colname]
                 newcol.createIndex(
                     oldcolindex.kind, oldcolindex.optlevel,
@@ -3066,8 +3090,8 @@ class Column(object):
         self._tableFile._checkWritable()
 
         # Remove the index if existing.
-        index = self.index
-        if index:
+        if self.is_indexed:
+            index = self.index
             index._f_remove()
             self._updateIndexLocation(None)
             self.table._setColumnIndexing(self.pathname, False)

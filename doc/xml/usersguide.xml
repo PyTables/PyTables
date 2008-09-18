@@ -555,16 +555,9 @@ fileh.close()</screen>
       <para>However, if you are running Windows and want to install
       precompiled binaries, you can jump straight to <xref
       linkend="binaryInstallationDescr" xrefstyle="select: label" />. In
-      addition, packages are available for many different Linux distributions,
-      for instance <ulink url="http://www.t2-project.org">T2 Project</ulink>,
-      <ulink url="http://www.debian.org/"><literal>Debian</literal></ulink>,
-      or <ulink
-      url="http://www.ubuntu.com/"><literal>Ubuntu</literal></ulink>, among
-      others. There are also packages for other Unices like <ulink
-      url="http://www.freshports.org/"><literal>FreeBSD</literal></ulink> or
-      <literal>MacOSX</literal> (see <ulink
-      url="http://darwinports.com/">Darwinports</ulink> or <ulink
-      url="http://pdb.finkproject.org">Fink</ulink> repositories).</para>
+      addition, binary packages are available for many different Linux
+      distributions, MacOSX and other Unices.  Just check the package
+      repository for your preferred operating system.</para>
 
       <section id="sourceInstallationDescr">
         <title>Installation from source</title>
@@ -1868,7 +1861,7 @@ class Table(tableExtension.Table, tables.leaf.Leaf)
  |  
  |  * col(name)
  |  * iterrows([start][, stop][, step])
- |  * itersequence(sequence[, sort])
+ |  * itersequence(sequence)
  |  * read([start][, stop][, step][, field][, coords])
  |  * readCoordinates(coords[, field])
  |  * __getitem__(key)
@@ -6765,17 +6758,10 @@ for node in h5file.root.detector:
           </section>
 
           <section id="Table.itersequence">
-            <title>itersequence(sequence, sort=True)</title>
+            <title>itersequence(sequence)</title>
 
             <para>Iterate over a <literal>sequence</literal> of row
             coordinates.</para>
-
-            <para>A true value for <literal>sort</literal> means that the
-            <literal>sequence</literal> will be sorted so that I/O
-            <emphasis>might</emphasis> perform better.  If your sequence is
-            already sorted or you don't want to sort it, leave this parameter
-            as false.  The default is not to sort the
-            <literal>sequence</literal>.</para>
 
             <note>
               <para>This iterator can be nested (see
@@ -7658,8 +7644,8 @@ table.flush()</screen>
               <para>Retrieve all the fields in the current row.</para>
 
               <para>Contrarily to <literal>row[:]</literal> (see <xref
-              linkend="RowSpecialMethods" xrefstyle="select: label" />), this
-              returns row data as a NumPy void scalar.  For instance:</para>
+              linkend="RowSpecialMethods" />), this returns row data as a
+              NumPy void scalar.  For instance:</para>
 
               <screen>[row.fetch_all_fields() for row in table.where('col1 &lt; 3')]</screen>
 

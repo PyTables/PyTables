@@ -37,10 +37,9 @@ import tables
 from tables.flavor import ( check_flavor, internal_flavor,
                             alias_map as flavor_alias_map )
 from tables import hdf5Extension
-from tables import utilsExtension
 from tables.node import Node
 from tables.filters import Filters
-from tables.utils import idx2long, byteorders, lazyattr, SizeType
+from tables.utils import byteorders, lazyattr, SizeType
 from tables.parameters import CHUNKTIMES, BUFFERTIMES
 from tables.exceptions import PerformanceWarning
 
@@ -428,34 +427,6 @@ very small/large chunksize, you may want to increase/decrease it."""
 #                    f.f_code.co_name,
 #                    f.f_code.co_filename, f.f_lineno,),
         return nrowsinbuf
-
-
-    # This method is appropriate for calls to __getitem__ methods
-    def _processRange(self, start, stop, step, dim=None):
-        if dim is None:
-            nrows = self.nrows  # self.shape[self.maindim]
-        else:
-            nrows = self.shape[dim]
-
-        if step and step < 0:
-            raise ValueError("slice step cannot be negative")
-        # (start, stop, step) = slice(start, stop, step).indices(nrows)  # Python > 2.3
-        # The next function is a substitute for slice().indices in order to
-        # support full 64-bit integer for slices (Python 2.4 does not
-        # support that yet)
-        # F. Alted 2005-05-08
-        # In order to convert possible numpy.integer values to long ones
-        # F. Alted 2006-05-02
-        if start is not None: start = idx2long(start)
-        if stop is not None: stop = idx2long(stop)
-        if step is not None: step = idx2long(step)
-        (start, stop, step) = utilsExtension.getIndices(
-            slice(start, stop, step), long(nrows) )
-
-        # Some protection against empty ranges
-        if start > stop:
-            start = stop
-        return (start, stop, step)
 
 
     # This method is appropiate for calls to read() methods

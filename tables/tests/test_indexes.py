@@ -1500,7 +1500,8 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     """Test case for testing a complete sort in a table."""
 
     class MyDescription(IsDescription):
-        icol = IntCol()
+        rcol = IntCol(pos=1)
+        icol = IntCol(pos=2)
 
     def setUp(self):
         super(CompletelySortedIndexTestCase, self).setUp()
@@ -1508,6 +1509,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         row = table.row
         nrows = 100
         for i in xrange(nrows):
+            row['rcol'] = i
             row['icol'] = nrows - i
             row.append()
         table.flush()
@@ -1564,21 +1566,11 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
             print "The values from the index:", sortedcol2
         assert allequal(sortedcol, sortedcol2)
 
-    def test_read_sorted4(self):
-        """Testing the Index.read_sorted() method with arguments (III)."""
-        icol = self.icol
-        sortedcol = numpy.sort(icol[:])[32:96]
-        sortedcol2 = icol.index.read_sorted(32, 96)
-        if verbose:
-            print "Original sorted column:", sortedcol
-            print "The values from the index:", sortedcol2
-        assert allequal(sortedcol, sortedcol2)
-
 
     def test_read_indices1(self):
         """Testing the Index.read_indices() method with no arguments."""
         icol = self.icol
-        indicescol = numpy.argsort(icol[:])
+        indicescol = numpy.argsort(icol[:]).astype('uint64')
         indicescol2 = icol.index.read_indices()
         if verbose:
             print "Original indices column:", indicescol
@@ -1589,7 +1581,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     def test_read_indices2(self):
         """Testing the Index.read_indices() method with arguments (I)."""
         icol = self.icol
-        indicescol = numpy.argsort(icol[:])[30:55]
+        indicescol = numpy.argsort(icol[:])[30:55].astype('uint64')
         indicescol2 = icol.index.read_indices(30, 55)
         if verbose:
             print "Original indices column:", indicescol
@@ -1600,22 +1592,72 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     def test_read_indices3(self):
         """Testing the Index.read_indices() method with arguments (II)."""
         icol = self.icol
-        indicescol = numpy.argsort(icol[:])[33:97]
+        indicescol = numpy.argsort(icol[:])[33:97].astype('uint64')
         indicescol2 = icol.index.read_indices(33, 97)
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
         assert allequal(indicescol, indicescol2)
 
-    def test_read_indices4(self):
-        """Testing the Index.read_indices() method with arguments (III)."""
+
+    def test_getitem1(self):
+        """Testing the Index.__getitem__() method with no arguments."""
         icol = self.icol
-        indicescol = numpy.argsort(icol[:])[32:96]
-        indicescol2 = icol.index.read_indices(32, 96)
+        indicescol = numpy.argsort(icol[:]).astype('uint64')
+        indicescol2 = icol.index[:]
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
         assert allequal(indicescol, indicescol2)
+
+
+    def test_getitem2(self):
+        """Testing the Index.__getitem__() method with start."""
+        icol = self.icol
+        indicescol = numpy.argsort(icol[:])[31].astype('uint64')
+        indicescol2 = icol.index[31]
+        if verbose:
+            print "Original indices column:", indicescol
+            print "The values from the index:", indicescol2
+        assert allequal(indicescol, indicescol2)
+
+
+    def test_getitem3(self):
+        """Testing the Index.__getitem__() method with start, stop."""
+        icol = self.icol
+        indicescol = numpy.argsort(icol[:])[2:16].astype('uint64')
+        indicescol2 = icol.index[2:16]
+        if verbose:
+            print "Original indices column:", indicescol
+            print "The values from the index:", indicescol2
+        assert allequal(indicescol, indicescol2)
+
+
+    def test_itersorted1(self):
+        """Testing the Table.itersorted() method with no arguments."""
+        table = self.table
+        sortedtable = numpy.sort(self.table[:], order='icol')
+        sortedtable2 = numpy.array(
+            [row.fetch_all_fields() for row in table.itersorted(
+            'icol')], dtype=table._v_dtype)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from the iterator:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
+    def test_itersorted2(self):
+        """Testing the Table.itersorted() method with no arguments."""
+        table = self.table
+        sortedtable = numpy.sort(self.table[:], order='icol')[15:20]
+        sortedtable2 = numpy.array(
+            [row.fetch_all_fields() for row in table.itersorted(
+            'icol', 15, 20)], dtype=table._v_dtype)
+        print "-->", sortedtable.dtype.type, sortedtable2.dtype.type
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from the iterator:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
 
 
 

@@ -59,7 +59,7 @@ from tables.parameters import (
     SORTEDLR_MAX_SLOTS, SORTEDLR_MAX_SIZE,
     MAX_GROUP_WIDTH )
 from tables.exceptions import PerformanceWarning
-from tables.utils import lazyattr
+from tables.utils import is_idx, lazyattr
 
 from tables.lrucacheExtension import ObjectCache
 
@@ -1591,6 +1591,25 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def read_indices(self, start=None, stop=None):
         """Return the indices values between `start` and `stop`"""
         return self.read_sorted_indices('indices', start, stop)
+
+
+    def __getitem__(self, key):
+        if is_idx(key):
+            if key < 0:
+                # To support negative values
+                key += self.nelements
+            (start, stop, step) = self._processRange(key, key+1, 1)
+            return self.read_indices(start, stop)[0]
+        elif isinstance(key, slice):
+            (start, stop, step) = self._processRange(
+                key.start, key.stop, key.step)
+            if step != 1:
+                raise IndexError, "steps in slices are not supported here."
+            return self.read_indices(start, stop)
+
+
+    def __len__(self):
+        return self.nelements
 
 
     def restorecache(self):

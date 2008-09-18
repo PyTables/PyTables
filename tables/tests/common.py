@@ -121,13 +121,13 @@ def allequal(a,b, flavor="numpy"):
             if shape == ():
                 a = numpy.array(a.tostring(), dtype="S1")
             else:
-                a = numpy.array(a.tolist(), dtype="S1")                
+                a = numpy.array(a.tolist(), dtype="S1")
             a.shape = shape
             shape = b.shape
             if shape == ():
                 b = numpy.array(a.tostring(), dtype="S1")
             else:
-                b = numpy.array(a.tolist(), dtype="S1")                
+                b = numpy.array(a.tolist(), dtype="S1")
             b.shape = shape
         else:
             a = numpy.asarray(a)
@@ -147,9 +147,9 @@ def allequal(a,b, flavor="numpy"):
             print "Shape is not equal:", a.shape, "!=", b.shape
         return 0
 
-    if hasattr(b, "type") and a.type() != b.type():
+    if hasattr(b, "dtype") and a.dtype.type != b.dtype.type:
         if verbose:
-            print "Type is not equal:", a.type(), "!=", b.type()
+            print "dtype is not equal:", a.dtype.type, "!=", b.dtype.type
         return 0
 
     # Rank-0 case

@@ -816,10 +816,10 @@ cdef class Row:
 
     self.nrows = table.nrows   # Update the row counter
 
-    if self.coords is not None:
-      self.stopindex = len(coords)
-      self.nrowsread = 0
-      self.nextelement = 0
+    if coords is not None:
+      self.nrowsread = start
+      self.nextelement = start
+      self.stopindex = min(stop, len(coords))
       return
 
     if table._whereCondition:
@@ -970,7 +970,7 @@ cdef class Row:
         else:
           stop = self.nrowsinbuf
         tmp = self.coords[self.nrowsread:self.nrowsread+stop]
-        self.bufcoords = numpy.array(tmp, dtype="int64")
+        self.bufcoords = numpy.asarray(tmp, dtype="uint64")
         nrowsread = self.bufcoords.size
         self._row = -1
         if self.bufcoords.size > 0:
@@ -982,6 +982,10 @@ cdef class Row:
         self.nextelement = self.nextelement + nrowsread - recout
         if recout == 0:
           # no items were read, skip out
+          continue
+        if (self.step > 1 and
+            ((self._nrow - self.startindex) % self.step > 0)):
+          self.nextelement = self.nextelement + 1
           continue
       self._row = self._row + 1
       self._nrow = self.bufcoordsData[self._row]
