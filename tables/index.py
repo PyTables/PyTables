@@ -1580,11 +1580,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 self.read_sliceLR(
                     valuesLR, buffer_[bstart:bstart+blen], istart)
             istart = 0;  bstart += blen;  ilen += blen
-        if step > 1:
-            # We need a contiguous buffer!
-            return buffer_[::step]
-        else:
-            return buffer_
+        return buffer_[::step]
 
 
     def read_sorted(self, start=None, stop=None, step=None):
