@@ -59,7 +59,7 @@ from tables.parameters import (
     SORTEDLR_MAX_SLOTS, SORTEDLR_MAX_SIZE,
     MAX_GROUP_WIDTH )
 from tables.exceptions import PerformanceWarning
-from tables.utils import is_idx, lazyattr
+from tables.utils import is_idx, idx2long, lazyattr
 
 from tables.lrucacheExtension import ObjectCache
 
@@ -1548,15 +1548,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def read_sorted_indices(self, what, start, stop, step):
         """Return the sorted or indices values in the specified range."""
 
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = self.nelements
-        if ((start < 0 or start > self.nelements) or
-            (stop < 0 or stop > self.nelements)):
-            raise ValueError, "Bounds out of limits."
+        (start, stop, step) = self._processRange(start, stop, step)
         if start >= stop:
             return numpy.empty(0, self.dtype)
+        # Correction for negative values of step (reverse indices)
+        if step < 0:
+            tmp = start
+            start = self.nelements - stop
+            stop = self.nelements - tmp
         if what == "sorted":
             values = self.sorted;  valuesLR = self.sortedLR
             buffer_ = numpy.empty(stop-start, dtype=self.dtype)
@@ -1593,17 +1592,35 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         return self.read_sorted_indices('indices', start, stop, step)
 
 
+    def _processRange(self, start, stop, step):
+        """Get a range specifc for the index usage."""
+        if start is not None and stop is None:
+            # Special case for the behaviour of PyTables iterators
+            stop = idx2long(start+1)
+        if start is None:
+            start = 0L
+        else:
+            start = idx2long(start)
+        if stop is None:
+            stop = idx2long(self.nelements)
+        else:
+            stop = idx2long(stop)
+        if step is None:
+            step = 1L
+        else:
+            step = idx2long(step)
+        return (start, stop, step)
+
+
     def __getitem__(self, key):
+        """Return the indices values in the specified range."""
         if is_idx(key):
             if key < 0:
                 # To support negative values
                 key += self.nelements
-            (start, stop, step) = self._processRange(key, key+1, 1)
-            return self.read_indices(start, stop)[0]
+            return self.read_indices(key, key+1, 1)[0]
         elif isinstance(key, slice):
-            (start, stop, step) = self._processRange(
-                key.start, key.stop, key.step)
-            return self.read_indices(start, stop, step)
+            return self.read_indices(key.start, key.stop, key.step)
 
 
     def __len__(self):

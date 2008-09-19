@@ -30,10 +30,9 @@ from tables.registry import classNameDict, classIdDict
 from tables.exceptions import \
      ClosedNodeError, NodeError, UndoRedoWarning, PerformanceWarning
 from tables.path import joinPath, splitPath, isVisiblePath
-from tables.utils import idx2long, lazyattr
+from tables.utils import lazyattr
 from tables.undoredo import moveToShadow
 from tables.attributeset import AttributeSet, NotLoggedAttributeSet
-from tables import utilsExtension
 
 
 
@@ -952,36 +951,6 @@ you may want to use the ``overwrite`` argument""" % (parent._v_pathname, name))
         delattr(self._v_attrs, name)
 
     # </attribute handling>
-
-
-    # This method is appropriate for calls to __getitem__ methods.  It
-    # is here (and not in Leaf) because it is useful for the Index class
-    # which inherits from Group and not from Leaf.
-    def _processRange(self, start, stop, step, dim=None):
-        if dim is None:
-            nrows = len(self)  # self.shape[self.maindim]
-        else:
-            nrows = self.shape[dim]
-
-        if step and step < 0:
-            raise ValueError("slice step cannot be negative")
-        # In order to convert possible numpy.integer values to long ones
-        # F. Alted 2006-05-02
-        if start is not None: start = idx2long(start)
-        if stop is not None: stop = idx2long(stop)
-        if step is not None: step = idx2long(step)
-        # (start, stop, step) = slice(start, stop, step).indices(nrows)
-        # The next function is a substitute for slice().indices in order to
-        # support full 64-bit integer for slices even in 32-bit machines.
-        # F. Alted 2005-05-08
-        (start, stop, step) = utilsExtension.getIndices(
-            slice(start, stop, step), long(nrows) )
-
-        # Some protection against empty ranges
-        if start > stop:
-            start = stop
-        return (start, stop, step)
-
 
 
 

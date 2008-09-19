@@ -1277,16 +1277,33 @@ class Table(tableExtension.Table, Leaf):
         if not hasattr(sequence, '__getitem__'):
             raise TypeError("""\
 Wrong 'sequence' parameter type. Only sequences are suported.""")
-        # start, stop and step are necessary for the new iterator
-        # for coordinates, and perhaps it would be useful to add
-        # them as parameters in the future (not now, because I've just
-        # removed the `sort` argument for 2.1).
+        # start, stop and step are necessary for the new iterator for
+        # coordinates, and perhaps it would be useful to add them as
+        # parameters in the future (not now, because I've just removed
+        # the `sort` argument for 2.1).
+        #
+        # *Important note*: Negative values for step are not supported
+        # for the general case, but only for the itersorted() and
+        # readSorted() purposes!  The self._processRangeRead will raise
+        # an appropiate error.
         # F. Alted 2008-09-18
         (start, stop, step) = self._processRangeRead(None, None, None)
         if (start > stop) or (len(sequence) == 0):
             return iter([])
         row = tableExtension.Row(self)
         return row._iter(start, stop, step, coords=sequence)
+
+
+    def _check_index_is_CSI(self, sortkey):
+        if sortkey not in self.description._v_names:
+            raise (KeyError, "Field `%s` not found in table `%s`" % \
+                   (sortkey, self))
+        icol = self.cols._f_col(sortkey)
+        if not icol.is_indexed or not icol.is_index_completely_sorted:
+            raise (ValueError,
+                   "Field `%s` must have associated a completely "
+                   "sorted index in table `%s`" % (sortkey, self))
+        return icol.index
 
 
     def itersorted(self, sortkey, start=None, stop=None, step=None):
@@ -1297,22 +1314,18 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         If you specify a `start`, `stop` and `step` parameters, only the
         values in this *sorted* range are returned.
-        """
 
-        if sortkey not in self.description._v_names:
-            raise (KeyError, "Field `%s` not found in table `%s`" % \
-                   (sortkey, self))
-        icol = self.cols._f_col(sortkey)
-        if not icol.is_indexed or not icol.is_index_completely_sorted:
-            raise (ValueError,
-                   "Field `%s` must have associated a completely "
-                   "sorted index in table `%s`" % (sortkey, self))
+        *Important note*: in this case a negative value of `step` is
+        supported and means that the results will be returned in reverse
+        sorted order.
+        """
+        index = self._check_index_is_CSI(sortkey)
         # Adjust the slice to be used.
-        (start, stop, step) = self._processRangeRead(start, stop, step)
-        if start >= stop:  # empty range
+        (start, stop, step) = index._processRange(start, stop, step)
+        if (start >= stop):
             return iter([])
         row = tableExtension.Row(self)
-        return row._iter(start, stop, step, coords=icol.index)
+        return row._iter(start, stop, step, coords=index)
 
 
     def readSorted( self, sortkey, field=None,
@@ -1328,6 +1341,10 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         If you specify a `start`, `stop` and `step` parameters, only the
         values in this *sorted* range are returned.
+
+        *Important note*: in this case a negative value of `step` is
+        supported and means that the results will be returned in reverse
+        sorted order.
         """
         self._checkFieldIfNumeric(field)
         coords = [ p.nrow for p in

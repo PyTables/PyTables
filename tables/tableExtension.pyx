@@ -684,7 +684,7 @@ cdef class Row:
   """
 
   cdef long _row, _unsaved_nrows, _mod_nrows
-  cdef hsize_t start, stop, step, nextelement, _nrow
+  cdef hsize_t start, stop, step, absstep, nextelement, _nrow
   cdef hsize_t nrowsinbuf, nrows, nrowsread
   cdef hsize_t chunksize, nchunksinbuf, totalchunks
   cdef hsize_t startb, stopb, lenbuf
@@ -820,6 +820,7 @@ cdef class Row:
       self.nrowsread = start
       self.nextelement = start
       self.stop = min(stop, len(coords))
+      self.absstep = abs(step)
       return
 
     if table._whereCondition:
@@ -984,7 +985,7 @@ cdef class Row:
           continue
       self._row = self._row + 1
       self._nrow = self.bufcoordsData[self._row]
-      self.nextelement = self.nextelement + self.step
+      self.nextelement = self.nextelement + self.absstep
       return self
     else:
       # All the elements have been read for this mode
