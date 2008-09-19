@@ -1296,7 +1296,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         to ensure that a fully sorted series of values are returned.
 
         If you specify a `start`, `stop` and `step` parameters, only the
-        *sorted* values in this range are returned.
+        values in this *sorted* range are returned.
         """
 
         if sortkey not in self.description._v_names:
@@ -1311,7 +1311,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start >= stop:  # empty range
             return iter([])
-        (start, stop, step) = self._processRangeRead(start, stop, step)
         row = tableExtension.Row(self)
         return row._iter(start, stop, step, coords=icol.index)
 

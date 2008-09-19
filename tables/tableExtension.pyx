@@ -685,7 +685,7 @@ cdef class Row:
 
   cdef long _row, _unsaved_nrows, _mod_nrows
   cdef hsize_t start, stop, step, nextelement, _nrow
-  cdef hsize_t nrowsinbuf, nrows, nrowsread, stopindex
+  cdef hsize_t nrowsinbuf, nrows, nrowsread, startindex, stopindex
   cdef hsize_t chunksize, nchunksinbuf, totalchunks
   cdef hsize_t startb, stopb, lenbuf
   cdef long long indexChunk
@@ -819,6 +819,7 @@ cdef class Row:
     if coords is not None:
       self.nrowsread = start
       self.nextelement = start
+      self.startindex = start
       self.stopindex = min(stop, len(coords))
       return
 
@@ -983,13 +984,12 @@ cdef class Row:
         if recout == 0:
           # no items were read, skip out
           continue
-        if (self.step > 1 and
-            ((self._nrow - self.startindex) % self.step > 0)):
-          self.nextelement = self.nextelement + 1
-          continue
       self._row = self._row + 1
       self._nrow = self.bufcoordsData[self._row]
       self.nextelement = self.nextelement + 1
+      if (self.step > 1 and
+          ((self._nrow - self.startindex) % self.step > 0)):
+        continue
       return self
     else:
       # All the elements have been read for this mode

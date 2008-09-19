@@ -1647,13 +1647,51 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
 
     def test_itersorted2(self):
-        """Testing the Table.itersorted() method with no arguments."""
+        """Testing the Table.itersorted() method with a start."""
+        table = self.table
+        sortedtable = numpy.sort(self.table[:], order='icol')[15:16]
+        sortedtable2 = numpy.array(
+            [row.fetch_all_fields() for row in table.itersorted(
+            'icol', start=15)], dtype=table._v_dtype)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from the iterator:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
+    def test_itersorted3(self):
+        """Testing the Table.itersorted() method with a stop."""
+        table = self.table
+        sortedtable = numpy.sort(self.table[:], order='icol')[:20]
+        sortedtable2 = numpy.array(
+            [row.fetch_all_fields() for row in table.itersorted(
+            'icol', stop=20)], dtype=table._v_dtype)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from the iterator:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
+    def test_itersorted4(self):
+        """Testing the Table.itersorted() method with a start and stop."""
         table = self.table
         sortedtable = numpy.sort(self.table[:], order='icol')[15:20]
         sortedtable2 = numpy.array(
             [row.fetch_all_fields() for row in table.itersorted(
             'icol', 15, 20)], dtype=table._v_dtype)
-        print "-->", sortedtable.dtype.type, sortedtable2.dtype.type
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from the iterator:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
+    def test_itersorted5(self):
+        """Testing the Table.itersorted() method with a start, stop and step."""
+        table = self.table
+        sortedtable = numpy.sort(self.table[:], order='icol')[15:45:3]
+        sortedtable2 = numpy.array(
+            [row.fetch_all_fields() for row in table.itersorted(
+            'icol', start=15, stop=45, step=3)], dtype=table._v_dtype)
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2
