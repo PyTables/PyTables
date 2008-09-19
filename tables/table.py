@@ -2179,9 +2179,25 @@ The 'names' parameter must be a list of strings.""")
         self._doReIndex(dirty=True)
 
 
-    def _g_copyRows(self, object, start, stop, step):
+    def _g_copyRows(self, object, start, stop, step, sortkey):
         "Copy rows from self to object"
-        (start, stop, step) = self._processRangeRead(start, stop, step)
+        lenbuf = self.nrowsinbuf
+        absstep = abs(step)
+        for start2 in lrange(start, stop, absstep*lenbuf):
+            # Save the records on disk
+            stop2 = start2+absstep*lenbuf
+            if stop2 > stop:
+                stop2 = stop
+            if sortkey is None:
+                rows = self[start2:stop2:step]
+            else:
+                rows = self.readSorted(sortkey, None, start2, stop2, step)
+            object.append(rows)
+        object.flush()
+
+
+    def _g_copyRows_orig(self, object, start, stop, step):
+        "Copy rows from self to object"
         nrowsinbuf = self.nrowsinbuf
         object._open_append(self._v_iobuf)
         nrowsdest = object.nrows
@@ -2217,13 +2233,13 @@ The 'names' parameter must be a list of strings.""")
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, _log):
+                         title, filters, sortkey, _log):
         "Private part of Leaf.copy() for each kind of leaf"
         # Create the new table and copy the selected data.
         newtable = Table( group, name, self.description, title=title,
                           filters=filters, expectedrows=self.nrows,
                           _log=_log )
-        self._g_copyRows(newtable, start, stop, step)
+        self._g_copyRows(newtable, start, stop, step, sortkey)
         nbytes = newtable.nrows * newtable.rowsize
         # We need to look at the HDF5 attribute to tell whether an index
         # property was explicitly set by the user.

@@ -430,13 +430,13 @@ very small/large chunksize, you may want to increase/decrease it."""
 
 
     # This method is appropriate for calls to __getitem__ methods
-    def _processRange(self, start, stop, step, dim=None):
+    def _processRange(self, start, stop, step, dim=None, warn_negstep=True):
         if dim is None:
             nrows = len(self)  # self.shape[self.maindim]
         else:
             nrows = self.shape[dim]
 
-        if step and step < 0:
+        if warn_negstep and step and step < 0 :
             raise ValueError("slice step cannot be negative")
         # In order to convert possible numpy.integer values to long ones
         # F. Alted 2006-05-02
@@ -450,15 +450,15 @@ very small/large chunksize, you may want to increase/decrease it."""
         (start, stop, step) = utilsExtension.getIndices(
             slice(start, stop, step), long(nrows) )
 
-        # Some protection against empty ranges
-        if start > stop:
-            start = stop
         return (start, stop, step)
 
 
     # This method is appropiate for calls to read() methods
-    def _processRangeRead(self, start, stop, step):
+    def _processRangeRead(self, start, stop, step, warn_negstep=True):
         nrows = self.nrows
+        if start is None and stop is None:
+            start = 0
+            stop = nrows
         if start is not None and stop is None:
             # Protection against start greater than available records
             # nrows == 0 is a special case for empty objects
@@ -471,31 +471,34 @@ very small/large chunksize, you may want to increase/decrease it."""
             else:
                 stop = start + 1
         # Finally, get the correct values (over the main dimension)
-        start, stop, step = self._processRange(start, stop, step)
+        start, stop, step = self._processRange(
+            start, stop, step, warn_negstep=warn_negstep)
 
         return (start, stop, step)
 
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         # Compute default arguments.
-        start = kwargs.get('start', 0)
-        stop = kwargs.get('stop', self.nrows)
-        step = kwargs.get('step', 1)
+        start = kwargs.get('start', None)
+        stop = kwargs.get('stop', None)
+        step = kwargs.get('step', None)
         title = kwargs.get('title', self._v_title)
         filters = kwargs.get('filters', self.filters)
+        sortkey = kwargs.get('sortkey', None)
         stats = kwargs.get('stats', None)
 
         # Fix arguments with explicit None values for backwards compatibility.
-        if stop is None:  stop = self.nrows
         if title is None:  title = self._v_title
         if filters is None:  filters = self.filters
 
         # Compute the correct indices.
-        (start, stop, step) = self._processRangeRead(start, stop, step)
+        (start, stop, step) = self._processRangeRead(
+            start, stop, step, warn_negstep = sortkey is None)
 
         # Create a copy of the object.
         (newNode, bytes) = self._g_copyWithStats(
-            newParent, newName, start, stop, step, title, filters, _log)
+            newParent, newName, start, stop, step,
+            title, filters, sortkey, _log)
 
         # Copy user attributes if requested (or the flavor at least).
         if kwargs.get('copyuserattrs', True):
