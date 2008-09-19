@@ -1545,8 +1545,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         return (noverlaps, multiplicity, toverlap)
 
 
-    def read_sorted_indices(self, what, start, stop):
-        """Return the sorted or indices values between `start` and `stop`"""
+    def read_sorted_indices(self, what, start, stop, step):
+        """Return the sorted or indices values in the specified range."""
 
         if start is None:
             start = 0
@@ -1580,17 +1580,21 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 self.read_sliceLR(
                     valuesLR, buffer_[bstart:bstart+blen], istart)
             istart = 0;  bstart += blen;  ilen += blen
-        return buffer_
+        if step > 1:
+            # We need a contiguous buffer!
+            return buffer_[::step]
+        else:
+            return buffer_
 
 
-    def read_sorted(self, start=None, stop=None):
-        """Return the sorted values between `start` and `stop`"""
-        return self.read_sorted_indices('sorted', start, stop)
+    def read_sorted(self, start=None, stop=None, step=None):
+        """Return the sorted values in the specified range."""
+        return self.read_sorted_indices('sorted', start, stop, step)
 
 
-    def read_indices(self, start=None, stop=None):
-        """Return the indices values between `start` and `stop`"""
-        return self.read_sorted_indices('indices', start, stop)
+    def read_indices(self, start=None, stop=None, step=None):
+        """Return the indices values in the specified range."""
+        return self.read_sorted_indices('indices', start, stop, step)
 
 
     def __getitem__(self, key):
@@ -1603,9 +1607,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         elif isinstance(key, slice):
             (start, stop, step) = self._processRange(
                 key.start, key.stop, key.step)
-            if step != 1:
-                raise IndexError, "steps in slices are not supported here."
-            return self.read_indices(start, stop)
+            return self.read_indices(start, stop, step)
 
 
     def __len__(self):

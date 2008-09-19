@@ -1600,6 +1600,39 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         assert allequal(indicescol, indicescol2)
 
 
+    def test_read_indices4(self):
+        """Testing the Index.read_indices() method with arguments (III)."""
+        icol = self.icol
+        indicescol = numpy.argsort(icol[:])[33:97:2].astype('uint64')
+        indicescol2 = icol.index.read_indices(33, 97, 2)
+        if verbose:
+            print "Original indices column:", indicescol
+            print "The values from the index:", indicescol2
+        assert allequal(indicescol, indicescol2)
+
+
+    def test_read_indices5(self):
+        """Testing the Index.read_indices() method with arguments (IV)."""
+        icol = self.icol
+        indicescol = numpy.argsort(icol[:])[33:55:5].astype('uint64')
+        indicescol2 = icol.index.read_indices(33, 55, 5)
+        if verbose:
+            print "Original indices column:", indicescol
+            print "The values from the index:", indicescol2
+        assert allequal(indicescol, indicescol2)
+
+
+    def test_read_indices6(self):
+        """Testing the Index.read_indices() method with step only."""
+        icol = self.icol
+        indicescol = numpy.argsort(icol[:])[::3].astype('uint64')
+        indicescol2 = icol.index.read_indices(step=3)
+        if verbose:
+            print "Original indices column:", indicescol
+            print "The values from the index:", indicescol2
+        assert allequal(indicescol, indicescol2)
+
+
     def test_getitem1(self):
         """Testing the Index.__getitem__() method with no arguments."""
         icol = self.icol
@@ -1749,6 +1782,17 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         table = self.table
         sortedtable = numpy.sort(self.table[:], order='icol')[33:55:5]
         sortedtable2 = table.readSorted('icol', start=33, stop=55, step=5)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from readSorted:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
+    def test_readSorted5(self):
+        """Testing the Table.readSorted() method with only a step."""
+        table = self.table
+        sortedtable = numpy.sort(self.table[:], order='icol')[::3]
+        sortedtable2 = table.readSorted('icol', step=3)
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from readSorted:", sortedtable2

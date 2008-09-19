@@ -685,7 +685,7 @@ cdef class Row:
 
   cdef long _row, _unsaved_nrows, _mod_nrows
   cdef hsize_t start, stop, step, nextelement, _nrow
-  cdef hsize_t nrowsinbuf, nrows, nrowsread, startindex, stopindex
+  cdef hsize_t nrowsinbuf, nrows, nrowsread
   cdef hsize_t chunksize, nchunksinbuf, totalchunks
   cdef hsize_t startb, stopb, lenbuf
   cdef long long indexChunk
@@ -819,8 +819,7 @@ cdef class Row:
     if coords is not None:
       self.nrowsread = start
       self.nextelement = start
-      self.startindex = start
-      self.stopindex = min(stop, len(coords))
+      self.stop = min(stop, len(coords))
       return
 
     if table._whereCondition:
@@ -959,39 +958,33 @@ cdef class Row:
 
   cdef __next__coords(self):
 #     """The version of next() for user-required coordinates"""
-    cdef int recout, nrowsread
-    cdef long long stop, nextelement
+    cdef int recout
+    cdef long long lenbuf, nextelement
     cdef object tmp
 
-    while self.nextelement < self.stopindex:
+    while self.nextelement < self.stop:
       if self.nextelement >= self.nrowsread:
-        # Correction for avoiding reading past self.stopindex
-        if self.nrowsread+self.nrowsinbuf > self.stopindex:
-          stop = self.stopindex-self.nrowsread
+        # Correction for avoiding reading past self.stop
+        if self.nrowsread+self.nrowsinbuf > self.stop:
+          lenbuf = self.stop-self.nrowsread
         else:
-          stop = self.nrowsinbuf
-        tmp = self.coords[self.nrowsread:self.nrowsread+stop]
-        self.bufcoords = numpy.asarray(tmp, dtype="uint64")
-        nrowsread = self.bufcoords.size
+          lenbuf = self.nrowsinbuf
+        tmp = self.coords[self.nrowsread:self.nrowsread+lenbuf:self.step]
+        # We have to get a contiguous buffer, so numpy.array is the way to go
+        self.bufcoords = numpy.array(tmp, dtype="uint64")
         self._row = -1
         if self.bufcoords.size > 0:
           recout = self.table._read_elements(self.IObuf, self.bufcoords)
         else:
           recout = 0
         self.bufcoordsData = <hsize_t*>self.bufcoords.data
-        self.nrowsread = self.nrowsread + nrowsread
-        self.nextelement = self.nextelement + nrowsread - recout
+        self.nrowsread = self.nrowsread + lenbuf
         if recout == 0:
           # no items were read, skip out
           continue
       self._row = self._row + 1
       self._nrow = self.bufcoordsData[self._row]
-      if (self.step > 1 and
-          ((self.nextelement - self.startindex) % self.step > 0)):
-        # Skip this row
-        self.nextelement = self.nextelement + 1
-        continue
-      self.nextelement = self.nextelement + 1
+      self.nextelement = self.nextelement + self.step
       return self
     else:
       # All the elements have been read for this mode
