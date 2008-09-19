@@ -1688,14 +1688,72 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     def test_itersorted5(self):
         """Testing the Table.itersorted() method with a start, stop and step."""
         table = self.table
-        sortedtable = numpy.sort(self.table[:], order='icol')[15:45:3]
+        sortedtable = numpy.sort(self.table[:], order='icol')[15:45:4]
         sortedtable2 = numpy.array(
             [row.fetch_all_fields() for row in table.itersorted(
-            'icol', start=15, stop=45, step=3)], dtype=table._v_dtype)
+            'icol', start=15, stop=45, step=4)], dtype=table._v_dtype)
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2
         assert allequal(sortedtable, sortedtable2)
+
+
+    def test_itersorted6(self):
+        """Testing the Table.itersorted() method with a start, stop and step."""
+        table = self.table
+        sortedtable = numpy.sort(self.table[:], order='icol')[33:55:5]
+        sortedtable2 = numpy.array(
+            [row.fetch_all_fields() for row in table.itersorted(
+            'icol', start=33, stop=55, step=5)], dtype=table._v_dtype)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from the iterator:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
+    def test_readSorted1(self):
+        """Testing the Table.readSorted() method with no arguments."""
+        table = self.table
+        sortedtable = numpy.sort(self.table[:], order='icol')
+        sortedtable2 = table.readSorted('icol')
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from readSorted:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
+    def test_readSorted2(self):
+        """Testing the Table.readSorted() method with a start."""
+        table = self.table
+        sortedtable = numpy.sort(self.table[:], order='icol')[16:17]
+        sortedtable2 = table.readSorted('icol', start=16)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from readSorted:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
+    def test_readSorted3(self):
+        """Testing the Table.readSorted() method with a start and stop."""
+        table = self.table
+        sortedtable = numpy.sort(self.table[:], order='icol')[16:33]
+        sortedtable2 = table.readSorted('icol', start=16, stop=33)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from readSorted:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
+    def test_readSorted4(self):
+        """Testing the Table.readSorted() method with a start, stop and step."""
+        table = self.table
+        sortedtable = numpy.sort(self.table[:], order='icol')[33:55:5]
+        sortedtable2 = table.readSorted('icol', start=33, stop=55, step=5)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from readSorted:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
 
 
 

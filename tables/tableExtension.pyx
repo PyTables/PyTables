@@ -986,10 +986,12 @@ cdef class Row:
           continue
       self._row = self._row + 1
       self._nrow = self.bufcoordsData[self._row]
-      self.nextelement = self.nextelement + 1
       if (self.step > 1 and
-          ((self._nrow - self.startindex) % self.step > 0)):
+          ((self.nextelement - self.startindex) % self.step > 0)):
+        # Skip this row
+        self.nextelement = self.nextelement + 1
         continue
+      self.nextelement = self.nextelement + 1
       return self
     else:
       # All the elements have been read for this mode

@@ -1315,6 +1315,26 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         return row._iter(start, stop, step, coords=icol.index)
 
 
+    def readSorted( self, sortkey, field=None,
+                    start=None, stop=None, step=None ):
+        """
+        Read table data sorted by the given `sortkey` column.
+
+        If `field` is supplied only the named column will be selected.
+        If the column is not nested, an *array* of the current flavor
+        will be returned; if it is, a *record array* will be used
+        instead.  I no `field` is specified, all the columns will be
+        returned in a record array of the current flavor.
+
+        If you specify a `start`, `stop` and `step` parameters, only the
+        values in this *sorted* range are returned.
+        """
+        self._checkFieldIfNumeric(field)
+        coords = [ p.nrow for p in
+                   self.itersorted(sortkey, start, stop, step) ]
+        return self.readCoordinates(coords, field)
+
+
     def iterrows(self, start=None, stop=None, step=None):
         """
         Iterate over the table using a `Row` instance.
