@@ -1294,7 +1294,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         return row._iter(start, stop, step, coords=sequence)
 
 
-    def _check_index_is_CSI(self, sortkey):
+    def _check_sortkey_CSI(self, sortkey):
         if sortkey not in self.description._v_names:
             raise (KeyError, "Field `%s` not found in table `%s`" % \
                    (sortkey, self))
@@ -1319,7 +1319,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         supported and means that the results will be returned in reverse
         sorted order.
         """
-        index = self._check_index_is_CSI(sortkey)
+        index = self._check_sortkey_CSI(sortkey)
         # Adjust the slice to be used.
         (start, stop, step) = index._processRange(start, stop, step)
         if (start >= stop):
@@ -1347,8 +1347,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         sorted order.
         """
         self._checkFieldIfNumeric(field)
-        coords = [ p.nrow for p in
-                   self.itersorted(sortkey, start, stop, step) ]
+        index = self._check_sortkey_CSI(sortkey)
+        coords = index[start:stop:step]
         return self.readCoordinates(coords, field)
 
 
