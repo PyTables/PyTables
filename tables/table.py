@@ -2233,8 +2233,13 @@ The 'names' parameter must be a list of strings.""")
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, sortkey, _log):
+                         title, filters, _log, **kwargs):
         "Private part of Leaf.copy() for each kind of leaf"
+        # Get the private args for the Table flavor of copy()
+        sortkey = kwargs.pop('sortkey', None)
+        # Compute the correct indices.
+        (start, stop, step) = self._processRangeRead(
+            start, stop, step, warn_negstep = sortkey is None)
         # Create the new table and copy the selected data.
         newtable = Table( group, name, self.description, title=title,
                           filters=filters, expectedrows=self.nrows,

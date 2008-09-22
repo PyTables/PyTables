@@ -610,8 +610,10 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, _log):
+                         title, filters, _log, **kwargs):
         "Private part of Leaf.copy() for each kind of leaf"
+        # Compute the correct indices.
+        (start, stop, step) = self._processRangeRead(start, stop, step)
         # Get the slice of the array
         # (non-buffered version)
         if self.shape:

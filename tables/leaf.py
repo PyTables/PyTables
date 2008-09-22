@@ -479,26 +479,21 @@ very small/large chunksize, you may want to increase/decrease it."""
 
     def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         # Compute default arguments.
-        start = kwargs.get('start', None)
-        stop = kwargs.get('stop', None)
-        step = kwargs.get('step', None)
-        title = kwargs.get('title', self._v_title)
-        filters = kwargs.get('filters', self.filters)
-        sortkey = kwargs.get('sortkey', None)
-        stats = kwargs.get('stats', None)
+        start = kwargs.pop('start', None)
+        stop = kwargs.pop('stop', None)
+        step = kwargs.pop('step', None)
+        title = kwargs.pop('title', self._v_title)
+        filters = kwargs.pop('filters', self.filters)
+        stats = kwargs.pop('stats', None)
 
         # Fix arguments with explicit None values for backwards compatibility.
         if title is None:  title = self._v_title
         if filters is None:  filters = self.filters
 
-        # Compute the correct indices.
-        (start, stop, step) = self._processRangeRead(
-            start, stop, step, warn_negstep = sortkey is None)
-
         # Create a copy of the object.
         (newNode, bytes) = self._g_copyWithStats(
             newParent, newName, start, stop, step,
-            title, filters, sortkey, _log)
+            title, filters, _log, **kwargs)
 
         # Copy user attributes if requested (or the flavor at least).
         if kwargs.get('copyuserattrs', True):
