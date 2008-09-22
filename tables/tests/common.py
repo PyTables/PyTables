@@ -147,9 +147,10 @@ def allequal(a,b, flavor="numpy"):
             print "Shape is not equal:", a.shape, "!=", b.shape
         return 0
 
-    if hasattr(b, "dtype") and a.dtype.type != b.dtype.type:
+    # Way to check the type equality without byteorder considerations
+    if hasattr(b, "dtype") and a.dtype.str[1:] != b.dtype.str[1:]:
         if verbose:
-            print "dtype is not equal:", a.dtype.type, "!=", b.dtype.type
+            print "dtype is not equal:", a.dtype, "!=", b.dtype
         return 0
 
     # Rank-0 case

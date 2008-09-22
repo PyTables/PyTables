@@ -531,7 +531,7 @@ class BasicTestCase(unittest.TestCase):
         else:
             object_ = numpy.arange(self.objsize, dtype=earray.atom.dtype.base)
             object_.shape = self.rowshape
-            
+
         # Additional conversion for the numarray case
         if self.flavor == "numarray":
             object_ = flavor_to_flavor(object_, 'numpy', 'numarray')
@@ -937,6 +937,7 @@ class AllFiltersTestCase(BasicTestCase):
 
 class FloatTypeTestCase(BasicTestCase):
     type = 'float64'
+    dtype = 'float64'
     shape = (2,0)
     chunksize = 5
     nappends = 10
@@ -946,6 +947,7 @@ class FloatTypeTestCase(BasicTestCase):
 
 class ComplexTypeTestCase(BasicTestCase):
     type = 'complex128'
+    dtype = 'complex128'
     shape = (2,0)
     chunksize = 5
     nappends = 10

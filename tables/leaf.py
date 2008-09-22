@@ -484,6 +484,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         step = kwargs.pop('step', None)
         title = kwargs.pop('title', self._v_title)
         filters = kwargs.pop('filters', self.filters)
+        copyuserattrs = kwargs.pop('copyuserattrs', True)
         stats = kwargs.pop('stats', None)
 
         # Fix arguments with explicit None values for backwards compatibility.
@@ -496,7 +497,7 @@ very small/large chunksize, you may want to increase/decrease it."""
             title, filters, _log, **kwargs)
 
         # Copy user attributes if requested (or the flavor at least).
-        if kwargs.get('copyuserattrs', True):
+        if copyuserattrs == True:
             self._v_attrs._g_copy(newNode._v_attrs)
         elif 'FLAVOR' in self._v_attrs:
             newNode._v_attrs._g__setattr('FLAVOR', self._flavor)

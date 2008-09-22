@@ -249,6 +249,7 @@ With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, _log):
         "Private part of Leaf.copy() for each kind of leaf."
+        (start, stop, step) = self._processRangeRead(start, stop, step)
         # Build the new EArray object
         maindim = self.maindim
         shape = list(self.shape)
@@ -264,7 +265,6 @@ With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
         slices = [slice(0, dim, 1) for dim in self.shape]
         # This is a hack to prevent doing unnecessary conversions
         # when copying buffers
-        (start, stop, step) = self._processRangeRead(start, stop, step)
         self._v_convert = False
         # Start the copy itself
         for start2 in lrange(start, stop, step*nrowsinbuf):

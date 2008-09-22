@@ -498,7 +498,7 @@ class TypesTestCase(unittest.TestCase):
 
         assert vlarray.nrows == 2
         assert allequal(row[0], numpy.array(["1", "123", "12", "", "123"]))
-        assert allequal(row[1], numpy.array(["44", "4"]))
+        assert allequal(row[1], numpy.array(["44", "4"], dtype="S3"))
         assert len(row[0]) == 5
         assert len(row[1]) == 2
 
