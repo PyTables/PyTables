@@ -15,6 +15,9 @@ Changes from 2.0.x to 2.1b2
   all the parent directories.  So, for opening pre-known group and leaf
   locations, the new code is substantially faster (in fact, the cost is O(1)).
 
+- Now, the copy of the AUTO_INDEX is done only if the `copyuserattrs` in
+  Table.copy() is true (the default).
+
 
 API changes from 2.0.x to 2.1b2
 ===============================
@@ -33,6 +36,12 @@ API changes from 2.0.x to 2.1b2
 - The `sort` parameter of Table.itersequence() has been removed as it will not
   allow to sort sequences larger than memory.  In addition, it is not clear
   that sorting would be a clear advantage in all situations.
+
+- A new `sortkey` argument has been added to Table.copy() allowing to a Table
+  to be sorted during the copy operation.
+
+- New `copyindexes` argument in Table.copy().  If true, the indexes in the
+  source table are copied. If false (the default), the indexes are not copied.
 
 
 ----

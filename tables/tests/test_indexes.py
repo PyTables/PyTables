@@ -1143,11 +1143,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 else:
                     assert table.cols._f_col(colname).index.dirty == False
 
-    def test09_copyIndex(self):
+    def test09a_copyIndex(self):
         "Checking copy Index feature in copyTable (attrs)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test09_copyIndex..." % self.__class__.__name__
+            print "Running %s.test09a_copyIndex..." % self.__class__.__name__
         table = self.table
         # Don't force a sync in indexes
         #table.flushRowsToIndex()
@@ -1158,9 +1158,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Now, remove some rows to make columns dirty
         #table.removeRows(3,5)
         # Copy a Table to another location
-        warnings.filterwarnings("ignore", category=UserWarning)
-        table2 = table.copy("/", 'table2')
-        warnings.filterwarnings("default", category=UserWarning)
+        table2 = table.copy("/", 'table2', copyindexes=True)
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1196,6 +1194,34 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             if table2.cols._f_col(colname).index:
                 assert table2.cols._f_col(colname).index.dirty == False
 
+    def test09b_copyIndex(self):
+        "Checking that copyindexes=False works"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test09b_copyIndex..." % self.__class__.__name__
+        table = self.table
+        # Don't force a sync in indexes
+        #table.flushRowsToIndex()
+        # Non indexated rows should remain here
+        if self.iprops is not DefaultProps:
+            indexedrows = table._indexedrows
+            unsavedindexedrows = table._unsaved_indexedrows
+        # Now, remove some rows to make columns dirty
+        #table.removeRows(3,5)
+        # Copy a Table to another location
+        table2 = table.copy("/", 'table2', copyindexes=False)
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+            table2 = self.fileh.root.table2
+
+        if verbose:
+            print "Copied index indexed?:", table2.cols.var1.is_indexed
+            print "Original index indexed?:", table.cols.var1.is_indexed
+        assert not table2.cols.var1.is_indexed
+        assert table.cols.var1.is_indexed
+
     def test10_copyIndex(self):
         "Checking copy Index feature in copyTable (values)"
         if verbose:
@@ -1211,9 +1237,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Now, remove some rows to make columns dirty
         #table.removeRows(3,5)
         # Copy a Table to another location
-        warnings.filterwarnings("ignore", category=UserWarning)
-        table2 = table.copy("/", 'table2')
-        warnings.filterwarnings("default", category=UserWarning)
+        table2 = table.copy("/", 'table2', copyindexes=True)
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1246,9 +1270,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         table.modifyColumns(1, columns=[["asa","asb"],[1.,2.]],
                             names=["var1", "var4"])
         # Copy a Table to another location
-        warnings.filterwarnings("ignore", category=UserWarning)
-        table2 = table.copy("/", 'table2')
-        warnings.filterwarnings("default", category=UserWarning)
+        table2 = table.copy("/", 'table2', copyindexes=True)
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1276,7 +1298,6 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                     # All the destination columns should be non-dirty because
                     # the copy removes the dirty state and puts the
                     # index in a sane state
-                    assert table.cols._f_col(colname).index.dirty == False
                     assert table2.cols._f_col(colname).index.dirty == False
 
 

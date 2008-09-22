@@ -2237,6 +2237,7 @@ The 'names' parameter must be a list of strings.""")
         "Private part of Leaf.copy() for each kind of leaf"
         # Get the private args for the Table flavor of copy()
         sortkey = kwargs.pop('sortkey', None)
+        copyindexes = kwargs.pop('copyindexes', False)
         # Compute the correct indices.
         (start, stop, step) = self._processRangeRead(
             start, stop, step, warn_negstep = sortkey is None)
@@ -2246,23 +2247,9 @@ The 'names' parameter must be a list of strings.""")
                           _log=_log )
         self._g_copyRows(newtable, start, stop, step, sortkey)
         nbytes = newtable.nrows * newtable.rowsize
-        # We need to look at the HDF5 attribute to tell whether an index
-        # property was explicitly set by the user.
-        try:
-            indexgroup = self._v_file._getNode(_indexPathnameOf(self))
-        except NoSuchNodeError:
-            pass
-        else:
-            if _is_pro and 'AUTO_INDEX' in indexgroup._v_attrs:
-                newtable.autoIndex = self.autoIndex
-        # Generate equivalent indexes in the new table, if any.
-        if self.indexed:
-            warnings.warn(
-                "generating indexes for destination table ``%s:%s``; "
-                "please be patient"
-                % (newtable._v_file.filename, newtable._v_pathname) )
+        # Generate equivalent indexes in the new table, if required.
+        if copyindexes and self.indexed:
             self._g_copyIndexes(newtable)
-
         return (newtable, nbytes)
 
 
