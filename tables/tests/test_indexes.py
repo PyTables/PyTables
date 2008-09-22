@@ -1217,10 +1217,16 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             table2 = self.fileh.root.table2
 
         if verbose:
+            print "autoindex?:", self.iprops.auto
             print "Copied index indexed?:", table2.cols.var1.is_indexed
             print "Original index indexed?:", table.cols.var1.is_indexed
-        assert not table2.cols.var1.is_indexed
-        assert table.cols.var1.is_indexed
+        if self.iprops is DefaultProps:
+            # No index: the index should not exist
+            assert not table2.cols.var1.is_indexed
+            assert not table.cols.var1.is_indexed
+        elif self.iprops is NoAutoProps:
+            assert not table2.cols.var1.is_indexed
+            assert table.cols.var1.is_indexed
 
     def test10_copyIndex(self):
         "Checking copy Index feature in copyTable (values)"
