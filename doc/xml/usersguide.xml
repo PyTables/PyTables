@@ -8136,7 +8136,9 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               <para>Note that selecting a <literal>full</literal> kind with an
               <literal>optlevel</literal> of 9 (the maximum) guarantees the
               creation of an index with zero entropy, that is, a completely
-              sorted index.</para>
+              sorted index (CSI) — provided that the number of rows in the
+              table does not exceed the 2**48 figure (that is more than 100
+              trillions of rows).</para>
 
               <para>The <literal>filters</literal> argument can be used to set
               the <literal>Filters</literal> (see <xref
@@ -8252,7 +8254,9 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
 
               <para>Note that selecting an <literal>optlevel</literal> of 9
               (the maximum) here guarantees the creation of an index with zero
-              entropy, that is, a completely sorted index.</para>
+              entropy, that is, a completely sorted index (CSI) — provided
+              that the number of rows in the table does not exceed the 2**48
+              figure (that is more than 100 trillions of rows).</para>
 
               <para>For the meaning of <literal>filters</literal> and
               <literal>tmp_dir</literal> arguments see
@@ -11073,17 +11077,17 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
           of rows), the PyTables indexing engine can effectively achieve a
           complete sorting, making its lookup times usually faster than using
           a relational database (most specially if compression is used). For
-          very large tables (&gt; 10 billions of rows) the PyTables indexing
+          very large tables (&gt; 100 trillions of rows) the PyTables indexing
           engine cannot normally achieve the goal of getting a completely
-          sorted index.  However, this is not a grave limitation in practice
-          because the time required for completing such a complete sort in a
-          traditional relational database can be huge, so it is not normally
-          worth the effort doing this, while, on its hand, PyTables can still
-          perform a <emphasis>partial</emphasis> sort in a reasonable amount
-          of time while keeping very good lookup times.  In other words, the
-          PyTables engine scales much better than relational databases, so
-          don't worry if you have extremely large columns to index: PyTables
-          is designed to cope with that perfectly.</para>
+          sorted index (CSI).  However, this is not a grave limitation in
+          practice because the time required for completing such a complete
+          sort in a traditional relational database can be huge, so it is not
+          normally worth the effort doing this, while, on its hand, PyTables
+          can still perform a <emphasis>partial</emphasis> sort in a
+          reasonable amount of time while keeping very good lookup times.  In
+          other words, the PyTables engine scales much better than relational
+          databases, so don't worry if you have extremely large columns to
+          index: PyTables is designed to cope with that fact perfectly.</para>
 
           <para>In addition, PyTables implements an efficient cache for
           (small) results of queries.  Such a cache can be very important in

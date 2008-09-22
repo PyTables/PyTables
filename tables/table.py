@@ -2969,7 +2969,9 @@ class Column(object):
 
         Note that selecting a 'full' kind with an `optlevel` of 9 (the
         maximum) guarantees the creation of an index with zero entropy,
-        that is, a completely sorted index.
+        that is, a completely sorted index (CSI) -- provided that the
+        number of rows in the table does not exceed the 2**48 figure
+        (that is more than 100 trillions of rows).
 
         The `filters` argument can be used to set the `Filters` used to
         compress the index.  If ``None``, default index filters will be
@@ -3082,7 +3084,9 @@ class Column(object):
 
         Note that selecting an `optlevel` of 9 (the maximum) guarantees
         the creation of an index with zero entropy, that is, a
-        completely sorted index.
+        completely sorted index (CSI) -- provided that the number of
+        rows in the table does not exceed the 2**48 figure (that is more
+        than 100 trillions of rows).
 
         For the meaning of `filters` and `tmp_dir` arguments see
         ``Column.createIndex()``.
