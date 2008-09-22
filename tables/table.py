@@ -2181,23 +2181,27 @@ The 'names' parameter must be a list of strings.""")
 
     def _g_copyRows(self, object, start, stop, step, sortkey):
         "Copy rows from self to object"
+        if sortkey is None:
+            self._g_copyRows_optim(object, start, stop, step)
+            return
         lenbuf = self.nrowsinbuf
         absstep = abs(step)
         for start2 in lrange(start, stop, absstep*lenbuf):
-            # Save the records on disk
             stop2 = start2+absstep*lenbuf
             if stop2 > stop:
                 stop2 = stop
+            # The next 'if' is not needed, but it doesn't bother either
             if sortkey is None:
                 rows = self[start2:stop2:step]
             else:
                 rows = self.readSorted(sortkey, None, start2, stop2, step)
+            # Save the records on disk
             object.append(rows)
         object.flush()
 
 
-    def _g_copyRows_orig(self, object, start, stop, step):
-        "Copy rows from self to object"
+    def _g_copyRows_optim(self, object, start, stop, step):
+        "Copy rows from self to object (optimized version)"
         nrowsinbuf = self.nrowsinbuf
         object._open_append(self._v_iobuf)
         nrowsdest = object.nrows
@@ -2216,7 +2220,6 @@ The 'names' parameter must be a list of strings.""")
         object._close_append()
         # Update the number of saved rows in this buffer
         object.nrows = nrowsdest
-        return
 
 
     def _g_copyIndexes(self, other):
