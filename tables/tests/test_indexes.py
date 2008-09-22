@@ -1972,6 +1972,21 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         assert allequal(sortedtable, sortedtable2)
 
 
+    def test06_copy_sorted6(self):
+        """Testing the Table.copy(sortkey) method after table re-opening."""
+        self._reopen(mode='a')
+        table = self.h5file.root.table
+        # Copy to another table
+        table.nrowsinbuf = self.nrowsinbuf
+        table2 = table.copy("/", 'table2', sortkey="icol")
+        sortedtable = numpy.sort(table[:], order='icol')
+        sortedtable2 = table2[:]
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from copy:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
 
 
 

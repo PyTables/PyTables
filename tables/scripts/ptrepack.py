@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: February 10, 2004
-#       Author:  Francesc Alted - falted@pytables.org
+#       Author:  Francesc Alted - faltet@pytables.com
 #
 #       $Id$
 #
@@ -71,7 +71,7 @@ def recreateIndexes(table, dstfileh, dsttable):
 
 def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
              filters, copyuserattrs, overwritefile, overwrtnodes, stats,
-             start, stop, step, upgradeflavors):
+             start, stop, step, sortkey, copyindexes,  upgradeflavors):
     # Open the source file
     srcfileh = openFile(srcfile, "r")
     # Get the source node (that should exist)
@@ -80,7 +80,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
     # Get the destination node and its parent
     last_slash = dstnode.rindex('/')
     if last_slash == len(dstnode)-1:
-        # print "Detected a trainling slash in destination node. Interpreting it as a destination group."
+        # print "Detected a trailing slash in destination node. Interpreting it as a destination group."
         dstgroup = dstnode[:-1]
     elif last_slash > 0:
         dstgroup = dstnode[:last_slash]
@@ -121,7 +121,8 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
         dstNode = srcNode.copy(
             dstGroup, dstleaf, filters = filters,
             copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
-            stats = stats, start = start, stop = stop, step = step)
+            stats = stats, start = start, stop = stop, step = step,
+            sortkey = sortkey, copyindexes = copyindexes)
     except:
         (type, value, traceback) = sys.exc_info()
         print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
@@ -150,7 +151,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
 def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                  recursive, filters, copyuserattrs, overwritefile,
                  overwrtnodes, stats, start, stop, step,
-                 upgradeflavors):
+                 sortkey, copyindexes, upgradeflavors):
     "Copy the children from source group to destination group"
     # Open the source file with srcgroup as rootUEP
     srcfileh = openFile(srcfile, "r", rootUEP=srcgroup)
@@ -196,7 +197,8 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
         srcGroup._f_copyChildren(
             dstGroup, recursive = recursive, filters = filters,
             copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
-            stats = stats, start = start, stop = stop, step = step)
+            stats = stats, start = start, stop = stop, step = step,
+            sortkey = sortkey, copyindexes = copyindexes)
     except:
         (type, value, traceback) = sys.exc_info()
         print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
@@ -228,12 +230,13 @@ def main():
     global verbose
     global regoldindexes
 
-    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--upgrade-flavors] [--dont-regenerate-old-indexes] sourcefile:sourcegroup destfile:destgroup
+    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortkey=column] [--copyindexes] sourcefile:sourcegroup destfile:destgroup
      -h -- Print usage message.
      -v -- Show more information.
      -o -- Overwite destination file.
      -R RANGE -- Select a RANGE of rows (in the form "start,stop,step")
-         during the copy of *all* the leaves.
+         during the copy of *all* the leaves.  Default values are
+         "None,None,1", which means a copy of all the rows.
      --non-recursive -- Do not do a recursive copy. Default is to do it.
      --dest-title=title -- Title for the new file (if not specified,
          the source is copied).
@@ -256,6 +259,12 @@ def main():
          as objects with the internal flavor ('numpy' for 2.x series).
      --dont-regenerate-old-indexes -- Disable regenerating old indexes. The
          default is to regenerate old indexes as they are found.
+     --sortkey=column -- Do a table copy sorted by the values of "column".
+         This using a existing index in "column".  For reversing the order,
+         use a negative value in the "step" part of "RANGE" (see "-R" flag).
+         Only applies to table objects.
+     --copyindexes -- Force the copy of indexes in the original tables.  The
+         default is to not copy them.  Only applies to table objects.
     \n""" % os.path.basename(sys.argv[0])
 
 
@@ -272,6 +281,8 @@ def main():
                                      'keep-source-filters',
                                      'upgrade-flavors',
                                      'dont-regenerate-old-indexes',
+                                     'sortkey=',
+                                     'copyindexes',
                                      ])
     except:
         (type, value, traceback) = sys.exc_info()
@@ -292,6 +303,8 @@ def main():
     recursive = True
     overwrtnodes = False
     upgradeflavors = False
+    sortkey = None
+    copyindexes = False
 
     # Get the options
     for option in opts:
@@ -333,6 +346,10 @@ def main():
             shuffle = int(option[1])
         elif option[0] == '--fletcher32':
             fletcher32 = int(option[1])
+        elif option[0] == '--sortkey':
+            sortkey = option[1]
+        elif option[0] == '--copyindexes':
+            copyindexes = True
         else:
             print option[0], ": Unrecognized option"
             sys.stderr.write(usage)
@@ -390,7 +407,7 @@ def main():
                           shuffle=shuffle, fletcher32=fletcher32)
 
     # The start, stop and step params:
-    start, stop, step = 0, None, 1  # Defaults
+    start, stop, step = None, None, 1  # Defaults
     if rng:
         start, stop, step = rng.start, rng.stop, rng.step
 
@@ -402,8 +419,12 @@ def main():
         print "+=+"*20
         print "Recursive copy:", recursive
         print "Applying filters:", filters
-        print "Starting copying %s:%s to %s:%s" % (srcfile, srcnode,
-                                                   dstfile, dstnode)
+        if sortkey is not None:
+            print "Sorting table(s) by column:", sortkey
+        if copyindexes:
+            print "Recreating indexes in copied table(s)"
+        print "Start copying %s:%s to %s:%s" % (srcfile, srcnode,
+                                                dstfile, dstnode)
         print "+=+"*20
 
     # Check whether the specified source node is a group or a leaf
@@ -421,6 +442,7 @@ def main():
             copyuserattrs = copyuserattrs, overwritefile = overwritefile,
             overwrtnodes = overwrtnodes, stats = stats,
             start = start, stop = stop, step = step,
+            sortkey = sortkey, copyindexes = copyindexes,
             upgradeflavors=upgradeflavors)
     else:
         # If not a Group, it should be a Leaf
@@ -429,6 +451,7 @@ def main():
             title = title, filters = filters, copyuserattrs = copyuserattrs,
             overwritefile = overwritefile, overwrtnodes = overwrtnodes,
             stats = stats, start = start, stop = stop, step = step,
+            sortkey = sortkey, copyindexes = copyindexes,
             upgradeflavors=upgradeflavors)
 
     # Gather some statistics

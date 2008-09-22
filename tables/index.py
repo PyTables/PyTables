@@ -1181,15 +1181,18 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def read_slice(self, where, nslice, buffer, start=0):
         """Read a slice from the `where` dataset and put it in `buffer`."""
-        self.startl[:] = (nslice, start)
-        self.stopl[:] = (nslice+1, start+buffer.size)
+        # Create the buffers for specifying the coordinates
+        self.startl = numpy.array([nslice, start], numpy.uint64)
+        self.stopl = numpy.array([nslice+1, start+buffer.size], numpy.uint64)
+        self.stepl = numpy.ones(shape=2, dtype=numpy.uint64)
         where._g_readSlice(self.startl, self.stopl, self.stepl, buffer)
 
 
     def write_slice(self, where, nslice, buffer, start=0):
         """Write a `slice` to the `where` dataset with the `buffer` data."""
-        self.startl[:] = (nslice, start)
-        self.stopl[:] = (nslice+1, start+buffer.size)
+        self.startl = numpy.array([nslice, start], numpy.uint64)
+        self.stopl = numpy.array([nslice+1, start+buffer.size], numpy.uint64)
+        self.stepl = numpy.ones(shape=2, dtype=numpy.uint64)
         countl = self.stopl - self.startl   # (1, self.slicesize)
         where._modify(self.startl, self.stepl, countl, buffer)
 
@@ -1281,10 +1284,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         nslices = self.nslices
         nblocks = self.nblocks
         nelementsLR = self.nelementsILR
-        # Create the buffers for specifying the coordinates
-        self.startl = numpy.empty(shape=2, dtype=numpy.uint64)
-        self.stopl = numpy.empty(shape=2, dtype=numpy.uint64)
-        self.stepl = numpy.ones(shape=2, dtype=numpy.uint64)
         # Create the buffer for reordering 2 slices at a time
         ssorted = numpy.empty(shape=ss*2, dtype=self.dtype)
         sindices = numpy.empty(shape=ss*2,
