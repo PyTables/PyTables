@@ -477,7 +477,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         return (start, stop, step)
 
 
-    def _g_copy(self, newParent, newName,  _log=True, **kwargs):
+    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
         # Compute default arguments.
         start = kwargs.pop('start', None)
         stop = kwargs.pop('stop', None)
