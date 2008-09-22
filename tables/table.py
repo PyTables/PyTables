@@ -2256,6 +2256,31 @@ The 'names' parameter must be a list of strings.""")
         return (newtable, nbytes)
 
 
+    # This overloading of copy is needed here in order to document
+    # the additional keywords for the Table case.
+    def copy( self, newparent=None, newname=None, overwrite=False,
+              createparents=False, **kwargs ):
+        """ Copy this table and return the new one.
+
+        This method has the behavior and keywords described in
+        `Leaf.copy()`.  Moreover, this method recognises the next
+        additional keyword arguments:
+
+        `sortkey`
+            If specified, and `sortkey` corresponds to a column with a
+            completely sorted index (CSI), then the copy will be sorted
+            by the values on this column.  A reverse sorted copy can be
+            achieved by specifying a negative value for the `step`
+            keyword.  If omitted or ``None``, the original table order
+            is used.
+        `copyindexes`
+            If true, the existing indexes in the source table are
+            copied.  If false (the default), the indexes are not copied.
+        """
+        return super(Table, self).copy(
+            newparent, newname, overwrite, createparents, **kwargs)
+
+
     def flush(self):
         """Flush the table buffers."""
 

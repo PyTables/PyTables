@@ -7279,6 +7279,47 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
         <section id="TableMethods_other">
           <title><literal>Table</literal> methods — other</title>
 
+          <section id="Table.copy">
+            <title>copy(newparent=None, newname=None, overwrite=False,
+            createparents=False, **kwargs)</title>
+
+            <para>Copy this table and return the new one.</para>
+
+            <para>This method has the behavior and keywords described in
+            <literal>Leaf.copy()</literal> (see <xref linkend="Leaf.copy" />.
+            Moreover, this method recognises the next additional keyword
+            arguments:</para>
+
+            <glosslist>
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">sortkey</emphasis></glossterm>
+
+                <glossdef>
+                  <para>If specified, and <literal>sortkey</literal>
+                  corresponds to a column with a completely sorted index
+                  (CSI), then the copy will be sorted by the values on this
+                  column.  A reverse sorted copy can be achieved by specifying
+                  a negative value for the <literal>step</literal> keyword.
+                  If omitted or <literal>None</literal>, the original table
+                  order is used.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">copyindexes</emphasis></glossterm>
+
+                <glossdef>
+                  <para>If true, the existing indexes in the source table are
+                  copied.  If false (the default), the indexes are not
+                  copied.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+
+          </section>
+
           <section id="Table.flushRowsToIndex">
             <title>flushRowsToIndex()</title>
 
