@@ -237,8 +237,10 @@ class Table(tableExtension.Table, Leaf):
     * col(name)
     * iterrows([start][, stop][, step])
     * itersequence(sequence)
+    * itersorted(sortkey[, start][, stop][, step])
     * read([start][, stop][, step][, field][, coords])
     * readCoordinates(coords[, field])
+    * readSorted(sortkey[, field,][, start][, stop][, step])
     * __getitem__(key)
     * __iter__()
 
@@ -1299,7 +1301,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             raise (KeyError, "Field `%s` not found in table `%s`" % \
                    (sortkey, self))
         icol = self.cols._f_col(sortkey)
-        if not icol.is_indexed or not icol.is_index_completely_sorted:
+        if not icol.is_indexed or not icol.is_index_CSI:
             raise (ValueError,
                    "Field `%s` must have associated a completely "
                    "sorted index in table `%s`" % (sortkey, self))
@@ -1309,15 +1311,18 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
     def itersorted(self, sortkey, start=None, stop=None, step=None):
         """Iterate over the table following the order specified by `sortkey`.
 
-        `sortkey` must have associated a completely sorted index so as
-        to ensure that a fully sorted series of values are returned.
+        `sortkey` is the name of a column that must have associated a
+        completely sorted index (CSI) so as to ensure a fully sorted
+        order.
 
-        If you specify a `start`, `stop` and `step` parameters, only the
-        values in this *sorted* range are returned.
+        If you specify a `start`, `stop` and `step` parameters, only
+        this range of values (in the *sorted* order) is returned.
 
-        *Important note*: in this case a negative value of `step` is
-        supported and means that the results will be returned in reverse
-        sorted order.
+        .. Note:: In this case a negative value of `step` is supported
+        and means that the results will be returned in reverse sorted
+        order.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
         """
         index = self._check_sortkey_CSI(sortkey)
         # Adjust the slice to be used.
@@ -1333,18 +1338,24 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Read table data sorted by the given `sortkey` column.
 
+        `sortkey` is the name of a column that must have associated a
+        completely sorted index (CSI) so as to ensure a fully sorted
+        order.
+
         If `field` is supplied only the named column will be selected.
         If the column is not nested, an *array* of the current flavor
         will be returned; if it is, a *record array* will be used
-        instead.  I no `field` is specified, all the columns will be
+        instead.  If no `field` is specified, all the columns will be
         returned in a record array of the current flavor.
 
-        If you specify a `start`, `stop` and `step` parameters, only the
-        values in this *sorted* range are returned.
+        If you specify a `start`, `stop` and `step` parameters, only
+        this range of values (in the *sorted* order) is returned.
 
-        *Important note*: in this case a negative value of `step` is
-        supported and means that the results will be returned in reverse
-        sorted order.
+        .. Note:: In this case a negative value of `step` is supported
+        and means that the results will be returned in reverse sorted
+        order.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._checkFieldIfNumeric(field)
         index = self._check_sortkey_CSI(sortkey)
@@ -1479,7 +1490,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         If `field` is supplied only the named column will be selected.
         If the column is not nested, an *array* of the current flavor
         will be returned; if it is, a *record array* will be used
-        instead.  I no `field` is specified, all the columns will be
+        instead.  If no `field` is specified, all the columns will be
         returned in a record array of the current flavor.
 
         Columns under a nested column can be specified in the `field`
@@ -2703,17 +2714,11 @@ class Column(object):
     index
         The `Index` instance associated with this column (``None`` if
         the column is not indexed).
-
-        .. Note:: Column indexing is only available in PyTables Pro.
     is_indexed
         True if the column is indexed, false otherwise.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-    is_index_completely_sorted
-        True if the index of the column is completely sorted, false
-        otherwise.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
+    is_index_CSI
+        True if the index of the column is a completely sorted index
+        (CSI), false otherwise.
     name
         The name of the associated column.
     pathname
@@ -2778,7 +2783,7 @@ class Column(object):
     is_indexed = property(_isindexed)
 
 
-    is_index_completely_sorted = property(
+    is_index_CSI = property(
         lambda self: self.index.completely_sorted, None, None,
         "True if the index of the column is completely sorted, False "
         "otherwise.")

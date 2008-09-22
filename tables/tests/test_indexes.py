@@ -1529,9 +1529,11 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     nrows = 100
     nrowsinbuf = 11
 
+
     class MyDescription(IsDescription):
         rcol = IntCol(pos=1)
         icol = IntCol(pos=2)
+
 
     def setUp(self):
         super(CompletelySortedIndexTestCase, self).setUp()
@@ -1549,19 +1551,19 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         self.icol.createFullIndex(optlevel=9, _blocksizes=small_blocksizes)
 
 
-    def test00_is_completely_sorted_index(self):
-        """Testing the Column.is_completely_sorted_index property."""
+    def test00_isCompletelySortedIndex(self):
+        """Testing the Column.is_CSI property."""
         icol = self.icol
-        self.assertEqual(icol.is_index_completely_sorted, True)
+        self.assertEqual(icol.is_index_CSI, True)
         icol.removeIndex()
         # As the table is small, lesser optlevels should be able to
         # create a completely sorted index too.
         icol.createFullIndex(optlevel=6)
-        self.assertEqual(icol.is_index_completely_sorted, True)
+        self.assertEqual(icol.is_index_CSI, True)
         icol.removeIndex()
         # Other kinds than full, should never return a CSI
         icol.createMediumIndex(optlevel=9)
-        self.assertEqual(icol.is_index_completely_sorted, False)
+        self.assertEqual(icol.is_index_CSI, False)
 
 
     def test01_read_sorted1(self):

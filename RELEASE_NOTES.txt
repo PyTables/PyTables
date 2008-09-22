@@ -15,15 +15,30 @@ Changes from 2.0.x to 2.1b2
   all the parent directories.  So, for opening pre-known group and leaf
   locations, the new code is substantially faster (in fact, the cost is O(1)).
 
-- Now, the copy of the AUTO_INDEX is done only if the `copyuserattrs` in
+- New File.fileno() added.  This returns the underlying OS file descriptor for
+  the file.
+
+- [Pro] A new Table.itersorted() iterator allows to iterate through a table
+  following the order of a certain index.  It supports iteration on
+  ranges, including negative steps (i.e. reverse sorted order).
+
+- [Pro] New Table.readSorted() method that can read a table following the
+  order of a certain index.  It supports the reads on ranges, including
+  negative steps (i.e. reverse sorted order).
+
+- [Pro] Now, the copy of the AUTO_INDEX is done only if the `copyuserattrs` in
   Table.copy() is true (the default).
+
+- [Pro] A new `sortkey` argument has been added to Table.copy() allowing to a
+  Table to be sorted during the copy operation.
+
+- [Pro] New `copyindexes` argument in Table.copy().  If true, the indexes in
+  the source table are copied. If false (the default), the indexes are not
+  copied.
 
 
 API changes from 2.0.x to 2.1b2
 ===============================
-
-- New File.fileno() added.  This returns the underlying OS file descriptor for
-  the file.
 
 - The Table.indexFilters property has been removed (after a period of
   ``DeprecationWarnings``).  If you want to change filters in indexes, please
@@ -36,12 +51,6 @@ API changes from 2.0.x to 2.1b2
 - The `sort` parameter of Table.itersequence() has been removed as it will not
   allow to sort sequences larger than memory.  In addition, it is not clear
   that sorting would be a clear advantage in all situations.
-
-- A new `sortkey` argument has been added to Table.copy() allowing to a Table
-  to be sorted during the copy operation.
-
-- New `copyindexes` argument in Table.copy().  If true, the indexes in the
-  source table are copied. If false (the default), the indexes are not copied.
 
 
 ----

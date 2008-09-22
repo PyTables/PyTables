@@ -1862,8 +1862,10 @@ class Table(tableExtension.Table, tables.leaf.Leaf)
  |  * col(name)
  |  * iterrows([start][, stop][, step])
  |  * itersequence(sequence)
+    * itersorted(sortkey[, start][, stop][, step])
  |  * read([start][, stop][, step][, field][, coords])
  |  * readCoordinates(coords[, field])
+    * readSorted(sortkey[, field,][, start][, stop][, step])
  |  * __getitem__(key)
  |  * __iter__()
  |  
@@ -6656,10 +6658,6 @@ for node in h5file.root.detector:
               <glossdef>
                 <para>List of the pathnames of indexed columns in the
                 table.
-                <note role="pro">
-                  <para>Column indexing is only available in PyTables
-                  Pro.</para>
-                </note>
                 </para>
               </glossdef>
             </glossentry>
@@ -6769,13 +6767,33 @@ for node in h5file.root.detector:
               />— for an example).</para>
             </note>
 
-            <warning>
-              <para>When in the middle of a table row iterator, you should not
-              use methods that can change the number of rows in the table
-              (like <literal>Table.append()</literal> or
-              <literal>Table.removeRows()</literal>) or unexpected errors will
-              happen.</para>
-            </warning>
+          </section>
+
+          <section id="Table.itersorted">
+            <title>itersorted(sortkey, start=None, stop=None,
+            step=None)</title>
+
+            <para>Iterate over the table following the order specified by
+            <literal>sortkey</literal>.</para>
+
+            <para><literal>sortkey</literal> is the name of a column that must
+            have associated a completely sorted index (CSI) so as to ensure a
+            fully sorted order.</para>
+
+            <para>If you specify a <literal>start</literal>,
+            <literal>stop</literal> and <literal>step</literal> parameters,
+            only this range of values (in the sorted order) is
+            returned.</para>
+
+            <note>
+              <para>In this case a negative value of <literal>step</literal>
+              is supported and means that the results will be returned in
+              reverse <emphasis>sorted</emphasis> order.</para>
+            </note>
+
+            <note role="pro">
+              <para>Column indexing is only available in PyTables Pro.</para>
+            </note>
 
           </section>
 
@@ -6829,6 +6847,42 @@ for node in h5file.root.detector:
 
             <para>The selected rows are returned in an array or record array
             of the current flavor.</para>
+          </section>
+
+          <section id="Table.readSorted">
+            <title>readSorted(sortkey, field=None, start=None, stop=None,
+            step=None)</title>
+
+            <para>Read table data sorted by the given
+            <literal>sortkey</literal> column.</para>
+
+            <para><literal>sortkey</literal> is the name of a column that must
+            have associated a completely sorted index (CSI) so as to ensure a
+            fully sorted order.</para>
+
+            <para>If <literal>field</literal> is supplied only the named
+            column will be selected.  If the column is not nested, an
+            <emphasis>array</emphasis> of the current flavor will be returned;
+            if it is, a <emphasis>record array</emphasis> will be used
+            instead.  If no <literal>field</literal> is specified, all the
+            columns will be returned in a record array of the current
+            flavor.</para>
+
+            <para>If you specify a <literal>start</literal>,
+            <literal>stop</literal> and <literal>step</literal> parameters,
+            only this range of values (in the <emphasis>sorted</emphasis>
+            order) is returned.</para>
+
+            <note>
+              <para>In this case a negative value of <literal>step</literal>
+              is supported and means that the results will be returned in
+              reverse <emphasis>sorted</emphasis> order.</para>
+            </note>
+
+            <note role="pro">
+              <para>Column indexing is only available in PyTables Pro.</para>
+            </note>
+
           </section>
 
           <section id="Table.__getitem__">
@@ -8027,11 +8081,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
                   linkend="IndexClassDescr" xrefstyle="select: label" />)
                   associated with this column (<literal>None</literal> if the
                   column is not indexed).
-
-                  <note role="pro">
-                    <para>Column indexing is only available in PyTables
-                    Pro.</para>
-                  </note>
                   </para>
                 </glossdef>
               </glossentry>
@@ -8042,27 +8091,17 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
 
                 <glossdef>
                   <para>True if the column is indexed, false otherwise.
-
-                  <note role="pro">
-                    <para>Column indexing is only available in PyTables
-                    Pro.</para>
-                  </note>
                   </para>
                 </glossdef>
               </glossentry>
 
               <glossentry>
                 <glossterm><emphasis
-                role="bold">is_index_completely_sorted</emphasis></glossterm>
+                role="bold">is_index_CSI</emphasis></glossterm>
 
                 <glossdef>
-                  <para>True if the index of the column is completely sorted,
-                  false otherwise.
-
-                  <note role="pro">
-                    <para>Column indexing is only available in PyTables
-                    Pro.</para>
-                  </note>
+                  <para>True if the index of the column is a completely sorted
+                  index (CSI), false otherwise.
                   </para>
                 </glossdef>
               </glossentry>
