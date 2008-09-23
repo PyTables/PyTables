@@ -1011,6 +1011,7 @@ class Numarray2TestCase(BasicTestCase):
     # problem with Array.__setitem__(), just with test design
     #type = 'float32'
     type = "float64"
+    dtype = "float64"
     shape = (0,)
     compress = 1
     shuffle = 1
@@ -1023,6 +1024,7 @@ class Numarray2TestCase(BasicTestCase):
 class NumarrayComprTestCase(BasicTestCase):
     flavor = "numarray"
     type = "float64"
+    dtype = "float64"
     compress = 1
     shuffle = 1
     shape = (0,)
