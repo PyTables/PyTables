@@ -2255,7 +2255,7 @@ The 'names' parameter must be a list of strings.""")
         object.nrows = nrowsdest
 
 
-    def _g_copyIndexes(self, other):
+    def _g_propIndexes(self, other):
         """Generate index in `other` table for every indexed column here."""
         oldcols, newcols = self.colinstances, other.colinstances
         for colname in newcols:
@@ -2273,7 +2273,7 @@ The 'names' parameter must be a list of strings.""")
         "Private part of Leaf.copy() for each kind of leaf"
         # Get the private args for the Table flavor of copy()
         sortkey = kwargs.pop('sortkey', None)
-        copyindexes = kwargs.pop('copyindexes', False)
+        propindexes = kwargs.pop('propindexes', False)
         # Compute the correct indices.
         (start, stop, step) = self._processRangeRead(
             start, stop, step, warn_negstep = sortkey is None)
@@ -2284,8 +2284,8 @@ The 'names' parameter must be a list of strings.""")
         self._g_copyRows(newtable, start, stop, step, sortkey)
         nbytes = newtable.nrows * newtable.rowsize
         # Generate equivalent indexes in the new table, if required.
-        if copyindexes and self.indexed:
-            self._g_copyIndexes(newtable)
+        if propindexes and self.indexed:
+            self._g_propIndexes(newtable)
         return (newtable, nbytes)
 
 
@@ -2306,9 +2306,10 @@ The 'names' parameter must be a list of strings.""")
             achieved by specifying a negative value for the `step`
             keyword.  If omitted or ``None``, the original table order
             is used.
-        `copyindexes`
+        `propindexes`
             If true, the existing indexes in the source table are
-            copied.  If false (the default), the indexes are not copied.
+            propagated (created) to the new one.  If false (the
+            default), the indexes are not propagated.
         """
         return super(Table, self).copy(
             newparent, newname, overwrite, createparents, **kwargs)

@@ -1875,7 +1875,7 @@ class copyNodeTestCase(unittest.TestCase):
         # /table => /agroup/agroup3/
         warnings.filterwarnings("ignore", category=UserWarning)
         table = self.fileh.copyNode(
-            '/table', '/agroup/agroup3', copyindexes=True)
+            '/table', '/agroup/agroup3', propindexes=True)
         warnings.filterwarnings("default", category=UserWarning)
         self.assert_("/agroup/agroup3/table" in self.fileh)
 

@@ -1143,11 +1143,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 else:
                     assert table.cols._f_col(colname).index.dirty == False
 
-    def test09a_copyIndex(self):
-        "Checking copy Index feature in copyTable (attrs)"
+    def test09a_propIndex(self):
+        "Checking propagate Index feature in Table.copy() (attrs)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test09a_copyIndex..." % self.__class__.__name__
+            print "Running %s.test09a_propIndex..." % self.__class__.__name__
         table = self.table
         # Don't force a sync in indexes
         #table.flushRowsToIndex()
@@ -1158,7 +1158,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Now, remove some rows to make columns dirty
         #table.removeRows(3,5)
         # Copy a Table to another location
-        table2 = table.copy("/", 'table2', copyindexes=True)
+        table2 = table.copy("/", 'table2', propindexes=True)
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1194,11 +1194,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             if table2.cols._f_col(colname).index:
                 assert table2.cols._f_col(colname).index.dirty == False
 
-    def test09b_copyIndex(self):
-        "Checking that copyindexes=False works"
+    def test09b_propIndex(self):
+        "Checking that propindexes=False works"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test09b_copyIndex..." % self.__class__.__name__
+            print "Running %s.test09b_propIndex..." % self.__class__.__name__
         table = self.table
         # Don't force a sync in indexes
         #table.flushRowsToIndex()
@@ -1209,7 +1209,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Now, remove some rows to make columns dirty
         #table.removeRows(3,5)
         # Copy a Table to another location
-        table2 = table.copy("/", 'table2', copyindexes=False)
+        table2 = table.copy("/", 'table2', propindexes=False)
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1228,11 +1228,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
             assert not table2.cols.var1.is_indexed
             assert table.cols.var1.is_indexed
 
-    def test10_copyIndex(self):
-        "Checking copy Index feature in copyTable (values)"
+    def test10_propIndex(self):
+        "Checking propagate Index feature in Table.copy() (values)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test10_copyIndex..." % self.__class__.__name__
+            print "Running %s.test10_propIndex..." % self.__class__.__name__
         table = self.table
         # Don't force a sync in indexes
         #table.flushRowsToIndex()
@@ -1243,7 +1243,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         # Now, remove some rows to make columns dirty
         #table.removeRows(3,5)
         # Copy a Table to another location
-        table2 = table.copy("/", 'table2', copyindexes=True)
+        table2 = table.copy("/", 'table2', propindexes=True)
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
@@ -1259,11 +1259,11 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                 print "Elements in copied index:", index2.nelements
                 print "Elements in original index:", index1.nelements
 
-    def test11_copyIndex(self):
-        "Checking copy Index feature in copyTable (dirty flags)"
+    def test11_propIndex(self):
+        "Checking propagate Index feature in Table.copy() (dirty flags)"
         if verbose:
             print '\n', '-=' * 30
-            print "Running %s.test11_copyIndex..." % self.__class__.__name__
+            print "Running %s.test11_propIndex..." % self.__class__.__name__
         table = self.table
         # Force a sync in indexes
         table.flushRowsToIndex()
@@ -1276,7 +1276,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         table.modifyColumns(1, columns=[["asa","asb"],[1.,2.]],
                             names=["var1", "var4"])
         # Copy a Table to another location
-        table2 = table.copy("/", 'table2', copyindexes=True)
+        table2 = table.copy("/", 'table2', propindexes=True)
         if self.reopen:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")

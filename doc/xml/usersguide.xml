@@ -7368,12 +7368,12 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
 
               <glossentry>
                 <glossterm><emphasis
-                role="bold">copyindexes</emphasis></glossterm>
+                role="bold">propindexes</emphasis></glossterm>
 
                 <glossdef>
                   <para>If true, the existing indexes in the source table are
-                  copied.  If false (the default), the indexes are not
-                  copied.</para>
+                  propagated (created) to the new one.  If false (the
+                  default), the indexes are not propagated.</para>
                 </glossdef>
               </glossentry>
             </glosslist>
