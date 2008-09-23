@@ -233,19 +233,20 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         None, None,
         "Whether we should try to build a completely sorted index or not.")
 
-    def _completely_sorted(self):
+    def _is_CSI(self):
         if self.indsize < 8:
             # An index that is not full cannot be completely sorted
             return False
-        # Try with the 'completely_sorted' attribute
-        if 'completely_sorted' in self._v_attrs:
-            return self._v_attrs.completely_sorted
+        # Try with the 'is_CSI' attribute
+        if 'is_CSI' in self._v_attrs:
+            return self._v_attrs.is_CSI
         # If not, then compute the overlaps manually
+        # (the attribute 'is_CSI' will be set there)
         self.compute_overlaps(self, None, False)
         return self.noverlaps == 0
 
-    completely_sorted = property(
-        _completely_sorted,  None, None,
+    is_CSI = property(
+        _is_CSI,  None, None,
         "Whether the index is completely sorted or not.")
 
     @lazyattr
@@ -618,7 +619,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # A completely sorted index is not longer possible after an
         # append of an index with already one slice.
         if nrow > 0:
-            self._v_attrs.completely_sorted = False
+            self._v_attrs.is_CSI = False
         if profile: show_stats("Exiting initial_append", tref)
         return larr, arr, idx
 
@@ -859,7 +860,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                         iover = numpy.concatenate((iover, indicesLR[stj:n]))
                         starts[j] = nelementsLR
                 elif prev_end > next_beg:
-                    idx = self.search_item_lt(prev_end, j, ranges[j], stj)
+                    idx = self.search_item_lt(tmp, prev_end, j, ranges[j], stj)
                     if j < self.nslices:
                         sover = numpy.concatenate((sover, sorted[j,stj:idx]))
                         iover = numpy.concatenate((iover, indices[j,stj:idx]))
@@ -1424,9 +1425,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 tmp.mbounds[j:jn] = tmp.mbounds2[j:jn]
 
 
-    def search_item_lt(self, item, nslice, limits, start=0):
+    def search_item_lt(self, where, item, nslice, limits, start=0):
         """Search a single item in a specific sorted slice."""
-        # This method will only work under the assumtion that item
+        # This method will only works under the assumtion that item
         # *is to be found* in the nslice.
         assert limits[0] < item <= limits[1]
         cs = self.chunksize
@@ -1435,7 +1436,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         # Find the chunk
         if nslice < self.nslices:
-            nchunk = bisect_left(self.tmp.bounds[nslice], item, bstart)
+            nchunk = bisect_left(where.bounds[nslice], item, bstart)
         else:
             # We need to subtract 1 chunk here because bebounds
             # has a leading value
@@ -1445,13 +1446,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Find the element in chunk
         pos = nchunk*cs
         if nslice < self.nslices:
-            pos += bisect_left(self.tmp.sorted[nslice,pos:pos+cs], item, cstart)
+            pos += bisect_left(where.sorted[nslice,pos:pos+cs], item)
             assert pos <= ss
         else:
             end = pos + cs
             if end > nelementsLR:
                 end = nelementsLR
-            pos += bisect_left(self.sortedLR[pos:end], item, cstart)
+            pos += bisect_left(self.sortedLR[pos:end], item)
             assert pos <= nelementsLR
         assert pos > 0
         return pos
@@ -1502,12 +1503,14 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     multiplicity[j-i] += 1
                     if j < self.nslices:
                         overlaps[i] += ss - stj
+                        starts[j] = ss   # a sentinel
                     else:
                         overlaps[i] += nelementsLR - stj
-                    starts[j] = ss   # just a sentinel
+                        starts[j] = nelementsLR   # a sentinel
                 elif prev_end > next_beg:
                     multiplicity[j-i] += 1
-                    idx = self.search_item_lt(prev_end, j, ranges[j], stj)
+                    idx = self.search_item_lt(
+                        where, prev_end, j, ranges[j], stj)
                     nelem = idx - stj
                     overlaps[i] += nelem
                     starts[j] = idx
@@ -1536,10 +1539,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             print "multiplicity:\n", multiplicity, multiplicity.sum()
             print "overlaps:\n", overlaps, overlaps.sum()
         noverlaps = overlaps.sum()
-        # For full indexes, set the 'completely_sorted' flag
-        if self.indsize == 8:
-            self._v_attrs.completely_sorted = noverlaps == 0
-        # Save the number of overlaps for future reference
+        # For full indexes, set the 'is_CSI' flag
+        if self.indsize == 8 and self.column.table._v_file._isWritable():
+            self._v_attrs.is_CSI = (noverlaps == 0)
+        # Save the number of overlaps for future references
         self.noverlaps = noverlaps
         return (noverlaps, multiplicity, toverlap)
 
@@ -1935,8 +1938,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
     def __str__(self):
         """This provides a more compact representation than __repr__"""
-        return "Index(%s, type=%s, shape=%s, chunksize=%s)" % \
-               (self.nelements, self.type, self.shape, self.sorted.chunksize)
+        # The filters
+        filters = ""
+        if self.filters.complevel:
+            if self.filters.shuffle:
+                filters += ", shuffle"
+            filters += ", %s(%s)" % (self.filters.complib,
+                                     self.filters.complevel)
+        return "Index(%s(%s)%s).is_CSI=%s" % \
+               (self.kind, self.optlevel, filters, self.is_CSI)
 
 
     def __repr__(self):
@@ -1944,6 +1954,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         cpathname = self.column.table._v_pathname + ".cols." + self.column.name
         retstr = """%s (Index for column %s)
+  kind := %s
+  optlevel := %s
+  filters := %s
+  is_CSI := %s
   nelements := %s
   chunksize := %s
   slicesize := %s
@@ -1952,6 +1966,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
   filters := %s
   dirty := %s
   byteorder := %r""" % (self._v_pathname, cpathname,
+                        self.kind, self.optlevel,
+                        self.filters, self.is_CSI,
                         self.nelements,
                         self.chunksize, self.slicesize,
                         self.blocksize, self.superblocksize,

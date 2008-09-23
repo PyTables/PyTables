@@ -108,6 +108,15 @@ _nxTypeFromNPType = {
 _npSizeType = numpy.array(SizeType(0)).dtype.type
 
 
+class _ColIndexes(dict):
+    """Provides a nice representation of column indexes."""
+    def __repr__(self):
+        """ Gives a detailed Description column representation.
+        """
+        rep = [ '  \"%s\": %s' % (k, self[k]) for k in self.keys()]
+        return '{\n  %s}' % (',\n  '.join(rep))
+
+
 class Table(tableExtension.Table, Leaf):
     """
     This class represents heterogeneous datasets in an HDF5 file.
@@ -333,6 +342,19 @@ class Table(tableExtension.Table, Leaf):
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """ )
+
+    colindexes = property(
+        lambda self: _ColIndexes(
+        ( (_colpname, self.cols._f_col(_colpname).index)
+          for _colpname in self.colpathnames
+          if self.colindexed[_colpname] )),
+        None, None,
+        """
+        A dictionary with the indexes of the indexed columns.
+
+        .. Note:: Column indexing is only available in PyTables Pro.
+        """ )
+
 
     # Other methods
     # ~~~~~~~~~~~~~
@@ -2384,10 +2406,10 @@ table ``%s`` is being preempted from alive nodes without its buffers being flush
   byteorder := %r
   chunkshape := %r
   autoIndex := %r
-  indexedcolpathnames := %r"""
+  colindexes := %r"""
             return format % ( str(self), self.description, self.byteorder,
                               self.chunkshape, self.autoIndex,
-                              self.indexedcolpathnames )
+                              _ColIndexes(self.colindexes) )
         else:
             return """\
 %s
@@ -2784,7 +2806,7 @@ class Column(object):
 
 
     is_index_CSI = property(
-        lambda self: self.index.completely_sorted, None, None,
+        lambda self: self.index.is_CSI, None, None,
         "True if the index of the column is completely sorted, False "
         "otherwise.")
 

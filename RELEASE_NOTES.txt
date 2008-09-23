@@ -43,6 +43,9 @@ Changes from 2.0.x to 2.1b2
   copied now.  Before, only the first row was copied, and that was clearly
   wrong.
 
+- New Table.colindexes property that returns a dictionary with the indexes of
+  the indexed columns in table.
+
 
 API changes from 2.0.x to 2.1b2
 ===============================

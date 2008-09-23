@@ -6560,6 +6560,16 @@ for node in h5file.root.detector:
 
             <glossentry>
               <glossterm><emphasis
+              role="bold">colindexes</emphasis></glossterm>
+
+              <glossdef>
+                <para>A dictionary with the indexes of the indexed columns.
+                </para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis
               role="bold">colinstances</emphasis></glossterm>
 
               <glossdef>
@@ -6643,10 +6653,6 @@ for node in h5file.root.detector:
 
               <glossdef>
                 <para>Does this table have any indexed columns?
-                <note role="pro">
-                  <para>Column indexing is only available in PyTables
-                  Pro.</para>
-                </note>
                 </para>
               </glossdef>
             </glossentry>
