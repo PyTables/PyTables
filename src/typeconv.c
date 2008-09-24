@@ -2,7 +2,7 @@
  *
  *      License: BSD
  *      Created: December 21, 2004
- *      Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
+ *      Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
  *      Modified:
  *        Function inlining and some castings for 64-bit adressing
  *        Francesc Alted 2004-12-27

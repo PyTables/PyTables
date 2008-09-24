@@ -2,7 +2,7 @@
 #
 #       License: BSD
 #       Created: December 15, 2004
-#       Author:  Ivan Vilata i Balaguer - reverse:com.carabos@ivilata
+#       Author:  Ivan Vilata i Balaguer - reverse:net.selidor@ivan
 #
 #       $Source: /home/ivan/_/programari/pytables/svn/cvs/pytables/pytables/test/test_timetype.py,v $
 #       $Id$

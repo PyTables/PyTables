@@ -2,7 +2,7 @@
 Utilities for handling different array flavors in PyTables.
 
 :Author: Ivan Vilata i Balaguer
-:Contact: ivilata at carabos dot com
+:Contact: ivan at selidor dot net
 :License: BSD
 :Created: December 30, 2006
 :Revision: $Id$

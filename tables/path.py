@@ -2,7 +2,7 @@
 Functionality related with node paths in a PyTables file.
 
 :Author: Ivan Vilata i Balaguer
-:Contact: ivilata at carabos dot com
+:Contact: ivan at selidor dot net
 :License: BSD
 :Created: January 15, 2007
 :Revision: $Id$

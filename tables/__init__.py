@@ -18,7 +18,7 @@ to efficiently cope with extremely large amounts of data.
 
 You can support the development of PyTables by purchasing the
 PyTables Professional edition available at
-http://www.carabos.com/products/pytables-pro
+http://www.pytables.org/moin/PyTablesPro
 
 Most Important Classes
 ======================

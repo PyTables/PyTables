@@ -2,7 +2,7 @@
 Classes for describing columns for ``Table`` objects.
 
 :Author: Francesc Alted
-:Contact: faltet at carabos dot com
+:Contact: faltet@pytables.com
 :License: BSD
 :Created: September 21, 2002
 :Revision: $Id$

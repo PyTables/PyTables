@@ -230,12 +230,12 @@
   </biblioentry>
 
   <biblioentry id="ViTablesRef">
-    <publisher><publishername>Cárabos Coop. V.</publishername></publisher>
+    <publisher><publishername>Vicent Mas</publishername></publisher>
     <title>ViTables. A GUI for PyTables/HDF5 files</title>
     <bibliomisc>It is a graphical tool for browsing and editing files in both
-          PyTables and HDF5, formats</bibliomisc>
+          PyTables and HDF5 formats</bibliomisc>
     <bibliosource>
-      <ulink url="http://www.carabos.com/products/vitables.html">http://www.carabos.com/products/vitables.html</ulink>
+      <ulink url="http://www.vitables.org">http://www.vitables.org</ulink>
     </bibliosource>
   </biblioentry>
 
@@ -262,7 +262,7 @@
     <title>OPSI: The indexing system of PyTables 2 Professional Edition</title>
     <bibliomisc>Exhaustive description and benchmarks about the indexing engine that comes with PyTables Pro</bibliomisc>
     <bibliosource>
-      <ulink url="http://www.carabos.com/docs/OPSI-indexes.pdf">http://www.carabos.com/docs/OPSI-indexes.pdf</ulink>
+      <ulink url="http://www.pytables.org/docs/OPSI-indexes.pdf">http://www.pytables.org/docs/OPSI-indexes.pdf</ulink>
     </bibliosource>
   </biblioentry>
 

@@ -2,7 +2,7 @@
 Atom classes for describing dataset contents.
 
 :Author: Ivan Vilata i Balaguer
-:Contact: ivilata at carabos dot com
+:Contact: ivan at selidor dot net
 :License: BSD
 :Created: December 16, 2004
 :Revision: $Id$

@@ -99,7 +99,7 @@
       in the documentation and/or other materials provided with the
       distribution.</para>
 
-      <para>c. Neither the name of the Carabos Coop. V. nor the names of its
+      <para>c. Neither the name of Francesc Alted nor the names of its
       contributors may be used to endorse or promote products derived from
       this software without specific prior written permission.</para>
 
@@ -1425,8 +1425,8 @@ Object Tree:
           <para>Also, in <xref linkend="tutorial1-1-tableview"
           xrefstyle="select: label" />, you can admire how the
           <literal>tutorial1.h5</literal> looks like using the <ulink
-          url="http://www.carabos.com/products/vitables.html">ViTables
-          </ulink> graphical interface .</para>
+          url="http://www.vitables.org">ViTables </ulink> graphical interface
+          .</para>
 
           <figure id="tutorial1-1-tableview">
             <title>The initial version of the data file for tutorial 1, with a
