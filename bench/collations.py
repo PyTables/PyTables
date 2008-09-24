@@ -77,7 +77,7 @@ print "Time for second solution: %.3f" % (time()-t1)
 
 if tables.is_pro:
     t1 = time()
-    table.cols.collection.createFullIndex(optlevel=9)
+    table.cols.collection.createCSIndex()
     #table.cols.collection.reIndex()
     print "Time for indexing: %.3f" % (time()-t1)
 

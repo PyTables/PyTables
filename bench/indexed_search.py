@@ -106,7 +106,7 @@ class DB(object):
             arr_i4 = numpy.array(arr_f8, dtype='int32')
         return arr_i4, arr_f8
 
-    def create_db(self, dtype, optlevel, idxtype, verbose):
+    def create_db(self, dtype, kind, optlevel, verbose):
         self.con = self.open_db(remove=1)
         self.create_table(self.con)
         init_size = self.get_db_size()
@@ -114,12 +114,12 @@ class DB(object):
         self.fill_table(self.con)
         table_size = self.get_db_size()
         self.print_mtime(t1, 'Insert time')
-        self.index_db(dtype, optlevel, idxtype, verbose)
+        self.index_db(dtype, kind, optlevel, verbose)
         indexes_size = self.get_db_size()
         self.print_db_sizes(init_size, table_size, indexes_size)
         self.close_db(self.con)
 
-    def index_db(self, dtype, optlevel, idxtype, verbose):
+    def index_db(self, dtype, kind, optlevel, verbose):
         if dtype == "int":
             idx_cols = ['col2']
         elif dtype == "float":
@@ -128,7 +128,7 @@ class DB(object):
             idx_cols = ['col2', 'col4']
         for colname in idx_cols:
             t1=time()
-            self.index_col(self.con, colname, optlevel, idxtype, verbose)
+            self.index_col(self.con, colname, kind, optlevel, verbose)
             self.print_mtime(t1, 'Index time (%s)' % colname)
 
     def query_db(self, niter, dtype, onlyidxquery, onlynonidxquery,
@@ -222,7 +222,7 @@ if __name__=="__main__":
     except:
         psyco_imported = 0
 
-    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-k] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-N niter] [-n nrows] [-d datadir] [-O level] [-t idxtype] [-s] col -Q [suplim]
+    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-k] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-N niter] [-n nrows] [-d datadir] [-O level] [-t kind] [-s] col -Q [suplim]
             -T use Pytables
             -S use Sqlite3
             -P use Postgres
@@ -265,7 +265,7 @@ if __name__=="__main__":
     userandom = 0
     docreate = 0
     optlevel = 0
-    idxtype = "medium"
+    kind = "medium"
     docompress = 0
     complib = "zlib"
     doquery = False
@@ -328,9 +328,9 @@ if __name__=="__main__":
             optlevel = int(option[1])
         elif option[0] == '-t':
             if option[1] in ('full', 'medium', 'light', 'ultralight'):
-                idxtype = option[1]
+                kind = option[1]
             else:
-                print "idxtype should be either 'full', 'medium', 'light' or 'ultralight'"
+                print "kind should be either 'full', 'medium', 'light' or 'ultralight'"
                 sys.exit(1)
         elif option[0] == '-s':
             if option[1] in ('int', 'float'):
@@ -354,7 +354,7 @@ if __name__=="__main__":
     if usepytables:
         from pytables_backend import PyTables_DB
         db = PyTables_DB(krows, rng, userandom, datadir,
-                         docompress, complib, optlevel, idxtype)
+                         docompress, complib, kind, optlevel)
     elif usesqlite3:
         from sqlite3_backend import Sqlite3_DB
         db = Sqlite3_DB(krows, rng, userandom, datadir)
@@ -379,7 +379,7 @@ if __name__=="__main__":
     if docreate:
         if verbose:
             print "writing %s rows" % krows
-        db.create_db(dtype, optlevel, idxtype, verbose)
+        db.create_db(dtype, kind, optlevel, verbose)
 
     if doquery:
         print "Calling query_db() %s times" % niter

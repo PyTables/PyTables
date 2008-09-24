@@ -2757,14 +2757,8 @@ class Column(object):
 
     createIndex([kind][, filters][, tmp_dir])
         Create an index for this column.
-    createUltraLightIndex([optlevel][, filters][, tmp_dir])
-        Create an ``ultralight`` index for this column.
-    createLightIndex([optlevel][, filters][, tmp_dir])
-        Create an ``light`` index for this column.
-    createMediumIndex([optlevel][, filters][, tmp_dir])
-        Create an ``medium`` index for this column.
-    createFullIndex([optlevel][, filters][, tmp_dir])
-        Create an ``full`` index for this column.
+    createCSIndex([filters][, tmp_dir])
+        Create a completely sorted index (CSI) for this column.
     reIndex()
         Recompute the index associated with this column.
     reIndexDirty()
@@ -2999,7 +2993,9 @@ class Column(object):
         maximum) guarantees the creation of an index with zero entropy,
         that is, a completely sorted index (CSI) -- provided that the
         number of rows in the table does not exceed the 2**48 figure
-        (that is more than 100 trillions of rows).
+        (that is more than 100 trillions of rows).  See
+        ``Column.createCSIndex()`` method for a more direct way to
+        create a CSI index.
 
         The `filters` argument can be used to set the `Filters` used to
         compress the index.  If ``None``, default index filters will be
@@ -3039,90 +3035,26 @@ class Column(object):
         return SizeType(idxrows)
 
 
-    def createUltraLightIndex( self, optlevel=3, filters=None,
-                               tmp_dir=None, _blocksizes=None,
-                               _testmode=False, _verbose=False ):
-        """Create an index of kind 'ultralight' for this column.
+    def createCSIndex( self, filters=None,  tmp_dir=None,
+                       _blocksizes=None, _testmode=False, _verbose=False ):
+        """Create a completely sorted index (CSI) for this column.
 
-        You can select the optimization level of the index by setting
-        `optlevel` from 0 (no optimization) to 9 (maximum optimization).
-        Higher levels of optimization mean better chances for reducing
-        the entropy of the index at the price of using more CPU, memory
-        and I/O resources for creating the index.
-
-        For the meaning of `filters` and `tmp_dir` arguments see
-        ``Column.createIndex()``.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-        """
-        return self.createIndex('ultralight', optlevel, filters, tmp_dir,
-            _blocksizes, _testmode=_testmode, _verbose=_verbose)
-
-
-    def createLightIndex( self, optlevel=6, filters=None,
-                           tmp_dir=None, _blocksizes=None,
-                          _testmode=False, _verbose=False ):
-        """Create an index of kind 'light' for this column.
-
-        You can select the optimization level of the index by setting
-        `optlevel` from 0 (no optimization) to 9 (maximum optimization).
-        Higher levels of optimization mean better chances for reducing
-        the entropy of the index at the price of using more CPU, memory
-        and I/O resources for creating the index.
+        This method guarantees the creation of an index with zero
+        entropy, that is, a completely sorted index (CSI) -- provided
+        that the number of rows in the table does not exceed the 2**48
+        figure (that is more than 100 trillions of rows).  A CSI index
+        is needed for some table methods (like ``Table.itersorted(),
+        ``Table.readSorted()) in order to ensure completely sorted
+        results.
 
         For the meaning of `filters` and `tmp_dir` arguments see
         ``Column.createIndex()``.
 
-        .. Note:: Column indexing is only available in PyTables Pro.
-        """
-        return self.createIndex('light', optlevel, filters, tmp_dir,
-            _blocksizes, _testmode=_testmode, _verbose=_verbose)
-
-
-    def createMediumIndex( self, optlevel=6, filters=None,
-                           tmp_dir=None,_blocksizes=None,
-                           _testmode=False, _verbose=False ):
-        """Create an index of kind 'medium' for this column.
-
-        You can select the optimization level of the index by setting
-        `optlevel` from 0 (no optimization) to 9 (maximum optimization).
-        Higher levels of optimization mean better chances for reducing
-        the entropy of the index at the price of using more CPU, memory
-        and I/O resources for creating the index.
-
-        For the meaning of `filters` and `tmp_dir` arguments see
-        ``Column.createIndex()``.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
-        """
-        return self.createIndex('medium', optlevel, filters, tmp_dir,
-            _blocksizes, _testmode=_testmode, _verbose=_verbose)
-
-
-    def createFullIndex( self, optlevel=9, filters=None,
-                          tmp_dir=None, _blocksizes=None,
-                         _testmode=False, _verbose=False ):
-        """Create an index of kind 'full' for this column.
-
-        You can select the optimization level of the index by setting
-        `optlevel` from 0 (no optimization) to 9 (maximum optimization).
-        Higher levels of optimization mean better chances for reducing
-        the entropy of the index at the price of using more CPU, memory
-        and I/O resources for creating the index.
-
-        Note that selecting an `optlevel` of 9 (the maximum) guarantees
-        the creation of an index with zero entropy, that is, a
-        completely sorted index (CSI) -- provided that the number of
-        rows in the table does not exceed the 2**48 figure (that is more
-        than 100 trillions of rows).
-
-        For the meaning of `filters` and `tmp_dir` arguments see
-        ``Column.createIndex()``.
-
-        .. Note:: Column indexing is only available in PyTables Pro.
+        .. Note:: This method is equivalent to
+        ``Column.createIndex(kind='full', optlevel=9, ...)``.
         """
 
-        return self.createIndex('full', optlevel, filters, tmp_dir,
+        return self.createIndex('full', 9, filters, tmp_dir,
             _blocksizes, _testmode=_testmode, _verbose=_verbose)
 
 

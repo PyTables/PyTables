@@ -6,8 +6,7 @@ from time import time
 class PyTables_DB(DB):
 
     def __init__(self, nrows, rng, userandom, datadir,
-                 docompress=0, complib='zlib', optlevel=0,
-                 idxtype="light"):
+                 docompress=0, complib='zlib', kind="medium", optlevel=6):
         DB.__init__(self, nrows, rng, userandom)
         self.tprof = []
         # Specific part for pytables
@@ -16,7 +15,7 @@ class PyTables_DB(DB):
         # Complete the filename
         self.filename = "pro-" + self.filename
         self.filename += '-' + 'O%s' % optlevel
-        self.filename += '-' + idxtype
+        self.filename += '-' + kind
         if docompress:
             self.filename += '-' + complib + str(docompress)
         self.filename = datadir + '/' + self.filename + '.h5'
@@ -62,20 +61,10 @@ class PyTables_DB(DB):
             j += 1
         table.flush()
 
-    def index_col(self, con, column, optlevel, idxtype, verbose):
+    def index_col(self, con, column, kind, optlevel, verbose):
         col = getattr(con.root.table.cols, column)
-        if idxtype == "full":
-            col.createFullIndex(optlevel=optlevel, filters=self.filters,
-                                _verbose=verbose, _blocksizes=None)
-        elif idxtype == "medium":
-            col.createMediumIndex(optlevel=optlevel, filters=self.filters,
-                                  _verbose=verbose, _blocksizes=None)
-        elif idxtype == "light":
-            col.createLightIndex(optlevel=optlevel, filters=self.filters,
-                                 _verbose=verbose, _blocksizes=None)
-        elif idxtype == "ultralight":
-            col.createUltraLightIndex(optlevel=optlevel, filters=self.filters,
-                                      _verbose=verbose, _blocksizes=None)
+        col.createIndex(kind=kind, optlevel=optlevel, filters=self.filters,
+                        _verbose=verbose, _blocksizes=None)
 #                       _blocksizes=(2**27, 2**22, 2**15, 2**7))
 #                       _blocksizes=(2**27, 2**22, 2**14, 2**6))
 #                       _blocksizes=(2**27, 2**20, 2**13, 2**5),

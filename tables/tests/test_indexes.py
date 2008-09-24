@@ -1548,7 +1548,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         self.table = table
         self.icol = self.table.cols.icol
         # A full index with maximum optlevel should always be completely sorted
-        self.icol.createFullIndex(optlevel=9, _blocksizes=small_blocksizes)
+        self.icol.createCSIndex(_blocksizes=small_blocksizes)
 
 
     def test00_isCompletelySortedIndex(self):
@@ -1558,11 +1558,11 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         icol.removeIndex()
         # As the table is small, lesser optlevels should be able to
         # create a completely sorted index too.
-        icol.createFullIndex(optlevel=6)
+        icol.createIndex(kind="full", optlevel=6)
         self.assertEqual(icol.is_index_CSI, True)
         icol.removeIndex()
         # Other kinds than full, should never return a CSI
-        icol.createMediumIndex(optlevel=9)
+        icol.createIndex(kind="medium", optlevel=9)
         self.assertEqual(icol.is_index_CSI, False)
 
 

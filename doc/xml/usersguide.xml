@@ -8183,7 +8183,10 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               creation of an index with zero entropy, that is, a completely
               sorted index (CSI) — provided that the number of rows in the
               table does not exceed the 2**48 figure (that is more than 100
-              trillions of rows).</para>
+              trillions of rows).  See
+              <literal>Column.createCSIndex()</literal> (<xref
+              linkend="Column.createCSIndex" />) method for a more direct way
+              to create a CSI index.</para>
 
               <para>The <literal>filters</literal> argument can be used to set
               the <literal>Filters</literal> (see <xref
@@ -8205,113 +8208,30 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               </note>
             </section>
 
-            <section id="Column.createUltraLightIndex" xreflabel="description">
-              <title><literal>createUltraLightIndex(optlevel=3,
-              filters=None, tmp_dir=None)</literal></title>
+            <section id="Column.createCSIIndex" xreflabel="description">
+              <title><literal>createFullIndex(filters=None,
+              tmp_dir=None)</literal></title>
 
-              <para>Create an index of kind <literal>'ultralight'</literal>
-              for this column.</para>
-
-              <para>You can select the optimization level of the index by
-              setting <literal>optlevel</literal> from 0 (no optimization) to
-              9 (maximum optimization).  Higher levels of optimization mean
-              better chances for reducing the entropy of the index at the
-              price of using more CPU, memory and I/O resources for creating
-              the index.</para>
-
-              <para>For the meaning of <literal>filters</literal> and
-              <literal>tmp_dir</literal> arguments see
-              <literal>Column.createIndex()</literal> (<xref
-              linkend="Column.createIndex" xrefstyle="select: label"
-              />).</para>
-
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
-              </note>
-            </section>
-
-            <section id="Column.createLightIndex" xreflabel="description">
-              <title><literal>createLightIndex(optlevel=6,
-              filters=None, tmp_dir=None)</literal></title>
-
-              <para>Create an index of kind <literal>'light'</literal> for
-              this column.</para>
-
-              <para>You can select the optimization level of the index by
-              setting <literal>optlevel</literal> from 0 (no optimization) to
-              9 (maximum optimization).  Higher levels of optimization mean
-              better chances for reducing the entropy of the index at the
-              price of using more CPU, memory and I/O resources for creating
-              the index.</para>
-
-              <para>For the meaning of <literal>filters</literal> and
-              <literal>tmp_dir</literal> arguments see
-              <literal>Column.createIndex()</literal> (<xref
-              linkend="Column.createIndex" xrefstyle="select: label"
-              />).</para>
-
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
-              </note>
-            </section>
-
-            <section id="Column.createMediumIndex" xreflabel="description">
-              <title><literal>createMediumIndex(optlevel=6,
-              filters=None, tmp_dir=None)</literal></title>
-
-              <para>Create an index of kind <literal>'medium'</literal>
-              for this column.</para>
-
-              <para>You can select the optimization level of the index by
-              setting <literal>optlevel</literal> from 0 (no optimization) to
-              9 (maximum optimization).  Higher levels of optimization mean
-              better chances for reducing the entropy of the index at the
-              price of using more CPU, memory and I/O resources for creating
-              the index.</para>
-
-              <para>For the meaning of <literal>filters</literal> and
-              <literal>tmp_dir</literal> arguments see
-              <literal>Column.createIndex()</literal> (<xref
-              linkend="Column.createIndex" xrefstyle="select: label"
-              />).</para>
-
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
-              </note>
-            </section>
-
-            <section id="Column.createFullIndex" xreflabel="description">
-              <title><literal>createFullIndex(optlevel=9,
-              filters=None, tmp_dir=None)</literal></title>
-
-              <para>Create an index of kind <literal>'full'</literal> for this
+              <para>Create a completely sorted index (CSI) for this
               column.</para>
 
-              <para>You can select the optimization level of the index by
-              setting <literal>optlevel</literal> from 0 (no optimization) to
-              9 (maximum optimization).  Higher levels of optimization mean
-              better chances for reducing the entropy of the index at the
-              price of using more CPU and I/O resources for creating the
-              index.</para>
-
-              <para>Note that selecting an <literal>optlevel</literal> of 9
-              (the maximum) here guarantees the creation of an index with zero
-              entropy, that is, a completely sorted index (CSI) — provided
+              <para>This method guarantees the creation of an index with zero
+              entropy, that is, a completely sorted index (CSI) -- provided
               that the number of rows in the table does not exceed the 2**48
-              figure (that is more than 100 trillions of rows).</para>
+              figure (that is more than 100 trillions of rows).  A CSI index
+              is needed for some table methods (like
+              <literal>Table.itersorted()</literal>,
+              <literal>Table.readSorted()</literal>) in order to ensure
+              completely sorted results.</para>
 
               <para>For the meaning of <literal>filters</literal> and
               <literal>tmp_dir</literal> arguments see
               <literal>Column.createIndex()</literal> (<xref
-              linkend="Column.createIndex" xrefstyle="select: label"
-              />).</para>
+              linkend="Column.createIndex" />).</para>
 
-              <note role="pro">
-                <para>Column indexing is only available in PyTables
-                Pro.</para>
+              <note>
+                <para>This method is equivalent to
+                ``Column.createIndex(kind='full', optlevel=9, ...).</para>
               </note>
             </section>
 

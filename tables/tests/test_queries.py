@@ -236,29 +236,13 @@ class BaseTableQueryTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if not self.indexed:
             return
         try:
-            idxtype = self.idxtype
-            vprint("* Indexing ``%s`` columns. Type: %s." % (colname, idxtype))
+            kind = self.kind
+            vprint("* Indexing ``%s`` columns. Type: %s." % (colname, kind))
             for acolname in [colname, ncolname, extracolname]:
                 acolumn = self.table.colinstances[acolname]
-                if idxtype == "Full":
-                    acolumn.createFullIndex(optlevel=self.optlevel,
-                                            _blocksizes=small_blocksizes,
-                                            _testmode=True)
-                elif idxtype == "Medium":
-                    acolumn.createMediumIndex(optlevel=self.optlevel,
-                                              _blocksizes=small_blocksizes,
-                                              _testmode=True)
-                elif idxtype == "Light":
-                    acolumn.createLightIndex(optlevel=self.optlevel,
-                                             _blocksizes=small_blocksizes,
-                                             _testmode=True)
-                elif idxtype == "UltraLight":
-                    acolumn.createUltraLightIndex(optlevel=self.optlevel,
-                                                  _blocksizes=small_blocksizes,
-                                                  _testmode=True)
-                else:
-                    raise common.SkipTest(
-                        "Indexing type ``%s`` is not supported yet." % idxtype )
+                acolumn.createIndex(
+                    kind=self.kind, optlevel=self.optlevel,
+                    _blocksizes=small_blocksizes, _testmode=True)
 
         except TypeError, te:
             if self.colNotIndexable_re.search(str(te)):
@@ -493,13 +477,13 @@ def niclassdata():
 
 # Base classes for the different type index.
 class UltraLightITableMixin:
-    idxtype = "UltraLight"
+    kind = "ultralight"
 class LightITableMixin:
-    idxtype = "Light"
+    kind = "light"
 class MediumITableMixin:
-    idxtype = "Medium"
+    kind = "medium"
 class FullITableMixin:
-    idxtype = "Full"
+    kind = "full"
 
 # Base classes for indexed queries.
 class SmallSTableMixin:
@@ -510,30 +494,30 @@ class BigSTableMixin:
     nrows = 500
 
 # Parameters for indexed queries.
-idxtypes = ['UltraLight', 'Light', 'Medium', 'Full']
+ckinds = ['UltraLight', 'Light', 'Medium', 'Full']
 itable_sizes = ['Small', 'Medium', 'Big']
 heavy_itable_sizes = frozenset(['Medium', 'Big'])
 itable_optvalues = [0, 1, 3, 7, 9]
 heavy_itable_optvalues = frozenset([0, 1, 7, 9])
 
-# Indexed queries: ``[SMB]I[ULMF]O[01379]TDTestCase``, where:
+# Indexed queries: ``[SMB]I[ulmf]O[01379]TDTestCase``, where:
 #
 # 1. S is for small, M for medium and B for big size table.
 #    Sizes are listed in `itable_sizes`.
-# 2. U is for 'UltraLight', L for 'Light', R for 'Medium', F for 'Full' indexes
-#    Index types are listed in `idxtypes`.
+# 2. U is for 'ultraLight', L for 'light', M for 'medium', F for 'Full' indexes
+#    Index types are listed in `ckinds`.
 # 3. 0 to 9 is the desired index optimization level.
 #    Optimizations are listed in `itable_optvalues`.
 def iclassdata():
-    for idxtype in idxtypes:
+    for ckind in ckinds:
         for size in itable_sizes:
             for optlevel in itable_optvalues:
                 heavy = ( optlevel in heavy_itable_optvalues
                           or size in heavy_itable_sizes )
                 classname = '%sI%sO%dTDTestCase' % (
-                    size[0], idxtype[0], optlevel)
+                    size[0], ckind[0], optlevel)
                 cbasenames = ( '%sSTableMixin' % size,
-                               '%sITableMixin' % idxtype,
+                               '%sITableMixin' % ckind,
                                'ScalarTableMixin',
                                'TableDataTestCase' )
                 classdict = dict(heavy=heavy, optlevel=optlevel, indexed=True)

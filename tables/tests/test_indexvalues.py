@@ -46,7 +46,7 @@ class SelectValuesTestCase(unittest.TestCase):
     def setUp(self):
         # Create an instance of an HDF5 Table
         if verbose:
-            print "Checking index type-->", self.idxtype
+            print "Checking index kind-->", self.kind
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, "w")
         self.rootgroup = self.fileh.root
@@ -101,15 +101,8 @@ class SelectValuesTestCase(unittest.TestCase):
             table1.nrowsinbuf = self.buffersize
         # Index all entries:
         for col in table1.colinstances.itervalues():
-            if self.idxtype == "Full":
-                indexrows = col.createFullIndex(_blocksizes=self.blocksizes)
-            elif self.idxtype == "Medium":
-                indexrows = col.createMediumIndex(_blocksizes=self.blocksizes)
-            elif self.idxtype == "Light":
-                indexrows = col.createLightIndex(_blocksizes=self.blocksizes)
-            elif self.idxtype == "UltraLight":
-                indexrows = col.createUltraLightIndex(
-                    _blocksizes=self.blocksizes)
+            indexrows = col.createIndex(
+                kind=self.kind, _blocksizes=self.blocksizes)
         if verbose:
             print "Number of written rows:", table1.nrows
             print "Number of indexed rows:", indexrows
@@ -3043,16 +3036,16 @@ heavy_tests = (
 
 # Base classes for the different type indexes.
 class UltraLightITableMixin:
-    idxtype = "UltraLight"
+    kind = "ultralight"
 class LightITableMixin:
-    idxtype = "Light"
+    kind = "light"
 class MediumITableMixin:
-    idxtype = "Medium"
+    kind = "medium"
 class FullITableMixin:
-    idxtype = "Full"
+    kind = "full"
 
 # Parameters for indexed queries.
-idxtypes = ['UltraLight', 'Light', 'Medium', 'Full']
+ckinds = ['UltraLight', 'Light', 'Medium', 'Full']
 testlevels = ['Normal', 'Heavy']
 
 # Indexed queries: ``[ULMF]I[NH]SVXYTestCase``, where:
@@ -3060,14 +3053,14 @@ testlevels = ['Normal', 'Heavy']
 # 1. U is for 'UltraLight', L for 'Light', M for 'Medium', F for 'Full' indexes
 # 2. N is for 'Normal', H for 'Heavy' tests
 def iclassdata():
-    for idxtype in idxtypes:
+    for ckind in ckinds:
         for ctest in normal_tests + heavy_tests:
             heavy = ctest in heavy_tests
-            classname = '%sI%s%s' % (idxtype[0], testlevels[heavy][0], ctest)
+            classname = '%sI%s%s' % (ckind[0], testlevels[heavy][0], ctest)
             # Uncomment the next one and comment the past one if one
             # don't want to include the methods (testing purposes only)
-            ###cbasenames = ( '%sITableMixin' % idxtype, "object")
-            cbasenames = ( '%sITableMixin' % idxtype, ctest)
+            ###cbasenames = ( '%sITableMixin' % ckind, "object")
+            cbasenames = ( '%sITableMixin' % ckind, ctest)
             classdict = dict(heavy=heavy)
             yield (classname, cbasenames, classdict)
 
