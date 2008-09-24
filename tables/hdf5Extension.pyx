@@ -51,7 +51,7 @@ from utilsExtension cimport malloc_dims, get_native_type
 
 # Types, constants, functions, classes & other objects from everywhere
 from definitions cimport  \
-     strdup, malloc, free, \
+     memcpy, strdup, malloc, free, \
      Py_ssize_t, PyObject_AsReadBuffer, \
      Py_BEGIN_ALLOW_THREADS, Py_END_ALLOW_THREADS, PyString_AsString, \
      PyString_FromStringAndSize, PyDict_Contains, PyDict_GetItem, \
@@ -823,6 +823,7 @@ cdef class Array(Leaf):
     cdef char *complib, *version, *class_
     cdef void *fill_value
     cdef int itemsize
+    cdef ndarray buf
     cdef object atom
 
     atom = self.atom
@@ -841,8 +842,8 @@ cdef class Array(Leaf):
     class_ = PyString_AsString(self._c_classId)
     # Set the fill values
     fill_value = <void *>malloc(<size_t> itemsize)
-    for i from  0 <= i < itemsize:
-      (<char *>fill_value)[i] = 0
+    buf = numpy.array(atom.dflt, dtype=atom.dtype)
+    memcpy(fill_value, buf.data, itemsize)
 
     # Create the CArray/EArray
     self.dataset_id = H5ARRAYmake(

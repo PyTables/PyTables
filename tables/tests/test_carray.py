@@ -2086,6 +2086,73 @@ class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.test00_shape()
 
 
+class DfltAtomTestCase(unittest.TestCase):
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test00_dflt(self):
+        "Check that Atom.dflt is honored (string version)."
+
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        fileh = self.fileh = openFile(self.file, "a")
+
+        # Create a CArray with default values
+        fileh.createCArray(
+            fileh.root, 'bar', StringAtom(itemsize=5, dflt="abdef"), (10,10))
+        fileh.close()
+
+        # Check the values
+        fileh = self.fileh = openFile(self.file, "r")
+        values = fileh.root.bar[:]
+        if common.verbose:
+            print "Read values:", values
+        assert allequal(values, numpy.array(["abdef"]*100, "S5").reshape(10,10))
+        fileh.close()
+
+    def test01_dflt(self):
+        "Check that Atom.dflt is honored (int version)."
+
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        fileh = self.fileh = openFile(self.file, "a")
+
+        # Create a CArray with default values
+        fileh.createCArray(fileh.root, 'bar', IntAtom(dflt=1), (10,10))
+        fileh.close()
+
+        # Check the values
+        fileh = self.fileh = openFile(self.file, "r")
+        values = fileh.root.bar[:]
+        if common.verbose:
+            print "Read values:", values
+        assert allequal(values, numpy.ones((10,10), "i4"))
+        fileh.close()
+
+    def test02_dflt(self):
+        "Check that Atom.dflt is honored (float version)."
+
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        fileh = self.fileh = openFile(self.file, "a")
+
+        # Create a CArray with default values
+        fileh.createCArray(fileh.root, 'bar', FloatAtom(dflt=1.134), (10,10))
+        fileh.close()
+
+        # Check the values
+        fileh = self.fileh = openFile(self.file, "r")
+        values = fileh.root.bar[:]
+        if common.verbose:
+            print "Read values:", values
+        assert allequal(values, numpy.ones((10,10), "f8")*1.134)
+        fileh.close()
+
+
+
 class MDAtomTestCase(unittest.TestCase):
 
     def test01_notimplemented(self):
@@ -2180,6 +2247,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
         theSuite.addTest(unittest.makeSuite(BigArrayTestCase))
+        theSuite.addTest(unittest.makeSuite(DfltAtomTestCase))
         theSuite.addTest(unittest.makeSuite(MDAtomTestCase))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3CArrayTestCase))

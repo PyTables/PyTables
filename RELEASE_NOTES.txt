@@ -18,6 +18,8 @@ Changes from 2.0.x to 2.1b2
 - New File.fileno() added.  This returns the underlying OS file descriptor for
   the file.
 
+- The Atom.dflt is honored now when creating CArrays.  Fixes #176.
+
 - [Pro] A new Table.itersorted() iterator allows to iterate through a table
   following the order of a certain index.  It supports iteration on
   ranges, including negative steps (i.e. reverse sorted order).
