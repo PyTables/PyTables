@@ -104,10 +104,10 @@ New query system
 =========================
 
 The indexing system has been totally rewritten from scratch for PyTables 2.0
-Pro Edition (http://www.carabos.com/products/pytables-pro.html).  Due to this,
-your existing indexes created with PyTables 1.x will be useless, and although
-you will be able to continue using the actual data in files, you won't be able
-to take advantage of any improvement in speed.
+Pro Edition (http://www.pytables.com/moin/PyTablesPro).  Due to this, your
+existing indexes created with PyTables 1.x will be useless, and although you
+will be able to continue using the actual data in files, you won't be able to
+take advantage of any improvement in speed.
 
 When using the Pro version you will be offered the possibility to
 automatically re-create the indexes in PyTables 1.x format to the new 2.0

@@ -23,17 +23,11 @@ feature, the powerful OPSI technology that allows to index very large
 amounts of data very rapidly while allowing first-class query response
 times.  Its operational details as well as exhaustive benchmarks are
 explained with full detail in the OPSI white paper:
-http://www.carabos.com/docs/OPSI-indexes.pdf
+http://www.pytables.com/docs/OPSI-indexes.pdf
 
-You can buy PyTables Pro at the Carabos shop:
-http://www.carabos.com/buy
+You find more info about PyTables Pro at:
+http://www.pytables.com/moin/PyTablesPro
 
-Coinciding with the publication of PyTables Pro we are introducing an
-innovative liberation process that will allow to ultimate release the
-PyTables Pro 2.x series as open source.  You may want to know that, by
-buying a PyTables Pro license, you are contributing to this process. For
-details, see:
-http://www.carabos.com/liberation
 
 Migration Notes for PyTables 1.x users
 ======================================
@@ -49,11 +43,7 @@ Resources
 
 Go to the PyTables Pro web page for more details:
 
-http://www.carabos.com/products/pytables-pro
-
-To know more about the company behind the development of PyTables Pro, see:
-
-http://www.carabos.com/
+http://www.pytables.com/moin/PyTablesPro
 
 Go to the PyTables web site, its free counterpart:
 
@@ -67,9 +57,9 @@ About NumPy:
 
 http://numpy.scipy.org/
 
-To know more about the company behind the development of PyTables, see:
+To know more about the guy behind the development of PyTables, see:
 
-http://www.carabos.com/
+http://www.pytables.org/moin/FrancescAlted
 
 Acknowledgments
 ===============
