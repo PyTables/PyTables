@@ -1,6 +1,6 @@
 ########################################################################
 #
-#       License: XXX
+#       License: See http://www.pytables.org/moin/PyTablesProPricing
 #       Created: February 12, 2006
 #       Author:  Ivan Vilata - reverse:net.selidor@ivan
 #

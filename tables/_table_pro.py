@@ -1,6 +1,6 @@
 #######################################################################
 #
-#       License: XXX
+#       License: See http://www.pytables.org/moin/PyTablesProPricing
 #       Created: February 13, 2007
 #       Author:  Ivan Vilata - ivan@selidor.net
 #

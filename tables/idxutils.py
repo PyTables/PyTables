@@ -1,6 +1,6 @@
 ########################################################################
 #
-#       License: BSD
+#       License: See http://www.pytables.org/moin/PyTablesProPricing
 #       Created: April 02, 2007
 #       Author:  Francesc Alted - faltet@pytables.com
 #
