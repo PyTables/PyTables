@@ -1784,7 +1784,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                         self.sorted, begin, end)
                     # Put it in cache.  It's important to *copy*
                     # the buffer, as it is reused in future reads!
-                    # See bug #60 in xot.carabos.com
                     sortedLRcache.setitem(nchunk, chunk.copy(),
                                           (end-begin)*itemsize)
                 start = bisect_left(chunk, item1)

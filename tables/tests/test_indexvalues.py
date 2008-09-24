@@ -2995,7 +2995,6 @@ class SV15bTestCase(SelectValuesTestCase):
 class LastRowReuseBuffers(common.PyTablesTestCase):
     # Test that checks for possible reuse of buffers coming
     # from last row in the sorted part of indexes
-    # See bug #60 in the private Trac of xot.carabos.com
     numpy.random.seed(1); random.seed(1)
 
     class Record(IsDescription):

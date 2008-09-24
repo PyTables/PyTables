@@ -36,7 +36,7 @@ Description: hierarchical database for Python based on HDF5
   - It supports the complete set of NumPy, Numeric and numarray objects.
   - It allows to index fields of tables to allow first-class lookup times.
  .
-  Homepage: http://www.carabos.com/products/pytables-pro
+  Homepage: http://www.pytables.org/moin/PytablesPro
 
 Package: python-tables-pro-@LICENSE@-doc
 Section: doc
@@ -48,4 +48,4 @@ Suggests: xpdf | pdf-viewer
 Description: hierarchical database for Python based on HDF5 - documentation
  This package includes the manual in PDF and HTML formats.
  .
-  Homepage: http://www.carabos.com/products/pytables-pro
+  Homepage: http://www.pytables.org/moin/PytablesPro
