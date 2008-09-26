@@ -1902,11 +1902,11 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
 
     def test06_copy_sorted1(self):
-        """Testing the Table.copy(sortkey) method with no arguments."""
+        """Testing the Table.copy(sortby) method with no arguments."""
         table = self.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
-        table2 = table.copy("/", 'table2', sortkey="icol")
+        table2 = table.copy("/", 'table2', sortby="icol")
         sortedtable = numpy.sort(table[:], order='icol')
         sortedtable2 = table2[:]
         if verbose:
@@ -1916,11 +1916,11 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
 
     def test06_copy_sorted2(self):
-        """Testing the Table.copy(sortkey) method with step=-1."""
+        """Testing the Table.copy(sortby) method with step=-1."""
         table = self.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
-        table2 = table.copy("/", 'table2', sortkey="icol", step=-1)
+        table2 = table.copy("/", 'table2', sortby="icol", step=-1)
         sortedtable = numpy.sort(table[:], order='icol')[::-1]
         sortedtable2 = table2[:]
         if verbose:
@@ -1930,11 +1930,11 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
 
     def test06_copy_sorted3(self):
-        """Testing the Table.copy(sortkey) method with only a start."""
+        """Testing the Table.copy(sortby) method with only a start."""
         table = self.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
-        table2 = table.copy("/", 'table2', sortkey="icol", start=3)
+        table2 = table.copy("/", 'table2', sortby="icol", start=3)
         sortedtable = numpy.sort(table[:], order='icol')[3:4]
         sortedtable2 = table2[:]
         if verbose:
@@ -1944,11 +1944,11 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
 
     def test06_copy_sorted4(self):
-        """Testing the Table.copy(sortkey) method with start, stop."""
+        """Testing the Table.copy(sortby) method with start, stop."""
         table = self.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
-        table2 = table.copy("/", 'table2', sortkey="icol", start=3, stop=40)
+        table2 = table.copy("/", 'table2', sortby="icol", start=3, stop=40)
         sortedtable = numpy.sort(table[:], order='icol')[3:40]
         sortedtable2 = table2[:]
         if verbose:
@@ -1958,11 +1958,11 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
 
     def test06_copy_sorted5(self):
-        """Testing the Table.copy(sortkey) method with start, stop, step."""
+        """Testing the Table.copy(sortby) method with start, stop, step."""
         table = self.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
-        table2 = table.copy("/", 'table2', sortkey="icol",
+        table2 = table.copy("/", 'table2', sortby="icol",
                             start=3, stop=33, step=5)
         sortedtable = numpy.sort(table[:], order='icol')[3:33:5]
         sortedtable2 = table2[:]
@@ -1973,12 +1973,12 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
 
 
     def test06_copy_sorted6(self):
-        """Testing the Table.copy(sortkey) method after table re-opening."""
+        """Testing the Table.copy(sortby) method after table re-opening."""
         self._reopen(mode='a')
         table = self.h5file.root.table
         # Copy to another table
         table.nrowsinbuf = self.nrowsinbuf
-        table2 = table.copy("/", 'table2', sortkey="icol")
+        table2 = table.copy("/", 'table2', sortby="icol")
         sortedtable = numpy.sort(table[:], order='icol')
         sortedtable2 = table2[:]
         if verbose:

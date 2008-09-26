@@ -35,7 +35,7 @@ ptrepack \- Copy any PyTables Leaf, Group or complete subtree into another file.
 .RB \-\-keep\-source\-filters
 .RB \-\-upgrade\-flavors
 .RB \-\-dont\-regenerate\-old\-indexes
-.RB \-\-sortkey=column
+.RB \-\-sortby=column
 .RB \-\-propindexes
 .RB sourcefile:sourcegroup
 .RB destfile:destgroup
@@ -98,7 +98,7 @@ internal flavor ("numpy" for 2.x series).
 Disable regenerating old indexes. The default is to regenerate old
 indexes as they are found.
 .TP
-.BI  \-\-sortkey=column
+.BI  \-\-sortby=column
 Do a table copy sorted by the values of \fIcolumn\fR.  This requires
 an existing index in \fIcolumn\fR.  For reversing the order, use a
 negative value in the \fIstep\fR part of \fIRANGE\fR (see \fI\-R\fR

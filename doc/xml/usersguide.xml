@@ -1862,10 +1862,10 @@ class Table(tableExtension.Table, tables.leaf.Leaf)
  |  * col(name)
  |  * iterrows([start][, stop][, step])
  |  * itersequence(sequence)
-    * itersorted(sortkey[, start][, stop][, step])
+    * itersorted(sortby[, start][, stop][, step])
  |  * read([start][, stop][, step][, field][, coords])
  |  * readCoordinates(coords[, field])
-    * readSorted(sortkey[, field,][, start][, stop][, step])
+    * readSorted(sortby[, field,][, start][, stop][, step])
  |  * __getitem__(key)
  |  * __iter__()
  |  
@@ -6776,13 +6776,13 @@ for node in h5file.root.detector:
           </section>
 
           <section id="Table.itersorted">
-            <title>itersorted(sortkey, start=None, stop=None,
+            <title>itersorted(sortby, start=None, stop=None,
             step=None)</title>
 
-            <para>Iterate over the table following the order specified by
-            <literal>sortkey</literal>.</para>
+            <para>Iterate over the table data sorted by the given
+            <literal>sortby</literal> column.</para>
 
-            <para><literal>sortkey</literal> is the name of a column that must
+            <para><literal>sortby</literal> is the name of a column that must
             have associated a completely sorted index (CSI) so as to ensure a
             fully sorted order.</para>
 
@@ -6856,13 +6856,13 @@ for node in h5file.root.detector:
           </section>
 
           <section id="Table.readSorted">
-            <title>readSorted(sortkey, field=None, start=None, stop=None,
+            <title>readSorted(sortby, field=None, start=None, stop=None,
             step=None)</title>
 
             <para>Read table data sorted by the given
-            <literal>sortkey</literal> column.</para>
+            <literal>sortby</literal> column.</para>
 
-            <para><literal>sortkey</literal> is the name of a column that must
+            <para><literal>sortby</literal> is the name of a column that must
             have associated a completely sorted index (CSI) so as to ensure a
             fully sorted order.</para>
 
@@ -7353,10 +7353,10 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             <glosslist>
               <glossentry>
                 <glossterm><emphasis
-                role="bold">sortkey</emphasis></glossterm>
+                role="bold">sortby</emphasis></glossterm>
 
                 <glossdef>
-                  <para>If specified, and <literal>sortkey</literal>
+                  <para>If specified, and <literal>sortby</literal>
                   corresponds to a column with a completely sorted index
                   (CSI), then the copy will be sorted by the values on this
                   column.  A reverse sorted copy can be achieved by specifying
@@ -8220,7 +8220,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               that the number of rows in the table does not exceed the 2**48
               figure (that is more than 100 trillions of rows).  A CSI index
               is needed for some table methods (like
-              <literal>Table.itersorted()</literal>,
+              <literal>Table.itersorted()</literal> or
               <literal>Table.readSorted()</literal>) in order to ensure
               completely sorted results.</para>
 

@@ -31,14 +31,14 @@ Changes from 2.0.x to 2.1b2
 - [Pro] Now, the copy of the AUTO_INDEX is done only if the `copyuserattrs` in
   Table.copy() is true (the default).
 
-- [Pro] A new `sortkey` argument has been added to Table.copy() allowing to a
+- [Pro] A new `sortby` argument has been added to Table.copy() allowing to a
   Table to be sorted during the copy operation.
 
 - [Pro] New `propindexes` argument in Table.copy().  If true, the indexes in
   the source table are propagated (created) to the new table.  If false (the
   default), the indexes are not propagated.
 
-- Added new '--sortkey' (sort a table by a column key) and '--propindexes'
+- Added new '--sortby' (sort a table by a column key) and '--propindexes'
   (propagate the indexes in original tables) flags to the 'ptrepack' utility.
 
 - When in ptrepack a range is not specified, all the elements of leaves are

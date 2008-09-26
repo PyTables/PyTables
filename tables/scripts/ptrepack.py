@@ -71,7 +71,7 @@ def recreateIndexes(table, dstfileh, dsttable):
 
 def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
              filters, copyuserattrs, overwritefile, overwrtnodes, stats,
-             start, stop, step, sortkey, propindexes, upgradeflavors):
+             start, stop, step, sortby, propindexes, upgradeflavors):
     # Open the source file
     srcfileh = openFile(srcfile, "r")
     # Get the source node (that should exist)
@@ -122,7 +122,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
             dstGroup, dstleaf, filters = filters,
             copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
             stats = stats, start = start, stop = stop, step = step,
-            sortkey = sortkey, propindexes = propindexes)
+            sortby = sortby, propindexes = propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
         print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
@@ -151,7 +151,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
 def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                  recursive, filters, copyuserattrs, overwritefile,
                  overwrtnodes, stats, start, stop, step,
-                 sortkey, propindexes, upgradeflavors):
+                 sortby, propindexes, upgradeflavors):
     "Copy the children from source group to destination group"
     # Open the source file with srcgroup as rootUEP
     srcfileh = openFile(srcfile, "r", rootUEP=srcgroup)
@@ -198,7 +198,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
             dstGroup, recursive = recursive, filters = filters,
             copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
             stats = stats, start = start, stop = stop, step = step,
-            sortkey = sortkey, propindexes = propindexes)
+            sortby = sortby, propindexes = propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
         print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
@@ -230,7 +230,7 @@ def main():
     global verbose
     global regoldindexes
 
-    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortkey=column] [--propindexes] sourcefile:sourcegroup destfile:destgroup
+    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--propindexes] sourcefile:sourcegroup destfile:destgroup
      -h -- Print usage message.
      -v -- Show more information.
      -o -- Overwite destination file.
@@ -259,7 +259,7 @@ def main():
          as objects with the internal flavor ('numpy' for 2.x series).
      --dont-regenerate-old-indexes -- Disable regenerating old indexes. The
          default is to regenerate old indexes as they are found.
-     --sortkey=column -- Do a table copy sorted by the values of "column".
+     --sortby=column -- Do a table copy sorted by the values of "column".
          This requires an existing index in "column".  For reversing the order,
          use a negative value in the "step" part of "RANGE" (see "-R" flag).
          Only applies to table objects.
@@ -281,7 +281,7 @@ def main():
                                      'keep-source-filters',
                                      'upgrade-flavors',
                                      'dont-regenerate-old-indexes',
-                                     'sortkey=',
+                                     'sortby=',
                                      'propindexes',
                                      ])
     except:
@@ -303,7 +303,7 @@ def main():
     recursive = True
     overwrtnodes = False
     upgradeflavors = False
-    sortkey = None
+    sortby = None
     propindexes = False
 
     # Get the options
@@ -346,8 +346,8 @@ def main():
             shuffle = int(option[1])
         elif option[0] == '--fletcher32':
             fletcher32 = int(option[1])
-        elif option[0] == '--sortkey':
-            sortkey = option[1]
+        elif option[0] == '--sortby':
+            sortby = option[1]
         elif option[0] == '--propindexes':
             propindexes = True
         else:
@@ -419,8 +419,8 @@ def main():
         print "+=+"*20
         print "Recursive copy:", recursive
         print "Applying filters:", filters
-        if sortkey is not None:
-            print "Sorting table(s) by column:", sortkey
+        if sortby is not None:
+            print "Sorting table(s) by column:", sortby
         if propindexes:
             print "Recreating indexes in copied table(s)"
         print "Start copying %s:%s to %s:%s" % (srcfile, srcnode,
@@ -442,7 +442,7 @@ def main():
             copyuserattrs = copyuserattrs, overwritefile = overwritefile,
             overwrtnodes = overwrtnodes, stats = stats,
             start = start, stop = stop, step = step,
-            sortkey = sortkey, propindexes = propindexes,
+            sortby = sortby, propindexes = propindexes,
             upgradeflavors=upgradeflavors)
     else:
         # If not a Group, it should be a Leaf
@@ -451,7 +451,7 @@ def main():
             title = title, filters = filters, copyuserattrs = copyuserattrs,
             overwritefile = overwritefile, overwrtnodes = overwrtnodes,
             stats = stats, start = start, stop = stop, step = step,
-            sortkey = sortkey, propindexes = propindexes,
+            sortby = sortby, propindexes = propindexes,
             upgradeflavors=upgradeflavors)
 
     # Gather some statistics

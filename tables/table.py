@@ -246,10 +246,10 @@ class Table(tableExtension.Table, Leaf):
     * col(name)
     * iterrows([start][, stop][, step])
     * itersequence(sequence)
-    * itersorted(sortkey[, start][, stop][, step])
+    * itersorted(sortby[, start][, stop][, step])
     * read([start][, stop][, step][, field][, coords])
     * readCoordinates(coords[, field])
-    * readSorted(sortkey[, field,][, start][, stop][, step])
+    * readSorted(sortby[, field,][, start][, stop][, step])
     * __getitem__(key)
     * __iter__()
 
@@ -1318,22 +1318,22 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         return row._iter(start, stop, step, coords=sequence)
 
 
-    def _check_sortkey_CSI(self, sortkey):
-        if sortkey not in self.description._v_names:
+    def _check_sortby_CSI(self, sortby):
+        if sortby not in self.description._v_names:
             raise (KeyError, "Field `%s` not found in table `%s`" % \
-                   (sortkey, self))
-        icol = self.cols._f_col(sortkey)
+                   (sortby, self))
+        icol = self.cols._f_col(sortby)
         if not icol.is_indexed or not icol.is_index_CSI:
             raise (ValueError,
                    "Field `%s` must have associated a completely "
-                   "sorted index in table `%s`" % (sortkey, self))
+                   "sorted index in table `%s`" % (sortby, self))
         return icol.index
 
 
-    def itersorted(self, sortkey, start=None, stop=None, step=None):
-        """Iterate over the table following the order specified by `sortkey`.
+    def itersorted(self, sortby, start=None, stop=None, step=None):
+        """Iterate over the table data sorted by the given `sortby` column.
 
-        `sortkey` is the name of a column that must have associated a
+        `sortby` is the name of a column that must have associated a
         completely sorted index (CSI) so as to ensure a fully sorted
         order.
 
@@ -1346,7 +1346,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        index = self._check_sortkey_CSI(sortkey)
+        index = self._check_sortby_CSI(sortby)
         # Adjust the slice to be used.
         (start, stop, step) = index._processRange(start, stop, step)
         if (start >= stop):
@@ -1355,12 +1355,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         return row._iter(start, stop, step, coords=index)
 
 
-    def readSorted( self, sortkey, field=None,
+    def readSorted( self, sortby, field=None,
                     start=None, stop=None, step=None ):
         """
-        Read table data sorted by the given `sortkey` column.
+        Read table data sorted by the given `sortby` column.
 
-        `sortkey` is the name of a column that must have associated a
+        `sortby` is the name of a column that must have associated a
         completely sorted index (CSI) so as to ensure a fully sorted
         order.
 
@@ -1380,7 +1380,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._checkFieldIfNumeric(field)
-        index = self._check_sortkey_CSI(sortkey)
+        index = self._check_sortby_CSI(sortby)
         coords = index[start:stop:step]
         return self.readCoordinates(coords, field)
 
@@ -2212,9 +2212,9 @@ The 'names' parameter must be a list of strings.""")
         self._doReIndex(dirty=True)
 
 
-    def _g_copyRows(self, object, start, stop, step, sortkey):
+    def _g_copyRows(self, object, start, stop, step, sortby):
         "Copy rows from self to object"
-        if sortkey is None:
+        if sortby is None:
             self._g_copyRows_optim(object, start, stop, step)
             return
         lenbuf = self.nrowsinbuf
@@ -2224,10 +2224,10 @@ The 'names' parameter must be a list of strings.""")
             if stop2 > stop:
                 stop2 = stop
             # The next 'if' is not needed, but it doesn't bother either
-            if sortkey is None:
+            if sortby is None:
                 rows = self[start2:stop2:step]
             else:
-                rows = self.readSorted(sortkey, None, start2, stop2, step)
+                rows = self.readSorted(sortby, None, start2, stop2, step)
             # Save the records on disk
             object.append(rows)
         object.flush()
@@ -2272,16 +2272,16 @@ The 'names' parameter must be a list of strings.""")
                          title, filters, _log, **kwargs):
         "Private part of Leaf.copy() for each kind of leaf"
         # Get the private args for the Table flavor of copy()
-        sortkey = kwargs.pop('sortkey', None)
+        sortby = kwargs.pop('sortby', None)
         propindexes = kwargs.pop('propindexes', False)
         # Compute the correct indices.
         (start, stop, step) = self._processRangeRead(
-            start, stop, step, warn_negstep = sortkey is None)
+            start, stop, step, warn_negstep = sortby is None)
         # Create the new table and copy the selected data.
         newtable = Table( group, name, self.description, title=title,
                           filters=filters, expectedrows=self.nrows,
                           _log=_log )
-        self._g_copyRows(newtable, start, stop, step, sortkey)
+        self._g_copyRows(newtable, start, stop, step, sortby)
         nbytes = newtable.nrows * newtable.rowsize
         # Generate equivalent indexes in the new table, if required.
         if propindexes and self.indexed:
@@ -2299,8 +2299,8 @@ The 'names' parameter must be a list of strings.""")
         `Leaf.copy()`.  Moreover, this method recognises the next
         additional keyword arguments:
 
-        `sortkey`
-            If specified, and `sortkey` corresponds to a column with a
+        `sortby`
+            If specified, and `sortby` corresponds to a column with a
             completely sorted index (CSI), then the copy will be sorted
             by the values on this column.  A reverse sorted copy can be
             achieved by specifying a negative value for the `step`
@@ -3043,8 +3043,8 @@ class Column(object):
         entropy, that is, a completely sorted index (CSI) -- provided
         that the number of rows in the table does not exceed the 2**48
         figure (that is more than 100 trillions of rows).  A CSI index
-        is needed for some table methods (like ``Table.itersorted(),
-        ``Table.readSorted()) in order to ensure completely sorted
+        is needed for some table methods (like ``Table.itersorted()`` or
+        ``Table.readSorted()``) in order to ensure completely sorted
         results.
 
         For the meaning of `filters` and `tmp_dir` arguments see
