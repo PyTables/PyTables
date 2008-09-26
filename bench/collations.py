@@ -94,6 +94,31 @@ for c in np.unique(table.col('collection')) :
 del energy_this_collection
 print "Time for third solution: %.3f" % (time()-t1)
 
-assert coll1 == coll2 == coll3
+
+if tables.is_pro:
+    t1 = time()
+    table2 = table.copy('/', 'EnergySortedByCollation', overwrite=True,
+               sortby="collection", propindexes=True)
+    print "Time for sorting: %.3f" % (time()-t1)
+else:
+    table2 = table
+
+#####################################################################
+# Fourth solution: load each collection separately.  Sorted table.
+#####################################################################
+t1 = time()
+coll4 = []
+for c in np.unique(table2.col('collection')) :
+    energy_this_collection = table2.readWhere(
+        'collection == c', field='energy')
+    sener = energy_this_collection.sum()
+    coll4.append(sener)
+    print c,' : ', sener
+    del energy_this_collection
+print "Time for fourth solution: %.3f" % (time()-t1)
+
+
+# Finally, check that all solutions do match
+assert coll1 == coll2 == coll3 == coll4
 
 f.close()
