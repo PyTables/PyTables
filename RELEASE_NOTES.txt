@@ -38,8 +38,9 @@ Changes from 2.0.x to 2.1b2
   the source table are propagated (created) to the new table.  If false (the
   default), the indexes are not propagated.
 
-- Added new '--sortby' (sort a table by a column key) and '--propindexes'
-  (propagate the indexes in original tables) flags to the 'ptrepack' utility.
+- Added new '--sortby' (sort a table by a column key), '--forceCSI' (force
+  the creation of a CSI index) and '--propindexes' (propagate the indexes in
+  original tables) flags to the 'ptrepack' utility.
 
 - When in ptrepack a range is not specified, all the elements of leaves are
   copied now.  Before, only the first row was copied, and that was clearly
