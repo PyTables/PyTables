@@ -1862,10 +1862,10 @@ class Table(tableExtension.Table, tables.leaf.Leaf)
  |  * col(name)
  |  * iterrows([start][, stop][, step])
  |  * itersequence(sequence)
-    * itersorted(sortby[, start][, stop][, step])
+    * itersorted(sortby[, forceCSI][, start][, stop][, step])
  |  * read([start][, stop][, step][, field][, coords])
  |  * readCoordinates(coords[, field])
-    * readSorted(sortby[, field,][, start][, stop][, step])
+    * readSorted(sortby[, forceCSI][, field,][, start][, stop][, step])
  |  * __getitem__(key)
  |  * __iter__()
  |  
@@ -6776,26 +6776,24 @@ for node in h5file.root.detector:
           </section>
 
           <section id="Table.itersorted">
-            <title>itersorted(sortby, start=None, stop=None,
+            <title>itersorted(sortby, forceCSI=False, start=None, stop=None,
             step=None)</title>
 
             <para>Iterate over the table data sorted by the given
             <literal>sortby</literal> column.</para>
 
-            <para><literal>sortby</literal> is the name of a column that must
-            have associated a completely sorted index (CSI) so as to ensure a
-            fully sorted order.</para>
+            <para><literal>sortby</literal> column must have associated a
+            completely sorted index (CSI) so as to ensure a fully sorted
+            order.  You can use the <literal>forceCSI</literal> argument in
+            order to force the creation of a CSI index in case that one does
+            not exist yet.</para>
 
-            <para>If you specify a <literal>start</literal>,
-            <literal>stop</literal> and <literal>step</literal> parameters,
-            only this range of values (in the sorted order) is
-            returned.</para>
-
-            <note>
-              <para>In this case a negative value of <literal>step</literal>
-              is supported and means that the results will be returned in
-              reverse <emphasis>sorted</emphasis> order.</para>
-            </note>
+            <para>The meaning of the <literal>start</literal>,
+            <literal>stop</literal> and <literal>step</literal> arguments is
+            the same as in <literal>Table.read()</literal> (see <xref
+            linkend="Table.read" />).  However, in this case a negative value
+            of <literal>step</literal> is supported, meaning that the results
+            will be returned in reverse sorted order.</para>
 
             <note role="pro">
               <para>Column indexing is only available in PyTables Pro.</para>
@@ -6856,15 +6854,17 @@ for node in h5file.root.detector:
           </section>
 
           <section id="Table.readSorted">
-            <title>readSorted(sortby, field=None, start=None, stop=None,
-            step=None)</title>
+            <title>readSorted(sortby, forceCSI=False, field=None, start=None,
+            stop=None, step=None)</title>
 
             <para>Read table data sorted by the given
             <literal>sortby</literal> column.</para>
 
-            <para><literal>sortby</literal> is the name of a column that must
-            have associated a completely sorted index (CSI) so as to ensure a
-            fully sorted order.</para>
+            <para><literal>sortby</literal> column must have associated a
+            completely sorted index (CSI) so as to ensure a fully sorted
+            order.  You can use the <literal>forceCSI</literal> argument in
+            order to force the creation of a CSI index in case that one does
+            not exist yet.</para>
 
             <para>If <literal>field</literal> is supplied only the named
             column will be selected.  If the column is not nested, an
@@ -6874,16 +6874,12 @@ for node in h5file.root.detector:
             columns will be returned in a record array of the current
             flavor.</para>
 
-            <para>If you specify a <literal>start</literal>,
-            <literal>stop</literal> and <literal>step</literal> parameters,
-            only this range of values (in the <emphasis>sorted</emphasis>
-            order) is returned.</para>
-
-            <note>
-              <para>In this case a negative value of <literal>step</literal>
-              is supported and means that the results will be returned in
-              reverse <emphasis>sorted</emphasis> order.</para>
-            </note>
+            <para>The meaning of the <literal>start</literal>,
+            <literal>stop</literal> and <literal>step</literal> arguments is
+            the same as in <literal>Table.read()</literal> (see <xref
+            linkend="Table.read" />).  However, in this case a negative value
+            of <literal>step</literal> is supported, meaning that the results
+            will be returned in reverse sorted order.</para>
 
             <note role="pro">
               <para>Column indexing is only available in PyTables Pro.</para>
@@ -7347,7 +7343,7 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
 
             <para>This method has the behavior and keywords described in
             <literal>Leaf.copy()</literal> (see <xref linkend="Leaf.copy" />.
-            Moreover, this method recognises the next additional keyword
+            Moreover, it recognises the next additional keyword
             arguments:</para>
 
             <glosslist>
@@ -7363,6 +7359,20 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
                   a negative value for the <literal>step</literal> keyword.
                   If omitted or <literal>None</literal>, the original table
                   order is used.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">forceCSI</emphasis></glossterm>
+
+                <glossdef>
+                  <para>If true, and a CSI index does not exist for the
+                  <literal>sortby</literal> column, one will be built prior to
+                  method execution.  If false, the CSI creation will not be
+                  forced (this may cause the raise of an error).  In case a
+                  CSI index already exists for the <literal>sortby</literal>
+                  column, this parameter does nothing.</para>
                 </glossdef>
               </glossentry>
 
@@ -10388,6 +10398,11 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
                   <para>The <literal>Column</literal> (see <xref
                   linkend="ColumnClassDescr" xrefstyle="select: label" />)
                   instance for the indexed column.</para>
+
+                  <note role="pro">
+                    <para>Column indexing is only available in PyTables
+                    Pro.</para>
+                  </note>
                 </glossdef>
               </glossentry>
 

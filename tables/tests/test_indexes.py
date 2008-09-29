@@ -1564,6 +1564,9 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         # Other kinds than full, should never return a CSI
         icol.createIndex(kind="medium", optlevel=9)
         self.assertEqual(icol.is_index_CSI, False)
+        # Forcing a CSI in a sorted copy should re-create the CSI index
+        self.table.copy("/", 'table2', sortby='icol', forceCSI=True)
+        self.assertEqual(icol.is_index_CSI, True)
 
 
     def test01_read_sorted1(self):
@@ -1743,7 +1746,7 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         sortedtable = numpy.sort(table[:], order='icol')[15:20]
         sortedtable2 = numpy.array(
             [row.fetch_all_fields() for row in table.itersorted(
-            'icol', 15, 20)], dtype=table._v_dtype)
+            'icol', start=15, stop=20)], dtype=table._v_dtype)
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2
@@ -1770,6 +1773,19 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         sortedtable2 = numpy.array(
             [row.fetch_all_fields() for row in table.itersorted(
             'icol', start=33, stop=55, step=5)], dtype=table._v_dtype)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from the iterator:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
+    def test04_itersorted7(self):
+        """Testing the Table.itersorted() method with forceCSI=True."""
+        table = self.table
+        sortedtable = numpy.sort(table[:], order='rcol')
+        sortedtable2 = numpy.array(
+            [row.fetch_all_fields() for row in table.itersorted(
+            'rcol', forceCSI=True)], dtype=table._v_dtype)
         if verbose:
             print "Original sorted table:", sortedtable
             print "The values from the iterator:", sortedtable2
@@ -1901,6 +1917,17 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         assert allequal(sortedtable, sortedtable2)
 
 
+    def test05_readSorted12(self):
+        """Testing the Table.readSorted() method with forceCSI."""
+        table = self.table
+        sortedtable = numpy.sort(table[:], order='rcol')
+        sortedtable2 = table.readSorted('rcol', forceCSI=True)
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from readSorted:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
     def test06_copy_sorted1(self):
         """Testing the Table.copy(sortby) method with no arguments."""
         table = self.table
@@ -1987,6 +2014,30 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         assert allequal(sortedtable, sortedtable2)
 
 
+    def test06_copy_sorted7(self):
+        """Testing the `forceCSI` parameter of Table.copy() (I)."""
+        table = self.table
+        # Copy to another table
+        table.nrowsinbuf = self.nrowsinbuf
+        table2 = table.copy("/", 'table2', sortby="icol")
+        self.assertRaises(ValueError,
+                          table2.copy, "/", 'table3',
+                          sortby="rcol", forceCSI=False)
+
+
+    def test06_copy_sorted8(self):
+        """Testing the `forceCSI` parameter of Table.copy() (II)."""
+        table = self.table
+        # Copy to another table
+        table.nrowsinbuf = self.nrowsinbuf
+        table2 = table.copy("/", 'table2', sortby="icol")
+        table3 = table2.copy("/", 'table3', sortby="rcol", forceCSI=True)
+        sortedtable = numpy.sort(table2[:], order='rcol')
+        sortedtable2 = table3[:]
+        if verbose:
+            print "Original sorted table:", sortedtable
+            print "The values from copy:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
 
 
 

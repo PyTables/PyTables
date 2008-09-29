@@ -104,6 +104,11 @@ an existing index in \fIcolumn\fR.  For reversing the order, use a
 negative value in the \fIstep\fR part of \fIRANGE\fR (see \fI\-R\fR
 flag).  Only applies to table objects.
 .TP
+.BI  \-\-forceCSI
+Force the creation of a CSI index in case one is not available for the
+\-\-sortby column (this implies the modification of the \fIsource\fR
+file).  The default is to not create it.
+.TP
 .BI  \-\-propindexes
 Propagate the indexes existing in original tables.  The default is to
 not propagate them.  Only applies to table objects.

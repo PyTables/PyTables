@@ -246,10 +246,10 @@ class Table(tableExtension.Table, Leaf):
     * col(name)
     * iterrows([start][, stop][, step])
     * itersequence(sequence)
-    * itersorted(sortby[, start][, stop][, step])
+    * itersorted(sortby[, forceCSI][, start][, stop][, step])
     * read([start][, stop][, step][, field][, coords])
     * readCoordinates(coords[, field])
-    * readSorted(sortby[, field,][, start][, stop][, step])
+    * readSorted(sortby[, forceCSI][, field,][, start][, stop][, step])
     * __getitem__(key)
     * __iter__()
 
@@ -1318,35 +1318,50 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         return row._iter(start, stop, step, coords=sequence)
 
 
-    def _check_sortby_CSI(self, sortby):
-        if sortby not in self.description._v_names:
-            raise (KeyError, "Field `%s` not found in table `%s`" % \
-                   (sortby, self))
-        icol = self.cols._f_col(sortby)
-        if not icol.is_indexed or not icol.is_index_CSI:
-            raise (ValueError,
-                   "Field `%s` must have associated a completely "
-                   "sorted index in table `%s`" % (sortby, self))
-        return icol.index
+    def _check_sortby_CSI(self, sortby, forceCSI):
+        if isinstance(sortby, Column):
+            icol = sortby
+        elif isinstance(sortby, str):
+            icol = self.cols._f_col(sortby)
+        else:
+            raise TypeError, \
+                  "`sortby` can only be a `Column` or string object, " \
+                  "but you passed an object of type: %s" % type(sortby)
+        if icol.is_indexed and icol.is_index_CSI:
+            return icol.index
+        if forceCSI:
+            if icol.is_indexed:
+                # The index exists, but it is not a CSI one.  Remove it.
+                icol.removeIndex()
+            # Create a new CSI index with default parameters.
+            icol.createCSIndex()
+            return icol.index
+        else:
+            if not icol.is_indexed or not icol.is_index_CSI:
+                raise ValueError, \
+                      "Field `%s` must have associated a CSI index " \
+                      "in table `%s`.  You can either create it " \
+                      "separately or pass the `forceCSI` parameter" \
+                      "set to true." % (sortby, self)
 
 
-    def itersorted(self, sortby, start=None, stop=None, step=None):
+    def itersorted(self, sortby, forceCSI=False,
+                   start=None, stop=None, step=None):
         """Iterate over the table data sorted by the given `sortby` column.
 
-        `sortby` is the name of a column that must have associated a
-        completely sorted index (CSI) so as to ensure a fully sorted
-        order.
+        `sortby` column must have associated a completely sorted index
+        (CSI) so as to ensure a fully sorted order.  You can use the
+        `forceCSI` argument in order to force the creation of a CSI
+        index in case that one does not exist yet.
 
-        If you specify a `start`, `stop` and `step` parameters, only
-        this range of values (in the *sorted* order) is returned.
-
-        .. Note:: In this case a negative value of `step` is supported
-        and means that the results will be returned in reverse sorted
-        order.
+        The meaning of the `start`, `stop` and `step` arguments is the
+        same as in `Table.read()`.  However, in this case a negative
+        value of `step` is supported, meaning that the results will be
+        returned in reverse sorted order.
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        index = self._check_sortby_CSI(sortby)
+        index = self._check_sortby_CSI(sortby, forceCSI)
         # Adjust the slice to be used.
         (start, stop, step) = index._processRange(start, stop, step)
         if (start >= stop):
@@ -1355,14 +1370,15 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         return row._iter(start, stop, step, coords=index)
 
 
-    def readSorted( self, sortby, field=None,
-                    start=None, stop=None, step=None ):
+    def readSorted(self, sortby, forceCSI=False, field=None,
+                   start=None, stop=None, step=None):
         """
         Read table data sorted by the given `sortby` column.
 
-        `sortby` is the name of a column that must have associated a
-        completely sorted index (CSI) so as to ensure a fully sorted
-        order.
+        `sortby` column must have associated a completely sorted index
+        (CSI) so as to ensure a fully sorted order.  You can use the
+        `forceCSI` argument in order to force the creation of a CSI
+        index in case that one does not exist yet.
 
         If `field` is supplied only the named column will be selected.
         If the column is not nested, an *array* of the current flavor
@@ -1370,17 +1386,15 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         instead.  If no `field` is specified, all the columns will be
         returned in a record array of the current flavor.
 
-        If you specify a `start`, `stop` and `step` parameters, only
-        this range of values (in the *sorted* order) is returned.
-
-        .. Note:: In this case a negative value of `step` is supported
-        and means that the results will be returned in reverse sorted
-        order.
+        The meaning of the `start`, `stop` and `step` arguments is the
+        same as in `Table.read()`.  However, in this case a negative
+        value of `step` is supported, meaning that the results will be
+        returned in reverse sorted order.
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._checkFieldIfNumeric(field)
-        index = self._check_sortby_CSI(sortby)
+        index = self._check_sortby_CSI(sortby, forceCSI)
         coords = index[start:stop:step]
         return self.readCoordinates(coords, field)
 
@@ -2212,7 +2226,7 @@ The 'names' parameter must be a list of strings.""")
         self._doReIndex(dirty=True)
 
 
-    def _g_copyRows(self, object, start, stop, step, sortby):
+    def _g_copyRows(self, object, start, stop, step, sortby, forceCSI):
         "Copy rows from self to object"
         if sortby is None:
             self._g_copyRows_optim(object, start, stop, step)
@@ -2227,7 +2241,9 @@ The 'names' parameter must be a list of strings.""")
             if sortby is None:
                 rows = self[start2:stop2:step]
             else:
-                rows = self.readSorted(sortby, None, start2, stop2, step)
+                rows = self.readSorted(
+                    sortby=sortby, forceCSI=forceCSI, field=None,
+                    start=start2, stop=stop2, step=step )
             # Save the records on disk
             object.append(rows)
         object.flush()
@@ -2274,6 +2290,7 @@ The 'names' parameter must be a list of strings.""")
         # Get the private args for the Table flavor of copy()
         sortby = kwargs.pop('sortby', None)
         propindexes = kwargs.pop('propindexes', False)
+        forceCSI = kwargs.pop('forceCSI', False)
         # Compute the correct indices.
         (start, stop, step) = self._processRangeRead(
             start, stop, step, warn_negstep = sortby is None)
@@ -2281,7 +2298,7 @@ The 'names' parameter must be a list of strings.""")
         newtable = Table( group, name, self.description, title=title,
                           filters=filters, expectedrows=self.nrows,
                           _log=_log )
-        self._g_copyRows(newtable, start, stop, step, sortby)
+        self._g_copyRows(newtable, start, stop, step, sortby, forceCSI)
         nbytes = newtable.nrows * newtable.rowsize
         # Generate equivalent indexes in the new table, if required.
         if propindexes and self.indexed:
@@ -2296,16 +2313,22 @@ The 'names' parameter must be a list of strings.""")
         """ Copy this table and return the new one.
 
         This method has the behavior and keywords described in
-        `Leaf.copy()`.  Moreover, this method recognises the next
-        additional keyword arguments:
+        `Leaf.copy()`.  Moreover, it recognises the next additional
+        keyword arguments:
 
         `sortby`
             If specified, and `sortby` corresponds to a column with a
             completely sorted index (CSI), then the copy will be sorted
             by the values on this column.  A reverse sorted copy can be
             achieved by specifying a negative value for the `step`
-            keyword.  If omitted or ``None``, the original table order
-            is used.
+            keyword.  If `sortby` is omitted or ``None``, the original
+            table order is used.
+        `forceCSI`
+            If true, and a CSI index does not exist for the `sortby`
+            column, one will be built prior to method execution.  If
+            false, the CSI creation will not be forced (this may cause
+            the raise of an error).  In case a CSI index already exists
+            for the `sortby` column, this parameter does nothing.
         `propindexes`
             If true, the existing indexes in the source table are
             propagated (created) to the new one.  If false (the
@@ -2544,7 +2567,7 @@ class Cols(object):
             raise TypeError, \
 "Parameter can only be an string. You passed object: %s" % colname
         if ((colname.find('/') > -1 and
-             not colname in self._v_colpathnames) and
+             not colname in self._v_colpathnames) or
             not colname in self._v_colnames):
             raise KeyError(
 "Cols accessor ``%s.cols%s`` does not have a column named ``%s``"
@@ -3012,24 +3035,24 @@ class Column(object):
         _checkIndexingAvailable()
         kinds = ['ultralight', 'light', 'medium', 'full']
         if kind not in kinds:
-            raise (ValueError,
-                   "Kind must have any of these values: %s" % kinds)
+            raise ValueError, \
+                  "Kind must have any of these values: %s" % kinds
         if (not isinstance(optlevel, (int, long)) or
             (optlevel < 0 or optlevel > 9)):
-            raise (ValueError,
-                   "Optimization level must be an integer in the range 0-9")
+            raise ValueError, \
+                  "Optimization level must be an integer in the range 0-9"
         if filters is None:
             filters = defaultIndexFilters
         if tmp_dir is None:
             tmp_dir = os.path.dirname(self._tableFile.filename)
         else:
             if not os.path.isdir(tmp_dir):
-                raise (ValueError,
-                       "Temporary directory '%s' does not exist" % tmp_dir)
+                raise ValueError, \
+                      "Temporary directory '%s' does not exist" % tmp_dir
         if (_blocksizes is not None and
             (type(_blocksizes) is not tuple or len(_blocksizes) != 4)):
-            raise (ValueError,
-                   "_blocksizes must be a tuple with exactly 4 elements")
+            raise ValueError, \
+                  "_blocksizes must be a tuple with exactly 4 elements"
         idxrows = _column__createIndex(self, kind, optlevel, filters,
                                        tmp_dir, _blocksizes, _verbose)
         return SizeType(idxrows)
