@@ -2567,7 +2567,7 @@ class Cols(object):
             raise TypeError, \
 "Parameter can only be an string. You passed object: %s" % colname
         if ((colname.find('/') > -1 and
-             not colname in self._v_colpathnames) or
+             not colname in self._v_colpathnames) and
             not colname in self._v_colnames):
             raise KeyError(
 "Cols accessor ``%s.cols%s`` does not have a column named ``%s``"
