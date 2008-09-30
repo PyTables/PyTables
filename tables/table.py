@@ -1327,7 +1327,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             raise TypeError, \
                   "`sortby` can only be a `Column` or string object, " \
                   "but you passed an object of type: %s" % type(sortby)
-        if icol.is_indexed and icol.is_index_CSI:
+        if icol.is_indexed and icol.index.is_CSI:
             return icol.index
         if forceCSI:
             if icol.is_indexed:
@@ -1337,7 +1337,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             icol.createCSIndex()
             return icol.index
         else:
-            if not icol.is_indexed or not icol.is_index_CSI:
+            if not icol.is_indexed or not icol.index.is_CSI:
                 raise ValueError, \
                       "Field `%s` must have associated a CSI index " \
                       "in table `%s`.  You can either create it " \
@@ -2762,9 +2762,6 @@ class Column(object):
         the column is not indexed).
     is_indexed
         True if the column is indexed, false otherwise.
-    is_index_CSI
-        True if the index of the column is a completely sorted index
-        (CSI), false otherwise.
     name
         The name of the associated column.
     pathname
@@ -2822,11 +2819,6 @@ class Column(object):
 
     is_indexed = property(_isindexed)
 
-
-    is_index_CSI = property(
-        lambda self: self.index.is_CSI, None, None,
-        "True if the index of the column is completely sorted, False "
-        "otherwise.")
 
 
     def __init__(self, table, name, descr):

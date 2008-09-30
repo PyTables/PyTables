@@ -8112,17 +8112,6 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               </glossentry>
 
               <glossentry>
-                <glossterm><emphasis
-                role="bold">is_index_CSI</emphasis></glossterm>
-
-                <glossdef>
-                  <para>True if the index of the column is a completely sorted
-                  index (CSI), false otherwise.
-                  </para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
                 <glossterm><emphasis role="bold">name</emphasis></glossterm>
 
                 <glossdef>
@@ -10382,8 +10371,11 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
           some added functionality. An <literal>Index</literal> is always
           associated with one and only one column in the table.</para>
 
-          <para>This class is mainly intended for internal use, but some of
-          its attributes may be interesting for the programmer.</para>
+          <note>
+            <para>This class is mainly intended for internal use, but some of
+            its documented attributes and methods may be interesting for the
+            programmer.</para>
+          </note>
 
           <note role="pro">
             <para>Column indexing is only available in PyTables Pro.</para>

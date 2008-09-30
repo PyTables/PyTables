@@ -1554,19 +1554,19 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     def test00_isCompletelySortedIndex(self):
         """Testing the Column.is_CSI property."""
         icol = self.icol
-        self.assertEqual(icol.is_index_CSI, True)
+        self.assertEqual(icol.index.is_CSI, True)
         icol.removeIndex()
         # As the table is small, lesser optlevels should be able to
         # create a completely sorted index too.
         icol.createIndex(kind="full", optlevel=6)
-        self.assertEqual(icol.is_index_CSI, True)
+        self.assertEqual(icol.index.is_CSI, True)
         icol.removeIndex()
         # Other kinds than full, should never return a CSI
         icol.createIndex(kind="medium", optlevel=9)
-        self.assertEqual(icol.is_index_CSI, False)
+        self.assertEqual(icol.index.is_CSI, False)
         # Forcing a CSI in a sorted copy should re-create the CSI index
         self.table.copy("/", 'table2', sortby='icol', forceCSI=True)
-        self.assertEqual(icol.is_index_CSI, True)
+        self.assertEqual(icol.index.is_CSI, True)
 
 
     def test01_readSorted1(self):
