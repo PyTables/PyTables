@@ -1548,7 +1548,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def read_sorted_indices(self, what, start, stop, step):
-        """Return the sorted or indices values in the specified range."""
+        """Return the sorted or indices values in the specified range.
+        """
 
         (start, stop, step) = self._processRange(start, stop, step)
         if start >= stop:
@@ -1584,13 +1585,21 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         return buffer_[::step]
 
 
-    def read_sorted(self, start=None, stop=None, step=None):
-        """Return the sorted values in the specified range."""
+    def readSorted(self, start=None, stop=None, step=None):
+        """Return the sorted values of index in the specified range.
+
+        The meaning of the `start`, `stop` and `step` arguments is the
+        same as in `Table.readSorted()`.
+        """
         return self.read_sorted_indices('sorted', start, stop, step)
 
 
-    def read_indices(self, start=None, stop=None, step=None):
-        """Return the indices values in the specified range."""
+    def readIndices(self, start=None, stop=None, step=None):
+        """Return the indices values of index in the specified range.
+
+        The meaning of the `start`, `stop` and `step` arguments is the
+        same as in `Table.readSorted()`.
+        """
         return self.read_sorted_indices('indices', start, stop, step)
 
 
@@ -1615,14 +1624,23 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def __getitem__(self, key):
-        """Return the indices values in the specified range."""
+        """Return the indices values of index in the specified range.
+
+        If the `key` argument is an integer, the corresponding index is
+        returned.  If `key` is a slice, the range of indices determined
+        by it is returned.  A negative value of `step` in slice is
+        supported, meaning that the results will be returned in reverse
+        order.
+
+        This method is equivalent to `Index.readIndices()`.
+        """
         if is_idx(key):
             if key < 0:
                 # To support negative values
                 key += self.nelements
-            return self.read_indices(key, key+1, 1)[0]
+            return self.readIndices(key, key+1, 1)[0]
         elif isinstance(key, slice):
-            return self.read_indices(key.start, key.stop, key.step)
+            return self.readIndices(key.start, key.stop, key.step)
 
 
     def __len__(self):

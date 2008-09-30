@@ -530,15 +530,15 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
         It takes different actions depending on the type of the `key`
         parameter: if it is an integer, the corresponding array row is
-        set to `value` (the value is broadcast when needed).  If the
-        `key` is a slice, the row slice determined by it is set to
-        `value` (as usual, if the slice to be updated exceeds the
-        actual shape of the array, only the values in the existing
-        range are updated).
+        set to `value` (the value is broadcast when needed).  If `key`
+        is a slice, the row slice determined by it is set to `value`
+        (as usual, if the slice to be updated exceeds the actual shape
+        of the array, only the values in the existing range are
+        updated).
 
-        If the `value` is a multidimensional object, then its shape
-        must be compatible with the shape determined by the `key`,
-        otherwise, a ``ValueError`` will be raised.
+        If `value` is a multidimensional object, then its shape must
+        be compatible with the shape determined by `key`, otherwise, a
+        ``ValueError`` will be raised.
 
         Example of use::
 

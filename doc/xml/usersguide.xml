@@ -5781,8 +5781,8 @@ for node in h5file:
 
             <para>Using this method is recommended over
             <literal>getattr()</literal> when doing programmatic accesses to
-            children if the <literal>childname</literal> is unknown beforehand
-            or when its name is not a valid Python identifier.</para>
+            children if <literal>childname</literal> is unknown beforehand or
+            when its name is not a valid Python identifier.</para>
           </section>
 
           <section id="Group._f_iterNodes" xreflabel="description">
@@ -6892,7 +6892,7 @@ for node in h5file.root.detector:
 
             <para>Get a row or a range of rows from the table.</para>
 
-            <para>If the <literal>key</literal> argument is an integer, the
+            <para>If <literal>key</literal> argument is an integer, the
             corresponding table row is returned as a record of the current
             flavor. If <literal>key</literal> is a slice, the range of rows
             determined by it is returned as a record array of the current
@@ -7118,9 +7118,9 @@ fileh.close()</screen>
             <literal>key</literal> parameter: if it is an integer, the
             corresponding table row is set to <literal>value</literal> (a
             record or sequence capable of being converted to the table
-            structure). If the <literal>key</literal> is a slice, the row
-            slice determined by it is set to <literal>value</literal> (a
-            record array or sequence capable of being converted to the table
+            structure). If <literal>key</literal> is a slice, the row slice
+            determined by it is set to <literal>value</literal> (a record
+            array or sequence capable of being converted to the table
             structure).</para>
 
             <para>Example of use:</para>
@@ -7316,10 +7316,10 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
             <para>The meaning of the <literal>condition</literal> and
             <emphasis>condvars</emphasis> arguments is the same as in the
             <literal>Table.where()</literal> method (see <xref
-            linkend="Table.where" />). If the <literal>condition</literal> can
-            use indexing, this method returns a frozenset with the path names
-            of the columns whose index is usable. Otherwise, it returns an
-            empty list.</para>
+            linkend="Table.where" />). If <literal>condition</literal> can use
+            indexing, this method returns a frozenset with the path names of
+            the columns whose index is usable. Otherwise, it returns an empty
+            list.</para>
 
             <para>This method is mainly intended for testing. Keep in mind
             that changing the set of indexed columns or their dirtyness may
@@ -7986,7 +7986,7 @@ table.flush()</screen>
               <para>Get a row or a range of rows from a table or nested
               column.</para>
 
-              <para>If the <literal>key</literal> argument is an integer, the
+              <para>If <literal>key</literal> argument is an integer, the
               corresponding nested type row is returned as a record of the
               current flavor. If <literal>key</literal> is a slice, the range
               of rows determined by it is returned as a record array of the
@@ -8023,7 +8023,7 @@ nrecarray = table.read(start=4, stop=1000, step=2).field('Info')</screen>
               <para>Set a row or a range of rows in a table or nested
               column.</para>
 
-              <para>If the <literal>key</literal> argument is an integer, the
+              <para>If <literal>key</literal> argument is an integer, the
               corresponding row is set to <literal>value</literal>. If
               <literal>key</literal> is a slice, the range of rows determined
               by it is set to <literal>value</literal>.</para>
@@ -8310,7 +8310,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
 
               <para>Get a row or a range of rows from a column.</para>
 
-              <para>If the <literal>key</literal> argument is an integer, the
+              <para>If <literal>key</literal> argument is an integer, the
               corresponding element in the column is returned as an object of
               the current flavor.  If <literal>key</literal> is a slice, the
               range of elements determined by it is returned as an array of
@@ -8363,7 +8363,7 @@ Select table.cols._f_col('name')[:]--> ['Particle:     10'
 
               <para>Set a row or a range of rows in a column.</para>
 
-              <para>If the <literal>key</literal> argument is an integer, the
+              <para>If <literal>key</literal> argument is an integer, the
               corresponding element is set to <literal>value</literal>.  If
               <literal>key</literal> is a slice, the range of elements
               determined by it is set to <literal>value</literal>.</para>
@@ -8584,16 +8584,16 @@ array4 = array[1, ..., ::2, 1:4, 4:]  # general slice selection</screen>
             <para>It takes different actions depending on the type of the
             <literal>key</literal> parameter: if it is an integer, the
             corresponding array row is set to <literal>value</literal> (the
-            value is broadcast when needed).  If the <literal>key</literal> is
-            a slice, the row slice determined by it is set to
+            value is broadcast when needed).  If <literal>key</literal> is a
+            slice, the row slice determined by it is set to
             <literal>value</literal> (as usual, if the slice to be updated
             exceeds the actual shape of the array, only the values in the
             existing range are updated).</para>
 
-            <para>If the <literal>value</literal> is a multidimensional
-            object, then its shape must be compatible with the shape
-            determined by the <literal>key</literal>, otherwise, a
-            <literal>ValueError</literal> will be raised.</para>
+            <para>If <literal>value</literal> is a multidimensional object,
+            then its shape must be compatible with the shape determined by
+            <literal>key</literal>, otherwise, a <literal>ValueError</literal>
+            will be raised.</para>
 
             <para>Example of use:</para>
 
@@ -8921,7 +8921,7 @@ array_c[4] => 'cccccccc'</screen>
 
             <para>Get a row or a range of rows from the array.</para>
 
-            <para>If the <literal>key</literal> argument is an integer, the
+            <para>If <literal>key</literal> argument is an integer, the
             corresponding array row is returned as an object of the current
             flavor.  If <literal>key</literal> is a slice, the range of rows
             determined by it is returned as a list of objects of the current
@@ -10385,6 +10385,10 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
           <para>This class is mainly intended for internal use, but some of
           its attributes may be interesting for the programmer.</para>
 
+          <note role="pro">
+            <para>Column indexing is only available in PyTables Pro.</para>
+          </note>
+
           <section id="IndexClassInstanceVariables">
             <title><literal>Index</literal> instance variables</title>
 
@@ -10399,10 +10403,6 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
                   linkend="ColumnClassDescr" xrefstyle="select: label" />)
                   instance for the indexed column.</para>
 
-                  <note role="pro">
-                    <para>Column indexing is only available in PyTables
-                    Pro.</para>
-                  </note>
                 </glossdef>
               </glossentry>
 
@@ -10437,7 +10437,68 @@ TypeError: __init__() got an unexpected keyword argument 'foobar'</screen>
                   column.</para>
                 </glossdef>
               </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">is_CSI</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Whether the index is completely sorted or not.</para>
+                </glossdef>
+              </glossentry>
+
             </glosslist>
+          </section>
+
+          <section>
+            <title><literal>Index</literal> methods</title>
+
+            <section id="Index.readSorted" xreflabel="description">
+              <title>readSorted(start=None, stop=None, step=None)</title>
+
+              <para>Return the sorted values of index in the specified
+              range.</para>
+
+              <para>The meaning of the <literal>start</literal>,
+              <literal>stop</literal> and <literal>step</literal> arguments is
+              the same as in <literal>Table.readSorted()</literal> (see <xref
+              linkend="Table.readSorted" />).</para>
+            </section>
+
+            <section id="Index.readIndices" xreflabel="description">
+              <title>readIndices(start=None, stop=None, step=None)</title>
+
+              <para>Return the indices values of index in the specified
+              range.</para>
+
+              <para>The meaning of the <literal>start</literal>,
+              <literal>stop</literal> and <literal>step</literal> arguments is
+              the same as in <literal>Table.readSorted()</literal> (see <xref
+              linkend="Table.readSorted" />).</para>
+            </section>
+          </section>
+
+          <section>
+            <title><literal>Index</literal> special methods</title>
+
+            <section id="Index.__getitem__" xreflabel="description">
+              <title>__getitem__(key)</title>
+
+              <para>Return the indices values of index in the specified
+              range.</para>
+
+              <para>If <literal>key</literal> argument is an integer, the
+              corresponding index is returned.  If <literal>key</literal> is a
+              slice, the range of indices determined by it is returned.  A
+              negative value of <literal>step</literal> in slice is supported,
+              meaning that the results will be returned in reverse
+              order.</para>
+
+              <para>This method is equivalent to
+              <literal>Index.readIndices()</literal> (see <xref
+              linkend="Index.readIndices" />).</para>
+            </section>
+
           </section>
         </section>
 

@@ -573,10 +573,10 @@ be zero."""
         """
         Get a row or a range of rows from the array.
 
-        If the `key` argument is an integer, the corresponding array
-        row is returned as an object of the current flavor.  If `key`
-        is a slice, the range of rows determined by it is returned as
-        a list of objects of the current flavor.
+        If `key` argument is an integer, the corresponding array row
+        is returned as an object of the current flavor.  If `key` is a
+        slice, the range of rows determined by it is returned as a
+        list of objects of the current flavor.
 
         Example of use::
 
@@ -606,10 +606,10 @@ be zero."""
 
         It takes different actions depending on the type of the `key`
         parameter: if it is an integer, the corresponding array row is
-        set to `value`.  If the `key` is a tuple, the first element
-        refers to the row to be modified, and the second element to
-        the range within the row to be updated with the `value` (so it
-        can be an integer or a slice).
+        set to `value`.  If `key` is a tuple, the first element refers
+        to the row to be modified, and the second element to the range
+        within the row to be updated with the `value` (so it can be an
+        integer or a slice).
 
         The type and shape of the `value` must be compatible with the
         type and shape determined by the `key`, otherwise, a

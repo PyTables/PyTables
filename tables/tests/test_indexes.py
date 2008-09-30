@@ -1569,99 +1569,99 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
         self.assertEqual(icol.is_index_CSI, True)
 
 
-    def test01_read_sorted1(self):
-        """Testing the Index.read_sorted() method with no arguments."""
+    def test01_readSorted1(self):
+        """Testing the Index.readSorted() method with no arguments."""
         icol = self.icol
         sortedcol = numpy.sort(icol[:])
-        sortedcol2 = icol.index.read_sorted()
+        sortedcol2 = icol.index.readSorted()
         if verbose:
             print "Original sorted column:", sortedcol
             print "The values from the index:", sortedcol2
         assert allequal(sortedcol, sortedcol2)
 
 
-    def test01_read_sorted2(self):
-        """Testing the Index.read_sorted() method with arguments (I)."""
+    def test01_readSorted2(self):
+        """Testing the Index.readSorted() method with arguments (I)."""
         icol = self.icol
         sortedcol = numpy.sort(icol[:])[30:55]
-        sortedcol2 = icol.index.read_sorted(30, 55)
+        sortedcol2 = icol.index.readSorted(30, 55)
         if verbose:
             print "Original sorted column:", sortedcol
             print "The values from the index:", sortedcol2
         assert allequal(sortedcol, sortedcol2)
 
 
-    def test01_read_sorted3(self):
-        """Testing the Index.read_sorted() method with arguments (II)."""
+    def test01_readSorted3(self):
+        """Testing the Index.readSorted() method with arguments (II)."""
         icol = self.icol
         sortedcol = numpy.sort(icol[:])[33:97]
-        sortedcol2 = icol.index.read_sorted(33, 97)
+        sortedcol2 = icol.index.readSorted(33, 97)
         if verbose:
             print "Original sorted column:", sortedcol
             print "The values from the index:", sortedcol2
         assert allequal(sortedcol, sortedcol2)
 
 
-    def test02_read_indices1(self):
-        """Testing the Index.read_indices() method with no arguments."""
+    def test02_readIndices1(self):
+        """Testing the Index.readIndices() method with no arguments."""
         icol = self.icol
         indicescol = numpy.argsort(icol[:]).astype('uint64')
-        indicescol2 = icol.index.read_indices()
+        indicescol2 = icol.index.readIndices()
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
         assert allequal(indicescol, indicescol2)
 
 
-    def test02_read_indices2(self):
-        """Testing the Index.read_indices() method with arguments (I)."""
+    def test02_readIndices2(self):
+        """Testing the Index.readIndices() method with arguments (I)."""
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[30:55].astype('uint64')
-        indicescol2 = icol.index.read_indices(30, 55)
+        indicescol2 = icol.index.readIndices(30, 55)
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
         assert allequal(indicescol, indicescol2)
 
 
-    def test02_read_indices3(self):
-        """Testing the Index.read_indices() method with arguments (II)."""
+    def test02_readIndices3(self):
+        """Testing the Index.readIndices() method with arguments (II)."""
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[33:97].astype('uint64')
-        indicescol2 = icol.index.read_indices(33, 97)
+        indicescol2 = icol.index.readIndices(33, 97)
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
         assert allequal(indicescol, indicescol2)
 
 
-    def test02_read_indices4(self):
-        """Testing the Index.read_indices() method with arguments (III)."""
+    def test02_readIndices4(self):
+        """Testing the Index.readIndices() method with arguments (III)."""
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[33:97:2].astype('uint64')
-        indicescol2 = icol.index.read_indices(33, 97, 2)
+        indicescol2 = icol.index.readIndices(33, 97, 2)
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
         assert allequal(indicescol, indicescol2)
 
 
-    def test02_read_indices5(self):
-        """Testing the Index.read_indices() method with arguments (IV)."""
+    def test02_readIndices5(self):
+        """Testing the Index.readIndices() method with arguments (IV)."""
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[33:55:5].astype('uint64')
-        indicescol2 = icol.index.read_indices(33, 55, 5)
+        indicescol2 = icol.index.readIndices(33, 55, 5)
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2
         assert allequal(indicescol, indicescol2)
 
 
-    def test02_read_indices6(self):
-        """Testing the Index.read_indices() method with step only."""
+    def test02_readIndices6(self):
+        """Testing the Index.readIndices() method with step only."""
         icol = self.icol
         indicescol = numpy.argsort(icol[:])[::3].astype('uint64')
-        indicescol2 = icol.index.read_indices(step=3)
+        indicescol2 = icol.index.readIndices(step=3)
         if verbose:
             print "Original indices column:", indicescol
             print "The values from the index:", indicescol2

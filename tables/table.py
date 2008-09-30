@@ -1081,10 +1081,10 @@ class Table(tableExtension.Table, Leaf):
         Will a query for the `condition` use indexing?
 
         The meaning of the `condition` and `condvars` arguments is the
-        same as in the `Table.where()` method.  If the `condition` can
-        use indexing, this method returns a frozenset with the path
-        names of the columns whose index is usable.  Otherwise, it
-        returns an empty list.
+        same as in the `Table.where()` method.  If `condition` can use
+        indexing, this method returns a frozenset with the path names of
+        the columns whose index is usable.  Otherwise, it returns an
+        empty list.
 
         This method is mainly intended for testing.  Keep in mind that
         changing the set of indexed columns or their dirtyness may make
@@ -1640,8 +1640,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Get a row or a range of rows from the table.
 
-        If the `key` argument is an integer, the corresponding table row
-        is returned as a record of the current flavor.  If `key` is a
+        If `key` argument is an integer, the corresponding table row is
+        returned as a record of the current flavor.  If `key` is a
         slice, the range of rows determined by it is returned as a
         record array of the current flavor.
 
@@ -1688,8 +1688,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         It takes different actions depending on the type of the `key`
         parameter: if it is an integer, the corresponding table row is
         set to `value` (a record, list or tuple capable of being
-        converted to the table field format).  If the `key` is a slice,
-        the row slice determined by it is set to `value` (a NumPy record
+        converted to the table field format).  If `key` is a slice, the
+        row slice determined by it is set to `value` (a NumPy record
         array, ``NestedRecArray`` or list of rows).
 
         Example of use::
@@ -2589,10 +2589,10 @@ class Cols(object):
         """
         Get a row or a range of rows from a table or nested column.
 
-        If the `key` argument is an integer, the corresponding nested
-        type row is returned as a record of the current flavor.  If
-        `key` is a slice, the range of rows determined by it is returned
-        as a record array of the current flavor.
+        If `key` argument is an integer, the corresponding nested type
+        row is returned as a record of the current flavor.  If `key` is
+        a slice, the range of rows determined by it is returned as a
+        record array of the current flavor.
 
         Example of use::
 
@@ -2644,9 +2644,9 @@ class Cols(object):
         """
         Set a row or a range of rows in a table or nested column.
 
-        If the `key` argument is an integer, the corresponding row is
-        set to `value`.  If `key` is a slice, the range of rows
-        determined by it is set to `value`.
+        If `key` argument is an integer, the corresponding row is set to
+        `value`.  If `key` is a slice, the range of rows determined by
+        it is set to `value`.
 
         Example of use::
 
@@ -2869,7 +2869,7 @@ class Column(object):
         """
         Updates the location information about the associated `index`.
 
-        If the `index` is ``None``, no index will be set.
+        If `index` is ``None``, no index will be set.
         """
 
         if index is None:
@@ -2893,9 +2893,9 @@ class Column(object):
         """
         Get a row or a range of rows from a column.
 
-        If the `key` argument is an integer, the corresponding element
-        in the column is returned as an object of the current flavor.
-        If `key` is a slice, the range of elements determined by it is
+        If `key` argument is an integer, the corresponding element in
+        the column is returned as an object of the current flavor.  If
+        `key` is a slice, the range of elements determined by it is
         returned as an array of the current flavor.
 
         Example of use::
@@ -2952,8 +2952,8 @@ class Column(object):
         """
         Set a row or a range of rows in a column.
 
-        If the `key` argument is an integer, the corresponding element
-        is set to `value`.  If `key` is a slice, the range of elements
+        If `key` argument is an integer, the corresponding element is
+        set to `value`.  If `key` is a slice, the range of elements
         determined by it is set to `value`.
 
         Example of use::

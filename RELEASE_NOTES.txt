@@ -38,6 +38,9 @@ Changes from 2.0.x to 2.1b2
   the source table are propagated (created) to the new table.  If false (the
   default), the indexes are not propagated.
 
+- [Pro] New public Index.readSorted() and Index.readIndices() that allow
+  direct access to an index data.
+
 - Added new '--sortby' (sort a table by a column key), '--forceCSI' (force
   the creation of a CSI index) and '--propindexes' (propagate the indexes in
   original tables) flags to the 'ptrepack' utility.
