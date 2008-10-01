@@ -69,9 +69,15 @@
     </copyright>
 
     <copyright>
-      <year>2005, 2006, 2007, 2008</year>
+      <year>2005, 2006, 2007</year>
 
       <holder>Cárabos Coop. V.</holder>
+    </copyright>
+
+    <copyright>
+      <year>2008</year>
+
+      <holder>Francesc Alted</holder>
     </copyright>
 
     <legalnotice>
@@ -928,7 +934,7 @@ python -c "import tables; tables.test()"</screen>
 
       <epigraph>
         <attribution>Lyrics: Vicent Andrés i Estellés. Music: Ovidi Montllor,
-        <citetitle>M'aclame a tu</citetitle></attribution>
+        Toti Soler, <citetitle>M'aclame a tu</citetitle></attribution>
 
         <literallayout>
       Seràs la clau que obre tots els panys,
@@ -6838,7 +6844,7 @@ for node in h5file.root.detector:
             (e.g. <literal>'position/x'</literal>).</para>
           </section>
 
-          <section id="Table.readCoordinates">
+          <section id="Table.readCoordinates"  xreflabel="description">
             <title>readCoordinates(coords, field=None)</title>
 
             <para>Get a set of rows given their indexes as a (record)
@@ -6853,7 +6859,7 @@ for node in h5file.root.detector:
             of the current flavor.</para>
           </section>
 
-          <section id="Table.readSorted">
+          <section id="Table.readSorted"  xreflabel="description">
             <title>readSorted(sortby, forceCSI=False, field=None, start=None,
             stop=None, step=None)</title>
 
@@ -8207,8 +8213,8 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               </note>
             </section>
 
-            <section id="Column.createCSIIndex" xreflabel="description">
-              <title><literal>createFullIndex(filters=None,
+            <section id="Column.createCSIndex" xreflabel="description">
+              <title><literal>createCSIndex(filters=None,
               tmp_dir=None)</literal></title>
 
               <para>Create a completely sorted index (CSI) for this
@@ -10778,7 +10784,7 @@ True</screen>
           <emphasis>in-kernel</emphasis> selection based on the
           <emphasis>regular</emphasis> selection mentioned above:</para>
 
-          <screen>result = [row['var2'] for row in table.where('(var1 &gt; 2) & (var1 &lt;= 20) & (var2 &gt; 3)']</screen>
+          <screen>result = [row['var2'] for row in table.where('(var1 &gt; 2) &amp; (var1 &lt;= 20) &amp; (var2 &gt; 3)']</screen>
 
           <para>This simple change of mode selection can account for an
           improvement in search times of more than 30x for large tables as you
@@ -10980,8 +10986,8 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             </itemizedlist></para>
 
           <note>
-            <para>Please be aware that, from PyTables Pro 2.1 on, several
-            indexes can be used in a single query.</para>
+            <para>From PyTables Pro 2.1 on, several indexes can be used in a
+            single query.</para>
           </note>
 
           <note>
@@ -11683,7 +11689,7 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         fact, the only important situation that you might benefit right now
         from using Psyco (I mean, in PyTables contexts) is for speeding-up the
         write speed in tables when using the Row interface (see <xref
-        linkend="RowClassDescr" />.  But again, this latter case can also be
+        linkend="RowClassDescr" />).  But again, this latter case can also be
         accelerated by using the Table.append() (see <xref
         linkend="Table.append" />) method and building your own
         buffers.</para>
@@ -14054,9 +14060,19 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
         <title>Introduction</title>
 
         <para>Nested record arrays are a generalization of the record array
-        concept. Basically, a nested record array is a record array that
+        concept as it appears in the <literal>numarray</literal>
+        package. Basically, a nested record array is a record array that
         supports nested datatypes. It means that columns can contain not only
         regular datatypes but also nested datatypes.</para>
+
+        <warning>
+          <para>PyTables nested record arrays were implemented to overcome a
+          limitation of the record arrays in the <literal>numarray</literal>
+          package.  However, as this functionality is already present in
+          <literal>NumPy</literal>, current users should not need the package
+          <literal>tables.nra</literal> anymore and it will be deprecated
+          soon.</para>
+        </warning>
 
         <para>Each nested record array is a <literal>NestedRecArray</literal>
         object in the <literal>tables.nra</literal> package. Nested record
@@ -14484,19 +14500,26 @@ Object Tree:
           <title>Usage</title>
 
           <para>For instructions on how to use it, just pass the
-          <literal>-h</literal> flag to the command: <screen>$ ptrepack -h</screen>
-          to see the message usage: <screen>usage: ptrepack [-h] [-v] [-o] 
-  [-R start,stop,step] [--non-recursive]
-  [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes]
-  [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)]
-  [--fletcher32=(0|1)] [--keep-source-filters] [--upgrade-flavors]
-  [--dont-regenerate-old-indexes]
+          <literal>-h</literal> flag to the command:
+
+          <screen>$ ptrepack -h</screen>
+
+          to see the message usage:
+
+          <screen>usage: ptrepack [-h] [-v] [-o] [-R start,stop,step]
+  [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs]
+  [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib]
+  [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters]
+  [--upgrade-flavors] [--dont-regenerate-old-indexes]
+  [--sortby=column] [--forceCSI] [--propindexes]
   sourcefile:sourcegroup destfile:destgroup
+
      -h -- Print usage message.
      -v -- Show more information.
      -o -- Overwite destination file.
      -R RANGE -- Select a RANGE of rows (in the form "start,stop,step")
-         during the copy of *all* the leaves.
+         during the copy of *all* the leaves.  Default values are
+         "None,None,1", which means a copy of all the rows.
      --non-recursive -- Do not do a recursive copy. Default is to do it.
      --dest-title=title -- Title for the new file (if not specified,
          the source is copied).
@@ -14508,9 +14531,9 @@ Object Tree:
      --complib=lib -- Set the compression library to be used during the copy.
          lib can be set to "zlib", "lzo" or "bzip2". Defaults to "zlib".
      --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
-         if complevel&gt;0).
+         if complevel>0).
      --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter
-         (not active by default).
+        (not active by default).
      --keep-source-filters -- Use the original filters in source files. The
          default is not doing that if any of --complevel, --complib, --shuffle
          or --fletcher32 option is specified.
@@ -14518,7 +14541,17 @@ Object Tree:
          leaves will be unset. With this, such a leaves will be serialized
          as objects with the internal flavor ('numpy' for 2.x series).
      --dont-regenerate-old-indexes -- Disable regenerating old indexes. The
-         default is to regenerate old indexes as they are found.</screen>
+         default is to regenerate old indexes as they are found.
+     --sortby=column -- Do a table copy sorted by the values of "column".
+         This requires an existing index in "column".  For reversing the order,
+         use a negative value in the "step" part of "RANGE" (see "-R" flag).
+         Only applies to table objects.
+     --forceCSI -- Force the creation of a CSI index in case one is not
+         available for the --sortby column (this implies the modification of
+         the *source* file).  The default is to not create it.
+     --propindexes -- Propagate the indexes existing in original tables.  The
+         default is to not propagate them.  Only applies to table objects.
+          </screen>
           </para>
         </section>
 
@@ -14533,7 +14566,7 @@ Object Tree:
           <literal>examples/tutorial1.h5</literal>: <screen>$ ptdump tutorial1.h5
 tutorial1.h5 (File) 'Test file'
 Last modif.: 'Mon Jan  8 16:30:30 2007'
-Object Tree: 
+Object Tree:
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
 /columns/name (Array(3,)) 'Name column selection'
@@ -14546,7 +14579,7 @@ Object Tree:
           <literal>reduced.h5</literal> file: <screen>$ ptdump reduced.h5
 reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:31:31 2007'
-Object Tree: 
+Object Tree:
 / (RootGroup) ''
 /name (Array(3,)) 'Name column selection'
 /pressure (Array(3,)) 'Pressure column selection'</screen> so, you have
@@ -14561,7 +14594,7 @@ Object Tree:
 $ ptdump reduced.h5
 reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:32:25 2007'
-Object Tree: 
+Object Tree:
 / (RootGroup) ''
 /name (Array(3,)) 'Name column selection'
 /pressure (Array(3,)) 'Pressure column selection'
@@ -14573,7 +14606,7 @@ Object Tree:
 $ ptdump reduced.h5
 reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:33:08 2007'
-Object Tree: 
+Object Tree:
 / (RootGroup) ''
 /columns (Group) ''
 /columns/name (Array(3,)) 'Name column selection'
@@ -14586,7 +14619,7 @@ Object Tree:
 $ ptdump reduced.h5
 reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:33:59 2007'
-Object Tree: 
+Object Tree:
 / (RootGroup) ''
 /rawdata (Table(10,)) 'Readout example'
 /columns (Group) ''
@@ -14601,7 +14634,7 @@ The error was --&gt; tables.exceptions.NodeError: destination group ``/`` alread
 The destination file looks like:
 reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:33:59 2007'
-Object Tree: 
+Object Tree:
 / (RootGroup) ''
 /rawdata (Table(10,)) 'Readout example'
 /columns (Group) ''
@@ -14627,7 +14660,7 @@ reduced.h5:/rawdata
 $ ptdump reduced.h5
 reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:36:54 2007'
-Object Tree: 
+Object Tree:
 / (RootGroup) ''
 /rawdata (Table(10,), shuffle, zlib(1)) 'Readout example'
 /columns (Group) ''
@@ -14644,7 +14677,7 @@ Object Tree:
 $ ptdump reduced.h5
 reduced.h5 (File) ''
 Last modif.: 'Mon Jan  8 16:38:13 2007'
-Object Tree: 
+Object Tree:
 / (RootGroup) ''
 /rawdata (Table(10,), shuffle, zlib(1)) 'Readout example'
 /columns (Group) ''
