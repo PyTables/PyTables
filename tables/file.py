@@ -23,7 +23,7 @@ Classes:
 Functions:
 
     copyFile(srcfilename, dstfilename[, overwrite][, **kwargs])
-    openFile(name[, mode][, title][, trMap][, rootUEP][, filters]
+    openFile(name[, mode][, title][, rootUEP][, filters]
              [, nodeCacheSize])
 
 Misc variables:
@@ -167,8 +167,8 @@ def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
         srcFileh.close()
 
 
-def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
-             filters=None, nodeCacheSize=NODE_MAX_SLOTS):
+def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
+             nodeCacheSize=NODE_MAX_SLOTS):
 
     """Open an HDF5 file and return a File object.
 
@@ -200,13 +200,6 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
         be set on the root group with the given value.  Otherwise, the
         title will be read from disk, and this will not have any effect.
 
-    `trMap`
-        A dictionary to map names in the object tree into different HDF5
-        names in file.  The keys are the Python names, while the values
-        are the HDF5 names.  This is useful when you need to name HDF5
-        nodes with invalid or reserved words in Python and you want to
-        continue using the natural naming facility on the nodes.
-
     `rootUEP`
         The root User Entry Point.  This is a group in the HDF5
         hierarchy which will be taken as the starting point to create
@@ -237,7 +230,7 @@ def openFile(filename, mode="r", title="", trMap={}, rootUEP="/",
     path = os.path.expandvars(path)
 
     # Finally, create the File instance, and return it
-    return File(path, mode, title, trMap, rootUEP, filters,
+    return File(path, mode, title, rootUEP, filters,
                 METADATA_CACHE_SIZE, nodeCacheSize)
 
 
@@ -358,11 +351,6 @@ class File(hdf5Extension.File, object):
         The mode in which the file was opened.
     title
         The title of the root group in the file.
-    trMap
-        A dictionary that maps node names between PyTables and HDF5
-        domain names.  Its initial values are set from the ``trMap``
-        parameter passed to the `openFile()` function.  You cannot change
-        its contents *after* a file is opened.
     rootUEP
         The UEP (user entry point) group in the file (see the
         `openFile()` function).
@@ -465,15 +453,10 @@ class File(hdf5Extension.File, object):
         "Default filter properties for the root group "
         "(see the `Filters` class).")
 
-    trMap = property(
-        lambda self: self._pttoh5, None, None,
-        "Translation map between PyTables <--> HDF5 "
-        "namespaces.")
-
     ## </properties>
 
 
-    def __init__(self, filename, mode="r", title="", trMap={},
+    def __init__(self, filename, mode="r", title="",
                  rootUEP="/", filters=None,
                  metadataCacheSize=METADATA_CACHE_SIZE,
                  nodeCacheSize=NODE_MAX_SLOTS):
@@ -504,9 +487,6 @@ class File(hdf5Extension.File, object):
             self._deadNodes = _DeadNodes(nodeCacheSize)
         else:
             self._deadNodes = _NoDeadNodes()
-
-        # Assign the trMap to a private variable
-        self._pttoh5 = trMap
 
         # For the moment Undo/Redo is not enabled.
         self._undoEnabled = False
@@ -565,23 +545,6 @@ class File(hdf5Extension.File, object):
         # Create new attributes for the root Group instance and
         # create the object tree
         return RootGroup(self, rootUEP, title=title, new=new, filters=filters)
-
-
-    def _ptNameFromH5Name(self, h5Name):
-        """Get the PyTables name matching the given HDF5 name."""
-
-        ptName = h5Name
-        # This code might seem inefficient but it will be rarely used.
-        for (ptName_, h5Name_) in self.trMap.iteritems():
-            if h5Name_ == h5Name:
-                ptName = ptName_
-                break
-        return ptName
-
-
-    def _h5NameFromPTName(self, ptName):
-        """Get the HDF5 name matching the given PyTables name."""
-        return self.trMap.get(ptName, ptName)
 
 
     def _getOrCreatePath(self, path, create):
@@ -2083,7 +2046,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         astring = 'File(filename=' + repr(self.filename) + \
                   ', title=' + repr(self.title) + \
                   ', mode=' + repr(self.mode) + \
-                  ', trMap=' + repr(self.trMap) + \
                   ', rootUEP=' + repr(self.rootUEP) + \
                   ', filters=' + repr(self.filters) + \
                   ')\n'

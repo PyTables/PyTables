@@ -1147,7 +1147,7 @@ Object Tree:
           <literal>File</literal> instance:</para>
 
           <screen>>>> h5file
-File(filename='tutorial1.h5', title='Test file', mode='w', trMap={}, rootUEP='/', filters=Filters(complevel=0, shuffle=False, fletcher32=False))
+File(filename='tutorial1.h5', title='Test file', mode='w', rootUEP='/', filters=Filters(complevel=0, shuffle=False, fletcher32=False))
 / (RootGroup) 'Test file'
 /detector (Group) 'Detector information'
 /detector/readout (Table(0,)) 'Readout example'
@@ -3551,8 +3551,8 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
           </section>
 
           <section id="openFileDescr" xreflabel="description">
-            <title>openFile(filename, mode='r', title='', trMap={},
-            rootUEP="/", filters=None, nodeCacheSize=NODE_MAX_SLOTS)</title>
+            <title>openFile(filename, mode='r', title='', rootUEP="/",
+            filters=None, nodeCacheSize=NODE_MAX_SLOTS)</title>
 
             <para>Open a PyTables (or generic HDF5) file and return a
             <literal>File</literal> object.</para>
@@ -3632,19 +3632,6 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
                   <literal>TITLE</literal> string attribute will be set on the
                   root group with the given value. Otherwise, the title will
                   be read from disk, and this will not have any effect.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">trMap</emphasis></glossterm>
-
-                <glossdef>
-                  <para>A dictionary to map names in the object tree into
-                  different HDF5 names in file. The keys are the Python names,
-                  while the values are the HDF5 names. This is useful when you
-                  need to name HDF5 nodes with invalid or reserved words in
-                  Python and you want to continue using the natural naming
-                  facility on the nodes.</para>
                 </glossdef>
               </glossentry>
 
@@ -3876,19 +3863,6 @@ ValueError: malformed type: 'foo bar'</screen>
 
               <glossdef>
                 <para>The title of the root group in the file.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">trMap</emphasis></glossterm>
-
-              <glossdef>
-                <para>A dictionary that maps node names between PyTables and
-                HDF5 domain names. Its initial values are set from the
-                <literal>trMap</literal> parameter passed to the
-                <literal>openFile()</literal> (see <xref
-                linkend="openFileDescr"/>) function. You cannot change its
-                contents <emphasis>after</emphasis> a file is opened.</para>
               </glossdef>
             </glossentry>
 
@@ -5218,11 +5192,7 @@ for node in h5file:
         <emphasis>file</emphasis>, under a <emphasis>parent group</emphasis>,
         at a certain <emphasis>depth</emphasis> in the node hierarchy. A node
         knows its own <emphasis>name</emphasis> in the parent group and its
-        own <emphasis>path name</emphasis> in the file. When using a
-        translation map (see the <literal>File</literal> class in <xref
-        linkend="FileClassDescr" xrefstyle="select: label" />), its
-        <emphasis>HDF5 name</emphasis> might differ from its PyTables
-        name.</para>
+        own <emphasis>path name</emphasis> in the file.</para>
 
         <para>All the previous information is location-dependent, i.e. it may
         change when moving or renaming a node in the hierarchy. A node also
@@ -5268,16 +5238,6 @@ for node in h5file:
               <glossdef>
                 <para>The hosting <literal>File</literal> instance (see <xref
                 linkend="FileClassDescr" xrefstyle="select: label" />).</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">
-              _v_hdf5name</emphasis></glossterm>
-
-              <glossdef>
-                <para>The name of this node in the hosting HDF5 file (a
-                string).</para>
               </glossdef>
             </glossentry>
 
@@ -5558,13 +5518,7 @@ for node in h5file:
         <literal>44</literal>) can not be accessed using the
         <literal>node.child</literal> syntax. You will be forced to use
         <literal>node._f_getChild(child)</literal> to access them (which is
-        recommended for programmatic accesses). You can also make use of the
-        <literal>trMap</literal> (translation map dictionary) parameter in the
-        <literal>openFile()</literal> function (see <xref
-        linkend="openFileDescr" />) in order to translate HDF5 names not
-        suited for natural naming into more convenient ones, so that you can
-        go on using <literal>file.root.group1.group2</literal> syntax or
-        <literal>getattr()</literal>.</para>
+        recommended for programmatic accesses).</para>
 
         <para>You will also need to use <literal>_f_getChild()</literal> to
         access an existing child node if you set a Python attribute in the
@@ -6167,15 +6121,6 @@ for node in h5file.root.detector:
                 <para>The associated <literal>AttributeSet</literal> instance
                 —see <xref linkend="AttributeSetClassDescr" xrefstyle="select:
                 label" />— (<literal>Node._v_attrs</literal>).</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">hdf5name</emphasis></glossterm>
-
-              <glossdef>
-                <para>The name of this node in the hosting HDF5 file
-                (<literal>Node._v_hdf5name</literal>).</para>
               </glossdef>
             </glossentry>
 
@@ -12356,20 +12301,6 @@ owner := 'ivan']</screen>
         limitations:</para>
 
         <orderedlist>
-          <!-- This limitation no longer applies F. Alted 2006-10-25 -->
-
-          <!--           <listitem><para>Node file names are constrained to PyTables node -->
-
-          <!--           names (i.e.  most valid Python identifiers). For the moment, if you -->
-
-          <!--           want arbitrary names you will have to use a translation map (see -->
-
-          <!--           <xref xrefstyle="select: label" linkend="openFileDescr"/>) or -->
-
-          <!--           the node title. The same restriction applies to attribute -->
-
-          <!--           names.</para></listitem> -->
-
           <listitem>
             <para>Node files can only be opened for read-only or read and
             append mode. This should be enhanced in the future.</para>

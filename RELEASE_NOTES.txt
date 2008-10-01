@@ -56,6 +56,9 @@ Changes from 2.0.x to 2.1b2
 API changes from 2.0.x to 2.1b2
 ===============================
 
+- The `trMap` argument has been removed from the tables.openFile() function.
+  Also, Node._v_hdf5name attribute has been removed as well.  Fixes #117.
+
 - The Table.indexFilters property has been removed (after a period of
   ``DeprecationWarnings``).  If you want to change filters in indexes, please
   use the `filters` parameter of the Column.createIndex() method (and the

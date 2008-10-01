@@ -123,7 +123,7 @@ class Filters(object):
     def _from_leaf(class_, leaf):
         # Get a dictionary with all the filters
         filtersDict = utilsExtension.getFilters( leaf._v_parent._v_objectID,
-                                                 leaf._v_hdf5name )
+                                                 leaf._v_name )
         if filtersDict is None:
             filtersDict = {}  # not chunked
 

@@ -96,87 +96,6 @@ class OpenFileTestCase(common.PyTablesTestCase):
         assert title == "Array example"
         fileh.close()
 
-    def test01b_trMap(self):
-        """Checking the translation table capability for reading"""
-
-        # Open the old HDF5 file
-        trMap = {"pythonarray": "array"}
-        fileh = openFile(self.file, mode = "r", trMap=trMap)
-        # Get the array objects in the file
-        array_ = fileh.getNode("/pythonarray")
-
-        assert array_.name == "pythonarray"
-        assert array_._v_hdf5name == "array"
-
-        # This should throw an LookupError exception
-        try:
-            # Try to get the 'array' object in the old existing file
-            array_ = fileh.getNode("/array")
-        except LookupError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
-        else:
-            self.fail("expected an LookupError")
-
-        fileh.close()
-
-    def test01c_trMap(self):
-        """Checking the translation table capability for writing"""
-
-        # Create an HDF5 file
-        file = tempfile.mktemp(".h5")
-        trMap = {"pythonarray": "array"}
-        fileh = openFile(file, mode = "w", trMap=trMap)
-        arr = fileh.createArray(fileh.root, 'pythonarray', [1,2],
-                                title = "Title example")
-
-        # Get the array objects in the file
-        array_ = fileh.getNode("/pythonarray")
-        assert array_.name == "pythonarray"
-        assert array_._v_hdf5name == "array"
-
-        fileh.close()
-
-        # Open the old HDF5 file (without the trMap parameter)
-        fileh = openFile(self.file, mode = "r")
-        # Get the array objects in the file
-        array_ = fileh.getNode("/array")
-
-        assert array_.name == "array"
-        assert array_._v_hdf5name == "array"
-
-        # This should throw an LookupError exception
-        try:
-            # Try to get the 'pythonarray' object in the old existing file
-            array_ = fileh.getNode("/pythonarray")
-        except LookupError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next LookupError was catched!"
-                print value
-        else:
-            self.fail("expected an LookupError")
-
-        fileh.close()
-        # Remove the temporary file
-        os.remove(file)
-
-    def test01d_trMap(self):
-        """Checking the trMap for an equal (key, value) pair."""
-
-        # Open the old HDF5 file
-        trMap = {"array": "array"}
-        fileh = openFile(self.file, mode = "r", trMap=trMap)
-        # Get the array objects in the file
-        array_ = fileh.getNode("/array")
-
-        assert array_.name == "array"
-        assert array_._v_hdf5name == "array"
-
-        fileh.close()
-
     def test02_appendFile(self):
         """Checking appending objects to an existing file"""
 
@@ -2040,6 +1959,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
+        theSuite.addTest(unittest.makeSuite(OldFlavorTestCase))
 
     return theSuite
 

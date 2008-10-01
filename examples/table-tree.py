@@ -29,12 +29,8 @@ Particle2 = {
 # The name of our HDF5 filename
 filename = "table-tree.h5"
 
-# A translation map
-trMap = {"detector": "for",  # A reserved word
-         "table": " 11 ",}   # A non-valid python variable name
-
 # Open a file in "w"rite mode
-h5file = openFile(filename, mode = "w", trMap=trMap)
+h5file = openFile(filename, mode = "w")
 
 # Create a new group under "/" (root)
 group = h5file.createGroup("/", 'detector')
@@ -114,7 +110,7 @@ h5file.close()
 #sys.exit()
 
 # Reopen it in append mode
-h5file = openFile(filename, "a", trMap=trMap)
+h5file = openFile(filename, "a")
 
 # Ok. let's start browsing the tree from this filename
 print "Reading info from filename:", h5file.filename

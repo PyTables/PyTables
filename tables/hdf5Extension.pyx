@@ -248,7 +248,7 @@ cdef class File:
 
 
   def __cinit__(self, object name, char *mode, char *title,
-                object trTable, char *root, object filters,
+                char *root, object filters,
                 size_t metadataCacheSize, size_t nodeCacheSize):
     # Create a new file using default properties
     self.name = name
@@ -376,7 +376,7 @@ cdef class AttributeSet:
 
   def _g_new(self, node):
     # Initialize the C attributes of Node object
-    self.name =  PyString_AsString(node._v_hdf5name)
+    self.name =  PyString_AsString(node._v_name)
     # The dataset id of the node
     self.dataset_id = node._v_objectID
 

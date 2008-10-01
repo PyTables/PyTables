@@ -93,11 +93,7 @@ class Group(hdf5Extension.Group, Node):
     ``class``, ``$a`` or ``44``) can not be accessed using the
     ``node.child`` syntax.  You will be forced to use
     ``node._f_getChild(child)`` to access them (which is recommended for
-    programmatic accesses).  You can also make use of the ``trMap``
-    (translation map dictionary) parameter in the `openFile()` function
-    in order to translate HDF5 names not suited for natural naming into
-    more convenient ones, so that you can go on using
-    ``file.root.group1.group2`` syntax or ``getattr()``.
+    programmatic accesses).
 
     You will also need to use ``_f_getChild()`` to access an existing
     child node if you set a Python attribute in the ``Group`` with the
@@ -322,8 +318,7 @@ class Group(hdf5Extension.Group, Node):
         if `warn` is true and the node belongs to a PyTables file.
         """
 
-        childH5Name = self._v_file._h5NameFromPTName(childName)
-        childCID = self._g_getGChildAttr(childH5Name, 'CLASS')
+        childCID = self._g_getGChildAttr(childName, 'CLASS')
 
         if childCID in classIdDict:
             return classIdDict[childCID]  # look up group class
@@ -348,15 +343,14 @@ class Group(hdf5Extension.Group, Node):
         issued if `warn` is true.
         """
 
-        childH5Name = self._v_file._h5NameFromPTName(childName)
-        childCID = self._g_getLChildAttr(childH5Name, 'CLASS')
+        childCID = self._g_getLChildAttr(childName, 'CLASS')
 
         if childCID in classIdDict:
             return classIdDict[childCID]  # look up leaf class
         else:
             # Unknown or no ``CLASS`` attribute, try a guess.
             childCID2 = utilsExtension.whichClass(
-                self._v_objectID, childH5Name)
+                self._v_objectID, childName)
             if childCID2 == 'UNSUPPORTED':
                 if warn:
                     if childCID is None:
@@ -397,9 +391,6 @@ class Group(hdf5Extension.Group, Node):
         # Get the names of *all* child groups and leaves.
         (groupNames, leafNames) = self._g_listGroup()
 
-        # (Cache some objects.)
-        ptNameFromH5Name = self._v_file._ptNameFromH5Name
-
         # Separate groups into visible groups and hidden nodes,
         # and leaves into visible leaves and hidden nodes.
         for (childNames, childDict) in (
@@ -407,9 +398,6 @@ class Group(hdf5Extension.Group, Node):
             (leafNames,  leaves)):
 
             for childName in childNames:
-                # Get the PyTables name matching this HDF5 name.
-                childName = ptNameFromH5Name(childName)
-
                 # See whether the name implies that the node is hidden.
                 # (Assigned values are entirely irrelevant.)
                 if isVisibleName(childName):
@@ -444,15 +432,7 @@ class Group(hdf5Extension.Group, Node):
         if node_type == "Unknown":
             # The node type has not been discovered yet.
             # Get the HDF5 name matching the PyTables name.
-            h5name = self._v_file._h5NameFromPTName(name)
-            if (h5name == name and
-                h5name in self._v_file.trMap.values() and
-                h5name not in self._v_file.trMap):  # check (key, key) entries
-                # The name has a reverse mapping in trMap,
-                # so it must not be found on disk.
-                node_type = "NoSuchNode"
-            else:
-                node_type = self._g_get_objinfo(h5name)
+            node_type = self._g_get_objinfo(name)
 
         if node_type == "NoSuchNode":
             raise NoSuchNodeError(
@@ -749,10 +729,9 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
         self._g_checkOpen()
 
-        childName = childname
-        self._g_checkHasChild(childName)
+        self._g_checkHasChild(childname)
 
-        childPath = joinPath(self._v_pathname, childName)
+        childPath = joinPath(self._v_pathname, childname)
         return self._v_file._getNode(childPath)
 
 
@@ -1176,7 +1155,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
 # Special definition for group root
 class RootGroup(Group):
-    def __init__(self, ptFile, h5name, title, new, filters):
+    def __init__(self, ptFile, name, title, new, filters):
         myDict = self.__dict__
 
         # Set group attributes.
@@ -1192,9 +1171,8 @@ class RootGroup(Group):
         # Set node attributes.
         self._v_file = ptFile
         self._v_isopen = True  # root is always open
-        self._v_pathname = '/'  # Can it be h5name? I don't think so.
+        self._v_pathname = '/'
         self._v_name = '/'
-        self._v_hdf5name = h5name
         self._v_depth = 0
         self._v__deleting = False
         self._v_objectID = None  # later
@@ -1206,7 +1184,7 @@ class RootGroup(Group):
 
         # hdf5Extension operations (do before setting an AttributeSet):
         #   Update node attributes.
-        self._g_new(ptFile, h5name, init=True)
+        self._g_new(ptFile, name, init=True)
         #   Open the node and get its object ID.
         self._v_objectID = self._g_open()
 

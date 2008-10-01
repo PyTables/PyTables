@@ -121,8 +121,7 @@ class Node(object):
     A PyTables node is always hosted in a PyTables *file*, under a
     *parent group*, at a certain *depth* in the node hierarchy.  A node
     knows its own *name* in the parent group and its own *path name* in
-    the file.  When using a translation map (see the `File` class), its
-    *HDF5 name* might differ from its PyTables name.
+    the file.
 
     All the previous information is location-dependent, i.e. it may
     change when moving or renaming a node in the hierarchy.  A node also
@@ -149,8 +148,6 @@ class Node(object):
         value).
     _v_file
         The hosting `File` instance.
-    _v_hdf5name
-        The name of this node in the hosting HDF5 file (a string).
     _v_isopen
         Whether this node is open or not.
     _v_name
@@ -263,8 +260,6 @@ class Node(object):
         """The path of this node in the tree (a string)."""
         self._v_name = None
         """The name of this node in its parent group (a string)."""
-        self._v_hdf5name = None
-        """The name of this node in the hosting HDF5 file (a string)."""
         self._v_depth = None
         """The depth of this node in the tree (an non-negative integer value)."""
         self._v__deleting = False
@@ -284,21 +279,17 @@ class Node(object):
         if new:
             file_._checkWritable()
 
-        # Find out the matching HDF5 name.
-        ptname = name  # always the provided one
-        h5name = file_._h5NameFromPTName(ptname)
-
         # Bind to the parent node and set location-dependent information.
         if new:
             # Only new nodes need to be referenced.
             # Opened nodes are already known by their parent group.
-            parentNode._g_refNode(self, ptname, validate)
-        self._g_setLocation(parentNode, ptname, h5name)
+            parentNode._g_refNode(self, name, validate)
+        self._g_setLocation(parentNode, name)
 
         try:
             # hdf5Extension operations:
             #   Update node attributes.
-            self._g_new(parentNode, h5name, init=True)
+            self._g_new(parentNode, name, init=True)
             #   Create or open the node and get its object ID.
             if new:
                 self._v_objectID = self._g_create()
@@ -314,7 +305,7 @@ class Node(object):
         except:
             if new:
                 # Creation failed, this is no longer a child of the parent.
-                parentNode._g_unrefNode(ptname)
+                parentNode._g_unrefNode(name)
             # If anything happens, the node must be closed
             # to undo every possible registration made so far.
             # We do *not* rely on ``__del__()`` doing it later,
@@ -394,15 +385,13 @@ class Node(object):
         assert self._v_file.isopen, "found an open node in a closed file"
 
 
-    def _g_setLocation(self, parentNode, ptname, h5name=None):
+    def _g_setLocation(self, parentNode, name):
         """
         Set location-dependent attributes.
 
         Sets the location-dependent attributes of this node to reflect
         that it is placed under the specified `parentNode`, with the
-        specified PyTables and HDF5 names (`ptname` and `h5name`,
-        respectively).  If the HDF5 name is ``None``, it is found using
-        the translation map from the parent's file.
+        specified `name`.
 
         This also triggers the insertion of file references to this
         node.  If the maximum recommended node depth is exceeded, a
@@ -414,13 +403,8 @@ class Node(object):
 
         self._v_file = file_
         self._v_isopen = True
-        self._v_pathname = joinPath(parentNode._v_pathname, ptname)
-
-        if h5name is None:
-            h5name = file_._h5NameFromPTName(ptname)
-        self._v_name = ptname
-        self._v_hdf5name = h5name
-
+        self._v_name = name
+        self._v_pathname = joinPath(parentNode._v_pathname, name)
         self._v_depth = parentDepth + 1
 
         # Check if the node is too deep in the tree.
@@ -484,7 +468,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._v_isopen = False
         self._v_pathname = None
         self._v_name = None
-        self._v_hdf5name = None
         self._v_depth = None
 
         # If the node object is being deleted,
@@ -622,7 +605,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # hdf5Extension operations:
         #   Update node attributes.
-        self._g_new(newParent, self._v_hdf5name, init=False)
+        self._g_new(newParent, self._v_name, init=False)
         #   Move the node.
         #self._v_parent._g_moveNode(oldPathname, self._v_pathname)
         self._v_parent._g_moveNode(oldParent._v_objectID, oldName,

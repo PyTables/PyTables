@@ -158,9 +158,6 @@ class Leaf(Node):
 
     attrs
         The associated `AttributeSet` instance (`Node._v_attrs`).
-    hdf5name
-        The name of this node in the hosting HDF5 file
-        (`Node._v_hdf5name`).
     name
         The name of this node in its parent group (`Node._v_name`).
     objectID
@@ -199,10 +196,6 @@ class Leaf(Node):
     # ```````````````````````````````
     name = property(
         lambda self: self._v_name, None, None,
-        "The name of this node in its parent group (a string)." )
-
-    hdf5name = property(
-        lambda self: self._v_hdf5name, None, None,
         "The name of this node in its parent group (a string)." )
 
     chunkshape = property(
