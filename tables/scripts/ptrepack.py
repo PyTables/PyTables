@@ -71,7 +71,8 @@ def recreateIndexes(table, dstfileh, dsttable):
 
 def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
              filters, copyuserattrs, overwritefile, overwrtnodes, stats,
-             start, stop, step, sortby, forceCSI, propindexes, upgradeflavors):
+             start, stop, step, chunkshape, sortby, forceCSI,
+             propindexes, upgradeflavors):
     # Open the source file
     if forceCSI:
         srcfileh = openFile(srcfile, 'a')
@@ -125,6 +126,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
             dstGroup, dstleaf, filters = filters,
             copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
             stats = stats, start = start, stop = stop, step = step,
+            chunkshape = chunkshape,
             sortby = sortby, forceCSI = forceCSI, propindexes = propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
@@ -154,7 +156,8 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
 def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                  recursive, filters, copyuserattrs, overwritefile,
                  overwrtnodes, stats, start, stop, step,
-                 sortby, forceCSI, propindexes, upgradeflavors):
+                 chunkshape, sortby, forceCSI, propindexes,
+                 upgradeflavors):
     "Copy the children from source group to destination group"
     # Open the source file with srcgroup as rootUEP
     if forceCSI:
@@ -204,6 +207,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
             dstGroup, recursive = recursive, filters = filters,
             copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
             stats = stats, start = start, stop = stop, step = step,
+            chunkshape = chunkshape,
             sortby = sortby, forceCSI = forceCSI, propindexes = propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
@@ -236,7 +240,7 @@ def main():
     global verbose
     global regoldindexes
 
-    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--forceCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
+    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--chunkshape=value] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--forceCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
      -h -- Print usage message.
      -v -- Show more information.
      -o -- Overwite destination file.
@@ -260,6 +264,9 @@ def main():
      --keep-source-filters -- Use the original filters in source files. The
          default is not doing that if any of --complevel, --complib, --shuffle
          or --fletcher32 option is specified.
+     --chunkshape=("keep"|"auto"|int|tuple) -- Set a chunkshape.  A value
+         of "auto" computes a sensible value for the chunkshape of the
+         leaves copied.  The default is to "keep" the original value.
      --upgrade-flavors -- When repacking PyTables 1.x files, the flavor of
          leaves will be unset. With this, such a leaves will be serialized
          as objects with the internal flavor ('numpy' for 2.x series).
@@ -288,6 +295,7 @@ def main():
                                      'shuffle=',
                                      'fletcher32=',
                                      'keep-source-filters',
+                                     'chunkshape=',
                                      'upgrade-flavors',
                                      'dont-regenerate-old-indexes',
                                      'sortby=',
@@ -303,6 +311,7 @@ def main():
     # default options
     overwritefile = False
     keepfilters = False
+    chunkshape = "keep"
     complevel = None
     complib = None
     shuffle = None
@@ -345,6 +354,10 @@ def main():
             overwrtnodes = True
         elif option[0] == '--keep-source-filters':
             keepfilters = True
+        elif option[0] == '--chunkshape':
+             chunkshape = option[1]
+             if chunkshape.isdigit() or chunkshape.startswith('('):
+                 chunkshape = eval(chunkshape)
         elif option[0] == '--upgrade-flavors':
             upgradeflavors = True
         elif option[0] == '--dont-regenerate-old-indexes':
@@ -455,7 +468,7 @@ def main():
             title = title, recursive = recursive, filters = filters,
             copyuserattrs = copyuserattrs, overwritefile = overwritefile,
             overwrtnodes = overwrtnodes, stats = stats,
-            start = start, stop = stop, step = step,
+            start = start, stop = stop, step = step, chunkshape = chunkshape,
             sortby = sortby, forceCSI = forceCSI, propindexes = propindexes,
             upgradeflavors=upgradeflavors)
     else:
@@ -465,6 +478,7 @@ def main():
             title = title, filters = filters, copyuserattrs = copyuserattrs,
             overwritefile = overwritefile, overwrtnodes = overwrtnodes,
             stats = stats, start = start, stop = stop, step = step,
+            chunkshape = chunkshape,
             sortby = sortby, forceCSI = forceCSI, propindexes = propindexes,
             upgradeflavors=upgradeflavors)
 

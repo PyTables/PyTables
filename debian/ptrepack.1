@@ -33,6 +33,7 @@ ptrepack \- Copy any PyTables Leaf, Group or complete subtree into another file.
 .RB \-\-shuffle=(0|1)
 .RB \-\-fletcher32=(0|1)
 .RB \-\-keep\-source\-filters
+.RB \-\-auto\-chunkshape
 .RB \-\-upgrade\-flavors
 .RB \-\-dont\-regenerate\-old\-indexes
 .RB \-\-sortby=column
@@ -88,6 +89,11 @@ Whether to activate or not the fletcher32 filter (not active by default).
 Use the original filters in source files. The default is not doing that
 if any of \-\-complevel, \-\-complib, \-\-shuffle or \-\-fletcher32
 option is specified.
+.TP
+.BI  \-\-chunkshape=("keep"|"auto"|int|tuple)
+Set a chunkshape.  A value of "auto" computes a sensible value for the
+chunkshape of the leaves copied.  The default is to "keep" the
+original value.
 .TP
 .BI  \-\-upgrade\-flavors
 When repacking PyTables 1.x files, the flavor of leaves will be

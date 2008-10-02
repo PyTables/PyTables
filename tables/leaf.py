@@ -477,8 +477,13 @@ very small/large chunksize, you may want to increase/decrease it."""
         step = kwargs.pop('step', None)
         title = kwargs.pop('title', self._v_title)
         filters = kwargs.pop('filters', self.filters)
+        chunkshape = kwargs.pop('chunkshape', self.chunkshape)
         copyuserattrs = kwargs.pop('copyuserattrs', True)
         stats = kwargs.pop('stats', None)
+        if chunkshape == 'keep':
+            chunkshape = self.chunkshape  # Keep the original chunkshape
+        elif chunkshape == 'auto':
+            chunkshape = None             # Will recompute chunkshape
 
         # Fix arguments with explicit None values for backwards compatibility.
         if title is None:  title = self._v_title
@@ -487,7 +492,7 @@ very small/large chunksize, you may want to increase/decrease it."""
         # Create a copy of the object.
         (newNode, bytes) = self._g_copyWithStats(
             newParent, newName, start, stop, step,
-            title, filters, _log, **kwargs)
+            title, filters, chunkshape, _log, **kwargs)
 
         # Copy user attributes if requested (or the flavor at least).
         if copyuserattrs == True:
@@ -588,6 +593,15 @@ very small/large chunksize, you may want to increase/decrease it."""
         `start`, `stop`, `step`
             Specify the range of rows to be copied; the default is to
             copy all the rows.
+        `chunkshape`
+            The chunkshape of the new leaf.  It supports a couple of
+            special values.  A value of 'keep' means that the chunkshape
+            will be the same than original leaf (this is the default).
+            A value of 'auto' means that a new shape will be computed
+            automatically in order to ensure best performance when
+            accessing the dataset through the main dimension.  Any other
+            value should be an integer or a tuple matching the
+            dimensions of the leaf.
         `stats`
             This argument may be used to collect statistics on the
             copy process.  When used, it should be a dictionary whith

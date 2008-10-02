@@ -264,7 +264,7 @@ chunkshape parameter cannot have zero-dimensions."""
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, _log):
+                         title, filters, chunkshape, _log):
         "Private part of Leaf.copy() for each kind of leaf"
         (start, stop, step) = self._processRangeRead(start, stop, step)
         maindim = self.maindim
@@ -280,7 +280,8 @@ chunkshape parameter cannot have zero-dimensions."""
         # Build the new CArray object (do not specify the chunkshape so that
         # a sensible value would be calculated)
         object = CArray(group, name, atom=self.atom, shape=shape,
-                        title=title, filters=filters, _log=_log)
+                        title=title, filters=filters, chunkshape=chunkshape,
+                        _log=_log)
         # Start the copy itself
         for start2 in lrange(start, stop, step*nrowsinbuf):
             # Save the records on disk

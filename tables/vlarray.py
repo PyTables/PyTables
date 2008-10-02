@@ -730,13 +730,14 @@ be zero."""
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, _log):
+                         title, filters, chunkshape, _log):
         "Private part of Leaf.copy() for each kind of leaf"
 
         # Build the new VLArray object
         object = VLArray(
             group, name, self.atom, title=title, filters=filters,
-            expectedsizeinMB=self._v_expectedsizeinMB, _log=_log)
+            expectedsizeinMB=self._v_expectedsizeinMB, chunkshape=chunkshape,
+            _log=_log)
         # Now, fill the new vlarray with values from the old one
         # This is not buffered because we cannot forsee the length
         # of each record. So, the safest would be a copy row by row.

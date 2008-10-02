@@ -247,7 +247,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, _log):
+                         title, filters, chunkshape, _log):
         "Private part of Leaf.copy() for each kind of leaf."
         (start, stop, step) = self._processRangeRead(start, stop, step)
         # Build the new EArray object
@@ -258,7 +258,8 @@ With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
         # a sensible value would be calculated)
         object = EArray(
             group, name, atom=self.atom, shape=shape, title=title,
-            filters=filters, expectedrows=self.nrows, _log=_log)
+            filters=filters, expectedrows=self.nrows, chunkshape=chunkshape,
+            _log=_log)
         # Now, fill the new earray with values from source
         nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__

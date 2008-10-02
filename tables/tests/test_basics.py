@@ -1162,7 +1162,43 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assertEqual(srcNode.anarray1.read()[0:5:2], dstNode.anarray1.read())
         fileh.close()
 
-    def test17_closedRepr(self):
+    def test17a_CopyChunkshape(self):
+        "Copying dataset with a chunkshape."
+
+        fileh = openFile(self.file, mode = "r+")
+        srcTable = fileh.root.table
+        newTable = fileh.copyNode(
+            srcTable, newname = 'tablecopy', chunkshape=11)
+
+        self.assert_(newTable.chunkshape == (11,))
+        self.assert_(srcTable.chunkshape != newTable.chunkshape)
+        fileh.close()
+
+    def test17b_CopyChunkshape(self):
+        "Copying dataset with a chunkshape with 'keep' value."
+
+        fileh = openFile(self.file, mode = "r+")
+        srcTable = fileh.root.table
+        newTable = fileh.copyNode(
+            srcTable, newname = 'tablecopy', chunkshape='keep')
+
+        self.assert_(srcTable.chunkshape == newTable.chunkshape)
+        fileh.close()
+
+    def test17c_CopyChunkshape(self):
+        "Copying dataset with a chunkshape with 'auto' value."
+
+        fileh = openFile(self.file, mode = "r+")
+        srcTable = fileh.root.table
+        newTable = fileh.copyNode(
+            srcTable, newname = 'tablecopy', chunkshape=11)
+        newTable2 = fileh.copyNode(
+            newTable, newname = 'tablecopy2', chunkshape='auto')
+
+        self.assert_(srcTable.chunkshape == newTable2.chunkshape)
+        fileh.close()
+
+    def test18_closedRepr(self):
         "Representing a closed node as a string."
         fileh = openFile(self.file)
         for node in [fileh.root.agroup, fileh.root.anarray]:
@@ -1171,7 +1207,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.assert_('closed' in repr(node))
         fileh.close()
 
-    def test18_fileno(self):
+    def test19_fileno(self):
         """Checking that the 'fileno()' method works"""
 
         # Open the old HDF5 file

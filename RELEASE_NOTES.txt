@@ -41,13 +41,19 @@ Changes from 2.0.x to 2.1b2
 - [Pro] New public Index.readSorted() and Index.readIndices() that allow
   direct access to an index data.
 
-- Added new '--sortby' (sort a table by a column key), '--forceCSI' (force
-  the creation of a CSI index) and '--propindexes' (propagate the indexes in
-  original tables) flags to the 'ptrepack' utility.
+- [Pro] Added new '--sortby' (sort a table by a column key), '--forceCSI'
+  (force the creation of a CSI index) and '--propindexes' (propagate the
+  indexes in original tables) flags to the 'ptrepack' utility.
+
+- A new `chunkshape` argument has been added to Leaf.copy() allowing to
+  specify a chunkshape.  Can also take the special values 'auto' (compute a
+  sensible value) and 'keep' (keep the original value, which is the default).
+
+- Added a new '--chunkshape' flag to the 'ptrepack' console command that
+  corresponds to the new `chunkshape` added to Leaf.copy().
 
 - When in ptrepack a range is not specified, all the elements of leaves are
-  copied now.  Before, only the first row was copied, and that was clearly
-  wrong.
+  copied now.  Before, only the first row was copied, which was clearly wrong.
 
 - New Table.colindexes property that returns a dictionary with the indexes of
   the indexed columns in table.

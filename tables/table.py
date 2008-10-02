@@ -2285,7 +2285,7 @@ The 'names' parameter must be a list of strings.""")
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, _log, **kwargs):
+                         title, filters, chunkshape, _log, **kwargs):
         "Private part of Leaf.copy() for each kind of leaf"
         # Get the private args for the Table flavor of copy()
         sortby = kwargs.pop('sortby', None)
@@ -2297,6 +2297,7 @@ The 'names' parameter must be a list of strings.""")
         # Create the new table and copy the selected data.
         newtable = Table( group, name, self.description, title=title,
                           filters=filters, expectedrows=self.nrows,
+                          chunkshape=chunkshape,
                           _log=_log )
         self._g_copyRows(newtable, start, stop, step, sortby, forceCSI)
         nbytes = newtable.nrows * newtable.rowsize

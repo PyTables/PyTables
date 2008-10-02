@@ -610,7 +610,7 @@ compliant with %s: '%r' The error was: <%s>""" % \
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, _log, **kwargs):
+                         title, filters, chunkshape, _log, **kwargs):
         "Private part of Leaf.copy() for each kind of leaf"
         # Compute the correct indices.
         (start, stop, step) = self._processRangeRead(start, stop, step)
