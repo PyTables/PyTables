@@ -322,7 +322,7 @@ class CreateTestCase(unittest.TestCase):
         if common.verbose:
             print "After renaming CLASS attribute"
             print "All attrs:", self.group._v_attrs._v_attrnames
-            
+
         # Check the disk attribute names (not sorted)
         assert self.root.agroup._v_attrs._f_list("all") == \
                ['TITLE', 'VERSION', "op"]
@@ -428,6 +428,32 @@ class CreateTestCase(unittest.TestCase):
                 'NROWS',
                 'TITLE', 'VERSION',
                 "pq", "qr", "rs"]
+
+
+    def test11a_getitem(self):
+        """Checking the __getitem__ interface."""
+
+        attrs = self.group._v_attrs
+        attrs.pq = "1"
+        self.assert_(attrs['pq'] == "1")
+
+
+    def test11b_setitem(self):
+        """Checking the __setitem__ interface."""
+
+        attrs = self.group._v_attrs
+        attrs['pq'] = "2"
+        self.assert_(attrs['pq'] == "2")
+
+
+    def test11c_delitem(self):
+        """Checking the __delitem__ interface."""
+
+        attrs = self.group._v_attrs
+        attrs.pq = "1"
+        del attrs['pq']
+        self.assert_('pq' not in attrs._f_list())
+
 
 class NotCloseCreateTestCase(CreateTestCase):
     close = 0

@@ -9161,7 +9161,7 @@ AttributeError: 'module' object has no attribute 'MyClass'
           <title><literal>AttributeSet</literal> methods</title>
 
           <para>Note that this class overrides the
-          <literal>__setattr__()</literal>, <literal>__getattr__()</literal>
+          <literal>__getattr__()</literal>, <literal>__setattr__()</literal>
           and <literal>__delattr__()</literal> special methods.  This allows
           you to read, assign or delete attributes on disk by just using the
           next constructs:</para>
@@ -9171,6 +9171,16 @@ leaf.attrs.myattr2 = 3            # set an integer (native support)
 leaf.attrs.myattr3 = [3, (1, 2)]  # a generic object (Pickled)
 attrib = leaf.attrs.myattr        # get the attribute ``myattr``
 del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
+
+          <para>In addition, the dictionary-like
+          <literal>__getitem__()</literal>, <literal>__setitem__()</literal>
+          and <literal>__delitem__()</literal> methods are available, so you
+          may write things like this:</para>
+
+          <screen>for name in node._v_attrs._f_list():
+    print "name: %s, value: %s" % (name, node._v_attrs[name])</screen>
+
+         <para>Use whatever idiom you prefer to access the attributes.</para>
 
           <para>If an attribute is set on a target node that already has a
           large number of attributes, a <literal>PerformanceWarning</literal>

@@ -542,6 +542,21 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
             self._g__delattr(name)
 
 
+    def __getitem__(self, name):
+        """The dictionary like interface for __getattr__()."""
+        return self.__getattr__(name)
+
+
+    def __setitem__(self, name, value):
+        """The dictionary like interface for __setattr__()."""
+        return self.__setattr__(name, value)
+
+
+    def __delitem__(self, name):
+        """The dictionary like interface for __delattr__()."""
+        return self.__delattr__(name)
+
+
     def __contains__(self, name):
         """
         Is there an attribute with that `name`?
