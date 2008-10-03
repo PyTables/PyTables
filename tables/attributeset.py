@@ -526,7 +526,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         if name not in self._v_attrnames:
             raise AttributeError(
                 "Attribute ('%s') does not exist in node '%s'"
-                % (name, node._v_name))
+                % (name, self._v__nodePath))
 
 #         # The system attributes are protected
 #         if name in RO_ATTRS:
@@ -544,17 +544,29 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
     def __getitem__(self, name):
         """The dictionary like interface for __getattr__()."""
-        return self.__getattr__(name)
+        try:
+            return self.__getattr__(name)
+        except AttributeError:
+            # Capture the AttributeError an re-raise a KeyError one
+            raise KeyError(
+                "Attribute ('%s') does not exist in node '%s'"
+                % (name, self._v__nodePath))
 
 
     def __setitem__(self, name, value):
         """The dictionary like interface for __setattr__()."""
-        return self.__setattr__(name, value)
+        self.__setattr__(name, value)
 
 
     def __delitem__(self, name):
         """The dictionary like interface for __delattr__()."""
-        return self.__delattr__(name)
+        try:
+            self.__delattr__(name)
+        except AttributeError:
+            # Capture the AttributeError an re-raise a KeyError one
+            raise KeyError(
+                "Attribute ('%s') does not exist in node '%s'"
+                % (name, self._v__nodePath))
 
 
     def __contains__(self, name):

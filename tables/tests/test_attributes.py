@@ -455,6 +455,15 @@ class CreateTestCase(unittest.TestCase):
         self.assert_('pq' not in attrs._f_list())
 
 
+    def test11d_KeyError(self):
+        """Checking that KeyError is raised in __getitem__/__delitem__."""
+
+        attrs = self.group._v_attrs
+        self.assertRaises(KeyError, attrs.__getitem__, 'pq')
+        self.assertRaises(KeyError, attrs.__delitem__, 'pq')
+
+
+
 class NotCloseCreateTestCase(CreateTestCase):
     close = 0
 
