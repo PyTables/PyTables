@@ -129,6 +129,8 @@ def joinPath(parentPath, name):
     '/foo/bar'
     >>> joinPath('/foo', '/foo2/bar')
     '/foo/foo2/bar'
+    >>> joinPath('/foo', '/')
+    '/foo'
     """
 
     if parentPath == '/' and name.startswith('/'):
@@ -137,6 +139,8 @@ def joinPath(parentPath, name):
         pstr = '%s%s' % (parentPath, name)
     else:
         pstr = '%s/%s' % (parentPath, name)
+    if pstr.endswith('/'):
+        pstr = pstr[:-1]
     return pstr
 
 

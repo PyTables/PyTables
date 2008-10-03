@@ -239,23 +239,23 @@ class _AliveNodes(dict):
     """Stores strong or weak references to nodes in a transparent way."""
 
     def __getitem__(self, key):
-        if NODE_MAX_SLOTS > 0:
+        if _NODE_MAX_SLOTS > 0:
             ref = super(_AliveNodes, self).__getitem__(key)()
         else:
             ref = super(_AliveNodes, self).__getitem__(key)
         return ref
 
     def __setitem__(self, key, value):
-        if NODE_MAX_SLOTS > 0:
+        if _NODE_MAX_SLOTS > 0:
             ref = weakref.ref(value)
         else:
             ref = value
             # Check if we are running out of space
-            if NODE_MAX_SLOTS < 0 and len(self) > -NODE_MAX_SLOTS:
+            if _NODE_MAX_SLOTS < 0 and len(self) > -_NODE_MAX_SLOTS:
                 warnings.warn("""\
 the dictionary of alive nodes is exceeding the recommended maximum number (%d); \
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
-                      % (-NODE_MAX_SLOTS),
+                      % (-_NODE_MAX_SLOTS),
                       PerformanceWarning)
         super(_AliveNodes, self).__setitem__(key, ref)
 
@@ -468,6 +468,7 @@ class File(hdf5Extension.File, object):
         created. "r+" is similar to "a", but the file must already exist. A
         TITLE attribute will be set on the root group if optional "title"
         parameter is passed."""
+        global _NODE_MAX_SLOTS
 
         # Check filters and set PyTables format version for new files.
         new = self._v_new
@@ -483,7 +484,8 @@ class File(hdf5Extension.File, object):
         # to `_deadNodes`, where they are kept until they are referenced again
         # or they are preempted from it by other unreferenced nodes.
         self._aliveNodes = _AliveNodes()
-        if nodeCacheSize >= 0:
+        _NODE_MAX_SLOTS = nodeCacheSize
+        if nodeCacheSize > 0:
             self._deadNodes = _DeadNodes(nodeCacheSize)
         else:
             self._deadNodes = _NoDeadNodes()
@@ -1065,6 +1067,14 @@ class File(hdf5Extension.File, object):
         details on the semantics of copying nodes.
         """
         obj = self.getNode(where, name=name)
+        if obj._v_depth == 0 and newparent:
+            # Special case for copying file1:/ --> file2:/path
+            npobj = self.getNode(newparent)
+            if obj._v_file is not npobj._v_file:
+                self.root._f_copyChildren(npobj, recursive=recursive, **kwargs)
+                return npobj
+            else:
+                raise IOError("You cannot copy a root group over the same file")
         return obj._f_copy( newparent, newname,
                             overwrite, recursive, createparents, **kwargs )
 

@@ -631,7 +631,10 @@ cdef class Group(Node):
 
 
   def _g_listGroup(self):
-    # Return a tuple with the objects groups and objects dsets
+    """Return a tuple with the groups and the leaves hanging from self."""
+    if get_objinfo(self.parent_id, ".") < 0:
+      # Refresh the parent_id because the parent seems closed
+      self.parent_id = self._v_parent._v_objectID
     return Giterate(self.parent_id, self._v_objectID, self.name)
 
 

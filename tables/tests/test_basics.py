@@ -1020,6 +1020,60 @@ class OpenFileTestCase(common.PyTablesTestCase):
         dstChild3 = dstNode.agroup3
         fileh.close()
 
+    def test13e_copyRootRecursive(self):
+        "Recursively copying the root group into the root of another file."
+
+        fileh = openFile(self.file, mode = "r+")
+        file2 = tempfile.mktemp(".h5")
+        fileh2 = openFile(file2, mode = "w")
+
+        # fileh.root => fileh2.root
+        newNode = fileh.copyNode(
+            fileh.root, fileh2.root, recursive = True)
+        dstNode = fileh2.root
+
+        self.assert_(newNode is dstNode)
+        self.assert_("/agroup" in fileh2)
+        self.assert_("/agroup/anarray1" in fileh2)
+        self.assert_("/agroup/agroup3" in fileh2)
+
+        fileh.close()
+        fileh2.close()
+        os.remove(file2)
+
+    def test13f_copyRootRecursive(self):
+        "Recursively copying the root group into a group in another file."
+
+        fileh = openFile(self.file, mode = "r+")
+        file2 = tempfile.mktemp(".h5")
+        fileh2 = openFile(file2, mode = "w")
+        agroup2 = fileh2.createGroup('/', 'agroup2')
+
+        # fileh.root => fileh2.root.agroup2
+        newNode = fileh.copyNode(
+            fileh.root, fileh2.root.agroup2, recursive = True)
+        dstNode = fileh2.root.agroup2
+
+        self.assert_(newNode is dstNode)
+        self.assert_("/agroup2/agroup" in fileh2)
+        self.assert_("/agroup2/agroup/anarray1" in fileh2)
+        self.assert_("/agroup2/agroup/agroup3" in fileh2)
+
+        fileh.close()
+        fileh2.close()
+        os.remove(file2)
+
+    def test13g_copyRootItself(self):
+        "Recursively copying the root group into itself."
+
+        fileh = openFile(self.file, mode = "r+")
+        agroup2 = fileh.root
+
+        # fileh.root => fileh.root
+        self.assertRaises(IOError, fileh.copyNode,
+                          fileh.root, fileh.root, recursive = True)
+        fileh.close()
+
     def test14a_copyNodeExisting(self):
         "Copying over an existing node."
 

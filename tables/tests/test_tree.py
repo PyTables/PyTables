@@ -492,75 +492,127 @@ class TreeTestCase(unittest.TestCase):
 
 
 class DeepTreeTestCase(unittest.TestCase):
-    """Checks for maximum deepest level in PyTables trees.
-
-    Right now, the maximum depth for object tree is determined by the
-    maximum recursion level offered by Python (which for my platform
-    is a number between 768 and 1024).
-
+    """Checks for deep hierarchy levels in PyTables trees.
     """
-    def test00_deepTree(self):
-        "Checking creation of large depth object tree Variable"
 
+    def setUp(self):
         # Here we put a more conservative limit to deal with more platforms
-        # With maxdepth = 512 this test would take less than 20 MB
+        # With maxdepth = 64 this test would take less than 20 MB
         # of main memory to run, which is quite reasonable nowadays.
-        # With maxdepth = 1024 this test will take over 40 MB.
+        # With maxdepth = 1024 this test will take around 40 MB.
         if common.heavy:
-            maxdepth = 1024  # Only for big machines!
+            self.maxdepth = 1024  # Takes long time!
         else:
-            maxdepth = 256  # This should be safe for most machines
-
+            self.maxdepth = 64  # This should be safe for most machines
         if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_deepTree..." % \
-                  self.__class__.__name__
-            print "Maximum depth tested :", maxdepth
+            print "Maximum depth tested :", self.maxdepth
 
         # Open a new empty HDF5 file
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, mode = "w")
-        pathname = "/"
+        self.file = tempfile.mktemp(".h5")
+        fileh = openFile(self.file, mode = "w")
+        group = fileh.root
         if common.verbose:
             print "Depth writing progress: ",
         # Iterate until maxdepth
-        for depth in range(maxdepth):
+        for depth in range(self.maxdepth):
             # Save it on the HDF5 file
             if common.verbose:
                 print "%3d," % (depth),
-            a = [1, 1]
-            fileh.createArray(pathname, 'array', a, "depth: %d" % depth)
-            group = fileh.createGroup(pathname, 'group' + str(depth))
-            pathname = group._v_pathname
+            # Create a couple of arrays here
+            fileh.createArray(group, 'array', [1,1], "depth: %d" % depth)
+            fileh.createArray(group, 'array2', [1,1], "depth: %d" % depth)
+            # And also a group
+            group2 = fileh.createGroup(group, 'group2_' + str(depth))
+            # Finally, iterate over a new group
+            group = fileh.createGroup(group, 'group' + str(depth))
         # Close the file
         fileh.close()
 
+    def tearDown(self):
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def _check_tree(self, file):
         # Open the previous HDF5 file in read-only mode
         fileh = openFile(file, mode = "r")
         group = fileh.root
-        pathname = "/"
         if common.verbose:
             print "\nDepth reading progress: ",
         # Get the metadata on the previosly saved arrays
-        for depth in range(maxdepth):
+        for depth in range(self.maxdepth):
             if common.verbose:
                 print "%3d," % (depth),
-            # Create an array for later comparison
-            a = [1, 1]
-            # Get the actual array
-            b = group.array.read()
-            # Arrays a and b must be equal
-            assert a == b
+            # Check the contents
+            self.assert_(group.array[:] == [1, 1])
+            self.assert_("array2" in group)
+            self.assert_("group2_"+str(depth) in group)
             # Iterate over the next group
-            group = fileh.getNode(pathname, 'group' + str(depth))
-            pathname = group._v_pathname
+            group = fileh.getNode(group, 'group' + str(depth))
         if common.verbose:
             print # This flush the stdout buffer
-        # Close the file
         fileh.close()
 
-        # Then, delete the file
-        os.remove(file)
+    def test00_deepTree(self):
+        "Creation of a large depth object tree."
+        self._check_tree(self.file)
+
+    def test01a_copyDeepTree(self):
+        "Copy of a large depth object tree."
+        fileh = openFile(self.file, mode = "r")
+        file2 = tempfile.mktemp(".h5")
+        fileh2 = openFile(file2, mode = "w")
+        if common.verbose:
+            print "\nCopying deep tree..."
+        fileh.copyNode(fileh.root, fileh2.root, recursive = True)
+        fileh.close()
+        fileh2.close()
+        self._check_tree(file2)
+        os.remove(file2)
+
+
+    def test01b_copyDeepTree(self):
+        "Copy of a large depth object tree with small node cache."
+        fileh = openFile(self.file, mode = "r", nodeCacheSize=10)
+        file2 = tempfile.mktemp(".h5")
+        fileh2 = openFile(file2, mode = "w", nodeCacheSize=10)
+        if common.verbose:
+            print "\nCopying deep tree..."
+        fileh.copyNode(fileh.root, fileh2.root, recursive = True)
+        fileh.close()
+        fileh2.close()
+        self._check_tree(file2)
+        os.remove(file2)
+
+
+    def test01c_copyDeepTree(self):
+        "Copy of a large depth object tree with no node cache."
+        fileh = openFile(self.file, mode = "r", nodeCacheSize=0)
+        file2 = tempfile.mktemp(".h5")
+        fileh2 = openFile(file2, mode = "w", nodeCacheSize=0)
+        if common.verbose:
+            print "\nCopying deep tree..."
+        fileh.copyNode(fileh.root, fileh2.root, recursive = True)
+        fileh.close()
+        fileh2.close()
+        self._check_tree(file2)
+        os.remove(file2)
+
+
+    def test01d_copyDeepTree(self):
+        "Copy of a large depth object tree with static node cache."
+        # Do not execute this in heavy mode
+        if common.heavy:
+            return
+        fileh = openFile(self.file, mode = "r", nodeCacheSize=-256)
+        file2 = tempfile.mktemp(".h5")
+        fileh2 = openFile(file2, mode = "w", nodeCacheSize=-256)
+        if common.verbose:
+            print "\nCopying deep tree..."
+        fileh.copyNode(fileh.root, fileh2.root, recursive = True)
+        fileh.close()
+        fileh2.close()
+        self._check_tree(file2)
+        os.remove(file2)
 
 
 class WideTreeTestCase(unittest.TestCase):
@@ -964,9 +1016,7 @@ def suite():
     theSuite = unittest.TestSuite()
     # This counter is useful when detecting memory leaks
     niter = 1
-    #common.heavy=1
 
-    #theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(TreeTestCase))
         theSuite.addTest(unittest.makeSuite(DeepTreeTestCase))

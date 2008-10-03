@@ -15,10 +15,21 @@ Changes from 2.0.x to 2.1b2
   all the parent directories.  So, for opening pre-known group and leaf
   locations, the new code is substantially faster (in fact, the cost is O(1)).
 
+- Disabling the LRU node cache is now supported by setting the NODE_MAX_SLOTS
+  (in parameters.py) to 0 (this can also be achieved through the
+  `nodeCacheSize` parameter of openFile() function).  This is the way that was
+  documented, but did not work properly because of a bug.  Disabling the cache
+  may be useful in situations where you suspect that maintaing a LRU node
+  cache is actually reducing performance.
+
 - New File.fileno() added.  This returns the underlying OS file descriptor for
   the file.
 
 - The Atom.dflt is honored now when creating CArrays.  Fixes #176.
+
+- File.copyNode() can copy now complete hierarchies directly from the root.
+  This can be useful when one wants to create a new file by merging the
+  contents of others.
 
 - [Pro] A new Table.itersorted() iterator allows to iterate through a table
   following the order of a certain index.  It supports iteration on

@@ -714,7 +714,7 @@ cdef class Row:
     """
     The current row number.
 
-    This poperty is useful for knowing which row is being dealt with in the
+    This property is useful for knowing which row is being dealt with in the
     middle of a loop or iterator.
     """
     def __get__(self):
