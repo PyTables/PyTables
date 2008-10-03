@@ -46,8 +46,12 @@ Changes from 2.0.x to 2.1b2
   indexes in original tables) flags to the 'ptrepack' utility.
 
 - A new `chunkshape` argument has been added to Leaf.copy() allowing to
-  specify a chunkshape.  Can also take the special values 'auto' (compute a
+  specify a chunkshape.  It can also take the special values 'auto' (compute a
   sensible value) and 'keep' (keep the original value, which is the default).
+  Also, note that semantics of Leaf.copy() has changed: before the chunkshape
+  of destination was computed 'auto'matically while now the default is that
+  the value is 'keep't.  This behaviour is thought to be more compliant with
+  the least surprise principle.
 
 - Added a new '--chunkshape' flag to the 'ptrepack' console command that
   corresponds to the new `chunkshape` added to Leaf.copy().
