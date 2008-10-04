@@ -755,10 +755,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.last_tover = 0
         self.last_nover = 0
 
-        if self.verbose:
-            (nover, mult, tover) = self.compute_overlaps(
-                self.tmp, "init", self.verbose)
-
         # Compute the correct optimizations for current optim level
         opts = calcoptlevels(self.nblocks, self.optlevel, self.indsize)
         optmedian, optstarts, optstops, optfull = opts
@@ -906,10 +902,10 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Verify that we have dealt with all the remaining values
         assert send == 0
 
-        # Compute the overlaps to verify that we have achieved a complete sort
-        self.compute_overlaps(self.tmp, "do_complete_sort()", self.verbose)
-
         if self.verbose:
+            # Compute the overlaps in order to verify that we have achieved
+            # a complete sort
+            self.compute_overlaps(self.tmp, "do_complete_sort()", self.verbose)
             t = round(time()-t1, 4);  c = round(clock()-c1, 4)
             print "time: %s. clock: %s" % (t, c)
 
@@ -918,7 +914,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         "Swap chunks or slices using a certain bounds reference."
 
         # Thresholds for avoiding continuing the optimization
-        thnover = 4*self.slicesize  # minimum number of overlapping elements
+        ##thnover = 4*self.slicesize  # minimum number of overlapping elements
+        thnover = 40
+        thmult = 0.1      # minimum ratio of multiplicity (a 10%)
+        thtover = 0.01    # minimum overlaping index for slices (a 1%)
+
         if self.verbose:
             t1 = time();  c1 = clock()
         if what == "chunks":
@@ -946,6 +946,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.last_nover = nover
         # Check if some threshold has met
         if nover < thnover:
+            return True
+        if rmult < thmult:
+            return True
+        # Additional check for the overlap ratio
+        if tover >= 0. and tover < thtover:
             return True
         return False
 
@@ -1458,7 +1463,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         return pos
 
 
-    def compute_overlaps(self, where, message, verbose):
+    def compute_overlaps_finegrain(self, where, message, verbose):
         """Compute some statistics about overlaping of slices in index.
 
         It returns the following info:
@@ -1539,6 +1544,64 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             print "multiplicity:\n", multiplicity, multiplicity.sum()
             print "overlaps:\n", overlaps, overlaps.sum()
         noverlaps = overlaps.sum()
+        # For full indexes, set the 'is_CSI' flag
+        if self.indsize == 8 and self.column.table._v_file._isWritable():
+            self._v_attrs.is_CSI = (noverlaps == 0)
+        # Save the number of overlaps for future references
+        self.noverlaps = noverlaps
+        return (noverlaps, multiplicity, toverlap)
+
+
+    def compute_overlaps(self, where, message, verbose):
+        """Compute some statistics about overlaping of slices in index.
+
+        It returns the following info:
+
+        noverlaps -- The total number of slices that overlaps in index (int).
+        multiplicity -- The number of times that a concrete slice overlaps
+            with any other (array of ints).
+        toverlap -- An ovelap index: the sum of the values in segment slices
+            that overlaps divided by the entire range of values (float).
+            This index is only computed for numerical types.
+        """
+
+        ranges = where.ranges[:]
+        nslices = self.nslices
+        if self.nelementsILR > 0:
+            # Add the ranges corresponding to the last row
+            rangeslr = numpy.array([self.bebounds[0], self.bebounds[-1]])
+            ranges = numpy.concatenate((ranges, [rangeslr]))
+            nslices += 1
+        noverlaps = 0; soverlap = 0.; toverlap = -1.
+        multiplicity = numpy.zeros(shape=nslices, dtype="int_")
+        for i in xrange(nslices):
+            for j in xrange(i+1, nslices):
+                if ranges[i,1] > ranges[j,0]:
+                    noverlaps += 1
+                    multiplicity[j-i] += 1
+                    if self.type != "string":
+                        # Convert ranges into floats in order to allow
+                        # doing operations with them without overflows
+                        soverlap += float(ranges[i,1]) - float(ranges[j,0])
+
+        # Return the overlap as the ratio between overlaps and entire range
+        if self.type != "string":
+            erange = float(ranges[-1,1]) - float(ranges[0,0])
+            # Check that there is an effective range of values
+            # Beware, erange can be negative in situations where
+            # the values are suffering overflow. This can happen
+            # specially on big signed integer values (on overflows,
+            # the end value will become negative!).
+            # Also, there is no way to compute overlap ratios for
+            # non-numerical types. So, be careful and always check
+            # that toverlap has a positive value (it must have been
+            # initialized to -1. before) before using it.
+            # F. Altet 2007-01-19
+            if erange > 0:
+                toverlap = soverlap / erange
+        if verbose:
+            print "overlaps (%s):" % message, noverlaps, toverlap
+            print multiplicity
         # For full indexes, set the 'is_CSI' flag
         if self.indsize == 8 and self.column.table._v_file._isWritable():
             self._v_attrs.is_CSI = (noverlaps == 0)
