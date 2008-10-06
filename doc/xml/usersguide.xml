@@ -3673,12 +3673,35 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
                 role="bold">nodeCacheSize</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The number of <emphasis>unreferenced</emphasis> nodes
-                  to be kept in memory. Least recently used nodes are unloaded
-                  from memory when this number of loaded nodes is reached. To
-                  load a node again, simply access it as usual. Nodes
-                  referenced by user variables are not taken into account nor
+                  <para>If positive, this is the number of
+                  <emphasis>unreferenced</emphasis> nodes to be kept in the
+                  metadata cache. Least recently used nodes are unloaded from
+                  memory when this number of loaded nodes is reached. To load
+                  a node again, simply access it as usual. Nodes referenced by
+                  user variables are not taken into account nor
                   unloaded.</para>
+
+                  <para>Negative value means that all the touched nodes will
+                  be kept in an internal dictionary.  This is the faster way
+                  to load/retrieve nodes.  However, and in order to avoid a
+                  large memory comsumption, the user will be warned when the
+                  number of loaded nodes will reach the
+                  <literal>-nodeChacheSize</literal> value.</para>
+
+                  <para>A value of zero means that any cache mechanism is
+                  disabled.</para>
+
+                  <para>The default is the value of
+                  <literal>NODE_MAX_SLOTS</literal> in file
+                  <literal>tables/parameters.py</literal>.</para>
+
+                  <note>
+                    <para>If you need to deal with a large number of nodes in
+                    an efficient way, please see <xref linkend="LRUOptim"
+                    xrefstyle="select: label" /> for more info and advices
+                    about the integrated node cache engine.</para>
+                  </note>
+
                 </glossdef>
               </glossentry>
             </glosslist>
@@ -11748,7 +11771,7 @@ print readFile("myfile.h5")</screen>
         </figure>
       </section>
 
-      <section>
+      <section id="LRUOptim">
         <title>Getting the most from the node LRU cache</title>
 
         <para>One limitation of the initial versions of PyTables was that they
@@ -11758,29 +11781,29 @@ print readFile("myfile.h5")</screen>
 
         <para>Starting from PyTables 1.2, a new LRU cache was introduced that
         avoids loading all the nodes of the <emphasis>object tree</emphasis>
-        in memory. This cache is responsible of loading just up to a certain
-        amount of nodes and discard the least recent used ones when there is a
-        need to load new ones. This represents a big advantage over the old
-        schema, specially in terms of memory usage (as there is no need to
-        load <emphasis>every</emphasis> node in memory), but it also adds very
-        convenient optimizations for working interactively like, for example,
-        speeding-up the opening times of files with lots of nodes, allowing to
-        open almost any kind of file in typically less than one tenth of
-        second (compare this with the more than 10 seconds for files with more
-        than 10000 nodes in PyTables pre-1.2 era). See <biblioref
-        linkend="NewObjectTreeCacheRef" /> for more info on the advantages
-        (and also drawbacks) of this approach.</para>
+        in memory. This cache (one per file) is responsible of loading just up
+        to a certain amount of nodes and discard the least recent used ones
+        when there is a need to load new ones. This represents a big advantage
+        over the old schema, specially in terms of memory usage (as there is
+        no need to load <emphasis>every</emphasis> node in memory), but it
+        also adds very convenient optimizations for working interactively
+        like, for example, speeding-up the opening times of files with lots of
+        nodes, allowing to open almost any kind of file in typically less than
+        one tenth of second (compare this with the more than 10 seconds for
+        files with more than 10000 nodes in PyTables pre-1.2 era). See
+        <biblioref linkend="NewObjectTreeCacheRef" /> for more info on the
+        advantages (and also drawbacks) of this approach.</para>
 
         <para>One thing that deserves some discussion is the election of the
         parameter that sets the maximum amount of nodes to be held in memory
         at any time. As PyTables is meant to be deployed in machines that have
         potentially low memory, the default for it is quite conservative (you
-        can look at its actual value in the <literal>NODE_CACHE_SIZE</literal>
+        can look at its actual value in the <literal>NODE_MAX_SLOTS</literal>
         parameter in module <literal>tables/parameters.py</literal>). However,
         if you usually have to deal with files that have many more nodes than
         the maximum default, and you have a lot of free memory in your system,
         then you may want to experiment which is the appropriate value of
-        <literal>NODE_CACHE_SIZE</literal> that fits better your needs.</para>
+        <literal>NODE_MAX_SLOTS</literal> that fits better your needs.</para>
 
         <para>As an example, look at the next code:</para>
 
@@ -11937,9 +11960,21 @@ print readFile("myfile.h5")</screen>
         that you can achieve by allocating more slots in your cache is not
         worth the amount of memory used.</para>
 
-        <para>Anyway, if you feel that this issue is important for you, set
-        your own experiments up and proceed to fine-tune the
-        <literal>NODE_CACHE_SIZE</literal> parameter.</para>
+        <para>On the other hand, if you have a lot of memory available and
+        performance is absolutely critical, you may want to try out a negative
+        value for <literal>NODE_MAX_SLOTS</literal>.  This will cause that all
+        the touched nodes will be kept in an internal dictionary and this is
+        the faster way to load/retrieve nodes.  However, and in order to avoid
+        a large memory comsumption, the user will be warned when the number of
+        loaded nodes will reach the <literal>-NODE_MAX_SLOTS</literal> value.
+
+        <para>Finally, a value of zero in <literal>NODE_MAX_SLOTS</literal>
+        means that any cache mechanism is disabled.</para>
+
+        <para>At any rate, if you feel that this issue is important for you,
+        there is no replacement for setting your own experiments up in order
+        to proceed to fine-tune the <literal>NODE_MAX_SLOTS</literal>
+        parameter.</para>
 
         <note role="pro">
           <para>PyTables Pro sports an optimized LRU cache node written in C,

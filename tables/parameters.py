@@ -106,31 +106,30 @@ METADATA_CACHE_SIZE = 1*_MB  # 1 MB is the default for HDF5
 #                         # This is a good compromise between CPU and memory
 #                         # consumption.
 
-NODE_MAX_SLOTS = 256
-"""Maximum number of unreferenced nodes to be kept in memory."""
+NODE_MAX_SLOTS = 10
+"""Maximum number of unreferenced nodes to be kept in memory.
 
-# Negative value means that all the touched nodes will be kept in a
-# dictionary and the user will be warned when the number of nodes there
-# will reach abs(NODE_MAX_SLOTS).  If this is the case, the user will
-# have to decide either:
-#
-# - Increase the capacity of the dictionary of alive nodes (keeping this
-# number negative but with a larger absolute value). This will take
-# large amounts of data, but this is the faster way to retrieve nodes.
-#
-# - Use the integrated LRU node cache (making the number positive). This
-# will keep the usage of memory much more contained, but the retrieving
-# of nodes is slower.
-#
-# - Use a 0 value. This means that you want to disable any node cache.
+If positive, this is the number of *unreferenced* nodes to be kept in
+the metadata cache. Least recently used nodes are unloaded from memory
+when this number of loaded nodes is reached. To load a node again,
+simply access it as usual. Nodes referenced by user variables are not
+taken into account nor unloaded.
 
-#XYX Explain this more in "Optimization Tips" chapter.
-# ****************** IMPORTANT NOTE ***********************
+Negative value means that all the touched nodes will be kept in an
+internal dictionary.  This is the faster way to load/retrieve nodes.
+However, and in order to avoid a large memory comsumption, the user will
+be warned when the number of loaded nodes will reach the
+``-nodeChacheSize`` value.
+
+A value of zero means that any cache mechanism is disabled.
+"""
+
+# *********************** IMPORTANT NOTE ***************************
 # There are some situations, like moving indexed tables,
 # (test_indexes:BasicReadTestCase.test10[a|b]_moveIndex checks this)
-# where this gives problems. So don't put it as an official feature until
-# this is more carefully checked.
-# **********************************************************
+# where a low value of NODE_MAX_SLOTS gives problems.  Although this is
+# not grave at all, it should be addressed sooner or later.
+# ******************************************************************
 
 #NODE_MAX_SLOTS = 512   # 59 MB, 43.9s, opt: 41.8s
 #NODE_MAX_SLOTS = 1024  # 52 MB, 85.1s, opt: 17.0s # everything fits on cache!

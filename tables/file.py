@@ -217,11 +217,23 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
         ones, which will in turn propagate to child nodes.
 
     `nodeCacheSize`
-        The number of *unreferenced* nodes to be kept in memory.  Least
-        recently used nodes are unloaded from memory when this number of
-        loaded nodes is reached.  To load a node again, simply access it
-        as usual.  Nodes referenced by user variables are not taken into
-        account nor unloaded.
+        If positive, this is the number of *unreferenced* nodes to be
+        kept in the metadata cache. Least recently used nodes are
+        unloaded from memory when this number of loaded nodes is
+        reached. To load a node again, simply access it as usual. Nodes
+        referenced by user variables are not taken into account nor
+        unloaded.
+
+        Negative value means that all the touched nodes will be kept in
+        an internal dictionary.  This is the faster way to load/retrieve
+        nodes.  However, and in order to avoid a large memory
+        comsumption, the user will be warned when the number of loaded
+        nodes will reach the ``-nodeChacheSize`` value.
+
+        A value of zero means that any cache mechanism is disabled.
+
+        The default is the value of NODE_MAX_SLOTS in file
+        ``tables/parameters.py``.
     """
 
     # Expand the form '~user'
