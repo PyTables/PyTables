@@ -106,7 +106,7 @@ METADATA_CACHE_SIZE = 1*_MB  # 1 MB is the default for HDF5
 #                         # This is a good compromise between CPU and memory
 #                         # consumption.
 
-NODE_MAX_SLOTS = 10
+NODE_MAX_SLOTS = 256
 """Maximum number of unreferenced nodes to be kept in memory.
 
 If positive, this is the number of *unreferenced* nodes to be kept in
