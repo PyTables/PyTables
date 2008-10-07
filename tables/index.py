@@ -902,10 +902,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         # Verify that we have dealt with all the remaining values
         assert send == 0
 
+        # Compute the overlaps in order to verify that we have achieved
+        # a complete sort.  This has to be executed always (not only in
+	# verbose mode!).
+        self.compute_overlaps(self.tmp, "do_complete_sort()", self.verbose)
         if self.verbose:
-            # Compute the overlaps in order to verify that we have achieved
-            # a complete sort
-            self.compute_overlaps(self.tmp, "do_complete_sort()", self.verbose)
             t = round(time()-t1, 4);  c = round(clock()-c1, 4)
             print "time: %s. clock: %s" % (t, c)
 
@@ -1539,7 +1540,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # F. Alted 2007-01-19
             if erange > 0:
                 toverlap = soverlap / erange
-        if verbose:
+        if verbose and message != "init":
             print "toverlap (%s):" % message, toverlap
             print "multiplicity:\n", multiplicity, multiplicity.sum()
             print "overlaps:\n", overlaps, overlaps.sum()
