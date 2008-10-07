@@ -6366,6 +6366,28 @@ for node in h5file.root.detector:
             linkend="Node._f_setAttr" />).</para>
           </section>
 
+          <section id="Leaf.truncate">
+            <title>truncate(size)</title>
+
+            <para>Truncate the main dimension to at most
+            <literal>size</literal> rows.</para>
+
+            <para>The truncation operation can only be applied to
+            <emphasis>chunked</emphasis> datasets.  In particular,
+            <literal>Array</literal> leaves cannot be truncated.</para>
+
+            <warning>
+              <para>Due to limitations of the HDF5 1.6.x series,
+              <literal>size</literal> must be greater than zero (i.e. the
+              dataset can not be completely emptied).  A
+              <literal>ValueError</literal> will be issued when you are using
+              HDF5 1.6.x and try to pass a zero size to this method.  HDF5
+              1.8.x series fixed this problem, so if you are using this
+              version, you can truncate datasets to zero length without any
+              problem.</para>
+            </warning>
+          </section>
+
           <section id="Leaf.__len__">
             <title>__len__()</title>
             <para>Return the length of the main dimension of the leaf
@@ -8663,9 +8685,7 @@ Object Tree:
 
         <para>New rows can be added to the end of an enlargeable array by
         using the <literal>EArray.append()</literal> method (see <xref
-        linkend="EArray.append" />). The array can also be shrunken along its
-        enlargeable dimension using the <literal>EArray.truncate()</literal>
-        method (see <xref linkend="EArray.truncate" />).</para>
+        linkend="EArray.append" />).</para>
 
         <section id="EArrayMethodsDescr">
           <title><literal>EArray</literal> methods</title>
@@ -8683,17 +8703,6 @@ Object Tree:
             exception of the enlargeable dimension, which can be of any length
             (even 0!).  If the shape of the <literal>sequence</literal> is
             invalid, a <literal>ValueError</literal> is raised.</para>
-          </section>
-
-          <section id="EArray.truncate">
-            <title>truncate(size)</title>
-
-            <para>Truncate the extendable dimension to at most
-            <literal>size</literal> rows.</para>
-
-            <para>Due to limitations of the underlying HDF5 implementation,
-            <literal>size</literal> must be greater than 0 (i.e. the dataset
-            can not be completely emptied).</para>
           </section>
         </section>
 
@@ -11966,7 +11975,8 @@ print readFile("myfile.h5")</screen>
         the touched nodes will be kept in an internal dictionary and this is
         the faster way to load/retrieve nodes.  However, and in order to avoid
         a large memory comsumption, the user will be warned when the number of
-        loaded nodes will reach the <literal>-NODE_MAX_SLOTS</literal> value.
+        loaded nodes will reach the <literal>-NODE_MAX_SLOTS</literal>
+        value.</para>
 
         <para>Finally, a value of zero in <literal>NODE_MAX_SLOTS</literal>
         means that any cache mechanism is disabled.</para>

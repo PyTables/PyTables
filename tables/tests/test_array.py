@@ -1930,6 +1930,13 @@ class NonHomogeneousTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(NoSuchNodeError, h5file.removeNode, '/test')
 
 
+class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
+    def test(self):
+        """Test for unability to truncate Array objects."""
+        array1 = self.h5file.createArray('/', 'array1', [0, 2])
+        self.assertRaises(IOError, array1.truncate, 0)
+
+
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
@@ -1979,7 +1986,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(GE2NAOpenTestCase))
         theSuite.addTest(unittest.makeSuite(GE2NACloseTestCase))
         theSuite.addTest(unittest.makeSuite(NonHomogeneousTestCase))
-
+        theSuite.addTest(unittest.makeSuite(TruncateTestCase))
 
     return theSuite
 

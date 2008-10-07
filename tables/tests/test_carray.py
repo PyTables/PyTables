@@ -2182,6 +2182,118 @@ class MDAtomTestCase(unittest.TestCase):
         common.cleanup(self)
 
 
+class TruncateTestCase(unittest.TestCase):
+
+    def setUp(self):
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
+
+        # Create an CArray
+        arr = Int16Atom()
+        array1 = self.fileh.createCArray(
+            self.fileh.root, 'array1', arr, (2, 2), "title array1")
+        # Set info in rows
+        array1[:] = numpy.array([[456, 2],[3, 457]], dtype='Int16')
+
+    def tearDown(self):
+        # Close the file
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test00_truncate(self):
+        """Checking CArray.truncate() method (truncating to 0 rows)"""
+
+        # Only run this test for HDF5 >= 1.8.0
+        if whichLibVersion("hdf5")[1] < "1.8.0":
+            return
+
+        array1 = self.fileh.root.array1
+        # Truncate to 0 elements
+        array1.truncate(0)
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            array1 = self.fileh.root.array1
+
+        if common.verbose:
+            print "array1-->", array1.read()
+
+        assert allequal(
+            array1[:], numpy.array([], dtype='Int16').reshape(0,2))
+
+    def test01_truncate(self):
+        """Checking CArray.truncate() method (truncating to 1 rows)"""
+
+        array1 = self.fileh.root.array1
+        # Truncate to 1 element
+        array1.truncate(1)
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            array1 = self.fileh.root.array1
+
+        if common.verbose:
+            print "array1-->", array1.read()
+
+        assert allequal(
+            array1.read(), numpy.array([[456, 2]], dtype='Int16'))
+
+    def test02_truncate(self):
+        """Checking CArray.truncate() method (truncating to >= carray.nrows)"""
+
+        array1 = self.fileh.root.array1
+        # Truncate to 2 elements
+        array1.truncate(2)
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            array1 = self.fileh.root.array1
+
+        if common.verbose:
+            print "array1-->", array1.read()
+
+        assert allequal(array1.read(), numpy.array([[456, 2],[3, 457]],
+                                                   dtype='Int16'))
+
+    def test03_truncate(self):
+        """Checking CArray.truncate() method (truncating to > carray.nrows)"""
+
+        array1 = self.fileh.root.array1
+        # Truncate to 3 elements
+        array1.truncate(3)
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            array1 = self.fileh.root.array1
+
+        if common.verbose:
+            print "array1-->", array1.read()
+
+        assert allequal(array1.read(), numpy.array([[456, 2],[3, 457]],
+                                                   dtype='Int16'))
+
+
+class TruncateOpenTestCase(TruncateTestCase):
+    close = 0
+
+class TruncateCloseTestCase(TruncateTestCase):
+    close = 1
+
+
 
 
 #----------------------------------------------------------------------
@@ -2249,6 +2361,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BigArrayTestCase))
         theSuite.addTest(unittest.makeSuite(DfltAtomTestCase))
         theSuite.addTest(unittest.makeSuite(MDAtomTestCase))
+        theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
+        theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3CArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4CArrayTestCase))

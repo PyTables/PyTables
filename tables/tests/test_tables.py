@@ -4882,6 +4882,125 @@ class IrregularStrideTestCase(unittest.TestCase):
         assert allequal(coords2, arange(5, dtype=SizeType))
 
 
+class TruncateTestCase(unittest.TestCase):
+
+    def setUp(self):
+        class IRecord(IsDescription):
+            c1 = Int32Col(pos=1)
+            c2 = FloatCol(pos=2)
+
+        self.file = tempfile.mktemp('.h5')
+        self.fileh = openFile(self.file, 'w', title='Chunkshape test')
+        table = self.fileh.createTable('/', 'table', IRecord)
+        # Fill just a couple of rows
+        for i in range(2):
+            table.row['c1'] = i
+            table.row['c2'] = i
+            table.row.append()
+        table.flush()
+
+    def tearDown(self):
+        # Close the file
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test00_truncate(self):
+        """Checking Table.truncate() method (truncating to 0 rows)"""
+
+        # Only run this test for HDF5 >= 1.8.0
+        if whichLibVersion("hdf5")[1] < "1.8.0":
+            return
+
+        table = self.fileh.root.table
+        # Truncate to 0 elements
+        table.truncate(0)
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            table = self.fileh.root.table
+
+        if common.verbose:
+            print "table-->", table.read()
+
+        self.assert_(table.nrows == 0)
+        for row in table:
+            self.assert_(row['c1'] == row.nrow)
+
+    def test01_truncate(self):
+        """Checking Table.truncate() method (truncating to 1 rows)"""
+
+        table = self.fileh.root.table
+        # Truncate to 1 element
+        table.truncate(1)
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            table = self.fileh.root.table
+
+        if common.verbose:
+            print "table-->", table.read()
+
+        self.assert_(table.nrows == 1)
+        for row in table:
+            self.assert_(row['c1'] == row.nrow)
+
+    def test02_truncate(self):
+        """Checking Table.truncate() method (truncating to >= carray.nrows)"""
+
+        table = self.fileh.root.table
+        # Truncate to 2 elements
+        table.truncate(2)
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            table = self.fileh.root.table
+
+        if common.verbose:
+            print "table-->", table.read()
+
+        self.assert_(table.nrows == 2)
+        for row in table:
+            self.assert_(row['c1'] == row.nrow)
+
+    def test03_truncate(self):
+        """Checking Table.truncate() method (truncating to > carray.nrows)"""
+
+        table = self.fileh.root.table
+        # Truncate to 3 elements
+        table.truncate(3)
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            table = self.fileh.root.table
+
+        if common.verbose:
+            print "table-->", table.read()
+
+        self.assert_(table.nrows == 2)
+        for row in table:
+            self.assert_(row['c1'] == row.nrow)
+
+
+class TruncateOpenTestCase(TruncateTestCase):
+    close = 0
+
+class TruncateCloseTestCase(TruncateTestCase):
+    close = 1
+
+
 
 #----------------------------------------------------------------------
 
@@ -4942,6 +5061,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ChunkshapeTestCase))
         theSuite.addTest(unittest.makeSuite(ZeroSizedTestCase))
         theSuite.addTest(unittest.makeSuite(IrregularStrideTestCase))
+        theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
+        theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
 
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressBZIP2TablesTestCase))

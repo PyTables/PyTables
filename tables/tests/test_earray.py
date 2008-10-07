@@ -2195,124 +2195,84 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     stop = None  # None should mean the last element (including it)
     step = 1
 
+
 class TruncateTestCase(unittest.TestCase):
 
-    def _test00_truncate(self):
-        """Checking EArray.truncate() method (truncating to 0 rows)"""
-
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test00_truncate..." % self.__class__.__name__
-
+    def setUp(self):
         # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, "w")
 
         # Create an EArray
         arr = Int16Atom()
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1")
-        # Append two rows
+        array1 = self.fileh.createEArray(
+            self.fileh.root, 'array1', arr, (0, 2), "title array1")
+        # Add a couple of rows
         array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
 
-        if self.close:
-            fileh.close()
-            fileh = openFile(file, mode = "a")
-            array1 = fileh.root.array1
+    def tearDown(self):
+        # Close the file
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
 
+    def test00_truncate(self):
+        """Checking EArray.truncate() method (truncating to 0 rows)"""
+
+        # Only run this test for HDF5 >= 1.8.0
+        if whichLibVersion("hdf5")[1] < "1.8.0":
+            return
+
+        array1 = self.fileh.root.array1
         # Truncate to 0 elements
         array1.truncate(0)
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            array1 = fileh.root.array1
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            array1 = self.fileh.root.array1
 
         if common.verbose:
             print "array1-->", array1.read()
 
-        assert allequal(array1[:], numpy.array([], dtype='Int16', shape=(0,2)))
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
+        assert allequal(
+            array1[:], numpy.array([], dtype='Int16').reshape(0,2))
 
     def test01_truncate(self):
         """Checking EArray.truncate() method (truncating to 1 rows)"""
 
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test01_truncate..." % self.__class__.__name__
-
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create an EArray
-        arr = Int16Atom()
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1")
-        # Append two rows
-        array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
-
-        if self.close:
-            fileh.close()
-            fileh = openFile(file, mode = "a")
-            array1 = fileh.root.array1
-
+        array1 = self.fileh.root.array1
         # Truncate to 1 element
         array1.truncate(1)
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            array1 = fileh.root.array1
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            array1 = self.fileh.root.array1
 
         if common.verbose:
             print "array1-->", array1.read()
 
-        assert allequal(array1.read(), numpy.array([[456, 2]], dtype='Int16'))
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
+        assert allequal(
+            array1.read(), numpy.array([[456, 2]], dtype='Int16'))
 
     def test02_truncate(self):
         """Checking EArray.truncate() method (truncating to >= earray.nrows)"""
 
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test02_truncate..." % self.__class__.__name__
-
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create an EArray
-        arr = Int16Atom()
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1")
-        # Append two rows
-        array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
-
-        if self.close:
-            fileh.close()
-            fileh = openFile(file, mode = "a")
-            array1 = fileh.root.array1
-
+        array1 = self.fileh.root.array1
         # Truncate to 2 elements
         array1.truncate(2)
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            array1 = fileh.root.array1
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            array1 = self.fileh.root.array1
 
         if common.verbose:
             print "array1-->", array1.read()
@@ -2320,52 +2280,25 @@ class TruncateTestCase(unittest.TestCase):
         assert allequal(array1.read(), numpy.array([[456, 2],[3, 457]],
                                                    dtype='Int16'))
 
-        # Close the file
-        fileh.close()
-        os.remove(file)
-
     def test03_truncate(self):
         """Checking EArray.truncate() method (truncating to > earray.nrows)"""
 
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test03_truncate..." % self.__class__.__name__
-
-        # Create an instance of an HDF5 Table
-        file = tempfile.mktemp(".h5")
-        fileh = openFile(file, "w")
-
-        # Create an EArray
-        arr = Int16Atom()
-        array1 = fileh.createEArray(fileh.root, 'array1', arr, (0, 2),
-                                    "title array1")
-        # Append two rows
-        array1.append(numpy.array([[456, 2],[3, 457]], dtype='Int16'))
-
-        if self.close:
-            fileh.close()
-            fileh = openFile(file, mode = "a")
-            array1 = fileh.root.array1
-
-        # Truncate to 3 element
+        array1 = self.fileh.root.array1
+        # Truncate to 3 elements
         array1.truncate(3)
 
         if self.close:
             if common.verbose:
                 print "(closing file version)"
-            fileh.close()
-            fileh = openFile(file, mode = "r")
-            array1 = fileh.root.array1
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r")
+            array1 = self.fileh.root.array1
 
         if common.verbose:
             print "array1-->", array1.read()
 
         assert allequal(array1.read(), numpy.array([[456, 2],[3, 457]],
                                                    dtype='Int16'))
-
-        # Close the file
-        fileh.close()
-        os.remove(file)
 
 
 class TruncateOpenTestCase(TruncateTestCase):
@@ -2373,6 +2306,7 @@ class TruncateOpenTestCase(TruncateTestCase):
 
 class TruncateCloseTestCase(TruncateTestCase):
     close = 1
+
 
 # The next test should be run only in **common.heavy** mode
 class Rows64bitsTestCase(unittest.TestCase):

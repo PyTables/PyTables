@@ -79,7 +79,7 @@ from definitions cimport  \
      H5ARRAYget_ndims, H5ARRAYget_info, \
      set_cache_size, get_objinfo, Giterate, Aiterate, H5UIget_info, \
      get_len_of_range, get_order, set_order, \
-     conv_float64_timeval32
+     conv_float64_timeval32, truncate_dset
 
 
 # Include conversion tables
@@ -108,8 +108,6 @@ cdef extern from "H5ARRAY.h":
   herr_t H5ARRAYwrite_records(hid_t dataset_id, hid_t type_id,
                               int rank, hsize_t *start, hsize_t *step,
                               hsize_t *count, void *data)
-
-  herr_t H5ARRAYtruncate(hid_t dataset_id, int extdim, hsize_t size)
 
   herr_t H5ARRAYread(hid_t dataset_id, hid_t type_id,
                      hsize_t start, hsize_t nrows, hsize_t step,
@@ -706,7 +704,6 @@ cdef class Group(Node):
 cdef class Leaf(Node):
   # Instance variables declared in .pxd
 
-
   def _g_new(self, where, name, init):
     if init:
       # Put this info to 0 just when the class is initialized
@@ -755,6 +752,28 @@ cdef class Leaf(Node):
 
     conv_float64_timeval32(
       t64buf, byteoffset, bytestride, nrecords, nelements, sense)
+
+
+  def _g_truncate(self, hsize_t size):
+    """Truncate a Leaf to `size` nrows."""
+    cdef hsize_t ret
+
+    ret = truncate_dset(self.dataset_id, self.maindim, size)
+    if ret < 0:
+      raise HDF5ExtError("Problems truncating the leaf: %s" % self)
+
+    classname = self.__class__.__name__
+    if classname in ('EArray', 'CArray'):
+      # Update the new dimensionality
+      self.dims[self.maindim] = size
+      # Update the shape
+      shape = list(self.shape)
+      shape[self.maindim] = SizeType(size)
+      self.shape = tuple(shape)
+    elif classname in ('Table', 'VLArray'):
+      self.nrows = size
+    else:
+      raise ValueError, "Unexpected classname:", classname
 
 
   def _g_flush(self):
@@ -977,25 +996,6 @@ cdef class Array(Leaf):
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Internal error modifying the elements (H5ARRAYwrite_records returned errorcode -%i)"%(-ret))
-
-
-  def _truncateArray(self, hsize_t size):
-    cdef int extdim
-    cdef hsize_t ret
-
-    extdim = self.extdim
-    if size >= self.shape[extdim]:
-      return self.shape[extdim]
-
-    ret = H5ARRAYtruncate(self.dataset_id, extdim, size)
-    if ret < 0:
-      raise HDF5ExtError("Problems truncating the EArray node.")
-
-    # Update the new dimensionality
-    self.dims[self.extdim] = size
-    shape = list(self.shape)
-    shape[self.extdim] = SizeType(size)
-    self.shape = tuple(shape)
 
 
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step,

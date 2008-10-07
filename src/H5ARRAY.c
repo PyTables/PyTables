@@ -294,6 +294,7 @@ out:
 
 }
 
+
 /*-------------------------------------------------------------------------
  * Function: H5ARRAYwrite_records
  *
@@ -353,84 +354,6 @@ herr_t H5ARRAYwrite_records( hid_t dataset_id,
 
  /* Everything went smoothly */
  return 0;
-}
-
-
-/*-------------------------------------------------------------------------
- * Function: H5ARRAYtruncate
- *
- * Purpose: Truncate the EArray to at most size rows
- *
- * Return: Success: 0, Failure: -1
- *
- * Programmers:
- *  Francesc Alted
- *
- * Date: November 19, 2004
- *
- * Comments:
- *
- * Modifications:
- *
- *
- *-------------------------------------------------------------------------
- */
-
-
-herr_t H5ARRAYtruncate( hid_t dataset_id,
-			const int extdim,
-			const hsize_t size)
-{
-
- hid_t    space_id;
- hsize_t  *dims = NULL;
- int      rank;
-
-  /* Get the dataspace handle */
- if ( (space_id = H5Dget_space( dataset_id )) < 0 )
-  goto out;
-
- /* Get the rank */
- if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
-   goto out;
-
- if (rank) {  			/* Array case */
-   /* Book some memory for the selections */
-   dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
-
-   /* Get dataset dimensionality */
-   if ( H5Sget_simple_extent_dims(space_id, dims, NULL) < 0 )
-     goto out;
-
-   if ( size >= dims[extdim] ) {
-     printf("Asking for truncate to more rows that the available ones!.\n");
-     goto out;
-   }
-
-   /* Truncate the EArray */
-   dims[extdim] = size;
-   if ( H5Dset_extent( dataset_id, dims ) < 0 )
-/*    if ( H5Dextend( dataset_id, dims ) < 0 ) */
-     goto out;
-
-   /* Release resources */
-   free(dims);
- }
- else {
-     printf("An scalar Array cannot be truncated!.\n");
-     goto out;
- }
-
- /* Free resources */
- if ( H5Sclose( space_id ) < 0 )
-   return -1;
-
- return 0;
-
-out:
- if (dims) free(dims);
- return -1;
-
 }
 
 

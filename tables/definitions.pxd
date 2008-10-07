@@ -475,6 +475,7 @@ cdef extern from "utils.h":
   herr_t set_order(hid_t type_id, char *byteorder)
   herr_t get_order(hid_t type_id, char *byteorder)
   int    is_complex(hid_t type_id)
+  herr_t truncate_dset(hid_t dataset_id, int maindim, hsize_t size)
 
 # Type conversion routines
 cdef extern from "typeconv.h":

@@ -868,7 +868,7 @@ class Table(tableExtension.Table, Leaf):
         """
         Get the instance of the column with the given `colpathname`.
 
-        If the column does not exist in the table, a ``KeyError`` is
+        If the column does not exist in the table, a `KeyError` is
         raised.
         """
         try:
@@ -1420,8 +1420,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         .. Warning:: When in the middle of a table row iterator, you
            should not use methods that can change the number of rows in
-           the table (like ``Table.append()`` or ``Table.removeRows()``)
-           or unexpected errors will happen.
+           the table (like `Table.append()` or `Table.removeRows()`) or
+           unexpected errors will happen.
         """
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start < stop:
@@ -1600,8 +1600,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         If the column named `colname` (a string) exists and is of an
         enumerated type, the corresponding `Enum` instance is returned.
-        If it is not of an enumerated type, a ``TypeError`` is raised.
-        If the column does not exist, a ``KeyError`` is raised.
+        If it is not of an enumerated type, a `TypeError` is raised.  If
+        the column does not exist, a `KeyError` is raised.
         """
 
         self._checkColumn(colname)
@@ -1621,7 +1621,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         If a column called `name` exists in the table, it is read and
         returned as a NumPy object or as a ``numarray`` object
         (depending on the flavor of the table).  If it does not exist, a
-        ``KeyError`` is raised.
+        `KeyError` is raised.
 
         Example of use::
 
@@ -1733,7 +1733,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         The `rows` argument may be any object which can be converted to
         a record array compliant with the table structure (otherwise, a
-        ``ValueError`` is raised).  This includes NumPy record arrays,
+        `ValueError` is raised).  This includes NumPy record arrays,
         ``RecArray`` or ``NestedRecArray`` objects if ``numarray`` is
         available, lists of tuples or array records, and a string or
         Python buffer.
@@ -1786,7 +1786,6 @@ You cannot append rows to a non-chunked table.""")
         self._open_append(wbufRA)
         self._append_records(lenrows)
         self._close_append()
-        self.nrows += lenrows
         if self.indexed:
             self._unsaved_indexedrows += lenrows
             # The table caches for indexed queries are dirty now
@@ -1803,7 +1802,7 @@ You cannot append rows to a non-chunked table.""")
         The values in the selected rows will be modified with the data
         given in `rows`.  This method returns the number of rows
         modified.  Should the modification exceed the length of the
-        table, an ``IndexError`` is raised before changing data.
+        table, an `IndexError` is raised before changing data.
 
         The possible values for the `rows` argument are the same as in
         `Table.append()`.
@@ -1870,12 +1869,12 @@ table format '%s'. The error was: <%s>
         The `colname` argument specifies the name of the column in the
         table to be modified with the data given in `column`.  This
         method returns the number of rows modified.  Should the
-        modification exceed the length of the table, an ``IndexError``
+        modification exceed the length of the table, an `IndexError`
         is raised before changing data.
 
         The `column` argument may be any object which can be converted
         to a (record) array compliant with the structure of the column
-        to be modified (otherwise, a ``ValueError`` is raised).  This
+        to be modified (otherwise, a `ValueError` is raised).  This
         includes NumPy (record) arrays, ``NumArray``, ``RecArray`` or
         ``NestedRecArray`` objects if ``numarray`` is available, Numeric
         arrays if available, lists of scalars, tuples or array records,
@@ -1945,12 +1944,12 @@ table format '%s'. The error was: <%s>
         The `names` argument specifies the names of the columns in the
         table to be modified with the data given in `columns`.  This
         method returns the number of rows modified.  Should the
-        modification exceed the length of the table, an ``IndexError``
+        modification exceed the length of the table, an `IndexError`
         is raised before changing data.
 
         The `columns` argument may be any object which can be converted
         to a record array compliant with the structure of the columns to
-        be modified (otherwise, a ``ValueError`` is raised).  This
+        be modified (otherwise, a `ValueError` is raised).  This
         includes NumPy record arrays, ``RecArray`` or ``NestedRecArray``
         objects if ``numarray`` is available, lists of tuples or array
         records, and a string or Python buffer.
@@ -2099,7 +2098,6 @@ The 'names' parameter must be a list of strings.""")
             raise NotImplementedError, \
 """You are trying to delete all the rows in table "%s". This is not supported right now due to limitations on the underlying HDF5 library. Sorry!""" % self._v_pathname
         nrows = self._remove_row(start, nrows)
-        self.nrows -= nrows    # discount the removed rows from the total
         # removeRows is a invalidating index operation
         self._reIndex(self.colpathnames)
 
@@ -2267,8 +2265,6 @@ The 'names' parameter must be a list of strings.""")
             object._append_records(nrows)
             nrowsdest += nrows
         object._close_append()
-        # Update the number of saved rows in this buffer
-        object.nrows = nrowsdest
 
 
     def _g_propIndexes(self, other):

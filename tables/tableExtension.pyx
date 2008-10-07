@@ -56,7 +56,7 @@ from definitions cimport import_array, ndarray, \
      H5Tget_class, H5Tget_super, H5Tget_offset, \
      H5ATTRset_attribute_string, H5ATTRset_attribute, \
      get_len_of_range, get_order, set_order, is_complex, \
-     conv_float64_timeval32
+     conv_float64_timeval32, truncate_dset
 
 from lrucacheExtension cimport ObjectCache, NumCache
 
@@ -148,8 +148,6 @@ cdef joinPath(object parent, object name):
 cdef class Table(Leaf):
   # instance variables
   cdef void     *wbuf
-  cdef hsize_t  totalrecords
-
 
   cdef createNestedType(self, object desc, char *byteorder):
     """Create a nested type based on a description and return an HDF5 type."""
@@ -182,7 +180,7 @@ cdef class Table(Leaf):
     cdef long    buflen
     cdef hid_t   oid
     cdef void    *data
-    cdef hsize_t nrecords
+    cdef hsize_t nrows
     cdef char    *class_
     cdef object  fieldname, name
     cdef ndarray recarr
@@ -193,11 +191,9 @@ cdef class Table(Leaf):
 
     # test if there is data to be saved initially
     if self._v_recarray is not None:
-      self.totalrecords = self.nrows
       recarr = self._v_recarray
       data = recarr.data
     else:
-      self.totalrecords = 0
       data = NULL
 
     class_ = PyString_AsString(self._c_classId)
@@ -228,9 +224,9 @@ cdef class Table(Leaf):
       raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                          ("TITLE", self.name))
     # Attach the NROWS attribute
-    nrecords = self.nrows
+    nrows = self.nrows
     ret = H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
-                              0, NULL, <char *>&nrecords )
+                              0, NULL, <char *>&nrows)
     if ret < 0:
       raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
                          ("NROWS", self.name))
@@ -363,9 +359,7 @@ cdef class Table(Leaf):
     # Get the number of rows
     space_id = H5Dget_space(self.dataset_id)
     H5Sget_simple_extent_dims(space_id, dims, NULL)
-    self.totalrecords = dims[0]
-    # Make totalrecords visible in python space
-    self.nrows = SizeType(self.totalrecords)
+    self.nrows = SizeType(dims[0])
     # Free resources
     H5Sclose(space_id)
 
@@ -449,28 +443,32 @@ cdef class Table(Leaf):
 
   def _append_records(self, int nrecords):
     cdef int ret
+    cdef hsize_t nrows
 
     # Convert some NumPy types to HDF5 before storing.
     self._convertTypes(self._v_recarray, nrecords, 0)
 
+    nrows = self.nrows
     # release GIL (allow other threads to use the Python interpreter)
     Py_BEGIN_ALLOW_THREADS
     # Append the records:
     ret = H5TBOappend_records(self.dataset_id, self.type_id,
-                              nrecords, self.totalrecords, self.wbuf)
+                              nrecords, nrows, self.wbuf)
     # acquire GIL (disallow other threads from using the Python interpreter)
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems appending the records.")
 
-    self.totalrecords = self.totalrecords + nrecords
+    self.nrows = self.nrows + nrecords
 
 
   def _close_append(self):
+    cdef hsize_t nrows
 
     # Update the NROWS attribute
+    nrows = self.nrows
     if (H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
-                            0, NULL, <char *>&self.totalrecords) < 0):
+                            0, NULL, <char *>&nrows) < 0):
       raise HDF5ExtError("Problems setting the NROWS attribute.")
 
     # Set the caches to dirty (in fact, and for the append case,
@@ -539,8 +537,8 @@ cdef class Table(Leaf):
     cdef int ret
 
     # Correct the number of records to read, if needed
-    if (start + nrecords) > self.totalrecords:
-      nrecords = self.totalrecords - start
+    if (start + nrecords) > self.nrows:
+      nrecords = self.nrows - start
 
     # Get the pointer to the buffer data area
     rbuf = recarr.data
@@ -617,23 +615,25 @@ cdef class Table(Leaf):
 
   def _remove_row(self, hsize_t nrow, hsize_t nrecords):
     cdef size_t rowsize
+    cdef hsize_t nrecords2
 
     # Protection against deleting too many rows
-    if (nrow + nrecords > self.totalrecords):
-      nrecords = self.totalrecords - nrow
+    if (nrow + nrecords > self.nrows):
+      nrecords = self.nrows - nrow
 
     rowsize = self.rowsize
     # Using self.disk_type_id should be faster (i.e. less conversions)
     if (H5TBOdelete_records(self.dataset_id, self.disk_type_id,
-                            self.totalrecords, rowsize, nrow, nrecords,
+                            self.nrows, rowsize, nrow, nrecords,
                             self.nrowsinbuf) < 0):
       raise HDF5ExtError("Problems deleting records.")
       # Return no removed records
       return 0
-    self.totalrecords = self.totalrecords - nrecords
+    self.nrows = self.nrows - nrecords
     # Attach the NROWS attribute
+    nrecords2 = self.nrows
     H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
-                        0, NULL, <char *>&self.totalrecords)
+                        0, NULL, <char *>&nrecords2)
     # Set the caches to dirty
     self._dirtycache = True
     # Return the number of records removed

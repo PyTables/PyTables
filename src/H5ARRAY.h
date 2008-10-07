@@ -48,10 +48,6 @@ herr_t H5ARRAYwrite_records( hid_t dataset_id,
 			     hsize_t *count,
 			     const void *data );
 
-herr_t H5ARRAYtruncate( hid_t dataset_id,
-			const int extdim,
-			const hsize_t size);
-
 herr_t H5ARRAYread( hid_t dataset_id,
 		    hid_t type_id,
 		    hsize_t start,

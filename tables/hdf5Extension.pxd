@@ -11,12 +11,12 @@ cdef class Leaf(Node):
   cdef hid_t   type_id
   cdef hid_t   base_type_id
   cdef hid_t   disk_type_id
+  cdef hsize_t *dims     # Necessary to be here because of Leaf._g_truncate()
   cdef _get_type_ids(self)
   cdef _convertTime64(self, ndarray nparr, int sense)
 
 cdef class Array(Leaf):
   cdef int      rank
-  cdef hsize_t *dims
   cdef hsize_t *maxdims
   cdef hsize_t *dims_chunk
 

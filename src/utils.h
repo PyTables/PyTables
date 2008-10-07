@@ -91,3 +91,6 @@ hid_t create_ieee_complex64(const char *byteorder);
 hid_t create_ieee_complex128(const char *byteorder);
 
 hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step);
+
+herr_t truncate_dset( hid_t dataset_id, const int maindim, const hsize_t size);
+

@@ -30,7 +30,7 @@ import sys
 
 import numpy
 
-from tables.utilsExtension import lrange, whichLibVersion
+from tables.utilsExtension import lrange
 from tables.parameters import EXPECTED_ROWS_EARRAY
 from tables.utils import convertToNPAtom, convertToNPAtom2, SizeType
 from tables.atom import Atom, EnumAtom, split_type
@@ -69,8 +69,6 @@ class EArray(CArray):
 
     append(sequence)
         Add a ``sequence`` of data to the end of the dataset.
-    truncate(size)
-        Truncate the extendable dimension to at most ``size`` rows.
 
     Example of use
     --------------
@@ -234,18 +232,6 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
             self._append(nparr)
 
 
-    def truncate(self, size):
-        """
-        Truncate the extendable dimension to at most `size` rows.
-        """
-        if (size > 0 or
-            (size == 0 and whichLibVersion("hdf5")[1] >= "1.8.0")):
-                self._truncateArray(size)
-        else:
-            raise ValueError("""
-`size` must be greater than 0 if you are using HDF5 < 1.8.0.
-With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
-
     def _g_copyWithStats(self, group, name, start, stop, step,
                          title, filters, chunkshape, _log):
         "Private part of Leaf.copy() for each kind of leaf."
@@ -281,3 +267,11 @@ With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
         nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.itemsize
 
         return (object, nbytes)
+
+
+## Local Variables:
+## mode: python
+## py-indent-offset: 4
+## tab-width: 4
+## fill-column: 72
+## End:

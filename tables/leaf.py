@@ -40,6 +40,7 @@ from tables import hdf5Extension
 from tables.node import Node
 from tables.filters import Filters
 from tables.utils import byteorders, idx2long, lazyattr, SizeType
+from tables.utilsExtension import whichLibVersion
 from tables.parameters import CHUNKTIMES, BUFFERTIMES
 from tables.exceptions import PerformanceWarning
 from tables import utilsExtension
@@ -178,6 +179,7 @@ class Leaf(Node):
     * move([newparent][, newname][, overwrite])
     * remove()
     * rename(newname)
+    * truncate(size)
     * setAttr(name, value)
     * _f_close([flush])
     * __len__()
@@ -275,6 +277,8 @@ class Leaf(Node):
         """
         self._flavor = None
         """Private storage for the `flavor` property."""
+        self.extdim = -1
+        """Default value for extendeable dimension."""
 
         if new:
             # Get filter properties from parent group if not given.
@@ -612,6 +616,36 @@ very small/large chunksize, you may want to increase/decrease it."""
         """
         return self._f_copy(
             newparent, newname, overwrite, createparents, **kwargs )
+
+
+    def truncate(self, size):
+        """Truncate the main dimension to at most `size` rows.
+
+        The truncation operation can only be applied to *chunked*
+        datasets.  In particular, Array leaves cannot be truncated.
+
+        .. Warning:: Due to limitations of the HDF5 1.6.x series, `size`
+           must be greater than zero (i.e. the dataset can not be
+           completely emptied).  A `ValueError` will be issued when you
+           are using HDF5 1.6.x and try to pass a zero size to this
+           method.  HDF5 1.8.x series fixed this problem, so if you are
+           using this version, you can truncate datasets to zero length
+           without any problem.
+        """
+        # A plain Array cannot be truncated
+        if self.__class__.__name__ == "Array":
+            raise IOError("Array instances cannot be truncated.")
+
+        if size >= self.shape[self.maindim]:
+            # Truncating to a size larger than actual length. Return silently.
+            return
+        if (size > 0 or
+            (size == 0 and whichLibVersion("hdf5")[1] >= "1.8.0")):
+                self._g_truncate(size)
+        else:
+            raise ValueError("""
+`size` must be greater than 0 if you are using HDF5 < 1.8.0.
+With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
 
 
     def isVisible(self):

@@ -15,6 +15,10 @@ Changes from 2.0.x to 2.1b2
   all the parent directories.  So, for opening pre-known group and leaf
   locations, the new code is substantially faster (in fact, the cost is O(1)).
 
+- The `EArray.truncate()` method has been generalized and implemented as
+  `Leaf.truncate`.  Now, it is possible to truncate all *chunked* datasets in
+  PyTables.  Fixes #174.
+
 - Disabling the LRU node cache is now supported by setting the NODE_MAX_SLOTS
   (in parameters.py) to 0 (this can also be achieved through the
   `nodeCacheSize` parameter of openFile() function).  Disabling the cache may

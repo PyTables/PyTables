@@ -796,3 +796,57 @@ hsize_t get_len_of_range(hsize_t lo, hsize_t hi, hsize_t step)
   }
   return n;
 }
+
+
+/* Truncate the dataset to at most size rows  */
+herr_t truncate_dset( hid_t dataset_id,
+                      const int maindim,
+                      const hsize_t size)
+{
+
+ hid_t    space_id;
+ hsize_t  *dims = NULL;
+ int      rank;
+
+  /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space(dataset_id)) < 0 )
+  goto out;
+
+ /* Get the rank */
+ if ( (rank = H5Sget_simple_extent_ndims(space_id)) < 0 )
+   goto out;
+
+ if (rank) {  			/* multidimensional case */
+   /* Book some memory for the selections */
+   dims = (hsize_t *)malloc(rank*sizeof(hsize_t));
+
+   /* Get dataset dimensionality */
+   if ( H5Sget_simple_extent_dims(space_id, dims, NULL) < 0 )
+     goto out;
+
+   /* Truncate the EArray */
+   dims[maindim] = size;
+   if ( H5Dset_extent(dataset_id, dims) < 0 )
+     goto out;
+
+   /* Release resources */
+   free(dims);
+ }
+ else {     			/* scalar case (should never enter here) */
+     printf("A scalar Array cannot be truncated!.\n");
+     goto out;
+ }
+
+ /* Free resources */
+ if ( H5Sclose(space_id) < 0 )
+   return -1;
+
+ return 0;
+
+out:
+ if (dims) free(dims);
+ return -1;
+
+}
+
+
