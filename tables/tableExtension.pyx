@@ -569,8 +569,8 @@ cdef class Table(Leaf):
     # Correct the number of records to read, if needed
     start = nchunk*chunkshape
     nrecords = chunkshape
-    if (start + nrecords) > self.totalrecords:
-      nrecords = self.totalrecords - start
+    if (start + nrecords) > self.nrows:
+      nrecords = self.nrows - start
     rbuf = <char *>IObuf.data + cstart * chunkcache.itemsize
     # Try to see if the chunk is in cache
     nslot = chunkcache.getslot_(nchunk)
