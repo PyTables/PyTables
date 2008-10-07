@@ -735,6 +735,12 @@ class Table(tableExtension.Table, Leaf):
         # Correct the byteorder, if still needed
         if self.byteorder is None:
             self.byteorder = sys.byteorder
+
+        # Cache some data which is already in the description.
+        # This is necessary to happen before creation time in order
+        # to be able to populate the self._v_wdflts
+        self._cacheDescriptionData()
+
         # After creating the table, ``self._v_objectID`` needs to be
         # set because it is needed for setting attributes afterwards.
         self._v_objectID = self._createTable(
@@ -754,9 +760,6 @@ class Table(tableExtension.Table, Leaf):
             fieldname = "FIELD_%d_FILL" % i
             setAttr(fieldname, colobj.dflt)
             i += 1
-
-        # 4. Cache some data which is already in the description.
-        self._cacheDescriptionData()
 
         return self._v_objectID
 

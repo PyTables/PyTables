@@ -619,26 +619,34 @@ very small/large chunksize, you may want to increase/decrease it."""
 
 
     def truncate(self, size):
-        """Truncate the main dimension to at most `size` rows.
+        """Truncate the main dimension to be `size` rows.
+
+        If the main dimension previously was larger than this `size`,
+        the extra data is lost.  If the main dimension previously was
+        shorter, it is extended, and the extended part is filled with
+        the default values.
 
         The truncation operation can only be applied to *chunked*
         datasets.  In particular, Array leaves cannot be truncated.
 
-        .. Warning:: Due to limitations of the HDF5 1.6.x series, `size`
-           must be greater than zero (i.e. the dataset can not be
-           completely emptied).  A `ValueError` will be issued when you
-           are using HDF5 1.6.x and try to pass a zero size to this
-           method.  HDF5 1.8.x series fixed this problem, so if you are
-           using this version, you can truncate datasets to zero length
-           without any problem.
+        .. Warning:: If you are using the HDF5 1.6.x series, and due to
+           limitations of them, `size` must be greater than zero
+           (i.e. the dataset can not be completely emptied).  A
+           `ValueError` will be issued if you are using HDF5 1.6.x and
+           try to pass a zero size to this method.  Also, HDF5 1.6.x has
+           the problem that it cannot work against `CArray` objects
+           (again, a `ValueError` will be issued).  HDF5 1.8.x doesn't
+           undergo these problems.
         """
         # A plain Array cannot be truncated
         if self.__class__.__name__ == "Array":
             raise IOError("Array instances cannot be truncated.")
 
-        if size >= self.shape[self.maindim]:
-            # Truncating to a size larger than actual length. Return silently.
-            return
+        if (self.__class__.__name__ == "CArray" and
+            whichLibVersion("hdf5")[1] < "1.8.0"):
+            raise ValueError(
+                "CArray instances cannot be truncated with HDF5 1.6.x.")
+
         if (size > 0 or
             (size == 0 and whichLibVersion("hdf5")[1] >= "1.8.0")):
                 self._g_truncate(size)

@@ -6369,22 +6369,28 @@ for node in h5file.root.detector:
           <section id="Leaf.truncate">
             <title>truncate(size)</title>
 
-            <para>Truncate the main dimension to at most
-            <literal>size</literal> rows.</para>
+            <para>Truncate the main dimension to be <literal>size</literal>
+            rows.</para>
+
+            <para>If the main dimension previously was larger than this
+            <literal>size</literal>, the extra data is lost.  If the main
+            dimension previously was shorter, it is extended, and the extended
+            part is filled with the default values.</para>
 
             <para>The truncation operation can only be applied to
             <emphasis>chunked</emphasis> datasets.  In particular,
             <literal>Array</literal> leaves cannot be truncated.</para>
 
             <warning>
-              <para>Due to limitations of the HDF5 1.6.x series,
-              <literal>size</literal> must be greater than zero (i.e. the
-              dataset can not be completely emptied).  A
-              <literal>ValueError</literal> will be issued when you are using
-              HDF5 1.6.x and try to pass a zero size to this method.  HDF5
-              1.8.x series fixed this problem, so if you are using this
-              version, you can truncate datasets to zero length without any
-              problem.</para>
+              <para>If you are using the HDF5 1.6.x series, and due to
+              limitations of them, <literal>size</literal> must be greater
+              than zero (i.e. the dataset can not be completely emptied).  A
+              <literal>ValueError</literal> will be issued if you are using
+              HDF5 1.6.x and try to pass a zero size to this method.  Also,
+              HDF5 1.6.x has the problem that it cannot work against
+              <literal>CArray</literal> objects (again, a
+              <literal>ValueError</literal> will be issued).  HDF5 1.8.x
+              doesn't undergo these problems.</para>
             </warning>
           </section>
 

@@ -4886,8 +4886,8 @@ class TruncateTestCase(unittest.TestCase):
 
     def setUp(self):
         class IRecord(IsDescription):
-            c1 = Int32Col(pos=1)
-            c2 = FloatCol(pos=2)
+            c1 = Int32Col(pos=1, dflt=3)
+            c2 = FloatCol(pos=2, dflt=-3.1)
 
         self.file = tempfile.mktemp('.h5')
         self.fileh = openFile(self.file, 'w', title='Chunkshape test')
@@ -4952,7 +4952,7 @@ class TruncateTestCase(unittest.TestCase):
             self.assert_(row['c1'] == row.nrow)
 
     def test02_truncate(self):
-        """Checking Table.truncate() method (truncating to >= carray.nrows)"""
+        """Checking Table.truncate() method (truncating to == self.nrows)"""
 
         table = self.fileh.root.table
         # Truncate to 2 elements
@@ -4973,11 +4973,11 @@ class TruncateTestCase(unittest.TestCase):
             self.assert_(row['c1'] == row.nrow)
 
     def test03_truncate(self):
-        """Checking Table.truncate() method (truncating to > carray.nrows)"""
+        """Checking Table.truncate() method (truncating to > self.nrows)"""
 
         table = self.fileh.root.table
-        # Truncate to 3 elements
-        table.truncate(3)
+        # Truncate to 4 elements
+        table.truncate(4)
 
         if self.close:
             if common.verbose:
@@ -4989,9 +4989,14 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print "table-->", table.read()
 
-        self.assert_(table.nrows == 2)
-        for row in table:
+        self.assert_(table.nrows == 4)
+        # Check the original values
+        for row in table.iterrows(start=0, stop=2):
             self.assert_(row['c1'] == row.nrow)
+        # Check that the added rows have the default values
+        for row in table.iterrows(start=2, stop=4):
+            self.assert_(row['c1'] == 3)
+            self.assert_(row['c2'] == -3.1)
 
 
 class TruncateOpenTestCase(TruncateTestCase):

@@ -843,9 +843,8 @@ cdef class Array(Leaf):
     cdef herr_t ret
     cdef void *rbuf
     cdef char *complib, *version, *class_
-    cdef void *fill_value
     cdef int itemsize
-    cdef ndarray buf
+    cdef ndarray fill_values
     cdef object atom
 
     atom = self.atom
@@ -862,16 +861,14 @@ cdef class Array(Leaf):
     complib = PyString_AsString(self.filters.complib or '')
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
-    # Set the fill values
-    fill_value = <void *>malloc(<size_t> itemsize)
-    buf = numpy.array(atom.dflt, dtype=atom.dtype)
-    memcpy(fill_value, buf.data, itemsize)
+    # Get the fill values
+    fill_values = numpy.array(atom.dflt, dtype=atom.dtype)
 
     # Create the CArray/EArray
     self.dataset_id = H5ARRAYmake(
       self.parent_id, self.name, class_, title, version,
       self.rank, self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
-      fill_value, self.filters.complevel, complib,
+      fill_values.data, self.filters.complevel, complib,
       self.filters.shuffle, self.filters.fletcher32, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
@@ -879,9 +876,6 @@ cdef class Array(Leaf):
     # Get the native type (so that it is HDF5 who is the responsible to deal
     # with non-native byteorders on-disk)
     self.type_id = get_native_type(self.disk_type_id)
-
-    # Release resources
-    free(fill_value)
 
     return self.dataset_id
 

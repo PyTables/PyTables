@@ -2204,7 +2204,7 @@ class TruncateTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, "w")
 
         # Create an EArray
-        arr = Int16Atom()
+        arr = Int16Atom(dflt=3)
         array1 = self.fileh.createEArray(
             self.fileh.root, 'array1', arr, (0, 2), "title array1")
         # Add a couple of rows
@@ -2261,7 +2261,7 @@ class TruncateTestCase(unittest.TestCase):
             array1.read(), numpy.array([[456, 2]], dtype='Int16'))
 
     def test02_truncate(self):
-        """Checking EArray.truncate() method (truncating to >= earray.nrows)"""
+        """Checking EArray.truncate() method (truncating to == self.nrows)"""
 
         array1 = self.fileh.root.array1
         # Truncate to 2 elements
@@ -2281,11 +2281,11 @@ class TruncateTestCase(unittest.TestCase):
                                                    dtype='Int16'))
 
     def test03_truncate(self):
-        """Checking EArray.truncate() method (truncating to > earray.nrows)"""
+        """Checking EArray.truncate() method (truncating to > self.nrows)"""
 
         array1 = self.fileh.root.array1
-        # Truncate to 3 elements
-        array1.truncate(3)
+        # Truncate to 4 elements
+        array1.truncate(4)
 
         if self.close:
             if common.verbose:
@@ -2297,8 +2297,13 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print "array1-->", array1.read()
 
-        assert allequal(array1.read(), numpy.array([[456, 2],[3, 457]],
+        self.assert_(array1.nrows == 4)
+        # Check the original values
+        assert allequal(array1[:2], numpy.array([[456, 2],[3, 457]],
                                                    dtype='Int16'))
+        # Check that the added rows have the default values
+        assert allequal(array1[2:], numpy.array([[3, 3],[3, 3]],
+                                                dtype='Int16'))
 
 
 class TruncateOpenTestCase(TruncateTestCase):

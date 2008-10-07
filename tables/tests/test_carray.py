@@ -2190,7 +2190,7 @@ class TruncateTestCase(unittest.TestCase):
         self.fileh = openFile(self.file, "w")
 
         # Create an CArray
-        arr = Int16Atom()
+        arr = Int16Atom(dflt=3)
         array1 = self.fileh.createCArray(
             self.fileh.root, 'array1', arr, (2, 2), "title array1")
         # Set info in rows
@@ -2204,10 +2204,6 @@ class TruncateTestCase(unittest.TestCase):
 
     def test00_truncate(self):
         """Checking CArray.truncate() method (truncating to 0 rows)"""
-
-        # Only run this test for HDF5 >= 1.8.0
-        if whichLibVersion("hdf5")[1] < "1.8.0":
-            return
 
         array1 = self.fileh.root.array1
         # Truncate to 0 elements
@@ -2247,7 +2243,7 @@ class TruncateTestCase(unittest.TestCase):
             array1.read(), numpy.array([[456, 2]], dtype='Int16'))
 
     def test02_truncate(self):
-        """Checking CArray.truncate() method (truncating to >= carray.nrows)"""
+        """Checking CArray.truncate() method (truncating to == self.nrows)"""
 
         array1 = self.fileh.root.array1
         # Truncate to 2 elements
@@ -2267,11 +2263,11 @@ class TruncateTestCase(unittest.TestCase):
                                                    dtype='Int16'))
 
     def test03_truncate(self):
-        """Checking CArray.truncate() method (truncating to > carray.nrows)"""
+        """Checking CArray.truncate() method (truncating to > self.nrows)"""
 
         array1 = self.fileh.root.array1
-        # Truncate to 3 elements
-        array1.truncate(3)
+        # Truncate to 4 elements
+        array1.truncate(4)
 
         if self.close:
             if common.verbose:
@@ -2283,8 +2279,13 @@ class TruncateTestCase(unittest.TestCase):
         if common.verbose:
             print "array1-->", array1.read()
 
-        assert allequal(array1.read(), numpy.array([[456, 2],[3, 457]],
-                                                   dtype='Int16'))
+        self.assert_(array1.nrows == 4)
+        # Check the original values
+        assert allequal(array1[:2], numpy.array([[456, 2],[3, 457]],
+                                                dtype='Int16'))
+        # Check that the added rows have the default values
+        assert allequal(array1[2:], numpy.array([[3, 3],[3, 3]],
+                                                dtype='Int16'))
 
 
 class TruncateOpenTestCase(TruncateTestCase):
@@ -2361,8 +2362,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BigArrayTestCase))
         theSuite.addTest(unittest.makeSuite(DfltAtomTestCase))
         theSuite.addTest(unittest.makeSuite(MDAtomTestCase))
-        theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
-        theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
+        # Only run the truncate tests for HDF5 >= 1.8.0
+        if whichLibVersion("hdf5")[1] >= "1.8.0":
+            theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
+            theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3CArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4CArrayTestCase))

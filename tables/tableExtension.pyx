@@ -76,7 +76,7 @@ cdef extern from "H5TB-opt.h":
   herr_t H5TBOmake_table( char *table_title, hid_t loc_id, char *dset_name,
                           char *version, char *class_,
                           hid_t mem_type_id, hsize_t nrecords,
-                          hsize_t chunk_size, int compress,
+                          hsize_t chunk_size, void *fill_data, int compress,
                           char *complib, int shuffle, int fletcher32,
                           void *data )
 
@@ -182,12 +182,16 @@ cdef class Table(Leaf):
     cdef void    *data
     cdef hsize_t nrows
     cdef char    *class_
-    cdef object  fieldname, name
+    cdef ndarray fill_value
     cdef ndarray recarr
+    cdef object  fieldname, name
 
     # Compute the complete compound datatype based on the table description
     self.disk_type_id = self.createNestedType(self.description, self.byteorder)
     self.type_id = self.createNestedType(self.description, sys.byteorder)
+
+    # The fill values area
+    fill_value = self._v_wdflts
 
     # test if there is data to be saved initially
     if self._v_recarray is not None:
@@ -200,6 +204,7 @@ cdef class Table(Leaf):
     self.dataset_id = H5TBOmake_table(title, self.parent_id, self.name,
                                       obversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
+                                      fill_value.data,
                                       self.filters.complevel, complib,
                                       self.filters.shuffle,
                                       self.filters.fletcher32,

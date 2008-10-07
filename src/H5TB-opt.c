@@ -77,9 +77,10 @@ herr_t H5TBOmake_table( const char *table_title,
 			const char *dset_name,
 			char *version,
 			const char *class_,
-			hid_t mem_type_id,
+			hid_t type_id,
 			hsize_t nrecords,
 			hsize_t chunk_size,
+			void  *fill_data,
 			int compress,
 			char *complib,
 			int shuffle,
@@ -107,8 +108,15 @@ herr_t H5TBOmake_table( const char *table_title,
  if ( H5Pset_chunk ( plist_id, 1, dims_chunk ) < 0 )
   return -1;
 
+ /* Set the fill value using a struct as the data type. */
+ if ( fill_data)
+   {
+     if ( H5Pset_fill_value( plist_id, type_id, fill_data ) < 0 )
+       return -1;
+   }
+
  /*
-  Dataset creation property list is modified to use
+  Dataset creation property list is modified to use filters
   */
 
  /* Fletcher must be first */
@@ -150,7 +158,7 @@ herr_t H5TBOmake_table( const char *table_title,
  }
 
  /* Create the dataset. */
- if ( (dataset_id = H5Dcreate( loc_id, dset_name, mem_type_id, space_id, plist_id )) < 0 )
+ if ( (dataset_id = H5Dcreate( loc_id, dset_name, type_id, space_id, plist_id )) < 0 )
   goto out;
 
  /* Only write if there is something to write */
@@ -158,7 +166,7 @@ herr_t H5TBOmake_table( const char *table_title,
  {
 
  /* Write data to the dataset. */
- if ( H5Dwrite( dataset_id, mem_type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
+ if ( H5Dwrite( dataset_id, type_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, data ) < 0 )
   goto out;
 
  }
