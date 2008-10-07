@@ -2775,7 +2775,7 @@ class Column(object):
     Public methods
     --------------
 
-    createIndex([kind][, filters][, tmp_dir])
+    createIndex([kind][, optlevel][, filters][, tmp_dir])
         Create an index for this column.
     createCSIndex([filters][, tmp_dir])
         Create a completely sorted index (CSI) for this column.
