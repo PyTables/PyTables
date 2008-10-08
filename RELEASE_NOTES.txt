@@ -8,96 +8,152 @@
 :Contact: ivan@selidor.net
 
 
-Changes from 2.0.x to 2.1b2
+Changes from 2.0.4 to 2.1b3
 ===========================
 
-- When opening a node, that will be done directly, without populating first
-  all the parent directories.  So, for opening pre-known group and leaf
-  locations, the new code is substantially faster (in fact, the cost is O(1)).
+Main improvements
+-----------------
+
+- Now, when opening a node, that will be done directly (i.e. without
+  populating first all the parent directories).  So, for opening pre-known
+  group and leaf locations, the new code is substantially faster (in fact, the
+  cost is O(1)).
 
 - The `EArray.truncate()` method has been generalized and implemented as
-  `Leaf.truncate`.  Now, it is possible to truncate all *chunked* datasets in
-  PyTables.  Fixes #174.
-
-- In order to avoid a long-standing bug, all the possible 64-bit class
-  attributes of Leaf objects (like .nrows, .shape, .nrow, ...) have been
-  converted into a new SizeType (actually an alias for numpy.int64).  This
-  change should be backward compatible with existing programs, so you should
-  not need any action to adapt to this.  Fixes #118.
+  `Leaf.truncate`.  Now, it is possible to truncate all *chunked* datasets
+  (i.e. all except `Array` objects) in PyTables.  Fixes #174.
 
 - Disabling the LRU node cache is now supported by setting the NODE_MAX_SLOTS
   (in parameters.py) to 0 (this can also be achieved through the
-  `nodeCacheSize` parameter of openFile() function).  Disabling the cache may
-  be useful in situations where you suspect that maintaing a LRU node cache is
-  actually reducing performance.  Besides, this figure can also be negative
-  now, meaning that all the touched nodes will be kept in an internal
+  `nodeCacheSize` parameter of openFile() function).  Disabling this cache may
+  be useful in situations where you suspect that maintaining a LRU node cache
+  is actually reducing performance.  Besides, this figure can also be
+  negative, meaning that all the touched nodes will be kept in an internal
   dictionary.  See more info about this features in the updated "Getting the
-  most from the node LRU cache" section of chapter 5 of user's guide.
-
-- New File.fileno() added.  This returns the underlying OS file descriptor for
-  the file.
-
-- The Atom.dflt is honored now when creating CArrays.  Fixes #176.
-
-- File.copyNode() can copy now complete hierarchies directly from the root.
-  This can be useful when one wants to create a new file by merging the
-  contents of others.
-
-- [Pro] A new Table.itersorted() iterator allows to iterate through a table
-  following the order of a certain index.  It supports iteration on
-  ranges, including negative steps (i.e. reverse sorted order).
-
-- [Pro] New Table.readSorted() method that can read a table following the
-  order of a certain index.  It supports the reads on ranges, including
-  negative steps (i.e. reverse sorted order).
-
-- [Pro] Now, the copy of the AUTO_INDEX is done only if the `copyuserattrs` in
-  Table.copy() is true (the default).
-
-- [Pro] A new `sortby` argument has been added to Table.copy() allowing to a
-  Table to be sorted during the copy operation.
-
-- [Pro] New `propindexes` argument in Table.copy().  If true, the indexes in
-  the source table are propagated (created) to the new table.  If false (the
-  default), the indexes are not propagated.
-
-- [Pro] New public Index.readSorted() and Index.readIndices() that allow
-  direct access to an index data.
-
-- [Pro] Added new '--sortby' (sort a table by a column key), '--forceCSI'
-  (force the creation of a CSI index) and '--propindexes' (propagate the
-  indexes in original tables) flags to the 'ptrepack' utility.
-
-- A new `chunkshape` argument has been added to Leaf.copy() allowing to
-  specify a chunkshape.  It can also take the special values 'auto' (compute a
-  sensible value) and 'keep' (keep the original value, which is the default).
-  Also, note that semantics of Leaf.copy() has changed: before the chunkshape
-  of destination was computed 'auto'matically while now the default is that
-  the value is 'keep't.  This behaviour is thought to be more compliant with
-  the least surprise principle.
-
-- Added a new '--chunkshape' flag to the 'ptrepack' console command that
-  corresponds to the new `chunkshape` added to Leaf.copy().
-
-- When in ptrepack a range is not specified, all the elements of leaves are
-  copied now.  Before, only the first row was copied, which was clearly wrong.
-
-- New Table.colindexes property that returns a dictionary with the indexes of
-  the indexed columns in table.
+  most from the node LRU cache" section of chapter 5 of User's Guide.
 
 
-API changes from 2.0.x to 2.1b2
-===============================
+Main Improvements (Pro edition)
+-------------------------------
 
-- The AttributeSet class has received the next dictionary like methods:
-  __getitem__(), __setitem__() and __delitem__(), so that you can do things
-  like::
+- New light indexes that can take up to 4x less space than 2.0 indexes, and
+  more than 15x less space than indexes in traditional databases (like
+  PostgreSQL).  Four levels of index "lightness", namely ``ultralight``,
+  ``light``, ``medium`` and ``full`` (the latter being the one that
+  implemented the 2.0 version), are available so that the user will be able to
+  choose the most appropriate for her needs.
+
+- The index query code has been completely revamped and it is based now on the
+  concept of *chunkmaps*.  This allows for a much more effective way to
+  retrieve table data in queries that have low selectivity, while retaining
+  good performance for high selectivity ones.
+
+- A new query optimizer being able to use several indexes simultaneously in a
+  broad range of complex queries. For example, in the query::
+
+      (((c_int32 == 3) | (c_bool == True)) & (c_int32 == 5)) & (c_extra > 0)
+
+  if ``c_int32`` and ``c_bool`` columns are indexed but c_extra is not, both
+  ``c_int32`` and ``c_bool`` indexes will be used. That will greatly enhance
+  the response times of potentially complicated queries.
+
+- An additional optimization in the index creation process will allow to
+  obtain completely sorted indexes (CSI), allowing not only to get further
+  performance in queries, but also to create completely sorted tables ordered
+  by a specific field.  Moreover, queries including the sorted field will
+  enjoy unparalleled response times.
+
+
+API additions from 2.0.4 to 2.1b3
+---------------------------------
+
+- The `AttributeSet` class has received the next dictionary like methods:
+  `__getitem__()`, `__setitem__()` and `__delitem__()`, so that you can do
+  things like::
 
     for name in node._v_attrs._f_list():
         print "name: %s, value: %s" % (name, node._v_attrs[name])
 
-- The `trMap` argument has been removed from the tables.openFile() function.
-  Also, Node._v_hdf5name attribute has been removed as well.  Fixes #117.
+- New `File.fileno()` added.  This returns the underlying OS file descriptor
+  for the file.  This is meant to allow `File` objects to better interact with
+  the `fcntl` module.
+
+- A new `chunkshape` argument has been added to `Leaf.copy()` allowing to
+  specify a chunkshape.  It can also take the special values 'auto' (compute a
+  sensible value) and 'keep' (keep the original value, which is the default).
+
+- Added a new '--chunkshape' flag to the `ptrepack` console command that
+  corresponds to the new `chunkshape` added to `Leaf.copy()`.
+
+- `File.copyNode()` can copy now complete hierarchies directly from the root.
+  This can be useful when one wants to create a new file by merging the
+  contents of others.
+
+
+API additions from 2.0.4 to 2.1b3 (Pro edition)
+-----------------------------------------------
+
+- A new `Table.itersorted()` iterator allows to iterate through a table
+  following the order of a certain index.  It supports iteration on ranges,
+  including negative steps (i.e. reverse sorted order).
+
+- New `Table.readSorted()` method that can read a table following the order of
+  a certain index.  It supports the reads on ranges, including negative steps
+  (i.e. reverse sorted order).
+
+- New `Table.colindexes` property that returns a dictionary with the indexes
+  of the indexed columns in table.
+
+- A new `sortby` argument has been added to Table.copy() allowing to a Table
+  to be sorted during the copy operation.
+
+- Added a new `propindexes` argument in `Table.copy()`.  If true, the indexes
+  in the source table are propagated (created) to the new table.  If false
+  (the default), the indexes are not propagated.
+
+- New public `Index.readSorted()` and `Index.readIndices()` methods that allow
+  direct access to the index data.
+
+- Added new '--sortby' (sort a table by a column key), '--forceCSI' (force the
+  creation of a CSI index) and '--propindexes' (propagate the indexes in
+  original tables) flags to the `ptrepack` utility.
+
+
+Bug fixes
+---------
+
+- In order to avoid a long-standing bug, all the possible 64-bit class
+  attributes of leaf objects (like `nrows`, `shape`, `nrow`, ...) have been
+  converted into a new `SizeType` type (actually an alias for `numpy.int64`).
+  This change should be backward compatible with existing programs, so you
+  should not need any action to adapt to this.  Fixes #118.
+
+- When in `ptrepack` a range is not specified, all the elements of leaves are
+  copied now.  Before, only the first row was copied, which was clearly wrong.
+
+- The `Atom` default value (`Atom.dflt`) is honored now when creating
+  `CArrays`.  Fixes #176.
+
+
+Backward incompatible API changes from 2.0.4 to 2.1b3
+=====================================================
+
+- The semantics of `Leaf.copy()` has changed: before the chunkshape of
+  destination was computed 'auto'matically while now the default is that the
+  value is 'keep't.  This behaviour is thought to satisfy better the least
+  surprise principle.
+
+- The `trMap` argument has been removed from the `tables.openFile()` function.
+  Also, the `Node._v_hdf5name` attribute has been removed as well.  Fixes
+  #117.
+
+- The `sort` parameter of `Table.itersequence()` has been removed as it will
+  not allow to sort sequences larger than memory.  Moreover, it is not clear
+  that the sorting operation would be a clear advantage in every situation.
+
+
+Backward incompatible API changes from 2.0.4 to 2.1b3 (Pro edition)
+===================================================================
 
 - The `Column.createIndex()` has received a new parameter named `kind` which
   is the first now in the argument list.  This is intentional and
@@ -107,17 +163,16 @@ API changes from 2.0.x to 2.1b2
 - Added a new `Column.createCSIndex()` as a handy way to create a completely
   sorted index (CSI).
 
-- The Table.indexFilters property has been removed (after a period of
+- The `Table.indexFilters` property has been removed (after a period of
   ``DeprecationWarnings``).  If you want to change filters in indexes, please
-  use the `filters` parameter of the Column.createIndex() method (and the
+  use the `filters` parameter of the `Column.createIndex()` method (and the
   like).
 
-- Table.willQueryUseIndexing() has changed its return value by a frozen set of
-  usable indexed columns for its `condition` parameter.
+- `Table.willQueryUseIndexing()` has changed its return value from a list to a
+  frozen set of usable indexed columns.
 
-- The `sort` parameter of Table.itersequence() has been removed as it will not
-  allow to sort sequences larger than memory.  In addition, it is not clear
-  that sorting would be a clear advantage in all situations.
+- Now, the copy of the 'AUTO_INDEX' system attribute of the `Index` class is
+  done only if the `copyuserattrs` in `Table.copy()` is true (the default).
 
 
 ----
