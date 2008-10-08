@@ -17,11 +17,11 @@ Main improvements
 - Now, when opening a node, that will be done directly (i.e. without
   populating first all the parent directories).  So, for opening pre-known
   group and leaf locations, the new code is substantially faster (in fact, the
-  cost is O(1)).
+  cost of these operations is O(1) now).
 
 - The `EArray.truncate()` method has been generalized and implemented as
-  `Leaf.truncate`.  Now, it is possible to truncate all *chunked* datasets
-  (i.e. all except `Array` objects) in PyTables.  Fixes #174.
+  `Leaf.truncate()`.  Now, it is possible to truncate all *enlargeable*
+  datasets (i.e. all except `Array` and `CArray` objects).  Fixes #174.
 
 - Disabling the LRU node cache is now supported by setting the NODE_MAX_SLOTS
   (in parameters.py) to 0 (this can also be achieved through the
@@ -33,35 +33,34 @@ Main improvements
   most from the node LRU cache" section of chapter 5 of User's Guide.
 
 
-Main Improvements (Pro edition)
+Main improvements (Pro edition)
 -------------------------------
 
 - New light indexes that can take up to 4x less space than 2.0 indexes, and
-  more than 15x less space than indexes in traditional databases (like
-  PostgreSQL).  Four levels of index "lightness", namely ``ultralight``,
-  ``light``, ``medium`` and ``full`` (the latter being the one that
-  implemented the 2.0 version), are available so that the user will be able to
-  choose the most appropriate for her needs.
+  more than 15x less space than indexes in traditional databases.  Four levels
+  of index "lightness", namely ``ultralight``, ``light``, ``medium`` and
+  ``full`` (the latter being the one that implemented the 2.0 version), are
+  available so that the user will be able to choose the most appropriate for
+  her needs.
 
 - The index query code has been completely revamped and it is based now on the
-  concept of *chunkmaps*.  This allows for a much more effective way to
-  retrieve table data in queries that have low selectivity, while retaining
-  good performance for high selectivity ones.
+  concept of chunkmaps.  This allows for a much more effective way to retrieve
+  table data in queries that have low selectivity, while retaining good
+  performance for high selectivity ones.
 
 - A new query optimizer being able to use several indexes simultaneously in a
   broad range of complex queries. For example, in the query::
 
       (((c_int32 == 3) | (c_bool == True)) & (c_int32 == 5)) & (c_extra > 0)
 
-  if ``c_int32`` and ``c_bool`` columns are indexed but c_extra is not, both
-  ``c_int32`` and ``c_bool`` indexes will be used. That will greatly enhance
-  the response times of potentially complicated queries.
+  if ``c_int32`` and ``c_bool`` columns are indexed but ``c_extra`` is not,
+  both ``c_int32`` and ``c_bool`` indexes will be used. That will greatly
+  enhance the response times of potentially complicated queries.
 
-- An additional optimization in the index creation process will allow to
-  obtain completely sorted indexes (CSI), allowing not only to get further
-  performance in queries, but also to create completely sorted tables ordered
-  by a specific field.  Moreover, queries including the sorted field will
-  enjoy unparalleled response times.
+- An additional optimization in the index creation process permits to achieve
+  completely sorted indexes (CSI), allowing not only to get better performance
+  in queries, but also to create completely sorted tables ordered by a
+  specific field.
 
 
 API additions from 2.0.4 to 2.1b3

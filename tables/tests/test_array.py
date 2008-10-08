@@ -1934,7 +1934,7 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test(self):
         """Test for unability to truncate Array objects."""
         array1 = self.h5file.createArray('/', 'array1', [0, 2])
-        self.assertRaises(IOError, array1.truncate, 0)
+        self.assertRaises(TypeError, array1.truncate, 0)
 
 
 def suite():

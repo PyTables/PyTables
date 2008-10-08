@@ -626,27 +626,19 @@ very small/large chunksize, you may want to increase/decrease it."""
         shorter, it is extended, and the extended part is filled with
         the default values.
 
-        The truncation operation can only be applied to *chunked*
-        datasets.  In particular, Array leaves cannot be truncated.
+        The truncation operation can only be applied to *enlargeable*
+        datasets, else a `TypeError` will be raised.
 
         .. Warning:: If you are using the HDF5 1.6.x series, and due to
            limitations of them, `size` must be greater than zero
            (i.e. the dataset can not be completely emptied).  A
            `ValueError` will be issued if you are using HDF5 1.6.x and
-           try to pass a zero size to this method.  Also, HDF5 1.6.x has
-           the problem that it cannot work against `CArray` objects
-           (again, a `ValueError` will be issued).  HDF5 1.8.x doesn't
-           undergo these problems.
+           try to pass a zero size to this method.  HDF5 1.8.x doesn't
+           undergo this problem.
         """
-        # A plain Array cannot be truncated
-        if self.__class__.__name__ == "Array":
-            raise IOError("Array instances cannot be truncated.")
-
-        if (self.__class__.__name__ == "CArray" and
-            whichLibVersion("hdf5")[1] < "1.8.0"):
-            raise ValueError(
-                "CArray instances cannot be truncated with HDF5 1.6.x.")
-
+        # A non-enlargeable arrays (Array, CArray) cannot be truncated
+        if self.extdim < 0:
+            raise TypeError("non-enlargeable datasets cannot be truncated")
         if (size > 0 or
             (size == 0 and whichLibVersion("hdf5")[1] >= "1.8.0")):
                 self._g_truncate(size)

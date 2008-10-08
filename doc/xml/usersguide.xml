@@ -6378,8 +6378,8 @@ for node in h5file.root.detector:
             part is filled with the default values.</para>
 
             <para>The truncation operation can only be applied to
-            <emphasis>chunked</emphasis> datasets.  In particular,
-            <literal>Array</literal> leaves cannot be truncated.</para>
+            <emphasis>enlargeable</emphasis> datasets, else a
+            <literal>TypeError</literal> will be raised.</para>
 
             <warning>
               <para>If you are using the HDF5 1.6.x series, and due to
