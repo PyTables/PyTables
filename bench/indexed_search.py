@@ -7,12 +7,12 @@ import numpy
 STEP = 1000*100  # the size of the buffer to fill the table, in rows
 SCALE = 0.1      # standard deviation of the noise compared with actual values
 NI_NTIMES = 1      # The number of queries for doing a mean (non-idx cols)
-#COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
-#WARMCACHE = 1500   # The number of reads until the cache is considered 'warmed'
-#READ_TIMES = WARMCACHE+500    # The number of complete calls to DB.query_db()
-COLDCACHE = 5   # The number of reads where the cache is considered 'cold'
-WARMCACHE = 5   # The number of reads until the cache is considered 'warmed'
-READ_TIMES = 10    # The number of complete calls to DB.query_db()
+COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
+WARMCACHE = 500   # The number of reads until the cache is considered 'warmed'
+READ_TIMES = WARMCACHE+500    # The number of complete calls to DB.query_db()
+#COLDCACHE = 5   # The number of reads where the cache is considered 'cold'
+#WARMCACHE = 5   # The number of reads until the cache is considered 'warmed'
+#READ_TIMES = 10    # The number of complete calls to DB.query_db()
 MROW = 1000*1000.
 
 # global variables
@@ -82,7 +82,8 @@ class DB(object):
         if verbose:
             print "Times for cold cache:\n", ctimes
             #print "Times for warm cache:\n", wtimes
-            print "Histogram for warm cache: %s\n%s" % numpy.histogram(wtimes)
+            print "Histogram for warm cache: %s\n%s" % \
+                  numpy.histogram(wtimes, new=True)
         print "%s1st query time for %s:" % (r, colname), \
               round(qtime1, prec)
         print "%sQuery time for %s (cold cache):" % (r, colname), \
@@ -199,7 +200,8 @@ class DB(object):
                 #tprof = numpy.array(tprof)
                 #tmean, tstd = self.norm_times(tprof)
                 #print "tprof-->", round(tmean, prec), "+-", round(tstd, prec)
-                #print "tprof hist-->", numpy.histogram(tprof)
+                #print "tprof hist-->", \
+                #    numpy.histogram(tprof, new=True)
                 #print "tprof raw-->", tprof
                 # Always reopen the file after *every* query loop.
                 # Necessary to make the benchmark to run correctly.
