@@ -84,9 +84,10 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         Please note that when reading several rows of `VLArray` data,
         the flavor only applies to the *components* of the returned
         Python list, not to the list itself.
-
     nrow
         On iterators, this is the index of the current row.
+    extdim
+        The index of the enlargeable dimension (always 0 for vlarrays).
 
     Public methods
     --------------
@@ -272,6 +273,8 @@ class VLArray(hdf5Extension.VLArray, Leaf):
         """On iterators, this is the index of the current row."""
         self.nrows = None
         """The total number of rows."""
+        self.extdim = 0   # VLArray only have one dimension currently
+        """The index of the enlargeable dimension (always 0 for vlarrays)."""
 
         # Check the chunkshape parameter
         if new and chunkshape is not None:

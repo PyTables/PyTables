@@ -117,9 +117,6 @@ class Leaf(Node):
 
         This is read-only because you cannot change the chunk size of a
         leaf once it has been created.
-
-    extdim
-        The index of the enlargeable dimension (-1 if none).
     filters
         Filter properties for this leaf --see `Filters`.
     flavor
@@ -132,14 +129,12 @@ class Leaf(Node):
         You can (and are encouraged to) use this property to get, set
         and delete the ``FLAVOR`` HDF5 attribute of the leaf.  When the
         leaf has no such attribute, the default flavor is used.
-
     maindim
         The dimension along which iterators work.
 
         Its value is 0 (i.e. the first dimension) when the dataset is
         not extendable, and `Leaf.extdim` (where available) for
         extendable ones.
-
     nrows
         The length of the main dimension of the leaf data.
     nrowsinbuf
@@ -147,7 +142,6 @@ class Leaf(Node):
 
         You can change this to fine-tune the speed or memory
         requirements of your application.
-
     shape
         The shape of data in the leaf.
 
@@ -277,8 +271,6 @@ class Leaf(Node):
         """
         self._flavor = None
         """Private storage for the `flavor` property."""
-        self.extdim = -1
-        """Default value for extendeable dimension."""
 
         if new:
             # Get filter properties from parent group if not given.
