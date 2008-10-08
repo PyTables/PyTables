@@ -9,9 +9,6 @@ This is beta quality software and not meant for production usage.  It
 is delivered only for the purposes of evaluation.  Redistribution in
 source and binary forms, with or without modification, is forbidden.
 
-
-LIMITATION OF LIABILITY
-
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
