@@ -79,15 +79,33 @@ def idx2long(index):
 def convertToNPAtom(arr, atom, copy=False):
     "Convert a generic object into a NumPy object compliant with atom."
 
-    # First, convert the object to a NumPy array
+    # First, convert the object into a NumPy array
     nparr = array_of_flavor(arr, 'numpy')
-
-    # Get copies of data if necessary for getting a contiguous buffer,
-    # or if dtype is not the correct one.
-    basetype = atom.dtype.base
-    if (copy or nparr.dtype != basetype):
-        nparr = numpy.array(nparr, dtype=basetype)
-
+    # Copy of data if necessary for getting a contiguous buffer, or if
+    # dtype is not the correct one.
+    if atom.shape == ():
+        # Scalar atom case
+        nparr = numpy.array(nparr, dtype=atom.dtype, copy=copy)
+    else:
+        # Multidimensional atom case.  Addresses #133.
+        # We need to use this strange way to obtain a dtype compliant
+        # array because NumPy doesn't honor the shape of the dtype when
+        # it is multidimensional.  See:
+        # http://scipy.org/scipy/numpy/ticket/926
+        # for details.
+        # All of this is done just to taking advantage of the NumPy
+        # broadcasting rules.
+        # A copy of original data always is made in this case (this is why
+        # the `copy` argument is not used here).
+        # F. Alted  2008-10-13
+        newshape = nparr.shape[:-len(atom.dtype.shape)]
+        if newshape == ():
+            # In order to allow the assignation later on
+            newshape = (1,)
+        nparr2 = numpy.empty(newshape, dtype=[('', atom.dtype)])
+        nparr2['f0'][:] = nparr
+        # Return a view (i.e. get rid of the record type)
+        nparr = nparr2.view(atom.dtype)
     return nparr
 
 

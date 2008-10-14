@@ -9524,7 +9524,7 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
           their length is always the same.  However, you can grow datasets
           along the extensible dimension in the case of
           <literal>EArray</literal> or put a variable number of them on a
-          <literal>VLArray</literal> row. Moreover, the are not
+          <literal>VLArray</literal> row. Moreover, they are not
           restricted to scalar values, and they can be <emphasis>fully
           multidimensional objects</emphasis>.</para>
 

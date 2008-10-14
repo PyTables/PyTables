@@ -21,7 +21,7 @@ Main improvements
 
 - The `EArray.truncate()` method has been generalized and implemented as
   `Leaf.truncate()`.  Now, it is possible to truncate all *enlargeable*
-  datasets (i.e. all except `Array` and `CArray` objects).  Fixes #174.
+  datasets (i.e. all except `Array` and `CArray` objects).  Solves #174.
 
 - Disabling the LRU node cache is now supported by setting the
   NODE_MAX_SLOTS (in parameters.py) to 0 (this can also be achieved
@@ -32,6 +32,11 @@ Main improvements
   touched nodes will be kept in an internal dictionary.  See more info
   about this features in the updated "Getting the most from the node LRU
   cache" section of chapter 5 of User's Guide.
+
+- The limitation to use only scalar atoms in `CArray` and `EArray`
+  objects has been removed.  Now, all the `Table`, `CArray`, `EArray`
+  and `VLArray` objects do support fully multidimensional atoms.  This
+  also expands the range of native HDF5 files supported.  Solves #133.
 
 
 Main improvements (Pro edition)
@@ -154,6 +159,11 @@ Backward incompatible API changes from 2.0.4 to 2.1b3
   will not allow to sort sequences larger than memory.  Moreover, it is
   not clear that the sorting operation would be a clear advantage in
   every situation.
+
+- Now, in multidimensional atoms, the `Atom.dtype` variable contains the
+  shape of the type.  This is found to be more consistent than the
+  previous behaviour, where `Atom.dtype` was equivalent to current
+  `Atom.dtype.base`.
 
 
 Backward incompatible API changes from 2.0.4 to 2.1b3 (Pro edition)

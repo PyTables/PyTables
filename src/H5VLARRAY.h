@@ -35,15 +35,9 @@ herr_t H5VLARRAYmodify_records( hid_t dataset_id,
 				int nobjects,
 				const void *data );
 
-herr_t H5VLARRAYget_ndims( hid_t dataset_id,
-			   hid_t type_id,
-			   int *rank );
-
 herr_t H5VLARRAYget_info( hid_t   dataset_id,
 			  hid_t   type_id,
 			  hsize_t *nrecords,
-			  hsize_t *base_dims,
-			  hid_t   *base_type_id,
 			  char    *base_byteorder);
 
 

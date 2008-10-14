@@ -142,11 +142,8 @@ cdef extern from "H5VLARRAY.h":
                                   hsize_t nrow, int nobjects,
                                   void *data )
 
-  herr_t H5VLARRAYget_ndims( hid_t dataset_id, hid_t type_id, int *rank )
-
   herr_t H5VLARRAYget_info( hid_t dataset_id, hid_t type_id,
-                            hsize_t *nrecords, hsize_t *base_dims,
-                            hid_t *base_type_id, char *base_byteorder)
+                            hsize_t *nrecords, char *base_byteorder)
 
 
 
@@ -899,7 +896,7 @@ cdef class Array(Leaf):
     atom = AtomFromHDF5Type(self.disk_type_id)
 
     # Get the rank for this array object
-    if H5ARRAYget_ndims(self.dataset_id, self.type_id, &self.rank) < 0:
+    if H5ARRAYget_ndims(self.dataset_id, &self.rank) < 0:
       raise HDF5ExtError("Problems getting ndims!")
     # Allocate space for the dimension axis info
     self.dims = <hsize_t *>malloc(self.rank * sizeof(hsize_t))
@@ -1124,7 +1121,6 @@ cdef class VLArray(Leaf):
     cdef char byteorder[11]  # "irrelevant" fits easily here
     cdef int i, enumtype
     cdef int rank
-    cdef hsize_t *dims
     cdef herr_t ret
     cdef hsize_t nrecords, chunksize
     cdef object shape, dtype, type_
@@ -1135,26 +1131,15 @@ cdef class VLArray(Leaf):
       raise HDF5ExtError("Problems opening dataset %s" % self.name)
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()
+    # Get the atom for this type
+    atom = AtomFromHDF5Type(self.disk_type_id)
 
-    # Get the rank for the atom in the array object
-    ret = H5VLARRAYget_ndims(self.dataset_id, self.type_id, &rank)
-    # Allocate space for the dimension axis info
-    dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
     # Get info on dimensions & types (of base class)
     H5VLARRAYget_info(self.dataset_id, self.disk_type_id, &nrecords,
-                      dims, &self.base_type_id, byteorder)
-    # Get the shape for the base type
-    shape = getshape(rank, dims)
-    if dims:
-      free(<void *>dims)
-
-    # Get the scalar atom and the atom for this type
-    scatom = AtomFromHDF5Type(self.base_type_id)
-    atom = scatom.copy(shape=shape)
-
+                      byteorder)
     # Get some properties of the atomic type
-    self._atomicdtype = scatom.dtype
-    self._atomictype = scatom.type
+    self._atomicdtype = atom.dtype
+    self._atomictype = atom.type
     self._atomicshape = atom.shape
     self._atomicsize = atom.size
 
@@ -1263,9 +1248,10 @@ cdef class VLArray(Leaf):
         # Case where there is info with zero lentgh
         buf = None
       # Compute the shape for the read array
-      shape = list(self._atomicshape)   # a copy is done: important!
+      shape = list(self._atomicshape)
       shape.insert(0, vllen)  # put the length at the beginning of the shape
-      nparr = numpy.ndarray(buffer=buf, dtype=self._atomicdtype, shape=shape)
+      nparr = numpy.ndarray(
+        buffer=buf, dtype=self._atomicdtype.base, shape=shape)
       # Set the writeable flag for this ndarray object
       nparr.flags.writeable = True
       if self.atom.kind == 'time':

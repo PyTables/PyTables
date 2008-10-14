@@ -319,54 +319,6 @@ out:
 
 
 /*-------------------------------------------------------------------------
- * Function: H5VLARRAYget_ndims
- *
- * Purpose: Gets the dimensionality of an array.
- *
- * Return: Success: 0, Failure: -1
- *
- * Programmer: Francesc Alted
- *
- * Date: November 19, 2003
- *
- *-------------------------------------------------------------------------
- */
-
-herr_t H5VLARRAYget_ndims( hid_t dataset_id,
-			   hid_t type_id,
-			   int *rank )
-{
-  hid_t       atom_type_id;
-  H5T_class_t atom_class_id;
-
-  /* Get the type of the atomic component */
-  atom_type_id = H5Tget_super( type_id );
-
-  /* Get the class of the atomic component. */
-  atom_class_id = H5Tget_class( atom_type_id );
-
-  /* Check whether the atom is an array class object or not */
-  if ( atom_class_id == H5T_ARRAY) {
-    /* Get rank */
-    if ( (*rank = H5Tget_array_ndims( atom_type_id )) < 0 )
-      goto out;
-  }
-  else {
-    *rank = 0;		/* Means scalar values */
-  }
-
- /* Terminate access to the datatypes */
- if ( H5Tclose( atom_type_id ) < 0 )
-  goto out;
-
- return 0;
-
-out:
- return -1;
-
-}
-
-/*-------------------------------------------------------------------------
  * Function: H5VLARRAYget_info
  *
  * Purpose: Gathers info about the VLEN type and other.
@@ -383,8 +335,6 @@ out:
 herr_t H5VLARRAYget_info( hid_t   dataset_id,
 			  hid_t   type_id,
 			  hsize_t *nrecords,
-			  hsize_t *base_dims,
-			  hid_t   *base_type_id,
 			  char    *base_byteorder )
 {
 
@@ -392,6 +342,7 @@ herr_t H5VLARRAYget_info( hid_t   dataset_id,
   H5T_class_t base_class_id;
   H5T_class_t atom_class_id;
   hid_t       atom_type_id;
+  hid_t       base_type_id;
 
 
   /* Get the dataspace handle */
@@ -415,20 +366,16 @@ herr_t H5VLARRAYget_info( hid_t   dataset_id,
   /* Check whether the atom is an array class object or not */
   if ( atom_class_id == H5T_ARRAY) {
     /* Get the array base component */
-    *base_type_id = H5Tget_super( atom_type_id );
+    base_type_id = H5Tget_super( atom_type_id );
     /* Get the class of base component */
-    base_class_id = H5Tget_class( *base_type_id );
-    /* Get dimensions */
-    if ( H5Tget_array_dims(atom_type_id, base_dims, NULL) < 0 )
-      goto out;
+    base_class_id = H5Tget_class( base_type_id );
     /* Release the datatypes */
     if ( H5Tclose(atom_type_id ) )
-      return -1;
+      goto out;
   }
   else {
     base_class_id = atom_class_id;
-    *base_type_id = atom_type_id;
-    base_dims = NULL; 		/* Is a scalar */
+    base_type_id = atom_type_id;
   }
 
   /* Get the byteorder */
@@ -436,11 +383,15 @@ herr_t H5VLARRAYget_info( hid_t   dataset_id,
   if ((base_class_id == H5T_INTEGER) || (base_class_id == H5T_FLOAT)
       || (base_class_id == H5T_BITFIELD) || (base_class_id == H5T_COMPOUND)
       || (base_class_id == H5T_TIME)) {
-    get_order(*base_type_id, base_byteorder);
+    get_order(base_type_id, base_byteorder);
   }
   else {
     strcpy(base_byteorder, "irrelevant");
   }
+
+  /* Release the datatypes */
+  if ( H5Tclose(base_type_id ) )
+      goto out;
 
   return 0;
 

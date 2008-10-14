@@ -708,48 +708,35 @@ out:
  *
  * Date: October 22, 2002
  *
+ * Modification: October 13, 2008
+ *   This routine not longer returns the dimensionality of data types
+ *   in case they are H5T_ARRAY.
+ *
  *-------------------------------------------------------------------------
  */
-/* Addition: Now, this routine can deal with both array and
-   atomic datatypes. F. Alted  2003-01-29 */
 
 herr_t H5ARRAYget_ndims( hid_t dataset_id,
-			 hid_t type_id,
 			 int *rank )
 {
-
   hid_t       space_id;
-  H5T_class_t class_arr_id;
 
-  /* Get the class. */
-  class_arr_id = H5Tget_class( type_id );
+  /* Get the dataspace handle */
+  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
+    goto out;
 
-  /* Check if this is an array class object*/
-  if ( class_arr_id == H5T_ARRAY ) {
+  /* Get rank */
+  if ( (*rank = H5Sget_simple_extent_ndims( space_id )) < 0 )
+    goto out;
 
-    /* Get rank */
-    if ( (*rank = H5Tget_array_ndims( type_id )) < 0 )
-      goto out;
-  }
-  else {
-    /* Get the dataspace handle */
-    if ( (space_id = H5Dget_space( dataset_id )) < 0 )
-      goto out;
+  /* Terminate access to the dataspace */
+  if ( H5Sclose( space_id ) < 0 )
+    goto out;
 
-    /* Get rank */
-    if ( (*rank = H5Sget_simple_extent_ndims( space_id )) < 0 )
-      goto out;
 
-    /* Terminate access to the dataspace */
-    if ( H5Sclose( space_id ) < 0 )
-      goto out;
-
-  }
-
- return 0;
+  return 0;
 
 out:
- return -1;
+  return -1;
 
 }
 

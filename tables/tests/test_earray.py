@@ -2438,6 +2438,128 @@ class ZeroSizedTestCase(unittest.TestCase):
         self.assertRaises(ValueError, ea.append, np)
 
 
+# Test for dealing with multidimensional atoms
+class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def test01a_append(self):
+        "Append a row to a (unidimensional) EArray with a MD atom."
+        # Create an EArray
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,2)), (0,))
+        if self.reopen:
+            self._reopen('a')
+            ea = self.h5file.root.test
+        # Append one row
+        ea.append([[[1,3],[4,5]]])
+        self.assert_(ea.nrows == 1)
+        if common.verbose:
+            print "First row-->", ea[0]
+        assert allequal(ea[0], numpy.array([[1,3],[4,5]], 'i4'))
+
+    def test01b_append(self):
+        "Append several rows to a (unidimensional) EArray with a MD atom."
+        # Create an EArray
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,2)), (0,))
+        if self.reopen:
+            self._reopen('a')
+            ea = self.h5file.root.test
+        # Append three rows
+        ea.append([[[1]], [[2]], [[3]]])   # Simple broadcast
+        self.assert_(ea.nrows == 3)
+        if common.verbose:
+            print "Third row-->", ea[2]
+        assert allequal(ea[2], numpy.array([[3,3],[3,3]], 'i4'))
+
+    def test02a_append(self):
+        "Append a row to a (multidimensional) EArray with a MD atom."
+        # Create an EArray
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,)), (0,3))
+        if self.reopen:
+            self._reopen('a')
+            ea = self.h5file.root.test
+        # Append one row
+        ea.append([[[1,3],[4,5],[7,9]]])
+        self.assert_(ea.nrows == 1)
+        if common.verbose:
+            print "First row-->", ea[0]
+        assert allequal(ea[0], numpy.array([[1,3],[4,5],[7,9]], 'i4'))
+
+    def test02b_append(self):
+        "Append several rows to a (multidimensional) EArray with a MD atom."
+        # Create an EArray
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,)), (0,3))
+        if self.reopen:
+            self._reopen('a')
+            ea = self.h5file.root.test
+        # Append three rows
+        ea.append([[[1,-3],[4,-5],[-7,9]],
+                   [[-1,3],[-4,5],[7,-8]],
+                   [[-2,3],[-5,5],[7,-9]]])
+        self.assert_(ea.nrows == 3)
+        if common.verbose:
+            print "Third row-->", ea[2]
+        assert allequal(ea[2], numpy.array([[-2,3],[-5,5],[7,-9]], 'i4'))
+
+    def test03a_MDMDMD(self):
+        "Complex append of a MD array in a MD EArray with a MD atom."
+        # Create an EArray
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,4)), (0,2,3))
+        if self.reopen:
+            self._reopen('a')
+            ea = self.h5file.root.test
+        # Append three rows
+        # The shape of the atom should be added at the end of the arrays
+        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2,3,2,4))
+        ea.append([a*1, a*2, a*3])
+        self.assert_(ea.nrows == 3)
+        if common.verbose:
+            print "Third row-->", ea[2]
+        assert allequal(ea[2], a*3)
+
+    def test03b_MDMDMD(self):
+        "Complex append of a MD array in a MD EArray with a MD atom (II)."
+        # Create an EArray
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,4)), (2,0,3))
+        if self.reopen:
+            self._reopen('a')
+            ea = self.h5file.root.test
+        # Append three rows
+        # The shape of the atom should be added at the end of the arrays
+        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2,1,3,2,4))
+        ea.append(a*1)
+        ea.append(a*2)
+        ea.append(a*3)
+        self.assert_(ea.nrows == 3)
+        if common.verbose:
+            print "Third row-->", ea[:,2,...]
+        assert allequal(ea[:,2,...], a.reshape((2,3,2,4))*3)
+
+    def test03c_MDMDMD(self):
+        "Complex append of a MD array in a MD EArray with a MD atom (III)."
+        # Create an EArray
+        ea = self.h5file.createEArray('/', 'test', Int32Atom((2,4)), (2,3,0))
+        if self.reopen:
+            self._reopen('a')
+            ea = self.h5file.root.test
+        # Append three rows
+        # The shape of the atom should be added at the end of the arrays
+        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2,3,1,2,4))
+        ea.append(a*1)
+        ea.append(a*2)
+        ea.append(a*3)
+        self.assert_(ea.nrows == 3)
+        if common.verbose:
+            print "Third row-->", ea[:,:,2,...]
+        assert allequal(ea[:,:,2,...], a.reshape((2,3,2,4))*3)
+
+
+class MDAtomNoReopen(MDAtomTestCase):
+    reopen = False
+
+class MDAtomReopen(MDAtomTestCase):
+    reopen = True
+
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -2496,6 +2618,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
         theSuite.addTest(unittest.makeSuite(ZeroSizedTestCase))
+        theSuite.addTest(unittest.makeSuite(MDAtomNoReopen))
+        theSuite.addTest(unittest.makeSuite(MDAtomReopen))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4EArrayTestCase))

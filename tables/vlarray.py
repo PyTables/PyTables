@@ -334,11 +334,11 @@ class VLArray(hdf5Extension.VLArray, Leaf):
 be zero."""
 
         if not hasattr(atom, 'size'):  # it is a pseudo-atom
-            self._atomicdtype = atom.base.dtype.base
+            self._atomicdtype = atom.base.dtype
             self._atomicsize = atom.base.size
             self._basesize = atom.base.itemsize
         else:
-            self._atomicdtype = atom.dtype.base
+            self._atomicdtype = atom.dtype
             self._atomicsize = atom.size
             self._basesize = atom.itemsize
         self._atomictype = atom.type

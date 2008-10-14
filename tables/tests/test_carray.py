@@ -2152,41 +2152,129 @@ class DfltAtomTestCase(unittest.TestCase):
         fileh.close()
 
 
-
-class MDAtomTestCase(unittest.TestCase):
-
-    def test01_notimplemented(self):
-        "Check that multidimensional atoms raise NotImplemented error."
-
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        fileh = self.fileh = openFile(self.file, "a")
-
-        # Try to create a carray with a multidimensional Atom
-        # Here, NotImplemented error should be raised!
-        try:
-            carray = fileh.createCArray(fileh.root, 'carray',
-                                        Int8Atom(shape=(2,)), (2,3))
-        except NotImplementedError:
-            if common.verbose:
-                (type, value, traceback) = sys.exc_info()
-                print "\nGreat!, the next error was catched:"
-                print value
-        else:
-            self.fail("expected a NotImplementedError")
-
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
-
-
 class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
     def test(self):
         """Test for unability to truncate Array objects."""
         array1 = self.h5file.createArray('/', 'array1', [0, 2])
         self.assertRaises(TypeError, array1.truncate, 0)
+
+
+# Test for dealing with multidimensional atoms
+class MDAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def test01a_assign(self):
+        "Assign a row to a (unidimensional) CArray with a MD atom."
+        # Create an CArray
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,2)), (1,))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Assign one row
+        ca[0] = [[[1,3],[4,5]]]
+        self.assert_(ca.nrows == 1)
+        if common.verbose:
+            print "First row-->", ca[0]
+        assert allequal(ca[0], numpy.array([[1,3],[4,5]], 'i4'))
+
+    def test01b_assign(self):
+        "Assign several rows to a (unidimensional) CArray with a MD atom."
+        # Create an CArray
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,2)), (3,))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Assign three rows
+        ca[:] = [[[1]], [[2]], [[3]]]   # Simple broadcast
+        self.assert_(ca.nrows == 3)
+        if common.verbose:
+            print "Third row-->", ca[2]
+        assert allequal(ca[2], numpy.array([[3,3],[3,3]], 'i4'))
+
+    def test02a_assign(self):
+        "Assign a row to a (multidimensional) CArray with a MD atom."
+        # Create an CArray
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,)), (1,3))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Assign one row
+        ca[:] = [[[1,3],[4,5],[7,9]]]
+        self.assert_(ca.nrows == 1)
+        if common.verbose:
+            print "First row-->", ca[0]
+        assert allequal(ca[0], numpy.array([[1,3],[4,5],[7,9]], 'i4'))
+
+    def test02b_assign(self):
+        "Assign several rows to a (multidimensional) CArray with a MD atom."
+        # Create an CArray
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,)), (3,3))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Assign three rows
+        ca[:] = [[[1,-3],[4,-5],[-7,9]],
+                 [[-1,3],[-4,5],[7,-8]],
+                 [[-2,3],[-5,5],[7,-9]]]
+        self.assert_(ca.nrows == 3)
+        if common.verbose:
+            print "Third row-->", ca[2]
+        assert allequal(ca[2], numpy.array([[-2,3],[-5,5],[7,-9]], 'i4'))
+
+    def test03a_MDMDMD(self):
+        "Complex assign of a MD array in a MD CArray with a MD atom."
+        # Create an CArray
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,4)), (3,2,3))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Assign values
+        # The shape of the atom should be added at the end of the arrays
+        a = numpy.arange(2*3*2*4, dtype='i4').reshape((2,3,2,4))
+        ca[:] = [a*1, a*2, a*3]
+        self.assert_(ca.nrows == 3)
+        if common.verbose:
+            print "Third row-->", ca[2]
+        assert allequal(ca[2], a*3)
+
+    def test03b_MDMDMD(self):
+        "Complex assign of a MD array in a MD CArray with a MD atom (II)."
+        # Create an CArray
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,4)), (2,3,3))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Assign values
+        # The shape of the atom should be added at the end of the arrays
+        a = numpy.arange(2*3*3*2*4, dtype='i4').reshape((2,3,3,2,4))
+        ca[:] = a
+        self.assert_(ca.nrows == 2)
+        if common.verbose:
+            print "Third row-->", ca[:,2,...]
+        assert allequal(ca[:,2,...], a[:,2,...])
+
+    def test03c_MDMDMD(self):
+        "Complex assign of a MD array in a MD CArray with a MD atom (III)."
+        # Create an CArray
+        ca = self.h5file.createCArray('/', 'test', Int32Atom((2,4)), (3,1,2))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Assign values
+        # The shape of the atom should be added at the end of the arrays
+        a = numpy.arange(3*1*2*2*4, dtype='i4').reshape((3,1,2,2,4))
+        ca[:] = a
+        self.assert_(ca.nrows == 3)
+        if common.verbose:
+            print "Second row-->", ca[:,:,1,...]
+        assert allequal(ca[:,:,1,...], a[:,:,1,...])
+
+
+class MDAtomNoReopen(MDAtomTestCase):
+    reopen = False
+
+class MDAtomReopen(MDAtomTestCase):
+    reopen = True
+
 
 
 
@@ -2254,8 +2342,9 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
         theSuite.addTest(unittest.makeSuite(BigArrayTestCase))
         theSuite.addTest(unittest.makeSuite(DfltAtomTestCase))
-        theSuite.addTest(unittest.makeSuite(MDAtomTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateTestCase))
+        theSuite.addTest(unittest.makeSuite(MDAtomNoReopen))
+        theSuite.addTest(unittest.makeSuite(MDAtomReopen))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3CArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4CArrayTestCase))

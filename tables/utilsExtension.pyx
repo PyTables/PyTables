@@ -290,7 +290,7 @@ def whichClass(hid_t loc_id, char *name):
        (class_id == H5T_STRING)   or
        (class_id == H5T_ARRAY)):
     if layout == H5D_CHUNKED:
-      if H5ARRAYget_ndims(dataset_id, type_id, &rank) < 0:
+      if H5ARRAYget_ndims(dataset_id, &rank) < 0:
         raise HDF5ExtError("Problems getting ndims.")
       dims = <hsize_t *>malloc(rank * sizeof(hsize_t))
       maxdims = <hsize_t *>malloc(rank * sizeof(hsize_t))
@@ -642,27 +642,34 @@ def HDF5ToNPExtType(hid_t type_id, issue_error):
 
   if class_id == H5T_BITFIELD:
     stype = "b1"
-  elif class_id ==  H5T_INTEGER:
+  elif class_id == H5T_INTEGER:
     # Get the sign
     sign = H5Tget_sign(type_id)
     if (sign > 0):
       stype = "i%s" % (itemsize)
     else:
       stype = "u%s" % (itemsize)
-  elif class_id ==  H5T_FLOAT:
+  elif class_id == H5T_FLOAT:
     stype = "f%s" % (itemsize)
   elif class_id ==  H5T_COMPOUND:
     # Here, this can only be a complex
     stype = "c%s" % (itemsize)
-  elif class_id ==  H5T_STRING:
+  elif class_id == H5T_STRING:
     if H5Tis_variable_str(type_id):
       raise TypeError("variable length strings are not supported yet")
     stype = "S%s" % (itemsize)
-  elif class_id ==  H5T_TIME:
+  elif class_id == H5T_TIME:
     stype = "t%s" % (itemsize)
   elif class_id ==  H5T_ENUM:
     stype = "e"
-  elif class_id ==  H5T_ARRAY:
+  elif class_id == H5T_VLEN:
+    # Get the variable length base component
+    super_type_id = H5Tget_super(type_id)
+    # Find the super member format
+    stype, shape = HDF5ToNPExtType(super_type_id, issue_error)
+    # Release resources
+    H5Tclose(super_type_id)
+  elif class_id == H5T_ARRAY:
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
     # Get the class

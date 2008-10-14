@@ -189,10 +189,6 @@ class CArray(Array):
                 raise ValueError, """\
 atom parameter should be an instance of tables.Atom and you passed a %s.""" \
 % type(atom)
-            elif atom.shape != ():
-                raise NotImplementedError, """\
-sorry, but multidimensional atoms are not supported in this context yet."""
-
             if shape is None:
                 raise ValueError("you must specify a non-empty shape")
             try:
@@ -227,7 +223,6 @@ chunkshape parameter cannot have zero-dimensions."""
     def _g_create(self):
         """Create a new array in file (specific part)."""
 
-        # Pre-conditions
         if min(self.shape) < 1:
             raise ValueError(
                 "shape parameter cannot have zero-dimensions.")

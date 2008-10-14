@@ -72,7 +72,6 @@ herr_t H5ARRAYreadIndex( hid_t dataset_id,
 			 void *data );
 
 herr_t H5ARRAYget_ndims( hid_t dataset_id,
-			 hid_t type_id,
 			 int *rank );
 
 herr_t H5ARRAYget_info( hid_t dataset_id,

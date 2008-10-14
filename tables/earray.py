@@ -195,13 +195,13 @@ class EArray(CArray):
         "Test that nparr shape is consistent with underlying EArray."
 
         # The arrays conforms self expandibility?
-        myshlen = len(self.shape)
-        nashlen = len(nparr.shape)
-        if myshlen != nashlen:
+        myrank = len(self.shape)
+        narank = len(nparr.shape) - len(self.atom.shape)
+        if myrank != narank:
             raise ValueError("""\
 the ranks of the appended object (%d) and the ``%s`` EArray (%d) differ"""
-                             % (nashlen, self._v_pathname, myshlen))
-        for i in range(myshlen):
+                             % (narank, self._v_pathname, myrank))
+        for i in range(myrank):
             if i != self.extdim and self.shape[i] != nparr.shape[i]:
                 raise ValueError("""\
 the shapes of the appended object and the ``%s`` EArray \

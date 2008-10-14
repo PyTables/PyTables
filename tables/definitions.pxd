@@ -456,7 +456,7 @@ cdef extern from "H5ATTR.h":
 
 # Functions for operations with ARRAY
 cdef extern from "H5ARRAY.h":
-  herr_t H5ARRAYget_ndims(hid_t dataset_id, hid_t type_id, int *rank)
+  herr_t H5ARRAYget_ndims(hid_t dataset_id, int *rank)
   herr_t H5ARRAYget_info(hid_t dataset_id, hid_t type_id, hsize_t *dims,
                          hsize_t *maxdims, H5T_class_t *super_class_id,
                          char *byteorder)
