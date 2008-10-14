@@ -432,7 +432,8 @@ def getTypeEnum(hid_t h5type):
   Get the native HDF5 enumerated type of `h5type`.
 
   If `h5type` is an enumerated type, it is returned.  If it is a
-  multi-dimensional type with an enumerated base type, this is returned.
+  variable-length type with an enumerated base type, this is returned.  If it
+  is a multi-dimensional type with an enumerated base type, this is returned.
   Else, a ``TypeError`` is raised.
   """
 
@@ -446,12 +447,10 @@ def getTypeEnum(hid_t h5type):
   if typeClass == H5T_ENUM:
     # Get the native type (in order to do byteorder conversions automatically)
     enumId = H5Tget_native_type(h5type, H5T_DIR_DEFAULT)
-  elif typeClass == H5T_ARRAY:
-    # The field is multi-dimensional.
+  elif typeClass in (H5T_ARRAY, H5T_VLEN):
+    # The field is multi-dimensional or variable length.
     enumId2 = H5Tget_super(h5type)
-    if enumId2 < 0:
-      raise HDF5ExtError("failed to get base type of HDF5 type")
-    enumId = H5Tget_native_type(enumId2, H5T_DIR_DEFAULT)
+    enumId = getTypeEnum(enumId2)
     H5Tclose(enumId2)
   else:
     raise TypeError(
