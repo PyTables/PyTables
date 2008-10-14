@@ -897,14 +897,13 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                     (sortedlr[::self.chunksize], [sortedlr[-1]]))
                 sortedLR[nelementsLR:nelementsLR+len(bebounds)] = bebounds
                 self.bebounds = bebounds
-            #print "remain-->", send
 
         # Verify that we have dealt with all the remaining values
         assert send == 0
 
         # Compute the overlaps in order to verify that we have achieved
-        # a complete sort.  This has to be executed always (not only in
-	# verbose mode!).
+        # a complete sort.  This has to be executed always (and not only
+        # in verbose mode!).
         self.compute_overlaps(self.tmp, "do_complete_sort()", self.verbose)
         if self.verbose:
             t = round(time()-t1, 4);  c = round(clock()-c1, 4)
