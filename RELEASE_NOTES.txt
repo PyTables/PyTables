@@ -8,8 +8,8 @@
 :Contact: ivan@selidor.net
 
 
-Changes from 2.0.4 to 2.1b3
-===========================
+Changes from 2.0.4 to 2.1
+=========================
 
 Main improvements
 -----------------
@@ -69,8 +69,8 @@ Main improvements (Pro edition)
   tables ordered by a specific field.
 
 
-API additions from 2.0.4 to 2.1b3
----------------------------------
+API additions from 2.0.4 to 2.1
+-------------------------------
 
 - The `AttributeSet` class has received the next dictionary like
   methods: `__getitem__()`, `__setitem__()` and `__delitem__()`, so that
@@ -96,8 +96,8 @@ API additions from 2.0.4 to 2.1b3
   merging the contents of others.
 
 
-API additions from 2.0.4 to 2.1b3 (Pro edition)
------------------------------------------------
+API additions from 2.0.4 to 2.1 (Pro edition)
+---------------------------------------------
 
 - A new `Table.itersorted()` iterator allows to iterate through a table
   following the order of a certain index.  It supports iteration on
@@ -143,8 +143,8 @@ Bug fixes
   `CArrays`.  Fixes #176.
 
 
-Backward incompatible API changes from 2.0.4 to 2.1b3
-=====================================================
+Backward incompatible API changes from 2.0.4 to 2.1
+===================================================
 
 - The semantics of `Leaf.copy()` has changed: before the chunkshape of
   destination was computed 'auto'matically while now the default is that
@@ -166,8 +166,8 @@ Backward incompatible API changes from 2.0.4 to 2.1b3
   `Atom.dtype.base`.
 
 
-Backward incompatible API changes from 2.0.4 to 2.1b3 (Pro edition)
-===================================================================
+Backward incompatible API changes from 2.0.4 to 2.1 (Pro edition)
+=================================================================
 
 - The `Column.createIndex()` has received a new parameter named `kind`
   which is the first now in the argument list.  This is intentional and
