@@ -40,7 +40,7 @@ import numpy
 
 from tables.idxutils import (
     calcChunksize, calcoptlevels, get_reduction_level,
-    show_stats, nextafter, infType )
+    nextafter, infType )
 
 from tables import indexesExtension
 from tables import utilsExtension
@@ -76,7 +76,9 @@ obversion = "2.1"    # Version of indexes in PyTables Pro 2.1 and up series
 debug = False
 #debug = True  # Uncomment this for printing sizes purposes
 profile = False
-#profile = True  # uncomment for profiling purposes only
+#profile = True  # Uncomment for profiling
+if profile:
+    from tables.idxutils import show_stats
 
 
 # The default method for sorting
@@ -1737,6 +1739,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def search(self, item):
         """Do a binary search in this index for an item"""
 
+        if profile: tref = time()
+        if profile: show_stats("Entering search", tref)
+
         if self.dirtycache:
             self.restorecache()
 
@@ -1818,6 +1823,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             # Put this startlengths list in cache
             self.limboundscache.setitem(item, startlengths, size)
 
+        if profile: show_stats("Exiting search", tref)
         return tlen
 
 
@@ -1908,7 +1914,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def get_chunkmap(self):
         """Compute a map with the interesting chunks in index"""
 
-        #t1 = time()
+        if profile: tref = time()
+        if profile: show_stats("Entering get_chunkmap", tref)
         ss = self.slicesize;  bs = self.blocksize
         nsb = self.nslicesblock;  nslices = self.nslices
         lbucket = self.lbucket;  indsize = self.indsize
@@ -1955,7 +1962,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             for i in range(len(idx)):
                 tchunkmap[starts[i]:stops[i]] = True
             chunkmap = tchunkmap
-        #self.tprof = round(time()-t1, 4)
+        if profile: show_stats("Exiting get_chunkmap", tref)
         return chunkmap
 
 

@@ -11,7 +11,6 @@
 """Here is defined the Table class (pro)."""
 
 import warnings, math
-
 import numpy
 
 from tables.parameters import (
@@ -23,6 +22,12 @@ from tables.index import (
 from tables.lrucacheExtension import ObjectCache, NumCache
 from tables import numexpr
 from tables._table_common import _indexNameOf, _indexPathnameOf
+
+profile = False
+#profile = True  # Uncomment for profiling
+if profile:
+    from time import time
+    from tables.idxutils import show_stats
 
 
 __version__ = "$Revision$"
@@ -132,7 +137,7 @@ _table__autoIndex = property(
 def restorecache(self):
     # Define a cache for sparse table reads
     chunksize = self._v_chunkshape[0]
-    nslots = TABLE_MAX_SIZE / chunksize
+    nslots = TABLE_MAX_SIZE / (chunksize * self._v_dtype.itemsize)
     self._chunkcache = NumCache((nslots, chunksize), self._v_dtype,
                                 'table chunk cache')
     self._seqcache = ObjectCache(ITERSEQ_MAX_SLOTS, ITERSEQ_MAX_SIZE,
@@ -141,6 +146,8 @@ def restorecache(self):
 
 
 def _table__whereIndexed(self, compiled, condvars, start, stop, step):
+    if profile: tref = time()
+    if profile: show_stats("Entering table_whereIndexed", tref)
     self._useIndex = True
     # Clean the table caches for indexed queries if needed
     if self._dirtycache:
@@ -197,6 +204,7 @@ def _table__whereIndexed(self, compiled, condvars, start, stop, step):
         # The chunkmap is empty
         return iter([])
 
+    if profile: show_stats("Exiting table_whereIndexed", tref)
     return chunkmap
 
 

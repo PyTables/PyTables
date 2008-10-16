@@ -74,6 +74,11 @@ else:
         pass
     _is_pro = True
 
+profile = False
+#profile = True  # Uncomment for profiling
+if profile:
+    from time import time
+    from tables.idxutils import show_stats
 
 __version__ = "$Revision$"
 
@@ -1180,6 +1185,8 @@ class Table(tableExtension.Table, Leaf):
     def _where( self, condition, condvars,
                 start=None, stop=None, step=None ):
         """Low-level counterpart of `self.where()`."""
+        if profile: tref = time()
+        if profile: show_stats("Entering table._where", tref)
         # Adjust the slice to be used.
         (start, stop, step) = self._processRangeRead(start, stop, step)
         if start >= stop:  # empty range, reset conditions
@@ -1208,6 +1215,7 @@ class Table(tableExtension.Table, Leaf):
         args = [condvars[param] for param in compiled.parameters]
         self._whereCondition = (compiled.function, args)
         row = tableExtension.Row(self)
+        if profile: show_stats("Exiting table._where", tref)
         return row._iter(start, stop, step, chunkmap=chunkmap)
 
 
