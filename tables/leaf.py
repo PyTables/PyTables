@@ -704,7 +704,11 @@ With HDF5 1.8.0 and higher, `size` can also be 0 or greater.""")
         if not self._v_isopen:
             return  # the node is already closed or not initialized
 
-        if flush:
+        # Only do a flush in case the leaf has an IO buffer.  The
+        # internal buffers of HDF5 will be flushed afterwards during the
+        # self._g_close() call.  Avoiding an unnecessary flush()
+        # operation accelerates the closing for the unbuffered leaves.
+        if flush and hasattr(self, "_v_iobuf"):
             self.flush()
 
         # Close the dataset and release resources

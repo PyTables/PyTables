@@ -497,11 +497,11 @@ class DeepTreeTestCase(unittest.TestCase):
 
     def setUp(self):
         # Here we put a more conservative limit to deal with more platforms
-        # With maxdepth = 64 this test would take less than 20 MB
+        # With maxdepth = 64 this test would take less than 40 MB
         # of main memory to run, which is quite reasonable nowadays.
-        # With maxdepth = 1024 this test will take around 40 MB.
+        # With maxdepth = 1024 this test will take around 300 MB.
         if common.heavy:
-            self.maxdepth = 1024  # Takes long time!
+            self.maxdepth = 256  # Takes around 60 MB of memory!
         else:
             self.maxdepth = 64  # This should be safe for most machines
         if common.verbose:

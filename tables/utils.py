@@ -12,9 +12,9 @@
 
 """
 
-import os, os.path
+import os, os.path, subprocess
 import sys
-import math
+from time import time, clock
 
 import numpy
 
@@ -229,6 +229,80 @@ def lazyattr(fget):
         return value
     return property(newfget, None, None, fget.__doc__)
 
+
+def show_stats(explain, tref):
+    "Show the used memory (only works for Linux 2.6.x)."
+    # Build the command to obtain memory info
+    cmd = "cat /proc/%s/status" % os.getpid()
+    sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
+    for line in sout:
+        if line.startswith("VmSize:"):
+            vmsize = int(line.split()[1])
+        elif line.startswith("VmRSS:"):
+            vmrss = int(line.split()[1])
+        elif line.startswith("VmData:"):
+            vmdata = int(line.split()[1])
+        elif line.startswith("VmStk:"):
+            vmstk = int(line.split()[1])
+        elif line.startswith("VmExe:"):
+            vmexe = int(line.split()[1])
+        elif line.startswith("VmLib:"):
+            vmlib = int(line.split()[1])
+    sout.close()
+    print "Memory usage: ******* %s *******" % explain
+    print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)
+    print "VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk)
+    print "VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib)
+    tnow = time()
+    print "WallClock time:", round(tnow - tref, 3)
+    return tnow
+
+
+# Utilities to detect leaked instances.  See recipe 14.10 of the Python
+# Cookbook by Martelli & Ascher.
+tracked_classes = {}
+import weakref
+
+def logInstanceCreation(instance, name=None):
+    if name is None:
+        name = instance.__class__.__name__
+        if not tracked_classes.has_key(name):
+            tracked_classes[name] = []
+        tracked_classes[name].append(weakref.ref(instance))
+
+def string_to_classes(s):
+    if s == '*':
+        c = tracked_classes.keys()
+        c.sort()
+        return c
+    else:
+        return s.split()
+
+def fetchLoggedInstances(classes="*"):
+    classnames = string_to_classes(classes)
+    return map(lambda cn: (cn, len(tracked_classes[cn])), classnames)
+
+def countLoggedInstances(classes, file=sys.stdout):
+    for classname in string_to_classes(classes):
+        file.write("%s: %d\n" % (classname, len(tracked_classes[classname])))
+
+def listLoggedInstances(classes, file=sys.stdout):
+    for classname in string_to_classes(classes):
+        file.write('\n%s:\n' % classname)
+        for ref in tracked_classes[classname]:
+            obj = ref()
+            if obj is not None:
+                file.write('    %s\n' % repr(obj))
+
+def dumpLoggedInstances(classes, file=sys.stdout):
+    for classname in string_to_classes(classes):
+        file.write('\n%s:\n' % classname)
+        for ref in tracked_classes[classname]:
+            obj = ref()
+            if obj is not None:
+                file.write('    %s:\n' % obj)
+                for key, value in obj.__dict__.items():
+                    file.write('        %20s : %s\n' % (key, value))
 
 # Main part
 # =========

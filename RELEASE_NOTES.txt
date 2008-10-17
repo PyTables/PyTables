@@ -38,6 +38,10 @@ Main improvements
   and `VLArray` objects do support fully multidimensional atoms.  This
   also expands the range of native HDF5 files supported.  Solves #133.
 
+- After some exhaustive benchmarks, I've decided to reduce the number
+  of nodes in the cache to 64.  The experiments shows that this leads
+  to a better performance overall and without consuming too much
+  resources.
 
 Main improvements (Pro edition)
 -------------------------------

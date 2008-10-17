@@ -101,12 +101,10 @@ METADATA_CACHE_SIZE = 1*_MB  # 1 MB is the default for HDF5
 #NODE_MAX_SLOTS = 16    # 26 MB, 39.9 s
 #NODE_MAX_SLOTS = 32    # 28 MB, 40.9 s
 #NODE_MAX_SLOTS = 64    # 30 MB, 41.1 s
-#NODE_MAX_SLOTS = 128   # 35 MB, 41.6 s        , 60 MB for writes (!)
-# NODE_MAX_SLOTS = 256   # 42 MB, 42.3s, opt:40.9s , 64 MB for writes
 #                         # This is a good compromise between CPU and memory
 #                         # consumption.
 
-NODE_MAX_SLOTS = 256
+NODE_MAX_SLOTS = 64
 """Maximum number of unreferenced nodes to be kept in memory.
 
 If positive, this is the number of *unreferenced* nodes to be kept in
@@ -131,6 +129,8 @@ A value of zero means that any cache mechanism is disabled.
 # not grave at all, it should be addressed sooner or later.
 # ******************************************************************
 
+#NODE_MAX_SLOTS = 128   # 35 MB, 41.6 s        , 60 MB for writes (!)
+#NODE_MAX_SLOTS = 256   # 42 MB, 42.3s, opt:40.9s , 64 MB for writes
 #NODE_MAX_SLOTS = 512   # 59 MB, 43.9s, opt: 41.8s
 #NODE_MAX_SLOTS = 1024  # 52 MB, 85.1s, opt: 17.0s # everything fits on cache!
 #NODE_MAX_SLOTS = 2048  # 52 MB, XXXs, opt: 17.0s # everything fits on cache!

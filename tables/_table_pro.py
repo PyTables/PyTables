@@ -27,7 +27,7 @@ profile = False
 #profile = True  # Uncomment for profiling
 if profile:
     from time import time
-    from tables.idxutils import show_stats
+    from tables.utils import show_stats
 
 
 __version__ = "$Revision$"

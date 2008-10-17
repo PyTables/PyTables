@@ -10,8 +10,7 @@
 
 """Utilities to be used mainly by the Index class."""
 
-import math, os, subprocess
-from time import time, clock
+import math
 import numpy
 
 
@@ -528,34 +527,6 @@ def nextafter(x, direction, dtype, itemsize):
             return PyNextAfter(x,x+1)
 
     raise TypeError("data type ``%s`` is not supported" % dtype)
-
-
-def show_stats(explain, tref):
-    "Show the used memory"
-    # Build the command to obtain memory info (only for Linux 2.6.x)
-    cmd = "cat /proc/%s/status" % os.getpid()
-    sout = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
-    for line in sout:
-        if line.startswith("VmSize:"):
-            vmsize = int(line.split()[1])
-        elif line.startswith("VmRSS:"):
-            vmrss = int(line.split()[1])
-        elif line.startswith("VmData:"):
-            vmdata = int(line.split()[1])
-        elif line.startswith("VmStk:"):
-            vmstk = int(line.split()[1])
-        elif line.startswith("VmExe:"):
-            vmexe = int(line.split()[1])
-        elif line.startswith("VmLib:"):
-            vmlib = int(line.split()[1])
-    sout.close()
-    print "Memory usage: ******* %s *******" % explain
-    print "VmSize: %7s kB\tVmRSS: %7s kB" % (vmsize, vmrss)
-    print "VmData: %7s kB\tVmStk: %7s kB" % (vmdata, vmstk)
-    print "VmExe:  %7s kB\tVmLib: %7s kB" % (vmexe, vmlib)
-    tnow = time()
-    print "WallClock time:", round(tnow - tref, 3)
-    return tnow
 
 
 
