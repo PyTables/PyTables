@@ -893,9 +893,13 @@ cdef class Row:
           if self.chunkmapData[nchunksread]:
             self.bufcoords[j*cs:(j+1)*cs] = tmp_range + self.nrowsread
             # Not optimized read
-#             recout = recout + table._read_records(
-#               nchunksread*cs, cs, IObuf[j*cs:])
-            # Optimized through the use of a chunk cache
+            #  recout = recout + table._read_records(
+            #    nchunksread*cs, cs, IObuf[j*cs:])
+            #
+            # Optimized read through the use of a chunk cache.  This cache has
+            # more or less the same speed than the integrated HDF5 chunk
+            # cache, but using the PyTables Pro one has the advantage that the
+            # user can easily change this parameter.
             recout = recout + table._read_chunk(nchunksread, IObuf, j*cs)
             j = j + 1
           self.nrowsread = (nchunksread+1)*cs

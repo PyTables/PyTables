@@ -149,9 +149,6 @@ MAX_COLUMNS = 512
 ``PerformanceWarning`` is issued.
 """
 
-TABLE_MAX_SIZE = 1*_MB
-"""The maximum size for table rows cached during table reads."""
-
 EXPECTED_ROWS_TABLE = 10000
 """Default expected number of rows for ``Table`` objects."""
 
