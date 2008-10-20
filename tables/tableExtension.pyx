@@ -188,7 +188,7 @@ cdef class Table(Leaf):
 
     # Compute the complete compound datatype based on the table description
     self.disk_type_id = self.createNestedType(self.description, self.byteorder)
-    self.type_id = self.createNestedType(self.description, sys.byteorder)
+    self.type_id = H5Tcopy(self.disk_type_id)
 
     # The fill values area
     fill_value = self._v_wdflts
