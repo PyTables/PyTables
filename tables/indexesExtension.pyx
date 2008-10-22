@@ -309,6 +309,18 @@ cdef class IndexArray(Array):
       self.sortedcache = <NumCache>NumCache(
         (maxslots, self.chunksize), dtype, 'sorted')
 
+    # The next method is needed to run Pro without a node cache.  But with the
+    # method active, it breaks the correct behaviour when run with cache.
+    # I'll deactivate it until I have more time to grasp what is happening
+    # here.
+    # F. Alted 2008-10-22
+#   def _g_postInitHook(self):
+#     super(Array, self)._g_postInitHook()
+#     # Restore the caches on every initialization of the sorted node
+#     parent = self._v_parent
+#     if not self._v_new and self._v_name == "sorted":
+#       self._v_parent.restorecache()
+
 
   cdef void *_g_readSortedSlice(self, hsize_t irow, hsize_t start,
                                 hsize_t stop):
@@ -906,8 +918,9 @@ cdef class IndexArray(Array):
 
 
 cdef class LastRowArray(Array):
-  """Container for keeping sorted and indices values of last rows of an index."""
-
+  """
+  Container for keeping sorted and indices values of last rows of an index.
+  """
 
   def _readIndexSlice(self, hsize_t start, hsize_t stop, ndarray idx):
     "Read the reverse index part of an LR index."
@@ -917,7 +930,6 @@ cdef class LastRowArray(Array):
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data in Last Row.")
-
     return
 
 
@@ -931,7 +943,6 @@ cdef class LastRowArray(Array):
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data.")
-
     return sorted.bufferlb[:stop-start]
 
 

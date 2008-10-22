@@ -119,7 +119,8 @@ def redoMove(file_, origpath, destpath):
 
 
 def attrToShadow(file_, path, name):
-    attrs = file_._getNode(path)._v_attrs
+    node = file_._getNode(path)
+    attrs = node._v_attrs
     value = getattr(attrs, name)
 
     (shparent, shname) = file_._shadowName()
@@ -138,8 +139,8 @@ def attrFromShadow(file_, path, name):
     shattrs = shparent._v_attrs
     value = getattr(shattrs, shname)
 
-    attrs = file_._getNode(path)._v_attrs
-    attrs._g__setattr(name, value)
+    node = file_._getNode(path)
+    node._v_attrs._g__setattr(name, value)
 
     # Keeping the attribute in the shadow allows reusing it on Undo/Redo.
     ##shattrs._g__delattr(shname)

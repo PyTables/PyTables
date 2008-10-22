@@ -1164,12 +1164,14 @@ class AttributesTestCase(common.PyTablesTestCase):
 
     def test01_writeAttribute(self):
         """Checking the creation of a numpy attribute."""
-        g_attrs = self.fileh.root.group._v_attrs
+        group = self.fileh.root.group
+        g_attrs = group._v_attrs
         g_attrs.numpy1 = zeros((1,1), dtype='int16')
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
-            g_attrs = self.fileh.root.group._v_attrs
+            group = self.fileh.root.group
+            g_attrs = group._v_attrs
         # Check that we can retrieve a numpy object
         data = g_attrs.numpy1
         npcomp = zeros((1,1), dtype='int16')
@@ -1185,12 +1187,14 @@ class AttributesTestCase(common.PyTablesTestCase):
     def test02_updateAttribute(self):
         """Checking the modification of a numpy attribute."""
 
-        g_attrs = self.fileh.root.group._v_attrs
+        group = self.fileh.root.group
+        g_attrs = group._v_attrs
         g_attrs.numpy1 = zeros((1,2), dtype='int16')
         if self.close:
             self.fileh.close()
             self.fileh = openFile(self.file, "a")
-            g_attrs = self.fileh.root.group._v_attrs
+            group = self.fileh.root.group
+            g_attrs = group._v_attrs
         # Update this attribute
         g_attrs.numpy1 = ones((1,2), dtype='int16')
         # Check that we can retrieve a numpy object

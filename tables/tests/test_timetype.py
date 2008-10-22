@@ -597,7 +597,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         "Checking Time32 type in plain columns."
 
         # Check the written data.
-        t32 = self.h5f.root.tbl.cols.t32[:]
+        tbl = self.h5f.root.tbl
+        t32 = tbl.cols.t32[:]
 
         # Generate the expected Time32 array.
         start = 1178896298
@@ -616,7 +617,8 @@ class BigEndianTestCase(common.PyTablesTestCase):
         "Checking Time64 type in nested columns."
 
         # Check the written data.
-        t64 = self.h5f.root.tbl.cols.nested.t64[:]
+        tbl = self.h5f.root.tbl
+        t64 = tbl.cols.nested.t64[:]
 
         # Generate the expected Time64 array.
         start = 1178896298.832258
@@ -635,8 +637,9 @@ class BigEndianTestCase(common.PyTablesTestCase):
         "Checking Time64 type in nested columns (read twice)."
 
         # Check the written data.
-        _ = self.h5f.root.tbl.cols.nested.t64[:]
-        t64 = self.h5f.root.tbl.cols.nested.t64[:]
+        tbl = self.h5f.root.tbl
+        _ = tbl.cols.nested.t64[:]
+        t64 = tbl.cols.nested.t64[:]
 
         # Generate the expected Time64 array.
         start = 1178896298.832258

@@ -6,9 +6,6 @@
 # Modified to use monotonically increasing integer values as access times
 # by Ivan Vilata i Balaguer <ivan@selidor.net>.
 
-# Modified to use a container in Pyrex for accelerating the heapify()
-# process by Francesc Alted <faltet@pytables.com>.
-
 # arch-tag: LRU cache main module
 
 """a simple LRU (Least-Recently-Used) cache module
@@ -156,13 +153,13 @@ class LRUCache(object):
                 lru = heappop(self.__heap)
                 del self.__dict[lru.key]
                 if DEBUG:
-                    print "eliminant(setitem)-->", lru.obj._v_pathname
+                    print "removing(setitem)-->", lru.obj._v_pathname
             node = self.__Node(key, obj, self.__seqn)
             self.__dict[key] = node
             if DEBUG:
-                print "introduint node-->", node.obj._v_pathname
+                print "inserting node-->", node.obj._v_pathname
                 f = sys._getframe(3)
-                print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+                print "caller-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             heappush(self.__heap, node)
 
     def __getitem__(self, key):
@@ -171,9 +168,9 @@ class LRUCache(object):
         else:
             node = self.__dict[key]
             if DEBUG:
-                print "recuperant-->", node.obj._v_pathname
+                print "retrieving-->", node.obj._v_pathname
                 f = sys._getframe(4)
-                print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+                print "caller-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             node.atime = self.__seqn
             heapify(self.__heap)
             return node.obj
@@ -185,9 +182,9 @@ class LRUCache(object):
             node = self.__dict[key]
             del self.__dict[key]
             if DEBUG and hasattr(node.obj, "_v_pathname"):
-                print "eliminant(delitem)-->", node.obj._v_pathname
+                print "removing(delitem)-->", node.obj._v_pathname
                 f = sys._getframe(2)
-                print "cridador-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
+                print "caller-->", f.f_code.co_name, f.f_lineno, f.f_code.co_filename
             self.__heap.remove(node)
             heapify(self.__heap)
             return node.obj

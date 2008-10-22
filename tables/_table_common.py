@@ -19,3 +19,12 @@ def _indexPathnameOf(node):
 
 def _indexPathnameOfColumn(table, colpathname):
     return joinPath(_indexPathnameOf(table), colpathname)
+
+def _tableColumnPathnameOfIndex(indexpathname):
+    names = indexpathname.split("/")
+    for i, name in enumerate(names):
+        if name.startswith('_i_'):
+            break
+    tablepathname = "/".join(names[:i])+"/"+name[3:]
+    colpathname = "/".join(names[i+1:])
+    return (tablepathname, colpathname)

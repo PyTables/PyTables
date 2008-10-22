@@ -2850,7 +2850,6 @@ class Column(object):
         indexname = _indexPathnameOfColumn(table, self.pathname)
         try:
             index = tableFile._getNode(indexname)
-            index.column = self # points to this column
             self._indexFile = index._v_file
             self._indexPath = index._v_pathname
         except NodeError:

@@ -2988,23 +2988,68 @@ class SV15bTestCase(SelectValuesTestCase):
 class LastRowReuseBuffers(common.PyTablesTestCase):
     # Test that checks for possible reuse of buffers coming
     # from last row in the sorted part of indexes
+    nelem = 1221
     numpy.random.seed(1); random.seed(1)
 
     class Record(IsDescription):
         id1 = Int16Col()
 
-    def test00(self):
-        nelem = 1221
+    def test00_lrucache(self):
         filename = tempfile.mktemp(".h5")
-        fp = openFile(filename, 'w')
+        fp = openFile(filename, 'w', nodeCacheSize=64)
         ta = fp.createTable('/', 'table', self.Record, filters=Filters(1))
-        id1 = numpy.random.randint(0, 2**15, nelem)
+        id1 = numpy.random.randint(0, 2**15, self.nelem)
         ta.append([id1])
 
         ta.cols.id1.createIndex()
 
-        for i in xrange(nelem):
-            nrow = random.randint(0, nelem-1)
+        for i in xrange(self.nelem):
+            nrow = random.randint(0, self.nelem-1)
+            value = id1[nrow]
+            idx = ta.getWhereList('id1 == %s' % value)
+            assert len(idx) > 0 , "idx--> %s %s %s %s" % (idx, i, nrow, value)
+            assert nrow in idx, "nrow not found: %s != %s, %s" % \
+                   (idx, nrow, value)
+
+        fp.close()
+        os.remove(filename)
+
+    # This won't work until I have a more careful look at why the
+    # IndexArray._g_postInitHook() breaks the behaviour when a node
+    # cache exists.
+    # F. Alted 2008-10-11
+    def _test01_nocache(self):
+        filename = tempfile.mktemp(".h5")
+        fp = openFile(filename, 'w', nodeCacheSize=0)
+        ta = fp.createTable('/', 'table', self.Record, filters=Filters(1))
+        id1 = numpy.random.randint(0, 2**15, self.nelem)
+        ta.append([id1])
+
+        ta.cols.id1.createIndex()
+
+        for i in xrange(self.nelem):
+            nrow = random.randint(0, self.nelem-1)
+            value = id1[nrow]
+            idx = ta.getWhereList('id1 == %s' % value)
+            assert len(idx) > 0 , "idx--> %s %s %s %s" % (idx, i, nrow, value)
+            assert nrow in idx, "nrow not found: %s != %s, %s" % \
+                   (idx, nrow, value)
+
+        fp.close()
+        os.remove(filename)
+
+
+    def test02_dictcache(self):
+        filename = tempfile.mktemp(".h5")
+        fp = openFile(filename, 'w', nodeCacheSize=-64)
+        ta = fp.createTable('/', 'table', self.Record, filters=Filters(1))
+        id1 = numpy.random.randint(0, 2**15, self.nelem)
+        ta.append([id1])
+
+        ta.cols.id1.createIndex()
+
+        for i in xrange(self.nelem):
+            nrow = random.randint(0, self.nelem-1)
             value = id1[nrow]
             idx = ta.getWhereList('id1 == %s' % value)
             assert len(idx) > 0 , "idx--> %s %s %s %s" % (idx, i, nrow, value)

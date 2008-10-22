@@ -27,11 +27,12 @@ Main improvements
   NODE_MAX_SLOTS (in parameters.py) to 0 (this can also be achieved
   through the `nodeCacheSize` parameter of openFile() function).
   Disabling this cache may be useful in situations where you suspect
-  that maintaining a LRU node cache is actually reducing performance.
-  Besides, this figure can also be negative, meaning that all the
-  touched nodes will be kept in an internal dictionary.  See more info
-  about this features in the updated "Getting the most from the node LRU
-  cache" section of chapter 5 of User's Guide.
+  that maintaining it is actually reducing performance (and not
+  increasing it).  Besides, this figure can also be negative, meaning
+  that all the touched nodes will be kept in an internal dictionary
+  (thus, taking potentially large memory).  See more info about these
+  features in the updated "Getting the most from the node LRU cache"
+  section of chapter 5 of User's Guide.
 
 - The limitation to use only scalar atoms in `CArray` and `EArray`
   objects has been removed.  Now, all the `Table`, `CArray`, `EArray`

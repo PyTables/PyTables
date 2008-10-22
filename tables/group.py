@@ -389,7 +389,7 @@ class Group(hdf5Extension.Group, Node):
         """Dictionary with all hidden nodes hanging from this group."""
 
         # Get the names of *all* child groups and leaves.
-        (groupNames, leafNames) = self._g_listGroup()
+        (groupNames, leafNames) = self._g_listGroup(self._v_parent)
 
         # Separate groups into visible groups and hidden nodes,
         # and leaves into visible leaves and hidden nodes.

@@ -60,7 +60,7 @@ from tables.parameters import (
     MAX_GROUP_WIDTH )
 from tables.exceptions import PerformanceWarning
 from tables.utils import is_idx, idx2long, lazyattr
-
+from tables._table_common import _tableColumnPathnameOfIndex
 from tables.lrucacheExtension import ObjectCache
 
 
@@ -164,7 +164,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self._v_attrs.DIRTY = dirty
         # If an *actual* change in dirtiness happens,
         # notify the condition cache by setting or removing a nail.
-        conditionCache = self.column.table._conditionCache
+        conditionCache = self.table._conditionCache
         if not wasdirty and isdirty:
             conditionCache.nail()
         if wasdirty and not isdirty:
@@ -178,6 +178,25 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         Dirty indexes are out of sync with column data, so they exist
         but they are not usable.
         """ )
+
+    def _getcolumn(self):
+        tablepath, columnpath = _tableColumnPathnameOfIndex(self._v_pathname)
+        table = self._v_file._getNode(tablepath)
+        column = table.cols._g_col(columnpath)
+        return column
+
+    column = property(
+        _getcolumn, None, None,
+        "Accessor for the `Column` object of this index.")
+
+    def _gettable(self):
+        tablepath, columnpath = _tableColumnPathnameOfIndex(self._v_pathname)
+        table = self._v_file._getNode(tablepath)
+        return table
+
+    table = property(
+        _gettable, None, None,
+        "Accessor for the `Table` object of this index.")
 
     nblockssuperblock = property(
         lambda self: self.superblocksize / self.blocksize, None, None,
@@ -226,7 +245,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     temp_required = property(
         lambda self: (self.indsize > 1 and
                       self.optlevel > 0 and
-                      self.column.table.nrows > self.slicesize),
+                      self.table.nrows > self.slicesize),
         None, None,
         "Whether a temporary file for indexes is required or not.")
 
@@ -254,7 +273,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     @lazyattr
     def nrowsinchunk(self):
         """The number of rows that fits in a *table* chunk."""
-        return self.column.table.chunkshape[0]
+        return self.table.chunkshape[0]
 
     @lazyattr
     def lbucket(self):
@@ -284,7 +303,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
 
     def __init__(self, parentNode, name,
-                 atom=None, column=None, title="",
+                 atom=None, title="",
                  kind=None,
                  optlevel=None,
                  filters=None,
@@ -300,8 +319,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         atom -- An Atom object representing the shape and type of the
             atomic objects to be saved. Only scalar atoms are
             supported.
-
-        column -- The column object to be indexed
 
         title -- Sets a TITLE attribute of the Index entity.
 
@@ -332,7 +349,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         self._v_version = None
         """The object version of this index."""
-
         self.optlevel = optlevel
         """The optimization level for this index."""
         self.tmp_dir = tmp_dir
@@ -358,9 +374,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             assert indsize in (1, 2, 4, 8), "indsize should be 1, 2, 4 or 8!"
             self.indsize = indsize
             """The itemsize for the indices part of the index."""
-
-        self.column = column
-        """The `Column` instance for the indexed column."""
 
         self.nrows = None
         """The total number of slices in the index."""
@@ -1547,7 +1560,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             print "overlaps:\n", overlaps, overlaps.sum()
         noverlaps = overlaps.sum()
         # For full indexes, set the 'is_CSI' flag
-        if self.indsize == 8 and self.column.table._v_file._isWritable():
+        if self.indsize == 8 and self._v_file._isWritable():
             self._v_attrs.is_CSI = (noverlaps == 0)
         # Save the number of overlaps for future references
         self.noverlaps = noverlaps
@@ -1605,7 +1618,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             print "overlaps (%s):" % message, noverlaps, toverlap
             print multiplicity
         # For full indexes, set the 'is_CSI' flag
-        if self.indsize == 8 and self.column.table._v_file._isWritable():
+        if self.indsize == 8 and self._v_file._isWritable():
             self._v_attrs.is_CSI = (noverlaps == 0)
         # Save the number of overlaps for future references
         self.noverlaps = noverlaps
@@ -1731,7 +1744,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         the last row, and mainly useful for small indexes."""
         self.starts = numpy.empty(shape=self.nrows, dtype=numpy.int32)
         self.lengths = numpy.empty(shape=self.nrows, dtype=numpy.int32)
-        # Initialize the sorted array in extension
         self.sorted._initSortedSlice(self)
         self.dirtycache = False
 
@@ -2039,7 +2051,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def __repr__(self):
         """This provides more metainfo than standard __repr__"""
 
-        cpathname = self.column.table._v_pathname + ".cols." + self.column.name
+        cpathname = self.table._v_pathname + ".cols." + self.column.pathname
         retstr = """%s (Index for column %s)
   kind := %s
   optlevel := %s

@@ -569,7 +569,6 @@ class DeepTreeTestCase(unittest.TestCase):
         self._check_tree(file2)
         os.remove(file2)
 
-
     def test01b_copyDeepTree(self):
         "Copy of a large depth object tree with small node cache."
         fileh = openFile(self.file, mode = "r", nodeCacheSize=10)
@@ -583,7 +582,6 @@ class DeepTreeTestCase(unittest.TestCase):
         self._check_tree(file2)
         os.remove(file2)
 
-
     def test01c_copyDeepTree(self):
         "Copy of a large depth object tree with no node cache."
         fileh = openFile(self.file, mode = "r", nodeCacheSize=0)
@@ -596,7 +594,6 @@ class DeepTreeTestCase(unittest.TestCase):
         fileh2.close()
         self._check_tree(file2)
         os.remove(file2)
-
 
     def test01d_copyDeepTree(self):
         "Copy of a large depth object tree with static node cache."

@@ -250,24 +250,36 @@ class _AliveNodes(dict):
 
     """Stores strong or weak references to nodes in a transparent way."""
 
+    def __init__(self, nodeCacheSize):
+        if nodeCacheSize > 0:
+            self.hasdeadnodes = True
+        else:
+            self.hasdeadnodes = False
+        if nodeCacheSize >= 0:
+            self.hassoftlinks = True
+        else:
+            self.hassoftlinks = False
+        self.nodeCacheSize = nodeCacheSize
+        super(_AliveNodes, self).__init__()
+
     def __getitem__(self, key):
-        if _NODE_MAX_SLOTS > 0:
+        if self.hassoftlinks:
             ref = super(_AliveNodes, self).__getitem__(key)()
         else:
             ref = super(_AliveNodes, self).__getitem__(key)
         return ref
 
     def __setitem__(self, key, value):
-        if _NODE_MAX_SLOTS > 0:
+        if self.hassoftlinks:
             ref = weakref.ref(value)
         else:
             ref = value
             # Check if we are running out of space
-            if _NODE_MAX_SLOTS < 0 and len(self) > -_NODE_MAX_SLOTS:
+            if self.nodeCacheSize < 0 and len(self) > -self.nodeCacheSize:
                 warnings.warn("""\
 the dictionary of alive nodes is exceeding the recommended maximum number (%d); \
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
-                      % (-_NODE_MAX_SLOTS),
+                      % (-self.nodeCacheSize),
                       PerformanceWarning)
         super(_AliveNodes, self).__setitem__(key, ref)
 
@@ -480,7 +492,6 @@ class File(hdf5Extension.File, object):
         created. "r+" is similar to "a", but the file must already exist. A
         TITLE attribute will be set on the root group if optional "title"
         parameter is passed."""
-        global _NODE_MAX_SLOTS
 
         # Check filters and set PyTables format version for new files.
         new = self._v_new
@@ -490,13 +501,14 @@ class File(hdf5Extension.File, object):
 
         self.filename = filename
         self.mode = mode
+        self.metadataCacheSize = metadataCacheSize
+        self.nodeCacheSize = nodeCacheSize
 
         # Nodes referenced by a variable are kept in `_aliveNodes`.
         # When they are no longer referenced, they move themselves
         # to `_deadNodes`, where they are kept until they are referenced again
         # or they are preempted from it by other unreferenced nodes.
-        self._aliveNodes = _AliveNodes()
-        _NODE_MAX_SLOTS = nodeCacheSize
+        self._aliveNodes = _AliveNodes(nodeCacheSize)
         if nodeCacheSize > 0:
             self._deadNodes = _DeadNodes(nodeCacheSize)
         else:
@@ -1969,7 +1981,10 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         # users are directed to do this through a PerformanceWarning!)
         for path, refnode in self._aliveNodes.iteritems():
             if '/_i_' not in path:  # Indexes are not necessary to be flushed
-                node = refnode()
+                if (self._aliveNodes.hassoftlinks):
+                    node = refnode()
+                else:
+                    node = refnode
                 if isinstance(node, Leaf):
                     node.flush()
 
@@ -2083,6 +2098,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         Register `node` as alive and insert references to it.
         """
 
+        #print "referencing-->", nodePath
         if nodePath != '/':
             # The root group does not participate in alive/dead stuff.
             aliveNodes = self._aliveNodes
@@ -2114,6 +2130,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         set of dead, unreferenced ones.
         """
 
+        #print "killing-->", node._v_pathname
         nodePath = node._v_pathname
         assert nodePath in self._aliveNodes, \
                "trying to kill non-alive node ``%s``" % nodePath
@@ -2123,7 +2140,13 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         # Remove all references to the node.
         self._unrefNode(nodePath)
         # Save the dead node in the limbo.
-        self._deadNodes[nodePath] = node
+        if self._aliveNodes.hasdeadnodes:
+            self._deadNodes[nodePath] = node
+        else:
+            # We have not a cache for dead nodes,
+            # so follow the usual deletion procedure.
+            node._v__deleting = True
+            node._f_close()
 
 
     def _reviveNode(self, nodePath):

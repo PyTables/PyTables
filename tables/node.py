@@ -335,6 +335,7 @@ class Node(object):
         #    revived, the user would also need to force the closed
         #    `Node` out of memory, which is not a trivial task.
         #
+
         if not self._v_isopen:
             return  # the node is already closed or not initialized
 
@@ -343,7 +344,7 @@ class Node(object):
         if self._v_pathname in file_._aliveNodes:
             # If the node is alive, kill it (to save it).
             file_._killNode(self)
-        else:
+        elif file_._aliveNodes.hasdeadnodes:
             # The node is already dead and there are no references to it,
             # so follow the usual deletion procedure.
             # This means closing the (still open) node.
@@ -544,12 +545,13 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         # Remove the node from the PyTables hierarchy.
-        self._v_parent._g_unrefNode(self._v_name)
+        parent = self._v_parent
+        parent._g_unrefNode(self._v_name)
         # Close the node itself.
         self._f_close()
         # hdf5Extension operations:
         #   Remove the node from the HDF5 hierarchy.
-        self._g_delete()
+        self._g_delete(parent)
 
 
     def _f_remove(self, recursive=False):

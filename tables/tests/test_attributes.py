@@ -9,6 +9,7 @@ import tempfile
 import warnings
 import numpy
 from numpy.testing import assert_array_equal, assert_almost_equal
+from tables.parameters import NODE_MAX_SLOTS
 
 from tables import *
 from tables.tests import common
@@ -29,7 +30,8 @@ class CreateTestCase(unittest.TestCase):
     def setUp(self):
         # Create an instance of HDF5 Table
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, mode = "w")
+        self.fileh = openFile(
+            self.file, mode = "w", nodeCacheSize=self.nodeCacheSize)
         self.root = self.fileh.root
 
         # Create a table object
@@ -67,7 +69,8 @@ class CreateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r+")
+            self.fileh = openFile(
+                self.file, mode = "r+", nodeCacheSize=self.nodeCacheSize)
             self.root = self.fileh.root
 
         assert self.fileh.getNodeAttr(self.root.agroup, 'attr1') == \
@@ -93,7 +96,8 @@ class CreateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r+")
+            self.fileh = openFile(
+                self.file, mode = "r+", nodeCacheSize=self.nodeCacheSize)
             self.root = self.fileh.root
 
         assert self.root.agroup._f_getAttr('attr1') == "p" * attrlength
@@ -115,9 +119,11 @@ class CreateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r+")
+            self.fileh = openFile(
+                self.file, mode = "r+", nodeCacheSize=self.nodeCacheSize)
             self.root = self.fileh.root
 
+        # This should work even when the node cache is disabled
         assert self.root.agroup._v_attrs.attr1 == "p" * attrlength
         assert self.root.atable.attrs.attr1 == "a" * attrlength
         assert self.root.anarray.attrs.attr1 == "n" * attrlength
@@ -150,18 +156,21 @@ class CreateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r+")
+            self.fileh = openFile(
+                self.file, mode = "r+", nodeCacheSize=self.nodeCacheSize)
             self.root = self.fileh.root
 
-        assert self.root.agroup._v_attrs._f_list("user") == \
+        agroup = self.root.agroup
+        assert agroup._v_attrs._f_list("user") == \
                ["pq", "qr", "rs"]
-        assert self.root.agroup._v_attrs._f_list("sys") == \
+        assert agroup._v_attrs._f_list("sys") == \
                ['CLASS', 'TITLE', 'VERSION']
-        assert self.root.agroup._v_attrs._f_list("all") == \
+        assert agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
 
-        assert self.root.atable.attrs._f_list() == ["a", "b", "c"]
-        assert self.root.atable.attrs._f_list("sys") == \
+        atable = self.root.atable
+        assert atable.attrs._f_list() == ["a", "b", "c"]
+        assert atable.attrs._f_list("sys") == \
                ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
@@ -170,7 +179,7 @@ class CreateTestCase(unittest.TestCase):
                 'FIELD_4_FILL', 'FIELD_4_NAME',
                 'NROWS',
                 'TITLE', 'VERSION']
-        assert self.root.atable.attrs._f_list("all") == \
+        assert atable.attrs._f_list("all") == \
                ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
@@ -181,10 +190,11 @@ class CreateTestCase(unittest.TestCase):
                 'TITLE', 'VERSION',
                 "a", "b", "c"]
 
-        assert self.root.anarray.attrs._f_list() == ["i", "j", "k"]
-        assert self.root.anarray.attrs._f_list("sys") == \
+        anarray = self.root.anarray
+        assert anarray.attrs._f_list() == ["i", "j", "k"]
+        assert anarray.attrs._f_list("sys") == \
                ['CLASS', 'FLAVOR', 'TITLE', 'VERSION']
-        assert self.root.anarray.attrs._f_list("all") == \
+        assert anarray.attrs._f_list("all") == \
                ['CLASS', 'FLAVOR', 'TITLE', 'VERSION',
                 "i", "j", "k"]
 
@@ -202,31 +212,33 @@ class CreateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r+")
+            self.fileh = openFile(
+                self.file, mode = "r+", nodeCacheSize=self.nodeCacheSize)
             self.root = self.fileh.root
 
+        agroup = self.root.agroup
         if common.verbose:
-            print "Attribute list:", self.root.agroup._v_attrs._f_list()
+            print "Attribute list:", agroup._v_attrs._f_list()
         # Check the local attributes names
-        assert self.root.agroup._v_attrs._f_list() == ["qr", "rs"]
+        assert agroup._v_attrs._f_list() == ["qr", "rs"]
         if common.verbose:
             print "Attribute list in disk:", \
-                  self.root.agroup._v_attrs._f_list("all")
+                  agroup._v_attrs._f_list("all")
         # Check the disk attribute names
-        assert self.root.agroup._v_attrs._f_list("all") == \
+        assert agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "qr", "rs"]
 
         # delete an attribute (__delattr__ method)
-        del self.root.agroup._v_attrs.qr
+        del agroup._v_attrs.qr
         if common.verbose:
-            print "Attribute list:", self.root.agroup._v_attrs._f_list()
+            print "Attribute list:", agroup._v_attrs._f_list()
         # Check the local attributes names
-        assert self.root.agroup._v_attrs._f_list() == ["rs"]
+        assert agroup._v_attrs._f_list() == ["rs"]
         if common.verbose:
             print "Attribute list in disk:", \
-                  self.root.agroup._v_attrs._g_listAttr()
+                  agroup._v_attrs._g_listAttr()
         # Check the disk attribute names
-        assert self.root.agroup._v_attrs._f_list("all") == \
+        assert agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "rs"]
 
     def test05b_removeAttributes(self):
@@ -243,31 +255,33 @@ class CreateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r+")
+            self.fileh = openFile(
+                self.file, mode = "r+", nodeCacheSize=self.nodeCacheSize)
             self.root = self.fileh.root
 
+        agroup = self.root.agroup
         if common.verbose:
-            print "Attribute list:", self.root.agroup._v_attrs._f_list()
+            print "Attribute list:", agroup._v_attrs._f_list()
         # Check the local attributes names
-        assert self.root.agroup._v_attrs._f_list() == ["qr", "rs"]
+        assert agroup._v_attrs._f_list() == ["qr", "rs"]
         if common.verbose:
             print "Attribute list in disk:", \
-                  self.root.agroup._v_attrs._f_list("all")
+                  agroup._v_attrs._f_list("all")
         # Check the disk attribute names
-        assert self.root.agroup._v_attrs._f_list("all") == \
+        assert agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "qr", "rs"]
 
         # delete an attribute (File.delNodeAttr method)
         self.fileh.delNodeAttr(self.root, "qr", "agroup")
         if common.verbose:
-            print "Attribute list:", self.root.agroup._v_attrs._f_list()
+            print "Attribute list:", agroup._v_attrs._f_list()
         # Check the local attributes names
-        assert self.root.agroup._v_attrs._f_list() == ["rs"]
+        assert agroup._v_attrs._f_list() == ["rs"]
         if common.verbose:
             print "Attribute list in disk:", \
-                  self.root.agroup._v_attrs._g_listAttr()
+                  agroup._v_attrs._g_listAttr()
         # Check the disk attribute names
-        assert self.root.agroup._v_attrs._f_list("all") == \
+        assert agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "rs"]
 
     def test06_removeAttributes(self):
@@ -298,17 +312,19 @@ class CreateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r+")
+            self.fileh = openFile(
+                self.file, mode = "r+", nodeCacheSize=self.nodeCacheSize)
             self.root = self.fileh.root
 
+        agroup = self.root.agroup
         if common.verbose:
-            print "Attribute list:", self.root.agroup._v_attrs._f_list()
+            print "Attribute list:", agroup._v_attrs._f_list()
         # Check the local attributes names (alphabetically sorted)
-        assert self.root.agroup._v_attrs._f_list() == ["op", "qr", "rs"]
+        assert agroup._v_attrs._f_list() == ["op", "qr", "rs"]
         if common.verbose:
-            print "Attribute list in disk:", self.root.agroup._v_attrs._f_list("all")
+            print "Attribute list in disk:", agroup._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
-        assert self.root.agroup._v_attrs._f_list("all") == \
+        assert agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "op", "qr", "rs"]
 
     def test08_renameAttributes(self):
@@ -324,7 +340,8 @@ class CreateTestCase(unittest.TestCase):
             print "All attrs:", self.group._v_attrs._v_attrnames
 
         # Check the disk attribute names (not sorted)
-        assert self.root.agroup._v_attrs._f_list("all") == \
+        agroup = self.root.agroup
+        assert agroup._v_attrs._f_list("all") == \
                ['TITLE', 'VERSION', "op"]
 
     def test09_overwriteAttributes(self):
@@ -343,20 +360,22 @@ class CreateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r+")
+            self.fileh = openFile(
+                self.file, mode = "r+", nodeCacheSize=self.nodeCacheSize)
             self.root = self.fileh.root
 
+        agroup = self.root.agroup
         if common.verbose:
-            print "Value of Attribute pq:", self.root.agroup._v_attrs.pq
+            print "Value of Attribute pq:", agroup._v_attrs.pq
         # Check the local attributes names (alphabetically sorted)
-        assert self.root.agroup._v_attrs.pq == "4"
-        assert self.root.agroup._v_attrs.qr == 2
-        assert self.root.agroup._v_attrs.rs == [1,2,3]
+        assert agroup._v_attrs.pq == "4"
+        assert agroup._v_attrs.qr == 2
+        assert agroup._v_attrs.rs == [1,2,3]
         if common.verbose:
             print "Attribute list in disk:", \
-                  self.root.agroup._v_attrs._f_list("all")
+                  agroup._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
-        assert self.root.agroup._v_attrs._f_list("all") == \
+        assert agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "pq", "qr", "rs"]
 
     def test10a_copyAttributes(self):
@@ -373,17 +392,19 @@ class CreateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r+")
+            self.fileh = openFile(
+                self.file, mode = "r+", nodeCacheSize=self.nodeCacheSize)
             self.root = self.fileh.root
 
+        atable = self.root.atable
         if common.verbose:
-            print "Attribute list:", self.root.atable._v_attrs._f_list()
+            print "Attribute list:", atable._v_attrs._f_list()
         # Check the local attributes names (alphabetically sorted)
-        assert self.root.atable._v_attrs._f_list() == ["pq", "qr", "rs"]
+        assert atable._v_attrs._f_list() == ["pq", "qr", "rs"]
         if common.verbose:
-            print "Complete attribute list:", self.root.atable._v_attrs._f_list("all")
+            print "Complete attribute list:", atable._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
-        assert self.root.atable._v_attrs._f_list("all") == \
+        assert atable._v_attrs._f_list("all") == \
                ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
@@ -408,17 +429,19 @@ class CreateTestCase(unittest.TestCase):
             if common.verbose:
                 print "(closing file version)"
             self.fileh.close()
-            self.fileh = openFile(self.file, mode = "r+")
+            self.fileh = openFile(
+                self.file, mode = "r+", nodeCacheSize=self.nodeCacheSize)
             self.root = self.fileh.root
 
+        atable = self.root.atable
         if common.verbose:
-            print "Attribute list:", self.root.atable._v_attrs._f_list()
+            print "Attribute list:", atable._v_attrs._f_list()
         # Check the local attributes names (alphabetically sorted)
-        assert self.root.atable._v_attrs._f_list() == ["pq", "qr", "rs"]
+        assert atable._v_attrs._f_list() == ["pq", "qr", "rs"]
         if common.verbose:
-            print "Complete attribute list:", self.root.atable._v_attrs._f_list("all")
+            print "Complete attribute list:", atable._v_attrs._f_list("all")
         # Check the disk attribute names (not sorted)
-        assert self.root.atable._v_attrs._f_list("all") == \
+        assert atable._v_attrs._f_list("all") == \
                ['CLASS',
                 'FIELD_0_FILL', 'FIELD_0_NAME',
                 'FIELD_1_FILL', 'FIELD_1_NAME',
@@ -464,11 +487,29 @@ class CreateTestCase(unittest.TestCase):
 
 
 
-class NotCloseCreateTestCase(CreateTestCase):
+class NotCloseCreate(CreateTestCase):
     close = 0
+    nodeCacheSize = NODE_MAX_SLOTS
 
-class CloseCreateTestCase(CreateTestCase):
+class CloseCreate(CreateTestCase):
     close = 1
+    nodeCacheSize = NODE_MAX_SLOTS
+
+class NoCacheNotCloseCreate(CreateTestCase):
+    close = 0
+    nodeCacheSize = 0
+
+class NoCacheCloseCreate(CreateTestCase):
+    close = 1
+    nodeCacheSize = 0
+
+class DictCacheNotCloseCreate(CreateTestCase):
+    close = 0
+    nodeCacheSize = -NODE_MAX_SLOTS
+
+class DictCacheCloseCreate(CreateTestCase):
+    close = 1
+    nodeCacheSize = -NODE_MAX_SLOTS
 
 
 class TypesTestCase(unittest.TestCase):
@@ -1094,11 +1135,13 @@ def suite():
     theSuite = unittest.TestSuite()
     niter = 1
 
-    #theSuite.addTest(unittest.makeSuite(NotCloseTypesTestCase))
-    #theSuite.addTest(unittest.makeSuite(CloseCreateTestCase))
     for i in range(niter):
-        theSuite.addTest(unittest.makeSuite(NotCloseCreateTestCase))
-        theSuite.addTest(unittest.makeSuite(CloseCreateTestCase))
+        theSuite.addTest(unittest.makeSuite(NotCloseCreate))
+        theSuite.addTest(unittest.makeSuite(CloseCreate))
+        theSuite.addTest(unittest.makeSuite(NoCacheNotCloseCreate))
+        theSuite.addTest(unittest.makeSuite(NoCacheCloseCreate))
+        theSuite.addTest(unittest.makeSuite(DictCacheNotCloseCreate))
+        theSuite.addTest(unittest.makeSuite(DictCacheCloseCreate))
         theSuite.addTest(unittest.makeSuite(NotCloseTypesTestCase))
         theSuite.addTest(unittest.makeSuite(CloseTypesTestCase))
 

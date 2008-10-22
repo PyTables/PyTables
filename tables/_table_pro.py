@@ -180,6 +180,7 @@ def _table__whereIndexed(self, compiled, condvars, start, stop, step):
     for i, idxexpr in enumerate(idxexprs):
         var, ops, lims = idxexpr
         col = condvars[var]
+        #print "col-->", col
         index = col.index
         assert index is not None, "the chosen column is not indexed"
         assert not index.dirty, "the chosen column has a dirty index"
@@ -282,7 +283,7 @@ def _column__createIndex(self, kind, optlevel, filters, tmp_dir,
 
     # Create the index itself
     index = Index(
-        idgroup, name, atom=atom, column=self,
+        idgroup, name, atom=atom,
         title="Index for %s column" % name,
         kind=kind,
         optlevel=optlevel,

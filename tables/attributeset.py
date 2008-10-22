@@ -218,14 +218,16 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         """
 
-        node._g_checkOpen()
+        # Refuse to create an instance of an already closed node
+        if not node._v_isopen:
+            raise ClosedNodeError("the node for attribute set is closed")
 
         mydict = self.__dict__
 
         self._g_new(node)
         mydict["_v__nodeFile"] = node._v_file
         mydict["_v__nodePath"] = node._v_pathname
-        mydict["_v_attrnames"] = self._g_listAttr()
+        mydict["_v_attrnames"] = self._g_listAttr(node)
         # Get the file version format. This is an optimization
         # in order to avoid accessing it too much.
         try:
@@ -266,20 +268,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         self._g_new(node)
 
 
-    def _g_checkOpen(self):
-        """
-        Check that the attribute set is open.
-
-        If the attribute set is closed, a `ClosedNodeError` is raised.
-        """
-
-        if '_v__nodePath' not in self.__dict__:
-            raise ClosedNodeError("the attribute set is closed")
-        assert self._v_node._v_isopen, \
-               "found an open attribute set of a closed node"
-
-
-
     def _f_list(self, attrset='user'):
         """
         Get a list of attribute names.
@@ -289,8 +277,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         default).  A ``'sys'`` value returns only system attributes.
         Finally, ``'all'`` returns both system and user attributes.
         """
-
-        self._g_checkOpen()
 
         if attrset == "user":
             return self._v_attrnamesuser[:]
@@ -303,8 +289,6 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     def __getattr__(self, name):
         """Get the attribute named "name"."""
 
-        self._g_checkOpen()
-
         # If attribute does not exist, raise AttributeError
         if not name in self._v_attrnames:
             raise AttributeError, \
@@ -316,7 +300,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # takes care of other types as well as for example NROWS for
         # Tables and EXTDIM for EArrays
         format_version = self._v__format_version
-        value = self._g_getAttr(name)
+        value = self._g_getAttr(self._v_node, name)
 
         # Check whether the value is pickled
         # Pickled values always seems to end with a "."
@@ -399,7 +383,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             stvalue = numpy.array(value)
             value = stvalue[()]
 
-        self._g_setAttr(name, stvalue)
+        self._g_setAttr(self._v_node, name, stvalue)
 
         # New attribute or value. Introduce it into the local
         # directory
@@ -435,10 +419,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         number of attributes in a node is going to be exceeded.
         """
 
-        self._g_checkOpen()
-
-        node = self._v_node
-        nodeFile = node._v_file
+        nodeFile = self._v__nodeFile
         attrnames = self._v_attrnames
 
         # Check for name validity
@@ -446,39 +427,34 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
 
         nodeFile._checkWritable()
 
-        # Check that the attribute is not a system one (read-only)
-        ##if name in RO_ATTRS:
-        ##    raise AttributeError, \
-        ##          "Read-only attribute ('%s') cannot be overwritten" % (name)
-
         # Check if there are too many attributes.
         if len(attrnames) >= MAX_NODE_ATTRS:
             warnings.warn("""\
 node ``%s`` is exceeding the recommended maximum number of attributes (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (node._v_pathname, MAX_NODE_ATTRS),
+                          % (self._v__nodePath, MAX_NODE_ATTRS),
                           PerformanceWarning)
 
         undoEnabled = nodeFile.isUndoEnabled()
         # Log old attribute removal (if any).
         if undoEnabled and (name in attrnames):
-            self._g_delAndLog(node, name)
+            self._g_delAndLog(name)
 
         # Set the attribute.
         self._g__setattr(name, value)
 
         # Log new attribute addition.
         if undoEnabled:
-            self._g_logAdd(node, name)
+            self._g_logAdd(name)
 
 
-    def _g_logAdd(self, node, name):
-        node._v_file._log('ADDATTR', node._v_pathname, name)
+    def _g_logAdd(self, name):
+        self._v__nodeFile._log('ADDATTR', self._v__nodePath, name)
 
 
-    def _g_delAndLog(self, node, name):
-        nodeFile = node._v_file
-        nodePathname = node._v_pathname
+    def _g_delAndLog(self, name):
+        nodeFile = self._v__nodeFile
+        nodePathname = self._v__nodePath
         # Log *before* moving to use the right shadow name.
         nodeFile._log('DELATTR', nodePathname, name)
         attrToShadow(nodeFile, nodePathname, name)
@@ -494,7 +470,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         """
 
         # Delete the attribute from disk
-        self._g_remove(name)
+        self._g_remove(self._v_node, name)
 
         # Delete the attribute from local lists
         self._v_attrnames.remove(name)
@@ -517,10 +493,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         specified, an ``AttributeError`` is raised.
         """
 
-        self._g_checkOpen()
-
-        node = self._v_node
-        nodeFile = node._v_file
+        nodeFile = self._v__nodeFile
 
         # Check if attribute exists
         if name not in self._v_attrnames:
@@ -528,16 +501,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 "Attribute ('%s') does not exist in node '%s'"
                 % (name, self._v__nodePath))
 
-#         # The system attributes are protected
-#         if name in RO_ATTRS:
-#             raise AttributeError, \
-#                   "Read-only attribute ('%s') cannot be deleted" % (name)
-
         nodeFile._checkWritable()
 
         # Remove the PyTables attribute or move it to shadow.
         if nodeFile.isUndoEnabled():
-            self._g_delAndLog(node, name)
+            self._g_delAndLog(name)
         else:
             self._g__delattr(name)
 
@@ -576,24 +544,15 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         A true value is returned if the attribute set has an attribute
         with the given name, false otherwise.
         """
-        self._g_checkOpen()
         return name in self._v_attrnames
 
 
     def _f_rename(self, oldattrname, newattrname):
         """Rename an attribute from `oldattrname` to `newattrname`."""
 
-        self._g_checkOpen()
-
         if oldattrname == newattrname:
             # Do nothing
             return
-
-        # if oldattrname or newattrname are system attributes, raise an error
-        ##for name in [oldattrname, newattrname]:
-        ##    if name in self._v_attrnamessys:
-        ##        raise AttributeError, \
-        ##    "System attribute ('%s') cannot be renamed" % (name)
 
         # First, fetch the value of the oldattrname
         attrvalue = getattr(self, oldattrname)
@@ -639,8 +598,6 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         `where` node (a `Node` instance), replacing the existing ones.
         """
 
-        self._g_checkOpen()
-
         # AttributeSet must be defined in order to define a Node.
         # However, we need to know Node here.
         # Using classNameDict avoids a circular import.
@@ -650,34 +607,25 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
     def _g_close(self):
-        self.__dict__.clear()
+        # Nothing will be done here, as the existing instance is completely
+        # operative now.
+        pass
 
 
     def __str__(self):
         """The string representation for this object."""
 
-        node = self._v_node
-        if node is None or not node._v_isopen:
-            return repr(self)
-
-        # Get the associated filename
-        filename = node._v_file.filename
         # The pathname
-        pathname = node._v_pathname
+        pathname = self._v__nodePath
         # Get this class name
         classname = self.__class__.__name__
         # The attribute names
         attrnumber = len([ n for n in self._v_attrnames ])
-        return "%s._v_attrs (%s), %s attributes" % (pathname, classname, attrnumber)
+        return "%s._v_attrs (%s), %s attributes" % \
+               (pathname, classname, attrnumber)
 
     def __repr__(self):
         """A detailed string representation for this object."""
-
-        node = self._v_node
-        if node is None:
-            return "<closed AttributeSet>"
-        if not node._v_isopen:
-            return "<AttributeSet of closed Node>"
 
         # print additional info only if there are attributes to show
         attrnames = [ n for n in self._v_attrnames ]
@@ -693,10 +641,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
 
 class NotLoggedAttributeSet(AttributeSet):
-    def _g_logAdd(self, node, name):
+    def _g_logAdd(self, name):
         pass
 
-    def _g_delAndLog(self, node, name):
+    def _g_delAndLog(self, name):
         self._g__delattr(name)
 
 

@@ -93,12 +93,20 @@ cdef class NodeCache:
       return
     # Check if we are growing out of space
     if self.nextslot == self.nslots:
+      # It is critical to reduce nextslot *before* the preemption of
+      # the LRU node.  If not, this can lead with problems in situations
+      # with very small caches (length 1 or so).
+      # F. Alted 2008-10-22
+      self.nextslot = self.nextslot - 1
       # Remove the LRU node and path (the start of the lists)
       del self.nodes[0];  del self.paths[0]
-      self.nextslot = self.nextslot - 1
-    # Add the node and path to the end of its lists
-    self.nodes.append(node);  self.paths.append(path)
-    self.nextslot = self.nextslot + 1
+    # The equality protection has been put for situations in which a
+    # node is being preempted and added simultaneously (with very small
+    # caches).
+    if len(self.nodes) == len(self.paths):
+      # Add the node and path to the end of its lists
+      self.nodes.append(node);  self.paths.append(path)
+      self.nextslot = self.nextslot + 1
 
 
   def __contains__(self, path):

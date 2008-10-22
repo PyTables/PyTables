@@ -2258,7 +2258,8 @@ class AttributesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test00_setAttr..." % self.__class__.__name__
 
-        attrs = self.fileh.root.array.attrs
+        array = self.fileh.root.array
+        attrs = array.attrs
 
         self.fileh.enableUndo()
         setattr(attrs, 'attr_0', 0)
@@ -2278,7 +2279,8 @@ class AttributesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_setAttrExisting..." % self.__class__.__name__
 
-        attrs = self.fileh.root.array.attrs
+        array = self.fileh.root.array
+        attrs = array.attrs
 
         self.fileh.enableUndo()
         setattr(attrs, 'attr_1', 11)
@@ -2299,7 +2301,8 @@ class AttributesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_delAttr..." % self.__class__.__name__
 
-        attrs = self.fileh.root.array.attrs
+        array = self.fileh.root.array
+        attrs = array.attrs
 
         self.fileh.enableUndo()
         delattr(attrs, 'attr_1')
@@ -2322,7 +2325,8 @@ class AttributesTestCase(unittest.TestCase):
         rattrs.attr_0 = 0
         rattrs.attr_1 = 100
 
-        attrs = self.fileh.root.array.attrs
+        array = self.fileh.root.array
+        attrs = array.attrs
 
         self.fileh.enableUndo()
         attrs._f_copy(self.fileh.root)
@@ -2349,7 +2353,8 @@ class AttributesTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04_replaceNode..." % self.__class__.__name__
 
-        attrs = self.fileh.root.array.attrs
+        array = self.fileh.root.array
+        attrs = array.attrs
 
         self.fileh.enableUndo()
         attrs.attr_1 = 11
@@ -2503,11 +2508,6 @@ def suite():
     niter = 1
     #common.heavy = 1  # uncomment this only for testing purposes
 
-    #theSuite.addTest(unittest.makeSuite(copyNodeTestCase))
-    #theSuite.addTest(unittest.makeSuite(BasicTestCase))
-    #theSuite.addTest(unittest.makeSuite(PersistenceTestCase))
-    #theSuite.addTest(unittest.makeSuite(removeNodeTestCase))
-    #theSuite.addTest(unittest.makeSuite(ComplexTestCase))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicTestCase))
         theSuite.addTest(unittest.makeSuite(PersistenceTestCase))

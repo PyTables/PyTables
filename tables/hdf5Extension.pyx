@@ -365,41 +365,21 @@ cdef class File:
 
 
 cdef class AttributeSet:
-  cdef hid_t   dataset_id
   cdef char    *name
 
 
   def _g_new(self, node):
     # Initialize the C attributes of Node object
     self.name =  PyString_AsString(node._v_name)
-    # The dataset id of the node
-    self.dataset_id = node._v_objectID
 
 
-  def __g_listAttr(self):
+  def _g_listAttr(self, node):
     "Return a tuple with the attribute list"
-    a = Aiterate(self.dataset_id)
+    a = Aiterate(node._v_objectID)
     return a
 
 
-  # The next is a re-implementation of Aiterate but in pure Pyrex
-  def _g_listAttr(self):
-    "Return a tuple with the attribute list"
-    cdef int nattrs, i
-    cdef hid_t attr_id
-    cdef char attr_name[256]
-
-    lattrs = []
-    nattrs = H5Aget_num_attrs(self.dataset_id)
-    for i from 0 <= i < nattrs:
-      attr_id = H5Aopen_idx(self.dataset_id, i)
-      H5Aget_name(attr_id, 256, attr_name)
-      H5Aclose(attr_id)
-      lattrs.append(attr_name)
-    return lattrs
-
-
-  def _g_setAttr(self, char *name, object value):
+  def _g_setAttr(self, node, char *name, object value):
     """Save Python or NumPy objects as HDF5 attributes.
 
     Scalar Python objects, scalar NumPy & 0-dim NumPy objects will all be
@@ -408,10 +388,13 @@ cdef class AttributeSet:
     """
 
     cdef int ret
-    cdef hid_t type_id
+    cdef hid_t dset_id, type_id
     cdef hsize_t *dims
     cdef ndarray ndv
     cdef object byteorder, baseatom
+
+    # The dataset id of the node
+    dset_id = node._v_objectID
 
     # Convert a NumPy scalar into a NumPy 0-dim ndarray
     if isinstance(value, numpy.generic):
@@ -428,7 +411,7 @@ cdef class AttributeSet:
       ndv = <ndarray>value
       dims = npy_malloc_dims(ndv.nd, ndv.dimensions)
       # Actually write the attribute
-      ret = H5ATTRset_attribute(self.dataset_id, name, type_id,
+      ret = H5ATTRset_attribute(dset_id, name, type_id,
                                 ndv.nd, dims, ndv.data)
       if ret < 0:
         raise HDF5ExtError("Can't set attribute '%s' in node:\n %s." %
@@ -441,13 +424,13 @@ cdef class AttributeSet:
       # Convert this object to a null-terminated string
       # (binary pickles are not supported at this moment)
       value = cPickle.dumps(value, 0)
-      ret = H5ATTRset_attribute_string(self.dataset_id, name, value)
+      ret = H5ATTRset_attribute_string(dset_id, name, value)
 
     return
 
 
   # Get attributes
-  def _g_getAttr(self, char *attrname):
+  def _g_getAttr(self, node, char *attrname):
     """Get HDF5 attributes and retrieve them as NumPy objects.
 
     H5T_SCALAR types will be retrieved as scalar NumPy.
@@ -464,7 +447,8 @@ cdef class AttributeSet:
     cdef ndarray ndvalue
     cdef object shape, stype_atom, shape_atom, retvalue
 
-    dset_id = self.dataset_id
+    # The dataset id of the node
+    dset_id = node._v_objectID
     dims = NULL
 
     ret = H5ATTRget_type_ndims(dset_id, attrname, &type_id, &class_id,
@@ -545,16 +529,18 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
     return retvalue
 
 
-  def _g_remove(self, attrname):
+  def _g_remove(self, node, attrname):
     cdef int ret
-    ret = H5Adelete(self.dataset_id, attrname)
+    cdef hid_t dset_id
+
+    # The dataset id of the node
+    dset_id = node._v_objectID
+
+    ret = H5Adelete(dset_id, attrname)
     if ret < 0:
       raise HDF5ExtError("Attribute '%s' exists in node '%s', but cannot be deleted." \
                          % (attrname, self.name))
 
-
-  def __dealloc__(self):
-    self.dataset_id = 0
 
 
 
@@ -569,11 +555,11 @@ cdef class Node:
     # """The identifier of the parent group."""
 
 
-  def _g_delete(self):
+  def _g_delete(self, parent):
     cdef int ret
 
     # Delete this node
-    ret = H5Gunlink(self.parent_id, self.name)
+    ret = H5Gunlink(parent._v_objectID, self.name)
     if ret < 0:
       raise HDF5ExtError("problems deleting the node ``%s``" % self.name)
     return ret
@@ -581,6 +567,7 @@ cdef class Node:
 
   def __dealloc__(self):
     free(<void *>self.name)
+    self.parent_id = 0
 
 
 
@@ -625,12 +612,9 @@ cdef class Group(Node):
     return node_type
 
 
-  def _g_listGroup(self):
+  def _g_listGroup(self, parent):
     """Return a tuple with the groups and the leaves hanging from self."""
-    if get_objinfo(self.parent_id, ".") < 0:
-      # Refresh the parent_id because the parent seems closed
-      self.parent_id = self._v_parent._v_objectID
-    return Giterate(self.parent_id, self._v_objectID, self.name)
+    return Giterate(parent._v_objectID, self._v_objectID, self.name)
 
 
   def _g_getGChildAttr(self, char *group_name, char *attr_name):

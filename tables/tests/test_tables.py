@@ -961,6 +961,11 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual( newnrows, oldnrows + 1,
                           "Append to alive table failed." )
 
+        if self.fileh.nodeCacheSize == 0:
+            # Skip this test from here on because the second case
+            # won't work when thereis not a node cache.
+            return
+
         # Second case: append to a dead (unreferenced) table.
         del table
         row.append()
@@ -1951,7 +1956,8 @@ class getItemTestCase(unittest.TestCase):
             print "Running %s.test06a_singleItemCol..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "r")
-        colvar2 = self.fileh.root.table0.cols.var2
+        table = self.fileh.root.table0
+        colvar2 = table.cols.var2
         assert colvar2[2] == 2
         assert colvar2[25] == 25
         assert colvar2[self.expectedrows-1] == self.expectedrows - 1
@@ -1964,7 +1970,8 @@ class getItemTestCase(unittest.TestCase):
             print "Running %s.test06b_singleItem..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "r")
-        colvar2 = self.fileh.root.table0.cols.var2
+        table = self.fileh.root.table0
+        colvar2 = table.cols.var2
         assert colvar2[-5] == self.expectedrows - 5
         assert colvar2[-1] == self.expectedrows - 1
         assert colvar2[-self.expectedrows] == 0
@@ -1977,7 +1984,8 @@ class getItemTestCase(unittest.TestCase):
             print "Running %s.test07_twoItemCol..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "r")
-        colvar2 = self.fileh.root.table0.cols.var2
+        table = self.fileh.root.table0
+        colvar2 = table.cols.var2
         assert colvar2[2:6].tolist() == range(2,6)
         assert colvar2[2:-6].tolist() == range(2,self.expectedrows-6)
         assert colvar2[2:].tolist() == range(2,self.expectedrows)
@@ -1991,7 +1999,8 @@ class getItemTestCase(unittest.TestCase):
             print "Running %s.test08_threeItemCol..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "r")
-        colvar2 = self.fileh.root.table0.cols.var2
+        table = self.fileh.root.table0
+        colvar2 = table.cols.var2
         assert colvar2[2:6:3].tolist() == range(2,6,3)
         assert colvar2[2::3].tolist() == range(2,self.expectedrows,3)
         assert colvar2[:6:2].tolist() == range(0,6,2)
@@ -2005,7 +2014,8 @@ class getItemTestCase(unittest.TestCase):
             print "Running %s.test09_negativeStep..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "r")
-        colvar2 = self.fileh.root.table0.cols.var2
+        table = self.fileh.root.table0
+        colvar2 = table.cols.var2
         try:
             colvar2[2:3:-3]
         except ValueError:

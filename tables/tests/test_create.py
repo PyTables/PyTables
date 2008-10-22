@@ -481,11 +481,11 @@ class FiltersTreeTestCase(unittest.TestCase):
         # self.filters
         nodelist = ['/table1', '/group0/earray1', '/group0']
         for node in nodelist:
-            object = self.h5file.getNode(node)
-            if isinstance(object, Group):
-                assert repr(filters) == repr(object._v_filters)
+            object_ = self.h5file.getNode(node)
+            if isinstance(object_, Group):
+                assert repr(filters) == repr(object_._v_filters)
             else:
-                assert repr(filters) == repr(object.filters)
+                assert repr(filters) == repr(object_.filters)
 
         # Second and third level check
         group1 = self.h5file.root.group0.group1
@@ -506,11 +506,11 @@ class FiltersTreeTestCase(unittest.TestCase):
         nodelist = ['/group0/group1', '/group0/group1/earray1',
                     '/group0/group1/table1', '/group0/group1/group2/table1']
         for node in nodelist:
-            object = self.h5file.getNode(node)
-            if isinstance(object, Group):
-                assert repr(gfilters) == repr(object._v_filters)
+            object_ = self.h5file.getNode(node)
+            if isinstance(object_, Group):
+                assert repr(gfilters) == repr(object_._v_filters)
             else:
-                assert repr(gfilters) == repr(object.filters)
+                assert repr(gfilters) == repr(object_.filters)
 
         # Fourth and fifth level check
         if self.filters == None:
