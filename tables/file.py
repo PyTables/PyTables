@@ -2098,7 +2098,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         Register `node` as alive and insert references to it.
         """
 
-        #print "referencing-->", nodePath
         if nodePath != '/':
             # The root group does not participate in alive/dead stuff.
             aliveNodes = self._aliveNodes
@@ -2130,7 +2129,6 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         set of dead, unreferenced ones.
         """
 
-        #print "killing-->", node._v_pathname
         nodePath = node._v_pathname
         assert nodePath in self._aliveNodes, \
                "trying to kill non-alive node ``%s``" % nodePath
