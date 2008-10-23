@@ -562,11 +562,6 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             self.create_temp()
 
 
-    def _g_updateDependent(self):
-        super(Index, self)._g_updateDependent()
-        self.column._updateIndexLocation(self)
-
-
     def initial_append(self, xarr, nrow, reduction):
         """Compute an initial indices arrays for data to be indexed."""
         if profile: tref = time()
@@ -672,6 +667,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         ranges = where.ranges; mranges = where.mranges
         bounds = where.bounds; mbounds = where.mbounds
         abounds = where.abounds; zbounds = where.zbounds
+        sortedLR = where.sortedLR; indicesLR = where.indicesLR
         nrows = sorted.nrows  # before sorted.append()
         larr, arr, idx = self.initial_append(xarr, nrows, reduction)
         # Save the sorted array
@@ -700,6 +696,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.nelements = self.nrows * self.slicesize
         self.nelementsSLR = 0  # reset the counter of the last row index to 0
         self.nelementsILR = 0  # reset the counter of the last row index to 0
+        # The number of elements will be saved as an attribute.
+        # This is necessary in case the LR arrays can remember its values
+        # after a possible node preemtion/reload.
+        sortedLR.attrs.nelements = self.nelementsSLR
+        indicesLR.attrs.nelements = self.nelementsILR
         self.dirtycache = True   # the cache is dirty now
         if profile: show_stats("Exiting append", tref)
 
@@ -1728,6 +1729,15 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def restorecache(self):
         "Clean the limits cache and resize starts and lengths arrays"
 
+        # The sorted IndexArray is absolutely required to be in memory
+        # at the same time than the Index instance, so create a strong
+        # reference to it.  We are not introducing leaks because the
+        # strong reference will disappear when this Index instance is
+        # to be closed.
+        self._sorted = self.sorted
+        self._sorted.boundscache = ObjectCache(BOUNDS_MAX_SLOTS,
+                                               BOUNDS_MAX_SIZE,
+                                               'non-opt types bounds')
         self.sorted.boundscache = ObjectCache(BOUNDS_MAX_SLOTS,
                                               BOUNDS_MAX_SIZE,
                                               'non-opt types bounds')
@@ -2117,6 +2127,24 @@ class IndexesTableG(NotLoggedMixin, Group):
         if not name.startswith('_i_'):
             raise ValueError(
                 "names of index groups must start with ``_i_``: %s" % name )
+
+    def _gettable(self):
+        names = self._v_pathname.split("/")
+        tablename = names.pop()[3:]   # "_i_" is at the beginning
+        parentpathname = "/".join(names)
+        tablepathname = joinPath(parentpathname, tablename)
+        table = self._v_file._getNode(tablepathname)
+        return table
+
+    table = property(
+        _gettable, None, None,
+        "Accessor for the `Table` object of this `IndexesTableG` container.")
+
+    def _g_updateDependent(self):
+        super(IndexesTableG, self)._g_updateDependent()
+        table = self.table
+        table.cols._g_updateIndexLocation()
+
 
 
 class OldIndex(NotLoggedMixin, Group):

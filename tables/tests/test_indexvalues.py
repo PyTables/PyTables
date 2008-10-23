@@ -3014,11 +3014,8 @@ class LastRowReuseBuffers(common.PyTablesTestCase):
         fp.close()
         os.remove(filename)
 
-    # This won't work until I have a more careful look at why the
-    # IndexArray._g_postInitHook() breaks the behaviour when a node
-    # cache exists.
-    # F. Alted 2008-10-11
-    def _test01_nocache(self):
+
+    def test01_nocache(self):
         filename = tempfile.mktemp(".h5")
         fp = openFile(filename, 'w', nodeCacheSize=0)
         ta = fp.createTable('/', 'table', self.Record, filters=Filters(1))

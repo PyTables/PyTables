@@ -2548,6 +2548,17 @@ class Cols(object):
             myDict[colname]._g_updateTableLocation(table)
 
 
+    def _g_updateIndexLocation(self):
+        """Updates the location information about the associated `table`."""
+
+        myDict = self.__dict__
+
+        # Update the locations in individual columns.
+        for colname in self._v_colnames:
+            col = myDict[colname]
+            col._g_updateIndexLocation()
+
+
     def __len__(self):
         """
         Get the number of elements in the column.
@@ -2862,6 +2873,20 @@ class Column(object):
 
         self._tableFile = table._v_file
         self._tablePath = table._v_pathname
+
+
+    def _g_updateIndexLocation(self):
+        """
+        Updates the location information about the associated `index`.
+
+        This only enters in action during table moves.
+        """
+
+        if self._indexFile is not None:
+            indexname = _indexPathnameOfColumn(self.table, self.pathname)
+            index = self._tableFile._getNode(indexname)
+            self._indexFile = index._v_file
+            self._indexPath = index._v_pathname
 
 
     def _updateIndexLocation(self, index):
