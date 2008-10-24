@@ -23,8 +23,7 @@ Classes:
 Functions:
 
     copyFile(srcfilename, dstfilename[, overwrite][, **kwargs])
-    openFile(name[, mode][, title][, rootUEP][, filters]
-             [, nodeCacheSize])
+    openFile(name[, mode][, title][, rootUEP][, filters][, **kwargs])
 
 Misc variables:
 
@@ -43,8 +42,7 @@ import weakref
 import tables.misc.proxydict
 from tables import hdf5Extension
 from tables import utilsExtension
-from tables.parameters import \
-     MAX_UNDO_PATH_LENGTH, METADATA_CACHE_SIZE, NODE_MAX_SLOTS
+from tables import parameters
 from tables.exceptions import \
      ClosedFileError, FileModeError, \
      NodeError, NoSuchNodeError, UndoRedoError, \
@@ -168,20 +166,18 @@ def copyFile(srcfilename, dstfilename, overwrite=False, **kwargs):
 
 
 def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
-             nodeCacheSize=NODE_MAX_SLOTS):
+             nodeCacheSize=None, **kwargs):
 
     """Open an HDF5 file and return a File object.
 
     Arguments:
 
-    `filename`
-        The name of the file (supports environment variable expansion).
-        It is suggested that file names have any of the ``.h5``,
-        ``.hdf`` or ``.hdf5`` extensions, although this is not
+    `filename` -- The name of the file (supports environment variable
+        expansion).  It is suggested that file names have any of the
+        ``.h5``, ``.hdf`` or ``.hdf5`` extensions, although this is not
         mandatory.
 
-    `mode`
-        The mode in which to open the file.  It can be one of the
+    `mode` -- The mode in which to open the file.  It can be one of the
         following:
 
         ``'r'``
@@ -195,45 +191,31 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
         ``'r+'``
             It is similar to ``'a'``, but the file must already exist.
 
-    `title`
-        If the file is to be created, a ``TITLE`` string attribute will
-        be set on the root group with the given value.  Otherwise, the
-        title will be read from disk, and this will not have any effect.
+    `title` -- If the file is to be created, a ``TITLE`` string
+        attribute will be set on the root group with the given value.
+        Otherwise, the title will be read from disk, and this will not
+        have any effect.
 
-    `rootUEP`
-        The root User Entry Point.  This is a group in the HDF5
+    `rootUEP` -- The root User Entry Point.  This is a group in the HDF5
         hierarchy which will be taken as the starting point to create
         the object tree.  It can be whatever existing group in the file,
         named by its HDF5 path. If it does not exist, an `HDF5ExtError`
         is issued.  Use this if you do not want to build the *entire*
         object tree, but rather only a *subtree* of it.
 
-    `filters`
-        An instance of the `Filters` class that provides information
-        about the desired I/O filters applicable to the leaves that hang
-        directly from the *root group*, unless other filter properties
-        are specified for these leaves.  Besides, if you do not specify
-        filter properties for child groups, they will inherit these
-        ones, which will in turn propagate to child nodes.
+    `filters` -- An instance of the `Filters` class that provides
+        information about the desired I/O filters applicable to the
+        leaves that hang directly from the *root group*, unless other
+        filter properties are specified for these leaves.  Besides, if
+        you do not specify filter properties for child groups, they will
+        inherit these ones, which will in turn propagate to child nodes.
 
-    `nodeCacheSize`
-        If positive, this is the number of *unreferenced* nodes to be
-        kept in the metadata cache. Least recently used nodes are
-        unloaded from memory when this number of loaded nodes is
-        reached. To load a node again, simply access it as usual. Nodes
-        referenced by user variables are not taken into account nor
-        unloaded.
+    In addition, it recognizes the names of parameters present in
+    ``tables/parameters.py`` (and for PyTables Pro users, those in
+    ``tables/_parameters_pro.py`` too) as additional keyword arguments.
+    Check the suitable appendix in User's Guide for a detailed info on
+    the supported parameters.
 
-        Negative value means that all the touched nodes will be kept in
-        an internal dictionary.  This is the faster way to load/retrieve
-        nodes.  However, and in order to avoid a large memory
-        comsumption, the user will be warned when the number of loaded
-        nodes will reach the ``-nodeChacheSize`` value.
-
-        A value of zero means that any cache mechanism is disabled.
-
-        The default is the value of NODE_MAX_SLOTS in file
-        ``tables/parameters.py``.
     """
 
     # Expand the form '~user'
@@ -241,25 +223,38 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
     # Expand the environment variables
     path = os.path.expandvars(path)
 
+    # Get all the parameters in parameter file(s)
+    params = dict([(k, v) for k,v in parameters.__dict__.iteritems()
+                   if k.isupper() and not k.startswith('_')])
+    # Update them with possible keyword arguments
+    params.update(kwargs)
+
+    # This DeprecationWarning should be removed in 2.2
+    if nodeCacheSize is not None:
+        warnings.warn(
+            "`nodeCacheSize` parameter is deprecated. "
+            "Please, use `NODE_CACHE_SLOTS` instead.",
+            DeprecationWarning )
+        params['NODE_CACHE_SLOTS'] = nodeCacheSize
+
     # Finally, create the File instance, and return it
-    return File(path, mode, title, rootUEP, filters,
-                METADATA_CACHE_SIZE, nodeCacheSize)
+    return File(path, mode, title, rootUEP, filters, **params)
 
 
 class _AliveNodes(dict):
 
     """Stores strong or weak references to nodes in a transparent way."""
 
-    def __init__(self, nodeCacheSize):
-        if nodeCacheSize > 0:
+    def __init__(self, nodeCacheSlots):
+        if nodeCacheSlots > 0:
             self.hasdeadnodes = True
         else:
             self.hasdeadnodes = False
-        if nodeCacheSize >= 0:
+        if nodeCacheSlots >= 0:
             self.hassoftlinks = True
         else:
             self.hassoftlinks = False
-        self.nodeCacheSize = nodeCacheSize
+        self.nodeCacheSlots = nodeCacheSlots
         super(_AliveNodes, self).__init__()
 
     def __getitem__(self, key):
@@ -275,11 +270,11 @@ class _AliveNodes(dict):
         else:
             ref = value
             # Check if we are running out of space
-            if self.nodeCacheSize < 0 and len(self) > -self.nodeCacheSize:
+            if self.nodeCacheSlots < 0 and len(self) > -self.nodeCacheSlots:
                 warnings.warn("""\
 the dictionary of alive nodes is exceeding the recommended maximum number (%d); \
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
-                      % (-self.nodeCacheSize),
+                      % (-self.nodeCacheSlots),
                       PerformanceWarning)
         super(_AliveNodes, self).__setitem__(key, ref)
 
@@ -481,36 +476,28 @@ class File(hdf5Extension.File, object):
 
 
     def __init__(self, filename, mode="r", title="",
-                 rootUEP="/", filters=None,
-                 metadataCacheSize=METADATA_CACHE_SIZE,
-                 nodeCacheSize=NODE_MAX_SLOTS):
-        """Open an HDF5 file. The supported access modes are: "r" means
-        read-only; no data can be modified. "w" means write; a new file is
-        created, an existing file with the same name is deleted. "a" means
-        append (in analogy with serial files); an existing file is opened
-        for reading and writing, and if the file does not exist it is
-        created. "r+" is similar to "a", but the file must already exist. A
-        TITLE attribute will be set on the root group if optional "title"
-        parameter is passed."""
+                 rootUEP="/", filters=None, **params):
+        """Open an HDF5 file.
 
+        See `openFile()` for info about the parameters.
+        """
+        self.filename = filename
+        self.mode = mode
+        self.params = params
         # Check filters and set PyTables format version for new files.
         new = self._v_new
         if new:
             _checkfilters(filters)
             self.format_version = format_version
 
-        self.filename = filename
-        self.mode = mode
-        self.metadataCacheSize = metadataCacheSize
-        self.nodeCacheSize = nodeCacheSize
-
         # Nodes referenced by a variable are kept in `_aliveNodes`.
         # When they are no longer referenced, they move themselves
         # to `_deadNodes`, where they are kept until they are referenced again
         # or they are preempted from it by other unreferenced nodes.
-        self._aliveNodes = _AliveNodes(nodeCacheSize)
-        if nodeCacheSize > 0:
-            self._deadNodes = _DeadNodes(nodeCacheSize)
+        nodeCacheSlots = self.params['NODE_CACHE_SLOTS']
+        self._aliveNodes = _AliveNodes(nodeCacheSlots)
+        if nodeCacheSlots > 0:
+            self._deadNodes = _DeadNodes(nodeCacheSlots)
         else:
             self._deadNodes = _NoDeadNodes()
 
@@ -1513,13 +1500,14 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         enabled raises an `UndoRedoError`.
         """
 
+        maxUndo = self.params['MAX_UNDO_PATH_LENGTH']
         class ActionLog(NotLoggedMixin, Table):
             pass
 
         class ActionLogDesc(IsDescription):
             opcode = UInt8Col(pos=0)
-            arg1   = StringCol(MAX_UNDO_PATH_LENGTH, pos=1, dflt="")
-            arg2   = StringCol(MAX_UNDO_PATH_LENGTH, pos=2, dflt="")
+            arg1   = StringCol(maxUndo, pos=1, dflt="")
+            arg2   = StringCol(maxUndo, pos=2, dflt="")
 
         self._checkOpen()
 
@@ -1687,6 +1675,7 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
 
         assert self.isUndoEnabled()
 
+        maxUndo = self.params['MAX_UNDO_PATH_LENGTH']
         # Check whether we are at the end of the action log or not
         if self._curaction != self._actionlog.nrows - 1:
             # We are not, so delete the trailing actions
@@ -1718,8 +1707,8 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
         else:  #INTERNAL
             raise UndoRedoError, \
                   "Too many parameters for action log: %r", args
-        if (len(arg1) > MAX_UNDO_PATH_LENGTH
-            or len(arg2) > MAX_UNDO_PATH_LENGTH):  #INTERNAL
+        if (len(arg1) > maxUndo
+            or len(arg2) > maxUndo):  #INTERNAL
             raise UndoRedoError, \
                   "Parameter arg1 or arg2 is too long: (%r, %r)" %  \
                   (arg1, arg2)

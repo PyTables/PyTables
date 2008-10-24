@@ -31,7 +31,6 @@ import sys
 import numpy
 
 from tables.utilsExtension import lrange
-from tables.parameters import EXPECTED_ROWS_EARRAY
 from tables.utils import convertToNPAtom, convertToNPAtom2, SizeType
 from tables.atom import Atom, EnumAtom, split_type
 from tables.leaf import Leaf
@@ -109,57 +108,52 @@ class EArray(CArray):
     # ~~~~~~~~~~~~~~~
     def __init__( self, parentNode, name,
                   atom=None, shape=None, title="",
-                  filters=None, expectedrows=EXPECTED_ROWS_EARRAY,
+                  filters=None, expectedrows=None,
                   chunkshape=None, byteorder=None,
                   _log=True ):
         """
         Create an `EArray` instance.
 
-        `atom`
-            An `Atom` instance representing the *type* and *shape* of
-            the atomic objects to be saved.
+        `atom` -- An `Atom` instance representing the *type* and *shape*
+            of the atomic objects to be saved.
 
-        `shape`
-            The shape of the new array.  One (and only one) of the
-            shape dimensions *must* be 0.  The dimension being 0 means
-            that the resulting `EArray` object can be extended along
-            it.  Multiple enlargeable dimensions are not supported
+        `shape` -- The shape of the new array.  One (and only one) of
+            the shape dimensions *must* be 0.  The dimension being 0
+            means that the resulting `EArray` object can be extended
+            along it.  Multiple enlargeable dimensions are not supported
             right now.
 
-        `title`
-            A description for this node (it sets the ``TITLE`` HDF5
-            attribute on disk).
+        `title` -- A description for this node (it sets the ``TITLE``
+            HDF5 attribute on disk).
 
-        `filters`
-            An instance of the `Filters` class that provides
+        `filters` -- An instance of the `Filters` class that provides
             information about the desired I/O filters to be applied
             during the life of this object.
 
-        `expectedrows`
-            A user estimate about the number of row elements that will
-            be added to the growable dimension in the `EArray` node.
-            If not provided, the default value is 1000 rows.  If you
-            plan to create either a much smaller or a much bigger
-            `EArray` try providing a guess; this will optimize the
-            HDF5 B-Tree creation and management process time and the
-            amount of memory used.  If you want to specify your own
-            chunk size for I/O purposes, see also the `chunkshape`
-            parameter below.
+        `expectedrows` -- A user estimate about the number of row
+            elements that will be added to the growable dimension in the
+            `EArray` node.  If not provided, the default value is
+            ``EXPECTED_ROWS_EARRAY`` (see ``tables/parameters.py``).  If
+            you plan to create either a much smaller or a much bigger
+            `EArray` try providing a guess; this will optimize the HDF5
+            B-Tree creation and management process time and the amount
+            of memory used.
 
-        `chunkshape`
-            The shape of the data chunk to be read or written in a
-            single HDF5 I/O operation.  Filters are applied to those
-            chunks of data.  The dimensionality of `chunkshape` must
-            be the same as that of `shape` (beware: no dimension
+        `chunkshape` -- The shape of the data chunk to be read or
+            written in a single HDF5 I/O operation.  Filters are applied
+            to those chunks of data.  The dimensionality of `chunkshape`
+            must be the same as that of `shape` (beware: no dimension
             should be 0 this time!).  If ``None``, a sensible value is
-            calculated (which is recommended).
+            calculated based on the `expectedrows` parameter (which is
+            recommended).
 
-        `byteorder`
-            The byteorder of the data *on disk*, specified as 'little'
-            or 'big'. If this is not specified, the byteorder is that
-            of the platform.
+        `byteorder` -- The byteorder of the data *on disk*, specified as
+            'little' or 'big'. If this is not specified, the byteorder
+            is that of the platform.
         """
         # Specific of EArray
+        if expectedrows is None:
+            expectedrows = parentNode._v_file.params['EXPECTED_ROWS_EARRAY']
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the array."""
 

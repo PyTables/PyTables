@@ -243,11 +243,11 @@ cdef class File:
 
 
   def __cinit__(self, object name, char *mode, char *title,
-                char *root, object filters,
-                size_t metadataCacheSize, size_t nodeCacheSize):
+                char *root, object filters, **params):
     # Create a new file using default properties
     self.name = name
     self.mode = pymode = mode
+    self.params = params
 
     # These fields can be seen from Python.
     self._v_new = None  # this will be computed later
@@ -314,7 +314,7 @@ cdef class File:
       self.file_id = H5Fcreate(name, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)
 
     # Set the cache size (only for HDF5 1.8.x)
-    set_cache_size(self.file_id, metadataCacheSize)
+    set_cache_size(self.file_id, params['METADATA_CACHE_SIZE'])
 
 
   # Accessor definitions

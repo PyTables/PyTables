@@ -41,7 +41,6 @@ from tables.node import Node
 from tables.filters import Filters
 from tables.utils import byteorders, idx2long, lazyattr, SizeType
 from tables.utilsExtension import whichLibVersion
-from tables.parameters import CHUNKTIMES, BUFFERTIMES
 from tables.exceptions import PerformanceWarning
 from tables import utilsExtension
 
@@ -391,15 +390,16 @@ class Leaf(Node):
     def _calc_nrowsinbuf(self, chunkshape, rowsize, itemsize):
         """Calculate the number of rows that fits on a PyTables buffer."""
 
+        params = self._v_file.params
         # Compute the nrowsinbuf
         chunksize = numpy.prod(chunkshape, dtype=SizeType) * itemsize
-        buffersize = chunksize * CHUNKTIMES
+        buffersize = chunksize * params['CHUNKTIMES']
         nrowsinbuf = buffersize // rowsize
         # Safeguard against row sizes being extremely large
         if nrowsinbuf == 0:
             nrowsinbuf = 1
             # If rowsize is too large, issue a Performance warning
-            maxrowsize = BUFFERTIMES * buffersize
+            maxrowsize = params['BUFFERTIMES'] * buffersize
             if rowsize > maxrowsize:
                 warnings.warn("""\
 The Leaf ``%s`` is exceeding the maximum recommended rowsize (%d bytes);

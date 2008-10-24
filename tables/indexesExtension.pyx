@@ -34,8 +34,6 @@ import numpy
 
 from tables.exceptions import HDF5ExtError
 from hdf5Extension cimport Array
-from tables.parameters import \
-     SORTED_MAX_SIZE, BOUNDS_MAX_SIZE
 
 
 # numpy functions & objects
@@ -296,8 +294,9 @@ cdef class IndexArray(Array):
       # The 2nd level cache will replace the already existing ObjectCache and
       # already bound to the boundscache attribute. This way, the cache will
       # not be duplicated (I know, this smells badly, but anyway).
+      params = self._v_file.params
       rowsize = (self.bounds_ext._v_chunkshape[1] * dtype.itemsize)
-      maxslots = BOUNDS_MAX_SIZE / rowsize
+      maxslots = params['BOUNDS_MAX_SIZE'] / rowsize
       self.boundscache = <NumCache>NumCache(
         (maxslots, self.nbounds), dtype, 'non-opt types bounds')
       self.bufferbc = numpy.empty(dtype=dtype, shape=self.nbounds)
@@ -305,7 +304,7 @@ cdef class IndexArray(Array):
       self.rbufbc = self.bufferbc.data
       # Another NumCache for the sorted values
       rowsize = (self.chunksize*dtype.itemsize)
-      maxslots = SORTED_MAX_SIZE / (self.chunksize*dtype.itemsize)
+      maxslots = params['SORTED_MAX_SIZE'] / (self.chunksize*dtype.itemsize)
       self.sortedcache = <NumCache>NumCache(
         (maxslots, self.chunksize), dtype, 'sorted')
 

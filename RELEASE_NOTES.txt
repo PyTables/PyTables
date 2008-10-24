@@ -19,20 +19,27 @@ Main improvements
   pre-known group and leaf locations, the new code is substantially
   faster (in fact, the cost of these operations is O(1) now).
 
+- It is possible now to add *any* tunable parameter in
+  tables/parameters.py (like limits for warnings, cache sizes, buffer
+  sizes, etc...)  as an argument to `openFile()`.  With this you can
+  setup a different parametrization for *every* file you open.  A new
+  appendix has been added to the User's Guide explaining which are and
+  which is the mission of the tunable parameters.
+
 - The `EArray.truncate()` method has been generalized and implemented as
   `Leaf.truncate()`.  Now, it is possible to truncate all *enlargeable*
   datasets (i.e. all except `Array` and `CArray` objects).  Solves #174.
 
 - Disabling the LRU node cache is now supported by setting the
-  NODE_MAX_SLOTS (in parameters.py) to 0 (this can also be achieved
-  through the `nodeCacheSize` parameter of openFile() function).
-  Disabling this cache may be useful in situations where you suspect
-  that maintaining it is actually reducing performance (and not
+  NODE_CACHE_SLOTS (in parameters.py) to 0 (this can also be achieved
+  through the `NODE_CACHES_SLOTS` parameter of the `openFile()`
+  function).  Disabling this cache may be useful in situations where
+  you suspect that it is actually reducing performance (instead of
   increasing it).  Besides, this figure can also be negative, meaning
   that all the touched nodes will be kept in an internal dictionary
-  (thus, taking potentially large memory).  See more info about these
-  features in the updated "Getting the most from the node LRU cache"
-  section of chapter 5 of User's Guide.
+  (thus, taking potentially a large amount of memory).  See more info
+  about these features in the updated "Getting the most from the node
+  LRU cache" section of chapter 5 of User's Guide.
 
 - The limitation to use only scalar atoms in `CArray` and `EArray`
   objects has been removed.  Now, all the `Table`, `CArray`, `EArray`
@@ -41,8 +48,7 @@ Main improvements
 
 - After some exhaustive benchmarks, I've decided to reduce the number
   of nodes in the cache to 64.  The experiments shows that this leads
-  to a better performance overall and without consuming too much
-  resources.
+  to a better performance overall and consuming less resources.
 
 Main improvements (Pro edition)
 -------------------------------
@@ -169,6 +175,9 @@ Backward incompatible API changes from 2.0.4 to 2.1
   shape of the type.  This is found to be more consistent than the
   previous behaviour, where `Atom.dtype` was equivalent to current
   `Atom.dtype.base`.
+
+- The parameter `nodeCacheSize` in `openFile()` has been deprecated.
+  Use `NODE_CACHE_SLOTS` instead.
 
 
 Backward incompatible API changes from 2.0.4 to 2.1 (Pro edition)

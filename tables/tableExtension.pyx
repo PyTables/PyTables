@@ -34,7 +34,6 @@ from tables.conditions import call_on_recarr
 from tables.utilsExtension import \
      getNestedField, AtomFromHDF5Type, AtomToHDF5Type
 from tables.utils import SizeType
-from tables.parameters import ITERSEQ_MAX_ELEMENT
 
 from utilsExtension cimport get_native_type
 
@@ -703,6 +702,7 @@ cdef class Row:
   cdef int     whereCond, indexed
   cdef int     ro_filemode, chunked
   cdef int     _bufferinfo_done, sss_on
+  cdef int     iterseqMaxElements
   cdef ndarray bufcoords, indexValid, indexValues, chunkmap
   cdef hsize_t *bufcoordsData, *indexValuesData
   cdef char    *chunkmapData, *indexValidData
@@ -851,7 +851,7 @@ cdef class Row:
       self.lenbuf = self.nrowsinbuf
       # Check if we have limitations on start, stop, step
       self.sss_on = (self.start > 0 or self.stop < self.nrows or self.step > 1)
-
+      self.iterseqMaxElements = table._v_file.params['ITERSEQ_MAX_ELEMENTS']
 
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
@@ -934,7 +934,7 @@ cdef class Row:
         nslot = table._nslotseq
         if nslot >= 0:
           seq = seqcache.getitem_(nslot)
-          if self.lenbuf + len(seq) < ITERSEQ_MAX_ELEMENT:
+          if self.lenbuf + len(seq) < self.iterseqMaxElements:
             seq.extend(self.indexValues)
             # Update the size of sequence in cache
             # Each element in indexValues should take at least 8 bytes

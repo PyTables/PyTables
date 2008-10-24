@@ -46,7 +46,6 @@ from tables.leaf import Leaf
 from tables.description import IsDescription, Description, Col
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
      OldIndexWarning, NoSuchNodeError
-from tables.parameters import MAX_COLUMNS, EXPECTED_ROWS_TABLE, CHUNKTIMES
 from tables.utilsExtension import getNestedField
 from tables.numexpr.compiler import stringToExpression, numexpr
 
@@ -365,8 +364,8 @@ class Table(tableExtension.Table, Leaf):
     # ~~~~~~~~~~~~~
     def __init__(self, parentNode, name,
                  description=None, title="", filters=None,
-                 expectedrows=EXPECTED_ROWS_TABLE,
-                 chunkshape=None, byteorder=None, _log=True):
+                 expectedrows=None, chunkshape=None,
+                 byteorder=None, _log=True):
         """Create an instance of Table.
 
         Keyword arguments:
@@ -386,15 +385,16 @@ class Table(tableExtension.Table, Leaf):
 
         expectedrows -- An user estimate about the number of rows that
             will be on table. If not provided, the default value is
-            appropiate for tables until 1 MB in size (more or less,
-            depending on the record size). If you plan to save bigger
-            tables, try providing a guess; this will optimize the HDF5
-            B-Tree creation and management process time and memory used.
+            ``EXPECTED_ROWS_TABLE`` (see ``tables/parameters.py``).  If
+            you plan to save bigger tables, try providing a guess; this
+            will optimize the HDF5 B-Tree creation and management
+            process time and memory used.
 
         chunkshape -- The shape of the data chunk to be read or written
             as a single HDF5 I/O operation. The filters are applied to
             those chunks of data. Its rank for tables has to be 1.  If
-            None, a sensible value is calculated (which is recommended).
+            ``None``, a sensible value is calculated based on the
+            `expectedrows` parameter (which is recommended).
 
         byteorder -- The byteorder of the data *on-disk*, specified as
             'little' or 'big'. If this is not specified, the byteorder
@@ -416,6 +416,8 @@ class Table(tableExtension.Table, Leaf):
         """A record array to be stored in the table."""
         self._rabyteorder = None
         """The computed byteorder of the self._v_recarray."""
+        if expectedrows is None:
+            expectedrows = parentNode._v_file.params['EXPECTED_ROWS_TABLE']
         self._v_expectedrows = expectedrows
         """The expected number of rows to be stored in the table."""
         self.nrows = SizeType(0)
@@ -716,12 +718,13 @@ class Table(tableExtension.Table, Leaf):
 
         # Warning against assigning too much columns...
         # F. Alted 2005-06-05
-        if (len(self.description._v_names) > MAX_COLUMNS):
+        maxColumns = self._v_file.params['MAX_COLUMNS']
+        if (len(self.description._v_names) > maxColumns):
             warnings.warn(
                 "table ``%s`` is exceeding the recommended "
                 "maximum number of columns (%d); "
                 "be ready to see PyTables asking for *lots* of memory "
-                "and possibly slow I/O" % (self._v_pathname, MAX_COLUMNS),
+                "and possibly slow I/O" % (self._v_pathname, maxColumns),
                 PerformanceWarning )
 
         # 1. Create the HDF5 table (some parameters need to be computed).

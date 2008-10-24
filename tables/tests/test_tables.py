@@ -8,7 +8,6 @@ from numpy import *
 from numpy import rec as records
 
 from tables import *
-from tables.parameters import NODE_MAX_SLOTS
 from tables.utils import SizeType
 from tables.tests import common
 from tables.tests.common import allequal, areArraysEqual
@@ -961,7 +960,7 @@ class BasicTestCase(common.PyTablesTestCase):
         self.assertEqual( newnrows, oldnrows + 1,
                           "Append to alive table failed." )
 
-        if self.fileh.nodeCacheSize == 0:
+        if self.fileh._aliveNodes.nodeCacheSlots == 0:
             # Skip this test from here on because the second case
             # won't work when thereis not a node cache.
             return

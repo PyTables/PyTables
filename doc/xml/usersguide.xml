@@ -1043,7 +1043,7 @@ python -c "import tables; tables.test()"</screen>
       grid_j    = Int32Col()      # 32-bit integer
       pressure  = Float32Col()    # float  (single-precision)
       energy    = Float64Col()    # double (double-precision)
- 
+
 >>> </screen>
 
           <para>This definition class is self-explanatory. Basically, you
@@ -3552,7 +3552,7 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
 
           <section id="openFileDescr" xreflabel="description">
             <title>openFile(filename, mode='r', title='', rootUEP="/",
-            filters=None, nodeCacheSize=NODE_MAX_SLOTS)</title>
+            filters=None, **kwargs)</title>
 
             <para>Open a PyTables (or generic HDF5) file and return a
             <literal>File</literal> object.</para>
@@ -3667,44 +3667,22 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
                   ones, which will in turn propagate to child nodes.</para>
                 </glossdef>
               </glossentry>
-
-              <glossentry>
-                <glossterm><emphasis
-                role="bold">nodeCacheSize</emphasis></glossterm>
-
-                <glossdef>
-                  <para>If positive, this is the number of
-                  <emphasis>unreferenced</emphasis> nodes to be kept in the
-                  metadata cache. Least recently used nodes are unloaded from
-                  memory when this number of loaded nodes is reached. To load
-                  a node again, simply access it as usual. Nodes referenced by
-                  user variables are not taken into account nor
-                  unloaded.</para>
-
-                  <para>Negative value means that all the touched nodes will
-                  be kept in an internal dictionary.  This is the faster way
-                  to load/retrieve nodes.  However, and in order to avoid a
-                  large memory comsumption, the user will be warned when the
-                  number of loaded nodes will reach the
-                  <literal>-nodeChacheSize</literal> value.</para>
-
-                  <para>A value of zero means that any cache mechanism is
-                  disabled.</para>
-
-                  <para>The default is the value of
-                  <literal>NODE_MAX_SLOTS</literal> in file
-                  <literal>tables/parameters.py</literal>.</para>
-
-                  <note>
-                    <para>If you need to deal with a large number of nodes in
-                    an efficient way, please see <xref linkend="LRUOptim"
-                    xrefstyle="select: label" /> for more info and advices
-                    about the integrated node cache engine.</para>
-                  </note>
-
-                </glossdef>
-              </glossentry>
             </glosslist>
+
+            <para>In addition, it recognizes the names of parameters present
+            in <literal>tables/parameters.py</literal> (and for PyTables Pro
+            users, those in <literal>tables/_parameters_pro.py</literal> too)
+            as additional keyword arguments.  See
+            <xref linkend="parametersFiles" xrefstyle="select: label" /> for a
+            detailed info on the supported parameters.</para>
+
+            <note>
+              <para>If you need to deal with a large number of nodes in an
+                efficient way, please see <xref linkend="LRUOptim"
+                xrefstyle="select: label" /> for more info and advices about
+                the integrated node cache engine.</para>
+            </note>
+
           </section>
 
           <section id="print_versions">
@@ -4202,8 +4180,8 @@ Object Tree:
 
           <section id="createEArrayDescr">
             <title>createEArray(where, name, atom, shape, title='',
-            filters=None, expectedrows=1000, chunkshape=None, byteorder=None,
-            createparents=False)</title>
+            filters=None, expectedrows=EXPECTED_ROWS_EARRAY, chunkshape=None,
+            byteorder=None, createparents=False)</title>
 
             <para>Create a new enlargeable array with the given
             <literal>name</literal> in <literal>where</literal> location.  See
@@ -4245,12 +4223,12 @@ Object Tree:
                   <para>A user estimate about the number of row elements that
                   will be added to the growable dimension in the
                   <literal>EArray</literal> node.  If not provided, the
-                  default value is 1000 rows.  If you plan to create either a
-                  much smaller or a much bigger array try providing a guess;
-                  this will optimize the HDF5 B-Tree creation and management
-                  process time and the amount of memory used.  If you want to
-                  specify your own chunk size for I/O purposes, see also the
-                  <literal>chunkshape</literal> parameter below.</para>
+                  default value is <literal>EXPECTED_ROWS_EARRAY</literal>
+                  (see <literal>tables/parameters.py</literal>).  If you plan
+                  to create either a much smaller or a much bigger array try
+                  providing a guess; this will optimize the HDF5 B-Tree
+                  creation and management process time and the amount of
+                  memory used.</para>
                 </glossdef>
               </glossentry>
 
@@ -4265,7 +4243,8 @@ Object Tree:
                   <literal>chunkshape</literal> must be the same as that of
                   <literal>shape</literal> (beware: no dimension should be 0
                   this time!).  If <literal>None</literal>, a sensible value
-                  is calculated (which is recommended).</para>
+                  is calculated based on the <literal>expectedrows</literal>
+                  parameter (which is recommended).</para>
                 </glossdef>
               </glossentry>
 
@@ -4322,8 +4301,8 @@ Object Tree:
 
           <section id="createTableDescr" xreflabel="description">
             <title>createTable(where, name, description, title='',
-            filters=None, expectedrows=10000, chunkshape=None, byteorder=None,
-            createparents=False)</title>
+            filters=None, expectedrows=EXPECTED_ROWS_TABLE, chunkshape=None,
+            byteorder=None, createparents=False)</title>
 
             <para>Create a new table with the given <literal>name</literal> in
             <literal>where</literal> location.  See the
@@ -4486,12 +4465,11 @@ Object Tree:
                 <glossdef>
                   <para>A user estimate of the number of records that will be
                   in the table. If not provided, the default value is
-                  appropriate for tables up to 10 MB in size (more or
-                  less). If you plan to create a bigger table try providing a
-                  guess; this will optimize the HDF5 B-Tree creation and
-                  management process time and memory used. If you want to
-                  specify your own chunk size for I/O purposes, see also the
-                  <literal>chunkshape</literal> parameter below.</para>
+                  <literal>EXPECTED_ROWS_TABLE</literal> (see
+                  <literal>tables/parameters.py</literal>). If you plan to
+                  create a bigger table try providing a guess; this will
+                  optimize the HDF5 B-Tree creation and management process
+                  time and memory used.</para>
 
                   <!-- manual-only -->
                   <para>See <xref linkend="expectedRowsOptim"
@@ -4510,6 +4488,7 @@ Object Tree:
                   chunks of data. The rank of the
                   <literal>chunkshape</literal> for tables must be 1. If
                   <literal>None</literal>, a sensible value is calculated
+                  based on the <literal>expectedrows</literal> parameter
                   (which is recommended).</para>
                 </glossdef>
               </glossentry>
@@ -11813,12 +11792,13 @@ print readFile("myfile.h5")</screen>
         parameter that sets the maximum amount of nodes to be held in memory
         at any time. As PyTables is meant to be deployed in machines that have
         potentially low memory, the default for it is quite conservative (you
-        can look at its actual value in the <literal>NODE_MAX_SLOTS</literal>
-        parameter in module <literal>tables/parameters.py</literal>). However,
-        if you usually have to deal with files that have many more nodes than
-        the maximum default, and you have a lot of free memory in your system,
+        can look at its actual value in
+        the <literal>NODE_CACHE_SLOTS</literal> parameter in
+        module <literal>tables/parameters.py</literal>). However, if you
+        usually have to deal with files that have many more nodes than the
+        maximum default, and you have a lot of free memory in your system,
         then you may want to experiment which is the appropriate value of
-        <literal>NODE_MAX_SLOTS</literal> that fits better your needs.</para>
+        <literal>NODE_CACHE_SLOTS</literal> that fits better your needs.</para>
 
         <para>As an example, look at the next code:</para>
 
@@ -11977,19 +11957,19 @@ print readFile("myfile.h5")</screen>
 
         <para>On the other hand, if you have a lot of memory available and
         performance is absolutely critical, you may want to try out a negative
-        value for <literal>NODE_MAX_SLOTS</literal>.  This will cause that all
-        the touched nodes will be kept in an internal dictionary and this is
-        the faster way to load/retrieve nodes.  However, and in order to avoid
-        a large memory comsumption, the user will be warned when the number of
-        loaded nodes will reach the <literal>-NODE_MAX_SLOTS</literal>
-        value.</para>
+        value for <literal>NODE_CACHE_SLOTS</literal>.  This will cause that
+        all the touched nodes will be kept in an internal dictionary and this
+        is the faster way to load/retrieve nodes.  However, and in order to
+        avoid a large memory comsumption, the user will be warned when the
+        number of loaded nodes will reach
+        the <literal>-NODE_CACHE_SLOTS</literal> value.</para>
 
-        <para>Finally, a value of zero in <literal>NODE_MAX_SLOTS</literal>
+        <para>Finally, a value of zero in <literal>NODE_CACHE_SLOTS</literal>
         means that any cache mechanism is disabled.</para>
 
         <para>At any rate, if you feel that this issue is important for you,
         there is no replacement for setting your own experiments up in order
-        to proceed to fine-tune the <literal>NODE_MAX_SLOTS</literal>
+        to proceed to fine-tune the <literal>NODE_CACHE_SLOTS</literal>
         parameter.</para>
 
         <note role="pro">
@@ -14061,6 +14041,337 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
             from real and imaginary parts.</para>
           </listitem>
         </itemizedlist></para>
+    </appendix>
+
+    <appendix id="parametersFiles">
+      <title>PyTables' parameter files.</title>
+
+      <para>PyTables issues warnings when certain limits are exceeded.  Those
+      limits are not intrinsic limitations of the underlying software, but
+      rather are proactive measures to avoid large resource consumptions.  The
+      default limits should be enough for most of cases, and users should try
+      to respect them.  However, in some situations, it can be convenient to
+      increase (or decrease) these limits.
+
+      <para>Also, and in order to get maximum performance, PyTables implements
+      a series of sophisticated features, like I/O buffers or different kind
+      of caches (for nodes, chunks and other internal metadata).  These
+      features comes with a default set of parameters that ensures a decent
+      performance in most of situations.  But, as there is always a need for
+      every case, it is handy to have the possibility to fine-tune some of
+      these parameters.</para>
+
+      <para>Because of this, PyTables implements a couple of ways to change
+      these values.  All of the <emphasis>tunable</emphasis> parameters live
+      in the <literal>tables/parameters.py</literal>
+      (and <literal>tables/_parameters_pro.py</literal>, for PyTables Pro
+      users).  The user can choose to change them in the parameter files
+      themselves for a global and persistent change.  Moreover, if she wants a
+      finer control, she can pass any of these parameters directly to
+      the <literal>openFile()</literal> function (see
+      <xref linkend="openFileDescr"/>), and the new parameters will only take
+      effect in the corresponding file (the defaults will continue to be in
+      the parameter files.</para>
+
+      <para>A description of all of the tunable parameters follows.</para>
+
+      <warning><para>Changing the next parameters may have a very bad effect
+      in the resource consumption and performance of your PyTables scripts.
+      Please be careful when touching these!</para></warning>
+
+      <section>
+        <title>Tunable parameters in <literal>tables/parameters.py</literal>.
+        </title>
+
+        <section>
+          <title>Recommended maximum values</title>
+
+          <glosslist>
+
+            <glossentry>
+              <glossterm><literal>MAX_COLUMNS</literal></glossterm>
+              <glossdef>
+                <para>Maximum number of columns in <literal>Table</literal>
+                objects before a <literal>PerformanceWarning</literal> is
+                issued.  This limit is somewhat arbitrary and can be
+                increased.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>MAX_COLUMNS</literal></glossterm>
+              <glossdef>
+                <para></para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>MAX_NODE_ATTRS</literal></glossterm>
+              <glossdef>
+                <para>Maximum allowed number of attributes in a node</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>MAX_GROUP_WIDTH</literal></glossterm>
+              <glossdef>
+                <para>Maximum depth in object tree allowed.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>MAX_UNDO_PATH_LENGTH</literal></glossterm>
+              <glossdef>
+                <para>Maximum length of paths allowed in undo/redo
+                operations.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
+
+        <section>
+          <title>Default expected rows for enlargeable datasets</title>
+
+          <glosslist>
+
+            <glossentry>
+              <glossterm><literal>EXPECTED_ROWS_EARRAY</literal></glossterm>
+              <glossdef>
+                <para>Default expected number of rows
+                for <literal>EArray</literal> objects.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>EXPECTED_ROWS_TABLE</literal></glossterm>
+              <glossdef>
+                <para>Default expected number of rows
+                for <literal>Table</literal> objects.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
+
+        <section>
+          <title>Cache limits</title>
+
+          <glosslist>
+
+            <glossentry>
+              <glossterm><literal>METADATA_CACHE_SIZE</literal></glossterm>
+              <glossdef>
+                <para>Size (in bytes) of the HDF5 metadata cache.  This only
+                  takes effect if using HDF5 1.8.x series.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>NODE_CACHE_SLOTS</literal></glossterm>
+              <glossdef>
+                <para>Maximum number of unreferenced nodes to be kept in
+                  memory.</para>
+
+                <para>If positive, this is the number
+                  of <emphasis>unreferenced</emphasis> nodes to be kept in the
+                  metadata cache.  Least recently used nodes are unloaded from
+                  memory when this number of loaded nodes is reached. To load
+                  a node again, simply access it as usual. Nodes referenced by
+                  user variables are not taken into account nor
+                  unloaded.</para>
+
+                <para>Negative value means that all the touched nodes will be
+                  kept in an internal dictionary.  This is the faster way to
+                  load/retrieve nodes.  However, and in order to avoid a large
+                  memory comsumption, the user will be warned when the number
+                  of loaded nodes will reach
+                  the <literal>-NODE_CACHE_SLOTS</literal> value.</para>
+
+                <para>Finally, a value of zero means that any cache mechanism
+                  is disabled.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
+
+        <section>
+          <title>Parameters for the I/O buffer in <literal>Table</literal>
+            objects.</title>
+
+          <glosslist>
+
+            <glossentry>
+              <glossterm><literal>CHUNKTIMES</literal></glossterm>
+              <glossdef>
+                <para>The buffersize/chunksize ratio.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>BUFFERTIMES</literal></glossterm>
+              <glossdef>
+                <para>The maximum buffersize/rowsize ratio before issuing a
+                  <literal>PerformanceWarning</literal>.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
+      </section>
+
+      <section>
+        <title>Tunable parameters in
+        <literal>tables/_parameters_pro.py</literal>.
+        </title>
+
+        <note role="pro">
+          <para>These parameters are only available in PyTables Pro.</para>
+        </note>
+
+        <section>
+          <title>Parameters for the different internal caches</title>
+
+            <glossentry>
+              <glossterm><literal>BOUNDS_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum size for bounds values cached during index
+                lookups.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>BOUNDS_MAX_SLOTS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of slots for
+                the <literal>BOUNDS</literal> cache.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>ITERSEQ_MAX_ELEMENTS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of iterator elements cached in data
+                lookups.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>ITERSEQ_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum space that will
+                take <literal>ITERSEQ</literal> cache (in bytes).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>ITERSEQ_MAX_SLOTS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of slots
+                in <literal>ITERSEQ</literal> cache.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>LIMBOUNDS_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum size for the query limits (for
+                  example, <literal>(lim1, lim2)</literal> in conditions
+                  like <literal>lim1 &le; col &lt; lim2</literal>) cached
+                  during index lookups (in bytes).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>LIMBOUNDS_MAX_SLOTS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of slots
+                for <literal>LIMBOUNDS</literal> cache.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>TABLE_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum size for table chunks cached during index
+                queries.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>SORTED_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum size for sorted values cached during index
+                lookups.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>SORTEDLR_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum size for chunks in last row cached in index
+                  lookups (in bytes).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>SORTEDLR_MAX_SLOTS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of chunks
+                for <literal>SORTEDLR</literal> cache.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
+
+        <section>
+          <title>Parameters for general cache behaviour</title>
+
+          <warning>
+            <para>The next parameters will not be effective if passed to the
+            <literal>openFile()</literal> function (so, they can only be
+            changed in a <emphasis>global</emphasis> way).  You can change
+            them in the file, but this is strongly discouraged unless you know
+            well what you are doing.</para>
+          </warning>
+
+          <glosslist>
+
+            <glossentry>
+              <glossterm><literal>DISABLE_EVERY_CYCLES</literal></glossterm>
+              <glossdef>
+                <para>The number of cycles in which a cache will be forced to
+                  be disabled if the hit ratio is lower than the
+                  <literal>LOWEST_HIT_RATIO</literal> (see below).  This value
+                  should provide time enough to check whether the cache is
+                  being efficient or not.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>ENABLE_EVERY_CYCLES</literal></glossterm>
+              <glossdef>
+                <para>The number of cycles in which a cache will be forced to
+                  be (re-)enabled, irregardingly of the hit ratio. This will
+                  provide a chance for checking if we are in a better scenario
+                  for doing caching again.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>LOWEST_HIT_RATIO</literal></glossterm>
+              <glossdef>
+                <para>The minimum acceptable hit ratio for a cache to avoid
+                  disabling (and freeing) it.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+
+        </section>
+      </section>
     </appendix>
 
     <appendix id="NestedRecArrayClassDescr">

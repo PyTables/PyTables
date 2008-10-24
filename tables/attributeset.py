@@ -35,7 +35,6 @@ import cPickle
 import numpy
 
 from tables import hdf5Extension
-from tables.parameters import MAX_NODE_ATTRS
 from tables.utils import SizeType
 from tables.registry import classNameDict
 from tables.exceptions import ClosedNodeError, PerformanceWarning
@@ -428,11 +427,12 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         nodeFile._checkWritable()
 
         # Check if there are too many attributes.
-        if len(attrnames) >= MAX_NODE_ATTRS:
+        maxNodeAttrs = nodeFile.params['MAX_NODE_ATTRS']
+        if len(attrnames) >= maxNodeAttrs:
             warnings.warn("""\
 node ``%s`` is exceeding the recommended maximum number of attributes (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (self._v__nodePath, MAX_NODE_ATTRS),
+                          % (self._v__nodePath, maxNodeAttrs),
                           PerformanceWarning)
 
         undoEnabled = nodeFile.isUndoEnabled()

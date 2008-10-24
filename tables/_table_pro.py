@@ -13,8 +13,6 @@
 import warnings, math
 import numpy
 
-from tables.parameters import (
-    TABLE_MAX_SIZE, ITERSEQ_MAX_SLOTS, ITERSEQ_MAX_SIZE )
 from tables.atom import Atom
 from tables.exceptions import NoSuchNodeError
 from tables.index import (
@@ -136,11 +134,13 @@ _table__autoIndex = property(
 
 def restorecache(self):
     # Define a cache for sparse table reads
+    params = self._v_file.params
     chunksize = self._v_chunkshape[0]
-    nslots = TABLE_MAX_SIZE / (chunksize * self._v_dtype.itemsize)
+    nslots = params['TABLE_MAX_SIZE'] / (chunksize * self._v_dtype.itemsize)
     self._chunkcache = NumCache((nslots, chunksize), self._v_dtype,
                                 'table chunk cache')
-    self._seqcache = ObjectCache(ITERSEQ_MAX_SLOTS, ITERSEQ_MAX_SIZE,
+    self._seqcache = ObjectCache(params['ITERSEQ_MAX_SLOTS'],
+                                 params['ITERSEQ_MAX_SIZE'],
                                  'Iter sequence cache')
     self._dirtycache = False
 

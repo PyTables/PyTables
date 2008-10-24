@@ -25,7 +25,6 @@ Misc variables:
 
 import warnings
 
-from tables.parameters import MAX_TREE_DEPTH
 from tables.registry import classNameDict, classIdDict
 from tables.exceptions import \
      ClosedNodeError, NodeError, UndoRedoWarning, PerformanceWarning
@@ -262,6 +261,8 @@ class Node(object):
         """The name of this node in its parent group (a string)."""
         self._v_depth = None
         """The depth of this node in the tree (an non-negative integer value)."""
+        self._v_maxTreeDepth = parentNode._v_file.params['MAX_TREE_DEPTH']
+        """Maximum tree depth before warning the user."""
         self._v__deleting = False
         """Is the node being deleted?"""
 
@@ -395,7 +396,7 @@ class Node(object):
         specified `name`.
 
         This also triggers the insertion of file references to this
-        node.  If the maximum recommended node depth is exceeded, a
+        node.  If the maximum recommended tree depth is exceeded, a
         `PerformanceWarning` is issued.
         """
 
@@ -409,11 +410,11 @@ class Node(object):
         self._v_depth = parentDepth + 1
 
         # Check if the node is too deep in the tree.
-        if parentDepth >= MAX_TREE_DEPTH:
+        if parentDepth >= self._v_maxTreeDepth:
             warnings.warn("""\
 node ``%s`` is exceeding the recommended maximum depth (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (self._v_pathname, MAX_TREE_DEPTH),
+                          % (self._v_pathname, self._v_maxTreeDepth),
                           PerformanceWarning)
 
         file_._refNode(self, self._v_pathname)
@@ -441,11 +442,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._v_depth = newDepth
 
         # Check if the node is too deep in the tree.
-        if newDepth > MAX_TREE_DEPTH:
+        if newDepth > self._v_maxTreeDepth:
             warnings.warn("""\
 moved descendent node is exceeding the recommended maximum depth (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                          % (MAX_TREE_DEPTH,), PerformanceWarning)
+                          % (self._v_maxTreeDepth,), PerformanceWarning)
 
         file_ = self._v_file
         file_._unrefNode(oldPath)

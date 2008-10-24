@@ -53,11 +53,6 @@ from tables.leaf import Filters
 from tables.indexes import CacheArray, LastRowArray, IndexArray
 from tables.group import Group
 from tables.path import joinPath
-from tables.parameters import (
-    LIMBOUNDS_MAX_SLOTS, LIMBOUNDS_MAX_SIZE,
-    BOUNDS_MAX_SLOTS, BOUNDS_MAX_SIZE,
-    SORTEDLR_MAX_SLOTS, SORTEDLR_MAX_SIZE,
-    MAX_GROUP_WIDTH )
 from tables.exceptions import PerformanceWarning
 from tables.utils import is_idx, idx2long, lazyattr
 from tables._table_common import _tableColumnPathnameOfIndex
@@ -1729,26 +1724,27 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
     def restorecache(self):
         "Clean the limits cache and resize starts and lengths arrays"
 
+        params = self._v_file.params
         # The sorted IndexArray is absolutely required to be in memory
         # at the same time than the Index instance, so create a strong
         # reference to it.  We are not introducing leaks because the
         # strong reference will disappear when this Index instance is
         # to be closed.
         self._sorted = self.sorted
-        self._sorted.boundscache = ObjectCache(BOUNDS_MAX_SLOTS,
-                                               BOUNDS_MAX_SIZE,
+        self._sorted.boundscache = ObjectCache(params['BOUNDS_MAX_SLOTS'],
+                                               params['BOUNDS_MAX_SIZE'],
                                                'non-opt types bounds')
-        self.sorted.boundscache = ObjectCache(BOUNDS_MAX_SLOTS,
-                                              BOUNDS_MAX_SIZE,
+        self.sorted.boundscache = ObjectCache(params['BOUNDS_MAX_SLOTS'],
+                                              params['BOUNDS_MAX_SIZE'],
                                               'non-opt types bounds')
         """A cache for the bounds (2nd hash) data. Only used for
         non-optimized types searches."""
-        self.limboundscache = ObjectCache(LIMBOUNDS_MAX_SLOTS,
-                                          LIMBOUNDS_MAX_SIZE,
+        self.limboundscache = ObjectCache(params['LIMBOUNDS_MAX_SLOTS'],
+                                          params['LIMBOUNDS_MAX_SIZE'],
                                           'bounding limits')
         """A cache for bounding limits."""
-        self.sortedLRcache = ObjectCache(SORTEDLR_MAX_SLOTS,
-                                         SORTEDLR_MAX_SIZE,
+        self.sortedLRcache = ObjectCache(params['SORTEDLR_MAX_SLOTS'],
+                                         params['SORTEDLR_MAX_SIZE'],
                                          'last row chunks')
         """A cache for the last row chunks. Only used for searches in
         the last row, and mainly useful for small indexes."""
@@ -2100,7 +2096,8 @@ class IndexesDescG(NotLoggedMixin, Group):
             "the number of indexed columns on a single description group "
             "is exceeding the recommended maximum (%d); "
             "be ready to see PyTables asking for *lots* of memory "
-            "and possibly slow I/O" % MAX_GROUP_WIDTH, PerformanceWarning )
+            "and possibly slow I/O" % self._v_maxGroupWidth,
+            PerformanceWarning )
 
 
 class IndexesTableG(NotLoggedMixin, Group):
@@ -2121,7 +2118,8 @@ class IndexesTableG(NotLoggedMixin, Group):
             "the number of indexed columns on a single table "
             "is exceeding the recommended maximum (%d); "
             "be ready to see PyTables asking for *lots* of memory "
-            "and possibly slow I/O" % MAX_GROUP_WIDTH, PerformanceWarning )
+            "and possibly slow I/O" % self._v_maxGroupWidth,
+            PerformanceWarning )
 
     def _g_checkName(self, name):
         if not name.startswith('_i_'):

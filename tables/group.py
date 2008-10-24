@@ -35,7 +35,6 @@ import weakref
 import tables.misc.proxydict
 from tables import hdf5Extension
 from tables import utilsExtension
-from tables.parameters import MAX_GROUP_WIDTH
 from tables.registry import classIdDict
 from tables.exceptions import (
     NodeError, NoSuchNodeError, NaturalNameWarning, PerformanceWarning,
@@ -258,6 +257,8 @@ class Group(hdf5Extension.Group, Node):
         """New title for this node."""
         self._v_new_filters = filters
         """New default filter properties for child nodes."""
+        self._v_maxGroupWidth = parentNode._v_file.params['MAX_GROUP_WIDTH']
+        """Maximum number of children on each group before warning the user."""
 
         # Finally, set up this object as a node.
         super(Group, self).__init__(parentNode, name, _log)
@@ -560,7 +561,7 @@ class Group(hdf5Extension.Group, Node):
         warnings.warn("""\
 group ``%s`` is exceeding the recommended maximum number of children (%d); \
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
-                      % (self._v_pathname, MAX_GROUP_WIDTH),
+                      % (self._v_pathname, self._v_maxGroupWidth),
                       PerformanceWarning)
 
 
@@ -597,7 +598,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                 % (self._v_pathname, childName), NaturalNameWarning)
 
         # Check group width limits.
-        if len(self._v_children) + len(self._v_hidden) >= MAX_GROUP_WIDTH:
+        if len(self._v_children) + len(self._v_hidden) >= self._v_maxGroupWidth:
             self._g_widthWarning()
 
         # Update members information, if needed
@@ -1174,6 +1175,7 @@ class RootGroup(Group):
         self._v_pathname = '/'
         self._v_name = '/'
         self._v_depth = 0
+        self._v_maxGroupWidth = ptFile.params['MAX_GROUP_WIDTH']
         self._v__deleting = False
         self._v_objectID = None  # later
 
@@ -1215,7 +1217,7 @@ class TransactionGroupG(NotLoggedMixin, Group):
         warnings.warn("""\
 the number of transactions is exceeding the recommended maximum (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                      % (MAX_GROUP_WIDTH,), PerformanceWarning)
+                      % (self._v_maxGroupWidth,), PerformanceWarning)
 
 
 class TransactionG(NotLoggedMixin, Group):
@@ -1225,7 +1227,7 @@ class TransactionG(NotLoggedMixin, Group):
         warnings.warn("""\
 transaction ``%s`` is exceeding the recommended maximum number of marks (%d);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                      % (self._v_pathname, MAX_GROUP_WIDTH),
+                      % (self._v_pathname, self._v_maxGroupWidth),
                       PerformanceWarning)
 
 
@@ -1240,7 +1242,7 @@ class MarkG(NotLoggedMixin, Group):
         warnings.warn("""\
 mark ``%s`` is exceeding the recommended maximum action storage (%d nodes);\
 be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
-                      % (self._v_pathname, MAX_GROUP_WIDTH),
+                      % (self._v_pathname, self._v_maxGroupWidth),
                       PerformanceWarning)
 
     def _g_reset(self):
