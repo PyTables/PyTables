@@ -266,13 +266,13 @@ class Group(hdf5Extension.Group, Node):
 
     def _g_postInitHook(self):
         if self._v_new:
-            # Save some attributes for the new group on disk.
-            setAttr = self._v_attrs._g__setattr
-
-            # Set the title, class and version attributes.
-            setAttr('TITLE', self._v_new_title)
-            setAttr('CLASS', self._c_classId)
-            setAttr('VERSION', self._v_version)
+            if self._v_file.params['PYTABLES_SYS_ATTRS']:
+                # Save some attributes for the new group on disk.
+                setAttr = self._v_attrs._g__setattr
+                # Set the title, class and version attributes.
+                setAttr('TITLE', self._v_new_title)
+                setAttr('CLASS', self._c_classId)
+                setAttr('VERSION', self._v_version)
 
             # Set the default filter properties.
             newFilters = self._v_new_filters

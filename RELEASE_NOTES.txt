@@ -46,6 +46,11 @@ Main improvements
   and `VLArray` objects do support fully multidimensional atoms.  This
   also expands the range of native HDF5 files supported.  Solves #133.
 
+- Added a ``PYTABLES_SYS_ATTRS`` parameter that allows to switch on
+  and off the creation of PyTables system attributes in datasets. This
+  way the resulting files are not too PyTables specific.  Moreover,
+  the creation speed of datasets is quite faster.  Closes #190.
+
 - After some exhaustive benchmarks, I've decided to reduce the number
   of nodes in the cache to 64.  The experiments shows that this leads
   to a better performance overall and consuming less resources.

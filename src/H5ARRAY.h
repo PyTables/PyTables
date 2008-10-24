@@ -17,8 +17,6 @@ extern "C" {
 
 herr_t H5ARRAYmake( hid_t loc_id,
 		    const char *dset_name,
-		    const char *class_,
-		    const char *title,
 		    const char *obversion,
 		    const int rank,
 		    const hsize_t *dims,

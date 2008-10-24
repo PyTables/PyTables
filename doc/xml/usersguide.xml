@@ -14131,30 +14131,6 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
         </section>
 
         <section>
-          <title>Default expected rows for enlargeable datasets</title>
-
-          <glosslist>
-
-            <glossentry>
-              <glossterm><literal>EXPECTED_ROWS_EARRAY</literal></glossterm>
-              <glossdef>
-                <para>Default expected number of rows
-                for <literal>EArray</literal> objects.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><literal>EXPECTED_ROWS_TABLE</literal></glossterm>
-              <glossdef>
-                <para>Default expected number of rows
-                for <literal>Table</literal> objects.</para>
-              </glossdef>
-            </glossentry>
-
-          </glosslist>
-        </section>
-
-        <section>
           <title>Cache limits</title>
 
           <glosslist>
@@ -14219,6 +14195,39 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
 
           </glosslist>
         </section>
+
+        <section>
+          <title>Miscellaneous</title>
+
+          <glosslist>
+
+            <glossentry>
+              <glossterm><literal>EXPECTED_ROWS_EARRAY</literal></glossterm>
+              <glossdef>
+                <para>Default expected number of rows
+                for <literal>EArray</literal> objects.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>EXPECTED_ROWS_TABLE</literal></glossterm>
+              <glossdef>
+                <para>Default expected number of rows
+                for <literal>Table</literal> objects.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>PYTABLES_SYS_ATTRS</literal></glossterm>
+              <glossdef>
+                <para>Set this to <literal>False</literal> if you don't want
+                  to create PyTables system attributes in datasets.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
+
       </section>
 
       <section>

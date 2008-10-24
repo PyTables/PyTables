@@ -762,12 +762,11 @@ class Table(tableExtension.Table, Leaf):
 
         # 3. Get field fill attributes from the table description and
         #    set them on disk.
-        i = 0
-        setAttr = self._v_attrs._g__setattr
-        for colobj in self.description._f_walk(type="Col"):
-            fieldname = "FIELD_%d_FILL" % i
-            setAttr(fieldname, colobj.dflt)
-            i += 1
+        if self._v_file.params['PYTABLES_SYS_ATTRS']:
+            setAttr = self._v_attrs._g__setattr
+            for i, colobj in enumerate(self.description._f_walk(type="Col")):
+                fieldname = "FIELD_%d_FILL" % i
+                setAttr(fieldname, colobj.dflt)
 
         return self._v_objectID
 

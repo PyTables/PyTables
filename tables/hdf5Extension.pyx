@@ -58,7 +58,8 @@ from definitions cimport  \
      Py_INCREF, Py_DECREF, \
      import_array, ndarray, dtype, \
      time_t, size_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
-     H5G_GROUP, H5G_DATASET, H5G_stat_t, H5T_class_t, H5T_sign_t, \
+     H5G_GROUP, H5G_DATASET, H5G_stat_t, \
+     H5T_class_t, H5T_sign_t, H5T_NATIVE_INT, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
      H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5T_DIR_DEFAULT, H5S_SELECT_SET, \
      H5get_libversion, H5check_version, H5Fcreate, H5Fopen, H5Fclose, \
@@ -94,8 +95,7 @@ __version__ = "$Revision$"
 # Functions from HDF5 ARRAY (this is not part of HDF5 HL; it's private)
 cdef extern from "H5ARRAY.h":
 
-  herr_t H5ARRAYmake(hid_t loc_id, char *dset_name, char *class_,
-                     char *title, char *obversion,
+  herr_t H5ARRAYmake(hid_t loc_id, char *dset_name, char *obversion,
                      int rank, hsize_t *dims, int extdim,
                      hid_t type_id, hsize_t *dims_chunk, void *fill_data,
                      int complevel, char  *complib, int shuffle,
@@ -127,8 +127,7 @@ cdef extern from "H5ARRAY.h":
 # Functions for dealing with VLArray objects
 cdef extern from "H5VLARRAY.h":
 
-  herr_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *class_,
-                        char *title, char *obversion,
+  herr_t H5VLARRAYmake( hid_t loc_id, char *dset_name, char *obversion,
                         int rank, hsize_t *dims, hid_t type_id,
                         hsize_t chunk_size, void *fill_data, int complevel,
                         char *complib, int shuffle, int flecther32,
@@ -802,8 +801,8 @@ cdef class Array(Leaf):
     complib = PyString_AsString(self.filters.complib or '')
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
-    self.dataset_id = H5ARRAYmake(self.parent_id, self.name, class_, title,
-                                  version, self.rank, self.dims,
+    self.dataset_id = H5ARRAYmake(self.parent_id, self.name, version,
+                                  self.rank, self.dims,
                                   self.extdim, self.disk_type_id, NULL, NULL,
                                   self.filters.complevel, complib,
                                   self.filters.shuffle,
@@ -811,6 +810,12 @@ cdef class Array(Leaf):
                                   rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
+
+    if self._v_file.params['PYTABLES_SYS_ATTRS']:
+      # Set the conforming array attributes
+      H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_ )
+      H5ATTRset_attribute_string(self.dataset_id, "VERSION", version)
+      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title)
 
     # Get the native type (so that it is HDF5 who is the responsible to deal
     # with non-native byteorders on-disk)
@@ -823,7 +828,7 @@ cdef class Array(Leaf):
     cdef int i
     cdef herr_t ret
     cdef void *rbuf
-    cdef char *complib, *version, *class_
+    cdef char *complib, *version, *class_, *extdim
     cdef int itemsize
     cdef ndarray fill_values
     cdef object atom
@@ -847,12 +852,23 @@ cdef class Array(Leaf):
 
     # Create the CArray/EArray
     self.dataset_id = H5ARRAYmake(
-      self.parent_id, self.name, class_, title, version,
-      self.rank, self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
+      self.parent_id, self.name, version, self.rank,
+      self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
       fill_values.data, self.filters.complevel, complib,
       self.filters.shuffle, self.filters.fletcher32, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)
+
+    if self._v_file.params['PYTABLES_SYS_ATTRS']:
+      # Set the conforming array attributes
+      H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_ )
+      H5ATTRset_attribute_string(self.dataset_id, "VERSION", version)
+      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title)
+      if self.extdim >= 0:
+        extdim = <char *>self.extdim
+        # Attach the EXTDIM attribute in case of enlargeable arrays
+        H5ATTRset_attribute(self.dataset_id, "EXTDIM", H5T_NATIVE_INT,
+                            0, NULL, extdim)
 
     # Get the native type (so that it is HDF5 who is the responsible to deal
     # with non-native byteorders on-disk)
@@ -1082,8 +1098,8 @@ cdef class VLArray(Leaf):
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
     # Create the vlarray
-    self.dataset_id = H5VLARRAYmake(self.parent_id, self.name, class_, title,
-                                    version, rank, dims, self.base_type_id,
+    self.dataset_id = H5VLARRAYmake(self.parent_id, self.name, version,
+                                    rank, dims, self.base_type_id,
                                     self.chunkshape[0], rbuf,
                                     self.filters.complevel, complib,
                                     self.filters.shuffle,
@@ -1094,6 +1110,12 @@ cdef class VLArray(Leaf):
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the VLArray.")
     self.nrecords = 0  # Initialize the number of records saved
+
+    if self._v_file.params['PYTABLES_SYS_ATTRS']:
+      # Set the conforming array attributes
+      H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_ )
+      H5ATTRset_attribute_string(self.dataset_id, "VERSION", version)
+      H5ATTRset_attribute_string(self.dataset_id, "TITLE", title)
 
     # Get the datatype handles
     self.disk_type_id, self.type_id = self._get_type_ids()

@@ -339,7 +339,8 @@ class Leaf(Node):
             if self._flavor is None:
                 self._flavor = internal_flavor
             else:  # flavor set at creation time, do not log
-                self._v_attrs._g__setattr('FLAVOR', self._flavor)
+                if self._v_file.params['PYTABLES_SYS_ATTRS']:
+                    self._v_attrs._g__setattr('FLAVOR', self._flavor)
         else:  # get flavor of existing node (if any)
             flavor = getattr(self._v_attrs, 'FLAVOR', internal_flavor)
             self._flavor = flavor_alias_map.get(flavor, flavor)
@@ -494,7 +495,8 @@ very small/large chunksize, you may want to increase/decrease it."""
         if copyuserattrs == True:
             self._v_attrs._g_copy(newNode._v_attrs)
         elif 'FLAVOR' in self._v_attrs:
-            newNode._v_attrs._g__setattr('FLAVOR', self._flavor)
+            if self._v_file.params['PYTABLES_SYS_ATTRS']:
+                newNode._v_attrs._g__setattr('FLAVOR', self._flavor)
         newNode._flavor = self._flavor  # update cached value
 
         # Update statistics if needed.

@@ -64,16 +64,6 @@ MAX_UNDO_PATH_LENGTH = 10240
 """Maximum length of paths allowed in undo/redo operations."""
 
 
-# Default expected rows for enlargeable datasets
-# ----------------------------------------------
-
-EXPECTED_ROWS_EARRAY = 1000
-"""Default expected number of rows for ``EArray`` objects."""
-
-EXPECTED_ROWS_TABLE = 10000
-"""Default expected number of rows for ``Table`` objects."""
-
-
 # Cache limits
 # ------------
 
@@ -126,6 +116,20 @@ CHUNKTIMES = 8   # Makes large seq writings and reads very fast (5.30 Mrw/s)
 BUFFERTIMES = 100
 """The maximum buffersize/rowsize ratio before issuing a
 ``PerformanceWarning``."""
+
+
+# Miscellaneous
+# -------------
+
+EXPECTED_ROWS_EARRAY = 1000
+"""Default expected number of rows for ``EArray`` objects."""
+
+EXPECTED_ROWS_TABLE = 10000
+"""Default expected number of rows for ``Table`` objects."""
+
+PYTABLES_SYS_ATTRS = True
+"""Set this to ``False`` if you don't want to create PyTables system
+attributes in datasets."""
 
 
 ## Local Variables:

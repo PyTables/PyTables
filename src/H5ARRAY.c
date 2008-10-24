@@ -32,9 +32,7 @@
 
 herr_t H5ARRAYmake( hid_t loc_id,
 		    const char *dset_name,
-		    const char *class_,
-		    const char *title,
-		    const char *obversion,    /* The Array VERSION number */
+		    const char *obversion,
 		    const int rank,
 		    const hsize_t *dims,
 		    int   extdim,
@@ -164,29 +162,6 @@ herr_t H5ARRAYmake( hid_t loc_id,
  if (plist_id)
    if ( H5Pclose( plist_id ) < 0 )
      goto out;
-
-/*-------------------------------------------------------------------------
- * Set the conforming array attributes
- *-------------------------------------------------------------------------
- */
-
- /* Attach the CLASS attribute */
- if ( H5ATTRset_attribute_string( dataset_id, "CLASS", class_ ) < 0 )
-     goto out;
- if (extdim >= 0) {
-   /* Attach the EXTDIM attribute in case of enlargeable arrays */
-   if (H5ATTRset_attribute( dataset_id, "EXTDIM", H5T_NATIVE_INT,
-			    0, NULL, (char *)&extdim ) < 0 )
-     goto out;
- }
-
- /* Attach the VERSION attribute */
- if ( H5ATTRset_attribute_string( dataset_id, "VERSION", obversion ) < 0 )
-  goto out;
-
- /* Attach the TITLE attribute */
- if ( H5ATTRset_attribute_string( dataset_id, "TITLE", title ) < 0 )
-  goto out;
 
  /* Release resources */
  if (maxdims)

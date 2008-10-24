@@ -30,9 +30,7 @@
 
 herr_t H5VLARRAYmake( hid_t loc_id,
 		      const char *dset_name,
-		      const char *class_,
-		      const char *title,
-		      const char *obversion,    /* The Array VERSION number */
+		      const char *obversion,
 		      const int rank,
 		      const hsize_t *dims,
 		      hid_t type_id,
@@ -146,23 +144,6 @@ herr_t H5VLARRAYmake( hid_t loc_id,
  /* End access to the property list */
  if ( H5Pclose( plist_id ) < 0 )
    goto out;
-
-/*-------------------------------------------------------------------------
- * Set the conforming array attributes
- *-------------------------------------------------------------------------
- */
-
- /* Attach the CLASS attribute */
- if ( H5ATTRset_attribute_string( dataset_id, "CLASS", class_ ) < 0 )
-  goto out;
-
- /* Attach the VERSION attribute */
- if ( H5ATTRset_attribute_string( dataset_id, "VERSION", obversion ) < 0 )
-  goto out;
-
- /* Attach the TITLE attribute */
- if ( H5ATTRset_attribute_string( dataset_id, "TITLE", title ) < 0 )
-  goto out;
 
  return dataset_id;
 

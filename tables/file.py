@@ -520,8 +520,9 @@ class File(hdf5Extension.File, object):
 
         # Save the PyTables format version for this file.
         if new:
-            root._v_attrs._g__setattr(
-                'PYTABLES_FORMAT_VERSION', format_version)
+            if params['PYTABLES_SYS_ATTRS']:
+                root._v_attrs._g__setattr(
+                    'PYTABLES_FORMAT_VERSION', format_version)
 
         # If the file is old, and not opened in "read-only" mode,
         # check if it has a transaction log

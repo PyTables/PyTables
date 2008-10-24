@@ -214,38 +214,39 @@ cdef class Table(Leaf):
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the table")
 
-    # Set the conforming table attributes
-    # Attach the CLASS attribute
-    ret = H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_)
-    if ret < 0:
-      raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
-                         ("CLASS", self.name))
-    # Attach the VERSION attribute
-    ret = H5ATTRset_attribute_string(self.dataset_id, "VERSION", obversion)
-    if ret < 0:
-      raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
-                         ("VERSION", self.name))
-    # Attach the TITLE attribute
-    ret = H5ATTRset_attribute_string(self.dataset_id, "TITLE", title)
-    if ret < 0:
-      raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
-                         ("TITLE", self.name))
-    # Attach the NROWS attribute
-    nrows = self.nrows
-    ret = H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
-                              0, NULL, <char *>&nrows)
-    if ret < 0:
-      raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
-                         ("NROWS", self.name))
+    if self._v_file.params['PYTABLES_SYS_ATTRS']:
+      # Set the conforming table attributes
+      # Attach the CLASS attribute
+      ret = H5ATTRset_attribute_string(self.dataset_id, "CLASS", class_)
+      if ret < 0:
+        raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
+                           ("CLASS", self.name))
+      # Attach the VERSION attribute
+      ret = H5ATTRset_attribute_string(self.dataset_id, "VERSION", obversion)
+      if ret < 0:
+        raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
+                           ("VERSION", self.name))
+      # Attach the TITLE attribute
+      ret = H5ATTRset_attribute_string(self.dataset_id, "TITLE", title)
+      if ret < 0:
+        raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
+                           ("TITLE", self.name))
+      # Attach the NROWS attribute
+      nrows = self.nrows
+      ret = H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
+                                0, NULL, <char *>&nrows)
+      if ret < 0:
+        raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
+                           ("NROWS", self.name))
 
-    # Attach the FIELD_N_NAME attributes
-    # We write only the first level names
-    for i, name in enumerate(self.description._v_names):
-      fieldname = "FIELD_%s_NAME" % i
-      ret = H5ATTRset_attribute_string(self.dataset_id, fieldname, name)
-    if ret < 0:
-      raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
-                         (fieldname, self.name))
+      # Attach the FIELD_N_NAME attributes
+      # We write only the first level names
+      for i, name in enumerate(self.description._v_names):
+        fieldname = "FIELD_%s_NAME" % i
+        ret = H5ATTRset_attribute_string(self.dataset_id, fieldname, name)
+      if ret < 0:
+        raise HDF5ExtError("Can't set attribute '%s' in table:\n %s." %
+                           (fieldname, self.name))
 
     # If created in PyTables, the table is always chunked
     self._chunked = True  # Accessible from python
@@ -472,11 +473,12 @@ cdef class Table(Leaf):
   def _close_append(self):
     cdef hsize_t nrows
 
-    # Update the NROWS attribute
-    nrows = self.nrows
-    if (H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
-                            0, NULL, <char *>&nrows) < 0):
-      raise HDF5ExtError("Problems setting the NROWS attribute.")
+    if self._v_file.params['PYTABLES_SYS_ATTRS']:
+      # Update the NROWS attribute
+      nrows = self.nrows
+      if (H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
+                              0, NULL, <char *>&nrows) < 0):
+        raise HDF5ExtError("Problems setting the NROWS attribute.")
 
     # Set the caches to dirty (in fact, and for the append case,
     # it should be only the caches based on limits, but anyway)
@@ -637,10 +639,11 @@ cdef class Table(Leaf):
       # Return no removed records
       return 0
     self.nrows = self.nrows - nrecords
-    # Attach the NROWS attribute
-    nrecords2 = self.nrows
-    H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
-                        0, NULL, <char *>&nrecords2)
+    if self._v_file.params['PYTABLES_SYS_ATTRS']:
+      # Attach the NROWS attribute
+      nrecords2 = self.nrows
+      H5ATTRset_attribute(self.dataset_id, "NROWS", H5T_STD_I64,
+                          0, NULL, <char *>&nrecords2)
     # Set the caches to dirty
     self._dirtycache = True
     # Return the number of records removed
