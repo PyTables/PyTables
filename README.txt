@@ -59,7 +59,7 @@ package. Besides, if you want to take advantage of the LZO and bzip2
 compression libraries support you will also need recent versions of
 them. These compression libraries are, however, optional.
 
-We've tested this PyTables version with HDF5 1.6.7 and NumPy 1.0.4,
+We've tested this PyTables version with HDF5 1.6.7 and NumPy 1.2,
 and you *need* to use these versions, or higher, to make use of
 PyTables. Albeit you won't need numarray or Numeric Python in order to
 compile PyTables, they are supported; you only will need a reasonably
@@ -67,16 +67,17 @@ recent version of them (>= 1.5.2 for numarray and >= 24.x for
 Numeric). PyTables has been successfully tested against numarray 1.5.2
 and Numeric 24.2.
 
-We are using Linux on top of Intel32 as the main development platform,
-but PyTables should be easy to compile/install on other UNIX machines.
-This package has also been successfully compiled and tested on a
-FreeBSD 5.4 with Opteron64 processors, a UltraSparc platform with
-Solaris 7 and Solaris 8, a SGI Origin3000 with Itanium processors
-running IRIX 6.5 (using the gcc compiler), Microsoft Windows and
-MacOSX (10.2 although 10.3 should work fine as well). In particular,
-it has been thoroughly tested on 64-bit platforms, like Linux-64 on
-top of an Intel Itanium, AMD Opteron (in 64-bit mode) or PowerPC G5
-(in 64-bit mode) where all the tests pass successfully.
+We are using Linux on top of Intel32 and Intel64 boxes as the main
+development platforms, but PyTables should be easy to compile/install
+on other UNIX machines.  This package has also been successfully
+compiled and tested on a FreeBSD 5.4 with Opteron64 processors, a
+UltraSparc platform with Solaris 7 and Solaris 8, a SGI Origin3000
+with Itanium processors running IRIX 6.5 (using the gcc compiler),
+Microsoft Windows and MacOSX (10.2 although 10.3 should work fine as
+well). In particular, it has been thoroughly tested on 64-bit
+platforms, like Linux-64 on top of an Intel Itanium, AMD Opteron (in
+64-bit mode) or PowerPC G5 (in 64-bit mode) where all the tests pass
+successfully.
 
 Nonetheless, caveat emptor: more testing is needed to achieve complete
 portability, we'd appreciate input on how it compiles and installs on
@@ -94,7 +95,7 @@ available in Chapter 2 of the User's Manual (``doc/usersguide.pdf`` or
 http://www.pytables.org/moin/HowToUse).
 
 1. First, make sure that you have HDF5, NumPy installed (you will need
-   at least HDF5 1.6.7 and NumPy 1.0.4). If don't, get them from
+   at least HDF5 1.6.7 and NumPy 1.2). If don't, get them from
    http://hdfgroup.org/HDF5/ and
    http://numpy.scipy.org/. Compile/install them.
 

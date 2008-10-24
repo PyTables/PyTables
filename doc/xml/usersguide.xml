@@ -598,9 +598,9 @@ fileh.close()</screen>
           <title>Prerequisites</title>
 
           <para>First, make sure that you have at least Python 2.4, HDF5 1.6.5
-          and NumPy 1.0.4 or higher installed (for testing purposes, we are
-          using HDF5 1.6.7/1.8.0 and NumPy 1.0.4 currently). If you don't,
-          fetch and install them before proceeding.</para>
+          and NumPy 1.2 or higher installed (for testing purposes, we are
+          using HDF5 1.6.7/1.8.0 and NumPy 1.2 currently). If you don't, fetch
+          and install them before proceeding.</para>
 
           <para>Compile and install these packages (but see <xref
           linkend="prerequisitesBinInst" xrefstyle="select: label" /> for
@@ -877,8 +877,8 @@ python -c "import tables; tables.test()"</screen>
           <title>Windows prerequisites</title>
 
           <para>First, make sure that you have Python 2.4 or higher and NumPy
-          1.0.4 or higher installed (PyTables binaries have been built using
-          NumPy 1.0.4).  The binaries already include DLLs for HDF5 (1.6.7),
+          1.2 or higher installed (PyTables binaries have been built using
+          NumPy 1.2).  The binaries already include DLLs for HDF5 (1.6.7),
           zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2
           (1.0.4).  The LZO DLL can't be included because of license issues
           (but read below for directives to install it if you want so).</para>
