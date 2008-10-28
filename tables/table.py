@@ -50,7 +50,8 @@ from tables.utilsExtension import getNestedField
 from tables.numexpr.compiler import stringToExpression, numexpr
 
 from tables._table_common import (
-    _indexNameOf, _indexPathnameOf, _indexPathnameOfColumn )
+    _indexNameOf, _indexPathnameOf, _indexPathnameOfColumn,
+    _indexPathnameOfColumn_ )
 
 try:
     from tables.index import (
@@ -2546,17 +2547,6 @@ class Cols(object):
             myDict[colname]._g_updateTableLocation(table)
 
 
-    def _g_updateIndexLocation(self):
-        """Updates the location information about the associated `table`."""
-
-        myDict = self.__dict__
-
-        # Update the locations in individual columns.
-        for colname in self._v_colnames:
-            col = myDict[colname]
-            col._g_updateIndexLocation()
-
-
     def __len__(self):
         """
         Get the number of elements in the column.
@@ -2821,15 +2811,18 @@ class Column(object):
 
 
     def _getindex(self):
-        if self._indexPath is None:
-            return None  # the column is not indexed
-        return self._indexFile._getNode(self._indexPath)
+        indexPath = _indexPathnameOfColumn_(self._tablePath, self.pathname)
+        try:
+            index = self._tableFile._getNode(indexPath)
+        except NodeError:
+            index = None  # The column is not indexed
+        return index
 
     index = property(_getindex)
 
 
     def _isindexed(self):
-        if self._indexPath is None:
+        if self.index is None:
             return False
         else:
             return True
@@ -2855,17 +2848,6 @@ class Column(object):
         self.descr = descr
         self.dtype = descr._v_dtypes[name]
         self.type = descr._v_types[name]
-        self._indexFile = None
-        self._indexPath = None
-        if _is_pro:
-            # Check whether an index exists or not
-            indexname = _indexPathnameOfColumn(table, self.pathname)
-            try:
-                index = tableFile._getNode(indexname)
-                self._indexFile = index._v_file
-                self._indexPath = index._v_pathname
-            except NodeError:
-                pass
 
 
     def _g_updateTableLocation(self, table):
@@ -2873,35 +2855,6 @@ class Column(object):
 
         self._tableFile = table._v_file
         self._tablePath = table._v_pathname
-
-
-    def _g_updateIndexLocation(self):
-        """
-        Updates the location information about the associated `index`.
-
-        This only enters in action during table moves.
-        """
-
-        if self._indexFile is not None:
-            indexname = _indexPathnameOfColumn(self.table, self.pathname)
-            index = self._tableFile._getNode(indexname)
-            self._indexFile = index._v_file
-            self._indexPath = index._v_pathname
-
-
-    def _updateIndexLocation(self, index):
-        """
-        Updates the location information about the associated `index`.
-
-        If `index` is ``None``, no index will be set.
-        """
-
-        if index is None:
-            self._indexFile = None
-            self._indexPath = None
-        else:
-            self._indexFile = index._v_file
-            self._indexPath = index._v_pathname
 
 
     def __len__(self):
@@ -3119,7 +3072,6 @@ class Column(object):
             filters = index.filters
             # Delete the existing Index
             index._f_remove()
-            self._updateIndexLocation(None)
             # Create a new Index with the previous parameters
             return SizeType(self.createIndex(kind, optlevel, filters))
         else:
@@ -3176,7 +3128,6 @@ class Column(object):
         if self.is_indexed:
             index = self.index
             index._f_remove()
-            self._updateIndexLocation(None)
             self.table._setColumnIndexing(self.pathname, False)
 
 

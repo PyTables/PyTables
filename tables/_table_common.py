@@ -28,3 +28,17 @@ def _tableColumnPathnameOfIndex(indexpathname):
     tablepathname = "/".join(names[:i])+"/"+name[3:]
     colpathname = "/".join(names[i+1:])
     return (tablepathname, colpathname)
+
+# The next are versions that work with just paths (i.e. we don't need
+# a node instance for using them, which can be critical in certain
+# situations)
+def _indexNameOf_(nodeName):
+    return '_i_%s' % nodeName
+
+def _indexPathnameOf_(nodePath):
+    nodeParentPath, nodeName = splitPath(nodePath)
+    return joinPath(nodeParentPath, _indexNameOf_(nodeName))
+
+def _indexPathnameOfColumn_(tablePath, colpathname):
+    return joinPath(_indexPathnameOf_(tablePath), colpathname)
+

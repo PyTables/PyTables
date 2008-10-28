@@ -2138,11 +2138,6 @@ class IndexesTableG(NotLoggedMixin, Group):
         _gettable, None, None,
         "Accessor for the `Table` object of this `IndexesTableG` container.")
 
-    def _g_updateDependent(self):
-        super(IndexesTableG, self)._g_updateDependent()
-        table = self.table
-        table.cols._g_updateIndexLocation()
-
 
 
 class OldIndex(NotLoggedMixin, Group):

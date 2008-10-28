@@ -291,7 +291,6 @@ def _column__createIndex(self, kind, optlevel, filters, tmp_dir,
         expectedrows=expectedrows,
         byteorder=table.byteorder,
         blocksizes=blocksizes)
-    self._updateIndexLocation(index)
 
     table._setColumnIndexing(self.pathname, True)
 
