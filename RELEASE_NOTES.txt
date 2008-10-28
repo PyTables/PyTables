@@ -17,7 +17,7 @@ Main improvements
 - Now, when opening a node, that will be done directly (i.e. without
   populating first all the parent directories).  So, for opening
   pre-known group and leaf locations, the new code is substantially
-  faster (in fact, the cost of these operations is O(1) now).
+  faster.
 
 - It is possible now to add *any* tunable parameter in
   tables/parameters.py (like limits for warnings, cache sizes, buffer
@@ -52,8 +52,9 @@ Main improvements
   the creation speed of datasets is quite faster.  Closes #190.
 
 - After some exhaustive benchmarks, I've decided to reduce the number
-  of nodes in the cache to 64.  The experiments shows that this leads
-  to a better performance overall and consuming less resources.
+  of nodes in the LRU cache to 64.  The experiments shows that this
+  leads to better performance overall and less resource consumption.
+
 
 Main improvements (Pro edition)
 -------------------------------

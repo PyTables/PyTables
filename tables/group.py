@@ -344,7 +344,10 @@ class Group(hdf5Extension.Group, Node):
         issued if `warn` is true.
         """
 
-        childCID = self._g_getLChildAttr(childName, 'CLASS')
+        if self._v_file.params['PYTABLES_SYS_ATTRS']:
+            childCID = self._g_getLChildAttr(childName, 'CLASS')
+        else:
+            childCID = None
 
         if childCID in classIdDict:
             return classIdDict[childCID]  # look up leaf class
@@ -410,73 +413,15 @@ class Group(hdf5Extension.Group, Node):
                     # Hidden node.
                     hidden[childName] = None
 
-
     def _g_checkHasChild(self, name):
         """Check whether 'name' is a children of 'self' and return its type. """
-
-        node_type = "Unknown"
-        # If '_v_children' is cached in memory, always use this
-        if '_v_children' in self.__dict__:
-            if name in self._v_children:
-                # Is the node a group or a leaf?
-                if name in self._v_groups:
-                    node_type = "Group"
-                else:
-                    node_type = "Leaf"
-            elif name in self._v_hidden:
-                # Hidden nodes are not separated into groups and leaves
-                # so, defer the type detection until later.
-                node_type = "Unknown"
-            else:
-                node_type = "NoSuchNode"
-
-        if node_type == "Unknown":
-            # The node type has not been discovered yet.
-            # Get the HDF5 name matching the PyTables name.
-            node_type = self._g_get_objinfo(name)
-
+        # Get the HDF5 name matching the PyTables name.
+        node_type = self._g_get_objinfo(name)
         if node_type == "NoSuchNode":
             raise NoSuchNodeError(
                 "group ``%s`` does not have a child named ``%s``"
                 % (self._v_pathname, name))
-
         return node_type
-
-
-    def _g_loadChild(self, childName):
-        """
-        Load a child node from disk.
-
-        The child node `childName` is loaded from disk and an adequate
-        `Node` object is created and returned.  If there is no such
-        child, a `NoSuchNodeError` is raised.
-        """
-
-        # Is the node a group or a leaf?
-        node_type = self._g_checkHasChild(childName)
-
-        # Guess the PyTables class suited to the node,
-        # build a PyTables node and return it.
-        if node_type == "Group":
-            childClass = self._g_getChildGroupClass(childName, warn=True)
-            return childClass(self, childName, new=False)
-        elif node_type == "Leaf":
-            childClass = self._g_getChildLeafClass(childName, warn=True)
-            # Building a leaf may still fail because of unsupported types
-            # and other causes.
-            ###return childClass(self, childName)  # uncomment for debugging
-            try:
-                return childClass(self, childName)
-            except Exception, exc:  #XXX
-                warnings.warn(
-                    "problems loading leaf ``%s``::\n\n"
-                    "  %s\n\n"
-                    "The leaf will become an ``UnImplemented`` node."
-                    % (self._g_join(childName), exc))
-                # If not, associate an UnImplemented object to it
-                return UnImplemented(self, childName)
-        else:
-            return UnImplemented(self, childName)
 
 
     def __iter__(self):
@@ -601,22 +546,20 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         if len(self._v_children) + len(self._v_hidden) >= self._v_maxGroupWidth:
             self._g_widthWarning()
 
-        # Update members information, if needed
-        if '_v_children' in self.__dict__:
-            # Insert references to the new child.
-            # (Assigned values are entirely irrelevant.)
-            if isVisibleName(childName):
-                # Visible node.
-                self.__members__.insert(0, childName)  # enable completion
-
-                self._v_children[childName] = None  # insert node
-                if isinstance(childNode, Leaf):
-                    self._v_leaves[childName] = None
-                elif isinstance(childNode, Group):
-                    self._v_groups[childName] = None
-            else:
-                # Hidden node.
-                self._v_hidden[childName] = None  # insert node
+        # Update members information.
+        # Insert references to the new child.
+        # (Assigned values are entirely irrelevant.)
+        if isVisibleName(childName):
+            # Visible node.
+            self.__members__.insert(0, childName)  # enable completion
+            self._v_children[childName] = None  # insert node
+            if isinstance(childNode, Leaf):
+                self._v_leaves[childName] = None
+            elif isinstance(childNode, Group):
+                self._v_groups[childName] = None
+        else:
+            # Hidden node.
+            self._v_hidden[childName] = None  # insert node
 
 
     def _g_unrefNode(self, childName):
@@ -1197,6 +1140,48 @@ class RootGroup(Group):
         # This is an exception to the rule, handled by ``File.__init()__``.
         #
         ##self._g_postInitHook()
+
+
+    def _g_loadChild(self, childName):
+        """
+        Load a child node from disk.
+
+        The child node `childName` is loaded from disk and an adequate
+        `Node` object is created and returned.  If there is no such
+        child, a `NoSuchNodeError` is raised.
+        """
+
+        if self._v_file.rootUEP != "/":
+            childName = joinPath(self._v_file.rootUEP, childName)
+        # Is the node a group or a leaf?
+        node_type = self._g_checkHasChild(childName)
+
+        # Guess the PyTables class suited to the node,
+        # build a PyTables node and return it.
+        if node_type == "Group":
+            if self._v_file.params['PYTABLES_SYS_ATTRS']:
+                childClass = self._g_getChildGroupClass(childName, warn=True)
+            else:
+                # Default is a Group class
+                childClass = Group
+            return childClass(self, childName, new=False)
+        elif node_type == "Leaf":
+            childClass = self._g_getChildLeafClass(childName, warn=True)
+            # Building a leaf may still fail because of unsupported types
+            # and other causes.
+            ###return childClass(self, childName)  # uncomment for debugging
+            try:
+                return childClass(self, childName)
+            except Exception, exc:  #XXX
+                warnings.warn(
+                    "problems loading leaf ``%s``::\n\n"
+                    "  %s\n\n"
+                    "The leaf will become an ``UnImplemented`` node."
+                    % (self._g_join(childName), exc))
+                # If not, associate an UnImplemented object to it
+                return UnImplemented(self, childName)
+        else:
+            return UnImplemented(self, childName)
 
 
     def _f_rename(self, newname):

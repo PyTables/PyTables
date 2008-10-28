@@ -191,6 +191,8 @@ class OpenFileTestCase(common.PyTablesTestCase):
         if common.verbose:
             print "\nFile tree dump:", fileh
         title = fileh.root.anarray1.getAttr("TITLE")
+        # Get the node again, as this can trigger errors in some situations
+        anarray1 = fileh.root.anarray1
 
         assert title == "Array title 1"
         fileh.close()
@@ -1663,9 +1665,9 @@ class PythonAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check the assignments.
         self.assert_(array1.array2 is array2)
         self.assert_(array2.array1 is array1)
-        self.assertRaises(TypeError,  # ``/array1`` is not a group
+        self.assertRaises(NoSuchNodeError,  # ``/array1`` is not a group
                           h5file.getNode, '/array1/array2')
-        self.assertRaises(TypeError,  # ``/array2`` is not a group
+        self.assertRaises(NoSuchNodeError,  # ``/array2`` is not a group
                           h5file.getNode, '/array2/array3')
 
 

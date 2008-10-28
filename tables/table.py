@@ -798,31 +798,33 @@ class Table(tableExtension.Table, Leaf):
 
         # 4. If there are field fill attributes, get them from disk and
         #    set them in the table description.
-        if "FIELD_0_FILL" in self._v_attrs._f_list("sys"):
-            i = 0
-            getAttr = self._v_attrs.__getattr__
-            for objcol in self.description._f_walk(type="Col"):
-                colname = objcol._v_pathname
-                # Get the default values for each column
-                fieldname = "FIELD_%s_FILL" % i
-                defval = getAttr(fieldname)
-                if defval is not None:
-                    objcol.dflt = defval
-                else:
-                    warnings.warn( "could not load default value "
-                                   "for the ``%s`` column of table ``%s``; "
-                                   "using ``%r`` instead"
-                                   % (colname, self._v_pathname, objcol.dflt) )
-                    defval = objcol.dflt
-                i += 1
+        if self._v_file.params['PYTABLES_SYS_ATTRS']:
+            if "FIELD_0_FILL" in self._v_attrs._f_list("sys"):
+                i = 0
+                getAttr = self._v_attrs.__getattr__
+                for objcol in self.description._f_walk(type="Col"):
+                    colname = objcol._v_pathname
+                    # Get the default values for each column
+                    fieldname = "FIELD_%s_FILL" % i
+                    defval = getAttr(fieldname)
+                    if defval is not None:
+                        objcol.dflt = defval
+                    else:
+                        warnings.warn( "could not load default value "
+                                       "for the ``%s`` column of table ``%s``; "
+                                       "using ``%r`` instead"
+                                       % (colname, self._v_pathname,
+                                          objcol.dflt) )
+                        defval = objcol.dflt
+                    i += 1
 
-            # Set also the correct value in the desc._v_dflts dictionary
-            for descr in self.description._f_walk(type="Description"):
-                names = descr._v_names
-                for i in range(len(names)):
-                    objcol = descr._v_colObjects[names[i]]
-                    if isinstance(objcol, Col):
-                        descr._v_dflts[objcol._v_name] = objcol.dflt
+                # Set also the correct value in the desc._v_dflts dictionary
+                for descr in self.description._f_walk(type="Description"):
+                    names = descr._v_names
+                    for i in range(len(names)):
+                        objcol = descr._v_colObjects[names[i]]
+                        if isinstance(objcol, Col):
+                            descr._v_dflts[objcol._v_name] = objcol.dflt
 
         # 5. Cache some data which is already in the description.
         self._cacheDescriptionData()
@@ -2524,12 +2526,6 @@ class Cols(object):
         myDict['_v_desc'] = desc
         myDict['_v_colnames'] = desc._v_names
         myDict['_v_colpathnames'] = table.description._v_pathnames
-        # Bound the index table group because it will be referenced
-        # quite a lot when populating the attrs with column objects.
-        try:
-            itgroup = table._v_file._getNode(_indexPathnameOf(table))
-        except NodeError:
-            pass
         # Put the column in the local dictionary
         for name in desc._v_names:
             if name in desc._v_types:
@@ -2859,15 +2855,17 @@ class Column(object):
         self.descr = descr
         self.dtype = descr._v_dtypes[name]
         self.type = descr._v_types[name]
-        # Check whether an index exists or not
-        indexname = _indexPathnameOfColumn(table, self.pathname)
-        try:
-            index = tableFile._getNode(indexname)
-            self._indexFile = index._v_file
-            self._indexPath = index._v_pathname
-        except NodeError:
-            self._indexFile = None
-            self._indexPath = None
+        self._indexFile = None
+        self._indexPath = None
+        if _is_pro:
+            # Check whether an index exists or not
+            indexname = _indexPathnameOfColumn(table, self.pathname)
+            try:
+                index = tableFile._getNode(indexname)
+                self._indexFile = index._v_file
+                self._indexPath = index._v_pathname
+            except NodeError:
+                pass
 
 
     def _g_updateTableLocation(self, table):

@@ -881,41 +881,20 @@ class File(hdf5Extension.File, object):
         aliveNodes = self._aliveNodes
         deadNodes = self._deadNodes
 
-        # Walk up the hierarchy until a node in the path is in memory.
-        parentPath = nodePath  # deepest node in memory
-        pathTail = []  # subsequent children below that node
-        while parentPath != '/':
-            if parentPath in aliveNodes:
-                # The parent node is in memory and alive, so get it.
-                parentNode = aliveNodes[parentPath]
-                assert parentNode is not None, \
-                       "stale weak reference to dead node ``%s``" % parentPath
-                break
-            if parentPath in deadNodes:
-                # The parent node is in memory but dead, so revive it.
-                parentNode = self._reviveNode(parentPath)
-                break
-            # Go up one level to try again.
-            (parentPath, nodeName) = splitPath(parentPath)
-            pathTail.insert(0, nodeName)
-        else:
-            # We hit the root node and no parent was in memory.
-            parentNode = self.root
+        if nodePath in aliveNodes:
+            # The parent node is in memory and alive, so get it.
+            node = aliveNodes[nodePath]
+            assert node is not None, \
+                   "stale weak reference to dead node ``%s``" % nodePath
+            return node
+        if nodePath in deadNodes:
+            # The parent node is in memory but dead, so revive it.
+            node = self._reviveNode(nodePath)
+            return node
 
-        # Walk down the hierarchy until the last child in the tail is loaded.
-        node = parentNode  # maybe `nodePath` was already in memory
-        for childName in pathTail:
-            # Load the node and use it as a parent for the next one in tail
-            # (it puts itself into life via `self._refNode()` when created).
-            if not isinstance(parentNode, Group):
-                # This is the root group
-                parentPath = parentNode._v_pathname
-                raise TypeError("node ``%s`` is not a group; "
-                                "it can not have a child named ``%s``"
-                                % (parentPath, childName))
-            node = parentNode._g_loadChild(childName)
-            parentNode = node
-
+        # The node has not been found in alive or dead nodes.
+        # Open it directly from disk.
+        node = self.root._g_loadChild(nodePath)
         return node
 
 
@@ -951,7 +930,7 @@ class File(hdf5Extension.File, object):
             node = where
             node._g_checkOpen()  # the node object must be open
             nodePath = where._v_pathname
-        elif isinstance(where, basestring):  # Pyhton >= 2.3
+        elif isinstance(where, basestring):
             node = None
             if where.startswith('/'):
                 nodePath = where
@@ -2000,12 +1979,12 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         # Post-conditions
         assert len(self._deadNodes) == 0, \
                ("dead nodes remain after closing dead nodes: %s"
-                % [path for path in deadNodes])
+                % [path for path in self._deadNodes])
 
         # No other nodes should have been revived.
         assert len(self._aliveNodes) == 0, \
                ("alive nodes remain after closing dead nodes: %s"
-                % [path for path in aliveNodes])
+                % [path for path in self._aliveNodes])
 
         # Close the file
         self._closeFile()

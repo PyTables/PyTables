@@ -279,7 +279,7 @@ def whichClass(hid_t loc_id, char *name):
   cdef char         byteorder[11]  # "irrelevant" fits easily here
 
   classId = "UNSUPPORTED"  # default value
-  # Get The HDF5 class for the dattatype in this dataset
+  # Get The HDF5 class for the datatype in this dataset
   class_id = getHDF5ClassID(loc_id, name, &layout, &type_id, &dataset_id)
   # Check if this a dataset of supported classtype for ARRAY
   if  ((class_id == H5T_INTEGER)  or

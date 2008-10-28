@@ -342,9 +342,11 @@ class Leaf(Node):
                 if self._v_file.params['PYTABLES_SYS_ATTRS']:
                     self._v_attrs._g__setattr('FLAVOR', self._flavor)
         else:  # get flavor of existing node (if any)
-            flavor = getattr(self._v_attrs, 'FLAVOR', internal_flavor)
-            self._flavor = flavor_alias_map.get(flavor, flavor)
-        assert self._flavor is not None
+            if self._v_file.params['PYTABLES_SYS_ATTRS']:
+                flavor = getattr(self._v_attrs, 'FLAVOR', internal_flavor)
+                self._flavor = flavor_alias_map.get(flavor, flavor)
+            else:
+                self._flavor = internal_flavor
 
 
     def _calc_chunkshape(self, expectedrows, rowsize, itemsize):

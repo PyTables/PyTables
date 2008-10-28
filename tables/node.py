@@ -304,9 +304,6 @@ class Node(object):
             # This allows extra operations after creating the node.
             self._g_postInitHook()
         except:
-            if new:
-                # Creation failed, this is no longer a child of the parent.
-                parentNode._g_unrefNode(name)
             # If anything happens, the node must be closed
             # to undo every possible registration made so far.
             # We do *not* rely on ``__del__()`` doing it later,
@@ -405,9 +402,22 @@ class Node(object):
 
         self._v_file = file_
         self._v_isopen = True
-        self._v_name = name
-        self._v_pathname = joinPath(parentNode._v_pathname, name)
-        self._v_depth = parentDepth + 1
+
+        rootUEP = file_.rootUEP
+        if name.startswith(rootUEP):
+            # This has been called from File._getNode()
+            assert parentDepth == 0
+            if rootUEP == "/":
+                self._v_pathname = name
+            else:
+                self._v_pathname = name[len(rootUEP):]
+            _, self._v_name = splitPath(name)
+            self._v_depth = name.count("/") - rootUEP.count("/") + 1
+        else:
+            # If we enter here is because this has been called elsewhere
+            self._v_name = name
+            self._v_pathname = joinPath(parentNode._v_pathname, name)
+            self._v_depth = parentDepth + 1
 
         # Check if the node is too deep in the tree.
         if parentDepth >= self._v_maxTreeDepth:
