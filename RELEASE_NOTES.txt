@@ -19,16 +19,14 @@ Main improvements
   pre-known group and leaf locations, the new code is substantially
   faster.
 
-- It is possible now to add *any* tunable parameter in
-  tables/parameters.py (like limits for warnings, cache sizes, buffer
-  sizes, etc...)  as an argument to `openFile()`.  With this you can
-  setup a different parametrization for *every* file you open.  A new
-  appendix has been added to the User's Guide explaining which are and
-  which is the mission of the tunable parameters.
+- The creation of different nodes has been optimized too.  For
+  example, creating a new EArray/CArray can be 2x faster and creating
+  a Table object up to 5x faster.
 
-- The `EArray.truncate()` method has been generalized and implemented as
-  `Leaf.truncate()`.  Now, it is possible to truncate all *enlargeable*
-  datasets (i.e. all except `Array` and `CArray` objects).  Solves #174.
+- Added a ``PYTABLES_SYS_ATTRS`` parameter that allows to switch on
+  and off the creation of PyTables system attributes in datasets. This
+  way the resulting files are not too PyTables specific.  Moreover,
+  the creation speed of datasets is faster yet.  Closes #190.
 
 - Disabling the LRU node cache is now supported by setting the
   NODE_CACHE_SLOTS (in parameters.py) to 0 (this can also be achieved
@@ -41,19 +39,26 @@ Main improvements
   about these features in the updated "Getting the most from the node
   LRU cache" section of chapter 5 of User's Guide.
 
+- It is possible now to add *any* tunable parameter in
+  tables/parameters.py (like limits for warnings, cache sizes, buffer
+  sizes, etc...)  as an argument to `openFile()`.  With this you can
+  setup a different parametrization for every file you open.  A new
+  appendix has been added to the User's Guide explaining which are and
+  which is the mission of the tunable parameters.
+
+- The `EArray.truncate()` method has been generalized and implemented as
+  `Leaf.truncate()`.  Now, it is possible to truncate all *enlargeable*
+  datasets (i.e. all except `Array` and `CArray` objects).  Closes #174.
+
 - The limitation to use only scalar atoms in `CArray` and `EArray`
   objects has been removed.  Now, all the `Table`, `CArray`, `EArray`
   and `VLArray` objects do support fully multidimensional atoms.  This
-  also expands the range of native HDF5 files supported.  Solves #133.
-
-- Added a ``PYTABLES_SYS_ATTRS`` parameter that allows to switch on
-  and off the creation of PyTables system attributes in datasets. This
-  way the resulting files are not too PyTables specific.  Moreover,
-  the creation speed of datasets is quite faster.  Closes #190.
+  also expands the range of native HDF5 files supported.  Closes #133.
 
 - After some exhaustive benchmarks, I've decided to reduce the number
-  of nodes in the LRU cache to 64.  The experiments shows that this
-  leads to better performance overall and less resource consumption.
+  of nodes in the LRU cache for nodes to 64.  The experiments shows
+  that this leads to better performance overall and to a more
+  contained consumption of resources.
 
 
 Main improvements (Pro edition)
