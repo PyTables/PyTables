@@ -142,8 +142,8 @@ API additions from 2.0.4 to 2.1 (Pro edition)
   indexes in original tables) flags to the `ptrepack` utility.
 
 
-Bug fixes
----------
+Bug fixes and othe small enhancements
+-------------------------------------
 
 - In order to avoid a long-standing bug, all the possible 64-bit class
   attributes of leaf objects (like `nrows`, `shape` or `nrow`) have been
@@ -158,6 +158,12 @@ Bug fixes
 
 - The `Atom` default value (`Atom.dflt`) is honored now when creating
   `CArrays`.  Fixes #176.
+
+- During the modification of values in tables with indexed columns in
+  the context of iterators, the columns are not re-indexed when the
+  I/O buffer is full anymore, but after the iterator is completed.
+  This allows for far better performance in this scenario.  Closes
+  #141.
 
 
 Backward incompatible API changes from 2.0.4 to 2.1

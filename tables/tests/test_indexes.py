@@ -2124,9 +2124,6 @@ def suite():
     niter = 1
     #heavy = 1  # Uncomment this only for testing purposes!
 
-#     theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
-#     theSuite.addTest(unittest.makeSuite(AI5TestCase))
-#     theSuite.addTest(unittest.makeSuite(AI6TestCase))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibReadTestCase))
@@ -2146,6 +2143,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(IndexFiltersTestCase))
         theSuite.addTest(unittest.makeSuite(OldIndexTestCase))
         theSuite.addTest(unittest.makeSuite(CompletelySortedIndexTestCase))
+        theSuite.addTest(unittest.makeSuite(ManyNodesTestCase))
     if heavy:
         # These are too heavy for normal testing
         theSuite.addTest(unittest.makeSuite(AI4bTestCase))
@@ -2156,7 +2154,6 @@ def suite():
         theSuite.addTest(unittest.makeSuite(AI10TestCase))
         theSuite.addTest(unittest.makeSuite(AI11TestCase))
         theSuite.addTest(unittest.makeSuite(AI12TestCase))
-        theSuite.addTest(unittest.makeSuite(ManyNodesTestCase))
 
     return theSuite
 
