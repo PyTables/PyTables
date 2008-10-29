@@ -488,27 +488,27 @@ class CreateTestCase(unittest.TestCase):
 
 
 class NotCloseCreate(CreateTestCase):
-    close = 0
+    close = False
     nodeCacheSlots = NODE_CACHE_SLOTS
 
 class CloseCreate(CreateTestCase):
-    close = 1
+    close = True
     nodeCacheSlots = NODE_CACHE_SLOTS
 
 class NoCacheNotCloseCreate(CreateTestCase):
-    close = 0
+    close = False
     nodeCacheSlots = 0
 
 class NoCacheCloseCreate(CreateTestCase):
-    close = 1
+    close = True
     nodeCacheSlots = 0
 
 class DictCacheNotCloseCreate(CreateTestCase):
-    close = 0
+    close = False
     nodeCacheSlots = -NODE_CACHE_SLOTS
 
 class DictCacheCloseCreate(CreateTestCase):
-    close = 1
+    close = True
     nodeCacheSlots = -NODE_CACHE_SLOTS
 
 
@@ -1129,6 +1129,91 @@ class CloseTypesTestCase(TypesTestCase):
     close = 1
 
 
+class NoSysAttrsTestCase(unittest.TestCase):
+
+    def setUp(self):
+        # Create an instance of HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(
+            self.file, mode = "w", PYTABLES_SYS_ATTRS=False)
+        self.root = self.fileh.root
+
+        # Create a table object
+        self.table = self.fileh.createTable(self.root, 'atable',
+                                            Record, "Table title")
+        # Create an array object
+        self.array = self.fileh.createArray(self.root, 'anarray',
+                                            [1], "Array title")
+        # Create a group object
+        self.group = self.fileh.createGroup(self.root, 'agroup',
+                                            "Group title")
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test00_listAttributes(self):
+        """Checking listing attributes (no system attrs version)."""
+
+        # With a Group object
+        self.group._v_attrs.pq = "1"
+        self.group._v_attrs.qr = "2"
+        self.group._v_attrs.rs = "3"
+        if common.verbose:
+            print "Attribute list:", self.group._v_attrs._f_list()
+
+        # Now, try with a Table object
+        self.table.attrs.a = "1"
+        self.table.attrs.c = "2"
+        self.table.attrs.b = "3"
+        if common.verbose:
+            print "Attribute list:", self.table.attrs._f_list()
+
+        # Finally, try with an Array object
+        self.array.attrs.k = "1"
+        self.array.attrs.j = "2"
+        self.array.attrs.i = "3"
+        if common.verbose:
+            print "Attribute list:", self.array.attrs._f_list()
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(
+                self.file, mode = "r+")
+            self.root = self.fileh.root
+
+        agroup = self.root.agroup
+        assert agroup._v_attrs._f_list("user") == \
+               ["pq", "qr", "rs"]
+        assert agroup._v_attrs._f_list("sys") == \
+               []
+        assert agroup._v_attrs._f_list("all") == \
+               ["pq", "qr", "rs"]
+
+        atable = self.root.atable
+        assert atable.attrs._f_list() == ["a", "b", "c"]
+        assert atable.attrs._f_list("sys") == \
+               []
+        assert atable.attrs._f_list("all") == \
+               ["a", "b", "c"]
+
+        anarray = self.root.anarray
+        assert anarray.attrs._f_list() == ["i", "j", "k"]
+        assert anarray.attrs._f_list("sys") == \
+               []
+        assert anarray.attrs._f_list("all") == \
+               ["i", "j", "k"]
+
+class NoSysAttrsNotClose(NoSysAttrsTestCase):
+    close = False
+
+class NoSysAttrsClose(NoSysAttrsTestCase):
+    close = True
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -1144,6 +1229,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(DictCacheCloseCreate))
         theSuite.addTest(unittest.makeSuite(NotCloseTypesTestCase))
         theSuite.addTest(unittest.makeSuite(CloseTypesTestCase))
+        theSuite.addTest(unittest.makeSuite(NoSysAttrsNotClose))
+        theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
 
     return theSuite
 

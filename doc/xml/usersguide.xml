@@ -14073,7 +14073,8 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       effect in the corresponding file (the defaults will continue to be in
       the parameter files.</para>
 
-      <para>A description of all of the tunable parameters follows.</para>
+      <para>A description of all of the tunable parameters follows.  Please
+      see your parameter files so as to know the actual default values.</para>
 
       <warning><para>Changing the next parameters may have a very bad effect
       in the resource consumption and performance of your PyTables scripts.
@@ -14221,7 +14222,12 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
               <glossterm><literal>PYTABLES_SYS_ATTRS</literal></glossterm>
               <glossdef>
                 <para>Set this to <literal>False</literal> if you don't want
-                  to create PyTables system attributes in datasets.</para>
+                  to create PyTables system attributes in datasets.  Also, if
+                  set to <literal>False</literal> the possible existing system
+                  attributes are not considered for guessing the class of the
+                  node during its loading from disk (this work is delegated to
+                  the PyTables' class discoverer function for general HDF5
+                  files).</para>
               </glossdef>
             </glossentry>
 

@@ -129,7 +129,10 @@ EXPECTED_ROWS_TABLE = 10000
 
 PYTABLES_SYS_ATTRS = True
 """Set this to ``False`` if you don't want to create PyTables system
-attributes in datasets."""
+attributes in datasets.  Also, if set to ``False`` the possible existing
+system attributes are not considered for guessing the class of the node
+during its loading from disk (this work is delegated to the PyTables'
+class discoverer function for general HDF5 files)."""
 
 
 ## Local Variables:
