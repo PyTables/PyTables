@@ -489,8 +489,7 @@ class BasicTestCase(PyTablesTestCase):
         assert len(rowList1) == len(rowList2)
         assert rowList1 == rowList2
 
-    # Commented this out, as it is not too grave.  Ticket is #188.
-    def _test10c_moveIndex(self):
+    def test10c_moveIndex(self):
         """Checking moving a table with an index (small node cache)."""
 
         if verbose:
@@ -498,7 +497,45 @@ class BasicTestCase(PyTablesTestCase):
             print "Running %s.test10c_moveIndex..." % self.__class__.__name__
 
         # Open the HDF5 file in read-write mode
-        self.fileh = openFile(self.file, mode = "a", nodeCacheSize=10)
+        self.fileh = openFile(self.file, mode = "a", NODE_CACHE_SLOTS=10)
+        table = self.fileh.root.table
+        idxcol = table.cols.var1.index
+        if verbose:
+            print "Before move"
+            print "var1 column:", idxcol
+        assert table.colindexed["var1"] == 1
+        assert idxcol is not None
+
+        # Create a new group called "agroup"
+        agroup = self.fileh.createGroup("/", "agroup")
+
+        # move the table to "agroup"
+        table.move(agroup, "table2")
+        if verbose:
+            print "After move"
+            print "var1 column:", idxcol
+        assert table.cols.var1.index is not None
+        assert table.colindexed["var1"] == 1
+
+        # Some sanity checks
+        table.flavor = "python"
+        rowList1 = table.getWhereList('var1 < "10"')
+        rowList2 = [p.nrow for p in table if p['var1'] < "10"]
+        if verbose:
+            print "Selected values:", rowList1
+            print "Should look like:", rowList2
+        assert len(rowList1) == len(rowList2)
+        assert rowList1 == rowList2
+
+    def test10d_moveIndex(self):
+        """Checking moving a table with an index (no node cache)."""
+
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10d_moveIndex..." % self.__class__.__name__
+
+        # Open the HDF5 file in read-write mode
+        self.fileh = openFile(self.file, mode = "a", NODE_CACHE_SLOTS=0)
         table = self.fileh.root.table
         idxcol = table.cols.var1.index
         if verbose:
