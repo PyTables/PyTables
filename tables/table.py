@@ -2184,11 +2184,12 @@ The 'names' parameter must be a list of strings.""")
         """Re-index columns in `colnames` if automatic indexing is true."""
 
         if self.indexed:
+            colindexed, cols = self.colindexed, self.cols
             colstoindex = []
             # Mark the proper indexes as dirty
-            for (colname, colindexed) in self.colindexed.iteritems():
-                if colindexed and colname in colnames:
-                    col = self.cols._g_col(colname)
+            for colname in colnames:
+                if colindexed[colname]:
+                    col = cols._g_col(colname)
                     col.index.dirty = True
                     colstoindex.append(colname)
             # Now, re-index the dirty ones
