@@ -223,7 +223,7 @@ def createIndexesDescr(igroup, dname, iname, filters):
     return idgroup
 
 
-def _column__createIndex(self, kind, optlevel, filters, tmp_dir,
+def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
                          blocksizes, verbose):
     name = self.name
     table = self.table

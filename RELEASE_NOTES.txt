@@ -137,6 +137,9 @@ API additions from 2.0.4 to 2.1 (Pro edition)
 - New public `Index.readSorted()` and `Index.readIndices()` methods that
   allow direct access to the index data.
 
+- Added a new `Column.createCSIndex()` as a handy way to create a
+  completely sorted index (CSI).
+
 - Added new '--sortby' (sort a table by a column key), '--forceCSI'
   (force the creation of a CSI index) and '--propindexes' (propagate the
   indexes in original tables) flags to the `ptrepack` utility.
@@ -196,12 +199,10 @@ Backward incompatible API changes from 2.0.4 to 2.1 (Pro edition)
 =================================================================
 
 - The `Column.createIndex()` has received a new parameter named `kind`
-  which is the first now in the argument list.  This is intentional and
-  *incompatible* with previous arglist, so that people should update
-  their existing `Column.createIndex()` calls.
-
-- Added a new `Column.createCSIndex()` as a handy way to create a
-  completely sorted index (CSI).
+  which is the second now in the argument list.  This is intentional
+  and *incompatible* with previous arglist, so that people using more
+  than one positional parameter in their existing
+  `Column.createIndex()` calls should update them.
 
 - The `Table.indexFilters` property has been removed (after a period of
   ``DeprecationWarnings``).  If you want to change filters in indexes,

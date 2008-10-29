@@ -8153,52 +8153,78 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
             <title><literal>Column</literal> methods</title>
 
             <section id="Column.createIndex" xreflabel="description">
-              <title><literal>createIndex(kind="medium", optlevel=6,
+              <title><literal>createIndex(optlevel=6, kind="medium",
               filters=None, tmp_dir=None)</literal></title>
 
               <para>Create an index for this column.</para>
 
-              <para>You can select the kind of the index by setting
-              <literal>kind</literal> from <literal>'ultralight'</literal>,
-              <literal>'light'</literal>, <literal>'medium'</literal> or
-              <literal>'full'</literal> values.  Lighter kinds
-              (<literal>'ultralight'</literal> and <literal>'light'</literal>)
-              mean that the index takes less space on disk.  Heavier kinds
-              (<literal>'medium'</literal> and <literal>'full'</literal>) mean
-              better chances for reducing the entropy of the index at the
-              price of using more disk space as well as more CPU, memory and
-              I/O resources for creating the index.</para>
+              <para>Keyword arguments:</para>
 
-              <para>For each <literal>kind</literal>, you can select its
-              optimization level by setting <literal>optlevel</literal> from 0
-              (no optimization) to 9 (maximum optimization).  Higher levels of
-              optimization mean better chances for reducing the entropy of the
-              index at the price of using more CPU, memory and I/O resources
-              for creating the index.</para>
+              <glosslist>
+                <glossentry>
+                  <glossterm><emphasis role="bold">optlevel</emphasis></glossterm>
+                  <glossdef>
+                    <para>The optimization level for building the index.  The
+                    levels ranges from 0 (no optimization) up to 9 (maximum
+                    optimization).  Higher levels of optimization mean better
+                    chances for reducing the entropy of the index at the price
+                    of using more CPU, memory and I/O resources for creating
+                    the index.</para>
+                  </glossdef>
+                </glossentry>
 
-              <para>Note that selecting a <literal>full</literal> kind with an
-              <literal>optlevel</literal> of 9 (the maximum) guarantees the
-              creation of an index with zero entropy, that is, a completely
-              sorted index (CSI) — provided that the number of rows in the
-              table does not exceed the 2**48 figure (that is more than 100
-              trillions of rows).  See
-              <literal>Column.createCSIndex()</literal> (<xref
-              linkend="Column.createCSIndex" />) method for a more direct way
-              to create a CSI index.</para>
+                <glossentry>
+                  <glossterm><emphasis role="bold">kind</emphasis></glossterm>
 
-              <para>The <literal>filters</literal> argument can be used to set
-              the <literal>Filters</literal> (see <xref
-              linkend="FiltersClassDescr" xrefstyle="select: label" />) used
-              to compress the index.  If <literal>None</literal>, default
-              index filters will be used (currently, zlib level 1 with
-              shuffling).</para>
+                  <glossdef>
+                    <para>The kind of the index to be built.  It can take the
+                    <literal>'ultralight'</literal>, <literal>'light'</literal>,
+                    <literal>'medium'</literal> or <literal>'full'</literal>
+                    values.  Lighter kinds (<literal>'ultralight'</literal>
+                    and <literal>'light'</literal>) mean that the index takes
+                    less space on disk, but will perform queries slower.
+                    Heavier kinds (<literal>'medium'</literal>
+                    and <literal>'full'</literal>) mean better chances for
+                    reducing the entropy of the index (increasing the query
+                    speed) at the price of using more disk space as well as
+                    more CPU, memory and I/O resources for creating the
+                    index.</para>
 
-              <para>When <literal>kind</literal> is heavier than
-              <literal>'ultralight'</literal>, a temporary file is created
-              during the index build process.  You can use the
-              <literal>tmp_dir</literal> argument to specify the directory for
-              this temporary file.  The default is to create it in the same
-              directory as the file containing the original table.</para>
+                    <para>Note that selecting a <literal>full</literal> kind
+                    with an <literal>optlevel</literal> of 9 (the maximum)
+                    guarantees the creation of an index with zero entropy,
+                    that is, a completely sorted index (CSI) — provided that
+                    the number of rows in the table does not exceed the 2**48
+                    figure (that is more than 100 trillions of rows).  See
+                    <literal>Column.createCSIndex()</literal>
+                    (<xref linkend="Column.createCSIndex" />) method for a
+                    more direct way to create a CSI index.</para>
+                  </glossdef>
+                </glossentry>
+
+                <glossentry>
+                  <glossterm><emphasis role="bold">filters</emphasis></glossterm>
+                  <glossdef>
+                    <para>Specify the <literal>Filters</literal> instance used
+                     to compress the index.  If <literal>None</literal>,
+                     default index filters will be used (currently, zlib level
+                     1 with shuffling).</para>
+                  </glossdef>
+                </glossentry>
+
+                <glossentry>
+                  <glossterm><emphasis role="bold">tmp_dir</emphasis></glossterm>
+                  <glossdef>
+                    <para>When <literal>kind</literal> is other
+                    than <literal>'ultralight'</literal>, a temporary file is
+                    created during the index build process.  You can use the
+                    <literal>tmp_dir</literal> argument to specify the
+                    directory for this temporary file.  The default is to
+                    create it in the same directory as the file containing the
+                    original table.</para>
+                  </glossdef>
+                </glossentry>
+              </glosslist>
 
               <note role="pro">
                 <para>Column indexing is only available in PyTables

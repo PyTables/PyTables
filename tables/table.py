@@ -2304,8 +2304,8 @@ The 'names' parameter must be a list of strings.""")
                 oldcolindex = oldcols[colname].index
                 newcol = newcols[colname]
                 newcol.createIndex(
-                    oldcolindex.kind, oldcolindex.optlevel,
-                    oldcolindex.filters, tmp_dir=None)
+                    kind=oldcolindex.kind, optlevel=oldcolindex.optlevel,
+                    filters=oldcolindex.filters, tmp_dir=None)
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
@@ -2985,42 +2985,46 @@ class Column(object):
             raise ValueError, "Non-valid index or slice: %s" % key
 
 
-    def createIndex( self, kind="medium", optlevel=6, filters=None,
+    def createIndex( self, optlevel=6, kind="medium", filters=None,
                      tmp_dir=None, _blocksizes=None, _testmode=False,
                      _verbose=False ):
         """ Create an index for this column.
 
-        You can select the kind of the index by setting `kind` from
-        'ultralight', 'light', 'medium' or 'full' values.  Lighter kinds
-        ('ultralight' and 'light') mean that the index takes less space
-        on disk.  Heavier kinds ('medium' and 'full') mean better
-        chances for reducing the entropy of the index at the price of
-        using more disk space as well as more CPU, memory and I/O
-        resources for creating the index.
+        Keyword arguments:
 
-        For each `kind`, you can select its optimization level by
-        setting `optlevel` from 0 (no optimization) to 9 (maximum
-        optimization).  Higher levels of optimization mean better
-        chances for reducing the entropy of the index at the price of
-        using more CPU, memory and I/O resources for creating the index.
+        optlevel -- The optimization level for building the index.  The
+            levels ranges from 0 (no optimization) up to 9 (maximum
+            optimization).  Higher levels of optimization mean better
+            chances for reducing the entropy of the index at the price
+            of using more CPU, memory and I/O resources for creating the
+            index.
 
-        Note that selecting a 'full' kind with an `optlevel` of 9 (the
-        maximum) guarantees the creation of an index with zero entropy,
-        that is, a completely sorted index (CSI) -- provided that the
-        number of rows in the table does not exceed the 2**48 figure
-        (that is more than 100 trillions of rows).  See
-        ``Column.createCSIndex()`` method for a more direct way to
-        create a CSI index.
+        kind -- The kind of the index to be built.  It can take the
+            'ultralight', 'light', 'medium' or 'full' values.  Lighter
+            kinds ('ultralight' and 'light') mean that the index takes
+            less space on disk, but will perform queries slower.
+            Heavier kinds ('medium' and 'full') mean better chances for
+            reducing the entropy of the index (increasing the query
+            speed) at the price of using more disk space as well as more
+            CPU, memory and I/O resources for creating the index.
 
-        The `filters` argument can be used to set the `Filters` used to
-        compress the index.  If ``None``, default index filters will be
-        used (currently, zlib level 1 with shuffling).
+            Note that selecting a 'full' kind with an `optlevel` of 9
+            (the maximum) guarantees the creation of an index with zero
+            entropy, that is, a completely sorted index (CSI) --
+            provided that the number of rows in the table does not
+            exceed the 2**48 figure (that is more than 100 trillions of
+            rows).  See ``Column.createCSIndex()`` method for a more
+            direct way to create a CSI index.
 
-        When `kind` is heavier than 'ultralight', a temporary file is
-        created during the index build process.  You can use the
-        `tmp_dir` argument to specify the directory for this temporary
-        file.  The default is to create it in the same directory as the
-        file containing the original table.
+        filters -- Specify the `Filters` instance used to compress the
+            index.  If ``None``, default index filters will be used
+            (currently, zlib level 1 with shuffling).
+
+        tmp_dir -- When `kind` is other than 'ultralight', a temporary
+            file is created during the index build process.  You can use
+            the `tmp_dir` argument to specify the directory for this
+            temporary file.  The default is to create it in the same
+            directory as the file containing the original table.
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
@@ -3045,12 +3049,12 @@ class Column(object):
             (type(_blocksizes) is not tuple or len(_blocksizes) != 4)):
             raise ValueError, \
                   "_blocksizes must be a tuple with exactly 4 elements"
-        idxrows = _column__createIndex(self, kind, optlevel, filters,
+        idxrows = _column__createIndex(self, optlevel, kind, filters,
                                        tmp_dir, _blocksizes, _verbose)
         return SizeType(idxrows)
 
 
-    def createCSIndex( self, filters=None,  tmp_dir=None,
+    def createCSIndex( self, filters=None, tmp_dir=None,
                        _blocksizes=None, _testmode=False, _verbose=False ):
         """Create a completely sorted index (CSI) for this column.
 
@@ -3069,8 +3073,9 @@ class Column(object):
         ``Column.createIndex(kind='full', optlevel=9, ...)``.
         """
 
-        return self.createIndex('full', 9, filters, tmp_dir,
-            _blocksizes, _testmode=_testmode, _verbose=_verbose)
+        return self.createIndex(
+            kind='full', optlevel=9, filters=filters, tmp_dir=tmp_dir,
+            _blocksizes=_blocksizes, _testmode=_testmode, _verbose=_verbose)
 
 
     def _doReIndex(self, dirty):
@@ -3088,7 +3093,8 @@ class Column(object):
             # Delete the existing Index
             index._f_remove()
             # Create a new Index with the previous parameters
-            return SizeType(self.createIndex(kind, optlevel, filters))
+            return SizeType(self.createIndex(
+                kind=kind, optlevel=optlevel, filters=filters))
         else:
             return SizeType(0)  # The column is not intended for indexing
 
