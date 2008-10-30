@@ -1,0 +1,97 @@
+Windows prerequisites
+----------------------
+
+::
+
+  - numpy-1.0.3
+  - zlib-1.2.3
+  - bzip2-1.0.3
+  - szip-2.0
+  - fop-0.93
+  - offo-hyphenation patterns
+  - docbook-xsl-1.72.0
+  - tldp-xsl (latest version)
+  - xsltproc
+
+    * iconv-1.9.2
+    * libxml2-2.6.27
+    * libxslt-1.1.19
+
+  - sed
+  - inkscape
+  - png2ico
+  - nsis-2.27
+  - MinGW
+
+Commercial package for Windows
+------------------------------
+
+::
+
+In order to set the MingW compiler environment you have to add MingW
+paths to the PATH, LIB and INCLUDE variables. You can do it with a batch
+script.
+
+*** Important: read this COMPLETELY before proceed! ****
+The installer gets some files from PyTablesPro sources in your working
+copy of the repository but obtains the extensions from the local
+PyTablesPro installation [1]_ so keep them synchronized.
+
+It expects both PyTablesPro and numpy to be installed in their default
+directory with their folders renamed to tables_orig and numpy_orig.
+This way, if PyTablesPro is completely uninstalled later (using its
+uninstaller), it can be built again without reinstalling the
+tables/numpy package(s).
+
+Finally, check that the NUMPYVERSION in mswindows\Makefile_windows does
+correspond to your installed version in numpy_orig.  You have to do this
+manually!
+
+******************
+
+  set a MingW compiler environment for your DOS shell
+  cd path_to_PytablesPro_working_copy\mswindows
+  mingw32-make -f Makefile_windows PYTHONVERSION=xx clean
+  mingw32-make -f Makefile_windows PYTHONVERSION=xx LICENSE=yy installer
+
+Currently xx can be 24 (for Python 2.4) or 25 (for Python 2.5).
+The kind of license to be included in the binary package is
+yy=development, site, personal.
+
+You can repeat the last step (i.e. make installer) for every combination
+of xx and yy, i.e. it is not necessary a make clean every time.
+
+
+Package testing
+---------------
+
+Once a installer package has been made you must test it i.e. you must
+check that it INSTALLS properly the software. To do it is easy, just run
+the installer and check that:
+
+* data files are installed in the installation directory
+* python modules and extensions are installed in the right directory
+* shortcuts are created in the applications menu
+
+Beware that every item of the list is set by you during the installation
+process.
+
+Further testing
+---------------
+
+Before a package is made publicaly available you must check, at least
+minimally, that the packaged software works properly. That's easy too,
+just install the package, go to a non-pytables source directory and
+issue this command:
+
+python -c "import tables; tables.test()"
+
+Pay attention not only that every test passes ok, but also that the
+versions of sofwtare printed out are correct (spec. PyTables)!
+
+It is strongly recommended to do this if you are making several
+PyTablesPro packages. This way, if testing a given package fails, you
+can fix the problem and make sure that it will not affect to the
+remaining packages.
+
+.. [1] These files are basically helper scripts and LICENSE files.

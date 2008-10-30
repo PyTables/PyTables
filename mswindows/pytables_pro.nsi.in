@@ -1,11 +1,13 @@
 # Use Modern User Interface style
-!include "MUI.nsh"
+!include "MUI2.nsh"
 
 !include Library.nsh
 !include Sections.nsh
 
 # Select the compressor that will compress the installer
-SetCompressor bzip2
+#SetCompressor bzip2
+SetCompressor lzma
+#SetCompressor zlib
 
 # The name of the installer
 Name "PyTables Pro @VERSION@"
@@ -70,13 +72,14 @@ FunctionEnd
 # Welcome page
 !insertmacro MUI_PAGE_WELCOME
 
+# Deactivate the summary, as I don't think it is really necessary
 # License summary page
-!define MUI_PAGE_HEADER_TEXT "License Summary"
-!define MUI_PAGE_HEADER_SUBTEXT "Just for lazy people :-)"
-!define MUI_LICENSEPAGE_TEXT_TOP " "
-!define MUI_LICENSEPAGE_TEXT_BOTTOM " "
-!define MUI_LICENSEPAGE_BUTTON "I'm warned"
-!insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\LICENSE_SUMMARY.txt
+#!define MUI_PAGE_HEADER_TEXT "License Summary"
+#!define MUI_PAGE_HEADER_SUBTEXT "Just for lazy people :-)"
+#!define MUI_LICENSEPAGE_TEXT_TOP " "
+#!define MUI_LICENSEPAGE_TEXT_BOTTOM " "
+#!define MUI_LICENSEPAGE_BUTTON "I'm warned"
+#!insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\LICENSE_SUMMARY.txt
 
 # License page
 !insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\@LICENSEFILENAME@
@@ -127,13 +130,15 @@ Section "PyTables Pro @PTVERSION@" PT
 
   # Copy the PyTables Pro sources in the Python site-packages directory
   SetOutPath $PYTHONDIR\Lib\site-packages\tables
-  File /r /x .svn @SVN_PTPRO@\tables\*
+  #File /r /x .svn @SVN_PTPRO@\tables\*
+  # It is better to copy the files directly from installed directory
+  File /r @TABLES_ORIG@\*
 
   # Copy the PyTables Pro extensions in the tables directory
-  SetOutPath $PYTHONDIR\Lib\site-packages\tables
-  File @TABLES_ORIG@\*.pyd
-  SetOutPath $PYTHONDIR\Lib\site-packages\tables\numexpr
-  File @TABLES_ORIG@\numexpr\*.pyd
+  #SetOutPath $PYTHONDIR\Lib\site-packages\tables
+  #File @TABLES_ORIG@\*.pyd
+  #SetOutPath $PYTHONDIR\Lib\site-packages\tables\numexpr
+  #File @TABLES_ORIG@\numexpr\*.pyd
 
   # The text files: TODO.txt, INSTALL.txt and stuff like that
   SetOutPath $INSTDIR

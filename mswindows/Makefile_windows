@@ -25,8 +25,12 @@ ifeq ($(LICENSE), personal)
 	LICENSEFILE=..\LICENSE-personal.txt
 	LICENSEFILENAME=LICENSE-personal.txt
 endif
+ifeq ($(LICENSE),evaluation)
+        LICENSEFILE=..\LICENSE-evaluation.txt
+        LICENSEFILENAME=LICENSE-evaluation.txt
+endif
 
-NUMPYVERSION=1.0.4
+NUMPYVERSION=1.2.1
 
 # The NSIS intstaller script
 PTPRONSIS=pytables_pro-py$(DOTPYTHONVERSION).nsi
