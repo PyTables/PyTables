@@ -26,10 +26,8 @@ Regarding the Pro edition, 3 different kind of indexes have been added
 so that the user can choose the best for her needs.  Also, and due to
 the introduction of the concept of chunkmaps in OPSI, the responsiveness
 of complex queries with low selectivity has improved quite a lot.  And
-last but not least, it is possible now to sort completely tables that
-are ordered by a specific field, with no practical limit in size (up to
-2**48 rows, that is, around 281 trillion of rows).  More info in:
-http://www.pytables.org/moin/PyTablesPro#WhatisnewinforthcomingPyTablesPro2.1
+last but not least, it is possible now to sort tables by a specific
+field with no practical limit in size (tables up to 2**48 rows).
 
 In case you want to know more in detail what has changed in this
 version, have a look at ``RELEASE_NOTES.txt`` in the tarball.  Find the
