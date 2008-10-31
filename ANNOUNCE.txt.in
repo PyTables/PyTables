@@ -11,7 +11,7 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-In PyTables 2.1rc1 many new features and a handful of bugs have been
+In PyTables 2.1 many new features and a handful of bugs have been
 addressed.  This is a release candidate, so, in addition to the tarball,
 binaries for Windows are provided too.  Also, the API has been frozen
 and you should only expect bug fixes and documentation improvements for
@@ -38,7 +38,7 @@ http://www.pytables.org/moin/ReleaseNotes/Release_@VERSION@
 
 You can download a source package of the version @VERSION@ with
 generated PDF and HTML docs and binaries for Windows from
-http://www.pytables.org/download/preliminary
+http://www.pytables.org/download/stable
 
 Finally, and for the first time, an evaluation version for PyTables Pro
 has been made available in:
