@@ -14259,161 +14259,160 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
 
           </glosslist>
         </section>
-
-        <section>
-          <title>Tunable parameters in
-          <literal>tables/_parameters_pro.py</literal>.
-          </title>
-
-          <note role="pro">
-            <para>These parameters are only available in PyTables Pro.</para>
-          </note>
-
-          <section>
-            <title>Parameters for the different internal caches</title>
-
-            <glosslist>
-              <glossentry>
-                <glossterm><literal>BOUNDS_MAX_SIZE</literal></glossterm>
-                <glossdef>
-                  <para>The maximum size for bounds values cached during index
-                  lookups.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>BOUNDS_MAX_SLOTS</literal></glossterm>
-                <glossdef>
-                  <para>The maximum number of slots for
-                  the <literal>BOUNDS</literal> cache.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>ITERSEQ_MAX_ELEMENTS</literal></glossterm>
-                <glossdef>
-                  <para>The maximum number of iterator elements cached in data
-                  lookups.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>ITERSEQ_MAX_SIZE</literal></glossterm>
-                <glossdef>
-                  <para>The maximum space that will
-                  take <literal>ITERSEQ</literal> cache (in bytes).</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>ITERSEQ_MAX_SLOTS</literal></glossterm>
-                <glossdef>
-                  <para>The maximum number of slots in
-                  <literal>ITERSEQ</literal> cache.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>LIMBOUNDS_MAX_SIZE</literal></glossterm>
-                <glossdef>
-                  <para>The maximum size for the query limits (for example,
-                  <literal>(lim1, lim2)</literal> in conditions like
-                  <literal>lim1 &le; col &lt; lim2</literal>) cached during
-                  index lookups (in bytes).</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>LIMBOUNDS_MAX_SLOTS</literal></glossterm>
-                <glossdef>
-                  <para>The maximum number of slots for
-                  <literal>LIMBOUNDS</literal> cache.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>TABLE_MAX_SIZE</literal></glossterm>
-                <glossdef>
-                  <para>The maximum size for table chunks cached during index
-                  queries.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>SORTED_MAX_SIZE</literal></glossterm>
-                <glossdef>
-                  <para>The maximum size for sorted values cached during index
-                  lookups.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>SORTEDLR_MAX_SIZE</literal></glossterm>
-                <glossdef>
-                  <para>The maximum size for chunks in last row cached in index
-                  lookups (in bytes).</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>SORTEDLR_MAX_SLOTS</literal></glossterm>
-                <glossdef>
-                  <para>The maximum number of chunks
-                  for <literal>SORTEDLR</literal> cache.</para>
-                </glossdef>
-              </glossentry>
-
-            </glosslist>
-          </section>
-
-          <section>
-            <title>Parameters for general cache behaviour</title>
-
-            <warning>
-              <para>The next parameters will not be effective if passed to the
-              <literal>openFile()</literal> function (so, they can only be
-              changed in a <emphasis>global</emphasis> way).  You can change
-              them in the file, but this is strongly discouraged unless you
-              know well what you are doing.</para>
-            </warning>
-
-            <glosslist>
-
-              <glossentry>
-                <glossterm><literal>DISABLE_EVERY_CYCLES</literal></glossterm>
-                <glossdef>
-                  <para>The number of cycles in which a cache will be forced
-                  to be disabled if the hit ratio is lower than the
-                  <literal>LOWEST_HIT_RATIO</literal> (see below).  This value
-                  should provide time enough to check whether the cache is
-                  being efficient or not.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>ENABLE_EVERY_CYCLES</literal></glossterm>
-                <glossdef>
-                  <para>The number of cycles in which a cache will be forced to
-                  be (re-)enabled, irregardingly of the hit ratio. This will
-                  provide a chance for checking if we are in a better scenario
-                  for doing caching again.</para>
-                </glossdef>
-              </glossentry>
-
-              <glossentry>
-                <glossterm><literal>LOWEST_HIT_RATIO</literal></glossterm>
-                <glossdef>
-                  <para>The minimum acceptable hit ratio for a cache to avoid
-                  disabling (and freeing) it.</para>
-                </glossdef>
-              </glossentry>
-
-            </glosslist>
-
-          </section>
-        </section>
       </section>
 
+      <section>
+        <title>Tunable parameters in
+        <literal>tables/_parameters_pro.py</literal>.
+        </title>
+
+        <note role="pro">
+          <para>These parameters are only available in PyTables Pro.</para>
+        </note>
+
+        <section>
+          <title>Parameters for the different internal caches</title>
+
+          <glosslist>
+            <glossentry>
+              <glossterm><literal>BOUNDS_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum size for bounds values cached during index
+                lookups.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>BOUNDS_MAX_SLOTS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of slots for
+                the <literal>BOUNDS</literal> cache.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>ITERSEQ_MAX_ELEMENTS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of iterator elements cached in data
+                lookups.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>ITERSEQ_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum space that will
+                take <literal>ITERSEQ</literal> cache (in bytes).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>ITERSEQ_MAX_SLOTS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of slots in
+                <literal>ITERSEQ</literal> cache.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>LIMBOUNDS_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum size for the query limits (for example,
+                <literal>(lim1, lim2)</literal> in conditions like
+                <literal>lim1 &le; col &lt; lim2</literal>) cached during
+                index lookups (in bytes).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>LIMBOUNDS_MAX_SLOTS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of slots for
+                <literal>LIMBOUNDS</literal> cache.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>TABLE_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum size for table chunks cached during index
+                queries.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>SORTED_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum size for sorted values cached during index
+                lookups.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>SORTEDLR_MAX_SIZE</literal></glossterm>
+              <glossdef>
+                <para>The maximum size for chunks in last row cached in index
+                lookups (in bytes).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>SORTEDLR_MAX_SLOTS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of chunks
+                for <literal>SORTEDLR</literal> cache.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
+
+        <section>
+          <title>Parameters for general cache behaviour</title>
+
+          <warning>
+            <para>The next parameters will not be effective if passed to the
+            <literal>openFile()</literal> function (so, they can only be
+            changed in a <emphasis>global</emphasis> way).  You can change
+            them in the file, but this is strongly discouraged unless you know
+            well what you are doing.</para>
+          </warning>
+
+          <glosslist>
+
+            <glossentry>
+              <glossterm><literal>DISABLE_EVERY_CYCLES</literal></glossterm>
+              <glossdef>
+                <para>The number of cycles in which a cache will be forced to
+                be disabled if the hit ratio is lower than the
+                <literal>LOWEST_HIT_RATIO</literal> (see below).  This value
+                should provide time enough to check whether the cache is being
+                efficient or not.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>ENABLE_EVERY_CYCLES</literal></glossterm>
+              <glossdef>
+                <para>The number of cycles in which a cache will be forced to
+                be (re-)enabled, irregardingly of the hit ratio. This will
+                provide a chance for checking if we are in a better scenario
+                for doing caching again.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>LOWEST_HIT_RATIO</literal></glossterm>
+              <glossdef>
+                <para>The minimum acceptable hit ratio for a cache to avoid
+                disabling (and freeing) it.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+
+        </section>
+      </section>
     </appendix>
 
     <appendix id="NestedRecArrayClassDescr">
