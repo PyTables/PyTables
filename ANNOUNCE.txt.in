@@ -11,32 +11,44 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-#XXX version-specific blurb XXX#
+In PyTables 2.1rc1 many new features and a handful of bugs have been
+addressed.  This is a release candidate, so, in addition to the tarball,
+binaries for Windows are provided too.  Also, the API has been frozen
+and you should only expect bug fixes and documentation improvements for
+2.1 final (due to release in a couple of weeks now).
+
+This version introduces important improvements, like much faster node
+opening, creation or navigation, a file-based way to fine-tune the
+different PyTables parameters (fully documented now in a new appendix of
+the UG) and support for multidimensional atoms in EArray/CArray objects.
+
+Regarding the Pro edition, 3 different kind of indexes have been added
+so that the user can choose the best for her needs.  Also, and due to
+the introduction of the concept of chunkmaps in OPSI, the responsiveness
+of complex queries with low selectivity has improved quite a lot.  And
+last but not least, it is possible now to sort completely tables that
+are ordered by a specific field, with no practical limit in size (up to
+2**48 rows, that is, around 281 trillion of rows).  More info in:
+http://www.pytables.org/moin/PyTablesPro#WhatisnewinforthcomingPyTablesPro2.1
 
 In case you want to know more in detail what has changed in this
-version, have a look at ``RELEASE_NOTES.txt``.  Find the HTML version
-for this document at:
+version, have a look at ``RELEASE_NOTES.txt`` in the tarball.  Find the
+HTML version for this document at:
 http://www.pytables.org/moin/ReleaseNotes/Release_@VERSION@
 
-As already said, PyTables Pro includes, as its most distinguishing
-feature, the powerful OPSI technology that allows to index very large
-amounts of data very rapidly while allowing first-class query response
-times.  Its operational details as well as exhaustive benchmarks are
-explained with full detail in the OPSI white paper:
-http://www.pytables.com/docs/OPSI-indexes.pdf
+You can download a source package of the version @VERSION@ with
+generated PDF and HTML docs and binaries for Windows from
+http://www.pytables.org/download/preliminary
 
-You find more info about PyTables Pro at:
-http://www.pytables.com/moin/PyTablesPro
+Finally, and for the first time, an evaluation version for PyTables Pro
+has been made available in:
+http://www.pytables.org/download/evaluation
+Please read the evaluation license for terms of use of this version:
+http://www.pytables.org/moin/PyTablesProEvaluationLicense
 
+For an on-line version of the manual, visit:
+http://www.pytables.org/docs/manual-@VERSION@
 
-Migration Notes for PyTables 1.x users
-======================================
-
-If you are a user of PyTables 1.x, probably it is worth for you to look
-at ``MIGRATING_TO_2.x.txt`` file where you will find directions on how
-to migrate your existing PyTables 1.x apps to the 2.x versions.  You can
-find an HTML version of this document at
-http://www.pytables.org/moin/ReleaseNotes/Migrating_To_2.x
 
 Resources
 =========
