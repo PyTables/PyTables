@@ -1467,7 +1467,7 @@ class ManyNodesTestCase(PyTablesTestCase):
 
     def setUp(self):
         self.file = tempfile.mktemp(".h5")
-        self.fileh = openFile(self.file, "w")
+        self.fileh = openFile(self.file, "w", NODE_CACHE_SLOTS=64)
 
     def test00(self):
         """Indexing many nodes in one single session (based on bug #26)"""
