@@ -76,8 +76,8 @@ cdef extern from "H5ARRAY-opt.h":
                                       hid_t mem_space_id, hid_t type_id,
                                       hsize_t irow, hsize_t start,
                                       hsize_t stop, void *data)
-  herr_t H5ARRAYOreadSliceLR(hid_t dataset_id, hsize_t start,
-                             hsize_t stop, void *data)
+  herr_t H5ARRAYOreadSliceLR(hid_t dataset_id, hid_t type_id,
+                             hsize_t start, hsize_t stop, void *data)
 
 
 
@@ -913,7 +913,8 @@ cdef class LastRowArray(Array):
     "Read the reverse index part of an LR index."
 
     Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, idx.data)
+    ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
+                              start, stop, idx.data)
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data in Last Row.")
@@ -926,7 +927,8 @@ cdef class LastRowArray(Array):
 
     rbuflb = sorted.rbuflb  # direct access to rbuflb: very fast.
     Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOreadSliceLR(self.dataset_id, start, stop, rbuflb)
+    ret = H5ARRAYOreadSliceLR(self.dataset_id, self.type_id,
+                              start, stop, rbuflb)
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems reading the index data.")

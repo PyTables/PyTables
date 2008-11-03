@@ -239,20 +239,16 @@ out:
  */
 
 herr_t H5ARRAYOreadSliceLR(hid_t dataset_id,
+			   hid_t type_id,
 			   hsize_t start,
 			   hsize_t stop,
 			   void *data)
 {
  hid_t    space_id;
  hid_t    mem_space_id;
- hid_t    type_id;
  hsize_t  count[1] = {stop - start};
  hsize_t  stride[1] = {1};
  hsize_t  offset[1] = {start};
-
- /* Get the datatype */
- if ( (type_id = H5Dget_type(dataset_id)) < 0 )
-     return -1;
 
   /* Get the dataspace handle */
  if ( (space_id = H5Dget_space(dataset_id)) < 0 )
@@ -279,10 +275,6 @@ herr_t H5ARRAYOreadSliceLR(hid_t dataset_id,
  /* Terminate access to the dataspace */
  if ( H5Sclose( space_id ) < 0 )
    goto out;
-
- /* Close the type */
- if ( H5Tclose(type_id))
-   return -1;
 
  return 0;
 
