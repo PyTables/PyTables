@@ -905,12 +905,14 @@ class Table(tableExtension.Table, Leaf):
         self._conditionCache.nail()
         self._enabledIndexingInQueries = False
 
+
     def _enableIndexingInQueries(self):
         """Allow queries to use indexing.  *Use only for testing.*"""
         if self._enabledIndexingInQueries:
             return  # already enabled
         self._conditionCache.unnail()
         self._enabledIndexingInQueries = True
+
 
     def _requiredExprVars(self, expression, uservars, depth=1):
         """
@@ -1004,6 +1006,7 @@ class Table(tableExtension.Table, Leaf):
             reqvars[var] = val
         return reqvars
 
+
     def _getConditionKey(self, condition, condvars):
         """
         Get the condition cache key for `condition` with `condvars`.
@@ -1035,6 +1038,7 @@ class Table(tableExtension.Table, Leaf):
         colpaths, vartypes = tuple(colpaths), tuple(vartypes)
         condkey = (condition, colnames, varnames, colpaths, vartypes)
         return condkey
+
 
     def _compileCondition(self, condition, condvars):
         """
@@ -2176,8 +2180,7 @@ The 'names' parameter must be a list of strings.""")
         if isindexed == wasindexed:
             return  # indexing state is unchanged
 
-        # Changing the set of indexed columns
-        # invalidates the condition cache.
+        # Changing the set of indexed columns invalidates the condition cache
         self._conditionCache.clear()
         colindexed[colpathname] = isindexed
         self.indexed = max(colindexed.values())  # this is an OR :)
@@ -2185,6 +2188,7 @@ The 'names' parameter must be a list of strings.""")
 
     def _markColumnsAsDirty(self, colnames):
         """Mark column indexes in `colnames` as dirty."""
+        assert len(colnames) > 0
         if self.indexed:
             colindexed, cols = self.colindexed, self.cols
             # Mark the proper indexes as dirty
@@ -2192,7 +2196,10 @@ The 'names' parameter must be a list of strings.""")
                 if colindexed[colname]:
                     col = cols._g_col(colname)
                     col.index.dirty = True
-                self._dirtyindex = True
+                    # Put a new nail in condition cache for each dirty index
+                    self._conditionCache.nail()
+            # Now, mark the table as having dirty indexes
+            self._dirtyindex = True
 
 
     def _reIndex(self, colnames):
