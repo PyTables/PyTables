@@ -1208,13 +1208,43 @@ class AutomaticIndexingTestCase(unittest.TestCase):
 
         # Do a query that uses indexes
         resq = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
+        res_ = res + [3]
         if verbose:
             print "AutoIndex?:", table.autoIndex
             print "Query results (original):", res
             print "Query results (after modifying table):", resq
-            print "Should look like:", [3]
-        res.append(3)
-        self.assert_(res == resq)
+            print "Should look like:", res_
+        self.assert_(res_ == resq)
+
+    def test07c_noauto(self):
+        "Checking indexing queries (append, no-auto mode)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07c_noauto..." % self.__class__.__name__
+        table = self.table
+        # Force a sync in indexes
+        table.flushRowsToIndex()
+        # Do a query that uses indexes
+        res = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
+        # Now, append three rows
+        table.append([("asa",True,1,3.1)])
+        table.append([("asb",True,2,3.1)])
+        table.append([("asc",True,3,3.1)])
+        table.flush()
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+
+        # Do a query that uses indexes
+        resq = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
+        res_ = res + [table.nrows-3, table.nrows-2, table.nrows-1]
+        if verbose:
+            print "AutoIndex?:", table.autoIndex
+            print "Query results (original):", res
+            print "Query results (after modifying table):", resq
+            print "Should look like:", res_
+        self.assert_(res_ == resq)
 
     def test08_dirty(self):
         "Checking dirty flags (modifyColumns)"

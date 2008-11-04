@@ -617,6 +617,11 @@ class Table(tableExtension.Table, Leaf):
                         indexed = False  # Not a vaild index
                         oldindexes = True
                         self._listoldindexes.append(colname)
+                    else:
+                        # Tell the condition cache about columns with dirty
+                        # indexes.
+                        if indexobj.dirty:
+                            self._conditionCache.nail()
             else:
                 indexed = False
                 self.colindexed[colname] = False
@@ -1811,10 +1816,11 @@ You cannot append rows to a non-chunked table.""")
             # The table caches for indexed queries are dirty now
             self._dirtycache = True
             if self.autoIndex:
-                # Flush the unindexed rows (this needs to read the table)
+                # Flush the unindexed rows
                 self.flushRowsToIndex(_lastrow=False)
-#             else:
-#                 self._markColumnsAsDirty(self.colpathnames)
+            else:
+                # All the columns are dirty now
+                self._markColumnsAsDirty(self.colpathnames)
 
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
