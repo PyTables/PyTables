@@ -1,4 +1,4 @@
-######################################################################
+########################################################################
 #
 #       License: BSD
 #       Created: September 4, 2002
@@ -360,6 +360,11 @@ class Table(tableExtension.Table, Leaf):
         .. Note:: Column indexing is only available in PyTables Pro.
         """ )
 
+    _dirtyindexes = property(
+        lambda self: self._conditionCache._nailcount > 0,
+        None, None,
+        """Whether some index in table is dirty.""")
+
 
     # Other methods
     # ~~~~~~~~~~~~~
@@ -500,8 +505,6 @@ class Table(tableExtension.Table, Leaf):
         """
         self._dirtycache = True
         """Whether the data caches are dirty or not. Initially set to yes."""
-        self._dirtyindex = False
-        """Whether some index in table is dirty."""
         self._descflavor = None
         """Temporarily keeps the flavor of a description with data."""
 
@@ -614,12 +617,6 @@ class Table(tableExtension.Table, Leaf):
                         indexed = False  # Not a vaild index
                         oldindexes = True
                         self._listoldindexes.append(colname)
-                    else:
-                        # Tell the condition cache about columns with dirty
-                        # indexes.
-                        if indexobj.dirty:
-                            self._conditionCache.nail()
-                            self._dirtyindex = True
             else:
                 indexed = False
                 self.colindexed[colname] = False
@@ -1816,6 +1813,8 @@ You cannot append rows to a non-chunked table.""")
             if self.autoIndex:
                 # Flush the unindexed rows (this needs to read the table)
                 self.flushRowsToIndex(_lastrow=False)
+#             else:
+#                 self._markColumnsAsDirty(self.colpathnames)
 
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
@@ -2198,8 +2197,6 @@ The 'names' parameter must be a list of strings.""")
                     col.index.dirty = True
                     # Put a new nail in condition cache for each dirty index
                     self._conditionCache.nail()
-            # Now, mark the table as having dirty indexes
-            self._dirtyindex = True
 
 
     def _reIndex(self, colnames):
@@ -2233,10 +2230,6 @@ The 'names' parameter must be a list of strings.""")
         if indexedrows > 0:
             self._indexedrows = indexedrows
             self._unsaved_indexedrows = self.nrows - indexedrows
-        # After a call to this with dirty being true,
-        # _dirtyindex must be False.
-        if dirty:
-            self._dirtyindex = False
 
         return SizeType(indexedrows)
 
@@ -2393,7 +2386,7 @@ The 'names' parameter must be a list of strings.""")
                      "and rows in the table (%d) is not equal; "
                      "please report this to the authors."
                      % (self._indexedrows, self.nrows) )
-            if self._dirtyindex:
+            if self._dirtyindexes:
                 # Finally, re-index any dirty column
                 self.reIndexDirty()
 
@@ -2422,9 +2415,9 @@ The 'names' parameter must be a list of strings.""")
         # F. Alted 2006-08-03
         if (('row' in self.__dict__ and self.row._getUnsavedNrows() > 0) or
             (self.indexed and self.autoIndex and
-             (self._unsaved_indexedrows > 0 or self._dirtyindex))):
+             (self._unsaved_indexedrows > 0 or self._dirtyindexes))):
             warnings.warn("""\
-table ``%s`` is being preempted from alive nodes without its buffers being flushed. This may lead to very ineficient use of resources and even to fatal errors in certain situations. Please do a call to the .flush() method on this table before start using other nodes."""
+table ``%s`` is being preempted from alive nodes without its buffers being flushed or with some index being dirty.  This may lead to very ineficient use of resources and even to fatal errors in certain situations.  Please do a call to the .flush() or .reIndexDirty() methods on this table before start using other nodes."""
                           % (self._v_pathname),
                           PerformanceWarning)
         # Get rid of the IO buffers (if they have been created at all)

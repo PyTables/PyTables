@@ -910,6 +910,7 @@ class AutomaticIndexingTestCase(unittest.TestCase):
     reopen = 1
     iprops = NoAutoProps
     colsToIndex = ['var1', 'var2', 'var3']
+    small_blocksizes = (16, 8, 4, 2)
 
     def setUp(self):
         # Create an instance of an HDF5 Table
@@ -919,11 +920,15 @@ class AutomaticIndexingTestCase(unittest.TestCase):
         title = "This is the IndexArray title"
         rowswritten = 0
         root = self.fileh.root
+        # Make the chunkshape smaller or equal than small_blocksizes[-1]
+        chunkshape = (2,)
         self.table = self.fileh.createTable(root, 'table', TDescr, title,
-                                            None, self.nrows)
+                                            None, self.nrows,
+                                            chunkshape=chunkshape)
         self.table.autoIndex = self.iprops.auto
         for colname in self.colsToIndex:
-            self.table.colinstances[colname].createIndex()
+            self.table.colinstances[colname].createIndex(
+                _blocksizes = self.small_blocksizes)
         for i in range(self.nrows):
             # Fill rows with defaults
             self.table.row.append()
@@ -1176,6 +1181,40 @@ class AutomaticIndexingTestCase(unittest.TestCase):
                     assert table.cols._f_col(colname).index.dirty == True
                 else:
                     assert table.cols._f_col(colname).index.dirty == False
+
+    def test07b_noauto(self):
+        "Checking indexing queries (modify in iterator, no-auto mode)"
+        if verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test07b_noauto..." % self.__class__.__name__
+        table = self.table
+        # Force a sync in indexes
+        table.flushRowsToIndex()
+        # Do a query that uses indexes
+        res = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
+        # Now, modify just one row:
+        for row in table:
+            if row.nrow == 3:
+                row['var1'] = "asa"
+                row['var2'] = True
+                row['var3'] = 3
+                row['var4'] = 3.1
+                row.update()
+        table.flush()
+        if self.reopen:
+            self.fileh.close()
+            self.fileh = openFile(self.file, "a")
+            table = self.fileh.root.table
+
+        # Do a query that uses indexes
+        resq = [row.nrow for row in table.where('(var2 == True) & (var3 > 0)')]
+        if verbose:
+            print "AutoIndex?:", table.autoIndex
+            print "Query results (original):", res
+            print "Query results (after modifying table):", resq
+            print "Should look like:", [3]
+        res.append(3)
+        self.assert_(res == resq)
 
     def test08_dirty(self):
         "Checking dirty flags (modifyColumns)"

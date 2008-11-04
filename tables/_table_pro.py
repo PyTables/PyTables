@@ -48,9 +48,9 @@ class NailedDict(object):
     def clear(self):
         self._cache.clear()
     def nail(self):
-        self._nailcount -= 1
-    def unnail(self):
         self._nailcount += 1
+    def unnail(self):
+        self._nailcount -= 1
 
     # The following are intended to be used by ``Table`` code handling
     # conditions.
