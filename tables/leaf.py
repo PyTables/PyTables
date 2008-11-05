@@ -489,9 +489,18 @@ very small/large chunksize, you may want to increase/decrease it."""
         if filters is None:  filters = self.filters
 
         # Create a copy of the object.
-        (newNode, bytes) = self._g_copyWithStats(
-            newParent, newName, start, stop, step,
-            title, filters, chunkshape, _log, **kwargs)
+        if self.__class__.__name__ == "Table":
+            # The Table objects are the only ones that take additional kwargs.
+            # This if clause is necessary because 'ptrepack' utility or
+            # a general user code might use `Table` specific arguments for
+            # copying.  This closes #195.
+            (newNode, bytes) = self._g_copyWithStats(
+                newParent, newName, start, stop, step,
+                title, filters, chunkshape, _log, **kwargs)
+        else:
+            (newNode, bytes) = self._g_copyWithStats(
+                newParent, newName, start, stop, step,
+                title, filters, chunkshape, _log)
 
         # Copy user attributes if requested (or the flavor at least).
         if copyuserattrs == True:
