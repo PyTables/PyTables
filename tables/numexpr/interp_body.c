@@ -89,6 +89,11 @@
             params.mem[1+r] = params.inputs[r] + index * params.memsteps[1+r];
         }
     }
+
+    /* WARNING: From now on, only do references to params.mem[arg[123]]
+       & params.memsteps[arg[123]] inside the VEC_ARG[123] macros,
+       or you will risk accessing invalid addresses.  */
+
     for (pc = 0; pc < params.prog_len; pc += 4) {
         unsigned char op = params.program[pc];
         unsigned int store_in = params.program[pc+1];
@@ -130,7 +135,7 @@
         #define c3r   ((double *)(x3+j*sb3))[0]
         #define c3i   ((double *)(x3+j*sb3))[1]
         #define s3    ((char   *)x3+j*sb3)
-
+	/* Some temporaries */
         double fa, fb;
         cdouble ca, cb;
         char *ptr;
