@@ -14053,6 +14053,24 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           </listitem>
 
           <listitem>
+            <para><literal>{arcsinh,arccosh,arctanh}(float|complex):
+            float|complex</literal> — hyperbolic inverse sinus, cosinus or
+            tangent.</para>
+          </listitem>
+
+          <listitem>
+            <para><literal>{log,log10,log1p}(float|complex):
+            float|complex</literal> — natural, base-10
+            and <literal>log(1+x)</literal> logarithms.</para>
+          </listitem>
+
+          <listitem>
+            <para><literal>{exp,expm1}(float|complex):
+            float|complex</literal> — exponential and exponential minus
+            one.</para>
+          </listitem>
+
+          <listitem>
             <para><literal>sqrt(float|complex): float|complex</literal> —
             square root.</para>
           </listitem>

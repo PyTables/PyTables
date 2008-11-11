@@ -1,18 +1,19 @@
 import new
 import numpy
-from numpy import array, arange, sin, zeros, sum, int32, empty, \
-     prod, uint16, complex_, float64, rec
+from numpy import (
+    array, arange, empty, zeros, int32, uint16, complex_, float64, rec,
+    copy, ones_like, where, alltrue,
+    sum, prod, sqrt, fmod,
+    sin, cos, tan, arcsin, arccos, arctan, arctan2,
+    sinh, cosh, tanh, arcsinh, arccosh, arctanh,
+    log, log1p, log10, exp, expm1)
 from numpy.testing import *
-from numpy import shape, allclose, ravel
+from numpy import shape, allclose, ravel, isnan
 
 from tables.numexpr import E, numexpr, evaluate, disassemble
 
-# The NumpyTestCase has been declared obsolete from NumPy 1.2 on
-if numpy.__version__ < "1.2":
-    TestCase = NumpyTestCase
-else:
-    import unittest
-    TestCase = unittest.TestCase
+import unittest
+TestCase = unittest.TestCase
 
 
 class test_numexpr(TestCase):
@@ -44,18 +45,21 @@ class test_numexpr(TestCase):
 
     def test_reductions(self):
         # Check that they compile OK.
-        assert_equal(disassemble(numexpr("sum(x**2+2, axis=None)", [('x', float)])),
-                    [('mul_fff', 't3', 'r1[x]', 'r1[x]'),
-                     ('add_fff', 't3', 't3', 'c2[2.0]'),
-                     ('sum_ffn', 'r0', 't3', None)])
-        assert_equal(disassemble(numexpr("sum(x**2+2, axis=1)", [('x', float)])),
-                    [('mul_fff', 't3', 'r1[x]', 'r1[x]'),
-                     ('add_fff', 't3', 't3', 'c2[2.0]'),
-                     ('sum_ffn', 'r0', 't3', 1)])
-        assert_equal(disassemble(numexpr("prod(x**2+2, axis=2)", [('x', float)])),
-                    [('mul_fff', 't3', 'r1[x]', 'r1[x]'),
-                     ('add_fff', 't3', 't3', 'c2[2.0]'),
-                     ('prod_ffn', 'r0', 't3', 2)])
+        assert_equal(disassemble(
+            numexpr("sum(x**2+2, axis=None)", [('x', float)])),
+                     [('mul_fff', 't3', 'r1[x]', 'r1[x]'),
+                      ('add_fff', 't3', 't3', 'c2[2.0]'),
+                      ('sum_ffn', 'r0', 't3', None)])
+        assert_equal(disassemble(
+            numexpr("sum(x**2+2, axis=1)", [('x', float)])),
+                     [('mul_fff', 't3', 'r1[x]', 'r1[x]'),
+                      ('add_fff', 't3', 't3', 'c2[2.0]'),
+                      ('sum_ffn', 'r0', 't3', 1)])
+        assert_equal(disassemble(
+            numexpr("prod(x**2+2, axis=2)", [('x', float)])),
+                     [('mul_fff', 't3', 'r1[x]', 'r1[x]'),
+                      ('add_fff', 't3', 't3', 'c2[2.0]'),
+                      ('prod_ffn', 'r0', 't3', 2)])
         # Check that full reductions work.
         x = arange(10.0)
         assert_equal(evaluate("sum(x**2+2,axis=0)"), sum(x**2+2,axis=0))
@@ -196,7 +200,7 @@ tests = [
           '2*a + (cos(3)+5)*sinh(cos(b))',
           '2*a + arctan2(a, b)',
           'arcsin(0.5)',
-          'where(a != 0.0, 2, b)',
+          'where(a != 0.0, 2, a)',
           'where((a-10).real != 0.0, a, 2)',
           'cos(1+1)',
           '1+1',
@@ -224,7 +228,10 @@ for op in ['<', '<=', '==', '>=', '>', '!=']:
 tests.append(('COMPARISONS', cmptests))
 
 func1tests = []
-for func in ['copy', 'ones_like', 'sin', 'cos', 'tan', 'sqrt', 'sinh', 'cosh', 'tanh']:
+for func in ['copy', 'ones_like', 'sqrt',
+             'sin', 'cos', 'tan', 'arcsin', 'arccos', 'arctan',
+             'sinh', 'cosh', 'tanh', 'arcsinh', 'arccosh', 'arctanh',
+             'log', 'log1p', 'log10', 'exp', 'expm1']:
     func1tests.append("a + %s(b+c)" % func)
 tests.append(('1-ARG FUNCS', func1tests))
 
@@ -241,10 +248,18 @@ for n in (-2.5, -1.5, -1.3, -.5, 0, 0.5, 1, 0.5, 1, 2.3, 2.5):
 tests.append(('POW TESTS', powtests))
 
 def equal(a, b, exact):
+    if hasattr(a, 'dtype') and a.dtype == 'f8':
+        nnans = isnan(a).sum()
+        if isnan(a).sum() > 0:
+            # For results containing NaNs, just check that the number
+            # of NaNs is the same in both arrays.  This check could be
+            # made more exhaustive, but checking element by element in
+            # python space is very expensive in general.
+            return nnans == isnan(b).sum()
     if exact:
-        return (shape(a) == shape(b)) and alltrue(ravel(a) == ravel(b),axis=0)
+        return (shape(a) == shape(b)) and alltrue(ravel(a) == ravel(b), axis=0)
     else:
-        return (shape(a) == shape(b)) and (allclose(ravel(a), ravel(b)) or alltrue(ravel(a) == ravel(b),axis=0)) # XXX report a bug?
+        return (shape(a) == shape(b) and allclose(ravel(a), ravel(b)))
 
 class Skip(Exception): pass
 
@@ -257,10 +272,7 @@ def generate_test_expressions():
                          test_scalar, dtype, optimization, exact):
         this_locals = locals()
         def method(self):
-            try:
-                npval = eval(expr, globals(), this_locals)
-            except:
-                return
+            npval = eval(expr, globals(), this_locals)
             try:
                 neval = evaluate(expr, local_dict=this_locals,
                                  optimization=optimization)
@@ -273,9 +285,9 @@ def generate_test_expressions():
             except AssertionError:
                 raise
             except NotImplementedError:
-                self.warn('%r not implemented for %s' % (expr,dtype.__name__))
+                print('%r not implemented for %s' % (expr,dtype.__name__))
             except:
-                self.warn('numexpr error for expression %r' % (expr,))
+                print('numexpr error for expression %r' % (expr,))
                 raise
         test_no[0] += 1
         name = 'test_%04d' % (test_no[0],)
@@ -300,14 +312,18 @@ def generate_test_expressions():
                 a = a[array_size/2]
             if test_scalar == 2:
                 b = b[array_size/2]
-            for optimization, exact in [('none', False), ('moderate', False), ('aggressive', False)]:
+            for optimization, exact in [
+                ('none', False), ('moderate', False), ('aggressive', False)]:
                 for section_name, section_tests in tests:
                     for expr in section_tests:
                         if dtype == complex and (
                                '<' in expr or '>' in expr or '%' in expr
                                or "arctan2" in expr or "fmod" in expr):
-                            continue # skip complex comparisons
-                        if dtype in (int, long) and test_scalar and expr == '(a+1) ** -1':
+                             # skip complex comparisons or functions not
+                             # defined in complex domain.
+                            continue
+                        if (dtype in (int, long) and test_scalar and
+                            expr == '(a+1) ** -1'):
                             continue
                         make_test_method(a, a2, b, c, d, e, x,
                                          expr, test_scalar, dtype,
@@ -487,7 +503,4 @@ def suite():
     return theSuite
 
 if __name__ == '__main__':
-    if numpy.__version__ < "1.2":
-        NumpyTest().run()
-    else:
-        unittest.main(defaultTest = 'suite')
+    unittest.main(defaultTest = 'suite')

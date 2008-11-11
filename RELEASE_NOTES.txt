@@ -52,6 +52,10 @@ Main improvements
   and `VLArray` objects do support fully multidimensional atoms.  This
   also expands the range of native HDF5 files supported.  Closes #133.
 
+- Added support for the `arcsinh`, `arccosh`, `arctanh`, `log`,
+  `log10`, `log1p`, `exp` and `expm1` functions in the condition
+  expressions of in-kernel and indexed queries.
+
 - After some exhaustive benchmarks, I've decided to reduce the number
   of nodes in the LRU cache for nodes to 64.  The experiments shows
   that this leads to better performance overall and to a more

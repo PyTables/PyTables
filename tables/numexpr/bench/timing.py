@@ -32,7 +32,7 @@ setup1 = """\
 from numpy import arange
 try: from scipy.weave import blitz
 except: pass
-from numexpr import evaluate
+from tables.numexpr import evaluate
 result = arange(%f)
 b = arange(%f)
 c = arange(%f)
@@ -45,7 +45,7 @@ setup2 = """\
 from numpy import arange
 try: from scipy.weave import blitz
 except: pass
-from numexpr import evaluate
+from tables.numexpr import evaluate
 a = arange(%f)
 b = arange(%f)
 result = arange(%f)
@@ -57,7 +57,7 @@ setup3 = """\
 from numpy import arange, sin, cos, sinh
 try: from scipy.weave import blitz
 except: pass
-from numexpr import evaluate
+from tables.numexpr import evaluate
 a = arange(2*%f)[::2]
 b = arange(%f)
 result = arange(%f)
@@ -69,7 +69,7 @@ setup4 = """\
 from numpy import arange, sin, cos, sinh, arctan2
 try: from scipy.weave import blitz
 except: pass
-from numexpr import evaluate
+from tables.numexpr import evaluate
 a = arange(2*%f)[::2]
 b = arange(%f)
 result = arange(%f)
@@ -81,7 +81,7 @@ setup5 = """\
 from numpy import arange, sin, cos, sinh, arctan2, sqrt, where
 try: from scipy.weave import blitz
 except: pass
-from numexpr import evaluate
+from tables.numexpr import evaluate
 a = arange(2*%f, dtype=float)[::2]
 b = arange(%f, dtype=float)
 result = arange(%f, dtype=float)

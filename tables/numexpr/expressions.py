@@ -241,6 +241,7 @@ functions = {
     'copy' : func(numpy.copy),
     'ones_like' : func(numpy.ones_like),
     'sqrt' : func(numpy.sqrt, 'float'),
+
     'sin' : func(numpy.sin, 'float'),
     'cos' : func(numpy.cos, 'float'),
     'tan' : func(numpy.tan, 'float'),
@@ -251,14 +252,23 @@ functions = {
     'sinh' : func(numpy.sinh, 'float'),
     'cosh' : func(numpy.cosh, 'float'),
     'tanh' : func(numpy.tanh, 'float'),
+    'arcsinh' : func(numpy.arcsinh, 'float'),
+    'arccosh' : func(numpy.arccosh, 'float'),
+    'arctanh' : func(numpy.arctanh, 'float'),
 
-    'arctan2' : func(numpy.arctan2, 'float'),
     'fmod' : func(numpy.fmod, 'float'),
+    'arctan2' : func(numpy.arctan2, 'float'),
+
+    'log' : func(numpy.log, 'float'),
+    'log1p' : func(numpy.log1p, 'float'),
+    'log10' : func(numpy.log10, 'float'),
+    'exp' : func(numpy.exp, 'float'),
+    'expm1' : func(numpy.expm1, 'float'),
 
     'where' : where_func,
 
-    'real': func(numpy.real, 'float', 'float'),
-    'imag': func(numpy.imag, 'float', 'float'),
+    'real' : func(numpy.real, 'float', 'float'),
+    'imag' : func(numpy.imag, 'float', 'float'),
     'complex' : func(complex, 'complex'),
 
     'sum' : sum_func,
