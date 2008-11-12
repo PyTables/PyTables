@@ -62,22 +62,19 @@ __version__ = "$Revision$"
 
 # Functions for optimized operations with ARRAY for indexing purposes
 cdef extern from "H5ARRAY-opt.h":
-  herr_t H5ARRAYOinit_readSlice(hid_t dataset_id, hid_t type_id,
-                                hid_t *space_id,  hid_t *mem_space_id,
-                                hsize_t count)
-  herr_t H5ARRAYOread_readSlice(hid_t dataset_id, hid_t type_id,
-                                hsize_t irow, hsize_t start, hsize_t stop,
-                                void *data)
-  herr_t H5ARRAYOread_readSortedSlice(hid_t dataset_id, hid_t space_id,
-                                      hid_t mem_space_id, hid_t type_id,
-                                      hsize_t irow, hsize_t start,
-                                      hsize_t stop, void *data)
-  herr_t H5ARRAYOread_readBoundsSlice(hid_t dataset_id, hid_t space_id,
-                                      hid_t mem_space_id, hid_t type_id,
-                                      hsize_t irow, hsize_t start,
-                                      hsize_t stop, void *data)
-  herr_t H5ARRAYOreadSliceLR(hid_t dataset_id, hid_t type_id,
-                             hsize_t start, hsize_t stop, void *data)
+  herr_t H5ARRAYOinit_readSlice(
+    hid_t dataset_id, hid_t *mem_space_id, hsize_t count)
+  herr_t H5ARRAYOread_readSlice(
+    hid_t dataset_id, hid_t type_id,
+    hsize_t irow, hsize_t start, hsize_t stop, void *data)
+  herr_t H5ARRAYOread_readSortedSlice(
+    hid_t dataset_id, hid_t mem_space_id, hid_t type_id,
+    hsize_t irow, hsize_t start, hsize_t stop, void *data)
+  herr_t H5ARRAYOread_readBoundsSlice(
+    hid_t dataset_id, hid_t mem_space_id, hid_t type_id,
+    hsize_t irow, hsize_t start, hsize_t stop, void *data)
+  herr_t H5ARRAYOreadSliceLR(
+    hid_t dataset_id, hid_t type_id, hsize_t start, hsize_t stop, void *data)
 
 
 
@@ -192,16 +189,14 @@ cdef class Index:
 
 cdef class CacheArray(Array):
   """Container for keeping index caches of 1st and 2nd level."""
-  cdef hid_t space_id
   cdef hid_t mem_space_id
 
 
   cdef initRead(self, int nbounds):
     # "Actions to accelerate the reads afterwards."
 
-    # Precompute the space_id and mem_space_id
-    if (H5ARRAYOinit_readSlice(self.dataset_id, self.type_id,
-                               &self.space_id, &self.mem_space_id,
+    # Precompute the mem_space_id
+    if (H5ARRAYOinit_readSlice(self.dataset_id, &self.mem_space_id,
                                nbounds) < 0):
       raise HDF5ExtError("Problems initializing the bounds array data.")
     return
@@ -210,9 +205,9 @@ cdef class CacheArray(Array):
   cdef readSlice(self, hsize_t nrow, hsize_t start, hsize_t stop, void *rbuf):
     # "Read an slice of bounds."
 
-    if (H5ARRAYOread_readBoundsSlice(self.dataset_id, self.space_id,
-                                     self.mem_space_id, self.type_id,
-                                     nrow, start, stop, rbuf) < 0):
+    if (H5ARRAYOread_readBoundsSlice(
+      self.dataset_id, self.mem_space_id, self.type_id,
+      nrow, start, stop, rbuf) < 0):
       raise HDF5ExtError("Problems reading the bounds array data.")
     return
 
@@ -220,8 +215,6 @@ cdef class CacheArray(Array):
   def _g_close(self):
     super(Array, self)._g_close()
     # Release specific resources of this class
-    if self.space_id > 0:
-      H5Sclose(self.space_id)
     if self.mem_space_id > 0:
       H5Sclose(self.mem_space_id)
 
@@ -230,7 +223,7 @@ cdef class CacheArray(Array):
 cdef class IndexArray(Array):
   """Container for keeping sorted and indices values."""
   cdef void    *rbufst, *rbufln, *rbufrv, *rbufbc, *rbuflb
-  cdef hid_t   space_id, mem_space_id
+  cdef hid_t   mem_space_id
   cdef int     l_chunksize, l_slicesize, nbounds, indsize
   cdef CacheArray bounds_ext
   cdef NumCache boundscache, sortedcache
@@ -269,7 +262,6 @@ cdef class IndexArray(Array):
       # Get the pointers to the different buffer data areas
       self.rbuflb = self.bufferlb.data
       # Init structures for accelerating sorted array reads
-      self.space_id = H5Dget_space(self.dataset_id)
       rank = 2
       count[0] = 1; count[1] = self.chunksize
       self.mem_space_id = H5Screate_simple(rank, count, NULL)
@@ -314,9 +306,9 @@ cdef class IndexArray(Array):
     """Read the sorted part of an index."""
 
     Py_BEGIN_ALLOW_THREADS
-    ret = H5ARRAYOread_readSortedSlice(self.dataset_id, self.space_id,
-                                       self.mem_space_id, self.type_id,
-                                       irow, start, stop, self.rbuflb)
+    ret = H5ARRAYOread_readSortedSlice(
+      self.dataset_id, self.mem_space_id, self.type_id,
+      irow, start, stop, self.rbuflb)
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
@@ -897,8 +889,6 @@ cdef class IndexArray(Array):
   def _g_close(self):
     super(Array, self)._g_close()
     # Release specific resources of this class
-    if self.space_id > 0:
-      H5Sclose(self.space_id)
     if self.mem_space_id > 0:
       H5Sclose(self.mem_space_id)
 

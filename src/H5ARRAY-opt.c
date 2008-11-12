@@ -42,7 +42,7 @@ herr_t H5ARRAYOread_readSlice( hid_t dataset_id,
  offset[0] = irow;
  offset[1] = start;
 
-  /* Get the dataspace handle */
+ /* Get the dataspace handle */
  if ( (space_id = H5Dget_space( dataset_id )) < 0 )
   goto out;
 
@@ -98,22 +98,25 @@ out:
  */
 
 herr_t H5ARRAYOinit_readSlice( hid_t dataset_id,
-			       hid_t type_id,
-			       hid_t *space_id,
 			       hid_t *mem_space_id,
 			       hsize_t count)
 
 {
+ hid_t    space_id;
  int      rank = 2;
  hsize_t  count2[2] = {1, count};
 
-  /* Get the dataspace handle */
- if ( (*space_id = H5Dget_space(dataset_id )) < 0 )
+ /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space(dataset_id )) < 0 )
   goto out;
 
  /* Create a memory dataspace handle */
  if ( (*mem_space_id = H5Screate_simple(rank, count2, NULL)) < 0 )
    goto out;
+
+ /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
 
  return 0;
 
@@ -145,7 +148,6 @@ out:
  */
 
 herr_t H5ARRAYOread_readSortedSlice( hid_t dataset_id,
-				     hid_t space_id,
 				     hid_t mem_space_id,
 				     hid_t type_id,
 				     hsize_t irow,
@@ -153,9 +155,14 @@ herr_t H5ARRAYOread_readSortedSlice( hid_t dataset_id,
 				     hsize_t stop,
 				     void *data )
 {
+ hid_t    space_id;
  hsize_t  count[2] = {1, stop-start};
  hsize_t  offset[2] = {irow, start};
  hsize_t  stride[2] = {1, 1};
+
+ /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space(dataset_id)) < 0 )
+  goto out;
 
  /* Define a hyperslab in the dataset of the size of the records */
  if ( H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
@@ -164,6 +171,10 @@ herr_t H5ARRAYOread_readSortedSlice( hid_t dataset_id,
  /* Read */
  if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
    goto out;
+
+ /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
 
 return 0;
 
@@ -195,7 +206,6 @@ out:
  */
 
 herr_t H5ARRAYOread_readBoundsSlice( hid_t dataset_id,
-				     hid_t space_id,
 				     hid_t mem_space_id,
 				     hid_t type_id,
 				     hsize_t irow,
@@ -203,9 +213,14 @@ herr_t H5ARRAYOread_readBoundsSlice( hid_t dataset_id,
 				     hsize_t stop,
 				     void *data )
 {
+ hid_t    space_id;
  hsize_t  count[2] = {1, stop-start};
  hsize_t  offset[2] = {irow, start};
  hsize_t  stride[2] = {1, 1};
+
+ /* Get the dataspace handle */
+ if ( (space_id = H5Dget_space(dataset_id)) < 0 )
+  goto out;
 
  /* Define a hyperslab in the dataset of the size of the records */
  if ( H5Sselect_hyperslab(space_id, H5S_SELECT_SET, offset, stride, count, NULL) < 0 )
@@ -214,6 +229,10 @@ herr_t H5ARRAYOread_readBoundsSlice( hid_t dataset_id,
  /* Read */
  if ( H5Dread( dataset_id, type_id, mem_space_id, space_id, H5P_DEFAULT, data ) < 0 )
    goto out;
+
+ /* Terminate access to the dataspace */
+ if ( H5Sclose( space_id ) < 0 )
+  goto out;
 
 return 0;
 
