@@ -227,7 +227,7 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, chunkshape, _log):
+                         title, filters, chunkshape, _log, **kwargs):
         "Private part of Leaf.copy() for each kind of leaf."
         (start, stop, step) = self._processRangeRead(start, stop, step)
         # Build the new EArray object

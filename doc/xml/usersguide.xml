@@ -6256,8 +6256,15 @@ for node in h5file.root.detector:
                   leaf.</para>
                 </glossdef>
               </glossentry>
-
             </glosslist>
+
+            <warning>
+              <para>Note that unknown parameters passed to this method will be
+              ignored, so may want to double check the spell of these (i.e. if
+              you write them incorrectly, they will most probably be
+              ignored).</para>
+            </warning>
+
           </section>
 
           <section id="Leaf.delAttr">

@@ -259,7 +259,7 @@ chunkshape parameter cannot have zero-dimensions."""
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, chunkshape, _log):
+                         title, filters, chunkshape, _log, **kwargs):
         "Private part of Leaf.copy() for each kind of leaf"
         (start, stop, step) = self._processRangeRead(start, stop, step)
         maindim = self.maindim

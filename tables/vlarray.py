@@ -733,7 +733,7 @@ be zero."""
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,
-                         title, filters, chunkshape, _log):
+                         title, filters, chunkshape, _log, **kwargs):
         "Private part of Leaf.copy() for each kind of leaf"
 
         # Build the new VLArray object

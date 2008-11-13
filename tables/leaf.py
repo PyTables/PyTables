@@ -489,18 +489,9 @@ very small/large chunksize, you may want to increase/decrease it."""
         if filters is None:  filters = self.filters
 
         # Create a copy of the object.
-        if self.__class__.__name__ == "Table":
-            # The Table objects are the only ones that take additional kwargs.
-            # This if clause is necessary because 'ptrepack' utility or
-            # a general user code might use `Table` specific arguments for
-            # copying.  This closes #195.
-            (newNode, bytes) = self._g_copyWithStats(
-                newParent, newName, start, stop, step,
-                title, filters, chunkshape, _log, **kwargs)
-        else:
-            (newNode, bytes) = self._g_copyWithStats(
-                newParent, newName, start, stop, step,
-                title, filters, chunkshape, _log)
+        (newNode, bytes) = self._g_copyWithStats(
+            newParent, newName, start, stop, step,
+            title, filters, chunkshape, _log, **kwargs)
 
         # Copy user attributes if requested (or the flavor at least).
         if copyuserattrs == True:
@@ -618,6 +609,11 @@ very small/large chunksize, you may want to increase/decrease it."""
             numeric value.  Their values will be incremented to
             reflect the number of groups, leaves and bytes,
             respectively, that have been copied during the operation.
+
+        .. Warning:: Note that unknown parameters passed to this method
+           will be ignored, so may want to double check the spell of
+           these (i.e. if you write them incorrectly, they will most
+           probably be ignored).
         """
         return self._f_copy(
             newparent, newname, overwrite, createparents, **kwargs )
