@@ -9,6 +9,7 @@
 
 #ifdef _WIN32
 #define inline __inline
+#include "missing_posix_functions.inc"
 #endif
 
 #define BLOCK_SIZE1 128

@@ -1,4 +1,4 @@
-import new
+import new, sys
 import numpy
 from numpy import (
     array, arange, empty, zeros, int32, uint16, complex_, float64, rec,
