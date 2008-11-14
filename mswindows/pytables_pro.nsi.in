@@ -28,7 +28,9 @@ XPStyle on
 
 # Variables declaration
 Var PTPRO_KEY
+Var WINPTPRO_KEY
 Var PTPRO_SUBKEY
+Var WINPTPRO_SUBKEY
 Var STARTMENU_FOLDER
 Var MUI_TEMP
 Var PYTHONDIR
@@ -51,7 +53,9 @@ Var UNCUSTOMTEXT
 Function .onInit
   # The registry key where application settings will be stored
   StrCpy $PTPRO_KEY "SOFTWARE\PyTablesPro"
-  StrCpy $PTPRO_SUBKEY "$PTPRO_KEY\Python@PYTHONVERSION@"
+  StrCpy $WINPTPRO_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro"
+  StrCpy $PTPRO_SUBKEY "$PTPRO_KEY-py@DOTPYTHONVERSION@"
+  StrCpy $WINPTPRO_SUBKEY "$WINPTPRO_KEY-py@DOTPYTHONVERSION@"
   StrCpy $STARTMENU_FOLDER "PyTables Pro @VERSION@ for Python@DOTPYTHONVERSION@"
 FunctionEnd
 
@@ -214,19 +218,19 @@ Section "PyTables Pro @PTVERSION@" PT
   WriteRegDword HKLM $PTPRO_SUBKEY "VersionRevision" "${VER_REVISION}"
 !endif
 
-  WriteRegExpandStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "UninstallString" '"$INSTDIR\Uninstall.exe"'
-  WriteRegExpandStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "InstallLocation" "$INSTDIR"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "DisplayName" "PyTables Pro"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "DisplayIcon" "$INSTDIR\Uninstall.exe,0"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "DisplayVersion" "@VERSION@"
+  WriteRegExpandStr HKLM $WINPTPRO_SUBKEY "UninstallString" '"$INSTDIR\Uninstall.exe"'
+  WriteRegExpandStr HKLM $WINPTPRO_SUBKEY "InstallLocation" "$INSTDIR"
+  WriteRegStr HKLM $WINPTPRO_SUBKEY "DisplayName" "PyTables Pro @VERSION@ for Python@DOTPYTHONVERSION@"
+  WriteRegStr HKLM $WINPTPRO_SUBKEY "DisplayIcon" "$INSTDIR\Uninstall.exe,0"
+  WriteRegStr HKLM $WINPTPRO_SUBKEY "DisplayVersion" "@VERSION@"
 !ifdef VER_MAJOR & VER_MINOR & VER_REVISION
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "VersionMajor" "${VER_MAJOR}"
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "VersionMinor" "${VER_MINOR}.${VER_REVISION}"
+  WriteRegDWORD HKLM $WINPTPRO_SUBKEY "VersionMajor" "${VER_MAJOR}"
+  WriteRegDWORD HKLM $WINPTPRO_SUBKEY "VersionMinor" "${VER_MINOR}.${VER_REVISION}"
 !endif
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "URLInfoAbout" "http://www.pytables.com/"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "HelpLink" "http://www.pytables.com/ProfessionalSupport"
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "NoModify" "1"
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "NoRepair" "1"
+  WriteRegStr HKLM $WINPTPRO_SUBKEY "URLInfoAbout" "http://www.pytables.com/"
+  WriteRegStr HKLM $WINPTPRO_SUBKEY "HelpLink" "http://www.pytables.com/moin/ProfessionalSupport"
+  WriteRegDWORD HKLM $WINPTPRO_SUBKEY "NoModify" "1"
+  WriteRegDWORD HKLM $WINPTPRO_SUBKEY "NoRepair" "1"
 
 
 SectionEnd
@@ -342,7 +346,7 @@ Function PageLeaveReinstall
     StrCmp $R1 "1" reinst_done reinst_uninstall
 
   reinst_uninstall:
-  ReadRegStr $R1 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "UninstallString"
+  ReadRegStr $R1 HKLM $WINPTPRO_SUBKEY "UninstallString"
 
   ;Run uninstaller
   HideWindow
@@ -465,7 +469,9 @@ Function un.onInit
   # Variables set in installer functions are not available here so we must set
   # them again
   StrCpy $PTPRO_KEY "SOFTWARE\PyTablesPro"
-  StrCpy $PTPRO_SUBKEY "$PTPRO_KEY\Python@PYTHONVERSION@"
+  StrCpy $WINPTPRO_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro"
+  StrCpy $PTPRO_SUBKEY "$PTPRO_KEY-py@DOTPYTHONVERSION@"
+  StrCpy $WINPTPRO_SUBKEY "$WINPTPRO_KEY-py@DOTPYTHONVERSION@"
   StrCpy $UNCUSTOMTEXT "Check the components you want to uninstall.  Note that uninstalled components are not elegible for uninstalling."
   # The SF_RO variable is defined in Sections.nsh. Its current value
   # is 16 what means Read-only section
