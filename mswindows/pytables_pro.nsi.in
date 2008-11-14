@@ -1,13 +1,16 @@
 # Use Modern User Interface style
 !include "MUI2.nsh"
+!include "Library.nsh"
+!include "Sections.nsh"
+!include "LogicLib.nsh"
+!include "WordFunc.nsh"
 
-!include Library.nsh
-!include Sections.nsh
 
 # Select the compressor that will compress the installer
 #SetCompressor bzip2
-SetCompressor lzma
-#SetCompressor zlib
+SetCompressor /SOLID lzma
+#SetCompressor /SOLID zlib
+#SetCompress off
 
 # The name of the installer
 Name "PyTables Pro @VERSION@"
@@ -39,11 +42,17 @@ Var UNCUSTOMTEXT
 # Functions
 # --------------------------------
 
+!ifdef VER_MAJOR & VER_MINOR & VER_REVISION
+
+  !insertmacro VersionCompare
+
+!endif
+
 Function .onInit
-	# The registry key where application settings will be stored
-	StrCpy $PTPRO_KEY "SOFTWARE\PyTables\PyTables_Pro\@VERSION@"
-	StrCpy $PTPRO_SUBKEY "$PTPRO_KEY\Python@PYTHONVERSION@"
-	StrCpy $STARTMENU_FOLDER "PyTables Pro @VERSION@ for Python@DOTPYTHONVERSION@"
+  # The registry key where application settings will be stored
+  StrCpy $PTPRO_KEY "SOFTWARE\PyTablesPro"
+  StrCpy $PTPRO_SUBKEY "$PTPRO_KEY\Python@PYTHONVERSION@"
+  StrCpy $STARTMENU_FOLDER "PyTables Pro @VERSION@ for Python@DOTPYTHONVERSION@"
 FunctionEnd
 
 Function preInstallDir
@@ -83,6 +92,11 @@ FunctionEnd
 
 # License page
 !insertmacro MUI_PAGE_LICENSE @SVN_PTPRO@\@LICENSEFILENAME@
+
+# The check for an already installed package
+!ifdef VER_MAJOR & VER_MINOR & VER_REVISION
+Page custom PageReinstall PageLeaveReinstall
+!endif
 
 # Components selection page
 !define MUI_COMPONENTSPAGE_TEXT_COMPLIST "Do not forget to check the Numpy \
@@ -188,12 +202,32 @@ Section "PyTables Pro @PTVERSION@" PT
   bzip2.dll $PYTHONDIR\Lib\site-packages\tables
 
   # Update the registry
-  WriteRegStr HKLM $PTPRO_SUBKEY "INSTDIR" $INSTDIR
+  WriteRegStr HKLM $PTPRO_SUBKEY "" $INSTDIR
   WriteRegStr HKLM $PTPRO_SUBKEY "PYTHONDIR" $PYTHONDIR
   WriteRegStr HKLM $PTPRO_SUBKEY "hdfinst" "1"
   WriteRegStr HKLM $PTPRO_SUBKEY "zlinst" "1"
   WriteRegStr HKLM $PTPRO_SUBKEY "szlinst" "1"
   WriteRegStr HKLM $PTPRO_SUBKEY "bz2linst" "1"
+!ifdef VER_MAJOR & VER_MINOR & VER_REVISION
+  WriteRegDword HKLM $PTPRO_SUBKEY "VersionMajor" "${VER_MAJOR}"
+  WriteRegDword HKLM $PTPRO_SUBKEY "VersionMinor" "${VER_MINOR}"
+  WriteRegDword HKLM $PTPRO_SUBKEY "VersionRevision" "${VER_REVISION}"
+!endif
+
+  WriteRegExpandStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+  WriteRegExpandStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "InstallLocation" "$INSTDIR"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "DisplayName" "PyTables Pro"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "DisplayIcon" "$INSTDIR\Uninstall.exe,0"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "DisplayVersion" "@VERSION@"
+!ifdef VER_MAJOR & VER_MINOR & VER_REVISION
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "VersionMajor" "${VER_MAJOR}"
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "VersionMinor" "${VER_MINOR}.${VER_REVISION}"
+!endif
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "URLInfoAbout" "http://www.pytables.com/"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "HelpLink" "http://www.pytables.com/ProfessionalSupport"
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "NoModify" "1"
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "NoRepair" "1"
+
 
 SectionEnd
 
@@ -223,6 +257,118 @@ with Python."
   !insertmacro MUI_DESCRIPTION_TEXT 0 $(DESC_PT)
   !insertmacro MUI_DESCRIPTION_TEXT 2 $(DESC_NA)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
+
+;--------------------------------
+;Installer Functions
+
+!ifdef VER_MAJOR & VER_MINOR & VER_REVISION
+
+Var ReinstallPageCheck
+
+Function PageReinstall
+
+  ReadRegStr $R0 HKLM $PTPRO_SUBKEY ""
+
+  ${If} $R0 == ""
+    Abort
+  ${EndIf}
+
+  ReadRegDWORD $R0 HKLM $PTPRO_SUBKEY "VersionMajor"
+  ReadRegDWORD $R1 HKLM $PTPRO_SUBKEY "VersionMinor"
+  ReadRegDWORD $R2 HKLM $PTPRO_SUBKEY "VersionRevision"
+  StrCpy $R0 $R0.$R1.$R2
+
+  ${VersionCompare} ${VER_MAJOR}.${VER_MINOR}.${VER_REVISION} $R0 $R0
+  ${If} $R0 != 2
+    StrCpy $R1 "An older version of PyTables Pro is installed on your system. It's recommended that you uninstall the current version before installing. Select the operation you want to perform and click Next to continue."
+    StrCpy $R2 "Uninstall before installing"
+    StrCpy $R3 "Do not uninstall"
+    !insertmacro MUI_HEADER_TEXT "Already Installed" "Choose how you want to install PyTables Pro."
+    StrCpy $R0 "1"
+  ${Else}
+    StrCpy $R1 "A newer version of PyTables Pro is already installed! It is not recommended that you install an older version. If you really want to install this older version, it's better to uninstall the current version first. Select the operation you want to perform and click Next to continue."
+    StrCpy $R2 "Uninstall before installing"
+    StrCpy $R3 "Do not uninstall"
+    !insertmacro MUI_HEADER_TEXT "Already Installed" "Choose how you want to install PyTables Pro."
+    StrCpy $R0 "1"
+  ${EndIf}
+
+  nsDialogs::Create /NOUNLOAD 1018
+  Pop $R4
+
+  ${NSD_CreateLabel} 0 0 100% 24u $R1
+  Pop $R1
+
+  ${NSD_CreateRadioButton} 30u 50u -30u 8u $R2
+  Pop $R2
+  ${NSD_OnClick} $R2 PageReinstallUpdateSelection
+
+  ${NSD_CreateRadioButton} 30u 70u -30u 8u $R3
+  Pop $R3
+  ${NSD_OnClick} $R3 PageReinstallUpdateSelection
+
+  ${If} $ReinstallPageCheck != 2
+    SendMessage $R2 ${BM_SETCHECK} ${BST_CHECKED} 0
+  ${Else}
+    SendMessage $R3 ${BM_SETCHECK} ${BST_CHECKED} 0
+  ${EndIf}
+
+  nsDialogs::Show
+
+FunctionEnd
+
+Function PageReinstallUpdateSelection
+
+  Pop $R1
+
+  ${NSD_GetState} $R2 $R1
+
+  ${If} $R1 == ${BST_CHECKED}
+    StrCpy $ReinstallPageCheck 1
+  ${Else}
+    StrCpy $ReinstallPageCheck 2
+  ${EndIf}
+
+FunctionEnd
+
+Function PageLeaveReinstall
+
+  ${NSD_GetState} $R2 $R1
+
+  StrCmp $R0 "1" 0 +2
+    StrCmp $R1 "1" reinst_uninstall reinst_done
+
+  StrCmp $R0 "2" 0 +3
+    StrCmp $R1 "1" reinst_done reinst_uninstall
+
+  reinst_uninstall:
+  ReadRegStr $R1 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro" "UninstallString"
+
+  ;Run uninstaller
+  HideWindow
+
+    ClearErrors
+    ExecWait '$R1'
+
+    IfErrors no_remove_uninstaller
+    IfFileExists "$INSTDIR\README.txt" no_remove_uninstaller
+
+      Delete $R1
+      RMDir $INSTDIR
+
+    no_remove_uninstaller:
+
+  StrCmp $R0 "2" 0 +2
+    Quit
+
+  BringToFront
+
+  reinst_done:
+
+FunctionEnd
+
+!endif # VER_MAJOR & VER_MINOR & VER_REVISION
+
 
 ###########################################################
 #	PART II: UNINSTALLER
@@ -258,7 +404,7 @@ succesfully."
 Section "Un.PyTables Pro @PTVERSION@ uninstall" UPT
 
   ReadRegStr $PYTHONDIR HKLM $PTPRO_SUBKEY "PYTHONDIR"
-  ReadRegStr $INSTDIR HKLM $PTPRO_SUBKEY "INSTDIR"
+  ReadRegStr $INSTDIR HKLM $PTPRO_SUBKEY ""
 
   # Remove the application directory
   RMDir /r $INSTDIR
@@ -318,11 +464,9 @@ SectionEnd
 Function un.onInit
   # Variables set in installer functions are not available here so we must set
   # them again
-  StrCpy $PTPRO_KEY "SOFTWARE\PyTables\PyTables_Pro\@VERSION@"
+  StrCpy $PTPRO_KEY "SOFTWARE\PyTablesPro"
   StrCpy $PTPRO_SUBKEY "$PTPRO_KEY\Python@PYTHONVERSION@"
-  StrCpy $UNCUSTOMTEXT "Check the components you want to uninstall. Beware that\
-   ,if PyTables Pro is uninstalled, this uninstaller will not be longer \
-   available."
+  StrCpy $UNCUSTOMTEXT "Check the components you want to uninstall.  Note that uninstalled components are not elegible for uninstalling."
   # The SF_RO variable is defined in Sections.nsh. Its current value
   # is 16 what means Read-only section
   ReadRegStr $0 HKLM $PTPRO_SUBKEY "numpyinst"

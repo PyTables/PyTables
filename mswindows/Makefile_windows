@@ -6,6 +6,13 @@ VERSIONFILE=..\VERSION
 FULLVERSION=$(shell type ..\VERSION)
 VERSION = $(subst pro,,${FULLVERSION})
 
+# Split the versions in major, minor and revision
+VERSIONS = $(shell python get_pytables_version.py ..\VERSION)
+VER_MAJOR = $(word 1, $(VERSIONS))
+VER_MINOR = $(word 2, $(VERSIONS))
+VER_REVISION = $(word 3, $(VERSIONS))
+
+
 ifeq ($(PYTHONVERSION), 24)
 	DOTPYTHONVERSION=2.4
 endif
@@ -30,8 +37,6 @@ ifeq ($(LICENSE),evaluation)
         LICENSEFILENAME=LICENSE-evaluation.txt
 endif
 
-NUMPYVERSION=1.2.1
-
 # The NSIS intstaller script
 PTPRONSIS=pytables_pro-py$(DOTPYTHONVERSION).nsi
 
@@ -41,6 +46,8 @@ WINDOWS32=C:\\Windows\\system32
 TABLES_ORIG=C:\\Python$(PYTHONVERSION)\\Lib\\site-packages\\tables_orig
 NUMPY=C:\\Python$(PYTHONVERSION)\\Lib\\site-packages\\numpy_orig
 
+NUMPYVERSION = $(shell python get_numpy_version.py $(NUMPY)\\version.py)
+
 dist:
 	$(MAKE) -f Makefile_windows -C ..
 
@@ -49,6 +56,7 @@ clean:
 	-del $(PTPRONSIS)
 	-del PyTablesPro*.win32-py$(DOTPYTHONVERSION).exe
 
+# $(info $(NUMPYVERSION))
 installer: dist pytables_pro.nsi.in $(VERSIONFILE) $(LICENSEFILE)
 	type pytables_pro.nsi.in | sed -e "s/@VERSION@/$(VERSION)/g" \
 	-e "s/@PTVERSION@/$(VERSION)/g" \
@@ -62,5 +70,6 @@ installer: dist pytables_pro.nsi.in $(VERSIONFILE) $(LICENSEFILE)
 	-e "s/@LICENSE@/$(LICENSE)/g" \
 	-e "s/@LICENSEFILENAME@/$(LICENSEFILENAME)/g" \
 	> $(PTPRONSIS)
-	makensis $(PTPRONSIS)
+	makensis /DVER_MAJOR=$(VER_MAJOR) /DVER_MINOR=$(VER_MINOR) \
+	/DVER_REVISION=$(VER_REVISION) $(PTPRONSIS)
 
