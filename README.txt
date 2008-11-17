@@ -1,5 +1,5 @@
 ===============================================
- PyTables Pro, hierarchical datasets in Python
+ PyTables Pro: hierarchical datasets in Python
 ===============================================
 
 :URL: http://www.pytables.org/

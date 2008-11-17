@@ -612,7 +612,7 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
             # For the unaligned case, we have two cases:
             if b.ndim == 1:
                 # For unidimensional arrays we can use the copy opcode
-                # because they can deal with unaligned arrays as long
+                # because it can deal with unaligned arrays as long
                 # as they are unidimensionals with a possible stride
                 # (very common case for recarrays).  This can be up to
                 # 2x faster than doing a copy using NumPy.

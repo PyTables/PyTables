@@ -131,6 +131,6 @@ def compare(check_only=False):
 
 if __name__ == '__main__':
     averages = []
-    for i in range(10):
+    for i in range(iterations):
         averages.append(compare())
     print "Averages:", ', '.join("%.2f" % x for x in averages)

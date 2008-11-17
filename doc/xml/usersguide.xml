@@ -638,7 +638,7 @@ fileh.close()</screen>
                 of the resource root directories on the
                 <literal>setup.py</literal> command line. For example:</para>
 
-                <screen>--hdf5=/stuff/hdf5-1.6.7
+                <screen>--hdf5=/stuff/hdf5-1.8.2
 --lzo=/stuff/lzo-2.02
 --bzip2=/stuff/bzip2-1.0.4</screen>
 
@@ -647,7 +647,7 @@ fileh.close()</screen>
                 linker flags needed to find the shared library on the command
                 line as well. For example:</para>
 
-                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.6.7/lib"</screen>
+                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.2/lib"</screen>
 
                 <para>You may also want to try setting the LD_LIBRARY_PATH
                 environment variable to point to the directory where the
@@ -660,7 +660,7 @@ fileh.close()</screen>
                 setting the <literal>LIBS</literal> environment
                 variable:</para>
 
-                <screen>LIBS="hdf5-1.6.7 nsl"</screen>
+                <screen>LIBS="hdf5-1.8.2 nsl"</screen>
 
                 <para>Finally, you can give additional flags to your compiler
                 by passing them to the <literal>--cflags</literal>
@@ -5245,15 +5245,6 @@ for node in h5file:
 
             <glossentry>
               <glossterm><emphasis role="bold">
-              _v_isopen</emphasis></glossterm>
-
-              <glossdef>
-                <para>Whether this node is open or not.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><emphasis role="bold">
               _v_name</emphasis></glossterm>
 
               <glossdef>
@@ -5298,6 +5289,15 @@ for node in h5file:
                 <para>The associated <literal>AttributeSet</literal> instance
                 (see <xref linkend="AttributeSetClassDescr" xrefstyle="select:
                 label" />).</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">
+              _v_isopen</emphasis></glossterm>
+
+              <glossdef>
+                <para>Whether this node is open or not.</para>
               </glossdef>
             </glossentry>
 
@@ -6778,7 +6778,6 @@ for node in h5file.root.detector:
               <literal>Table.where()</literal> —<xref linkend="Table.where"
               />— for an example).</para>
             </note>
-
           </section>
 
           <section id="Table.itersorted">
@@ -7287,14 +7286,6 @@ table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
               happen.</para>
             </warning>
           </section>
-
-          <warning>
-            <para>When in the middle of a table row iterator, you should not
-            use methods that can change the number of rows in the table
-            (like <literal>Table.append()</literal> or
-            <literal>Table.removeRows()</literal>) or unexpected errors will
-            happen.</para>
-          </warning>
 
           <section id="Table.whereAppend">
             <title>whereAppend(dstTable, condition, condvars=None, start=None,

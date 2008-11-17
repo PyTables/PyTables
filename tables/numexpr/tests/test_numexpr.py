@@ -498,7 +498,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(test_strings))
         theSuite.addTest(
             unittest.makeSuite(test_irregular_stride) )
-        theSuite.addTest(unittest.makeSuite(test_threading))
+        theSuite.addTest(unittest.makeSuite(test_threading, prefix='check'))
 
     return theSuite
 

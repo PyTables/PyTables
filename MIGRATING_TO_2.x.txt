@@ -250,6 +250,7 @@ Other changes
 - ``Description._v_itemsizes`` and ``Description._v_totalsizes`` have
   disappeared.
 
+- ``Leaf._v_chunksize`` --> ``Leaf.chunkshape``
 
 
 ----
