@@ -378,6 +378,7 @@ if VERSION.endswith('pro'):
         'indexesExtension' ])
 
 def get_pyrex_extfiles(extnames):
+    global pyrex
     extdir = 'tables'
     extfiles = {}
 
@@ -385,7 +386,10 @@ def get_pyrex_extfiles(extnames):
         extfile = os.path.join(extdir, extname)
         extpfile = '%s.pyx' % extfile
         extcfile = '%s.c' % extfile
-        if not pyrex and newer(extpfile, extcfile):
+        if not exists(extpfile):
+            # The Pyrex sources does not exist.  Give up with Pyrex.
+            pyrex = 0
+        elif not pyrex and newer(extpfile, extcfile):
             exit_with_error(
                 "Need Pyrex (at least %s) to generate extensions. "
                 % min_pyrex_version,
