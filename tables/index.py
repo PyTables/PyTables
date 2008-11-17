@@ -2050,8 +2050,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
                 filters += ", shuffle"
             filters += ", %s(%s)" % (self.filters.complib,
                                      self.filters.complevel)
-        return "Index(%s(%s)%s).is_CSI=%s" % \
-               (self.kind, self.optlevel, filters, self.is_CSI)
+        return "Index(%s, %s%s).is_CSI=%s" % \
+               (self.optlevel, self.kind, filters, self.is_CSI)
 
 
     def __repr__(self):
@@ -2059,8 +2059,8 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
 
         cpathname = self.table._v_pathname + ".cols." + self.column.pathname
         retstr = """%s (Index for column %s)
-  kind := %s
   optlevel := %s
+  kind := %s
   filters := %s
   is_CSI := %s
   nelements := %s
@@ -2071,7 +2071,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
   filters := %s
   dirty := %s
   byteorder := %r""" % (self._v_pathname, cpathname,
-                        self.kind, self.optlevel,
+                        self.optlevel, self.kind,
                         self.filters, self.is_CSI,
                         self.nelements,
                         self.chunksize, self.slicesize,

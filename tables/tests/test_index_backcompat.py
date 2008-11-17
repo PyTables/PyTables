@@ -8,11 +8,10 @@ from tables.tests.common import verbose, cleanup
 
 
 # Check indexes from PyTables version 2.0
-class Indexes2_0TestCase(common.PyTablesTestCase):
+class IndexesTestCase(common.PyTablesTestCase):
 
     def setUp(self):
-        file_ = "indexes_2_0.h5"
-        self.fileh = openFile(self._testFilename(file_), "r")
+        self.fileh = openFile(self._testFilename(self.file_), "r")
         self.table1 = self.fileh.root.table1
         self.table2 = self.fileh.root.table2
         self.il = 0
@@ -24,6 +23,16 @@ class Indexes2_0TestCase(common.PyTablesTestCase):
 
 
     #----------------------------------------
+
+    def test00_version(self):
+        """Checking index version."""
+
+        t1var1 = self.table1.cols.var1
+        if "2_0" in self.file_:
+            self.assert_(t1var1.index._v_version == "2.0")
+        elif "2_1" in self.file_:
+            self.assert_(t1var1.index._v_version == "2.1")
+
 
     def test01_string(self):
         """Checking string indexes"""
@@ -42,7 +51,6 @@ class Indexes2_0TestCase(common.PyTablesTestCase):
         # Do some selections and check the results
         # First selection
         t1var1 = table1.cols.var1
-        self.assert_(t1var1.index._v_version == "2.0")
         results1 = [p["var1"] for p in
                     table1.where('(il<=t1var1)&(t1var1<=sl)')]
         results2 = [p["var1"] for p in table2
@@ -146,6 +154,14 @@ class Indexes2_0TestCase(common.PyTablesTestCase):
         assert results1.sort() == results2.sort()
 
 
+# Check indexes from PyTables version 2.0
+class Indexes2_0TestCase(IndexesTestCase):
+    file_ = "indexes_2_0.h5"
+
+# Check indexes from PyTables version 2.1
+class Indexes2_1TestCase(IndexesTestCase):
+    file_ = "indexes_2_1.h5"
+
 
 #----------------------------------------------------------------------
 
@@ -155,6 +171,7 @@ def suite():
 
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(Indexes2_0TestCase))
+        theSuite.addTest(unittest.makeSuite(Indexes2_1TestCase))
 
     return theSuite
 
