@@ -11,8 +11,8 @@
 Changes from 2.1rc1 to 2.1rc2
 =============================
 
-- Now the complete test suite pass in big-endian machines (PPC/Linux).
-  Closes #191.
+- Now the complete test suite pass in big-endian machines (tested with
+  PowerPC/MacOSX).  Closes #191.
 
 - The possible rebuild of indexes is done now at the end of update
   iterators.  Closes #141.
