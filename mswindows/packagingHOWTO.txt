@@ -43,10 +43,6 @@ This way, if PyTablesPro is completely uninstalled later (using its
 uninstaller), it can be built again without reinstalling the
 tables/numpy package(s).
 
-Finally, check that the NUMPYVERSION in mswindows\Makefile_windows does
-correspond to your installed version in numpy_orig.  You have to do this
-manually!
-
 ******************
 
   set a MingW compiler environment for your DOS shell
