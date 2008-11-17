@@ -8,6 +8,36 @@
 :Contact: ivan@selidor.net
 
 
+Changes from 2.1rc1 to 2.1rc2
+=============================
+
+- Now the complete test suite pass in big-endian machines (PPC/Linux).
+  Closes #191.
+
+- The possible rebuild of indexes is done now at the end of update
+  iterators.  Closes #141.
+
+- Fixed a problem in the condition cache when handling dirty indexes.
+  Closes #193.
+
+- When run in no auto-index mode, there were incorrect results after
+  appending rows to indexed tables.  Closes #194.
+
+- Fixed an bug that prevented using `ptrepack` on other leaves than
+  `Table`.  Closes #195.
+
+- New functions added to included Numexpr module.  These are: `log`,
+  `log10`, `log1p`, `exp`, `expm1`, `arcsinh`, `arccosh` and `arctanh`.
+  As a consequence, these can be used now in in-kernel and indexed
+  expressions.  Closes #196.
+
+- Fixed a problem with indexes that behaved incorrectly when updated
+  after a query (a sync cache problem).  Closes #197.
+
+- The installer for Pro now recognizes previous installations and ask
+  permision for uninstalling them before proceed.  Closes #192.
+
+
 Changes from 2.0.4 to 2.1
 =========================
 
@@ -173,6 +203,15 @@ Bug fixes and other small enhancements
 - `File.copyNode()` can copy now complete hierarchies directly from the
   root.  This can be useful when one wants to create a new file by
   merging the contents of others.
+
+- The possible rebuild of indexes is done now at the end of update
+  iterators.  Closes #141.
+
+- Fixed a problem in the condition cache when handling dirty indexes.
+  Closes #193.
+
+- When run in no auto-index mode, there were incorrect results after
+  appending rows to indexed tables.  Closes #194.
 
 - Indexes in Pro now behaves correctly when they are updated after
   being cached due to a previous query.  Closes #197.
