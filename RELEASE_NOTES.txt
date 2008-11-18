@@ -14,16 +14,19 @@ Changes from 2.1rc1 to 2.1rc2
 - Now the complete test suite pass in big-endian machines (tested with
   PowerPC/MacOSX).  Closes #191.
 
-- The possible rebuild of indexes is done now at the end of update
-  iterators.  Closes #141.
+- During the modification of values in tables with indexed columns in
+  the context of iterators, the columns are not re-indexed when the I/O
+  buffer is full anymore, but after the iterator has completed.  This
+  allows for much better performance when keeping the indexes updated.
+  Closes #141.
 
 - Fixed a problem in the condition cache when handling dirty indexes.
   Closes #193.
 
-- When run in no auto-index mode, there were incorrect results after
-  appending rows to indexed tables.  Closes #194.
+- While auto-index mode was off, incorrect results for indexed queries
+  were returned after appending rows to indexed tables.  Closes #194.
 
-- Fixed an bug that prevented using `ptrepack` on other leaves than
+- Fixed an bug that prevented the use of `ptrepack` on other leaves than
   `Table`.  Closes #195.
 
 - New functions added to included Numexpr module.  These are: `log`,
@@ -71,7 +74,7 @@ Main improvements
   sizes, etc...)  as an argument to `openFile()`.  With this you can
   select a different parametrization for every file you open.  A new
   appendix has been added to the User's Guide explaining which are and
-  which is the mission of the tunable parameters.
+  which is the mission of every tunable parameter.
 
 - The `EArray.truncate()` method has been generalized and implemented as
   `Leaf.truncate()`.  Now, it is possible to truncate all *enlargeable*
@@ -195,23 +198,20 @@ Bug fixes and other small enhancements
   `CArrays`.  Fixes #176.
 
 - During the modification of values in tables with indexed columns in
-  the context of iterators, the columns are not re-indexed when the
-  I/O buffer is full anymore, but after the iterator is completed.
-  This allows for far better performance in this scenario.  Closes
-  #141.
+  the context of iterators, the columns are not re-indexed when the I/O
+  buffer is full anymore, but after the iterator has completed.  This
+  allows for much better performance when keeping the indexes updated.
+  Closes #141.
 
 - `File.copyNode()` can copy now complete hierarchies directly from the
   root.  This can be useful when one wants to create a new file by
   merging the contents of others.
 
-- The possible rebuild of indexes is done now at the end of update
-  iterators.  Closes #141.
-
 - Fixed a problem in the condition cache when handling dirty indexes.
   Closes #193.
 
-- When run in no auto-index mode, there were incorrect results after
-  appending rows to indexed tables.  Closes #194.
+- While auto-index mode was off, incorrect results for indexed queries
+  were returned after appending rows to indexed tables.  Closes #194.
 
 - Indexes in Pro now behaves correctly when they are updated after
   being cached due to a previous query.  Closes #197.
@@ -240,16 +240,16 @@ Backward incompatible API changes from 2.0.4 to 2.1
   `Atom.dtype.base`.
 
 - The parameter `nodeCacheSize` in `openFile()` has been deprecated.
-  Use `NODE_CACHE_SLOTS` instead (see above).
+  Use `NODE_CACHE_SLOTS` instead (see ``tunable parameters`` above).
 
 
 Backward incompatible API changes from 2.0.4 to 2.1 (Pro edition)
 =================================================================
 
 - The `Column.createIndex()` has received a new parameter named `kind`
-  which is the second now in the argument list.  This is intentional
-  and *incompatible* with previous arglist, so that people using more
-  than one positional parameter in their existing
+  which is in the second position now in the argument list.  This is
+  intentional and *incompatible* with previous arglist, so that people
+  using more than one positional parameter in their existing
   `Column.createIndex()` calls should update them.
 
 - The `Table.indexFilters` property has been removed (after a period of
@@ -258,11 +258,11 @@ Backward incompatible API changes from 2.0.4 to 2.1 (Pro edition)
   method (and the like).
 
 - `Table.willQueryUseIndexing()` has changed its return value from a
-  list to a frozen set of usable indexed columns.
+  ``list`` to a ``frozen set`` of usable indexed columns.
 
 - Now, the copy of the 'AUTO_INDEX' system attribute of the `Index`
-  class is done only if the `copyuserattrs` in `Table.copy()` is true
-  (the default).
+  class is performed only if the `copyuserattrs` in `Table.copy()` is
+  true (the default).
 
 
 ----

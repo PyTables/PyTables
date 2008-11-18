@@ -22,7 +22,7 @@ opening, creation or navigation, a file-based way to fine-tune the
 different PyTables parameters (fully documented now in a new appendix of
 the UG) and support for multidimensional atoms in EArray/CArray objects.
 
-Regarding the Pro edition, 3 different kind of indexes have been added
+Regarding the Pro edition, four different kind of indexes are supported
 so that the user can choose the best for her needs.  Also, and due to
 the introduction of the concept of chunkmaps in OPSI, the responsiveness
 of complex queries with low selectivity has improved quite a lot.  And
