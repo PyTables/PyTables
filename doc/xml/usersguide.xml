@@ -6776,7 +6776,7 @@ for node in h5file.root.detector:
           </section>
 
           <section id="Table.itersequence">
-            <title>itersequence(sequence, sort=True)</title>
+            <title>itersequence(sequence, sort=False)</title>
 
             <para>Iterate over a <literal>sequence</literal> of row
             coordinates.</para>
