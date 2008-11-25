@@ -893,7 +893,7 @@ python -c "import tables; tables.test()"</screen>
           <literal>&lt;package&gt;-&lt;version&gt;-bin.zip</literal> file and
           copy the <literal>lzo1.dll</literal> file in a directory in the
           <literal>PATH</literal> environment variable (for example
-          <literal>C:\WINDOWS\SYSTEM32</literal>) or
+          <literal>C:\WINDOWS\SYSTEM</literal>) or
           <literal>python_installation_path\Lib\site-packages\tables</literal>
           (the last directory may not exist yet, so if you want to install the
           DLL there, you should do so <emphasis>after</emphasis> installing

@@ -103,6 +103,8 @@ elif os.name == 'nt':
     default_library_dirs = []  # no default, must be given explicitly
     default_runtime_dirs = [  # look for DLL files in ``%PATH%``
         _path for _path in os.environ['PATH'].split(';') ]
+    # Add the \Windows\system to the runtime list (necessary for Vista)
+    default_runtime_dirs.append('\\windows\\system')
     # Add the \path_to_python\DLLs and tables package to the list
     default_runtime_dirs.extend(
         [ os.path.join(sys.prefix, 'Lib\\site-packages\\tables') ] )
@@ -232,8 +234,8 @@ elif os.name == 'nt':
         'BZ2': ['bzip2', 'bzip2'], }
     # Copy the next DLL's to binaries by default.
     # Update these paths for your own system!
-    dll_files = ['\\windows\\system32\\zlib1.dll',
-                 '\\windows\\system32\\szlibdll.dll',
+    dll_files = ['\\windows\\system\\zlib1.dll',
+                 '\\windows\\system\\szlibdll.dll',
                  ]
     if '--debug' in sys.argv:
         _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
@@ -334,7 +336,12 @@ for (package, location) in [
     if hdrdir not in default_header_dirs:
         inc_dirs.append(hdrdir)  # save header directory if needed
     if libdir not in default_library_dirs:
-        lib_dirs.append(libdir)  # save library directory if needed
+        # save library directory if needed
+        if os.name == "nt":
+            # Important to quote the libdir for Windows (Vista) systems
+            lib_dirs.append('"'+libdir+'"')
+        else:
+            lib_dirs.append(libdir)
 
     if package.tag not in ['HDF5']:
         # Keep record of the optional libraries found.
