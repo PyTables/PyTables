@@ -51,6 +51,9 @@ inline static double acosh(double x)
 
 inline static double atanh(double x)
 {
+    /* This definition is different from that in NumPy 1.3 and follows
+    the convention of MatLab.  This will allow for double checking both
+    approaches. */
     return 0.5*log((1.0+x)/(1.0-x));
 }
 
