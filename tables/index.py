@@ -1763,10 +1763,11 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         if self.dirtycache:
             self.restorecache()
 
-        # An empty item means that the number of records is always
-        # going to be empty, so we avoid further computation
-        # (including looking up the limits cache).
-        if not item:
+        # An empty item or if left limit is larger than the right one
+        # means that the number of records is always going to be empty,
+        # so we avoid further computation (including looking up the
+        # limits cache).
+        if not item or item[0] > item[1]:
             self.starts[:] = 0
             self.lengths[:] = 0
             return 0

@@ -177,6 +177,7 @@ def _table__whereIndexed(self, compiled, condvars, start, stop, step):
 
     # Compute the chunkmap for every index in indexed expression
     cmvars = {}
+    tcoords = 0
     for i, idxexpr in enumerate(idxexprs):
         var, ops, lims = idxexpr
         col = condvars[var]
@@ -187,6 +188,7 @@ def _table__whereIndexed(self, compiled, condvars, start, stop, step):
         # Get the number of rows that the indexed condition yields.
         range_ = index.getLookupRange(ops, lims)
         ncoords = index.search(range_)
+        tcoords += ncoords
         if index.reduction == 1 and ncoords == 0:
             # No values from index condition, thus the chunkmap should be empty
             nrowsinchunk = self.chunkshape[0]
@@ -198,9 +200,14 @@ def _table__whereIndexed(self, compiled, condvars, start, stop, step):
         # Assign the chunkmap to the cmvars dictionary
         cmvars["e%d"%i] = chunkmap
 
+    # No candidates found in any indexed expression component, so leave now
+    if tcoords == 0:
+        return iter([])
+
     # Compute the final chunkmap
     chunkmap = numexpr.evaluate(strexpr, cmvars)
-    if chunkmap.sum() == 0:
+    # Method .any() is twice as faster than method .sum()
+    if not chunkmap.any():
         # The chunkmap is empty
         return iter([])
 
