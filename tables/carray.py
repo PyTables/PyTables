@@ -269,11 +269,10 @@ chunkshape parameter cannot have zero-dimensions."""
         nrowsinbuf = self.nrowsinbuf
         # The slices parameter for self.__getitem__
         slices = [slice(0, dim, 1) for dim in self.shape]
-        # This is a hack to prevent doing innecessary conversions
+        # This is a hack to prevent doing unnecessary conversions
         # when copying buffers
         self._v_convert = False
-        # Build the new CArray object (do not specify the chunkshape so that
-        # a sensible value would be calculated)
+        # Build the new CArray object
         object = CArray(group, name, atom=self.atom, shape=shape,
                         title=title, filters=filters, chunkshape=chunkshape,
                         _log=_log)
@@ -289,8 +288,9 @@ chunkshape parameter cannot have zero-dimensions."""
             stop3 = start3 + nrowsinbuf
             if stop3 > shape[maindim]:
                 stop3 = shape[maindim]
-            # The next line should be generalised when maindim would be
-            # different from 0
+            # The next line should be generalised if, in the future,
+            # maindim is designed to be different from 0 in CArrays.
+            # See ticket #199.
             object[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True

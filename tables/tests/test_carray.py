@@ -1250,10 +1250,8 @@ class CopyTestCase(unittest.TestCase):
         assert array1.atom.type == array2.atom.type
         assert array1.title == array2.title
         assert str(array1.atom) == str(array2.atom)
-        # The next line is commented out because a copy should not
-        # keep the same chunkshape anymore.
-        # F. Alted 2006-11-27
-        #assert array1.chunkshape == array2.chunkshape
+        # By default, the chunkshape should be the same
+        assert array1.chunkshape == array2.chunkshape
 
         # Close the file
         fileh.close()
