@@ -1366,7 +1366,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 raise ValueError, \
                       "Field `%s` must have associated a CSI index " \
                       "in table `%s`.  You can either create it " \
-                      "separately or pass the `forceCSI` parameter" \
+                      "separately or pass the `forceCSI` parameter " \
                       "set to true." % (sortby, self)
 
 
