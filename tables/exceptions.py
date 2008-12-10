@@ -262,6 +262,15 @@ class OldIndexWarning(Warning):
     """
     pass
 
+class DataTypeWarning(Warning):
+    """
+    Unsupported data type.
+
+    This warning is issued when an unsupported HDF5 data type is found
+    (normally in a file created with other tool than PyTables).
+    """
+    pass
+
 
 
 ## Local Variables:

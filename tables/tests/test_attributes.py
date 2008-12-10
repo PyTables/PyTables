@@ -13,7 +13,8 @@ from tables.parameters import NODE_CACHE_SLOTS
 
 from tables import *
 from tables.tests import common
-from tables.tests.common import allequal
+from tables.tests.common import allequal, PyTablesTestCase
+from tables.exceptions import DataTypeWarning
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
@@ -1214,6 +1215,18 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
     close = True
 
 
+class UnsupportedAttrTypeTestCase(PyTablesTestCase):
+
+    def test00_unsupportedType(self):
+        """Checking file with unsupported type."""
+
+        filename = self._testFilename('attr-u16.h5')
+        fileh = openFile(filename)
+        self.failUnlessWarns(DataTypeWarning, repr, fileh)
+        fileh.close()
+
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -1231,6 +1244,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CloseTypesTestCase))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsNotClose))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
+        theSuite.addTest(unittest.makeSuite(UnsupportedAttrTypeTestCase))
 
     return theSuite
 

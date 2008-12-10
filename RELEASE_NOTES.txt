@@ -8,6 +8,16 @@
 :Contact: ivan@selidor.net
 
 
+Changes from 2.1rc2 to 2.1 final
+================================
+
+- When an attribute with an unsupported data type is found in a file, a
+  ``DataTypeWarning`` is issued now, instead of aborting with a NumPy
+  error, as before.  This way users can deal with more variety of native
+  HDF5 files, even though some attributes might remain unreachable.
+  Closes #200.
+
+
 Changes from 2.1rc1 to 2.1rc2
 =============================
 
@@ -206,6 +216,15 @@ Bug fixes and other small enhancements
 - `File.copyNode()` can copy now complete hierarchies directly from the
   root.  This can be useful when one wants to create a new file by
   merging the contents of others.
+
+- When an attribute with an unsupported data type is found in a file, a
+  ``DataTypeWarning`` is issued now, instead of aborting with a NumPy
+  error, as before.  This way users can deal with more variety of native
+  HDF5 files, even though some attributes might remain unreachable.
+  Closes #200.
+
+- Now the complete test suite pass in big-endian machines (tested with
+  PowerPC/MacOSX).  Closes #191.
 
 - Fixed a problem in the condition cache when handling dirty indexes.
   Closes #193.

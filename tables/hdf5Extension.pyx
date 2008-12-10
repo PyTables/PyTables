@@ -36,7 +36,8 @@ import cPickle
 import numpy
 
 from tables.misc.enum import Enum
-from tables.exceptions import HDF5ExtError
+from tables.exceptions import HDF5ExtError, DataTypeWarning
+
 from tables.utils import \
      checkFileAccess, byteorders, correct_byteorder, SizeType
 
@@ -228,7 +229,12 @@ cdef object get_dtype_scalar(hid_t type_id, H5T_class_t class_id,
       raise TypeError("variable length strings are not supported yet")
     stype = "S%s" % (itemsize)
 
-  return numpy.dtype(stype)
+  # Try to get a NumPy type.  If this can't be done, return None.
+  try:
+    ntype = numpy.dtype(stype)
+  except TypeError:
+    ntype = None
+  return ntype
 
 
 
@@ -466,6 +472,11 @@ cdef class AttributeSet:
         return retvalue
     elif (rank == 0 and class_id in (H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT)):
       dtype = get_dtype_scalar(type_id, class_id, type_size)
+      if dtype is None:
+        warnings.warn("""\
+Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
+                      % (attrname, self.name, class_id), DataTypeWarning)
+        return None
       shape = ()
     else:
       # Attribute is multidimensional
@@ -474,8 +485,8 @@ cdef class AttributeSet:
       if class_id not in (H5T_STRING, H5T_BITFIELD, H5T_INTEGER, H5T_FLOAT,
                           H5T_COMPOUND, H5T_ARRAY):
         warnings.warn("""\
-Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
-                      % (attrname, self.name))
+Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
+                      % (attrname, self.name, class_id), DataTypeWarning)
         return None
 
       # Get the dimensional info
@@ -500,7 +511,7 @@ Type of attribute '%s' in node '%s' is not supported. Sorry about that!"""
         # native HDF5 files, while informing the user about the problem.
         warnings.warn("""\
 Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
-                      % (attrname, self.name, class_id))
+                      % (attrname, self.name, class_id), DataTypeWarning)
         return None
       # Get the dtype
       dtype = numpy.dtype((stype_atom, shape_atom))
