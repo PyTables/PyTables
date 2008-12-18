@@ -69,19 +69,9 @@ and Numeric 24.2.
 
 We are using Linux on top of Intel32 and Intel64 boxes as the main
 development platforms, but PyTables should be easy to compile/install
-on other UNIX machines.  This package has also been successfully
-compiled and tested on a FreeBSD 5.4 with Opteron64 processors, a
-UltraSparc platform with Solaris 7 and Solaris 8, a SGI Origin3000
-with Itanium processors running IRIX 6.5 (using the gcc compiler),
-Microsoft Windows and MacOSX (10.2 although 10.3 should work fine as
-well). In particular, it has been thoroughly tested on 64-bit
-platforms, like Linux-64 on top of an Intel Itanium, AMD Opteron (in
-64-bit mode) or PowerPC G5 (in 64-bit mode) where all the tests pass
-successfully.
-
-Nonetheless, caveat emptor: more testing is needed to achieve complete
-portability, we'd appreciate input on how it compiles and installs on
-other platforms.
+on other UNIX or Windows machines.  Nonetheless, caveat emptor: more
+testing is needed to achieve complete portability, we'd appreciate
+input on how it compiles and installs on your platform.
 
 
 Installation

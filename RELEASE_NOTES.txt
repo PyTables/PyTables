@@ -11,6 +11,10 @@
 Changes from 2.1rc2 to 2.1 final
 ================================
 
+- Added new section in Chapter 5 "Optimization tips" of the User's
+  Manual about chunksize fine-tuning and completely rewritten the
+  section of "Accelerating your searches", also in Chapter 5.
+
 - When an attribute with an unsupported data type is found in a file, a
   ``DataTypeWarning`` is issued now, instead of aborting with a NumPy
   error, as before.  This way users can deal with more variety of native
@@ -64,6 +68,10 @@ Main improvements
 - The creation of different nodes has been optimized too.  For
   example, creating a new EArray/CArray can be 2x faster and creating
   a Table object up to 5x faster.
+
+- Added new section in Chapter 5 "Optimization tips" of the User's
+  Manual about chunksize fine-tuning and completely rewritten the
+  section of "Accelerating your searches", also in Chapter 5.
 
 - Added a ``PYTABLES_SYS_ATTRS`` parameter that allows to switch on and
   off the creation of PyTables system attributes in datasets.  This way

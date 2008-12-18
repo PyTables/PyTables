@@ -10719,155 +10719,398 @@ True</screen>
       <para></para>
 
       <para>On this chapter, you will get deeper knowledge of PyTables
-      internals. PyTables has several places where you can improve the
-      performance of your application. If you are planning to deal with really
-      large data, you should read carefully this section in order to learn how
-      to get an important efficiency boost for your code. But if your dataset
-      is small (say, up to 10 MB), you should not worry about that as the
-      default parameters in PyTables are already tuned for those sizes.</para>
+      internals. PyTables has many tunable features so that you can improve
+      the performance of your application.  If you are planning to deal with
+      really large data, you should read carefully this section in order to
+      learn how to get an important efficiency boost for your code.  But if
+      your datasets are small (say, up to 10 MB) or your number of nodes is
+      contained (up to 1000), you should not worry about that as the default
+      parameters in PyTables are already tuned for those sizes (although you
+      may want to tune it anyway).  At any rate, reading this chapter will
+      help you in your life with PyTables.</para>
 
-      <section id="expectedRowsOptim">
-        <title>Informing PyTables about expected number of rows in
-        tables or arrays</title>
+      <section id="chunksizeOptim">
+        <title>Understanding chunking</title>
 
         <para>The underlying HDF5 library that is used by PyTables allows for
-        certain datasets (the <emphasis>chunked</emphasis> datasets) to take
-        the data in bunches of a certain length, so-called
-        <emphasis>chunks</emphasis>, to write them on disk as a whole, i.e.
+        certain datasets (the so-called <emphasis>chunked</emphasis> datasets)
+        to take the data in bunches of a certain length, named
+        <emphasis>chunks</emphasis>, and write them on disk as a whole, i.e.
         the HDF5 library treats chunks as atomic objects and disk I/O is
-        always made in terms of complete chunks. This allows data filters to
+        always made in terms of complete chunks.  This allows data filters to
         be defined by the application to perform tasks such as compression,
-        encryption, checksumming, etc. on entire chunks.</para>
+        encryption, check-summing, etc. on entire chunks.</para>
 
-        <para>An in-memory B-tree is used to map chunk structures on disk. The
-        more chunks that are allocated for a dataset the larger the B-tree.
-        Large B-trees take memory and cause file storage overhead as well as
-        more disk I/O and higher contention for the metadata cache.
-        Consequently, it's important to balance between memory and I/O
-        overhead (small B-trees) and time to access data (big B-trees).</para>
+        <para>HDF5 keeps a B-tree in memory that is used to map chunk
+        structures on disk.  The more chunks that are allocated for a dataset
+        the larger the B-tree.  Large B-trees take memory and cause file
+        storage overhead as well as more disk I/O and higher contention for
+        the metadata cache.  Consequently, it's important to balance between
+        memory and I/O overhead (small B-trees) and time to access data (big
+        B-trees).</para>
 
-        <para>PyTables can determine an optimum chunk size to make B-trees
-        adequate to your dataset size if you help it by providing an
-        estimation of the final number of rows for an extensible
-        leaf<footnote><para><literal>CArray</literal> nodes, though not
-        extensible, are chunked and have their optimum chunk size
-        automatically computed at creation time, since their final shape is
-        known.</para></footnote>.  This must be made at leaf creation time by
-        passing this value to the <literal>expectedrows</literal> argument of
-        the <literal>createTable()</literal> method (see <xref
-        linkend="createTableDescr" xrefstyle="select: label" />) and
-        <literal>createEArray()</literal> method (see <xref
-        linkend="createEArrayDescr" xrefstyle="select: label" />).  For
-        <literal>VLArray</literal> leaves, pass the expected size in MBytes by
-        using the argument <literal>expectedsizeinMB</literal> of
-        <literal>createVLArray()</literal> (see <xref
-        linkend="createVLArrayDescr" xrefstyle="select: label" />)
-        instead.</para>
+        <para>In the next couple of sections, you will discover how to inform
+        PyTables about the expected size of your datasets for allowing a
+        sensible computation of the chunk sizes.  Also, you will be presented
+        some experiments so that you can get a feeling on the consequences of
+        manually specifying the chunk size.  Although doing this latter is
+        only reserved to experienced people, these benchmarks may allow you to
+        understand more deeply the chunk size implications and let you quickly
+        start with the fine-tuning of this important parameter.</para>
 
-        <para>When your leaf size is bigger than 10 MB (take this figure only
-        as a reference, not strictly), by providing this guess of the number
-        of rows you will be optimizing the access to your data. When the table
-        or array size is larger than, say 100MB, you are
-        <emphasis>strongly</emphasis> suggested to provide such a guess;
-        failing to do that may cause your application to do very slow I/O
-        operations and to demand <emphasis>huge</emphasis> amounts of
-        memory. You have been warned!</para>
-      </section>
+        <section id="expectedRowsOptim">
+          <title>Informing PyTables about expected number of rows in
+          tables or arrays</title>
 
-      <section id="searchOptim">
-        <title>Accelerating your searches</title>
+          <para>PyTables can determine a sensible chunk size to your dataset
+          size if you helps it by providing an estimation of the final number
+          of rows for an extensible
+          leaf<footnote><para><literal>CArray</literal> nodes, though not
+          extensible, are chunked and have their optimum chunk size
+          automatically computed at creation time, since their final shape is
+          known.</para></footnote>.  You should provide this information at
+          leaf creation time by passing this value to the
+          <literal>expectedrows</literal> argument of the
+          <literal>createTable()</literal> method (see <xref
+          linkend="createTableDescr" xrefstyle="select: label" />) or
+          <literal>createEArray()</literal> method (see <xref
+          linkend="createEArrayDescr" xrefstyle="select: label" />).  For
+          <literal>VLArray</literal> leaves, you must pass the expected size
+          in MBytes by using the argument <literal>expectedsizeinMB</literal>
+          of <literal>createVLArray()</literal> (see <xref
+          linkend="createVLArrayDescr" xrefstyle="select: label" />)
+          instead.</para>
 
-        <para>If you are going to use a lot of searches like the next one:
+          <para>When your leaf size is bigger than 10 MB (take this figure
+          only as a reference, not strictly), by providing this guess you will
+          be optimizing the access to your data.  When the table or array size
+          is larger than, say 100MB, you are <emphasis>strongly</emphasis>
+          suggested to provide such a guess; failing to do that may cause your
+          application to do very slow I/O operations and to demand
+          <emphasis>huge</emphasis> amounts of memory. You have been
+          warned!</para>
+        </section>
 
-        <screen>result = [row['var2'] for row in table
-   if row['var1'] &gt; 2 and row['var1'] &lt;= 20 and row['var2'] &gt; 3]</screen>
+        <section id="chunksizeFineTune">
+          <title>Fine-tuning the chunksize</title>
 
-        (for future reference, we will call this the
-        <emphasis>regular</emphasis> selection mode) and you want to improve
-        the time taken to run it, keep reading.</para>
+          <warning><para>This section is mostly meant for experts.  If you are
+          a beginner, you must know that setting manually the chunksize is a
+          potentially dangerous action.</para>
+          </warning>
 
-        <section id="inkernelSearch">
-          <title>In-kernel searches</title>
+          <para>Most of the time, informing PyTables about the extent of your
+          dataset is enough.  However, for more sophisticated applications,
+          when one has special requirements for doing the I/O or when dealing
+          with really large datasets, you should really understand the
+          implications of the chunk size in order to be able to find the best
+          value for your own application.
+          </para>
 
-          <para>PyTables provides a way to accelerate data selections relating
-          to a single table, through the use of the
-          <literal>Table.where()</literal> iterator and related query methods
-          (see <xref linkend="TableMethods_querying" xrefstyle="select: label"
-          />). We will call this mode of selecting data
-          <emphasis>in-kernel</emphasis>. Let's see an example of
-          <emphasis>in-kernel</emphasis> selection based on the
-          <emphasis>regular</emphasis> selection mentioned above:</para>
+          <para>You can specify the chunksize for every chunked dataset in
+          PyTables by passing the <literal>chunkshape</literal> argument to
+          the corresponding constructors. It is important to point out that
+          <literal>chunkshape</literal> is not exactly the same thing than a
+          chunksize; in fact, the chunksize of a dataset can be computed
+          multiplying all the dimensions of the chunkshape among them and
+          multiplying the outcome by the size of the atom.</para>
 
-          <screen>result = [row['var2'] for row in table.where('(var1 &gt; 2) &amp; (var1 &lt;= 20) &amp; (var2 &gt; 3)']</screen>
+          <para>We are going to describe a series of experiments where an
+          EArray of 15 GB is written with different chunksizes, and then it is
+          accessed in both sequential (i.e. first element 0, then element 1
+          and so on and so forth until the data is exhausted) and random mode
+          (i.e. single elements are read randomly all through the dataset).
+          These benchmarks have been carried out with PyTables 2.1 on a
+          machine with an Intel Core2 processor @ 3 GHz and a RAID-0 made of
+          four SATA disks spinning at 7200 RPM, and using GNU/Linux with an
+          XFS filesystem.  The script used for the benchmarks is available in
+          <literal>bench/optimal-chunksize.py</literal>.  Before each
+          measurement, the OS cache has been emptied in order to remove its
+          effects.</para>
 
-          <para>This simple change of mode selection can account for an
-          improvement in search times of more than 30x for large tables as you
-          can see in <xref linkend="sequentialTimes" xrefstyle="select: label"
-          />.</para>
+          <para>In figures <xref linkend="createTime-chunksize"
+          xrefstyle="select: labelnumber" />, <xref
+          linkend="fileSizes-chunksize" xrefstyle="select: labelnumber" />,
+          <xref linkend="seqTime-chunksize" xrefstyle="select: labelnumber" />
+          and <xref linkend="randomTime-chunksize" xrefstyle="select:
+          labelnumber" />, you can see how the chunksize affects different
+          aspects, like creation time, file sizes, sequential read time and
+          random read time.  As you can see, if you properly inform PyTables
+          about the extent of your datasets, you will get an automatic
+          chunksize value (128 KB in this case) that is pretty optimal for
+          most of uses.  However, if what you want is, for example, optimize
+          the creation time when using the Zlib compressor, you may want to
+          reduce the chunksize to 32 KB (see <xref
+          linkend="createTime-chunksize" xrefstyle="select: label" />).  On
+          the contrary, if your goal is to optimize the random access time for
+          an uncompressed dataset, you may want to increase the chunksize up
+          to 1 MB (see <xref linkend="randomTime-chunksize" xrefstyle="select:
+          label"/>).
+          </para>
 
-          <figure id="sequentialTimes">
-            <title>Times for different sequential selection modes over
-            <literal>Float64</literal> values. Benchmark made on a machine
-            with AMD Opteron (AMD64) @ 2 GHz processors with IDE disk @ 7200
-            RPM.</title>
+          <figure id="createTime-chunksize">
+            <title>Creation time per element for a 15 GB EArray and different
+            chunksizes.</title>
 
             <mediaobject>
               <imageobject role="fo">
                 <imagedata align="center"
-                           fileref="query-time-regular-inkernel-postgres.svg"
+                           fileref="create-chunksize-15GB.svg"
                            format="SVG"
-                           scale="85" />
+                           scale="60" />
               </imageobject>
 
               <imageobject role="html">
                 <imagedata align="center"
-                           fileref="query-time-regular-inkernel-postgres.png"
+                           fileref="create-chunksize-15GB.png"
                            format="PNG" />
               </imageobject>
             </mediaobject>
           </figure>
 
-          <para>So, where is the trick? It's easy. In the
-          <emphasis>regular</emphasis> selection mode the data for column
-          <literal>var1</literal> has to be brought into Python space so as to
-          evaluate the condition and decide if the <literal>var2</literal>
-          value should be added to the <literal>result</literal> list. On the
-          contrary, in the <emphasis>in-kernel</emphasis> mode, the
-          <emphasis>condition</emphasis> is passed to the PyTables kernel
-          (hence the name), written in C, and evaluated there at C speed (with
-          the help of the integrated Numexpr package, see <biblioref
-          linkend="Numexpr" />), so that the only values that are brought to
-          Python space are the rows that fulfilled the condition.  Hence, for
-          selections that only have a relatively small number of hits
-          (compared with the total amount of rows), the savings are
-          huge.</para>
 
-          <para>Incidentally, in-kernel searches are not only much faster than
-          regular PyTables queries, but also much more than sequential queries
-          in relational databases coded in pure C (see the Postgres line in
-          <xref linkend="sequentialTimes" xrefstyle="select: label"
-          />).  I'm not completely sure about the reasons of why in-kernel
-          queries work so fast in comparison with relational engines made in
-          C, but a couple of reasons come to my mind:</para>
+          <figure id="fileSizes-chunksize">
+            <title>File sizes for a 15 GB EArray and different
+            chunksizes.</title>
 
-          <itemizedlist>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="filesizes-chunksize-15GB.svg"
+                           format="SVG"
+                           scale="60" />
+              </imageobject>
 
-            <listitem><para>PyTables implements adaptive buffers
-              (i.e. their size grows as the table grows) for doing I/O.
-              This fact, combined with the use of the highly optimized HDF5
-              hyperslice reads, allows for a very high data input
-              speed.</para>
-            </listitem>
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="filesizes-chunksize-15GB.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
-            <listitem><para>In addition, PyTables uses the powerful Numexpr
-              computing kernel, written in C, for evaluating mathematical
-              expressions (see <biblioref linkend="Numexpr" />).  This kernel
-              takes full advantage of on-die caches in modern processors for
-              achieving a very high computing throughput (and, in particular,
-              allowing ultra-fast condition evaluations).</para>
-            </listitem>
 
-          </itemizedlist>
+          <figure id="seqTime-chunksize">
+            <title>Sequential access time per element for a 15 GB EArray and
+            different chunksizes.</title>
+
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="seq-chunksize-15GB.svg"
+                           format="SVG"
+                           scale="60" />
+              </imageobject>
+
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="seq-chunksize-15GB.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
+
+
+          <figure id="randomTime-chunksize">
+            <title>Random access time per element for a 15 GB EArray and
+            different chunksizes.</title>
+
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="random-chunksize-15GB.svg"
+                           format="SVG"
+                           scale="60" />
+              </imageobject>
+
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="random-chunksize-15GB.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
+
+          <para>As you see, by manually specifying the chunksize of a leave
+          you will not normally bring a drastic increase in performance, but
+          at least, you will have the opportunity to fine-tune such an
+          important parameter for your application.</para>
+
+          <para>Finally, it is worth to not that adjusting the chunksize can
+          be specially important if you decide that you want to access your
+          dataset by blocks of certain dimensions.  In this case, you may want
+          to set your <literal>chunkshape</literal> to be the same than these
+          dimensions.  In this case, you only have to be careful to not end
+          with a too small or too large chunksize.  As always, experimenting
+          prior to pass your application into production phase is your best
+          ally.
+          </para>
+
+        </section>
+      </section>
+
+      <section id="searchOptim">
+        <title>Accelerating your searches</title>
+
+        <para>Searching in tables is one of the most common and time consuming
+        operations that a typical user faces in the process of mining through
+        his data.  Being able to perform queries as fast as possible will
+        allow more opportunities for finding the desired information quicker
+        and also allows to deal with larger datasets.</para>
+
+        <para>PyTables offers many sort of techniques so as to speed-up the
+        search process as much as possible and, in order to give you hints to
+        use them based, a series of benchmarks have been designed and carried
+        out.  All the results presented in this section have been obtained
+        with synthetic, random data and using PyTables 2.1.  Also, the tests
+        have been conducted on a machine with an Intel Core2 (64-bit) @ 3 GHz
+        processor with RAID-0 disk storage (made of four spinning disks @ 7200
+        RPM), using GNU/Linux with an XFS filesystem.  The script used for the
+        benchmarks is available in <literal>bench/indexed_search.py</literal>.
+        As your data, queries and platform may be totally different for your
+        case, take this just as a guide because your mileage may vary (and
+        will vary).</para>
+
+        <para>In order to be able to play with tables with a number of rows as
+        large as possible, the record size has been chosen to be rather small
+        (24 bytes). Here it is its definition:</para>
+
+        <screen>class Record(tables.IsDescription):
+            col1 = tables.Int32Col()
+            col2 = tables.Int32Col()
+            col3 = tables.Float64Col()
+            col4 = tables.Float64Col()</screen>
+
+        <para>In the next sections, we will be optimizing the times for a
+        relatively complex query like this:
+
+        <screen>result = [row['col2'] for row in table
+   if (((row['col4'] &gt;= lim1 and row['col4'] &lt; lim2) or
+       ((row['col2'] &gt; lim3 and row['col2'] &lt; lim4])) and
+       ((row['col1']+3.1*row['col2']+row['col3']*row['col4']) &gt; lim5))]</screen>
+
+        (for future reference, we will call this sort of queries
+        <emphasis>regular</emphasis> queries).  So, if you want to see how to
+        greatly improve the time taken to run queries like this, keep
+        reading.</para>
+
+        <section id="inkernelSearch">
+          <title>In-kernel searches</title>
+
+          <para>PyTables provides a way to accelerate data selections inside
+          of a single table, through the use of the
+          <literal>Table.where()</literal> iterator and related query methods
+          (see <xref linkend="TableMethods_querying" xrefstyle="select: label"
+          />).  This mode of selecting data is called
+          <emphasis>in-kernel</emphasis>.  Let's see an example of an
+          <emphasis>in-kernel</emphasis> query based on the
+          <emphasis>regular</emphasis> one mentioned above:</para>
+
+          <screen>result = [row['col2'] for row in table.where(
+    '(((col4 &gt;= lim1) &amp; (col4 &lt; lim2)) |
+      ((col2 &gt; lim3) &amp; (col2 &lt; lim4)) &amp;
+      ((col1+3.1*col2+col3*col4) > lim5))')]</screen>
+
+          <para>This simple change of mode selection can improve search times
+          quite a lot and actually make PyTables very competitive when
+          compared against typical relational databases as you can see in
+          <xref linkend="sequentialTimes-10m" xrefstyle="select: label" /> and
+          <xref linkend="sequentialTimes-1g" xrefstyle="select: label"
+          />.</para>
+
+          <figure id="sequentialTimes-10m">
+            <title>Times for non-indexed complex queries in a small table with
+            10 millions of rows: the data fits in memory.</title>
+
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="Q7-10m-noidx.svg"
+                           format="SVG"
+                           scale="60" />
+              </imageobject>
+
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="Q7-10m-noidx.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
+
+          <para>By looking at <xref linkend="sequentialTimes-10m"
+          xrefstyle="select: label" /> you can see how in the case that table
+          data fits easily in memory, in-kernel searches on uncompressed
+          tables are generally much faster (10x) than standard queries as well
+          as PostgreSQL (5x).  Regarding compression, we can see how Zlib
+          compressor actually slows down the performance of in-kernel queries
+          by a factor 3.5x; however, it remains faster than PostgreSQL (40%).
+          On his hand, LZO compressor only decreases the performance by a 75%
+          with respect to uncompressed in-kernel queries and is still a lot
+          faster than PostgreSQL (3x).  Finally, one can observe that, for low
+          selectivity queries (large number of hits), PostgreSQL performance
+          degrades quite steadily, while in PyTables this slow down rate is
+          significantly smaller.  The reason of this behaviour is not entirely
+          clear to the authors, but the fact is clearly reproducible in our
+          benchmarks.
+          </para>
+
+          <para>But, why in-kernel queries are so fast when compared with
+          regular ones?.  The answer is that in regular selection mode the
+          data for all the rows in table has to be brought into Python space
+          so as to evaluate the condition and decide if the corresponding
+          field should be added to the <literal>result</literal> list.  On the
+          contrary, in the in-kernel mode, the condition is passed to the
+          PyTables kernel (hence the name), written in C, and evaluated there
+          at full C speed (with the help of the integrated Numexpr package,
+          see <biblioref linkend="Numexpr" />), so that the only values that
+          are brought to Python space are the rows that fulfilled the
+          condition.  Hence, for selections that only have a relatively small
+          number of hits (compared with the total amount of rows), the savings
+          are very large.  It is also interesting to note the fact that,
+          although for queries with a large number of hits the speed-up is not
+          as high, it is still very important.</para>
+
+          <para>On the other hand, when the table is too large to fit in
+          memory (see <xref linkend="sequentialTimes-1g" xrefstyle="select:
+          label" />), the difference in speed between regular and in-kernel is
+          not so important, but still significant (2x).  Also, and curiously
+          enough, large tables compressed with Zlib offers slightly better
+          performance (around 20%) than uncompressed ones; this is because the
+          additional CPU spent by the uncompressor is compensated by the
+          savings in terms of net I/O (one has to read less actual data from
+          disk).  However, when using the extremely fast LZO compressor, it
+          gives a clear advantage over Zlib, and is up to 2.5x faster than not
+          using compression at all.  The reason is that LZO decompression
+          speed is much faster than Zlib, and that allows PyTables to read the
+          data at full disk speed (i.e. the bottleneck is in the I/O
+          subsystem, not in the CPU).  In this case the compression rate is
+          around 2.5x, and this is why the data can be read 2.5x faster.  So,
+          in general, using the LZO compressor is the best way to ensure best
+          reading/querying performance for out-of-core datasets (more about
+          how compression affects performance in <xref
+          linkend="compressionIssues"/>).
+          </para>
+
+          <figure id="sequentialTimes-1g">
+            <title>Times for non-indexed complex queries in a large table with
+            1 billion of rows: the data does not fit in memory.</title>
+
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="Q8-1g-noidx.svg"
+                           format="SVG"
+                           scale="60" />
+              </imageobject>
+
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="Q8-1g-noidx.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
           <para>Furthermore, you can mix the <emphasis>in-kernel</emphasis>
           and <emphasis>regular</emphasis> selection modes for evaluating
@@ -10880,22 +11123,23 @@ True</screen>
 
           <para>Here, we use an <emphasis>in-kernel</emphasis> selection to
           choose rows according to the values of the <literal>var3</literal>
-          and <literal>var1</literal> fields. Then, we apply a
+          and <literal>var1</literal> fields.  Then, we apply a
           <emphasis>regular</emphasis> selection to complete the query. Of
           course, when you mix the <emphasis>in-kernel</emphasis> and
           <emphasis>regular</emphasis> selection modes you should pass the
           most restrictive condition to the <emphasis>in-kernel</emphasis>
-          part, i.e. to the <literal>where()</literal> iterator. In situations
+          part, i.e. to the <literal>where()</literal> iterator.  In situations
           where it is not clear which is the most restrictive condition, you
           might want to experiment a bit in order to find the best
           combination.</para>
 
           <para>However, since in-kernel condition strings allow rich
-          expressions with multiple columns, variables, arithmetic operations
-          and some functions, it is unlikely that you will be forced to use
-          external regular selections in conditions of small to medium
-          complexity. See <xref linkend="conditionSyntax" xrefstyle="select:
-          label" /> for more information on in-kernel condition syntax.</para>
+          expressions allowing the coexistence of multiple columns, variables,
+          arithmetic operations and many typical functions, it is unlikely
+          that you will be forced to use external regular selections in
+          conditions of small to medium complexity. See <xref
+          linkend="conditionSyntax" xrefstyle="select: label" /> for more
+          information on in-kernel condition syntax.</para>
         </section>
 
         <section id="indexedSearches">
@@ -10908,32 +11152,33 @@ True</screen>
           <para>When you need more speed than <emphasis>in-kernel</emphasis>
           selections can offer you, PyTables offers a third selection method,
           the so-called <emphasis>indexed</emphasis> mode (based on the highly
-          efficient, extremely large datasets oriented, OPSI indexing engine
-          <biblioref linkend="OPSI" />). In this mode, you have to decide
-          which column(s) you are going to do your selections on, and index
-          them. Indexing is just a kind of sort operation over a column, so
-          that next searches along such a column will look at this sorted
-          information using kind of a <emphasis>binary search</emphasis> which
-          is much faster than a typical <emphasis>sequential
-          search</emphasis>.</para>
+          efficient OPSI indexing engine <biblioref linkend="OPSI" />).  In
+          this mode, you have to decide which column(s) you are going to apply
+          your selections over, and index them.  Indexing is just a kind of
+          sorting operation over a column, so that searches along such a
+          column (or columns) will look at this sorted information by using a
+          <emphasis>binary search</emphasis> which is much faster than the
+          <emphasis>sequential search</emphasis> described in the previous
+          section.</para>
 
           <para>You can index the columns you want by calling the
           <literal>Column.createIndex()</literal> method (see <xref
-          linkend="Column.createIndex" />) on an already created table.
-          For example: <screen>indexrows = table.cols.var1.createIndex()
+          linkend="Column.createIndex" />) on an already created table.  For
+          example:
+
+ <screen>indexrows = table.cols.var1.createIndex()
 indexrows = table.cols.var2.createIndex()
-indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
-          <literal>var1</literal>, <literal>var2</literal> and
-          <literal>var3</literal> columns.</para>
+indexrows = table.cols.var3.createIndex()</screen>
+
+          will create indexes for all <literal>var1</literal>,
+          <literal>var2</literal> and <literal>var3</literal> columns.</para>
 
           <para>After you have indexed a series of columns, the PyTables query
           optimizer will try hard to discover the usable indexes in a
           potentially complex expression. However, there are still places
-          where it cannot determine that an index can be used (mainly when the
-          <literal>'!='</literal> operator is used, or negations of
-          complex boolean expressions). See below for examples where the
-          optimizer can safely determine if an index, or series of indexes,
-          can be used or not.
+          where it cannot determine that an index can be used. See below for
+          examples where the optimizer can safely determine if an index, or
+          series of indexes, can be used or not.
           </para>
 
           <para>Example conditions where an index can be used: <itemizedlist>
@@ -11012,217 +11257,314 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
             label" />).</para>
           </note>
 
-          <para>One important aspect of indexing in PyTables is that it has
-          been designed from the ground up with the goal of being capable to
-          effectively manage very large tables. In <xref
-          linkend="createIndexTimes" xrefstyle="select: label" />, you can see
-          that the times to index columns in tables are pretty short.  In
-          particular, the time to index a column with 1 billion rows (1
-          gigarow) with no index optimization is roughly 15 min. while
-          indexing the same column with full optimization is around 100 min.,
-          which are a quite small figures compared with a relational database
-          (in this case, Postgres 8), which takes more than 500 min. for doing
-          the same job.  This is because PyTables has chosen an algorithm that
-          does a <emphasis>partial</emphasis> sort of the columns in order to
-          ensure contained indexing times.  On the contrary, most relational
-          databases try to do a <emphasis>complete</emphasis> sort of columns,
-          and this fact makes the time to create an index much bigger.</para>
+          <para>One important aspect of indexing in PyTables Pro is that it
+          has been designed from the ground up with the goal of being capable
+          to effectively manage very large tables.  To this goal, it sports a
+          wide spectrum of different quality levels (also called optimization
+          levels) for its indexes so that the user can choose the best one
+          that suits her needs (more or less size, more or less performance).
+          </para>
+
+          <para>In <xref linkend="createIndexTimes" xrefstyle="select: label"
+          />, you can see that the times to index columns in tables can be
+          really short.  In particular, the time to index a column with 1
+          billion rows (1 Gigarow) with the lowest optimization level is less
+          than 4 minutes while indexing the same column with full optimization
+          (so as to get a completely sorted index or CSI) requires around 1
+          hour.  These are rather competitive figures compared with a
+          relational database (in this case, PostgreSQL 8.3.1, which takes
+          around 1.5 hours for getting the index done).  This is because
+          PyTables is geared towards read-only or append-only tables and takes
+          advantage of this fact to optimize the indexes properly.  On the
+          contrary, most relational databases have to deliver decent
+          performance in other scenarios as well (specially updates and
+          deletions), and this fact leads not only to slower index creation
+          times, but also to indexes taking much more space on disk, as you
+          can see in <xref linkend="indexSizes" xrefstyle="select: label"
+          />.</para>
 
           <figure id="createIndexTimes">
-            <title>Times for indexing a <literal>Float64</literal>
-            column. Benchmark made on a machine with AMD Opteron (AMD64) @ 2
-            GHz processors with IDE disk @ 7200 RPM.</title>
+            <title>Times for indexing an <literal>Int32</literal> and
+            <literal>Float64</literal> column.</title>
 
             <mediaobject>
 
               <imageobject role="fo">
-                <imagedata align="center" fileref="create-index-time-float64.svg"
-                           format="SVG" scale="85" />
+                <imagedata align="center" fileref="create-index-time-int32-float64.svg"
+                           format="SVG" scale="50" />
               </imageobject>
 
               <imageobject role="html">
-                <imagedata align="center" fileref="create-index-time-float64.png"
+                <imagedata align="center" fileref="create-index-time-int32-float64.png"
                            format="PNG" />
               </imageobject>
 
             </mediaobject>
           </figure>
 
-          <para>Another important feature to stress out is the aforementioned
-          capability of PyTables to support a customizable quality for
-          indexes, allowing the user to select the best one that suits her
-          needs.  This quality can be specified by passing the desired
-          <literal>optlevel</literal> argument to the
-          <literal>createIndex()</literal> method (see <xref
-          linkend="Column.createIndex" />).  In the figures <xref
-          linkend="queryTimes-float64-cold-cache" xrefstyle="select:
-          labelnumber" /> and <xref linkend="queryTimes-float64-warm-cache"
-          xrefstyle="select: labelnumber" /> you can see the effect in lookup
-          time of specifying several optimization levels.</para>
-
-          <figure id="queryTimes-float64-cold-cache">
-            <title>Times for querying a <literal>Float64</literal> column with
-            a cold cache (mean of 10 first queries). Benchmark made on a
-            machine with AMD Opteron (AMD64) @ 2 GHz processors with IDE disk
-            @ 7200 RPM.</title>
+          <figure id="indexSizes">
+            <title>Sizes for an index of a <literal>Float64</literal> column
+            with 1 billion of rows.</title>
 
             <mediaobject>
 
               <imageobject role="fo">
-                <imagedata align="center"
-                           fileref="query-time-cold-cache-float64.svg"
-                           format="SVG" scale="85" />
+                <imagedata align="center" fileref="indexes-sizes2.svg"
+                           format="SVG" scale="50" />
               </imageobject>
 
               <imageobject role="html">
-                <imagedata align="center"
-                           fileref="query-time-cold-cache-float64.png"
+                <imagedata align="center" fileref="indexes-sizes2.png"
                            format="PNG" />
               </imageobject>
 
             </mediaobject>
           </figure>
 
-          <figure id="queryTimes-float64-warm-cache">
-            <title>Times for querying a <literal>Float64</literal> column with
-            a warm cache (mean of 500 queries). Benchmark made on a
-            machine with AMD Opteron (AMD64) @ 2 GHz processors with IDE disk
-            @ 7200 RPM.</title>
+          <para>The user can select the index quality by passing the desired
+          <literal>optlevel</literal> and <literal>kind</literal> arguments to
+          the <literal>createIndex()</literal> method (see <xref
+          linkend="Column.createIndex" />).  We can see in figures <xref
+          linkend="createIndexTimes" xrefstyle="select: labelnumber" /> and
+          <xref linkend="indexSizes" xrefstyle="select: labelnumber" /> how
+          the different optimization levels affects index time creation and
+          index sizes.
+
+          So, which is the effect of the different optimization levels in
+          terms of query times?  You can see that in <xref
+          linkend="queryTimes-indexed-optlevels" xrefstyle="select: label"
+          />.</para>
+
+          <figure id="queryTimes-indexed-optlevels">
+            <title>Times for complex queries with a cold cache (mean of 5
+            first random queries) for different optimization levels. Benchmark
+            made on a machine with Intel Core2 (64-bit) @ 3 GHz processor with
+            RAID-0 disk storage.</title>
 
             <mediaobject>
 
               <imageobject role="fo">
                 <imagedata align="center"
-                           fileref="query-time-warm-cache-float64.svg"
-                           format="SVG" scale="85" />
+                           fileref="Q8-1g-idx-optlevels.svg"
+                           format="SVG" scale="60" />
               </imageobject>
 
               <imageobject role="html">
                 <imagedata align="center"
-                           fileref="query-time-warm-cache-float64.png"
+                           fileref="Q8-1g-idx-optlevels.png"
                            format="PNG" />
               </imageobject>
 
             </mediaobject>
           </figure>
 
-          <para>It is worth to say that, in figures <xref
-          linkend="queryTimes-float64-cold-cache" xrefstyle="select:
-          labelnumber" /> and <xref linkend="queryTimes-float64-warm-cache"
-          xrefstyle="select: labelnumber" />, the query was chosen so as to
-          return 0 rows (0 hits query).  This has been done that way in order
-          to have a measure of the <emphasis>pure</emphasis> lookup time, and
-          not taking in account the <emphasis>retrieving</emphasis> time for
-          actual data (see <xref linkend="nhitsTimes" xrefstyle="select:
-          label" /> for a graph measuring retrieval times for different number
-          of hits in range queries).</para>
+          <para>Of course, compression also has an effect when doing indexed
+          queries, although not very noticeable, as can be seen in <xref
+          linkend="queryTimes-indexed-compress" xrefstyle="select: label"/>.
+          As you can see, the difference between using no compression and
+          using Zlib or LZO is very little, although LZO achieves relatively
+          better performance generally speaking.</para>
 
-          <para>As an aside, let's point out that, despite the fact that
-          relational databases use a complete sorting algorithm for indexes
-          might induce the reader to think that that they would be faster for
-          searching purposes than the PyTables approach, this is not
-          necessarily the case (or, at least, not always), as you can see in
-          the figures <xref linkend="queryTimes-float64-cold-cache"
-          xrefstyle="select: labelnumber" /> and <xref
-          linkend="queryTimes-float64-warm-cache" xrefstyle="select:
-          labelnumber" />.  This is because when one chooses a high
-          optimization level for medium to large table sizes (&lt; 10 billions
-          of rows), the PyTables indexing engine can effectively achieve a
-          complete sorting, making its lookup times usually faster than using
-          a relational database (most specially if compression is used). For
-          very large tables (&gt; 100 trillions of rows) the PyTables indexing
-          engine cannot normally achieve the goal of getting a completely
-          sorted index (CSI).  However, this is not a grave limitation in
-          practice because the time required for completing such a complete
-          sort in a traditional relational database can be huge, so it is not
-          normally worth the effort doing this, while, on its hand, PyTables
-          can still perform a <emphasis>partial</emphasis> sort in a
-          reasonable amount of time while keeping very good lookup times.  In
-          other words, the PyTables engine scales much better than relational
-          databases, so don't worry if you have extremely large columns to
-          index: PyTables is designed to cope with that fact perfectly.</para>
-
-          <para>In addition, PyTables implements an efficient cache for
-          (small) results of queries.  Such a cache can be very important in
-          cases where you repeat the same query interspersed with others.  In
-          that case, the repeated queries will be done very fast as you can
-          see in <xref linkend="queryTimes-float64-repeated"
-          xrefstyle="select: label" />, effectively accelerating the whole
-          query process.</para>
-
-          <figure id="queryTimes-float64-repeated">
-            <title>Times for doing a query that is already in cache for a
-            <literal>Float64</literal> column. Benchmark made on a machine
-            with AMD Opteron (AMD64) @ 2 GHz processors with IDE disk @ 7200
-            RPM.</title>
+          <figure id="queryTimes-indexed-compress">
+            <title>Times for complex queries with a cold cache (mean of 5
+            first random queries) for different compressors.</title>
 
             <mediaobject>
 
               <imageobject role="fo">
                 <imagedata align="center"
-                           fileref="query-time-repeated-query-float64.svg"
-                           format="SVG" scale="85" />
+                           fileref="Q8-1g-idx-compress.svg"
+                           format="SVG" scale="60" />
               </imageobject>
 
               <imageobject role="html">
                 <imagedata align="center"
-                           fileref="query-time-repeated-query-float64.png"
+                           fileref="Q8-1g-idx-compress.png"
                            format="PNG" />
               </imageobject>
 
             </mediaobject>
           </figure>
 
-          <para>Finally, let's conclude this section with a view at how
-          PyTables indexed searches does perform for queries with different
-          result sizes (or number of hits).  In <xref linkend="nhitsTimes"
-          xrefstyle="select: label" /> you can see the mean time for the first
-          5 distinct queries (but having aproximately the same number of hits)
-          along a table with one billion of rows (a gigarow) for different
-          query ranges (and hence, having different number of hits) for the
-          next query:
-
-<screen>results = [ row[col4] for row in
-    table.where("(inf&lt;=col4) &amp; (col4&lt;=sup) &amp; (sqrt(col1+3.1*col2+col3*col4) &gt; 3)") ]</screen>
-
-          where <emphasis>col4</emphasis> is an indexed float64 column and
-          <emphasis>col1</emphasis>, <emphasis>col2</emphasis> and
-          <emphasis>col3</emphasis> are unindexed ones (of types int32,
-          float64 and int32 respectively).  The <emphasis>inf</emphasis> and
-          <emphasis>sup</emphasis> values defines the query range.  You can
-          see how, for a number of hits greater than 10, PyTables performs
-          between 2x and 50x faster than a traditional relational database (in
-          this case, Postgres 8).  Again, this is the consequence of the
-          combination of a highly optimized access to data through the HDF5
-          library and the use of Numexpr (<biblioref linkend="Numexpr" />) for
-          quick evaluation of complex expressions for each row.</para>
-
-          <figure id="nhitsTimes">
-            <title>Times for doing a query with different number of hits on a
-            indexed table with one gigarow. Benchmark made on a machine with
-            AMD Opteron (AMD64) @ 2 GHz processors with IDE disk @ 7200
-            RPM.</title>
-
-            <mediaobject>
-
-              <imageobject role="fo">
-                <imagedata align="center"
-                           fileref="query-time-nhits-cold-cache-float64.svg"
-                           format="SVG" scale="85" />
-              </imageobject>
-
-              <imageobject role="html">
-                <imagedata align="center"
-                           fileref="query-time-nhits-cold-cache-float64.png"
-                           format="PNG" />
-              </imageobject>
-
-            </mediaobject>
-          </figure>
-
-          <para>You can find a more complete description and benchmarking
-          about OPSI, the indexing system of PyTables Pro in <biblioref
+          <para>You can find a more complete description and benchmarks about
+          OPSI, the indexing system of PyTables Pro in <biblioref
           linkend="OPSI" />.</para>
+
+        </section>
+
+        <section id="SSD-indexes">
+          <title>Indexing and Solid State Disks (SSD)</title>
+
+          <para>Lately, the long promised Solid State Disks (SSD for brevity)
+          with decent capacities and affordable prices have finally hit the
+          market and will probably stay in coexistence with the traditional
+          spinning disks for the foreseeable future (separately or forming
+          <emphasis>hybrid</emphasis> systems).  SSD have many advantages over
+          spinning disks, like much less power consumption and better
+          throughput.  But of paramount importance, specially in the context
+          of accelerating indexed queries, is its very reduced latency during
+          disk seeks, which is typically 100x better than traditional disks.
+          Such a huge improvement has to have a clear impact in reducing the
+          query times, specially when the selectivity is high (i.e. the number
+          of hits is small).
+          </para>
+
+          <para>In order to offer an estimate on the performance improvement
+          we can expect when using a low-latency SSD instead of traditional
+          spinning disks, the benchmark in the previous section has been
+          repeated, but this time using a single SSD disk instead of the four
+          spinning disks in RAID-0.  The result can be seen in <xref
+          linkend="queryTimes-indexed-SSD" xrefstyle="select: label"/>.  There
+          one can see how a query in a table of 1 billion of rows with 100
+          hits took just 1 tenth of second when using a SSD, instead of 1
+          second that needed the RAID made of spinning disks.  This factor of
+          10x of speed-up for high-selectivity queries is nothing to sneeze
+          at, and should be kept in mind when really high performance in
+          queries is needed.  It is also interesting that using compression
+          with LZO does have a clear advantage over when no compression is
+          done.
+          </para>
+
+          <figure id="queryTimes-indexed-SSD">
+            <title>Times for complex queries with a cold cache (mean of 5
+            first random queries) for different disk storage (SSD vs spinning
+            disks).</title>
+
+            <mediaobject>
+
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="Q8-1g-idx-SSD.svg"
+                           format="SVG" scale="60" />
+              </imageobject>
+
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="Q8-1g-idx-SSD.png"
+                           format="PNG" />
+              </imageobject>
+
+            </mediaobject>
+          </figure>
+
+          <para>Finally, we should remark that SSD can't compete with
+          traditional spinning disks in terms of capacity as they can only
+          provide, for a similar cost, between 1/10th and 1/50th of the size
+          of traditional disks.  It is here where the compression capabilities
+          of PyTables can be very helpful because both tables and indexes can
+          be compressed and the final space can be reduced by typically 2x to
+          5x (4x to 10x when compared with traditional relational databases).
+          Best of all, as already mentioned, performance is not degraded when
+          compression is used, but actually <emphasis>improved</emphasis>.
+          So, by using PyTables Pro and SSD you can query larger datasets that
+          otherwise would require spinning disks when using other databases
+          <footnote><para>In fact, we were unable to run the PostgreSQL
+          benchmark in this case because the space needed exceeded the
+          capacity of our SSD.</para></footnote>, while allowing improvements
+          in the speed of indexed queries between 2x (for medium to low
+          selectivity queries) and 10x (for high selectivity queries).
+          </para>
+
+        </section>
+
+        <section id="Sorting-indexes">
+          <title>Achieving ultimate speed: sorted tables and beyond</title>
+
+          <warning>
+            <para>Sorting a large table is a costly operation.  The next
+            procedure should only be performed when your dataset is mainly
+            read-only and meant to be queried many times.</para>
+          </warning>
+
+          <para>When querying large tables, most of the query time is spent in
+          locating the interesting rows to be read from disk.  In some
+          occasions, you may have queries whose result depends
+          <emphasis>mainly</emphasis> of one single column (a query with only
+          one single condition is the trivial example), so we can guess that
+          sorting the table by this column would lead to locate the
+          interesting rows in a much more efficient way (because they would be
+          mostly <emphasis>contiguous</emphasis>).  We are going to confirm
+          this guess.
+          </para>
+
+          <para>For the case of the query that we have been using in the
+          previous sections:</para>
+
+          <screen>result = [row['col2'] for row in table.where(
+    '(((col4 &ge; lim1) &amp; (col4 &lt; lim2)) |
+      ((col2 &gt; lim3) &amp; (col2 &lt; lim4)) &amp;
+      ((col1+3.1*col2+col3*col4) > lim5))')]</screen>
+
+          <para>it is possible to determine, by analysing the data
+          distribution and the query limits, that <literal>col4</literal> is
+          such a <emphasis>main column</emphasis>.  So, by ordering the table
+          by the <literal>col4</literal> column (sorting of tables is
+          supported from PyTables Pro 2.1 on), and re-indexing
+          <literal>col2</literal> and <literal>col4</literal> afterwards, we
+          should get much faster performance for our query.  This is
+          effectively demonstrated in <xref
+          linkend="queryTimes-indexed-sorted" xrefstyle="select: label"/>,
+          where one can see how queries with a low to medium (up to 10000)
+          number of hits can be done in around 1 tenth of second for a RAID-0
+          setup and in around 1 hundredth of second for a SSD disk.  This
+          represents up to more that 100x improvement in speed with respect to
+          the times with unsorted tables.  On the other hand, when the number
+          of hits is large (&lt; 1 million), the query times grow almost
+          linearly, showing a near-perfect scalability for both RAID-0 and SSD
+          setups (the sequential access to disk becomes the bottleneck in this
+          case).
+          </para>
+
+          <figure id="queryTimes-indexed-sorted">
+            <title>Times for complex queries with a cold cache (mean of 5
+            first random queries) for unsorted and sorted tables.</title>
+
+            <mediaobject>
+
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="Q8-1g-idx-sorted.svg"
+                           format="SVG" scale="60" />
+              </imageobject>
+
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="Q8-1g-idx-sorted.png"
+                           format="PNG" />
+              </imageobject>
+
+            </mediaobject>
+          </figure>
+
+          <para>Another thing worth to be noted in <xref
+          linkend="queryTimes-indexed-sorted" xrefstyle="select: label"/>, is
+          that, for very large number of hits, and more exactly in the 500,000
+          hits point, the time to query in the case of a sorted table, can be
+          more than 2x times faster, which may sound a bit suspicious provided
+          that we already stated that the speed for the case of the unsorted
+          table was only limited by the I/O speed of the disk, so how sorting
+          a table can actually improve I/O times?.  Well, the answer is that,
+          as the table is sorted by a column, and due to the data distribution
+          chosen, the entropy of the resulting table is reduced quite a lot,
+          so allowing the compressor (LZO in this case) to do a much better
+          job and producing datasets more than 2x smaller (and hence,
+          requiring less time to be read).  So, in the end, the there is no
+          contradiction in having improved query times in the low selectivity
+          scenario.
+          </para>
+
+          <para>Even though we have shown many ways to improve query times
+          that should fulfill the needs of most of people, for those needing
+          more, you can for sure discover new optimization opportunities.  For
+          example, querying against sorted tables is limited mainly by
+          sequential access to data on disk and data compression capability,
+          so you may want to read <xref linkend="chunksizeFineTune"
+          xrefstyle="select: label" />, for ways on improving this (or others)
+          aspect.  Reading the other sections of this chapter will help in
+          finding new roads for increasing the performance as well.  You know,
+          the limit for stopping the optimization process is your imagination
+          (and most plausibly your time ;-).
+          </para>
 
         </section>
       </section>
@@ -11234,452 +11576,457 @@ indexrows = table.cols.var3.createIndex()</screen> will create indexes for all
         on tables and arrays<footnote><para>Except for
         <literal>Array</literal> objects.</para></footnote>, although it is
         not used by default. Compression of big amounts of data might be a bit
-        controversial feature, because compression has a legend of being a
-        very big consumer of CPU time resources. However, if you are willing
-        to check if compression can help not only by reducing your dataset
-        file size but <emphasis>also</emphasis> by improving I/O efficiency,
-        specially when dealing with very large datasets, keep reading.</para>
+        controversial feature, because it has a legend of being a very big
+        consumer of CPU time resources. However, if you are willing to check
+        if compression can help not only by reducing your dataset file size
+        but <emphasis>also</emphasis> by improving I/O efficiency, specially
+        when dealing with very large datasets, keep reading.</para>
 
-        <para>The compression library used by default is the
-        <emphasis>Zlib</emphasis> (see <biblioref linkend="zlibRef" />). Since
-        HDF5 <emphasis>requires</emphasis> it, you can safely use it and
-        expect that your HDF5 files will be readable on any other platform
-        that has HDF5 libraries installed. Zlib provides good compression
-        ratio, although somewhat slow, and reasonably fast decompression.
-        Because of that, it is a good candidate to be used for compressing you
-        data.</para>
+        <section id="compressionStudy">
+          <title>A study on supported compression libraries</title>
 
-        <para>However, in some situations it is critical to have a
-        <emphasis>very good decompression speed</emphasis> (at the expense of
-        lower compression ratios or more CPU wasted on compression, as we will
-        see soon). In others, the emphasis is put in achieving the
-        <emphasis>maximum compression ratios</emphasis>, no matter which
-        reading speed will result. This is why support for two additional
-        compressors has been added to PyTables: LZO (see <biblioref
-        linkend="lzoRef" />) and bzip2 (see <biblioref linkend="bzip2Ref"
-        />). Following the author of LZO (and checked by the author of this
-        section, as you will see soon), LZO offers pretty fast compression and
-        extremely fast decompression. In fact, LZO is so fast when
-        compressing/decompressing that it may well happen (that depends on
-        your data, of course) that writing or reading a compressed dataset is
-        sometimes faster than if it is not compressed at all (specially when
-        dealing with extremely large datasets). This fact is very important,
-        specially if you have to deal with very large amounts of
-        data. Regarding bzip2, it has a reputation of achieving excellent
-        compression ratios, but at the price of spending much more CPU time,
-        which results in very low compression/decompression speeds.</para>
+          <para>The compression library used by default is the
+          <emphasis>Zlib</emphasis> (see <biblioref linkend="zlibRef"
+          />). Since HDF5 <emphasis>requires</emphasis> it, you can safely use
+          it and expect that your HDF5 files will be readable on any other
+          platform that has HDF5 libraries installed. Zlib provides good
+          compression ratio, although somewhat slow, and reasonably fast
+          decompression.  Because of that, it is a good candidate to be used
+          for compressing you data.</para>
 
-        <para>Be aware that the LZO and bzip2 support in PyTables is not
-        standard on HDF5, so if you are going to use your PyTables files in
-        other contexts different from PyTables you will not be able to read
-        them. Still, see the <xref linkend="ptrepackDescr"
-        xrefstyle="select: label" /> (where the <literal>ptrepack</literal>
-        utility is described) to find a way to free your files from LZO or
-        bzip2 dependencies, so that you can use these compressors locally with
-        the warranty that you can replace them with Zlib (or even remove
-        compression completely) if you want to use these files with other HDF5
-        tools or platforms afterwards.</para>
+          <para>However, in some situations it is critical to have a
+          <emphasis>very good decompression speed</emphasis> (at the expense
+          of lower compression ratios or more CPU wasted on compression, as we
+          will see soon). In others, the emphasis is put in achieving the
+          <emphasis>maximum compression ratios</emphasis>, no matter which
+          reading speed will result. This is why support for two additional
+          compressors has been added to PyTables: LZO (see <biblioref
+          linkend="lzoRef" />) and bzip2 (see <biblioref linkend="bzip2Ref"
+          />). Following the author of LZO (and checked by the author of this
+          section, as you will see soon), LZO offers pretty fast compression
+          and extremely fast decompression. In fact, LZO is so fast when
+          compressing/decompressing that it may well happen (that depends on
+          your data, of course) that writing or reading a compressed dataset
+          is sometimes faster than if it is not compressed at all (specially
+          when dealing with extremely large datasets). This fact is very
+          important, specially if you have to deal with very large amounts of
+          data. Regarding bzip2, it has a reputation of achieving excellent
+          compression ratios, but at the price of spending much more CPU time,
+          which results in very low compression/decompression speeds.</para>
 
-        <para>In order to allow you to grasp what amount of compression can be
-        achieved, and how this affects performance, a series of experiments
-        has been carried out. All the results presented in this section (and
-        in the next one) have been obtained with synthetic data and using
-        PyTables 1.3. Also, the tests have been conducted on a IBM OpenPower
-        720 (e-series) with a PowerPC G5 at 1.65 GHz and a hard disk spinning
-        at 15K RPM. As your data and platform may be totally different for
-        your case, take this just as a guide because your mileage may
-        vary. Finally, and to be able to play with tables with a number of
-        rows as large as possible, the record size has been chosen to be small
-        (16 bytes). Here is its definition:</para>
+          <para>Be aware that the LZO and bzip2 support in PyTables is not
+          standard on HDF5, so if you are going to use your PyTables files in
+          other contexts different from PyTables you will not be able to read
+          them. Still, see the <xref linkend="ptrepackDescr"
+          xrefstyle="select: label" /> (where the <literal>ptrepack</literal>
+          utility is described) to find a way to free your files from LZO or
+          bzip2 dependencies, so that you can use these compressors locally
+          with the warranty that you can replace them with Zlib (or even
+          remove compression completely) if you want to use these files with
+          other HDF5 tools or platforms afterwards.</para>
 
-        <screen>class Bench(IsDescription):
+          <para>In order to allow you to grasp what amount of compression can
+          be achieved, and how this affects performance, a series of
+          experiments has been carried out. All the results presented in this
+          section (and in the next one) have been obtained with synthetic data
+          and using PyTables 1.3. Also, the tests have been conducted on a IBM
+          OpenPower 720 (e-series) with a PowerPC G5 at 1.65 GHz and a hard
+          disk spinning at 15K RPM. As your data and platform may be totally
+          different for your case, take this just as a guide because your
+          mileage may vary. Finally, and to be able to play with tables with a
+          number of rows as large as possible, the record size has been chosen
+          to be small (16 bytes). Here is its definition:</para>
+
+          <screen>class Bench(IsDescription):
     var1 = StringCol(length=4)
     var2 = IntCol()
     var3 = FloatCol()</screen>
 
-        <para>With this setup, you can look at the compression ratios that can
-        be achieved in <xref linkend="comprTblComparison"
-        xrefstyle="select: label" />. As you can see, LZO is the compressor
-        that performs worse in this sense, but, curiosly enough, there is not
-        much difference between Zlib and bzip2.</para>
+          <para>With this setup, you can look at the compression ratios that
+          can be achieved in <xref linkend="comprTblComparison"
+          xrefstyle="select: label" />. As you can see, LZO is the compressor
+          that performs worse in this sense, but, curiosly enough, there is
+          not much difference between Zlib and bzip2.</para>
 
-        <figure id="comprTblComparison">
-          <title>Comparison between different compression libraries.</title>
+          <figure id="comprTblComparison">
+            <title>Comparison between different compression libraries.</title>
 
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center" fileref="compressed-recordsize.svg"
-                         format="SVG" scale="75" />
-            </imageobject>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center" fileref="compressed-recordsize.svg"
+                           format="SVG" scale="65" />
+              </imageobject>
 
-            <imageobject role="html">
-              <imagedata align="center" fileref="compressed-recordsize.png"
-                         format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
+              <imageobject role="html">
+                <imagedata align="center" fileref="compressed-recordsize.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
-        <para>Also, PyTables lets you select different compression levels for
-        Zlib and bzip2, although you may get a bit disappointed by the small
-        improvement that these compressors show when dealing with a
-        combination of numbers and strings as in our example. As a reference,
-        see plot <xref linkend="comprZlibComparison" xrefstyle="select:
-        labelnumber" /> for a comparison of the compression achieved by
-        selecting different levels of Zlib.  Very oddly, the best compression
-        ratio corresponds to level 1 (!).  See later for an explanation and
-        more figures on this subject.</para>
+          <para>Also, PyTables lets you select different compression levels for
+          Zlib and bzip2, although you may get a bit disappointed by the small
+          improvement that these compressors show when dealing with a
+          combination of numbers and strings as in our example. As a reference,
+          see plot <xref linkend="comprZlibComparison" xrefstyle="select:
+          labelnumber" /> for a comparison of the compression achieved by
+          selecting different levels of Zlib.  Very oddly, the best compression
+          ratio corresponds to level 1 (!).  See later for an explanation and
+          more figures on this subject.</para>
 
-        <figure id="comprZlibComparison">
-          <title>Comparison between different compression levels of
-          Zlib.</title>
+          <figure id="comprZlibComparison">
+            <title>Comparison between different compression levels of
+            Zlib.</title>
 
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center"
-                         fileref="compressed-recordsize-zlib.svg" format="SVG"
-                         scale="75" />
-            </imageobject>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="compressed-recordsize-zlib.svg" format="SVG"
+                           scale="65" />
+              </imageobject>
 
-            <imageobject role="html">
-              <imagedata align="center"
-                         fileref="compressed-recordsize-zlib.png" format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="compressed-recordsize-zlib.png" format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
-        <para>Have also a look at <xref linkend="comprWriteComparison"
-        xrefstyle="select: label" />. It shows how the speed of writing rows
-        evolves as the size (number of rows) of the table grows. Even though
-        in these graphs the size of one single row is 16 bytes, you can most
-        probably extrapolate these figures to other row sizes.</para>
+          <para>Have also a look at <xref linkend="comprWriteComparison"
+          xrefstyle="select: label" />. It shows how the speed of writing rows
+          evolves as the size (number of rows) of the table grows. Even though
+          in these graphs the size of one single row is 16 bytes, you can most
+          probably extrapolate these figures to other row sizes.</para>
 
-        <figure id="comprWriteComparison">
-          <title>Writing tables with several compressors.</title>
+          <figure id="comprWriteComparison">
+            <title>Writing tables with several compressors.</title>
 
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center" fileref="compressed-writing.svg"
-                         format="SVG" scale="75" />
-            </imageobject>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center" fileref="compressed-writing.svg"
+                           format="SVG" scale="65" />
+              </imageobject>
 
-            <imageobject role="html">
-              <imagedata align="center" fileref="compressed-writing.png"
-                         format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
+              <imageobject role="html">
+                <imagedata align="center" fileref="compressed-writing.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
-        <para>In <xref linkend="comprReadNoCacheComparison"
-        xrefstyle="select: label" /> you can see how compression affects the
-        reading performance. In fact, what you see in the plot is an
-        <emphasis>in-kernel selection</emphasis> speed, but provided that this
-        operation is very fast (see <xref linkend="inkernelSearch"
-        xrefstyle="select: label" />), we can accept it as an actual read
-        test. Compared with the reference line without compression, the
-        general trend here is that LZO does not affect too much the reading
-        performance (and in some points it is actually better), Zlib makes
-        speed drop to a half, while bzip2 is performing very slow (up to 8x
-        slower).</para>
+          <para>In <xref linkend="comprReadNoCacheComparison"
+          xrefstyle="select: label" /> you can see how compression affects the
+          reading performance. In fact, what you see in the plot is an
+          <emphasis>in-kernel selection</emphasis> speed, but provided that this
+          operation is very fast (see <xref linkend="inkernelSearch"
+          xrefstyle="select: label" />), we can accept it as an actual read
+          test. Compared with the reference line without compression, the
+          general trend here is that LZO does not affect too much the reading
+          performance (and in some points it is actually better), Zlib makes
+          speed drop to a half, while bzip2 is performing very slow (up to 8x
+          slower).</para>
 
-        <para>Also, in the same <xref linkend="comprReadNoCacheComparison"
-        xrefstyle="select: label" /> you can notice some strange peaks in the
-        speed that we might be tempted to attribute to libraries on which
-        PyTables relies (HDF5, compressors...), or to PyTables itself.
-        However, <xref linkend="comprReadCacheComparison" xrefstyle="select:
-        label" /> reveals that, if we put the file in the filesystem cache (by
-        reading it several times before, for example), the evolution of the
-        performance is much smoother. So, the most probable explanation would
-        be that such peaks are a consequence of the underlying OS filesystem,
-        rather than a flaw in PyTables (or any other library behind
-        it). Another consequence that can be derived from the aforementioned
-        plot is that LZO decompression performance is much better than Zlib,
-        allowing an improvement in overal speed of more than 2x, and perhaps
-        more important, the read performance for really large datasets
-        (i.e. when they do not fit in the OS filesystem cache) can be actually
-        <emphasis>better</emphasis> than not using compression at
-        all. Finally, one can see that reading performance is very badly
-        affected when bzip2 is used (it is 10x slower than LZO and 4x than
-        Zlib), but this was somewhat expected anyway.</para>
+          <para>Also, in the same <xref linkend="comprReadNoCacheComparison"
+          xrefstyle="select: label" /> you can notice some strange peaks in the
+          speed that we might be tempted to attribute to libraries on which
+          PyTables relies (HDF5, compressors...), or to PyTables itself.
+          However, <xref linkend="comprReadCacheComparison" xrefstyle="select:
+          label" /> reveals that, if we put the file in the filesystem cache (by
+          reading it several times before, for example), the evolution of the
+          performance is much smoother. So, the most probable explanation would
+          be that such peaks are a consequence of the underlying OS filesystem,
+          rather than a flaw in PyTables (or any other library behind
+          it). Another consequence that can be derived from the aforementioned
+          plot is that LZO decompression performance is much better than Zlib,
+          allowing an improvement in overall speed of more than 2x, and perhaps
+          more important, the read performance for really large datasets
+          (i.e. when they do not fit in the OS filesystem cache) can be actually
+          <emphasis>better</emphasis> than not using compression at
+          all. Finally, one can see that reading performance is very badly
+          affected when bzip2 is used (it is 10x slower than LZO and 4x than
+          Zlib), but this was somewhat expected anyway.</para>
 
-        <figure id="comprReadNoCacheComparison">
-          <title>Selecting values in tables with several compressors. The file
-          is not in the OS cache.</title>
+          <figure id="comprReadNoCacheComparison">
+            <title>Selecting values in tables with several compressors. The file
+            is not in the OS cache.</title>
 
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center"
-                         fileref="compressed-select-nocache.svg" format="SVG"
-                         scale="75" />
-            </imageobject>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="compressed-select-nocache.svg" format="SVG"
+                           scale="65" />
+              </imageobject>
 
-            <imageobject role="html">
-              <imagedata align="center"
-                         fileref="compressed-select-nocache.png" format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="compressed-select-nocache.png" format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
-        <figure id="comprReadCacheComparison">
-          <title>Selecting values in tables with several compressors. The file
-          is in the OS cache.</title>
+          <figure id="comprReadCacheComparison">
+            <title>Selecting values in tables with several compressors. The file
+            is in the OS cache.</title>
 
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center" fileref="compressed-select-cache.svg"
-                         format="SVG" scale="75" />
-            </imageobject>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center" fileref="compressed-select-cache.svg"
+                           format="SVG" scale="65" />
+              </imageobject>
 
-            <imageobject role="html">
-              <imagedata align="center" fileref="compressed-select-cache.png"
-                         format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
+              <imageobject role="html">
+                <imagedata align="center" fileref="compressed-select-cache.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
-        <para>So, generally speaking and looking at the experiments above, you
-        can expect that LZO will be the fastest in both compressing and
-        decompressing, but the one that achieves the worse compression ratio
-        (although that may be just OK for many situations, specially when used
-        with shuffling —see <xref linkend="ShufflingOptim" xrefstyle="select:
-        label" />).  bzip2 is the slowest, by large, in both compressing and
-        decompressing, and besides, it does not achieve any better compression
-        ratio than Zlib. Zlib represents a balance between them: it's somewhat
-        slow compressing (2x) and decompressing (3x) than LZO, but it normally
-        achieves better compression ratios.</para>
+          <para>So, generally speaking and looking at the experiments above, you
+          can expect that LZO will be the fastest in both compressing and
+          decompressing, but the one that achieves the worse compression ratio
+          (although that may be just OK for many situations, specially when used
+          with shuffling —see <xref linkend="ShufflingOptim" xrefstyle="select:
+          label" />).  bzip2 is the slowest, by large, in both compressing and
+          decompressing, and besides, it does not achieve any better compression
+          ratio than Zlib. Zlib represents a balance between them: it's somewhat
+          slow compressing (2x) and decompressing (3x) than LZO, but it normally
+          achieves better compression ratios.</para>
 
-        <para>Finally, by looking at the plots <xref
-        linkend="comprWriteZlibComparison" xrefstyle="select: labelnumber" />,
-        <xref linkend="comprReadZlibComparison" xrefstyle="select:
-        labelnumber" />, and the aforementioned <xref
-        linkend="comprZlibComparison" xrefstyle="select: labelnumber" /> you
-        can see why the recommended compression level to use for all
-        compression libraries is 1.  This is the lowest level of compression,
-        but as the size of the underlying HDF5 chunk size is normally rather
-        small compared with the size of compression buffers, there is not much
-        point in increasing the latter (i.e. increasing the compression
-        level).  Nonetheless, in some situations (like for example, in
-        extremely large tables or arrays, where the computed chunk size can be
-        rather large) you may want to check, on your own, how the different
-        compression levels do actually affect your application.</para>
+          <para>Finally, by looking at the plots <xref
+          linkend="comprWriteZlibComparison" xrefstyle="select: labelnumber" />,
+          <xref linkend="comprReadZlibComparison" xrefstyle="select:
+                                                             labelnumber" />, and the aforementioned <xref
+                                                             linkend="comprZlibComparison" xrefstyle="select: labelnumber" /> you
+          can see why the recommended compression level to use for all
+          compression libraries is 1.  This is the lowest level of compression,
+          but as the size of the underlying HDF5 chunk size is normally rather
+          small compared with the size of compression buffers, there is not much
+          point in increasing the latter (i.e. increasing the compression
+          level).  Nonetheless, in some situations (like for example, in
+          extremely large tables or arrays, where the computed chunk size can be
+          rather large) you may want to check, on your own, how the different
+          compression levels do actually affect your application.</para>
 
-        <para>You can select the compression library and level by setting the
-        <literal>complib</literal> and <literal>complevel</literal> keywords
-        in the <literal>Filters</literal> class (see <xref
-        linkend="FiltersClassDescr" xrefstyle="select: label" />). A
-        compression level of 0 will completely disable compression (the
-        default), 1 is the less memory and CPU time demanding level, while 9
-        is the maximum level and the most memory demaning and CPU
-        intensive. Finally, have in mind that LZO is not accepting a
-        compression level right now, so, when using LZO, 0 means that
-        compression is not active, and any other value means that LZO is
-        active.</para>
+          <para>You can select the compression library and level by setting the
+          <literal>complib</literal> and <literal>complevel</literal> keywords
+          in the <literal>Filters</literal> class (see <xref
+          linkend="FiltersClassDescr" xrefstyle="select: label" />). A
+          compression level of 0 will completely disable compression (the
+          default), 1 is the less memory and CPU time demanding level, while 9
+          is the maximum level and the most memory demanding and CPU
+          intensive. Finally, have in mind that LZO is not accepting a
+          compression level right now, so, when using LZO, 0 means that
+          compression is not active, and any other value means that LZO is
+          active.</para>
 
-        <para>So, in conclusion, if your ultimate goal is writing and reading
-        as fast as possible, choose LZO. If you want to reduce as much as
-        possible your data, while retaining acceptable read speed, choose
-        Zlib. Finally, if portability is important for you, Zlib is your best
-        bet. So, when you want to use bzip2? Well, looking at the results, it
-        is difficult to recommend its use in general, but you may want to
-        experiment with it in those cases where you know that it is well
-        suited for your data pattern (for example, for dealing with repetitive
-        string datasets).</para>
+          <para>So, in conclusion, if your ultimate goal is writing and reading
+          as fast as possible, choose LZO. If you want to reduce as much as
+          possible your data, while retaining acceptable read speed, choose
+          Zlib. Finally, if portability is important for you, Zlib is your best
+          bet. So, when you want to use bzip2? Well, looking at the results, it
+          is difficult to recommend its use in general, but you may want to
+          experiment with it in those cases where you know that it is well
+          suited for your data pattern (for example, for dealing with repetitive
+          string datasets).</para>
 
-        <figure id="comprWriteZlibComparison">
-          <title>Writing in tables with different levels of
-          compression.</title>
+          <figure id="comprWriteZlibComparison">
+            <title>Writing in tables with different levels of
+            compression.</title>
 
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center" fileref="compressed-writing-zlib.svg"
-                         format="SVG" scale="75" />
-            </imageobject>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center" fileref="compressed-writing-zlib.svg"
+                           format="SVG" scale="65" />
+              </imageobject>
 
-            <imageobject role="html">
-              <imagedata align="center" fileref="compressed-writing-zlib.png"
-                         format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
+              <imageobject role="html">
+                <imagedata align="center" fileref="compressed-writing-zlib.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
-        <figure id="comprReadZlibComparison">
-          <title>Selecting values in tables with different levels of
-          compression. The file is in the OS cache.</title>
+          <figure id="comprReadZlibComparison">
+            <title>Selecting values in tables with different levels of
+            compression. The file is in the OS cache.</title>
 
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center"
-                         fileref="compressed-select-cache-zlib.svg"
-                         format="SVG" scale="75" />
-            </imageobject>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="compressed-select-cache-zlib.svg"
+                           format="SVG" scale="65" />
+              </imageobject>
 
-            <imageobject role="html">
-              <imagedata align="center"
-                         fileref="compressed-select-cache-zlib.png"
-                         format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
-      </section>
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="compressed-select-cache-zlib.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
+        </section>
 
-      <section id="ShufflingOptim">
-        <title>Shuffling (or how to make the compression process more
-        effective)</title>
+        <section id="ShufflingOptim">
+          <title>Shuffling (or how to make the compression process more
+          effective)</title>
 
-        <para>The HDF5 library provides an interesting filter that can
-        leverage the results of your favorite compressor. Its name is
-        <emphasis>shuffle</emphasis>, and because it can greatly benefit
-        compression and it does not take many CPU resources (see below for a
-        justification), it is active <emphasis>by default</emphasis> in
-        PyTables whenever compression is activated (independently of the
-        chosen compressor). It is deactivated when compression is off (which
-        is the default, as you already should know). Of course, you can
-        deactivate it if you want, but this is not recommended.</para>
+          <para>The HDF5 library provides an interesting filter that can
+          leverage the results of your favorite compressor. Its name is
+          <emphasis>shuffle</emphasis>, and because it can greatly benefit
+          compression and it does not take many CPU resources (see below for a
+          justification), it is active <emphasis>by default</emphasis> in
+          PyTables whenever compression is activated (independently of the
+          chosen compressor). It is deactivated when compression is off (which
+          is the default, as you already should know). Of course, you can
+          deactivate it if you want, but this is not recommended.</para>
 
-        <para>So, how does this mysterious filter exactly work? From the HDF5
-        reference manual: <quote>The shuffle filter de-interlaces a block of
-        data by reordering the bytes. All the bytes from one consistent byte
-        position of each data element are placed together in one block; all
-        bytes from a second consistent byte position of each data element are
-        placed together a second block; etc. For example, given three data
-        elements of a 4-byte datatype stored as 012301230123, shuffling will
-        re-order data as 000111222333. This can be a valuable step in an
-        effective compression algorithm because the bytes in each byte
-        position are often closely related to each other and putting them
-        together can increase the compression ratio.</quote></para>
+          <para>So, how does this mysterious filter exactly work? From the HDF5
+          reference manual: <quote>The shuffle filter de-interlaces a block of
+          data by reordering the bytes. All the bytes from one consistent byte
+          position of each data element are placed together in one block; all
+          bytes from a second consistent byte position of each data element are
+          placed together a second block; etc. For example, given three data
+          elements of a 4-byte datatype stored as 012301230123, shuffling will
+          re-order data as 000111222333. This can be a valuable step in an
+          effective compression algorithm because the bytes in each byte
+          position are often closely related to each other and putting them
+          together can increase the compression ratio.</quote></para>
 
-        <para>In <xref linkend="comprShuffleComparison"
-        xrefstyle="select: label" /> you can see a benchmark that shows how
-        the <emphasis>shuffle</emphasis> filter can help the different
-        libraries in compressing data. In this experiment, shuffle has made
-        LZO compress almost 3x more (!), while Zlib and bzip2 are seeing
-        improvements of 2x. Once again, the data for this experiment is
-        synthetic, and <emphasis>shuffle</emphasis> seems to do a great work
-        with it, but in general, the results will vary in each case<footnote>
-            <para>Some users reported that the typical improvement with real
-            data is between a factor 1.5x and 2.5x over the already compressed
-            datasets.</para>
+          <para>In <xref linkend="comprShuffleComparison"
+          xrefstyle="select: label" /> you can see a benchmark that shows how
+          the <emphasis>shuffle</emphasis> filter can help the different
+          libraries in compressing data. In this experiment, shuffle has made
+          LZO compress almost 3x more (!), while Zlib and bzip2 are seeing
+          improvements of 2x. Once again, the data for this experiment is
+          synthetic, and <emphasis>shuffle</emphasis> seems to do a great work
+          with it, but in general, the results will vary in each case<footnote>
+          <para>Some users reported that the typical improvement with real
+          data is between a factor 1.5x and 2.5x over the already compressed
+          datasets.</para>
           </footnote>.</para>
 
-        <figure id="comprShuffleComparison">
-          <title>Comparison between different compression libraries with and
-          without the <emphasis>shuffle</emphasis> filter.</title>
+          <figure id="comprShuffleComparison">
+            <title>Comparison between different compression libraries with and
+            without the <emphasis>shuffle</emphasis> filter.</title>
 
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center"
-                         fileref="compressed-recordsize-shuffle.svg"
-                         format="SVG" scale="75" />
-            </imageobject>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="compressed-recordsize-shuffle.svg"
+                           format="SVG" scale="65" />
+              </imageobject>
 
-            <imageobject role="html">
-              <imagedata align="center"
-                         fileref="compressed-recordsize-shuffle.png"
-                         format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="compressed-recordsize-shuffle.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
-        <para>At any rate, the most remarkable fact about the
-        <emphasis>shuffle</emphasis> filter is the relatively high level of
-        compression that compressor filters can achieve when used in
-        combination with it. A curious thing to note is that the Bzip2
-        compression rate does not seem very much improved (less than a 40%),
-        and what is more striking, Bzip2+shuffle does compress quite
-        <emphasis>less</emphasis> than Zlib+shuffle or LZO+shuffle
-        combinations, which is kind of unexpected. The thing that seems clear
-        is that Bzip2 is not very good at compressing patterns that result of
-        shuffle application. As always, you may want to experiment with your
-        own data before widely applying the Bzip2+shuffle combination in order
-        to avoid surprises.</para>
+          <para>At any rate, the most remarkable fact about the
+          <emphasis>shuffle</emphasis> filter is the relatively high level of
+          compression that compressor filters can achieve when used in
+          combination with it. A curious thing to note is that the Bzip2
+          compression rate does not seem very much improved (less than a 40%),
+          and what is more striking, Bzip2+shuffle does compress quite
+          <emphasis>less</emphasis> than Zlib+shuffle or LZO+shuffle
+          combinations, which is kind of unexpected. The thing that seems clear
+          is that Bzip2 is not very good at compressing patterns that result of
+          shuffle application. As always, you may want to experiment with your
+          own data before widely applying the Bzip2+shuffle combination in order
+          to avoid surprises.</para>
 
-        <para>Now, how does shuffling affect performance? Well, if you look at
-        plots <xref linkend="comprWriteShuffleComparison"
-        xrefstyle="select: labelnumber" />, <xref
-        linkend="comprReadNoCacheShuffleComparison"
-        xrefstyle="select:         labelnumber" /> and <xref
-        linkend="comprReadCacheShuffleComparison"
-        xrefstyle="select: labelnumber" />, you will get a somewhat unexpected
-        (but pleasant) surprise. Roughly, <emphasis>shuffle</emphasis> makes
-        the writing process (shuffling+compressing) faster (aproximately a 15%
-        for LZO, 30% for Bzip2 and a 80% for Zlib), which is an interesting
-        result by itself. But perhaps more exciting is the fact that the
-        reading process (unshuffling+decompressing) is also accelerated by a
-        similar extent (a 20% for LZO, 60% for Zlib and a 75% for Bzip2,
-        roughly).</para>
+          <para>Now, how does shuffling affect performance? Well, if you look at
+          plots <xref linkend="comprWriteShuffleComparison"
+          xrefstyle="select: labelnumber" />, <xref
+          linkend="comprReadNoCacheShuffleComparison"
+          xrefstyle="select:         labelnumber" /> and <xref
+          linkend="comprReadCacheShuffleComparison"
+          xrefstyle="select: labelnumber" />, you will get a somewhat unexpected
+          (but pleasant) surprise. Roughly, <emphasis>shuffle</emphasis> makes
+          the writing process (shuffling+compressing) faster (aproximately a 15%
+          for LZO, 30% for Bzip2 and a 80% for Zlib), which is an interesting
+          result by itself. But perhaps more exciting is the fact that the
+          reading process (unshuffling+decompressing) is also accelerated by a
+          similar extent (a 20% for LZO, 60% for Zlib and a 75% for Bzip2,
+          roughly).</para>
 
-        <figure id="comprWriteShuffleComparison">
-          <title>Writing with different compression libraries with and without
-          the <emphasis>shuffle</emphasis> filter.</title>
+          <figure id="comprWriteShuffleComparison">
+            <title>Writing with different compression libraries with and without
+            the <emphasis>shuffle</emphasis> filter.</title>
 
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center"
-                         fileref="compressed-writing-shuffle.svg" format="SVG"
-                         scale="75" />
-            </imageobject>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="compressed-writing-shuffle.svg" format="SVG"
+                           scale="65" />
+              </imageobject>
 
-            <imageobject role="html">
-              <imagedata align="center"
-                         fileref="compressed-writing-shuffle.png" format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="compressed-writing-shuffle.png" format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
-        <figure id="comprReadNoCacheShuffleComparison">
-          <title>Reading with different compression libraries with the
-          <emphasis>shuffle</emphasis> filter. The file is not in OS
-          cache.</title>
+          <figure id="comprReadNoCacheShuffleComparison">
+            <title>Reading with different compression libraries with the
+            <emphasis>shuffle</emphasis> filter. The file is not in OS
+            cache.</title>
 
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center"
-                         fileref="compressed-select-nocache-shuffle-only.svg"
-                         format="SVG" scale="75" />
-            </imageobject>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="compressed-select-nocache-shuffle-only.svg"
+                           format="SVG" scale="65" />
+              </imageobject>
 
-            <imageobject role="html">
-              <imagedata align="center"
-                         fileref="compressed-select-nocache-shuffle-only.png"
-                         format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="compressed-select-nocache-shuffle-only.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
-        <figure id="comprReadCacheShuffleComparison">
-          <title>Reading with different compression libraries with and without
-          the <emphasis>shuffle</emphasis> filter. The file is in OS
-          cache.</title>
+          <figure id="comprReadCacheShuffleComparison">
+            <title>Reading with different compression libraries with and without
+            the <emphasis>shuffle</emphasis> filter. The file is in OS
+            cache.</title>
 
-          <mediaobject>
-            <imageobject role="fo">
-              <imagedata align="center"
-                         fileref="compressed-select-cache-shuffle.svg"
-                         format="SVG" scale="75" />
-            </imageobject>
+            <mediaobject>
+              <imageobject role="fo">
+                <imagedata align="center"
+                           fileref="compressed-select-cache-shuffle.svg"
+                           format="SVG" scale="65" />
+              </imageobject>
 
-            <imageobject role="html">
-              <imagedata align="center"
-                         fileref="compressed-select-cache-shuffle.png"
-                         format="PNG" />
-            </imageobject>
-          </mediaobject>
-        </figure>
+              <imageobject role="html">
+                <imagedata align="center"
+                           fileref="compressed-select-cache-shuffle.png"
+                           format="PNG" />
+              </imageobject>
+            </mediaobject>
+          </figure>
 
-        <para>You may wonder why introducing another filter in the write/read
-        pipelines does effectively accelerate the throughput. Well, maybe data
-        elements are more similar or related column-wise than row-wise, i.e.
-        contiguous elements in the same column are more alike, so shuffling
-        makes the job of the compressor easier (faster) and more effective
-        (greater ratios). As a side effect, compressed chunks do fit better in
-        the CPU cache (at least, the chunks are smaller!) so that the process
-        of unshuffle/decompress can make a better use of the cache (i.e.
-        reducing the number of CPU cache faults).</para>
+          <para>You may wonder why introducing another filter in the write/read
+          pipelines does effectively accelerate the throughput. Well, maybe data
+          elements are more similar or related column-wise than row-wise, i.e.
+          contiguous elements in the same column are more alike, so shuffling
+          makes the job of the compressor easier (faster) and more effective
+          (greater ratios). As a side effect, compressed chunks do fit better in
+          the CPU cache (at least, the chunks are smaller!) so that the process
+          of unshuffle/decompress can make a better use of the cache (i.e.
+          reducing the number of CPU cache faults).</para>
 
-        <para>So, given the potential gains (faster writing and reading, but
-        specially much improved compression level), it is a good thing to have
-        such a filter enabled by default in the battle for discovering
-        redundancy when you want to compress your data, just as PyTables
-        does.</para>
+          <para>So, given the potential gains (faster writing and reading, but
+          specially much improved compression level), it is a good thing to have
+          such a filter enabled by default in the battle for discovering
+          redundancy when you want to compress your data, just as PyTables
+          does.</para>
+
+        </section>
       </section>
 
       <section>
@@ -11733,7 +12080,7 @@ import psyco
 psyco.bind(readFile)
 print readFile("myfile.h5")</screen>
 
-        <para>That's all!. From now on, each time that you execute your Python
+        <para>That's all!  From now on, each time that you execute your Python
         script, Psyco will deploy its sophisticated algorithms so as to
         accelerate your calculations.</para>
 
@@ -11759,7 +12106,7 @@ print readFile("myfile.h5")</screen>
             <imageobject role="fo">
               <imagedata align="center"
                          fileref="write-medium-psyco-nopsyco-comparison.svg"
-                         format="SVG" scale="45" />
+                         format="SVG" scale="35" />
             </imageobject>
 
             <imageobject role="html">
@@ -11777,7 +12124,7 @@ print readFile("myfile.h5")</screen>
             <imageobject role="fo">
               <imagedata align="center"
                          fileref="read-medium-psyco-nopsyco-comparison.svg"
-                         format="SVG" scale="45" />
+                         format="SVG" scale="35" />
             </imageobject>
 
             <imageobject role="html">
@@ -11813,16 +12160,17 @@ print readFile("myfile.h5")</screen>
         advantages (and also drawbacks) of this approach.</para>
 
         <para>One thing that deserves some discussion is the election of the
-        parameter that sets the maximum amount of nodes to be held in memory
-        at any time. As PyTables is meant to be deployed in machines that have
-        potentially low memory, the default for it is quite conservative (you
-        can look at its actual value in
-        the <literal>NODE_CACHE_SLOTS</literal> parameter in
-        module <literal>tables/parameters.py</literal>). However, if you
-        usually have to deal with files that have many more nodes than the
-        maximum default, and you have a lot of free memory in your system,
-        then you may want to experiment which is the appropriate value of
-        <literal>NODE_CACHE_SLOTS</literal> that fits better your needs.</para>
+        parameter that sets the maximum amount of nodes to be kept in memory
+        at any time. As PyTables is meant to be deployed in machines that can
+        have potentially low memory, the default for it is quite conservative
+        (you can look at its actual value in the
+        <literal>NODE_CACHE_SLOTS</literal> parameter in module
+        <literal>tables/parameters.py</literal>). However, if you usually need
+        to deal with files that have many more nodes than the maximum default,
+        and you have a lot of free memory in your system, then you may want to
+        experiment in order to see which is the appropriate value of
+        <literal>NODE_CACHE_SLOTS</literal> that fits better your
+        needs.</para>
 
         <para>As an example, look at the next code:</para>
 
@@ -11838,10 +12186,10 @@ print readFile("myfile.h5")</screen>
 
         <para>We will be running the code above against a couple of files
         having a <literal>/newgroup</literal> containing 100 tables and 1000
-        tables respectively. We will run this small benchmark for different
-        values of the LRU cache size, specifically 256 and 1024. You can see
-        the results in <xref linkend="LRUTblComparison" xrefstyle="select:
-        label" />.</para>
+        tables respectively.  In addition, this benchmark is run twice for two
+        different values of the LRU cache size, specifically 256 and 1024. You
+        can see the results in <xref linkend="LRUTblComparison"
+        xrefstyle="select: label" />.</para>
 
         <table align="center" id="LRUTblComparison">
           <title>Retrieval speed and memory consumption depending on the
@@ -11970,7 +12318,7 @@ print readFile("myfile.h5")</screen>
         xrefstyle="select: label" />, one can see that when the number of
         objects that you are dealing with does fit in cache, you will get
         better access times to them. Also, incrementing the node cache size
-        does effectively consume more memory <emphasis>only</emphasis> if the
+        effectively consumes more memory <emphasis>only</emphasis> if the
         total nodes exceeds the slots in cache; otherwise the memory
         consumption remains the same. It is also worth noting that
         incrementing the node cache size in the case you want to fit all your
@@ -11979,14 +12327,14 @@ print readFile("myfile.h5")</screen>
         that you can achieve by allocating more slots in your cache is not
         worth the amount of memory used.</para>
 
-        <para>On the other hand, if you have a lot of memory available and
-        performance is absolutely critical, you may want to try out a negative
-        value for <literal>NODE_CACHE_SLOTS</literal>.  This will cause that
-        all the touched nodes will be kept in an internal dictionary and this
-        is the faster way to load/retrieve nodes.  However, and in order to
-        avoid a large memory comsumption, the user will be warned when the
-        number of loaded nodes will reach
-        the <literal>-NODE_CACHE_SLOTS</literal> value.</para>
+        <para>Also worth noting is that if you have a lot of memory available
+        and performance is absolutely critical, you may want to try out a
+        negative value for <literal>NODE_CACHE_SLOTS</literal>.  This will
+        cause that all the touched nodes will be kept in an internal
+        dictionary and this is the faster way to load/retrieve nodes.
+        However, and in order to avoid a large memory comsumption, the user
+        will be warned when the number of loaded nodes will reach the
+        <literal>-NODE_CACHE_SLOTS</literal> value.</para>
 
         <para>Finally, a value of zero in <literal>NODE_CACHE_SLOTS</literal>
         means that any cache mechanism is disabled.</para>

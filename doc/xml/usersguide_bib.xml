@@ -157,7 +157,7 @@
     faster (between 1x and 10x, depending on the kind of operations)
     than NumPy at evaluating complex array expressions</bibliomisc>
     <bibliosource>
-      <ulink url="http://www.scipy.org/SciPyPackages/NumExpr">http://www.scipy.org/SciPyPackages/NumExpr</ulink>
+      <ulink url="http://code.google.com/p/numexpr">http://code.google.com/p/numexpr</ulink>
     </bibliosource>
   </biblioentry>
 
