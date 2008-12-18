@@ -497,7 +497,7 @@ fileh.close()</screen>
           <mediaobject>
             <imageobject role="fo">
               <imagedata align="center" fileref="objecttree-h5.png"
-                         format="PNG" scale="55" />
+                         format="PNG" scale="75" />
             </imageobject>
 
             <imageobject role="html">
@@ -1441,7 +1441,7 @@ Object Tree:
             <mediaobject>
               <imageobject role="fo">
                 <imagedata align="center" fileref="tutorial1-1-tableview.png"
-                           format="PNG" scale="60" />
+                           format="PNG" scale="75" />
               </imageobject>
 
               <imageobject role="html">
@@ -2239,7 +2239,7 @@ $ </screen>
             <mediaobject>
               <imageobject role="fo">
                 <imagedata align="center" fileref="tutorial1-2-tableview.png"
-                           format="PNG" scale="60" />
+                           format="PNG" scale="75" />
               </imageobject>
 
               <imageobject role="html">
@@ -2256,7 +2256,7 @@ $ </screen>
             <mediaobject>
               <imageobject role="fo">
                 <imagedata align="center" fileref="tutorial1-general.png"
-                           format="PNG" scale="75" />
+                           format="PNG" scale="50" />
               </imageobject>
 
               <imageobject role="html">
@@ -2480,7 +2480,7 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>And
             <mediaobject>
               <imageobject role="fo">
                 <imagedata align="center" fileref="tutorial2-tableview.png"
-                           format="PNG" scale="60" />
+                           format="PNG" scale="75" />
               </imageobject>
 
               <imageobject role="html">
