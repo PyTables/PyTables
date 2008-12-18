@@ -1173,6 +1173,29 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assert_(newNode is dstNode)
         fileh.close()
 
+    def test14b2_copyNodeExistingOverwrite(self):
+        "Copying over an existing node in other file, overwriting it."
+
+        fileh = openFile(
+            self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+
+        file2 = tempfile.mktemp(".h5")
+        fileh2 = openFile(
+            file2, mode = "w", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+
+        # file1:/anarray1 => file2:/anarray1
+        newNode = fileh.copyNode(fileh.root.agroup.anarray1,
+                                 newparent = fileh2.root)
+        # file1:/ => file2:/
+        newNode = fileh.copyNode(fileh.root, fileh2.root,
+                                 overwrite = True, recursive=True)
+        dstNode = fileh2.root
+
+        self.assert_(newNode is dstNode)
+        fileh.close()
+        fileh2.close()
+        os.remove(file2)
+
     def test14c_copyNodeExistingSelf(self):
         "Copying over self."
 

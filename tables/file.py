@@ -1059,10 +1059,11 @@ class File(hdf5Extension.File, object):
         """
         obj = self.getNode(where, name=name)
         if obj._v_depth == 0 and newparent:
-            # Special case for copying file1:/ --> file2:/path
             npobj = self.getNode(newparent)
             if obj._v_file is not npobj._v_file:
-                self.root._f_copyChildren(npobj, recursive=recursive, **kwargs)
+                # Special case for copying file1:/ --> file2:/path
+                self.root._f_copyChildren(npobj, overwrite=overwrite,
+                                          recursive=recursive, **kwargs)
                 return npobj
             else:
                 raise IOError("You cannot copy a root group over the same file")
