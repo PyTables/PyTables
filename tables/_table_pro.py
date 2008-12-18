@@ -200,8 +200,8 @@ def _table__whereIndexed(self, compiled, condvars, start, stop, step):
         # Assign the chunkmap to the cmvars dictionary
         cmvars["e%d"%i] = chunkmap
 
-    # No candidates found in any indexed expression component, so leave now
-    if tcoords == 0:
+    if index.reduction == 1 and tcoords == 0:
+        # No candidates found in any indexed expression component, so leave now
         return iter([])
 
     # Compute the final chunkmap
