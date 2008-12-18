@@ -64,13 +64,14 @@ class PyTables_DB(DB):
     def index_col(self, con, column, kind, optlevel, verbose):
         col = getattr(con.root.table.cols, column)
         col.createIndex(kind=kind, optlevel=optlevel, filters=self.filters,
+                        tmp_dir="/scratch1/faltet",
                         _verbose=verbose, _blocksizes=None)
 #                       _blocksizes=(2**27, 2**22, 2**15, 2**7))
 #                       _blocksizes=(2**27, 2**22, 2**14, 2**6))
 #                       _blocksizes=(2**27, 2**20, 2**13, 2**5),
 #                        _testmode=True)
 
-    def do_query(self, con, column, base):
+    def do_query(self, con, column, base, inkernel):
         if True:
             if not hasattr(self, "table_cache"):
                 self.table_cache = table = con.root.table
@@ -97,10 +98,14 @@ class PyTables_DB(DB):
         self.condvars['sup'] = self.rng[1]+base
         # For queries that can use two indexes instead of just one
         d = (self.rng[1] - self.rng[0]) / 2.
-        self.condvars['inf1'] = self.rng[0]+base
-        self.condvars['sup1'] = self.rng[0]+d+base
-        self.condvars['inf2'] = self.rng[0]+base*2
-        self.condvars['sup2'] = self.rng[0]+d+base*2
+        inf1 = int(self.rng[0]+base)
+        sup1 = int(self.rng[0]+d+base)
+        inf2 = self.rng[0]+base*2
+        sup2 = self.rng[0]+d+base*2
+        self.condvars['inf1'] = inf1
+        self.condvars['sup1'] = sup1
+        self.condvars['inf2'] = inf2
+        self.condvars['sup2'] = sup2
         #condition = "(inf == col2)"
         #condition = "(inf==col2) & (col4==sup)"
         #condition = "(inf==col2) | (col4==sup)"
@@ -116,8 +121,10 @@ class PyTables_DB(DB):
         #condition = "((inf<=col4) | (col4<sup)) & ((inf<col2) & (col2<sup))"
         #condition = "((inf<=col4) & (col4<sup)) | ((inf<col2) & (col2<sup))"
         #condition = "((inf<=col4) & (col4<sup)) & ((inf<col2) & (col2<sup))"
-        condition = "((inf2<=col4) & (col4<sup2)) | ((inf1<col2) & (col2<sup1))"
-        condition += " & (sqrt(col1+3.1*col2+col3*col4) > 3)"
+        #condition = "((inf2<=col3) & (col3<sup2)) | ((inf1<col1) & (col1<sup1))"
+        #print "lims-->", inf1, inf2, sup1, sup2
+        condition = "((inf2<=col) & (col<sup2)) | ((inf1<col2) & (col2<sup1))"
+        condition += " & ((col1+3.1*col2+col3*col4) > 3)"
         #condition += " & (col2*(col3+3.1)+col3*col4 > col1)"
 #        condition = "(inf<=col) & (col<=sup) & (col3 >= 0)"
 ##        condition = "(inf<=col) & (col<=sup)"
@@ -132,25 +139,29 @@ class PyTables_DB(DB):
         #print "condvars-->", c['inf'], c['sup'], c['inf2'], c['sup2']
         ncoords = 0
         if colobj.is_indexed:
-            results = [ r[column] for r in
-                        table.where(condition, self.condvars) ]
-
+            results = [r[column] for r in table.where(condition, self.condvars)]
 #             coords = table.getWhereList(condition, self.condvars)
 #             results = table.readCoordinates(coords, field=column)
 
 #            results = table.readWhere(condition, self.condvars, field=column)
 
-        elif True:
-            coords = [r.nrow for r in table.where(condition, self.condvars)]
-            #results = [r[column] for r in table.where(condition, condvars)]
-            results = table.readCoordinates(coords)
+        elif inkernel:
+            print "Performing in-kernel query"
+            results = [r[column] for r in table.where(condition, self.condvars)]
+            #coords = [r.nrow for r in table.where(condition, self.condvars)]
+            #results = table.readCoordinates(coords)
 #             for r in table.where(condition, self.condvars):
 #                 var = r[column]
 #                 ncoords += 1
         else:
-            coords = [r.nrow for r in table
-                      if (self.rng[0]+base <= r[column] <= self.rng[1]+base)]
-            results = table.readCoordinates(coords)
+#             coords = [r.nrow for r in table
+#                       if (self.rng[0]+base <= r[column] <= self.rng[1]+base)]
+#             results = table.readCoordinates(coords)
+            print "Performing regular query"
+            results = [ r[column] for r in table if
+                        (((inf2<=r['col4']) and (r['col4']<sup2)) or
+                         ((inf1<r['col2']) and (r['col2']<sup1)) and
+                         ((r['col1']+3.1*r['col2']+r['col3']*r['col4']) > 3))]
 
         ncoords = len(results)
 

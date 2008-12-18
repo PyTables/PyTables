@@ -6,7 +6,7 @@ import psycopg2 as db2
 
 CLUSTER_NAME = "base"
 #DATA_DIR = "/scratch/faltet/postgres/%s" % CLUSTER_NAME
-DATA_DIR = "/etc/postgresql/8.2/main/pgdata/%s" % CLUSTER_NAME
+DATA_DIR = "/var/lib/pgsql/data/%s" % CLUSTER_NAME
 DSN = "dbname=%s port=%s"
 CREATE_DB = "createdb %s"
 DROP_DB = "dropdb %s"
@@ -73,7 +73,8 @@ class Postgres_DB(DB):
 
     # Overloads the method in DB class
     def get_db_size(self):
-        sout = subprocess.Popen("du -s %s" % DATA_DIR, shell=True,
+        sout = subprocess.Popen("sudo du -s %s" % DATA_DIR,
+                                shell=True,
                                 stdout=subprocess.PIPE).stdout
         line = [l for l in sout][0]
         return int(line.split()[0])
@@ -124,20 +125,25 @@ class Postgres_DB(DB):
         results = self.cur.fetchall()
         return results
 
-    def do_query(self, con, column, base):
+    def do_query(self, con, column, base, *unused):
         d = (self.rng[1] - self.rng[0]) / 2.
         inf1 = int(self.rng[0]+base);  sup1 = int(self.rng[0]+d+base)
         inf2 = self.rng[0]+base*2;  sup2 = self.rng[0]+d+base*2
-        condition = "((col4>=%s) and (col4<%s)) or ((col2>%s) and (col2<%s))"
-        condition += " and (sqrt(col1+3.1*col2+col3*col4) > 3)"
-        condition = condition % (inf2, sup2, inf1, sup1) 
+        #print "lims-->", inf1, inf2, sup1, sup2
+        condition = "((%s>=%s) and (%s<%s)) or ((col2>%s) and (col2<%s))"
+        #condition = "((col3>=%s) and (col3<%s)) or ((col1>%s) and (col1<%s))"
+        condition += " and ((col1+3.1*col2+col3*col4) > 3)"
+        #condition += " and (sqrt(col1^2+col2^2+col3^2+col4^2) > .1)"
+        condition = condition % (column, inf2, column, sup2, inf1, sup1)
         #print "condition-->", condition
         self.cur.execute(
 #            "select sum(%s) from %s where %s" % \
             "select %s from %s where %s" % \
             (column, TABLE_NAME, condition))
-        results = self.flatten(self.cur.fetchall())
+        #results = self.flatten(self.cur.fetchall())
+        results = self.cur.fetchall()
         #results = self.cur.fetchall()
+        #print "results-->", results
         #return results
         return len(results)
 

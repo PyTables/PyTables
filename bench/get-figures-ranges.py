@@ -75,12 +75,13 @@ def show_plot(plots, yaxis, legends, gtitle):
     xlabel('Number of hits')
     ylabel(yaxis)
     title(gtitle)
-    #ylim(0, 400)
+    #ylim(0, 100)
     grid(True)
 
 #     legends = [f[f.find('-'):f.index('.out')] for f in filenames]
 #     legends = [l.replace('-', ' ') for l in legends]
-    legend([p[0] for p in plots], legends, loc = "upper left")
+    #legend([p[0] for p in plots], legends, loc = "upper left")
+    legend([p[0] for p in plots], legends, loc = "best")
 
 
     #subplots_adjust(bottom=0.2, top=None, wspace=0.2, hspace=0.2)
@@ -205,13 +206,15 @@ if __name__ == '__main__':
         plegend = plegend.replace('-', ' ')
         xval, yval = get_values(filename)
         print "Values for %s --> %s, %s" % (filename, xval, yval)
-        if "PyTables" in filename:
+        if "PyTables" in filename or "pytables" in filename:
             plot = loglog(xval, yval, linewidth=2)
+            #plot = semilogx(xval, yval, linewidth=2)
             plots.append(plot)
             setp(plot, marker=markers[0], markersize=markersize,
                  linewidth=linewidth)
         else:
             plots.append(loglog(xval, yval, linewidth=3, color='m'))
+            #plots.append(semilogx(xval, yval, linewidth=3, color='m'))
         #plots.append(semilogx(xval, yval, linewidth=5))
         legends.append(plegend)
     if 0:  # Per a introduir dades simulades si es vol...

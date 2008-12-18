@@ -7,8 +7,11 @@ import numpy
 STEP = 1000*100  # the size of the buffer to fill the table, in rows
 SCALE = 0.1      # standard deviation of the noise compared with actual values
 NI_NTIMES = 1      # The number of queries for doing a mean (non-idx cols)
-COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
-WARMCACHE = 50   # The number of reads until the cache is considered 'warmed'
+#COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
+#WARMCACHE = 50   # The number of reads until the cache is considered 'warmed'
+#READ_TIMES = WARMCACHE+50    # The number of complete calls to DB.query_db()
+COLDCACHE = 50   # The number of reads where the cache is considered 'cold'
+WARMCACHE = 50  # The number of reads until the cache is considered 'warmed'
 READ_TIMES = WARMCACHE+50    # The number of complete calls to DB.query_db()
 MROW = 1000*1000.
 
@@ -135,7 +138,7 @@ class DB(object):
             self.print_mtime(t1, 'Index time (%s)' % colname)
 
     def query_db(self, niter, dtype, onlyidxquery, onlynonidxquery,
-                 avoidfscache, verbose):
+                 avoidfscache, verbose, inkernel):
         self.con = self.open_db()
         if dtype == "int":
             reg_cols = ['col1']
@@ -159,7 +162,7 @@ class DB(object):
                 random.seed(rseed)
                 for i in range(NI_NTIMES):
                     t1=time()
-                    results = self.do_query(self.con, colname, base)
+                    results = self.do_query(self.con, colname, base, inkernel)
                     ltimes.append(time()-t1)
                 if verbose:
                     print "Results len:", results
@@ -178,8 +181,8 @@ class DB(object):
                 for i in range(niter):
                     base = rndbase[i]
                     t1=time()
-                    results = self.do_query(self.con, colname, base)
-                    #results, tprof = self.do_query(self.con, colname, base)
+                    results = self.do_query(self.con, colname, base, inkernel)
+                    #results, tprof = self.do_query(self.con, colname, base, inkernel)
                     ltimes.append(time()-t1)
                 if verbose:
                     print "Results len:", results
@@ -189,15 +192,15 @@ class DB(object):
                 self.close_db(self.con)
                 self.con = self.open_db()
                 ltimes = []
-                # Second, repeated queries
-                for i in range(niter):
-                    t1=time()
-                    results = self.do_query(self.con, colname, base)
-                    #results, tprof = self.do_query(self.con, colname, base)
-                    ltimes.append(time()-t1)
-                if verbose:
-                    print "Results len:", results
-                self.print_qtime_idx(colname, ltimes, True, verbose)
+#                 # Second, repeated queries
+#                 for i in range(niter):
+#                     t1=time()
+#                     results = self.do_query(self.con, colname, base, inkernel)
+#                     #results, tprof = self.do_query(self.con, colname, base, inkernel)
+#                     ltimes.append(time()-t1)
+#                 if verbose:
+#                     print "Results len:", results
+#                 self.print_qtime_idx(colname, ltimes, True, verbose)
                 # Print internal PyTables index tprof statistics
                 #tprof = numpy.array(tprof)
                 #tmean, tstd = self.norm_times(tprof)
@@ -217,7 +220,7 @@ class DB(object):
 
 
 if __name__=="__main__":
-    import sys
+    import sys, os
     import getopt
 
     try:
@@ -226,9 +229,8 @@ if __name__=="__main__":
     except:
         psyco_imported = 0
 
-    usage = """usage: %s [-T] [-S] [-P] [-v] [-f] [-k] [-p] [-m] [-c] [-q] [-i] [-I] [-x] [-z complevel] [-l complib] [-R range] [-N niter] [-n nrows] [-d datadir] [-O level] [-t kind] [-s] col -Q [suplim]
+    usage = """usage: %s [-T] [-P] [-v] [-f] [-k] [-p] [-m] [-c] [-q] [-i] [-I] [-S] [-x] [-z complevel] [-l complib] [-R range] [-N niter] [-n nrows] [-d datadir] [-O level] [-t kind] [-s] col -Q [suplim]
             -T use Pytables
-            -S use Sqlite3
             -P use Postgres
             -v verbose
             -f do a profile of the run (only query functionality & Python 2.5)
@@ -236,8 +238,9 @@ if __name__=="__main__":
             -p use "psyco" if available
             -m use random values to fill the table
             -q do a query (both indexed and non-indexed versions)
-            -i do a query (just indexed versions)
-            -I do a query (just non-indexed versions)
+            -i do a query (just indexed one)
+            -I do a query (just in-kernel one)
+            -S do a query (just standard one)
             -x choose a different seed for random numbers (i.e. avoid FS cache)
             -c create the database
             -z compress with zlib (no compression by default)
@@ -253,14 +256,13 @@ if __name__=="__main__":
             \n""" % sys.argv[0]
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], 'TSPvfkpmcqiIxz:l:R:N:n:d:O:t:s:Q:')
+        opts, pargs = getopt.getopt(sys.argv[1:], 'TPvfkpmcqiISxz:l:R:N:n:d:O:t:s:Q:')
     except:
         sys.stderr.write(usage)
         sys.exit(1)
 
     # default options
     usepytables = 0
-    usesqlite3 = 0
     usepostgres = 0
     verbose = 0
     doprofile = 0
@@ -275,6 +277,7 @@ if __name__=="__main__":
     doquery = False
     onlyidxquery = False
     onlynonidxquery = False
+    inkernel = True
     avoidfscache = 0
     #rng = [-10, 10]
     rng = [-1000, -1000]
@@ -289,8 +292,6 @@ if __name__=="__main__":
     for option in opts:
         if option[0] == '-T':
             usepytables = 1
-        elif option[0] == '-S':
-            usesqlite3 = 1
         elif option[0] == '-P':
             usepostgres = 1
         elif option[0] == '-v':
@@ -305,7 +306,6 @@ if __name__=="__main__":
             userandom = 1
         elif option[0] == '-c':
             docreate = 1
-            createindex = 1
         elif option[0] == '-q':
             doquery = True
         elif option[0] == '-i':
@@ -314,6 +314,10 @@ if __name__=="__main__":
         elif option[0] == '-I':
             doquery = True
             onlynonidxquery = True
+        elif option[0] == '-S':
+            doquery = True
+            onlynonidxquery = True
+            inkernel = False
         elif option[0] == '-x':
             avoidfscache = 1
         elif option[0] == '-z':
@@ -347,10 +351,9 @@ if __name__=="__main__":
             repeatvalue = int(option[1])
 
     # If not database backend selected, abort
-    if not usepytables and not usesqlite3 and not usepostgres:
+    if not usepytables and not usepostgres:
         print "Please select a backend:"
         print "PyTables: -T"
-        print "Sqlite3:  -S"
         print "Postgres: -P"
         sys.exit(1)
 
@@ -359,9 +362,6 @@ if __name__=="__main__":
         from pytables_backend import PyTables_DB
         db = PyTables_DB(krows, rng, userandom, datadir,
                          docompress, complib, kind, optlevel)
-    elif usesqlite3:
-        from sqlite3_backend import Sqlite3_DB
-        db = Sqlite3_DB(krows, rng, userandom, datadir)
     elif usepostgres:
         from postgres_backend import Postgres_DB
         db = Postgres_DB(krows, rng, userandom)
@@ -390,7 +390,7 @@ if __name__=="__main__":
         if doprofile:
             import pstats
             import cProfile as prof
-            prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)', 'indexed_search.prof')
+            prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose, inkernel)', 'indexed_search.prof')
             stats = pstats.Stats('indexed_search.prof')
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
@@ -402,7 +402,7 @@ if __name__=="__main__":
             from cProfile import Profile
             import lsprofcalltree
             prof = Profile()
-            prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)')
+            prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose, inkernel)')
             kcg = lsprofcalltree.KCacheGrind(prof)
             ofile = open('indexed_search.kcg','w')
             kcg.output(ofile)
@@ -410,7 +410,7 @@ if __name__=="__main__":
         elif doprofile:
             import hotshot, hotshot.stats
             prof = hotshot.Profile("indexed_search.prof")
-            benchtime, stones = prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose)')
+            benchtime, stones = prof.run('db.query_db(niter, dtype, onlyidxquery, onlynonidxquery, avoidfscache, verbose, inkernel)')
             prof.close()
             stats = hotshot.stats.load("indexed_search.prof")
             stats.strip_dirs()
@@ -418,7 +418,7 @@ if __name__=="__main__":
             stats.print_stats(20)
         else:
             db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
-                        avoidfscache, verbose)
+                        avoidfscache, verbose, inkernel)
 
     if repeatquery:
         # Start by a range which is almost None
@@ -426,13 +426,17 @@ if __name__=="__main__":
         if verbose:
             print "range:", db.rng
         db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
-                    avoidfscache, verbose)
+                    avoidfscache, verbose, inkernel)
         for i in xrange(repeatvalue):
             for j in (1, 2, 5):
                 rng = j*10**i
                 db.rng = [-rng/2, rng/2]
                 if verbose:
                     print "range:", db.rng
+#                 if usepostgres:
+#                     os.system("echo 1 > /proc/sys/vm/drop_caches; /etc/init.d/postgresql restart")
+#                 else:
+#                     os.system("echo 1 > /proc/sys/vm/drop_caches")
                 db.query_db(niter, dtype, onlyidxquery, onlynonidxquery,
-                            avoidfscache, verbose)
+                            avoidfscache, verbose, inkernel)
 
