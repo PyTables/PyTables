@@ -11,26 +11,7 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-PyTables 2.1 introduces important improvements, like much faster node
-opening, creation or navigation, a file-based way to fine-tune the
-different PyTables parameters (fully documented now in a new appendix of
-the manual) and support for multidimensional atoms in EArray/CArray
-objects.
-
-Regarding the Pro edition, four different kind of indexes are supported
-so that the user can choose the best for her needs.  Also, and due to
-the introduction of the concept of chunkmaps in OPSI, the responsiveness
-of complex queries with low selectivity has improved quite a lot.  And
-last but not least, it is possible now to sort tables by a specific
-field with no practical limit in size (tables up to 2**48 rows).
-
-Finally, and after a lot of effort, the "Optimization tips" of the
-manual has been seriously reworked, many benchmarks have been redone
-using newer software and machines and new sections added.  In
-particular, see the new "Fine-tuning the chunksize" section where you
-will find an in-deep introduction to the subject of chunking and the
-"Indexing and Solid State Disks (SSD)" where the advantages of using
-low-latency SSD disks have been analysed in the context of indexation.
+#XXX version-specific blurb XXX#
 
 In case you want to know more in detail what has changed in this
 version, have a look at ``RELEASE_NOTES.txt`` in the tarball.  Find the
@@ -41,14 +22,11 @@ You can download a source package of the version @VERSION@ with
 generated PDF and HTML docs and binaries for Windows from
 http://www.pytables.org/download/stable
 
-Finally, and for the first time, an evaluation version for PyTables Pro
-has been made available in:
-http://www.pytables.org/download/evaluation
-Please read the evaluation license for terms of use of this version:
-http://www.pytables.org/moin/PyTablesProEvaluationLicense
-
 For an on-line version of the manual, visit:
 http://www.pytables.org/docs/manual-@VERSION@
+
+Finally, you can get an evaluation version for PyTables Pro in:
+http://www.pytables.org/download/evaluation
 
 
 Resources
@@ -69,6 +47,7 @@ http://hdfgroup.org/HDF5/
 About NumPy:
 
 http://numpy.scipy.org/
+
 
 Acknowledgments
 ===============
