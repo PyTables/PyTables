@@ -11491,7 +11491,7 @@ indexrows = table.cols.var3.createIndex()</screen>
           previous sections:</para>
 
           <screen>result = [row['col2'] for row in table.where(
-    '(((col4 &ge; lim1) &amp; (col4 &lt; lim2)) |
+    '(((col4 &gt;= lim1) &amp; (col4 &lt; lim2)) |
       ((col2 &gt; lim3) &amp; (col2 &lt; lim4)) &amp;
       ((col1+3.1*col2+col3*col4) > lim5))')]</screen>
 
