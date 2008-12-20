@@ -1058,7 +1058,7 @@ class File(hdf5Extension.File, object):
         details on the semantics of copying nodes.
         """
         obj = self.getNode(where, name=name)
-        if obj._v_depth == 0 and newparent:
+        if obj._v_depth == 0 and newparent and not newname:
             npobj = self.getNode(newparent)
             if obj._v_file is not npobj._v_file:
                 # Special case for copying file1:/ --> file2:/path

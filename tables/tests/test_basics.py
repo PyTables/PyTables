@@ -29,6 +29,7 @@ class OpenFileTestCase(common.PyTablesTestCase):
                           title = "Array example")
         table = fileh.createTable(root, 'table', {'var1':IntCol()},
                                    "Table example")
+        root._v_attrs.testattr = 41
         # Create another array object
         array = fileh.createArray(root, 'anarray',
                                   [1], "Array title")
@@ -1315,6 +1316,34 @@ class OpenFileTestCase(common.PyTablesTestCase):
         self.assert_(not hasattr(dstNode.anarray1.attrs, 'testattr'))
         self.assertEqual(srcNode.anarray1.read()[0:5:2], dstNode.anarray1.read())
         fileh.close()
+
+    def test16c_fullCopy(self):
+        "Copying full data and user attributes (from file to file)."
+
+        fileh = openFile(
+            self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+
+        file2 = tempfile.mktemp(".h5")
+        fileh2 = openFile(
+            file2, mode = "w", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+
+        # file1:/ => file2:groupcopy
+        srcNode = fileh.root
+        newNode = fileh.copyNode(
+            srcNode, fileh2.root, newname = 'groupcopy', recursive = True)
+        dstNode = fileh2.root.groupcopy
+
+        self.assert_(newNode is dstNode)
+        self.assertEqual(srcNode._v_attrs.testattr, dstNode._v_attrs.testattr)
+        self.assertEqual(
+            srcNode.agroup.anarray1.attrs.testattr,
+            dstNode.agroup.anarray1.attrs.testattr)
+        self.assertEqual(srcNode.agroup.anarray1.read(),
+                         dstNode.agroup.anarray1.read())
+
+        fileh.close()
+        fileh2.close()
+        os.remove(file2)
 
     def test17a_CopyChunkshape(self):
         "Copying dataset with a chunkshape."
