@@ -628,10 +628,10 @@ interactively save and retrieve large amounts of data.
 
 """,
       classifiers = filter(None, classifiers.split("\n")),
-      author = 'Francesc Alted',
-      author_email = 'faltet@pytables.com',
+      author = 'Francesc Alted, Ivan Vilata, et al.',
+      author_email = 'pytables@pytables.org',
       maintainer = 'Francesc Alted',
-      maintainer_email = 'faltet@pytables.com',
+      maintainer_email = 'pytables@pytables.org',
       url = 'http://www.pytables.com/moin/PytablesPro',
       license = 'Commercial.  See LICENSE.txt.',
       platforms = ['any'],
