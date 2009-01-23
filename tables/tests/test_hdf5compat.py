@@ -10,7 +10,7 @@ Test module for compatibility with plain HDF files
 """
 
 import unittest
-import tempfile
+import tempfile, shutil, os
 
 import numpy
 
@@ -247,9 +247,12 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
     def _test(self):
         self.assert_('/test_var/structure variable' in self.h5file)
         self.h5file.close()
+        # Do a copy to a temporary to avoid modifying the original file
+        h5fname_copy = tempfile.mktemp(".h5")
+        shutil.copy(self.h5fname, h5fname_copy)
         # Reopen in 'a'ppend mode
         try:
-            self.h5file = tables.openFile(self.h5fname, 'a')
+            self.h5file = tables.openFile(h5fname_copy, 'a')
         except IOError:
             # Problems for opening (probably not permisions to write the file)
             return
@@ -259,6 +262,8 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
                           [(4.0,5.0,[2.0,3.0],'d')])
         # Appending using the Row interface
         self.assertRaises(tables.HDF5ExtError, tbl.row.append)
+        # Remove the file copy
+        os.remove(h5fname_copy)
 
 
 
