@@ -73,7 +73,13 @@ class NailedDict(object):
     def __setitem__(self, key, value):
         if self._nailcount > 0:
             return
-        self._cache[key] = value
+        cache = self._cache
+        # Protection against growing the cache too much
+        if len(cache) > 256:
+            # Remove 10 (arbitrary) elements from the cache
+            for k in cache.keys()[:10]:
+                del cache[k]
+        cache[key] = value
 
 
 def _table__setautoIndex(self, auto):
