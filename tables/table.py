@@ -939,14 +939,20 @@ class Table(tableExtension.Table, Leaf):
         or global variables.
         """
         # Get the names of variables used in the expression.
-        if not expression in self._exprvarsCache:
+        exprvarsCache = self._exprvarsCache
+        if not expression in exprvarsCache:
+            # Protection against growing the cache too much
+            if len(exprvarsCache) > 256:
+                # Remove 10 (arbitrary) elements from the cache
+                for k in exprvarsCache.keys()[:10]:
+                    del exprvarsCache[k]
             cexpr = compile(expression, '<string>', 'eval')
             exprvars = [ var for var in cexpr.co_names
                          if var not in ['None', 'False', 'True']
                          and var not in numexpr_functions ]
-            self._exprvarsCache[expression] = exprvars
+            exprvarsCache[expression] = exprvars
         else:
-            exprvars = self._exprvarsCache[expression]
+            exprvars = exprvarsCache[expression]
 
         # Get the local and global variable mappings of the user frame
         # if no mapping has been explicitly given for user variables.
