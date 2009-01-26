@@ -30,20 +30,20 @@ The next functions are also supported:
     where(bool, number1, number2): number - number1 if the bool
     condition is true, number2 otherwise.
 
-    {sin,cos,tan}(float|complex): float|complex - trigonometric sinus,
-    cosinus or tangent.
+    {sin,cos,tan}(float|complex): float|complex - trigonometric sine,
+    cosine or tangent.
 
     {arcsin,arccos,arctan}(float|complex): float|complex -
-    trigonometric inverse sinus, cosinus or tangent.
+    trigonometric inverse sine, cosine or tangent.
 
     arctan2(float1, float2): float - trigonometric inverse tangent of
     float1/float2.
 
-    {sinh,cosh,tanh}(float|complex): float|complex - hyperbolic sinus,
-    cosinus or tangent.
+    {sinh,cosh,tanh}(float|complex): float|complex - hyperbolic sine,
+    cosine or tangent.
 
     {arcsinh,arccosh,arctanh}(float|complex): float|complex -
-    hyperbolic inverse sinus, cosinus or tangent.
+    hyperbolic inverse sine, cosine or tangent.
 
     {log,log10,log1p}(float|complex): float|complex</literal> -
     natural, base-10 and log(1+x) logarithms.

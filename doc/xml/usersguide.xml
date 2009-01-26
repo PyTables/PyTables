@@ -14376,13 +14376,13 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
 
           <listitem>
             <para><literal>{sin,cos,tan}(float|complex):
-            float|complex</literal> — trigonometric sinus, cosinus or
+            float|complex</literal> — trigonometric sine, cosine or
             tangent.</para>
           </listitem>
 
           <listitem>
             <para><literal>{arcsin,arccos,arctan}(float|complex):
-            float|complex</literal> — trigonometric inverse sinus, cosinus or
+            float|complex</literal> — trigonometric inverse sine, cosine or
             tangent.</para>
           </listitem>
 
@@ -14394,13 +14394,13 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
 
           <listitem>
             <para><literal>{sinh,cosh,tanh}(float|complex):
-            float|complex</literal> — hyperbolic sinus, cosinus or
+            float|complex</literal> — hyperbolic sine, cosine or
             tangent.</para>
           </listitem>
 
           <listitem>
             <para><literal>{arcsinh,arccosh,arctanh}(float|complex):
-            float|complex</literal> — hyperbolic inverse sinus, cosinus or
+            float|complex</literal> — hyperbolic inverse sine, cosine or
             tangent.</para>
           </listitem>
 
