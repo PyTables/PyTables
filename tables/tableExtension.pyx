@@ -719,6 +719,7 @@ cdef class Row:
   cdef object  rfieldscache, wfieldscache
   cdef object  _tableFile, _tablePath
   cdef object  modified_fields
+  cdef object  seq_available
 
   # The nrow() method has been converted into a property, which is handier
   property nrow:
@@ -855,6 +856,7 @@ cdef class Row:
       # Check if we have limitations on start, stop, step
       self.sss_on = (self.start > 0 or self.stop < self.nrows or self.step > 1)
       self.iterseqMaxElements = table._v_file.params['ITERSEQ_MAX_ELEMENTS']
+      self.seq_available = True
 
   def __next__(self):
     "next() method for __iter__() that is called on each iteration"
@@ -935,7 +937,8 @@ cdef class Row:
         # Feed the indexValues into the seqcache
         seqcache = table._seqcache
         nslot = table._nslotseq
-        if nslot >= 0:
+        # See if we have a buffer available to place results
+        if nslot >= 0 and self.seq_available:
           seq = seqcache.getitem_(nslot)
           if self.lenbuf + len(seq) < self.iterseqMaxElements:
             seq.extend(self.indexValues)
@@ -944,7 +947,7 @@ cdef class Row:
             seqcache.rsizes[nslot] = len(seq) * 8
           else:
             seqcache.removeslot_(nslot)
-            table._nslotseq = -1
+            self.seq_available = False
 
       self._row = self._row + 1
       # Check whether we have read all the rows in buf

@@ -209,7 +209,7 @@ cdef class BaseCache:
       # Reset the hit counters
       self.setcount = 0;  self.getcount = 0;  self.containscount = 0
       if (not self.iscachedisabled and
-          self.disablecyclecount > self.disableeverycycles):
+          self.disablecyclecount >= self.disableeverycycles):
         # Check whether the cache is being effective or not
         if hitratio < self.lowesthr:
           # Hit ratio is low. Disable the cache.
@@ -218,7 +218,7 @@ cdef class BaseCache:
           # Hit ratio is acceptable. (Re-)Enable the cache.
           self.iscachedisabled = False
         self.disablecyclecount = 0
-      if self.enablecyclecount > self.enableeverycycles:
+      if self.enablecyclecount >= self.enableeverycycles:
         # We have reached the time for forcing the cache to act again
         self.iscachedisabled = False
         self.enablecyclecount = 0
@@ -319,11 +319,6 @@ cdef class ObjectCache(BaseCache):
     self.rsizes = <long *>self.sizes.data
 
 
-  # Put the object to the data in cache (for Python calls)
-  def setitem(self, object key, object value, object size):
-    return self.setitem_(key, value, size)
-
-
   # Remove a slot
   cdef removeslot_(self, long nslot):
     cdef ObjectNode node
@@ -334,6 +329,14 @@ cdef class ObjectCache(BaseCache):
     self.nextslot = self.nextslot - 1
     self.ratimes[nslot] = sys.maxint
     self.rsizes[nslot] = 0
+
+
+  # Clear cache
+  cdef clearcache_(self):
+    self.__dict.clear()
+    self.cachesize = 0
+    self.nextslot = 0
+    self.seqn_ = 0
 
 
   # Assign a new object to a free slot
@@ -349,6 +352,11 @@ cdef class ObjectCache(BaseCache):
     self.mrunode = node
     self.cachesize = self.cachesize + size
     self.nextslot = self.nextslot + 1
+
+
+  # Put the object to the data in cache (for Python calls)
+  def setitem(self, object key, object value, object size):
+    return self.setitem_(key, value, size)
 
 
   # Put the object in cache (for Pyrex calls)
@@ -387,8 +395,7 @@ cdef class ObjectCache(BaseCache):
       self.addslot_(nslot, size, key, value)
     elif self.nextslot > 0:
       # Empty the cache
-      for nslot from 0 <= nslot < self.nextslot:
-        self.removeslot_(nslot)
+      self.clearcache_()
     return nslot
 
 
