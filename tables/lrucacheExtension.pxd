@@ -42,7 +42,7 @@ cdef class ObjectCache(BaseCache):
   cdef ObjectNode mrunode
   cdef removeslot_(self, long nslot)
   cdef clearcache_(self)
-  cdef addslot_(self, long nslot, long size, object key, object value)
+  cdef updateslot_(self, long nslot, long size, object key, object value)
   cdef long setitem_(self, object key, object value, long size)
   cdef long getslot_(self, object key)
   cdef object getitem_(self, long nslot)

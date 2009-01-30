@@ -311,7 +311,7 @@ cdef class ObjectCache(BaseCache):
     self.maxcachesize = maxcachesize
     # maxobjsize will be the same as the maximum cache size
     self.maxobjsize = maxcachesize
-    self.__list = range(nslots)
+    self.__list = [None]*nslots
     self.__dict = {}
     self.mrunode = <ObjectNode>None   # Most Recent Used node
     # The array for keeping the object size (using long ints here)
@@ -319,31 +319,50 @@ cdef class ObjectCache(BaseCache):
     self.rsizes = <long *>self.sizes.data
 
 
-  # Remove a slot
-  cdef removeslot_(self, long nslot):
-    cdef ObjectNode node
-
-    node = self.__list[nslot]
-    del self.__dict[node.key]
-    self.cachesize = self.cachesize - self.rsizes[nslot]
-    self.nextslot = self.nextslot - 1
-    self.ratimes[nslot] = sys.maxint
-    self.rsizes[nslot] = 0
-
-
   # Clear cache
   cdef clearcache_(self):
-    self.__dict.clear()
+    self.__list = [None]*self.nslots
+    self.__dict = {}
+    self.mrunode = <ObjectNode>None
     self.cachesize = 0
     self.nextslot = 0
     self.seqn_ = 0
 
 
-  # Assign a new object to a free slot
-  cdef addslot_(self, long nslot, long size, object key, object value):
+  # Remove a slot (if it exists in cache)
+  cdef removeslot_(self, long nslot):
     cdef ObjectNode node
 
+    assert nslot < self.nslots, "Attempting to remove beyond cache capacity."
+    node = self.__list[nslot]
+    if node is not None:
+      self.__list[nslot] = None
+      del self.__dict[node.key]
+      self.cachesize = self.cachesize - self.rsizes[nslot]
+      self.rsizes[nslot] = 0
+      if self.mrunode and self.mrunode.nslot == nslot:
+        self.mrunode = <ObjectNode>None
+    # The next slot to be updated will be this one
+    self.nextslot = nslot
+
+
+  # Update a slot
+  cdef updateslot_(self, long nslot, long size, object key, object value):
+    cdef ObjectNode node, oldnode
+    cdef long nslot1, nslot2
+    cdef object lruidx
+
     assert nslot < self.nslots, "Number of nodes exceeding cache capacity."
+    # Remove the previous nslot
+    self.removeslot_(nslot)
+    # Protection against too large data cache size
+    while size + self.cachesize > self.maxcachesize:
+      # Remove the LRU node among the 10 largest ones
+      largidx = self.sizes.argsort()[-10:]
+      nslot1 = self.atimes[largidx].argmin()
+      nslot2 = largidx[nslot1]
+      self.removeslot_(nslot2)
+    # Insert the new one
     node = ObjectNode(key, value, nslot)
     self.ratimes[nslot] = self.incseqn()
     self.rsizes[nslot] = size
@@ -351,7 +370,8 @@ cdef class ObjectCache(BaseCache):
     self.__dict[key] = node
     self.mrunode = node
     self.cachesize = self.cachesize + size
-    self.nextslot = self.nextslot + 1
+    # The next slot to update will be the LRU
+    self.nextslot = self.atimes.argmin()
 
 
   # Put the object to the data in cache (for Python calls)
@@ -362,11 +382,11 @@ cdef class ObjectCache(BaseCache):
   # Put the object in cache (for Pyrex calls)
   # size can be the exact size of the value object or an estimation.
   cdef long setitem_(self, object key, object value, long size):
-    cdef long nslot, nslot1
-    cdef object lruidx
+    cdef long nslot
 
     if self.nslots == 0:   # The cache has been set to empty
       return -1
+    nslot = -1
     # Perhaps setcount has been already incremented in couldenablecache()
     if not self.incsetcount:
       self.setcount = self.setcount + 1
@@ -374,27 +394,11 @@ cdef class ObjectCache(BaseCache):
       self.incsetcount = False
     if size > self.maxobjsize:  # Check if the object is too large
       return -1
-    nslot = -1
     if self.checkhitratio():
-      # Check if we are growing out of space
-      # Protection against too many slots in cache
-      if self.nextslot == self.nslots:
-        # Remove the LRU node in cache
-        nslot = self.atimes.argmin()
-        self.removeslot_(nslot)
-      # Protection against too large data cache size
-      while size + self.cachesize > self.maxcachesize:
-        # Remove the largest object in last 10 LRU nodes
-        lruidx = self.atimes[:self.nextslot].argsort()[:10]
-        nslot1 = self.sizes[lruidx].argmax()
-        nslot = lruidx[nslot1]
-        self.removeslot_(nslot)
-      if nslot < 0:
-        # No slots removed, get the next in the queue
-        nslot = self.nextslot
-      self.addslot_(nslot, size, key, value)
-    elif self.nextslot > 0:
-      # Empty the cache
+      nslot = self.nextslot
+      self.updateslot_(nslot, size, key, value)
+    else:
+      # Empty the cache because it is not effective and it is taking space
       self.clearcache_()
     return nslot
 
@@ -413,12 +417,12 @@ cdef class ObjectCache(BaseCache):
   cdef long getslot_(self, object key):
     cdef ObjectNode node
 
-    self.containscount = self.containscount + 1
-    if self.nextslot == 0:   # No chances for finding a slot
+    if self.nslots == 0:   # The cache has been set to empty
       return -1
+    self.containscount = self.containscount + 1
     # Give a chance to the MRU node
     node = self.mrunode
-    if self.nextslot > 0 and node.key == key:
+    if node and node.key == key:
       return node.nslot
     # No luck. Look in the dictionary.
     node = self.__dict.get(key)
