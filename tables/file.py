@@ -218,27 +218,16 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
 
     """
 
-    # Expand the form '~user'
-    path = os.path.expanduser(filename)
-    # Expand the environment variables
-    path = os.path.expandvars(path)
-
-    # Get all the parameters in parameter file(s)
-    params = dict([(k, v) for k,v in parameters.__dict__.iteritems()
-                   if k.isupper() and not k.startswith('_')])
-    # Update them with possible keyword arguments
-    params.update(kwargs)
-
     # This DeprecationWarning should be removed in 2.2
     if nodeCacheSize is not None:
         warnings.warn(
             "`nodeCacheSize` parameter is deprecated. "
             "Please, use `NODE_CACHE_SLOTS` instead.",
             DeprecationWarning )
-        params['NODE_CACHE_SLOTS'] = nodeCacheSize
+        kwargs['NODE_CACHE_SLOTS'] = nodeCacheSize
 
     # Finally, create the File instance, and return it
-    return File(path, mode, title, rootUEP, filters, **params)
+    return File(filename, mode, title, rootUEP, filters, **kwargs)
 
 
 class _AliveNodes(dict):
@@ -476,14 +465,29 @@ class File(hdf5Extension.File, object):
 
 
     def __init__(self, filename, mode="r", title="",
-                 rootUEP="/", filters=None, **params):
+                 rootUEP="/", filters=None, **kwargs):
         """Open an HDF5 file.
 
         See `openFile()` for info about the parameters.
         """
         self.filename = filename
         self.mode = mode
+
+        # Expand the form '~user'
+        path = os.path.expanduser(filename)
+        # Expand the environment variables
+        path = os.path.expandvars(path)
+
+        # Get all the parameters in parameter file(s)
+        params = dict([(k, v) for k,v in parameters.__dict__.iteritems()
+                       if k.isupper() and not k.startswith('_')])
+        # Update them with possible keyword arguments
+        params.update(kwargs)
         self.params = params
+
+        # Now, it is time to initialize the File extension
+        self._g_new(filename, mode, **params)
+
         # Check filters and set PyTables format version for new files.
         new = self._v_new
         if new:
@@ -494,7 +498,7 @@ class File(hdf5Extension.File, object):
         # When they are no longer referenced, they move themselves
         # to `_deadNodes`, where they are kept until they are referenced again
         # or they are preempted from it by other unreferenced nodes.
-        nodeCacheSlots = self.params['NODE_CACHE_SLOTS']
+        nodeCacheSlots = params['NODE_CACHE_SLOTS']
         self._aliveNodes = _AliveNodes(nodeCacheSlots)
         if nodeCacheSlots > 0:
             self._deadNodes = _DeadNodes(nodeCacheSlots)
