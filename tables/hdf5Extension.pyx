@@ -247,12 +247,9 @@ cdef class File:
   cdef char    *name
 
 
-  def __cinit__(self, object name, char *mode, char *title,
-                char *root, object filters, **params):
+  def _g_new(self, name, pymode, **params):
     # Create a new file using default properties
     self.name = name
-    self.mode = pymode = mode
-    self.params = params
 
     # These fields can be seen from Python.
     self._v_new = None  # this will be computed later
@@ -262,7 +259,7 @@ cdef class File:
 
     # After the following check we can be quite sure
     # that the file or directory exists and permissions are right.
-    checkFileAccess(name, mode)
+    checkFileAccess(name, pymode)
 
     assert pymode in ('r', 'r+', 'a', 'w'), \
            "an invalid mode string ``%s`` " \
