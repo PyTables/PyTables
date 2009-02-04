@@ -11498,8 +11498,10 @@ indexrows = table.cols.var3.createIndex()</screen>
           <para>it is possible to determine, by analysing the data
           distribution and the query limits, that <literal>col4</literal> is
           such a <emphasis>main column</emphasis>.  So, by ordering the table
-          by the <literal>col4</literal> column (sorting of tables is
-          supported from PyTables Pro 2.1 on), and re-indexing
+          by the <literal>col4</literal> column (for example, by setting
+          the <literal>sortby</literal> parameter to true in
+          the <literal>Table.copy()</literal> method, see
+          <xref linkend="Table.copy" />), and re-indexing
           <literal>col2</literal> and <literal>col4</literal> afterwards, we
           should get much faster performance for our query.  This is
           effectively demonstrated in <xref
@@ -12144,20 +12146,22 @@ print readFile("myfile.h5")</screen>
         deal with them, making the opening times for files with a lot of nodes
         very high and unacceptable in many cases.</para>
 
-        <para>Starting from PyTables 1.2, a new LRU cache was introduced that
-        avoids loading all the nodes of the <emphasis>object tree</emphasis>
-        in memory. This cache (one per file) is responsible of loading just up
-        to a certain amount of nodes and discard the least recent used ones
-        when there is a need to load new ones. This represents a big advantage
-        over the old schema, specially in terms of memory usage (as there is
-        no need to load <emphasis>every</emphasis> node in memory), but it
-        also adds very convenient optimizations for working interactively
-        like, for example, speeding-up the opening times of files with lots of
-        nodes, allowing to open almost any kind of file in typically less than
-        one tenth of second (compare this with the more than 10 seconds for
-        files with more than 10000 nodes in PyTables pre-1.2 era). See
-        <biblioref linkend="NewObjectTreeCacheRef" /> for more info on the
-        advantages (and also drawbacks) of this approach.</para>
+        <para>Starting from PyTables 1.2 on, a new lazy node loading schema
+        was setup that avoids loading all the nodes of the <emphasis>object
+        tree</emphasis> in memory. In addition, a new LRU cache was introduced
+        in order to accelerate the access to already visited nodes. This cache
+        (one per file) is responsible for keeping up the most recently visited
+        nodes in memory and discard the least recent used ones. This
+        represents a big advantage over the old schema, not only in terms of
+        memory usage (as there is no need to load <emphasis>every</emphasis>
+        node in memory), but it also adds very convenient optimizations for
+        working interactively like, for example, speeding-up the opening times
+        of files with lots of nodes, allowing to open almost any kind of file
+        in typically less than one tenth of second (compare this with the more
+        than 10 seconds for files with more than 10000 nodes in PyTables
+        pre-1.2 era) as well as optimizing the access to frequely visited
+        nodes. See <biblioref linkend="NewObjectTreeCacheRef" /> for more info
+        on the advantages (and also drawbacks) of this approach.</para>
 
         <para>One thing that deserves some discussion is the election of the
         parameter that sets the maximum amount of nodes to be kept in memory
@@ -14451,20 +14455,23 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       every case, it is handy to have the possibility to fine-tune some of
       these parameters.</para>
 
-      <para>Because of this, PyTables implements a couple of ways to change
-      these values.  All of the <emphasis>tunable</emphasis> parameters live
-      in the <literal>tables/parameters.py</literal>
+      <para>Because of these reasons, PyTables implements a couple of ways to
+      change the values of these parameters.  All
+      the <emphasis>tunable</emphasis> parameters live in
+      the <literal>tables/parameters.py</literal>
       (and <literal>tables/_parameters_pro.py</literal>, for PyTables Pro
       users).  The user can choose to change them in the parameter files
-      themselves for a global and persistent change.  Moreover, if she wants a
-      finer control, she can pass any of these parameters directly to
+      themselves for a global and persistent change.  Moreover, if he wants a
+      finer control, he can pass any of these parameters directly to
       the <literal>openFile()</literal> function (see
       <xref linkend="openFileDescr"/>), and the new parameters will only take
       effect in the corresponding file (the defaults will continue to be in
-      the parameter files.</para>
+      the parameter files).</para>
 
-      <para>A description of all of the tunable parameters follows.  Please
-      see your parameter files so as to know the actual default values.</para>
+      <para>A description of all of the tunable parameters follows.  As the
+      defaults stated here may change from release to release, please check
+      with your actual parameter files so as to know your actual default
+      values.</para>
 
       <warning><para>Changing the next parameters may have a very bad effect
       in the resource consumption and performance of your PyTables scripts.
