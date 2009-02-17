@@ -244,12 +244,19 @@ cdef object get_dtype_scalar(hid_t type_id, H5T_class_t class_id,
 cdef class File:
   cdef hid_t   file_id
   cdef hid_t   access_plist
-  cdef char    *name
+  cdef object  name
 
 
   def _g_new(self, name, pymode, **params):
     # Create a new file using default properties
     self.name = name
+
+    # Encode the filename in case it is unicode
+    if type(name) is unicode:
+      encoding = sys.getfilesystemencoding()
+      encname = name.encode(encoding)
+    else:
+      encname = name
 
     # These fields can be seen from Python.
     self._v_new = None  # this will be computed later
@@ -274,8 +281,8 @@ cdef class File:
     # After the following check we know that the file exists
     # and it is an HDF5 file, or maybe a PyTables file.
     if not new:
-      if not isPyTablesFile(name):
-        if isHDF5File(name):
+      if not isPyTablesFile(encname):
+        if isHDF5File(encname):
           # HDF5 but not PyTables.
           # I'm going to disable the next warning because
           # it should be enough to map unsupported objects to
@@ -297,10 +304,10 @@ cdef class File:
       ## access_plist = H5Pcreate(H5P_FILE_ACCESS)
       ## H5Pset_cache(access_plist, 0, 0, 0, 0.0)
       ## H5Pset_sieve_buf_size(access_plist, 0)
-      ##self.file_id = H5Fopen(name, H5F_ACC_RDONLY, access_plist)
-      self.file_id = H5Fopen(name, H5F_ACC_RDONLY, H5P_DEFAULT)
+      ##self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, access_plist)
+      self.file_id = H5Fopen(encname, H5F_ACC_RDONLY, H5P_DEFAULT)
     elif pymode == 'r+':
-      self.file_id = H5Fopen(name, H5F_ACC_RDWR, H5P_DEFAULT)
+      self.file_id = H5Fopen(encname, H5F_ACC_RDWR, H5P_DEFAULT)
     elif pymode == 'a':
       if exists:
         # A test for logging.
@@ -308,12 +315,12 @@ cdef class File:
         ## H5Pset_cache(access_plist, 0, 0, 0, 0.0)
         ## H5Pset_sieve_buf_size(access_plist, 0)
         ## H5Pset_fapl_log (access_plist, "test.log", H5FD_LOG_LOC_WRITE, 0)
-        ## self.file_id = H5Fopen(name, H5F_ACC_RDWR, access_plist)
-        self.file_id = H5Fopen(name, H5F_ACC_RDWR, H5P_DEFAULT)
+        ## self.file_id = H5Fopen(encname, H5F_ACC_RDWR, access_plist)
+        self.file_id = H5Fopen(encname, H5F_ACC_RDWR, H5P_DEFAULT)
       else:
-        self.file_id = H5Fcreate(name, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)
+        self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)
     elif pymode == 'w':
-      self.file_id = H5Fcreate(name, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)
+      self.file_id = H5Fcreate(encname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)
 
     # Set the cache size (only for HDF5 1.8.x)
     set_cache_size(self.file_id, params['METADATA_CACHE_SIZE'])

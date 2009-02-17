@@ -2046,7 +2046,7 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
             return "<closed File>"
 
         # Print all the nodes (Group and Leaf objects) on object tree
-        astring = 'File(filename=' + repr(self.filename) + \
+        astring = 'File(filename=' + str(self.filename) + \
                   ', title=' + repr(self.title) + \
                   ', mode=' + repr(self.mode) + \
                   ', rootUEP=' + repr(self.rootUEP) + \
