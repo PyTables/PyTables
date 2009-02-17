@@ -104,6 +104,10 @@ be warned when the number of loaded nodes will reach the
 Finally, a value of zero means that any cache mechanism is disabled.
 """
 
+COND_CACHE_SLOTS = 128
+"""Maximum number of conditions for table queries to be kept in memory.
+"""
+
 
 # Parameters for the I/O buffer in `Table` objects
 # ------------------------------------------------

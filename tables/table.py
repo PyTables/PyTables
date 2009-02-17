@@ -57,13 +57,13 @@ try:
     from tables.index import (
         OldIndex, defaultIndexFilters)
     from tables._table_pro import (
-        NailedDict, _table__autoIndex, _table__whereIndexed,
+        NailedDict as CacheDict, _table__autoIndex, _table__whereIndexed,
         _column__createIndex )
 except ImportError:
     from tables.exceptions import NoIndexingError, NoIndexingWarning
     from tables.node import NotLoggedMixin
     from tables.group import Group
-    NailedDict = dict
+    from tables.utils import CacheDict
     # Forbid accesses to this attribute.
     _table__autoIndex = property()
     def _checkIndexingAvailable():
@@ -487,7 +487,8 @@ class Table(tableExtension.Table, Leaf):
         """Whether an index can be used or not in a search.  Boolean."""
         self._whereCondition = None
         """Condition function and argument list for selection of values."""
-        self._conditionCache = NailedDict()
+        max_slots = parentNode._v_file.params['COND_CACHE_SLOTS']
+        self._conditionCache = CacheDict(max_slots)
         """Cache of already compiled conditions."""
         self._exprvarsCache = {}
         """Cache of variables participating in numexpr expressions."""
