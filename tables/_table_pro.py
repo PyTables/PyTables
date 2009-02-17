@@ -35,7 +35,8 @@ class NailedDict(object):
 
     """A dictionary which ignores its items when it has nails on it."""
 
-    def __init__(self):
+    def __init__(self, maxentries):
+        self.maxentries = maxentries
         self._cache = {}
         self._nailcount = 0
 
@@ -75,9 +76,10 @@ class NailedDict(object):
             return
         cache = self._cache
         # Protection against growing the cache too much
-        if len(cache) > 256:
-            # Remove 10 (arbitrary) elements from the cache
-            for k in cache.keys()[:10]:
+        if len(cache) > self.maxentries:
+            # Remove a 10% of (arbitrary) elements from the cache
+            entries_to_remove = self.maxentries / 10
+            for k in cache.keys()[:entries_to_remove]:
                 del cache[k]
         cache[key] = value
 
