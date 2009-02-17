@@ -1221,7 +1221,7 @@ class Table(tableExtension.Table, Leaf):
         # Can we use indexes?
         if compiled.index_expressions:
             chunkmap = _table__whereIndexed(
-                self, compiled, condvars, start, stop, step)
+                self, compiled, condition, condvars, start, stop, step)
             if type(chunkmap) != numpy.ndarray:
                 # If it is not a NumPy array it should be an iterator
                 # Reset conditions

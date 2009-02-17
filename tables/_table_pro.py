@@ -151,7 +151,8 @@ def restorecache(self):
     self._dirtycache = False
 
 
-def _table__whereIndexed(self, compiled, condvars, start, stop, step):
+def _table__whereIndexed(self, compiled, condition, condvars,
+                         start, stop, step):
     if profile: tref = time()
     if profile: show_stats("Entering table_whereIndexed", tref)
     self._useIndex = True
@@ -159,10 +160,13 @@ def _table__whereIndexed(self, compiled, condvars, start, stop, step):
     if self._dirtycache:
         restorecache(self)
 
+    # Get the values in expression that are not columns
+    values = []
+    for key, value in condvars.iteritems():
+        if isinstance(value, numpy.ndarray):
+            values.append((key, value.item()))
     # Build a key for the sequence cache
-    idxexprs = compiled.index_expressions
-    strexpr = compiled.string_expression
-    seqkey = (tuple(idxexprs), strexpr, (start, stop, step))
+    seqkey = (condition, tuple(values), (start, stop, step))
     # Do a lookup in sequential cache for this query
     nslot = self._seqcache.getslot(seqkey)
     if nslot >= 0:
@@ -182,6 +186,8 @@ def _table__whereIndexed(self, compiled, condvars, start, stop, step):
         self._nslotseq = self._seqcache.setitem(seqkey, [], 1)
 
     # Compute the chunkmap for every index in indexed expression
+    idxexprs = compiled.index_expressions
+    strexpr = compiled.string_expression
     cmvars = {}
     tcoords = 0
     for i, idxexpr in enumerate(idxexprs):
