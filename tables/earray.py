@@ -234,11 +234,12 @@ differ in non-enlargeable dimension %d""" % (self._v_pathname, i))
         maindim = self.maindim
         shape = list(self.shape)
         shape[maindim] = 0
-        # Build the new EArray object (do not specify the chunkshape so that
-        # a sensible value would be calculated)
+        # The number of final rows
+        nrows = lrange(start, stop, step).length
+        # Build the new EArray object
         object = EArray(
             group, name, atom=self.atom, shape=shape, title=title,
-            filters=filters, expectedrows=self.nrows, chunkshape=chunkshape,
+            filters=filters, expectedrows=nrows, chunkshape=chunkshape,
             _log=_log)
         # Now, fill the new earray with values from source
         nrowsinbuf = self.nrowsinbuf

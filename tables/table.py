@@ -570,7 +570,6 @@ class Table(tableExtension.Table, Leaf):
                                     byteorder, _log)
 
 
-
     def _g_postInitHook(self):
         # We are putting here the index-related issues
         # as well as filling general info for table
@@ -2340,9 +2339,11 @@ The 'names' parameter must be a list of strings.""")
         # Compute the correct indices.
         (start, stop, step) = self._processRangeRead(
             start, stop, step, warn_negstep = sortby is None)
+        # And the number of final rows
+        nrows = lrange(start, stop, step).length
         # Create the new table and copy the selected data.
         newtable = Table( group, name, self.description, title=title,
-                          filters=filters, expectedrows=self.nrows,
+                          filters=filters, expectedrows=nrows,
                           chunkshape=chunkshape,
                           _log=_log )
         self._g_copyRows(newtable, start, stop, step, sortby, forceCSI)
