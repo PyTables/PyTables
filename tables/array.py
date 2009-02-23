@@ -508,7 +508,7 @@ class Array(hdf5Extension.Array, Leaf):
         def expand_ellipsis(args, rank):
             """ Expand ellipsis objects and fill in missing axes.
             """
-            n_el = list(args).count(Ellipsis)
+            n_el = sum(1 for arg in args if arg is Ellipsis)
             if n_el > 1:
                 raise ValueError("Only one ellipsis may be used.")
             elif n_el == 0 and len(args) != rank:
@@ -517,8 +517,8 @@ class Array(hdf5Extension.Array, Leaf):
             final_args = []
             n_args = len(args)
             for idx, arg in enumerate(args):
-                if arg == Ellipsis:
-                    final_args.extend((slice(None,None,None),)*(rank-n_args+1))
+                if arg is Ellipsis:
+                    final_args.extend((slice(None),)*(rank-n_args+1))
                 else:
                     final_args.append(arg)
 

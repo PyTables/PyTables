@@ -1943,10 +1943,10 @@ class FancySelectionTestCase(common.PyTablesTestCase):
 
         # The next are valid selections for both NumPy and PyTables
         self.working_keyset = [
-            ([1, 3], slice(None), 2),
+            ([1, 3], slice(1,N-1), 2),
             ([M-1, 1, 3, 2], slice(None), 2),  # unordered lists supported
-            (slice(None),[N-1, 1, 0], slice(None)),
-            (slice(None), slice(None), [O-1, 1, 0]),
+            (slice(M),[N-1, 1, 0], slice(None)),
+            (slice(1,M,3), slice(1,N), [O-1, 1, 0]),
             (M-1, [2, 1], 1),
             (False, True),        # actually equivalent to (0,1) ;-)
             (1,2,1),              # regular selection
@@ -1954,6 +1954,8 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             ([1, -2], 2, -1),     # more negative indices
             ([1, -2], 2, Ellipsis),     # one ellipsis
             (Ellipsis, [1,2]),    # one ellipsis
+            (numpy.array([1, -2], 'i4'), 2, -1),  # array 32-bit instead of list
+            (numpy.array([-1, 2], 'i8'), 2, -1),  # array 64-bit instead of list
             ]
 
         # Valid selections for NumPy, but not for PyTables (yet)
@@ -1998,12 +2000,13 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         nparr = self.nparr
         tbarr = self.tbarr
         for keys in self.working_keyset:
-            a = nparr[keys]
-            b = tbarr[keys]
             if common.verbose:
                 print "Selection to test:", keys
-                ##print "NumPy selection:", a
-                ##print "PyTables selection:", b
+            a = nparr[keys]
+            b = tbarr[keys]
+#             if common.verbose:
+#                 print "NumPy selection:", a
+#                 print "PyTables selection:", b
             self.assert_(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables selections does not match.")
@@ -2019,7 +2022,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             self.assertRaises(ValueError, tbarr.__getitem__, keys)
 
     def test01c_read(self):
-        """Test for fancy-selections (oout-of-bound indexes, read)."""
+        """Test for fancy-selections (out-of-bound indexes, read)."""
         nparr = self.nparr
         tbarr = self.tbarr
         for keys in self.not_working_oob:
@@ -2043,15 +2046,16 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         nparr = self.nparr
         tbarr = self.tbarr
         for keys in self.working_keyset:
+            if common.verbose:
+                print "Selection to test:", keys
             s = nparr[keys]
             nparr[keys] = s*2
             tbarr[keys] = s*2
             a = nparr[:]
             b = tbarr[:]
-            if common.verbose:
-                print "Selection to test:", keys
-                ##print "NumPy modified array:", a
-                ##print "PyTables modifyied array:", b
+#             if common.verbose:
+#                 print "NumPy modified array:", a
+#                 print "PyTables modifyied array:", b
             self.assert_(
                 numpy.alltrue(a == b),
                 "NumPy array and PyTables modifications does not match.")
