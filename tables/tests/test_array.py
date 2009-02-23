@@ -11,7 +11,6 @@ from tables import *
 
 from tables.tests import common
 from tables.utils import byteorders
-from tables.tests import common
 from tables.tests.common import (
     allequal, numeric_imported, numarray_imported)
 
@@ -1937,6 +1936,150 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(TypeError, array1.truncate, 0)
 
 
+class FancySelectionTestCase(common.PyTablesTestCase):
+
+    def setUp(self):
+        M, N, O = self.shape
+
+        # The next are valid selections for both NumPy and PyTables
+        self.working_keyset = [
+            ([1, 3], slice(None), 2),
+            ([M-1, 1, 3, 2], slice(None), 2),  # unordered lists supported
+            (slice(None),[N-1, 1, 0], slice(None)),
+            (slice(None), slice(None), [O-1, 1, 0]),
+            (M-1, [2, 1], 1),
+            (False, True),        # actually equivalent to (0,1) ;-)
+            (1,2,1),              # regular selection
+            ([1, 2], -2, -1),     # negative indices
+            ([1, -2], 2, -1),     # more negative indices
+            ([1, -2], 2, Ellipsis),     # one ellipsis
+            (Ellipsis, [1,2]),    # one ellipsis
+            ]
+
+        # Valid selections for NumPy, but not for PyTables (yet)
+        # The next should raise a ValueError
+        self.not_working_keyset = [
+            numpy.array([False, True], dtype="b1"), # boolean arrays
+            ([1,2,1], 2, 1),    # repeated values
+            ([1,2], 2, [1,2]),  # several lists
+            ([], 2, 1),         # empty selections
+            (Ellipsis, [1,2], Ellipsis),  # several ellipsis
+            ]
+
+        # The next should raise an IndexError in both NumPy and PyTables
+        self.not_working_oob = [
+            ([1,2], 2, 1000),         # out-of-bounds selections
+            ([1,2], 2000, 1),         # out-of-bounds selections
+            ]
+
+        # The next should raise a ValueError in both NumPy and PyTables
+        self.not_working_too_many = [
+            ([1,2], 2, 1, 1),
+            ]
+
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = fileh = openFile(self.file, "w")
+        # Create a sample array
+        nparr = numpy.empty(self.shape, dtype=numpy.int32)
+        data = numpy.arange(N*O, dtype=numpy.int32).reshape(N,O)
+        for i in xrange(M):
+            nparr[i] = data*i
+        self.nparr = nparr
+        self.tbarr = fileh.createArray(fileh.root, 'array', nparr)
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test01a_read(self):
+        """Test for fancy-selections (working selections, read)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for keys in self.working_keyset:
+            a = nparr[keys]
+            b = tbarr[keys]
+            if common.verbose:
+                print "Selection to test:", keys
+                ##print "NumPy selection:", a
+                ##print "PyTables selection:", b
+            self.assert_(
+                numpy.alltrue(a == b),
+                "NumPy array and PyTables selections does not match.")
+
+    def test01b_read(self):
+        """Test for fancy-selections (not working selections, read)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for keys in self.not_working_keyset:
+            if common.verbose:
+                print "Selection to test:", keys
+            a = nparr[keys]
+            self.assertRaises(ValueError, tbarr.__getitem__, keys)
+
+    def test01c_read(self):
+        """Test for fancy-selections (oout-of-bound indexes, read)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for keys in self.not_working_oob:
+            if common.verbose:
+                print "Selection to test:", keys
+            self.assertRaises(IndexError, nparr.__getitem__, keys)
+            self.assertRaises(IndexError, tbarr.__getitem__, keys)
+
+    def test01d_read(self):
+        """Test for fancy-selections (too many indexes, read)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for keys in self.not_working_too_many:
+            if common.verbose:
+                print "Selection to test:", keys
+            self.assertRaises(ValueError, nparr.__getitem__, keys)
+            self.assertRaises(ValueError, tbarr.__getitem__, keys)
+
+    def test02a_write(self):
+        """Test for fancy-selections (working selections, write)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for keys in self.working_keyset:
+            s = nparr[keys]
+            nparr[keys] = s*2
+            tbarr[keys] = s*2
+            a = nparr[:]
+            b = tbarr[:]
+            if common.verbose:
+                print "Selection to test:", keys
+                ##print "NumPy modified array:", a
+                ##print "PyTables modifyied array:", b
+            self.assert_(
+                numpy.alltrue(a == b),
+                "NumPy array and PyTables modifications does not match.")
+
+
+class FancySelection1(FancySelectionTestCase):
+    shape = (5, 3, 3)  # Minimum values
+
+
+class FancySelection2(FancySelectionTestCase):
+    # shape = (5, 3, 3)  # Minimum values
+    shape = (7, 3, 3)
+
+
+class FancySelection3(FancySelectionTestCase):
+    # shape = (5, 3, 3)  # Minimum values
+    shape = (7, 4, 5)
+
+
+class FancySelection4(FancySelectionTestCase):
+    # shape = (5, 3, 3)  # Minimum values
+    shape = (5, 3, 10)
+
+
+
+#----------------------------------------------------------------------
+
+
 def suite():
     theSuite = unittest.TestSuite()
     niter = 1
@@ -1987,6 +2130,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(GE2NACloseTestCase))
         theSuite.addTest(unittest.makeSuite(NonHomogeneousTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateTestCase))
+        theSuite.addTest(unittest.makeSuite(FancySelection1))
+        theSuite.addTest(unittest.makeSuite(FancySelection2))
+        theSuite.addTest(unittest.makeSuite(FancySelection3))
+        theSuite.addTest(unittest.makeSuite(FancySelection4))
 
     return theSuite
 

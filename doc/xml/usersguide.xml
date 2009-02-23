@@ -1834,26 +1834,26 @@ Help on Table in module tables.table:
 
 class Table(tableExtension.Table, tables.leaf.Leaf)
  |  This class represents heterogeneous datasets in an HDF5 file.
- |  
+ |
  |  Tables are leaves (see the `Leaf` class) whose data consists of a
  |  unidimensional sequence of *rows*, where each row contains one or
  |  more *fields*.  Fields have an associated unique *name* and
  |  *position*, with the first field having position 0.  All rows have
  |  the same fields, which are arranged in *columns*.
 [snip]
- |  
+ |
  |  Instance variables
  |  ------------------
- |  
+ |
  |  The following instance variables are provided in addition to those
  |  in `Leaf`.  Please note that there are several ``col*`` dictionaries
  |  to ease retrieving information about a column directly by its path
  |  name, avoiding the need to walk through `Table.description` or
  |  `Table.cols`.
- |  
+ |
  |  autoIndex
  |      Automatically keep column indexes up to date?
- |  
+ |
  |      Setting this value states whether existing indexes should be
  |      automatically updated after an append operation or recomputed
  |      after an index-invalidating operation (i.e. removal and
@@ -1861,10 +1861,10 @@ class Table(tableExtension.Table, tables.leaf.Leaf)
 [snip]
  |  rowsize
  |      The size in bytes of each row in the table.
- |  
+ |
  |  Public methods -- reading
  |  -------------------------
- |  
+ |
  |  * col(name)
  |  * iterrows([start][, stop][, step])
  |  * itersequence(sequence)
@@ -1874,10 +1874,10 @@ class Table(tableExtension.Table, tables.leaf.Leaf)
     * readSorted(sortby[, forceCSI][, field,][, start][, stop][, step])
  |  * __getitem__(key)
  |  * __iter__()
- |  
+ |
  |  Public methods -- writing
  |  -------------------------
- |  
+ |
  |  * append(rows)
  |  * modifyColumn([start][, stop][, step][, column][, colname])
 [snip]</screen>
@@ -2851,7 +2851,7 @@ Traceback (most recent call last):
   File ".../tables/misc/enum.py", line 230, in __getattr__
     raise AttributeError(*ke.args)
 AttributeError: no enumerated value with that name: 'yellow'
->>> 
+>>>
 >>> print "Value of 'red' and 'white':", (colors['red'], colors['white'])
 Value of 'red' and 'white': (0, 3)
 >>> print "Value of 'yellow':", colors['yellow']
@@ -8560,12 +8560,17 @@ table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])</screen>
             the kind of slice used as <literal>key</literal> and the shape of
             the array itself.</para>
 
+            <para>Furthermore, NumPy-style fancy indexing, where a list of
+            indices in a certain axis is specified, is also supported.  Note
+            that only one list per selection is supported right now.</para>
+
             <para>Example of use:</para>
 
             <screen>array1 = array[4]  # array1.shape == array.shape[1:]
 array2 = array[4:1000:2]  # len(array2.shape) == len(array.shape)
 array3 = array[::2, 1:4, :]
-array4 = array[1, ..., ::2, 1:4, 4:]  # general slice selection</screen>
+array4 = array[1, ..., ::2, 1:4, 4:]  # general slice selection
+array5 = array[1, [1,5,10], ..., -1]  # fancy selection</screen>
           </section>
 
           <section id="Array.__iter__" xreflabel="description">
@@ -8607,6 +8612,10 @@ array4 = array[1, ..., ::2, 1:4, 4:]  # general slice selection</screen>
             <literal>key</literal>, otherwise, a <literal>ValueError</literal>
             will be raised.</para>
 
+            <para>Furthermore, NumPy-style fancy indexing, where a list of
+            indices in a certain axis is specified, is also supported.  Note
+            that only one list per selection is supported right now.</para>
+
             <para>Example of use:</para>
 
             <screen>a1[0] = 333        # assign an integer to a Integer Array row
@@ -8614,7 +8623,8 @@ a2[0] = 'b'        # assign a string to a string Array row
 a3[1:4] = 5        # broadcast 5 to slice 1:4
 a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2
 # General slice update (a5.shape = (4,3,2,8,5,10).
-a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))</screen>
+a5[1, ..., ::2, 1:4, 4:] = numpy.arange(1728, shape=(4,3,2,4,3,6))
+a6[1, [1,5,10], ..., -1] = arr   # fancy selection</screen>
           </section>
         </section>
       </section>

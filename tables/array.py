@@ -476,11 +476,174 @@ class Array(hdf5Extension.Array, Leaf):
             #new_dim = ((stopl[dim] - startl[dim] - 1) / stepl[dim]) + 1
             new_dim = lrange(startl[dim], stopl[dim], stepl[dim]).length
             if not (new_dim == 1 and stop_None[dim]):
-            #if not stop_None[dim]:
-                # Append dimension
                 shape.append(new_dim)
 
         return startl, stopl, stepl, shape
+
+
+    def fancySelection(self, args):
+        """Performs a NumPy-style fancy selection in `self`.
+
+        Implements advanced NumPy-style selection operations in
+        addition to the standard slice-and-int behavior.
+
+        Indexing arguments may be ints, slices or lists of indices.
+
+        Note: This is a backport from the h5py project.
+        """
+
+        # Internal functions
+
+        def validate_number(num, length):
+            """ Validate a list member for the given axis length
+            """
+            try:
+                num = long(num)
+            except TypeError:
+                raise TypeError("Illegal index: %r" % num)
+            if num > length-1:
+                raise IndexError('Index out of bounds: %d' % num)
+
+
+        def expand_ellipsis(args, rank):
+            """ Expand ellipsis objects and fill in missing axes.
+            """
+            n_el = list(args).count(Ellipsis)
+            if n_el > 1:
+                raise ValueError("Only one ellipsis may be used.")
+            elif n_el == 0 and len(args) != rank:
+                args = args + (Ellipsis,)
+
+            final_args = []
+            n_args = len(args)
+            for idx, arg in enumerate(args):
+                if arg == Ellipsis:
+                    final_args.extend((slice(None,None,None),)*(rank-n_args+1))
+                else:
+                    final_args.append(arg)
+
+            if len(final_args) > rank:
+                raise ValueError("Too many indices.")
+
+            return final_args
+
+
+        def translate_slice(exp, length):
+            """ Given a slice object, return a 3-tuple
+                (start, count, step)
+                for use with the hyperslab selection routines
+            """
+            start, stop, step = exp.start, exp.stop, exp.step
+            start = 0 if start is None else int(start)
+            stop = length if stop is None else int(stop)
+            step = 1 if step is None else int(step)
+
+            if step < 1:
+                raise ValueError("Step must be >= 1 (got %d)" % step)
+            if stop == start:
+                raise ValueError("Zero-length selections are not allowed")
+            if stop < start:
+                raise ValueError("Reverse-order selections are not allowed")
+            if start < 0:
+                start = length+start
+            if stop < 0:
+                stop = length+stop
+
+            if not 0 <= start <= (length-1):
+                raise ValueError(
+                    "Start index %s out of range (0-%d)" % (start, length-1))
+            if not 1 <= stop <= length:
+                raise ValueError(
+                    "Stop index %s out of range (1-%d)" % (stop, length))
+
+            count = (stop-start)//step
+            if (stop-start) % step != 0:
+                count += 1
+
+            if start+count > length:
+                raise ValueError(
+                    "Selection out of bounds (%d; axis has %d)" % \
+                    (start+count,length))
+
+            return start, count, step
+
+
+        # Main code for fancySelection
+        mshape = []
+        selection = []
+
+        if not isinstance(args, tuple):
+            if isinstance(args, numpy.ndarray) and args.dtype.kind == 'b':
+                raise ValueError(
+                    "Boolean arrays not supported yet")
+            args = (args,)
+
+        args = expand_ellipsis(args, len(self.shape))
+
+        list_seen = False
+        reorder = None
+        for idx, (exp, length) in enumerate(zip(args, self.shape)):
+            if isinstance(exp, slice):
+                start, count, step = translate_slice(exp, length)
+                selection.append((start, count, step, idx, "AND"))
+                mshape.append(count)
+            else:
+                try:
+                    exp = list(exp)
+                except TypeError:
+                    exp = [exp]      # Handle scalar index as a list of length 1
+                    mshape.append(0) # Keep track of scalar index for NumPy
+                else:
+                    mshape.append(len(exp))
+                if len(exp) == 0:
+                    raise ValueError(
+                        "Empty selections are not allowed (axis %d)" % idx)
+                elif len(exp) > 1:
+                    if list_seen:
+                        raise ValueError(
+                            "Only one selection list is allowed")
+                    else:
+                        list_seen = True
+                # Convert negative values
+                nexp = numpy.array(exp)
+                nexp = numpy.where(nexp < 0, length+nexp, nexp)
+                # Check whether the list is ordered or not
+                # (only one unordered list is allowed)
+                if not len(nexp) == len(numpy.unique(nexp)):
+                    raise ValueError(
+                        "Selection lists cannot have repeated values")
+                neworder = nexp.argsort()
+                if not numpy.alltrue(neworder == numpy.arange(len(exp))):
+                    if reorder is not None:
+                        raise ValueError(
+                            "Only one selection list can be unordered")
+                    corrected_idx = sum(1 for x in mshape if x != 0) - 1
+                    reorder = (corrected_idx, neworder)
+                    nexp = nexp[neworder]
+                exp = list(nexp)
+                for select_idx in xrange(len(exp)+1):
+                    # This crazy piece of code performs a list selection
+                    # using HDF5 hyperslabs.
+                    # For each index, perform a "NOTB" selection on every
+                    # portion of *this axis* which falls *outside* the list
+                    # selection.  For this to work, the input array MUST be
+                    # monotonically increasing.
+                    if select_idx < len(exp):
+                        validate_number(exp[select_idx], length)
+                    if select_idx == 0:
+                        start = 0
+                        count = exp[0]
+                    elif select_idx == len(exp):
+                        start = exp[-1]+1
+                        count = length-start
+                    else:
+                        start = exp[select_idx-1]+1
+                        count = exp[select_idx] - start
+                    if count > 0:
+                        selection.append((start, count, 1, idx, "NOTB"))
+
+        mshape = tuple(x for x in mshape if x != 0)
+        return selection, reorder, mshape
 
 
     def __getitem__(self, key):
@@ -493,17 +656,28 @@ class Array(hdf5Extension.Array, Leaf):
         flavor; its shape depends on the kind of slice used as `key`
         and the shape of the array itself.
 
+        Furthermore, NumPy-style fancy indexing, where a list of
+        indices in a certain axis is specified, is also supported.
+        Note that only one list per selection is supported right now.
+
         Example of use::
 
             array1 = array[4]  # array1.shape == array.shape[1:]
             array2 = array[4:1000:2]  # len(array2.shape) == len(array.shape)
             array3 = array[::2, 1:4, :]
             array4 = array[1, ..., ::2, 1:4, 4:]  # general slice selection
+            array5 = array[1, [1,5,10], ..., -1]  # fancy selection
         """
-        startl, stopl, stepl, shape = self._interpret_indexing(key)
-        arr = self._readSlice(startl, stopl, stepl, shape)
+        try:
+            startl, stopl, stepl, shape = self._interpret_indexing(key)
+            arr = self._readSlice(startl, stopl, stepl, shape)
+        except TypeError:
+            selection, reorder, shape = self.fancySelection(key)
+            arr = self._readSelection(selection, reorder, shape)
+
         if not self._v_convert:
             return arr
+
         return internal_to_flavor(arr, self.flavor)
 
 
@@ -540,6 +714,10 @@ compliant with %s: '%r' The error was: <%s>""" % \
         be compatible with the shape determined by `key`, otherwise, a
         ``ValueError`` will be raised.
 
+        Furthermore, NumPy-style fancy indexing, where a list of
+        indices in a certain axis is specified, is also supported.
+        Note that only one list per selection is supported right now.
+
         Example of use::
 
             a1[0] = 333        # assign an integer to a Integer Array row
@@ -547,21 +725,23 @@ compliant with %s: '%r' The error was: <%s>""" % \
             a3[1:4] = 5        # broadcast 5 to slice 1:4
             a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2
             # General slice update (a5.shape = (4,3,2,8,5,10).
-            a5[1, ..., ::2, 1:4, 4:] = arange(1728, shape=(4,3,2,4,3,6))
+            a5[1, ..., ::2, 1:4, 4:] = numpy.arange(1728, shape=(4,3,2,4,3,6))
+            a6[1, [1,5,10], ..., -1] = arr   # fancy selection
         """
 
-        startl, stopl, stepl, shape = self._interpret_indexing(key)
-        countl = ((stopl - startl - 1) / stepl) + 1
         # Create an array compliant with the specified slice
         nparr = convertToNPAtom2(value, self.atom)
-        # Check whether it has a consistent shape with underlying object
-        nparr = self._checkShape(nparr, tuple(shape))
+        if nparr.size == 0:
+            return
 
-        if nparr.size:
-            self._modify(startl, stepl, countl, nparr)
+        try:
+            startl, stopl, stepl, shape = self._interpret_indexing(key)
+            self._writeSlice(startl, stopl, stepl, shape, nparr)
+        except TypeError:
+            selection, reorder, shape = self.fancySelection(key)
+            self._writeSelection(selection, reorder, shape, nparr)
 
 
-    # Accessor for the _readArray method in superclass
     def _readSlice(self, startl, stopl, stepl, shape):
         # Create the container for the slice
         arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
@@ -573,6 +753,46 @@ compliant with %s: '%r' The error was: <%s>""" % \
         if arr.shape == ():
             arr = arr[()]
         return arr
+
+
+    def _writeSlice(self, startl, stopl, stepl, shape, nparr):
+        # Check whether it has a consistent shape with underlying object
+        nparr = self._checkShape(nparr, tuple(shape))
+        countl = ((stopl - startl - 1) / stepl) + 1
+        self._g_writeSlice(startl, stepl, countl, nparr)
+
+
+    def _readSelection(self, selection, reorder, shape):
+        # Create the container for the slice
+        nparr = numpy.empty(dtype=self.atom.dtype, shape=shape)
+        # Arrays that have non-zero dimensionality
+        self._g_readSelection(selection, nparr)
+        # For zero-shaped arrays, return the scalar
+        if nparr.shape == ():
+            nparr = nparr[()]
+        elif reorder is not None:
+            # We need to reorder the array
+            idx, neworder = reorder
+            k = [slice(None)]*len(shape)
+            k[idx] = neworder.argsort()
+            # Apparently, a copy is not needed here, but doing it
+            # for symmetry with the `_writeSelection()` method.
+            nparr = nparr[k].copy()
+        return nparr
+
+
+    def _writeSelection(self, selection, reorder, shape, nparr):
+        # Check whether it has a consistent shape with underlying object
+        nparr = self._checkShape(nparr, tuple(shape))
+        # Check whether we should reorder the array
+        if reorder is not None:
+            idx, neworder = reorder
+            k = [slice(None)]*len(shape)
+            k[idx] = neworder
+            # For a reason a don't understand well, we need a copy of
+            # the reordered array
+            nparr = nparr[k].copy()
+        self._g_writeSelection(selection, nparr)
 
 
     def _read(self, start, stop, step):
@@ -640,7 +860,6 @@ compliant with %s: '%r' The error was: <%s>""" % \
   chunkshape := %r""" % (self, self.atom, self.maindim,
                          self.flavor, self.byteorder,
                          self.chunkshape)
-
 
 
 class ImageArray(Array):

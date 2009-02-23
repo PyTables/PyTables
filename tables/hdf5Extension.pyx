@@ -59,19 +59,22 @@ from definitions cimport  \
      Py_INCREF, Py_DECREF, \
      import_array, ndarray, dtype, \
      time_t, size_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
+     H5S_seloper_t, \
      H5G_GROUP, H5G_DATASET, H5G_stat_t, \
      H5T_class_t, H5T_sign_t, H5T_NATIVE_INT, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
-     H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5T_DIR_DEFAULT, H5S_SELECT_SET, \
+     H5P_DEFAULT, H5T_SGN_NONE, H5T_SGN_2, H5T_DIR_DEFAULT, \
+     H5S_SELECT_SET, H5S_SELECT_AND, H5S_SELECT_NOTB, \
      H5get_libversion, H5check_version, H5Fcreate, H5Fopen, H5Fclose, \
      H5Fflush, H5Fget_vfd_handle, \
      H5Gcreate, H5Gopen, H5Gclose, H5Glink, H5Gunlink, H5Gmove, \
      H5Gmove2, H5Gget_objinfo, \
-     H5Dopen, H5Dclose, H5Dread, H5Dget_type, \
+     H5Dopen, H5Dclose, H5Dread, H5Dwrite, H5Dget_type, \
      H5Tget_native_type, H5Tget_super, H5Tget_class, H5Tcopy, H5Dget_space, \
      H5Dvlen_reclaim, H5Adelete, H5Aget_num_attrs, H5Aget_name, H5Aopen_idx, \
      H5Aread, H5Aclose, H5Tclose, H5Pcreate, H5Pclose, \
      H5Pset_cache, H5Pset_sieve_buf_size, H5Pset_fapl_log, \
+     H5Sselect_all, \
      H5Sselect_hyperslab, H5Screate_simple, H5Sget_simple_extent_ndims, \
      H5Sget_simple_extent_dims, H5Sclose, \
      H5Tis_variable_str, H5Tget_sign, \
@@ -978,8 +981,8 @@ cdef class Array(Leaf):
     self.shape = tuple(shape)
 
 
-  def _modify(self, ndarray startl, ndarray stepl, ndarray countl,
-              ndarray nparr):
+  def _g_writeSlice(self, ndarray startl, ndarray stepl, ndarray countl,
+                    ndarray nparr):
     cdef int ret
     cdef void *rbuf, *temp
     cdef hsize_t *start, *step, *count
@@ -1002,6 +1005,8 @@ cdef class Array(Leaf):
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Internal error modifying the elements (H5ARRAYwrite_records returned errorcode -%i)"%(-ret))
+
+    return
 
 
   def _readArray(self, hsize_t start, hsize_t stop, hsize_t step,
@@ -1055,8 +1060,10 @@ cdef class Array(Leaf):
     rbuf = nparr.data
 
     # Do the physical read
+    Py_BEGIN_ALLOW_THREADS
     ret = H5ARRAYreadSlice(self.dataset_id, self.type_id,
                            start, stop, step, rbuf)
+    Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems reading the array data.")
 
@@ -1068,6 +1075,141 @@ cdef class Array(Leaf):
     # Convert some HDF5 types to NumPy after reading
     if self.atom.type == 'time64':
       self._convertTime64(nparr, 1)
+
+    return
+
+
+  def perform_selection(self, space_id, start, count, step, idx, mode):
+    """Performs a selection using start/count/step in the given axis.
+
+    All other axes have their full range selected.  The selection is
+    added to the current `space_id` selection using the given mode.
+
+    Note: This is a backport from the h5py project.
+    """
+    cdef int select_mode
+    cdef ndarray start_, count_, step_
+    cdef hsize_t *startp, *countp, *stepp
+
+    # Build arrays for the selection parameters
+    startl, countl, stepl = [], [], []
+    for i, x in enumerate(self.shape):
+      if i != idx:
+        startl.append(0)
+        countl.append(x)
+        stepl.append(1)
+      else:
+        startl.append(start)
+        countl.append(count)
+        stepl.append(step)
+    start_ = numpy.array(startl, dtype="i8")
+    count_ = numpy.array(countl, dtype="i8")
+    step_ = numpy.array(stepl, dtype="i8")
+
+    # Get the pointers to array data
+    startp = <hsize_t *>start_.data
+    countp = <hsize_t *>count_.data
+    stepp = <hsize_t *>step_.data
+
+    # Do the actual selection
+    select_modes = {"AND": H5S_SELECT_AND, "NOTB": H5S_SELECT_NOTB}
+    assert mode in select_modes
+    select_mode = select_modes[mode]
+    H5Sselect_hyperslab(space_id, <H5S_seloper_t>select_mode,
+                        startp, stepp, countp, NULL)
+
+
+  def _g_readSelection(self, object selection, ndarray nparr):
+    """Read a selection in an already created NumPy array."""
+    cdef herr_t ret
+    cdef hid_t space_id
+    cdef hid_t mem_space_id
+    cdef hsize_t size
+    cdef void *rbuf
+    cdef object mode
+
+    # Get the dataspace handle
+    space_id = H5Dget_space(self.dataset_id)
+    # Create a memory dataspace handle
+    size = nparr.size
+    mem_space_id = H5Screate_simple(1, &size, NULL)
+
+    # Select the dataspace to be read
+    # Start by selecting everything
+    H5Sselect_all(space_id)
+    # Now refine with outstanding selections
+    for args in selection:
+      self.perform_selection(space_id, *args)
+
+    # Get the pointer to the buffer data area
+    rbuf = nparr.data
+
+    # Do the actual read
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5Dread(self.dataset_id, self.type_id, mem_space_id, space_id,
+                  H5P_DEFAULT, rbuf)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
+      raise HDF5ExtError("Problems reading the array data.")
+
+    # Terminate access to the memory dataspace
+    H5Sclose(mem_space_id)
+    # Terminate access to the dataspace
+    H5Sclose(space_id)
+
+    if self.atom.kind == 'time':
+      # Swap the byteorder by hand (this is not currently supported by HDF5)
+      if H5Tget_order(self.type_id) != platform_byteorder:
+        nparr.byteswap(True)
+
+    # Convert some HDF5 types to NumPy after reading
+    if self.atom.type == 'time64':
+      self._convertTime64(nparr, 1)
+
+    return
+
+
+  def _g_writeSelection(self, object selection, ndarray nparr):
+    """Read a selection in an already created NumPy array."""
+    cdef herr_t ret
+    cdef hid_t space_id
+    cdef hid_t mem_space_id
+    cdef hsize_t size
+    cdef void *rbuf
+    cdef object mode
+
+    # Get the dataspace handle
+    space_id = H5Dget_space(self.dataset_id)
+    # Create a memory dataspace handle
+    size = nparr.size
+    mem_space_id = H5Screate_simple(1, &size, NULL)
+
+    # Select the dataspace to be write
+    # Start by selecting everything
+    H5Sselect_all(space_id)
+    # Now refine with outstanding selections
+    for args in selection:
+      self.perform_selection(space_id, *args)
+
+    # Get the pointer to the buffer data area
+    rbuf = nparr.data
+
+    # Convert some NumPy types to HDF5 before storing.
+    if self.atom.type == 'time64':
+      self._convertTime64(nparr, 0)
+
+    # Do the actual write
+    Py_BEGIN_ALLOW_THREADS
+    ret = H5Dwrite(self.dataset_id, self.type_id, mem_space_id, space_id,
+                   H5P_DEFAULT, rbuf)
+    Py_END_ALLOW_THREADS
+    if ret < 0:
+      raise HDF5ExtError("Problems writing the array data.")
+
+    # Terminate access to the memory dataspace
+    H5Sclose(mem_space_id)
+    # Terminate access to the dataspace
+    H5Sclose(space_id)
 
     return
 
