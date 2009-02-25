@@ -481,7 +481,59 @@ class Array(hdf5Extension.Array, Leaf):
         return startl, stopl, stepl, shape
 
 
-    def fancySelection(self, args):
+    def _pointSelection(self, key):
+        """Performs a point-wise selection.
+
+        `key` can be any of the following items:
+
+        * A boolean array with the same shape than self. Those
+          positions with True values will signal the coordinates to be
+          returned.
+
+        * A numpy array (or list or tuple) with the point coordinates.
+          This has to be a two-dimensional array of size
+          len(self.shape) by num_elements containing a list of of
+          zero-based values specifying the coordinates in the dataset
+          of the selected elements. The order of the element
+          coordinates in the array specifies the order in which the
+          array elements are iterated through when I/O is
+          performed. Duplicate coordinate locations are not checked
+          for.
+
+        Returns the coordinates array.  If this is not possible, raise
+        a `TypeError` so that the next selection method can be tried
+        out.
+
+        """
+        if type(key) in (list, tuple):
+            # Try to convert key to a numpy array.  If not possible,
+            # a TypeError will be issued (to be catched later on).
+            try:
+                key = numpy.array(key)
+            except ValueError:
+                raise TypeError  # Try with next selection method
+        if isinstance(key, numpy.ndarray):
+            if key.dtype.kind == 'b':
+                if not key.shape == self.shape:
+                    raise IndexError(
+                        "Boolean indexing array has incompatible shape")
+                coords = numpy.transpose(key.nonzero())
+            elif key.dtype.kind == 'i':
+                if key.shape[0] <> len(self.shape):
+                    # Coordinate dimensions do not match with self.shape
+                    raise TypeError  # Try with next selection method
+                coords = numpy.transpose(numpy.array(key, dtype="i8"))
+            else:
+                raise TypeError  # Try with next selection method
+        else:
+            raise TypeError  # Try with next selection method
+        # We absolutely need a contiguous array
+        if not coords.flags.contiguous:
+            coords = coords.copy()
+        return coords
+
+
+    def _fancySelection(self, args):
         """Performs a NumPy-style fancy selection in `self`.
 
         Implements advanced NumPy-style selection operations in
@@ -510,7 +562,7 @@ class Array(hdf5Extension.Array, Leaf):
             """
             n_el = sum(1 for arg in args if arg is Ellipsis)
             if n_el > 1:
-                raise ValueError("Only one ellipsis may be used.")
+                raise IndexError("Only one ellipsis may be used.")
             elif n_el == 0 and len(args) != rank:
                 args = args + (Ellipsis,)
 
@@ -523,7 +575,7 @@ class Array(hdf5Extension.Array, Leaf):
                     final_args.append(arg)
 
             if len(final_args) > rank:
-                raise ValueError("Too many indices.")
+                raise IndexError("Too many indices.")
 
             return final_args
 
@@ -539,21 +591,21 @@ class Array(hdf5Extension.Array, Leaf):
             step = 1 if step is None else int(step)
 
             if step < 1:
-                raise ValueError("Step must be >= 1 (got %d)" % step)
+                raise IndexError("Step must be >= 1 (got %d)" % step)
             if stop == start:
-                raise ValueError("Zero-length selections are not allowed")
+                raise IndexError("Zero-length selections are not allowed")
             if stop < start:
-                raise ValueError("Reverse-order selections are not allowed")
+                raise IndexError("Reverse-order selections are not allowed")
             if start < 0:
                 start = length+start
             if stop < 0:
                 stop = length+stop
 
             if not 0 <= start <= (length-1):
-                raise ValueError(
+                raise IndexError(
                     "Start index %s out of range (0-%d)" % (start, length-1))
             if not 1 <= stop <= length:
-                raise ValueError(
+                raise IndexError(
                     "Stop index %s out of range (1-%d)" % (stop, length))
 
             count = (stop-start)//step
@@ -561,21 +613,18 @@ class Array(hdf5Extension.Array, Leaf):
                 count += 1
 
             if start+count > length:
-                raise ValueError(
+                raise IndexError(
                     "Selection out of bounds (%d; axis has %d)" % \
                     (start+count,length))
 
             return start, count, step
 
 
-        # Main code for fancySelection
+        # Main code for _fancySelection
         mshape = []
         selection = []
 
         if not isinstance(args, tuple):
-            if isinstance(args, numpy.ndarray) and args.dtype.kind == 'b':
-                raise ValueError(
-                    "Boolean arrays not supported yet")
             args = (args,)
 
         args = expand_ellipsis(args, len(self.shape))
@@ -596,49 +645,48 @@ class Array(hdf5Extension.Array, Leaf):
                 else:
                     mshape.append(len(exp))
                 if len(exp) == 0:
-                    raise ValueError(
+                    raise IndexError(
                         "Empty selections are not allowed (axis %d)" % idx)
                 elif len(exp) > 1:
                     if list_seen:
-                        raise ValueError(
+                        raise IndexError(
                             "Only one selection list is allowed")
                     else:
                         list_seen = True
+                nexp = numpy.asarray(exp, dtype="i8")
                 # Convert negative values
-                nexp = numpy.array(exp)
                 nexp = numpy.where(nexp < 0, length+nexp, nexp)
                 # Check whether the list is ordered or not
                 # (only one unordered list is allowed)
                 if not len(nexp) == len(numpy.unique(nexp)):
-                    raise ValueError(
+                    raise IndexError(
                         "Selection lists cannot have repeated values")
                 neworder = nexp.argsort()
                 if not numpy.alltrue(neworder == numpy.arange(len(exp))):
                     if reorder is not None:
-                        raise ValueError(
+                        raise IndexError(
                             "Only one selection list can be unordered")
                     corrected_idx = sum(1 for x in mshape if x != 0) - 1
                     reorder = (corrected_idx, neworder)
                     nexp = nexp[neworder]
-                exp = list(nexp)
-                for select_idx in xrange(len(exp)+1):
+                for select_idx in xrange(len(nexp)+1):
                     # This crazy piece of code performs a list selection
                     # using HDF5 hyperslabs.
                     # For each index, perform a "NOTB" selection on every
                     # portion of *this axis* which falls *outside* the list
                     # selection.  For this to work, the input array MUST be
                     # monotonically increasing.
-                    if select_idx < len(exp):
-                        validate_number(exp[select_idx], length)
+                    if select_idx < len(nexp):
+                        validate_number(nexp[select_idx], length)
                     if select_idx == 0:
                         start = 0
-                        count = exp[0]
-                    elif select_idx == len(exp):
-                        start = exp[-1]+1
+                        count = nexp[0]
+                    elif select_idx == len(nexp):
+                        start = nexp[-1]+1
                         count = length-start
                     else:
-                        start = exp[select_idx-1]+1
-                        count = exp[select_idx] - start
+                        start = nexp[select_idx-1]+1
+                        count = nexp[select_idx] - start
                     if count > 0:
                         selection.append((start, count, 1, idx, "NOTB"))
 
@@ -659,43 +707,36 @@ class Array(hdf5Extension.Array, Leaf):
         Furthermore, NumPy-style fancy indexing, where a list of
         indices in a certain axis is specified, is also supported.
         Note that only one list per selection is supported right now.
+        Finally, NumPy-style point and boolean selections are
+        supported as well.
 
         Example of use::
 
-            array1 = array[4]  # array1.shape == array.shape[1:]
-            array2 = array[4:1000:2]  # len(array2.shape) == len(array.shape)
-            array3 = array[::2, 1:4, :]
-            array4 = array[1, ..., ::2, 1:4, 4:]  # general slice selection
-            array5 = array[1, [1,5,10], ..., -1]  # fancy selection
+            array1 = array[4]                       # simple selection
+            array2 = array[4:1000:2]                # slice selection
+            array3 = array[1, ..., ::2, 1:4, 4:]    # general slice selection
+            array4 = array[1, [1,5,10], ..., -1]    # fancy selection
+            array5 = array[np.where(array[:] > 4)]  # point selection
+            array6 = array[array[:] > 4]            # boolean selection
         """
         try:
+            # First, try with a regular selection
             startl, stopl, stepl, shape = self._interpret_indexing(key)
             arr = self._readSlice(startl, stopl, stepl, shape)
         except TypeError:
-            selection, reorder, shape = self.fancySelection(key)
-            arr = self._readSelection(selection, reorder, shape)
+            # Then, try with a point-wise selection
+            try:
+                coords = self._pointSelection(key)
+                arr = self._readCoords(coords)
+            except TypeError:
+                # Finally, try with a fancy selection
+                selection, reorder, shape = self._fancySelection(key)
+                arr = self._readSelection(selection, reorder, shape)
 
         if not self._v_convert:
             return arr
 
         return internal_to_flavor(arr, self.flavor)
-
-
-    def _checkShape(self, nparr, slice_shape):
-        "Test that nparr shape is consistent with underlying object."
-        if nparr.shape != slice_shape:
-            # Create an array compliant with the specified shape
-            narr = numpy.empty(shape=slice_shape, dtype=self.atom.dtype)
-            # Assign the value to it
-            try:
-                narr[...] = nparr
-            except Exception, exc:  #XXX
-                raise ValueError, \
-"""value parameter '%s' cannot be converted into an array object
-compliant with %s: '%r' The error was: <%s>""" % \
-            (nparr, self.__class__.__name__, self, exc)
-            return narr
-        return nparr
 
 
     def __setitem__(self, key, value):
@@ -717,6 +758,8 @@ compliant with %s: '%r' The error was: <%s>""" % \
         Furthermore, NumPy-style fancy indexing, where a list of
         indices in a certain axis is specified, is also supported.
         Note that only one list per selection is supported right now.
+        Finally, NumPy-style point and boolean selections are
+        supported as well.
 
         Example of use::
 
@@ -726,7 +769,9 @@ compliant with %s: '%r' The error was: <%s>""" % \
             a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2
             # General slice update (a5.shape = (4,3,2,8,5,10).
             a5[1, ..., ::2, 1:4, 4:] = numpy.arange(1728, shape=(4,3,2,4,3,6))
-            a6[1, [1,5,10], ..., -1] = arr   # fancy selection
+            a6[1, [1,5,10], ..., -1] = arr    # fancy selection
+            a7[np.where(a6[:] > 4)] = 4       # point selection + broadcast
+            a8[arr > 4] = arr2                # boolean selection
         """
 
         # Create an array compliant with the specified slice
@@ -738,31 +783,62 @@ compliant with %s: '%r' The error was: <%s>""" % \
             startl, stopl, stepl, shape = self._interpret_indexing(key)
             self._writeSlice(startl, stopl, stepl, shape, nparr)
         except TypeError:
-            selection, reorder, shape = self.fancySelection(key)
-            self._writeSelection(selection, reorder, shape, nparr)
+            # Then, try with a point-wise selection
+            try:
+                coords = self._pointSelection(key)
+                self._writeCoords(coords, nparr)
+            except TypeError:
+                selection, reorder, shape = self._fancySelection(key)
+                self._writeSelection(selection, reorder, shape, nparr)
+
+
+    def _checkShape(self, nparr, slice_shape):
+        """Test that nparr shape is consistent with underlying object.
+
+        If not, try creating a new nparr object, using broadcasting if
+        necessary.
+        """
+        if nparr.shape != slice_shape:
+            # Create an array compliant with the specified shape
+            narr = numpy.empty(shape=slice_shape, dtype=self.atom.dtype)
+            # Assign the value to it
+            try:
+                narr[...] = nparr
+            except Exception, exc:  #XXX
+                raise ValueError, \
+"""value parameter '%s' cannot be converted into an array object
+compliant with %s: '%r' The error was: <%s>""" % \
+            (nparr, self.__class__.__name__, self, exc)
+            return narr
+        return nparr
 
 
     def _readSlice(self, startl, stopl, stepl, shape):
-        # Create the container for the slice
-        arr = numpy.empty(dtype=self.atom.dtype, shape=shape)
+        """Read a slice based on `startl`, `stopl` and `stepl`."""
+        nparr = numpy.empty(dtype=self.atom.dtype, shape=shape)
         # Protection against reading empty arrays
         if 0 not in shape:
             # Arrays that have non-zero dimensionality
-            self._g_readSlice(startl, stopl, stepl, arr)
+            self._g_readSlice(startl, stopl, stepl, nparr)
         # For zero-shaped arrays, return the scalar
-        if arr.shape == ():
-            arr = arr[()]
-        return arr
+        if nparr.shape == ():
+            nparr = nparr[()]
+        return nparr
 
 
-    def _writeSlice(self, startl, stopl, stepl, shape, nparr):
-        # Check whether it has a consistent shape with underlying object
-        nparr = self._checkShape(nparr, tuple(shape))
-        countl = ((stopl - startl - 1) / stepl) + 1
-        self._g_writeSlice(startl, stepl, countl, nparr)
+    def _readCoords(self, coords):
+        """Read a set of points defined by `coords`."""
+        nparr = numpy.empty(dtype=self.atom.dtype, shape=len(coords))
+        if len(coords) > 0:
+            self._g_readCoords(coords, nparr)
+        # For zero-shaped arrays, return the scalar
+        if nparr.shape == ():
+            nparr = nparr[()]
+        return nparr
 
 
     def _readSelection(self, selection, reorder, shape):
+        """Read a `selection`.  Reorder if necessary."""
         # Create the container for the slice
         nparr = numpy.empty(dtype=self.atom.dtype, shape=shape)
         # Arrays that have non-zero dimensionality
@@ -781,8 +857,22 @@ compliant with %s: '%r' The error was: <%s>""" % \
         return nparr
 
 
+    def _writeSlice(self, startl, stopl, stepl, shape, nparr):
+        """Write `nparr` in a slice based on `startl`, `stopl` and `stepl`."""
+        nparr = self._checkShape(nparr, tuple(shape))
+        countl = ((stopl - startl - 1) / stepl) + 1
+        self._g_writeSlice(startl, stepl, countl, nparr)
+
+
+    def _writeCoords(self, coords, nparr):
+        """Write `nparr` values in points defined by `coords` coordinates."""
+        if len(coords) > 0:
+            nparr = self._checkShape(nparr, (len(coords),))
+            self._g_writeCoords(coords, nparr)
+
+
     def _writeSelection(self, selection, reorder, shape, nparr):
-        # Check whether it has a consistent shape with underlying object
+        """Write `nparr` in `selection`.  Reorder if necessary."""
         nparr = self._checkShape(nparr, tuple(shape))
         # Check whether we should reorder the array
         if reorder is not None:

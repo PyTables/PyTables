@@ -8562,15 +8562,18 @@ table.modifyColumns(start=1, step=2, columns=columns, names=['col1'])</screen>
 
             <para>Furthermore, NumPy-style fancy indexing, where a list of
             indices in a certain axis is specified, is also supported.  Note
-            that only one list per selection is supported right now.</para>
+            that only one list per selection is supported right now.  Finally,
+            NumPy-style point and boolean selections are supported as
+            well.</para>
 
             <para>Example of use:</para>
 
-            <screen>array1 = array[4]  # array1.shape == array.shape[1:]
-array2 = array[4:1000:2]  # len(array2.shape) == len(array.shape)
-array3 = array[::2, 1:4, :]
-array4 = array[1, ..., ::2, 1:4, 4:]  # general slice selection
-array5 = array[1, [1,5,10], ..., -1]  # fancy selection</screen>
+            <screen>array1 = array[4]                       # simple selection
+array2 = array[4:1000:2]                # slice selection
+array3 = array[1, ..., ::2, 1:4, 4:]    # general slice selection
+array4 = array[1, [1,5,10], ..., -1]    # fancy selection
+array5 = array[np.where(array[:] > 4)]  # point selection
+array6 = array[array[:] > 4]            # boolean selection</screen>
           </section>
 
           <section id="Array.__iter__" xreflabel="description">
@@ -8614,7 +8617,9 @@ array5 = array[1, [1,5,10], ..., -1]  # fancy selection</screen>
 
             <para>Furthermore, NumPy-style fancy indexing, where a list of
             indices in a certain axis is specified, is also supported.  Note
-            that only one list per selection is supported right now.</para>
+            that only one list per selection is supported right now.  Finally,
+            NumPy-style point and boolean selections are supported as well.
+            </para>
 
             <para>Example of use:</para>
 
@@ -8624,7 +8629,9 @@ a3[1:4] = 5        # broadcast 5 to slice 1:4
 a4[1:4:2] = 'xXx'  # broadcast 'xXx' to slice 1:4:2
 # General slice update (a5.shape = (4,3,2,8,5,10).
 a5[1, ..., ::2, 1:4, 4:] = numpy.arange(1728, shape=(4,3,2,4,3,6))
-a6[1, [1,5,10], ..., -1] = arr   # fancy selection</screen>
+a6[1, [1,5,10], ..., -1] = arr    # fancy selection
+a7[np.where(a6[:] > 4)] = 4       # point selection + broadcast
+a8[arr > 4] = arr2                # boolean selection</screen>
           </section>
         </section>
       </section>

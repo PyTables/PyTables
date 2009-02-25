@@ -1936,6 +1936,150 @@ class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assertRaises(TypeError, array1.truncate, 0)
 
 
+class PointSelectionTestCase(common.PyTablesTestCase):
+
+    def setUp(self):
+        # Limits for selections
+        self.limits = [
+            (0, 1),  # just one element
+            (20, -10),  # no elements
+            (-10, 4),  # several elements
+            (0, 10),   # several elements (again)
+            ]
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = fileh = openFile(self.file, "w")
+        # Create a sample array
+        size = reduce(lambda x,y: x*y, self.shape)
+        nparr = numpy.arange(size, dtype=numpy.int32).reshape(self.shape)
+        self.nparr = nparr
+        self.tbarr = fileh.createArray(fileh.root, 'array', nparr)
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test01a_read(self):
+        """Test for point-selections (read, boolean keys)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for value1, value2 in self.limits:
+            key = (nparr >= value1) & (nparr < value2)
+            if common.verbose:
+                print "Selection to test:", key
+            a = nparr[key]
+            b = tbarr[key]
+#             if common.verbose:
+#                 print "NumPy selection:", a
+#                 print "PyTables selection:", b
+            self.assert_(
+                numpy.alltrue(a == b),
+                "NumPy array and PyTables selections does not match.")
+
+    def test01b_read(self):
+        """Test for point-selections (read, integer keys)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for value1, value2 in self.limits:
+            key = numpy.where((nparr >= value1) & (nparr < value2))
+            if common.verbose:
+                print "Selection to test:", key
+            a = nparr[key]
+            b = tbarr[key]
+#             if common.verbose:
+#                 print "NumPy selection:", a
+#                 print "PyTables selection:", b
+            self.assert_(
+                numpy.alltrue(a == b),
+                "NumPy array and PyTables selections does not match.")
+
+    def test01c_read(self):
+        """Test for point-selections (read, float keys)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for value1, value2 in self.limits:
+            key = numpy.where((nparr >= value1) & (nparr < value2))
+            if common.verbose:
+                print "Selection to test:", key
+            a = nparr[key]
+            fkey = numpy.array(key,"f4")
+            self.assertRaises(IndexError, tbarr.__getitem__, fkey)
+
+    def test02a_write(self):
+        """Test for point-selections (write, boolean keys)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for value1, value2 in self.limits:
+            key = (nparr >= value1) & (nparr < value2)
+            if common.verbose:
+                print "Selection to test:", key
+            s = nparr[key]
+            nparr[key] = s*2
+            tbarr[key] = s*2
+            a = nparr[:]
+            b = tbarr[:]
+#             if common.verbose:
+#                 print "NumPy modified array:", a
+#                 print "PyTables modifyied array:", b
+            self.assert_(
+                numpy.alltrue(a == b),
+                "NumPy array and PyTables modifications does not match.")
+
+    def test02b_write(self):
+        """Test for point-selections (write, integer keys)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for value1, value2 in self.limits:
+            key = numpy.where((nparr >= value1) & (nparr < value2))
+            if common.verbose:
+                print "Selection to test:", key
+            s = nparr[key]
+            nparr[key] = s*2
+            tbarr[key] = s*2
+            a = nparr[:]
+            b = tbarr[:]
+#             if common.verbose:
+#                 print "NumPy modified array:", a
+#                 print "PyTables modifyied array:", b
+            self.assert_(
+                numpy.alltrue(a == b),
+                "NumPy array and PyTables modifications does not match.")
+
+    def test02c_write(self):
+        """Test for point-selections (write, integer values, broadcast)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for value1, value2 in self.limits:
+            key = numpy.where((nparr >= value1) & (nparr < value2))
+            if common.verbose:
+                print "Selection to test:", key
+            s = nparr[key]
+            nparr[key] = 2   # force a broadcast
+            tbarr[key] = 2   # force a broadcast
+            a = nparr[:]
+            b = tbarr[:]
+#             if common.verbose:
+#                 print "NumPy modified array:", a
+#                 print "PyTables modifyied array:", b
+            self.assert_(
+                numpy.alltrue(a == b),
+                "NumPy array and PyTables modifications does not match.")
+
+
+class PointSelection1(PointSelectionTestCase):
+    shape = (5, 3, 3)
+
+class PointSelection2(PointSelectionTestCase):
+    shape = (7, 3)
+
+class PointSelection3(PointSelectionTestCase):
+    shape = (4, 3, 2, 1)
+
+class PointSelection4(PointSelectionTestCase):
+    shape = (1, 3, 2, 5, 6)
+
+
 class FancySelectionTestCase(common.PyTablesTestCase):
 
     def setUp(self):
@@ -1948,7 +2092,6 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             (slice(M),[N-1, 1, 0], slice(None)),
             (slice(1,M,3), slice(1,N), [O-1, 1, 0]),
             (M-1, [2, 1], 1),
-            (False, True),        # actually equivalent to (0,1) ;-)
             (1,2,1),              # regular selection
             ([1, 2], -2, -1),     # negative indices
             ([1, -2], 2, -1),     # more negative indices
@@ -1956,16 +2099,18 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             (Ellipsis, [1,2]),    # one ellipsis
             (numpy.array([1, -2], 'i4'), 2, -1),  # array 32-bit instead of list
             (numpy.array([-1, 2], 'i8'), 2, -1),  # array 64-bit instead of list
+            (False, True),      # equivalent to (0,1) ;-)
             ]
 
         # Valid selections for NumPy, but not for PyTables (yet)
-        # The next should raise a ValueError
+        # The next should raise an IndexError
         self.not_working_keyset = [
             numpy.array([False, True], dtype="b1"), # boolean arrays
             ([1,2,1], 2, 1),    # repeated values
             ([1,2], 2, [1,2]),  # several lists
             ([], 2, 1),         # empty selections
             (Ellipsis, [1,2], Ellipsis),  # several ellipsis
+            ([False, True]),    # boolean values with incompatible shape
             ]
 
         # The next should raise an IndexError in both NumPy and PyTables
@@ -1974,7 +2119,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             ([1,2], 2000, 1),         # out-of-bounds selections
             ]
 
-        # The next should raise a ValueError in both NumPy and PyTables
+        # The next should raise a IndexError in both NumPy and PyTables
         self.not_working_too_many = [
             ([1,2], 2, 1, 1),
             ]
@@ -1999,11 +2144,11 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         """Test for fancy-selections (working selections, read)."""
         nparr = self.nparr
         tbarr = self.tbarr
-        for keys in self.working_keyset:
+        for key in self.working_keyset:
             if common.verbose:
-                print "Selection to test:", keys
-            a = nparr[keys]
-            b = tbarr[keys]
+                print "Selection to test:", key
+            a = nparr[key]
+            b = tbarr[key]
 #             if common.verbose:
 #                 print "NumPy selection:", a
 #                 print "PyTables selection:", b
@@ -2015,42 +2160,61 @@ class FancySelectionTestCase(common.PyTablesTestCase):
         """Test for fancy-selections (not working selections, read)."""
         nparr = self.nparr
         tbarr = self.tbarr
-        for keys in self.not_working_keyset:
+        for key in self.not_working_keyset:
             if common.verbose:
-                print "Selection to test:", keys
-            a = nparr[keys]
-            self.assertRaises(ValueError, tbarr.__getitem__, keys)
+                print "Selection to test:", key
+            a = nparr[key]
+            self.assertRaises(IndexError, tbarr.__getitem__, key)
 
     def test01c_read(self):
         """Test for fancy-selections (out-of-bound indexes, read)."""
         nparr = self.nparr
         tbarr = self.tbarr
-        for keys in self.not_working_oob:
+        for key in self.not_working_oob:
             if common.verbose:
-                print "Selection to test:", keys
-            self.assertRaises(IndexError, nparr.__getitem__, keys)
-            self.assertRaises(IndexError, tbarr.__getitem__, keys)
+                print "Selection to test:", key
+            self.assertRaises(IndexError, nparr.__getitem__, key)
+            self.assertRaises(IndexError, tbarr.__getitem__, key)
 
     def test01d_read(self):
         """Test for fancy-selections (too many indexes, read)."""
         nparr = self.nparr
         tbarr = self.tbarr
-        for keys in self.not_working_too_many:
+        for key in self.not_working_too_many:
             if common.verbose:
-                print "Selection to test:", keys
-            self.assertRaises(ValueError, nparr.__getitem__, keys)
-            self.assertRaises(ValueError, tbarr.__getitem__, keys)
+                print "Selection to test:", key
+            self.assertRaises(ValueError, nparr.__getitem__, key)
+            self.assertRaises(IndexError, tbarr.__getitem__, key)
 
     def test02a_write(self):
         """Test for fancy-selections (working selections, write)."""
         nparr = self.nparr
         tbarr = self.tbarr
-        for keys in self.working_keyset:
+        for key in self.working_keyset:
             if common.verbose:
-                print "Selection to test:", keys
-            s = nparr[keys]
-            nparr[keys] = s*2
-            tbarr[keys] = s*2
+                print "Selection to test:", key
+            s = nparr[key]
+            nparr[key] = s*2
+            tbarr[key] = s*2
+            a = nparr[:]
+            b = tbarr[:]
+#             if common.verbose:
+#                 print "NumPy modified array:", a
+#                 print "PyTables modifyied array:", b
+            self.assert_(
+                numpy.alltrue(a == b),
+                "NumPy array and PyTables modifications does not match.")
+
+    def test02b_write(self):
+        """Test for fancy-selections (working selections, write, broadcast)."""
+        nparr = self.nparr
+        tbarr = self.tbarr
+        for key in self.working_keyset:
+            if common.verbose:
+                print "Selection to test:", key
+            s = nparr[key]
+            nparr[key] = 2   # broadcast value
+            tbarr[key] = 2   # broadcast value
             a = nparr[:]
             b = tbarr[:]
 #             if common.verbose:
@@ -2138,6 +2302,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(FancySelection2))
         theSuite.addTest(unittest.makeSuite(FancySelection3))
         theSuite.addTest(unittest.makeSuite(FancySelection4))
+        theSuite.addTest(unittest.makeSuite(PointSelection1))
+        theSuite.addTest(unittest.makeSuite(PointSelection2))
+        theSuite.addTest(unittest.makeSuite(PointSelection3))
+        theSuite.addTest(unittest.makeSuite(PointSelection4))
 
     return theSuite
 

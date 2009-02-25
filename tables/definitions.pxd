@@ -381,6 +381,8 @@ cdef extern from "hdf5.h":
   herr_t H5Sselect_hyperslab(hid_t space_id, H5S_seloper_t op,
                              hsize_t start[], hsize_t _stride[],
                              hsize_t count[], hsize_t _block[])
+  herr_t H5Sselect_elements(hid_t space_id, H5S_seloper_t op,
+                            size_t num_elements, hsize_t *coord)
   herr_t H5Sclose(hid_t space_id)
 
 
