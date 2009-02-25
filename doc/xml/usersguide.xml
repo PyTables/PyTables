@@ -2146,7 +2146,7 @@ After modifying the complete third row--&gt;
       row.update()
 
 >>> print "After modifying energy column (where TDCcount &lt;=2)--&gt;", table[0:4]
-After modifying energy column (where TDCcount &lt;=2)--&gt; 
+After modifying energy column (where TDCcount &lt;=2)--&gt;
 [(0, 1, 2.0, 0, 10, 0L, 'Particle:      0', 0.0)
  (1, 2, 4.0, 4, 5, 6L, 'Particle:   None', 8.0)
  (512, 2, 4.0, 2, 8, 34359738368L, 'Particle:      2', 4.0)
@@ -6903,19 +6903,33 @@ for node in h5file.root.detector:
             determined by it is returned as a record array of the current
             flavor.</para>
 
+            <para>In addition, NumPy-style point selections are supported.  In
+            particular, if <literal>key</literal> is a list of row
+            coordinates, the set of rows determined by it is returned.
+            Furthermore, if <literal>key</literal> is an array of boolean
+            values, only the coordinates where <literal>key</literal>
+            is <literal>True</literal> are returned.  Note that for the latter
+            to work it is necessary that <literal>key</literal> list would
+            contain exactly as many rows as the table has.</para>
+
             <para>Example of use:</para>
 
             <screen>record = table[4]
-recarray = table[4:1000:2]</screen>
+recarray = table[4:1000:2]
+recarray = table[[4,1000]]   # only retrieves rows 4 and 1000
+recarray = table[[True, False, ..., True]]</screen>
 
             <para>Those statements are equivalent to:</para>
 
             <screen>record = table.read(start=4)[0]
-recarray = table.read(start=4, stop=1000, step=2)</screen>
+recarray = table.read(start=4, stop=1000, step=2)
+recarray = table.readCoordinates([4,1000])
+recarray = table.readCoordinates([True, False, ..., True])</screen>
 
-            <para>Here you can see how indexing and slicing can be used as
-            shorthands for the <literal>read()</literal> (see <xref
-            linkend="Table.read" />) method.</para>
+            <para>Here, you can see how indexing can be used as a shorthand
+            for the <literal>read()</literal> (see <xref linkend="Table.read"
+            />) and <literal>readCoordinates()</literal> (see
+            <xref linkend="Table.readCoordinates" />) methods.</para>
           </section>
 
           <section id="Table.__iter__" xreflabel="description">
@@ -7052,6 +7066,22 @@ fileh.close()</screen>
             columns.</para>
           </section>
 
+          <section id="Table.modifyCoordinates">
+            <title>modifyCoordinates(coords, rows)</title>
+
+            <para>Modify a series of rows in positions specified in
+            <literal>coords</literal></para>
+
+            <para>The values in the selected rows will be modified with the
+              data given in <literal>rows</literal>.  This method returns the
+              number of rows modified.</para>
+
+            <para>The possible values for the <literal>rows</literal> argument
+              are the same as in <literal>Table.append()</literal> (see
+              <xref linkend="Table.append" />).</para>
+
+          </section>
+
           <section id="Table.modifyRows" xreflabel="description">
             <title>modifyRows(start=None, stop=None, step=1,
             rows=None)</title>
@@ -7128,6 +7158,17 @@ fileh.close()</screen>
             array or sequence capable of being converted to the table
             structure).</para>
 
+            <para>In addition, NumPy-style point selections are supported.  In
+            particular, if <literal>key</literal> is a list of row
+            coordinates, the set of rows determined by it is set
+            to <literal>value</literal>.  Furthermore,
+            if <literal>key</literal> is an array of boolean values, only the
+            coordinates where <literal>key</literal>
+            is <literal>True</literal> are set to values
+            from <literal>value</literal>.  Note that for the latter to work
+            it is necessary that <literal>key</literal> list would contain
+            exactly as many rows as the table has.</para>
+
             <para>Example of use:</para>
 
             <screen># Modify just one existing row
@@ -7135,20 +7176,24 @@ table[2] = [456,'db2',1.2]
 # Modify two existing rows
 rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
                        formats='i4,a3,f8')
-table[1:3:2] = rows</screen>
+table[1:3:2] = rows
+table[[1,3]] = rows              # only modifies rows 1 and 3
+table[[True,False,True]] = rows  # only modifies rows 0 and 2</screen>
 
             <para>Which is equivalent to:</para>
 
             <screen>table.modifyRows(start=2, rows=[456,'db2',1.2])
 rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
                        formats='i4,a3,f8')
-table.modifyRows(start=1, stop=3, step=2, rows=rows)</screen>
+table.modifyRows(start=1, stop=3, step=2, rows=rows)
+table.modifyCoordinates([1,3,2], rows)
+table.modifyCoordinates([True, False, True], rows)</screen>
 
-            <!-- manual-only -->
-            <para>See <xref linkend="NestedRecArrayClassDescr"
-            xrefstyle="select: label" /> if you are using
-            <literal>numarray</literal> and you want to modify data in nested
-            columns.</para>
+            <para>Here, you can see how indexing can be used as a shorthand
+            for the <literal>modifyRows()</literal> (see
+            <xref linkend="Table.modifyRows" />)
+            and <literal>modifyCoordinates()</literal> (see
+            <xref linkend="Table.modifyCoordinates" />) methods.</para>
           </section>
         </section>
 
@@ -8253,7 +8298,8 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
 
               <note>
                 <para>This method is equivalent to
-                ``Column.createIndex(kind='full', optlevel=9, ...).</para>
+                  <literal>Column.createIndex(kind='full', optlevel=9,
+                  ...)</literal>.</para>
               </note>
             </section>
 

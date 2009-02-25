@@ -534,6 +534,69 @@ very small/large chunksize, you may want to increase/decrease it."""
         return data
 
 
+    def _pointSelection(self, key):
+        """Performs a point-wise selection.
+
+        `key` can be any of the following items:
+
+        * A boolean array with the same shape than self. Those
+          positions with True values will signal the coordinates to be
+          returned.
+
+        * A numpy array (or list or tuple) with the point coordinates.
+          This has to be a two-dimensional array of size
+          len(self.shape) by num_elements containing a list of of
+          zero-based values specifying the coordinates in the dataset
+          of the selected elements. The order of the element
+          coordinates in the array specifies the order in which the
+          array elements are iterated through when I/O is
+          performed. Duplicate coordinate locations are not checked
+          for.
+
+        Returns the coordinates array.  If this is not possible, raise
+        a `TypeError` so that the next selection method can be tried
+        out.
+
+        This is useful for whatever `Leaf` instance implementing a
+        point-wise selection.
+        """
+
+        if type(key) in (list, tuple):
+            if type(key) is tuple and len(key) > len(self.shape):
+                raise IndexError("Invalid index or slice: %r" % (key,))
+            # Try to convert key to a numpy array.  If not possible,
+            # a TypeError will be issued (to be catched later on).
+            try:
+                key = numpy.array(key)
+            except ValueError:
+                raise TypeError("Invalid index or slice: %r" % (key,))
+        elif not isinstance(key, numpy.ndarray):
+            raise TypeError("Invalid index or slice: %r" % (key,))
+        if key.dtype.kind == 'b':
+            if not key.shape == self.shape:
+                raise IndexError(
+                    "Boolean indexing array has incompatible shape")
+            coords = numpy.transpose(key.nonzero())
+        elif key.dtype.kind == 'i':
+            if len(key.shape) > 2:
+                raise IndexError(
+                    "Coordinate indexing array has incompatible shape")
+            elif len(key.shape) == 2:
+                if key.shape[0] <> len(self.shape):
+                    raise IndexError(
+                        "Coordinate indexing array has incompatible shape")
+                coords = numpy.transpose(numpy.array(key, dtype="i8"))
+            else:
+                # For 1-dimensional datasets
+                coords = numpy.array(key, dtype="i8")
+        else:
+            raise TypeError("Only integer coordinates allowed.")
+        # We absolutely need a contiguous array
+        if not coords.flags.contiguous:
+            coords = coords.copy()
+        return coords
+
+
     # Public methods
     # ~~~~~~~~~~~~~~
     # Tree manipulation

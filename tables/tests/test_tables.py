@@ -3697,11 +3697,108 @@ class RecArrayIO(unittest.TestCase):
         os.remove(file)
 
 
+    def test10a(self):
+        "Checking modifying rows using coordinates (readCoords/modifyCoords)."
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10a..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        columns = table.readCoordinates([0,3])
+
+        # Modify both rows
+        columns['col1'][:] = [55, 56]
+        columns['col3'][:] = [1.9, 1.8]
+
+        # Modify the table in the same coordinates
+        table.modifyCoordinates([0,3], columns)
+
+        # Create the modified recarray
+        r1=records.array([[55,'dbe',1.9],[2,'ded',1.3],
+                          [457,'db1',1.2],[56,'de1',1.8]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+
+    def test10b(self):
+        "Checking modifying rows using coordinates (getitem/setitem)."
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test10b..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+
+        # append new rows
+        r=records.array([[456,'dbe',1.2],[2,'ded',1.3]], formats="i4,a3,f8")
+        table.append(r)
+        table.append([[457,'db1',1.2],[5,'de1',1.3]])
+
+        columns = table[[0,3]]
+
+        # Modify both rows
+        columns['col1'][:] = [55, 56]
+        columns['col3'][:] = [1.9, 1.8]
+
+        # Modify the table in the same coordinates
+        table[[0,3]] = columns
+
+        # Create the modified recarray
+        r1=records.array([[55,'dbe',1.9],[2,'ded',1.3],
+                          [457,'db1',1.2],[56,'de1',1.8]],
+                         formats="i4,a3,f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        if self.reopen:
+            fileh.close()
+            fileh = openFile(file, "r")
+            table = fileh.root.recarray
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+
 class RecArrayIO1(RecArrayIO):
     reopen=0
 
 class RecArrayIO2(RecArrayIO):
     reopen=1
+
 
 class CopyTestCase(unittest.TestCase):
 
@@ -5015,6 +5112,135 @@ class TruncateCloseTestCase(TruncateTestCase):
     close = 1
 
 
+class PointSelectionTestCase(common.PyTablesTestCase):
+
+    def setUp(self):
+        N = 100
+
+        # Limits for selections
+        self.limits = [
+            (0, 1),  # just one element
+            (20, -10),  # no elements
+            (-10, 4),  # several elements
+            (0, 10),   # several elements (again)
+            ]
+
+        # Create an instance of an HDF5 Table
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = fileh = openFile(self.file, "w")
+        # Create a sample tables
+        self.data = data = arange(N)
+        self.recarr = recarr = empty(N, dtype="i4,f4")
+        recarr["f0"][:] = data
+        recarr["f1"][:] = data
+        self.table = fileh.createTable(fileh.root, 'table', recarr)
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test01a_read(self):
+        """Test for point-selections (read, boolean keys)."""
+        data = self.data
+        recarr = self.recarr
+        table = self.table
+        for value1, value2 in self.limits:
+            key = (data >= value1) & (data < value2)
+            if common.verbose:
+                print "Selection to test:", key
+            a = recarr[key]
+            b = table[key]
+            if common.verbose:
+                print "NumPy selection:", a
+                print "PyTables selection:", b
+            self.assert_(
+                alltrue(a == b),
+                "NumPy array and PyTables selections does not match.")
+
+    def test01b_read(self):
+        """Test for point-selections (read, integer keys)."""
+        data = self.data
+        recarr = self.recarr
+        table = self.table
+        for value1, value2 in self.limits:
+            key = where((data >= value1) & (data < value2))
+            if common.verbose:
+                print "Selection to test:", key
+            a = recarr[key]
+            b = table[key]
+#             if common.verbose:
+#                 print "NumPy selection:", a
+#                 print "PyTables selection:", b
+            self.assert_(
+                alltrue(a == b),
+                "NumPy array and PyTables selections does not match.")
+
+    def test01c_read(self):
+        """Test for point-selections (read, float keys)."""
+        data = self.data
+        recarr = self.recarr
+        table = self.table
+        for value1, value2 in self.limits:
+            key = where((data >= value1) & (data < value2))
+            if common.verbose:
+                print "Selection to test:", key
+            a = recarr[key]
+            fkey = array(key,"f4")
+            self.assertRaises(TypeError, table.__getitem__, fkey)
+
+
+    def test02a_write(self):
+        """Test for point-selections (write, boolean keys)."""
+        data = self.data
+        recarr = self.recarr
+        table = self.table
+        for value1, value2 in self.limits:
+            key = where((data >= value1) & (data < value2))
+            if common.verbose:
+                print "Selection to test:", key
+            s = recarr[key]
+            # Modify the s recarray
+            s["f0"][:] = data[:len(s)]*2
+            s["f1"][:] = data[:len(s)]*3
+            # Modify recarr and table
+            recarr[key] = s
+            table[key] = s
+            a = recarr[:]
+            b = table[:]
+#             if common.verbose:
+#                 print "NumPy modified array:", a
+#                 print "PyTables modifyied array:", b
+            self.assert_(
+                alltrue(a == b),
+                "NumPy array and PyTables modifications does not match.")
+
+    def test02b_write(self):
+        """Test for point-selections (write, integer keys)."""
+        data = self.data
+        recarr = self.recarr
+        table = self.table
+        for value1, value2 in self.limits:
+            key = where((data >= value1) & (data < value2))
+            if common.verbose:
+                print "Selection to test:", key
+            s = recarr[key]
+            # Modify the s recarray
+            s["f0"][:] = data[:len(s)]*2
+            s["f1"][:] = data[:len(s)]*3
+            # Modify recarr and table
+            recarr[key] = s
+            table[key] = s
+            a = recarr[:]
+            b = table[:]
+#             if common.verbose:
+#                 print "NumPy modified array:", a
+#                 print "PyTables modifyied array:", b
+            self.assert_(
+                alltrue(a == b),
+                "NumPy array and PyTables modifications does not match.")
+
+
 
 #----------------------------------------------------------------------
 
@@ -5077,6 +5303,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(IrregularStrideTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
+        theSuite.addTest(unittest.makeSuite(PointSelectionTestCase))
 
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressBZIP2TablesTestCase))

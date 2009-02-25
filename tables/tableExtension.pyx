@@ -516,23 +516,24 @@ cdef class Table(Leaf):
     self._dirtycache = True
 
 
-  def _update_elements(self, hsize_t nrecords, ndarray elements,
+  def _update_elements(self, hsize_t nrecords, ndarray coords,
                        ndarray recarr):
     cdef herr_t ret
-    cdef void *rbuf, *coords
+    cdef void *rbuf, *rcoords
 
     # Get the chunk of the coords that correspond to a buffer
-    coords = elements.data
+    rcoords = coords.data
 
     # Get the pointer to the buffer data area
     rbuf = recarr.data
 
     # Convert some NumPy types to HDF5 before storing.
     self._convertTypes(recarr, nrecords, 0)
+
     # Update the records:
     Py_BEGIN_ALLOW_THREADS
     ret = H5TBOwrite_elements(self.dataset_id, self.type_id,
-                              nrecords, coords, rbuf)
+                              nrecords, rcoords, rbuf)
     Py_END_ALLOW_THREADS
     if ret < 0:
       raise HDF5ExtError("Problems updating the records.")
@@ -597,17 +598,17 @@ cdef class Table(Leaf):
     return nrecords
 
 
-  def _read_elements(self, ndarray recarr, ndarray elements):
+  def _read_elements(self, ndarray coords, ndarray recarr):
     cdef long nrecords
     cdef void *rbuf, *rbuf2
     cdef int ret
 
     # Get the chunk of the coords that correspond to a buffer
-    nrecords = elements.size
+    nrecords = coords.size
     # Get the pointer to the buffer data area
     rbuf = recarr.data
     # Get the pointer to the buffer coords area
-    rbuf2 = elements.data
+    rbuf2 = coords.data
 
     Py_BEGIN_ALLOW_THREADS
     ret = H5TBOread_elements(self.dataset_id, self.type_id,
@@ -993,7 +994,7 @@ cdef class Row:
         self.bufcoords = numpy.array(tmp, dtype="uint64")
         self._row = -1
         if self.bufcoords.size > 0:
-          recout = self.table._read_elements(self.IObuf, self.bufcoords)
+          recout = self.table._read_elements(self.bufcoords, self.IObuf)
         else:
           recout = 0
         self.bufcoordsData = <hsize_t*>self.bufcoords.data

@@ -38,7 +38,7 @@ class BasicTestCase(unittest.TestCase):
                   testArray.dtype.type,
             print "for class check:", self.title
 
-        # Create an instance of HDF5 Table
+        # Create an instance of HDF5 file
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, mode = "w")
         self.root = self.fileh.root
@@ -116,7 +116,7 @@ class BasicTestCase(unittest.TestCase):
         "Data integrity during recovery (string objects)"
 
         a = self.tupleChar
-        # Create an instance of HDF5 Table
+        # Create an instance of HDF5 file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, mode = "w")
         fileh.createArray(fileh.root, 'somearray', a, "Some array")
@@ -266,7 +266,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        # Create an instance of HDF5 Table
+        # Create an instance of HDF5 file
         self.file = tempfile.mktemp(".h5")
         self.fileh = openFile(self.file, mode = "w")
         self.root = self.fileh.root
@@ -324,7 +324,7 @@ class UnalignedAndComplexTestCase(unittest.TestCase):
         if a.dtype.byteorder != "|":
             assert a.dtype == b.dtype
             assert a.dtype == self.root.somearray.atom.dtype
-            assert byteorders[b.dtype.byteorder] == sys.byteorder            
+            assert byteorders[b.dtype.byteorder] == sys.byteorder
             assert self.root.somearray.byteorder == byteorder
 
         assert allequal(c,b)
@@ -667,7 +667,7 @@ class CopyTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test01_copy..." % self.__class__.__name__
 
-        # Create an instance of an HDF5 Table
+        # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -713,7 +713,7 @@ class CopyTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test02_copy..." % self.__class__.__name__
 
-        # Create an instance of an HDF5 Table
+        # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -760,7 +760,7 @@ class CopyTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test03_copy..." % self.__class__.__name__
 
-        # Create an instance of an HDF5 Table
+        # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -805,7 +805,7 @@ class CopyTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test04_copy..." % self.__class__.__name__
 
-        # Create an instance of an HDF5 Table
+        # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -842,7 +842,7 @@ class CopyTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05_copy..." % self.__class__.__name__
 
-        # Create an instance of an HDF5 Table
+        # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -882,7 +882,7 @@ class CopyTestCase(unittest.TestCase):
             print '\n', '-=' * 30
             print "Running %s.test05b_copy..." % self.__class__.__name__
 
-        # Create an instance of an HDF5 Table
+        # Create an instance of an HDF5 file
         file = tempfile.mktemp(".h5")
         fileh = openFile(file, "w")
 
@@ -1946,7 +1946,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             (-10, 4),  # several elements
             (0, 10),   # several elements (again)
             ]
-        # Create an instance of an HDF5 Table
+        # Create an instance of an HDF5 Array
         self.file = tempfile.mktemp(".h5")
         self.fileh = fileh = openFile(self.file, "w")
         # Create a sample array
@@ -2124,7 +2124,7 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             ([1,2], 2, 1, 1),
             ]
 
-        # Create an instance of an HDF5 Table
+        # Create an instance of an HDF5 file
         self.file = tempfile.mktemp(".h5")
         self.fileh = fileh = openFile(self.file, "w")
         # Create a sample array

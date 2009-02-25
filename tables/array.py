@@ -481,58 +481,6 @@ class Array(hdf5Extension.Array, Leaf):
         return startl, stopl, stepl, shape
 
 
-    def _pointSelection(self, key):
-        """Performs a point-wise selection.
-
-        `key` can be any of the following items:
-
-        * A boolean array with the same shape than self. Those
-          positions with True values will signal the coordinates to be
-          returned.
-
-        * A numpy array (or list or tuple) with the point coordinates.
-          This has to be a two-dimensional array of size
-          len(self.shape) by num_elements containing a list of of
-          zero-based values specifying the coordinates in the dataset
-          of the selected elements. The order of the element
-          coordinates in the array specifies the order in which the
-          array elements are iterated through when I/O is
-          performed. Duplicate coordinate locations are not checked
-          for.
-
-        Returns the coordinates array.  If this is not possible, raise
-        a `TypeError` so that the next selection method can be tried
-        out.
-
-        """
-        if type(key) in (list, tuple):
-            # Try to convert key to a numpy array.  If not possible,
-            # a TypeError will be issued (to be catched later on).
-            try:
-                key = numpy.array(key)
-            except ValueError:
-                raise TypeError  # Try with next selection method
-        if isinstance(key, numpy.ndarray):
-            if key.dtype.kind == 'b':
-                if not key.shape == self.shape:
-                    raise IndexError(
-                        "Boolean indexing array has incompatible shape")
-                coords = numpy.transpose(key.nonzero())
-            elif key.dtype.kind == 'i':
-                if key.shape[0] <> len(self.shape):
-                    # Coordinate dimensions do not match with self.shape
-                    raise TypeError  # Try with next selection method
-                coords = numpy.transpose(numpy.array(key, dtype="i8"))
-            else:
-                raise TypeError  # Try with next selection method
-        else:
-            raise TypeError  # Try with next selection method
-        # We absolutely need a contiguous array
-        if not coords.flags.contiguous:
-            coords = coords.copy()
-        return coords
-
-
     def _fancySelection(self, args):
         """Performs a NumPy-style fancy selection in `self`.
 
@@ -554,7 +502,7 @@ class Array(hdf5Extension.Array, Leaf):
             except TypeError:
                 raise TypeError("Illegal index: %r" % num)
             if num > length-1:
-                raise IndexError('Index out of bounds: %d' % num)
+                raise IndexError("Index out of bounds: %d" % num)
 
 
         def expand_ellipsis(args, rank):

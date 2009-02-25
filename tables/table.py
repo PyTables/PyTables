@@ -1597,7 +1597,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                     coords.flags.aligned):
                 # Get a contiguous and aligned coordinate array
                 coords = numpy.array(coords, dtype=SizeType)
-            self._read_elements(result, coords)
+            self._read_elements(coords, result)
 
         # Do the final conversions, if needed
         if field:
@@ -1667,6 +1667,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         return self.read(field=name)
 
+
     def __getitem__(self, key):
         """
         Get a row or a range of rows from the table.
@@ -1676,18 +1677,30 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         slice, the range of rows determined by it is returned as a
         record array of the current flavor.
 
+        In addition, NumPy-style point selections are supported.  In
+        particular, if `key` is a list of row coordinates, the set of
+        rows determined by it is returned.  Furthermore, if `key` is an
+        array of boolean values, only the coordinates where `key` is
+        ``True`` are returned.  Note that for the latter to work it is
+        necessary that `key` list would contain exactly as many rows as
+        the table has.
+
         Example of use::
 
             record = table[4]
             recarray = table[4:1000:2]
+            recarray = table[[4,1000]]   # only retrieves rows 4 and 1000
+            recarray = table[[True, False, ..., True]]
 
         Those statements are equivalent to::
 
             record = table.read(start=4)[0]
             recarray = table.read(start=4, stop=1000, step=2)
+            recarray = table.readCoordinates([4,1000])
+            recarray = table.readCoordinates([True, False, ..., True])
 
-        Here you can see how indexing and slicing can be used as
-        shorthands for the `read()` method.
+        Here, you can see how indexing can be used as a shorthand for the
+        `read()` or `readCoordinates()` methods.
         """
 
         if is_idx(key):
@@ -1708,8 +1721,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             (start, stop, step) = self._processRange(
                 key.start, key.stop, key.step )
             return self.read(start, stop, step)
+        # Try with a boolean or point selection
+        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+            coords = self._pointSelection(key)
+            return self._readCoordinates(coords, None)
         else:
-            raise TypeError("invalid index or slice: %r" % (key,))
+            raise TypeError("Invalid index or slice: %r" % (key,))
 
 
     def __setitem__(self, key, value):
@@ -1723,6 +1740,14 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         row slice determined by it is set to `value` (a NumPy record
         array, ``NestedRecArray`` or list of rows).
 
+        In addition, NumPy-style point selections are supported.  In
+        particular, if `key` is a list of row coordinates, the set of
+        rows determined by it is set to `value`.  Furthermore, if `key`
+        is an array of boolean values, only the coordinates where `key`
+        is ``True`` are set to values from `value`.  Note that for the
+        latter to work it is necessary that `key` list would contain
+        exactly as many rows as the table has.
+
         Example of use::
 
             # Modify just one existing row
@@ -1731,6 +1756,8 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
                                    formats='i4,a3,f8')
             table[1:3:2] = rows
+            table[[1,3]] = rows              # only modifies rows 1 and 3
+            table[[True,False,True]] = rows  # only modifies rows 0 and 2
 
         Which is equivalent to::
 
@@ -1738,6 +1765,11 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
                                    formats='i4,a3,f8')
             table.modifyRows(start=1, stop=3, step=2, rows=rows)
+            table.modifyCoordinates([1,3,2], rows)
+            table.modifyCoordinates([True, False, True], rows)
+
+        Here, you can see how indexing can be used as a shorthand for
+        the `modifyRows()` or `modifyCoordinates()` methods.
         """
 
         self._v_file._checkWritable()
@@ -1754,8 +1786,31 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             (start, stop, step) = self._processRange(
                 key.start, key.stop, key.step )
             return self.modifyRows(start, stop, step, value)
+        # Try with a boolean or point selection
+        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+            return self.modifyCoordinates(key, value)
         else:
-            raise ValueError, "Non-valid index or slice: %s" % key
+            # XXX The next ValueError must be put in sync with the
+            # TypeError that raises __getitem__.  As this represents an
+            # API change, this must not be done in a patch-level release.
+            raise ValueError, "Invalid index or slice: %r" % key
+
+
+    def _saveBufferedRows(self, wbufRA, lenrows):
+        """Update the indexes after a flushing of rows"""
+        self._open_append(wbufRA)
+        self._append_records(lenrows)
+        self._close_append()
+        if self.indexed:
+            self._unsaved_indexedrows += lenrows
+            # The table caches for indexed queries are dirty now
+            self._dirtycache = True
+            if self.autoIndex:
+                # Flush the unindexed rows
+                self.flushRowsToIndex(_lastrow=False)
+            else:
+                # All the columns are dirty now
+                self._markColumnsAsDirty(self.colpathnames)
 
 
     def append(self, rows):
@@ -1812,21 +1867,65 @@ You cannot append rows to a non-chunked table.""")
             self._saveBufferedRows(wbufRA, lenrows)
 
 
-    def _saveBufferedRows(self, wbufRA, lenrows):
-        """Update the indexes after a flushing of rows"""
-        self._open_append(wbufRA)
-        self._append_records(lenrows)
-        self._close_append()
-        if self.indexed:
-            self._unsaved_indexedrows += lenrows
-            # The table caches for indexed queries are dirty now
-            self._dirtycache = True
-            if self.autoIndex:
-                # Flush the unindexed rows
-                self.flushRowsToIndex(_lastrow=False)
+    def _conv_to_recarr(self, obj):
+        """Try to convert the object into a recarray."""
+        try:
+            iflavor = flavor_of(obj)
+            if iflavor != 'python':
+                obj = array_as_internal(obj, iflavor)
+            if hasattr(obj, "shape") and obj.shape == ():
+                # To allow conversion of scalars (void type) into arrays.
+                # See http://projects.scipy.org/scipy/numpy/ticket/315
+                # for discussion on how to pass buffers to constructors
+                # See also http://projects.scipy.org/scipy/numpy/ticket/348
+                recarr = numpy.array([obj], dtype=self._v_dtype)
             else:
-                # All the columns are dirty now
-                self._markColumnsAsDirty(self.colpathnames)
+                # Works for Python structures and always copies the original,
+                # so the resulting object is safe for in-place conversion.
+                recarr = numpy.rec.array(obj, dtype=self._v_dtype)
+        except Exception, exc:  #XXX
+            raise ValueError, \
+"""Object cannot be converted into a recarray object compliant with
+table format '%s'. The error was: <%s>
+""" % (self.description._v_nestedDescr, exc)
+
+        return recarr
+
+
+    def modifyCoordinates(self, coords, rows):
+        """
+        Modify a series of rows in positions specified in `coords`.
+
+        The values in the selected rows will be modified with the data
+        given in `rows`.  This method returns the number of rows
+        modified.
+
+        The possible values for the `rows` argument are the same as in
+        `Table.append()`.
+        """
+
+        if rows is None:      # Nothing to be done
+            return SizeType(0)
+
+        # Convert the coordinates to something expected by HDF5
+        coords = self._pointSelection(coords)
+
+        lcoords = len(coords)
+        if len(rows) < lcoords:
+            raise ValueError, \
+           "The value has not enough elements to fill-in the specified range"
+
+        # Convert rows into a recarray
+        recarr = self._conv_to_recarr(rows)
+
+        if len(coords) > 0:
+            # Do the actual update of rows
+            self._update_elements(lcoords, coords, recarr)
+
+        # Redo the index if needed
+        self._reIndex(self.colpathnames)
+
+        return SizeType(lcoords)
 
 
     def modifyRows(self, start=None, stop=None, step=1, rows=None):
@@ -1864,31 +1963,18 @@ You cannot append rows to a non-chunked table.""")
         if len(rows) < nrows:
             raise ValueError, \
            "The value has not enough elements to fill-in the specified range"
-        # Try to convert the object into a recarray
-        try:
-            iflavor = flavor_of(rows)
-            if iflavor != 'python':
-                rows = array_as_internal(rows, iflavor)
-            if hasattr(rows, "shape") and rows.shape == ():
-                # To allow conversion of scalars (void type) into arrays.
-                # See http://projects.scipy.org/scipy/numpy/ticket/315
-                # for discussion on how to pass buffers to constructors
-                # See also http://projects.scipy.org/scipy/numpy/ticket/348
-                recarray = numpy.array([rows], dtype=self._v_dtype)
-            else:
-                # Works for Python structures and always copies the original,
-                # so the resulting object is safe for in-place conversion.
-                recarray = numpy.rec.array(rows, dtype=self._v_dtype)
-        except Exception, exc:  #XXX
-            raise ValueError, \
-"""rows parameter cannot be converted into a recarray object compliant with
-table format '%s'. The error was: <%s>
-""" % (self.description._v_nestedDescr, exc)
-        lenrows = len(recarray)
+
+        # Convert rows into a recarray
+        recarr = self._conv_to_recarr(rows)
+
+        lenrows = len(recarr)
         if start + lenrows > self.nrows:
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
-        self._update_records(start, stop, step, recarray)
+
+        # Do the actual update
+        self._update_records(start, stop, step, recarr)
+
         # Redo the index if needed
         self._reIndex(self.colpathnames)
 
