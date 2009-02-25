@@ -1211,7 +1211,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         self.stopl = numpy.array([nslice+1, start+buffer.size], numpy.uint64)
         self.stepl = numpy.ones(shape=2, dtype=numpy.uint64)
         countl = self.stopl - self.startl   # (1, self.slicesize)
-        where._modify(self.startl, self.stepl, countl, buffer)
+        where._g_writeSlice(self.startl, self.stepl, countl, buffer)
 
 
     # Read version for LastRow
@@ -1229,7 +1229,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         startl = numpy.array([start], dtype=numpy.uint64)
         countl = numpy.array([start+buffer.size], dtype=numpy.uint64)
         stepl = numpy.array([1], dtype=numpy.uint64)
-        where._modify(startl, stepl, countl, buffer)
+        where._g_writeSlice(startl, stepl, countl, buffer)
 
 
     def reorder_slice(self, nslice, sorted, indices, ssorted, sindices,
