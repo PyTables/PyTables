@@ -572,6 +572,11 @@ very small/large chunksize, you may want to increase/decrease it."""
                 raise TypeError("Invalid index or slice: %r" % (key,))
         elif not isinstance(key, numpy.ndarray):
             raise TypeError("Invalid index or slice: %r" % (key,))
+
+        # Protection against empty keys
+        if len(key) == 0:
+            return numpy.array([], dtype="i8")
+
         if key.dtype.kind == 'b':
             if not key.shape == self.shape:
                 raise IndexError(

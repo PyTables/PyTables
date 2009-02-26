@@ -4133,6 +4133,72 @@ class TruncateCloseTestCase(TruncateTestCase):
     close = 1
 
 
+class PointSelectionTestCase(common.PyTablesTestCase):
+
+    def setUp(self):
+
+        # The next are valid selections for both NumPy and PyTables
+        self.working_keyset = [
+            [0,2],                 # list
+            [0,-2],                # negative values
+            ([0,2],),              # tuple of list
+            numpy.array([True,False, True]),   # array of bools
+            [],                                # empty list
+            numpy.array([], dtype="i4"),       # empty array
+            ]
+
+        # The next are valid selections for VLArrays
+        self.not_working_keyset = [
+            [1,2,100],               # coordinate 100 > len(vlarray)
+            ([True,False, True],),   # tuple of bools
+            ]
+
+        # Create an instance of an HDF5 Array
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = fileh = openFile(self.file, "w")
+        # Create a sample array
+        arr1 = numpy.array([5, 6], dtype="i4")
+        arr2 = numpy.array([5, 6, 7], dtype="i4")
+        arr3 = numpy.array([5, 6, 9, 8], dtype="i4")
+        self.nparr = nparr = numpy.array([arr1, arr2, arr3], dtype="object")
+        # Create the VLArray
+        self.vlarr = vlarr = fileh.createVLArray(
+            fileh.root, 'vlarray', Int32Atom())
+        vlarr.append(arr1)
+        vlarr.append(arr2)
+        vlarr.append(arr3)
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def test01a_read(self):
+        """Test for point-selections (read, boolean keys)."""
+        nparr = self.nparr
+        vlarr = self.vlarr
+        for key in self.working_keyset:
+            if common.verbose:
+                print "Selection to test:", `key`
+            a = nparr[key].tolist()
+            b = vlarr[key]
+#             if common.verbose:
+#                 print "NumPy selection:", a
+#                 print "PyTables selection:", b
+            self.assert_(
+                repr(a) == repr(b),
+                "NumPy array and PyTables selections does not match.")
+
+    def test01b_read(self):
+        """Test for point-selections (not working selections, read)."""
+        nparr = self.nparr
+        vlarr = self.vlarr
+        for key in self.not_working_keyset:
+            if common.verbose:
+                print "Selection to test:", key
+            self.assertRaises(IndexError, vlarr.__getitem__, key)
+
+
 
 #----------------------------------------------------------------------
 
@@ -4183,6 +4249,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(VLUEndianTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
         theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
+        theSuite.addTest(unittest.makeSuite(PointSelectionTestCase))
 
         if numeric_imported:
             theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))

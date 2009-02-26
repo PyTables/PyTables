@@ -34,7 +34,8 @@ import numpy
 from tables import hdf5Extension
 from tables.utilsExtension import lrange
 from tables.utils import convertToNPAtom, convertToNPAtom2, idx2long, \
-     correct_byteorder, SizeType
+     correct_byteorder, SizeType, is_idx
+
 
 from tables.atom import (
     ObjectAtom, VLStringAtom, VLUnicodeAtom, EnumAtom, Atom, split_type )
@@ -581,29 +582,46 @@ be zero."""
         slice, the range of rows determined by it is returned as a
         list of objects of the current flavor.
 
+        In addition, NumPy-style point selections are supported.  In
+        particular, if `key` is a list of row coordinates, the set of
+        rows determined by it is returned.  Furthermore, if `key` is an
+        array of boolean values, only the coordinates where `key` is
+        ``True`` are returned.  Note that for the latter to work it is
+        necessary that `key` list would contain exactly as many rows as
+        the array has.
+
         Example of use::
 
             a_row = vlarray[4]
             a_list = vlarray[4:1000:2]
+            a_list2 = vlarray[[0,2]]   # get list of coords
+            a_list3 = vlarray[[0,-2]]  # negative values accepted
+            a_list4 = vlarray[numpy.array([True,...,False])]  # array of bools
         """
 
-        if type(key) in (int,long) or isinstance(key, numpy.integer):
+        if is_idx(key):
+            # Index out of range protection
             if key >= self.nrows:
                 raise IndexError, "Index out of range"
             if key < 0:
                 # To support negative values
                 key += self.nrows
-            return self.read(key)[0]
+            (start, stop, step) = self._processRange(key, key+1, 1)
+            return self.read(start, stop, step)[0]
         elif isinstance(key, slice):
             start, stop, step = self._processRange(
                 key.start, key.stop, key.step)
             return self.read(start, stop, step)
+        # Try with a boolean or point selection
+        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+            coords = self._pointSelection(key)
+            return self._readCoordinates(coords)
         else:
             raise IndexError, "Non-valid index or slice: %s" % \
                   key
 
 
-    def __setitem__(self, keys, value):
+    def __setitem__(self, key, value):
         """
         Set a row in the array.
 
@@ -638,11 +656,11 @@ be zero."""
 
         self._v_file._checkWritable()
 
-        if not isinstance(keys, tuple):
-            keys = (keys, None)
-        if len(keys) > 2:
+        if not isinstance(key, tuple):
+            key = (key, None)
+        if len(key) > 2:
             raise IndexError, "You cannot specify more than two dimensions"
-        nrow, rng = keys
+        nrow, rng = key
         # Process the first index
         if not (type(nrow) in (int,long) or isinstance(nrow, numpy.integer)):
             raise IndexError, "The first dimension only can be an integer"
@@ -661,15 +679,15 @@ be zero."""
         else:
             raise IndexError, "Non-valid second index or slice: %s" % rng
 
-        object = value
+        object_ = value
         # Prepare the object to convert it into a NumPy object
         atom = self.atom
         if not hasattr(atom, 'size'):  # it is a pseudo-atom
-            object = atom.toarray(object)
+            object_ = atom.toarray(object_)
             statom = atom.base
         else:
             statom = atom
-        value = convertToNPAtom(object, statom)
+        value = convertToNPAtom(object_, statom)
         nobjects = self._getnobjects(value)
 
         # Get the previous value
@@ -690,7 +708,7 @@ be zero."""
         except Exception, exc:  #XXX
             raise ValueError, \
 "Value parameter:\n'%r'\ncannot be converted into an array object compliant vlarray[%s] row: \n'%r'\nThe error was: <%s>" % \
-        (value, keys, nparr[slice(start, stop, step)], exc)
+        (value, key, nparr[slice(start, stop, step)], exc)
 
         if nparr.size > 0:
             self._modify(nrow, nparr, nobjects)
@@ -730,6 +748,14 @@ be zero."""
             flavor = self.flavor
             outlistarr = [internal_to_flavor(arr, flavor) for arr in listarr]
         return outlistarr
+
+
+    def _readCoordinates(self, coords):
+        """Read rows specified in `coords`."""
+        rows = []
+        for coord in coords:
+            rows.append(self.read(coord)[0])
+        return rows
 
 
     def _g_copyWithStats(self, group, name, start, stop, step,

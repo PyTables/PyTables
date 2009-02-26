@@ -8989,10 +8989,22 @@ array_c[4] => 'cccccccc'</screen>
             determined by it is returned as a list of objects of the current
             flavor.</para>
 
+            <para>In addition, NumPy-style point selections are supported.  In
+            particular, if <literal>key</literal> is a list of row
+            coordinates, the set of rows determined by it is returned.
+            Furthermore, if <literal>key</literal> is an array of boolean
+            values, only the coordinates where <literal>key</literal>
+            is <literal>True</literal> are returned.  Note that for the latter
+            to work it is necessary that <literal>key</literal> list would
+            contain exactly as many rows as the array has.</para>
+
             <para>Example of use:</para>
 
             <screen>a_row = vlarray[4]
-a_list = vlarray[4:1000:2]</screen>
+a_list = vlarray[4:1000:2]
+a_list2 = vlarray[[0,2]]   # get list of coords
+a_list3 = vlarray[[0,-2]]  # negative values accepted
+a_list4 = vlarray[numpy.array([True,...,False])]  # array of bools</screen>
           </section>
 
           <section id="VLArray.__iter__" xreflabel="description">
@@ -9015,7 +9027,7 @@ a_list = vlarray[4:1000:2]</screen>
           </section>
 
           <section id="VLArray.__setitem__" xreflabel="description">
-            <title>__setitem__(keys, value)</title>
+            <title>__setitem__(key, value)</title>
 
             <para>Set a row in the array.</para>
 
