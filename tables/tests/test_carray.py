@@ -2274,6 +2274,27 @@ class MDAtomReopen(MDAtomTestCase):
     reopen = True
 
 
+# Test for building very large MD atoms without defaults
+class MDLargeAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def test01_create(self):
+        "Create a CArray with a very large MD atom.  Ticket #211."
+        N = 2**16      # 4x larger than maximum object header size (64 KB)
+        ca = self.h5file.createCArray('/', 'test', Int32Atom(shape=N), (1,))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Check the value
+        if common.verbose:
+            print "First row-->", ca[0]
+        assert allequal(ca[0], numpy.zeros(N, 'i4'))
+
+class MDLargeAtomNoReopen(MDLargeAtomTestCase):
+    reopen = False
+
+class MDLargeAtomReopen(MDLargeAtomTestCase):
+    reopen = True
+
 
 
 #----------------------------------------------------------------------
@@ -2343,6 +2364,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(TruncateTestCase))
         theSuite.addTest(unittest.makeSuite(MDAtomNoReopen))
         theSuite.addTest(unittest.makeSuite(MDAtomReopen))
+        theSuite.addTest(unittest.makeSuite(MDLargeAtomNoReopen))
+        theSuite.addTest(unittest.makeSuite(MDLargeAtomReopen))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(Slices3CArrayTestCase))
         theSuite.addTest(unittest.makeSuite(Slices4CArrayTestCase))

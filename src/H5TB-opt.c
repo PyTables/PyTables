@@ -114,6 +114,10 @@ herr_t H5TBOmake_table( const char *table_title,
      if ( H5Pset_fill_value( plist_id, type_id, fill_data ) < 0 )
        return -1;
    }
+ else {
+   if ( H5Pset_fill_time(plist_id, H5D_FILL_TIME_ALLOC) < 0 )
+     return -1;
+ }
 
  /*
   Dataset creation property list is modified to use filters
