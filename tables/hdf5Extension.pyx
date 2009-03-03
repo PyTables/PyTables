@@ -44,7 +44,8 @@ from tables.utils import \
 from tables.atom import Atom
 
 from tables.utilsExtension import \
-     enumToHDF5, enumFromHDF5, getTypeEnum, isHDF5File, isPyTablesFile, \
+     enumToHDF5, enumFromHDF5, getTypeEnum, \
+     encode_filename, isHDF5File, isPyTablesFile, \
      AtomToHDF5Type, AtomFromHDF5Type, loadEnum, HDF5ToNPExtType
 
 from utilsExtension cimport malloc_dims, get_native_type
@@ -252,11 +253,7 @@ cdef class File:
     self.name = name
 
     # Encode the filename in case it is unicode
-    if type(name) is unicode:
-      encoding = sys.getfilesystemencoding()
-      encname = name.encode(encoding)
-    else:
-      encname = name
+    encname = encode_filename(name)
 
     # These fields can be seen from Python.
     self._v_new = None  # this will be computed later
@@ -281,8 +278,8 @@ cdef class File:
     # After the following check we know that the file exists
     # and it is an HDF5 file, or maybe a PyTables file.
     if not new:
-      if not isPyTablesFile(encname):
-        if isHDF5File(encname):
+      if not isPyTablesFile(name):
+        if isHDF5File(name):
           # HDF5 but not PyTables.
           # I'm going to disable the next warning because
           # it should be enough to map unsupported objects to

@@ -170,9 +170,19 @@ cdef hid_t get_native_type(hid_t type_id):
   return native_type_id
 
 
+def encode_filename(object filename):
+  """Return the encoded filename in the filesystem encoding."""
+  if type(filename) is unicode:
+    encoding = sys.getfilesystemencoding()
+    encname = filename.encode(encoding)
+  else:
+    encname = filename
+  return encname
+
+
 # Main functions
 
-def isHDF5File(char *filename):
+def isHDF5File(object filename):
   """isHDF5File(filename) -> bool
   Determine whether a file is in the HDF5 format.
 
@@ -181,16 +191,19 @@ def isHDF5File(char *filename):
   an `HDF5ExtError` is raised.
   """
 
-  # Check that the file exists and is readable.
-  checkFileAccess(filename)
+  # Encode the filename in case it is unicode
+  encname = encode_filename(filename)
 
-  ret = H5Fis_hdf5(filename)
+  # Check that the file exists and is readable.
+  checkFileAccess(encname)
+
+  ret = H5Fis_hdf5(encname)
   if ret < 0:
     raise HDF5ExtError("problems identifying file ``%s``" % (filename,))
   return ret > 0
 
 
-def isPyTablesFile(char *filename):
+def isPyTablesFile(object filename):
   """isPyTablesFile(filename) -> true or false value
   Determine whether a file is in the PyTables format.
 
@@ -204,9 +217,11 @@ def isPyTablesFile(char *filename):
 
   isptf = None    # A PYTABLES_FORMAT_VERSION attribute was not found
   if isHDF5File(filename):
+    # Encode the filename in case it is unicode
+    encname = encode_filename(filename)
     # The file exists and is HDF5, that's ok
     # Open it in read-only mode
-    file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT)
+    file_id = H5Fopen(encname, H5F_ACC_RDONLY, H5P_DEFAULT)
     isptf = read_f_attr(file_id, 'PYTABLES_FORMAT_VERSION')
     # Close the file
     H5Fclose(file_id)
