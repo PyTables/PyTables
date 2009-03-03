@@ -2179,6 +2179,54 @@ class OldFlavorTestCase(common.PyTablesTestCase):
             h5file.close()
 
 
+class UnicodeFilename(common.PyTablesTestCase):
+    unicode_prefix = u'para\u0140lel'
+
+    def setUp(self):
+        self.h5fname = tempfile.mktemp(prefix=self.unicode_prefix,
+                                       suffix=".h5")
+        self.h5file = tables.openFile(self.h5fname, "w")
+        self.test = self.h5file.createArray('/', 'test', [1,2])
+        # So as to check the reading
+        self.h5file.close()
+        self.h5file = tables.openFile(self.h5fname, "r")
+
+    def tearDown(self):
+        # Remove the temporary file
+        os.remove(self.h5fname)
+
+    def test01(self):
+        """Checking creating a filename with Unicode chars."""
+
+        test = self.h5file.root.test
+        if common.verbose:
+            print "Filename:", self.h5fname
+            print "Array:", test[:]
+            print "Should look like:", [1,2]
+        self.assert_(test[:] == [1,2], "Values does not match.")
+
+    def test02(self):
+        """Checking isHDF5File with a Unicode filename."""
+
+        self.h5file.close()
+        if common.verbose:
+            print "Filename:", self.h5fname
+            print "isHDF5File?:", tables.isHDF5File(self.h5fname)
+        self.assert_(tables.isHDF5File(self.h5fname) == True)
+
+
+    def test03(self):
+        """Checking isPyTablesFile with a Unicode filename."""
+
+        self.h5file.close()
+        if common.verbose:
+            print "Filename:", self.h5fname
+            print "isPyTablesFile?:", tables.isPyTablesFile(self.h5fname)
+        self.assert_(tables.isPyTablesFile(self.h5fname) <> False)
+
+
+
+
 
 #----------------------------------------------------------------------
 
