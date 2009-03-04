@@ -911,7 +911,6 @@ class TypesTestCase(unittest.TestCase):
     def test04b_setStringAttributes(self):
         """Checking setting string attributes (unidimensional 1-elem case)"""
 
-        # Yes, there is no such thing as scalar character arrays.
         self.array.attrs.pq = numpy.array(['foo'])
 
         # Check the results
@@ -932,7 +931,6 @@ class TypesTestCase(unittest.TestCase):
     def test04c_setStringAttributes(self):
         """Checking setting string attributes (empty unidimensional 1-elem case)"""
 
-        # Yes, there is no such thing as scalar character arrays.
         self.array.attrs.pq = numpy.array([''])
 
         # Check the results
@@ -1121,6 +1119,143 @@ class TypesTestCase(unittest.TestCase):
         for dtype in checktypes:
             assert_array_equal(getattr(self.array.attrs, dtype),
                                numpy.array([[1.1,2.1],[2.1,3.1]], dtype=dtype))
+
+    def test06a_setUnicodeAttributes(self):
+        """Checking setting unicode attributes (scalar case)"""
+
+        self.array.attrs.pq = u'para\u0140lel'
+        self.array.attrs.qr = u'bar'
+        self.array.attrs.rs = u'baz'
+
+        # Check the results
+        if common.verbose:
+            print "pq -->", self.array.attrs.pq
+            print "qr -->", self.array.attrs.qr
+            print "rs -->", self.array.attrs.rs
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert isinstance(self.array.attrs.pq, numpy.unicode_)
+        assert isinstance(self.array.attrs.qr, numpy.unicode_)
+        assert isinstance(self.array.attrs.rs, numpy.unicode_)
+        assert self.array.attrs.pq == u'para\u0140lel'
+        assert self.array.attrs.qr == u'bar'
+        assert self.array.attrs.rs == u'baz'
+
+
+    def test06b_setUnicodeAttributes(self):
+        """Checking setting unicode attributes (unidimensional 1-elem case)"""
+
+        self.array.attrs.pq = numpy.array([u'para\u0140lel'])
+
+        # Check the results
+        if common.verbose:
+            print "pq -->", self.array.attrs.pq
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert_array_equal(self.array.attrs.pq,
+                           numpy.array([u'para\u0140lel']))
+
+    def test06c_setUnicodeAttributes(self):
+        """Checking setting unicode attributes (empty unidimensional 1-elem case)"""
+
+        # The next raises a `TypeError` when unpickled. See:
+        # http://projects.scipy.org/numpy/ticket/1037
+        #self.array.attrs.pq = numpy.array([u''])
+        self.array.attrs.pq = numpy.array([u''], dtype="U1")
+
+        # Check the results
+        if common.verbose:
+            print "pq -->", self.array.attrs.pq
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+            if common.verbose:
+                print "pq -->", `self.array.attrs.pq`
+
+        assert_array_equal(self.array.attrs.pq,
+                           numpy.array([u''], dtype="U1"))
+
+    def test06d_setUnicodeAttributes(self):
+        """Checking setting unicode attributes (unidimensional 2-elem case)"""
+
+        self.array.attrs.pq = numpy.array([u'para\u0140lel', u'bar3'])
+
+        # Check the results
+        if common.verbose:
+            print "pq -->", self.array.attrs.pq
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert_array_equal(self.array.attrs.pq,
+                           numpy.array([u'para\u0140lel', u'bar3']))
+
+    def test06e_setUnicodeAttributes(self):
+        """Checking setting unicode attributes (empty unidimensional 2-elem case)"""
+
+        self.array.attrs.pq = numpy.array(['', ''], dtype="U1")
+
+        # Check the results
+        if common.verbose:
+            print "pq -->", self.array.attrs.pq
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert_array_equal(self.array.attrs.pq,
+                           numpy.array(['', ''], dtype="U1"))
+
+    def test06f_setUnicodeAttributes(self):
+        """Checking setting unicode attributes (bidimensional 4-elem case)"""
+
+        self.array.attrs.pq = numpy.array([[u'para\u0140lel', 'foo2'],
+                                           ['foo3', u'para\u0140lel4']])
+
+        # Check the results
+        if common.verbose:
+            print "pq -->", self.array.attrs.pq
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert_array_equal(self.array.attrs.pq,
+                           numpy.array([[u'para\u0140lel', 'foo2'],
+                                        ['foo3', u'para\u0140lel4']]))
+
 
 
 class NotCloseTypesTestCase(TypesTestCase):

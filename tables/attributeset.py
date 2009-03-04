@@ -378,7 +378,7 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # (only in case it has not been converted yet)
         # Fixes ticket #59
         if (stvalue is value and
-            type(value) in (bool, str, int, float, complex)):
+            type(value) in (bool, str, int, float, complex, unicode)):
             stvalue = numpy.array(value)
             value = stvalue[()]
 
