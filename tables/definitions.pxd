@@ -203,6 +203,13 @@ cdef extern from "hdf5.h":
     H5G_DATASET,                # Object is a dataset
     H5G_TYPE,                   # Object is a named data type
 
+  # Values for fill value status
+  cdef enum H5D_fill_value_t:
+    H5D_FILL_VALUE_ERROR        = -1,
+    H5D_FILL_VALUE_UNDEFINED    = 0,
+    H5D_FILL_VALUE_DEFAULT      = 1,
+    H5D_FILL_VALUE_USER_DEFINED = 2
+
   ctypedef struct H5G_stat_t:
     unsigned long fileno[2]
     unsigned long objno[2]

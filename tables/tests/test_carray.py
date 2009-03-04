@@ -2084,70 +2084,161 @@ class BigArrayTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.test00_shape()
 
 
-class DfltAtomTestCase(unittest.TestCase):
-
-    def tearDown(self):
-        self.fileh.close()
-        os.remove(self.file)
-        common.cleanup(self)
+# Test for default values when creating arrays.
+class DfltAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test00_dflt(self):
         "Check that Atom.dflt is honored (string version)."
 
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        fileh = self.fileh = openFile(self.file, "a")
-
         # Create a CArray with default values
-        fileh.createCArray(
-            fileh.root, 'bar', StringAtom(itemsize=5, dflt="abdef"), (10,10))
-        fileh.close()
+        self.h5file.createCArray(
+            '/', 'bar', StringAtom(itemsize=5, dflt="abdef"), (10,10))
+
+        if self.reopen:
+            self._reopen()
 
         # Check the values
-        fileh = self.fileh = openFile(self.file, "r")
-        values = fileh.root.bar[:]
+        values = self.h5file.root.bar[:]
         if common.verbose:
             print "Read values:", values
         assert allequal(values, numpy.array(["abdef"]*100, "S5").reshape(10,10))
-        fileh.close()
 
     def test01_dflt(self):
         "Check that Atom.dflt is honored (int version)."
 
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        fileh = self.fileh = openFile(self.file, "a")
-
         # Create a CArray with default values
-        fileh.createCArray(fileh.root, 'bar', IntAtom(dflt=1), (10,10))
-        fileh.close()
+        self.h5file.createCArray('/', 'bar', IntAtom(dflt=1), (10,10))
+
+        if self.reopen:
+            self._reopen()
 
         # Check the values
-        fileh = self.fileh = openFile(self.file, "r")
-        values = fileh.root.bar[:]
+        values = self.h5file.root.bar[:]
         if common.verbose:
             print "Read values:", values
         assert allequal(values, numpy.ones((10,10), "i4"))
-        fileh.close()
 
     def test02_dflt(self):
         "Check that Atom.dflt is honored (float version)."
 
-        # Create an instance of an HDF5 Table
-        self.file = tempfile.mktemp(".h5")
-        fileh = self.fileh = openFile(self.file, "a")
-
         # Create a CArray with default values
-        fileh.createCArray(fileh.root, 'bar', FloatAtom(dflt=1.134), (10,10))
-        fileh.close()
+        self.h5file.createCArray('/', 'bar', FloatAtom(dflt=1.134), (10,10))
+
+        if self.reopen:
+            self._reopen()
 
         # Check the values
-        fileh = self.fileh = openFile(self.file, "r")
-        values = fileh.root.bar[:]
+        values = self.h5file.root.bar[:]
         if common.verbose:
             print "Read values:", values
         assert allequal(values, numpy.ones((10,10), "f8")*1.134)
-        fileh.close()
+
+
+class DfltAtomNoReopen(DfltAtomTestCase):
+    reopen = False
+
+class DfltAtomReopen(DfltAtomTestCase):
+    reopen = True
+
+
+# Test for representation of defaults in atoms. Ticket #212.
+class AtomDefaultReprTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def test00a_zeros(self):
+        "Testing default values.  Zeros (scalar)."
+        N = ()
+        atom = StringAtom(itemsize=3, shape=N, dflt="")
+        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Check the value
+        if common.verbose:
+            print "First row-->", repr(ca[0])
+            print "Defaults-->", repr(ca.atom.dflt)
+        self.assert_(allequal(ca[0], numpy.zeros(N, 'S3')))
+        self.assert_(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
+
+    def test00b_zeros(self):
+        "Testing default values.  Zeros (array)."
+        N = 2
+        atom = StringAtom(itemsize=3, shape=N, dflt="")
+        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Check the value
+        if common.verbose:
+            print "First row-->", ca[0]
+            print "Defaults-->", ca.atom.dflt
+        self.assert_(allequal(ca[0], numpy.zeros(N, 'S3')))
+        self.assert_(allequal(ca.atom.dflt, numpy.zeros(N, 'S3')))
+
+    def test01a_values(self):
+        "Testing default values.  Ones."
+        N = 2
+        atom = Int32Atom(shape=N, dflt=1)
+        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Check the value
+        if common.verbose:
+            print "First row-->", ca[0]
+            print "Defaults-->", ca.atom.dflt
+        self.assert_(allequal(ca[0], numpy.ones(N, 'i4')))
+        self.assert_(allequal(ca.atom.dflt, numpy.ones(N, 'i4')))
+
+    def test01b_values(self):
+        "Testing default values.  Generic value."
+        N = 2
+        generic = 112.32
+        atom = Float32Atom(shape=N, dflt=generic)
+        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Check the value
+        if common.verbose:
+            print "First row-->", ca[0]
+            print "Defaults-->", ca.atom.dflt
+        self.assert_(allequal(ca[0], numpy.ones(N, 'f4')*generic))
+        self.assert_(allequal(ca.atom.dflt, numpy.ones(N, 'f4')*generic))
+
+    def test02a_None(self):
+        "Testing default values.  None (scalar)."
+        N = ()
+        atom = Int32Atom(shape=N, dflt=None)
+        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Check the value
+        if common.verbose:
+            print "First row-->", repr(ca[0])
+            print "Defaults-->", repr(ca.atom.dflt)
+        self.assert_(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
+
+    def test02b_None(self):
+        "Testing default values.  None (array)."
+        N = 2
+        atom = Int32Atom(shape=N, dflt=None)
+        ca = self.h5file.createCArray('/', 'test', atom, (1,))
+        if self.reopen:
+            self._reopen('a')
+            ca = self.h5file.root.test
+        # Check the value
+        if common.verbose:
+            print "First row-->", ca[0]
+            print "Defaults-->", ca.atom.dflt
+        self.assert_(allequal(ca.atom.dflt, numpy.zeros(N, 'i4')))
+
+
+class AtomDefaultReprNoReopen(AtomDefaultReprTestCase):
+    reopen = False
+
+class AtomDefaultReprReopen(AtomDefaultReprTestCase):
+    reopen = True
 
 
 class TruncateTestCase(common.TempFileMixin, common.PyTablesTestCase):
@@ -2274,11 +2365,11 @@ class MDAtomReopen(MDAtomTestCase):
     reopen = True
 
 
-# Test for building very large MD atoms without defaults
+# Test for building very large MD atoms without defaults.  Ticket #211.
 class MDLargeAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
     def test01_create(self):
-        "Create a CArray with a very large MD atom.  Ticket #211."
+        "Create a CArray with a very large MD atom."
         N = 2**16      # 4x larger than maximum object header size (64 KB)
         ca = self.h5file.createCArray('/', 'test', Int32Atom(shape=N), (1,))
         if self.reopen:
@@ -2287,7 +2378,8 @@ class MDLargeAtomTestCase(common.TempFileMixin, common.PyTablesTestCase):
         # Check the value
         if common.verbose:
             print "First row-->", ca[0]
-        assert allequal(ca[0], numpy.zeros(N, 'i4'))
+        self.assert_(allequal(ca[0], numpy.zeros(N, 'i4')))
+
 
 class MDLargeAtomNoReopen(MDLargeAtomTestCase):
     reopen = False
@@ -2360,7 +2452,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CopyIndex4TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex5TestCase))
         theSuite.addTest(unittest.makeSuite(BigArrayTestCase))
-        theSuite.addTest(unittest.makeSuite(DfltAtomTestCase))
+        theSuite.addTest(unittest.makeSuite(DfltAtomNoReopen))
+        theSuite.addTest(unittest.makeSuite(DfltAtomReopen))
+        theSuite.addTest(unittest.makeSuite(AtomDefaultReprNoReopen))
+        theSuite.addTest(unittest.makeSuite(AtomDefaultReprReopen))
         theSuite.addTest(unittest.makeSuite(TruncateTestCase))
         theSuite.addTest(unittest.makeSuite(MDAtomNoReopen))
         theSuite.addTest(unittest.makeSuite(MDAtomReopen))

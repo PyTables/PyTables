@@ -773,7 +773,7 @@ out:
  *
  * Purpose: Gets the chunkshape of a dataset.
  *
- * Return: Success: chunkshape, Failure: -1
+ * Return: Success: 0, Failure: -1
  *
  * Programmer: Francesc Alted
  *
@@ -813,5 +813,51 @@ herr_t H5ARRAYget_chunkshape( hid_t dataset_id,
 out:
  if (dims_chunk) free(dims_chunk);
  return -1;
+
+}
+
+
+/*-------------------------------------------------------------------------
+ * Function: H5ARRAYget_fill_value
+ *
+ * Purpose: Gets the fill value of a dataset.
+ *
+ * Return: Success: 0, Failure: -1
+ *
+ * Programmer: Francesc Alted
+ *
+ * Date: Mar 03, 2009
+ *
+ *-------------------------------------------------------------------------
+ */
+
+herr_t H5ARRAYget_fill_value( hid_t dataset_id,
+                              hid_t type_id,
+                              int *status,
+                              void *value)
+{
+  hid_t        plist_id;
+
+  /* Get creation properties list */
+  if ( (plist_id = H5Dget_create_plist(dataset_id)) < 0 )
+    goto out;
+
+  /* How the fill value is defined? */
+  if ( (H5Pfill_value_defined(plist_id, status)) < 0 )
+    goto out;
+
+  if ( *status == H5D_FILL_VALUE_USER_DEFINED ) {
+    if ( H5Pget_fill_value(plist_id, type_id, value) < 0 )
+      goto out;
+  }
+
+  /* Terminate access to the datatype */
+  if ( H5Pclose( plist_id ) < 0 )
+    goto out;
+
+  return 0;
+
+out:
+  return -1;
 
 }
