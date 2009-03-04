@@ -427,6 +427,12 @@ cdef class AttributeSet:
       H5Tclose(type_id)
     else:
       # Object cannot be natively represented in HDF5.
+      # Unicode attributes has to be pickled until we can definitely switch
+      # to HDF5 1.8.x, where Unicode datatype is supported natively.
+      if (isinstance(value, numpy.ndarray) and
+          value.dtype.kind == 'U' and
+          value.shape == ()):
+        value = value[()]
       # Convert this object to a null-terminated string
       # (binary pickles are not supported at this moment)
       value = cPickle.dumps(value, 0)
