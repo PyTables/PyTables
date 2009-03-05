@@ -74,10 +74,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
              start, stop, step, chunkshape, sortby, forceCSI,
              propindexes, upgradeflavors):
     # Open the source file
-    if forceCSI:
-        srcfileh = openFile(srcfile, 'a')
-    else:
-        srcfileh = openFile(srcfile, 'r')
+    srcfileh = openFile(srcfile, 'r')
     # Get the source node (that should exist)
     srcNode = srcfileh.getNode(srcnode)
 
@@ -160,10 +157,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                  upgradeflavors):
     "Copy the children from source group to destination group"
     # Open the source file with srcgroup as rootUEP
-    if forceCSI:
-        srcfileh = openFile(srcfile, 'a', rootUEP=srcgroup)
-    else:
-        srcfileh = openFile(srcfile, 'r', rootUEP=srcgroup)
+    srcfileh = openFile(srcfile, 'r', rootUEP=srcgroup)
     #  Assign the root to srcGroup
     srcGroup = srcfileh.root
 
@@ -272,13 +266,10 @@ def main():
          as objects with the internal flavor ('numpy' for 2.x series).
      --dont-regenerate-old-indexes -- Disable regenerating old indexes. The
          default is to regenerate old indexes as they are found.
-     --sortby=column -- Do a table copy sorted by the values of "column".
-         This requires an existing index in "column".  For reversing the order,
-         use a negative value in the "step" part of "RANGE" (see "-R" flag).
-         Only applies to table objects.
-     --forceCSI -- Force the creation of a CSI index in case one is not
-         available for the --sortby column (this implies the modification of
-         the *source* file).  The default is to not create it.
+     --sortby=column -- Do a table copy sorted by the index in "column".
+         For reversing the order, use a negative value in the "step" part of
+         "RANGE" (see "-R" flag).  Only applies to table objects.
+     --forceCSI -- Force the check for a CSI index for the --sortby column.
      --propindexes -- Propagate the indexes existing in original tables.  The
          default is to not propagate them.  Only applies to table objects.
     \n""" % os.path.basename(sys.argv[0])

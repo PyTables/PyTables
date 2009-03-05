@@ -1363,35 +1363,32 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         elif isinstance(sortby, str):
             icol = self.cols._f_col(sortby)
         else:
-            raise TypeError, \
-                  "`sortby` can only be a `Column` or string object, " \
-                  "but you passed an object of type: %s" % type(sortby)
-        if icol.is_indexed and icol.index.is_CSI:
-            return icol.index
-        if forceCSI:
-            if icol.is_indexed:
-                # The index exists, but it is not a CSI one.  Remove it.
-                icol.removeIndex()
-            # Create a new CSI index with default parameters.
-            icol.createCSIndex()
+            raise TypeError(
+                "`sortby` can only be a `Column` or string object, "
+                "but you passed an object of type: %s" % type(sortby))
+        if icol.is_indexed:
+            if forceCSI and not icol.index.is_CSI:
+                # The index exists, but it is not a CSI one.
+                raise ValueError(
+                    "Field `%s` must have associated a CSI index "
+                    "in table `%s`, but the existing one is not. "
+                    % (sortby, self))
             return icol.index
         else:
-            if not icol.is_indexed or not icol.index.is_CSI:
-                raise ValueError, \
-                      "Field `%s` must have associated a CSI index " \
-                      "in table `%s`.  You can either create it " \
-                      "separately or pass the `forceCSI` parameter " \
-                      "set to true." % (sortby, self)
+            raise ValueError(
+                "Field `%s` must have associated an index "
+                "in table `%s`." % (sortby, self))
 
 
     def itersorted(self, sortby, forceCSI=False,
                    start=None, stop=None, step=None):
-        """Iterate over the table data sorted by the given `sortby` column.
+        """
+        Iterate table data following the order of the index of `sortby` column.
 
-        `sortby` column must have associated a completely sorted index
-        (CSI) so as to ensure a fully sorted order.  You can use the
-        `forceCSI` argument in order to force the creation of a CSI
-        index in case that one does not exist yet.
+        `sortby` column must have associated an index.  If you want to
+        ensure a fully sorted order, the index must be a CSI one.  You
+        can use the `forceCSI` argument in order to explicitely check
+        for the existence of a CSI index.
 
         The meaning of the `start`, `stop` and `step` arguments is the
         same as in `Table.read()`.  However, in this case a negative
@@ -1412,12 +1409,12 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
     def readSorted(self, sortby, forceCSI=False, field=None,
                    start=None, stop=None, step=None):
         """
-        Read table data sorted by the given `sortby` column.
+        Read table data following the order of the index of `sortby` column.
 
-        `sortby` column must have associated a completely sorted index
-        (CSI) so as to ensure a fully sorted order.  You can use the
-        `forceCSI` argument in order to force the creation of a CSI
-        index in case that one does not exist yet.
+        `sortby` column must have associated an index.  If you want to
+        ensure a fully sorted order, the index must be a CSI one.  You
+        can use the `forceCSI` argument in order to explicitely check
+        for the existence of a CSI index.
 
         If `field` is supplied only the named column will be selected.
         If the column is not nested, an *array* of the current flavor
@@ -2459,18 +2456,17 @@ The 'names' parameter must be a list of strings.""")
         keyword arguments:
 
         `sortby`
-            If specified, and `sortby` corresponds to a column with a
-            completely sorted index (CSI), then the copy will be sorted
-            by the values on this column.  A reverse sorted copy can be
-            achieved by specifying a negative value for the `step`
-            keyword.  If `sortby` is omitted or ``None``, the original
-            table order is used.
+            If specified, and `sortby` corresponds to a column with an
+            index, then the copy will be sorted by this index.  If you
+            want to ensure a fully sorted order, the index must be a CSI
+            one.  A reverse sorted copy can be achieved by specifying a
+            negative value for the `step` keyword.  If `sortby` is
+            omitted or ``None``, the original table order is used.
         `forceCSI`
-            If true, and a CSI index does not exist for the `sortby`
-            column, one will be built prior to method execution.  If
-            false, the CSI creation will not be forced (this may cause
-            the raise of an error).  In case a CSI index already exists
-            for the `sortby` column, this parameter does nothing.
+            If true and a CSI index does not exist for the `sortby`
+            column, an error will be raised.  If false (the default), it
+            does nothing.  You can use this flag in order to explicitely
+            check for the existence of a CSI index.
         `propindexes`
             If true, the existing indexes in the source table are
             propagated (created) to the new one.  If false (the

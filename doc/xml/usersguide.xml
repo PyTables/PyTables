@@ -6784,14 +6784,14 @@ for node in h5file.root.detector:
             <title>itersorted(sortby, forceCSI=False, start=None, stop=None,
             step=None)</title>
 
-            <para>Iterate over the table data sorted by the given
-            <literal>sortby</literal> column.</para>
+            <para>Iterate table data following the order of the index
+            of <literal>sortby</literal> column.</para>
 
-            <para><literal>sortby</literal> column must have associated a
-            completely sorted index (CSI) so as to ensure a fully sorted
-            order.  You can use the <literal>forceCSI</literal> argument in
-            order to force the creation of a CSI index in case that one does
-            not exist yet.</para>
+            <para><literal>sortby</literal> column must have associated an
+            index.  If you want to ensure a fully sorted order, the index must
+            be a CSI one.  You can use the <literal>forceCSI</literal>
+            argument in order to explicitely check for the existence of a CSI
+            index.</para>
 
             <para>The meaning of the <literal>start</literal>,
             <literal>stop</literal> and <literal>step</literal> arguments is
@@ -6862,14 +6862,14 @@ for node in h5file.root.detector:
             <title>readSorted(sortby, forceCSI=False, field=None, start=None,
             stop=None, step=None)</title>
 
-            <para>Read table data sorted by the given
-            <literal>sortby</literal> column.</para>
+            <para>Read table data following the order of the index
+            of <literal>sortby</literal> column.</para>
 
-            <para><literal>sortby</literal> column must have associated a
-            completely sorted index (CSI) so as to ensure a fully sorted
-            order.  You can use the <literal>forceCSI</literal> argument in
-            order to force the creation of a CSI index in case that one does
-            not exist yet.</para>
+            <para><literal>sortby</literal> column must have associated an
+            index.  If you want to ensure a fully sorted order, the index must
+            be a CSI one.  You can use the <literal>forceCSI</literal>
+            argument in order to explicitely check for the existence of a CSI
+            index.</para>
 
             <para>If <literal>field</literal> is supplied only the named
             column will be selected.  If the column is not nested, an
@@ -7395,12 +7395,14 @@ table.modifyCoordinates([True, False, True], rows)</screen>
 
                 <glossdef>
                   <para>If specified, and <literal>sortby</literal>
-                  corresponds to a column with a completely sorted index
-                  (CSI), then the copy will be sorted by the values on this
-                  column.  A reverse sorted copy can be achieved by specifying
-                  a negative value for the <literal>step</literal> keyword.
-                  If omitted or <literal>None</literal>, the original table
-                  order is used.</para>
+                  corresponds to a column with an index, then the copy will be
+                  sorted by this index.  If you want to ensure a fully sorted
+                  order, the index must be a CSI one.  A reverse sorted copy
+                  can be achieved by specifying a negative value for
+                  the <literal>step</literal> keyword.
+                  If <literal>sortby</literal> is omitted
+                  or <literal>None</literal>, the original table order is
+                  used.</para>
                 </glossdef>
               </glossentry>
 
@@ -7409,12 +7411,11 @@ table.modifyCoordinates([True, False, True], rows)</screen>
                 role="bold">forceCSI</emphasis></glossterm>
 
                 <glossdef>
-                  <para>If true, and a CSI index does not exist for the
-                  <literal>sortby</literal> column, one will be built prior to
-                  method execution.  If false, the CSI creation will not be
-                  forced (this may cause the raise of an error).  In case a
-                  CSI index already exists for the <literal>sortby</literal>
-                  column, this parameter does nothing.</para>
+                  <para>If rue and a CSI index does not exist for the
+                  <literal>sortby</literal> column, an error will be raised.
+                  If false (the default), it does nothing.  You can use this
+                  flag in order to explicitely check for the existence of a
+                  CSI index.</para>
                 </glossdef>
               </glossentry>
 
@@ -15362,13 +15363,10 @@ Object Tree:
        as objects with the internal flavor ('numpy' for 2.x series).
    --dont-regenerate-old-indexes -- Disable regenerating old indexes. The
        default is to regenerate old indexes as they are found.
-   --sortby=column -- Do a table copy sorted by the values of "column".
-       This requires an existing index in "column".  For reversing the order,
-       use a negative value in the "step" part of "RANGE" (see "-R" flag).
-       Only applies to table objects.
-   --forceCSI -- Force the creation of a CSI index in case one is not
-       available for the --sortby column (this implies the modification of
-       the *source* file).  The default is to not create it.
+   --sortby=column -- Do a table copy sorted by the index in "column".
+       For reversing the order, use a negative value in the "step" part of
+       "RANGE" (see "-R" flag).  Only applies to table objects.
+   --forceCSI -- Force the check for a CSI index for the --sortby column.
    --propindexes -- Propagate the indexes existing in original tables.  The
        default is to not propagate them.  Only applies to table objects.
           </screen>
