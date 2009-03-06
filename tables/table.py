@@ -251,10 +251,10 @@ class Table(tableExtension.Table, Leaf):
     * col(name)
     * iterrows([start][, stop][, step])
     * itersequence(sequence)
-    * itersorted(sortby[, forceCSI][, start][, stop][, step])
+    * itersorted(sortby[, checkCSI][, start][, stop][, step])
     * read([start][, stop][, step][, field][, coords])
     * readCoordinates(coords[, field])
-    * readSorted(sortby[, forceCSI][, field,][, start][, stop][, step])
+    * readSorted(sortby[, checkCSI][, field,][, start][, stop][, step])
     * __getitem__(key)
     * __iter__()
 
@@ -1357,7 +1357,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         return row._iter(start, stop, step, coords=sequence)
 
 
-    def _check_sortby_CSI(self, sortby, forceCSI):
+    def _check_sortby_CSI(self, sortby, checkCSI):
         if isinstance(sortby, Column):
             icol = sortby
         elif isinstance(sortby, str):
@@ -1367,7 +1367,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 "`sortby` can only be a `Column` or string object, "
                 "but you passed an object of type: %s" % type(sortby))
         if icol.is_indexed:
-            if forceCSI and not icol.index.is_CSI:
+            if checkCSI and not icol.index.is_CSI:
                 # The index exists, but it is not a CSI one.
                 raise ValueError(
                     "Field `%s` must have associated a CSI index "
@@ -1380,14 +1380,14 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 "in table `%s`." % (sortby, self))
 
 
-    def itersorted(self, sortby, forceCSI=False,
+    def itersorted(self, sortby, checkCSI=False,
                    start=None, stop=None, step=None):
         """
         Iterate table data following the order of the index of `sortby` column.
 
         `sortby` column must have associated an index.  If you want to
         ensure a fully sorted order, the index must be a CSI one.  You
-        can use the `forceCSI` argument in order to explicitely check
+        can use the `checkCSI` argument in order to explicitely check
         for the existence of a CSI index.
 
         The meaning of the `start`, `stop` and `step` arguments is the
@@ -1397,7 +1397,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
 
         .. Note:: Column indexing is only available in PyTables Pro.
         """
-        index = self._check_sortby_CSI(sortby, forceCSI)
+        index = self._check_sortby_CSI(sortby, checkCSI)
         # Adjust the slice to be used.
         (start, stop, step) = index._processRange(start, stop, step)
         if (start >= stop):
@@ -1406,14 +1406,14 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         return row._iter(start, stop, step, coords=index)
 
 
-    def readSorted(self, sortby, forceCSI=False, field=None,
+    def readSorted(self, sortby, checkCSI=False, field=None,
                    start=None, stop=None, step=None):
         """
         Read table data following the order of the index of `sortby` column.
 
         `sortby` column must have associated an index.  If you want to
         ensure a fully sorted order, the index must be a CSI one.  You
-        can use the `forceCSI` argument in order to explicitely check
+        can use the `checkCSI` argument in order to explicitely check
         for the existence of a CSI index.
 
         If `field` is supplied only the named column will be selected.
@@ -1430,7 +1430,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         .. Note:: Column indexing is only available in PyTables Pro.
         """
         self._checkFieldIfNumeric(field)
-        index = self._check_sortby_CSI(sortby, forceCSI)
+        index = self._check_sortby_CSI(sortby, checkCSI)
         coords = index[start:stop:step]
         return self.readCoordinates(coords, field)
 
@@ -2364,7 +2364,7 @@ The 'names' parameter must be a list of strings.""")
         self._doReIndex(dirty=True)
 
 
-    def _g_copyRows(self, object, start, stop, step, sortby, forceCSI):
+    def _g_copyRows(self, object, start, stop, step, sortby, checkCSI):
         "Copy rows from self to object"
         if sortby is None:
             self._g_copyRows_optim(object, start, stop, step)
@@ -2380,7 +2380,7 @@ The 'names' parameter must be a list of strings.""")
                 rows = self[start2:stop2:step]
             else:
                 rows = self.readSorted(
-                    sortby=sortby, forceCSI=forceCSI, field=None,
+                    sortby=sortby, checkCSI=checkCSI, field=None,
                     start=start2, stop=stop2, step=step )
             # Save the records on disk
             object.append(rows)
@@ -2426,7 +2426,7 @@ The 'names' parameter must be a list of strings.""")
         # Get the private args for the Table flavor of copy()
         sortby = kwargs.pop('sortby', None)
         propindexes = kwargs.pop('propindexes', False)
-        forceCSI = kwargs.pop('forceCSI', False)
+        checkCSI = kwargs.pop('checkCSI', False)
         # Compute the correct indices.
         (start, stop, step) = self._processRangeRead(
             start, stop, step, warn_negstep = sortby is None)
@@ -2437,7 +2437,7 @@ The 'names' parameter must be a list of strings.""")
                           filters=filters, expectedrows=nrows,
                           chunkshape=chunkshape,
                           _log=_log )
-        self._g_copyRows(newtable, start, stop, step, sortby, forceCSI)
+        self._g_copyRows(newtable, start, stop, step, sortby, checkCSI)
         nbytes = newtable.nrows * newtable.rowsize
         # Generate equivalent indexes in the new table, if required.
         if propindexes and self.indexed:
@@ -2462,7 +2462,7 @@ The 'names' parameter must be a list of strings.""")
             one.  A reverse sorted copy can be achieved by specifying a
             negative value for the `step` keyword.  If `sortby` is
             omitted or ``None``, the original table order is used.
-        `forceCSI`
+        `checkCSI`
             If true and a CSI index does not exist for the `sortby`
             column, an error will be raised.  If false (the default), it
             does nothing.  You can use this flag in order to explicitely

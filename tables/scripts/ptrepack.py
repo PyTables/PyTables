@@ -71,7 +71,7 @@ def recreateIndexes(table, dstfileh, dsttable):
 
 def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
              filters, copyuserattrs, overwritefile, overwrtnodes, stats,
-             start, stop, step, chunkshape, sortby, forceCSI,
+             start, stop, step, chunkshape, sortby, checkCSI,
              propindexes, upgradeflavors):
     # Open the source file
     srcfileh = openFile(srcfile, 'r')
@@ -124,7 +124,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
             copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
             stats = stats, start = start, stop = stop, step = step,
             chunkshape = chunkshape,
-            sortby = sortby, forceCSI = forceCSI, propindexes = propindexes)
+            sortby = sortby, checkCSI = checkCSI, propindexes = propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
         print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
@@ -153,7 +153,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
 def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                  recursive, filters, copyuserattrs, overwritefile,
                  overwrtnodes, stats, start, stop, step,
-                 chunkshape, sortby, forceCSI, propindexes,
+                 chunkshape, sortby, checkCSI, propindexes,
                  upgradeflavors):
     "Copy the children from source group to destination group"
     # Open the source file with srcgroup as rootUEP
@@ -202,7 +202,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
             copyuserattrs = copyuserattrs, overwrite = overwrtnodes,
             stats = stats, start = start, stop = stop, step = step,
             chunkshape = chunkshape,
-            sortby = sortby, forceCSI = forceCSI, propindexes = propindexes)
+            sortby = sortby, checkCSI = checkCSI, propindexes = propindexes)
     except:
         (type, value, traceback) = sys.exc_info()
         print "Problems doing the copy from '%s:%s' to '%s:%s'" % \
@@ -234,7 +234,7 @@ def main():
     global verbose
     global regoldindexes
 
-    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--chunkshape=value] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--forceCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
+    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--chunkshape=value] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--checkCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
      -h -- Print usage message.
      -v -- Show more information.
      -o -- Overwite destination file.
@@ -269,7 +269,7 @@ def main():
      --sortby=column -- Do a table copy sorted by the index in "column".
          For reversing the order, use a negative value in the "step" part of
          "RANGE" (see "-R" flag).  Only applies to table objects.
-     --forceCSI -- Force the check for a CSI index for the --sortby column.
+     --checkCSI -- Force the check for a CSI index for the --sortby column.
      --propindexes -- Propagate the indexes existing in original tables.  The
          default is to not propagate them.  Only applies to table objects.
     \n""" % os.path.basename(sys.argv[0])
@@ -290,7 +290,7 @@ def main():
                                      'upgrade-flavors',
                                      'dont-regenerate-old-indexes',
                                      'sortby=',
-                                     'forceCSI',
+                                     'checkCSI',
                                      'propindexes',
                                      ])
     except:
@@ -314,7 +314,7 @@ def main():
     overwrtnodes = False
     upgradeflavors = False
     sortby = None
-    forceCSI = False
+    checkCSI = False
     propindexes = False
 
     # Get the options
@@ -365,8 +365,8 @@ def main():
             sortby = option[1]
         elif option[0] == '--propindexes':
             propindexes = True
-        elif option[0] == '--forceCSI':
-            forceCSI = True
+        elif option[0] == '--checkCSI':
+            checkCSI = True
         else:
             print option[0], ": Unrecognized option"
             sys.stderr.write(usage)
@@ -438,7 +438,7 @@ def main():
         print "Applying filters:", filters
         if sortby is not None:
             print "Sorting table(s) by column:", sortby
-            print "Forcing a CSI creation:", forceCSI
+            print "Forcing a CSI creation:", checkCSI
         if propindexes:
             print "Recreating indexes in copied table(s)"
         print "Start copying %s:%s to %s:%s" % (srcfile, srcnode,
@@ -460,7 +460,7 @@ def main():
             copyuserattrs = copyuserattrs, overwritefile = overwritefile,
             overwrtnodes = overwrtnodes, stats = stats,
             start = start, stop = stop, step = step, chunkshape = chunkshape,
-            sortby = sortby, forceCSI = forceCSI, propindexes = propindexes,
+            sortby = sortby, checkCSI = checkCSI, propindexes = propindexes,
             upgradeflavors=upgradeflavors)
     else:
         # If not a Group, it should be a Leaf
@@ -470,7 +470,7 @@ def main():
             overwritefile = overwritefile, overwrtnodes = overwrtnodes,
             stats = stats, start = start, stop = stop, step = step,
             chunkshape = chunkshape,
-            sortby = sortby, forceCSI = forceCSI, propindexes = propindexes,
+            sortby = sortby, checkCSI = checkCSI, propindexes = propindexes,
             upgradeflavors=upgradeflavors)
 
     # Gather some statistics

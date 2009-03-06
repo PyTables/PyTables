@@ -1868,10 +1868,10 @@ class Table(tableExtension.Table, tables.leaf.Leaf)
  |  * col(name)
  |  * iterrows([start][, stop][, step])
  |  * itersequence(sequence)
-    * itersorted(sortby[, forceCSI][, start][, stop][, step])
+    * itersorted(sortby[, checkCSI][, start][, stop][, step])
  |  * read([start][, stop][, step][, field][, coords])
  |  * readCoordinates(coords[, field])
-    * readSorted(sortby[, forceCSI][, field,][, start][, stop][, step])
+    * readSorted(sortby[, checkCSI][, field,][, start][, stop][, step])
  |  * __getitem__(key)
  |  * __iter__()
  |
@@ -6781,7 +6781,7 @@ for node in h5file.root.detector:
           </section>
 
           <section id="Table.itersorted">
-            <title>itersorted(sortby, forceCSI=False, start=None, stop=None,
+            <title>itersorted(sortby, checkCSI=False, start=None, stop=None,
             step=None)</title>
 
             <para>Iterate table data following the order of the index
@@ -6789,7 +6789,7 @@ for node in h5file.root.detector:
 
             <para><literal>sortby</literal> column must have associated an
             index.  If you want to ensure a fully sorted order, the index must
-            be a CSI one.  You can use the <literal>forceCSI</literal>
+            be a CSI one.  You can use the <literal>checkCSI</literal>
             argument in order to explicitely check for the existence of a CSI
             index.</para>
 
@@ -6859,7 +6859,7 @@ for node in h5file.root.detector:
           </section>
 
           <section id="Table.readSorted"  xreflabel="description">
-            <title>readSorted(sortby, forceCSI=False, field=None, start=None,
+            <title>readSorted(sortby, checkCSI=False, field=None, start=None,
             stop=None, step=None)</title>
 
             <para>Read table data following the order of the index
@@ -6867,7 +6867,7 @@ for node in h5file.root.detector:
 
             <para><literal>sortby</literal> column must have associated an
             index.  If you want to ensure a fully sorted order, the index must
-            be a CSI one.  You can use the <literal>forceCSI</literal>
+            be a CSI one.  You can use the <literal>checkCSI</literal>
             argument in order to explicitely check for the existence of a CSI
             index.</para>
 
@@ -7408,7 +7408,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
 
               <glossentry>
                 <glossterm><emphasis
-                role="bold">forceCSI</emphasis></glossterm>
+                role="bold">checkCSI</emphasis></glossterm>
 
                 <glossdef>
                   <para>If rue and a CSI index does not exist for the
@@ -15331,7 +15331,7 @@ Object Tree:
 
           to see the message usage:
 
-          <screen>usage: ptrepack [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--chunkshape=value] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--forceCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
+          <screen>usage: ptrepack [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--chunkshape=value] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--checkCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
    -h -- Print usage message.
    -v -- Show more information.
    -o -- Overwite destination file.
@@ -15366,7 +15366,7 @@ Object Tree:
    --sortby=column -- Do a table copy sorted by the index in "column".
        For reversing the order, use a negative value in the "step" part of
        "RANGE" (see "-R" flag).  Only applies to table objects.
-   --forceCSI -- Force the check for a CSI index for the --sortby column.
+   --checkCSI -- Force the check for a CSI index for the --sortby column.
    --propindexes -- Propagate the indexes existing in original tables.  The
        default is to not propagate them.  Only applies to table objects.
           </screen>
