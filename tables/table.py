@@ -318,10 +318,18 @@ class Table(tableExtension.Table, Leaf):
     @lazyattr
     def _v_wdflts(self):
         """The defaults for writing in recarray format."""
+        # First, do a check to see whether we need to set default values
+        # different from 0 or not.
+        for coldflt in self.coldflts.itervalues():
+            if isinstance(coldflt, numpy.ndarray) or coldflt:
+                break
+        else:
+            # No default different from 0 found.  Returning None.
+            return None
         wdflts = self._get_container(1)
         for colname, coldflt in self.coldflts.iteritems():
-           ra = getNestedField(wdflts, colname)
-           ra[:] = coldflt
+            ra = getNestedField(wdflts, colname)
+            ra[:] = coldflt
         return wdflts
 
     @lazyattr

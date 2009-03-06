@@ -848,7 +848,8 @@ cdef class Array(Leaf):
     cdef void *rbuf
     cdef char *complib, *version, *class_, *extdim
     cdef int itemsize
-    cdef ndarray fill_values
+    cdef ndarray dflts
+    cdef void *fill_data
     cdef object atom
 
     atom = self.atom
@@ -866,13 +867,17 @@ cdef class Array(Leaf):
     version = PyString_AsString(self._v_version)
     class_ = PyString_AsString(self._c_classId)
     # Get the fill values
-    fill_values = numpy.array(atom.dflt, dtype=atom.dtype)
+    if isinstance(atom.dflt, numpy.ndarray) or atom.dflt:
+      dflts = numpy.array(atom.dflt, dtype=atom.dtype)
+      fill_data = dflts.data
+    else:
+      fill_data = NULL
 
     # Create the CArray/EArray
     self.dataset_id = H5ARRAYmake(
       self.parent_id, self.name, version, self.rank,
       self.dims, self.extdim, self.disk_type_id, self.dims_chunk,
-      fill_values.data, self.filters.complevel, complib,
+      fill_data, self.filters.complevel, complib,
       self.filters.shuffle, self.filters.fletcher32, rbuf)
     if self.dataset_id < 0:
       raise HDF5ExtError("Problems creating the %s." % self.__class__.__name__)

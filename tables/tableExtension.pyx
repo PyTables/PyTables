@@ -181,7 +181,8 @@ cdef class Table(Leaf):
     cdef void    *data
     cdef hsize_t nrows
     cdef char    *class_
-    cdef ndarray fill_value
+    cdef ndarray wdflts
+    cdef void    *fill_data
     cdef ndarray recarr
     cdef object  fieldname, name
 
@@ -193,7 +194,11 @@ cdef class Table(Leaf):
     self.type_id = self.createNestedType(self.description, sys.byteorder)
 
     # The fill values area
-    fill_value = self._v_wdflts
+    wdflts = self._v_wdflts
+    if wdflts is None:
+      fill_data = NULL
+    else:
+      fill_data = wdflts.data
 
     # test if there is data to be saved initially
     if self._v_recarray is not None:
@@ -206,7 +211,7 @@ cdef class Table(Leaf):
     self.dataset_id = H5TBOmake_table(title, self.parent_id, self.name,
                                       obversion, class_, self.disk_type_id,
                                       self.nrows, self.chunkshape[0],
-                                      fill_value.data,
+                                      fill_data,
                                       self.filters.complevel, complib,
                                       self.filters.shuffle,
                                       self.filters.fletcher32,
@@ -784,7 +789,11 @@ cdef class Row:
   cdef _newBuffer(self, table):
     "Create the recarrays for I/O buffering"
 
-    self.wrec = table._v_wdflts.copy()  # The private record
+    wdflts = table._v_wdflts
+    if wdflts is None:
+      self.wrec = numpy.zeros(1, dtype=self.dtype)  # Defaults are zero
+    else:
+      self.wrec = table._v_wdflts.copy()
     self.wreccpy = self.wrec.copy()  # A copy of the defaults
     # Build the wfields dictionary for faster access to columns
     self.wfields = {}

@@ -4894,19 +4894,18 @@ class IrregularStrideTestCase(unittest.TestCase):
 class TruncateTestCase(unittest.TestCase):
 
     def setUp(self):
-        class IRecord(IsDescription):
-            c1 = Int32Col(pos=1, dflt=3)
-            c2 = FloatCol(pos=2, dflt=-3.1)
 
         self.file = tempfile.mktemp('.h5')
         self.fileh = openFile(self.file, 'w', title='Chunkshape test')
-        table = self.fileh.createTable('/', 'table', IRecord)
+        table = self.fileh.createTable('/', 'table', self.IRecord)
         # Fill just a couple of rows
         for i in range(2):
             table.row['c1'] = i
             table.row['c2'] = i
             table.row.append()
         table.flush()
+        # The defaults
+        self.dflts = table.coldflts
 
     def tearDown(self):
         # Close the file
@@ -5004,15 +5003,58 @@ class TruncateTestCase(unittest.TestCase):
             self.assert_(row['c1'] == row.nrow)
         # Check that the added rows have the default values
         for row in table.iterrows(start=2, stop=4):
-            self.assert_(row['c1'] == 3)
-            self.assert_(row['c2'] == -3.1)
+            self.assert_(row['c1'] == self.dflts['c1'])
+            self.assert_(row['c2'] == self.dflts['c2'])
 
 
-class TruncateOpenTestCase(TruncateTestCase):
+class TruncateOpen1(TruncateTestCase):
+    class IRecord(IsDescription):
+        c1 = Int32Col(pos=1)
+        c2 = FloatCol(pos=2)
     close = 0
 
-class TruncateCloseTestCase(TruncateTestCase):
+class TruncateOpen2(TruncateTestCase):
+    class IRecord(IsDescription):
+        c1 = Int32Col(pos=1, dflt=3)
+        c2 = FloatCol(pos=2, dflt=-3.1)
+    close = 0
+
+class TruncateClose1(TruncateTestCase):
+    class IRecord(IsDescription):
+        c1 = Int32Col(pos=1)
+        c2 = FloatCol(pos=2)
     close = 1
+
+class TruncateClose2(TruncateTestCase):
+    class IRecord(IsDescription):
+        c1 = Int32Col(pos=1, dflt=4)
+        c2 = FloatCol(pos=2, dflt=3.1)
+    close = 1
+
+
+# Test for building very large MD columns without defaults
+class MDLargeColTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def test01_create(self):
+        "Create a Table with a very large MD column.  Ticket #211."
+        N = 2**18      # 4x larger than maximum object header size (64 KB)
+        cols = {'col1': Int8Col(shape=N, dflt=0)}
+        tbl = self.h5file.createTable('/', 'test', cols)
+        tbl.row.append()   # add a single row
+        tbl.flush()
+        if self.reopen:
+            self._reopen('a')
+            tbl = self.h5file.root.test
+        # Check the value
+        if common.verbose:
+            print "First row-->", tbl[0]['col1']
+        assert allequal(tbl[0]['col1'], zeros(N, 'i1'))
+
+class MDLargeColNoReopen(MDLargeColTestCase):
+    reopen = False
+
+class MDLargeColReopen(MDLargeColTestCase):
+    reopen = True
 
 
 
@@ -5075,8 +5117,12 @@ def suite():
         theSuite.addTest(unittest.makeSuite(ChunkshapeTestCase))
         theSuite.addTest(unittest.makeSuite(ZeroSizedTestCase))
         theSuite.addTest(unittest.makeSuite(IrregularStrideTestCase))
-        theSuite.addTest(unittest.makeSuite(TruncateOpenTestCase))
-        theSuite.addTest(unittest.makeSuite(TruncateCloseTestCase))
+        theSuite.addTest(unittest.makeSuite(TruncateOpen1))
+        theSuite.addTest(unittest.makeSuite(TruncateOpen2))
+        theSuite.addTest(unittest.makeSuite(TruncateClose1))
+        theSuite.addTest(unittest.makeSuite(TruncateClose2))
+        theSuite.addTest(unittest.makeSuite(MDLargeColNoReopen))
+        theSuite.addTest(unittest.makeSuite(MDLargeColReopen))
 
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressBZIP2TablesTestCase))
