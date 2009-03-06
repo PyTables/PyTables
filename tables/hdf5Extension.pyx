@@ -60,6 +60,7 @@ from definitions cimport  \
      Py_INCREF, Py_DECREF, \
      import_array, ndarray, dtype, \
      time_t, size_t, uintptr_t, hid_t, herr_t, hsize_t, hvl_t, \
+     H5D_FILL_VALUE_UNDEFINED, \
      H5G_GROUP, H5G_DATASET, H5G_stat_t, \
      H5T_class_t, H5T_sign_t, H5T_NATIVE_INT, \
      H5F_SCOPE_GLOBAL, H5F_ACC_TRUNC, H5F_ACC_RDONLY, H5F_ACC_RDWR, \
@@ -124,6 +125,9 @@ cdef extern from "H5ARRAY.h":
                           void *data)
 
   herr_t H5ARRAYget_chunkshape(hid_t dataset_id, int rank, hsize_t *dims_chunk)
+
+  herr_t H5ARRAYget_fill_value( hid_t dataset_id, hid_t type_id,
+                                int *status, void *value)
 
 
 # Functions for dealing with VLArray objects
@@ -871,7 +875,13 @@ cdef class Array(Leaf):
       dflts = numpy.array(atom.dflt, dtype=atom.dtype)
       fill_data = dflts.data
     else:
+      dflts = numpy.zeros((), dtype=atom.dtype)
       fill_data = NULL
+    if atom.shape == ():
+      # The default is preferred as a scalar value instead of 0-dim array
+      atom.dflt = dflts[()]
+    else:
+      atom.dflt = dflts
 
     # Create the CArray/EArray
     self.dataset_id = H5ARRAYmake(
@@ -908,6 +918,9 @@ cdef class Array(Leaf):
     cdef int extdim
     cdef herr_t ret
     cdef object shape, chunkshapes, atom
+    cdef int fill_status
+    cdef ndarray dflts
+    cdef void *fill_data
 
     # Open the dataset
     self.dataset_id = H5Dopen(self.parent_id, self.name)
@@ -949,6 +962,21 @@ cdef class Array(Leaf):
     else:
       # Get the chunkshape as a python tuple
       chunkshapes = getshape(self.rank, self.dims_chunk)
+
+    # Get the fill value
+    dflts = numpy.zeros((), dtype=atom.dtype)
+    fill_data = dflts.data
+    H5ARRAYget_fill_value(self.dataset_id, self.type_id,
+                          &fill_status, fill_data);
+    if fill_status == H5D_FILL_VALUE_UNDEFINED:
+      # This can only happen with datasets created with other libraries
+      # than PyTables.
+      dflts = None
+    if dflts is not None and atom.shape == ():
+      # The default is preferred as a scalar value instead of 0-dim array
+      atom.dflt = dflts[()]
+    else:
+      atom.dflt = dflts
 
     # Get the byteorder
     self.byteorder = correct_byteorder(atom.type, byteorder)

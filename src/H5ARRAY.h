@@ -83,6 +83,12 @@ herr_t H5ARRAYget_chunkshape( hid_t dataset_id,
 			      int rank,
 			      hsize_t *dims_chunk);
 
+herr_t H5ARRAYget_fill_value( hid_t dataset_id,
+                              hid_t type_id,
+                              int *status,
+                              void *value);
+
+
 #ifdef __cplusplus
 }
 #endif
