@@ -6787,11 +6787,11 @@ for node in h5file.root.detector:
             <para>Iterate table data following the order of the index
             of <literal>sortby</literal> column.</para>
 
-            <para><literal>sortby</literal> column must have associated an
-            index.  If you want to ensure a fully sorted order, the index must
-            be a CSI one.  You can use the <literal>checkCSI</literal>
-            argument in order to explicitely check for the existence of a CSI
-            index.</para>
+            <para><literal>sortby</literal> column must have associated a
+            <literal>full</literal> index.  If you want to ensure a fully
+            sorted order, the index must be a CSI one.  You may want to use
+            the <literal>checkCSI</literal> argument in order to explicitely
+            check for the existence of a CSI index.</para>
 
             <para>The meaning of the <literal>start</literal>,
             <literal>stop</literal> and <literal>step</literal> arguments is
@@ -6865,11 +6865,11 @@ for node in h5file.root.detector:
             <para>Read table data following the order of the index
             of <literal>sortby</literal> column.</para>
 
-            <para><literal>sortby</literal> column must have associated an
-            index.  If you want to ensure a fully sorted order, the index must
-            be a CSI one.  You can use the <literal>checkCSI</literal>
-            argument in order to explicitely check for the existence of a CSI
-            index.</para>
+            <para><literal>sortby</literal> column must have associated a
+            <literal>full</literal> index.  If you want to ensure a fully
+            sorted order, the index must be a CSI one.  You may want to use
+            the <literal>checkCSI</literal> argument in order to explicitely
+            check for the existence of a CSI index.</para>
 
             <para>If <literal>field</literal> is supplied only the named
             column will be selected.  If the column is not nested, an
@@ -8299,7 +8299,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
 
               <note>
                 <para>This method is equivalent to
-                  <literal>Column.createIndex(kind='full', optlevel=9,
+                  <literal>Column.createIndex(optlevel=9, kind='full',
                   ...)</literal>.</para>
               </note>
             </section>

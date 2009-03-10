@@ -288,7 +288,7 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
             if self.blocksize > maxnb*lbucket:
                 lbucket = int(math.ceil(float(self.blocksize)/maxnb))
         else:
-            # For medium and full indexes there should no need to
+            # For medium and full indexes there should not be a need to
             # increase lbucket
             pass
         return lbucket

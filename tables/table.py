@@ -1366,7 +1366,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             raise TypeError(
                 "`sortby` can only be a `Column` or string object, "
                 "but you passed an object of type: %s" % type(sortby))
-        if icol.is_indexed:
+        if icol.is_indexed and icol.index.kind == "full":
             if checkCSI and not icol.index.is_CSI:
                 # The index exists, but it is not a CSI one.
                 raise ValueError(
@@ -1376,7 +1376,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             return icol.index
         else:
             raise ValueError(
-                "Field `%s` must have associated an index "
+                "Field `%s` must have associated a 'full' index "
                 "in table `%s`." % (sortby, self))
 
 
@@ -1385,10 +1385,10 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Iterate table data following the order of the index of `sortby` column.
 
-        `sortby` column must have associated an index.  If you want to
-        ensure a fully sorted order, the index must be a CSI one.  You
-        can use the `checkCSI` argument in order to explicitely check
-        for the existence of a CSI index.
+        `sortby` column must have associated a 'full' index.  If you
+        want to ensure a completely sorted order, the index must be a
+        CSI one.  You may want to use the `checkCSI` argument in order
+        to explicitely check for the existence of a CSI index.
 
         The meaning of the `start`, `stop` and `step` arguments is the
         same as in `Table.read()`.  However, in this case a negative
@@ -1411,10 +1411,10 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         """
         Read table data following the order of the index of `sortby` column.
 
-        `sortby` column must have associated an index.  If you want to
-        ensure a fully sorted order, the index must be a CSI one.  You
-        can use the `checkCSI` argument in order to explicitely check
-        for the existence of a CSI index.
+        `sortby` column must have associated a 'full' index.  If you
+        want to ensure a completely sorted order, the index must be a
+        CSI one.  You may want to use the `checkCSI` argument in order
+        to explicitely check for the existence of a CSI index.
 
         If `field` is supplied only the named column will be selected.
         If the column is not nested, an *array* of the current flavor
@@ -2909,7 +2909,7 @@ class Column(object):
     Public methods
     --------------
 
-    createIndex([kind][, optlevel][, filters][, tmp_dir])
+    createIndex([optlevel][, kind][, filters][, tmp_dir])
         Create an index for this column.
     createCSIndex([filters][, tmp_dir])
         Create a completely sorted index (CSI) for this column.
@@ -3182,7 +3182,7 @@ class Column(object):
         ``Column.createIndex()``.
 
         .. Note:: This method is equivalent to
-        ``Column.createIndex(kind='full', optlevel=9, ...)``.
+        ``Column.createIndex(optlevel=9, kind='full', ...)``.
         """
 
         return self.createIndex(

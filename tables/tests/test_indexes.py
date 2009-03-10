@@ -2191,6 +2191,100 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
                           sortby="rcol", checkCSI=True)
 
 
+class readSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
+    """Test case for testing sorted reading in a "full" sorted column."""
+
+    nrows = 100
+    nrowsinbuf = 11
+
+    class MyDescription(IsDescription):
+        rcol = IntCol(pos=1)
+        icol = IntCol(pos=2)
+
+    def setUp(self):
+        super(readSortedIndexTestCase, self).setUp()
+        table = self.h5file.createTable('/', 'table', self.MyDescription)
+        row = table.row
+        nrows = self.nrows
+        for i in xrange(nrows):
+            row['rcol'] = i
+            row['icol'] = nrows - i
+            row.append()
+        table.flush()
+        self.table = table
+        self.icol = self.table.cols.icol
+        # A full index with maximum optlevel should always be completely sorted
+        self.icol.createIndex(optlevel=self.optlevel, kind="full",
+                              _blocksizes=small_blocksizes,
+                              )
+
+    def test01_readSorted1(self):
+        """Testing the Table.readSorted() method with no arguments."""
+        table = self.table
+        sortedtable = numpy.sort(table[:], order='icol')
+        sortedtable2 = table.readSorted('icol')
+        if verbose:
+            print "Sorted table:", sortedtable
+            print "The values from readSorted:", sortedtable2
+        # Compare with the sorted read table because we have no
+        # guarantees that readSorted returns a completely sorted table
+        assert allequal(sortedtable, numpy.sort(sortedtable2, order="icol"))
+
+
+    def test01_readSorted2(self):
+        """Testing the Table.readSorted() method with no arguments (re-open)."""
+        self._reopen()
+        table = self.h5file.root.table
+        sortedtable = numpy.sort(table[:], order='icol')
+        sortedtable2 = table.readSorted('icol')
+        if verbose:
+            print "Sorted table:", sortedtable
+            print "The values from readSorted:", sortedtable2
+        # Compare with the sorted read table because we have no
+        # guarantees that readSorted returns a completely sorted table
+        assert allequal(sortedtable, numpy.sort(sortedtable2, order="icol"))
+
+
+    def test02_copy_sorted1(self):
+        """Testing the Table.copy(sortby) method."""
+        table = self.table
+        # Copy to another table
+        table.nrowsinbuf = self.nrowsinbuf
+        table2 = table.copy("/", 'table2', sortby="icol")
+        sortedtable = numpy.sort(table[:], order='icol')
+        sortedtable2 = numpy.sort(table2[:], order='icol')
+        if verbose:
+            print "Original table:", table2[:]
+            print "The sorted values from copy:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+    def test02_copy_sorted2(self):
+        """Testing the Table.copy(sortby) method after table re-opening."""
+        self._reopen(mode='a')
+        table = self.h5file.root.table
+        # Copy to another table
+        table.nrowsinbuf = self.nrowsinbuf
+        table2 = table.copy("/", 'table2', sortby="icol")
+        sortedtable = numpy.sort(table[:], order='icol')
+        sortedtable2 = numpy.sort(table2[:], order='icol')
+        if verbose:
+            print "Original table:", table2[:]
+            print "The sorted values from copy:", sortedtable2
+        assert allequal(sortedtable, sortedtable2)
+
+
+class readSortedIndex0(readSortedIndexTestCase):
+    optlevel = 0
+
+class readSortedIndex3(readSortedIndexTestCase):
+    optlevel = 3
+
+class readSortedIndex6(readSortedIndexTestCase):
+    optlevel = 6
+
+class readSortedIndex9(readSortedIndexTestCase):
+    optlevel = 9
+
 
 #----------------------------------------------------------------------
 
@@ -2220,6 +2314,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(OldIndexTestCase))
         theSuite.addTest(unittest.makeSuite(CompletelySortedIndexTestCase))
         theSuite.addTest(unittest.makeSuite(ManyNodesTestCase))
+        theSuite.addTest(unittest.makeSuite(readSortedIndex0))
+        theSuite.addTest(unittest.makeSuite(readSortedIndex3))
+        theSuite.addTest(unittest.makeSuite(readSortedIndex6))
+        theSuite.addTest(unittest.makeSuite(readSortedIndex9))
     if heavy:
         # These are too heavy for normal testing
         theSuite.addTest(unittest.makeSuite(AI4bTestCase))
