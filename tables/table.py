@@ -2371,6 +2371,8 @@ The 'names' parameter must be a list of strings.""")
             return
         lenbuf = self.nrowsinbuf
         absstep = abs(step)
+        if sortby is not None:
+            index = self._check_sortby_CSI(sortby, checkCSI)
         for start2 in lrange(start, stop, absstep*lenbuf):
             stop2 = start2+absstep*lenbuf
             if stop2 > stop:
@@ -2379,9 +2381,8 @@ The 'names' parameter must be a list of strings.""")
             if sortby is None:
                 rows = self[start2:stop2:step]
             else:
-                rows = self.readSorted(
-                    sortby=sortby, checkCSI=checkCSI, field=None,
-                    start=start2, stop=stop2, step=step )
+                coords = index[start2:stop2:step]
+                rows = self.readCoordinates(coords)
             # Save the records on disk
             object.append(rows)
         object.flush()
