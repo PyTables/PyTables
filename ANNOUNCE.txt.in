@@ -11,11 +11,12 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-#XXX version-specific blurb XXX#
+This is a maintenance release.  On it, a handful of fixes have been
+added as well as some (small) enhancements, like improved Unicode
+support for filenames and attributes.
 
 In case you want to know more in detail what has changed in this
-version, have a look at ``RELEASE_NOTES.txt`` in the tarball.  Find the
-HTML version for this document at:
+version, have a look at:
 http://www.pytables.org/moin/ReleaseNotes/Release_@VERSION@
 
 You can download a source package of the version @VERSION@ with
@@ -32,7 +33,7 @@ http://www.pytables.org/download/evaluation
 Resources
 =========
 
-Go to the PyTables Pro web page for more details:
+About PyTables:
 
 http://www.pytables.com/moin/PyTablesPro
 
@@ -42,7 +43,7 @@ http://www.pytables.org
 
 About the HDF5 library:
 
-http://hdfgroup.org/HDF5/
+http://www.hdfgroup.org/HDF5/
 
 About NumPy:
 
@@ -58,6 +59,7 @@ distribution package for a (incomplete) list of contributors.  Many
 thanks also to SourceForge who have helped to make and distribute this
 package!  And last, but not least thanks a lot to the HDF5 and NumPy
 (and numarray!) makers. Without them PyTables simply would not exist.
+
 
 Share your experience
 =====================
