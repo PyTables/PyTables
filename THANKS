@@ -1,4 +1,4 @@
-July 2007
+March 2009
 
 We would like to thank the people have contributed directly or
 indirectly to PyTables.
@@ -54,7 +54,7 @@ have been very receptive and promptly worked-out most of the
 improvements in numarray (specially in the records module) that were
 necessary for PyTables.
 
-Travis Oliphant for its impressive work and responsiveness in NumPy.
+Travis Oliphant for its impressive work and responsiveness with NumPy.
 
 Evan Prodromou for his lrucache package, a very sleek implementation
 of an LRU queue.  He had a very helpful attitude with the licensing
@@ -71,7 +71,10 @@ Greg Ewing for writing the excelent Pyrex tool and allowing to beginners
 like me to quickly and safely start writing Python extensions. He was
 also very responsive about questions on Pyrex.
 
-Guido, you know who ;-).
+Andrew Collette, for his excellent work on the h5py project, from
+which PyTables starts to stole ideas (and code too ;-).
+
+Guido, you know who.
 
 And last, but definetely not least!,
 

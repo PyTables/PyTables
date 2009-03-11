@@ -14,8 +14,7 @@ gigarows (10**10 rows) in less than 1 tenth of a second.
 #XXX version-specific blurb XXX#
 
 In case you want to know more in detail what has changed in this
-version, have a look at ``RELEASE_NOTES.txt`` in the tarball.  Find the
-HTML version for this document at:
+version, have a look at:
 http://www.pytables.org/moin/ReleaseNotes/Release_@VERSION@
 
 You can download a source package of the version @VERSION@ with
@@ -32,7 +31,7 @@ http://www.pytables.org/download/evaluation
 Resources
 =========
 
-Go to the PyTables Pro web page for more details:
+About PyTables:
 
 http://www.pytables.com/moin/PyTablesPro
 
@@ -54,16 +53,17 @@ Acknowledgments
 
 Thanks to many users who provided feature improvements, patches, bug
 reports, support and suggestions.  See the ``THANKS`` file in the
-distribution package for a (incomplete) list of contributors.  Many
-thanks also to SourceForge who have helped to make and distribute this
-package!  And last, but not least thanks a lot to the HDF5 and NumPy
-(and numarray!) makers. Without them PyTables simply would not exist.
+distribution package for a (incomplete) list of contributors.  Most
+specially, a lot of kudos go to the HDF5 and NumPy (and numarray!)
+makers.  Without them PyTables simply would not exist.
+
 
 Share your experience
 =====================
 
 Let us know of any bugs, suggestions, gripes, kudos, etc. you may
 have.
+
 
 ----
 
