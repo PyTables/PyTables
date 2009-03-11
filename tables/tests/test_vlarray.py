@@ -3066,26 +3066,25 @@ class SetRangeTestCase(unittest.TestCase):
         assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
         assert allequal(row[2], numpy.arange(99, dtype='int32')*2+3)
 
-    def test02_start(self):
-        "Checking updates with only a part of a row (start, None)"
+    def test02_partial(self):
+        "Checking updates with only a part of a row"
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running %s.test02_start..." % self.__class__.__name__
+            print "Running %s.test02_partial..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
         vlarray[0] = vlarray[0]*2+3
-        vlarray[10,0:] = vlarray[10]*2+3
-        #print "shape1, shape2-->", vlarray[99].shape, vlarray[96].shape
-        vlarray[99,3:] = vlarray[96]*2+3
+        vlarray[10] = vlarray[10]*2+3
+        vlarray[96] = vlarray[99][3:]*2+3
 
         # Read some rows:
         row = []
         row.append(vlarray.read(0)[0])
         row.append(vlarray.read(10)[0])
-        row.append(vlarray.read(99)[0])
+        row.append(vlarray.read(96)[0])
         if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -3093,32 +3092,62 @@ class SetRangeTestCase(unittest.TestCase):
         assert vlarray.nrows == self.nrows
         assert len(row[0]) == 0
         assert len(row[1]) == 10
-        assert len(row[2]) == 99
+        assert len(row[2]) == 96
         assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
         assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
-        a = numpy.arange(99, dtype='int32'); a[3:] = a[:96]*2+3
+        a = numpy.arange(3,99, dtype='int32'); a = a*2+3
         assert allequal(row[2], a)
 
-    def test03_stop(self):
-        "Checking updates with only a part of a row (None, stop)"
+    def test03a_several_rows(self):
+        "Checking updating several rows at once (slice style)"
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running %s.test03_stop..." % self.__class__.__name__
+            print "Running %s.test03a_several_rows..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
-        vlarray[0] = vlarray[0]*2+3
-        vlarray[10,:10] = vlarray[10]*2+3
-        #print "shape1, shape2-->", vlarray[99].shape, vlarray[96].shape
-        vlarray[99,:3] = vlarray[3]*2+3
+        vlarray[3:6] = (vlarray[3]*2+3,
+                        vlarray[4]*2+3,
+                        vlarray[5]*2+3)
+
+        # Read some rows:
+        row = []
+        row.append(vlarray.read(3)[0])
+        row.append(vlarray.read(4)[0])
+        row.append(vlarray.read(5)[0])
+        if common.verbose:
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "Second row in vlarray ==>", row[1]
+
+        assert vlarray.nrows == self.nrows
+        assert len(row[0]) == 3
+        assert len(row[1]) == 4
+        assert len(row[2]) == 5
+        assert allequal(row[0], numpy.arange(3, dtype='int32')*2+3)
+        assert allequal(row[1], numpy.arange(4, dtype='int32')*2+3)
+        assert allequal(row[2], numpy.arange(5, dtype='int32')*2+3)
+
+    def test03b_several_rows(self):
+        "Checking updating several rows at once (list style)"
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test03b_several_rows..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "a")
+        vlarray = self.fileh.root.vlarray
+
+        # Modify some rows:
+        vlarray[[0,10,96]] = (vlarray[0]*2+3,
+                              vlarray[10]*2+3,
+                              vlarray[96]*2+3)
 
         # Read some rows:
         row = []
         row.append(vlarray.read(0)[0])
         row.append(vlarray.read(10)[0])
-        row.append(vlarray.read(99)[0])
+        row.append(vlarray.read(96)[0])
         if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -3126,32 +3155,30 @@ class SetRangeTestCase(unittest.TestCase):
         assert vlarray.nrows == self.nrows
         assert len(row[0]) == 0
         assert len(row[1]) == 10
-        assert len(row[2]) == 99
+        assert len(row[2]) == 96
         assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
         assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
-        a = numpy.arange(99, dtype='int32'); a[:3] = a[:3]*2+3
-        assert allequal(row[2], a)
+        assert allequal(row[2], numpy.arange(96, dtype='int32')*2+3)
 
-    def test04_start_stop(self):
-        "Checking updates with only a part of a row (start, stop)"
+    def test03c_several_rows(self):
+        "Checking updating several rows at once (NumPy's where style)"
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running %s.test04_start_stop..." % self.__class__.__name__
+            print "Running %s.test03c_several_rows..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "a")
         vlarray = self.fileh.root.vlarray
 
         # Modify some rows:
-        vlarray[0] = vlarray[0]*2+3
-        vlarray[10,0:9] = vlarray[9]*2+3
-        #print "vlarray[10]-->", `vlarray[10]`
-        vlarray[99,3:5] = vlarray[2]*2+3
+        vlarray[(numpy.array([0,10,96]),)] = (vlarray[0]*2+3,
+                                              vlarray[10]*2+3,
+                                              vlarray[96]*2+3)
 
         # Read some rows:
         row = []
         row.append(vlarray.read(0)[0])
         row.append(vlarray.read(10)[0])
-        row.append(vlarray.read(99)[0])
+        row.append(vlarray.read(96)[0])
         if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
             print "Second row in vlarray ==>", row[1]
@@ -3159,118 +3186,16 @@ class SetRangeTestCase(unittest.TestCase):
         assert vlarray.nrows == self.nrows
         assert len(row[0]) == 0
         assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
-        assert allequal(row[1], numpy.concatenate([numpy.arange(9, dtype='int32')*2+3,
-                                                   numpy.array([9], dtype='int32')]))
-        a = numpy.arange(99, dtype='int32'); a[3:5] = a[:2]*2+3
-        assert allequal(row[2], a)
-
-    def test05_start_stop(self):
-        "Checking updates with only a part of a row (-start, -stop)"
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test05_start_stop_step..." % self.__class__.__name__
-
-        self.fileh = openFile(self.file, "a")
-        vlarray = self.fileh.root.vlarray
-
-        # Modify some rows:
-        vlarray[0] = vlarray[0]*2+3
-        vlarray[10,-10:-1] = vlarray[9]*2+3
-        #print "shape1, shape2-->", vlarray[99].shape, vlarray[96].shape
-        vlarray[99,-99:-89:2] = vlarray[5]*2+3
-
-        # Read some rows:
-        row = []
-        row.append(vlarray.read(0)[0])
-        row.append(vlarray.read(10)[0])
-        row.append(vlarray.read(99)[0])
-        if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
-
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
-        assert allequal(row[1], numpy.concatenate([numpy.arange(9, dtype='int32')*2+3,
-                                                   numpy.array([9], dtype='int32')]))
-        a = numpy.arange(99, dtype='int32'); a[-99:-89:2] = a[:5]*2+3
-        assert allequal(row[2], a)
-
-    def test06_start_stop_step(self):
-        "Checking updates with only a part of a row (start, stop, step)"
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06_start_stop_step..." % self.__class__.__name__
-
-        self.fileh = openFile(self.file, "a")
-        vlarray = self.fileh.root.vlarray
-
-        # Modify some rows:
-        vlarray[0] = vlarray[0]*2+3
-        vlarray[10,0:10:1] = vlarray[10]*2+3
-        #print "shape1, shape2-->", vlarray[99].shape, vlarray[96].shape
-        vlarray[99,1:11:2] = vlarray[5]*2+3
-
-        # Read some rows:
-        row = []
-        row.append(vlarray.read(0)[0])
-        row.append(vlarray.read(10)[0])
-        row.append(vlarray.read(99)[0])
-        if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
-
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
+        assert len(row[2]) == 96
         assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
         assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
-        a = numpy.arange(99, dtype='int32'); a[1:11:2] = a[:5]*2+3
-        assert allequal(row[2], a)
+        assert allequal(row[2], numpy.arange(96, dtype='int32')*2+3)
 
-    def test06np_start_stop_step(self):
-        "Checking updates with only a part of a row (start, stop, step). numpy idx"
-        if common.verbose:
-            print '\n', '-=' * 30
-            print "Running %s.test06np_start_stop_step..." % self.__class__.__name__
-
-        self.fileh = openFile(self.file, "a")
-        vlarray = self.fileh.root.vlarray
-
-        # Modify some rows:
-        vlarray[numpy.int8(0)] = vlarray[numpy.int8(0)]*2+3
-        vlarray[10,numpy.int8(0):numpy.int8(10):numpy.int8(1)] = vlarray[10]*2+3
-        #print "shape1, shape2-->", vlarray[99].shape, vlarray[96].shape
-        vlarray[numpy.int8(99),numpy.int8(1):numpy.int8(11):2] = vlarray[5]*2+3
-
-        # Read some rows:
-        row = []
-        row.append(vlarray.read(0)[0])
-        row.append(vlarray.read(10)[0])
-        row.append(vlarray.read(99)[0])
-        if common.verbose:
-            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
-            print "Second row in vlarray ==>", row[1]
-
-        assert vlarray.nrows == self.nrows
-        assert len(row[0]) == 0
-        assert len(row[1]) == 10
-        assert len(row[2]) == 99
-        assert allequal(row[0], numpy.arange(0, dtype='int32')*2+3)
-        assert allequal(row[1], numpy.arange(10, dtype='int32')*2+3)
-        a = numpy.arange(99, dtype='int32'); a[1:11:2] = a[:5]*2+3
-        assert allequal(row[2], a)
-
-    def test07_out_of_range(self):
+    def test04_out_of_range(self):
         "Checking out of range updates (first index)"
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running %s.test07_out_of_range..." % self.__class__.__name__
+            print "Running %s.test04_out_of_range..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -3280,7 +3205,6 @@ class SetRangeTestCase(unittest.TestCase):
 
         try:
             vlarray[1000] = [1]
-            print "row-->", row
         except IndexError:
             if common.verbose:
                 (type, value, traceback) = sys.exc_info()
@@ -3291,11 +3215,11 @@ class SetRangeTestCase(unittest.TestCase):
             (type, value, traceback) = sys.exc_info()
             self.fail("expected a IndexError and got:\n%s" % value)
 
-    def test08_value_error(self):
+    def test05_value_error(self):
         "Checking out value errors"
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running %s.test08_value_error..." % self.__class__.__name__
+            print "Running %s.test05_value_error..." % self.__class__.__name__
 
         self.fileh = openFile(self.file, "a")
         vlarray = self.fileh.root.vlarray
@@ -3304,7 +3228,7 @@ class SetRangeTestCase(unittest.TestCase):
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
 
         try:
-            vlarray[10,1:100] = [1]*10
+            vlarray[10] = [1]*100
             print "row-->", row
         except ValueError:
             if common.verbose:
@@ -3315,6 +3239,7 @@ class SetRangeTestCase(unittest.TestCase):
         else:
             (type, value, traceback) = sys.exc_info()
             self.fail("expected a ValueError and got:\n%s" % value)
+
 
 class CopyTestCase(unittest.TestCase):
     close = True

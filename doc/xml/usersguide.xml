@@ -7176,7 +7176,7 @@ table[2] = [456,'db2',1.2]
 # Modify two existing rows
 rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
                        formats='i4,a3,f8')
-table[1:3:2] = rows
+table[1:30:2] = rows             # modify a table slice
 table[[1,3]] = rows              # only modifies rows 1 and 3
 table[[True,False,True]] = rows  # only modifies rows 0 and 2</screen>
 
@@ -9030,20 +9030,27 @@ a_list4 = vlarray[numpy.array([True,...,False])]  # array of bools</screen>
           <section id="VLArray.__setitem__" xreflabel="description">
             <title>__setitem__(key, value)</title>
 
-            <para>Set a row in the array.</para>
+            <para>Set a row, or set of rows, in the array.</para>
 
             <para>It takes different actions depending on the type of the
             <literal>key</literal> parameter: if it is an integer, the
-            corresponding array row is set to <literal>value</literal>.  If
-            the <literal>key</literal> is a tuple, the first element refers to
-            the row to be modified, and the second element to the range within
-            the row to be updated with the <literal>value</literal> (so it can
-            be an integer or a slice).</para>
+            corresponding table row is set to <literal>value</literal> (a
+            record or sequence capable of being converted to the table
+            structure). If <literal>key</literal> is a slice, the row slice
+            determined by it is set to <literal>value</literal> (a record
+            array or sequence capable of being converted to the table
+            structure).</para>
 
-            <para>The type and shape of the <literal>value</literal> must be
-            compatible with the type and shape determined by the
-            <literal>key</literal>, otherwise, a <literal>TypeError</literal>
-            or a <literal>ValueError</literal> will be raised.</para>
+            <para>In addition, NumPy-style point selections are supported.  In
+            particular, if <literal>key</literal> is a list of row
+            coordinates, the set of rows determined by it is set
+            to <literal>value</literal>.  Furthermore,
+            if <literal>key</literal> is an array of boolean values, only the
+            coordinates where <literal>key</literal>
+            is <literal>True</literal> are set to values
+            from <literal>value</literal>.  Note that for the latter to work
+            it is necessary that <literal>key</literal> list would contain
+            exactly as many rows as the table has.</para>
 
             <note>
               <para>When updating the rows of a <literal>VLArray</literal>
@@ -9061,9 +9068,11 @@ a_list4 = vlarray[numpy.array([True,...,False])]  # array of bools</screen>
             <para>Example of use:</para>
 
             <screen>vlarray[0] = vlarray[0] * 2 + 3
-vlarray[99, 3:] = arange(96) * 2 + 3
-# Negative values for start and stop (but not step) are supported.
-vlarray[99, -99:-89:2] = vlarray[5] * 2 + 3</screen>
+vlarray[99] = arange(96) * 2 + 3
+# Negative values for the index are supported.
+vlarray[-99] = vlarray[5] * 2 + 3
+vlarray[1:30:2] = list_of_rows
+vlarray[[1,3]] = new_1_and_3_rows</screen>
           </section>
         </section>
 

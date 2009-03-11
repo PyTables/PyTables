@@ -1760,7 +1760,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             # Modify two existing rows
             rows = numpy.rec.array([[457,'db1',1.2],[6,'de2',1.3]],
                                    formats='i4,a3,f8')
-            table[1:3:2] = rows
+            table[1:30:2] = rows             # modify a table slice
             table[[1,3]] = rows              # only modifies rows 1 and 3
             table[[True,False,True]] = rows  # only modifies rows 0 and 2
 

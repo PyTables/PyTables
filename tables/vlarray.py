@@ -621,20 +621,63 @@ be zero."""
                   key
 
 
+    def _assign_values(self, coords, values):
+        """Assign the `values` to the positions stated in `coords`."""
+
+        for nrow, value in zip(coords, values):
+            if nrow >= self.nrows:
+                raise IndexError, "First index out of range"
+            if nrow < 0:
+                # To support negative values
+                nrow += self.nrows
+            object_ = value
+            # Prepare the object to convert it into a NumPy object
+            atom = self.atom
+            if not hasattr(atom, 'size'):  # it is a pseudo-atom
+                object_ = atom.toarray(object_)
+                statom = atom.base
+            else:
+                statom = atom
+            value = convertToNPAtom(object_, statom)
+            nobjects = self._getnobjects(value)
+
+            # Get the previous value
+            nrow = idx2long(nrow)   # To convert any possible numpy scalar value
+            nparr = self._readArray(nrow, nrow+1, 1)[0]
+            nobjects = len(nparr)
+            if len(value) > nobjects:
+                raise ValueError, \
+    "Length of value (%s) is larger than number of elements in row (%s)" % \
+    (len(value), nobjects)
+            try:
+                nparr[:] = value
+            except Exception, exc:  #XXX
+                raise ValueError, \
+    "Value parameter:\n'%r'\ncannot be converted into an array object compliant vlarray[%s] row: \n'%r'\nThe error was: <%s>" % \
+    (value, nrow, nparr[:], exc)
+
+            if nparr.size > 0:
+                self._modify(nrow, nparr, nobjects)
+
+
     def __setitem__(self, key, value):
         """
-        Set a row in the array.
+        Set a row, or set of rows, in the array.
 
         It takes different actions depending on the type of the `key`
-        parameter: if it is an integer, the corresponding array row is
-        set to `value`.  If `key` is a tuple, the first element refers
-        to the row to be modified, and the second element to the range
-        within the row to be updated with the `value` (so it can be an
-        integer or a slice).
+        parameter: if it is an integer, the corresponding table row is
+        set to `value` (a record, list or tuple capable of being
+        converted to the table field format).  If `key` is a slice, the
+        row slice determined by it is set to `value` (a NumPy record
+        array, ``NestedRecArray`` or list of rows).
 
-        The type and shape of the `value` must be compatible with the
-        type and shape determined by the `key`, otherwise, a
-        ``TypeError`` or a ``ValueError`` will be raised.
+        In addition, NumPy-style point selections are supported.  In
+        particular, if `key` is a list of row coordinates, the set of
+        rows determined by it is set to `value`.  Furthermore, if `key`
+        is an array of boolean values, only the coordinates where `key`
+        is ``True`` are set to values from `value`.  Note that for the
+        latter to work it is necessary that `key` list would contain
+        exactly as many rows as the table has.
 
         .. Note:: When updating the rows of a `VLArray` object which
            uses a pseudo-atom, there is a problem: you can only update
@@ -649,69 +692,32 @@ be zero."""
         Example of use::
 
             vlarray[0] = vlarray[0] * 2 + 3
-            vlarray[99, 3:] = arange(96) * 2 + 3
-            # Negative values for start and stop (but not step) are supported.
-            vlarray[99, -99:-89:2] = vlarray[5] * 2 + 3
+            vlarray[99] = arange(96) * 2 + 3
+            # Negative values for the index are supported.
+            vlarray[-99] = vlarray[5] * 2 + 3
+            vlarray[1:30:2] = list_of_rows
+            vlarray[[1,3]] = new_1_and_3_rows
         """
 
         self._v_file._checkWritable()
 
-        if not isinstance(key, tuple):
-            key = (key, None)
-        if len(key) > 2:
-            raise IndexError, "You cannot specify more than two dimensions"
-        nrow, rng = key
-        # Process the first index
-        if not (type(nrow) in (int,long) or isinstance(nrow, numpy.integer)):
-            raise IndexError, "The first dimension only can be an integer"
-        if nrow >= self.nrows:
-            raise IndexError, "First index out of range"
-        if nrow < 0:
-            # To support negative values
-            nrow += self.nrows
-        # Process the second index
-        if type(rng) in (int,long) or isinstance(rng, numpy.integer):
-            start = rng; stop = start+1; step = 1
-        elif isinstance(rng, slice):
-            start, stop, step = rng.start, rng.stop, rng.step
-        elif rng is None:
-            start, stop, step = None, None, None
+        if is_idx(key):
+            # If key is not a sequence, convert to it
+            coords = [key]
+            value = [value]
+        elif isinstance(key, slice):
+            (start, stop, step) = self._processRange(
+                key.start, key.stop, key.step )
+            coords = range(start, stop, step)
+        # Try with a boolean or point selection
+        elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
+            coords = self._pointSelection(key)
         else:
-            raise IndexError, "Non-valid second index or slice: %s" % rng
+            raise IndexError, "Non-valid index or slice: %s" % \
+                  key
 
-        object_ = value
-        # Prepare the object to convert it into a NumPy object
-        atom = self.atom
-        if not hasattr(atom, 'size'):  # it is a pseudo-atom
-            object_ = atom.toarray(object_)
-            statom = atom.base
-        else:
-            statom = atom
-        value = convertToNPAtom(object_, statom)
-        nobjects = self._getnobjects(value)
-
-        # Get the previous value
-        nrow = idx2long(nrow)   # To convert any possible numpy scalar value
-        nparr = self._readArray(nrow, nrow+1, 1)[0]
-        nobjects = len(nparr)
-        if len(value) > nobjects:
-            raise ValueError, \
-"Length of value (%s) is larger than number of elements in row (%s)" % \
-(len(value), nobjects)
-        # Assign the value to it
-        # The values can be numpy scalars. Convert them before building the slice.
-        if start is not None: start = idx2long(start)
-        if stop is not None: stop = idx2long(stop)
-        if step is not None: step = idx2long(step)
-        try:
-            nparr[slice(start, stop, step)] = value
-        except Exception, exc:  #XXX
-            raise ValueError, \
-"Value parameter:\n'%r'\ncannot be converted into an array object compliant vlarray[%s] row: \n'%r'\nThe error was: <%s>" % \
-        (value, key, nparr[slice(start, stop, step)], exc)
-
-        if nparr.size > 0:
-            self._modify(nrow, nparr, nobjects)
+        # Do the assignment row by row
+        self._assign_values(coords, value)
 
 
     # Accessor for the _readArray method in superclass
