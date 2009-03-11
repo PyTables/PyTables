@@ -6,6 +6,42 @@
 :Contact: faltet@pytables.org
 
 
+Changes from 2.1.x to 2.2
+=========================
+
+Enhancements
+------------
+
+- Added support for NumPy's extended slicing in all `Leaf` objects.
+  With that, you can do the next sort of selections::
+
+      array1 = array[4]                       # simple selection
+      array2 = array[4:1000:2]                # slice selection
+      array3 = array[1, ..., ::2, 1:4, 4:]    # general slice selection
+      array4 = array[1, [1,5,10], ..., -1]    # fancy selection
+      array5 = array[np.where(array[:] > 4)]  # point selection
+      array6 = array[array[:] > 4]            # boolean selection
+
+  Closes #198 and #209.
+
+API changes
+-----------
+
+- In order to be consistent and allow the extended slicing to happen
+  in `VLArray` objects too, `VLArray.__setitem__()` is not able to
+  partially modify rows based on the second dimension passed as key.
+  If this is tried, an `IndexError` is raised now.  Closes #210.
+
+- The `forceCSI` flag has been replaced by `checkCSI` in the next
+  `Table` methods: `copy()`, `readSorted()` and `itersorted()`.  The
+  change reflects the fact that a re-index operation cannot be
+  triggered from these methods anymore.  The rational for the change
+  is that an indexing operation is a potentially very expensive
+  operation that should be carried out explicitely instead of being
+  triggered by methods that should not be in charge of this task.
+  Closes #216.
+
+
 Changes from 2.1 to 2.1.1
 =========================
 
