@@ -3056,6 +3056,10 @@ class Column(object):
             temporary file.  The default is to create it in the same
             directory as the file containing the original table.
 
+        .. Warning:: In some situations it is useful to get a completely
+           sorted index (CSI).  For those cases, it is best to use the
+           `createCSIndex()` method instead.
+
         .. Note:: Column indexing is only available in PyTables Pro.
         """
         _checkIndexingAvailable()

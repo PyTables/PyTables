@@ -8221,8 +8221,16 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
                     create it in the same directory as the file containing the
                     original table.</para>
                   </glossdef>
+
                 </glossentry>
               </glosslist>
+
+              <warning>
+                <para>In some situations it is useful to get a completely
+                  sorted index (CSI).  For those cases, it is best to use the
+                  <literal>createCSIndex()</literal> method instead (see
+                  <xref linkend="Column.createCSIndex" />).</para>
+              </warning>
 
               <note role="pro">
                 <para>Column indexing is only available in PyTables
@@ -14478,7 +14486,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       Please be careful when touching these!</para></warning>
 
       <section>
-        <title>Tunable parameters in <literal>tables/parameters.py</literal>.
+        <title>Tunable parameters in <literal>parameters.py</literal>.
         </title>
 
         <section>
@@ -14493,13 +14501,6 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
                 objects before a <literal>PerformanceWarning</literal> is
                 issued.  This limit is somewhat arbitrary and can be
                 increased.</para>
-              </glossdef>
-            </glossentry>
-
-            <glossentry>
-              <glossterm><literal>MAX_COLUMNS</literal></glossterm>
-              <glossdef>
-                <para></para>
               </glossdef>
             </glossentry>
 
@@ -14641,8 +14642,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       </section>
 
       <section>
-        <title>Tunable parameters in
-        <literal>tables/_parameters_pro.py</literal>.
+        <title>Tunable parameters in <literal>_parameters_pro.py</literal>.
         </title>
 
         <note role="pro">
@@ -14750,9 +14750,9 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           <title>Parameters for general cache behaviour</title>
 
           <warning>
-            <para>The next parameters will not be effective if passed to the
-            <literal>openFile()</literal> function (so, they can only be
-            changed in a <emphasis>global</emphasis> way).  You can change
+            <para>The next parameters will not take any effect if passed to
+            the <literal>openFile()</literal> function, so they can only be
+            changed in a <emphasis>global</emphasis> way.  You can change
             them in the file, but this is strongly discouraged unless you know
             well what you are doing.</para>
           </warning>
