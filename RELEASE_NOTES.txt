@@ -3,253 +3,53 @@
 =======================================
 
 :Author: Francesc Alted i Abad
-:Contact: faltet@pytables.com
-:Author: Ivan Vilata i Balaguer
-:Contact: ivan@selidor.net
+:Contact: faltet@pytables.org
 
 
 Changes from 2.1 to 2.1.1
 =========================
 
-- (None yet.)
-
-
-Changes from 2.0.4 to 2.1
-=========================
-
-Main improvements
------------------
-
-- Now, when opening a node, that will be done directly (i.e. without
-  populating first all the parent directories).  So, for opening
-  pre-known group and leaf locations, the new code is *much* faster.
-
-- The creation of different nodes has been optimized too.  For
-  example, creating a new EArray/CArray can be 2x faster and creating
-  a Table object up to 5x faster.
-
-- Added new section in Chapter 5 "Optimization tips" of the User's
-  Manual about chunksize fine-tuning and completely rewritten the
-  section of "Accelerating your searches", also in Chapter 5.
-
-- Added a ``PYTABLES_SYS_ATTRS`` parameter that allows to switch on and
-  off the creation of PyTables system attributes in datasets.  This way
-  the resulting files are not too PyTables specific.  Moreover, the
-  creation speed of datasets is faster too.  Closes #190.
-
-- Disabling the LRU node cache is now supported by setting the
-  NODE_CACHE_SLOTS (in parameters.py) to 0 (this can also be achieved
-  through the `NODE_CACHE_SLOTS` parameter of the `openFile()`
-  function).  Besides, this figure can also be negative, meaning that
-  all the touched nodes will be kept in an internal dictionary (thus,
-  taking potentially a large amount of memory for large hierarchies).
-  See more info about these features in the updated "Getting the most
-  from the node LRU cache" section of chapter 5 of User's Guide.
-
-- It is possible now to add *any* tunable parameter in
-  tables/parameters.py (like limits for warnings, cache sizes, buffer
-  sizes, etc...)  as an argument to `openFile()`.  With this you can
-  select a different parametrization for every file you open.  A new
-  appendix has been added to the User's Guide explaining which are and
-  which is the mission of every tunable parameter.
-
-- The `EArray.truncate()` method has been generalized and implemented as
-  `Leaf.truncate()`.  Now, it is possible to truncate all *enlargeable*
-  datasets (i.e. all except `Array` and `CArray` objects).  Closes #174.
-
-- The limitation to use only scalar atoms in `CArray` and `EArray`
-  objects has been removed.  Now, all the `Table`, `CArray`, `EArray`
-  and `VLArray` objects do support fully multidimensional atoms.  This
-  also expands the range of native HDF5 files supported.  Closes #133.
-
-- Added support for the `arcsinh`, `arccosh`, `arctanh`, `log`,
-  `log10`, `log1p`, `exp` and `expm1` functions in the condition
-  expressions of in-kernel and indexed queries.
-
-- After some exhaustive benchmarks, I've decided to reduce the number
-  of nodes in the LRU cache for nodes to 64.  The experiments shows
-  that this leads to better performance overall and to a more
-  contained consumption of resources.
-
-
-Main improvements (Pro edition)
--------------------------------
-
-- New light indexes that can take up to 4x less space than 2.0 indexes,
-  and more than 15x less space than indexes in traditional databases.
-  Four levels of index "lightness", namely ``ultralight``, ``light``,
-  ``medium`` and ``full`` (the latter being the one that implemented the
-  2.0 version), are available so that the user will be able to choose
-  the most appropriate for her needs.
-
-- The index query code has been completely revamped and it is based now
-  on the concept of chunkmaps.  This allows for a much more effective
-  way to retrieve table data in queries that have low selectivity, while
-  retaining good performance for high selectivity ones.
-
-- A new query optimizer being able to use several indexes simultaneously
-  in a broad range of complex queries.  For example, in the query::
-
-    (((c_int32 == 3) | (c_bool == True)) & (c_int32 == 5)) & (c_extra > 0)
-
-  if ``c_int32`` and ``c_bool`` columns are indexed but ``c_extra`` is
-  not, both ``c_int32`` and ``c_bool`` indexes will be used.  That will
-  greatly enhance the response times of potentially complicated queries.
-
-- An additional optimization in the index creation process permits to
-  achieve completely sorted indexes (CSI), allowing not only to get
-  better performance in queries, but also to create completely sorted
-  tables ordered by a specific field.
-
-
-API additions from 2.0.4 to 2.1
--------------------------------
-
-- The `AttributeSet` class has received the next dictionary like
-  methods: `__getitem__()`, `__setitem__()` and `__delitem__()`, so that
-  you can do things like::
-
-    for name in node._v_attrs._f_list():
-        print "name: %s, value: %s" % (name, node._v_attrs[name])
-
-- New `File.fileno()` added.  This returns the underlying OS file
-  descriptor for the file.  This is meant to allow `File` objects to
-  better interact with the `fcntl` module.
-
-- A new `chunkshape` argument has been added to `Leaf.copy()` allowing
-  to specify a chunkshape.  It can also take the special values 'auto'
-  (compute a sensible value) and 'keep' (keep the original value, which
-  is the default).
-
-- Added a new '--chunkshape' flag to the `ptrepack` console command that
-  corresponds to the new `chunkshape` added to `Leaf.copy()`.
-
-
-API additions from 2.0.4 to 2.1 (Pro edition)
----------------------------------------------
-
-- A new `Table.itersorted()` iterator allows to iterate through a table
-  following the order of a certain index.  It supports iteration on
-  ranges, including negative steps (i.e. reverse sorted order).
-
-- New `Table.readSorted()` method that can read a table following the
-  order of a certain index.  It supports the reads on ranges, including
-  negative steps (i.e. reverse sorted order).
-
-- New `Table.colindexes` property that returns a dictionary with the
-  indexes of the indexed columns in table.
-
-- A new `sortby` argument has been added to Table.copy() allowing to a
-  Table to be sorted during the copy operation.
-
-- Added a new `propindexes` argument in `Table.copy()`.  If true, the
-  indexes in the source table are propagated (created) to the new table.
-  If false (the default), the indexes are not propagated.
-
-- New public `Index.readSorted()` and `Index.readIndices()` methods that
-  allow direct access to the index data.
-
-- Added a new `Column.createCSIndex()` as a handy way to create a
-  completely sorted index (CSI).
-
-- Added new '--sortby' (sort a table by a column key), '--forceCSI'
-  (force the creation of a CSI index) and '--propindexes' (propagate the
-  indexes in original tables) flags to the `ptrepack` utility.
-
-
-Bug fixes and other small enhancements
---------------------------------------
-
-- In order to avoid a long-standing bug, all the possible 64-bit class
-  attributes of leaf objects (like `nrows`, `shape` or `nrow`) have been
-  converted into a new `SizeType` type (actually an alias for
-  `numpy.int64`).  This change should be backward compatible with
-  existing programs, so you should not need any action to adapt to this.
-  Fixes #118.
-
-- When in `ptrepack` a range is not specified, all the elements of
-  leaves are copied now.  Before, only the first row was copied, which
-  was clearly wrong.
-
-- The `Atom` default value (`Atom.dflt`) is honored now when creating
-  `CArrays`.  Fixes #176.
-
-- During the modification of values in tables with indexed columns in
-  the context of iterators, the columns are not re-indexed when the I/O
-  buffer is full anymore, but after the iterator has completed.  This
-  allows for much better performance when keeping the indexes updated.
-  Closes #141.
-
-- `File.copyNode()` can copy now complete hierarchies directly from the
-  root.  This can be useful when one wants to create a new file by
-  merging the contents of others.
-
-- When an attribute with an unsupported data type is found in a file, a
-  ``DataTypeWarning`` is issued now, instead of aborting with a NumPy
-  error, as before.  This way users can deal with more variety of native
-  HDF5 files, even though some attributes might remain unreachable.
-  Closes #200.
-
-- Now the complete test suite pass in big-endian machines (tested with
-  PowerPC/MacOSX).  Closes #191.
-
-- Fixed a problem in the condition cache when handling dirty indexes.
-  Closes #193.
-
-- While auto-index mode was off, incorrect results for indexed queries
-  were returned after appending rows to indexed tables.  Closes #194.
-
-- Indexes in Pro now behaves correctly when they are updated after
-  being cached due to a previous query.  Closes #197.
-
-
-Backward incompatible API changes from 2.0.4 to 2.1
-===================================================
-
-- The semantics of `Leaf.copy()` has changed: before the chunkshape of
-  destination was computed 'auto'matically while now the default is that
-  the value is 'keep't.  This behaviour is thought to satisfy better the
-  least surprise principle.
-
-- The `trMap` argument has been removed from the `tables.openFile()`
-  function.  Also, the `Node._v_hdf5name` attribute has been removed as
-  well.  Fixes #117.
-
-- The `sort` parameter of `Table.itersequence()` has been removed as it
-  will not allow to sort sequences larger than memory.  Moreover, it is
-  not clear that the sorting operation would be a clear advantage in
-  every situation.
-
-- Now, in multidimensional atoms, the `Atom.dtype` variable contains the
-  shape of the type.  This is found to be more consistent than the
-  previous behaviour, where `Atom.dtype` was equivalent to current
-  `Atom.dtype.base`.
-
-- The parameter `nodeCacheSize` in `openFile()` has been deprecated.
-  Use `NODE_CACHE_SLOTS` instead (see ``tunable parameters`` above).
-
-
-Backward incompatible API changes from 2.0.4 to 2.1 (Pro edition)
-=================================================================
-
-- The `Column.createIndex()` has received a new parameter named `kind`
-  which is in the second position now in the argument list.  This is
-  intentional and *incompatible* with previous arglist, so that people
-  using more than one positional parameter in their existing
-  `Column.createIndex()` calls should update them.
-
-- The `Table.indexFilters` property has been removed (after a period of
-  ``DeprecationWarnings``).  If you want to change filters in indexes,
-  please use the `filters` parameter of the `Column.createIndex()`
-  method (and the like).
-
-- `Table.willQueryUseIndexing()` has changed its return value from a
-  ``list`` to a ``frozen set`` of usable indexed columns.
-
-- Now, the copy of the 'AUTO_INDEX' system attribute of the `Index`
-  class is performed only if the `copyuserattrs` in `Table.copy()` is
-  true (the default).
-
+Small enhancements
+------------------
+
+- `openFile()`, `isHDF5File()` and `isPyTablesFile()` functions accept
+  Unicode filenames now.  Closes #202 and #214.
+
+- When creating large type sizes (exceeding 64 KB), HDF5 complained
+  and refused to do so.  The HDF5 team has logged the issue as a bug,
+  but meanwhile it has been implemented a workaround in PyTables that
+  allows to create such large datatypes for situations that does not
+  require defaults other than zero.  Addresses #211.
+
+- In order to be consistent with how are stored the other data types,
+  Unicode attributes are retrieved now as NumPy scalars instead of
+  Python Unicode strings or NumPy arrays.  For the moment, I've fixed
+  this through pickling the Unicode strings.  In the future, when HDF5
+  1.8.x series would be a requirement, that should be done via a HDF5
+  native Unicode type.  Closes #213.
+
+Bug fixes
+---------
+
+- Fixed a memory leak when a lot of queries were made.  Closes #203
+  and #207.
+
+- The chunkshape="auto" parameter value of `Leaf.copy()` is honored
+  now, even when the (start, stop, step) parameters are specified.
+  Closes #204.
+
+- Due to a flaw in its design, the `File` class was not able to be
+  subclassed.  This has been fixed.  Closes #205.
+
+- Default values were not correctly retrieved when opening already
+  created CArray/EArray objects.  Fixed.  Closes #212.
+
+- Fixed a problem with the installation of the ``nctoh5`` script that
+  prevented it from being executed.  Closes #215.
+
+- [Pro] The ``iterseq`` cache ignored non-indexed conditions, giving
+  wrong results when those appeared in condition expressions.  This
+  has been fixed.  Closes #206.
 
 ----
 
