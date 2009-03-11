@@ -617,8 +617,7 @@ be zero."""
             coords = self._pointSelection(key)
             return self._readCoordinates(coords)
         else:
-            raise IndexError, "Non-valid index or slice: %s" % \
-                  key
+            raise IndexError("Invalid index or slice: %r" % (key,))
 
 
     def _assign_values(self, coords, values):
@@ -713,8 +712,7 @@ be zero."""
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
             coords = self._pointSelection(key)
         else:
-            raise IndexError, "Non-valid index or slice: %s" % \
-                  key
+            raise IndexError("Invalid index or slice: %r" % (key,))
 
         # Do the assignment row by row
         self._assign_values(coords, value)

@@ -1731,7 +1731,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
             coords = self._pointSelection(key)
             return self._readCoordinates(coords, None)
         else:
-            raise TypeError("Invalid index or slice: %r" % (key,))
+            raise IndexError("Invalid index or slice: %r" % (key,))
 
 
     def __setitem__(self, key, value):
@@ -1795,10 +1795,7 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
         elif type(key) in (list, tuple) or isinstance(key, numpy.ndarray):
             return self.modifyCoordinates(key, value)
         else:
-            # XXX The next ValueError must be put in sync with the
-            # TypeError that raises __getitem__.  As this represents an
-            # API change, this must not be done in a patch-level release.
-            raise ValueError, "Invalid index or slice: %r" % key
+            raise IndexError("Invalid index or slice: %r" % (key,))
 
 
     def _saveBufferedRows(self, wbufRA, lenrows):
