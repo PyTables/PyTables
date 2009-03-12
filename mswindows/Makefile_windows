@@ -19,6 +19,12 @@ endif
 ifeq ($(PYTHONVERSION), 25)
 	DOTPYTHONVERSION=2.5
 endif
+ifeq ($(PYTHONVERSION), 26)
+	DOTPYTHONVERSION=2.6
+endif
+ifeq ($(PYTHONVERSION), 27)
+	DOTPYTHONVERSION=2.7
+endif
 
 ifeq ($(LICENSE), development)
 	LICENSEFILE=..\LICENSE-development.txt
