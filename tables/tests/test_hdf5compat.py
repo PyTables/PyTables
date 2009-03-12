@@ -263,6 +263,7 @@ class ContiguousCompoundAppendTestCase(HDF5CompatibilityTestCase):
         # Appending using the Row interface
         self.assertRaises(tables.HDF5ExtError, tbl.row.append)
         # Remove the file copy
+        self.h5file.close()  # Close the handler first
         os.remove(h5fname_copy)
 
 
