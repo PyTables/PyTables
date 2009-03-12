@@ -17,14 +17,14 @@ In case you want to know more in detail what has changed in this
 version, have a look at:
 http://www.pytables.org/moin/ReleaseNotes/Release_@VERSION@
 
-You can download a source package of the version @VERSION@ with
-generated PDF and HTML docs and binaries for Windows from
+You can download a source package with generated PDF and HTML docs, as
+well as binaries for Windows, from:
 http://www.pytables.org/download/stable
 
 For an on-line version of the manual, visit:
 http://www.pytables.org/docs/manual-@VERSION@
 
-Finally, you can get an evaluation version for PyTables Pro in:
+You may want to fetch an evaluation version for PyTables Pro from:
 http://www.pytables.org/download/evaluation
 
 
@@ -55,7 +55,7 @@ Thanks to many users who provided feature improvements, patches, bug
 reports, support and suggestions.  See the ``THANKS`` file in the
 distribution package for a (incomplete) list of contributors.  Most
 specially, a lot of kudos go to the HDF5 and NumPy (and numarray!)
-makers.  Without them PyTables simply would not exist.
+makers.  Without them, PyTables simply would not exist.
 
 
 Share your experience
