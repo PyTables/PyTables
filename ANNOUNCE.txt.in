@@ -11,22 +11,25 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-This is a maintenance release.  On it, a handful of fixes have been
-added as well as some (small) enhancements, like improved Unicode
-support for filenames and attributes.
+This is a maintenance release, so no API changes are made.  On it, a
+handful of bugs, like `File` not being subclassable, incorrectly
+retrieved default values for data types or a memory leak, have been
+fixed.  Also, some (small) enhancements have been added, like improved
+Unicode support for filenames and attributes, or the possibility to
+create very large type sizes (exceeding 64 KB).
 
 In case you want to know more in detail what has changed in this
 version, have a look at:
 http://www.pytables.org/moin/ReleaseNotes/Release_@VERSION@
 
-You can download a source package of the version @VERSION@ with
-generated PDF and HTML docs and binaries for Windows from
+You can download a source package with generated PDF and HTML docs, as
+well as binaries for Windows, from:
 http://www.pytables.org/download/stable
 
 For an on-line version of the manual, visit:
 http://www.pytables.org/docs/manual-@VERSION@
 
-Finally, you can get an evaluation version for PyTables Pro in:
+You may want to fetch an evaluation version for PyTables Pro from:
 http://www.pytables.org/download/evaluation
 
 
@@ -55,10 +58,9 @@ Acknowledgments
 
 Thanks to many users who provided feature improvements, patches, bug
 reports, support and suggestions.  See the ``THANKS`` file in the
-distribution package for a (incomplete) list of contributors.  Many
-thanks also to SourceForge who have helped to make and distribute this
-package!  And last, but not least thanks a lot to the HDF5 and NumPy
-(and numarray!) makers. Without them PyTables simply would not exist.
+distribution package for a (incomplete) list of contributors.  Most
+specially, a lot of kudos go to the HDF5 and NumPy (and numarray!)
+makers.  Without them, PyTables simply would not exist.
 
 
 Share your experience
@@ -66,6 +68,7 @@ Share your experience
 
 Let us know of any bugs, suggestions, gripes, kudos, etc. you may
 have.
+
 
 ----
 
