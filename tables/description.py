@@ -84,24 +84,38 @@ class Col(atom.Atom):
     Factory methods
     ---------------
 
+    Each factory method inherited from the `Atom` class is available
+    with the same signature, plus an additional `pos` parameter (placed
+    in last position) which defaults to ``None`` and that may take an
+    integer value.  This parameter might be used to specify the position
+    of the column in the table.
+
+    Besides, there are the next additional factory methods, available
+    only for `Col` objects:</para>
+
     from_atom(atom[, pos])
         Create a `Col` definition from a PyTables ``atom``.
-    from_dtype(dtype[, dflt][, pos])
-        Create a `Col` definition from a NumPy ``dtype``.
-    from_kind(kind[, itemsize][, shape][, dflt][, pos])
-        Create a `Col` definition from a PyTables ``kind``.
-    from_sctype(sctype[, shape][, dflt][, pos])
-        Create a `Col` definition from a NumPy scalar type ``sctype``.
-    from_type(type[, shape][, dflt][, pos])
-        Create a `Col` definition from a PyTables ``type``.
 
     Constructors
     ------------
 
-    For each ``TYPEAtom`` class there is a matching ``TYPECol`` class
-    with the same constructor signature, plus an additional ``pos``
-    parameter, which defaults to ``None`` and may take an integer.  This
-    argument is used to set the ``_v_pos`` attribute.
+    There are some common arguments for most `Col` -derived
+    constructors:
+
+    itemsize
+        For types with a non-fixed size, this sets the size in bytes
+        of individual items in the column.
+
+    shape
+        Sets the shape of the column.  An integer shape of ``N`` is
+        equivalent to the tuple ``(N,)``.
+
+    dflt
+        Sets the default value for the column.
+
+    pos
+        Sets the position of column in table.  If unspecified, the
+        position will be randomly selected.
 
     """
 
