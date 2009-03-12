@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <book lang="en" xmlns:xi="http://www.w3.org/2001/XInclude">
   <title><literal>PyTables</literal> User's Guide</title>
 
@@ -10171,8 +10171,8 @@ True</screen>
             <para>A relation of the different constructors with their
             parameters follows.  For more information about them, see
             its <literal>Atom</literal> ancestors documentation in
-            <xref linkend="AtomConstructors" xrefstyle="select: label"
-            />.</para>
+            <xref linkend="AtomConstructors"/>.
+            </para>
 
             <section>
               <title>StringCol(itemsize, shape=(), dflt='', pos=None)</title>
@@ -11772,11 +11772,11 @@ indexrows = table.cols.var3.createIndex()</screen>
           example, querying against sorted tables is limited mainly by
           sequential access to data on disk and data compression capability,
           so you may want to read <xref linkend="chunksizeFineTune"
-          xrefstyle="select: label" />, for ways on improving this (or others)
-          aspect.  Reading the other sections of this chapter will help in
-          finding new roads for increasing the performance as well.  You know,
-          the limit for stopping the optimization process is your imagination
-          (and most plausibly your time ;-).
+          xrefstyle="select: label" />, for ways on improving this aspect.
+          Reading the other sections of this chapter will help in finding new
+          roads for increasing the performance as well.  You know, the limit
+          for stopping the optimization process is basically your imagination
+          (but, most plausibly, your available time ;-).
           </para>
 
         </section>
