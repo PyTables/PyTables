@@ -9300,217 +9300,8 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
         <title>Declarative classes</title>
 
         <para>In this section a series of classes that are meant to
-        <emphasis>declare</emphasis> datatypes that are required for primary
-        PyTables datasets (like <literal>Table</literal> or
-        <literal>VLArray</literal>) are described.</para>
-
-        <section id="IsDescriptionClassDescr">
-          <title>The <literal>IsDescription</literal> class</title>
-
-          <para>Description of the structure of a table or nested
-          column.</para>
-
-          <para>This class is designed to be used as an easy, yet meaningful
-          way to describe the structure of new <literal>Table</literal> (see
-          <xref linkend="TableClassDescr" xrefstyle="select: label" />)
-          datasets or nested columns through the definition of
-          <emphasis>derived classes</emphasis>. In order to define such a
-          class, you must declare it as descendant of
-          <literal>IsDescription</literal>, with as many attributes as columns
-          you want in your table. The name of each attribute will become the
-          name of a column, and its value will hold a description of
-          it.</para>
-
-          <para>Ordinary columns can be described using instances of the
-          <literal>Col</literal> class (see <xref linkend="ColClassDescr"
-          xrefstyle="select: label" />). Nested columns can be described by
-          using classes derived from <literal>IsDescription</literal>,
-          instances of it, or name-description dictionaries. Derived classes
-          can be declared in place (in which case the column takes the name of
-          the class) or referenced by name.</para>
-
-          <para>Nested columns can have a <literal>_v_pos</literal> special
-          attribute which sets the <emphasis>relative</emphasis> position of
-          the column among sibling columns <emphasis>also having explicit
-          positions</emphasis>.  The <literal>pos</literal> constructor
-          argument of <literal>Col</literal> intances is used for the same
-          purpose.  Columns with no explicit position will be placed
-          afterwards in alphanumeric order.</para>
-
-          <para>Once you have created a description object, you can pass it to
-          the <literal>Table</literal> constructor, where all the information
-          it contains will be used to define the table structure.
-          <!-- manual-only -->
-          See the <xref linkend="secondExample" xrefstyle="select: label" />
-          for an example on how that works.</para>
-
-          <section>
-            <title><literal>IsDescription</literal> special attributes</title>
-
-            <para>These are the special attributes that the user can specify
-            <emphasis>when declaring</emphasis> an
-            <literal>IsDescription</literal> subclass to complement its
-            <emphasis>metadata</emphasis>.</para>
-
-            <glosslist>
-              <?dbfo glosslist-presentation="list" ?>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">_v_pos</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Sets the position of a possible nested column
-                  description among its sibling columns.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section>
-            <title><literal>IsDescription</literal> class variables</title>
-
-            <para>The following attributes are <emphasis>automatically
-            created</emphasis> when an <literal>IsDescription</literal>
-            subclass is declared.  Please note that declared columns can no
-            longer be accessed as normal class variables after its
-            creation.</para>
-
-            <glosslist>
-              <?dbfo glosslist-presentation="list" ?>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">columns</emphasis></glossterm>
-
-                <glossdef>
-                  <para>Maps the name of each column in the description to its
-                  own descriptive object.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-        </section>
-
-        <section id="ColClassDescr">
-          <title>The <literal>Col</literal> class and its descendants</title>
-
-          <para>Defines a non-nested column.</para>
-
-          <para><literal>Col</literal> instances are used as a means to
-          declare the different properties of a non-nested column in a table
-          or nested column.  <literal>Col</literal> classes are descendants of
-          their equivalent <literal>Atom</literal> classes (see <xref
-          linkend="AtomClassDescr" xrefstyle="select: label" />), but their
-          instances have an additional <literal>_v_pos</literal> attribute
-          that is used to decide the position of the column inside its parent
-          table or nested column (see the <literal>IsDescription</literal>
-          class in <xref linkend="IsDescriptionClassDescr" xrefstyle="select:
-          label" /> for more information on column positions).</para>
-
-          <para>In the same fashion as <literal>Atom</literal>, you should use
-          a particular <literal>Col</literal> descendant class whenever you
-          know the exact type you will need when writing your code. Otherwise,
-          you may use one of the <literal>Col.from_*()</literal> factory
-          methods.</para>
-
-          <section>
-            <title><literal>Col</literal> instance variables</title>
-
-            <para>In addition to the variables that they inherit from the
-            <literal>Atom</literal> class, <literal>Col</literal> instances
-            have the following attributes:</para>
-
-            <glosslist>
-              <?dbfo glosslist-presentation="list" ?>
-
-              <glossentry>
-                <glossterm><emphasis role="bold">_v_pos</emphasis></glossterm>
-
-                <glossdef>
-                  <para>The <emphasis>relative</emphasis> position of this
-                  column with regard to its column siblings.</para>
-                </glossdef>
-              </glossentry>
-            </glosslist>
-          </section>
-
-          <section>
-            <title><literal>Col</literal> factory methods</title>
-
-            <section>
-              <title>from_atom(atom, pos=None)</title>
-
-              <para>Create a <literal>Col</literal> definition from a PyTables
-              <literal>atom</literal>.</para>
-
-              <para>An optional position may be specified as the
-              <literal>pos</literal> argument.</para>
-            </section>
-
-            <section>
-              <title>from_dtype(dtype, dflt=None, pos=None)</title>
-
-              <para>Create a <literal>Col</literal> definition from a NumPy
-              <literal>dtype</literal>.</para>
-
-              <para>Optional default value and position may be specified as
-              the <literal>dflt</literal> and <literal>pos</literal>
-              arguments, respectively. Information in the
-              <literal>dtype</literal> not represented in a
-              <literal>Col</literal> is ignored.</para>
-            </section>
-
-            <section>
-              <title>from_kind(kind, itemsize=None, shape=(), dflt=None,
-              pos=None)</title>
-
-              <para>Create a <literal>Col</literal> definition from a PyTables
-              <literal>kind</literal>.</para>
-
-              <para>Optional item size, shape, default value and position may
-              be specified as the <literal>itemsize</literal>,
-              <literal>shape</literal>, <literal>dflt</literal> and
-              <literal>pos</literal> arguments, respectively. Bear in mind
-              that not all columns support a default item size.</para>
-            </section>
-
-            <section>
-              <title>from_sctype(sctype, shape=(), dflt=None, pos=None)</title>
-
-              <para>Create a <literal>Col</literal> definition from a NumPy
-              scalar type <literal>sctype</literal>.</para>
-
-              <para>Optional shape, default value and position may be
-              specified as the <literal>shape</literal>,
-              <literal>dflt</literal> and <literal>pos</literal> arguments,
-              respectively. Information in the <literal>sctype</literal> not
-              represented in a <literal>Col</literal> is ignored.</para>
-            </section>
-
-            <section>
-              <title>from_type(type, shape=(), dflt=None, pos=None)</title>
-
-              <para>Create a <literal>Col</literal> definition from a PyTables
-              <literal>type</literal>.</para>
-
-              <para>Optional shape, default value and position may be
-              specified as the <literal>shape</literal>,
-              <literal>dflt</literal> and <literal>pos</literal> arguments,
-              respectively.</para>
-            </section>
-          </section>
-
-          <section>
-            <title><literal>Col</literal> constructors</title>
-
-            <para>For each <literal><varname>TYPE</varname>Atom</literal>
-            class there is a matching
-            <literal><varname>TYPE</varname>Col</literal> class with the same
-            constructor signature, plus an additional <literal>pos</literal>
-            parameter, which defaults to <literal>None</literal> and may take
-            an integer.  This argument is used to set the
-            <literal>_v_pos</literal> attribute.</para>
-          </section>
-        </section>
+        <emphasis>declare</emphasis> datatypes that are required for creating
+        primary PyTables datasets are described.</para>
 
         <section id="AtomClassDescr">
           <title>The <literal>Atom</literal> class and its
@@ -9544,7 +9335,7 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
           particular <literal>Atom</literal> descendant class whenever you
           know the exact type you will need when writing your code. Otherwise,
           you may use one of the <literal>Atom.from_*()</literal> factory
-          methods.</para>
+          Methods.</para>
 
           <section>
             <title><literal>Atom</literal> instance variables</title>
@@ -9805,7 +9596,7 @@ ValueError: unknown type: 'Float64'</screen>
             </section>
           </section>
 
-          <section>
+          <section id="AtomConstructors">
             <title><literal>Atom</literal> constructors</title>
 
             <para>There are some common arguments for most
@@ -10176,6 +9967,333 @@ True</screen>
               an easy way to save variable length Unicode strings.</para>
             </section>
           </section>
+        </section>
+
+        <section id="ColClassDescr">
+          <title>The <literal>Col</literal> class and its descendants</title>
+
+          <para>Defines a non-nested column.</para>
+
+          <para><literal>Col</literal> instances are used as a means to
+          declare the different properties of a non-nested column in a table
+          or nested column.  <literal>Col</literal> classes are descendants of
+          their equivalent <literal>Atom</literal> classes (see <xref
+          linkend="AtomClassDescr" xrefstyle="select: label" />), but their
+          instances have an additional <literal>_v_pos</literal> attribute
+          that is used to decide the position of the column inside its parent
+          table or nested column (see the <literal>IsDescription</literal>
+          class in <xref linkend="IsDescriptionClassDescr" xrefstyle="select:
+          label" /> for more information on column positions).</para>
+
+          <para>In the same fashion as <literal>Atom</literal>, you should use
+          a particular <literal>Col</literal> descendant class whenever you
+          know the exact type you will need when writing your code. Otherwise,
+          you may use one of the <literal>Col.from_*()</literal> factory
+          methods.</para>
+
+          <section>
+            <title><literal>Col</literal> instance variables</title>
+
+            <para>In addition to the variables that they inherit from the
+            <literal>Atom</literal> class, <literal>Col</literal> instances
+            have the following attributes:</para>
+
+            <glosslist>
+              <?dbfo glosslist-presentation="list" ?>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">_v_pos</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The <emphasis>relative</emphasis> position of this
+                  column with regard to its column siblings.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+          </section>
+
+          <section>
+            <title><literal>Col</literal> factory methods</title>
+
+            <para>Each factory method inherited from
+            the <literal>Atom</literal> class is available with the same
+            signature, plus an additional <literal>pos</literal> parameter
+            (placed in last position) which defaults
+            to <literal>None</literal> and that may take an integer value.
+            This parameter might be used to specify the position of the column
+            in the table.</para>
+
+            <para>Besides, there are the next additional factory methods,
+            available only for <literal>Col</literal> objects:</para>
+
+            <section>
+              <title>from_atom(atom, pos=None)</title>
+
+              <para>Create a <literal>Col</literal> definition from a PyTables
+              <literal>atom</literal>.</para>
+
+              <para>An optional position may be specified as the
+              <literal>pos</literal> argument.</para>
+            </section>
+          </section>
+
+          <section id="ColConstructors">
+            <title><literal>Col</literal> constructors</title>
+
+            <para>There are some common arguments for most
+            <literal>Col</literal>-derived constructors:</para>
+
+            <glosslist>
+              <glossentry>
+                <glossterm><emphasis
+                role="bold">itemsize</emphasis></glossterm>
+
+                <glossdef>
+                  <para>For types with a non-fixed size, this sets the size in
+                  bytes of individual items in the column.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">shape</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Sets the shape of the column. An integer shape of
+                  <literal>N</literal> is equivalent to the tuple
+                  <literal>(N,)</literal>.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">dflt</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Sets the default value for the column.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">pos</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Sets the position of column in table.  If unspecified,
+                  the position will be randomly selected.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+
+            <!-- manual-only -->
+            <para>A relation of the different constructors with their
+            parameters follows.  For more information about them, see
+            its <literal>Atom</literal> ancestors documentation in
+            <xref linkend="AtomConstructors" xrefstyle="select: label"
+            />.</para>
+
+            <section>
+              <title>StringCol(itemsize, shape=(), dflt='', pos=None)</title>
+
+              <para>Defines an column of type <literal>string</literal>.</para>
+            </section>
+
+            <section>
+              <title>BoolCol(shape=(), dflt=False, pos=None)</title>
+
+              <para>Defines an column of type <literal>bool</literal>.</para>
+            </section>
+
+            <section>
+              <title>IntCol(itemsize=4, shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of a signed integral type
+              (<literal>int</literal> kind).</para>
+            </section>
+
+            <section>
+              <title>Int8Col(shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of type <literal>int8</literal>.</para>
+            </section>
+
+            <section>
+              <title>Int16Col(shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of type <literal>int16</literal>.</para>
+            </section>
+
+            <section>
+              <title>Int32Col(shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of type <literal>int32</literal>.</para>
+            </section>
+
+            <section>
+              <title>Int64Col(shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of type <literal>int64</literal>.</para>
+            </section>
+
+            <section>
+              <title>UIntCol(itemsize=4, shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of an unsigned integral type
+              (<literal>uint</literal> kind).</para>
+            </section>
+
+            <section>
+              <title>UInt8Col(shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of type <literal>uint8</literal>.</para>
+            </section>
+
+            <section>
+              <title>UInt16Col(shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of type <literal>uint16</literal>.</para>
+            </section>
+
+            <section>
+              <title>UInt32Col(shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of type <literal>uint32</literal>.</para>
+            </section>
+
+            <section>
+              <title>UInt64Col(shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of type <literal>uint64</literal>.</para>
+            </section>
+
+            <section>
+              <title>Float32Col(shape=(), dflt=0.0, pos=None)</title>
+
+              <para>Defines an column of type <literal>float32</literal>.</para>
+            </section>
+
+            <section>
+              <title>Float64Col(shape=(), dflt=0.0, pos=None)</title>
+
+              <para>Defines an column of type <literal>float64</literal>.</para>
+            </section>
+
+            <section>
+              <title>ComplexCol(itemsize, shape=(), dflt=0j, pos=None)</title>
+
+              <para>Defines an column of kind <literal>complex</literal>.</para>
+            </section>
+
+            <section>
+              <title>TimeCol(itemsize=4, shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of time type (<literal>time</literal>
+              kind).</para>
+            </section>
+
+            <section>
+              <title>Time32Col(shape=(), dflt=0, pos=None)</title>
+
+              <para>Defines an column of type <literal>time32</literal>.</para>
+            </section>
+
+            <section>
+              <title>Time64Col(shape=(), dflt=0.0, pos=None)</title>
+
+              <para>Defines an column of type <literal>time64</literal>.</para>
+            </section>
+
+            <section>
+              <title>EnumCol(enum, dflt, base, shape=(), pos=None)</title>
+
+              <para>Description of an column of an enumerated type.</para>
+            </section>
+
+          </section>
+        </section>
+
+        <section id="IsDescriptionClassDescr">
+          <title>The <literal>IsDescription</literal> class</title>
+
+          <para>Description of the structure of a table or nested
+          column.</para>
+
+          <para>This class is designed to be used as an easy, yet meaningful
+          way to describe the structure of new <literal>Table</literal> (see
+          <xref linkend="TableClassDescr" xrefstyle="select: label" />)
+          datasets or nested columns through the definition of
+          <emphasis>derived classes</emphasis>. In order to define such a
+          class, you must declare it as descendant of
+          <literal>IsDescription</literal>, with as many attributes as columns
+          you want in your table. The name of each attribute will become the
+          name of a column, and its value will hold a description of
+          it.</para>
+
+          <para>Ordinary columns can be described using instances of the
+          <literal>Col</literal> class (see <xref linkend="ColClassDescr"
+          xrefstyle="select: label" />). Nested columns can be described by
+          using classes derived from <literal>IsDescription</literal>,
+          instances of it, or name-description dictionaries. Derived classes
+          can be declared in place (in which case the column takes the name of
+          the class) or referenced by name.</para>
+
+          <para>Nested columns can have a <literal>_v_pos</literal> special
+          attribute which sets the <emphasis>relative</emphasis> position of
+          the column among sibling columns <emphasis>also having explicit
+          positions</emphasis>.  The <literal>pos</literal> constructor
+          argument of <literal>Col</literal> intances is used for the same
+          purpose.  Columns with no explicit position will be placed
+          afterwards in alphanumeric order.</para>
+
+          <para>Once you have created a description object, you can pass it to
+          the <literal>Table</literal> constructor, where all the information
+          it contains will be used to define the table structure.
+          <!-- manual-only -->
+          See the <xref linkend="secondExample" xrefstyle="select: label" />
+          for an example on how that works.</para>
+
+          <section>
+            <title><literal>IsDescription</literal> special attributes</title>
+
+            <para>These are the special attributes that the user can specify
+            <emphasis>when declaring</emphasis> an
+            <literal>IsDescription</literal> subclass to complement its
+            <emphasis>metadata</emphasis>.</para>
+
+            <glosslist>
+              <?dbfo glosslist-presentation="list" ?>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">_v_pos</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Sets the position of a possible nested column
+                  description among its sibling columns.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+          </section>
+
+          <section>
+            <title><literal>IsDescription</literal> class variables</title>
+
+            <para>The following attributes are <emphasis>automatically
+            created</emphasis> when an <literal>IsDescription</literal>
+            subclass is declared.  Please note that declared columns can no
+            longer be accessed as normal class variables after its
+            creation.</para>
+
+            <glosslist>
+              <?dbfo glosslist-presentation="list" ?>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">columns</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Maps the name of each column in the description to its
+                  own descriptive object.</para>
+                </glossdef>
+              </glossentry>
+            </glosslist>
+          </section>
+
         </section>
       </section>
 
