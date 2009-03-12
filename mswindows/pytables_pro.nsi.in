@@ -51,6 +51,8 @@ Var UNCUSTOMTEXT
 !endif
 
 Function .onInit
+  # Force the use of the 'all users' shell folder 
+  SetShellVarContext all
   # The registry key where application settings will be stored
   StrCpy $PTPRO_KEY "SOFTWARE\PyTablesPro"
   StrCpy $WINPTPRO_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\PyTablesPro"
@@ -406,6 +408,9 @@ succesfully."
 # --------------------------------
 
 Section "Un.PyTables Pro @PTVERSION@ uninstall" UPT
+
+  # Force the use of the 'all users' shell folder 
+  SetShellVarContext all
 
   ReadRegStr $PYTHONDIR HKLM $PTPRO_SUBKEY "PYTHONDIR"
   ReadRegStr $INSTDIR HKLM $PTPRO_SUBKEY ""
