@@ -11,12 +11,16 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-This is a maintenance release, so no API changes are made.  On it, a
-handful of bugs, like `File` not being subclassable, incorrectly
-retrieved default values for data types or a memory leak, have been
+This is a maintenance release (so no API changes have been made).  On
+it, a handful of bugs, like `File` not being subclassable, incorrectly
+retrieved default values for data types and a memory leak, have been
 fixed.  Also, some (small) enhancements have been added, like improved
-Unicode support for filenames and attributes, or the possibility to
-create very large type sizes (exceeding 64 KB).
+Unicode support for filenames, better handling of Unicode attributes,
+and the possibility to create very large data types (exceeding 64 KB).
+Finally, this is the first PyTables version fully tested against
+Python 2.6 and binaries for Windows and Python 2.6 are available now
+(check them out and if you find some problem on them, please report it
+back!).
 
 In case you want to know more in detail what has changed in this
 version, have a look at:
