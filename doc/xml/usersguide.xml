@@ -725,7 +725,8 @@ set BZIP2_DIR=c:\stuff\bzip2-1-0-3</screen>
             </listitem>
 
             <listitem>
-              <para>To run the test suite, execute this command:</para>
+              <para>To run the test suite, execute any of these
+              commands:</para>
 
               <variablelist>
                 <varlistentry>
@@ -741,7 +742,6 @@ set BZIP2_DIR=c:\stuff\bzip2-1-0-3</screen>
 
                     <screen>PYTHONPATH=.:$PYTHONPATH  python -c "import tables; tables.test()"</screen>
 
-                    <para>Both commands do the same thing.</para>
                   </listitem>
                 </varlistentry>
 
@@ -763,12 +763,19 @@ python -c "import tables; tables.test()"</screen>
                 </varlistentry>
               </variablelist>
 
+              <para>Both commands do the same thing, but the latter still
+              works on an already installed PyTables (so, there is no need to
+              set the PYTHONPATH variable for this case).  However, before
+              installation, the former is recommended because it is more
+              flexible, as you can see below.</para>
+
               <para>If you would like to see verbose output from the tests
-              simply add the <literal>-v</literal> flag or the word
-              <literal>verbose</literal> to the command line. You can also run
-              only the tests in a particular test module. For example, to
-              execute just the <literal>test_types</literal> test suite, you
-              only have to specify it:</para>
+              simply add the <literal>-v</literal> flag and/or the word
+              <literal>verbose</literal> to the first of the command lines
+              above. You can also run only the tests in a particular test
+              module. For example, to execute just the
+              <literal>test_types</literal> test suite, you only have to
+              specify it:</para>
 
               <screen>python tables/tests/test_types.py -v  # change to backslashes for win</screen>
 
