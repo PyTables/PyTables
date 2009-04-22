@@ -582,7 +582,7 @@ very small/large chunksize, you may want to increase/decrease it."""
                 raise IndexError(
                     "Boolean indexing array has incompatible shape")
             # Get the True coordinates (64-bit indices!)
-            coords = numpy.array(key.nonzero(), dtype='i8')
+            coords = numpy.asarray(key.nonzero(), dtype='i8')
             coords = numpy.transpose(coords)
         elif key.dtype.kind == 'i':
             if len(key.shape) > 2:
@@ -592,10 +592,11 @@ very small/large chunksize, you may want to increase/decrease it."""
                 if key.shape[0] <> len(self.shape):
                     raise IndexError(
                         "Coordinate indexing array has incompatible shape")
-                coords = numpy.transpose(numpy.array(key, dtype="i8"))
+                coords = numpy.asarray(key, dtype="i8")
+                coords = numpy.transpose(coords)
             else:
                 # For 1-dimensional datasets
-                coords = numpy.array(key, dtype="i8")
+                coords = numpy.asarray(key, dtype="i8")
         else:
             raise TypeError("Only integer coordinates allowed.")
         # We absolutely need a contiguous array
