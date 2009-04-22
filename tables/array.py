@@ -681,7 +681,7 @@ class Array(hdf5Extension.Array, Leaf):
                 selection, reorder, shape = self._fancySelection(key)
                 arr = self._readSelection(selection, reorder, shape)
 
-        if not self._v_convert:
+        if self.flavor == "numpy" or not self._v_convert:
             return arr
 
         return internal_to_flavor(arr, self.flavor)
