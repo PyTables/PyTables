@@ -1073,6 +1073,7 @@ class CopyIndex12TestCase(CopyIndexTestCase):
     stop = None  # None should mean the last element (including it)
     step = 1
 
+
 class GetItemTestCase(unittest.TestCase):
 
     def test00_single(self):
@@ -1091,9 +1092,10 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original first element:", a[0]
-            print "Read first element:", arr[0]
+            print "Original first element:", a[0], type(a[0])
+            print "Read first element:", arr[0], type(arr[0])
         assert allequal(a[0], arr[0])
+        assert type(a[0]) == type(arr[0])
 
         # Close the file
         fileh.close()
@@ -1117,9 +1119,10 @@ class GetItemTestCase(unittest.TestCase):
 
         # Get and compare an element
         if common.verbose:
-            print "Original first element:", a[0]
-            print "Read first element:", arr[0]
+            print "Original first element:", a[0], type(a[0])
+            print "Read first element:", arr[0], type(arr[0])
         assert a[0] == arr[0]
+        assert type(a[0]) == type(arr[0])
 
         # Close the file
         fileh.close()

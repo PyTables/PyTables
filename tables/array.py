@@ -502,7 +502,7 @@ class Array(hdf5Extension.Array, Leaf):
         """
         startl, stopl, stepl, shape = self._interpret_indexing(key)
         arr = self._readSlice(startl, stopl, stepl, shape)
-        if not self._v_convert:
+        if self.flavor == "numpy" or not self._v_convert:
             return arr
         return internal_to_flavor(arr, self.flavor)
 
