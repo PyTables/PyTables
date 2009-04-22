@@ -327,7 +327,10 @@ def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
     table._indexedrows = indexedrows
     table._unsaved_indexedrows = table.nrows - indexedrows
 
-    # Finally, optimize the index that has been already filled-up
+    # Optimize the index that has been already filled-up
     index.optimize(verbose=verbose)
+
+    # Finally, flush all the new HDF5 metainfo to disk
+    table.flush()
 
     return indexedrows
