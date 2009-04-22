@@ -581,7 +581,9 @@ very small/large chunksize, you may want to increase/decrease it."""
             if not key.shape == self.shape:
                 raise IndexError(
                     "Boolean indexing array has incompatible shape")
-            coords = numpy.transpose(key.nonzero())
+            # Get the True coordinates (64-bit indices!)
+            coords = numpy.array(key.nonzero(), dtype='i8')
+            coords = numpy.transpose(coords)
         elif key.dtype.kind == 'i':
             if len(key.shape) > 2:
                 raise IndexError(
