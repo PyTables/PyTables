@@ -817,6 +817,31 @@ class OpenFileTestCase(common.PyTablesTestCase):
             self.fail("expected an LookupError")
         fileh.close()
 
+    def test10_2b_bis_moveTable(self):
+        """Checking moving a table and use cached row without a close/open"""
+
+        fileh = openFile(
+            self.file, mode = "r+", NODE_CACHE_SLOTS=self.nodeCacheSlots)
+        newgroup = fileh.createGroup("/", "newgroup")
+        # Cache the Row attribute prior to the move
+        row = fileh.root.atable.row
+        fileh.moveNode(fileh.root.atable, newgroup, 'atable2')
+
+        # Ensure that the new name exists
+        table_ = fileh.root.newgroup.atable2
+        assert table_.name == "atable2"
+        assert table_._v_pathname == "/newgroup/atable2"
+        assert table_._v_depth == 2
+        # Ensure that cache Row attribute has been updated
+        row = table_.row
+        assert table_._v_pathname == row.table._v_pathname
+        nrows = table_.nrows
+        # Add a new row just to make sure that this works
+        row.append()
+        table_.flush()
+        assert table_.nrows == nrows + 1
+        fileh.close()
+
     def test10_2c_moveTable(self):
         """Checking moving tables and modify attributes after that"""
 
