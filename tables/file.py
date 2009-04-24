@@ -995,6 +995,7 @@ class File(hdf5Extension.File, object):
         obj = self.getNode(where, name=name)
         obj._f_rename(newname, overwrite)
 
+
     def moveNode(self, where, newparent=None, newname=None, name=None,
                  overwrite=False, createparents=False):
         """
@@ -1021,6 +1022,7 @@ class File(hdf5Extension.File, object):
         """
         obj = self.getNode(where, name=name)
         obj._f_move(newparent, newname, overwrite, createparents)
+
 
     def copyNode(self, where, newparent=None, newname=None, name=None,
                  overwrite=False, recursive=False, createparents=False,
@@ -1065,6 +1067,7 @@ class File(hdf5Extension.File, object):
                 raise IOError("You cannot copy a root group over the same file")
         return obj._f_copy( newparent, newname,
                             overwrite, recursive, createparents, **kwargs )
+
 
     def removeNode(self, where, name=None, recursive=False):
         """

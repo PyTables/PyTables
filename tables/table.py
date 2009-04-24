@@ -2244,6 +2244,10 @@ The 'names' parameter must be a list of strings.""")
         # First, move the table to the new location.
         super(Table, self)._g_move(newParent, newName)
 
+        # Update the paths in the Row instance, if cached.  Fixes #224.
+        if 'row' in self.__dict__:
+            self.__dict__['row'] = tableExtension.Row(self)
+
         # Then move the associated index group (if any).
         try:
             itgroup = self._v_file._getNode(itgpathname)
