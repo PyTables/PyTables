@@ -2149,7 +2149,12 @@ The 'names' parameter must be a list of strings.""")
     def _g_updateDependent(self):
         super(Table, self)._g_updateDependent()
 
+        # Update the new path in columns
         self.cols._g_updateTableLocation(self)
+
+        # Update the new path in the Row instance, if cached.  Fixes #224.
+        if 'row' in self.__dict__:
+            self.__dict__['row'] = tableExtension.Row(self)
 
 
     def _g_move(self, newParent, newName):
@@ -2163,10 +2168,6 @@ The 'names' parameter must be a list of strings.""")
 
         # First, move the table to the new location.
         super(Table, self)._g_move(newParent, newName)
-
-        # Update the paths in the Row instance, if cached.  Fixes #224.
-        if 'row' in self.__dict__:
-            self.__dict__['row'] = tableExtension.Row(self)
 
         # Then move the associated index group (if any).
         try:
