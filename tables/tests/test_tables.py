@@ -4960,7 +4960,7 @@ class IrregularStrideTestCase(unittest.TestCase):
 
         class IRecord(IsDescription):
             c1 = Int32Col(pos=1)
-            c2 = FloatCol(pos=2)
+            c2 = Float64Col(pos=2)
 
         self.file = tempfile.mktemp('.h5')
         self.fileh = openFile(self.file, 'w', title='Chunkshape test')

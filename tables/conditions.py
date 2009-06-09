@@ -20,7 +20,7 @@ Functions:
     Evaluate a function over a record array.
 """
 
-from tables.numexpr.compiler import stringToExpression, numexpr
+from tables.numexpr.necompiler import stringToExpression, NumExpr
 from tables.utilsExtension import getNestedField
 from tables._conditions_common import _unsupported_operation_error
 from tables.utils import lazyattr
@@ -150,7 +150,7 @@ def compile_condition(condition, typemap, indexedcols, copycols):
         # See the comments in `tables.numexpr.evaluate()` for the
         # reasons of inserting copy operators for unaligned,
         # *unidimensional* arrays.
-        func = numexpr(expr, signature, copy_args=copycols)
+        func = NumExpr(expr, signature, copy_args=copycols)
     except NotImplementedError, nie:
         # Try to make this Numexpr error less cryptic.
         raise _unsupported_operation_error(nie)

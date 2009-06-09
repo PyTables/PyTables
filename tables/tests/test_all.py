@@ -102,10 +102,11 @@ def print_versions():
     """Print all the versions of software that PyTables relies on."""
     print '-=' * 38
     print "PyTables version:  %s" % tables.__version__
+    # Don't print the integrated Numexpr version.  Perhaps only
+    # when it will eventually depends from *external* Numexpr.
+    #print "Numexpr version:   %s" % tables.numexpr.__version__
     print "HDF5 version:      %s" % tables.whichLibVersion("hdf5")[1]
-    #print "HDF5 version:      %s" % tables.hdf5Version
     print "NumPy version:     %s" % numpy.__version__
-    #print "Zlib version:      %s" % tables.whichLibVersion("zlib")[1]
     tinfo = tables.whichLibVersion("zlib")
     if tinfo is not None:
         print "Zlib version:      %s" % (tinfo[1])

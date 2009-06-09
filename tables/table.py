@@ -38,7 +38,7 @@ import numpy
 from tables import tableExtension
 from tables.utilsExtension import lrange
 from tables.conditions import compile_condition
-from tables.numexpr.compiler import getType as numexpr_getType
+from tables.numexpr.necompiler import getType as numexpr_getType, double
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx, lazyattr, SizeType
@@ -47,7 +47,6 @@ from tables.description import IsDescription, Description, Col
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
      OldIndexWarning, NoSuchNodeError
 from tables.utilsExtension import getNestedField
-from tables.numexpr.compiler import stringToExpression, numexpr
 
 from tables._table_common import (
     _indexNameOf, _indexPathnameOf, _indexPathnameOfColumn,
@@ -104,7 +103,7 @@ _nxTypeFromNPType = {
     numpy.uint32: long,
     numpy.uint64: long,
     numpy.float32: float,
-    numpy.float64: float,
+    numpy.float64: double,
     numpy.complex64: complex,
     numpy.complex128: complex,
     numpy.str_: str, }

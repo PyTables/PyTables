@@ -2,13 +2,23 @@ import sys
 import numpy
 
 from tables.numexpr import interpreter, expressions
+from tables.numexpr.utils import CacheDict
+
+# PyTables will not use the VML library for the time being.
+use_vml = False
+
+# Declare a double type that does not exist in Python space
+double = numpy.double
 
 typecode_to_kind = {'b': 'bool', 'i': 'int', 'l': 'long', 'f': 'float',
-                    'c': 'complex', 's': 'str', 'n' : 'none'}
+                    'd': 'double', 'c': 'complex', 's': 'str', 'n' : 'none'}
 kind_to_typecode = {'bool': 'b', 'int': 'i', 'long': 'l', 'float': 'f',
-                    'complex': 'c', 'str': 's', 'none' : 'n'}
+                    'double': 'd', 'complex': 'c', 'str': 's', 'none' : 'n'}
+type_to_typecode = {bool: 'b', int: 'i', long:'l', float:'f',
+                    double: 'd', complex: 'c', str: 's'}
 type_to_kind = expressions.type_to_kind
 kind_to_type = expressions.kind_to_type
+default_type = kind_to_type[expressions.default_kind]
 
 class ASTNode(object):
     """Abstract Syntax Tree node.
@@ -83,7 +93,7 @@ def expressionToAST(ex):
     like a number.
     """
     this_ast = ASTNode(ex.astType, ex.astKind, ex.value,
-                           [expressionToAST(c) for c in ex.children])
+                       [expressionToAST(c) for c in ex.children])
     return this_ast
 
 
@@ -91,7 +101,7 @@ def sigPerms(s):
     """Generate all possible signatures derived by upcasting the given
     signature.
     """
-    codes = 'bilfc'
+    codes = 'bilfdc'
     if not s:
         yield ''
     elif s[0] in codes:
@@ -188,6 +198,7 @@ class Immediate(Register):
     def __str__(self):
         return 'Immediate(%d)' % (self.node.value,)
 
+
 def stringToExpression(s, types, context):
     """Given a string, convert it to a tree of ExpressionNode's.
     """
@@ -206,7 +217,7 @@ def stringToExpression(s, types, context):
             elif name == "False":
                 names[name] = False
             else:
-                t = types.get(name, float)
+                t = types.get(name, default_type)
                 names[name] = expressions.VariableNode(name, type_to_kind[t])
         names.update(expressions.functions)
         # now build the expression
@@ -222,6 +233,7 @@ def stringToExpression(s, types, context):
 
 def isReduction(ast):
     return ast.value.startswith('sum_') or ast.value.startswith('prod_')
+
 
 def getInputOrder(ast, input_order=None):
     """Derive the input order of the variables in an expression.
@@ -242,6 +254,9 @@ def getInputOrder(ast, input_order=None):
     return ordered_variables
 
 def convertConstantToKind(x, kind):
+    # Exception for 'float' types that will return the NumPy float32 type
+    if kind == 'float':
+        return numpy.float32(x)
     return kind_to_type[kind](x)
 
 def getConstants(ast):
@@ -317,8 +332,8 @@ def optimizeTemporariesAllocation(ast):
         for c in n.children:
             if c.reg.temporary:
                 users_of[c.reg].add(n)
-    unused = {'bool' : set(), 'int' : set(), 'long': set(),
-              'float' : set(), 'complex' : set(), 'str': set()}
+    unused = {'bool' : set(), 'int' : set(), 'long': set(), 'float' : set(),
+              'double': set(), 'complex' : set(), 'str': set()}
     for n in nodes:
         for reg, users in users_of.iteritems():
             if n in users:
@@ -433,7 +448,7 @@ def precompile(ex, signature=(), copy_args=(), **kwargs):
     """Compile the expression to an intermediate form.
     """
     types = dict(signature)
-    input_order = [name for (name, type) in signature]
+    input_order = [name for (name, type_) in signature]
     context = getContext(kwargs)
 
     if isinstance(ex, str):
@@ -487,19 +502,21 @@ def precompile(ex, signature=(), copy_args=(), **kwargs):
 
     threeAddrProgram = convertASTtoThreeAddrForm(ast)
     input_names = tuple([a.value for a in input_order])
-    signature = ''.join(types.get(x, float).__name__[0] for x in input_names)
-
+    signature = ''.join(type_to_typecode[types.get(x, default_type)]
+                        for x in input_names)
     return threeAddrProgram, signature, tempsig, constants, input_names
 
 
-def numexpr(ex, signature=(), copy_args=(), **kwargs):
-    """Compile an expression built using E.<variable> variables to a function.
+def NumExpr(ex, signature=(), copy_args=(), **kwargs):
+    """
+    Compile an expression built using E.<variable> variables to a function.
 
     ex can also be specified as a string "2*a+3*b".
 
     The order of the input variables and their types can be specified using the
     signature parameter, which is a list of (name, type) pairs.
 
+    Returns a `NumExpr` object containing the compiled function.
     """
     threeAddrProgram, inputsig, tempsig, constants, input_names = \
                       precompile(ex, signature, copy_args, **kwargs)
@@ -509,8 +526,8 @@ def numexpr(ex, signature=(), copy_args=(), **kwargs):
 
 
 def disassemble(nex):
-    """Given a NumExpr object, return a list which is the program
-    disassembled.
+    """
+    Given a NumExpr object, return a list which is the program disassembled.
     """
     rev_opcodes = {}
     for op in interpreter.opcodes:
@@ -520,7 +537,10 @@ def disassemble(nex):
     def getArg(pc, offset):
         arg = ord(nex.program[pc+offset])
         op = rev_opcodes.get(ord(nex.program[pc]))
-        code = op.split('_')[1][offset-1]
+        try:
+            code = op.split('_')[1][offset-1]
+        except IndexError:
+            return None
         if arg == 255:
             return None
         if code != 'n':
@@ -553,6 +573,8 @@ def getType(a):
             return long  # ``long`` is for integers of more than 32 bits
         return int
     if kind == 'f':
+        if a.dtype.itemsize > 4:
+            return double  # ``double`` is for floats of more than 32 bits
         return float
     if kind == 'c':
         return complex
@@ -565,33 +587,48 @@ def getExprNames(text, context):
     ex = stringToExpression(text, {}, context)
     ast = expressionToAST(ex)
     input_order = getInputOrder(ast, None)
-    return [a.value for a in input_order]
+    #try to figure out if vml operations are used by expression
+    if not use_vml:
+        ex_uses_vml = False
+    else:
+        for node in ast.postorderWalk():
+            if node.astType == 'op' \
+                   and node.value in ['sin', 'cos', 'exp', 'log',
+                                      'expm1', 'log1p',
+                                      'pow', 'div',
+                                      'sqrt', 'inv',
+                                      'sinh', 'cosh', 'tanh',
+                                      'arcsin', 'arccos', 'arctan',
+                                      'arccosh', 'arcsinh', 'arctanh',
+                                      'arctan2']:
+                ex_uses_vml = True
+                break
+        else:
+            ex_uses_vml = False
+
+    return [a.value for a in input_order], ex_uses_vml
 
 
-_names_cache = {}
-_numexpr_cache = {}
+# Dictionaries for caching variable names and compiled expressions
+_names_cache = CacheDict(256)
+_numexpr_cache = CacheDict(256)
+
 def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
-    """Evaluate a simple array expression elementwise.
+    """Evaluate a simple array expression element-wise.
 
     ex is a string forming an expression, like "2*a+3*b". The values for "a"
     and "b" will by default be taken from the calling function's frame
     (through use of sys._getframe()). Alternatively, they can be specifed
     using the 'local_dict' or 'global_dict' arguments.
-
-    Not all operations are supported, and only real
-    constants and arrays of floats currently work.
     """
     if not isinstance(ex, str):
         raise ValueError("must specify expression as a string")
     # Get the names for this expression
     expr_key = (ex, tuple(sorted(kwargs.items())))
     if expr_key not in _names_cache:
-        if len(_names_cache) > 256:
-            for key in _names_cache.keys()[:10]:
-                del _names_cache[key]
         context = getContext(kwargs)
         _names_cache[expr_key] = getExprNames(ex, context)
-    names = _names_cache[expr_key]
+    names, ex_uses_vml = _names_cache[expr_key]
     # Get the arguments based on the names.
     call_frame = sys._getframe(1)
     if local_dict is None:
@@ -600,6 +637,7 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
         global_dict = call_frame.f_globals
     arguments = []
     copy_args = []
+
     for name in names:
         try:
             a = local_dict[name]
@@ -611,6 +649,7 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
         # long as they are undimensional (strides in other
         # dimensions are dealt within the extension), so we don't
         # need a copy for the strided case.
+
         if not b.flags.aligned:
             # For the unaligned case, we have two cases:
             if b.ndim == 1:
@@ -627,6 +666,14 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
                 # other than the last one (whose case is supported by
                 # the copy opcode).
                 b = b.copy()
+        elif use_vml and ex_uses_vml: #only make a copy of strided arrays if
+                                      #vml is in use
+            if not b.flags.contiguous:
+                if b.ndim == 1:
+                    copy_args.append(name)
+                else:
+                    b = b.copy()
+
         arguments.append(b)
 
     # Create a signature
@@ -637,9 +684,6 @@ def evaluate(ex, local_dict=None, global_dict=None, **kwargs):
     try:
         compiled_ex = _numexpr_cache[numexpr_key]
     except KeyError:
-        if len(_numexpr_cache) > 256:
-            for key in _numexpr_cache.keys()[:10]:
-                del _numexpr_cache[key]
         compiled_ex = _numexpr_cache[numexpr_key] = \
-                      numexpr(ex, signature, copy_args, **kwargs)
+                      NumExpr(ex, signature, copy_args, **kwargs)
     return compiled_ex(*arguments)

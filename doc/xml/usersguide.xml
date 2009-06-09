@@ -1018,7 +1018,7 @@ python -c "import tables; tables.test()"</screen>
           <literal>grid_i</literal> and <literal>grid_j</literal>. Our
           instrumentation also can obtain the pressure and energy of the
           particle. The resolution of the pressure-gauge allows us to use a
-          simple-precision float to store <literal>pressure</literal>
+          single-precision float to store <literal>pressure</literal>
           readings, while the <literal>energy</literal> value will need a
           double-precision float. Finally, to track the particle we want to
           assign it a name to identify the kind of the particle it is and a
@@ -14498,33 +14498,47 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       <emphasis>can not be overridden</emphasis>, but you can always define
       other new names for the objects you intend to use.</para>
 
-      <para>Values in a condition may have the following types: <itemizedlist>
-          <listitem>
-            <para>8-bit boolean (<literal>bool</literal>).</para>
-          </listitem>
+      <para>Values in a condition may have the following types:</para>
 
-          <listitem>
-            <para>32-bit signed integer (<literal>int</literal>).</para>
-          </listitem>
+      <itemizedlist>
+        <listitem>
+          <para>8-bit boolean (<literal>bool</literal>).</para>
+        </listitem>
 
-          <listitem>
-            <para>64-bit signed integer (<literal>long</literal>).</para>
-          </listitem>
+        <listitem>
+          <para>32-bit signed integer (<literal>int</literal>).</para>
+        </listitem>
 
-          <listitem>
-            <para>64-bit, double-precision floating point number
-            (<literal>float</literal>).</para>
-          </listitem>
+        <listitem>
+          <para>64-bit signed integer (<literal>long</literal>).</para>
+        </listitem>
 
-          <listitem>
-            <para>2x64-bit, double-precision complex number
+        <listitem>
+          <para>32-bit, single-precision floating point number
+            (<literal>float</literal> or <literal>float32</literal>).</para>
+        </listitem>
+
+        <listitem>
+          <para>64-bit, double-precision floating point number
+            (<literal>double</literal> or <literal>float64</literal>).</para>
+        </listitem>
+
+        <listitem>
+          <para>2x64-bit, double-precision complex number
             (<literal>complex</literal>).</para>
-          </listitem>
+        </listitem>
 
-          <listitem>
-            <para>Raw string of bytes (<literal>str</literal>).</para>
-          </listitem>
-        </itemizedlist> The types in PyTables conditions are somewhat stricter
+        <listitem>
+          <para>Raw string of bytes (<literal>str</literal>).</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>Nevertheless, if the type passed is not among the above ones, it
+      will be silently upcasted, so you don't need to worry too much about
+      passing supported types: just pass whatever type you want and the
+      interpreter will take care of it.</para>
+
+      <para>However, the types in PyTables conditions are somewhat stricter
       than those of Python. For instance, the <emphasis>only</emphasis> valid
       constants for booleans are <literal>True</literal> and
       <literal>False</literal>, and they are <emphasis>never</emphasis>
