@@ -570,9 +570,10 @@ extensions = [
     Extension( "tables.numexpr.interpreter",
                include_dirs=inc_dirs,
                sources=["tables/numexpr/interpreter.c"],
-               depends=[ "tables/numexpr/interp_body.c",
-                         "tables/numexpr/complex_functions.inc",
-                         "tables/numexpr/missing_posix_functions.inc" ],
+               depends=["tables/numexpr/interp_body.c",
+                        "tables/numexpr/complex_functions.inc",
+                        "tables/numexpr/missing_posix_functions.inc",
+                        "tables/numexpr/msvc_function_stubs.inc"],
                extra_link_args=LFLAGS,
                extra_compile_args=CFLAGS ),
     ]
