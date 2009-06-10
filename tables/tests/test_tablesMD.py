@@ -911,6 +911,11 @@ class getColRangeTestCase(BasicRangeTestCase):
             self.fail("expected a KeyError")
 
 
+class Rec(IsDescription):
+    col1 = IntCol(pos=1, shape=(2,))
+    col2 = StringCol(itemsize=3, pos=2, shape=(3,))
+    col3 = FloatCol(pos=3, shape=(3,2))
+
 class RecArrayIO(unittest.TestCase):
 
     def test00(self):
@@ -1025,6 +1030,126 @@ class RecArrayIO(unittest.TestCase):
 
         fileh.close()
         os.remove(file)
+
+    def test08a(self):
+        "Checking modifying one column (single column version, list)"
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08a..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+
+        # Append new rows
+        s0, s1, s2, s3 = ['dbe']*3, ['ded']*3, ['db1']*3, ['de1']*3
+        f0, f1, f2, f3 = [[1.2]*2]*3, [[1.3]*2]*3, [[1.4]*2]*3, [[1.5]*2]*3
+        r=records.array([[[456, 457], s0, f0], [[2,3], s1, f1]],
+                        formats="(2,)i4,(3,)a3,(3,2)f8")
+        table.append(r)
+        table.append([[[457, 458], s2, f2], [[5, 6], s3, f3]])
+
+        # Modify just one existing column
+        table.cols.col1[1:] = [[[2,3],[3,4],[4,5]]]
+        # Create the modified recarray
+        r1=records.array([[[456, 457], s0, f0], [[2,3], s1, f1],
+                          [[3,4], s2, f2], [[4,5], s3, f3]],
+                         formats="(2,)i4,(3,)a3,(3,2)f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test08b(self):
+        "Checking modifying one column (single column version, recarray)"
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08b..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+
+        # Append new rows
+        s0, s1, s2, s3 = ['dbe']*3, ['ded']*3, ['db1']*3, ['de1']*3
+        f0, f1, f2, f3 = [[1.2]*2]*3, [[1.3]*2]*3, [[1.4]*2]*3, [[1.5]*2]*3
+        r=records.array([[[456, 457], s0, f0], [[2,3], s1, f1]],
+                        formats="(2,)i4,(3,)a3,(3,2)f8")
+        table.append(r)
+        table.append([[[457, 458], s2, f2], [[5, 6], s3, f3]])
+
+        # Modify just one existing column
+        columns = records.fromarrays(array([[[2,3],[3,4],[4,5]]]), formats="i4")
+        table.modifyColumns(start=1, columns=columns, names=["col1"])
+        # Create the modified recarray
+        r1=records.array([[[456, 457], s0, f0], [[2,3], s1, f1],
+                          [[3,4], s2, f2], [[4,5], s3, f3]],
+                         formats="(2,)i4,(3,)a3,(3,2)f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
+    def test08b2(self):
+        "Checking modifying one column (single column version, recarray, modifyColumn)"
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test08b2..." % self.__class__.__name__
+
+        file = tempfile.mktemp(".h5")
+        fileh = openFile(file, "w")
+
+        # Create a new table:
+        table = fileh.createTable(fileh.root, 'recarray', Rec)
+
+        # Append new rows
+        s0, s1, s2, s3 = ['dbe']*3, ['ded']*3, ['db1']*3, ['de1']*3
+        f0, f1, f2, f3 = [[1.2]*2]*3, [[1.3]*2]*3, [[1.4]*2]*3, [[1.5]*2]*3
+        r=records.array([[[456, 457], s0, f0], [[2,3], s1, f1]],
+                        formats="(2,)i4,(3,)a3,(3,2)f8")
+        table.append(r)
+        table.append([[[457, 458], s2, f2], [[5, 6], s3, f3]])
+
+        # Modify just one existing column
+        columns = records.fromarrays(array([[[2,3],[3,4],[4,5]]]), formats="i4")
+        table.modifyColumn(start=1, column=columns, colname="col1")
+        # Create the modified recarray
+        r1=records.array([[[456, 457], s0, f0], [[2,3], s1, f1],
+                          [[3,4], s2, f2], [[4,5], s3, f3]],
+                         formats="(2,)i4,(3,)a3,(3,2)f8",
+                         names = "col1,col2,col3")
+        # Read the modified table
+        r2 = table.read()
+        if common.verbose:
+            print "Original table-->", repr(r2)
+            print "Should look like-->", repr(r1)
+        assert r1.tostring() == r2.tostring()
+        assert table.nrows == 4
+
+        fileh.close()
+        os.remove(file)
+
 
 
 class DefaultValues(unittest.TestCase):
@@ -1188,11 +1313,6 @@ class ShapeTestCase1(ShapeTestCase):
 class ShapeTestCase2(ShapeTestCase):
     reopen = 1
 
-
-class Rec(IsDescription):
-    col1 = IntCol(pos=1, shape=(2,))
-    col2 = StringCol(itemsize=3, pos=2, shape=(3,))
-    col3 = FloatCol(pos=3, shape=(3,2))
 
 class setItem(common.PyTablesTestCase):
 

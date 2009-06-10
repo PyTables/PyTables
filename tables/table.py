@@ -1939,37 +1939,43 @@ table format '%s'. The error was: <%s>
         # Get the column format to be modified:
         objcol = self._getColumnInstance(colname)
         descr = [objcol._v_parent._v_nestedDescr[objcol._v_pos]]
-        # Try to convert the column object into a recarray
+        # Try to convert the column object into a NumPy ndarray
         try:
-            # Make sure the result is always a *copy* of the original,
-            # so the resulting object is safe for in-place conversion.
-            iflavor = flavor_of(column)
-            if iflavor != 'python':
-                column = array_as_internal(column, iflavor)
-                recarray = numpy.rec.array(column, dtype=descr)
+            # If the column is a recarray (or kind of), convert into ndarray
+            if hasattr(column, 'dtype') and column.dtype.kind == 'V':
+                column = numpy.rec.array(column, dtype=descr).field(0)
             else:
-                recarray = numpy.rec.fromarrays([column], dtype=descr)
+                # Make sure the result is always a *copy* of the original,
+                # so the resulting object is safe for in-place conversion.
+                iflavor = flavor_of(column)
+                column = array_as_internal(column, iflavor)
         except Exception, exc:  #XXX
             raise ValueError, \
-"column parameter cannot be converted into a recarray object compliant with specified column '%s'. The error was: <%s>" % (str(column), exc)
+"column parameter cannot be converted into a ndarray object compliant with specified column '%s'. The error was: <%s>" % (str(column), exc)
+
+        # Get rid of single-dimensional dimensions
+        column = column.squeeze()
+        if column.shape == ():
+            # Oops, stripped off to much dimensions
+            column.shape = (1,)
 
         if stop is None:
             # compute the stop value. start + len(rows)*step does not work
-            stop = start + (len(recarray)-1)*step + 1
+            stop = start + (len(column)-1)*step + 1
         (start, stop, step) = self._processRange(start, stop, step)
         if stop > self.nrows:
             raise IndexError, \
 "This modification will exceed the length of the table. Giving up."
         # Compute the number of rows to read.
         nrows = lrange(start, stop, step).length
-        if len(recarray) < nrows:
+        if len(column) < nrows:
             raise ValueError, \
                   "The value has not enough elements to fill-in the specified range"
         # Now, read the original values:
         mod_recarr = self._read(start, stop, step)
         # Modify the appropriate column in the original recarray
         mod_col = getNestedField(mod_recarr, colname)
-        mod_col[:] = recarray.field(0)
+        mod_col[:] = column
         # save this modified rows in table
         self._update_records(start, stop, step, mod_recarr)
         # Redo the index if needed
@@ -2045,7 +2051,7 @@ The 'names' parameter must be a list of strings.""")
         # Modify the appropriate columns in the original recarray
         for i, name in enumerate(recarray.dtype.names):
             mod_col = getNestedField(mod_recarr, names[i])
-            mod_col[:] = recarray[name]
+            mod_col[:] = recarray[name].squeeze()
         # save this modified rows in table
         self._update_records(start, stop, step, mod_recarr)
         # Redo the index if needed
