@@ -3423,7 +3423,6 @@ class RecArrayIO(unittest.TestCase):
         # Modify just one existing column
         columns = records.fromarrays(array([[2,3,4]]), formats="i4")
         table.modifyColumns(start=1, columns=columns, names=["col1"])
-        #table.cols.col1[1:] = [2,3,4]
         # Create the modified recarray
         r1=records.array([[456,'dbe',1.2],[2,'ded',1.3],
                           [3,'db1',1.2],[4,'de1',1.3]],
