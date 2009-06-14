@@ -69,9 +69,13 @@ def computeslicesize(expectedrows, memlevel):
     # ss cannot be bigger than 2**31 - 1 elements because of fundamental
     # reasons (this limitation comes mainly from the way of compute
     # indices for indexes, but also because C keysort is not implemented
-    # yet for the string type)
-    if ss >= 2**31:
-        ss = 2**30   # because it should be a multiple of 4
+    # yet for the string type).  Besides, it cannot be larger than
+    # 2**30, because limitiations of the optimized binary search code
+    # (in idx-opt.c, the line ``mid = lo + (hi-lo)/2;`` will overflow
+    # for values of ``lo`` and ``hi`` >= 2**30).  Finally, ss must be a
+    # multiple of 4, so 2**30 must definitely be an upper limit.
+    if ss > 2**30:
+        ss = 2**30
     return ss
 
 
