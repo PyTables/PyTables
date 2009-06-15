@@ -42,6 +42,9 @@ descr2["hot"] = BoolCol(dflt=False)
 # Create a new table with the new description
 table2 = fileh.createTable(group, 'table2', descr2, "A table", Filters(1))
 
+# Copy the user attributes
+table.attrs._f_copy(table2)
+
 # Fill the rows of new table with default values
 for i in xrange(table.nrows):
     table2.row.append()
