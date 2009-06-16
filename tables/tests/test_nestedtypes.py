@@ -717,9 +717,9 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "repr(tbl.cols.y)-->'%s'" % repr(tbl.cols.y)
 
         self.assert_(str(tbl.cols.y) == \
-                     "/test.cols.y (Column(2, 2), float64, idx=None)")
+                     "/test.cols.y (Column(2, 2, 2), float64, idx=None)")
         self.assert_(repr(tbl.cols.y) == \
-                     "/test.cols.y (Column(2, 2), float64, idx=None)")
+                     "/test.cols.y (Column(2, 2, 2), float64, idx=None)")
 
     def test00c_repr(self):
         """Checking representation of a nested Column."""
@@ -737,9 +737,9 @@ class ReadTestCase(common.TempFileMixin, common.PyTablesTestCase):
             print "repr(tbl.cols.Info.z2)-->'%s'" % repr(tbl.cols.Info.z2)
 
         self.assert_(str(tbl.cols.Info.z2) == \
-                     "/test.cols.Info.z2 (Column(), uint8, idx=None)")
+                     "/test.cols.Info.z2 (Column(2,), uint8, idx=None)")
         self.assert_(repr(tbl.cols.Info.z2) == \
-                     "/test.cols.Info.z2 (Column(), uint8, idx=None)")
+                     "/test.cols.Info.z2 (Column(2,), uint8, idx=None)")
 
     def test01_read(self):
         """Checking Table.read with subgroups with a range index with step."""
@@ -813,12 +813,12 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assert_(str(tbl.cols) == "/test.cols (Cols), 6 columns")
         self.assert_(repr(tbl.cols) == \
 """/test.cols (Cols), 6 columns
-  x (Column(2,), ('int32',(2,)))
+  x (Column(0, 2), ('int32',(2,)))
   Info (Cols(), Description)
-  color (Column(), |S2)
+  color (Column(0,), |S2)
   info (Cols(), Description)
-  y (Column(2, 2), ('float64',(2, 2)))
-  z (Column(), uint8)
+  y (Column(0, 2, 2), ('float64',(2, 2)))
+  z (Column(0,), uint8)
 """)
 
     def test00b_repr(self):
@@ -838,11 +838,11 @@ class ColsTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.assert_(str(tbl.cols.Info) == "/test.cols.Info (Cols), 5 columns")
         self.assert_(repr(tbl.cols.Info) == \
 """/test.cols.Info (Cols), 5 columns
-  value (Column(), complex128)
-  y2 (Column(), float64)
+  value (Column(0,), complex128)
+  y2 (Column(0,), float64)
   Info2 (Cols(), Description)
-  name (Column(), |S2)
-  z2 (Column(), uint8)
+  name (Column(0,), |S2)
+  z2 (Column(0,), uint8)
 """)
 
     def test01a_f_col(self):

@@ -8183,6 +8183,14 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               </glossentry>
 
               <glossentry>
+                <glossterm><emphasis role="bold">shape</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The shape of this column.</para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
                 <glossterm><emphasis role="bold">table</emphasis></glossterm>
 
                 <glossdef>

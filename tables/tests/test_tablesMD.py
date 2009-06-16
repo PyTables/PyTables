@@ -54,7 +54,7 @@ class RecordDT(IsDescription):
     var4 = Col.from_dtype(numpy.dtype("2f8"), dflt=3.1)
     var5 = Col.from_dtype(numpy.dtype("f4"), dflt=4.2)
     var6 = Col.from_dtype(numpy.dtype("()u2"), dflt=5)
-    var7 = Col.from_dtype(numpy.dtype("1S1"), dflt="e")   # no shape 
+    var7 = Col.from_dtype(numpy.dtype("1S1"), dflt="e")   # no shape
 
 
 
@@ -336,6 +336,23 @@ class BasicTestCase(common.PyTablesTestCase):
         else:
             assert rec['var1'] == "0001"
         assert len(result) == 20
+
+    def test01c_readTable(self):
+        """Checking shape of multidimensional columns"""
+
+        rootgroup = self.rootgroup
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01c_readTable..." % self.__class__.__name__
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.getNode("/table0")
+
+        if common.verbose:
+            print "var2 col shape:", table.cols.var2.shape
+            print "Should be:", table.cols.var2[:].shape
+        self.assert_(table.cols.var2.shape == table.cols.var2[:].shape)
 
     def test02_AppendRows(self):
         """Checking whether appending record rows works or not"""

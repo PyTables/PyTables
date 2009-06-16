@@ -2870,7 +2870,8 @@ class Cols(object):
             if name in self._v_desc._v_dtypes:
                 tcol = self._v_desc._v_dtypes[name]
                 # The shape for this column
-                shape = self._v_desc._v_dtypes[name].shape
+                shape = (self._v_table.nrows,) + \
+                        self._v_desc._v_dtypes[name].shape
             else:
                 tcol = "Description"
                 # Description doesn't have a shape currently
@@ -2956,6 +2957,12 @@ class Column(object):
     index = property(_getindex)
 
 
+    def _getshape(self):
+        return (self.table.nrows,)+self.dtype.shape
+
+    shape = property(_getshape)
+
+
     def _isindexed(self):
         if self.index is None:
             return False
@@ -2963,7 +2970,6 @@ class Column(object):
             return True
 
     is_indexed = property(_isindexed)
-
 
 
     def __init__(self, table, name, descr):
@@ -3289,7 +3295,7 @@ class Column(object):
         # Get this class name
         classname = self.__class__.__name__
         # The shape for this column
-        shape = self.descr._v_dtypes[self.name].shape
+        shape = self.shape
         # The type
         tcol = self.descr._v_types[self.name]
         return "%s.cols.%s (%s%s, %s, idx=%s)" % \

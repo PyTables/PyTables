@@ -31,6 +31,11 @@ API changes
   ``dtype`` that most closely matches the leaf type.  This allows for
   a quick-and-dirty check of leaf types.
 
+- Added a `shape` attribute for `Column` objects.  This is formed by
+  concatenating the length of the column and the shape of its type.
+  Also, the representation of columns has changed an now includes the
+  length of the column as the leading dimension.
+
 - In order to be consistent and allow the extended slicing to happen
   in `VLArray` objects too, `VLArray.__setitem__()` is not able to
   partially modify rows based on the second dimension passed as key.
