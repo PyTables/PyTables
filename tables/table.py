@@ -997,7 +997,7 @@ class Table(tableExtension.Table, Leaf):
 
             # Check the value.
             if hasattr(val, 'pathname'):  # non-nested column
-                if val.dtype.shape != ():
+                if val.shape[1:] != ():
                     raise NotImplementedError(
                         "variable ``%s`` refers to "
                         "a multidimensional column, "
@@ -2958,7 +2958,7 @@ class Column(object):
 
 
     def _getshape(self):
-        return (self.table.nrows,)+self.dtype.shape
+        return (self.table.nrows,)+self.descr._v_dtypes[self.name].shape
 
     shape = property(_getshape)
 
@@ -2987,7 +2987,8 @@ class Column(object):
         self.name = name
         self.pathname = descr._v_colObjects[name]._v_pathname
         self.descr = descr
-        self.dtype = descr._v_dtypes[name]
+        # dtype will get rid of the shape as of PyTables 2.2
+        self.dtype = descr._v_dtypes[name].base
         self.type = descr._v_types[name]
 
 

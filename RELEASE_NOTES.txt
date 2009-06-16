@@ -50,6 +50,14 @@ API changes
   triggered by methods that should not be in charge of this task.
   Closes #216.
 
+Backward incompatible changes
+-----------------------------
+
+- After the introduction of the `shape` attribute for `Column`
+  objects, the shape information for multidimensional columns has been
+  removed from the `dtype` attribute (it is set to the base type of
+  the column now).
+
 
 Changes from 2.1 to 2.1.1
 =========================
