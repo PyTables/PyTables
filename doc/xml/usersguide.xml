@@ -6023,6 +6023,16 @@ for node in h5file.root.detector:
             </glossentry>
 
             <glossentry>
+              <glossterm><emphasis
+              role="bold">dtype</emphasis></glossterm>
+
+              <glossdef>
+                <para>The NumPy <literal>dtype</literal> that most closely
+                  matches this leaf type.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
               <glossterm><emphasis role="bold">extdim</emphasis></glossterm>
 
               <glossdef>

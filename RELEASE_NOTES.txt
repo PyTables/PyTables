@@ -27,6 +27,10 @@ Enhancements
 API changes
 -----------
 
+- Added a `dtype` attribute for all leaves.  This is the NumPy
+  ``dtype`` that most closely matches the leaf type.  This allows for
+  a quick-and-dirty check of leaf types.
+
 - In order to be consistent and allow the extended slicing to happen
   in `VLArray` objects too, `VLArray.__setitem__()` is not able to
   partially modify rows based on the second dimension passed as key.
