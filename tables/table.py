@@ -296,6 +296,11 @@ class Table(tableExtension.Table, Leaf):
         """The associated `Row` instance."""
         return tableExtension.Row(self)
 
+    @lazyattr
+    def dtype(self):
+        """The NumPy ``dtype`` that most closely matches this table."""
+        return self.description._v_dtype
+
     # Read-only shorthands
     # ````````````````````
 
@@ -2940,6 +2945,20 @@ class Column(object):
         Set an element or a range of elements in a column.
     """
 
+    # Lazy read-only attributes
+    # `````````````````````````
+    @lazyattr
+    def dtype(self):
+        """The NumPy ``dtype`` that most closely matches this array."""
+        return self.descr._v_dtypes[self.name].base  # Get rid of shape info
+
+    @lazyattr
+    def type(self):
+        """The PyTables ``type`` of the column (a string)."""
+        return self.descr._v_types[self.name]
+
+    # Properties
+    # ~~~~~~~~~~
     def _gettable(self):
         return self._tableFile._getNode(self._tablePath)
 
@@ -2987,9 +3006,6 @@ class Column(object):
         self.name = name
         self.pathname = descr._v_colObjects[name]._v_pathname
         self.descr = descr
-        # dtype will get rid of the shape as of PyTables 2.2
-        self.dtype = descr._v_dtypes[name].base
-        self.type = descr._v_types[name]
 
 
     def _g_updateTableLocation(self, table):

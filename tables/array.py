@@ -35,7 +35,7 @@ from tables import hdf5Extension
 from tables.utilsExtension import lrange
 from tables.filters import Filters
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
-from tables.utils import is_idx, convertToNPAtom2, SizeType
+from tables.utils import is_idx, convertToNPAtom2, SizeType, lazyattr
 from tables.atom import split_type
 from tables.leaf import Leaf
 
@@ -117,6 +117,13 @@ class Array(hdf5Extension.Array, Leaf):
     # Class identifier.
     _c_classId = 'ARRAY'
 
+
+    # Lazy read-only attributes
+    # `````````````````````````
+    @lazyattr
+    def dtype(self):
+        """The NumPy ``dtype`` that most closely matches this array."""
+        return self.atom.dtype
 
     # Properties
     # ~~~~~~~~~~

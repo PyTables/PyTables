@@ -213,13 +213,6 @@ class Leaf(Node):
         """Filter properties for this leaf."""
         return Filters._from_leaf(self)
 
-    @lazyattr
-    def dtype(self):
-        """The NumPy ``dtype`` that most closely matches this leaf."""
-        if hasattr(self, "description"):
-            return self.description._v_dtype   # self is a Table
-        return self.atom.dtype    # an *Array object
-
     # Other properties
     # ````````````````
     def _getmaindim(self):

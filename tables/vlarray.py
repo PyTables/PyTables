@@ -34,7 +34,7 @@ import numpy
 from tables import hdf5Extension
 from tables.utilsExtension import lrange
 from tables.utils import convertToNPAtom, convertToNPAtom2, idx2long, \
-     correct_byteorder, SizeType, is_idx
+     correct_byteorder, SizeType, is_idx, lazyattr
 
 
 from tables.atom import (
@@ -179,6 +179,13 @@ class VLArray(hdf5Extension.VLArray, Leaf):
     # Class identifier.
     _c_classId = 'VLARRAY'
 
+
+    # Lazy read-only attributes
+    # `````````````````````````
+    @lazyattr
+    def dtype(self):
+        """The NumPy ``dtype`` that most closely matches this array."""
+        return self.atom.dtype
 
     # Properties
     # ~~~~~~~~~~
