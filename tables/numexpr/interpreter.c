@@ -1561,10 +1561,11 @@ NumExpr_run(NumExprObject *self, PyObject *args, PyObject *kwds)
             n_dimensions = PyArray_NDIM(a);
     }
 
-    /* Broadcast all of the inputs to determine the output shape (this will
-       require some modifications if we later allow a final reduction
-       operation). If an array has too few dimensions it's shape is padded
-       with ones fromthe left. All array dimensions must match, or be one. */
+    /* Broadcast all of the inputs to determine the output shape (this
+       will require some modifications if we later allow a final
+       reduction operation). If an array has too few dimensions it's
+       shape is padded with ones from the left. All array dimensions
+       must match, or be one. */
 
     for (i = 0; i < n_dimensions; i++)
         shape[i] = 1;

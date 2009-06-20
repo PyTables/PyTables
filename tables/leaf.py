@@ -413,11 +413,6 @@ dimension of this leave.  Alternatively, in case you have specified a
 very small/large chunksize, you may want to increase/decrease it."""
                               % (self._v_pathname, maxrowsize),
                                  PerformanceWarning)
-# It is difficult to forsee the level of code nesting to reach user code.
-#f = sys._getframe(8)
-###Caller --> %s (%s:%s)"""
-#                    f.f_code.co_name,
-#                    f.f_code.co_filename, f.f_lineno,),
         return nrowsinbuf
 
 

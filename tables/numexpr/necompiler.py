@@ -571,6 +571,8 @@ def getType(a):
     if kind in 'iu':
         if a.dtype.itemsize > 4:
             return long  # ``long`` is for integers of more than 32 bits
+        if kind == 'u' and a.dtype.itemsize == 4:
+            return long  # use ``long`` here as an ``int`` is not enough
         return int
     if kind == 'f':
         if a.dtype.itemsize > 4:
@@ -580,7 +582,9 @@ def getType(a):
         return complex
     if kind == 'S':
         return str
-    raise ValueError("unkown type %s" % a.dtype.name)
+    if kind == "V":
+        raise TypeError("Heterogeneous types not supported")
+    raise TypeError("unkown type %s" % a.dtype.name)
 
 
 def getExprNames(text, context):

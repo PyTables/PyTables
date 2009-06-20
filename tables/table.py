@@ -2990,6 +2990,9 @@ class Column(object):
 
     is_indexed = property(_isindexed)
 
+    maindim = property(
+        lambda self: 0, None, None,
+        "The main dimension for this column.")
 
     def __init__(self, table, name, descr):
         """Create the container to keep the column information.
@@ -3065,6 +3068,13 @@ class Column(object):
         """
 
         table = self.table
+
+        # Generalized key support not there yet, but at least allow
+        # for a tuple with one single element (the main dimension).
+        # (key,) --> key
+        if type(key) == tuple and len(key) == 1:
+            key = key[0]
+
         if is_idx(key):
             # Index out of range protection
             if key >= table.nrows:
@@ -3079,8 +3089,8 @@ class Column(object):
                 key.start, key.stop, key.step )
             return table.read(start, stop, step, self.pathname)
         else:
-            raise TypeError, "'%s' key type is not valid in this context" % \
-                  (key)
+            raise TypeError(
+                "'%s' key type is not valid in this context" % key)
 
 
     def __setitem__(self, key, value):
@@ -3109,6 +3119,12 @@ class Column(object):
 
         table = self.table
         table._v_file._checkWritable()
+
+        # Generalized key support not there yet, but at least allow
+        # for a tuple with one single element (the main dimension).
+        # (key,) --> key
+        if type(key) == tuple and len(key) == 1:
+            key = key[0]
 
         if is_idx(key):
             # Index out of range protection

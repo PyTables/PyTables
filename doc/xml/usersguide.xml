@@ -4125,7 +4125,7 @@ Object Tree:
             information on the rest of parameters.</para>
           </section>
 
-          <section id="createCArrayDescr">
+          <section id="createCArrayDescr" xreflabel="description">
             <title>createCArray(where, name, atom, shape, title='',
             filters=None, chunkshape=None, byteorder=None,
             createparents=False)</title>
@@ -4177,7 +4177,7 @@ Object Tree:
             information on the rest of parameters.</para>
           </section>
 
-          <section id="createEArrayDescr">
+          <section id="createEArrayDescr" xreflabel="description">
             <title>createEArray(where, name, atom, shape, title='',
             filters=None, expectedrows=EXPECTED_ROWS_EARRAY, chunkshape=None,
             byteorder=None, createparents=False)</title>
@@ -4518,7 +4518,7 @@ Object Tree:
             </glosslist>
           </section>
 
-          <section id="createVLArrayDescr">
+          <section id="createVLArrayDescr" xreflabel="description">
             <title>createVLArray(where, name, atom, title='', filters=None,
             expectedsizeinMB=1.0, chunkshape=None, byteorder=None,
             createparents=False)</title>
@@ -7386,7 +7386,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
         <section id="TableMethods_other">
           <title><literal>Table</literal> methods — other</title>
 
-          <section id="Table.copy">
+          <section id="Table.copy" xreflabel="description">
             <title>copy(newparent=None, newname=None, overwrite=False,
             createparents=False, **kwargs)</title>
 
@@ -8160,6 +8160,15 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
                 <glossdef>
                   <para>True if the column is indexed, false otherwise.
                   </para>
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">maindim</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The dimension along which iterators work.</para>
+                  <para>Its value is 0 (i.e. the first dimension).</para>
                 </glossdef>
               </glossentry>
 
@@ -10929,6 +10938,351 @@ True</screen>
           </section>
         </section>
       </section>
+
+      <section id="ExprClass">
+        <title>The <literal>Expr</literal> class - a general-purpose
+        expression evaluator</title>
+
+        <para><literal>Expr</literal> is a class for evaluating expressions
+        containing array-like objects.  With it, you can evaluate expressions
+        (like <literal>"3*a+4*b"</literal>) that operate on arbitrary large
+        arrays while optimizing the resources required to perform them
+        (basically main memory and CPU cache memory).  It is similar to the
+        Numexpr package (see <biblioref linkend="Numexpr" />), but in addition
+        to NumPy objects, it also accepts disk-based homogeneous arrays, like
+        the <literal>Array</literal>, <literal>CArray</literal>,
+        <literal>EArray</literal> and <literal>Column</literal> PyTables
+        objects.</para>
+
+        <para>All the internal computations are performed via the integrated
+        Numexpr package, so all the broadcast and upcasting rules of Numexpr
+        applies here too.  These rules are very similar to the NumPy ones, but
+        with some exceptions due to the particularities of having to deal with
+        potentially very large disk-based arrays.  Be sure to read the
+        documentation of the
+        <literal>Expr</literal> constructor and methods as well as that of
+        Numexpr, if you want to fully grasp these particularities.
+        </para>
+
+        <section id="ExprClassInstanceVariables">
+          <title><literal>Expr</literal> instance variables</title>
+
+          <glosslist>
+              <?dbfo glosslist-presentation="list" ?>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">append_mode</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The appending mode for user-provided output
+                  containers.</para>
+
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">maindim</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Common main dimension for inputs in expression.</para>
+
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">names</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The names of variables in expression (list).</para>
+
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">out</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The user-provided container (if any) for the
+                  expression outcome.</para>
+
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">o_start, o_stop,
+                o_step</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The range selection for the user-provided
+                  output.</para>
+
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">shape</emphasis></glossterm>
+
+                <glossdef>
+                  <para>Common shape for the arrays in expression.</para>
+
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">start, stop,
+                step</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The range selection for all the inputs.</para>
+
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">values</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The values of variables in expression (list).</para>
+
+                </glossdef>
+              </glossentry>
+          </glosslist>
+        </section>
+
+        <section id="ExprClassInstanceIOVariables">
+          <title><literal>Expr</literal> special tuning variables for
+          input/output</title>
+
+          <warning><para>The next parameters are meant only for advanced
+              users.  Please do not touch them if you don't know what you are
+              doing.</para>
+          </warning>
+
+          <glosslist>
+              <?dbfo glosslist-presentation="list" ?>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">BUFFERTIMES</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The maximum buffersize/rowsize ratio before issuing a
+                    <emphasis>PerformanceWarning</emphasis>.  The default is
+                    1000.</para>
+
+                </glossdef>
+              </glossentry>
+
+              <glossentry>
+                <glossterm><emphasis role="bold">CHUNKTIMES</emphasis></glossterm>
+
+                <glossdef>
+                  <para>The number of chunks in the input buffer per each
+                  variable in expression.  The default is 16.</para>
+
+                </glossdef>
+              </glossentry>
+
+          </glosslist>
+
+        </section>
+
+        <section id="ExprClassMethods">
+          <title><literal>Expr</literal> methods</title>
+
+          <section id="Expr.__init__" xreflabel="Expr.__init__">
+            <title>__init__(expr, uservars=None, **kwargs)</title>
+
+            <para>Compile the expression and initialize internal
+              structures.</para>
+
+            <para><literal>expr</literal> must be specified as a string like
+              <literal>"2*a+3*b"</literal>.</para>
+
+            <para>The <literal>uservars</literal> mapping may be used to
+              define the variable names appearing in <literal>expr</literal>.
+              This mappping should consist of identifier-like strings pointing
+              to any <literal>Array</literal>,
+              <literal>CArray</literal>, <literal>EArray</literal>,
+              <literal>Column</literal> or NumPy ndarray instances (or even
+              others which will be tried to be converted to ndarrays).</para>
+
+            <para>When <literal>uservars</literal> is not provided
+              or <literal>None</literal>, the current local and global
+              namespace is sought instead of <literal>uservars</literal>.  It
+              is also possible to pass just some of the variables in
+              expression via the <literal>uservars</literal> mapping, and the
+              rest will be retrieved from the current local and global
+              namespaces.</para>
+
+            <para><literal>**kwargs</literal> is meant to pass additional
+              parameters to the Numexpr kernel.  This is basically the same as
+              the <literal>**kwargs</literal> argument
+              in <literal>Numexpr.evaluate()</literal>, and is mainly meant
+              for advanced use.</para>
+
+            <para>After initialized, an <literal>Expr</literal> instance can
+              be evaluated via its <literal>eval()</literal> method.  This
+              class also provides an <literal>__iter__()</literal> method that
+              iterates over all the resulting rows in expression.</para>
+
+            <para>Example of use:</para>
+
+            <screen>>>> a = f.createArray('/', 'a', np.array([1,2,3]))
+>>> b = f.createArray('/', 'b', np.array([3,4,5]))
+>>> c = np.array([4,5,6])
+>>> expr = tb.Expr("2*a+b*c")   # initialize the expression
+>>> expr.eval()                 # evaluate it
+array([14, 24, 36])
+>>> sum(expr)                   # use as an iterator
+74
+            </screen>
+
+            <para>where you can see that you can mix different containers in
+              the expression (whenever shapes are consistent).</para>
+
+            <para>You can also work with multidimensional arrays:</para>
+
+            <screen>>>> a2 = f.createArray('/', 'a2', np.array([[1,2],[3,4]]))
+>>> b2 = f.createArray('/', 'b2', np.array([[3,4],[5,6]]))
+>>> c2 = np.array([4,5])           # This will be broadcasted
+>>> expr = tb.Expr("2*a2+b2-c2")
+>>> expr.eval()
+array([[1, 3],
+       [7, 9]])
+>>> sum(expr)
+array([ 8, 12])
+            </screen>
+          </section>
+
+          <section id="Expr.eval" xreflabel="description">
+            <title>eval()</title>
+
+            <para>Evaluate the expression and return the outcome.</para>
+
+            <para>Because of performance reasons, the computation order tries
+              to go along the common main dimension of all inputs.  If not
+              such a common main dimension is found, the iteration will go
+              along the leading dimension instead.</para>
+
+            <para>For non-consistent shapes in inputs (i.e. shapes having a
+              different number of dimensions), the regular NumPy broadcast
+              rules applies.  There is one exception to this rule though: when
+              the dimensions orthogonal to the main dimension of the
+              expression are consistent, but the main dimension itself differs
+              among the inputs, then the shortest one is chosen for doing the
+              computations.  This is so because trying to expand very large
+              on-disk arrays could be too expensive or simply not
+              possible.</para>
+
+            <para>Also, the regular Numexpr casting rules (which are similar
+              to those of NumPy, although you should check the Numexpr manual
+              for the exceptions) are applied to determine the output
+              type.</para>
+
+            <para>Finally, if the <literal>setOuput()</literal> method
+              specifiying a user container has already been called, the output
+              is sent to this user-provided container.  If not, a fresh NumPy
+              container is returned instead.</para>
+
+            <warning><para>When dealing with large on-disk inputs, failing to
+                specify an on-disk container may consume all your available
+                memory.</para>
+            </warning>
+
+            <para>For some examples of use see the
+              <xref linkend="Expr.__init__" xrefstyle="select: label"/>
+              docs.</para>
+
+          </section>
+
+          <section id="Expr.setInputsRange" xreflabel="description">
+            <title>setInputsRange(start=None, stop=None, step=None)</title>
+
+            <para>Define a range for all inputs in expression.</para>
+
+            <para>The computation will only take place for the range defined
+              by the <literal>start</literal>, <literal>stop</literal>
+              and <literal>step</literal> parameters in the main dimension of
+              inputs (or the leading one, if the object lacks the concept of
+              main dimension, like a NumPy container).  If not a common main
+              dimension exists for all inputs, the leading dimension will be
+              used instead.</para>
+
+          </section>
+
+          <section id="Expr.setOutput" xreflabel="description">
+            <title>setOutput(out, append_mode=False)</title>
+
+            <para>Set <literal>out</literal> as container for output as well
+              as the <literal>append_mode</literal>.</para>
+
+            <para>The <literal>out</literal> must be a container that is meant
+              to keep the outcome of the expression.  It should be an
+              homogeneous type container and can typically be
+              an <literal>Array</literal>, <literal>CArray</literal>,
+              <literal>EArray</literal>, <literal>Column</literal> or a NumPy
+              ndarray.</para>
+
+            <para>The <literal>append_mode</literal> specifies the way of
+              which the output is filled.  If true, the rows of the outcome
+              are <emphasis>appended</emphasis> to the <literal>out</literal>
+              container.  Of course, for doing this it is necessary
+              that <literal>out</literal> would have
+              an <literal>append()</literal> method (like
+              an <literal>EArray</literal>, for example).</para>
+
+            <para>If <literal>append_mode</literal> is false, the output is
+              set via the <literal>__setitem__()</literal> method (see
+              the <literal>Expr.setOutputRange()</literal> for info on how to
+              select the rows to be updated).  If <literal>out</literal> is
+              smaller than what is required by the expression, only the
+              computations that are needed to fill up the container are
+              carried out.  If it is larger, the excess elements are
+              unaffected.</para>
+
+          </section>
+
+          <section id="Expr.setOutputRange" xreflabel="description">
+            <title>setOutputRange(start=None, stop=None, step=None)</title>
+
+            <para>Define a range for user-provided output object.</para>
+
+            <para>The output object will only be modified in the range
+              specified by the <literal>start</literal>,
+              <literal>stop</literal> and <literal>step</literal> parameters
+              in the main dimension of output (or the leading one, if the
+              object does not have the concept of main dimension, like a NumPy
+              container).</para>
+
+          </section>
+
+        </section>
+
+        <section id="ExprClassSpecialMethods">
+          <title><literal>Expr</literal> special methods</title>
+
+          <section id="Expr.__iter__" xreflabel="description">
+            <title>__iter__()</title>
+
+            <para>Iterate over the rows of the outcome of the
+              expression.</para>
+
+            <para>This iterator always returns rows as NumPy objects, so a
+              possible <literal>out</literal> container specified
+              in <literal>Expr.setOutput()</literal> method is ignored
+              here.</para>
+
+            <para>The <literal>Expr.eval()</literal> documentation (see
+              <xref linkend="Expr.eval" xrefstyle="select: label"/>) for
+              details on how the computation is carried out.  Also, for some
+              examples of use see the <xref linkend="Expr.__init__"
+                                            xrefstyle="select: label"/> docs.</para>
+
+          </section>
+        </section>
+
+      </section>
+
     </chapter>
 
     <chapter id="optimizationTips">
@@ -10954,8 +11308,8 @@ True</screen>
       your datasets are small (say, up to 10 MB) or your number of nodes is
       contained (up to 1000), you should not worry about that as the default
       parameters in PyTables are already tuned for those sizes (although you
-      may want to tune it anyway).  At any rate, reading this chapter will
-      help you in your life with PyTables.</para>
+      may want to adjust them further anyway).  At any rate, reading this
+      chapter will help you in your life with PyTables.</para>
 
       <section id="chunksizeOptim">
         <title>Understanding chunking</title>
@@ -11000,13 +11354,13 @@ True</screen>
           leaf creation time by passing this value to the
           <literal>expectedrows</literal> argument of the
           <literal>createTable()</literal> method (see <xref
-          linkend="createTableDescr" xrefstyle="select: label" />) or
+          linkend="createTableDescr" />) or
           <literal>createEArray()</literal> method (see <xref
-          linkend="createEArrayDescr" xrefstyle="select: label" />).  For
+          linkend="createEArrayDescr" />).  For
           <literal>VLArray</literal> leaves, you must pass the expected size
           in MBytes by using the argument <literal>expectedsizeinMB</literal>
           of <literal>createVLArray()</literal> (see <xref
-          linkend="createVLArrayDescr" xrefstyle="select: label" />)
+          linkend="createVLArrayDescr" />)
           instead.</para>
 
           <para>When your leaf size is bigger than 10 MB (take this figure

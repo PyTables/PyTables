@@ -149,7 +149,8 @@
     <authorgroup>
       <author><firstname>David</firstname><surname>Cooke</surname></author>
       <othername role='mi'>M</othername>
-      <author><firstname>Timothy</firstname><surname>Hochberg</surname></author>
+      <author><firstname>Francesc</firstname><surname>Alted</surname></author>
+      <author><othername>et al</othername></author>
     </authorgroup>
     <title>Numexpr. Fast evaluation of array expressions by using a
     vector-based virtual machine</title>

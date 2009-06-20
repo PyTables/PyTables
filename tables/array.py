@@ -843,7 +843,6 @@ compliant with %s: '%r' The error was: <%s>""" % \
     def _read(self, start, stop, step):
         """Read the array from disk without slice or flavor processing."""
 
-        #rowstoread = ((stop - start - 1) / step) + 1
         rowstoread = lrange(start, stop, step).length
         shape = list(self.shape)
         if shape:

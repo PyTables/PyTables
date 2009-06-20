@@ -39,6 +39,7 @@ def suite():
         'tables.tests.test_hdf5compat',
         'tables.tests.test_numpy',
         'tables.tests.test_queries',
+        'tables.tests.test_expression',
         # Sub-packages
         'tables.nodes.tests.test_filenode',
         'tables.netcdf3.tests.test_netcdf3',

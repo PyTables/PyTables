@@ -83,6 +83,7 @@ from tables.carray import CArray
 from tables.earray import EArray
 from tables.vlarray import VLArray
 from tables.unimplemented import UnImplemented
+from tables.expression import Expr
 from tables.tests import print_versions, test
 
 
@@ -126,6 +127,6 @@ __all__ = [
     'UnImplemented',
     # The File class:
     'File',
-    # Testing functions:
-    #'createNestedType',
+    # Expr class
+    'Expr',
     ]
