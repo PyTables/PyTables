@@ -38,7 +38,8 @@ import numpy
 from tables import tableExtension
 from tables.utilsExtension import lrange
 from tables.conditions import compile_condition
-from tables.numexpr.necompiler import getType as numexpr_getType, double
+from tables.numexpr.necompiler import (
+    getType as numexpr_getType, double, is_cpu_amd_intel)
 from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx, lazyattr, SizeType
@@ -1100,7 +1101,9 @@ class Table(tableExtension.Table, Leaf):
             # Get the list of unaligned, unidimensional columns.  See
             # the comments in `tables.numexpr.evaluate()` for the
             # reasons of inserting copy operators for these columns.
-            if col.pathname in self._colunaligned:
+            # Since the inclusion of Numexpr 1.3.1, the copy of unaligned
+            # columns on Intel architectures is not needed anymore.
+            if not is_cpu_amd_intel and col.pathname in self._colunaligned:
                 copycols.append(colname)
         indexedcols = frozenset(indexedcols)
         # Now let ``compile_condition()`` do the Numexpr-related job.

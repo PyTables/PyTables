@@ -538,6 +538,7 @@ def print_versions():
     if os.name == 'posix':
         (sysname, nodename, release, version, machine) = os.uname()
         print 'Platform:          %s-%s' % (sys.platform, machine)
+    print "AMD/Intel CPU?     %s" % tables.numexpr.is_cpu_amd_intel
     print '-=' * 38
 
 

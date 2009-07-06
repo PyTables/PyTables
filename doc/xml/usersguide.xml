@@ -590,8 +590,8 @@ fileh.close()</screen>
           <title>Prerequisites</title>
 
           <para>First, make sure that you have at least Python 2.4, HDF5 1.6.5
-          and NumPy 1.2 or higher installed (for testing purposes, we are
-          using HDF5 1.6.7/1.8.0 and NumPy 1.2 currently). If you don't, fetch
+          and NumPy 1.3 or higher installed (for testing purposes, we are
+          using HDF5 1.6.7/1.8.3 and NumPy 1.3 currently). If you don't, fetch
           and install them before proceeding.</para>
 
           <para>Compile and install these packages (but see <xref
@@ -630,7 +630,7 @@ fileh.close()</screen>
                 of the resource root directories on the
                 <literal>setup.py</literal> command line. For example:</para>
 
-                <screen>--hdf5=/stuff/hdf5-1.8.2
+                <screen>--hdf5=/stuff/hdf5-1.8.3
 --lzo=/stuff/lzo-2.02
 --bzip2=/stuff/bzip2-1.0.4</screen>
 
@@ -639,7 +639,7 @@ fileh.close()</screen>
                 linker flags needed to find the shared library on the command
                 line as well. For example:</para>
 
-                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.2/lib"</screen>
+                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.3/lib"</screen>
 
                 <para>You may also want to try setting the LD_LIBRARY_PATH
                 environment variable to point to the directory where the
@@ -652,7 +652,7 @@ fileh.close()</screen>
                 setting the <literal>LIBS</literal> environment
                 variable:</para>
 
-                <screen>LIBS="hdf5-1.8.2 nsl"</screen>
+                <screen>LIBS="hdf5-1.8.3 nsl"</screen>
 
                 <para>Finally, you can give additional flags to your compiler
                 by passing them to the <literal>--cflags</literal>
@@ -696,7 +696,7 @@ set BZIP2_DIR=c:\stuff\bzip2-1-0-3</screen>
                 directories on the <literal>setup.py</literal> command line.
                 For example:</para>
 
-                <screen>--hdf5=c:\stuff\5-165-win
+                <screen>--hdf5=c:\stuff\5-167-win
 --lzo=c:\stuff\lzo-1-08
 --bzip2=c:\stuff\bzip2-1-0-3</screen>
               </listitem>
@@ -876,11 +876,12 @@ python -c "import tables; tables.test()"</screen>
           <title>Windows prerequisites</title>
 
           <para>First, make sure that you have Python 2.4 or higher and NumPy
-          1.2 or higher installed (PyTables binaries have been built using
-          NumPy 1.2).  The binaries already include DLLs for HDF5 (1.6.7),
-          zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2
-          (1.0.4).  The LZO DLL can't be included because of license issues
-          (but read below for directives to install it if you want so).</para>
+          1.3 or higher installed (PyTables binaries have been built using
+          NumPy 1.3).  The binaries already include DLLs for HDF5 (1.6.7,
+          1.8.3), zlib1 (1.2.3), szlib (2.0, uncompression support only) and
+          bzip2 (1.0.4).  The LZO DLL can't be included because of license
+          issues (but read below for directives to install it if you want
+          so).</para>
 
           <para>To enable compression with the optional LZO library (see the
           <xref linkend="compressionIssues" xrefstyle="select: label" /> for
@@ -15019,6 +15020,11 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           <listitem>
             <para><literal>sqrt(float|complex): float|complex</literal> —
             square root.</para>
+          </listitem>
+
+          <listitem>
+            <para><literal>{abs}(float|complex): float|complex</literal> —
+            absolute value.</para>
           </listitem>
 
           <listitem>

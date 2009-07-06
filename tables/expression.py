@@ -411,7 +411,9 @@ leading dimension of this object."""
         vals = []; lens = []
         for val in self.values:
             shape = val.shape
-            if shape != () and len(val) == 0:
+            # Warning: don't use len(val) below or it will raise an
+            # `Overflow` error on 32-bit platforms for large enough arrays.
+            if shape != () and shape[maindim] == 0:
                 vals.append(val[:])
                 lens.append(0)
             elif len(shape) < maxndim:

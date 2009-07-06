@@ -237,7 +237,7 @@ class CreateTestCase(unittest.TestCase):
         assert agroup._v_attrs._f_list() == ["rs"]
         if common.verbose:
             print "Attribute list in disk:", \
-                  agroup._v_attrs._g_listAttr()
+                  agroup._v_attrs._f_list()
         # Check the disk attribute names
         assert agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "rs"]
@@ -280,7 +280,7 @@ class CreateTestCase(unittest.TestCase):
         assert agroup._v_attrs._f_list() == ["rs"]
         if common.verbose:
             print "Attribute list in disk:", \
-                  agroup._v_attrs._g_listAttr()
+                  agroup._v_attrs._f_list()
         # Check the disk attribute names
         assert agroup._v_attrs._f_list("all") == \
                ['CLASS', 'TITLE', 'VERSION', "rs"]
@@ -1129,7 +1129,9 @@ class TypesTestCase(unittest.TestCase):
 
         # Check the results
         if common.verbose:
-            print "pq -->", self.array.attrs.pq
+            if sys.platform != 'win32':
+                # It seems that Windows cannot print this
+                print "pq -->", self.array.attrs.pq
             print "qr -->", self.array.attrs.qr
             print "rs -->", self.array.attrs.rs
 

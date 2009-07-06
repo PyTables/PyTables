@@ -541,9 +541,18 @@ class Array(hdf5Extension.Array, Leaf):
                 for use with the hyperslab selection routines
             """
             start, stop, step = exp.start, exp.stop, exp.step
-            start = 0 if start is None else int(start)
-            stop = length if stop is None else int(stop)
-            step = 1 if step is None else int(step)
+            if start is None:
+                start = 0
+            else:
+                start = long(start)
+            if stop is None:
+                stop = length
+            else:
+                stop = long(stop)
+            if step is None:
+                step = 1
+            else:
+                step = long(step)
 
             if step < 1:
                 raise IndexError("Step must be >= 1 (got %d)" % step)

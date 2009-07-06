@@ -22,6 +22,7 @@ class Medium(IsDescription):
     grid_j      = Int32Col(pos=8)    # integer
     pressure    = Float32Col(pos=9)    # float  (single-precision)
     energy      = Float64Col(pos=2)    # double (double-precision)
+    unalig      = Int8Col()          # just to unalign data
 
 # Define a user record to characterize some kind of particles
 class Big(IsDescription):
@@ -159,8 +160,10 @@ def readFile(filename, recsize, verbose):
 #                 e = [ p['grid_i'] for p in table
 #                       if p['grid_i'] <= 2 ]
 #                e = [ p['grid_i'] for p in table.where("grid_i<=20")]
+#                 e = [ p['grid_i'] for p in
+#                       table.where('grid_i <= 20')]
                 e = [ p['grid_i'] for p in
-                      table.where('grid_i <= 20')]
+                      table.where('(grid_i <= 20) & (grid_j == 20)')]
 #                 e = [ p['grid_i'] for p in table.iterrows()
 #                       if p.nrow() == 20 ]
 #                 e = [ table.delrow(p.nrow()) for p in table.iterrows()
@@ -197,7 +200,8 @@ def readFile(filename, recsize, verbose):
                      # than ten times faster than the next one
 #                e = [ p['var3'] for p in table
 #                      if p['var1'] == "10"]
-                e = [ p['var3'] for p in table.where('var2 <= 20')]
+#                e = [ p['var3'] for p in table.where('var2 <= 20')]
+                e = [ p['var3'] for p in table.where('(var2 <= 20) & (var2 >= 3)')]
                 # e = [ p[0] for p in table.where('var2 <= 20')]
                 #e = [ p['var3'] for p in table if p['var2'] <= 20 ]
                 # e = [ p[:] for p in table if p[1] <= 20 ]

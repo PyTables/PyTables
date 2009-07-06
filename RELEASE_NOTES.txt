@@ -6,11 +6,25 @@
 :Contact: faltet@pytables.org
 
 
-Changes from 2.1.x to 2.2
-=========================
+Changes from 2.2b1 to 2.2b2
+===========================
+
+- (None yet.)
+
+
+Changes from 2.1.1 to 2.2b1
+===========================
 
 Enhancements
 ------------
+
+- Added `Expr`, a class for evaluating expressions containing
+  array-like objects.  It can evaluate expressions (like '3*a+4*b')
+  that operate on arbitrary large arrays while optimizing the
+  resources (basically main memory and CPU cache memory) required to
+  perform them.  It is similar to the Numexpr package, but in addition
+  to NumPy objects, it also accepts disk-based homogeneous arrays,
+  like the `Array`, `CArray`, `EArray` and `Column` PyTables objects.
 
 - Added support for NumPy's extended slicing in all `Leaf` objects.
   With that, you can do the next sort of selections::
@@ -22,9 +36,28 @@ Enhancements
       array5 = array[np.where(array[:] > 4)]  # point selection
       array6 = array[array[:] > 4]            # boolean selection
 
-  Closes #198 and #209.
+  Thanks to Andrew Collette for implementing this for h5py, from which
+  it has been backported.  Closes #198 and #209.
 
-- Numexpr updated to 1.3.1.
+- Numexpr updated to 1.3.1.  This can lead to up a 25% improvement of
+  the time for both in-kernel and indexed queries for unaligned
+  tables.
+
+- HDF5 1.8.3 supported.
+
+
+Bugs fixed
+----------
+
+- Fixed problems when modifying multidimensional columns in Table
+  objects.  Closes #228.
+
+- Row attribute is no longer stalled after a table move or rename.
+  Fixes #224.
+
+- Array.__getitem__(scalar) returns a NumPy scalar now, instead of a
+  0-dim NumPy array.  This should not be noticed by normal users,
+  unless they check for the type of returned value.  Fixes #222.
 
 
 API changes
@@ -32,12 +65,16 @@ API changes
 
 - Added a `dtype` attribute for all leaves.  This is the NumPy
   ``dtype`` that most closely matches the leaf type.  This allows for
-  a quick-and-dirty check of leaf types.
+  a quick-and-dirty check of leaf types.  Closes #230.
 
 - Added a `shape` attribute for `Column` objects.  This is formed by
   concatenating the length of the column and the shape of its type.
   Also, the representation of columns has changed an now includes the
-  length of the column as the leading dimension.
+  length of the column as the leading dimension.  Closes #231.
+
+- Added a new `maindim` attribute for `Column` which has the 0 value
+  (the leading dimension).  This allows for a better similarity with
+  other *Array objects.
 
 - In order to be consistent and allow the extended slicing to happen
   in `VLArray` objects too, `VLArray.__setitem__()` is not able to
@@ -53,61 +90,15 @@ API changes
   triggered by methods that should not be in charge of this task.
   Closes #216.
 
+
 Backward incompatible changes
 -----------------------------
 
 - After the introduction of the `shape` attribute for `Column`
   objects, the shape information for multidimensional columns has been
   removed from the `dtype` attribute (it is set to the base type of
-  the column now).
+  the column now).  Closes #232.
 
-
-Changes from 2.1 to 2.1.1
-=========================
-
-Small enhancements
-------------------
-
-- `openFile()`, `isHDF5File()` and `isPyTablesFile()` functions accept
-  Unicode filenames now.  Closes #202 and #214.
-
-- When creating large type sizes (exceeding 64 KB), HDF5 complained
-  and refused to do so.  The HDF5 team has logged the issue as a bug,
-  but meanwhile it has been implemented a workaround in PyTables that
-  allows to create such large datatypes for situations that does not
-  require defaults other than zero.  Addresses #211.
-
-- In order to be consistent with how are stored the other data types,
-  Unicode attributes are retrieved now as NumPy scalars instead of
-  Python Unicode strings or NumPy arrays.  For the moment, I've fixed
-  this through pickling the Unicode strings.  In the future, when HDF5
-  1.8.x series would be a requirement, that should be done via a HDF5
-  native Unicode type.  Closes #213.
-
-Bug fixes
----------
-
-- Fixed a memory leak when a lot of queries were made.  Closes #203
-  and #207.
-
-- The chunkshape="auto" parameter value of `Leaf.copy()` is honored
-  now, even when the (start, stop, step) parameters are specified.
-  Closes #204.
-
-- Due to a flaw in its design, the `File` class was not able to be
-  subclassed.  This has been fixed.  Closes #205.
-
-- Default values were not correctly retrieved when opening already
-  created CArray/EArray objects.  Fixed.  Closes #212.
-
-- Fixed a problem with the installation of the ``nctoh5`` script that
-  prevented it from being executed.  Closes #215.
-
-- [Pro] The ``iterseq`` cache ignored non-indexed conditions, giving
-  wrong results when those appeared in condition expressions.  This
-  has been fixed.  Closes #206.
-
-----
 
   **Enjoy data!**
 

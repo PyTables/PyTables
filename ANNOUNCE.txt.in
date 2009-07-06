@@ -19,13 +19,10 @@ http://www.pytables.org/moin/ReleaseNotes/Release_@VERSION@
 
 You can download a source package with generated PDF and HTML docs, as
 well as binaries for Windows, from:
-http://www.pytables.org/download/stable
+http://www.pytables.org/download/preliminary
 
 For an on-line version of the manual, visit:
 http://www.pytables.org/docs/manual-@VERSION@
-
-You may want to fetch an evaluation version for PyTables Pro from:
-http://www.pytables.org/download/evaluation
 
 
 Resources
