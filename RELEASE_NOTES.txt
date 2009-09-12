@@ -9,7 +9,49 @@
 Changes from 2.1.1 to 2.1.2
 ===========================
 
-- (None yet.)
+Small improvements
+------------------
+
+- When retrieving a row of a 1-dimensional array, a 0-dim array was
+  returned instead of a numpy scalar.  Now, an actuall numpy scalar is
+  returned.  Closes #222.
+
+- LZO and bzip2 filters adapted to an API fix introduced in HDF5
+  1.8.3.  Closes #225.
+
+- Unsupported HDF5 types in attributes are no longer transferred
+  during copies. A new `_v_unimplemented` list have been added in
+  `AttributeSet` class so as to keep track of such attributes.  Closes
+  #240.
+
+- LZO binaries have disappeared from the GnuWin32 repository.  Until
+  they come eventually back, they have been put at
+  http://www.pytables.org/download/lzo-win. This has been documented
+  in the install chapter.
+
+Bug fixes
+---------
+
+- Solved problems with Table.modifyColumn() when the column(s) is
+  multidimensional. Fixes #228.
+
+- The row attribute of a table seems stalled after a table move or
+  rename.  Fixes #224.
+
+- Fixed a problem with ``len(array)`` in 32-bit platforms when array
+  is large enough (> 2**31).
+
+- Added missing `_c_classId` attribute to the `UnImplemented` class.
+  ``ptrepack`` no longer chokes while copying `Unimplemented` classes.
+
+- The ``FIELD_*`` sys attrs are no longer copied when the
+  ``PYTABLES_SYS_ATTRS`` parameter is set to false.
+
+- The ``FILTERS`` attribute should not be written when
+  ``PYTABLES_SYS_ATTR`` parameter is set to false.
+
+- Disable the printing of Unicode characters that cannot be printed on
+  win32 platform. Fixes #235.
 
 
 Changes from 2.1 to 2.1.1

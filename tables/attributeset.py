@@ -174,6 +174,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         A list with user attribute names.
     _v_node
         The `Node` instance this attribute set is associated with.
+    _v_unimplemented
+        A list of attribute names with unimplemented native HDF5 types.
 
     Public methods
     --------------
@@ -227,6 +229,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         mydict["_v__nodeFile"] = node._v_file
         mydict["_v__nodePath"] = node._v_pathname
         mydict["_v_attrnames"] = self._g_listAttr(node)
+        # The list of unimplemented attribute names
+        mydict["_v_unimplemented"] = []
+
         # Get the file version format. This is an optimization
         # in order to avoid accessing it too much.
         try:
@@ -579,14 +584,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         default setting method does not log anything.
         """
 
+        copysysattrs = newSet._v__nodeFile.params['PYTABLES_SYS_ATTRS']
         if setAttr is None:
             setAttr = newSet._g__setattr
 
         for attrname in self._v_attrnamesuser:
-            setAttr(attrname, getattr(self, attrname))
+            # Do not copy the unimplemented attributes.
+            if attrname not in self._v_unimplemented:
+                setAttr(attrname, getattr(self, attrname))
         # Copy the system attributes that we are allowed to.
         for attrname in self._v_attrnamessys:
-            if attrname not in SYS_ATTRS_NOTTOBECOPIED:
+            if ((attrname not in SYS_ATTRS_NOTTOBECOPIED) and copysysattrs):
                 setAttr(attrname, getattr(self, attrname))
 
 

@@ -487,6 +487,7 @@ cdef class AttributeSet:
         warnings.warn("""\
 Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
                       % (attrname, self.name, class_id), DataTypeWarning)
+        self._v_unimplemented.append(attrname)
         return None
       shape = ()
     else:
@@ -498,6 +499,7 @@ Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
         warnings.warn("""\
 Unsupported type for attribute '%s' in node '%s'. Offending HDF5 class: %d"""
                       % (attrname, self.name, class_id), DataTypeWarning)
+        self._v_unimplemented.append(attrname)
         return None
 
       # Get the dimensional info

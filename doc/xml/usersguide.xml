@@ -591,7 +591,7 @@ fileh.close()</screen>
 
           <para>First, make sure that you have at least Python 2.4, HDF5 1.6.5
           and NumPy 1.2 or higher installed (for testing purposes, we are
-          using HDF5 1.6.7/1.8.0 and NumPy 1.2 currently). If you don't, fetch
+          using HDF5 1.6.9/1.8.3 and NumPy 1.3 currently). If you don't, fetch
           and install them before proceeding.</para>
 
           <para>Compile and install these packages (but see <xref
@@ -630,7 +630,7 @@ fileh.close()</screen>
                 of the resource root directories on the
                 <literal>setup.py</literal> command line. For example:</para>
 
-                <screen>--hdf5=/stuff/hdf5-1.8.2
+                <screen>--hdf5=/stuff/hdf5-1.8.3
 --lzo=/stuff/lzo-2.02
 --bzip2=/stuff/bzip2-1.0.4</screen>
 
@@ -639,7 +639,7 @@ fileh.close()</screen>
                 linker flags needed to find the shared library on the command
                 line as well. For example:</para>
 
-                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.2/lib"</screen>
+                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.3/lib"</screen>
 
                 <para>You may also want to try setting the LD_LIBRARY_PATH
                 environment variable to point to the directory where the
@@ -652,7 +652,7 @@ fileh.close()</screen>
                 setting the <literal>LIBS</literal> environment
                 variable:</para>
 
-                <screen>LIBS="hdf5-1.8.2 nsl"</screen>
+                <screen>LIBS="hdf5-1.8.3 nsl"</screen>
 
                 <para>Finally, you can give additional flags to your compiler
                 by passing them to the <literal>--cflags</literal>
@@ -672,8 +672,12 @@ fileh.close()</screen>
               <listitem>
                 <para>You can get ready-to-use Windows binaries and other
                 development files for most of the following libraries from the
-                GnuWin32 project (see <biblioref linkend="GnuWin32"
-                />).</para>
+                GnuWin32 project (see <biblioref linkend="GnuWin32" />).
+                Unfortunately, the LZO binaries have disappeared from the
+                GnuWin32 repository lately.  So, until they are eventually
+                back there again, you can find them at
+                <ulink url="http://www.pytables.org/download/lzo-win"/>.
+                </para>
 
                 <para>Once you have installed the prerequisites,
                 <literal>setup.py</literal> needs to know where the necessary
@@ -689,16 +693,16 @@ fileh.close()</screen>
                 For example:</para>
 
                 <screen>set HDF5_DIR=c:\stuff\5-165-win
-set LZO_DIR=c:\stuff\lzo-1-08
-set BZIP2_DIR=c:\stuff\bzip2-1-0-3</screen>
+set LZO_DIR=c:\GnuWin32
+set BZIP2_DIR=c:\GnuWin32</screen>
 
                 <para>You may also specify the locations of the resource root
                 directories on the <literal>setup.py</literal> command line.
                 For example:</para>
 
                 <screen>--hdf5=c:\stuff\5-165-win
---lzo=c:\stuff\lzo-1-08
---bzip2=c:\stuff\bzip2-1-0-3</screen>
+--lzo=c:\GnuWin32
+--bzip2=c:\GnuWin32</screen>
               </listitem>
             </varlistentry>
           </variablelist>
@@ -877,7 +881,7 @@ python -c "import tables; tables.test()"</screen>
 
           <para>First, make sure that you have Python 2.4 or higher and NumPy
           1.2 or higher installed (PyTables binaries have been built using
-          NumPy 1.2).  The binaries already include DLLs for HDF5 (1.6.7),
+          NumPy 1.3).  The binaries already include DLLs for HDF5 (1.6.9),
           zlib1 (1.2.3), szlib (2.0, uncompression support only) and bzip2
           (1.0.4).  The LZO DLL can't be included because of license issues
           (but read below for directives to install it if you want so).</para>
@@ -887,10 +891,9 @@ python -c "import tables; tables.test()"</screen>
           hints about how it may be used to improve performance), fetch and
           install the <literal>LZO</literal> (choose v1.x,
           <literal>LZO</literal> v2.x is not supported in precompiled Windows
-          builds) from <biblioref linkend="GnuWin32"/>. Normally, you will
-          only need to fetch and install the
-          <literal>&lt;package&gt;-&lt;version&gt;-bin.zip</literal> file and
-          copy the <literal>lzo1.dll</literal> file in a directory in the
+          builds) from <ulink url="http://www.pytables.org/download/lzo-win"
+          />. Normally, you will only need to fetch that package and copy the
+          included <literal>lzo1.dll</literal> file in a directory in the
           <literal>PATH</literal> environment variable (for example
           <literal>C:\WINDOWS\SYSTEM</literal>) or
           <literal>python_installation_path\Lib\site-packages\tables</literal>
@@ -9220,6 +9223,17 @@ AttributeError: 'module' object has no attribute 'MyClass'
                 attribute set is associated with.</para>
               </glossdef>
             </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis
+              role="bold">_v_unimplemented</emphasis></glossterm>
+
+              <glossdef>
+                <para>A list of attribute names with unimplemented native HDF5
+                types.</para>
+              </glossdef>
+            </glossentry>
+
           </glosslist>
         </section>
 
