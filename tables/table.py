@@ -44,7 +44,8 @@ from tables.numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx, lazyattr, SizeType
 from tables.leaf import Leaf
-from tables.description import IsDescription, Description, Col
+from tables.description import (
+    IsDescription, Description, Col, descr_from_dtype)
 from tables.exceptions import NodeError, HDF5ExtError, PerformanceWarning, \
      OldIndexWarning, NoSuchNodeError
 from tables.utilsExtension import getNestedField
@@ -391,10 +392,11 @@ class Table(tableExtension.Table, Leaf):
 
         description -- A IsDescription subclass or a dictionary where
             the keys are the field names, and the values the type
-            definitions. And it can be also a recarray NumPy object,
-            RecArray numarray object or NestedRecArray. If None, the
-            table metadata is read from disk, else, it's taken from
-            previous parameters.
+            definitions. In addition, a pure NumPy dtype is accepted.
+            And it can be also a recarray NumPy object, RecArray
+            numarray object or NestedRecArray. If None, the table
+            metadata is read from disk, else, it's taken from previous
+            parameters.
 
         title -- Sets a TITLE attribute on the HDF5 table entity.
 
@@ -539,6 +541,13 @@ class Table(tableExtension.Table, Leaf):
 
         # No description yet?
         if new and self.description is None:
+            # Try NumPy dtype instances
+            if type(description) is numpy.dtype:
+                self.description, self._rabyteorder = \
+                                  descr_from_dtype(description)
+
+        # No description yet?
+        if new and self.description is None:
             # Try record array description objects.
             try:
                 self._descflavor = flavor = flavor_of(description)
@@ -554,8 +563,8 @@ class Table(tableExtension.Table, Leaf):
                 # initial buffer.
                 if nrows > 0:
                     self._v_recarray = nparray
-                fields = self._descrFromRA(nparray)
-                self.description = Description(fields)
+                self.description, self._rabyteorder = \
+                                  descr_from_dtype(nparray.dtype)
 
         # No description yet?
         if new and self.description is None:
@@ -676,42 +685,6 @@ class Table(tableExtension.Table, Leaf):
 
         # This is *much* faster than the numpy.rec.array counterpart
         return numpy.empty(shape=shape, dtype=self._v_dtype)
-
-
-    def _descrFromRA(self, recarr):
-        """
-        Get a description dictionary from a (nested) record array.
-
-        This method is aware of byteswapped record arrays.
-        """
-
-        fields = {}
-        fbyteorder = '|'
-        for (name, (dtype, pos)) in recarr.dtype.fields.items():
-            kind = dtype.base.kind
-            byteorder = dtype.base.byteorder
-            if byteorder in '><=':
-                if fbyteorder not in ['|', byteorder]:
-                    raise NotImplementedError(
-                        "record arrays with mixed byteorders "
-                        "are not supported yet, sorry" )
-                fbyteorder = byteorder
-            # Non-nested column
-            if kind in 'biufSc':
-                col = Col.from_dtype(dtype, pos=pos)
-            # Nested column
-            elif kind == 'V' and dtype.shape in [(), (1,)]:
-                col = self._descrFromRA(recarr[name])
-                col['_v_pos'] = pos
-            else:
-                raise NotImplementedError(
-                    "record arrays with columns with type description ``%s`` "
-                    "are not supported yet, sorry" % dtype )
-            fields[name] = col
-
-        self._rabyteorder = fbyteorder
-
-        return fields
 
 
     def _getTypeColNames(self, type_):

@@ -29,6 +29,7 @@ from tables.exceptions import \
 # Global variables
 verbose = False
 regoldindexes = True
+createsysattrs = True
 
 
 def newdstGroup(dstfileh, dstgroup, title, filters):
@@ -92,7 +93,7 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
         dstleaf = srcNode.name
     # Check whether the destination group exists or not
     if os.path.isfile(dstfile) and not overwritefile:
-        dstfileh = openFile(dstfile, 'a')
+        dstfileh = openFile(dstfile, 'a', PYTABLES_SYS_ATTRS=createsysattrs)
         try:
             dstGroup = dstfileh.getNode(dstgroup)
         except:
@@ -114,7 +115,8 @@ def copyLeaf(srcfile, dstfile, srcnode, dstnode, title,
                     raise RuntimeError, "Please check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired."
     else:
         # The destination file does not exist or will be overwritten.
-        dstfileh = openFile(dstfile, 'w', title=title, filters=filters)
+        dstfileh = openFile(dstfile, 'w', title=title, filters=filters,
+                            PYTABLES_SYS_ATTRS=createsysattrs)
         dstGroup = newdstGroup(dstfileh, dstgroup, title="", filters=filters)
 
     # Finally, copy srcNode to dstNode
@@ -164,7 +166,7 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
     created_dstGroup = False
     # Check whether the destination group exists or not
     if os.path.isfile(dstfile) and not overwritefile:
-        dstfileh = openFile(dstfile, 'a')
+        dstfileh = openFile(dstfile, 'a', PYTABLES_SYS_ATTRS=createsysattrs)
         try:
             dstGroup = dstfileh.getNode(dstgroup)
         except:
@@ -187,7 +189,8 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
                     raise RuntimeError, "Please check that the node names are not duplicated in destination, and if so, add the --overwrite-nodes flag if desired."
     else:
         # The destination file does not exist or will be overwritten.
-        dstfileh = openFile(dstfile, 'w', title=title, filters=filters)
+        dstfileh = openFile(dstfile, 'w', title=title, filters=filters,
+                            PYTABLES_SYS_ATTRS=createsysattrs)
         dstGroup = newdstGroup(dstfileh, dstgroup, title="", filters=filters)
         created_dstGroup = True
 
@@ -233,8 +236,9 @@ def copyChildren(srcfile, dstfile, srcgroup, dstgroup, title,
 def main():
     global verbose
     global regoldindexes
+    global createsysattrs
 
-    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-copyuser-attrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--chunkshape=value] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--checkCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
+    usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-create-sysattrs] [--dont-copy-userattrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--chunkshape=value] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--checkCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
      -h -- Print usage message.
      -v -- Show more information.
      -o -- Overwite destination file.
@@ -244,7 +248,8 @@ def main():
      --non-recursive -- Do not do a recursive copy. Default is to do it.
      --dest-title=title -- Title for the new file (if not specified,
          the source is copied).
-     --dont-copy-userattrs -- Do not copy the user attrs (default is to do it)
+     --dont-create-sysattrs -- Do not create sys attrs (default is to do it).
+     --dont-copy-userattrs -- Do not copy the user attrs (default is to do it).
      --overwrite-nodes -- Overwrite destination nodes if they exist. Default is
          to not overwrite them.
      --complevel=(0-9) -- Set a compression level (0 for no compression, which
@@ -279,6 +284,7 @@ def main():
         opts, pargs = getopt.getopt(sys.argv[1:], 'hvoR:',
                                     ['non-recursive',
                                      'dest-title=',
+                                     'dont-create-sysattrs',
                                      'dont-copy-userattrs',
                                      'overwrite-nodes',
                                      'complevel=',
@@ -337,6 +343,8 @@ def main():
                 sys.exit(0)
         elif option[0] == '--dest-title':
             title = option[1]
+        elif option[0] == '--dont-create-sysattrs':
+            createsysattrs = False
         elif option[0] == '--dont-copy-userattrs':
             copyuserattrs = False
         elif option[0] == '--non-recursive':

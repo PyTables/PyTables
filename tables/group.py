@@ -274,15 +274,16 @@ class Group(hdf5Extension.Group, Node):
                 setAttr('CLASS', self._c_classId)
                 setAttr('VERSION', self._v_version)
 
-            # Set the default filter properties.
-            newFilters = self._v_new_filters
-            if newFilters is None:
-                # If no filters have been passed in the constructor,
-                # inherit them from the parent group, but only if they
-                # have been inherited or explicitly set.
-                newFilters = getattr(self._v_parent._v_attrs, 'FILTERS', None)
-            if newFilters is not None:
-                setAttr('FILTERS', newFilters)
+                # Set the default filter properties.
+                newFilters = self._v_new_filters
+                if newFilters is None:
+                    # If no filters have been passed in the constructor,
+                    # inherit them from the parent group, but only if they
+                    # have been inherited or explicitly set.
+                    newFilters = getattr(
+                        self._v_parent._v_attrs, 'FILTERS', None)
+                if newFilters is not None:
+                    setAttr('FILTERS', newFilters)
         else:
             # If the file has PyTables format, get the VERSION attr
             if 'VERSION' in self._v_attrs._v_attrnamessys:

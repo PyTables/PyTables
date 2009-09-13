@@ -641,19 +641,21 @@ class File(hdf5Extension.File, object):
 
             A dictionary
                 For example, when you do not know beforehand which
-                structure your table will have).
+                structure your table will have.
 
             A `Description` instance
                 You can use the ``description`` attribute of another
                 table to create a new one with the same structure.
 
+            A NumPy dtype
+                A completely general structured NumPy dtype is accepted
+                too, and its field structure will be reflected in the
+                new `Table` object.
+
             A NumPy (record) array
-                You can use a NumPy array, whether nested or not, and
-                its field structure will be reflected in the new `Table`
-                object.  Moreover, if the array has actual data it will
-                be injected into the newly created table.  If you are
-                using ``numarray`` instead of NumPy, you may use one of
-                the objects below for the same purpose.
+                You can also use a NumPy (record) array, whether nested
+                or not.  Moreover, if the array has actual data it will
+                be injected into the newly created table.
 
             A ``RecArray`` instance
                 This object from the ``numarray`` package is also

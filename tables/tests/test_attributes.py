@@ -749,7 +749,7 @@ class TypesTestCase(unittest.TestCase):
     def test02a_setFloatAttributes(self):
         """Checking setting Float (double) attributes"""
 
-        # With a Table object
+        # Set some attrs
         self.array.attrs.pq = 1.0
         self.array.attrs.qr = 2.0
         self.array.attrs.rs = 3.0
@@ -857,7 +857,7 @@ class TypesTestCase(unittest.TestCase):
     def test03_setObjectAttributes(self):
         """Checking setting Object attributes"""
 
-        # With a Table object
+        # Set some attrs
         self.array.attrs.pq = [1.0, 2]
         self.array.attrs.qr = (1,2)
         self.array.attrs.rs = {"ddf":32.1, "dsd":1}
@@ -1015,7 +1015,7 @@ class TypesTestCase(unittest.TestCase):
     def test05a_setComplexAttributes(self):
         """Checking setting Complex (python) attributes"""
 
-        # With a Table object
+        # Set some attrs
         self.array.attrs.pq = 1.0+2j
         self.array.attrs.qr = 2.0+3j
         self.array.attrs.rs = 3.0+4j
@@ -1258,7 +1258,97 @@ class TypesTestCase(unittest.TestCase):
                            numpy.array([[u'para\u0140lel', 'foo2'],
                                         ['foo3', u'para\u0140lel4']]))
 
+    def test07a_setRecArrayAttributes(self):
+        """Checking setting RecArray (NumPy) attributes"""
 
+        dt = numpy.dtype('i4,f8')
+        # Set some attrs
+        self.array.attrs.pq = numpy.zeros(2, dt)
+        self.array.attrs.qr = numpy.ones((2,2), dt)
+        self.array.attrs.rs = numpy.array([(1,2.)], dt)
+
+        # Check the results
+        if common.verbose:
+            print "pq -->", self.array.attrs.pq
+            print "qr -->", self.array.attrs.qr
+            print "rs -->", self.array.attrs.rs
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert isinstance(self.array.attrs.pq, numpy.ndarray)
+        assert isinstance(self.array.attrs.qr, numpy.ndarray)
+        assert isinstance(self.array.attrs.rs, numpy.ndarray)
+        assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
+        assert_array_equal(self.array.attrs.qr, numpy.ones((2,2), dt))
+        assert_array_equal(self.array.attrs.rs, numpy.array([(1,2.)], dt))
+
+    def test07b_setRecArrayAttributes(self):
+        """Checking setting nested RecArray (NumPy) attributes"""
+
+        # Build a nested dtype
+        dt = numpy.dtype([('f1', [('f1', 'i2'), ('f2', 'f8')])])
+        # Set some attrs
+        self.array.attrs.pq = numpy.zeros(2, dt)
+        self.array.attrs.qr = numpy.ones((2,2), dt)
+        self.array.attrs.rs = numpy.array([((1,2.),)], dt)
+
+        # Check the results
+        if common.verbose:
+            print "pq -->", self.array.attrs.pq
+            print "qr -->", self.array.attrs.qr
+            print "rs -->", self.array.attrs.rs
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert isinstance(self.array.attrs.pq, numpy.ndarray)
+        assert isinstance(self.array.attrs.qr, numpy.ndarray)
+        assert isinstance(self.array.attrs.rs, numpy.ndarray)
+        assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
+        assert_array_equal(self.array.attrs.qr, numpy.ones((2,2), dt))
+        assert_array_equal(self.array.attrs.rs, numpy.array([((1,2),)], dt))
+
+    def test07c_setRecArrayAttributes(self):
+        """Checking setting multidim nested RecArray (NumPy) attributes"""
+
+        # Build a nested dtype
+        dt = numpy.dtype([('f1', [('f1', 'i2', (2,)), ('f2', 'f8')])])
+        # Set some attrs
+        self.array.attrs.pq = numpy.zeros(2, dt)
+        self.array.attrs.qr = numpy.ones((2,2), dt)
+        self.array.attrs.rs = numpy.array([(([1,3],2.),)], dt)
+
+        # Check the results
+        if common.verbose:
+            print "pq -->", self.array.attrs.pq
+            print "qr -->", self.array.attrs.qr
+            print "rs -->", self.array.attrs.rs
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        assert isinstance(self.array.attrs.pq, numpy.ndarray)
+        assert isinstance(self.array.attrs.qr, numpy.ndarray)
+        assert isinstance(self.array.attrs.rs, numpy.ndarray)
+        assert_array_equal(self.array.attrs.pq, numpy.zeros(2, dt))
+        assert_array_equal(self.array.attrs.qr, numpy.ones((2,2), dt))
+        assert_array_equal(self.array.attrs.rs, numpy.array([(([1,3],2),)], dt))
 
 class NotCloseTypesTestCase(TypesTestCase):
     close = 0
@@ -1350,6 +1440,8 @@ class NoSysAttrsNotClose(NoSysAttrsTestCase):
 
 class NoSysAttrsClose(NoSysAttrsTestCase):
     close = True
+
+
 
 
 class UnsupportedAttrTypeTestCase(PyTablesTestCase):

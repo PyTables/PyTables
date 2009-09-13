@@ -64,6 +64,9 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
     except those inherited from the `Leaf` class.
     """
 
+    # Class identifier.
+    _c_classId = 'UNIMPLEMENTED'
+
     def __init__(self, parentNode, name):
         """Create the `UnImplemented` instance."""
 

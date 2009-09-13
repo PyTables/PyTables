@@ -23,6 +23,7 @@ except ImportError:
 
 import numpy
 
+from tables.description import Description, Col
 from tables.misc.enum import Enum
 from tables.exceptions import HDF5ExtError
 from tables.atom import Atom, EnumAtom
@@ -42,11 +43,11 @@ from definitions cimport import_array, ndarray, \
      H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, \
      H5Tinsert, H5Tenum_create, H5Tenum_insert, H5Tarray_create, \
      H5Tget_array_ndims, H5Tget_array_dims, H5Tis_variable_str, \
-     H5Tset_size, H5Tset_precision, \
+     H5Tset_size, H5Tset_precision, H5Tpack, \
      H5ATTRget_attribute_string, H5ATTRfind_attribute, \
      H5ARRAYget_ndims, H5ARRAYget_info, \
      create_ieee_complex64, create_ieee_complex128, \
-     get_order, set_order, \
+     get_order, set_order, is_complex, \
      get_len_of_range, NPY_INT64, npy_int64, dtype, \
      PyArray_DescrFromType, PyArray_Scalar
 
@@ -143,6 +144,63 @@ cdef hsize_t *malloc_dims(object pdims):
   return dims
 
 
+# This is a re-implementation of a working H5Tget_native_type for nested
+# compound types.  I should report the flaw to THG as soon as possible.
+# F. Alted 2009-08-19
+cdef hid_t get_nested_native_type(hid_t type_id):
+  """Get a native nested type of an HDF5 type.
+
+  In addition, it also recursively remove possible padding on type_id, i.e. it
+  acts as a combination of H5Tget_native_type and H5Tpack."""
+  cdef hid_t   tid, tid2
+  cdef hid_t   member_type_id, native_type_id
+  cdef hsize_t nfields
+  cdef H5T_class_t class_id
+  cdef size_t  offset, itemsize, itemsize1
+  cdef char    *colname
+  cdef int     i
+
+  # Get the itemsize
+  itemsize1 = H5Tget_size(type_id)
+  # Build a new type container
+  tid = H5Tcreate(H5T_COMPOUND, itemsize1)
+
+  offset = 0
+  # Get the number of members
+  nfields = H5Tget_nmembers(type_id)
+  # Iterate thru the members
+  for i from 0 <= i < nfields:
+    # Get the member name
+    colname = H5Tget_member_name(type_id, i)
+    # Get the member type
+    member_type_id = H5Tget_member_type(type_id, i)
+    # Get the HDF5 class
+    class_id = H5Tget_class(member_type_id)
+    if class_id == H5T_COMPOUND:
+      native_tid = get_nested_native_type(member_type_id)
+    else:
+      native_tid = H5Tget_native_type(member_type_id, H5T_DIR_DEFAULT)
+    H5Tinsert(tid, colname, offset, native_tid)
+    itemsize = H5Tget_size(native_tid)
+    offset = offset + itemsize
+    # Release resources
+    H5Tclose(native_tid)
+    H5Tclose(member_type_id)
+    free(colname)
+
+  # Correct the type size in case the memory type size is less
+  # than the type in-disk (probably due to reading native HDF5
+  # files written with tools allowing field padding)
+  if H5Tget_size(tid) > offset:
+    H5Tset_size(tid, offset)
+
+  return tid
+
+
+# This routine is more complex than required because HDF5 1.6.x does
+# not implement support for H5Tget_native_type with some types, like
+# H5T_BITFIELD and probably others.  When 1.8.x would be a requisite,
+# this can be simplified.
 cdef hid_t get_native_type(hid_t type_id):
   """Get the native type of a HDF5 type."""
   cdef H5T_class_t class_id
@@ -150,13 +208,25 @@ cdef hid_t get_native_type(hid_t type_id):
   cdef char *sys_byteorder
 
   class_id = H5Tget_class(type_id)
+  if class_id == H5T_COMPOUND:
+    # XXX It turns out that HDF5 does not correctly implement
+    # H5Tget_native_type on nested compounds types.  I should
+    # report this to THG.
+    #
+    # *Note*: the next call *combines* the effect of H5Tget_native_type and
+    # H5Tpack, and both effects are needed.  Have this in mind if you
+    # ever wants to replace get_nested_native_type by native HDF5 calls.
+    # F. Alted  2009-08-19
+    return get_nested_native_type(type_id)
+
   if class_id in (H5T_ARRAY, H5T_VLEN):
     # Get the array base component
     super_type_id = H5Tget_super(type_id)
     # Get the class
     class_id = H5Tget_class(super_type_id)
     H5Tclose(super_type_id)
-  if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_COMPOUND, H5T_ENUM):
+
+  if class_id in (H5T_INTEGER, H5T_FLOAT, H5T_ENUM):
     native_type_id = H5Tget_native_type(type_id, H5T_DIR_DEFAULT)
   else:
     # Fixing the byteorder for other types shouldn't be needed.
@@ -165,8 +235,7 @@ cdef hid_t get_native_type(hid_t type_id):
     # Regarding H5T_BITFIELD, well, I'm not sure if changing the byteorder
     # of this is a good idea at all.
     native_type_id = H5Tcopy(type_id)
-  if native_type_id < 0:
-    raise HDF5ExtError("Problems getting type id for class %s" % class_id)
+
   return native_type_id
 
 
@@ -384,7 +453,7 @@ def getNestedField(recarray, fieldname):
       for nfieldname in fieldname.split('/'):
         field = field[nfieldname]
     else:
-      # Faster approach for non-nested columns
+      # Faster method for non-nested columns
       field = recarray[fieldname]
   except KeyError:
     raise KeyError("no such column: %s" % (fieldname,))
@@ -633,15 +702,55 @@ def loadEnum(hid_t type_id):
       raise HDF5ExtError("failed to close HDF5 enumerated type")
 
 
-def HDF5ToNPExtType(hid_t type_id, issue_error):
+def HDF5ToNPNestedType(hid_t type_id):
+  """Given a HDF5 `type_id`, return a dtype string representation of it."""
+  cdef hid_t   member_type_id
+  cdef hsize_t nfields
+  cdef int     i
+  cdef char    *colname
+  cdef H5T_class_t class_id
+  cdef object  desc
+
+  desc = {}
+  # Get the number of members
+  nfields = H5Tget_nmembers(type_id)
+  # Iterate thru the members
+  for i from 0 <= i < nfields:
+    # Get the member name
+    colname = H5Tget_member_name(type_id, i)
+    # Get the member type
+    member_type_id = H5Tget_member_type(type_id, i)
+    # Get the HDF5 class
+    class_id = H5Tget_class(member_type_id)
+    if class_id == H5T_COMPOUND and not is_complex(member_type_id):
+      desc[colname] = HDF5ToNPNestedType(member_type_id)
+      desc[colname]["_v_pos"] = i  # Remember the position
+    else:
+      atom = AtomFromHDF5Type(member_type_id, pure_numpy_types=True)
+      desc[colname] = Col.from_atom(atom, pos=i)
+
+    # Release resources
+    H5Tclose(member_type_id)
+    free(colname)
+
+  return desc
+
+
+def HDF5ToNPExtType(hid_t type_id, pure_numpy_types=True, atom=False):
   """Map the atomic HDF5 type to a string repr of NumPy extended codes.
 
-  This follows the standard size and alignment.
+  If `pure_numpy_types` is true, detected HDF5 types that does not match pure
+  NumPy types will raise a ``TypeError`` exception.  If not, HDF5 types like
+  TIME, VLEN or ENUM are passed through.
 
-  Returns the string repr of type and the shape.
+  If `atom` is true, the resulting repr is meant for atoms.  If not, the
+  result is meant for attributes.
+
+  Returns the string repr of type and its shape.  The exception is for
+  compounds types, that returns a NumPy dtype and shape instead.
   """
   cdef H5T_sign_t  sign
-  cdef hid_t       super_type_id
+  cdef hid_t       super_type_id, native_type_id
   cdef H5T_class_t class_id, super_class_id
   cdef size_t      itemsize, super_itemsize
   cdef object      stype, shape, shape2
@@ -666,21 +775,44 @@ def HDF5ToNPExtType(hid_t type_id, issue_error):
   elif class_id == H5T_FLOAT:
     stype = "f%s" % (itemsize)
   elif class_id ==  H5T_COMPOUND:
-    # Here, this can only be a complex
-    stype = "c%s" % (itemsize)
+    if is_complex(type_id):
+      stype = "c%s" % (itemsize)
+    else:
+      if atom:
+        raise TypeError("the HDF5 class ``%s`` is not supported yet"
+                        % HDF5ClassToString[class_id])
+      # Recursively remove possible padding on type_id.
+      # H5Tpack(type_id)
+      # H5Tpack has problems with nested compund types that were solved
+      # in HDF5 1.8.2 (or perhaps 1.8.3).  Use the next better.
+      native_type_id = get_nested_native_type(type_id)
+      desc = Description(HDF5ToNPNestedType(native_type_id))
+      # stype here is not exactly a string, but the NumPy dtype factory
+      # will deal with this.
+      stype = desc._v_dtype
+      H5Tclose(native_type_id)
   elif class_id == H5T_STRING:
     if H5Tis_variable_str(type_id):
       raise TypeError("variable length strings are not supported yet")
     stype = "S%s" % (itemsize)
   elif class_id == H5T_TIME:
+    if pure_numpy_types:
+      raise TypeError("the HDF5 class ``%s`` is not supported yet"
+                      % HDF5ClassToString[class_id])
     stype = "t%s" % (itemsize)
-  elif class_id ==  H5T_ENUM:
+  elif class_id == H5T_ENUM:
+    if pure_numpy_types:
+      raise TypeError("the HDF5 class ``%s`` is not supported yet"
+                      % HDF5ClassToString[class_id])
     stype = "e"
   elif class_id == H5T_VLEN:
+    if pure_numpy_types:
+      raise TypeError("the HDF5 class ``%s`` is not supported yet"
+                      % HDF5ClassToString[class_id])
     # Get the variable length base component
     super_type_id = H5Tget_super(type_id)
     # Find the super member format
-    stype, shape = HDF5ToNPExtType(super_type_id, issue_error)
+    stype, shape = HDF5ToNPExtType(super_type_id, pure_numpy_types)
     # Release resources
     H5Tclose(super_type_id)
   elif class_id == H5T_ARRAY:
@@ -691,7 +823,7 @@ def HDF5ToNPExtType(hid_t type_id, issue_error):
     # Get the itemsize
     super_itemsize = H5Tget_size(super_type_id)
     # Find the super member format
-    stype, shape2 = HDF5ToNPExtType(super_type_id, issue_error)
+    stype, shape2 = HDF5ToNPExtType(super_type_id, pure_numpy_types)
     # Get shape
     shape = []
     ndims = H5Tget_array_ndims(type_id)
@@ -705,39 +837,60 @@ def HDF5ToNPExtType(hid_t type_id, issue_error):
     H5Tclose(super_type_id)
   else:
     # Other types are not supported yet
-    if issue_error:
-      raise TypeError("the HDF5 class ``%s`` is not supported yet"
-                      % HDF5ClassToString[class_id])
-    else:
-      return None, None
+    raise TypeError("the HDF5 class ``%s`` is not supported yet"
+                    % HDF5ClassToString[class_id])
 
   return stype, shape
 
 
-def AtomFromHDF5Type(hid_t type_id, issue_error = True):
+def AtomFromHDF5Type(hid_t type_id, pure_numpy_types=False):
   """Get an atom from a type_id.
 
-  If warn is True, only issue a warning. Else, issue a TypeError."""
-  cdef object stype, shape, atom, sctype, tsize, kind
+  See `HDF5ToNPExtType` for an explanation of the `pure_numpy_types`
+  parameter.
+  """
+  cdef object stype, shape, atom_, sctype, tsize, kind
   cdef object dflt, base, enum, nptype
 
-  stype, shape = HDF5ToNPExtType(type_id, issue_error)
-  # Check if something has going on wrong
-  if stype == None:
-    return None
+  stype, shape = HDF5ToNPExtType(type_id, pure_numpy_types, atom=True)
   # Create the Atom
   if stype == 'e':
     (enum, nptype) = loadEnum(type_id)
     # Take one of the names as the default in the enumeration.
     dflt = iter(enum).next()[0]
     base = Atom.from_dtype(nptype)
-    atom = EnumAtom(enum, dflt, base, shape=shape)
+    atom_ = EnumAtom(enum, dflt, base, shape=shape)
   else:
     kind = NPExtPrefixesToPTKinds[stype[0]]
     tsize = int(stype[1:])
-    atom = Atom.from_kind(kind, tsize, shape=shape)
+    atom_ = Atom.from_kind(kind, tsize, shape=shape)
 
-  return atom
+  return atom_
+
+
+def createNestedType(object desc, char *byteorder):
+  """Create a nested type based on a description and return an HDF5 type."""
+  cdef hid_t   tid, tid2
+  cdef herr_t  ret
+  cdef size_t  offset
+
+  tid = H5Tcreate(H5T_COMPOUND, desc._v_itemsize)
+  if tid < 0:
+    return -1;
+
+  offset = 0
+  for k in desc._v_names:
+    obj = desc._v_colObjects[k]
+    if isinstance(obj, Description):
+      tid2 = createNestedType(obj, byteorder)
+    else:
+      tid2 = AtomToHDF5Type(obj, byteorder)
+    ret = H5Tinsert(tid, k, offset, tid2)
+    offset = offset + desc._v_dtype[k].itemsize
+    # Release resources
+    H5Tclose(tid2)
+
+  return tid
 
 
 cdef class lrange:

@@ -10,6 +10,7 @@ from numpy import rec as records
 from tables import *
 from tables.tests import common
 from tables.tests.common import allequal
+from tables.description import descr_from_dtype
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
@@ -44,7 +45,7 @@ RecordDescriptionDict = {
     'var7': StringCol(itemsize=1),                # 1-character String
     }
 
-# Record class with numpy dtypes (mixed shapes is checkd here)
+# Record class with numpy dtypes (mixed shapes is checked here)
 class RecordDT(IsDescription):
     var0 = Col.from_dtype(numpy.dtype("2S4"), dflt="")  # shape in dtype
     var1 = Col.from_dtype(numpy.dtype(("S4", (2, 2))), dflt=["abcd","efgh"]) # shape is a mix
@@ -55,7 +56,6 @@ class RecordDT(IsDescription):
     var5 = Col.from_dtype(numpy.dtype("f4"), dflt=4.2)
     var6 = Col.from_dtype(numpy.dtype("()u2"), dflt=5)
     var7 = Col.from_dtype(numpy.dtype("1S1"), dflt="e")   # no shape
-
 
 
 class BasicTestCase(common.PyTablesTestCase):
@@ -84,7 +84,6 @@ class BasicTestCase(common.PyTablesTestCase):
         row = record[0]
         buflist = []
         # Fill the recarray
-        #for i in xrange(self.expectedrows+1):
         for i in xrange(self.expectedrows+1):
             tmplist = []
             # Both forms (list or chararray) works
@@ -158,7 +157,6 @@ class BasicTestCase(common.PyTablesTestCase):
                     # var6 will be like var3 but byteswaped
                     row['var6'] = ((row['var3']>>8) & 0xff) + \
                                   ((row['var3']<<8) & 0xff00)
-                    #print("Saving -->", row)
                     row.append()
 
             # Flush the buffer for this table
@@ -171,7 +169,6 @@ class BasicTestCase(common.PyTablesTestCase):
 
     def tearDown(self):
         self.fileh.close()
-        #del self.fileh, self.rootgroup
         os.remove(self.file)
         common.cleanup(self)
 
@@ -188,10 +185,11 @@ class BasicTestCase(common.PyTablesTestCase):
         if isinstance(self.record, dict):
             columns = self.record
         elif isinstance(self.record, numpy.ndarray):
-            # This way of getting a (dictionary) description
-            # can be used as long as the method does not alter the table.
-            # Maybe there is a better way of doing this.
-            columns = tbl._descrFromRA(self.record)
+            descr, _ = descr_from_dtype(self.record.dtype)
+            columns = descr._v_colObjects
+        elif isinstance(self.record, numpy.dtype):
+            descr, _ = descr_from_dtype(self.record)
+            columns = descr._v_colObjects
         else:
             # This is an ordinary description.
             columns = self.record.columns
@@ -457,15 +455,21 @@ class DictWriteTestCase(BasicTestCase):
     stop = 10
     step = 3
 
-class DTypeWriteTestCase(BasicTestCase):
-    title = "DTypeWriteTestCase"
+class RecordDTWriteTestCase(BasicTestCase):
+    title = "RecordDTWriteTestCase"
     record=RecordDT
+
+# Pure NumPy dtype
+class NumPyDTWriteTestCase(BasicTestCase):
+    title = "NumPyDTWriteTestCase"
+    record = numpy.dtype("(2,)S4,(2,2)S4,(2,)i4,(2,2)i4,i2,2f8,f4,i2,S1")
+    record.names = 'var0,var1,var1_,var2,var3,var4,var5,var6,var7'.split(',')
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
     record=numpy.rec.array(
         None,
-        formats="(2,)a4,(2,2)a4,(2,)i4,(2,2)i4,i2,2f8,f4,i2,a1",
+        formats="(2,)S4,(2,2)S4,(2,)i4,(2,2)i4,i2,2f8,f4,i2,S1",
         names='var0,var1,var1_,var2,var3,var4,var5,var6,var7',
         shape=0)
 
@@ -2182,7 +2186,8 @@ def suite():
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(DictWriteTestCase))
-        theSuite.addTest(unittest.makeSuite(DTypeWriteTestCase))
+        theSuite.addTest(unittest.makeSuite(RecordDTWriteTestCase))
+        theSuite.addTest(unittest.makeSuite(NumPyDTWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))

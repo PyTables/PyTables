@@ -9,7 +9,14 @@
 Changes from 2.2b1 to 2.2b2
 ===========================
 
-- (None yet.)
+- Added missing `_c_classId` attribute to the `UnImplemented` class.
+  ``ptrepack`` no longer chokes while copying `Unimplemented` classes.
+
+- Added flag `--dont-create-sysattrs` to ``ptrepack`` so as to not
+  create sys attrs (default is to do it).
+
+- The ``FIELD_*`` sys attrs are no longer copied when the
+  ``PYTABLES_SYS_ATTRS`` parameter is set to false.
 
 
 Changes from 2.1.1 to 2.2b1

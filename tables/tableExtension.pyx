@@ -28,11 +28,11 @@ import sys
 import numpy
 from time import time
 
-from tables.description import Description, Col
+from tables.description import Col
 from tables.exceptions import HDF5ExtError
 from tables.conditions import call_on_recarr
 from tables.utilsExtension import \
-     getNestedField, AtomFromHDF5Type, AtomToHDF5Type
+     getNestedField, AtomFromHDF5Type, createNestedType
 from tables.utils import SizeType
 
 from utilsExtension cimport get_native_type
@@ -148,31 +148,6 @@ cdef class Table(Leaf):
   # instance variables
   cdef void     *wbuf
 
-  cdef createNestedType(self, object desc, char *byteorder):
-    """Create a nested type based on a description and return an HDF5 type."""
-    cdef hid_t   tid, tid2
-    cdef herr_t  ret
-    cdef size_t  offset
-
-    tid = H5Tcreate(H5T_COMPOUND, desc._v_dtype.itemsize)
-    if tid < 0:
-      return -1;
-
-    offset = 0
-    for k in desc._v_names:
-      obj = desc._v_colObjects[k]
-      if isinstance(obj, Description):
-        tid2 = self.createNestedType(obj, byteorder)
-      else:
-        tid2 = AtomToHDF5Type(obj, byteorder)
-      ret = H5Tinsert(tid, k, offset, tid2)
-      offset = offset + desc._v_dtype[k].itemsize
-      # Release resources
-      H5Tclose(tid2)
-
-    return tid
-
-
   def _createTable(self, char *title, char *complib, char *obversion):
     cdef int     offset
     cdef int     ret
@@ -187,11 +162,11 @@ cdef class Table(Leaf):
     cdef object  fieldname, name
 
     # Compute the complete compound datatype based on the table description
-    self.disk_type_id = self.createNestedType(self.description, self.byteorder)
+    self.disk_type_id = createNestedType(self.description, self.byteorder)
     #self.type_id = H5Tcopy(self.disk_type_id)
     # A H5Tcopy only is not enough, as we want the in-memory type to be
     # in the byteorder of the machine (sys.byteorder).
-    self.type_id = self.createNestedType(self.description, sys.byteorder)
+    self.type_id = createNestedType(self.description, sys.byteorder)
 
     # The fill values area
     wdflts = self._v_wdflts
@@ -333,7 +308,7 @@ cdef class Table(Leaf):
 
     # set the byteorder and other things (just in top level)
     if colpath == "":
-      # Compute a decent byteorder for the entire table
+      # Compute a byteorder for the entire table
       if len(field_byteorders) > 0:
         field_byteorders = numpy.array(field_byteorders)
         # Pyrex doesn't interpret well the extended comparison
@@ -343,14 +318,14 @@ cdef class Table(Leaf):
           byteorder = "little"
         elif numpy.alltrue(field_byteorders.__eq__("big")):
           byteorder = "big"
-        else:  # Yes! someone have done it!
+        else:  # Yes! someone has done it!
           byteorder = "mixed"
       else:
         byteorder = "irrelevant"
       self.byteorder = byteorder
     # Correct the type size in case the memory type size is less
     # than the type in-disk (probably due to reading native HDF5
-    # files written with tools that do allow introducing padding)
+    # files written with tools allowing field padding)
     # Solves bug #23
     if H5Tget_size(native_type_id) > offset:
       H5Tset_size(native_type_id, offset)
@@ -361,7 +336,7 @@ cdef class Table(Leaf):
   def _getInfo(self):
     "Get info from a table on disk."
     cdef hid_t   space_id, plist
-    cdef size_t  type_size, compact_type_size, size2
+    cdef size_t  type_size, size2
     cdef hsize_t dims[1], chunksize[1]  # enough for unidimensional tables
     cdef H5D_layout_t layout
 
@@ -393,8 +368,7 @@ cdef class Table(Leaf):
     # Create the native data in-memory
     self.type_id = H5Tcreate(H5T_COMPOUND, type_size)
     # Fill-up the (nested) native type (removing the gaps!) and description
-    desc, compact_type_size = \
-          self.getNestedType(self.disk_type_id, self.type_id, "", [])
+    desc, _ = self.getNestedType(self.disk_type_id, self.type_id, "", [])
     if desc == {}:
       raise HDF5ExtError("Problems getting desciption for table %s", self.name)
 
@@ -1306,6 +1280,12 @@ cdef class Row:
     self._mod_nrows = 0
     # Mark the modified fields' indexes as dirty.
     table._markColumnsAsDirty(self.modified_fields)
+
+
+  def __contains__(self, item):
+    raise (NotImplementedError,
+           "You cannot use a Row instance this way. "
+           "Use `Table.colnames` or `Table.colpathnames` better.")
 
 
   # This method is twice as faster than __getattr__ because there is

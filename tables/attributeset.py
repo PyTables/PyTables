@@ -109,9 +109,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     The values of most basic types are saved as HDF5 native data in the
     HDF5 file.  This includes Python ``bool``, ``int``, ``float``,
     ``complex`` and ``str`` (but not ``long`` nor ``unicode``) values,
-    as well as their NumPy scalar versions and *homogeneous* NumPy
-    arrays of them.  When read, these values are always loaded as NumPy
-    scalar or array objects, as needed.
+    as well as their NumPy scalar versions and homogeneous or
+    *structured* NumPy arrays of them.  When read, these values are
+    always loaded as NumPy scalar or array objects, as needed.
 
     For that reason, attributes in native HDF5 files will be always
     mapped into NumPy objects.  Specifically, a multidimensional
@@ -124,16 +124,16 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
     you only will be able to correctly retrieve them using a
     Python-aware HDF5 library.  Thus, if you want to save Python scalar
     values and make sure you are able to read them with generic HDF5
-    tools, you should make use of *scalar or homogeneous array NumPy
-    objects* (for example, ``numpy.int64(1)`` or ``numpy.array([1, 2,
-    3], dtype='int16')``).
+    tools, you should make use of *scalar or homogeneous/structured
+    array NumPy objects* (for example, ``numpy.int64(1)`` or
+    ``numpy.array([1, 2, 3], dtype='int16')``).
 
-    One more piece of advice: because of the various potential
-    difficulties in restoring a Python object stored in an attribute,
-    you may end up getting a ``cPickle`` string where a Python object is
-    expected.  If this is the case, you may wish to run
-    ``cPickle.loads()`` on that string to get an idea of where things
-    went wrong, as shown in this example:
+    One more advice: because of the various potential difficulties in
+    restoring a Python object stored in an attribute, you may end up
+    getting a ``cPickle`` string where a Python object is expected.  If
+    this is the case, you may wish to run ``cPickle.loads()`` on that
+    string to get an idea of where things went wrong, as shown in this
+    example:
 
     >>> import os, tempfile
     >>> import tables
@@ -174,6 +174,8 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         A list with user attribute names.
     _v_node
         The `Node` instance this attribute set is associated with.
+    _v_unimplemented
+        A list of attribute names with unimplemented native HDF5 types.
 
     Public methods
     --------------
@@ -227,6 +229,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         mydict["_v__nodeFile"] = node._v_file
         mydict["_v__nodePath"] = node._v_pathname
         mydict["_v_attrnames"] = self._g_listAttr(node)
+        # The list of unimplemented attribute names
+        mydict["_v_unimplemented"] = []
+
         # Get the file version format. This is an optimization
         # in order to avoid accessing it too much.
         try:
@@ -579,14 +584,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         default setting method does not log anything.
         """
 
+        copysysattrs = newSet._v__nodeFile.params['PYTABLES_SYS_ATTRS']
         if setAttr is None:
             setAttr = newSet._g__setattr
 
         for attrname in self._v_attrnamesuser:
-            setAttr(attrname, getattr(self, attrname))
+            # Do not copy the unimplemented attributes.
+            if attrname not in self._v_unimplemented:
+                setAttr(attrname, getattr(self, attrname))
         # Copy the system attributes that we are allowed to.
         for attrname in self._v_attrnamessys:
-            if attrname not in SYS_ATTRS_NOTTOBECOPIED:
+            if ((attrname not in SYS_ATTRS_NOTTOBECOPIED) and copysysattrs):
                 setAttr(attrname, getattr(self, attrname))
 
 

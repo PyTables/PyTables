@@ -16,14 +16,23 @@ class Particle(IsDescription):
     pressure    = Float32Col(shape=(2,3)) # array of floats (single-precision)
     temperature = Float64Col(shape=(2,3)) # array of doubles (double-precision)
 
-# Another way to describe the columns of a table
-Event = {
-    "name"     : StringCol(itemsize=16),
-    "TDCcount" : UInt8Col(),
-    "ADCcount" : UInt16Col(),
-    "xcoord"   : Float32Col(),
-    "ycoord"   : Float32Col(),
-    }
+# Native NumPy dtype instances are also accepted
+Event = dtype([
+    ("name", "S16"),
+    ("TDCcount", uint8),
+    ("ADCcount", uint16),
+    ("xcoord", float32),
+    ("ycoord", float32)
+    ])
+
+# And dictionaries too (this defines the same structure as above)
+# Event = {
+#     "name"     : StringCol(itemsize=16),
+#     "TDCcount" : UInt8Col(),
+#     "ADCcount" : UInt16Col(),
+#     "xcoord"   : Float32Col(),
+#     "ycoord"   : Float32Col(),
+#     }
 
 # Open a file in "w"rite mode
 fileh = openFile("tutorial2.h5", mode = "w")

@@ -39,7 +39,7 @@
  *
  * Programmer: Francesc Alted
  *
- * Date: Octoble 18, 2006
+ * Date: October 18, 2006
  *
  * Comments:
  *
@@ -77,7 +77,6 @@ herr_t H5ATTRset_attribute( hid_t obj_id,
  }
 
  /* Create and write the attribute */
-
  attr_id = H5Acreate( obj_id, attr_name, type_id, space_id, H5P_DEFAULT );
 
  if ( H5Awrite( attr_id, type_id, attr_data ) < 0 )

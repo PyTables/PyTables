@@ -11,6 +11,7 @@ from tables import *
 from tables.utils import SizeType
 from tables.tests import common
 from tables.tests.common import allequal, areArraysEqual
+from tables.description import descr_from_dtype
 
 # To delete the internal attributes automagically
 unittest.TestCase.tearDown = common.cleanup
@@ -206,10 +207,11 @@ class BasicTestCase(common.PyTablesTestCase):
         if isinstance(self.record, dict):
             columns = self.record
         elif isinstance(self.record, ndarray):
-            # This way of getting a (dictionary) description
-            # can be used as long as the method does not alter the table.
-            # Maybe there is a better way of doing this.
-            columns = tbl._descrFromRA(self.record)
+            descr, _ = descr_from_dtype(self.record.dtype)
+            columns = descr._v_colObjects
+        elif isinstance(self.record, dtype):
+            descr, _ = descr_from_dtype(self.record)
+            columns = descr._v_colObjects
         else:
             # This is an ordinary description.
             columns = self.record.columns
@@ -1226,6 +1228,12 @@ class DictWriteTestCase(BasicTestCase):
     start = 0
     stop = 10
     step = 3
+
+# Pure NumPy dtype
+class NumPyDTWriteTestCase(BasicTestCase):
+    title = "NumPyDTWriteTestCase"
+    record = dtype("a4,i4,i2,2f8,f4,i2,a1,b1,c8,c16")
+    record.names = 'var1,var2,var3,var4,var5,var6,var7,var8,var9,var10'.split(',')
 
 class RecArrayOneWriteTestCase(BasicTestCase):
     title = "RecArrayOneWrite"
@@ -5298,6 +5306,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(OldRecordBasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(DictWriteTestCase))
+        theSuite.addTest(unittest.makeSuite(NumPyDTWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))

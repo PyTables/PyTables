@@ -715,6 +715,39 @@ class IsDescription(object):
 
 
 
+def descr_from_dtype(dtype_):
+    """
+    Get a description instance and byteorder from a (nested) NumPy dtype.
+    """
+
+    fields = {}
+    fbyteorder = '|'
+    for (name, (dtype, pos)) in dtype_.fields.items():
+        kind = dtype.base.kind
+        byteorder = dtype.base.byteorder
+        if byteorder in '><=':
+            if fbyteorder not in ['|', byteorder]:
+                raise NotImplementedError(
+                    "record arrays with mixed byteorders "
+                    "are not supported yet, sorry" )
+            fbyteorder = byteorder
+        # Non-nested column
+        if kind in 'biufSc':
+            col = Col.from_dtype(dtype, pos=pos)
+        # Nested column
+        elif kind == 'V' and dtype.shape in [(), (1,)]:
+            col, _ = descr_from_dtype(dtype)
+            col._v_pos = pos
+        else:
+            raise NotImplementedError(
+                "record arrays with columns with type description ``%s`` "
+                "are not supported yet, sorry" % dtype )
+        fields[name] = col
+
+    return Description(fields), fbyteorder
+
+
+
 if __name__=="__main__":
     """Test code"""
 
