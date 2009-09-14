@@ -11,9 +11,7 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-This is maintenance release.  Some bugs has been fixed, and support
-for latest HDF5 1.8.3 libraries is there.  Also, instructions on how
-to find LZO binaries for Windows has been added to the User's Guide.
+#XXX version-specific blurb XXX#
 
 In case you want to know more in detail what has changed in this
 version, have a look at:
