@@ -1252,6 +1252,14 @@ class Table(tableExtension.Table, Leaf):
         coords = [ p.nrow for p in
                    self._where(condition, condvars, start, stop, step) ]
         self._whereCondition = None  # reset the conditions
+        if len(coords) > 1:
+            cstart, cstop = coords[0], coords[-1]+1
+            if cstop - cstart == len(coords):
+                # Chances for monotonically increasing row values. Refine.
+                inc_seq = numpy.alltrue(
+                    numpy.arange(cstart, cstop) == numpy.array(coords))
+                if inc_seq:
+                    return self.read(cstart, cstop, field=field)
         return self.readCoordinates(coords, field)
 
 

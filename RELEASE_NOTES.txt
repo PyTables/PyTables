@@ -18,6 +18,10 @@ Changes from 2.2b1 to 2.2b2
 - The ``FIELD_*`` sys attrs are no longer copied when the
   ``PYTABLES_SYS_ATTRS`` parameter is set to false.
 
+- Optimization in the indexed queries when the resulting rows increase
+  monotonically.  From 3x (for medium-size query results) and 10x (for very
+  large query results) speed-ups can be expected.
+
 
 Changes from 2.1.1 to 2.2b1
 ===========================
