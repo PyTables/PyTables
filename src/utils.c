@@ -499,7 +499,7 @@ out:
    F. Alted 2006-10-23
  */
 
-hsize_t _PyEval_SliceIndex_modif(PyObject *v, hsize_t *pi)
+hsize_t _PyEval_SliceIndex_modif(PyObject *v, hssize_t *pi)
 {
   PY_LONG_LONG ll_max;
 
@@ -541,12 +541,12 @@ hsize_t _PyEval_SliceIndex_modif(PyObject *v, hsize_t *pi)
 /* F. Alted 2005-05-08 */
 
 hsize_t getIndicesExt(PyObject *s, hsize_t length,
-		      hsize_t *start, hsize_t *stop, hsize_t *step,
+		      hssize_t *start, hssize_t *stop, hssize_t *step,
 		      hsize_t *slicelength)
 {
         /* this is harder to get right than you might think */
 
-        hsize_t defstart, defstop;
+        hssize_t defstart, defstop;
         PySliceObject *r = (PySliceObject *) s;
 
         if (r->step == Py_None) {

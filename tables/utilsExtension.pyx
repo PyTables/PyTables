@@ -34,7 +34,7 @@ from definitions cimport import_array, ndarray, \
      malloc, free, strchr, strcpy, strncpy, strcmp, strdup, \
      PyString_AsString, PyString_FromString, \
      H5F_ACC_RDONLY, H5P_DEFAULT, H5D_CHUNKED, H5T_DIR_DEFAULT, \
-     size_t, hid_t, herr_t, hsize_t, htri_t, \
+     size_t, hid_t, herr_t, hsize_t, hssize_t, htri_t, \
      H5T_class_t, H5D_layout_t, H5T_sign_t, \
      H5Fopen, H5Fclose, H5Fis_hdf5, H5Gopen, H5Gclose, \
      H5Dopen, H5Dclose, H5Dget_type, \
@@ -79,9 +79,9 @@ cdef extern from "utils.h":
                              hid_t *type_id, hid_t *dataset_id)
 
   # To access to the slice.indices functionality for long long ints
-  hsize_t getIndicesExt(object s, hsize_t length,
-                        hsize_t *start, hsize_t *stop, hsize_t *step,
-                        hsize_t *slicelength)
+  hssize_t getIndicesExt(object s, hsize_t length,
+                         hssize_t *start, hssize_t *stop, hssize_t *step,
+                         hsize_t *slicelength)
 
 
 # Functions from Blosc
@@ -499,7 +499,8 @@ def getNestedField(recarray, fieldname):
 
 
 def getIndices(object s, hsize_t length):
-  cdef hsize_t start, stop, step, slicelength
+  cdef hssize_t start, stop, step
+  cdef hsize_t slicelength
 
   if getIndicesExt(s, length, &start, &stop, &step, &slicelength) < 0:
     raise ValueError("Problems getting the indices on slice '%s'" % s)
