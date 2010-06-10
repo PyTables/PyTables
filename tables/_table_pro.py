@@ -330,7 +330,9 @@ def _column__createIndex(self, optlevel, kind, filters, tmp_dir,
     # Optimize the index that has been already filled-up
     index.optimize(verbose=verbose)
 
-    # Finally, flush all the new HDF5 metainfo to disk
-    table.flush()
+    # We cannot do a flush here because when reindexing during a
+    # flush, the indexes are created anew, and that creates a nested
+    # call to flush().
+    ##table.flush()
 
     return indexedrows
