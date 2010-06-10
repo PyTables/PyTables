@@ -10,7 +10,7 @@ Utility functions and classes for supporting query conditions (pro).
 :Revision: $Id$
 """
 
-from tables.numexpr.necompiler import expressionToAST, typeCompileAst
+from numexpr.necompiler import expressionToAST, typeCompileAst
 from tables._conditions_common import _unsupported_operation_error
 
 
