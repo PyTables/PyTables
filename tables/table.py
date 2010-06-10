@@ -2292,8 +2292,6 @@ The 'names' parameter must be a list of strings.""")
                 if colindexed[colname]:
                     col = cols._g_col(colname)
                     col.index.dirty = True
-                    # Put a new nail in condition cache for each dirty index
-                    self._conditionCache.nail()
 
 
     def _reIndex(self, colnames):
@@ -3231,6 +3229,9 @@ class Column(object):
             kind = index.kind
             optlevel = index.optlevel
             filters = index.filters
+            # We *need* to tell the index that it is going to be undirty.
+            # This is needed here so as to unnail() the condition cache.
+            index.dirty = False
             # Delete the existing Index
             index._f_remove()
             # Create a new Index with the previous parameters
