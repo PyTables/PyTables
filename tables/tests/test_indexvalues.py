@@ -1539,6 +1539,11 @@ class SelectValuesTestCase(unittest.TestCase):
         assert len(results1) == len(results2)
         assert results1 == results2
 
+        # Re-enable the indexing in queries basically to unnail the
+        # condition cache and not raising the performance warning
+        # about some indexes being dirty
+        table1._enableIndexingInQueries()
+
     def test09b(self):
         """Checking non-indexed where() (float flavor)"""
 
@@ -1621,6 +1626,11 @@ class SelectValuesTestCase(unittest.TestCase):
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
         assert results1 == results2
+
+        # Re-enable the indexing in queries basically to unnail the
+        # condition cache and not raising the performance warning
+        # about some indexes being dirty
+        table1._enableIndexingInQueries()
 
     def test09c(self):
         "Check non-indexed where() w/ ranges, changing step (string flavor)"
@@ -1717,6 +1727,11 @@ class SelectValuesTestCase(unittest.TestCase):
         assert len(results1) == len(results2)
         assert results1 == results2
 
+        # Re-enable the indexing in queries basically to unnail the
+        # condition cache and not raising the performance warning
+        # about some indexes being dirty
+        table1._enableIndexingInQueries()
+
     def test09d(self):
         "Checking non-indexed where() w/ ranges, changing step (int flavor)"
 
@@ -1811,6 +1826,11 @@ class SelectValuesTestCase(unittest.TestCase):
             print "Should be:", len(results2)
         assert len(results1) == len(results2)
         assert results1 == results2
+
+        # Re-enable the indexing in queries basically to unnail the
+        # condition cache and not raising the performance warning
+        # about some indexes being dirty
+        table1._enableIndexingInQueries()
 
     def test10a(self):
         """Checking indexed where() with ranges (string flavor)"""
