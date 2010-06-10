@@ -62,7 +62,7 @@ for name in table.colnames:
 
 print "Table contents:"
 for row in table:
-    print row
+    print row[:]
 print "Associated recarray:"
 print table.read()
 

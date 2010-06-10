@@ -75,7 +75,7 @@
     </copyright>
 
     <copyright>
-      <year>2008, 2009</year>
+      <year>2008, 2009, 2010</year>
 
       <holder>Francesc Alted</holder>
     </copyright>
@@ -205,7 +205,7 @@
 
         <para>PyTables takes advantage of the object orientation and
         introspection capabilities offered by Python, the powerful data
-        management features of HDF5, and NumPy's flexibility and
+        management features of HDF5, and NumPy's flexibility and Numexpr's
         high-performance manipulation of large sets of objects organized in a
         grid-like fashion to provide these features:</para>
 
@@ -264,7 +264,7 @@
             an <emphasis>object tree</emphasis> in memory that replicates the
             underlying file data structure. Access to objects in the file is
             achieved by walking through and manipulating this object tree.
-            Besides, this object tree is built in a lazy way, for efficency
+            Besides, this object tree is built in a lazy way, for efficiency
             purposes.</para>
           </listitem>
 
@@ -297,11 +297,12 @@
           <listitem>
             <para><emphasis>Data compression:</emphasis> Supports data
             compression (using the <emphasis>Zlib</emphasis>,
-            <emphasis>LZO</emphasis> and <emphasis>bzip2</emphasis>
-            compression libraries) out of the box. This is important when you
-            have repetitive data patterns and don't want to spend time
-            searching for an optimized way to store them (saving you time
-            spent analyzing your data organization).</para>
+            <emphasis>LZO</emphasis>, <emphasis>bzip2</emphasis>
+            and <emphasis>Blosc</emphasis> compression libraries) out of the
+            box. This is important when you have repetitive data patterns and
+            don't want to spend time searching for an optimized way to store
+            them (saving you time spent analyzing your data
+            organization).</para>
           </listitem>
 
           <listitem>
@@ -566,16 +567,17 @@ fileh.close()</screen>
         A <literal>GCC</literal> compiler is assumed for Unix, but other
         compilers should work as well.</para>
 
-        <para>Extensions in PyTables have been developed in Pyrex (see
-        <biblioref linkend="Pyrex" />) and the C language. You can rebuild
-        everything from scratch if you have Pyrex installed, but this is not
-        necessary, as the Pyrex compiled source is included in the source
+        <para>Extensions in PyTables have been developed in Cython (see
+        <biblioref linkend="Cython" />) and the C language. You can rebuild
+        everything from scratch if you have Cython installed, but this is not
+        necessary, as the Cython compiled source is included in the source
         distribution.</para>
 
         <para>To compile PyTables you will need a recent version of Python,
         the HDF5 (C flavor) library from <ulink url="http://hdfgroup.org/"/>,
         and the <literal>NumPy</literal> (see <biblioref linkend="NumPy" />)
-        package. Although you won't need <literal>numarray</literal> (see
+        and <literal>Numexpr</literal> (see <biblioref linkend="Numexpr" />)
+        packages. Although you won't need <literal>numarray</literal> (see
         <biblioref linkend="Numarray" />) or <literal>Numeric</literal> (see
         <biblioref linkend="Numeric" />) in order to compile PyTables, they
         are supported; you only need a reasonably recent version of them
@@ -589,10 +591,11 @@ fileh.close()</screen>
         <section id="PrerequisitesSourceDescr">
           <title>Prerequisites</title>
 
-          <para>First, make sure that you have at least Python 2.4, HDF5 1.6.5
-          and NumPy 1.3 or higher installed (for testing purposes, we are
-          using HDF5 1.6.9/1.8.3 and NumPy 1.3 currently). If you don't, fetch
-          and install them before proceeding.</para>
+          <para>First, make sure that you have at least Python 2.4, HDF5
+          1.6.5, NumPy 1.3, Numexpr 1.3 and Cython 0.12.1 or higher installed
+          (for testing purposes, we are using HDF5 1.6.10/1.8.4, NumPy 1.4.1
+          and Numexpr 1.3.1 currently). If you don't, fetch and install them
+          before proceeding.</para>
 
           <para>Compile and install these packages (but see <xref
           linkend="prerequisitesBinInst" xrefstyle="select: label" /> for
@@ -600,13 +603,16 @@ fileh.close()</screen>
           willing to compile the prerequisites on Windows systems).</para>
 
           <para>For compression (and possibly improved performance), you will
-          need to install the <literal>Zlib</literal> (see <biblioref
-          linkend="zlibRef" />), which is also required by HDF5 as well. You
-          may also optionally install the excellent <literal>LZO</literal>
-          compression library (see <biblioref linkend="lzoRef" /> and <xref
-          linkend="compressionIssues" xrefstyle="select: label" />). The
-          high-performance bzip2 compression library can also be used with
-          PyTables (see <biblioref linkend="bzip2Ref" />).</para>
+          need to install the <literal>Zlib</literal> (see
+          <biblioref linkend="zlibRef" />), which is also required by HDF5 as
+          well. You may also optionally install the
+          excellent <literal>LZO</literal> compression library (see
+          <biblioref linkend="lzoRef" /> and <xref linkend="compressionIssues"
+          xrefstyle="select: label" />). The high-performance bzip2
+          compression library can also be used with PyTables (see
+          <biblioref linkend="bzip2Ref" />).  The <literal>Blosc</literal>
+          compression library is embedded in PyTables, so you don't need to
+          install it separately.</para>
 
           <variablelist>
             <varlistentry>
@@ -614,23 +620,25 @@ fileh.close()</screen>
 
               <listitem>
                 <para><literal>setup.py</literal> will detect
-                <literal>HDF5</literal>, <literal>LZO</literal>, or
-                <literal>bzip2</literal> libraries and include files under
-                <literal>/usr</literal> or <literal>/usr/local</literal>; this
-                will cover most manual installations as well as installations
-                from packages. If <literal>setup.py</literal> can not find
-                <literal>libhdf5</literal> (or <literal>liblzo</literal>, or
-                <literal>libbz2</literal> that you may wish to use) or if you
-                have several versions of a library installed and want to use a
-                particular one, then you can set the path to the resource in
-                the environment, by setting the values of the
-                <literal>HDF5_DIR</literal>, <literal>LZO_DIR</literal>, or
-                <literal>BZIP2_DIR</literal> environment variables to the path
-                to the particular resource. You may also specify the locations
-                of the resource root directories on the
+                <literal>HDF5</literal>, <literal>pthreads</literal>,
+                <literal>LZO</literal>, or <literal>bzip2</literal> libraries
+                and include files under <literal>/usr</literal>
+                or <literal>/usr/local</literal>; this will cover most manual
+                installations as well as installations from
+                packages. If <literal>setup.py</literal> can not find
+                <literal>libhdf5</literal>, <literal>libhdf5</literal>
+                (or <literal>liblzo</literal>, or <literal>libbz2</literal>
+                that you may wish to use) or if you have several versions of a
+                library installed and want to use a particular one, then you
+                can set the path to the resource in the environment, by
+                setting the values of the <literal>HDF5_DIR</literal>,
+                <literal>PTHREADS_DIR</literal>, <literal>LZO_DIR</literal>,
+                or <literal>BZIP2_DIR</literal> environment variables to the
+                path to the particular resource. You may also specify the
+                locations of the resource root directories on the
                 <literal>setup.py</literal> command line. For example:</para>
 
-                <screen>--hdf5=/stuff/hdf5-1.8.3
+                <screen>--hdf5=/stuff/hdf5-1.8.4
 --lzo=/stuff/lzo-2.02
 --bzip2=/stuff/bzip2-1.0.4</screen>
 
@@ -639,7 +647,7 @@ fileh.close()</screen>
                 linker flags needed to find the shared library on the command
                 line as well. For example:</para>
 
-                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.3/lib"</screen>
+                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.4/lib"</screen>
 
                 <para>You may also want to try setting the LD_LIBRARY_PATH
                 environment variable to point to the directory where the
@@ -652,17 +660,21 @@ fileh.close()</screen>
                 setting the <literal>LIBS</literal> environment
                 variable:</para>
 
-                <screen>LIBS="hdf5-1.8.3 nsl"</screen>
+                <screen>LIBS="hdf5-1.8.4 nsl"</screen>
 
                 <para>Finally, you can give additional flags to your compiler
                 by passing them to the <literal>--cflags</literal>
                 flag:</para>
 
-                <screen>--cflags="-w -O3"</screen>
+                <screen>--cflags="-w -O3 -msse2"</screen>
 
                 <para>In the above case, a <literal>gcc</literal> compiler is
                 used and you instructed it to suppress all the warnings and
-                set the level 3 of optimization.</para>
+                set the level 3 of optimization.  Finally, if you are running
+                Linux in 32-bit mode, and you know that your CPU has support
+                for SSE2 vector instructions, you may want to pass
+                the <literal>-msse2</literal> flag that will accelerate Blosc
+                operation.</para>
               </listitem>
             </varlistentry>
 
@@ -672,10 +684,9 @@ fileh.close()</screen>
               <listitem>
                 <para>You can get ready-to-use Windows binaries and other
                 development files for most of the following libraries from the
-                GnuWin32 project (see <biblioref linkend="GnuWin32" />).
-                Unfortunately, the LZO binaries have disappeared from the
-                GnuWin32 repository lately.  So, until they are eventually
-                back there again, you can find them at
+                GnuWin32 project (see <biblioref linkend="GnuWin32" />).  In
+                case you cannot find the LZO binaries in the GnuWin32
+                repository, you can find them at
                 <ulink url="http://www.pytables.org/download/lzo-win"/>.
                 </para>
 
@@ -685,24 +696,26 @@ fileh.close()</screen>
                 and <emphasis>header</emphasis> (<literal>.h</literal>) files
                 are installed. You can set the path to the
                 <literal>include</literal> and <literal>dll</literal>
-                directories for the HDF5 (mandatory) and LZO or BZIP2
-                (optional) libraries in the environment, by setting the values
-                of the <literal>HDF5_DIR</literal>,
-                <literal>LZO_DIR</literal>, or <literal>BZIP2_DIR</literal>
-                environment variables to the path to the particular resource.
-                For example:</para>
+                directories for the HDF5 and pthreads-win32 (mandatory) and
+                LZO or BZIP2 (optional) libraries in the environment, by
+                setting the values of the <literal>HDF5_DIR</literal>,
+                <literal>PTHREADS_DIR</literal>, <literal>LZO_DIR</literal>,
+                or <literal>BZIP2_DIR</literal> environment variables to the
+                path to the particular resource.  For example:</para>
 
-                <screen>set HDF5_DIR=c:\stuff\5-165-win
-set LZO_DIR=c:\GnuWin32
-set BZIP2_DIR=c:\GnuWin32</screen>
+                <screen>set HDF5_DIR=c:\stuff\hdf5-1.8.4-32bit-VS2008-IVF101\release
+set PTHREADS_DIR=c:\stuff\pthreads-w32-2-8-0\Pre-built.2
+set LZO_DIR=c:\Program Files (x86)\GnuWin32
+set BZIP2_DIR=c:\Program Files (x86)\GnuWin32</screen>
 
                 <para>You may also specify the locations of the resource root
                 directories on the <literal>setup.py</literal> command line.
                 For example:</para>
 
-                <screen>--hdf5=c:\stuff\5-167-win
---lzo=c:\GnuWin32
---bzip2=c:\GnuWin32</screen>
+                <screen>--hdf5=c:\stuff\hdf5-1.8.4-32bit-VS2008-IVF101\release
+--pthreads=c:\stuff\pthreads-w32-2-8-0\Pre-built.2
+--lzo=c:\Program Files (x86)\GnuWin32
+--bzip2=c:\Program Files (x86)\GnuWin32</screen>
               </listitem>
             </varlistentry>
           </variablelist>
@@ -711,8 +724,9 @@ set BZIP2_DIR=c:\GnuWin32</screen>
         <section id="PyTablesSourceInstallationDescr">
           <title>PyTables package installation</title>
 
-          <para>Once you have installed the HDF5 library and the NumPy
-          package, you can proceed with the PyTables package itself:</para>
+          <para>Once you have installed the HDF5 library and the NumPy and
+          Numexpr packages, you can proceed with the PyTables package
+          itself:</para>
 
           <orderedlist>
             <listitem>
@@ -722,10 +736,6 @@ set BZIP2_DIR=c:\GnuWin32</screen>
 
               <screen>python setup.py build_ext --inplace</screen>
 
-              <para>Depending on the compiler flags used when compiling your
-              Python executable, there may appear many warnings. Don't worry,
-              almost all of them are caused by variables declared but never
-              used. That's normal in Pyrex extensions.</para>
             </listitem>
 
             <listitem>
@@ -787,7 +797,7 @@ python -c "import tables; tables.test()"</screen>
               <literal>test_all.py</literal> driver: <screen>python tables/tests/test_all.py --heavy  # change to backslashes for win</screen>
               The command above runs every test in the test unit. Beware, it
               can take a lot of time, CPU and memory resources to complete.
-              <screen>python tables/tests/test_all.py --show-versions  # change to backslashes for win</screen>
+              <screen>python tables/tests/test_all.py --print-versions  # change to backslashes for win</screen>
               The command above shows the versions for all the packages that
               PyTables relies on. Please be sure to include this when
               reporting bugs. <screen>python tables/tests/test_all.py --show-memory  # only under Linux 2.6.x</screen>
@@ -800,7 +810,7 @@ python -c "import tables; tables.test()"</screen>
               the failing test module again and enable the verbose output:
               <screen>python tables/tests/test_&lt;module&gt;.py -v verbose</screen>
               and, very important, obtain your PyTables version information by
-              using the <literal>--show-versions</literal> flag (see above)
+              using the <literal>--print-versions</literal> flag (see above)
               and send back both outputs to developers so that we may continue
               improving PyTables.</para>
 
@@ -876,16 +886,22 @@ python -c "import tables; tables.test()"</screen>
         to install <emphasis>binary prerequisites</emphasis> even if you want
         to compile PyTables itself on Windows.</para>
 
+        <warning>
+          <para>Since PyTables 2.2b3, Windows binaries are distributed with
+          SSE2 instructions enabled.  If your processor does not have support
+          for SSE2, then you will not be able to use these binaries.</para>
+        </warning>
+
         <section id="prerequisitesBinInst">
           <title>Windows prerequisites</title>
 
-          <para>First, make sure that you have Python 2.4 or higher and NumPy
-          1.3 or higher installed (PyTables binaries have been built using
-          NumPy 1.3).  The binaries already include DLLs for HDF5 (1.6.9,
-          1.8.3), zlib1 (1.2.3), szlib (2.0, uncompression support only) and
-          bzip2 (1.0.4).  The LZO DLL can't be included because of license
-          issues (but read below for directives to install it if you want
-          so).</para>
+          <para>First, make sure that you have Python 2.4, NumPy 1.3 and
+          Numexpr 1.3 or higher installed (PyTables binaries have been built
+          using NumPy 1.4.1 and Numexpr 1.3.1).  The binaries already include
+          DLLs for HDF5 (1.6.10, 1.8.4), zlib1 (1.2.3), szlib (2.0,
+          uncompression support only) and bzip2 (1.0.4).  The LZO DLL can't be
+          included because of license issues (but read below for directives to
+          install it if you want so).</para>
 
           <para>To enable compression with the optional LZO library (see the
           <xref linkend="compressionIssues" xrefstyle="select: label" /> for
@@ -1258,33 +1274,28 @@ File(filename='tutorial1.h5', title='Test file', mode='w', rootUEP='/', filters=
           accomplish the same purpose, but I find comprehension syntax to be
           more compact and elegant.</para>
 
-          <para>Let's select the <literal>name</literal> column for the same
-          set of cuts:</para>
-
-          <screen>>>> names = [ x['name'] for x in table
-          if x['TDCcount'] &gt; 3 and 20 &lt;= x['pressure'] &lt; 50 ]
->>> names
-['Particle:      5', 'Particle:      6', 'Particle:      7']</screen>
-
-          <para>Note how we have omitted the <literal>iterrows()</literal>
-          call in the list comprehension. The <literal>Table</literal> class
-          has an implementation of the special method
-          <literal>__iter__()</literal> that iterates over all the rows in the
-          table. In fact, <literal>iterrows()</literal> internally calls this
-          special <literal>__iter__()</literal> method. Accessing all the rows
-          in a table using this method is very convenient, especially when
-          working with the data interactively.</para>
-
           <para>PyTables do offer other, more powerful ways of performing
           selections which may be more suitable if you have very large tables
           or if you need very high query speeds. They are called
           <emphasis>in-kernel</emphasis> and <emphasis>indexed</emphasis>
-          queries, and you can use them through
-          <literal>Table.where()</literal> (see <xref
-          linkend="Table.where" />) and other related methods. See <xref
-          linkend="conditionSyntax" xrefstyle="select: label" /> and <xref
-          linkend="searchOptim" xrefstyle="select: label" /> for more
-          information on in-kernel and indexed selections.</para>
+          queries, and you can use them
+          through <literal>Table.where()</literal> (see
+          <xref linkend="Table.where" />) and other related methods.</para>
+
+          <para>Let's use an in-kernel selection to query
+          the <literal>name</literal> column for the same set of cuts:</para>
+
+          <screen>>>> names = [ x['name'] for x in table.where(
+              """(TDCcount &gt; 3) &amp; (20 &lt;= pressure) &amp; (pressure &lt; 50)""") ]
+>>> names
+['Particle:      5', 'Particle:      6', 'Particle:      7']</screen>
+
+          <para>In-kernel and indexed queries are not only much faster, but as
+          you can see, they also look more compact, and are among the
+          greatests features for PyTables, so be sure that you use them a
+          lot. See <xref linkend="conditionSyntax" xrefstyle="select: label"
+          /> and <xref linkend="searchOptim" xrefstyle="select: label" /> for
+          more information on in-kernel and indexed selections.</para>
 
           <para>That's enough about selections for now. The next section will
           show you how to save these selected results to a file.</para>
@@ -1417,9 +1428,6 @@ $ </screen>
           utility (located in <literal>utils/</literal> directory):</para>
 
           <screen>$ ptdump tutorial1.h5
-tutorial1.h5 (File) 'Test file'
-Last modif.: 'Wed Mar  7 19:50:57 2007'
-Object Tree:
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
 /columns/name (Array(3,)) 'Name column selection'
@@ -2219,7 +2227,7 @@ Third modif--&gt; ['Particle:     -3', 'Particle:      0', 'Particle:     -5']</
 5</screen>
 
           <para><literal>removeRows(start, stop)</literal> (see <xref
-          linkend="Table.removeRows" />) deletes therows in the range (start,
+          linkend="Table.removeRows" />) deletes the rows in the range (start,
           stop). It returns the number of rows effectively removed.</para>
 
           <para>We have reached the end of this first tutorial. Don't forget
@@ -2504,7 +2512,223 @@ TypeError: invalid type (&lt;type 'str'&gt;) for column ``ADCcount``</screen>And
         </section>
       </section>
 
-      <section id="ThirdExample">
+      <section id="LinksTutorial">
+        <title>Using links for more convenient access to nodes</title>
+
+        <para>Links are special nodes that can be used to create additional
+        paths to your existing nodes.  PyTables supports three kinds of links:
+        hard links, soft links (aka symbolic links) and, if using HDF5 1.8.x,
+        external links.</para>
+
+        <para>Hard links let the user create additional paths to access
+        another node in the same file, and once created, they are
+        indistinguishable from the referred node object, except that they have
+        different paths in the object tree.  For example, if the referred node
+        is, say, a <literal>Table</literal> object, then the new hard link
+        will become a <literal>Table</literal> object itself.  From this point
+        on, you will be able to access the same <literal>Table</literal>
+        object from two different paths: the original one and the new hard
+        link path.  If you delete one path to the table, you will be able to
+        reach it via the other path.</para>
+
+        <para>Soft links are similar to hard links, but they keep their own
+        personality.  When you create a soft link to another node, you will
+        get a new <literal>SoftLink</literal> object
+        that <emphasis>refers</emphasis> to that node.  However, in order to
+        access the referred node, you need to <emphasis>dereference</emphasis>
+        it.</para>
+
+        <para>Finally, external links are like soft links, with the difference
+        that these are meant to point to nodes
+        in <emphasis>external</emphasis> files instead of nodes in the same
+        file.  They are represented by the <literal>ExternalLink</literal>
+        class and, like soft links, you need to dereference them in order to
+        get access to the pointed node.</para>
+
+        <section>
+          <title>Interactive example</title>
+
+          <para>Now we are going to learn how to deal with links. You can find
+            the code used in this section
+            in <literal>examples/links.py</literal>.
+          </para>
+
+          <para>First, let's create a file with some group structure:</para>
+
+          <screen>>>> import tables as tb
+>>> f1 = tb.openFile('links1.h5', 'w')
+>>> g1 = f1.createGroup('/', 'g1')
+>>> g2 = f1.createGroup(g1, 'g2')</screen>
+
+          <para>Now, we will put some datasets on the <literal>/g1</literal>
+            and <literal>/g1/g2</literal> groups:</para>
+
+          <screen>>>> a1 = f1.createCArray(g1, 'a1', tb.Int64Atom(), shape=(10000,))
+>>> t1 = f1.createTable(g2, 't1', {'f1': tb.IntCol(), 'f2': tb.FloatCol()})</screen>
+
+          <para>We can start the party now.  We are going to create a new
+            group, say <literal>/gl</literal>, where we will put our links and
+            will start creating one hard link too:</para>
+
+          <screen>>>> gl = f1.createGroup('/', 'gl')
+>>> ht = f1.createHardLink(gl, 'ht', '/g1/g2/t1')  # ht points to t1
+>>> print "``%s`` is a hard link to: ``%s``" % (ht, t1)
+``/gl/ht (Table(0,)) ''`` is a hard link to: ``/g1/g2/t1 (Table(0,)) ''``</screen>
+
+          <para>You can see how we've created a hard link
+          in <literal>/gl/ht</literal> which is pointing to the existing table
+          in <literal>/g1/g2/t1</literal>.  Have look at how the hard link is
+          represented; it looks like a table, and actually, it is
+          an <emphasis>real</emphasis> table.  We have two different paths to
+          access that table, the original <literal>/g1/g2/t1</literal> and the
+          new one <literal>/gl/ht</literal>.  If we remove the original path
+          we still can reach the table by using the new path: </para>
+
+          <screen>>>> t1.remove()
+>>> print "table continues to be accessible in: ``%s``" % f1.getNode('/gl/ht')
+table continues to be accessible in: ``/gl/ht (Table(0,)) ''``</screen>
+
+          <para>So far so good. Now, let's create a couple of soft
+          links:</para>
+
+          <screen>>>> la1 = f1.createSoftLink(gl, 'la1', '/g1/a1')  # la1 points to a1
+>>> print "``%s`` is a soft link to: ``%s``" % (la1, la1.target)
+``/gl/la1 (SoftLink) -> /g1/a1`` is a soft link to: ``/g1/a1``
+>>> lt = f1.createSoftLink(gl, 'lt', '/g1/g2/t1')  # lt points to t1
+>>> print "``%s`` is a soft link to: ``%s``" % (lt, lt.target)
+``/gl/lt (SoftLink) -> /g1/g2/t1 (dangling)`` is a soft link to: ``/g1/g2/t1``</screen>
+
+          <para>Okay, we see how the first link <literal>/gl/la1</literal>
+          points to the array <literal>/g1/a1</literal>.  Notice how the link
+          prints as a <literal>SoftLink</literal>, and how the referred node
+          is stored in the <literal>target</literal> instance attribute.  The
+          second link (<literal>/gt/lt</literal>) pointing
+          to <literal>/g1/g2/t1</literal> also has been created successfully,
+          but by better inspecting the string representation of it, we see
+          that is labeled as <literal>'(dangling)'</literal>.  Why is this?
+          Well, you should remember that we recently removed
+          the <literal>/g1/g2/t1</literal> path to access
+          table <literal>t1</literal>.  When printing it, the object knows
+          that it points to <emphasis>nowhere</emphasis> and reports this.
+          This is a nice way to quickly know whether a soft link points to an
+          exiting node or not.</para>
+
+          <para>So, let's re-create the removed path to <literal>t1</literal>
+          table:</para>
+
+          <screen>>>> t1 = f1.createHardLink('/g1/g2', 't1', '/gl/ht')
+>>> print "``%s`` is not dangling anymore" % (lt,)
+``/gl/lt (SoftLink) -> /g1/g2/t1`` is not dangling anymore</screen>
+
+          <para>and the soft link is pointing to an existing node now.</para>
+
+          <para>Of course, for soft links to serve any actual purpose we need
+          a way to get the pointed node.  It happens that soft links are
+          callable, and that's the way to get the referred nodes back:</para>
+
+          <screen>>>> plt = lt()
+>>> print "dereferred lt node: ``%s``" % plt
+dereferred lt node: ``/g1/g2/t1 (Table(0,)) ''``
+>>> pla1 = la1()
+>>> print "dereferred la1 node: ``%s``" % pla1
+dereferred la1 node: ``/g1/a1 (CArray(10000,)) ''``</screen>
+
+          <para>Now, <literal>plt</literal> is a Python reference to
+          the <literal>t1</literal> table while <literal>pla1</literal> refers
+          to the <literal>a1</literal> array.  Easy, uh?</para>
+
+          <para>Let's suppose now that <literal>a1</literal> is an array whose
+          access speed is critical for our application.  One possible solution
+          is to move the entire file into a faster disk, say, a solid state
+          disk so that access latencies can be reduced quite a lot.  However,
+          it happens that our file is too big to fit into our shiny new
+          (although small in capacity) SSD disk.  A solution is to copy just
+          the <literal>a1</literal> array into a separate file that would fit
+          into our SSD disk.  However, our application would be able to handle
+          two files instead of only one, adding significantly more complexity,
+          which is not a good thing.</para>
+
+          <para>External links to the rescue!  As we've already said, external
+          links are like soft links, but they are designed to link objects in
+          external files.  Back to our problem, let's copy
+          the <literal>a1</literal> array into a different file:</para>
+
+          <screen>>>> f2 = tb.openFile('links2.h5', 'w')
+>>> new_a1 = a1.copy(f2.root, 'a1')
+>>> f2.close()  # close the other file</screen>
+
+          <para>And now, we can remove the existing soft link and create the
+          external link in its place:</para>
+
+          <screen>>>> la1.remove()
+>>> la1 = f1.createExternalLink(gl, 'la1', 'links2.h5:/a1')
+/home/faltet/PyTables/pytables/branches/links/tables/file.py:971:
+Incompat16Warning: external links are only supported when PyTables is compiled
+against HDF5 1.8.x series and they, and their parent groups, are unreadable
+with HDF5 1.6.x series.  You can set `warn16incompat` argument to false to
+disable this warning.
+  Incompat16Warning)</screen>
+
+          <para>First, you should notice the warning when creating the
+          external link: due to the need to change the format of the group
+          containing an external link (introduced in HDF5 1.8), the parent
+          groups (and hence, <emphasis>all</emphasis> its children) of
+          external links are not readable with applications linked with HDF5
+          1.6.x.  You should have this in mind if interoperability is
+          important to you.  At any rate, you can disable the warning by
+          setting the <literal>warn16incompat</literal> argument to true.
+          See <literal>File.createExternalLink()</literal>
+          <xref linkend="createExternalLinkDescr" xrefstyle="select: label" />
+          for more info.</para>
+
+          <para>But, when using HDF5 1.8.x (I'm supposing that you are using
+          it for exercising this part of the tutorial), the external link is
+          completely functional:</para>
+
+          <screen>>>> print "``%s`` is an external link to: ``%s``" % (la1, la1.target)
+``/gl/la1 (ExternalLink) -> links2.h5:/a1`` is an external link to: ``links2.h5:/a1``</screen>
+
+          <para>Let's try dereferring it:</para>
+
+          <screen>>>> new_a1 = la1()  # dereferrencing la1 returns a1 in links2.h5
+>>> print "dereferred la1 node:  ``%s``" % new_a1
+dereferred la1 node:  ``/a1 (CArray(10000,)) ''``</screen>
+
+          <para>Well, it seems like we can access the external node.  But just
+            to make sure that the node is in the other file:</para>
+
+          <screen>>>> print "new_a1 file:", new_a1._v_file.filename
+new_a1 file: links2.h5</screen>
+
+          <para>Okay, the node is definitely in the external file.  So, you
+          won't have to worry about your application: it will work exactly the
+          same no matter the link is internal (soft) or external.</para>
+
+          <para>Finally, here it is a dump of the objects in the final file,
+            just to get a better idea of what we ended with:</para>
+
+          <screen>>>> f1.close()
+>>> exit()
+$ ptdump links1.h5
+/ (RootGroup) ''
+/g1 (Group) ''
+/g1/a1 (CArray(10000,)) ''
+/gl (Group) ''
+/gl/ht (Table(0,)) ''
+/gl/la1 (ExternalLink) -> links2.h5:/a1
+/gl/lt (SoftLink) -> /g1/g2/t1
+/g1/g2 (Group) ''
+/g1/g2/t1 (Table(0,)) ''</screen>
+
+          <para>This ends this tutorial.  I hope it helped you to appreciate
+          how useful links can be.  I'm sure you will find other ways in which
+          you can use links that better fit your own needs.</para>
+
+        </section>
+
+      </section>
+
+      <section id="UndoTutorial">
         <title>Exercising the Undo/Redo feature</title>
 
         <para>PyTables has integrated support for undoing and/or redoing
@@ -3496,7 +3720,7 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
         <section id="GlobalFunctDescr">
           <title>Global functions</title>
 
-          <section id="copyFileDescr">
+          <section id="copyFileDescr" xreflabel="description">
             <title>copyFile(srcfilename, dstfilename, overwrite=False,
             **kwargs)</title>
 
@@ -3518,7 +3742,7 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
             arguments.</para>
           </section>
 
-          <section id="isHDF5FileDescr">
+          <section id="isHDF5FileDescr" xreflabel="description">
             <title>isHDF5File(filename)</title>
 
             <para>Determine whether a file is in the HDF5 format.</para>
@@ -3528,18 +3752,19 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
             file, an <literal>HDF5ExtError</literal> is raised.</para>
           </section>
 
-          <section id="isPyTablesFileDescr">
+          <section id="isPyTablesFileDescr" xreflabel="description">
             <title>isPyTablesFile(filename)</title>
 
             <para>Determine whether a file is in the PyTables format.</para>
 
-            <para>When successful, it returns a true value if the file is a
-            PyTables file, false otherwise. The true value is the format
-            version string of the file. If there were problems identifying the
-            file, an <literal>HDF5ExtError</literal> is raised.</para>
+            <para>When successful, it returns the format version string if the
+            file is a PyTables file, <literal>None</literal> otherwise.  If
+            there were problems identifying the file,
+            an <literal>HDF5ExtError</literal> is raised.</para>
+
           </section>
 
-          <section id="lrange">
+          <section id="lrange" xreflabel="description">
             <title>lrange([start, ]stop[, step])</title>
 
             <para>Iterate over long ranges.</para>
@@ -3589,8 +3814,8 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
                 <glossterm><emphasis role="bold">mode</emphasis></glossterm>
 
                 <glossdef>
-                  <para>The mode in whichto open the file. It can be one of
-                  the following:</para>
+                  <para>The mode to open the file. It can be one of the
+                  following:</para>
 
                   <glosslist>
                     <glossentry>
@@ -3697,14 +3922,30 @@ column--&gt; UInt8Col(shape=(), dflt=1, pos=1)</screen>
 
           </section>
 
-          <section id="print_versions">
+          <section id="setBloscMaxThreads" xreflabel="description">
+            <title>setBloscMaxThreads(nthreads)</title>
+
+            <para>Set the maximum number of threads that Blosc can use.</para>
+
+            <para>This actually overrides the <literal>MAX_THREADS</literal>
+              setting in <literal>tables/parameters.py</literal>, so the new
+              value will be effective until this function is called again or a
+              new file with a different <literal>MAX_THREADS</literal> value
+              is specified.
+            </para>
+
+            <para>Returns the previous setting for maximum threads.</para>
+
+          </section>
+
+          <section id="print_versions" xreflabel="description">
             <title>print_versions()</title>
 
             <para>Print all the versions of software that PyTables relies
             on.</para>
           </section>
 
-          <section id="restrict_flavors">
+          <section id="restrict_flavors" xreflabel="description">
             <title>restrict_flavors(keep=['python'])</title>
 
             <para>Disable all flavors except those in
@@ -3745,7 +3986,7 @@ Traceback (most recent call last):
 ValueError: malformed type: 'foo bar'</screen>
           </section>
 
-          <section id="testDescr">
+          <section id="testDescr" xreflabel="description">
             <title>test(verbose=False, heavy=False)</title>
 
             <para>Run all the tests in the test suite.</para>
@@ -3760,7 +4001,7 @@ ValueError: malformed type: 'foo bar'</screen>
             computer).</para>
           </section>
 
-          <section id="whichLibVersionDescr">
+          <section id="whichLibVersionDescr" xreflabel="description">
             <title>whichLibVersion(name)</title>
 
             <para>Get version information about a C library.</para>
@@ -3941,6 +4182,13 @@ ValueError: malformed type: 'foo bar'</screen>
             nodes are simply ignored. Check the documentation for copying
             operations of nodes to see which options they support.</para>
 
+            <para>In addition, it recognizes the names of parameters present
+            in <literal>tables/parameters.py</literal> (and for PyTables Pro
+            users, those in <literal>tables/_parameters_pro.py</literal> too)
+            as additional keyword arguments.  See
+            <xref linkend="parametersFiles" xrefstyle="select: label" /> for a
+            detailed info on the supported parameters.</para>
+
             <para>Copying a file usually has the beneficial side effect of
             creating a more compact and cleaner version of the original
             file.</para>
@@ -3961,19 +4209,19 @@ ValueError: malformed type: 'foo bar'</screen>
             <literal>fcntl</literal> module.</para>
           </section>
 
-          <section id="File.__enter__">
+          <section id="File.__enter__" xreflabel="description">
             <title>__enter__()</title>
 
             <para>Enter a context and return the same file.</para>
           </section>
 
-          <section id="File.__exit__">
+          <section id="File.__exit__" xreflabel="description">
             <title>__exit__([*exc_info])</title>
 
             <para>Exit a context and close the file.</para>
           </section>
 
-          <section id="File.__str__">
+          <section id="File.__str__" xreflabel="description">
             <title>__str__()</title>
 
             <para>Return a short string representation of the object
@@ -3995,7 +4243,7 @@ Object Tree:
 /group0/group1/group2 (Group) ''</screen>
           </section>
 
-          <section id="File.__repr__">
+          <section id="File.__repr__" xreflabel="description">
             <title>__repr__()</title>
 
             <para>Return a detailed string representation of the object
@@ -4006,7 +4254,7 @@ Object Tree:
         <section id="FileMethods_hierarchy_manipulation">
           <title><literal>File</literal> methods — hierarchy manipulation</title>
 
-          <section id="File.copyChildren">
+          <section id="File.copyChildren" xreflabel="description">
             <title>copyChildren(srcgroup, dstgroup, overwrite=False,
             recursive=False, createparents=False, **kwargs)</title>
 
@@ -4029,7 +4277,7 @@ Object Tree:
             arguments.</para>
           </section>
 
-          <section id="File.copyNode">
+          <section id="File.copyNode" xreflabel="description">
             <title>copyNode(where, newparent=None, newname=None, name=None,
             overwrite=False, recursive=False, createparents=False,
             **kwargs)</title>
@@ -4278,6 +4526,47 @@ Object Tree:
             information on the rest of parameters.</para>
           </section>
 
+          <section id="createExternalLinkDescr" xreflabel="description">
+            <title>createExternalLink(where, name, target,
+              createparents=False, warn16incompat=False)</title>
+
+            <para>Create an external link to a <literal>target</literal> node
+              with the given <literal>name</literal>
+              in <literal>where</literal> location.  <literal>target</literal>
+              can be a node object in another file or a path string in the
+              form <literal>file:/path/to/node</literal>.  If
+              <literal>createparents</literal> is true, the intermediate
+              groups required for reaching <literal>where</literal> are
+              created (the default is not doing so).
+            </para>
+
+            <para>The purpose of the <literal>warn16incompat</literal>
+              argument is to avoid an <literal>Incompat16Warning</literal>
+              (see below).  The default is to issue the warning.
+            </para>
+
+            <para>The returned node is an <literal>ExternalLink</literal>
+              instance.  See the
+              <literal>ExternalLink</literal> class (in
+              <xref linkend="ExternalLinkClassDescr" xrefstyle="select: label"
+              />) for more information on external links.</para>
+
+            <warning>
+              <para>External links are only supported when PyTables is
+                compiled against HDF5 1.8.x series.  When using PyTables with
+                HDF5 1.6.x, the <emphasis>parent</emphasis> group containing
+                external link objects will be mapped to
+                an <literal>Unknown</literal> instance (see
+                <xref linkend="UnknownClassDescr" xrefstyle="select: label"
+                />) and you won't be able to access <emphasis>any</emphasis>
+                node hanging of this parent group.  It follows that if the
+                parent group containing the external link is the root group,
+                you won't be able to read <emphasis>any</emphasis> information
+                contained in the file when using HDF5 1.6.x.</para>
+            </warning>
+
+          </section>
+
           <section id="createGroupDescr" xreflabel="description">
             <title>createGroup(where, name, title='', filters=None,
             createparents=False)</title>
@@ -4309,6 +4598,44 @@ Object Tree:
             <para>See <literal>File.createTable()</literal> (<xref
             linkend="createTableDescr" xrefstyle="select: label" />) for more
             information on the rest of parameters.</para>
+          </section>
+
+          <section id="createHardLinkDescr" xreflabel="description">
+            <title>createHardLink(where, name, target,
+              createparents=False)</title>
+
+            <para>Create a hard link to a <literal>target</literal> node with
+              the given <literal>name</literal> in <literal>where</literal>
+              location.  <literal>target</literal> can be a node object or a
+              path string.  If <literal>createparents</literal> is true, the
+              intermediate groups required for
+              reaching <literal>where</literal> are created (the default is
+              not doing so).</para>
+
+              <para>The returned node is a regular <literal>Group</literal>
+              or <literal>Leaf</literal> instance.</para>
+
+          </section>
+
+          <section id="createSoftLinkDescr" xreflabel="description">
+            <title>createSoftLink(where, name, target,
+              createparents=False)</title>
+
+            <para>Create a soft link (aka symbolic link) to
+              a <literal>target</literal> node with the
+              given <literal>name</literal> in <literal>where</literal>
+              location.  <literal>target</literal> can be a node object or a
+              path string.  If <literal>createparents</literal> is true, the
+              intermediate groups required for
+              reaching <literal>where</literal> are created (the default is
+              not doing so).</para>
+
+            <para>The returned node is a <literal>SoftLink</literal> instance.
+              See the
+              <literal>SoftLink</literal> class (in
+              <xref linkend="SoftLinkClassDescr" xrefstyle="select: label" />)
+              for more information on soft links.</para>
+
           </section>
 
           <section id="createTableDescr" xreflabel="description">
@@ -4400,15 +4727,9 @@ Object Tree:
                       NumPy dtype</emphasis></glossterm>
 
                       <glossdef>
-                        <para>A completely general structured NumPy dtype is
-                        accepted too, and its field structure will be
-                        reflected in the new <literal>Table</literal>
-                        object.</para>
+                        <para>A completely general structured NumPy
+                        dtype.</para>
 
-                        <!-- manual-only -->
-                        <para>See <xref linkend="secondExample"
-                        xrefstyle="select: label" /> for an example of using a
-                        NumPy dtype to describe a table.</para>
                       </glossdef>
                     </glossentry>
 
@@ -4418,10 +4739,10 @@ Object Tree:
                       array</literal> instance</emphasis></glossterm>
 
                       <glossdef>
-                        <para>You can use a NumPy (record) array, whether
-                        nested or not. Moreover, if the array has actual data
-                        it will be injected into the newly created
-                        table.</para>
+                        <para>The dtype of this record array will be used as
+                          the description.  Also, in case the array has actual
+                          data, it will be injected into the newly created
+                          table.</para>
                       </glossdef>
                     </glossentry>
 
@@ -4431,10 +4752,10 @@ Object Tree:
                       instance</emphasis></glossterm>
 
                       <glossdef>
-                        <para>This object from the <literal>numarray</literal>
-                        package is also accepted, but it does not give you the
-                        possibility to create a nested table. Array data is
-                        injected into the new table.</para>
+                        <para>Object from the <literal>numarray</literal>
+                          package.  This does not give you the possibility to
+                          create a nested table.  Array data is injected into
+                          the new table.</para>
                       </glossdef>
                     </glossentry>
 
@@ -4444,8 +4765,8 @@ Object Tree:
                       instance</emphasis></glossterm>
 
                       <glossdef>
-                        <para>Finally, if you want to have nested columns in
-                        your table and you are using
+                        <para>If you want to have nested columns in your table
+                        and you are using
                         <literal>numarray</literal>, you can use this
                         object. Array data is injected into the new
                         table.</para>
@@ -4604,7 +4925,7 @@ Object Tree:
             information on the rest of parameters.</para>
           </section>
 
-          <section id="File.moveNode">
+          <section id="File.moveNode" xreflabel="description">
             <title>moveNode(where, newparent=None, newname=None, name=None,
             overwrite=False, createparents=False)</title>
 
@@ -4689,7 +5010,7 @@ Object Tree:
             </glosslist>
           </section>
 
-          <section id="File.renameNode">
+          <section id="File.renameNode" xreflabel="description">
             <title>renameNode(where, newname, name=None,
             overwrite=False)</title>
 
@@ -4769,7 +5090,7 @@ Object Tree:
             also raised.</para>
           </section>
 
-          <section id="File.isVisibleNode">
+          <section id="File.isVisibleNode" xreflabel="description">
             <title>isVisibleNode(path)</title>
 
             <para>Is the node under <literal>path</literal> visible?</para>
@@ -4885,7 +5206,7 @@ for node in h5file.walkNodes('/detector', classname='EArray'):
     print node</screen>
           </section>
 
-          <section id="File.__contains__">
+          <section id="File.__contains__" xreflabel="description">
             <title>__contains__(path)</title>
 
             <para>Is there a node with that <literal>path</literal>?</para>
@@ -4895,7 +5216,7 @@ for node in h5file.walkNodes('/detector', classname='EArray'):
             <literal>False</literal> otherwise.</para>
           </section>
 
-          <section id="File.__iter__">
+          <section id="File.__iter__" xreflabel="description">
             <title>__iter__()</title>
 
             <para>Recursively iterate over the nodes in the tree.</para>
@@ -5058,9 +5379,9 @@ for node in h5file:
         </section>
 
         <section id="FileMethods_attribute_handling">
-          <title><literal>File</literal> methods — atttribute handling</title>
+          <title><literal>File</literal> methods — attribute handling</title>
 
-          <section id="File.copyNodeAttrs">
+          <section id="File.copyNodeAttrs" xreflabel="description">
             <title>copyNodeAttrs(where, dstnode, name=None)</title>
 
             <para>Copy PyTables attributes from one node to another.</para>
@@ -5234,7 +5555,7 @@ for node in h5file:
         prefix (see the <literal>Group</literal> class in <xref
         linkend="GroupClassDescr" xrefstyle="select: label" />).</para>
 
-        <para>Sub-classes with no children (i.e. <emphasis>leaf
+        <para>Sub-classes with no children (e.g. <emphasis>leaf
         nodes</emphasis>) may define new methods, attributes and properties to
         avoid natural naming restrictions. For instance,
         <literal>_v_attrs</literal> may be shortened to
@@ -5452,13 +5773,18 @@ for node in h5file:
           </section>
 
           <section id="Node._f_remove" xreflabel="description">
-            <title>_f_remove(recursive=False)</title>
+            <title>_f_remove(recursive=False, force=False)</title>
 
             <para>Remove this node from the hierarchy.</para>
 
             <para>If the node has children, recursive removal must be stated
             by giving <literal>recursive</literal> a true value; otherwise, a
             <literal>NodeError</literal> will be raised.</para>
+
+            <para>If the node is a link to a <literal>Group</literal> object,
+            and you are sure that you want to delete it, you can do this by
+            setting the <literal>force</literal> flag to true.</para>
+
           </section>
 
           <section id="Node._f_rename" xreflabel="description">
@@ -5563,11 +5889,12 @@ for node in h5file:
             <?dbfo glosslist-presentation="list" ?>
 
             <glossentry>
-              <glossterm><emphasis
-              role="bold">_v_nchildren</emphasis></glossterm>
+              <glossterm><emphasis role="bold">
+              _v_children</emphasis></glossterm>
 
               <glossdef>
-                <para>The number of children hanging from this group.</para>
+                <para>Dictionary with all nodes hanging from this
+                group.</para>
               </glossdef>
             </glossentry>
 
@@ -5620,13 +5947,33 @@ for node in h5file:
 
             <glossentry>
               <glossterm><emphasis role="bold">
-              _v_children</emphasis></glossterm>
+              _v_links</emphasis></glossterm>
 
               <glossdef>
-                <para>Dictionary with all nodes hanging from this
+                <para>Dictionary with all links hanging from this
                 group.</para>
               </glossdef>
             </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis
+              role="bold">_v_nchildren</emphasis></glossterm>
+
+              <glossdef>
+                <para>The number of children hanging from this group.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">
+              _v_unknown</emphasis></glossterm>
+
+              <glossdef>
+                <para>Dictionary with all unknown nodes hanging from this
+                group.</para>
+              </glossdef>
+            </glossentry>
+
           </glosslist>
         </section>
 
@@ -5645,7 +5992,7 @@ for node in h5file:
           <literal>Node</literal> (see <xref linkend="NodeClassDescr"
           xrefstyle="select: label" />):</para>
 
-          <section id="Group._f_close">
+          <section id="Group._f_close" xreflabel="description">
             <title>_f_close()</title>
 
             <para>Close this group and all its descendents.</para>
@@ -5714,7 +6061,8 @@ for node in h5file:
                 <glossdef>
                   <para>This argument may be used to collect statistics on the
                   copy process. When used, it should be a dictionary with keys
-                  <literal>'groups'</literal>, <literal>'leaves'</literal> and
+                  <literal>'groups'</literal>, <literal>'leaves'</literal>,
+                  <literal>'links'</literal> and
                   <literal>'bytes'</literal> having a numeric value. Their
                   values will be incremented to reflect the number of groups,
                   leaves and bytes, respectively, that have been copied during
@@ -5800,10 +6148,10 @@ for node in h5file:
             linkend="Group._f_iterNodes" />).</para>
           </section>
 
-          <section id="Group._f_walkGroups">
+          <section id="Group._f_walkGroups" xreflabel="description">
             <title>_f_walkGroups()</title>
 
-            <para>Recursively iterate over descendent groups (not
+            <para>Recursively iterate over descendant groups (not
             leaves).</para>
 
             <para>This method starts by yielding <emphasis>self</emphasis>,
@@ -5815,7 +6163,7 @@ for node in h5file:
           <section id="Group._f_walkNodes" xreflabel="description">
             <title>_f_walkNodes(classname=None)</title>
 
-            <para>Iterate over descendent nodes.</para>
+            <para>Iterate over descendant nodes.</para>
 
             <para>This method recursively walks <emphasis>self</emphasis> top
             to bottom (preorder), iterating over child groups in
@@ -5870,7 +6218,7 @@ foo = group.table            # get a Python attribute
 del group.table              # delete a Python attribute
 table = group.table          # get the table child instance again</screen>
 
-          <section id="Group.__contains__">
+          <section id="Group.__contains__" xreflabel="description">
             <title>__contains__(name)</title>
 
             <para>Is there a child with that <literal>name</literal>?</para>
@@ -5880,7 +6228,7 @@ table = group.table          # get the table child instance again</screen>
             false otherwise.</para>
           </section>
 
-          <section id="Group.__delattr__">
+          <section id="Group.__delattr__" xreflabel="description">
             <title>__delattr__(name)</title>
 
             <para>Delete a Python attribute called
@@ -5906,7 +6254,7 @@ table = group.table          # get the table child instance again</screen>
             again via natural naming.</para>
           </section>
 
-          <section id="Group.__getattr__">
+          <section id="Group.__getattr__" xreflabel="description">
             <title>__getattr__(name)</title>
 
             <para>Get a Python attribute or child node called
@@ -5918,7 +6266,7 @@ table = group.table          # get the table child instance again</screen>
             Else, an <literal>AttributeError</literal> is raised.</para>
           </section>
 
-          <section id="Group.__iter__">
+          <section id="Group.__iter__" xreflabel="description">
             <title>__iter__()</title>
 
             <para>Iterate over the child nodes hanging directly from the
@@ -5933,7 +6281,7 @@ for node in h5file.root.detector:
     print node</screen>
           </section>
 
-          <section id="Group.__repr__">
+          <section id="Group.__repr__" xreflabel="description">
             <title>__repr__()</title>
 
             <para>Return a detailed string representation of the group.</para>
@@ -5946,7 +6294,7 @@ for node in h5file.root.detector:
   children := ['tuple1' (Table), 'group1' (Group)]</screen>
           </section>
 
-          <section id="Group.__setattr__">
+          <section id="Group.__setattr__" xreflabel="description">
             <title>__setattr__(name, value)</title>
 
             <para>Set a Python attribute called <literal>name</literal> with
@@ -5976,7 +6324,7 @@ for node in h5file.root.detector:
             dictionaries in the group (if visible).</para>
           </section>
 
-          <section id="Group.__str__">
+          <section id="Group.__str__" xreflabel="description">
             <title>__str__()</title>
 
             <para>Return a short string representation of the group.</para>
@@ -6193,7 +6541,7 @@ for node in h5file.root.detector:
         <section>
           <title><literal>Leaf</literal> methods</title>
 
-          <section id="Leaf.close">
+          <section id="Leaf.close" xreflabel="description">
             <title>close(flush=True)</title>
 
             <para>Close this node in the tree.</para>
@@ -6302,7 +6650,7 @@ for node in h5file.root.detector:
 
           </section>
 
-          <section id="Leaf.delAttr">
+          <section id="Leaf.delAttr" xreflabel="description">
             <title>delAttr(name)</title>
 
             <para>Delete a PyTables attribute from this node.</para>
@@ -6312,7 +6660,7 @@ for node in h5file.root.detector:
             linkend="Node._f_delAttr" />).</para>
           </section>
 
-          <section id="Leaf.flush">
+          <section id="Leaf.flush" xreflabel="description">
             <title>flush()</title>
 
             <para>Flush pending data to disk.</para>
@@ -6324,7 +6672,7 @@ for node in h5file.root.detector:
             low.</para>
           </section>
 
-          <section id="Leaf.getAttr">
+          <section id="Leaf.getAttr" xreflabel="description">
             <title>getAttr(name)</title>
 
             <para>Get a PyTables attribute from this node.</para>
@@ -6334,7 +6682,7 @@ for node in h5file.root.detector:
             linkend="Node._f_getAttr" />).</para>
           </section>
 
-          <section id="Leaf.isVisible">
+          <section id="Leaf.isVisible" xreflabel="description">
             <title>isVisible()</title>
 
             <para>Is this node visible?</para>
@@ -6344,7 +6692,7 @@ for node in h5file.root.detector:
             linkend="Node._f_isVisible" />).</para>
           </section>
 
-          <section id="Leaf.move">
+          <section id="Leaf.move" xreflabel="description">
             <title>move(newparent=None, newname=None, overwrite=False,
             createparents=False)</title>
 
@@ -6355,7 +6703,7 @@ for node in h5file.root.detector:
             linkend="Node._f_move" />).</para>
           </section>
 
-          <section id="Leaf.rename">
+          <section id="Leaf.rename" xreflabel="description">
             <title>rename(newname)</title>
 
             <para>Rename this node in place.</para>
@@ -6365,7 +6713,7 @@ for node in h5file.root.detector:
             linkend="Node._f_rename" />).</para>
           </section>
 
-          <section id="Leaf.remove">
+          <section id="Leaf.remove" xreflabel="description">
             <title>remove()</title>
 
             <para>Remove this node from the hierarchy.</para>
@@ -6377,7 +6725,7 @@ for node in h5file.root.detector:
             nodes.</para>
           </section>
 
-          <section id="Leaf.setAttr">
+          <section id="Leaf.setAttr" xreflabel="description">
             <title>setAttr(name, value)</title>
 
             <para>Set a PyTables attribute for this node.</para>
@@ -6387,7 +6735,7 @@ for node in h5file.root.detector:
             linkend="Node._f_setAttr" />).</para>
           </section>
 
-          <section id="Leaf.truncate">
+          <section id="Leaf.truncate" xreflabel="description">
             <title>truncate(size)</title>
 
             <para>Truncate the main dimension to be <literal>size</literal>
@@ -6415,7 +6763,7 @@ for node in h5file.root.detector:
             </warning>
           </section>
 
-          <section id="Leaf.__len__">
+          <section id="Leaf.__len__" xreflabel="description">
             <title>__len__()</title>
             <para>Return the length of the main dimension of the leaf
             data.</para>
@@ -6802,7 +7150,7 @@ for node in h5file.root.detector:
 
           </section>
 
-          <section id="Table.itersequence">
+          <section id="Table.itersequence" xreflabel="description">
             <title>itersequence(sequence)</title>
 
             <para>Iterate over a <literal>sequence</literal> of row
@@ -6815,7 +7163,7 @@ for node in h5file.root.detector:
             </note>
           </section>
 
-          <section id="Table.itersorted">
+          <section id="Table.itersorted" xreflabel="description">
             <title>itersorted(sortby, checkCSI=False, start=None, stop=None,
             step=None)</title>
 
@@ -6825,7 +7173,7 @@ for node in h5file.root.detector:
             <para><literal>sortby</literal> column must have associated a
             <literal>full</literal> index.  If you want to ensure a fully
             sorted order, the index must be a CSI one.  You may want to use
-            the <literal>checkCSI</literal> argument in order to explicitely
+            the <literal>checkCSI</literal> argument in order to explicitly
             check for the existence of a CSI index.</para>
 
             <para>The meaning of the <literal>start</literal>,
@@ -6903,7 +7251,7 @@ for node in h5file.root.detector:
             <para><literal>sortby</literal> column must have associated a
             <literal>full</literal> index.  If you want to ensure a fully
             sorted order, the index must be a CSI one.  You may want to use
-            the <literal>checkCSI</literal> argument in order to explicitely
+            the <literal>checkCSI</literal> argument in order to explicitly
             check for the existence of a CSI index.</para>
 
             <para>If <literal>field</literal> is supplied only the named
@@ -6927,7 +7275,7 @@ for node in h5file.root.detector:
 
           </section>
 
-          <section id="Table.__getitem__">
+          <section id="Table.__getitem__" xreflabel="description">
             <title>__getitem__(key)</title>
 
             <para>Get a row or a range of rows from the table.</para>
@@ -7071,7 +7419,7 @@ fileh.close()</screen>
             nested column.</para>
           </section>
 
-          <section id="Table.modifyColumns">
+          <section id="Table.modifyColumns" xreflabel="description">
             <title>modifyColumns(start=None, stop=None, step=1, columns=None,
             names=None)</title>
 
@@ -7101,7 +7449,7 @@ fileh.close()</screen>
             columns.</para>
           </section>
 
-          <section id="Table.modifyCoordinates">
+          <section id="Table.modifyCoordinates" xreflabel="description">
             <title>modifyCoordinates(coords, rows)</title>
 
             <para>Modify a series of rows in positions specified in
@@ -7179,7 +7527,7 @@ fileh.close()</screen>
             </glosslist>
           </section>
 
-          <section id="Table.__setitem__">
+          <section id="Table.__setitem__" xreflabel="description">
             <title>__setitem__(key, value)</title>
 
             <para>Set a row or a range of rows in the table.</para>
@@ -7235,7 +7583,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
         <section id="TableMethods_querying">
           <title><literal>Table</literal> methods — querying</title>
 
-          <section id="Table.getWhereList">
+          <section id="Table.getWhereList" xreflabel="description">
             <title>getWhereList(condition, condvars=None, sort=False,
             start=None, stop=None, step=None)</title>
 
@@ -7367,7 +7715,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             </warning>
           </section>
 
-          <section id="Table.whereAppend">
+          <section id="Table.whereAppend" xreflabel="description">
             <title>whereAppend(dstTable, condition, condvars=None, start=None,
             stop=None, step=None)</title>
 
@@ -7399,7 +7747,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             list.</para>
 
             <para>This method is mainly intended for testing. Keep in mind
-            that changing the set of indexed columns or their dirtyness may
+            that changing the set of indexed columns or their dirtiness may
             make this method return different values for the same arguments at
             different times.</para>
 
@@ -7449,7 +7797,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
                   <para>If rue and a CSI index does not exist for the
                   <literal>sortby</literal> column, an error will be raised.
                   If false (the default), it does nothing.  You can use this
-                  flag in order to explicitely check for the existence of a
+                  flag in order to explicitly check for the existence of a
                   CSI index.</para>
                 </glossdef>
               </glossentry>
@@ -7468,7 +7816,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
 
           </section>
 
-          <section id="Table.flushRowsToIndex">
+          <section id="Table.flushRowsToIndex" xreflabel="description">
             <title>flushRowsToIndex()</title>
 
             <para>Add remaining rows in buffers to non-dirty indexes.</para>
@@ -7484,7 +7832,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             </note>
           </section>
 
-          <section id="Table.getEnum">
+          <section id="Table.getEnum" xreflabel="description">
             <title>getEnum(colname)</title>
 
             <para>Get the enumerated type associated with the named
@@ -7499,7 +7847,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             exist, a <literal>KeyError</literal> is raised.</para>
           </section>
 
-          <section id="Table.reIndex">
+          <section id="Table.reIndex" xreflabel="description">
             <title>reIndex()</title>
 
             <para>Recompute all the existing indexes in the table.</para>
@@ -7513,7 +7861,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
             </note>
           </section>
 
-          <section id="Table.reIndexDirty">
+          <section id="Table.reIndexDirty" xreflabel="description">
             <title>reIndexDirty()</title>
 
             <para>Recompute the existing indexes in table,
@@ -7774,7 +8122,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
           <para>This class provides an <emphasis>iterator interface</emphasis>
           so that you can use the same <literal>Row</literal> instance to
           access successive table rows one after the other.  There are also
-          some important methods that are useful for acessing, adding and
+          some important methods that are useful for accessing, adding and
           modifying values in tables.</para>
 
           <section>
@@ -7787,7 +8135,7 @@ table.modifyCoordinates([True, False, True], rows)</screen>
                 <glossdef>
                   <para>The current row number.</para>
 
-                  <para>This poperty is useful for knowing which row is being
+                  <para>This property is useful for knowing which row is being
                   dealt with in the middle of a loop or iterator.</para>
                 </glossdef>
               </glossentry>
@@ -7838,7 +8186,7 @@ table.flush()</screen>
 
               <screen>[row.fetch_all_fields() for row in table.where('col1 &lt; 3')]</screen>
 
-              <para>will select all the rows that fullfill the given condition
+              <para>will select all the rows that fulfill the given condition
               as a list of NumPy records.</para>
             </section>
 
@@ -7908,14 +8256,14 @@ table.flush()</screen>
               <para>Examples of use:</para>
               <screen>res = [row['var3'] for row in table.where('var2 &lt; 20')]</screen>
               <para>which selects the <literal>var3</literal> field for all
-              the rows that fullfill the condition. Or:</para>
+              the rows that fulfil the condition. Or:</para>
               <screen>res = [row[4] for row in table if row[1] &lt; 20]</screen>
               <para>which selects the field in the <emphasis>4th</emphasis>
-              position for all the rows that fullfill the
+              position for all the rows that fulfil the
               condition. Or:</para>
               <screen>res = [row[:] for row in table if row['var2'] &lt; 20]</screen>
               <para>which selects the all the fields (in the form of a
-              <emphasis>tuple</emphasis>) for all the rows that fullfill the
+              <emphasis>tuple</emphasis>) for all the rows that fulfil the
               condition. Or:</para>
               <screen>res = [row[1::2] for row in table.iterrows(2, 3000, 3)]</screen>
               <para>which selects all the fields in even positions (in the
@@ -8037,7 +8385,7 @@ table.flush()</screen>
           <section>
             <title><literal>Cols</literal> methods</title>
 
-            <section id="Cols._f_col">
+            <section id="Cols._f_col" xreflabel="description">
               <title>_f_col(colname)</title>
 
               <para>Get an accessor to the column
@@ -8058,7 +8406,7 @@ table.flush()</screen>
               not valid Python identifiers.</para>
             </section>
 
-            <section id="Cols.__getitem__">
+            <section id="Cols.__getitem__" xreflabel="description">
               <title>__getitem__(key)</title>
 
               <para>Get a row or a range of rows from a table or nested
@@ -8086,13 +8434,11 @@ nrecarray = table.read(start=4, stop=1000, step=2).field('Info')</screen>
               />) method.</para>
             </section>
 
-            <section>
+            <section id="Cols.__len__" xreflabel="description">
               <title>__len__()</title>
 
-              <para>Get the number of elements in the column.</para>
+              <para>Get the number of top level columns in table.</para>
 
-              <para>This matches the length in rows of the parent
-              table.</para>
             </section>
 
             <section>
@@ -8364,7 +8710,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               </note>
             </section>
 
-            <section id="Colum.reIndex">
+            <section id="Colum.reIndex" xreflabel="description">
               <title><literal>reIndex()</literal></title>
 
               <para>Recompute the index associated with this column.</para>
@@ -8382,7 +8728,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               </note>
             </section>
 
-            <section id="Column.reIndexDirty">
+            <section id="Column.reIndexDirty" xreflabel="description">
               <title><literal>reIndexDirty()</literal></title>
 
               <para>Recompute the associated index only if it is dirty.</para>
@@ -8404,7 +8750,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
               </note>
             </section>
 
-            <section id="Column.removeIndex">
+            <section id="Column.removeIndex" xreflabel="description">
               <title><literal>removeIndex()</literal></title>
 
               <para>Remove the index associated with this column.</para>
@@ -8424,7 +8770,7 @@ table.modifyColumn(4, 1000, 2, colname='Info', column=recarray)</screen>
           <section>
             <title><literal>Column</literal> special methods</title>
 
-            <section id="Column.__getitem__">
+            <section id="Column.__getitem__" xreflabel="description">
               <title><literal>__getitem__(key)</literal></title>
 
               <para>Get a row or a range of rows from a column.</para>
@@ -8468,7 +8814,7 @@ Select table.cols._f_col('name')[:]--> ['Particle:     10'
               more complete example.</para>
             </section>
 
-            <section id="Column.__len__">
+            <section id="Column.__len__" xreflabel="description">
               <title>__len__()</title>
 
               <para>Get the number of elements in the column.</para>
@@ -8477,7 +8823,7 @@ Select table.cols._f_col('name')[:]--> ['Particle:     10'
               table.</para>
             </section>
 
-            <section id="Column.__setitem__">
+            <section id="Column.__setitem__" xreflabel="description">
               <title>__setitem__(key, value)</title>
 
               <para>Set a row or a range of rows in a column.</para>
@@ -8802,7 +9148,7 @@ Object Tree:
       <section id="EArrayClassDescr">
         <title>The <literal>EArray</literal> class</title>
 
-        <para>This class represents extendible, homogeneous datasets in an
+        <para>This class represents extendable, homogeneous datasets in an
         HDF5 file.</para>
 
         <para>The main difference between an <literal>EArray</literal> and a
@@ -8823,7 +9169,7 @@ Object Tree:
         <section id="EArrayMethodsDescr">
           <title><literal>EArray</literal> methods</title>
 
-          <section id="EArray.append">
+          <section id="EArray.append" xreflabel="description">
             <title>append(sequence)</title>
 
             <para>Add a <literal>sequence</literal> of data to the end of the
@@ -8959,7 +9305,7 @@ array_c[4] => 'cccccccc'</screen>
             append is itself the <literal>sequence</literal>.</para>
           </section>
 
-          <section id="VLArray.getEnum">
+          <section id="VLArray.getEnum" xreflabel="description">
             <title>getEnum()</title>
 
             <para>Get the enumerated type associated with this array.</para>
@@ -9039,7 +9385,7 @@ array_c[4] => 'cccccccc'</screen>
           (e.g., <literal>vlarray[2:5]</literal> will be equivalent to a call
           to <literal>vlarray.__getitem__(slice(2, 5, None)</literal>).</para>
 
-          <section id="VLArray.__getitem__">
+          <section id="VLArray.__getitem__" xreflabel="description">
             <title>__getitem__(key)</title>
 
             <para>Get a row or a range of rows from the array.</para>
@@ -9194,6 +9540,263 @@ vlarray2[2]--> ['5', '6', '9', '88']</screen>
         </section>
       </section>
 
+      <section id="LinkClassDescr">
+        <title>The <literal>Link</literal> class</title>
+
+        <para>Abstract base class for all PyTables links.</para>
+
+        <para>A link is a node that refers to another node.
+          The <literal>Link</literal> class inherits
+          from <literal>Node</literal> class and the links that inherits
+          from <literal>Link</literal> are <literal>SoftLink</literal>
+          and <literal>ExternalLink</literal>.  There is not
+          a <literal>HardLink</literal> subclass because hard links behave
+          like a regular <literal>Group</literal> or <literal>Leaf</literal>.
+          Contrarily to other nodes, links cannot have HDF5 attributes.  This
+          is an HDF5 library limitation that might be solved in future
+          releases.
+        </para>
+
+        <para>See <xref linkend="LinksTutorial"/> for a small tutorial on how
+        to work with links.</para>
+
+        <section>
+          <title><literal>Link</literal> instance variables</title>
+
+          <glosslist>
+            <?dbfo glosslist-presentation="list" ?>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">_v_attrs</emphasis></glossterm>
+
+              <glossdef>
+                <para>A <literal>NoAttrs</literal> instance replacing the
+                  typical <emphasis>AttributeSet</emphasis> instance of other
+                  node objects.  The purpose of <literal>NoAttrs</literal> is
+                  to make clear that HDF5 attributes are not supported in link
+                  nodes.
+                </para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">target</emphasis></glossterm>
+
+              <glossdef>
+                <para>The path string to the pointed node.</para>
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
+
+        <section>
+          <title><literal>Link</literal> methods</title>
+
+          <para>The following methods are useful for copying, moving, renaming
+            and removing links.</para>
+
+          <section id="Link.copy" xreflabel="description">
+            <title>copy(newparent=None, newname=None, overwrite=False,
+             createparents=False)</title>
+
+            <para>Copy this link and return the new one.</para>
+
+            <para>See <literal>Node._f_copy()</literal>
+            (<xref linkend="Node._f_copy" />) for a complete explanation of
+            the arguments.  Please note that there is no
+            <literal>recursive</literal> flag since links do not have child
+            nodes.</para>
+
+          </section>
+
+          <section id="Link.move" xreflabel="description">
+            <title>move(newparent=None, newname=None, overwrite=False)</title>
+
+            <para>Move or rename this link.</para>
+
+            <para>See <literal>Node._f_move()</literal>
+            (<xref linkend="Node._f_move" />) for a complete explanation of
+            the arguments.</para>
+
+          </section>
+
+          <section id="Link.remove" xreflabel="description">
+            <title>remove()</title>
+
+            <para>Remove this link from the hierarchy.</para>
+
+          </section>
+
+          <section id="Link.rename" xreflabel="description">
+            <title>rename(newname=None)</title>
+
+            <para>Rename this link in place.</para>
+
+            <para>See <literal>Node._f_rename()</literal>
+            (<xref linkend="Node._f_rename" />) for a complete explanation of
+            the arguments.</para>
+
+          </section>
+        </section>
+      </section>
+
+
+      <section id="SoftLinkClassDescr">
+        <title>The <literal>SoftLink</literal> class</title>
+
+        <para>Represents a soft link (aka symbolic link).</para>
+
+        <para> A soft link is a reference to another node in
+          the <emphasis>same</emphasis> file hierarchy.  Getting access to the
+          pointed node (this action is
+          called <emphasis>dereferrencing</emphasis>) is done via
+          the <literal>__call__</literal> special method (see below).
+        </para>
+
+        <section>
+          <title><literal>SoftLink</literal> special methods</title>
+
+          <para>The following methods are specific for dereferrencing and
+          representing soft links.</para>
+
+          <section id="Link.__call__" xreflabel="description">
+            <title>__call__()</title>
+
+            <para>Dereference <literal>self.target</literal> and return the
+            pointed object.</para>
+
+            <para>Example of use:</para>
+
+            <screen>>>> f=tables.openFile('data/test.h5')
+>>> print f.root.link0
+/link0 (SoftLink) -> /another/path
+>>> print f.root.link0()
+/another/path (Group) ''</screen>
+
+          </section>
+
+          <section id="Link.__str__" xreflabel="description">
+            <title>__str__()</title>
+
+            <para>Return a short string representation of the link.
+            </para>
+
+            <para>Example of use:</para>
+
+            <screen>>>> f=tables.openFile('data/test.h5')
+>>> print f.root.link0
+/link0 (SoftLink) -> /path/to/node</screen>
+
+          </section>
+        </section>
+      </section>
+
+
+      <section id="ExternalLinkClassDescr">
+        <title>The <literal>ExternalLink</literal> class</title>
+
+        <para>Represents an external link.</para>
+
+        <para>An external link is a reference to a node
+        in <emphasis>another</emphasis> file.  Getting access to the pointed
+        node (this action is called <emphasis>dereferrencing</emphasis>) is
+        done via the <literal>__call__</literal> special method (see
+        below).</para>
+
+        <warning>
+          <para>External links are only supported when PyTables is compiled
+            against HDF5 1.8.x series.  When using PyTables with HDF5 1.6.x,
+            the <emphasis>parent</emphasis> group containing external link
+            objects will be mapped to an <literal>Unknown</literal> instance
+            (see <xref linkend="UnknownClassDescr" xrefstyle="select: label"
+            />) and you won't be able to access <emphasis>any</emphasis> node
+            hanging of this parent group.  It follows that if the parent group
+            containing the external link is the root group, you won't be able
+            to read <emphasis>any</emphasis> information contained in the file
+            when using HDF5 1.6.x.</para>
+        </warning>
+
+        <section>
+          <title><literal>ExternalLink</literal> instance variables</title>
+
+          <glosslist>
+            <?dbfo glosslist-presentation="list" ?>
+
+            <glossentry>
+              <glossterm><emphasis role="bold">extfile</emphasis></glossterm>
+
+              <glossdef>
+                <para>The external file handler, if the link has been
+                  dereferenced.  In case the link has not been dereferenced
+                  yet, its value is <literal>None</literal>.
+                </para>
+
+              </glossdef>
+            </glossentry>
+
+          </glosslist>
+        </section>
+
+        <section>
+          <title><literal>ExternalLink</literal> methods</title>
+
+          <section id="ExternalLink.umount" xreflabel="description">
+            <title>umount()</title>
+
+            <para>Safely unmount <literal>self.extfile</literal>, if
+            opened.</para>
+
+          </section>
+        </section>
+
+        <section>
+          <title><literal>ExternalLink</literal> special methods</title>
+
+          <para>The following methods are specific for dereferrencing and
+            representing external links.</para>
+
+          <section id="ExternalLink.__call__" xreflabel="description">
+            <title>__call__(**kwargs)</title>
+
+            <para>Dereference <literal>self.target</literal> and return the
+            pointed object.</para>
+
+            <para>You can pass all the arguments supported by the
+              <literal>openFile()</literal> function
+              (except <literal>filename</literal>, of course) so as to open
+              the referenced external file.</para>
+
+            <para>Example of use:</para>
+
+            <screen>>>> f=tables.openFile('data1/test1.h5')
+>>> print f.root.link2
+/link2 (ExternalLink) -> data2/test2.h5:/path/to/node
+>>> plink2 = f.root.link2('a')  # open in 'a'ppend mode
+>>> print plink2
+/path/to/node (Group) ''
+>>> print plink2._v_filename
+'data2/test2.h5'        # belongs to referenced file</screen>
+
+          </section>
+
+          <section id="ExternalLink.__str__" xreflabel="description">
+            <title>__str__()</title>
+
+            <para>Return a short string representation of the link.
+            </para>
+
+            <para>Example of use:</para>
+
+            <screen>>>> f=tables.openFile('data1/test1.h5')
+>>> print f.root.link2
+/link2 (ExternalLink) -> data2/test2.h5:/path/to/node</screen>
+
+          </section>
+        </section>
+      </section>
+
+
       <section id="UnImplementedClassDescr">
         <title>The <literal>UnImplemented</literal> class</title>
 
@@ -9225,6 +9828,21 @@ vlarray2[2]--> ['5', '6', '9', '88']</screen>
         (see <xref linkend="LeafClassDescr" xrefstyle="select: label"
         />).</para>
       </section>
+
+
+      <section id="UnknownClassDescr">
+        <title>The <literal>Unknown</literal> class</title>
+
+        <para>This class represents nodes reported
+          as <emphasis>unknown</emphasis> by the underlying HDF5 library.
+        </para>
+
+        <para>This class does not have any public instance variables or
+          methods, except those inherited from the <literal>Node</literal>
+          class.</para>
+
+      </section>
+
 
       <section id="AttributeSetClassDescr">
         <title>The <literal>AttributeSet</literal> class</title>
@@ -9523,7 +10141,7 @@ del leaf.attrs.myattr             # delete the attribute ``myattr``</screen>
                 role="bold">itemsize</emphasis></glossterm>
 
                 <glossdef>
-                  <para>Size in bytes of a sigle item in the atom.</para>
+                  <para>Size in bytes of a single item in the atom.</para>
 
                   <para>Specially useful for atoms of the
                   <literal>string</literal> kind.</para>
@@ -10386,7 +11004,7 @@ True</screen>
           attribute which sets the <emphasis>relative</emphasis> position of
           the column among sibling columns <emphasis>also having explicit
           positions</emphasis>.  The <literal>pos</literal> constructor
-          argument of <literal>Col</literal> intances is used for the same
+          argument of <literal>Col</literal> instances is used for the same
           purpose.  Columns with no explicit position will be placed
           afterwards in alphanumeric order.</para>
 
@@ -10522,7 +11140,7 @@ from tables import *
 
 fileh = openFile('test5.h5', mode='w')
 atom = Float32Atom()
-filters = Filters(complevel=1, complib='lzo', fletcher32=True)
+filters = Filters(complevel=1, complib='blosc', fletcher32=True)
 arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2),
                          "A growable array", filters=filters)
 # Append several rows in only one call
@@ -10536,12 +11154,12 @@ print repr(arr)
 
 fileh.close()</screen>
 
-            <para>This enforces the use of the LZO library, a compression
+            <para>This enforces the use of the Blosc library, a compression
             level of 1 and a Fletcher32 checksum filter as well. See the
             output of this example:</para>
 
             <screen>Result Array:
-/earray (EArray(3, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
+/earray (EArray(3, 2), fletcher32, shuffle, blosc(1)) 'A growable array'
   type = float32
   shape = (3, 2)
   itemsize = 4
@@ -10575,10 +11193,12 @@ fileh.close()</screen>
 
                 <glossdef>
                   <para>Specifies the compression library to be used. Right
-                  now, 'zlib' (the default), 'lzo' and 'bzip2' are supported.
-                  Specifying a compression library which is not available in
-                  the system issues a <literal>FiltersWarning</literal> and
-                  sets the library to the default one.</para>
+                  now, <literal>'zlib'</literal> (the
+                  default), <literal>'lzo'</literal>, <literal>'bzip2'</literal>
+                  and <literal>'blosc'</literal> are supported.  Specifying a
+                  compression library which is not available in the system
+                  issues a <literal>FiltersWarning</literal> and sets the
+                  library to the default one.</para>
 
                   <!-- manual-only -->
                   <para>See <xref linkend="compressionIssues"
@@ -10976,7 +11596,7 @@ True</screen>
         </section>
       </section>
 
-      <section id="ExprClass">
+      <section id="ExprClassDescr">
         <title>The <literal>Expr</literal> class - a general-purpose
         expression evaluator</title>
 
@@ -10991,10 +11611,10 @@ True</screen>
         <literal>EArray</literal> and <literal>Column</literal> PyTables
         objects.</para>
 
-        <para>All the internal computations are performed via the integrated
-        Numexpr package, so all the broadcast and upcasting rules of Numexpr
-        applies here too.  These rules are very similar to the NumPy ones, but
-        with some exceptions due to the particularities of having to deal with
+        <para>All the internal computations are performed via the Numexpr
+        package, so all the broadcast and upcasting rules of Numexpr applies
+        here too.  These rules are very similar to the NumPy ones, but with
+        some exceptions due to the particularities of having to deal with
         potentially very large disk-based arrays.  Be sure to read the
         documentation of the
         <literal>Expr</literal> constructor and methods as well as that of
@@ -11126,7 +11746,7 @@ True</screen>
         <section id="ExprClassMethods">
           <title><literal>Expr</literal> methods</title>
 
-          <section id="Expr.__init__" xreflabel="Expr.__init__">
+          <section id="Expr.__init__" xreflabel="description">
             <title>__init__(expr, uservars=None, **kwargs)</title>
 
             <para>Compile the expression and initialize internal
@@ -11137,7 +11757,7 @@ True</screen>
 
             <para>The <literal>uservars</literal> mapping may be used to
               define the variable names appearing in <literal>expr</literal>.
-              This mappping should consist of identifier-like strings pointing
+              This mapping should consist of identifier-like strings pointing
               to any <literal>Array</literal>,
               <literal>CArray</literal>, <literal>EArray</literal>,
               <literal>Column</literal> or NumPy ndarray instances (or even
@@ -11217,7 +11837,7 @@ array([ 8, 12])
               type.</para>
 
             <para>Finally, if the <literal>setOuput()</literal> method
-              specifiying a user container has already been called, the output
+              specifying a user container has already been called, the output
               is sent to this user-provided container.  If not, a fresh NumPy
               container is returned instead.</para>
 
@@ -11555,14 +12175,13 @@ array([ 8, 12])
           at least, you will have the opportunity to fine-tune such an
           important parameter for your application.</para>
 
-          <para>Finally, it is worth to not that adjusting the chunksize can
-          be specially important if you decide that you want to access your
-          dataset by blocks of certain dimensions.  In this case, you may want
-          to set your <literal>chunkshape</literal> to be the same than these
-          dimensions.  In this case, you only have to be careful to not end
-          with a too small or too large chunksize.  As always, experimenting
-          prior to pass your application into production phase is your best
-          ally.
+          <para>Finally, it is worth noting that adjusting the chunksize can
+          be specially important if you want to access your dataset by blocks
+          of certain dimensions.  In this case, it is normally a good idea to
+          set your <literal>chunkshape</literal> to be the same than these
+          dimensions; you only have to be careful to not end with a too small
+          or too large chunksize.  As always, experimenting prior to pass your
+          application into production is your best ally.
           </para>
 
         </section>
@@ -12130,7 +12749,7 @@ indexrows = table.cols.var3.createIndex()</screen>
           setup and in around 1 hundredth of second for a SSD disk.  This
           represents up to more that 100x improvement in speed with respect to
           the times with unsorted tables.  On the other hand, when the number
-          of hits is large (&lt; 1 million), the query times grow almost
+          of hits is large (&gt; 1 million), the query times grow almost
           linearly, showing a near-perfect scalability for both RAID-0 and SSD
           setups (the sequential access to disk becomes the bottleneck in this
           case).
@@ -12156,23 +12775,6 @@ indexrows = table.cols.var3.createIndex()</screen>
 
             </mediaobject>
           </figure>
-
-          <para>Another thing worth to be noted in <xref
-          linkend="queryTimes-indexed-sorted" xrefstyle="select: label"/>, is
-          that, for very large number of hits, and more exactly in the 500,000
-          hits point, the time to query in the case of a sorted table, can be
-          more than 2x times faster, which may sound a bit suspicious provided
-          that we already stated that the speed for the case of the unsorted
-          table was only limited by the I/O speed of the disk, so how sorting
-          a table can actually improve I/O times?.  Well, the answer is that,
-          as the table is sorted by a column, and due to the data distribution
-          chosen, the entropy of the resulting table is reduced quite a lot,
-          so allowing the compressor (LZO in this case) to do a much better
-          job and producing datasets more than 2x smaller (and hence,
-          requiring less time to be read).  So, in the end, the there is no
-          contradiction in having improved query times in the low selectivity
-          scenario.
-          </para>
 
           <para>Even though we have shown many ways to improve query times
           that should fulfill the needs of most of people, for those needing
@@ -12266,7 +12868,7 @@ indexrows = table.cols.var3.createIndex()</screen>
           <para>With this setup, you can look at the compression ratios that
           can be achieved in <xref linkend="comprTblComparison"
           xrefstyle="select: label" />. As you can see, LZO is the compressor
-          that performs worse in this sense, but, curiosly enough, there is
+          that performs worse in this sense, but, curiously enough, there is
           not much difference between Zlib and bzip2.</para>
 
           <figure id="comprTblComparison">
@@ -12566,7 +13168,7 @@ indexrows = table.cols.var3.createIndex()</screen>
           linkend="comprReadCacheShuffleComparison"
           xrefstyle="select: labelnumber" />, you will get a somewhat unexpected
           (but pleasant) surprise. Roughly, <emphasis>shuffle</emphasis> makes
-          the writing process (shuffling+compressing) faster (aproximately a 15%
+          the writing process (shuffling+compressing) faster (approximately a 15%
           for LZO, 30% for Bzip2 and a 80% for Zlib), which is an interesting
           result by itself. But perhaps more exciting is the fact that the
           reading process (unshuffling+decompressing) is also accelerated by a
@@ -12778,7 +13380,7 @@ print readFile("myfile.h5")</screen>
         of files with lots of nodes, allowing to open almost any kind of file
         in typically less than one tenth of second (compare this with the more
         than 10 seconds for files with more than 10000 nodes in PyTables
-        pre-1.2 era) as well as optimizing the access to frequely visited
+        pre-1.2 era) as well as optimizing the access to frequently visited
         nodes. See <biblioref linkend="NewObjectTreeCacheRef" /> for more info
         on the advantages (and also drawbacks) of this approach.</para>
 
@@ -12955,7 +13557,7 @@ print readFile("myfile.h5")</screen>
         negative value for <literal>NODE_CACHE_SLOTS</literal>.  This will
         cause that all the touched nodes will be kept in an internal
         dictionary and this is the faster way to load/retrieve nodes.
-        However, and in order to avoid a large memory comsumption, the user
+        However, and in order to avoid a large memory consumption, the user
         will be warned when the number of loaded nodes will reach the
         <literal>-NODE_CACHE_SLOTS</literal> value.</para>
 
@@ -13944,7 +14546,7 @@ variables:
 // global attributes:
       :description = 'bogus example to illustrate the use of tables.netcdf3' ;
       :history = 'Created Wed Nov  9 12:29:13 2005' ;
-      :source = 'PyTables Users Guilde' ;
+      :source = 'PyTables Users Guide' ;
 }</screen>
         </section>
 
@@ -14121,7 +14723,7 @@ variables:
               supported in netCDF or Scientific.IO.NetCDF, if they are used in
               a <literal>tables.netcdf3</literal> file, that file cannot be
               converted to a true netCDF file nor can it be shared over the
-              internet with OPeNDAP. Dimensions must be a tuple containing
+              Internet with OPeNDAP. Dimensions must be a tuple containing
               dimension names (strings) that have been defined previously by
               <literal>createDimensions</literal>. The
               <literal>least_significant_digit</literal> is the power of ten
@@ -14205,7 +14807,7 @@ variables:
           <title>The <literal>NetCDFVariable</literal> class</title>
 
           <para>The <literal>NetCDFVariable</literal> constructor is not
-          called explicitly, rather an <literal>NetCDFVarible</literal>
+          called explicitly, rather an <literal>NetCDFVariable</literal>
           instance is returned by an invocation of
           <literal>NetCDFFile.createVariable</literal>.
           <literal>NetCDFVariable</literal> objects behave like arrays, and
@@ -14260,7 +14862,7 @@ variables:
             <section>
               <title>assignValue(data)</title>
 
-              <para>Provided for compatiblity with
+              <para>Provided for compatibility with
               <literal>Scientific.IO.NetCDF</literal>. Assigns data to the
               variable. If the variable has an <emphasis>unlimited</emphasis>
               dimension, it is equivalent to <literal>append(data)</literal>.
@@ -14272,7 +14874,7 @@ variables:
             <section>
               <title>getValue()</title>
 
-              <para>Provided for compatiblity with
+              <para>Provided for compatibility with
               <literal>Scientific.IO.NetCDF</literal>. Returns all the data in
               the variable. Equivalent to extracting the slice
               <literal>[:]</literal> from the variable.</para>
@@ -14373,12 +14975,12 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
 
       <section>
         <title>Sharing data in <literal>tables.netcdf3</literal> files over
-        the internet with OPeNDAP</title>
+        the Internet with OPeNDAP</title>
 
         <para><literal>tables.netcdf3</literal> datasets can be shared over
-        the internet with the OPeNDAP protocol (<ulink
+        the Internet with the OPeNDAP protocol (<ulink
         url="http://opendap.org">http://opendap.org</ulink>), via the python
-        opendap module (<ulink
+        OPeNDAP module (<ulink
         url="http://opendap.oceanografia.org">http://opendap.oceanografia.org</ulink>).
         A plugin for the python opendap server is included with the pytables
         distribution (<literal>contrib/h5_dap_plugin.py</literal>). Simply
@@ -14395,7 +14997,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
         client, although there is a client included in the opendap python
         module, and <literal>Scientific.IO.NetCDF</literal> can act as an
         OPeNDAP client if it is linked with the OPeNDAP netCDF client library.
-        Either of these python modules can be used to remotely acess
+        Either of these python modules can be used to remotely access
         <literal>tables.netcdf3</literal> datasets with OPeNDAP.</para>
       </section>
 
@@ -14860,12 +15462,11 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
       <title>Condition syntax</title>
 
       <para>Conditions in PyTables are used in methods related with in-kernel
-      and indexed searches such as <literal>Table.where()</literal> (see <xref
-      linkend="Table.where" />) or <literal>Table.readWhere()</literal> (see
-      <xref linkend="Table.readWhere" />).  They are interpreted using a
-      customized version of Numexpr, a powerful package for C-speed
-      computation of array operations (see <biblioref linkend="Numexpr"
-      />).</para>
+      and indexed searches such as <literal>Table.where()</literal> (see
+      <xref linkend="Table.where" />) or <literal>Table.readWhere()</literal>
+      (see <xref linkend="Table.readWhere" />).  They are interpreted using
+      Numexpr, a powerful package for achieving C-speed computation of array
+      operations (see <biblioref linkend="Numexpr" />).</para>
 
       <para>A condition on a table is just a <emphasis>string</emphasis>
       containing a Python expression involving <emphasis>at least one
@@ -15076,7 +15677,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
     </appendix>
 
     <appendix id="parametersFiles">
-      <title>PyTables' parameter files.</title>
+      <title>PyTables' parameter files</title>
 
       <para>PyTables issues warnings when certain limits are exceeded.  Those
       limits are not intrinsic limitations of the underlying software, but
@@ -15165,6 +15766,41 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
           <glosslist>
 
             <glossentry>
+              <glossterm><literal>CHUNK_CACHE_NELMTS</literal></glossterm>
+              <glossdef>
+                <para>Number of elements for HDF5 chunk cache.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>CHUNK_CACHE_PREEMPT</literal></glossterm>
+              <glossdef>
+                <para>Chunk preemption policy.  This value should be between 0
+                  and 1 inclusive and indicates how much chunks that have been
+                  fully read are favored for preemption. A value of zero means
+                  fully read chunks are treated no differently than other
+                  chunks (the preemption is strictly LRU) while a value of one
+                  means fully read chunks are always preempted before other
+                  chunks.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>CHUNK_CACHE_SIZE</literal></glossterm>
+              <glossdef>
+                <para>Size (in bytes) for HDF5 chunk cache.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
+              <glossterm><literal>COND_CACHE_SLOTS</literal></glossterm>
+              <glossdef>
+                <para>Maximum number of conditions for table queries to be
+                  kept in memory.</para>
+              </glossdef>
+            </glossentry>
+
+            <glossentry>
               <glossterm><literal>METADATA_CACHE_SIZE</literal></glossterm>
               <glossdef>
                 <para>Size (in bytes) of the HDF5 metadata cache.  This only
@@ -15189,7 +15825,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
                 <para>Negative value means that all the touched nodes will be
                   kept in an internal dictionary.  This is the faster way to
                   load/retrieve nodes.  However, and in order to avoid a large
-                  memory comsumption, the user will be warned when the number
+                  memory consumption, the user will be warned when the number
                   of loaded nodes will reach
                   the <literal>-NODE_CACHE_SLOTS</literal> value.</para>
 
@@ -15198,32 +15834,26 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
               </glossdef>
             </glossentry>
 
-            <glossentry>
-              <glossterm><literal>COND_CACHE_SLOTS</literal></glossterm>
-              <glossdef>
-                <para>Maximum number of conditions for table queries to be
-                  kept in memory.</para>
-              </glossdef>
-            </glossentry>
-
           </glosslist>
         </section>
 
         <section>
-          <title>Parameters for the I/O buffer in <literal>Table</literal>
-            objects.</title>
+          <title>Parameters for the I/O buffer in <literal>Leaf</literal>
+            objects</title>
 
           <glosslist>
 
             <glossentry>
-              <glossterm><literal>CHUNKTIMES</literal></glossterm>
+              <glossterm><literal>IO_BUFFER_SIZE</literal></glossterm>
               <glossdef>
-                <para>The buffersize/chunksize ratio.</para>
+                <para>The PyTables internal buffer size for I/O purposes.
+                  Should not exceed the amount of highest level cache size in
+                  your CPU.</para>
               </glossdef>
             </glossentry>
 
             <glossentry>
-              <glossterm><literal>BUFFERTIMES</literal></glossterm>
+              <glossterm><literal>BUFFER_TIMES</literal></glossterm>
               <glossdef>
                 <para>The maximum buffersize/rowsize ratio before issuing a
                   <literal>PerformanceWarning</literal>.</para>
@@ -15267,12 +15897,25 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
               </glossdef>
             </glossentry>
 
+            <glossentry>
+              <glossterm><literal>MAX_THREADS</literal></glossterm>
+              <glossdef>
+                <para>The maximum number of threads that PyTables should use
+                  internally (mainly in Blosc and Numexpr currently).  If
+                  <literal>None</literal>, it is automatically set to the
+                  number of cores in your machine. In general, it is a good
+                  idea to set this to the number of cores in your machine or,
+                  when your machine has many of them (e.g. > 4), perhaps one
+                  less than this.</para>
+              </glossdef>
+            </glossentry>
+
           </glosslist>
         </section>
       </section>
 
       <section>
-        <title>Tunable parameters in <literal>_parameters_pro.py</literal>.
+        <title>Tunable parameters in <literal>_parameters_pro.py</literal>
         </title>
 
         <note role="pro">
@@ -15404,7 +16047,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
               <glossterm><literal>ENABLE_EVERY_CYCLES</literal></glossterm>
               <glossdef>
                 <para>The number of cycles in which a cache will be forced to
-                be (re-)enabled, irregardingly of the hit ratio. This will
+                be (re-)enabled, irregardless of the hit ratio. This will
                 provide a chance for checking if we are in a better scenario
                 for doing caching again.</para>
               </glossdef>
@@ -15760,9 +16403,6 @@ NestedRecArray[
           <para>Let's suppose that we want to know only the
           <emphasis>structure</emphasis> of a file. In order to do that, just
           don't pass any flag, just the file as parameter: <screen>$ ptdump vlarray1.h5
-vlarray1.h5 (File) ''
-Last modif.: 'Mon Jan  8 16:21:25 2007'
-Object Tree:
 / (RootGroup) ''
 /vlarray1 (VLArray(3,), shuffle, zlib(1)) 'ragged array of ints'
 /vlarray2 (VLArray(3,), shuffle, zlib(1)) 'ragged array of strings'</screen>
@@ -15888,7 +16528,7 @@ Object Tree:
           <screen>usage: ptrepack [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-create-sysattrs] [--dont-copy-userattrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--chunkshape=value] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--checkCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
      -h -- Print usage message.
      -v -- Show more information.
-     -o -- Overwite destination file.
+     -o -- Overwrite destination file.
      -R RANGE -- Select a RANGE of rows (in the form "start,stop,step")
          during the copy of *all* the leaves.  Default values are
          "None,None,1", which means a copy of all the rows.
@@ -15939,9 +16579,6 @@ Object Tree:
           <literal>/column</literal> group) to another file. First, let's
           remember the content of the
           <literal>examples/tutorial1.h5</literal>: <screen>$ ptdump tutorial1.h5
-tutorial1.h5 (File) 'Test file'
-Last modif.: 'Mon Jan  8 16:30:30 2007'
-Object Tree:
 / (RootGroup) 'Test file'
 /columns (Group) 'Pressure and Name'
 /columns/name (Array(3,)) 'Name column selection'
@@ -15952,9 +16589,6 @@ Object Tree:
           <screen>$ ptrepack tutorial1.h5:/columns reduced.h5</screen> That's
           all. Let's see the contents of the newly created
           <literal>reduced.h5</literal> file: <screen>$ ptdump reduced.h5
-reduced.h5 (File) ''
-Last modif.: 'Mon Jan  8 16:31:31 2007'
-Object Tree:
 / (RootGroup) ''
 /name (Array(3,)) 'Name column selection'
 /pressure (Array(3,)) 'Pressure column selection'</screen> so, you have
@@ -15967,9 +16601,6 @@ Object Tree:
           included. You can do that by just specifying the destination group:
           <screen>$ ptrepack tutorial1.h5:/columns reduced.h5:/columns
 $ ptdump reduced.h5
-reduced.h5 (File) ''
-Last modif.: 'Mon Jan  8 16:32:25 2007'
-Object Tree:
 / (RootGroup) ''
 /name (Array(3,)) 'Name column selection'
 /pressure (Array(3,)) 'Pressure column selection'
@@ -15979,9 +16610,6 @@ Object Tree:
           better. But you want to get rid of the existing nodes on the new
           file. You can achieve this by adding the -o flag: <screen>$ ptrepack -o tutorial1.h5:/columns reduced.h5:/columns
 $ ptdump reduced.h5
-reduced.h5 (File) ''
-Last modif.: 'Mon Jan  8 16:33:08 2007'
-Object Tree:
 / (RootGroup) ''
 /columns (Group) ''
 /columns/name (Array(3,)) 'Name column selection'
@@ -15992,9 +16620,6 @@ Object Tree:
           <para>You can copy just one single node in the repacking operation
           and change its name in destination: <screen>$ ptrepack tutorial1.h5:/detector/readout reduced.h5:/rawdata
 $ ptdump reduced.h5
-reduced.h5 (File) ''
-Last modif.: 'Mon Jan  8 16:33:59 2007'
-Object Tree:
 / (RootGroup) ''
 /rawdata (Table(10,)) 'Readout example'
 /columns (Group) ''
@@ -16007,9 +16632,6 @@ Object Tree:
 Problems doing the copy from 'tutorial1.h5:/detector/readout' to 'reduced.h5:/rawdata'
 The error was --&gt; tables.exceptions.NodeError: destination group ``/`` already has a node named ``rawdata``; you may want to use the ``overwrite`` argument
 The destination file looks like:
-reduced.h5 (File) ''
-Last modif.: 'Mon Jan  8 16:33:59 2007'
-Object Tree:
 / (RootGroup) ''
 /rawdata (Table(10,)) 'Readout example'
 /columns (Group) ''
@@ -16033,9 +16655,6 @@ destination, and if so, add the --overwrite-nodes flag if desired.</screen>
           verbose error suggested: <screen>$ ptrepack --overwrite-nodes --complevel=1 tutorial1.h5:/detector/readout
 reduced.h5:/rawdata
 $ ptdump reduced.h5
-reduced.h5 (File) ''
-Last modif.: 'Mon Jan  8 16:36:54 2007'
-Object Tree:
 / (RootGroup) ''
 /rawdata (Table(10,), shuffle, zlib(1)) 'Readout example'
 /columns (Group) ''
@@ -16050,9 +16669,6 @@ Object Tree:
           new group called <literal>/slices</literal> and with the name, for
           example, <literal>aslice</literal>: <screen>$ ptrepack -R1,8,3 tutorial1.h5:/detector/readout reduced.h5:/slices/aslice
 $ ptdump reduced.h5
-reduced.h5 (File) ''
-Last modif.: 'Mon Jan  8 16:38:13 2007'
-Object Tree:
 / (RootGroup) ''
 /rawdata (Table(10,), shuffle, zlib(1)) 'Readout example'
 /columns (Group) ''
@@ -16062,7 +16678,7 @@ Object Tree:
 /slices/aslice (Table(3,)) 'Readout example'</screen> note how only 3 rows of
           the original <literal>readout</literal> table has been copied to the
           new <literal>aslice</literal> destination. Note as well how the
-          previously inexistent <literal>slices</literal> group has been
+          previously nonexistent <literal>slices</literal> group has been
           created in the same operation.</para>
         </section>
       </section>
@@ -16091,7 +16707,7 @@ Object Tree:
         (version 4, 5 or 6) files (<literal>loadmat</literal>). Once you have
         the content of your files as <literal>NumPy/Numeric/numarray</literal>
         objects, you can save them as regular <literal>(E)Arrays</literal> in
-        PyTables files. Remember, if you end with a nice conversor, do not
+        PyTables files. Remember, if you end with a nice converter, do not
         forget to contribute it back to the community. Thanks!</para>
 
         <section>
@@ -16107,11 +16723,11 @@ Object Tree:
           <screen>usage: nctoh5 [-h] [-v] [-o] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] netcdffilename hdf5filename
    -h -- Print usage message.
    -v -- Show more information.
-   -o -- Overwite destination file.
+   -o -- Overwrite destination file.
    --complevel=(0-9) -- Set a compression level (0 for no compression, which
        is the default).
    --complib=lib -- Set the compression library to be used during the copy.
-       lib can be set to "zlib", "lzo" or "ucl". Defaults to "zlib".
+       lib can be set to "zlib" or "lzo". Defaults to "zlib".
    --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
        if complevel>0).
    --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter (not
@@ -16357,7 +16973,7 @@ Object Tree:
 
                 <glossdef>
                   <para>It contains the default values of the different
-                  fields. All the datatypes are suported natively, except for
+                  fields. All the datatypes are supported natively, except for
                   complex types that are currently serialized using Pickle.
                   The <literal>X</literal> means the number of the field,
                   zero-based (beware, order do matter). You should add as many
@@ -17085,7 +17701,7 @@ Object Tree:
 
     <bibliomixed id="Objectify"></bibliomixed>
 
-    <bibliomixed id="Pyrex"></bibliomixed>
+    <bibliomixed id="Cython"></bibliomixed>
 
     <bibliomixed id="NetCDFRef"></bibliomixed>
 

@@ -1,10 +1,6 @@
 """Small benchmark on the effect of chunksizes and compression on HDF5 files.
 
-This script is meant to be used on a Linux kernel > 2.6.16 because of
-the trick used to empty the OS pagecache.  Because of this trick, it
-does need to be run as root!
-
-Francesc Altet
+Francesc Alted
 2007-11-25
 """
 
@@ -13,10 +9,13 @@ from time import time
 import numpy
 import tables
 
-#N, M = 512, 2**16
-N, M = 512, 2**19
-#N, M = 2000, 1000000
-datom = tables.Float64Atom()
+# Size of dataset
+#N, M = 512, 2**16     # 256 MB
+#N, M = 512, 2**18     # 1 GB
+N, M = 512, 2**19     # 2 GB
+#N, M = 2000, 1000000  # 15 GB
+#N, M = 4000, 1000000  # 30 GB
+datom = tables.Float64Atom()   # elements are double precision
 
 def quantize(data, least_significant_digit):
     """quantize data to improve compression.
@@ -46,36 +45,49 @@ def get_db_size(filename):
 def bench(chunkshape, filters):
     numpy.random.seed(1)   # to have reproductible results
     #filename = '/oldScr/ivilata/pytables/data.nobackup/test.h5'
-    #filename = '/scratch2/faltet/data.nobackup/test.h5'
-    filename = '/scratch3/faltet/test.h5'
-    f = tables.openFile(filename, 'w')
-    e = f.createEArray(f.root, 'earray', datom, shape=(0, M),
-                       filters = filters,
-                       chunkshape = chunkshape)
-    # Fill the array
-    t1 = time()
-    for i in xrange(N):
-        #e.append([numpy.random.rand(M)])  # use this for less compressibility
-        e.append([quantize(numpy.random.rand(M), 6)])
-    os.system("sync")
-    print "Creation time:", round(time()-t1, 3),
-    filesize = get_db_size(filename)
-    filesize_bytes = os.stat(filename)[6]
-    print "\t\tFile size: %d -- (%s)" % (filesize_bytes, filesize)
+    filename = '/scratch2/faltet/data.nobackup/test.h5'
+    #filename = '/scratch1/faltet/test.h5'
+
+    f = tables.openFile(filename, 'r')
+
+    # f = tables.openFile(filename, 'w')
+    # e = f.createEArray(f.root, 'earray', datom, shape=(0, M),
+    #                    filters = filters,
+    #                    chunkshape = chunkshape)
+    # # Fill the array
+    # t1 = time()
+    # for i in xrange(N):
+    #     #e.append([numpy.random.rand(M)])  # use this for less compressibility
+    #     e.append([quantize(numpy.random.rand(M), 6)])
+    # os.system("sync")
+    # print "Creation time:", round(time()-t1, 3),
+    # filesize = get_db_size(filename)
+    # filesize_bytes = os.stat(filename)[6]
+    # print "\t\tFile size: %d -- (%s)" % (filesize_bytes, filesize)
 
     # Read in sequential mode:
+    e = f.root.earray
     t1 = time()
     # Flush everything to disk and flush caches
-    os.system("sync; echo 1 > /proc/sys/vm/drop_caches")
+    #os.system("sync; echo 1 > /proc/sys/vm/drop_caches")
     for row in e:
         t = row
     print "Sequential read time:", round(time()-t1, 3),
+
+    f.close()
+    return
 
     # Read in random mode:
     i_index = numpy.random.randint(0, N, 128)
     j_index = numpy.random.randint(0, M, 256)
     # Flush everything to disk and flush caches
-    os.system("sync; echo 1 > /proc/sys/vm/drop_caches")
+    #os.system("sync; echo 1 > /proc/sys/vm/drop_caches")
+
+    # Protection against too large chunksizes
+    if 0 and filters.complevel and chunkshape[0]*chunkshape[1]*8 > 2**22:  # 4 MB
+        f.close()
+        return
+
     t1 = time()
     for i in i_index:
         for j in j_index:
@@ -86,14 +98,16 @@ def bench(chunkshape, filters):
 
 # Benchmark with different chunksizes and filters
 #for complevel in (0, 1, 3, 6, 9):
-for complib in (None, 'zlib', 'lzo'):
+#for complib in (None, 'zlib', 'lzo', 'blosc'):
+for complib in (None,):
     if complib:
-        filters = tables.Filters(complevel=1, complib=complib)
+        filters = tables.Filters(complevel=5, complib=complib)
     else:
         filters = tables.Filters(complevel=0)
     print "8<--"*20, "\nFilters:", filters, "\n"+"-"*80
-    #for ecs in (11, 14, 17, 20):
-    for ecs in range(10, 24):
+    #for ecs in (11, 14, 17, 20, 21, 22):
+    #for ecs in range(10, 24):
+    for ecs in (19,):
         chunksize = 2**ecs
         chunk1 = 1
         chunk2 = chunksize/datom.itemsize

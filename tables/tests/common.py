@@ -410,6 +410,34 @@ class PyTablesTestCase(unittest.TestCase):
     assertRaises = failUnlessRaises
 
 
+    def _checkEqualityGroup(self, node1, node2, hardlink=False):
+        if verbose:
+            print "Group 1:", node1
+            print "Group 2:", node2
+        if hardlink:
+            self.assert_(node1._v_pathname != node2._v_pathname,
+                         "node1 and node2 have the same pathnames.")
+        else:
+            self.assert_(node1._v_pathname == node2._v_pathname,
+                         "node1 and node2 does not have the same pathnames.")
+        self.assert_(node1._v_children == node2._v_children,
+                     "node1 and node2 does not have the same children.")
+
+
+    def _checkEqualityLeaf(self, node1, node2, hardlink=False):
+        if verbose:
+            print "Leaf 1:", node1
+            print "Leaf 2:", node2
+        if hardlink:
+            self.assert_(node1._v_pathname != node2._v_pathname,
+                         "node1 and node2 have the same pathnames.")
+        else:
+            self.assert_(node1._v_pathname == node2._v_pathname,
+                         "node1 and node2 does not have the same pathnames.")
+        self.assert_(areArraysEqual(node1[:], node2[:]),
+                     "node1 and node2 does not have the same values.")
+
+
 
 class TempFileMixin:
     def setUp(self):

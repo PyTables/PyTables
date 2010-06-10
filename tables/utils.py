@@ -54,9 +54,9 @@ def is_idx(index):
             return False
     elif isinstance(index, numpy.integer):
         return True
-    # For Python 2.4 one should test 0-dim arrays as well
+    # For Python 2.4 one should test 0-dim and 1-dim, 1-elem arrays as well
     elif (isinstance(index, numpy.ndarray) and
-          index.shape == () and
+          (index.shape == () or index.shape == (1,)) and
           index.dtype.str[1] == 'i'):
         return True
 
@@ -325,6 +325,27 @@ class CacheDict(dict):
             for k in self.keys()[:entries_to_remove]:
                 super(CacheDict, self).__delitem__(k)
         super(CacheDict, self).__setitem__(key, value)
+
+
+def detectNumberOfCores():
+    """
+    Detects the number of cores on a system. Cribbed from pp.
+    """
+    # Linux, Unix and MacOS:
+    if hasattr(os, "sysconf"):
+        if os.sysconf_names.has_key("SC_NPROCESSORS_ONLN"):
+            # Linux & Unix:
+            ncpus = os.sysconf("SC_NPROCESSORS_ONLN")
+            if isinstance(ncpus, int) and ncpus > 0:
+                return ncpus
+        else: # OSX:
+            return int(os.popen2("sysctl -n hw.ncpu")[1].read())
+    # Windows:
+    if os.environ.has_key("NUMBER_OF_PROCESSORS"):
+        ncpus = int(os.environ["NUMBER_OF_PROCESSORS"]);
+        if ncpus > 0:
+            return ncpus
+    return 1 # Default
 
 
 

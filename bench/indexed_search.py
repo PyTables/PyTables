@@ -88,7 +88,7 @@ class DB(object):
             print "Times for cold cache:\n", ctimes
             #print "Times for warm cache:\n", wtimes
             print "Histogram for warm cache: %s\n%s" % \
-                  numpy.histogram(wtimes, new=True)
+                  numpy.histogram(wtimes)
         print "%s1st query time for %s:" % (r, colname), \
               round(qtime1, prec)
         print "%sQuery time for %s (cold cache):" % (r, colname), \
@@ -206,7 +206,7 @@ class DB(object):
                 #tmean, tstd = self.norm_times(tprof)
                 #print "tprof-->", round(tmean, prec), "+-", round(tstd, prec)
                 #print "tprof hist-->", \
-                #    numpy.histogram(tprof, new=True)
+                #    numpy.histogram(tprof)
                 #print "tprof raw-->", tprof
                 # Always reopen the file after *every* query loop.
                 # Necessary to make the benchmark to run correctly.

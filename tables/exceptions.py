@@ -47,6 +47,10 @@ Classes:
     Indexing is not supported.
 `OldIndexWarning`
     Unsupported index format.
+`DataTypeWarning`
+    Unsupported data type.
+`Incompat16Warning`
+    Format incompatible with HDF5 1.6.x series.
 """
 
 __docformat__ = 'reStructuredText'
@@ -268,6 +272,26 @@ class DataTypeWarning(Warning):
 
     This warning is issued when an unsupported HDF5 data type is found
     (normally in a file created with other tool than PyTables).
+    """
+    pass
+
+class Incompat16Warning(Warning):
+    """
+    Format incompatible with HDF5 1.6.x format.
+
+    This warning is issued when using a functionality that is
+    incompatible with the HDF5 1.6.x format and that may create issues
+    for reading the files with PyTables compiled against HDF5 1.6.x.
+    """
+    pass
+
+
+class ExperimentalFeatureWarning(Warning):
+    """
+    Generic warning for experimental features.
+
+    This warning is issued when using a functionality that is still
+    experimental and that users have to use with care.
     """
     pass
 

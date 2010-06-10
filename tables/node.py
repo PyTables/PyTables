@@ -544,13 +544,16 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._v_isopen = False
 
 
-    def _g_remove(self, recursive):
+    def _g_remove(self, recursive, force):
         """
         Remove this node from the hierarchy.
 
         If the node has children, recursive removal must be stated by
         giving `recursive` a true value; otherwise, a `NodeError` will
         be raised.
+
+        If `force` is set to true, the node will be removed no matter it
+        has children or not (useful for deleting hard links).
 
         It does not log the change.
         """
@@ -565,13 +568,17 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         self._g_delete(parent)
 
 
-    def _f_remove(self, recursive=False):
+    def _f_remove(self, recursive=False, force=False):
         """
         Remove this node from the hierarchy.
 
         If the node has children, recursive removal must be stated by
         giving `recursive` a true value, or a `NodeError` will be
         raised.
+
+        If the node is a link to a `Group` object, and you are sure that
+        you want to delete it, you can do this by setting the `force`
+        flag to true.
         """
 
         self._g_checkOpen()
@@ -579,12 +586,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
         file_._checkWritable()
 
         if file_.isUndoEnabled():
-            self._g_removeAndLog(recursive)
+            self._g_removeAndLog(recursive, force)
         else:
-            self._g_remove(recursive)
+            self._g_remove(recursive, force)
 
 
-    def _g_removeAndLog(self, recursive):
+    def _g_removeAndLog(self, recursive, force):
         file_ = self._v_file
         oldPathname = self._v_pathname
         # Log *before* moving to use the right shadow name.
@@ -962,8 +969,8 @@ class NotLoggedMixin:
     def _g_logMove(self, oldPathname):
         pass
 
-    def _g_removeAndLog(self, recursive):
-        self._g_remove(recursive)
+    def _g_removeAndLog(self, recursive, force):
+        self._g_remove(recursive, force)
 
 
 

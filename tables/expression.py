@@ -25,13 +25,13 @@ import sys
 
 import numpy as np
 import tables as tb
-import tables.numexpr as ne
-from tables.numexpr.necompiler import (
+import numexpr as ne
+from numexpr.necompiler import (
     getContext, getExprNames, getType, NumExpr)
-from tables.numexpr.expressions import functions as numexpr_functions
+from numexpr.expressions import functions as numexpr_functions
 from tables.utilsExtension import lrange, getIndices
-from tables.leaf import calc_chunksize
 from tables.exceptions import PerformanceWarning
+from tables.parameters import IO_BUFFER_SIZE
 
 
 class Expr(object):
@@ -53,9 +53,6 @@ class Expr(object):
     constructor and methods as well as that of Numexpr, if you want to
     grasp these particularities.
     """
-
-    MB = 1024 * 1024
-    """A MB in bytes."""
 
     _exprvarsCache = {}
     """Cache of variables participating in expressions."""
@@ -130,13 +127,6 @@ class Expr(object):
         """The range selection for all the inputs."""
         self.values = []
         """The values of variables in expression (list)."""
-        # I/O tuning variables
-        self.CHUNKTIMES = 16
-        """The number of chunks in the input buffer per each variable in
-        expression."""
-        self.BUFFERTIMES = 100
-        """The maximum buffersize/rowsize ratio before issuing a
-        ``PerformanceWarning``."""
 
         self._compiled_expr = None
         """The compiled expression."""
@@ -167,7 +157,7 @@ class Expr(object):
         copy_args = []
         for name, var in vars_.items():
             if type(var) == np.ndarray:
-                # See tables.numexpr.necompiler.evaluate for a rational
+                # See numexpr.necompiler.evaluate for a rational
                 # of the code below
                 if not var.flags.aligned:
                     if var.ndim == 1:
@@ -350,21 +340,23 @@ class Expr(object):
         self.o_step = step
 
 
-    # Although the next code is similar to the method in `Leaf`, it uses
-    # its own `CHUNKTIMES` and `BUFFERTIMES` parameters.
+    # Although the next code is similar to the method in `Leaf`, it
+    # allows the use of pure NumPy objects.
     def _calc_nrowsinbuf(self, object_):
         """Calculate the number of rows that will fit in a buffer."""
 
-        # Compute a 'fake' chunksize
+        # Compute the rowsize for the *leading* dimension
         shape_ = list(object_.shape)
         expectedrows = shape_[0]
         shape_[0] = 1
         rowsize = np.prod(shape_) * object_.dtype.itemsize
-        expectedsizeinMB = (expectedrows * rowsize) / self.MB
-        chunksize = calc_chunksize(expectedsizeinMB)
+
         # Compute the nrowsinbuf
-        buffersize = chunksize * self.CHUNKTIMES
+        # Multiplying the I/O buffer size by 4 gives optimal results
+        # in my benchmarks with `tables.Expr` (see ``bench/poly.py``)
+        buffersize = IO_BUFFER_SIZE*4
         nrowsinbuf = buffersize // rowsize
+
         # Safeguard against row sizes being extremely large
         if nrowsinbuf == 0:
             nrowsinbuf = 1
@@ -376,9 +368,10 @@ The object ``%s`` is exceeding the maximum recommended rowsize (%d
 bytes); be ready to see PyTables asking for *lots* of memory and
 possibly slow I/O.  You may want to reduce the rowsize by trimming the
 value of dimensions that are orthogonal (and preferably close) to the
-leading dimension of this object."""
+*leading* dimension of this object."""
                               % (object, maxrowsize),
                                  PerformanceWarning)
+
         return nrowsinbuf
 
 

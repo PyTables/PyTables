@@ -71,6 +71,9 @@ Greg Ewing for writing the excelent Pyrex tool and allowing to beginners
 like me to quickly and safely start writing Python extensions. He was
 also very responsive about questions on Pyrex.
 
+Stefan Behnel, Robert Bradshaw, and Dag Sverre Seljebotn for their
+impressive work with Cython.
+
 Andrew Collette, for his excellent work on the h5py project, from
 which PyTables starts to stole ideas (and code too ;-).
 
@@ -78,6 +81,6 @@ Guido, you know who.
 
 And last, but definetely not least!,
 
-Germanischer Lloyd, Acusim and THG (The HDF5 Group) for supporting the
-PyTables project with contracts.
+To those companies that are supporting the PyTables project with
+contracts.
 

@@ -133,6 +133,8 @@ def joinPath(parentPath, name):
     '/foo'
     """
 
+    if name.startswith('./'):  # Support relative paths (mainly for links)
+        name = name[2:]
     if parentPath == '/' and name.startswith('/'):
         pstr = '%s' % name
     elif parentPath == '/' or name.startswith('/'):

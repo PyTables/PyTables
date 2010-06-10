@@ -535,6 +535,24 @@ class ZlibShuffleTestCase(BasicTestCase):
     stop = 1
     step = 10
 
+class BloscComprTestCase(BasicTestCase):
+    compress = 1  # sss
+    complib = "blosc"
+    chunkshape = (10,10)
+    start = 3
+    stop = 10
+    step = 3
+
+class BloscShuffleTestCase(BasicTestCase):
+    shape = (20,30)
+    compress = 1
+    shuffle = 1
+    complib = "blosc"
+    chunkshape = (100,100)
+    start = 3
+    stop = 10
+    step = 7
+
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "lzo"
@@ -553,7 +571,7 @@ class LZOShuffleTestCase(BasicTestCase):
     stop = 10
     step = 7
 
-class BZIP2ComprTestCase(BasicTestCase):
+class Bzip2ComprTestCase(BasicTestCase):
     shape = (20,30)
     compress = 1
     complib = "bzip2"
@@ -562,7 +580,7 @@ class BZIP2ComprTestCase(BasicTestCase):
     stop = 10
     step = 8
 
-class BZIP2ShuffleTestCase(BasicTestCase):
+class Bzip2ShuffleTestCase(BasicTestCase):
     shape = (20,30)
     compress = 1
     shuffle = 1
@@ -2411,10 +2429,12 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Ellipsis3CArrayTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibShuffleTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscComprTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOShuffleTestCase))
-        theSuite.addTest(unittest.makeSuite(BZIP2ComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BZIP2ShuffleTestCase))
+        theSuite.addTest(unittest.makeSuite(Bzip2ComprTestCase))
+        theSuite.addTest(unittest.makeSuite(Bzip2ShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(FloatTypeTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexTypeTestCase))
         theSuite.addTest(unittest.makeSuite(StringTestCase))

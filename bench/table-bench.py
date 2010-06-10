@@ -22,7 +22,7 @@ class Medium(IsDescription):
     grid_j      = Int32Col(pos=8)    # integer
     pressure    = Float32Col(pos=9)    # float  (single-precision)
     energy      = Float64Col(pos=2)    # double (double-precision)
-    unalig      = Int8Col()          # just to unalign data
+    #unalig      = Int8Col()          # just to unalign data
 
 # Define a user record to characterize some kind of particles
 class Big(IsDescription):
@@ -264,8 +264,6 @@ def readField(filename, field, rng, verbose):
 if __name__=="__main__":
     import sys
     import getopt
-    import getopt, pstats
-    import profile as prof
 
     try:
         import psyco
@@ -287,7 +285,7 @@ if __name__=="__main__":
             -c sets a compression level (do not set it or 0 for no compression)
             -S activate shuffling filter
             -F activate fletcher32 filter
-            -l sets the compression library to be used ("zlib", "lzo", "ucl", "bzip2")
+            -l sets the compression library to be used ("zlib", "lzo", "blosc", "bzip2")
             -i sets the number of rows in each table\n""" % sys.argv[0]
 
     try:
@@ -371,6 +369,8 @@ if __name__=="__main__":
         if psyco_imported and usepsyco:
             psyco.bind(createFile)
         if profile:
+            import profile as prof
+            import pstats
             prof.run('(rowsw, rowsz) = createFile(file, iterations, filters, recsize)', 'table-bench.prof')
             stats = pstats.Stats('table-bench.prof')
             stats.strip_dirs()

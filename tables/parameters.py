@@ -54,7 +54,7 @@ can be increased.
 MAX_NODE_ATTRS = 4096
 """Maximum allowed number of attributes in a node."""
 
-MAX_GROUP_WIDTH = 4096
+MAX_GROUP_WIDTH = 16384
 """Maximum allowed number of children hanging from a group."""
 
 MAX_TREE_DEPTH = 2048
@@ -67,10 +67,29 @@ MAX_UNDO_PATH_LENGTH = 10240
 # Cache limits
 # ------------
 
-# Size of cache for new metadata cache system in HDF5 1.8.x
+COND_CACHE_SLOTS = 128
+"""Maximum number of conditions for table queries to be kept in memory.
+"""
+
+CHUNK_CACHE_NELMTS = 521
+"""Number of elements for HDF5 chunk cache."""
+
+CHUNK_CACHE_PREEMPT = 0.0
+"""Chunk preemption policy.  This value should be between 0 and 1
+inclusive and indicates how much chunks that have been fully read are
+favored for preemption. A value of zero means fully read chunks are
+treated no differently than other chunks (the preemption is strictly
+LRU) while a value of one means fully read chunks are always preempted
+before other chunks."""
+
+CHUNK_CACHE_SIZE = 1*_MB
+"""Size (in bytes) for HDF5 chunk cache."""
+
+# Size for new metadata cache system in HDF5 1.8.x
 METADATA_CACHE_SIZE = 1*_MB  # 1 MB is the default for HDF5
 """Size (in bytes) of the HDF5 metadata cache.  This only takes effect
 if using HDF5 1.8.x series."""
+
 
 # NODE_CACHE_SLOTS tells the number of nodes that fits in the cache.
 #
@@ -104,20 +123,15 @@ be warned when the number of loaded nodes will reach the
 Finally, a value of zero means that any cache mechanism is disabled.
 """
 
-COND_CACHE_SLOTS = 128
-"""Maximum number of conditions for table queries to be kept in memory.
-"""
 
+# Parameters for the I/O buffer in `Leaf` objects
+# -----------------------------------------------
 
-# Parameters for the I/O buffer in `Table` objects
-# ------------------------------------------------
+IO_BUFFER_SIZE = 1*_MB
+"""The PyTables internal buffer size for I/O purposes.  Should not
+exceed the amount of highest level cache size in your CPU."""
 
-#CHUNKTIMES = 4  # Makes large seq writings and reads quite fast (4.96 Mrw/s)
-CHUNKTIMES = 8   # Makes large seq writings and reads very fast (5.30 Mrw/s)
-#CHUNKTIMES = 16   # Makes large seq writings and reads very fast (5.30 Mrw/s)
-"""The buffersize/chunksize ratio."""
-
-BUFFERTIMES = 100
+BUFFER_TIMES = 100
 """The maximum buffersize/rowsize ratio before issuing a
 ``PerformanceWarning``."""
 
@@ -137,6 +151,13 @@ attributes in datasets.  Also, if set to ``False`` the possible existing
 system attributes are not considered for guessing the class of the node
 during its loading from disk (this work is delegated to the PyTables'
 class discoverer function for general HDF5 files)."""
+
+MAX_THREADS = None
+"""The maximum number of threads that PyTables should use internally
+(mainly in Blosc and Numexpr currently).  If `None`, it is automatically
+set to the number of cores in your machine. In general, it is a good
+idea to set this to the number of cores in your machine or, when your
+machine has many of them (e.g. > 4), perhaps one less than this."""
 
 
 ## Local Variables:

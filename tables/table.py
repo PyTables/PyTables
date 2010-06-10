@@ -38,9 +38,9 @@ import numpy
 from tables import tableExtension
 from tables.utilsExtension import lrange
 from tables.conditions import compile_condition
-from tables.numexpr.necompiler import (
+from numexpr.necompiler import (
     getType as numexpr_getType, double, is_cpu_amd_intel)
-from tables.numexpr.expressions import functions as numexpr_functions
+from numexpr.expressions import functions as numexpr_functions
 from tables.flavor import flavor_of, array_as_internal, internal_to_flavor
 from tables.utils import is_idx, lazyattr, SizeType
 from tables.leaf import Leaf
@@ -749,8 +749,7 @@ class Table(tableExtension.Table, Leaf):
         self._rabyteorder = None # not useful anymore
 
         # 2. Compute or get chunk shape and buffer size parameters.
-        self.nrowsinbuf = self._calc_nrowsinbuf(
-            self._v_chunkshape, self.rowsize, self.rowsize)
+        self.nrowsinbuf = self._calc_nrowsinbuf()
 
         # 3. Get field fill attributes from the table description and
         #    set them on disk.
@@ -785,8 +784,7 @@ class Table(tableExtension.Table, Leaf):
                 self._v_expectedrows, self.rowsize, self.rowsize)
         else:
             self._v_chunkshape = (chunksize,)
-        self.nrowsinbuf = self._calc_nrowsinbuf(
-            self._v_chunkshape, self.rowsize, self.rowsize)
+        self.nrowsinbuf = self._calc_nrowsinbuf()
 
         # 4. If there are field fill attributes, get them from disk and
         #    set them in the table description.
@@ -1072,7 +1070,7 @@ class Table(tableExtension.Table, Leaf):
                 indexedcols.append(colname)
 
             # Get the list of unaligned, unidimensional columns.  See
-            # the comments in `tables.numexpr.evaluate()` for the
+            # the comments in `numexpr.evaluate()` for the
             # reasons of inserting copy operators for these columns.
             # Since the inclusion of Numexpr 1.3.1, the copy of unaligned
             # columns on Intel architectures is not needed anymore.
@@ -2255,7 +2253,7 @@ The 'names' parameter must be a list of strings.""")
             itgroup._g_move(newigroup, newiname)
 
 
-    def _g_remove(self, recursive=False):
+    def _g_remove(self, recursive=False, force=False):
         # Remove the associated index group (if any).
         itgpathname = _indexPathnameOf(self)
         try:
@@ -2267,7 +2265,7 @@ The 'names' parameter must be a list of strings.""")
             self.indexed = False   # there are indexes no more
 
         # Remove the leaf itself from the hierarchy.
-        super(Table, self)._g_remove(recursive)
+        super(Table, self)._g_remove(recursive, force)
 
 
     def _setColumnIndexing(self, colpathname, indexed):
@@ -2672,12 +2670,8 @@ class Cols(object):
 
 
     def __len__(self):
-        """
-        Get the number of elements in the column.
-
-        This matches the length in rows of the parent table.
-        """
-        return self._v_table.nrows
+        """Get the number of top level columns in table."""
+        return len(self._v_colnames)
 
 
     def _f_col(self, colname):

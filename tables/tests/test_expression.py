@@ -1254,24 +1254,26 @@ class VeryLargeInputsTestCase(common.TempFileMixin, common.PyTablesTestCase):
 
         shape = self.shape
         # Use filters so as to not use too much space
-        if tb.whichLibVersion("lzo") is not None:
+        if tb.whichLibVersion("blosc") is not None:
+            filters = tb.Filters(complevel=1, complib='blosc', shuffle=False)
+        elif tb.whichLibVersion("lzo") is not None:
             filters = tb.Filters(complevel=1, complib='lzo', shuffle=False)
         else:
             filters = tb.Filters(complevel=1, shuffle=False)
         # Build input arrays
         root = self.h5file.root
-        a = self.h5file.createCArray(root, 'a', tb.Int32Atom(dflt=1),
+        a = self.h5file.createCArray(root, 'a', tb.Float64Atom(dflt=3),
                                      shape, filters=filters)
-        b = self.h5file.createCArray(root, 'b', tb.Int32Atom(dflt=2),
+        b = self.h5file.createCArray(root, 'b', tb.Float64Atom(dflt=2),
                                      shape, filters=filters)
-        r1 = self.h5file.createCArray(root, 'r1', tb.Int32Atom(dflt=3),
+        r1 = self.h5file.createCArray(root, 'r1', tb.Float64Atom(dflt=3),
                                       shape, filters=filters)
         # The expression
-        expr = tb.Expr("a-b+1")   # Should give 0
+        expr = tb.Expr("a*b-6")   # Should give 0
         expr.setOutput(r1)
         expr.eval()
         r1 = r1[-10:]  # Get the last ten rows
-        r2 = np.zeros(10, dtype='int32')
+        r2 = np.zeros(10, dtype='float64')
         if common.verbose:
             print "Tested shape:", shape
             print "Ten last rows:", repr(r1), r1.dtype

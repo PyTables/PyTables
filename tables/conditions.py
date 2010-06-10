@@ -20,7 +20,7 @@ Functions:
     Evaluate a function over a record array.
 """
 
-from tables.numexpr.necompiler import stringToExpression, NumExpr
+from numexpr.necompiler import stringToExpression, NumExpr
 from tables.utilsExtension import getNestedField
 from tables._conditions_common import _unsupported_operation_error
 from tables.utils import lazyattr
@@ -147,7 +147,7 @@ def compile_condition(condition, typemap, indexedcols, copycols):
     varnames = _get_variable_names(expr)
     signature = [(var, typemap[var]) for var in varnames]
     try:
-        # See the comments in `tables.numexpr.evaluate()` for the
+        # See the comments in `numexpr.evaluate()` for the
         # reasons of inserting copy operators for unaligned,
         # *unidimensional* arrays.
         func = NumExpr(expr, signature, copy_args=copycols)
@@ -177,13 +177,5 @@ def call_on_recarr(func, params, recarr, param2arg=None):
             arg = param
         if hasattr(arg, 'pathname'):  # looks like a column
             arg = getNestedField(recarr, arg.pathname)
-        # This is needed because the extension doesn't check for
-        # unaligned arrays anymore. The reason for doing this is that,
-        # for unaligned arrays, a pure copy() in Python is faster than
-        # the equivalent in C. I'm not completely sure why.
-        if not arg.flags.aligned and arg.ndim > 1:
-            # See the comments in `tables.numexpr.evaluate()` for the
-            # reasons of copying unaligned, *multidimensional* arrays.
-            arg = arg.copy()
         args.append(arg)
     return func(*args)

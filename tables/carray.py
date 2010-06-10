@@ -238,10 +238,9 @@ chunkshape parameter cannot have zero-dimensions."""
         if self._v_chunkshape is None:
             # Compute the optimal chunk size
             self._v_chunkshape = self._calc_chunkshape(
-                expectedrows, self.rowsize, self.atom.itemsize)
+                expectedrows, self.rowsize, self.atom.size)
         # Compute the optimal nrowsinbuf
-        self.nrowsinbuf = self._calc_nrowsinbuf(
-            self._v_chunkshape, self.rowsize, self.atom.itemsize)
+        self.nrowsinbuf = self._calc_nrowsinbuf()
         # Correct the byteorder if needed
         if self.byteorder is None:
             self.byteorder = correct_byteorder(self.atom.type, sys.byteorder)
@@ -294,6 +293,6 @@ chunkshape parameter cannot have zero-dimensions."""
             object[start3:stop3] = self.__getitem__(tuple(slices))
         # Activate the conversion again (default)
         self._v_convert = True
-        nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.itemsize
+        nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.size
 
         return (object, nbytes)

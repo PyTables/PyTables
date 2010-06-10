@@ -55,11 +55,17 @@
     </bibliosource>
   </biblioentry>
 
-  <biblioentry id="Pyrex">
-    <author><firstname>Greg</firstname><surname>Ewing</surname></author>
-    <title>Pyrex. A Language for Writing Python Extension Modules</title>
+  <biblioentry id="Cython">
+    <authorgroup>
+      <author><firstname>Stefan</firstname><surname>Behnel</surname></author>
+      <author><firstname>Robert</firstname><surname>Bradshaw</surname></author>
+      <author><firstname>Dag Sverre</firstname><surname>Seljebotn</surname></author>
+      <author><firstname>Greg</firstname><surname>Ewing</surname></author>
+    </authorgroup>
+    <title>Cython. A language that makes writing C extensions for the
+      Python language as easy as Python itself</title>
     <bibliosource>
-      <ulink url="http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex">http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex</ulink>
+      <ulink url="http://cython.org">http://cython.org</ulink>
     </bibliosource>
   </biblioentry>
 

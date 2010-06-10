@@ -18,7 +18,7 @@ from tables.exceptions import NoSuchNodeError
 from tables.index import (
     defaultAutoIndex, Index, IndexesDescG, IndexesTableG )
 from tables.lrucacheExtension import ObjectCache, NumCache
-from tables import numexpr
+import numexpr
 from tables._table_common import _indexNameOf, _indexPathnameOf
 
 profile = False

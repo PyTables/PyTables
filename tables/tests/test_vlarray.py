@@ -256,11 +256,21 @@ class ZlibComprTestCase(BasicTestCase):
     compress = 1
     complib = "zlib"
 
+class BloscComprTestCase(BasicTestCase):
+    compress = 9
+    shuffle = 0
+    complib = "blosc"
+
+class BloscShuffleComprTestCase(BasicTestCase):
+    compress = 6
+    shuffle = 1
+    complib = "blosc"
+
 class LZOComprTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
 
-class BZIP2ComprTestCase(BasicTestCase):
+class Bzip2ComprTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"
 
@@ -4141,8 +4151,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(BasicNumPyTestCase))
         theSuite.addTest(unittest.makeSuite(BasicPythonTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscComprTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscShuffleComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BZIP2ComprTestCase))
+        theSuite.addTest(unittest.makeSuite(Bzip2ComprTestCase))
         theSuite.addTest(unittest.makeSuite(TypesReopenTestCase))
         theSuite.addTest(unittest.makeSuite(TypesNoReopenTestCase))
         theSuite.addTest(unittest.makeSuite(MDTypesNumPyTestCase))

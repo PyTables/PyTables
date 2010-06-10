@@ -313,7 +313,11 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
             value.dtype.type == numpy.string_ and # string type?
             value.itemsize > 0 and value[-1] == '.' )
 
-        if ( maybe_pickled and _field_fill_re.match(name)
+        if ( maybe_pickled and value in ["0", "0."] ):
+            # Workaround for a bug in many versions of Python (starting
+            # somewhere after Python 2.6.1).  See ticket #253.
+            retval = value
+        elif ( maybe_pickled and _field_fill_re.match(name)
              and format_version == (1, 5) ):
             # This format was used during the first 1.2 releases, just
             # for string defaults.

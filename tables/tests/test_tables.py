@@ -1260,6 +1260,17 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
         formats="a4,i4,i2,2f8,4f4,i2,a1,2b1,c8,c16",
         names='var1,var2,var3,var4,var5,var6,var7,var8,var9,var10')
 
+class CompressBloscTablesTestCase(BasicTestCase):
+    title = "CompressBloscTables"
+    compress = 6
+    complib = "blosc"
+
+class CompressBloscShuffleTablesTestCase(BasicTestCase):
+    title = "CompressBloscTables"
+    compress = 1
+    shuffle = 1
+    complib = "blosc"
+
 class CompressLZOTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
     compress = 1
@@ -1271,13 +1282,13 @@ class CompressLZOShuffleTablesTestCase(BasicTestCase):
     shuffle = 1
     complib = "lzo"
 
-class CompressBZIP2TablesTestCase(BasicTestCase):
-    title = "CompressBZIP2Tables"
+class CompressBzip2TablesTestCase(BasicTestCase):
+    title = "CompressBzip2Tables"
     compress = 1
     complib = "bzip2"
 
-class CompressBZIP2ShuffleTablesTestCase(BasicTestCase):
-    title = "CompressBZIP2Tables"
+class CompressBzip2ShuffleTablesTestCase(BasicTestCase):
+    title = "CompressBzip2Tables"
     compress = 1
     shuffle = 1
     complib = "bzip2"
@@ -5290,6 +5301,74 @@ class MDLargeColReopen(MDLargeColTestCase):
     reopen = True
 
 
+# Test with itertools.groupby that iterates on exhausted Row iterator
+# See ticket #264.
+class ExhaustedIter(common.PyTablesTestCase):
+
+    def setUp(self):
+        """Create small database"""
+        class Observations(IsDescription):
+            market_id = IntCol(pos=0)
+            scenario_id = IntCol(pos=1)
+            value = Float32Col(pos=3)
+
+        self.file = tempfile.mktemp(".h5")
+        self.fileh = openFile(self.file, 'w')
+        table = self.fileh.createTable('/', 'observations', Observations,
+                                       chunkshape=32)
+
+        # fill the database
+        observations = arange(225)
+        row = table.row
+        for market_id in xrange(5):
+            for scenario_id in xrange(3):
+                for obs in observations:
+                    row['market_id'] = market_id
+                    row['scenario_id'] = scenario_id
+                    row['value'] = obs
+                    row.append()
+        table.flush()
+
+    def tearDown(self):
+        self.fileh.close()
+        os.remove(self.file)
+        common.cleanup(self)
+
+    def average(self, values):
+        return sum(values, 0.0) / len(values)
+
+    def f_scenario(self, row):
+        return row['scenario_id']
+
+    def test00_groupby(self):
+        """Checking iterating an exhausted iterator (ticket #264)"""
+        from itertools import groupby
+        rows = self.fileh.root.observations.where('(market_id == 3)')
+        scenario_means = []
+        for scenario_id, rows_grouped in groupby(rows, self.f_scenario):
+            vals = [row['value'] for row in rows_grouped]
+            scenario_means.append(self.average(vals))
+        if common.verbose:
+            print 'Means -->', scenario_means
+        self.assert_(scenario_means == [112.0, 112.0, 112.0])
+
+
+    def test01_groupby(self):
+        """Checking iterating an exhausted iterator (ticket #264). Reopen."""
+        from itertools import groupby
+        self.fileh.close()
+        self.fileh = openFile(self.file, 'r')
+        rows = self.fileh.root.observations.where('(market_id == 3)')
+        scenario_means = []
+        for scenario_id, rows_grouped in groupby(rows, self.f_scenario):
+            vals = [row['value'] for row in rows_grouped]
+            scenario_means.append(self.average(vals))
+        if common.verbose:
+            print 'Means -->', scenario_means
+        self.assert_(scenario_means == [112.0, 112.0, 112.0])
+
+
+
 
 #----------------------------------------------------------------------
 
@@ -5310,6 +5389,8 @@ def suite():
         theSuite.addTest(unittest.makeSuite(RecArrayOneWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayTwoWriteTestCase))
         theSuite.addTest(unittest.makeSuite(RecArrayThreeWriteTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressBloscTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressBloscShuffleTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressLZOShuffleTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressZLIBTablesTestCase))
@@ -5358,10 +5439,11 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PointSelectionTestCase))
         theSuite.addTest(unittest.makeSuite(MDLargeColNoReopen))
         theSuite.addTest(unittest.makeSuite(MDLargeColReopen))
+        theSuite.addTest(unittest.makeSuite(ExhaustedIter))
 
     if common.heavy:
-        theSuite.addTest(unittest.makeSuite(CompressBZIP2TablesTestCase))
-        theSuite.addTest(unittest.makeSuite(CompressBZIP2ShuffleTablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressBzip2TablesTestCase))
+        theSuite.addTest(unittest.makeSuite(CompressBzip2ShuffleTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex10TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex11TestCase))
         theSuite.addTest(unittest.makeSuite(CopyIndex12TestCase))

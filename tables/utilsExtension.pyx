@@ -37,7 +37,8 @@ from definitions cimport import_array, ndarray, \
      size_t, hid_t, herr_t, hsize_t, htri_t, \
      H5T_class_t, H5D_layout_t, H5T_sign_t, \
      H5Fopen, H5Fclose, H5Fis_hdf5, H5Gopen, H5Gclose, \
-     H5Dopen, H5Dclose, H5Dget_type, H5Tcreate, H5Tcopy, H5Tclose, \
+     H5Dopen, H5Dclose, H5Dget_type, \
+     H5Tcreate, H5Tcopy, H5Tclose, \
      H5Tget_nmembers, H5Tget_member_name, H5Tget_member_type, \
      H5Tget_member_value, H5Tget_size, H5Tget_native_type, \
      H5Tget_class, H5Tget_super, H5Tget_sign, H5Tget_offset, \
@@ -49,7 +50,8 @@ from definitions cimport import_array, ndarray, \
      create_ieee_complex64, create_ieee_complex128, \
      get_order, set_order, is_complex, \
      get_len_of_range, NPY_INT64, npy_int64, dtype, \
-     PyArray_DescrFromType, PyArray_Scalar
+     PyArray_DescrFromType, PyArray_Scalar, \
+     register_blosc
 
 
 
@@ -82,6 +84,11 @@ cdef extern from "utils.h":
                         hsize_t *slicelength)
 
 
+# Functions from Blosc
+cdef extern from "blosc.h":
+  int blosc_set_nthreads(int nthreads)
+
+
 
 #----------------------------------------------------------------------
 # Initialization code
@@ -90,8 +97,38 @@ cdef extern from "utils.h":
 # using any NumPy facilities in an extension module.
 import_array()
 
+cdef register_blosc_():
+  cdef char *version_string, *version_date
+
+  register_blosc(&version_string, &version_date)
+  version = (version_string, version_date)
+  free(version_string)
+  free(version_date)
+  return version
+
+
+# Blosc is always accessible
+blosc_version = register_blosc_()
+blosc_version_string, blosc_version_date = blosc_version
+
+
+# Important: Blosc calls that modifies global variables in Blosc must be
+# called from the same extension where Blosc is registered in HDF5.
+def setBloscMaxThreads(nthreads):
+  """Set the maximum number of threads that Blosc can use.
+
+  This actually overrides the `MAX_THREADS` setting in
+  ``tables/parameters.py``, so the new value will be effective until this
+  function is called again or a new file with a different `MAX_THREADS` value
+  is specified.
+
+  Returns the previous setting for maximum threads.
+  """
+  return blosc_set_nthreads(nthreads)
+
+
 if sys.platform == "win32":
-  # We need a different approach in Windows, because it compains when
+  # We need a different approach in Windows, because it complains when
   # trying to import the extension that is linked with a dynamic library
   # that is not installed in the system.
 
@@ -131,7 +168,7 @@ else:  # Unix systems
 # Helper functions
 
 cdef hsize_t *malloc_dims(object pdims):
-  """Returns a malloced hsize_t dims from a python pdims."""
+  """Return a malloced hsize_t dims from a python pdims."""
   cdef int i, rank
   cdef hsize_t *dims
 
@@ -276,10 +313,9 @@ def isPyTablesFile(object filename):
   """isPyTablesFile(filename) -> true or false value
   Determine whether a file is in the PyTables format.
 
-  When successful, it returns a true value if the file is a PyTables
-  file, false otherwise.  The true value is the format version string
-  of the file.  If there were problems identifying the file, an
-  `HDF5ExtError` is raised.
+  When successful, it returns the format version string if the file is a
+  PyTables file, `None` otherwise.  If there were problems identifying the
+  file, an `HDF5ExtError` is raised.
   """
 
   cdef hid_t file_id
@@ -323,7 +359,7 @@ def whichLibVersion(char *name):
   ``bzip2``.  If another name is given, a ``ValueError`` is raised.
   """
 
-  libnames = ('hdf5', 'zlib', 'lzo', 'bzip2')
+  libnames = ('hdf5', 'zlib', 'lzo', 'bzip2', 'blosc')
 
   if strcmp(name, "hdf5") == 0:
     binver, strver = getHDF5VersionInfo()
@@ -339,6 +375,8 @@ def whichLibVersion(char *name):
     if bzip2_version:
       (bzip2_version_string, bzip2_version_date) = bzip2_version
       return (bzip2_version, bzip2_version_string, bzip2_version_date)
+  elif strcmp(name, "blosc") == 0:
+    return (blosc_version, blosc_version_string, blosc_version_date)
   else:
     raise ValueError("""\
 asked version of unsupported library ``%s``; \
@@ -469,35 +507,27 @@ def getIndices(object s, hsize_t length):
 
 
 def read_f_attr(hid_t file_id, char *attr_name):
-  """Return the PyTables file attributes.
+  """Read PyTables file attributes (i.e. in root group).
 
-  When successful, returns the format version string, for TRUE, or 0
-  (zero), for FALSE. Otherwise returns a negative value.
-
-  To this function to work, it needs a closed file.
-
+  Returns the value of the `attr_name` attribute in root group, or `None` if
+  it does not exist.  This call cannot fail.
   """
 
-  cdef hid_t root_id
   cdef herr_t ret
   cdef char *attr_value
   cdef object retvalue
 
-  # Open the root group
-  root_id =  H5Gopen(file_id, "/")
   attr_value = NULL
   retvalue = None
   # Check if attribute exists
-  if H5ATTRfind_attribute(root_id, attr_name):
+  if H5ATTRfind_attribute(file_id, attr_name):
     # Read the attr_name attribute
-    ret = H5ATTRget_attribute_string(root_id, attr_name, &attr_value)
+    ret = H5ATTRget_attribute_string(file_id, attr_name, &attr_value)
     if ret >= 0:
       retvalue = attr_value
     # Important to release attr_value, because it has been malloc'ed!
-    if attr_value: free(attr_value)
-
-  # Close root group
-  H5Gclose(root_id)
+    if attr_value:
+      free(attr_value)
 
   if retvalue is not None:
     return numpy.string_(retvalue)
@@ -964,7 +994,6 @@ cdef class lrange:
     current = PyArray_Scalar(&self.next, self.int64, None)
     self.next = self.next + self.step
     return current
-
 
 
 ## Local Variables:

@@ -80,8 +80,8 @@ print "Field pressure elements satisfying the cuts:"
 print repr(pressure)
 
 # Read also the names with the same cuts
-names = [ x['name'] for x in table
-          if x['TDCcount'] > 3 and 20 <= x['pressure'] < 50 ]
+names = [ x['name'] for x in table.where(
+    """(TDCcount > 3) & (20 <= pressure) & (pressure < 50)""" ) ]
 print "Field names elements satisfying the cuts:"
 print repr(names)
 

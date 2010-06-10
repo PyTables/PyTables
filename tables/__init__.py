@@ -52,6 +52,13 @@ __version__, hdf5Version, is_pro
 
 """
 
+import sys, os
+if os.name == 'nt':
+     module_path = os.path.abspath(os.path.dirname(__file__))
+     os.environ['PATH'] = ';'.join((os.environ['PATH'], module_path))
+     sys.path.append(module_path)
+
+
 # Necessary imports to get versions stored on the Pyrex extension
 from tables.utilsExtension import getPyTablesVersion, getHDF5Version
 
@@ -63,7 +70,8 @@ is_pro = __version__.endswith('pro')
 """True for PyTables Professional edition, false otherwise."""
 
 from tables.utilsExtension import (
-    isHDF5File, isPyTablesFile, whichLibVersion, lrange )
+    isHDF5File, isPyTablesFile, whichLibVersion, lrange,
+    setBloscMaxThreads )
 
 from tables.misc.enum import Enum
 from tables.atom import *
@@ -82,7 +90,7 @@ from tables.array import Array
 from tables.carray import CArray
 from tables.earray import EArray
 from tables.vlarray import VLArray
-from tables.unimplemented import UnImplemented
+from tables.unimplemented import UnImplemented, Unknown
 from tables.expression import Expr
 from tables.tests import print_versions, test
 

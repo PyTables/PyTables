@@ -2102,8 +2102,13 @@ class FancySelectionTestCase(common.PyTablesTestCase):
             (Ellipsis, [1,2]),    # one ellipsis
             (numpy.array([1, -2], 'i4'), 2, -1),  # array 32-bit instead of list
             (numpy.array([-1, 2], 'i8'), 2, -1),  # array 64-bit instead of list
-            (False, True),      # equivalent to (0,1) ;-)
             ]
+
+        # Tests for keys that have to support the __index__ attribute
+        if (sys.version_info[0] >= 2 and sys.version_info[1] >= 5):
+            self.working_keyset.append(
+                (False, True), # equivalent to (0,1) ;-)
+                )
 
         # Valid selections for NumPy, but not for PyTables (yet)
         # The next should raise an IndexError
@@ -2247,6 +2252,38 @@ class FancySelection4(FancySelectionTestCase):
     shape = (5, 3, 10)
 
 
+class CopyNativeHDF5MDAtom(common.PyTablesTestCase):
+
+    def setUp(self):
+        filename = self._testFilename("array_mdatom.h5")
+        self.fileh = openFile(filename, "r")
+        self.arr = self.fileh.root.arr
+        self.copy = tempfile.mktemp(".h5")
+        self.copyh = openFile(self.copy, mode = "w")
+        self.arr2 = self.arr.copy(self.copyh.root, newname="arr2")
+
+    def tearDown(self):
+        self.fileh.close()
+        self.copyh.close()
+        os.remove(self.copy)
+
+
+    def test01_copy(self):
+        """Checking that native MD atoms are copied as-is"""
+        self.assert_(self.arr.atom == self.arr2.atom)
+        self.assert_(self.arr.shape == self.arr2.shape)
+
+
+    def test02_reopen(self):
+        """Checking that native MD atoms are copied as-is (re-open)"""
+        self.copyh.close()
+        self.copyh = openFile(self.copy, mode = "r")
+        self.arr2 = self.copyh.root.arr2
+        self.assert_(self.arr.atom == self.arr2.atom)
+        self.assert_(self.arr.shape == self.arr2.shape)
+
+
+
 
 #----------------------------------------------------------------------
 
@@ -2309,6 +2346,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PointSelection2))
         theSuite.addTest(unittest.makeSuite(PointSelection3))
         theSuite.addTest(unittest.makeSuite(PointSelection4))
+        theSuite.addTest(unittest.makeSuite(CopyNativeHDF5MDAtom))
 
     return theSuite
 

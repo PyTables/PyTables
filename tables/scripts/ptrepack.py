@@ -460,7 +460,7 @@ def main():
     # Close the file again
     h5srcfile.close()
 
-    stats = {'groups': 0, 'leaves': 0, 'bytes': 0}
+    stats = {'groups': 0, 'leaves': 0, 'links': 0, 'bytes': 0}
     if isinstance(srcnodeobject, Group):
         copyChildren(
             srcfile, dstfile, srcnode, dstnode,
@@ -490,10 +490,15 @@ def main():
 
     if verbose:
         ngroups = stats['groups']
-        nleafs = stats['leaves']
+        nleaves = stats['leaves']
+        nlinks = stats['links']
         nbytescopied = stats['bytes']
+        nnodes = ngroups + nleaves + nlinks
 
-        print "Groups copied:", ngroups, " Leaves copied:", nleafs
+        print \
+              "Groups copied:", ngroups, \
+              " Leaves copied:", nleaves, \
+              " Links copied:", nlinks
         if copyuserattrs:
             print "User attrs copied"
         else:
@@ -501,5 +506,5 @@ def main():
         print "KBytes copied:", round(nbytescopied/1024.,3)
         print "Time copying: %s s (real) %s s (cpu)  %s%%" % \
               (tcopy, cpucopy, tpercent)
-        print "Copied nodes/sec: ", round((ngroups+nleafs) / float(tcopy),1)
+        print "Copied nodes/sec: ", round((nnodes) / float(tcopy),1)
         print "Copied KB/s :", int(nbytescopied / (tcopy * 1024))

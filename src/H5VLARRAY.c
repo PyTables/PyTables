@@ -1,6 +1,7 @@
 #include "H5ATTR.h"
 #include "tables.h"
 #include "utils.h"
+#include "H5Zblosc.h"                  /* Import FILTER_BLOSC */
 #include "H5Zlzo.h"  		       /* Import FILTER_LZO */
 #include "H5Zbzip2.h"  		       /* Import FILTER_BZIP2 */
 #include <string.h>
@@ -49,7 +50,7 @@ herr_t H5VLARRAYmake( hid_t loc_id,
  hsize_t maxdims[1] = { H5S_UNLIMITED };
  hsize_t dims_chunk[1];
  hid_t   plist_id;
- unsigned int cd_values[2];
+ unsigned int cd_values[6];
 
  if (data)
    /* if data, one row will be filled initially */
@@ -92,8 +93,8 @@ herr_t H5VLARRAYmake( hid_t loc_id,
    if ( H5Pset_fletcher32( plist_id) < 0 )
      return -1;
  }
- /* Then shuffle */
- if (shuffle) {
+ /* Then shuffle (blosc shuffles inplace) */
+ if (shuffle && (strcmp(complib, "blosc") != 0)) {
    if ( H5Pset_shuffle( plist_id) < 0 )
      return -1;
  }
@@ -105,6 +106,13 @@ herr_t H5VLARRAYmake( hid_t loc_id,
    /* The default compressor in HDF5 (zlib) */
    if (strcmp(complib, "zlib") == 0) {
      if ( H5Pset_deflate( plist_id, compress) < 0 )
+       return -1;
+   }
+   /* The Blosc compressor does accept parameters */
+   else if (strcmp(complib, "blosc") == 0) {
+     cd_values[4] = compress;
+     cd_values[5] = shuffle;
+     if ( H5Pset_filter( plist_id, FILTER_BLOSC, H5Z_FLAG_OPTIONAL, 6, cd_values) < 0 )
        return -1;
    }
    /* The LZO compressor does accept parameters */

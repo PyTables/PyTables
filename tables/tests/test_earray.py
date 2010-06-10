@@ -693,7 +693,7 @@ class SlicesEArrayTestCase(BasicTestCase):
 
 class Slices2EArrayTestCase(BasicTestCase):
     compress = 1
-    complib = "lzo"
+    complib = "blosc"
     type = 'int32'
     shape = (2, 0, 4)
     chunksize = 5
@@ -717,7 +717,7 @@ class Ellipsis2EArrayTestCase(BasicTestCase):
 
 class Slices3EArrayTestCase(BasicTestCase):
     compress = 1      # To show the chunks id DEBUG is on
-    complib = "lzo"
+    complib = "blosc"
     type = 'int32'
     shape = (2, 3, 4, 0)
     chunksize = 5
@@ -872,6 +872,25 @@ class ZlibShuffleTestCase(BasicTestCase):
     stop = 1
     step = 10
 
+class BloscComprTestCase(BasicTestCase):
+    compress = 1  # sss
+    complib = "blosc"
+    chunksize = 10
+    nappends = 100
+    start = 3
+    stop = 10
+    step = 3
+
+class BloscShuffleTestCase(BasicTestCase):
+    compress = 1
+    shuffle = 1
+    complib = "blosc"
+    chunksize = 100
+    nappends = 10
+    start = 3
+    stop = 10
+    step = 7
+
 class LZOComprTestCase(BasicTestCase):
     compress = 1  # sss
     complib = "lzo"
@@ -891,7 +910,7 @@ class LZOShuffleTestCase(BasicTestCase):
     stop = 10
     step = 7
 
-class BZIP2ComprTestCase(BasicTestCase):
+class Bzip2ComprTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"
     chunksize = 100
@@ -900,7 +919,7 @@ class BZIP2ComprTestCase(BasicTestCase):
     stop = 10
     step = 8
 
-class BZIP2ShuffleTestCase(BasicTestCase):
+class Bzip2ShuffleTestCase(BasicTestCase):
     compress = 1
     shuffle = 1
     complib = "bzip2"
@@ -2584,10 +2603,12 @@ def suite():
         theSuite.addTest(unittest.makeSuite(Ellipsis3EArrayTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibComprTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibShuffleTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscComprTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(LZOComprTestCase))
         theSuite.addTest(unittest.makeSuite(LZOShuffleTestCase))
-        theSuite.addTest(unittest.makeSuite(BZIP2ComprTestCase))
-        theSuite.addTest(unittest.makeSuite(BZIP2ShuffleTestCase))
+        theSuite.addTest(unittest.makeSuite(Bzip2ComprTestCase))
+        theSuite.addTest(unittest.makeSuite(Bzip2ShuffleTestCase))
         theSuite.addTest(unittest.makeSuite(FloatTypeTestCase))
         theSuite.addTest(unittest.makeSuite(ComplexTypeTestCase))
         theSuite.addTest(unittest.makeSuite(StringTestCase))

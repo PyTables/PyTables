@@ -294,7 +294,7 @@ cdef class Table(Leaf):
         elif colobj.kind in ['int', 'uint', 'float', 'complex', 'enum']:
           # Keep track of the byteorder for this column
           ret = get_order(member_type_id, byteorder2)
-          if byteorder2 in ["little", "big"]:
+          if str(byteorder2) in ["little", "big"]:
             field_byteorders.append(byteorder2)
 
       # Insert the native member
@@ -342,8 +342,15 @@ cdef class Table(Leaf):
 
     # Open the dataset
     self.dataset_id = H5Dopen(self.parent_id, self.name)
+    if self.dataset_id < 0:
+      raise HDF5ExtError("Non-existing node ``%s`` under ``%s``" % \
+                         (self.name, self._v_parent._v_pathname))
+
     # Get the datatype on disk
     self.disk_type_id = H5Dget_type(self.dataset_id)
+    if H5Tget_class(self.disk_type_id) != H5T_COMPOUND:
+        raise ValueError("Node ``%s`` is not a Table object" % \
+                         (self._v_parent._v_leaves[self.name]._v_pathname))
     # Get the number of rows
     space_id = H5Dget_space(self.dataset_id)
     H5Sget_simple_extent_dims(space_id, dims, NULL)
@@ -756,13 +763,13 @@ cdef class Row:
 
 
   def __iter__(self):
-    "Iterator that traverses all the data in the Table"
+    """Iterator that traverses all the data in the Table"""
 
     return self
 
 
   cdef _newBuffer(self, table):
-    "Create the recarrays for I/O buffering"
+    """Create the recarrays for I/O buffering"""
 
     wdflts = table._v_wdflts
     if wdflts is None:
@@ -795,7 +802,7 @@ cdef class Row:
 
   cdef _initLoop(self, hsize_t start, hsize_t stop, hsize_t step,
                  object coords, object chunkmap):
-    "Initialization for the __iter__ iterator"
+    """Initialization for the __iter__ iterator"""
 
     table = self.table
     self._riterator = 1   # We are inside a read iterator
@@ -843,7 +850,10 @@ cdef class Row:
       self.seq_available = True
 
   def __next__(self):
-    "next() method for __iter__() that is called on each iteration"
+    """next() method for __iter__() that is called on each iteration"""
+    if not self._riterator:
+      # The iterator is already exhausted!
+      raise StopIteration
     if self.indexed:
         return self.__next__indexed()
     elif self.coords is not None:
@@ -960,7 +970,7 @@ cdef class Row:
 
 
   cdef __next__coords(self):
-#     """The version of next() for user-required coordinates"""
+    """The version of next() for user-required coordinates"""
     cdef int recout
     cdef long long lenbuf, nextelement
     cdef object tmp
@@ -1100,7 +1110,7 @@ cdef class Row:
 
 
   def _fillCol(self, result, start, stop, step, field):
-    "Read a field from a table on disk and put the result in result"
+    """Read a field from a table on disk and put the result in result"""
     cdef hsize_t startr, stopr, i, j, istartb, istopb
     cdef hsize_t istart, istop, istep, inrowsinbuf, inextelement, inrowsread
     cdef object fields
@@ -1463,16 +1473,10 @@ cdef class Row:
              (self.table, \
     "You will normally want to use this object in iterator contexts.")
 
-    outlist = []
-    # Special case where Row has not been initialized yet
-    if self.IObuf is None:
-      return "Warning: Row iterator has not been initialized for table:\n  %s\n %s" % \
-             (self.table, \
-"You will normally want to use to use this object in iterator or writing contexts.")
-    buf = self.IObuf;  fields = self.rfields
-    for name in buf.dtype.names:
-      outlist.append(`fields[name][self._row]`)
-    return "(" + ", ".join(outlist) + ")"
+    tablepathname = self.table._v_pathname
+    classname = self.__class__.__name__
+    return "%s.row (%s), pointing to row #%d" % \
+           (tablepathname, classname, self._nrow)
 
 
   def __repr__(self):

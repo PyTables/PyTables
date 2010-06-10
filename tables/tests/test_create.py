@@ -589,6 +589,10 @@ class FiltersCase9(FiltersTreeTestCase):
     filters = Filters(shuffle=True, complib="zlib")
     gfilters = Filters(complevel=5, shuffle=True, complib="bzip2")
 
+class FiltersCase10(FiltersTreeTestCase):
+    filters = Filters(shuffle=False, complevel=1, complib="blosc")
+    gfilters = Filters(complevel=5, shuffle=True, complib="blosc")
+
 class CopyGroupTestCase(unittest.TestCase):
     title = "A title"
     nrows = 10
@@ -1290,6 +1294,7 @@ class CopyFileCase10(unittest.TestCase):
         os.remove(file)
         os.remove(file2)
 
+
 class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
     filters = tables.Filters(complevel=4)  # something non-default
 
@@ -1391,6 +1396,40 @@ class GroupFiltersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self._test_change('/explicit_yes', del_filters, tables.Filters())
 
 
+class setBloscMaxThreads(common.TempFileMixin, common.PyTablesTestCase):
+    filters = tables.Filters(complevel=4, complib="blosc")
+
+    def test00(self):
+        """Checking setBloscMaxThreads()"""
+        nthreads_old = tables.setBloscMaxThreads(4)
+        if common.verbose:
+            print "Previous max threads:", nthreads_old
+            print "Should be:", self.h5file.params['MAX_THREADS']
+        self.assert_(nthreads_old == self.h5file.params['MAX_THREADS'])
+        self.h5file.createCArray('/', 'some_array',
+                                 atom=tables.Int32Atom(), shape=(3,3),
+                                 filters = self.filters)
+        nthreads_old = tables.setBloscMaxThreads(1)
+        if common.verbose:
+            print "Previous max threads:", nthreads_old
+            print "Should be:", 4
+        self.assert_(nthreads_old == 4)
+
+    def test01(self):
+        """Checking setBloscMaxThreads() (re-open)"""
+        nthreads_old = tables.setBloscMaxThreads(4)
+        self.h5file.createCArray('/', 'some_array',
+                                 atom=tables.Int32Atom(), shape=(3,3),
+                                 filters = self.filters)
+        self._reopen()
+        nthreads_old = tables.setBloscMaxThreads(4)
+        if common.verbose:
+            print "Previous max threads:", nthreads_old
+            print "Should be:", self.h5file.params['MAX_THREADS']
+        self.assert_(nthreads_old == self.h5file.params['MAX_THREADS'])
+
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -1401,19 +1440,16 @@ def suite():
     niter = 1
     #common.heavy = 1 # Uncomment this only for testing purposes!
 
-    #theSuite.addTest(unittest.makeSuite(FiltersCase1))
-    #theSuite.addTest(unittest.makeSuite(createTestCase))
-    #theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
-    #theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
-    #theSuite.addTest(unittest.makeSuite(CopyFileCase1))
     for i in range(niter):
         theSuite.addTest(unittest.makeSuite(FiltersCase1))
         theSuite.addTest(unittest.makeSuite(FiltersCase2))
+        theSuite.addTest(unittest.makeSuite(FiltersCase10))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase1))
         theSuite.addTest(unittest.makeSuite(CopyGroupCase2))
         theSuite.addTest(unittest.makeSuite(CopyFileCase1))
         theSuite.addTest(unittest.makeSuite(CopyFileCase2))
         theSuite.addTest(unittest.makeSuite(GroupFiltersTestCase))
+        theSuite.addTest(unittest.makeSuite(setBloscMaxThreads))
         theSuite.addTest(doctest.DocTestSuite(tables.filters))
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(createTestCase))

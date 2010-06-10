@@ -249,7 +249,7 @@ int get_objinfo(hid_t loc_id, const char *name) {
   /* Get type of the object, without emiting an error in case the
      node does not exist. */
   H5E_BEGIN_TRY {
-    ret = H5Gget_objinfo(loc_id, name, TRUE, &statbuf);
+    ret = H5Gget_objinfo(loc_id, name, FALSE, &statbuf);
   } H5E_END_TRY;
   if (ret < 0)
     return -2;
@@ -266,6 +266,7 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
   PyObject   *strname;
   herr_t     ret;            /* Generic return value         */
   H5G_stat_t statbuf;
+  int        namedtypes = 0;
 
     /*
      * Get type of the object and check it.
@@ -280,6 +281,18 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
     else if (statbuf.type == H5G_DATASET) {
       PyList_Append(out_info[1], strname);
     }
+    else if (statbuf.type == H5G_LINK) {
+      PyList_Append(out_info[2], strname);
+    }
+    else if (statbuf.type == H5G_TYPE) {
+      namedtypes++;
+    }
+    else if (statbuf.type == H5G_UNKNOWN) {
+      PyList_Append(out_info[3], strname);
+    }
+    else {                      /* Must be an external link */
+      PyList_Append(out_info[2], strname);
+    }
     Py_DECREF(strname);
 
     return(0);  /* Loop until no more objects remain in directory */
@@ -292,19 +305,23 @@ herr_t gitercb(hid_t loc_id, const char *name, void *data) {
 ****************************************************************/
 PyObject *Giterate(hid_t parent_id, hid_t loc_id, const char *name) {
   int i=0, ret;
-  PyObject  *t, *tdir, *tdset;
-  PyObject *info[2];
+  PyObject  *t, *tgroup, *tleave, *tlink, *tunknown;
+  PyObject *info[4];
 
-  info[0] = tdir = PyList_New(0);
-  info[1] = tdset = PyList_New(0);
+  info[0] = tgroup = PyList_New(0);
+  info[1] = tleave = PyList_New(0);
+  info[2] = tlink = PyList_New(0);
+  info[3] = tunknown = PyList_New(0);
 
   /* Iterate over all the childs behind loc_id (parent_id+loc_id) */
   ret = H5Giterate(parent_id, name, &i, gitercb, info);
 
   /* Create the tuple with the list of Groups and Datasets */
-  t = PyTuple_New(2);
-  PyTuple_SetItem(t, 0, tdir );
-  PyTuple_SetItem(t, 1, tdset);
+  t = PyTuple_New(4);
+  PyTuple_SetItem(t, 0, tgroup);
+  PyTuple_SetItem(t, 1, tleave);
+  PyTuple_SetItem(t, 2, tlink);
+  PyTuple_SetItem(t, 3, tunknown);
 
   return t;
 }

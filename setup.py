@@ -2,9 +2,10 @@
 #----------------------------------------------------------------------
 # Setup script for the tables package
 
-import sys, os
+import sys, os, shutil
 import textwrap
 from os.path import exists, expanduser
+import re
 
 # Using ``setuptools`` enables lots of goodies, such as building eggs.
 if 'FORCE_SETUPTOOLS' in os.environ:
@@ -19,9 +20,11 @@ from distutils.dep_util import newer
 from distutils.util     import convert_path
 
 # The minimum version of NumPy required
-min_numpy_version = '1.2'
-# The minimum version of Pyrex required for compiling the extensions
-min_pyrex_version = '0.9.8.4'
+min_numpy_version = '1.3'
+# The minimum version of Numexpr required
+min_numexpr_version = '1.3'
+# The minimum version of Cython required for compiling the extensions
+min_cython_version = '0.12.1'
 
 # Some functions for showing errors and warnings.
 def _print_admonition(kind, head, body):
@@ -48,11 +51,9 @@ def check_import(pkgname, pkgver):
     try:
         mod = __import__(pkgname)
     except ImportError:
-        exit_with_error(
-            "Can't find a local %s Python installation." % pkgname,
-            "Please read carefully the ``README`` file "
-            "and remember that PyTables needs the %s package "
-            "to compile and run." % pkgname )
+            exit_with_error(
+                "You need %(pkgname)s %(pkgver)s or greater to run PyTables!"
+                % {'pkgname': pkgname, 'pkgver': pkgver} )
     else:
         if mod.__version__ < pkgver:
             exit_with_error(
@@ -64,14 +65,15 @@ def check_import(pkgname, pkgver):
     globals()[pkgname] = mod
 
 check_import('numpy', min_numpy_version)
+check_import('numexpr', min_numexpr_version)
 
-# Check if Pyrex is installed or not
+# Check if Cython is installed or not
 try:
-    from Pyrex.Distutils import build_ext
-    pyrex = 1
+    from Cython.Distutils import build_ext
+    cython = 1
     cmdclass = {'build_ext': build_ext}
 except:
-    pyrex = 0
+    cython = 0
     cmdclass = {}
 
 VERSION = open('VERSION').read().strip()
@@ -82,7 +84,7 @@ debug = '--debug' in sys.argv
 
 # Global variables
 lib_dirs = []
-inc_dirs = []
+inc_dirs = ['blosc']
 optional_libs = []
 data_files = []    # list of data files to add to packages (mainly for DLL's)
 
@@ -179,7 +181,7 @@ class Package(object):
                 # then, the directory will be returned as '\stuff' (!!)
                 # F. Alted 2006-02-16
                 if idx == 0:
-                    directories[idx] = os.path.dirname(path[:path.find(name)])
+                    directories[idx] = os.path.dirname(path[:path.rfind(name)])
                 else:
                     directories[idx] = os.path.dirname(path)
 
@@ -217,6 +219,29 @@ class WindowsPackage(Package):
         self.runtime_name = runtime_name
 
 
+# Get the HDF5 version provided the 'H5public.h' header
+def get_hdf5_version(headername):
+    major_version = -1
+    minor_version = -1
+    release_version = -1
+    for line in open(headername):
+        if 'H5_VERS_MAJOR' in line:
+            major_version = int(re.split("\s*", line)[2])
+        if 'H5_VERS_MINOR' in line:
+            minor_version = int(re.split("\s*", line)[2])
+        if 'H5_VERS_RELEASE' in line:
+            release_version = int(re.split("\s*", line)[2])
+        if (major_version != -1 and
+            minor_version != -1 and
+            release_version != -1):
+            break
+    if (major_version == -1 or
+        minor_version == -1 or
+        release_version == -1):
+        exit_with_error("Unable to detect HDF5 library version!")
+    return (major_version, minor_version, release_version)
+
+
 _cp = convert_path
 if os.name == 'posix':
     _Package = PosixPackage
@@ -224,18 +249,21 @@ if os.name == 'posix':
         'HDF5': ['hdf5'],
         'LZO2': ['lzo2'],
         'LZO': ['lzo'],
-        'BZ2': ['bz2'], }
+        'BZ2': ['bz2'],
+        'PTHREADS': ['pthread'], }
 elif os.name == 'nt':
     _Package = WindowsPackage
     _platdep = {  # package tag -> platform-dependent components
         'HDF5': ['hdf5dll', 'hdf5dll'],
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
-        'BZ2': ['bzip2', 'bzip2'], }
+        'BZ2': ['bzip2', 'bzip2'],
+        'PTHREADS': ['pthreadvc2', 'pthreadvc2'], }
     # Copy the next DLL's to binaries by default.
     # Update these paths for your own system!
     dll_files = ['\\windows\\system\\zlib1.dll',
                  '\\windows\\system\\szlibdll.dll',
+                 '\\windows\\system\\pthreadvc2.dll',
                  ]
     if '--debug' in sys.argv:
         _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
@@ -244,6 +272,9 @@ hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
 lzo2_package = _Package("LZO 2", 'LZO2', _cp('lzo/lzo1x'), *_platdep['LZO2'])
 lzo1_package = _Package("LZO 1", 'LZO', 'lzo1x', *_platdep['LZO'])
 bzip2_package = _Package("bzip2", 'BZ2', 'bzlib', *_platdep['BZ2'])
+pthreads_package = _Package("pthreads", 'PTHREADS', 'pthread',
+                            *_platdep['PTHREADS'])
+
 
 #-----------------------------------------------------------------
 
@@ -259,9 +290,10 @@ if os.name == 'nt':
 HDF5_DIR = os.environ.get('HDF5_DIR', '')
 LZO_DIR = os.environ.get('LZO_DIR', '')
 BZIP2_DIR = os.environ.get('BZIP2_DIR', '')
+PTHREADS_DIR = os.environ.get('PTHREADS_DIR', '')
 LFLAGS = os.environ.get('LFLAGS', '').split()
 # in GCC-style compilers, -w in extra flags will get rid of copious
-# 'uninitialized variable' Pyrex warnings. However, this shouldn't be
+# 'uninitialized variable' Cython warnings. However, this shouldn't be
 # the default as it will suppress *all* the warnings, which definitely
 # is not a good idea.
 CFLAGS = os.environ.get('CFLAGS', '').split()
@@ -281,6 +313,9 @@ for arg in args:
     elif arg.find('--bzip2=') == 0:
         BZIP2_DIR = expanduser(arg.split('=')[1])
         sys.argv.remove(arg)
+    elif arg.find('--pthreads=') == 0:
+        PTHREADS_DIR = expanduser(arg.split('=')[1])
+        sys.argv.remove(arg)
     elif arg.find('--lflags=') == 0:
         LFLAGS = arg.split('=')[1].split()
         sys.argv.remove(arg)
@@ -296,7 +331,7 @@ for arg in args:
         #sys.argv.remove(arg)
 
 # The next flag for the C compiler is needed for finding the C headers for
-# the Pyrex extensions
+# the Cython extensions
 CFLAGS.append("-Isrc")
 # The next flag for the C compiler is needed when using the HDF5 1.8.x series
 CFLAGS.append("-DH5_USE_16_API")
@@ -307,7 +342,8 @@ for (package, location) in [
     (hdf5_package, HDF5_DIR),
     (lzo2_package, LZO_DIR),
     (lzo1_package, LZO_DIR),
-    (bzip2_package, BZIP2_DIR), ]:
+    (bzip2_package, BZIP2_DIR),
+    (pthreads_package, PTHREADS_DIR), ]:
 
     if package.tag == 'LZO' and lzo2_enabled:
         print ( "* Skipping detection of %s since %s has already been found."
@@ -317,7 +353,7 @@ for (package, location) in [
     (hdrdir, libdir, rundir) = package.find_directories(location)
 
     if not (hdrdir and libdir):
-        if package.tag in ['HDF5']:  # these are compulsory!
+        if package.tag in ['HDF5', 'PTHREADS']:  # these are compulsory!
             pname, ptag = package.name, package.tag
             exit_with_error(
                 "Could not find a local %s installation." % pname,
@@ -333,6 +369,10 @@ for (package, location) in [
     print ( "* Found %s headers at ``%s``, library at ``%s``."
             % (package.name, hdrdir, libdir) )
 
+    if package.tag in ['HDF5']:
+        hdf5_header = os.path.join(hdrdir, "H5public.h")
+        hdf5_version = get_hdf5_version(hdf5_header)
+
     if hdrdir not in default_header_dirs:
         inc_dirs.append(hdrdir)  # save header directory if needed
     if libdir not in default_library_dirs:
@@ -343,7 +383,7 @@ for (package, location) in [
         else:
             lib_dirs.append(libdir)
 
-    if package.tag not in ['HDF5']:
+    if package.tag not in ['HDF5', 'PTHREADS']:
         # Keep record of the optional libraries found.
         optional_libs.append(package.tag)
         def_macros.append(('HAVE_%s_LIB' % package.tag, 1))
@@ -373,54 +413,68 @@ else:
 
 #------------------------------------------------------------------------------
 
-pyrex_extnames = [
+cython_extnames = [
     'utilsExtension',
     'hdf5Extension',
     'tableExtension',
+    'linkExtension',
     '_comp_lzo',
     '_comp_bzip2' ]
 if VERSION.endswith('pro'):
-    pyrex_extnames.extend([
+    cython_extnames.extend([
         'lrucacheExtension',
         'indexesExtension' ])
 
-def get_pyrex_extfiles(extnames):
-    global pyrex
+def get_cython_extfiles(extnames):
+    global cython
     extdir = 'tables'
     extfiles = {}
+
+    # Copy extensions that depends on the HDF5 version
+    hdf5_maj_version, hdf5_min_version = hdf5_version[:2]
+    if (hdf5_maj_version, hdf5_min_version) == (1,6):
+        shutil.copy(os.path.join(extdir,'linkExtension16.pyx'),
+                    os.path.join(extdir,'linkExtension.pyx'))
+    elif (hdf5_maj_version, hdf5_min_version) == (1,8):
+        shutil.copy(os.path.join(extdir,'linkExtension18.pyx'),
+                    os.path.join(extdir,'linkExtension.pyx'))
+    else:
+        exit_with_error("Unsupported HDF5 version!")
 
     for extname in extnames:
         extfile = os.path.join(extdir, extname)
         extpfile = '%s.pyx' % extfile
         extcfile = '%s.c' % extfile
         if not exists(extpfile):
-            # The Pyrex sources does not exist.  Give up with Pyrex.
-            pyrex = 0
-        elif not pyrex and newer(extpfile, extcfile):
+            # The Cython sources does not exist.  Give up with Cython.
+            cython = 0
+        elif not cython and newer(extpfile, extcfile):
             exit_with_error(
-                "Need Pyrex (at least %s) to generate extensions. "
-                % min_pyrex_version,
+                "Need Cython (at least %s) to generate extensions. "
+                % min_cython_version,
                 "The ``%s`` file does not exist or is out of date "
-                "and Pyrex is not available. Please install Pyrex "
+                "and Cython is not available. Please install Cython "
                 "in order to properly generate the extension."
                 % extcfile )
-        if pyrex and newer(extpfile, extcfile):
-            from Pyrex.Compiler.Main import Version
-            if Version.version < min_pyrex_version:
+        if cython and newer(extpfile, extcfile):
+            from Cython.Compiler.Main import Version
+            if Version.version < min_cython_version:
                 exit_with_error(
-                    "At least Pyrex %s is needed so as to generate extensions!"
-                    % (min_pyrex_version) )
-        if pyrex:
+                    "At least Cython %s is needed so as to generate extensions!"
+                    % (min_cython_version) )
+        if cython:
             extfiles[extname] = extpfile
         else:
             extfiles[extname] = extcfile
     return extfiles
 
-pyrex_extfiles = get_pyrex_extfiles(pyrex_extnames)
+
+cython_extfiles = get_cython_extfiles(cython_extnames)
 
 # Update the version.h file if this file is newer
 if newer('VERSION', 'src/version.h'):
-    open('src/version.h', 'w').write('#define PYTABLES_VERSION "%s"\n' % VERSION)
+    open('src/version.h', 'w').write(
+        '#define PYTABLES_VERSION "%s"\n' % VERSION)
 
 #--------------------------------------------------------------------
 
@@ -431,9 +485,11 @@ if has_setuptools:
     setuptools_kwargs['zip_safe'] = False
 
     # ``NumPy`` headers are needed for building the extensions.
-    setuptools_kwargs['install_requires'] = ['numpy>=%s' % min_numpy_version]
-    # ``NumPy`` is absolutely required for running PyTables.
     setuptools_kwargs['setup_requires'] = ['numpy>=%s' % min_numpy_version]
+    # ``NumPy`` and ``Numexpr`` are absolutely required for running PyTables.
+    setuptools_kwargs['install_requires'] = \
+                                          ['numpy>=%s' % min_numpy_version,
+                                           'numexpr>=%s' % min_numexpr_version]
     setuptools_kwargs['extras_require'] = {
         'Numeric': ['Numeric>=24.2'],  # for ``Numeric`` support
         'netCDF': ['ScientificPython'],  # for netCDF interchange
@@ -454,13 +510,17 @@ if has_setuptools:
     setuptools_kwargs['test_suite'] = 'tables.tests.test_all.suite'
     setuptools_kwargs['scripts'] = []
 else:
+    # The next should work with stock distutils, but it does not!
+    # It is better to rely on check_import
+    # setuptools_kwargs['requires'] = ['numpy (>= %s)' % min_numpy_version,
+    #                                  'numexpr (>= %s)' % min_numexpr_version]
     # There is no other chance, these values must be hardwired.
     setuptools_kwargs['packages'] = [
-        'tables', 'tables.nodes', 'tables.scripts', 'tables.numexpr',
+        'tables', 'tables.nodes', 'tables.scripts',
         'tables.nra', 'tables.netcdf3', 'tables.netcdf3.scripts',
         'tables.misc',
         # Test suites.
-        'tables.tests', 'tables.numexpr.tests', 'tables.nodes.tests',
+        'tables.tests', 'tables.nodes.tests',
         'tables.netcdf3.tests', 'tables.nra.tests']
     setuptools_kwargs['scripts'] = [
         'utils/ptdump', 'utils/ptrepack', 'utils/nctoh5']
@@ -490,10 +550,12 @@ if os.name == "nt":
     data_files.extend([('Lib/site-packages/%s'%name, dll_files),
                        ])
 
-utilsExtension_libs = LIBS + [hdf5_package.library_name]
-hdf5Extension_libs = LIBS + [hdf5_package.library_name]
-tableExtension_libs = LIBS + [hdf5_package.library_name]
-indexesExtension_libs = LIBS + [hdf5_package.library_name]
+ADDLIBS = [hdf5_package.library_name, pthreads_package.library_name]
+utilsExtension_libs = LIBS + ADDLIBS
+hdf5Extension_libs = LIBS + ADDLIBS
+tableExtension_libs = LIBS + ADDLIBS
+linkExtension_libs = LIBS + ADDLIBS
+indexesExtension_libs = LIBS + ADDLIBS
 lrucacheExtension_libs = []    # Doesn't need external libraries
 
 # Compressor modules only need other libraries if they are enabled.
@@ -506,14 +568,19 @@ for (package, complibs) in [
     if package.tag in optional_libs:
         complibs.extend([hdf5_package.library_name, package.library_name])
 
+# List of Blosc file dependencies
+blosc_files = ["blosc/blosc.c", "blosc/blosclz.c", "blosc/shuffle.c"]
+
 extensions = [
     Extension( "tables.utilsExtension",
                include_dirs=inc_dirs,
                define_macros=def_macros,
-               sources=[ pyrex_extfiles['utilsExtension'],
+               sources=[ cython_extfiles['utilsExtension'],
                          "src/utils.c",
                          "src/H5ARRAY.c",
-                         "src/H5ATTR.c" ],
+                         "src/H5ATTR.c",
+                         "src/H5Zblosc.c",
+                         ] + blosc_files,
                library_dirs=lib_dirs,
                libraries=utilsExtension_libs,
                extra_link_args=LFLAGS,
@@ -522,13 +589,15 @@ extensions = [
     Extension( "tables.hdf5Extension",
                include_dirs=inc_dirs,
                define_macros=def_macros,
-               sources=[ pyrex_extfiles['hdf5Extension'],
+               sources=[ cython_extfiles['hdf5Extension'],
                          "src/utils.c",
                          "src/typeconv.c",
                          "src/H5ARRAY.c",
                          "src/H5ARRAY-opt.c",
                          "src/H5VLARRAY.c",
-                         "src/H5ATTR.c" ],
+                         "src/H5ATTR.c",
+                         "src/H5Zblosc.c",
+                         ] + blosc_files,
                library_dirs=lib_dirs,
                libraries=hdf5Extension_libs,
                extra_link_args=LFLAGS,
@@ -537,11 +606,13 @@ extensions = [
     Extension( "tables.tableExtension",
                include_dirs=inc_dirs,
                define_macros=def_macros,
-               sources=[ pyrex_extfiles['tableExtension'],
+               sources=[ cython_extfiles['tableExtension'],
                          "src/utils.c",
                          "src/typeconv.c",
                          "src/H5TB-opt.c",
-                         "src/H5ATTR.c"],
+                         "src/H5ATTR.c",
+                         "src/H5Zblosc.c",
+                         ] + blosc_files,
                library_dirs=lib_dirs,
                libraries=tableExtension_libs,
                extra_link_args=LFLAGS,
@@ -550,7 +621,7 @@ extensions = [
     Extension( "tables._comp_lzo",
                include_dirs=inc_dirs,
                define_macros=def_macros,
-               sources=[ pyrex_extfiles['_comp_lzo'],
+               sources=[ cython_extfiles['_comp_lzo'],
                          "src/H5Zlzo.c" ],
                library_dirs=lib_dirs,
                libraries=_comp_lzo_libs,
@@ -560,41 +631,42 @@ extensions = [
     Extension( "tables._comp_bzip2",
                include_dirs=inc_dirs,
                define_macros=def_macros,
-               sources=[ pyrex_extfiles['_comp_bzip2'],
+               sources=[ cython_extfiles['_comp_bzip2'],
                          "src/H5Zbzip2.c" ],
                library_dirs=lib_dirs,
                libraries=_comp_bzip2_libs,
                extra_link_args=LFLAGS,
                extra_compile_args=CFLAGS ),
 
-    Extension( "tables.numexpr.interpreter",
+    Extension( "tables.linkExtension",
                include_dirs=inc_dirs,
-               sources=["tables/numexpr/interpreter.c"],
-               depends=["tables/numexpr/interp_body.c",
-                        "tables/numexpr/complex_functions.inc",
-                        "tables/numexpr/missing_posix_functions.inc",
-                        "tables/numexpr/msvc_function_stubs.inc"],
+               define_macros=def_macros,
+               sources=[ cython_extfiles['linkExtension'] ],
+               library_dirs=lib_dirs,
+               libraries=tableExtension_libs,
                extra_link_args=LFLAGS,
                extra_compile_args=CFLAGS ),
+
     ]
 
-if 'lrucacheExtension' in pyrex_extnames:
+
+if 'lrucacheExtension' in cython_extnames:
     extensions.append(
         Extension( "tables.lrucacheExtension",
                    include_dirs=inc_dirs,
                    define_macros=def_macros,
-                   sources=[pyrex_extfiles['lrucacheExtension']],
+                   sources=[cython_extfiles['lrucacheExtension']],
                    library_dirs=lib_dirs,
                    libraries=lrucacheExtension_libs,
                    extra_link_args=LFLAGS,
                    extra_compile_args=CFLAGS ) )
 
-if 'indexesExtension' in pyrex_extnames:
+if 'indexesExtension' in cython_extnames:
     extensions.append(
         Extension( "tables.indexesExtension",
                    include_dirs=inc_dirs,
                    define_macros=def_macros,
-                   sources = [ pyrex_extfiles['indexesExtension'],
+                   sources = [ cython_extfiles['indexesExtension'],
                                "src/H5ARRAY-opt.c",
                                "src/idx-opt.c" ],
                    library_dirs=lib_dirs,
@@ -624,7 +696,7 @@ PyTables is a package for managing hierarchical datasets and
 designed to efficently cope with extremely large amounts of
 data. PyTables is built on top of the HDF5 library and the
 NumPy package and features an object-oriented interface
-that, combined with C-code generated from Pyrex sources,
+that, combined with C-code generated from Cython sources,
 makes of it a fast, yet extremely easy to use tool for
 interactively save and retrieve large amounts of data.
 

@@ -173,6 +173,8 @@ cdef extern from "hdf5.h":
   # such an unsigned long long type.
   ctypedef long long hsize_t
   ctypedef signed long long hssize_t
+  ctypedef long long int64_t
+  ctypedef long long haddr_t
 
   ctypedef struct hvl_t:
     size_t len                 # Length of VL data (in base type units)
@@ -191,17 +193,13 @@ cdef extern from "hdf5.h":
     H5F_SCOPE_GLOBAL    = 1,    # entire virtual file
     H5F_SCOPE_DOWN      = 2     # for internal use only
 
-  cdef enum H5G_link_t:
-    H5G_LINK_ERROR      = -1,
-    H5G_LINK_HARD       = 0,
-    H5G_LINK_SOFT       = 1
-
   cdef enum H5G_obj_t:
     H5G_UNKNOWN = -1,           # Unknown object type
-    H5G_LINK,                   # Object is a symbolic link
     H5G_GROUP,                  # Object is a group
     H5G_DATASET,                # Object is a dataset
     H5G_TYPE,                   # Object is a named data type
+    H5G_LINK,                   # Object is a symbolic link
+    ##H5G_UDLINK,                 # Object is a user-defined link  # 1.8.x
 
   # Values for fill value status
   cdef enum H5D_fill_value_t:
@@ -209,15 +207,6 @@ cdef extern from "hdf5.h":
     H5D_FILL_VALUE_UNDEFINED    = 0,
     H5D_FILL_VALUE_DEFAULT      = 1,
     H5D_FILL_VALUE_USER_DEFINED = 2
-
-  ctypedef struct H5G_stat_t:
-    unsigned long fileno[2]
-    unsigned long objno[2]
-    unsigned nlink
-    H5G_obj_t type              # new in HDF5 1.6
-    time_t mtime
-    size_t linklen
-    #H5O_stat_t ohdr            # Object header information. New in HDF5 1.6
 
   # HDF5 layouts
   cdef enum H5D_layout_t:
@@ -334,6 +323,26 @@ cdef extern from "hdf5.h":
     H5S_SELECT_PREPEND,
     H5S_SELECT_INVALID    # Must be the last one
 
+  # Character set to use for text strings
+  cdef enum H5T_cset_t:
+    H5T_CSET_ERROR       = -1,  # error
+    H5T_CSET_ASCII       = 0,   # US ASCII
+    H5T_CSET_UTF8        = 1,   # UTF-8 Unicode encoding
+    H5T_CSET_RESERVED_2  = 2,
+    H5T_CSET_RESERVED_3  = 3,
+    H5T_CSET_RESERVED_4  = 4,
+    H5T_CSET_RESERVED_5  = 5,
+    H5T_CSET_RESERVED_6  = 6,
+    H5T_CSET_RESERVED_7  = 7,
+    H5T_CSET_RESERVED_8  = 8,
+    H5T_CSET_RESERVED_9  = 9,
+    H5T_CSET_RESERVED_10 = 10,
+    H5T_CSET_RESERVED_11 = 11,
+    H5T_CSET_RESERVED_12 = 12,
+    H5T_CSET_RESERVED_13 = 13,
+    H5T_CSET_RESERVED_14 = 14,
+    H5T_CSET_RESERVED_15 = 15
+
 
   #------------------------------------------------------------------
 
@@ -358,14 +367,10 @@ cdef extern from "hdf5.h":
   hid_t  H5Gcreate(hid_t loc_id, char *name, size_t size_hint )
   hid_t  H5Gopen(hid_t loc_id, char *name )
   herr_t H5Gclose(hid_t group_id)
-  herr_t H5Glink (hid_t file_id, H5G_link_t link_type,
-                  char *current_name, char *new_name)
   herr_t H5Gunlink (hid_t file_id, char *name)
   herr_t H5Gmove(hid_t loc_id, char *src, char *dst)
   herr_t H5Gmove2(hid_t src_loc_id, char *src_name,
                   hid_t dst_loc_id, char *dst_name )
-  herr_t H5Gget_objinfo(hid_t loc_id, char *name,
-                        hbool_t follow_link, H5G_stat_t *statbuf)
   # For dealing with datasets
   hid_t  H5Dopen(hid_t file_id, char *name)
   herr_t H5Dclose(hid_t dset_id)
@@ -446,6 +451,8 @@ cdef extern from "hdf5.h":
                          unsigned int flags, size_t buf_size)
   H5D_layout_t H5Pget_layout(hid_t plist)
   int H5Pget_chunk(hid_t plist, int max_ndims, hsize_t *dims)
+  herr_t H5Pset_fapl_core(hid_t fapl_id, size_t increment,
+                          hbool_t backing_store)
 
 
 # Specific HDF5 functions for PyTables
@@ -498,3 +505,6 @@ cdef extern from "typeconv.h":
                               unsigned long nelements,
                               int sense)
 
+# Blosc registration
+cdef extern from "H5Zblosc.h":
+  int register_blosc(char **version, char **date)

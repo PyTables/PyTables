@@ -138,7 +138,7 @@ class Array(hdf5Extension.Array, Leaf):
 
     def _getrowsize(self):
         maindim = self.maindim
-        rowsize = self.atom.itemsize
+        rowsize = self.atom.size
         for i, dim in enumerate(self.shape):
             if i != maindim:
                 rowsize *= dim
@@ -151,7 +151,7 @@ class Array(hdf5Extension.Array, Leaf):
     # ~~~~~~~~~~~~~
     def __init__(self, parentNode, name,
                  object=None, title="",
-                 byteorder=None, _log=True):
+                 byteorder=None, _log=True, _atom=None):
         """
         Create an `Array` instance.
 
@@ -210,7 +210,7 @@ class Array(hdf5Extension.Array, Leaf):
         """Current buffer in iterators."""
 
         # Documented (*public*) attributes.
-        self.atom = None
+        self.atom = _atom
         """
         An `Atom` instance representing the *type* and *shape* of the
         atomic objects to be saved.
@@ -248,9 +248,6 @@ class Array(hdf5Extension.Array, Leaf):
         # Decrease the number of references to the object
         self._object = None
 
-        # The shape of this array
-        self.shape = tuple(SizeType(s) for s in nparr.shape)
-
         # Fix the byteorder of data
         nparr = self._g_fix_byteorder_data(nparr, nparr.dtype.byteorder)
 
@@ -259,8 +256,8 @@ class Array(hdf5Extension.Array, Leaf):
             # ``self._v_objectID`` needs to be set because would be
             # needed for setting attributes in some descendants later
             # on
-            (self._v_objectID, self.atom) = self._createArray(
-                nparr, self._v_new_title)
+            (self._v_objectID, self.shape, self.atom) = self._createArray(
+                nparr, self._v_new_title, self.atom)
         except:  #XXX
             # Problems creating the Array on disk. Close node and re-raise.
             self.close(flush=0)
@@ -268,9 +265,8 @@ class Array(hdf5Extension.Array, Leaf):
 
         # Compute the optimal buffer size
         chunkshape = self._calc_chunkshape(
-            self.nrows, self.rowsize, self.atom.itemsize)
-        self.nrowsinbuf = self._calc_nrowsinbuf(
-            chunkshape, self.rowsize, self.atom.itemsize)
+            self.nrows, self.rowsize, self.atom.size)
+        self.nrowsinbuf = self._calc_nrowsinbuf()
         # Arrays don't have chunkshapes (so, set it to None)
         self._v_chunkshape = None
 
@@ -286,11 +282,10 @@ class Array(hdf5Extension.Array, Leaf):
         if not self._v_chunkshape:  # non-chunked case
             # Compute a sensible chunkshape
             chunkshape = self._calc_chunkshape(
-                self.nrows, self.rowsize, self.atom.itemsize)
+                self.nrows, self.rowsize, self.atom.size)
         else:
             chunkshape = self._v_chunkshape
-        self.nrowsinbuf = self._calc_nrowsinbuf(
-            chunkshape, self.rowsize, self.atom.itemsize)
+        self.nrowsinbuf = self._calc_nrowsinbuf()
 
         return oid
 
@@ -893,13 +888,15 @@ compliant with %s: '%r' The error was: <%s>""" % \
             arr = self[start:stop:step]
         else:
             arr = self[()]
-        # Build the new Array object
-        object = Array(group, name, arr, title=title, _log=_log)
-        nbytes = self.atom.itemsize
-        for i in self.shape:
-            nbytes*=i
+        # Build the new Array object.  Use the _atom reserved keyword
+        # just in case the array is being copied from a native HDF5
+        # with atomic types different from scalars.
+        # For details, see #275.
+        object_ = Array(group, name, arr, title=title, _log=_log,
+                        _atom=self.atom)
+        nbytes = numpy.prod(self.shape, dtype=SizeType)*self.atom.size
 
-        return (object, nbytes)
+        return (object_, nbytes)
 
 
     def __repr__(self):

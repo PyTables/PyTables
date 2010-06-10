@@ -4,18 +4,30 @@ Run all test cases.
 
 import sys
 import os
+import re
 import unittest
 
 # Recommended minimum versions for optional packages
-minimum_hdf5_version = "1.6.5"
-minimum_numpy_version = "1.3"
-minimum_numeric_version = "24.2"
-minimum_numarray_version = "1.5.2"
+min_hdf5_version = (1,6,5)  # necessary for allowing 1.6.10 > 1.6.5
+min_numpy_version = "1.3"
+min_numexpr_version = "1.3"
+min_numeric_version = "24.2"
+min_numarray_version = "1.5.2"
 
 import numpy
 
+import numexpr
 import tables
 from tables.tests import common
+
+
+
+def get_tuple_version(hexversion):
+    """Get a tuple from a compact version in hex."""
+    h = hexversion
+    return(h & 0xff0000) >> 16, (h & 0xff00) >> 8, h & 0xff
+
+
 
 def suite():
     test_modules = [
@@ -40,11 +52,12 @@ def suite():
         'tables.tests.test_numpy',
         'tables.tests.test_queries',
         'tables.tests.test_expression',
+        'tables.tests.test_links',
         # Sub-packages
         'tables.nodes.tests.test_filenode',
         'tables.netcdf3.tests.test_netcdf3',
-        'tables.numexpr.tests.test_numexpr',
         ]
+
 
     # Run indexing tests only under Pro
     if tables.is_pro:
@@ -57,9 +70,9 @@ def suite():
         import Numeric
         print "Numeric (version %s) is present. Adding the Numeric test suite." % \
               (Numeric.__version__)
-        if Numeric.__version__ < minimum_numeric_version:
+        if Numeric.__version__ < min_numeric_version:
             print "*Warning*: Numeric version is lower than recommended: %s < %s" % \
-                  (Numeric.__version__, minimum_numeric_version)
+                  (Numeric.__version__, min_numeric_version)
         test_modules.append("tables.tests.test_Numeric")
     else:
         print "Skipping Numeric test suite."
@@ -70,10 +83,10 @@ def suite():
         print \
 """numarray (version %s) is present. Adding the numarray test suite.""" % \
               (numarray.__version__)
-        if numarray.__version__ < minimum_numarray_version:
+        if numarray.__version__ < min_numarray_version:
             print \
 "*Warning*: Numarray version is lower than recommended: %s < %s" % \
-                  (numarray.__version__, minimum_numarray_version)
+                  (numarray.__version__, min_numarray_version)
         test_modules.append("tables.tests.test_numarray")
         test_modules.append("tables.nra.tests.test_nestedrecords")
         test_modules.append("tables.nra.tests.test_nriterators")
@@ -103,20 +116,28 @@ def print_versions():
     """Print all the versions of software that PyTables relies on."""
     print '-=' * 38
     print "PyTables version:  %s" % tables.__version__
-    # Don't print the integrated Numexpr version.  Perhaps only
-    # when it will eventually depends from *external* Numexpr.
-    #print "Numexpr version:   %s" % tables.numexpr.__version__
     print "HDF5 version:      %s" % tables.whichLibVersion("hdf5")[1]
     print "NumPy version:     %s" % numpy.__version__
     tinfo = tables.whichLibVersion("zlib")
+    if numexpr.use_vml:
+        # Get only the main version number and strip out all the rest
+        vml_version = numexpr.get_vml_version()
+        vml_version = re.findall("[0-9.]+", vml_version)[0]
+        vml_avail = "using VML/MKL %s" % vml_version
+    else:
+        vml_avail = "not using Intel's VML/MKL"
+    print "Numexpr version:   %s (%s)" % (numexpr.__version__, vml_avail)
     if tinfo is not None:
-        print "Zlib version:      %s" % (tinfo[1])
+        print "Zlib version:      %s (%s)" % (tinfo[1], "in Python interpreter")
     tinfo = tables.whichLibVersion("lzo")
     if tinfo is not None:
         print "LZO version:       %s (%s)" % (tinfo[1], tinfo[2])
     tinfo = tables.whichLibVersion("bzip2")
     if tinfo is not None:
         print "BZIP2 version:     %s (%s)" % (tinfo[1], tinfo[2])
+    tinfo = tables.whichLibVersion("blosc")
+    if tinfo is not None:
+        print "Blosc version:     %s (%s)" % (tinfo[1], tinfo[2])
     print 'Python version:    %s' % sys.version
     if os.name == 'posix':
         (sysname, nodename, release, version, machine) = os.uname()
@@ -166,20 +187,21 @@ def test(verbose=False, heavy=False):
 
 if __name__ == '__main__':
 
-    hdf5_version = tables.whichLibVersion("hdf5")[1]
-    if hdf5_version < minimum_hdf5_version:
+    hdf5_version = get_tuple_version(tables.whichLibVersion("hdf5")[0])
+    if hdf5_version < min_hdf5_version:
         print "*Warning*: HDF5 version is lower than recommended: %s < %s" % \
-              (hdf5_version, minimum_hdf5_version)
+              (hdf5_version, min_hdf5_version)
 
-    if numpy.__version__ < minimum_numpy_version:
+    if numpy.__version__ < min_numpy_version:
         print "*Warning*: NumPy version is lower than recommended: %s < %s" % \
-              (numpy.__version__, minimum_numpy_version)
+              (numpy.__version__, min_numpy_version)
 
     # Handle some global flags (i.e. only useful for test_all.py)
     only_versions = 0
     args = sys.argv[:]
     for arg in args:
-        if arg == '--show-versions':
+        # Remove 'show-versions' for PyTables 2.3 or higher
+        if arg in ['--print-versions', '--show-versions']:
             only_versions = True
             sys.argv.remove(arg)
         elif arg == '--show-memory':

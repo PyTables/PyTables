@@ -2250,6 +2250,26 @@ class UnicodeFilename(common.PyTablesTestCase):
         self.assert_(tables.isPyTablesFile(self.h5fname) <> False)
 
 
+# Test for reading a file that uses Blosc and created on a big-endian platform
+class BloscBigEndian(common.PyTablesTestCase):
+
+    def setUp(self):
+        filename = self._testFilename("blosc_bigendian.h5")
+        self.fileh = openFile(filename, "r")
+
+    def tearDown(self):
+        self.fileh.close()
+
+
+    def test00_bigendian(self):
+        """Checking compatibility with Blosc on big-endian machines."""
+
+        # Check that we can read the contents without problems (nor warnings!)
+        a = numpy.arange(10, dtype='i4')
+        for dset_name in ('i1', 'i2', 'i4', 'i8'):
+            dset = self.fileh.getNode('/'+dset_name)
+            self.assert_(common.allequal(a, dset[:]),
+                         "Error in big-endian data!")
 
 
 
@@ -2268,6 +2288,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
         theSuite.addTest(unittest.makeSuite(OldFlavorTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscBigEndian))
 
     return theSuite
 

@@ -493,13 +493,18 @@ class RecArrayThreeWriteTestCase(BasicTestCase):
         names='var0,var1,var1_,var2,var3,var4,var5,var6,var7',
         shape=1)
 
+class CompressBloscTablesTestCase(BasicTestCase):
+    title = "CompressBloscTables"
+    compress = 1
+    complib = "blosc"
+
 class CompressLZOTablesTestCase(BasicTestCase):
     title = "CompressLZOTables"
     compress = 1
     complib = "lzo"
 
-class CompressBZIP2TablesTestCase(BasicTestCase):
-    title = "CompressBZIP2Tables"
+class CompressBzip2TablesTestCase(BasicTestCase):
+    title = "CompressBzip2Tables"
     compress = 1
     complib = "bzip2"
 
@@ -2208,9 +2213,10 @@ def suite():
         theSuite.addTest(unittest.makeSuite(updateRow2))
         theSuite.addTest(unittest.makeSuite(updateRow3))
         theSuite.addTest(unittest.makeSuite(updateRow4))
-    if common.heavy:
+        theSuite.addTest(unittest.makeSuite(CompressBloscTablesTestCase))
         theSuite.addTest(unittest.makeSuite(CompressLZOTablesTestCase))
-        theSuite.addTest(unittest.makeSuite(CompressBZIP2TablesTestCase))
+    if common.heavy:
+        theSuite.addTest(unittest.makeSuite(CompressBzip2TablesTestCase))
         theSuite.addTest(unittest.makeSuite(BigTablesTestCase))
 
     return theSuite

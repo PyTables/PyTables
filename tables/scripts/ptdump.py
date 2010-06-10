@@ -61,9 +61,6 @@ def dumpLeaf(leaf):
             step = 1
         else:
             step = options.rng.step
-#         print "nrows-->", leaf.nrows
-#         print "shape-->", leaf.shape
-#         print "start, stop, step-->", start, stop, step
         if leaf.shape == ():
             print "[SCALAR] %s" % (leaf[()])
         else:
@@ -72,7 +69,6 @@ def dumpLeaf(leaf):
 
     if isinstance(leaf, Table) and options.colinfo:
         # Show info of columns
-        #print repr(leaf.cols)
         for colname in leaf.colnames:
             print repr(leaf.cols._f_col(colname))
 
@@ -82,31 +78,21 @@ def dumpLeaf(leaf):
             if leaf.cols._f_col(colname).index is not None:
                 idx = leaf.cols._f_col(colname).index
                 print repr(idx)
-                # The next piece of code does not work very well :-/
-#                 if options.dump:
-#                     row = idx.nelements % (idx.nelemslice
-#                     j = start
-#                     for i in range(start, stop, step):
-#                         if i > idx.nelemslice:
-#                             row += 1
-#                             j = 0
-#                         print "[%s] %s" % (i, idx.sorted[row][j])
-#                         j += step
 
 
-def dumpGroup(h5file):
-    if not options.verbose and not options.dump:
-        # Print the simplest object tree
-        print h5file
-        return
-
-    # Print detailed info on nodes
-    for group in h5file.walkGroups():
+def dumpGroup(pgroup):
+    node_kinds = pgroup._v_file._node_kinds[1:]
+    for group in pgroup._f_walkGroups():
         print str(group)
         if options.showattrs:
             print "  "+repr(group._v_attrs)
-        for leaf in h5file.listNodes(group, 'Leaf'):
-            dumpLeaf(leaf)
+        for kind in node_kinds:
+            for node in group._f_listNodes(kind):
+                if options.verbose or options.dump:
+                    dumpLeaf(node)
+                else:
+                    print str(node)
+
 
 
 def main():
@@ -136,6 +122,7 @@ def main():
     # Get the options
     for option in opts:
         if option[0] == '-R':
+            options.dump = 1
             try:
                 options.rng = eval("slice("+option[1]+")")
             except:
@@ -178,9 +165,7 @@ def main():
     nodeobject = h5file.getNode(nodename)
     if isinstance(nodeobject, Group):
         # Close the file again and reopen using the rootUEP
-    #     h5file.close()
-    #     h5file = openFile(filename, 'r', rootUEP=nodename)
-        dumpGroup(h5file)
+        dumpGroup(nodeobject)
     elif isinstance(nodeobject, Leaf):
         # If it is not a Group, it must be a Leaf
         dumpLeaf(nodeobject)

@@ -44,9 +44,16 @@ from tables.registry import getClassByName
 from tables.path import checkNameValidity, joinPath, isVisibleName
 from tables.node import Node, NotLoggedMixin
 from tables.leaf import Leaf
-from tables.unimplemented import UnImplemented
+from tables.unimplemented import UnImplemented, Unknown
 from tables.attributeset import AttributeSet
 
+from tables.link import Link, SoftLink
+try:
+    from tables.link import ExternalLink
+except ImportError:
+    are_extlinks_available = False
+else:
+    are_extlinks_available = True
 
 
 __version__ = "$Revision$"
@@ -121,8 +128,12 @@ class Group(hdf5Extension.Group, Node):
         Dictionary with all hidden nodes hanging from this group.
     _v_leaves
         Dictionary with all leaves hanging from this group.
+    _v_links
+        Dictionary with all links hanging from this group.
     _v_nchildren
         The number of children hanging from this group.
+    _v_unknown
+        Dictionary with all unknown nodes hanging from this group.
 
     Public methods
     --------------
@@ -188,7 +199,8 @@ class Group(hdf5Extension.Group, Node):
     # Children containers that should be loaded only in a lazy way.
     # These are documented in the ``Group._g_addChildrenNames`` method.
     _c_lazy_children_attrs = (
-        '__members__', '_v_children', '_v_groups', '_v_leaves', '_v_hidden')
+        '__members__', '_v_children', '_v_groups', '_v_leaves',
+        '_v_links', '_v_unknown', '_v_hidden')
 
     # <properties>
 
@@ -305,6 +317,8 @@ class Group(hdf5Extension.Group, Node):
             self._v_children.containerRef = selfRef
             self._v_groups.containerRef = selfRef
             self._v_leaves.containerRef = selfRef
+            self._v_links.containerRef = selfRef
+            self._v_unknown.containerRef = selfRef
             self._v_hidden.containerRef = selfRef
 
         super(Group, self).__del__()
@@ -390,17 +404,24 @@ class Group(hdf5Extension.Group, Node):
         """Dictionary with all groups hanging from this group."""
         myDict['_v_leaves'] = leaves = _ChildrenDict(self)
         """Dictionary with all leaves hanging from this group."""
+        myDict['_v_links'] = links = _ChildrenDict(self)
+        """Dictionary with all links hanging from this group."""
+        myDict['_v_unknown'] = unknown = _ChildrenDict(self)
+        """Dictionary with all unknown nodes hanging from this group."""
         myDict['_v_hidden'] = hidden = _ChildrenDict(self)
         """Dictionary with all hidden nodes hanging from this group."""
 
         # Get the names of *all* child groups and leaves.
-        (groupNames, leafNames) = self._g_listGroup(self._v_parent)
+        (groupNames, leafNames, linkNames, unknownNames) = \
+                     self._g_listGroup(self._v_parent)
 
         # Separate groups into visible groups and hidden nodes,
         # and leaves into visible leaves and hidden nodes.
         for (childNames, childDict) in (
             (groupNames, groups),
-            (leafNames,  leaves)):
+            (leafNames, leaves),
+            (linkNames, links),
+            (unknownNames, unknown)):
 
             for childName in childNames:
                 # See whether the name implies that the node is hidden.
@@ -413,6 +434,7 @@ class Group(hdf5Extension.Group, Node):
                 else:
                     # Hidden node.
                     hidden[childName] = None
+
 
     def _g_checkHasChild(self, name):
         """Check whether 'name' is a children of 'self' and return its type. """
@@ -554,7 +576,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             # Visible node.
             self.__members__.insert(0, childName)  # enable completion
             self._v_children[childName] = None  # insert node
-            if isinstance(childNode, Leaf):
+            if isinstance(childNode, Unknown):
+                self._v_unknown[childName] = None
+            elif isinstance(childNode, Link):
+                self._v_links[childName] = None
+            elif isinstance(childNode, Leaf):
                 self._v_leaves[childName] = None
             elif isinstance(childNode, Group):
                 self._v_groups[childName] = None
@@ -584,6 +610,8 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
                 del members[memberIndex]  # disables completion
 
                 del self._v_children[childName]  # remove node
+                self._v_unknown.pop(childName, None)
+                self._v_links.pop(childName, None)
                 self._v_leaves.pop(childName, None)
                 self._v_groups.pop(childName, None)
             else:
@@ -721,6 +749,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             names.sort()
             for name in names:
                 yield self._v_leaves[name]
+        elif classname == 'Link':
+            # Returns all the links alphanumerically sorted
+            names = self._v_links.keys()
+            names.sort()
+            for name in names:
+                yield self._v_links[name]
         elif classname == 'IndexArray':
             raise TypeError(
                 "listing ``IndexArray`` nodes is not allowed")
@@ -948,15 +982,16 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         self._g_close()
 
 
-    def _g_remove(self, recursive=False):
+    def _g_remove(self, recursive=False, force=False):
         """Remove (recursively if needed) the Group.
 
         This version correctly handles both visible and hidden nodes.
         """
         if self._v_nchildren > 0:
-            if not recursive:
+            if not (recursive or force):
                 raise NodeError("group ``%s`` has child nodes; "
-                                "please state recursive removal to remove it"
+                                "please set `recursive` or `force` to true "
+                                "to remove it"
                                 % (self._v_pathname,))
 
             # First close all the descendents hanging from this group,
@@ -964,7 +999,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
             self._g_closeDescendents()
 
         # Remove the node itself from the hierarchy.
-        super(Group, self)._g_remove(recursive)
+        super(Group, self)._g_remove(recursive, force)
 
 
     def _f_copy(self, newparent=None, newname=None,
@@ -992,10 +1027,10 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
         `stats`
             This argument may be used to collect statistics on the copy
             process.  When used, it should be a dictionary whith keys
-            ``'groups'``, ``'leaves'`` and ``'bytes'`` having a numeric
-            value.  Their values will be incremented to reflect the
-            number of groups, leaves and bytes, respectively, that have
-            been copied during the operation.
+            ``'groups'``, ``'leaves'``, ``'links'`` and ``'bytes'``
+            having a numeric value.  Their values will be incremented to
+            reflect the number of groups, leaves and bytes,
+            respectively, that have been copied during the operation.
         """
         return super(Group, self)._f_copy(
             newparent, newname,
@@ -1062,16 +1097,11 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O."""
 
             >>> f=tables.openFile('data/test.h5')
             >>> print f.root.group0
-            /group0 (Group) 'First Group'</screen>
+            /group0 (Group) 'First Group'
         """
 
-        # Get the associated filename
-        filename = self._v_file.filename
-        # The pathname
         pathname = self._v_pathname
-        # Get this class name
         classname = self.__class__.__name__
-        # The title
         title = self._v_title
         return "%s (%s) %r" % (pathname, classname, title)
 
@@ -1157,6 +1187,10 @@ class RootGroup(Group):
         # Is the node a group or a leaf?
         node_type = self._g_checkHasChild(childName)
 
+        # Nodes that HDF5 report as H5G_UNKNOWN
+        if node_type == 'Unknown':
+            return Unknown(self, childName)
+
         # Guess the PyTables class suited to the node,
         # build a PyTables node and return it.
         if node_type == "Group":
@@ -1181,6 +1215,10 @@ class RootGroup(Group):
                     % (self._g_join(childName), exc))
                 # If not, associate an UnImplemented object to it
                 return UnImplemented(self, childName)
+        elif node_type == "SoftLink":
+            return SoftLink(self, childName)
+        elif node_type == "ExternalLink":
+            return ExternalLink(self, childName)
         else:
             return UnImplemented(self, childName)
 
@@ -1241,7 +1279,7 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
 
         # Remove action storage nodes.
         for child in self._v_children.values():
-            child._g_remove(True)
+            child._g_remove(True, True)
 
         # Remove action storage attributes.
         attrs = self._v_attrs

@@ -1,5 +1,8 @@
-Copyright (c) 2007,2008  David M. Cooke <david.m.cooke@gmail.com>
-Copyright (c) 2009  Francesc Alted <faltet@pytables.org>
+FastLZ - lightning-fast lossless compression library
+
+Copyright (C) 2007 Ariya Hidayat (ariya@kde.org)
+Copyright (C) 2006 Ariya Hidayat (ariya@kde.org)
+Copyright (C) 2005 Ariya Hidayat (ariya@kde.org)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -18,3 +21,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+

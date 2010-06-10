@@ -28,8 +28,10 @@ import warnings
 import numpy
 
 from tables import hdf5Extension
-from tables.utils import SizeType
+from tables.utils import SizeType, lazyattr
+from tables.node import Node
 from tables.leaf import Leaf
+from tables.attributeset import AttributeSet
 
 
 __version__ = "$Revision$"
@@ -126,17 +128,60 @@ class UnImplemented(hdf5Extension.UnImplemented, Leaf):
 
 
     def __repr__(self):
-        # byteorder = %r
         return """%s
   NOTE: <The UnImplemented object represents a PyTables unimplemented
-         dataset present in the '%s' HDF5 file.
-         If you want to see this kind of HDF5 dataset implemented in
-         PyTables, please contact the developers.>
+         dataset present in the '%s' HDF5 file.  If you want to see this
+         kind of HDF5 dataset implemented in PyTables, please contact the
+         developers.>
 """ % (str(self), self._v_file.filename)
 
 
-# Non supported classes. These are listed here for backward compatibility
-# with PyTables 0.9.x indexes
 
+# Classes reported as H5G_UNKNOWN by HDF5
+class Unknown(Node):
+    """
+    This class represents nodes reported as ``unknown`` by the
+    underlying HDF5 library.
+
+    This class does not have any public instance variables or methods,
+    except those inherited from the `Node` class.
+    """
+
+    # Class identifier
+    _c_classId = 'UNKNOWN'
+
+    def __init__(self, parentNode, name):
+        """Create the `Unknown` instance."""
+        self._v_new = False
+        super(Unknown, self).__init__(parentNode, name)
+
+    def _g_new(self, parentNode, name, init=False):
+        pass
+
+    def _g_open(self):
+        return 0
+
+    def _g_copy(self, newParent, newName, recursive, _log=True, **kwargs):
+        # Silently avoid doing copies of unknown nodes
+        return None
+
+    def _g_delete(self, parent):
+        pass
+
+    def __str__(self):
+        pathname = self._v_pathname
+        classname = self.__class__.__name__
+        return "%s (%s)" % (pathname, classname)
+
+    def __repr__(self):
+        return """%s
+  NOTE: <The Unknown object represents a node which is reported as
+         unknown by the underlying HDF5 library, but that might be
+         supported in more recent HDF5 versions.>
+""" % (str(self))
+
+
+
+# These are listed here for backward compatibility with PyTables 0.9.x indexes
 class OldIndexArray(UnImplemented):
     _c_classId = 'IndexArray'

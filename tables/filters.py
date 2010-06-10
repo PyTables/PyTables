@@ -28,7 +28,7 @@ import warnings
 import numpy
 
 from tables import utilsExtension
-from tables.exceptions import FiltersWarning
+from tables.exceptions import FiltersWarning, ExperimentalFeatureWarning
 
 
 # Public variables
@@ -39,7 +39,7 @@ __docformat__ = 'reStructuredText'
 __version__ = '$Revision$'
 """Repository version of this file."""
 
-all_complibs = ['zlib', 'lzo', 'bzip2']
+all_complibs = ['zlib', 'lzo', 'bzip2', 'blosc']
 """List of all compression libraries."""
 
 foreign_complibs = ['szip']
@@ -90,7 +90,7 @@ class Filters(object):
 
         fileh = openFile('test5.h5', mode='w')
         atom = Float32Atom()
-        filters = Filters(complevel=1, complib='lzo', fletcher32=True)
+        filters = Filters(complevel=1, complib='blosc', fletcher32=True)
         arr = fileh.createEArray(fileh.root, 'earray', atom, (0,2),
                                  \"A growable array\", filters=filters)
         # Append several rows in only one call
@@ -104,12 +104,12 @@ class Filters(object):
 
         fileh.close()
 
-    This enforces the use of the LZO library, a compression level of 1
+    This enforces the use of the Blosc library, a compression level of 1
     and a Fletcher32 checksum filter as well.  See the output of this
     example::
 
         Result Array:
-        /earray (EArray(3, 2), fletcher32, shuffle, lzo(1)) 'A growable array'
+        /earray (EArray(3, 2), fletcher32, shuffle, blosc(1)) 'A growable array'
           type = float32
           shape = (3, 2)
           itemsize = 4
@@ -135,7 +135,13 @@ class Filters(object):
                 name = 'zlib'
             if name in all_complibs:
                 kwargs['complib'] = name
-                kwargs['complevel'] = values[0]
+                if name == "blosc":
+                    kwargs['complevel'] = values[4]
+                    # Shuffle filter is internal to blosc
+                    if values[5]:
+                        kwargs['shuffle'] = True
+                else:
+                    kwargs['complevel'] = values[0]
             elif name in foreign_complibs:
                 kwargs['complib'] = name
                 kwargs['complevel'] = 1  # any nonzero value will do
@@ -221,10 +227,10 @@ class Filters(object):
 
         `complib`
             Specifies the compression library to be used.  Right now,
-            'zlib' (the default), 'lzo' and 'bzip2' are supported.
-            Specifying a compression library which is not available in
-            the system issues a `FiltersWarning` and sets the library
-            to the default one.
+            'zlib' (the default), 'lzo', 'bzip2' and 'blosc' are
+            supported.  Specifying a compression library which is not
+            available in the system issues a `FiltersWarning` and sets
+            the library to the default one.
 
         `shuffle`
             Whether or not to use the *Shuffle* filter in the HDF5
@@ -257,6 +263,10 @@ class Filters(object):
                                "using ``%s`` instead"
                                % (complib, default_complib), FiltersWarning )
                 complib = default_complib  # always available
+	    if complib == "blosc":
+               warnings.warn("""\
+Blosc filter is still experimental, so use it with care.  In particular, do not use it for production purposes yet.  You have been warned!""",
+                             ExperimentalFeatureWarning)
 
         complevel = int(complevel)
         complib = str(complib)

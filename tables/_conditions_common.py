@@ -9,7 +9,7 @@ Utility functions and classes for supporting query conditions (common).
 """
 
 import re
-from tables.numexpr.necompiler import typecode_to_kind
+from numexpr.necompiler import typecode_to_kind
 
 _no_matching_opcode = re.compile(r"[^a-z]([a-z]+)_([a-z]+)[^a-z]")
 # E.g. "gt" and "bfc" from "couldn't find matching opcode for 'gt_bfc'".

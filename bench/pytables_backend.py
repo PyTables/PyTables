@@ -21,7 +21,8 @@ class PyTables_DB(DB):
         self.filename = datadir + '/' + self.filename + '.h5'
         # The chosen filters
         self.filters = tables.Filters(complevel=self.docompress,
-                                      complib=self.complib)
+                                      complib=self.complib,
+                                      shuffle = 1)
         print "Processing database:", self.filename
 
     def open_db(self, remove=0):

@@ -721,6 +721,32 @@ class TypesTestCase(unittest.TestCase):
                                numpy.array([1,2], dtype=dtype))
 
     def test01d_setIntAttributes(self):
+        """Checking setting Int attributes (unidimensional, non-contiguous)"""
+
+        # 'UInt64' not supported on Win
+        checktypes = ['Int8', 'Int16', 'Int32', 'Int64',
+                      'UInt8', 'UInt16', 'UInt32']
+
+        for dtype in checktypes:
+            arr = numpy.array([1,2,3,4], dtype=dtype)[::2]
+            setattr(self.array.attrs, dtype, arr)
+
+        # Check the results
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        for dtype in checktypes:
+            arr = numpy.array([1,2,3,4], dtype=dtype)[::2]
+            if common.verbose:
+                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+            assert_array_equal(getattr(self.array.attrs, dtype), arr)
+
+    def test01e_setIntAttributes(self):
         """Checking setting Int attributes (bidimensional NumPy case)"""
 
         # 'UInt64' not supported on Win
@@ -829,6 +855,32 @@ class TypesTestCase(unittest.TestCase):
                                numpy.array([1.1,2.1], dtype=dtype))
 
     def test02d_setFloatAttributes(self):
+        """Checking setting Float attributes (unidimensional, non-contiguous)"""
+
+        checktypes = ['Float32', 'Float64']
+
+        for dtype in checktypes:
+            arr = numpy.array([1.1,2.1,3.1,4.1], dtype=dtype)[1::2]
+            setattr(self.array.attrs, dtype, arr)
+
+        # Check the results
+        if common.verbose:
+            for dtype in checktypes:
+                print "type, value-->", dtype, getattr(self.array.attrs, dtype)
+
+        if self.close:
+            if common.verbose:
+                print "(closing file version)"
+            self.fileh.close()
+            self.fileh = openFile(self.file, mode = "r+")
+            self.root = self.fileh.root
+            self.array = self.fileh.root.anarray
+
+        for dtype in checktypes:
+            arr = numpy.array([1.1,2.1,3.1,4.1], dtype=dtype)[1::2]
+            assert_array_equal(getattr(self.array.attrs, dtype), arr)
+
+    def test02e_setFloatAttributes(self):
         """Checking setting Int attributes (bidimensional NumPy case)"""
 
         checktypes = ['Float32', 'Float64']
@@ -1443,6 +1495,23 @@ class NoSysAttrsClose(NoSysAttrsTestCase):
 
 
 
+class SegFaultPythonTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def test00_segfault(self):
+        """Checking workaround for Python unpickle problem (see #253)."""
+
+        self.h5file.root._v_attrs.trouble1 = "0"
+        self.assert_(self.h5file.root._v_attrs.trouble1 == "0")
+        self.h5file.root._v_attrs.trouble2 = "0."
+        self.assert_(self.h5file.root._v_attrs.trouble2 == "0.")
+        # Problem happens after reopening
+        self._reopen()
+        self.assert_(self.h5file.root._v_attrs.trouble1 == "0")
+        self.assert_(self.h5file.root._v_attrs.trouble2 == "0.")
+        if common.verbose:
+            print "Great! '0' and '0.' values can be safely retrieved."
+
+
 
 class UnsupportedAttrTypeTestCase(PyTablesTestCase):
 
@@ -1453,6 +1522,26 @@ class UnsupportedAttrTypeTestCase(PyTablesTestCase):
         fileh = openFile(filename)
         self.failUnlessWarns(DataTypeWarning, repr, fileh)
         fileh.close()
+
+
+# Test for specific system attributes in EArray
+class SpecificAttrsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def test00_earray(self):
+        "Testing EArray specific attrs (create)."
+        ea = self.h5file.createEArray('/', 'ea', Int32Atom(), (2,0,4))
+        if common.verbose:
+            print "EXTDIM-->", ea.attrs.EXTDIM
+        self.assert_(ea.attrs.EXTDIM == 1)
+
+    def test01_earray(self):
+        "Testing EArray specific attrs (open)."
+        ea = self.h5file.createEArray('/', 'ea', Int32Atom(), (0,1,4))
+        self._reopen('r')
+        ea = self.h5file.root.ea
+        if common.verbose:
+            print "EXTDIM-->", ea.attrs.EXTDIM
+        self.assert_(ea.attrs.EXTDIM == 0)
 
 
 
@@ -1473,7 +1562,9 @@ def suite():
         theSuite.addTest(unittest.makeSuite(CloseTypesTestCase))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsNotClose))
         theSuite.addTest(unittest.makeSuite(NoSysAttrsClose))
+        theSuite.addTest(unittest.makeSuite(SegFaultPythonTestCase))
         theSuite.addTest(unittest.makeSuite(UnsupportedAttrTypeTestCase))
+        theSuite.addTest(unittest.makeSuite(SpecificAttrsTestCase))
 
     return theSuite
 

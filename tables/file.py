@@ -39,6 +39,8 @@ import os, os.path
 import sys
 import weakref
 
+import numexpr
+
 import tables.misc.proxydict
 from tables import hdf5Extension
 from tables import utilsExtension
@@ -46,7 +48,7 @@ from tables import parameters
 from tables.exceptions import \
      ClosedFileError, FileModeError, \
      NodeError, NoSuchNodeError, UndoRedoError, \
-     UndoRedoWarning, PerformanceWarning
+     UndoRedoWarning, PerformanceWarning, Incompat16Warning
 from tables.registry import getClassByName
 from tables.path import joinPath, splitPath, isVisiblePath
 from tables import undoredo
@@ -61,6 +63,8 @@ from tables.carray import CArray
 from tables.earray import EArray
 from tables.vlarray import VLArray
 from tables.table import Table
+from tables import linkExtension
+from utils import detectNumberOfCores
 
 try:
     from tables import lrucacheExtension
@@ -70,6 +74,13 @@ except ImportError:
 else:
     _LRUCache = lrucacheExtension.NodeCache
 
+from tables.link import SoftLink
+try:
+    from tables.link import ExternalLink
+except ImportError:
+    are_extlinks_available = False
+else:
+    are_extlinks_available = True
 
 
 __version__ = "$Revision$"
@@ -92,7 +103,7 @@ format_version = "2.0"  # Pickles are not used anymore in system attrs
 compatible_formats = [] # Old format versions we can read
                         # Empty means that we support all the old formats
 
-# Dict of opened files (keys are filehandlers and values filenames)
+# Dict of opened files (keys are filenames and values filehandlers)
 _open_files = {}
 
 # Opcodes for do-undo actions
@@ -177,7 +188,7 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
         ``.h5``, ``.hdf`` or ``.hdf5`` extensions, although this is not
         mandatory.
 
-    `mode` -- The mode in which to open the file.  It can be one of the
+    `mode` -- The mode to open the file.  It can be one of the
         following:
 
         ``'r'``
@@ -218,6 +229,29 @@ def openFile(filename, mode="r", title="", rootUEP="/", filters=None,
 
     """
 
+    # Get the list of already opened files
+    ofiles = [fname for fname in _open_files]
+    if filename in ofiles:
+        omode = _open_files[filename].mode
+        # 'r' is incompatible with everything except 'r' itself
+        if mode == 'r' and omode != 'r':
+            raise ValueError(
+                "The file '%s' is already opened, but "
+                "not in read-only mode (as requested)." % filename)
+        # 'a' and 'r+' are compatible with everything except 'r'
+        elif mode in ('a', 'r+') and omode == 'r':
+            raise ValueError(
+                "The file '%s' is already opened, but "
+                "in read-only mode.  Please close it before "
+                "reopening in append mode." % filename)
+        # 'w' means that we want to destroy existing contents
+        elif mode == 'w':
+            raise ValueError(
+                "The file '%s' is already opened.  Please "
+                "close it before reopening in write mode." % filename)
+        else:
+            # The file is already open and modes are compatible
+            return _open_files[filename]
     # Finally, create the File instance, and return it
     return File(filename, mode, title, rootUEP, filters, **kwargs)
 
@@ -428,6 +462,12 @@ class File(hdf5Extension.File, object):
     * setNodeAttr(where, attrname, attrvalue[, name])
     """
 
+    ## <class variables>
+    # The top level kinds. Group must go first!
+    _node_kinds = ('Group', 'Leaf', 'Link', 'Unknown')
+
+    ## </class variables>
+
     ## <properties>
 
     def _gettitle(self):
@@ -475,6 +515,12 @@ class File(hdf5Extension.File, object):
                        if k.isupper() and not k.startswith('_')])
         # Update them with possible keyword arguments
         params.update(kwargs)
+
+        # If MAX_THREADS is not set yet, set it to the number of cores
+        # on this machine.
+        if params['MAX_THREADS'] is None:
+            params['MAX_THREADS'] = detectNumberOfCores()
+
         self.params = params
 
         # Now, it is time to initialize the File extension
@@ -506,7 +552,7 @@ class File(hdf5Extension.File, object):
         self.isopen = 1
 
         # Append the name of the file to the global dict of files opened.
-        _open_files[self] = self.filename
+        _open_files[self.filename] = self
 
         # Get the root group from this file
         self.root = root = self.__getRootGroup(rootUEP, title, filters)
@@ -525,6 +571,9 @@ class File(hdf5Extension.File, object):
         if not new and self.mode != "r" and _transGroupPath in self:
             # It does. Enable the undo.
             self.enableUndo()
+
+        # Set the maximum number of threads for Numexpr
+        numexpr.set_vml_num_threads(params['MAX_THREADS'])
 
 
     def __getRootGroup(self, rootUEP, title, filters):
@@ -548,9 +597,10 @@ class File(hdf5Extension.File, object):
             # Firstly, get the PyTables format version for this file
             self.format_version = utilsExtension.read_f_attr(
                 self._v_objectID, 'PYTABLES_FORMAT_VERSION')
-            if not self.format_version or not self._isPTFile:
+            if not self.format_version:
                 # PYTABLES_FORMAT_VERSION attribute is not present
                 self.format_version = "unknown"
+                self._isPTFile = False
 
         # Create new attributes for the root Group instance and
         # create the object tree
@@ -648,25 +698,22 @@ class File(hdf5Extension.File, object):
                 table to create a new one with the same structure.
 
             A NumPy dtype
-                A completely general structured NumPy dtype is accepted
-                too, and its field structure will be reflected in the
-                new `Table` object.
+                A completely general structured NumPy dtype.
 
             A NumPy (record) array
-                You can also use a NumPy (record) array, whether nested
-                or not.  Moreover, if the array has actual data it will
-                be injected into the newly created table.
+                The dtype of this record array will be used as the
+                description.  Also, in case the array has actual data,
+                it will be injected into the newly created table.
 
             A ``RecArray`` instance
-                This object from the ``numarray`` package is also
-                accepted, but it does not give you the possibility to
-                create a nested table.  Array data is injected into the
-                new table.
+                Object from the ``numarray`` package.  This does not
+                give you the possibility to create a nested table.
+                Array data is injected into the new table.
 
             A ``NestedRecArray`` instance
-                Finally, if you want to have nested columns in your
-                table and you are using ``numarray``, you can use this
-                object.  Array data is injected into the new table.
+                If you want to have nested columns in your table and you
+                are using ``numarray``, you can use this object.  Array
+                data is injected into the new table.
 
         `title`
             A description for this node (it sets the ``TITLE`` HDF5
@@ -705,6 +752,8 @@ class File(hdf5Extension.File, object):
             exist (not done by default).
         """
         parentNode = self._getOrCreatePath(where, createparents)
+        if description is None:
+            raise ValueError("invalid table description: None")
         _checkfilters(filters)
         return Table(parentNode, name,
                      description=description, title=title,
@@ -866,6 +915,97 @@ class File(hdf5Extension.File, object):
                        atom=atom, title=title, filters=filters,
                        expectedsizeinMB=expectedsizeinMB,
                        chunkshape=chunkshape, byteorder=byteorder)
+
+
+    def createHardLink(self, where, name, target, createparents=False):
+        """
+        Create a hard link to a `target` node with the given `name` in
+        `where` location.  `target` can be a node object or a path
+        string.  If `createparents` is true, the intermediate groups
+        required for reaching `where` are created (the default is not
+        doing so).
+
+        The returned node is a regular `Group` or `Leaf` instance.
+        """
+        targetNode = self.getNode(target)
+        parentNode = self._getOrCreatePath(where, createparents)
+        linkExtension._g_createHardLink(parentNode, name, targetNode)
+        # Refresh children names in link's parent node
+        parentNode._g_addChildrenNames()
+        # Return the target node
+        return self.getNode(parentNode, name)
+
+
+    def createSoftLink(self, where, name, target, createparents=False):
+        """
+        Create a soft link (aka symbolic link) to a `target` node with
+        the given `name` in `where` location.  `target` can be a node
+        object or a path string.  If `createparents` is true, the
+        intermediate groups required for reaching `where` are created
+        (the default is not doing so).
+
+        The returned node is a `SoftLink` instance.  See the `SoftLink`
+        class for more information on soft links.
+        """
+        if type(target) is not str:
+            if hasattr(target, '_v_pathname'):   # quacks like a Node
+                target = target._v_pathname
+            else:
+                raise ValueError("`target` has to be a string or a node object")
+        parentNode = self._getOrCreatePath(where, createparents)
+        slink = SoftLink(parentNode, name, target)
+        # Refresh children names in link's parent node
+        parentNode._g_addChildrenNames()
+        return slink
+
+
+    def createExternalLink(self, where, name, target, createparents=False,
+                           warn16incompat=True):
+        """
+        Create an external link to a `target` node with the given `name`
+        in `where` location.  `target` can be a node object in another
+        file or a path string in the form 'file:/path/to/node'.  If
+        `createparents` is true, the intermediate groups required for
+        reaching `where` are created (the default is not doing so).
+
+        The purpose of the `warn16incompat` argument is to avoid an
+        `Incompat16Warning` (see below).  The default is to issue the
+        warning.
+
+        The returned node is an `ExternalLink` instance.  See the
+        `SoftLink` class for more information on external links.
+
+        .. Warning:: External links are only supported when PyTables is
+           compiled against HDF5 1.8.x series.  When using PyTables with
+           HDF5 1.6.x, the *parent* group containing external link
+           objects will be mapped to an `Unknown` instance and you won't
+           be able to access *any* node hanging of this parent group.
+           It follows that if the parent group containing the external
+           link is the root group, you won't be able to read *any*
+           information contained in the file when using HDF5 1.6.x.
+
+        """
+        if not are_extlinks_available:
+            raise NotImplementedError(
+                "External links are not available when using HDF5 1.6.x")
+        if warn16incompat:
+            warnings.warn("""\
+external links are only supported when PyTables is compiled against HDF5 1.8.x series and they, and their parent groups, are unreadable with HDF5 1.6.x series.  You can set `warn16incompat` argument to false to disable this warning.""",
+                          Incompat16Warning)
+
+        if type(target) is not str:
+            if hasattr(target, '_v_pathname'):   # quacks like a Node
+                target = target._v_file.filename+':'+target._v_pathname
+            else:
+                raise ValueError("`target` has to be a string or a node object")
+        elif target.find(':/') == -1:
+            raise ValueError(
+                "`target` must expressed as 'file:/path/to/node'")
+        parentNode = self._getOrCreatePath(where, createparents)
+        elink = ExternalLink(parentNode, name, target)
+        # Refresh children names in link's parent node
+        parentNode._g_addChildrenNames()
+        return elink
 
 
     # There is another version of _getNode in Pyrex space, but only
@@ -1212,6 +1352,12 @@ class File(hdf5Extension.File, object):
         to nodes are simply ignored.  Check the documentation for
         copying operations of nodes to see which options they support.
 
+        In addition, it recognizes the names of parameters present in
+        ``tables/parameters.py`` (and for PyTables Pro users, those in
+        ``tables/_parameters_pro.py`` too) as additional keyword
+        arguments.  Check the suitable appendix in User's Guide for a
+        detailed info on the supported parameters.
+
         Copying a file usually has the beneficial side effect of
         creating a more compact and cleaner version of the original
         file.
@@ -1224,15 +1370,15 @@ class File(hdf5Extension.File, object):
             raise IOError("You cannot copy a file over itself")
 
         # Compute default arguments.
-        filters = kwargs.get('filters', None)
+        # These are *not* passed on.
+        filters = kwargs.pop('filters', None)
         if filters is None:
             # By checking the HDF5 attribute, we avoid setting filters
             # in the destination file if not explicitly set in the
             # source file.  Just by assigning ``self.filters`` we would
             # not be able to tell.
             filters = getattr(self.root._v_attrs, 'FILTERS', None)
-        copyuserattrs = kwargs.get('copyuserattrs', False)
-        # These are *not* passed on.
+        copyuserattrs = kwargs.get('copyuserattrs', True)
         title = kwargs.pop('title', self.title)
 
         if os.path.isfile(dstfilename) and not overwrite:
@@ -1242,7 +1388,7 @@ you may want to use the ``overwrite`` argument""" % dstfilename)
 
         # Create destination file, overwriting it.
         dstFileh = openFile(
-            dstfilename, mode="w", title=title, filters=filters)
+            dstfilename, mode="w", title=title, filters=filters, **kwargs)
 
         try:
             # Maybe copy the user attributes of the root group.
@@ -1970,6 +2116,8 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         if not self.isopen:
             return
 
+        filename = self.filename
+
         if self._undoEnabled and self._isWritable():
             # Save the current mark and current action
             self._actionlog.attrs._g__setattr("CURMARK", self._curmark)
@@ -1997,16 +2145,19 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
         # Set the flag to indicate that the file is closed
         self.isopen = 0
         # Delete the entry in the dictionary of opened files
-        del _open_files[self]
+        del _open_files[filename]
+
 
     def __enter__(self):
         """Enter a context and return the same file."""
         return self
 
+
     def __exit__(self, *exc_info):
         """Exit a context and close the file."""
         self.close()
         return False  # do not hide exceptions
+
 
     def __str__(self):
         """
@@ -2040,9 +2191,11 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
 
         for group in self.walkGroups("/"):
             astring += str(group) + '\n'
-            for leaf in self.listNodes(group, 'Leaf'):
-                astring += str(leaf) + '\n'
+            for kind in self._node_kinds[1:]:
+                for node in self.listNodes(group, kind):
+                    astring += str(node) + '\n'
         return astring
+
 
     def __repr__(self):
         """Return a detailed string representation of the object tree."""
@@ -2059,8 +2212,9 @@ Mark ``%s`` is older than the current mark. Use `redo()` or `goto()` instead."""
                   ')\n'
         for group in self.walkGroups("/"):
             astring += str(group) + '\n'
-            for leaf in self.listNodes(group, 'Leaf'):
-                astring += repr(leaf) + '\n'
+            for kind in self._node_kinds[1:]:
+                for node in self.listNodes(group, kind):
+                    astring += repr(node) + '\n'
         return astring
 
 
@@ -2164,8 +2318,8 @@ def close_open_files():
     are_open_files = len(_open_files) > 0
     if are_open_files:
         print >> sys.stderr, "Closing remaining open files:",
-    for fileh in _open_files.keys():
-        print >> sys.stderr, "%s..." % (fileh.filename,),
+    for fname, fileh in _open_files.items():
+        print >> sys.stderr, "%s..." % (fname,),
         fileh.close()
         print >> sys.stderr, "done",
     if are_open_files:

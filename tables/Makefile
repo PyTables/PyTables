@@ -5,7 +5,7 @@ pyxext = $(wildcard *.pyx)
 genc = $(patsubst %.pyx, %.c, $(pyxext))
 
 # All the generated files
-GENERATED = $(genc)
+GENERATED = $(genc) linkExtension.pyx
 
 .PHONY:         dist clean
 
