@@ -700,6 +700,13 @@ class ZlibReadTestCase(BasicTestCase):
     fletcher32 = 0
     nrows = small_ss
 
+class BloscReadTestCase(BasicTestCase):
+    compress = 1
+    complib = "blosc"
+    shuffle = 0
+    fletcher32 = 0
+    nrows = small_ss
+
 class LZOReadTestCase(BasicTestCase):
     compress = 1
     complib = "lzo"
@@ -707,7 +714,7 @@ class LZOReadTestCase(BasicTestCase):
     fletcher32 = 0
     nrows = small_ss
 
-class BZIP2ReadTestCase(BasicTestCase):
+class Bzip2ReadTestCase(BasicTestCase):
     compress = 1
     complib = "bzip2"
     shuffle = 0
@@ -2297,8 +2304,9 @@ def suite():
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicReadTestCase))
         theSuite.addTest(unittest.makeSuite(ZlibReadTestCase))
+        theSuite.addTest(unittest.makeSuite(BloscReadTestCase))
         theSuite.addTest(unittest.makeSuite(LZOReadTestCase))
-        theSuite.addTest(unittest.makeSuite(BZIP2ReadTestCase))
+        theSuite.addTest(unittest.makeSuite(Bzip2ReadTestCase))
         theSuite.addTest(unittest.makeSuite(ShuffleReadTestCase))
         theSuite.addTest(unittest.makeSuite(Fletcher32ReadTestCase))
         theSuite.addTest(unittest.makeSuite(ShuffleFletcher32ReadTestCase))
