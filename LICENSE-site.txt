@@ -101,7 +101,9 @@ Software.
 
 - HDF5
 - NumPy
+- Numexpr
 - ZLib
 - Szip (decompressor only)
 - Bzip2
+- Pthreads-Win32
 
