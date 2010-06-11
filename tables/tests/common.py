@@ -392,7 +392,7 @@ class PyTablesTestCase(unittest.TestCase):
     def failUnlessRaises(self, excClass, callableObj, *args, **kwargs):
         if not verbose:
             # Use the ordinary implementation from `unittest.TestCase`.
-            return super(PyTablesTestCase, self).failUnlessRaises(
+            return super(PyTablesTestCase, self).assertRaises(
                 excClass, callableObj, *args, **kwargs)
 
         try:

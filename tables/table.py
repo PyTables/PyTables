@@ -1017,7 +1017,6 @@ class Table(tableExtension.Table, Leaf):
                 colnames.append(var)
                 colpaths.append(val.pathname)
             else:  # array
-                assert hasattr(val, '__array_struct__')
                 try:
                     varnames.append(var)
                     vartypes.append(numexpr_getType(val))  # expensive

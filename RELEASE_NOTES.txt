@@ -9,6 +9,10 @@
 Changes from 2.2rc1 to 2.2rc2
 =============================
 
+- A new version of Blosc (0.9.5) is included.  This version is very
+  close now to be considered stable and apt for production.  Thanks for
+  all PyTables users that have contributed to find and report bugs.
+
 - Added a new `IO_BUFFER_SIZE` parameter to ``tables/parameters.py``
   that allows to set the internal PyTables' buffer for doing I/O.  This
   replaces `CHUNKTIMES` but it is more general because it affects to all
@@ -26,6 +30,9 @@ Changes from 2.2rc1 to 2.2rc2
 - A replacement for barriers for Mac OSX, or other systems not
   implementing them, has been carried out.  This allows to compile
   PyTables on such platforms.  Fixes #278
+
+- Fixed a couple of warts that raise compatibility warnings with
+  forthcoming Python 2.7.
 
 
 Changes from 2.2b3 to 2.2rc1

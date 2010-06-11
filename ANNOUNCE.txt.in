@@ -11,7 +11,24 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-###Blurb about the next release###
+This is the second release candidate for PyTables 2.2.  The main new
+features in 2.2 series are:
+
+  * A new `tables.Expr` module (based on Numexpr) that allows to do
+    persistent, on-disk computations on many algebraic operations at
+    speeds that are typically faster than NumPy itself. See:
+    
+
+  * Support for HDF5 hard links, soft links and external links.  A new
+    tutorial about its usage has been added to the 'Tutorials' chapter
+    of User's Manual.
+
+  * A new compressor called Blosc, that is meant to copy data to and
+    from memory at speeds that can be faster than a system `memcpy()`
+    call.  That will allow to speed-up many internal PyTables operations
+    that are currently bounded by I/O bandwith to memory.
+
+As always, a large amount of bugs have been addressed and squashed too.
 
 In case you want to know more in detail what has changed in this
 version, have a look at:
