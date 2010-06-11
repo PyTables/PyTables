@@ -51,8 +51,10 @@ SVN_PTPRO=..
 WINDOWS32=C:\\Windows\\system32
 TABLES_ORIG=C:\\Python$(PYTHONVERSION)\\Lib\\site-packages\\tables_orig
 NUMPY=C:\\Python$(PYTHONVERSION)\\Lib\\site-packages\\numpy_orig
+NUMEXPR=C:\\Python$(PYTHONVERSION)\\Lib\\site-packages\\numexpr_orig
 
 NUMPYVERSION = $(shell python get_numpy_version.py $(NUMPY)\\version.py)
+NUMEXPRVERSION = $(shell python get_numexpr_version.py $(NUMEXPR)\\version.py)
 
 dist:
 	$(MAKE) -f Makefile_windows -C ..
@@ -67,11 +69,13 @@ installer: dist pytables_pro.nsi.in $(VERSIONFILE) $(LICENSEFILE)
 	type pytables_pro.nsi.in | sed -e "s/@VERSION@/$(VERSION)/g" \
 	-e "s/@PTVERSION@/$(VERSION)/g" \
 	-e "s/@NUMPYVERSION@/$(NUMPYVERSION)/g" \
+	-e "s/@NUMEXPRVERSION@/$(NUMEXPRVERSION)/g" \
 	-e "s/@PYTHONVERSION@/$(PYTHONVERSION)/g" \
 	-e "s/@DOTPYTHONVERSION@/$(DOTPYTHONVERSION)/g" \
 	-e "s/@SVN_PTPRO@/$(SVN_PTPRO)/g" \
 	-e "s/@TABLES_ORIG@/$(TABLES_ORIG)/g" \
 	-e "s/@NUMPY@/$(NUMPY)/g" \
+	-e "s/@NUMEXPR@/$(NUMEXPR)/g" \
 	-e "s/@WINDOWS32@/$(WINDOWS32)/g" \
 	-e "s/@LICENSE@/$(LICENSE)/g" \
 	-e "s/@LICENSEFILENAME@/$(LICENSEFILENAME)/g" \

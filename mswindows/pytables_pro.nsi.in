@@ -1,5 +1,6 @@
 # Use Modern User Interface style
 !include "MUI2.nsh"
+!include "nsDialogs.nsh"
 !include "Library.nsh"
 !include "Sections.nsh"
 !include "LogicLib.nsh"
@@ -105,8 +106,9 @@ Page custom PageReinstall PageLeaveReinstall
 !endif
 
 # Components selection page
-!define MUI_COMPONENTSPAGE_TEXT_COMPLIST "Do not forget to check the Numpy \
-component if it is not already installed in a standard location of your system."
+!define MUI_COMPONENTSPAGE_TEXT_COMPLIST "Do not forget to check the NumPy \
+and Numexpr components if they are not already installed in a standard \
+location of your system."
 !insertmacro MUI_PAGE_COMPONENTS
 
 # Installation directory page for PyTables Pro data files
@@ -238,7 +240,7 @@ Section "PyTables Pro @PTVERSION@" PT
 SectionEnd
 
 SectionGroup /e "PyTables Pro Requisites"
-Section /o "Numpy @NUMPYVERSION@" NA
+Section /o "NumPy @NUMPYVERSION@" NP
 
   # Copy Numpy package in the system directory
   CreateDirectory $PYTHONDIR\Lib\site-packages\numpy
@@ -247,6 +249,19 @@ Section /o "Numpy @NUMPYVERSION@" NA
 
   # Update the registry
   WriteRegStr HKLM $PTPRO_SUBKEY "numpyinst" "1"
+
+SectionEnd
+
+Section /o "Numexpr @NUMEXPRVERSION@" NE
+
+  # Copy Numexpr package in the system directory
+  CreateDirectory $PYTHONDIR\Lib\site-packages\numexpr
+  SetOutPath $PYTHONDIR\Lib\site-packages\numexpr
+  File /r @NUMEXPR@\*
+
+  # Update the registry
+  WriteRegStr HKLM $PTPRO_SUBKEY "numexprinst" "1"
+
 SectionEnd
 
 SectionGroupEnd # PyTables Pro requisites section group
@@ -255,13 +270,18 @@ SectionGroupEnd # PyTables Pro requisites section group
 LangString DESC_PT $(LANG_ENGLISH) "A hierarchical database package designed \
 to efficiently manage very large amounts of data."
 
-# Set descriptions for Section 2 (NA section)
-LangString DESC_NA $(LANG_ENGLISH) "The fundamental package for scientific computing \
+# Set descriptions for Section 2 (NP section)
+LangString DESC_NP $(LANG_ENGLISH) "The fundamental package for scientific computing \
 with Python."
+
+# Set descriptions for Section 3 (NE section)
+LangString DESC_NE $(LANG_ENGLISH) "Fast numerical array expression evaluator \
+for NumPy."
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT 0 $(DESC_PT)
-  !insertmacro MUI_DESCRIPTION_TEXT 2 $(DESC_NA)
+  !insertmacro MUI_DESCRIPTION_TEXT 2 $(DESC_NP)
+  !insertmacro MUI_DESCRIPTION_TEXT 3 $(DESC_NE)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
@@ -451,7 +471,8 @@ Section "Un.PyTables Pro @PTVERSION@ uninstall" UPT
 
 SectionEnd
 
-Section /o "Un.Numpy @NUMPYVERSION@ uninstall" UNA
+
+Section /o "Un.NumPy @NUMPYVERSION@ uninstall" UNP
 
   # Remove the numpy package
   StrCmp $PYTHONDIR "" 0 +2
@@ -462,6 +483,20 @@ Section /o "Un.Numpy @NUMPYVERSION@ uninstall" UNA
   ReadRegStr $0 HKLM $PTPRO_SUBKEY "numpyinst"
   StrCmp $0 "" +2 0
     WriteRegStr HKLM $PTPRO_SUBKEY "numpyinst" "0"
+
+SectionEnd
+
+Section /o "Un.Numexpr @NUMEXPRVERSION@ uninstall" UNE
+
+  # Remove the numexpr package
+  StrCmp $PYTHONDIR "" 0 +2
+    ReadRegStr $PYTHONDIR HKLM $PTPRO_SUBKEY "PYTHONDIR"
+  RMDir /r "$PYTHONDIR\Lib\site-packages\numexpr"
+
+  # Update the registry (if the key still exists)
+  ReadRegStr $0 HKLM $PTPRO_SUBKEY "numexprinst"
+  StrCmp $0 "" +2 0
+    WriteRegStr HKLM $PTPRO_SUBKEY "numexprinst" "0"
 
 SectionEnd
 
@@ -482,7 +517,8 @@ Function un.onInit
   # is 16 what means Read-only section
   ReadRegStr $0 HKLM $PTPRO_SUBKEY "numpyinst"
   StrCmp $0 "1" new1 0
-    SectionSetFlags ${UNA} ${SF_RO}
+    SectionSetFlags  ${UNP} ${SF_RO}
+    SectionSetFlags  ${UNE} ${SF_RO}
   new1:
 FunctionEnd
 

@@ -3,7 +3,7 @@ Windows prerequisites
 
 ::
 
-  - numpy-1.0.3
+  - numpy-1.4.1
   - zlib-1.2.3
   - bzip2-1.0.3
   - szip-2.0
@@ -37,11 +37,11 @@ The installer gets some files from PyTablesPro sources in your working
 copy of the repository but obtains the extensions from the local
 PyTablesPro installation [1]_ so keep them synchronized.
 
-It expects both PyTablesPro and numpy to be installed in their default
-directory with their folders renamed to tables_orig and numpy_orig.
-This way, if PyTablesPro is completely uninstalled later (using its
-uninstaller), it can be built again without reinstalling the
-tables/numpy package(s).
+It expects both PyTablesPro, numpy and numexpr to be installed in their
+default directory with their folders renamed to tables_orig, numpy_orig and
+numexpr_orig. This way, if PyTablesPro is completely uninstalled later (using
+its uninstaller), it can be built again without reinstalling the
+tables/numpy/numexpr package(s).
 
 ******************
 
