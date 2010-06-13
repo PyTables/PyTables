@@ -30,7 +30,7 @@ Commercial package for Windows
 
 In order to set the MingW compiler environment you have to add MingW
 paths to the PATH, LIB and INCLUDE variables. You can do it with a batch
-script.
+script.  Do not forget to put a Python interpreter in the PATH too!
 
 *** Important: read this COMPLETELY before proceed! ****
 The installer gets some files from PyTablesPro sources in your working
