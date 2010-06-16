@@ -262,7 +262,7 @@ elif os.name == 'nt':
     # Copy the next DLL's to binaries by default.
     # Update these paths for your own system!
     dll_files = ['\\windows\\system\\zlib1.dll',
-                 '\\windows\\system\\szlibdll.dll',
+                 '\\windows\\system\\szip.dll',
                  '\\windows\\system\\pthreadvc2.dll',
                  ]
     if '--debug' in sys.argv:
