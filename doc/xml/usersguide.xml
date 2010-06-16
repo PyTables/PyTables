@@ -593,7 +593,7 @@ fileh.close()</screen>
 
           <para>First, make sure that you have at least Python 2.4, HDF5
           1.6.5, NumPy 1.3, Numexpr 1.3 and Cython 0.12.1 or higher installed
-          (for testing purposes, we are using HDF5 1.6.10/1.8.4, NumPy 1.4.1
+          (for testing purposes, we are using HDF5 1.6.10/1.8.5, NumPy 1.4.1
           and Numexpr 1.3.1 currently). If you don't, fetch and install them
           before proceeding.</para>
 
@@ -611,8 +611,9 @@ fileh.close()</screen>
           xrefstyle="select: label" />). The high-performance bzip2
           compression library can also be used with PyTables (see
           <biblioref linkend="bzip2Ref" />).  The <literal>Blosc</literal>
-          compression library is embedded in PyTables, so you don't need to
-          install it separately.</para>
+          (see <biblioref linkend="BloscRef" />) compression library is
+          embedded in PyTables, so you don't need to install it
+          separately.</para>
 
           <variablelist>
             <varlistentry>
@@ -638,7 +639,7 @@ fileh.close()</screen>
                 locations of the resource root directories on the
                 <literal>setup.py</literal> command line. For example:</para>
 
-                <screen>--hdf5=/stuff/hdf5-1.8.4
+                <screen>--hdf5=/stuff/hdf5-1.8.5
 --lzo=/stuff/lzo-2.02
 --bzip2=/stuff/bzip2-1.0.5</screen>
 
@@ -647,7 +648,7 @@ fileh.close()</screen>
                 linker flags needed to find the shared library on the command
                 line as well. For example:</para>
 
-                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.4/lib"</screen>
+                <screen>--lflags="-Xlinker -rpath -Xlinker /stuff/hdf5-1.8.5/lib"</screen>
 
                 <para>You may also want to try setting the LD_LIBRARY_PATH
                 environment variable to point to the directory where the
@@ -660,7 +661,7 @@ fileh.close()</screen>
                 setting the <literal>LIBS</literal> environment
                 variable:</para>
 
-                <screen>LIBS="hdf5-1.8.4 nsl"</screen>
+                <screen>LIBS="hdf5-1.8.5 nsl"</screen>
 
                 <para>Finally, you can give additional flags to your compiler
                 by passing them to the <literal>--cflags</literal>
@@ -703,7 +704,7 @@ fileh.close()</screen>
                 or <literal>BZIP2_DIR</literal> environment variables to the
                 path to the particular resource.  For example:</para>
 
-                <screen>set HDF5_DIR=c:\stuff\hdf5-1.8.4-32bit-VS2008-IVF101\release
+                <screen>set HDF5_DIR=c:\stuff\hdf5-1.8.5-32bit-VS2008-IVF101\release
 set PTHREADS_DIR=c:\stuff\pthreads-w32-2-8-0\Pre-built.2
 set LZO_DIR=c:\Program Files (x86)\GnuWin32
 set BZIP2_DIR=c:\Program Files (x86)\GnuWin32</screen>
@@ -712,7 +713,7 @@ set BZIP2_DIR=c:\Program Files (x86)\GnuWin32</screen>
                 directories on the <literal>setup.py</literal> command line.
                 For example:</para>
 
-                <screen>--hdf5=c:\stuff\hdf5-1.8.4-32bit-VS2008-IVF101\release
+                <screen>--hdf5=c:\stuff\hdf5-1.8.5-32bit-VS2008-IVF101\release
 --pthreads=c:\stuff\pthreads-w32-2-8-0\Pre-built.2
 --lzo=c:\Program Files (x86)\GnuWin32
 --bzip2=c:\Program Files (x86)\GnuWin32</screen>
@@ -898,7 +899,7 @@ python -c "import tables; tables.test()"</screen>
           <para>First, make sure that you have Python 2.4, NumPy 1.3 and
           Numexpr 1.3 or higher installed (PyTables binaries have been built
           using NumPy 1.4.1 and Numexpr 1.3.1).  The binaries already include
-          DLLs for HDF5 (1.6.10, 1.8.4), zlib1 (1.2.3), szlib (2.0,
+          DLLs for HDF5 (1.6.10, 1.8.5), zlib1 (1.2.3), szlib (2.0,
           uncompression support only), bzip2 (1.0.5) and pthreads for Windows
           (2.8.0).  The LZO DLL can't be included because of license issues
           (but read below for directives to install it if you want so).</para>
@@ -906,12 +907,12 @@ python -c "import tables; tables.test()"</screen>
           <para>To enable compression with the optional LZO library (see the
           <xref linkend="compressionIssues" xrefstyle="select: label" /> for
           hints about how it may be used to improve performance), fetch and
-          install the <literal>LZO</literal> (choose v1.x,
-          <literal>LZO</literal> v2.x is not supported in precompiled Windows
-          builds) from <ulink url="http://www.pytables.org/download/lzo-win"
-          />. Normally, you will only need to fetch that package and copy the
-          included <literal>lzo1.dll</literal> file in a directory in the
-          <literal>PATH</literal> environment variable (for example
+          install the <literal>LZO</literal> from
+          <ulink url="http://www.pytables.org/download/lzo-win" /> (choose
+          v1.x for Windows 32-bit and v2.x for Windows 64-bit). Normally, you
+          will only need to fetch that package and copy the
+          included <literal>lzo1.dll/lzo2.dll</literal> file in a directory in
+          the <literal>PATH</literal> environment variable (for example
           <literal>C:\WINDOWS\SYSTEM</literal>) or
           <literal>python_installation_path\Lib\site-packages\tables</literal>
           (the last directory may not exist yet, so if you want to install the
@@ -11968,6 +11969,15 @@ array([ 8, 12])
       may want to adjust them further anyway).  At any rate, reading this
       chapter will help you in your life with PyTables.</para>
 
+      <note>
+        <para>Many of the explanations and plots in this chapter still need
+          to be updated to include Blosc (see <biblioref linkend="BloscRef"
+          />), a new and powerful compressor added in PyTables 2.2 series.
+          You should expect it to be the fastest compressor among all the
+          described here, and its use is strongly recommended whenever you
+          need extreme speed and not a very high compression ratio. </para>
+      </note>
+
       <section id="chunksizeOptim">
         <title>Understanding chunking</title>
 
@@ -17720,6 +17730,8 @@ $ ptdump reduced.h5
     <bibliomixed id="lzoRef"></bibliomixed>
 
     <bibliomixed id="bzip2Ref"></bibliomixed>
+
+    <bibliomixed id="BloscRef"></bibliomixed>
 
     <bibliomixed id="GnuWin32"></bibliomixed>
 

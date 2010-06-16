@@ -401,7 +401,11 @@ for (package, location) in [
         # LZO DLLs cannot be copied to the binary package for license reasons
         if package.tag not in ['LZO', 'LZO2']:
             dll_file = _platdep[package.tag][1] + '.dll'
-            dll_files.append(os.path.join(rundir, dll_file))
+            # If DLL is not in rundir, do nothing.  This can be useful
+            # for BZIP2, that can be linked either statically (.LIB)
+            # or dinamically (.DLL)
+            if rundir is not None:
+                dll_files.append(os.path.join(rundir, dll_file))
 
     if package.tag == 'LZO2':
         lzo2_enabled = True

@@ -15,10 +15,10 @@ This is the second (and probably last) release candidate for PyTables
 2.2, so please test it as much as you can before I declare the beast
 stable.  The main new features in 2.2 series are:
 
-  * A new compressor called Blosc, that is meant to read/write data
-    to/from memory at speeds that can be faster than a system `memcpy()`
-    call.  With it, many internal PyTables operations that are currently
-    bounded by CPU or I/O bandwith can be speed-up.  Some benchmarks:
+  * A new compressor called Blosc, designed to read/write data to/from
+    memory at speeds that can be faster than a system `memcpy()` call.
+    With it, many internal PyTables operations that are currently
+    bounded by CPU or I/O bandwith are speed-up.  Some benchmarks:
     http://blosc.pytables.org/trac/wiki/SyntheticBenchmarks
 
   * A new `tables.Expr` module (based on Numexpr) that allows to do
@@ -29,6 +29,10 @@ stable.  The main new features in 2.2 series are:
   * Support for HDF5 hard links, soft links and automatic external links
     (kind of mounting external filesystems).  A new tutorial about its
     usage has been added to the 'Tutorials' chapter of User's Manual.
+
+  * Suport for 'fancy' indexing (i.e., à la NumPy) in all the data
+    containers in PyTables.  Backported from the implementation in the
+    h5py project.  Thanks to Andrew Collette for its nice work on this!
 
 As always, a large amount of bugs have been addressed and squashed too.
 

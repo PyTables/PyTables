@@ -174,8 +174,7 @@
     <othername role='mi'>J</othername>
     </author>
     <title>LZO. A data compression library which is suitable for data de-/compression in real-time</title>
-    <bibliomisc>It offers pretty fast compression and extremly fast
-    decompression with reasonable compression ratio</bibliomisc>
+    <bibliomisc>It offers pretty fast compression and decompression with reasonable compression ratio</bibliomisc>
     <bibliosource>
       <ulink url="http://www.oberhumer.com/opensource/">http://www.oberhumer.com/opensource/</ulink>
     </bibliosource>
@@ -187,6 +186,17 @@
     <bibliomisc>It offers very high compression ratios within reasonable times</bibliomisc>
     <bibliosource>
       <ulink url="http://www.bzip.org/">http://www.bzip.org/</ulink>
+    </bibliosource>
+  </biblioentry>
+
+  <biblioentry id="BloscRef">
+    <author><firstname>Francesc</firstname><surname>Alted</surname>
+    </author>
+    <title>Blosc. A blocking, shuffling and loss-less compression library</title>
+    <bibliomisc>A compressor designed to transmit data from memory to
+      CPU (and back) faster than a plain memcpy()</bibliomisc>
+    <bibliosource>
+      <ulink url="http://blosc.pytables.org/">http://blosc.pytables.org/</ulink>
     </bibliosource>
   </biblioentry>
 

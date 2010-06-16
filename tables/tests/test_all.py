@@ -19,6 +19,7 @@ import numpy
 import numexpr
 import tables
 from tables.tests import common
+from tables.utils import detectNumberOfCores
 
 
 
@@ -143,6 +144,7 @@ def print_versions():
         (sysname, nodename, release, version, machine) = os.uname()
         print 'Platform:          %s-%s' % (sys.platform, machine)
     print 'Byte-ordering:     %s' % sys.byteorder
+    print 'Detected cores:    %s' % detectNumberOfCores()
     print '-=' * 38
 
 
