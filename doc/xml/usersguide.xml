@@ -15981,7 +15981,7 @@ time, min/max temp, temp[n,0,0] = 9.0 0.0107500003651 9.99187469482 8.1883249282
               <glossdef>
                 <para>The maximum size for the query limits (for example,
                 <literal>(lim1, lim2)</literal> in conditions like
-                <literal>lim1 &le; col &lt; lim2</literal>) cached during
+                <literal>lim1 &lt;= col &lt; lim2</literal>) cached during
                 index lookups (in bytes).</para>
               </glossdef>
             </glossentry>
