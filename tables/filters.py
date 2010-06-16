@@ -263,10 +263,6 @@ class Filters(object):
                                "using ``%s`` instead"
                                % (complib, default_complib), FiltersWarning )
                 complib = default_complib  # always available
-	    if complib == "blosc":
-               warnings.warn("""\
-Blosc filter is still experimental, so use it with care.  In particular, do not use it for production purposes yet.  You have been warned!""",
-                             ExperimentalFeatureWarning)
 
         complevel = int(complevel)
         complib = str(complib)

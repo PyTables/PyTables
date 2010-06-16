@@ -9,9 +9,9 @@
 Changes from 2.2rc1 to 2.2rc2
 =============================
 
-- A new version of Blosc (0.9.5) is included.  This version is very
-  close now to be considered stable and apt for production.  Thanks for
-  all PyTables users that have contributed to find and report bugs.
+- A new version of Blosc (0.9.5) is included.  This version is now
+  considered to be stable and apt for production.  Thanks for all
+  PyTables users that have contributed to find and report bugs.
 
 - Added a new `IO_BUFFER_SIZE` parameter to ``tables/parameters.py``
   that allows to set the internal PyTables' buffer for doing I/O.  This
@@ -34,6 +34,7 @@ Changes from 2.2rc1 to 2.2rc2
 - Fixed a couple of warts that raise compatibility warnings with
   forthcoming Python 2.7.
 
+-  HDF5 1.8.5 is used in Windows binaries.
 
 Changes from 2.2b3 to 2.2rc1
 ============================
