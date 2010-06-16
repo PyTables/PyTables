@@ -204,8 +204,8 @@ Section "PyTables Pro @PTVERSION@" PT
   hdf5dll.dll $PYTHONDIR\Lib\site-packages\tables
   !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @TABLES_ORIG@\zlib1.dll \
   zlib1.dll $PYTHONDIR\Lib\site-packages\tables
-  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @TABLES_ORIG@\szlibdll.dll \
-  szlibdll.dll $PYTHONDIR\Lib\site-packages\tables
+  !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @TABLES_ORIG@\szip.dll \
+  szip.dll $PYTHONDIR\Lib\site-packages\tables
   !insertmacro InstallLib DLL NOTSHARED NOREBOOT_PROTECTED @TABLES_ORIG@\bzip2.dll \
   bzip2.dll $PYTHONDIR\Lib\site-packages\tables
 
