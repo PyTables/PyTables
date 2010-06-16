@@ -10,15 +10,15 @@ NI_NTIMES = 1      # The number of queries for doing a mean (non-idx cols)
 #COLDCACHE = 10   # The number of reads where the cache is considered 'cold'
 #WARMCACHE = 50   # The number of reads until the cache is considered 'warmed'
 #READ_TIMES = WARMCACHE+50    # The number of complete calls to DB.query_db()
-COLDCACHE = 50   # The number of reads where the cache is considered 'cold'
-WARMCACHE = 50  # The number of reads until the cache is considered 'warmed'
-READ_TIMES = WARMCACHE+50    # The number of complete calls to DB.query_db()
+#COLDCACHE = 50   # The number of reads where the cache is considered 'cold'
+#WARMCACHE = 50  # The number of reads until the cache is considered 'warmed'
+#READ_TIMES = WARMCACHE+50    # The number of complete calls to DB.query_db()
 MROW = 1000*1000.
 
 # Test values
-#COLDCACHE = 5   # The number of reads where the cache is considered 'cold'
-#WARMCACHE = 5   # The number of reads until the cache is considered 'warmed'
-#READ_TIMES = 10    # The number of complete calls to DB.query_db()
+COLDCACHE = 5   # The number of reads where the cache is considered 'cold'
+WARMCACHE = 5   # The number of reads until the cache is considered 'warmed'
+READ_TIMES = 10    # The number of complete calls to DB.query_db()
 
 # global variables
 rdm_cod = ['lin', 'rnd']

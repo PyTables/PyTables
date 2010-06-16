@@ -151,7 +151,8 @@ if __name__ == '__main__':
                        if tb.whichLibVersion(clib)]
 
     # Initialization code
-    for what in ["numpy", "numpy.memmap", "numexpr"]:
+    #for what in ["numpy", "numpy.memmap", "numexpr"]:
+    for what in ["numpy", "numexpr"]:
         #break
         print "Populating x using %s with %d points..." % (what, N)
         t0 = time()
@@ -174,8 +175,9 @@ if __name__ == '__main__':
         t0 = time()
         first = True    # Sentinel
         for clib in supported_clibs:
-            #for clevel in (0, 1, 5, 9):
-            for clevel in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9):
+            #for clevel in (0, 1, 3, 6, 9):
+            for clevel in range(10):
+            #for clevel in (1,):
                 if not first and clevel == 0:
                     continue
                 print "Populating x using %s with %d points..." % (what, N)
