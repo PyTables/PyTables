@@ -17,7 +17,7 @@ SetCompressor /SOLID lzma
 Name "PyTables Pro @VERSION@"
 
 # The file where the installer will be saved
-OutFile "PyTablesPro-@VERSION@-@LICENSE@.win32-py@DOTPYTHONVERSION@.exe"
+OutFile "PyTablesPro-@VERSION@-@LICENSE@.@PLATFORM@-py@DOTPYTHONVERSION@.exe"
 
 # The commands Icon/UninstallIcon with MUI Instead we have to use
 # the following !define (see NSIS FAQ)
