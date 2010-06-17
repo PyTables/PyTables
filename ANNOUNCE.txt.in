@@ -11,9 +11,9 @@ PyTables is that the Pro version includes OPSI, a new indexing
 technology, allowing to perform data lookups in tables exceeding 10
 gigarows (10**10 rows) in less than 1 tenth of a second.
 
-This is the second (and probably last) release candidate for PyTables
-2.2, so please test it as much as you can before I declare the beast
-stable.  The main new features in 2.2 series are:
+#XXX version-specific blurb XXX#
+
+The main new features in 2.2 series are:
 
   * A new compressor called Blosc, designed to read/write data to/from
     memory at speeds that can be faster than a system `memcpy()` call.
