@@ -65,7 +65,7 @@ class PyTables_DB(DB):
     def index_col(self, con, column, kind, optlevel, verbose):
         col = getattr(con.root.table.cols, column)
         col.createIndex(kind=kind, optlevel=optlevel, filters=self.filters,
-                        tmp_dir="/scratch1/faltet",
+                        tmp_dir="/scratch2/faltet",
                         _verbose=verbose, _blocksizes=None)
 #                       _blocksizes=(2**27, 2**22, 2**15, 2**7))
 #                       _blocksizes=(2**27, 2**22, 2**14, 2**6))

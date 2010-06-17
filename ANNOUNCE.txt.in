@@ -32,7 +32,7 @@ stable.  The main new features in 2.2 series are:
 
   * Suport for 'fancy' indexing (i.e., à la NumPy) in all the data
     containers in PyTables.  Backported from the implementation in the
-    h5py project.  Thanks to Andrew Collette for its nice work on this!
+    h5py project.  Thanks to Andrew Collette for his fine work on this!
 
 As always, a large amount of bugs have been addressed and squashed too.
 

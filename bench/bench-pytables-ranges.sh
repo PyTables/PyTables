@@ -12,12 +12,13 @@ working_dir="data.nobackup"
 #working_dir="/scratch2/faltet"
 
 #for comprlvl in '-z0' '-z1 -lzlib' '-z1 -llzo' ; do
-for comprlvl in '-z9 -lblosc' '-z1 -lblosc' '-z0' ; do
+#for comprlvl in '-z9 -lblosc' '-z5 -lblosc' '-z1 -lblosc' '-z0' ; do
+for comprlvl in '-z0' ; do
   for optlvl in '-tfull -O9' ; do
   #for optlvl in '-tultralight -O3' '-tlight -O6' '-tmedium -O6' '-tfull -O9'; do
   #for optlvl in '-tultralight -O3'; do
     rm -f $working_dir/*
-    for mode in -c '-Q7 -i -x -s float' ; do
+    for mode in -c '-Q7 -i -s float' ; do
     #for mode in -c '-Q8 -i -x -s float' ; do
     #for mode in '-c -s float' '-Q8 -I -s float' '-Q8 -S -s float'; do
       for size in $sizes ; do
