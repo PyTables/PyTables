@@ -74,6 +74,8 @@ clean:
 	$(MAKE) -f Makefile_windows -C .. $@
 	-del $(PTPRONSIS)
 	-del PyTablesPro*.win32-py$(DOTPYTHONVERSION).exe
+	-del PyTablesPro*.win-amd64-py$(DOTPYTHONVERSION).exe
+	
 
 # $(info $(NUMPYVERSION))
 installer: dist pytables_pro.nsi.in $(VERSIONFILE) $(LICENSEFILE)

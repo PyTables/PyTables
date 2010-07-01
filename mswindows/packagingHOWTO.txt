@@ -18,7 +18,7 @@ Windows prerequisites
     * libxslt-1.1.19
 
   - sed
-  - inkscape
+  - batik (convert .svg to .png manually!!  inkscape no pirula en win7!)
   - png2ico
   - nsis-2.27
   - MinGW
@@ -36,6 +36,8 @@ script.  Do not forget to put a Python interpreter in the PATH too!
 The installer gets some files from PyTablesPro sources in your working
 copy of the repository but obtains the extensions from the local
 PyTablesPro installation [1]_ so keep them synchronized.
+
+*** Si es modifiquen les imatges, regenerar-les amb batik! ***
 
 It expects both PyTablesPro, numpy and numexpr to be installed in their
 default directory with their folders renamed to tables_orig, numpy_orig and

@@ -15,7 +15,7 @@ dist: $(GENERATED)
 
 clean:
 	del /q /s MANIFEST build dist
-	del /q /s $(GENERATED) tables\*.so tables\numexpr\*.so
+	del /q /s $(GENERATED) tables\*.pyd
 	del /q /s *.pyc *.pyo *~
 	for %%f in ($(SRCDIRS)) do $(MAKE) -f Makefile_windows -C %%f $@
 
