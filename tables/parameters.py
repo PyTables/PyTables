@@ -82,7 +82,7 @@ treated no differently than other chunks (the preemption is strictly
 LRU) while a value of one means fully read chunks are always preempted
 before other chunks."""
 
-CHUNK_CACHE_SIZE = 1*_MB
+CHUNK_CACHE_SIZE = 2*_MB
 """Size (in bytes) for HDF5 chunk cache."""
 
 # Size for new metadata cache system in HDF5 1.8.x

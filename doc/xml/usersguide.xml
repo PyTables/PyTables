@@ -11969,15 +11969,6 @@ array([ 8, 12])
       may want to adjust them further anyway).  At any rate, reading this
       chapter will help you in your life with PyTables.</para>
 
-      <note>
-        <para>Many of the explanations and plots in this chapter still need
-          to be updated to include Blosc (see <biblioref linkend="BloscRef"
-          />), a new and powerful compressor added in PyTables 2.2 series.
-          You should expect it to be the fastest compressor among all the
-          described here, and its use is strongly recommended whenever you
-          need extreme speed and not a very high compression ratio. </para>
-      </note>
-
       <section id="chunksizeOptim">
         <title>Understanding chunking</title>
 
@@ -12071,31 +12062,34 @@ array([ 8, 12])
           (i.e. single elements are read randomly all through the dataset).
           These benchmarks have been carried out with PyTables 2.1 on a
           machine with an Intel Core2 processor @ 3 GHz and a RAID-0 made of
-          four SATA disks spinning at 7200 RPM, and using GNU/Linux with an
-          XFS filesystem.  The script used for the benchmarks is available in
-          <literal>bench/optimal-chunksize.py</literal>.  Before each
-          measurement, the OS cache has been emptied in order to remove its
-          effects.</para>
+          two SATA disks spinning at 7200 RPM, and using GNU/Linux with an XFS
+          filesystem.  The script used for the benchmarks is available in
+          <literal>bench/optimal-chunksize.py</literal>.</para>
 
           <para>In figures <xref linkend="createTime-chunksize"
-          xrefstyle="select: labelnumber" />, <xref
-          linkend="fileSizes-chunksize" xrefstyle="select: labelnumber" />,
-          <xref linkend="seqTime-chunksize" xrefstyle="select: labelnumber" />
-          and <xref linkend="randomTime-chunksize" xrefstyle="select:
-          labelnumber" />, you can see how the chunksize affects different
-          aspects, like creation time, file sizes, sequential read time and
-          random read time.  As you can see, if you properly inform PyTables
-          about the extent of your datasets, you will get an automatic
-          chunksize value (128 KB in this case) that is pretty optimal for
-          most of uses.  However, if what you want is, for example, optimize
-          the creation time when using the Zlib compressor, you may want to
-          reduce the chunksize to 32 KB (see <xref
-          linkend="createTime-chunksize" xrefstyle="select: label" />).  On
-          the contrary, if your goal is to optimize the random access time for
-          an uncompressed dataset, you may want to increase the chunksize up
-          to 1 MB (see <xref linkend="randomTime-chunksize" xrefstyle="select:
-          label"/>).
+          xrefstyle="select: labelnumber" />,
+          <xref linkend="fileSizes-chunksize" xrefstyle="select: labelnumber"
+          />, <xref linkend="seqTime-chunksize" xrefstyle="select:
+          labelnumber" /> and <xref linkend="randomTime-chunksize"
+          xrefstyle="select: labelnumber" />, you can see how the chunksize
+          affects different aspects, like creation time, file sizes,
+          sequential read time and random read time.  So, if you properly
+          inform PyTables about the extent of your datasets, you will get an
+          automatic chunksize value (256 KB in this case) that is pretty
+          optimal for most of uses.  However, if what you want is, for
+          example, optimize the creation time when using the Zlib compressor,
+          you may want to reduce the chunksize to 32 KB (see
+          <xref linkend="createTime-chunksize" xrefstyle="select: label" />).
+          Or, if your goal is to optimize the sequential access time for an
+          dataset compressed with Blosc, you may want to increase the
+          chunksize to 512 KB (see <xref linkend="seqTime-chunksize"
+          xrefstyle="select: label"/>).
           </para>
+
+          <para>You will notice that, by manually specifying the chunksize of
+          a leave you will not normally get a drastic increase in performance,
+          but at least, you have the opportunity to fine-tune such an
+          important parameter for improve performance.</para>
 
           <figure id="createTime-chunksize">
             <title>Creation time per element for a 15 GB EArray and different
@@ -12180,11 +12174,6 @@ array([ 8, 12])
             </mediaobject>
           </figure>
 
-          <para>As you see, by manually specifying the chunksize of a leave
-          you will not normally bring a drastic increase in performance, but
-          at least, you will have the opportunity to fine-tune such an
-          important parameter for your application.</para>
-
           <para>Finally, it is worth noting that adjusting the chunksize can
           be specially important if you want to access your dataset by blocks
           of certain dimensions.  In this case, it is normally a good idea to
@@ -12199,6 +12188,17 @@ array([ 8, 12])
 
       <section id="searchOptim">
         <title>Accelerating your searches</title>
+
+        <note>
+          <para>Many of the explanations and plots in this section and the
+            forthcoming ones still need to be updated to include Blosc (see
+            <biblioref linkend="BloscRef" />), the new and powerful compressor
+            added in PyTables 2.2 series.  You should expect it to be the
+            fastest compressor among all the described here, and its use is
+            strongly recommended whenever you need extreme speed and not a
+            very high compression ratio.
+          </para>
+        </note>
 
         <para>Searching in tables is one of the most common and time consuming
         operations that a typical user faces in the process of mining through
@@ -13282,11 +13282,12 @@ indexrows = table.cols.var3.createIndex()</screen>
         Psyco), the use of Psyco will only help in rather few scenarios.  In
         fact, the only important situation that you might benefit right now
         from using Psyco (I mean, in PyTables contexts) is for speeding-up the
-        write speed in tables when using the Row interface (see <xref
-        linkend="RowClassDescr" />).  But again, this latter case can also be
-        accelerated by using the Table.append() (see <xref
-        linkend="Table.append" />) method and building your own
-        buffers.</para>
+        write speed in tables when using the Row interface (see
+        <xref linkend="RowClassDescr" />).  But again, this latter case can
+        also be accelerated by using the Table.append() (see
+        <xref linkend="Table.append" />) method and building your own
+        buffers <footnote><para>So, there is not much point in using Psyco
+        with recent versions of PyTables anymore</para></footnote>.</para>
 
         <para>As an example, imagine that you have a small script that reads
         and selects data over a series of datasets, like this:</para>
@@ -16552,7 +16553,8 @@ NestedRecArray[
      --complevel=(0-9) -- Set a compression level (0 for no compression, which
          is the default).
      --complib=lib -- Set the compression library to be used during the copy.
-         lib can be set to "zlib", "lzo" or "bzip2". Defaults to "zlib".
+         lib can be set to "zlib", "lzo", "bzip2" or "blosc".  Defaults to
+         "zlib".
      --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
          if complevel>0).
      --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter

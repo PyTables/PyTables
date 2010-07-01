@@ -5,8 +5,8 @@ from indexed_search import DB
 import psycopg2 as db2
 
 CLUSTER_NAME = "base"
-#DATA_DIR = "/scratch/faltet/postgres/%s" % CLUSTER_NAME
-DATA_DIR = "/var/lib/pgsql/data/%s" % CLUSTER_NAME
+DATA_DIR = "/scratch2/postgres/data/%s" % CLUSTER_NAME
+#DATA_DIR = "/var/lib/pgsql/data/%s" % CLUSTER_NAME
 DSN = "dbname=%s port=%s"
 CREATE_DB = "createdb %s"
 DROP_DB = "dropdb %s"

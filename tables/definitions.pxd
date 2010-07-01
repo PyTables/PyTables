@@ -506,5 +506,5 @@ cdef extern from "typeconv.h":
                               int sense)
 
 # Blosc registration
-cdef extern from "H5Zblosc.h":
+cdef extern from "blosc_filter.h":
   int register_blosc(char **version, char **date)

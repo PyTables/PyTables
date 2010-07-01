@@ -241,7 +241,7 @@ def main():
     usage = """usage: %s [-h] [-v] [-o] [-R start,stop,step] [--non-recursive] [--dest-title=title] [--dont-create-sysattrs] [--dont-copy-userattrs] [--overwrite-nodes] [--complevel=(0-9)] [--complib=lib] [--shuffle=(0|1)] [--fletcher32=(0|1)] [--keep-source-filters] [--chunkshape=value] [--upgrade-flavors] [--dont-regenerate-old-indexes] [--sortby=column] [--checkCSI] [--propindexes] sourcefile:sourcegroup destfile:destgroup
      -h -- Print usage message.
      -v -- Show more information.
-     -o -- Overwite destination file.
+     -o -- Overwrite destination file.
      -R RANGE -- Select a RANGE of rows (in the form "start,stop,step")
          during the copy of *all* the leaves.  Default values are
          "None,None,1", which means a copy of all the rows.
@@ -255,7 +255,8 @@ def main():
      --complevel=(0-9) -- Set a compression level (0 for no compression, which
          is the default).
      --complib=lib -- Set the compression library to be used during the copy.
-         lib can be set to "zlib", "lzo" or "bzip2". Defaults to "zlib".
+         lib can be set to "zlib", "lzo", "bzip2" or "blosc".  Defaults to
+         "zlib".
      --shuffle=(0|1) -- Activate or not the shuffling filter (default is active
          if complevel>0).
      --fletcher32=(0|1) -- Whether to activate or not the fletcher32 filter

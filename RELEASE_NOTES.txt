@@ -9,7 +9,27 @@
 Changes from 2.2rc2 to 2.2 (final)
 ==================================
 
-- None yet.
+- Updated Blosc to 1.0 (final).
+
+- Filter ID of Blosc changed from wrong 32010 to reserved 32001.  This
+  will prevent PyTables 2.2 (final) to read files created with Blosc and
+  PyTables 2.2 pre-final.  `ptrepack` can be used to retrieve those
+  files, if necessary.  More info in ticket #281.
+
+- Recent benchmarks suggest a new parametrization is better in most
+  scenarios:
+
+  * The default chunksize has been doubled for every dataset size.  This
+    works better in most of scenarios, specially with the new Blosc
+    compressor.
+
+  * The HDF5 CHUNK_CACHE_SIZE parameter has been raised to 2 MB in order
+    to better adapt to the chunksize increase.  This provides better hit
+    ratio (at the cost of consuming more memory).
+
+  Some plots have been added to the User's Manual (chapter 5) showing
+  how the new parametrization works.
+
 
 Changes from 2.2rc1 to 2.2rc2
 =============================
@@ -28,9 +48,10 @@ Changes from 2.2rc1 to 2.2rc2
   renamed to `BUFFER_TIMES` which is more consistent with other
   parameter names.
 
-- On Windows platforms, the `sys.path` directory is added now to the
-  PATH environment variable.  That way DLLs in `sys.path` are to be
-  found now.  Thanks to Christoph Gohlke for the hint.
+- On Windows platforms, the path to the tables module is now appended to
+  sys.path and the PATH environment variable. That way DLLs and PYDs in
+  the tables directory are to be found now.  Thanks to Christoph Gohlke
+  for the hint.
 
 - A replacement for barriers for Mac OSX, or other systems not
   implementing them, has been carried out.  This allows to compile

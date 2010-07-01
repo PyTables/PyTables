@@ -573,7 +573,8 @@ for (package, complibs) in [
         complibs.extend([hdf5_package.library_name, package.library_name])
 
 # List of Blosc file dependencies
-blosc_files = ["blosc/blosc.c", "blosc/blosclz.c", "blosc/shuffle.c"]
+blosc_files = ["blosc/blosc.c", "blosc/blosclz.c", "blosc/shuffle.c",
+               "blosc/blosc_filter.c"]
 
 extensions = [
     Extension( "tables.utilsExtension",
@@ -583,7 +584,6 @@ extensions = [
                          "src/utils.c",
                          "src/H5ARRAY.c",
                          "src/H5ATTR.c",
-                         "src/H5Zblosc.c",
                          ] + blosc_files,
                library_dirs=lib_dirs,
                libraries=utilsExtension_libs,
@@ -600,7 +600,6 @@ extensions = [
                          "src/H5ARRAY-opt.c",
                          "src/H5VLARRAY.c",
                          "src/H5ATTR.c",
-                         "src/H5Zblosc.c",
                          ] + blosc_files,
                library_dirs=lib_dirs,
                libraries=hdf5Extension_libs,
@@ -615,7 +614,6 @@ extensions = [
                          "src/typeconv.c",
                          "src/H5TB-opt.c",
                          "src/H5ATTR.c",
-                         "src/H5Zblosc.c",
                          ] + blosc_files,
                library_dirs=lib_dirs,
                libraries=tableExtension_libs,

@@ -2164,46 +2164,6 @@ class FlavorTestCase(common.TempFileMixin, common.PyTablesTestCase):
                                   % (node._v_pathname, node.flavor) )
 
 
-class OldFlavorTestCase(common.PyTablesTestCase):
-    h5fname = 'old-flavors.h5'
-    old_flavors = {  # old_flavor -> (new_flavor, data)
-        'Int': ('python', 1),
-        'Float': ('python', 1.0),
-        'String': ('python', ['foo']),  # slightly different
-        'List': ('python', [1]),
-        'Tuple': ('python', [1]),  # slightly different
-        'VLString': ('python', ['foo']),
-        'Object': ('python', [{}]) }
-    if 'numeric' in tables.flavor.all_flavors:
-        import Numeric
-        old_flavors['Numeric'] = ('numeric', Numeric.array([1]))
-        del Numeric
-    if 'numarray' in tables.flavor.all_flavors:
-        import numarray
-        import numarray.strings
-        old_flavors['NumArray'] = ('numarray', numarray.array([1]))
-        old_flavors['CharArray'] = ( 'numarray',
-                                     numarray.strings.array(['foo']) )
-        del numarray
-
-    def test(self):
-        """Opening a file with old flavors."""
-
-        h5fname = self._testFilename(self.h5fname)
-        h5file = tables.openFile(h5fname, 'r')
-        try:
-            for (old_flavor, (new_flavor, data)) in self.old_flavors.items():
-                common.verbosePrint(
-                    "* Checking old flavor ``%s``." % old_flavor )
-                node = h5file.getNode('/%s' % old_flavor)
-                self.assertEqual(node.flavor, new_flavor)
-                node_data = node.read()
-                self.assertEqual(type(node_data), type(data))
-                self.assert_(common.allequal(node_data, data, new_flavor))
-        finally:
-            h5file.close()
-
-
 class UnicodeFilename(common.PyTablesTestCase):
     unicode_prefix = u'para\u0140lel'
 
@@ -2265,8 +2225,8 @@ class BloscBigEndian(common.PyTablesTestCase):
         """Checking compatibility with Blosc on big-endian machines."""
 
         # Check that we can read the contents without problems (nor warnings!)
-        a = numpy.arange(10, dtype='i4')
         for dset_name in ('i1', 'i2', 'i4', 'i8'):
+            a = numpy.arange(10, dtype=dset_name)
             dset = self.fileh.getNode('/'+dset_name)
             self.assert_(common.allequal(a, dset[:]),
                          "Error in big-endian data!")
@@ -2287,7 +2247,6 @@ def suite():
         theSuite.addTest(unittest.makeSuite(PythonAttrsTestCase))
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
-        theSuite.addTest(unittest.makeSuite(OldFlavorTestCase))
         theSuite.addTest(unittest.makeSuite(BloscBigEndian))
 
     return theSuite

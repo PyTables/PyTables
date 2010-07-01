@@ -86,7 +86,7 @@ def calc_chunksize(expectedsizeinMB):
     zone = int(math.log10(expectedsizeinMB))
     expectedsizeinMB = 10**zone
     chunksize = csformula(expectedsizeinMB)
-    return chunksize*4     # XXX: Multiply by 4 seems optimal for
+    return chunksize*8     # XXX: Multiply by 8 seems optimal for
                            # sequential access
 
 

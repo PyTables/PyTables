@@ -76,7 +76,9 @@ def suite():
                   (Numeric.__version__, min_numeric_version)
         test_modules.append("tables.tests.test_Numeric")
     else:
-        print "Skipping Numeric test suite."
+        pass
+        # Do not print this anymore
+        #print "Skipping Numeric test suite."
 
     # Add test_numarray only if numarray is installed
     if common.numarray_imported:
@@ -92,8 +94,10 @@ def suite():
         test_modules.append("tables.nra.tests.test_nestedrecords")
         test_modules.append("tables.nra.tests.test_nriterators")
     else:
-        print "Skipping numarray test suite."
-    print '-=' * 38
+        pass
+        # Do not print this anymore
+        #print "Skipping numarray test suite."
+    #print '-=' * 38
 
 
     # The test for garbage must be run *in the last place*.

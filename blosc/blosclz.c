@@ -272,7 +272,7 @@ int blosclz_compress(int opt_level, const void* input,
     len = ip - anchor;
 
     /* check that we have space enough to encode the match for all the cases */
-    if (op+(len/255)+6 > op_limit) goto out;
+    if (BLOSCLZ_UNEXPECT_CONDITIONAL(op+(len/255)+6 > op_limit)) goto out;
 
     /* encode the match */
     if(distance < MAX_DISTANCE) {
@@ -320,21 +320,21 @@ int blosclz_compress(int opt_level, const void* input,
 
     continue;
 
-    literal:
-      if (op+2 > op_limit) goto out;
-      *op++ = *anchor++;
-      ip = anchor;
-      copy++;
-      if(BLOSCLZ_UNEXPECT_CONDITIONAL(copy == MAX_COPY)) {
-        copy = 0;
-        *op++ = MAX_COPY-1;
-      }
+  literal:
+    if (BLOSCLZ_UNEXPECT_CONDITIONAL(op+2 > op_limit)) goto out;
+    *op++ = *anchor++;
+    ip = anchor;
+    copy++;
+    if(BLOSCLZ_UNEXPECT_CONDITIONAL(copy == MAX_COPY)) {
+      copy = 0;
+      *op++ = MAX_COPY-1;
+    }
   }
 
   /* left-over as literal copy */
   ip_bound++;
   while(ip <= ip_bound) {
-    if (op+2 > op_limit) goto out;
+    if (BLOSCLZ_UNEXPECT_CONDITIONAL(op+2 > op_limit)) goto out;
     *op++ = *ip++;
     copy++;
     if(copy == MAX_COPY) {

@@ -11,13 +11,13 @@
 #define BLOSC_H
 
 /* Version numbers */
-#define BLOSC_VERSION_MAJOR    0    /* for major interface/format changes  */
-#define BLOSC_VERSION_MINOR    9    /* for minor interface/format changes  */
-#define BLOSC_VERSION_RELEASE  5    /* for tweaks, bug-fixes, or development */
+#define BLOSC_VERSION_MAJOR    1    /* for major interface/format changes  */
+#define BLOSC_VERSION_MINOR    0    /* for minor interface/format changes  */
+#define BLOSC_VERSION_RELEASE  0    /* for tweaks, bug-fixes, or development */
 
-#define BLOSC_VERSION_STRING   "0.9.5"  /* string version.  Sync with above! */
-#define BLOSC_VERSION_REVISION "$Rev: 159 $"   /* revision version */
-#define BLOSC_VERSION_DATE     "2010-06-09"    /* date version */
+#define BLOSC_VERSION_STRING   "1.0"  /* string version.  Sync with above! */
+#define BLOSC_VERSION_REVISION "$Rev: 213 $"   /* revision version */
+#define BLOSC_VERSION_DATE     "2010-07-01"    /* date version */
 
 /* The *_VERS_FORMAT should be just 1-byte long */
 #define BLOSC_VERSION_FORMAT    2   /* Blosc format version, starting at 1 */
@@ -62,12 +62,12 @@ int blosc_set_nthreads(int nthreads);
   `src` buffer.  This is mainly useful for the shuffle preconditioner.
   Only a typesize > 1 will allow the shuffle to work.
 
-  The `dest` buffer must have at least the size of `maxbytes`.  Blosc
-  guarantees that if you set `maxbytes` to, at least,
+  The `dest` buffer must have at least the size of `destsize`.  Blosc
+  guarantees that if you set `destsize` to, at least,
   (`nbytes`+BLOSC_MAX_OVERHEAD), the compression will always succeed.
   The `src` buffer and the `dest` buffer can not overlap.
 
-  If `src` buffer cannot be compressed into `maxbytes`, the return
+  If `src` buffer cannot be compressed into `destsize`, the return
   value is zero and you should discard the contents of the `dest`
   buffer.
 
@@ -76,14 +76,14 @@ int blosc_set_nthreads(int nthreads);
   together with the buffer data causing this and compression settings.
 
   Compression is memory safe and guaranteed not to write the `dest`
-  buffer more than what is specified in `maxbytes`.  However, it is
+  buffer more than what is specified in `destsize`.  However, it is
   not re-entrant and not thread-safe (despite the fact that it uses
-  threads internally ;-)
+  threads internally).
  */
 
 unsigned int blosc_compress(int clevel, int doshuffle, size_t typesize,
                             size_t nbytes, const void *src, void *dest,
-                            size_t maxbytes);
+                            size_t destsize);
 
 
 /**
@@ -96,9 +96,9 @@ unsigned int blosc_compress(int clevel, int doshuffle, size_t typesize,
   The `src` buffer and the `dest` buffer can not overlap.
 
   Decompression is memory safe and guaranteed not to write the `dest`
-  buffer more than what is specified in `dest_size`.  However, it is
+  buffer more than what is specified in `destsize`.  However, it is
   not re-entrant and not thread-safe (despite the fact that it uses
-  threads internally ;-)
+  threads internally).
 */
 
 unsigned int blosc_decompress(const void *src, void *dest, size_t destsize);
