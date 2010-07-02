@@ -2,34 +2,13 @@
  Announcing PyTables @VERSION@
 ===========================
 
-I'm happy to announce PyTables Pro 2.2 (final).  After 18 months of
-continuous development and testing, this is, by far, the most powerful
-and well-tested release ever.  I hope you like it too.
+#XXX some general blurb XXX#
 
 
 What's new
 ==========
 
-The main new features in 2.2 series are:
-
-  * A new compressor called Blosc, designed to read/write data to/from
-    memory at speeds that can be faster than a system `memcpy()` call.
-    With it, many internal PyTables operations that are currently
-    bounded by CPU or I/O bandwith are speed-up.  Some benchmarks:
-    http://blosc.pytables.org/trac/wiki/SyntheticBenchmarks
-
-  * A new `tables.Expr` module (based on Numexpr) that allows to do
-    persistent, on-disk computations on many algebraic operations.
-    For a brief look on its performance, see:
-    http://pytables.org/moin/ComputingKernel
-
-  * Support for HDF5 hard links, soft links and automatic external links
-    (kind of mounting external filesystems).  A new tutorial about its
-    usage has been added to the 'Tutorials' chapter of User's Manual.
-
-  * Suport for 'fancy' indexing (i.e., à la NumPy) in all the data
-    containers in PyTables.  Backported from the implementation in the
-    h5py project.  Thanks to Andrew Collette for his fine work on this!
+        #XXX version-specific blurb XXX#
 
 As always, a large amount of bugs have been addressed and squashed too.
 
@@ -39,7 +18,7 @@ http://www.pytables.org/moin/ReleaseNotes/Release_@VERSION@
 
 You can download a source package with generated PDF and HTML docs, as
 well as binaries for Windows, from:
-http://www.pytables.org/download/preliminary
+http://www.pytables.org/download/stable
 
 For an on-line version of the manual, visit:
 http://www.pytables.org/docs/manual-@VERSION@
@@ -61,7 +40,7 @@ gigarows (10**10 rows) in less than 1 tenth of a second.
 Resources
 =========
 
-About PyTables:
+About PyTables Pro:
 
 http://www.pytables.com/moin/PyTablesPro
 

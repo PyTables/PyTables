@@ -6,6 +6,12 @@
 :Contact: faltet@pytables.org
 
 
+Changes from 2.2 to 2.2.1
+=========================
+
+- (None yet.)
+
+
 Changes from 2.2rc2 to 2.2 (final)
 ==================================
 
