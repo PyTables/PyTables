@@ -1701,11 +1701,6 @@ Wrong 'sequence' parameter type. Only sequences are suported.""")
                 # To support negative values
                 key += self.nrows
             (start, stop, step) = self._processRange(key, key+1, 1)
-            # For the scalar case, convert the Record and return it as a tuple
-            # Fixes bug #972534
-            # Reverted to return a numpy.void in order
-            # to support better the nested datatypes
-            # return self.tolist(self.read(start, stop, step)[0])
             return self.read(start, stop, step)[0]
         elif isinstance(key, slice):
             (start, stop, step) = self._processRange(

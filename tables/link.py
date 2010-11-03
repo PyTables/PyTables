@@ -27,7 +27,7 @@ Misc variables:
     __version__
 
 """
-
+import os
 import tables as t
 from tables import linkExtension
 from tables.node import Node
@@ -249,6 +249,13 @@ if are_extlinks_available:
                 'data2/test2.h5'        # belongs to referenced file
             """
             filename, target = self._get_filename_node()
+
+            if not os.path.isabs(filename):
+                # Resolve the external link with respect to the this
+                # file's directory.  See #306.
+                base_directory = os.path.dirname(self._v_file.filename)
+                filename = os.path.join(base_directory, filename)
+
             # Open the external file and save a reference to it
             self.extfile = t.openFile(filename, **kwargs)
             return self.extfile._getNode(target)

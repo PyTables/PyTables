@@ -31,7 +31,7 @@ from numexpr.necompiler import (
 from numexpr.expressions import functions as numexpr_functions
 from tables.utilsExtension import lrange, getIndices
 from tables.exceptions import PerformanceWarning
-from tables.parameters import IO_BUFFER_SIZE
+from tables.parameters import IO_BUFFER_SIZE, BUFFER_TIMES
 
 
 class Expr(object):
@@ -347,8 +347,11 @@ class Expr(object):
 
         # Compute the rowsize for the *leading* dimension
         shape_ = list(object_.shape)
-        expectedrows = shape_[0]
-        shape_[0] = 1
+        if shape_:
+            expectedrows = shape_[0]
+            shape_[0] = 1
+        else:
+            expectedrows = 0
         rowsize = np.prod(shape_) * object_.dtype.itemsize
 
         # Compute the nrowsinbuf
@@ -361,7 +364,7 @@ class Expr(object):
         if nrowsinbuf == 0:
             nrowsinbuf = 1
             # If rowsize is too large, issue a Performance warning
-            maxrowsize = self.BUFFERTIMES * buffersize
+            maxrowsize = BUFFER_TIMES * buffersize
             if rowsize > maxrowsize:
                 warnings.warn("""\
 The object ``%s`` is exceeding the maximum recommended rowsize (%d
@@ -389,7 +392,8 @@ value of dimensions that are orthogonal (and preferably close) to the
             if hasattr(val, "maindim"):
                 maindims.append(val.maindim)
         if maxndim == 0:
-            raise ValueError("No arrays detected")
+            self._single_row_out = out = self._compiled_expr(*self.values)
+            return (), None
         if maindims and [maindims[0]]*len(maindims) == maindims:
             # If all maindims detected are the same, use this as maindim
             maindim = maindims[0]
@@ -428,11 +432,15 @@ value of dimensions that are orthogonal (and preferably close) to the
         # Compute the shape of the resulting container having
         # in account new possible values of start, stop and step in
         # the inputs range
-        (start, stop, step) = getIndices(
-            slice(self.start, self.stop, self.step), shape[maindim])
-        shape[maindim] = min(
-            shape[maindim], lrange(start, stop, step).length)
-        i_nrows = shape[maindim]
+        if maindim is not None:
+            (start, stop, step) = getIndices(
+                self.start, self.stop, self.step, shape[maindim])
+            shape[maindim] = min(
+                shape[maindim], lrange(start, stop, step).length)
+            i_nrows = shape[maindim]
+        else:
+            start, stop, step = 0, 0, None
+            i_nrows = 0
 
         if not itermode:
             # Create a container for output if not defined yet
@@ -440,7 +448,10 @@ value of dimensions that are orthogonal (and preferably close) to the
             if self.out is None:
                 out = np.empty(shape, dtype=self._single_row_out.dtype)
                 # Get the trivial values for start, stop and step
-                (o_start, o_stop, o_step) = (0, shape[maindim], 1)
+                if maindim is not None:
+                    (o_start, o_stop, o_step) = (0, shape[maindim], 1)
+                else:
+                    (o_start, o_stop, o_step) = (0, 0, 1)
             else:
                 out = self.out
                 # Out container already provided.  Do some sanity checks.
@@ -452,8 +463,7 @@ value of dimensions that are orthogonal (and preferably close) to the
                 # the output range
                 o_shape = list(out.shape)
                 (o_start, o_stop, o_step) = getIndices(
-                    slice(self.o_start, self.o_stop, self.o_step),
-                    o_shape[o_maindim])
+                    self.o_start, self.o_stop, self.o_step, o_shape[o_maindim])
                 o_shape[o_maindim] = min(o_shape[o_maindim],
                                          lrange(o_start, o_stop, o_step).length)
                 o_nrows = o_shape[o_maindim]
@@ -461,8 +471,11 @@ value of dimensions that are orthogonal (and preferably close) to the
                 # Check that the shape of output is consistent with inputs
                 tr_oshape = list(o_shape)   # this implies a copy
                 olen_ = tr_oshape.pop(o_maindim)
-                tr_shape = shape[:]           # do a copy
-                len_ = tr_shape.pop(o_maindim)
+                tr_shape = list(shape)      # do a copy
+                if maindim is not None:
+                    len_ = tr_shape.pop(o_maindim)
+                else:
+                    len_ = 1
                 if tr_oshape != tr_shape:
                     raise ValueError(
                         "Shape for out container does not match expression")

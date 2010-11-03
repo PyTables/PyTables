@@ -65,7 +65,8 @@ def check_import(pkgname, pkgver):
     globals()[pkgname] = mod
 
 check_import('numpy', min_numpy_version)
-check_import('numexpr', min_numexpr_version)
+# Do not check for numexpr yet and let's setuptools to download it (see #298)
+#check_import('numexpr', min_numexpr_version)
 
 # Check if Cython is installed or not
 try:
@@ -250,7 +251,7 @@ if os.name == 'posix':
         'LZO2': ['lzo2'],
         'LZO': ['lzo'],
         'BZ2': ['bz2'],
-        'PTHREADS': ['pthread'], }
+        }
 elif os.name == 'nt':
     _Package = WindowsPackage
     _platdep = {  # package tag -> platform-dependent components
@@ -258,12 +259,11 @@ elif os.name == 'nt':
         'LZO2': ['lzo2', 'lzo2'],
         'LZO': ['liblzo', 'lzo1'],
         'BZ2': ['bzip2', 'bzip2'],
-        'PTHREADS': ['pthreadvc2', 'pthreadvc2'], }
+        }
     # Copy the next DLL's to binaries by default.
     # Update these paths for your own system!
     dll_files = ['\\windows\\system\\zlib1.dll',
                  '\\windows\\system\\szip.dll',
-                 '\\windows\\system\\pthreadvc2.dll',
                  ]
     if '--debug' in sys.argv:
         _platdep['HDF5'] = ['hdf5ddll', 'hdf5ddll']
@@ -272,8 +272,6 @@ hdf5_package = _Package("HDF5", 'HDF5', 'H5public', *_platdep['HDF5'])
 lzo2_package = _Package("LZO 2", 'LZO2', _cp('lzo/lzo1x'), *_platdep['LZO2'])
 lzo1_package = _Package("LZO 1", 'LZO', 'lzo1x', *_platdep['LZO'])
 bzip2_package = _Package("bzip2", 'BZ2', 'bzlib', *_platdep['BZ2'])
-pthreads_package = _Package("pthreads", 'PTHREADS', 'pthread',
-                            *_platdep['PTHREADS'])
 
 
 #-----------------------------------------------------------------
@@ -290,7 +288,6 @@ if os.name == 'nt':
 HDF5_DIR = os.environ.get('HDF5_DIR', '')
 LZO_DIR = os.environ.get('LZO_DIR', '')
 BZIP2_DIR = os.environ.get('BZIP2_DIR', '')
-PTHREADS_DIR = os.environ.get('PTHREADS_DIR', '')
 LFLAGS = os.environ.get('LFLAGS', '').split()
 # in GCC-style compilers, -w in extra flags will get rid of copious
 # 'uninitialized variable' Cython warnings. However, this shouldn't be
@@ -312,9 +309,6 @@ for arg in args:
         sys.argv.remove(arg)
     elif arg.find('--bzip2=') == 0:
         BZIP2_DIR = expanduser(arg.split('=')[1])
-        sys.argv.remove(arg)
-    elif arg.find('--pthreads=') == 0:
-        PTHREADS_DIR = expanduser(arg.split('=')[1])
         sys.argv.remove(arg)
     elif arg.find('--lflags=') == 0:
         LFLAGS = arg.split('=')[1].split()
@@ -343,7 +337,7 @@ for (package, location) in [
     (lzo2_package, LZO_DIR),
     (lzo1_package, LZO_DIR),
     (bzip2_package, BZIP2_DIR),
-    (pthreads_package, PTHREADS_DIR), ]:
+    ]:
 
     if package.tag == 'LZO' and lzo2_enabled:
         print ( "* Skipping detection of %s since %s has already been found."
@@ -353,7 +347,7 @@ for (package, location) in [
     (hdrdir, libdir, rundir) = package.find_directories(location)
 
     if not (hdrdir and libdir):
-        if package.tag in ['HDF5', 'PTHREADS']:  # these are compulsory!
+        if package.tag in ['HDF5']:  # these are compulsory!
             pname, ptag = package.name, package.tag
             exit_with_error(
                 "Could not find a local %s installation." % pname,
@@ -383,7 +377,7 @@ for (package, location) in [
         else:
             lib_dirs.append(libdir)
 
-    if package.tag not in ['HDF5', 'PTHREADS']:
+    if package.tag not in ['HDF5']:
         # Keep record of the optional libraries found.
         optional_libs.append(package.tag)
         def_macros.append(('HAVE_%s_LIB' % package.tag, 1))
@@ -489,7 +483,11 @@ if has_setuptools:
     setuptools_kwargs['zip_safe'] = False
 
     # ``NumPy`` headers are needed for building the extensions.
-    setuptools_kwargs['setup_requires'] = ['numpy>=%s' % min_numpy_version]
+    # ``Numexpr`` is not exactly needed for building, but it might help
+    # making PyTables for easy_installable.  Address #298.
+    setuptools_kwargs['setup_requires'] = \
+                                        ['numpy>=%s' % min_numpy_version,
+                                         'numexpr>=%s' % min_numexpr_version]
     # ``NumPy`` and ``Numexpr`` are absolutely required for running PyTables.
     setuptools_kwargs['install_requires'] = \
                                           ['numpy>=%s' % min_numpy_version,
@@ -554,7 +552,7 @@ if os.name == "nt":
     data_files.extend([('Lib/site-packages/%s'%name, dll_files),
                        ])
 
-ADDLIBS = [hdf5_package.library_name, pthreads_package.library_name]
+ADDLIBS = [hdf5_package.library_name, ]
 utilsExtension_libs = LIBS + ADDLIBS
 hdf5Extension_libs = LIBS + ADDLIBS
 tableExtension_libs = LIBS + ADDLIBS

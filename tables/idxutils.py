@@ -506,10 +506,21 @@ def IntTypeNextAfter(x, direction, itemsize):
             return int(PyNextAfter(x,x+1))+1
 
 
+def BoolTypeNextAfter(x, direction, itemsize):
+    "Return the next representable neighbor of x in the appropriate direction."
+    assert direction in [-1, +1]
+
+    # x is guaranteed to be either a boolean
+    if direction < 0:
+        return False
+    else:
+        return True
+
+
 def nextafter(x, direction, dtype, itemsize):
     "Return the next representable neighbor of x in the appropriate direction."
     assert direction in [-1, 0, +1]
-    assert dtype.kind == "S" or type(x) in (int, long, float)
+    assert dtype.kind == "S" or type(x) in (bool, int, long, float)
 
     if direction == 0:
         return x
@@ -517,7 +528,9 @@ def nextafter(x, direction, dtype, itemsize):
     if dtype.kind == "S":
         return StringNextAfter(x, direction, itemsize)
 
-    if dtype.kind in ['i', 'u']:
+    if dtype.kind in ['b']:
+        return BoolTypeNextAfter(x, direction, itemsize)
+    elif dtype.kind in ['i', 'u']:
         return IntTypeNextAfter(x, direction, itemsize)
     elif dtype.name == "float32":
         if direction < 0:

@@ -621,7 +621,7 @@ fileh.close()</screen>
 
               <listitem>
                 <para><literal>setup.py</literal> will detect
-                <literal>HDF5</literal>, <literal>pthreads</literal>,
+                <literal>HDF5</literal>,
                 <literal>LZO</literal>, or <literal>bzip2</literal> libraries
                 and include files under <literal>/usr</literal>
                 or <literal>/usr/local</literal>; this will cover most manual
@@ -633,7 +633,7 @@ fileh.close()</screen>
                 library installed and want to use a particular one, then you
                 can set the path to the resource in the environment, by
                 setting the values of the <literal>HDF5_DIR</literal>,
-                <literal>PTHREADS_DIR</literal>, <literal>LZO_DIR</literal>,
+                <literal>LZO_DIR</literal>,
                 or <literal>BZIP2_DIR</literal> environment variables to the
                 path to the particular resource. You may also specify the
                 locations of the resource root directories on the
@@ -697,15 +697,14 @@ fileh.close()</screen>
                 and <emphasis>header</emphasis> (<literal>.h</literal>) files
                 are installed. You can set the path to the
                 <literal>include</literal> and <literal>dll</literal>
-                directories for the HDF5 and pthreads-win32 (mandatory) and
+                directories for the HDF5 (mandatory) and
                 LZO or BZIP2 (optional) libraries in the environment, by
                 setting the values of the <literal>HDF5_DIR</literal>,
-                <literal>PTHREADS_DIR</literal>, <literal>LZO_DIR</literal>,
+                <literal>LZO_DIR</literal>,
                 or <literal>BZIP2_DIR</literal> environment variables to the
                 path to the particular resource.  For example:</para>
 
                 <screen>set HDF5_DIR=c:\stuff\hdf5-1.8.5-32bit-VS2008-IVF101\release
-set PTHREADS_DIR=c:\stuff\pthreads-w32-2-8-0\Pre-built.2
 set LZO_DIR=c:\Program Files (x86)\GnuWin32
 set BZIP2_DIR=c:\Program Files (x86)\GnuWin32</screen>
 
@@ -714,7 +713,6 @@ set BZIP2_DIR=c:\Program Files (x86)\GnuWin32</screen>
                 For example:</para>
 
                 <screen>--hdf5=c:\stuff\hdf5-1.8.5-32bit-VS2008-IVF101\release
---pthreads=c:\stuff\pthreads-w32-2-8-0\Pre-built.2
 --lzo=c:\Program Files (x86)\GnuWin32
 --bzip2=c:\Program Files (x86)\GnuWin32</screen>
               </listitem>
@@ -900,7 +898,7 @@ python -c "import tables; tables.test()"</screen>
           Numexpr 1.3 or higher installed (PyTables binaries have been built
           using NumPy 1.4.1 and Numexpr 1.3.1).  The binaries already include
           DLLs for HDF5 (1.6.10, 1.8.5), zlib1 (1.2.3), szlib (2.0,
-          uncompression support only), bzip2 (1.0.5) and pthreads for Windows
+          uncompression support only) and bzip2 (1.0.5) for Windows
           (2.8.0).  The LZO DLL can't be included because of license issues
           (but read below for directives to install it if you want so).</para>
 

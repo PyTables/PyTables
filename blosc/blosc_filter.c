@@ -93,13 +93,14 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
     int i;
     herr_t r;
 
-    unsigned int typesize;
+    unsigned int typesize, basetypesize;
     unsigned int bufsize;
     hsize_t chunkdims[32];
-
     unsigned int flags;
     size_t nelements = 8;
     unsigned int values[] = {0,0,0,0,0,0,0,0};
+    hid_t super_type;
+    H5T_class_t class;
 
     r = GET_FILTER(dcpl, FILTER_BLOSC, &flags, &nelements, values, 0, NULL);
     if(r<0) return -1;
@@ -119,10 +120,28 @@ herr_t blosc_set_local(hid_t dcpl, hid_t type, hid_t space){
 
     typesize = H5Tget_size(type);
     if (typesize==0) return -1;
-    values[2] = typesize;
+    /* Get the size of the base type, even for ARRAY types */
+    class = H5Tget_class(type);
+    if (class == H5T_ARRAY) {
+      /* Get the array base component */
+      super_type = H5Tget_super(type);
+      basetypesize = H5Tget_size(super_type);
+      /* Release resources */
+      H5Tclose(super_type);
+    }
+    else {
+      basetypesize = typesize;
+    }
 
+    /* Limit large typesizes (they are pretty inneficient to shuffle
+       and, in addition, Blosc does not handle typesizes larger than
+       blocksizes). */
+    if (basetypesize > BLOSC_MAX_TYPESIZE) basetypesize = 1;
+    values[2] = basetypesize;
+
+    /* Get the size of the chunk */
     bufsize = typesize;
-    for(i=0;i<ndims;i++){
+    for (i=0; i<ndims; i++) {
         bufsize *= chunkdims[i];
     }
     values[3] = bufsize;

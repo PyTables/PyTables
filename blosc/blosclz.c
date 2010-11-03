@@ -20,7 +20,7 @@
 
 #if defined(_WIN32) && !defined(__MINGW32__)
   #include <windows.h>
-  #include "stdint-windows.h"
+  #include "win32/stdint-windows.h"
 #else
   #include <stdint.h>
 #endif  /* _WIN32 */
@@ -86,9 +86,9 @@
 #endif
 
 
-BLOSCLZ_INLINE size_t hash_function(uint8_t* p, uint8_t hash_log)
+BLOSCLZ_INLINE uint32_t hash_function(uint8_t* p, uint8_t hash_log)
 {
-  size_t v;
+  uint32_t v;
 
   v = BLOSCLZ_READU16(p);
   v ^= BLOSCLZ_READU16(p+1)^(v>>(16-hash_log));
@@ -115,14 +115,14 @@ int blosclz_compress(int opt_level, const void* input,
   uint16_t *htab;
   uint8_t* op_limit;
 
-  size_t hslot;
-  size_t hval;
-  size_t copy;
+  uint32_t hslot;
+  uint32_t hval;
+  uint8_t copy;
 
-  float maxlength_[10] = {-1, .1, .15, .2, .5, .7, .85, .925, .975, 1.0};
-  size_t maxlength = (size_t) (length * maxlength_[opt_level]);
-  if (maxlength > (size_t) maxout) {
-    maxlength = (size_t) maxout;
+  double maxlength_[10] = {-1, .1, .15, .2, .5, .7, .85, .925, .975, 1.0};
+  uint32_t maxlength = (uint32_t) (length * maxlength_[opt_level]);
+  if (maxlength > (uint32_t) maxout) {
+    maxlength = (uint32_t) maxout;
   }
   op_limit = op + maxlength;
 
@@ -161,8 +161,8 @@ int blosclz_compress(int opt_level, const void* input,
   /* main loop */
   while(BLOSCLZ_EXPECT_CONDITIONAL(ip < ip_limit)) {
     const uint8_t* ref;
-    size_t distance;
-    size_t len = 3;         /* minimum match length */
+    uint32_t distance;
+    uint32_t len = 3;         /* minimum match length */
     uint8_t* anchor = ip;  /* comparison starting-point */
 
     /* check for a run */
@@ -177,10 +177,10 @@ int blosclz_compress(int opt_level, const void* input,
     hval = hash_function(ip, hash_log);
     ref = ibase + htab[hval];
     /* update hash table */
-    htab[hval] = anchor - ibase;
+    htab[hval] = (uint16_t)(anchor - ibase);
 
     /* calculate distance to the match */
-    distance = anchor - ref;
+    distance = (uint32_t)(anchor - ref);
 
     /* is this a match? check the first 3 bytes */
     if (distance==0 || (distance >= MAX_FARDISTANCE) ||
@@ -224,7 +224,7 @@ int blosclz_compress(int opt_level, const void* input,
         }
       }
       if (ip > ip_bound) {
-        long l = ip - ip_bound;
+        long l = (long)(ip - ip_bound);
         ip -= l;
         ref -= l;
       }   /* End of optimization */
@@ -248,7 +248,7 @@ int blosclz_compress(int opt_level, const void* input,
         }
         /* Last correction before exiting loop */
         if (ip > ip_bound) {
-          size_t l = ip - ip_bound;
+          uint32_t l = (uint32_t)(ip - ip_bound);
           ip -= l;
           ref -= l;
         }   /* End of optimization */
@@ -269,7 +269,7 @@ int blosclz_compress(int opt_level, const void* input,
 
     /* length is biased, '1' means a match of 3 bytes */
     ip -= 3;
-    len = ip - anchor;
+    len = (uint32_t)(ip - anchor);
 
     /* check that we have space enough to encode the match for all the cases */
     if (BLOSCLZ_UNEXPECT_CONDITIONAL(op+(len/255)+6 > op_limit)) goto out;
@@ -281,7 +281,7 @@ int blosclz_compress(int opt_level, const void* input,
         *op++ = (distance & 255);
       }
       else {
-        *op++ = (7 << 5) + (distance >> 8);
+        *op++ = (uint8_t)((7 << 5) + (distance >> 8));
         for(len-=7; len >= 255; len-= 255)
           *op++ = 255;
         *op++ = len;
@@ -292,9 +292,9 @@ int blosclz_compress(int opt_level, const void* input,
       /* far away, but not yet in the another galaxy... */
       if(len < 7) {
         distance -= MAX_DISTANCE;
-        *op++ = (len << 5) + 31;
+        *op++ = (uint8_t)((len << 5) + 31);
         *op++ = 255;
-        *op++ = distance >> 8;
+        *op++ = (uint8_t)(distance >> 8);
         *op++ = distance & 255;
       }
       else {
@@ -304,16 +304,16 @@ int blosclz_compress(int opt_level, const void* input,
           *op++ = 255;
         *op++ = len;
         *op++ = 255;
-        *op++ = distance >> 8;
+        *op++ = (uint8_t)(distance >> 8);
         *op++ = distance & 255;
       }
     }
 
     /* update the hash at match boundary */
     hval = hash_function(ip, hash_log);
-    htab[hval] = ip++ - ibase;
+    htab[hval] = (uint16_t)(ip++ - ibase);
     hval = hash_function(ip, hash_log);
-    htab[hval] = ip++ - ibase;
+    htab[hval] = (uint16_t)(ip++ - ibase);
 
     /* assuming literal copy */
     *op++ = MAX_COPY-1;
@@ -353,7 +353,7 @@ int blosclz_compress(int opt_level, const void* input,
   *(uint8_t*)output |= (1 << 5);
 
   free(htab);
-  return op - (uint8_t*)output;
+  return (int)(op - (uint8_t*)output);
 
  out:
   free(htab);
@@ -369,12 +369,12 @@ int blosclz_decompress(const void* input, int length, void* output, int maxout)
   uint8_t* op = (uint8_t*) output;
   uint8_t* op_limit = op + maxout;
   uint32_t ctrl = (*ip++) & 31;
-  size_t loop = 1;
+  uint32_t loop = 1;
 
   do {
     const uint8_t* ref = op;
-    size_t len = ctrl >> 5;
-    size_t ofs = (ctrl & 31) << 8;
+    uint32_t len = ctrl >> 5;
+    uint32_t ofs = (ctrl & 31) << 8;
 
     if(ctrl >= 32) {
       uint8_t code;
@@ -421,7 +421,7 @@ int blosclz_decompress(const void* input, int length, void* output, int maxout)
         /* copy from reference */
         ref--;
         len += 3;
-        if (abs(ref-op) <= (int)len) {
+        if (abs((int32_t)(ref-op)) <= (int32_t)len) {
           /* src and dst do overlap: do a loop */
           for(; len; --len)
             *op++ = *ref++;
@@ -459,5 +459,5 @@ int blosclz_decompress(const void* input, int length, void* output, int maxout)
     }
   } while(BLOSCLZ_EXPECT_CONDITIONAL(loop));
 
-  return op - (uint8_t*)output;
+  return (int)(op - (uint8_t*)output);
 }

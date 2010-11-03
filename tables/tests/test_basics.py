@@ -2232,6 +2232,56 @@ class BloscBigEndian(common.PyTablesTestCase):
                          "Error in big-endian data!")
 
 
+# Case test for Blosc and subprocesses (via multiprocessing module)
+
+# The worker function for the subprocess (needs to be here because Windows
+# has problems pickling nested functions with the multiprocess module :-/)
+def _worker(fn, qout = None):
+    fp = tables.openFile(fn)
+    if common.verbose:
+        print "About to load: ", fn
+    rows = fp.root.table.where('(f0 < 10)')
+    if common.verbose:
+        print "Got the iterator, about to iterate"
+    row = next(rows)
+    if common.verbose:
+        print "Succeeded in one iteration\n"
+    fp.close()
+
+    if qout is not None:
+        qout.put("Done")
+
+class BloscSubprocess(common.PyTablesTestCase):
+    def test_multiprocess(self):
+        import multiprocessing as mp
+
+        # Create a relatively large table with Blosc level 9 (large blocks)
+        fn = tempfile.mktemp(prefix="multiproc-blosc9-", suffix=".h5")
+        size = int(3e5)
+        sa = numpy.fromiter(((i, i**2, i/3) for i in xrange(size)), 'i4,i8,f8')
+        fp = openFile(fn, 'w')
+        fp.createTable(fp.root, 'table', sa,
+                       filters=Filters(complevel=9, complib="blosc"),
+                       chunkshape = (size // 3,))
+        fp.close()
+
+        if common.verbose:
+            print "**** Running from main process:"
+        _worker(fn)
+
+        if common.verbose:
+            print "**** Running from subprocess:"
+        qout = mp.Queue()
+        ps = mp.Process(target=_worker, args=(fn, qout,))
+        ps.daemon = True
+        ps.start()
+
+        result = qout.get()
+        if common.verbose:
+            print result
+
+        os.remove(fn)
+
 
 #----------------------------------------------------------------------
 
@@ -2248,6 +2298,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(StateTestCase))
         theSuite.addTest(unittest.makeSuite(FlavorTestCase))
         theSuite.addTest(unittest.makeSuite(BloscBigEndian))
+        theSuite.addTest(unittest.makeSuite(BloscSubprocess))
 
     return theSuite
 

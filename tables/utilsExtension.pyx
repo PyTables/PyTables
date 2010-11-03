@@ -498,13 +498,19 @@ def getNestedField(recarray, fieldname):
   return field
 
 
-def getIndices(object s, hsize_t length):
-  cdef hssize_t start, stop, step
+def getIndices(object start, object stop, object step, hsize_t length):
+  cdef hssize_t o_start, o_stop, o_step
   cdef hsize_t slicelength
+  cdef object s
 
-  if getIndicesExt(s, length, &start, &stop, &step, &slicelength) < 0:
+  # In order to convert possible numpy.integer values to long ones
+  if start is not None: start = long(start)
+  if stop is not None: stop = long(stop)
+  if step is not None: step = long(step)
+  s = slice(start, stop, step)
+  if getIndicesExt(s, length, &o_start, &o_stop, &o_step, &slicelength) < 0:
     raise ValueError("Problems getting the indices on slice '%s'" % s)
-  return (start, stop, step)
+  return (o_start, o_stop, o_step)
 
 
 def read_f_attr(hid_t file_id, char *attr_name):
@@ -614,7 +620,7 @@ sorry, only integer concrete values are supported at this moment""")
     if ename == NULL:
       raise HDF5ExtError(
         "failed to get element name from HDF5 enumerated type")
-    pyename = ename
+    pyename = str(ename)
     free(ename)
 
     if H5Tget_member_value(enumId, i, rbuf) < 0:

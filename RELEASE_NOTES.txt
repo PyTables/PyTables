@@ -6,10 +6,51 @@
 :Contact: faltet@pytables.org
 
 
-Changes from 2.2 to 2.2.1
-=========================
+Changes from 2.2 to 2.2.1rc1
+============================
 
-- (None yet.)
+- When using `ObjectAtom` objects in `VLArrays` the ``HIGHEST_PROTOCOL``
+  is used for pickling objects.  For NumPy arrays, this simple change
+  leads to space savings up to 3x and time improvements up to 30x.
+  Closes #301.
+
+- tables.Expr can perform operations on scalars now.  Thanks to Gaëtan
+  de Menten for providing a patch for this.  Closes #287.
+
+- Fixed a problem with indexes larger than 32-bit on leaf objects on
+  32-bit machines.  Fixes #283.
+
+- Merged in Blosc 1.1 for fixing a problem with large datatypes and
+  subprocess issues.  Closes #288 and #295.
+
+- Due to the adoption of Blosc 1.1, the pthreads-win32 library
+  dependency is dropped on Windows platforms.
+
+- Fixed a problem with tables.Expr and operands with vary large
+  rowsizes. Closes #300.
+
+- ``leaf[numpy.array[scalar]]`` idiom returns a NumPy array instead of
+  an scalar.  This has been done for compatibility with NumPy.  Closes
+  #303.
+
+- Optimization for `Table.copy()` so that ``FIELD_*`` attrs are not
+  overwritten during the copy.  This can lead to speed-ups up to 100x
+  for short tables that have hundreds of columns.  Closes #304.
+
+- For external links, its relative paths are resolved now with respect
+  to the directory of the main HDF5 file, rather than with respect to
+  the current directory.  Closes #306.
+
+- ``Expr.setInputsRange()`` and ``Expr.setOutputRange()`` do support
+  ``numpy.integer`` types now.  Closes #285.
+
+- Column names in tables can start with '__' now.  Closes #291.
+
+- Unicode empty strings are supported now as atributes.  Addresses #307.
+
+- Cython 0.13 and higher is supported now.  Fixes #293.
+
+- PyTables should be more 'easy_install'-able now.  Addresses #298.
 
 
 Changes from 2.2rc2 to 2.2 (final)

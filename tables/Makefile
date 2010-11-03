@@ -5,7 +5,7 @@ pyxext = $(wildcard *.pyx)
 genc = $(patsubst %.pyx, %.c, $(pyxext))
 
 # All the generated files
-GENERATED = $(genc) linkExtension.pyx
+GENERATED = $(genc)
 
 .PHONY:         dist clean
 
@@ -16,4 +16,4 @@ clean:
 
 
 %.c:            %.pyx
-	pyrexc "$<"
+	cython "$<"

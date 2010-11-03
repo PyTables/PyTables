@@ -210,7 +210,7 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         self.vars = {"a": self.a, "b": self.b, "c": self.c, "d": self.d,
                      "e": self.e, "f": self.f, "g": self.g,}
 
-    def test00_simple(self):
+    def test00a_simple(self):
         """Checking expressions with mixed objects"""
 
         expr = tb.Expr(self.expr, self.vars)
@@ -219,10 +219,24 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         if common.verbose:
             print "Computed expression:", repr(r1), r1.dtype
             print "Should look like:", repr(r2), r2.dtype
+
         self.assert_(common.areArraysEqual(r1, r2),
                      "Evaluate is returning a wrong value.")
 
-    def test01_out(self):
+    def test00b_simple_scalars(self):
+        """Checking that scalars in expression evaluate correctly"""
+
+        expr_str = "2*f+g"
+        expr = tb.Expr(expr_str, self.vars)
+        r1 = expr.eval()
+        r2 = eval(expr_str, self.npvars)
+        if common.verbose:
+            print "Computed expression:", repr(r1), r1.dtype
+            print "Should look like:", repr(r2), r2.dtype
+        self.assert_(r1.shape == r2.shape and r1.dtype == r2.dtype and r1 == r2,
+                     "Evaluate is returning a wrong value.")
+
+    def test01a_out(self):
         """Checking expressions with mixed objects (`out` param)"""
 
         expr = tb.Expr(self.expr, self.vars)
@@ -234,6 +248,30 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
             if type(r1) != type(self.rnda):
                 r1 = r1[:]
             r2 = eval(self.expr, self.npvars)
+            if common.verbose:
+                print "Computed expression:", repr(r1), r1.dtype
+                print "Should look like:", repr(r2), r2.dtype
+            self.assert_(common.areArraysEqual(r1, r2),
+                         "Evaluate is returning a wrong value.")
+
+    def test01b_out_scalars(self):
+        """Checking expressions with mixed objects (`out` param, scalars)"""
+
+        if len(self.shape) > 1:
+            # This test is only meant for undimensional outputs
+            return
+        expr_str = "2*f+g"
+        expr = tb.Expr(expr_str, self.vars)
+        for r1 in self.rnda, self.rarr, self.rcarr, self.rearr, self.rcol:
+            if common.verbose:
+                print "Checking output container:", type(r1)
+            expr.setOutput(r1)
+            r1 = expr.eval()
+            r1 = r1[()]  # convert a 0-dim array into a scalar
+            r2 = eval(expr_str, self.npvars)
+            if common.verbose:
+                print "Computed expression:", repr(r1), r1.dtype
+                print "Should look like:", repr(r2), r2.dtype
             self.assert_(common.areArraysEqual(r1, r2),
                          "Evaluate is returning a wrong value.")
 
@@ -272,6 +310,22 @@ class MixedContainersTestCase(common.TempFileMixin, common.PyTablesTestCase):
         """Checking mixed objects and start, stop, step (III)"""
 
         start, stop, step = (self.start, self.stop, self.step)
+        expr = tb.Expr(self.expr, self.vars)
+        expr.setInputsRange(start, stop, step)
+        r1 = expr.eval()
+        npvars = get_sliced_vars(self.npvars, start, stop, step)
+        r2 = eval(self.expr, npvars)
+        if common.verbose:
+            print "Computed expression:", repr(r1), r1.dtype
+            print "Should look like:", repr(r2), r2.dtype
+        self.assert_(common.areArraysEqual(r1, r2),
+                     "Evaluate is returning a wrong value.")
+
+    def test03_sss(self):
+        """Checking start, stop, step as numpy.int64"""
+
+        start, stop, step = [ np.int64(i) for i in
+                              (self.start, self.stop, self.step) ]
         expr = tb.Expr(self.expr, self.vars)
         expr.setInputsRange(start, stop, step)
         r1 = expr.eval()
@@ -447,11 +501,6 @@ class ExprError(common.TempFileMixin, common.PyTablesTestCase):
         vars_ = {"a": self.a, "b": self.b, "c": self.c,}
         expr = tb.Expr(expr, vars_)
         self.assertRaises(ValueError, expr.eval)
-
-    def test01_noarrays(self):
-        """Checking that non-arrays in expression are detected"""
-
-        self.assertRaises(ValueError, tb.Expr, "2*3+4")
 
     def test02_uint64(self):
         """Checking that uint64 arrays in expression are detected"""

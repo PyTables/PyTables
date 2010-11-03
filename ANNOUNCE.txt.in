@@ -2,13 +2,16 @@
  Announcing PyTables @VERSION@
 ===========================
 
-#XXX some general blurb XXX#
+This is maintenance release.  The updgrading is recommended for all that
+are running PyTables in production environments.
 
 
 What's new
 ==========
 
-        #XXX version-specific blurb XXX#
+Many fixes have been included, as well as a fair bunch of performance
+improvements.  Also, the Blosc compression library has been updated to
+1.1.1, in order to prevent locks in some scenarios.
 
 As always, a large amount of bugs have been addressed and squashed too.
 
