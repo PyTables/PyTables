@@ -5421,6 +5421,20 @@ class SpecialColnamesTestCase(common.TempFileMixin, common.PyTablesTestCase):
             self.assert_(name == name2)
 
 
+class RowContainsTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def test00_row_contains(self):
+        f = self.h5file
+        a = array([(1,2,3)], dtype="i1,i2,i4")
+        t = f.createTable(f.root, "test", a)
+        row = [r for r in t.iterrows()][0]
+        if common.verbose:
+            print "row -->", row[:]
+        for item in (1,2,3):
+            self.assert_(item in row)
+        self.assert_(4 not in row)
+
+
 #----------------------------------------------------------------------
 
 def suite():
@@ -5428,10 +5442,6 @@ def suite():
     niter = 1
     #common.heavy = 1  # uncomment this only for testing purposes
 
-    #theSuite.addTest(unittest.makeSuite(setItem1))
-    #theSuite.addTest(unittest.makeSuite(WhereAppendTestCase))
-    #theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
-    #theSuite.addTest(unittest.makeSuite(LargeRowSize))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicWriteTestCase))
         theSuite.addTest(unittest.makeSuite(OldRecordBasicWriteTestCase))
@@ -5492,6 +5502,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(MDLargeColReopen))
         theSuite.addTest(unittest.makeSuite(ExhaustedIter))
         theSuite.addTest(unittest.makeSuite(SpecialColnamesTestCase))
+        theSuite.addTest(unittest.makeSuite(RowContainsTestCase))
 
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressBzip2TablesTestCase))
