@@ -3,7 +3,7 @@ include *.txt THANKS
 exclude LICENSE-*.txt
 include setup.py setup.cfg VERSION Makefile
 
-recursive-include tables *.py *.pyx *.pxd *.pxi Makefile
+recursive-include tables *.py *.pyx *.pxd *.pxi *.c Makefile
 exclude tables/linkExtension.pyx   # depends on the HDF5 version
 recursive-include tables/tests *.h5
 recursive-include tables/nodes/tests *.h5 *.dat *.xbm

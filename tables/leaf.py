@@ -420,23 +420,18 @@ very small/large chunksize, you may want to increase/decrease it."""
     # This method is appropriate for calls to __getitem__ methods
     def _processRange(self, start, stop, step, dim=None, warn_negstep=True):
         if dim is None:
-            nrows = len(self)  # self.shape[self.maindim]
+            nrows = self.nrows  # self.shape[self.maindim]
         else:
             nrows = self.shape[dim]
 
         if warn_negstep and step and step < 0 :
             raise ValueError("slice step cannot be negative")
-        # In order to convert possible numpy.integer values to long ones
-        # F. Alted 2006-05-02
-        if start is not None: start = idx2long(start)
-        if stop is not None: stop = idx2long(stop)
-        if step is not None: step = idx2long(step)
         # (start, stop, step) = slice(start, stop, step).indices(nrows)
         # The next function is a substitute for slice().indices in order to
         # support full 64-bit integer for slices even in 32-bit machines.
         # F. Alted 2005-05-08
         (start, stop, step) = utilsExtension.getIndices(
-            slice(start, stop, step), long(nrows) )
+            start, stop, step, long(nrows) )
 
         return (start, stop, step)
 
@@ -531,27 +526,24 @@ very small/large chunksize, you may want to increase/decrease it."""
 
 
     def _pointSelection(self, key):
-        """Performs a point-wise selection.
+        """Perform a point-wise selection.
 
         `key` can be any of the following items:
 
-        * A boolean array with the same shape than self. Those
-          positions with True values will signal the coordinates to be
-          returned.
+        * A boolean array with the same shape than self. Those positions
+          with True values will signal the coordinates to be returned.
 
         * A numpy array (or list or tuple) with the point coordinates.
-          This has to be a two-dimensional array of size
-          len(self.shape) by num_elements containing a list of of
-          zero-based values specifying the coordinates in the dataset
-          of the selected elements. The order of the element
-          coordinates in the array specifies the order in which the
-          array elements are iterated through when I/O is
-          performed. Duplicate coordinate locations are not checked
-          for.
+          This has to be a two-dimensional array of size len(self.shape)
+          by num_elements containing a list of of zero-based values
+          specifying the coordinates in the dataset of the selected
+          elements. The order of the element coordinates in the array
+          specifies the order in which the array elements are iterated
+          through when I/O is performed. Duplicate coordinate locations
+          are not checked for.
 
-        Returns the coordinates array.  If this is not possible, raise
-        a `TypeError` so that the next selection method can be tried
-        out.
+        Return the coordinates array.  If this is not possible, raise a
+        `TypeError` so that the next selection method can be tried out.
 
         This is useful for whatever `Leaf` instance implementing a
         point-wise selection.

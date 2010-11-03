@@ -1845,13 +1845,10 @@ class getItemTestCase(unittest.TestCase):
         table = self.fileh.root.table0
         result = table[2]
         assert result["var2"] == 2
-        #assert result[1] == 2
         result = table[25]
         assert result["var2"] == 25
-        #assert result[1] == 25
         result = table[self.expectedrows-1]
         assert result["var2"] == self.expectedrows - 1
-        #assert result[1] == self.expectedrows - 1
 
     def test01b_singleItem(self):
         """Checking __getitem__ method with single parameter (neg. int)"""
@@ -1864,13 +1861,10 @@ class getItemTestCase(unittest.TestCase):
         table = self.fileh.root.table0
         result = table[-5]
         assert result["var2"] == self.expectedrows - 5
-        #assert result[1] == self.expectedrows - 5
         result = table[-1]
         assert result["var2"] == self.expectedrows - 1
-        #assert result[1] == self.expectedrows - 1
         result = table[-self.expectedrows]
         assert result["var2"] == 0
-        #assert result[1] == 0
 
     def test01c_singleItem(self):
         """Checking __getitem__ method with single parameter (long)"""
@@ -1883,13 +1877,10 @@ class getItemTestCase(unittest.TestCase):
         table = self.fileh.root.table0
         result = table[2]
         assert result["var2"] == 2
-        #assert result[1] == 2
         result = table[25]
         assert result["var2"] == 25
-        #assert result[1] == 25
         result = table[self.expectedrows-1]
         assert result["var2"] == self.expectedrows - 1
-        #assert result[1] == self.expectedrows - 1
 
     def test01d_singleItem(self):
         """Checking __getitem__ method with single parameter (neg. long)"""
@@ -1902,13 +1893,26 @@ class getItemTestCase(unittest.TestCase):
         table = self.fileh.root.table0
         result = table[-5]
         assert result["var2"] == self.expectedrows - 5
-        #assert result[1] == self.expectedrows - 5
         result = table[-1]
         assert result["var2"] == self.expectedrows - 1
-        #assert result[1] == self.expectedrows - 1
         result = table[-self.expectedrows]
         assert result["var2"] == 0
-        #assert result[1] == 0
+
+    def test01e_singleItem(self):
+        """Checking __getitem__ method with single parameter (rank-0 ints)"""
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test01e_singleItem..." % self.__class__.__name__
+
+        self.fileh = openFile(self.file, "r")
+        table = self.fileh.root.table0
+        result = table[array(2)]
+        assert result["var2"] == 2
+        result = table[array(25)]
+        assert result["var2"] == 25
+        result = table[array(self.expectedrows-1)]
+        assert result["var2"] == self.expectedrows - 1
 
     def test02_twoItems(self):
         """Checking __getitem__ method with start, stop parameters """
@@ -5194,14 +5198,14 @@ class PointSelectionTestCase(common.PyTablesTestCase):
                 "NumPy array and PyTables selections does not match.")
 
     def test01b_read(self):
-        """Test for point-selections (read, integer keys)."""
+        """Test for point-selections (read, tuples of integers keys)."""
         data = self.data
         recarr = self.recarr
         table = self.table
         for value1, value2 in self.limits:
             key = where((data >= value1) & (data < value2))
             if common.verbose:
-                print "Selection to test:", key
+                print "Selection to test:", key, type(key)
             a = recarr[key]
             b = table[key]
 #             if common.verbose:
@@ -5212,7 +5216,7 @@ class PointSelectionTestCase(common.PyTablesTestCase):
                 "NumPy array and PyTables selections does not match.")
 
     def test01c_read(self):
-        """Test for point-selections (read, float keys)."""
+        """Test for point-selections (read, tuples of floats keys)."""
         data = self.data
         recarr = self.recarr
         table = self.table
@@ -5223,6 +5227,42 @@ class PointSelectionTestCase(common.PyTablesTestCase):
             a = recarr[key]
             fkey = array(key,"f4")
             self.assertRaises(TypeError, table.__getitem__, fkey)
+
+    def test01d_read(self):
+        """Test for point-selections (read, numpy keys)."""
+        data = self.data
+        recarr = self.recarr
+        table = self.table
+        for value1, value2 in self.limits:
+            key = where((data >= value1) & (data < value2))[0]
+            if common.verbose:
+                print "Selection to test:", key, type(key)
+            a = recarr[key]
+            b = table[key]
+#             if common.verbose:
+#                 print "NumPy selection:", a
+#                 print "PyTables selection:", b
+            self.assert_(
+                alltrue(a == b),
+                "NumPy array and PyTables selections does not match.")
+
+    def test01e_read(self):
+        """Test for point-selections (read, list keys)."""
+        data = self.data
+        recarr = self.recarr
+        table = self.table
+        for value1, value2 in self.limits:
+            key = where((data >= value1) & (data < value2))[0].tolist()
+            if common.verbose:
+                print "Selection to test:", key, type(key)
+            a = recarr[key]
+            b = table[key]
+#             if common.verbose:
+#                 print "NumPy selection:", a
+#                 print "PyTables selection:", b
+            self.assert_(
+                alltrue(a == b),
+                "NumPy array and PyTables selections does not match.")
 
 
     def test02a_write(self):
@@ -5368,6 +5408,17 @@ class ExhaustedIter(common.PyTablesTestCase):
         self.assert_(scenario_means == [112.0, 112.0, 112.0])
 
 
+class SpecialColnamesTestCase(common.TempFileMixin, common.PyTablesTestCase):
+
+    def test00_check_names(self):
+        f = self.h5file
+        a = array([(1,2,3)], dtype=[("a", int), ("_b", int), ("__c", int)])
+        t = f.createTable(f.root, "test", a)
+        self.assert_(len(t.colnames) == 3, "Number of columns incorrect")
+        if common.verbose:
+            print "colnames -->", t.colnames
+        for name, name2 in zip(t.colnames, ("a", "_b", "__c")):
+            self.assert_(name == name2)
 
 
 #----------------------------------------------------------------------
@@ -5440,6 +5491,7 @@ def suite():
         theSuite.addTest(unittest.makeSuite(MDLargeColNoReopen))
         theSuite.addTest(unittest.makeSuite(MDLargeColReopen))
         theSuite.addTest(unittest.makeSuite(ExhaustedIter))
+        theSuite.addTest(unittest.makeSuite(SpecialColnamesTestCase))
 
     if common.heavy:
         theSuite.addTest(unittest.makeSuite(CompressBzip2TablesTestCase))

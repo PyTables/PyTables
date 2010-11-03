@@ -137,13 +137,13 @@ class BasicTestCase(unittest.TestCase):
         assert self.fletcher32 == vlarray.filters.fletcher32
 
 
-    def test02_getitem(self):
-        """Checking vlarray __getitem__"""
+    def test02a_getitem(self):
+        """Checking vlarray __getitem__ (slices)"""
 
         rootgroup = self.rootgroup
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running %s.test02_getitem..." % self.__class__.__name__
+            print "Running %s.test02a_getitem..." % self.__class__.__name__
 
         # Create an instance of an HDF5 Table
         self.fileh = openFile(self.file, "r")
@@ -185,6 +185,39 @@ class BasicTestCase(unittest.TestCase):
                     assert allequal(rows2[i], rows1f[i], self.flavor)
             elif self.flavor == "python":
                     assert rows2 == rows1
+
+
+    def test02b_getitem(self):
+        """Checking vlarray __getitem__ (scalars)"""
+
+        rootgroup = self.rootgroup
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test02b_getitem..." % self.__class__.__name__
+
+        if self.flavor != "numpy":
+            # This test is only valid for NumPy
+            return
+
+        # Create an instance of an HDF5 Table
+        self.fileh = openFile(self.file, "r")
+        vlarray = self.fileh.getNode("/vlarray1")
+
+        # Get a numpy array of objects
+        rows = numpy.array(vlarray[:], dtype=numpy.object)
+
+        for slc in [ 0, numpy.array(1), 2, numpy.array([3]), [4] ]:
+            # Read the rows in slc
+            rows2 = vlarray[slc]
+            rows1 = rows[slc]
+            if common.verbose:
+                print "Flavor:", vlarray.flavor
+                print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+                print "Original rows ==>", rows1
+                print "Rows read in vlarray ==>", rows2
+
+            for i in range(len(rows1)):
+                assert allequal(rows2[i], rows1[i], self.flavor)
 
 
     def test03_append(self):
@@ -1246,12 +1279,12 @@ class TypesTestCase(unittest.TestCase):
         assert len(row[0]) == 3
         assert len(row[1]) == 5
 
-    def test06_Object(self):
+    def test06a_Object(self):
         """Checking vlarray with object atoms """
 
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running %s.test06_Object..." % self.__class__.__name__
+            print "Running %s.test06a_Object..." % self.__class__.__name__
 
         vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
         vlarray.append([[1,2,3], "aaa", u"aaaççç"])
@@ -1287,17 +1320,19 @@ class TypesTestCase(unittest.TestCase):
 
         if common.verbose:
             print '\n', '-=' * 30
-            print "Running %s.test06_Object..." % self.__class__.__name__
+            print "Running %s.test06b_Object..." % self.__class__.__name__
 
         vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
-        vlarray.append(([1,2,3], "aaa", u"aaaççç"))
         # When updating an object, this seems to change the number
         # of bytes that cPickle.dumps generates
+        #vlarray.append(([1,2,3], "aaa", u"aaaççç"))
+        vlarray.append(([1,2,3], "aaa", u"çç4"))
         #vlarray.append([3,4, C()])
         vlarray.append([3,4, [24]])
 
         # Modify the rows
-        vlarray[0] = ([1,2,4], "aa4", u"aaaçç4")
+        #vlarray[0] = ([1,2,4], "aa4", u"aaaçç4")
+        vlarray[0] = ([1,2,4], "aa4", u"çç5")
         #vlarray[1] = (3,4, C())
         vlarray[1] = [4,4, [24]]
 
@@ -1315,7 +1350,7 @@ class TypesTestCase(unittest.TestCase):
             print "First row in vlarray ==>", row[0]
 
         assert vlarray.nrows == 2
-        assert row[0] == ([1,2,4], "aa4", u"aaaçç4")
+        assert row[0] == ([1,2,4], "aa4", u"çç5")
         list1 = list(row[1])
         obj = list1.pop()
         assert list1 == [4,4]
@@ -1323,6 +1358,73 @@ class TypesTestCase(unittest.TestCase):
         assert obj == [24]
         assert len(row[0]) == 3
         assert len(row[1]) == 3
+
+    def test06c_Object(self):
+        """Checking vlarray with object atoms (numpy arrays as values)"""
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06c_Object..." % self.__class__.__name__
+
+        vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
+        vlarray.append(numpy.array([[1,2], [0,4]], 'i4'))
+        vlarray.append(numpy.array([0,1,2,3], 'i8'))
+        vlarray.append(numpy.array(42, 'i1'))
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
+
+        # Read all the rows:
+        row = vlarray.read()
+        if common.verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row[0]
+
+        self.assert_(vlarray.nrows == 3)
+        assert allequal(row[0], numpy.array([[1,2], [0,4]], 'i4'))
+        assert allequal(row[1], numpy.array([0,1,2,3], 'i8'))
+        assert allequal(row[2], numpy.array(42, 'i1'))
+
+    def test06d_Object(self):
+        """Checking updating vlarray with object atoms (numpy arrays)"""
+
+        if common.verbose:
+            print '\n', '-=' * 30
+            print "Running %s.test06d_Object..." % self.__class__.__name__
+
+        vlarray = self.fileh.createVLArray('/', "Object", ObjectAtom())
+        vlarray.append(numpy.array([[1,2], [0,4]], 'i4'))
+        vlarray.append(numpy.array([0,1,2,3], 'i8'))
+        vlarray.append(numpy.array(42, 'i1'))
+
+        # Modify the rows.  Since PyTables 2.2.1 we use a binary
+        # pickle for arrays and ObjectAtoms, so the next should take
+        # the same space than the above.
+        vlarray[0] = numpy.array([[1,0], [0,4]], 'i4')
+        vlarray[1] = numpy.array([0,1,0,3], 'i8')
+        vlarray[2] = numpy.array(22, 'i1')
+
+        if self.reopen:
+            name = vlarray._v_pathname
+            self.fileh.close()
+            self.fileh = openFile(self.file, "r")
+            vlarray = self.fileh.getNode(name)
+
+        # Read all the rows:
+        row = vlarray.read()
+        if common.verbose:
+            print "Object read:", row
+            print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
+            print "First row in vlarray ==>", row[0]
+
+        assert vlarray.nrows == 3
+        assert allequal(row[0], numpy.array([[1,0], [0,4]], 'i4'))
+        assert allequal(row[1], numpy.array([0,1,0,3], 'i8'))
+        assert allequal(row[2], numpy.array(22, 'i1'))
 
     def test07_VLUnicodeAtom(self):
         """Checking vlarray with variable length Unicode strings"""
@@ -2702,7 +2804,8 @@ class GetItemRangeTestCase(unittest.TestCase):
         # Read some rows:
         row = []
         row.append(vlarray[0])
-        row.append(vlarray[10])
+        # rank-0 array should work as a regular index (see #303)
+        row.append(vlarray[numpy.array(10)])
         row.append(vlarray[99])
         if common.verbose:
             print "Nrows in", vlarray._v_pathname, ":", vlarray.nrows
@@ -2713,8 +2816,8 @@ class GetItemRangeTestCase(unittest.TestCase):
         assert len(row[1]) == 10
         assert len(row[2]) == 99
         assert allequal(row[0], numpy.arange(0, dtype='int32'))
-        assert allequal(row[1], numpy.arange(10, dtype='int32'))
-        assert allequal(row[2], numpy.arange(99, dtype='int32'))
+        assert allequal(row[numpy.array(1)], numpy.arange(10, dtype='int32'))
+        assert allequal(row[numpy.array([2])], numpy.arange(99, dtype='int32'))
 
     def test01b_start(self):
         "Checking reads with only a start value in a slice"
@@ -4074,15 +4177,17 @@ class PointSelectionTestCase(common.PyTablesTestCase):
 
         # The next are valid selections for both NumPy and PyTables
         self.working_keyset = [
+            [],                    # empty list
+            [2],                   # single-entry list
             [0,2],                 # list
             [0,-2],                # negative values
             ([0,2],),              # tuple of list
-            numpy.array([True,False, True]),   # array of bools
-            [],                                # empty list
             numpy.array([], dtype="i4"),       # empty array
+            numpy.array([1], dtype="i4"),      # single-entry array
+            numpy.array([True,False, True]),   # array of bools
             ]
 
-        # The next are valid selections for VLArrays
+        # The next are invalid selections for VLArrays
         self.not_working_keyset = [
             [1,2,100],               # coordinate 100 > len(vlarray)
             ([True,False, True],),   # tuple of bools
@@ -4117,9 +4222,9 @@ class PointSelectionTestCase(common.PyTablesTestCase):
                 print "Selection to test:", `key`
             a = nparr[key].tolist()
             b = vlarr[key]
-#             if common.verbose:
-#                 print "NumPy selection:", a
-#                 print "PyTables selection:", b
+            # if common.verbose:
+            #     print "NumPy selection:", a, type(a)
+            #     print "PyTables selection:", b, type(b)
             self.assert_(
                 repr(a) == repr(b),
                 "NumPy array and PyTables selections does not match.")
@@ -4142,11 +4247,6 @@ def suite():
     global numeric
     niter = 1
 
-    #theSuite.addTest(unittest.makeSuite(NumericFlavorTestCase))
-    #theSuite.addTest(unittest.makeSuite(BasicNumericTestCase))
-    #theSuite.addTest(unittest.makeSuite(SetRangeTestCase))
-    #theSuite.addTest(unittest.makeSuite(CopyIndex3TestCase))
-    #theSuite.addTest(unittest.makeSuite(MDTypesNumPyTestCase))
     for n in range(niter):
         theSuite.addTest(unittest.makeSuite(BasicNumPyTestCase))
         theSuite.addTest(unittest.makeSuite(BasicPythonTestCase))

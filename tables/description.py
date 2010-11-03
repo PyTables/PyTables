@@ -400,7 +400,7 @@ class Description(object):
 
         # Check for special variables and convert column descriptions
         for (name, descr) in classdict.items():
-            if (name.startswith('__') or name.startswith('_v_')):
+            if name.startswith('_v_'):
                 if name in newdict:
                     #print "Warning!"
                     # special methods &c: copy to newdict, warn about conflicts

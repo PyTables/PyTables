@@ -1109,7 +1109,7 @@ class ObjectAtom(_BufferedAtom):
     base = UInt8Atom()
 
     def _tobuffer(self, object_):
-        return cPickle.dumps(object_, 0)
+        return cPickle.dumps(object_, cPickle.HIGHEST_PROTOCOL)
 
     def fromarray(self, array):
         # We have to check for an empty array because of a possible

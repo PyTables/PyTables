@@ -46,8 +46,11 @@ def is_idx(index):
 
     if type(index) in (int,long):
         return True
-    elif hasattr(index, "__index__"):  # Only works on Python 2.5 on
-        try:                           # (as per PEP 357)
+    elif hasattr(index, "__index__"):  # Only works on Python 2.5 (PEP 357)
+        # Exclude the array([idx]) as working as an index.  Fixes #303.
+        if (hasattr(index, "shape") and index.shape != ()):
+            return False
+        try:
             idx = index.__index__()
             return True
         except TypeError:
@@ -55,8 +58,7 @@ def is_idx(index):
     elif isinstance(index, numpy.integer):
         return True
     # For Python 2.4 one should test 0-dim and 1-dim, 1-elem arrays as well
-    elif (isinstance(index, numpy.ndarray) and
-          (index.shape == () or index.shape == (1,)) and
+    elif (isinstance(index, numpy.ndarray) and (index.shape == ()) and
           index.dtype.str[1] == 'i'):
         return True
 
@@ -66,9 +68,9 @@ def is_idx(index):
 def idx2long(index):
     """Convert a possible index into a long int"""
 
-    if is_idx(index):
+    try:
         return long(index)
-    else:
+    except:
         raise TypeError, "not an integer type."
 
 

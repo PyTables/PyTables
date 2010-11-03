@@ -349,6 +349,9 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
                 # The documentation contains a note on this issue,
                 # explaining how the user can tell where the problem was.
                 retval = value
+            # Additional check for allowing a workaround for #307
+            if type(retval) is unicode and retval == u'':
+                retval = numpy.array(retval)[()]
         elif name == 'FILTERS' and format_version >= (2, 0):
             retval = Filters._unpack(value)
         else:
@@ -388,8 +391,12 @@ class AttributeSet(hdf5Extension.AttributeSet, object):
         # Fixes ticket #59
         if (stvalue is value and
             type(value) in (bool, str, int, float, complex, unicode)):
-            stvalue = numpy.array(value)
-            value = stvalue[()]
+            # Additional check for allowing a workaround for #307
+            if type(value) is unicode and value == u'':
+                value = numpy.array(value)[()]
+            else:
+                stvalue = numpy.array(value)
+                value = stvalue[()]
 
         self._g_setAttr(self._v_node, name, stvalue)
 
@@ -598,7 +605,12 @@ be ready to see PyTables asking for *lots* of memory and possibly slow I/O"""
                 setAttr(attrname, getattr(self, attrname))
         # Copy the system attributes that we are allowed to.
         for attrname in self._v_attrnamessys:
-            if ((attrname not in SYS_ATTRS_NOTTOBECOPIED) and copysysattrs):
+            if (copysysattrs and
+                (attrname not in SYS_ATTRS_NOTTOBECOPIED) and
+                # Do not copy the FIELD_ atributes in tables as this can
+                # be really *slow* (don't know exactly the reason).
+                # See #304.
+                not attrname.startswith("FIELD_")):
                 setAttr(attrname, getattr(self, attrname))
 
 

@@ -1176,7 +1176,7 @@ class TypesTestCase(unittest.TestCase):
         """Checking setting unicode attributes (scalar case)"""
 
         self.array.attrs.pq = u'para\u0140lel'
-        self.array.attrs.qr = u'bar'
+        self.array.attrs.qr = u''                 # check #213
         self.array.attrs.rs = u'baz'
 
         # Check the results
@@ -1199,7 +1199,7 @@ class TypesTestCase(unittest.TestCase):
         assert isinstance(self.array.attrs.qr, numpy.unicode_)
         assert isinstance(self.array.attrs.rs, numpy.unicode_)
         assert self.array.attrs.pq == u'para\u0140lel'
-        assert self.array.attrs.qr == u'bar'
+        assert self.array.attrs.qr == u''
         assert self.array.attrs.rs == u'baz'
 
 

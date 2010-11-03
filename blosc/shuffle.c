@@ -13,7 +13,7 @@
 
 #if defined(_WIN32) && !defined(__MINGW32__)
   #include <windows.h>
-  #include "stdint-windows.h"
+  #include "win32/stdint-windows.h"
   #define __SSE2__          /* Windows does not define this by default */
 #else
   #include <stdint.h>
@@ -236,7 +236,7 @@ shuffle16(uint8_t* dest, uint8_t* src, size_t size)
 /* Shuffle a block.  This can never fail. */
 void shuffle(size_t bytesoftype, size_t blocksize,
              uint8_t* _src, uint8_t* _dest) {
-  int unaligned_dest = (uintptr_t)_dest % 16;
+  int unaligned_dest = (int)((uintptr_t)_dest % 16);
   int power_of_two = (blocksize & (blocksize - 1)) == 0;
   int too_small = (blocksize < 256);
 
@@ -449,8 +449,8 @@ unshuffle16(uint8_t* dest, uint8_t* orig, size_t size)
 /* Unshuffle a block.  This can never fail. */
 void unshuffle(size_t bytesoftype, size_t blocksize,
                uint8_t* _src, uint8_t* _dest) {
-  int unaligned_src = (uintptr_t)_src % 16;
-  int unaligned_dest = (uintptr_t)_dest % 16;
+  int unaligned_src = (int)((uintptr_t)_src % 16);
+  int unaligned_dest = (int)((uintptr_t)_dest % 16);
   int power_of_two = (blocksize & (blocksize - 1)) == 0;
   int too_small = (blocksize < 256);
 
