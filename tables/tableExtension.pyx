@@ -1293,9 +1293,13 @@ cdef class Row:
 
 
   def __contains__(self, item):
-    raise (NotImplementedError,
-           "You cannot use a Row instance this way. "
-           "Use `Table.colnames` or `Table.colpathnames` better.")
+    """Is `item` in this row?
+
+    A true value is returned if `item` is found in current row, false
+    otherwise.
+
+    """
+    return item in self.fetch_all_fields()
 
 
   # This method is twice as faster than __getattr__ because there is

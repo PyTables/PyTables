@@ -8241,6 +8241,15 @@ table.flush()</screen>
             <title><literal>Row</literal> special methods</title>
 
             <section>
+              <title>__contains__(item)</title>
+
+              <para>Is <literal>item</literal> in this row?</para>
+
+              <para>A true value is returned if <literal>item</literal> is
+                found in current row, false otherwise.</para>
+            </section>
+
+            <section>
               <title>__getitem__(key)</title>
 
               <para>Get the row field specified by the
