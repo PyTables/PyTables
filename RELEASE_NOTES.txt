@@ -30,10 +30,10 @@ Changes from 2.2 to 2.2.1rc1
 - Fixed a problem with indexes larger than 32-bit on leaf objects on
   32-bit machines.  Fixes #283.
 
-- Merged in Blosc 1.1 for fixing a problem with large datatypes and
+- Merged in Blosc 1.1.2 for fixing a problem with large datatypes and
   subprocess issues.  Closes #288 and #295.
 
-- Due to the adoption of Blosc 1.1, the pthreads-win32 library
+- Due to the adoption of Blosc 1.1.2, the pthreads-win32 library
   dependency is dropped on Windows platforms.
 
 - Fixed a problem with tables.Expr and operands with vary large

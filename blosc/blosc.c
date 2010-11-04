@@ -531,6 +531,11 @@ int32_t compute_blocksize(int32_t clevel, uint32_t typesize, int32_t nbytes)
 {
   uint32_t blocksize;
 
+  /* Protection against very small buffers */
+  if (nbytes < typesize) {
+    return 1;
+  }
+
   blocksize = nbytes;           /* Start by a whole buffer as blocksize */
 
   if (force_blocksize) {
@@ -568,7 +573,9 @@ int32_t compute_blocksize(int32_t clevel, uint32_t typesize, int32_t nbytes)
   }
 
   /* blocksize must be a multiple of the typesize */
-  blocksize = blocksize / typesize * typesize;
+  if (blocksize > typesize) {
+    blocksize = blocksize / typesize * typesize;
+  }
 
   return blocksize;
 }

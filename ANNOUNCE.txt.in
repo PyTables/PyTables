@@ -11,7 +11,7 @@ What's new
 
 Many fixes have been included, as well as a fair bunch of performance
 improvements.  Also, the Blosc compression library has been updated to
-1.1.1, in order to prevent locks in some scenarios.
+1.1.2, in order to prevent locks in some scenarios.
 
 As always, a large amount of bugs have been addressed and squashed too.
 
