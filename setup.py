@@ -19,12 +19,11 @@ from distutils.core     import Extension
 from distutils.dep_util import newer
 from distutils.util     import convert_path
 
-# The minimum version of NumPy required
-min_numpy_version = '1.3'
-# The minimum version of Numexpr required
-min_numexpr_version = '1.3'
-# The minimum version of Cython required for compiling the extensions
-min_cython_version = '0.12.1'
+# The minimum required versions
+# (keep these in sync with tables.req_versions and user's guide and README)
+min_numpy_version = '1.4.1'
+min_numexpr_version = '1.4.1'
+min_cython_version = '0.13'
 
 # Some functions for showing errors and warnings.
 def _print_admonition(kind, head, body):
@@ -65,8 +64,6 @@ def check_import(pkgname, pkgver):
     globals()[pkgname] = mod
 
 check_import('numpy', min_numpy_version)
-# Do not check for numexpr yet and let's setuptools to download it (see #298)
-#check_import('numexpr', min_numexpr_version)
 
 # Check if Cython is installed or not
 try:
@@ -483,11 +480,7 @@ if has_setuptools:
     setuptools_kwargs['zip_safe'] = False
 
     # ``NumPy`` headers are needed for building the extensions.
-    # ``Numexpr`` is not exactly needed for building, but it might help
-    # making PyTables for easy_installable.  Address #298.
-    setuptools_kwargs['setup_requires'] = \
-                                        ['numpy>=%s' % min_numpy_version,
-                                         'numexpr>=%s' % min_numexpr_version]
+    setuptools_kwargs['setup_requires'] = ['numpy>=%s' % min_numpy_version]
     # ``NumPy`` and ``Numexpr`` are absolutely required for running PyTables.
     setuptools_kwargs['install_requires'] = \
                                           ['numpy>=%s' % min_numpy_version,

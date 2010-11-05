@@ -6,6 +6,23 @@
 :Contact: faltet@pytables.org
 
 
+Changes from 2.2.1rc1 to 2.2.1
+==============================
+
+- The `Row` accessor implements a new `__contains__` special method that
+  allows doing things like::
+
+    for row in table:
+        if item in row:
+            print "Value found in row", row.nrow
+            break
+
+  Closes #309.
+
+- PyTables is more friendly with easy_install and pip now, as all the
+  Python dependencies should be installed automatically.  Closes #298.
+
+
 Changes from 2.2 to 2.2.1rc1
 ============================
 
