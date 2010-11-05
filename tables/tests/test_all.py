@@ -7,17 +7,11 @@ import os
 import re
 import unittest
 
-# Recommended minimum versions for optional packages
-min_hdf5_version = (1,6,5)  # necessary for allowing 1.6.10 > 1.6.5
-min_numpy_version = "1.3"
-min_numexpr_version = "1.3"
-min_numeric_version = "24.2"
-min_numarray_version = "1.5.2"
-
 import numpy
 
 import numexpr
 import tables
+from tables.req_versions import *
 from tables.tests import common
 from tables.utils import detectNumberOfCores
 

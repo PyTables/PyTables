@@ -39,7 +39,20 @@ import os, os.path
 import sys
 import weakref
 
-import numexpr
+from tables.req_versions import *
+
+# Check for Numexpr presence (aboslute requisite)
+try:
+    import numexpr
+    if numexpr.__version__ < min_numexpr_version:
+        print \
+"*Warning*: Numexpr version is lower than recommended: %s < %s" % \
+            (numexpr.__version__, min_numexpr_version)
+except ImportError:
+        print \
+"*Fatal error*: You need Numexpr >= %s for running PyTables!" % \
+                  (min_numexpr_version)
+        sys.exit(1)
 
 import tables.misc.proxydict
 from tables import hdf5Extension
