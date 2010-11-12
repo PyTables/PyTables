@@ -250,6 +250,9 @@ class Index(NotLoggedMixin, indexesExtension.Index, Group):
         "Whether we should try to build a completely sorted index or not.")
 
     def _is_CSI(self):
+        if self.nelements == 0:
+            # An index with 0 indexed elements is not a CSI one (by definition)
+            return False
         if self.indsize < 8:
             # An index that is not full cannot be completely sorted
             return False

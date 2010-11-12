@@ -9,7 +9,8 @@
 Changes from 2.2.1 to 2.2.2
 ===========================
 
-- (None yet.)
+- Indexes with no elements are now evaluated as non-CSI ones.  Closes
+  #312.
 
 
 Changes from 2.2.1rc1 to 2.2.1
