@@ -9,6 +9,9 @@
 Changes from 2.2 to 2.3b1
 =========================
 
+- Indexes with no elements are now evaluated as non-CSI ones.  Closes
+  #312.
+
 - When using `ObjectAtom` objects in `VLArrays` the ``HIGHEST_PROTOCOL``
   is used for pickling objects.  For NumPy arrays, this simple change
   leads to space savings up to 3x and time improvements up to 30x.

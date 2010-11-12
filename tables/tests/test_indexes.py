@@ -2197,6 +2197,16 @@ class CompletelySortedIndexTestCase(TempFileMixin, PyTablesTestCase):
                           table2.copy, "/", 'table3',
                           sortby="rcol", checkCSI=True)
 
+    def test07_isCSI_noelements(self):
+        """Testing the representation of an index with no elements."""
+        t2 = self.h5file.createTable('/', 't2', self.MyDescription)
+        irows = t2.cols.rcol.createCSIndex()
+        if verbose:
+            print "repr(t2)-->\n", repr(t2)
+        self.assert_(irows == 0)
+        self.assert_(t2.colindexes['rcol'].is_CSI == False)
+
+
 
 class readSortedIndexTestCase(TempFileMixin, PyTablesTestCase):
     """Test case for testing sorted reading in a "full" sorted column."""
