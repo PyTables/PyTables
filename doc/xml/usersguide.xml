@@ -80,6 +80,12 @@
       <holder>Francesc Alted</holder>
     </copyright>
 
+    <copyright>
+      <year>2011</year>
+
+      <holder>PyTables maintainers</holder>
+    </copyright>
+
     <legalnotice>
       <para><emphasis role="bold">Copyright Notice and Statement for
       <literal>PyTables</literal> User's Guide.
